@@ -12,7 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
-import type { ApiKey } from "./columns";
+import type { ApiKey } from "@/lib/api/api-keys";
 import DeleteApiKeyDialog from "./delete-api-key-dialog";
 
 interface ApiKeyActionsMenuProps {

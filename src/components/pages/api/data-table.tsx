@@ -40,8 +40,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import type { ApiKey } from "./columns";
+import type { ApiKey } from "@/lib/api/api-keys";
 import { ApiKeyItem } from "./api-key-item";
 
 interface DataTableProps<TData, TValue> {
@@ -143,7 +142,9 @@ export function DataTable<TData, TValue>({
 												key={header.id}
 												style={{
 													width:
-														header.getSize() !== 150 ? header.getSize() : undefined,
+														header.getSize() !== 150
+															? header.getSize()
+															: undefined,
 												}}
 											>
 												{header.isPlaceholder
@@ -195,9 +196,11 @@ export function DataTable<TData, TValue>({
 			) : (
 				<div className="space-y-2">
 					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<ApiKeyItem key={row.id} apiKey={row.original as ApiKey} />
-						))
+						table
+							.getRowModel()
+							.rows.map((row) => (
+								<ApiKeyItem key={row.id} apiKey={row.original as ApiKey} />
+							))
 					) : (
 						<EmptyState
 							icon={<Key />}
@@ -207,9 +210,7 @@ export function DataTable<TData, TValue>({
 					)}
 				</div>
 			)}
-			{table.getRowModel().rows?.length > 0 && (
-				<DataPagination table={table} />
-			)}
+			{table.getRowModel().rows?.length > 0 && <DataPagination table={table} />}
 		</div>
 	);
 }

@@ -4,9 +4,9 @@ import { persist } from "zustand/middleware";
 interface User {
 	id: number;
 	email: string;
-	full_name: string;
+	full_name?: string | null | undefined;
 	role: "org_owner" | "manager" | "member";
-	phone?: string;
+	phone?: string | null | undefined;
 }
 
 interface SessionCredentials {

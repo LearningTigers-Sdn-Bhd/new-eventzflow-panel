@@ -5,8 +5,8 @@ import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import type { ApiKey } from "@/lib/api/api-keys";
 import { deleteApiKey } from "@/lib/api/api-keys";
-import type { ApiKey } from "./columns";
 
 interface DeleteApiKeyDialogProps {
 	apiKey: ApiKey;

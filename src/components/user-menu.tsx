@@ -40,10 +40,11 @@ export default function UserMenu() {
 				>
 					<Avatar className="h-8 w-8">
 						<AvatarFallback>
-							{user.full_name.charAt(0).toUpperCase()}
+							{user.full_name?.charAt(0)?.toUpperCase() ||
+								user.email.charAt(0).toUpperCase()}
 						</AvatarFallback>
 					</Avatar>
-					<span className="text-sm">{user.full_name}</span>
+					<span className="text-sm">{user.full_name || "User"}</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="bg-card" side="bottom" align="end">

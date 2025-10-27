@@ -33,8 +33,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { TransactionLog } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
-import type { TransactionLog } from "@eventzflow-panel/api/routers/credits";
 import { TransactionLogItem } from "./transaction-item";
 
 interface TransactionTableProps<TData, TValue> {
@@ -107,7 +107,9 @@ export function TransactionTable<TData, TValue>({
 							All Types
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => table.getColumn("type")?.setFilterValue("purchase")}
+							onClick={() =>
+								table.getColumn("type")?.setFilterValue("purchase")
+							}
 						>
 							Purchase Only
 						</DropdownMenuItem>

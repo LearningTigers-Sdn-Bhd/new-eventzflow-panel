@@ -26,8 +26,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { ConsumptionCharge } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
-import type { ConsumptionCharge } from "@eventzflow-panel/api/routers/credits";
 import { ConsumptionItem } from "./consumption-item";
 
 interface ConsumptionTableProps<TData, TValue> {

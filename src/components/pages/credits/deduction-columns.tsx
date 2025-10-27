@@ -1,11 +1,11 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import type { CreditDeduction } from "@eventzflow-panel/api/routers/credits";
+import { ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { ArrowDown } from "lucide-react";
+import type { CreditDeduction } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
 
 export const deductionColumns: ColumnDef<CreditDeduction>[] = [
@@ -58,7 +58,9 @@ export const deductionColumns: ColumnDef<CreditDeduction>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			return <div className="font-mono text-sm">{row.getValue("recipient")}</div>;
+			return (
+				<div className="font-mono text-sm">{row.getValue("recipient")}</div>
+			);
 		},
 	},
 	{

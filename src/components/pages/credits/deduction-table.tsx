@@ -33,8 +33,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { CreditDeduction } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
-import type { CreditDeduction } from "@eventzflow-panel/api/routers/credits";
 import { DeductionItem } from "./deduction-item";
 
 interface DeductionTableProps<TData, TValue> {
@@ -102,7 +102,9 @@ export function DeductionTable<TData, TValue>({
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuItem
-							onClick={() => table.getColumn("status")?.setFilterValue(undefined)}
+							onClick={() =>
+								table.getColumn("status")?.setFilterValue(undefined)
+							}
 						>
 							All Status
 						</DropdownMenuItem>
@@ -112,12 +114,16 @@ export function DeductionTable<TData, TValue>({
 							Sent Only
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => table.getColumn("status")?.setFilterValue("failed")}
+							onClick={() =>
+								table.getColumn("status")?.setFilterValue("failed")
+							}
 						>
 							Failed Only
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => table.getColumn("status")?.setFilterValue("pending")}
+							onClick={() =>
+								table.getColumn("status")?.setFilterValue("pending")
+							}
 						>
 							Pending Only
 						</DropdownMenuItem>

@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
-import type { CreditDeduction } from "@eventzflow-panel/api/routers/credits";
+import type { CreditDeduction } from "@/lib/api/credits";
 
 interface DeductionItemProps {
 	deduction: CreditDeduction;
@@ -32,7 +32,9 @@ export function DeductionItem({ deduction }: DeductionItemProps) {
 								{deduction.status}
 							</Badge>
 						</div>
-						<p className="text-sm font-medium sm:text-base">{deduction.event}</p>
+						<p className="font-medium text-sm sm:text-base">
+							{deduction.event}
+						</p>
 						<p className="break-all font-mono text-muted-foreground text-xs sm:text-sm">
 							{deduction.recipient}
 						</p>
@@ -41,7 +43,7 @@ export function DeductionItem({ deduction }: DeductionItemProps) {
 						</p>
 					</div>
 					<div className="shrink-0 text-right">
-						<p className="text-base font-semibold text-red-600 sm:text-lg">
+						<p className="font-semibold text-base text-red-600 sm:text-lg">
 							{deduction.credits}
 						</p>
 					</div>

@@ -1,11 +1,11 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import type { TransactionLog } from "@eventzflow-panel/api/routers/credits";
+import { ArrowDown, ArrowDownLeft, ArrowUpRight, Gift } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { ArrowDownLeft, ArrowUpRight, Gift, ArrowDown } from "lucide-react";
+import type { TransactionLog } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
 
 export const transactionColumns: ColumnDef<TransactionLog>[] = [

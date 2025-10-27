@@ -44,7 +44,7 @@ export function useScanHistory() {
 				ticketId: ticket.id,
 				timestamp: ticket.checkInAt
 					? new Date(ticket.checkInAt)
-					: new Date(ticket.createdAt),
+					: new Date(ticket.createdAt || Date.now()),
 				status: "success" as const,
 				message: "Valid ticket - Checked in successfully",
 				attendeeName: ticket.name,
@@ -58,7 +58,9 @@ export function useScanHistory() {
 				checkedIn: ticket.checkedIn,
 				checkInAt: ticket.checkInAt,
 				eventName: ticket.eventName,
-				eventId: ticket.eventId,
+				eventId: ticket.eventId
+					? Number.parseInt(ticket.eventId, 10)
+					: undefined,
 			})),
 		];
 

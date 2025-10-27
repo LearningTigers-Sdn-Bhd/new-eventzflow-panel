@@ -1,5 +1,5 @@
-// Backend user type (from Rails API)
-export type BackendUser = {
+// Backend user type (from Rails API) - specific to scan logs
+export type ScanLogBackendUser = {
 	id: number;
 	full_name: string;
 	email: string;
@@ -17,7 +17,7 @@ export type BackendTicket = {
 	checked_in: boolean;
 	check_in_at: string | null;
 	scanned_by_id: number | null;
-	scanned_by?: BackendUser | null; // User who scanned the ticket
+	scanned_by?: ScanLogBackendUser | null; // User who scanned the ticket
 	status: "purchased" | "scanned" | "refunded" | "canceled";
 	created_at: string;
 	updated_at: string;

@@ -5,11 +5,9 @@ import { ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
+import type { ApiKey } from "@/lib/api/api-keys";
 import { cn } from "@/lib/utils";
 import { ApiKeyActionsMenu } from "./action-menu";
-import type { ApiKey as ApiKeyType } from "@/../../packages/api/src/routers/api-keys";
-
-export type ApiKey = ApiKeyType;
 
 export const columns: ColumnDef<ApiKey>[] = [
 	{
@@ -118,11 +116,15 @@ export const columns: ColumnDef<ApiKey>[] = [
 		cell: ({ row }) => {
 			const { formatDate } = useFormatDate();
 			const lastUsedAt = row.getValue("lastUsedAt") as string | null;
-			
+
 			if (!lastUsedAt) {
-				return <Badge variant="outline" className="text-muted-foreground">Never Used</Badge>;
+				return (
+					<Badge variant="outline" className="text-muted-foreground">
+						Never Used
+					</Badge>
+				);
 			}
-			
+
 			return <div>{formatDate(lastUsedAt)}</div>;
 		},
 	},

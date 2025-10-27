@@ -124,7 +124,9 @@ export function useTicketValidation() {
 					checkedIn: true,
 					checkInAt: checkedInTicket.checkInAt,
 					eventName: checkedInTicket.eventName,
-					eventId: checkedInTicket.eventId,
+					eventId: checkedInTicket.eventId
+						? Number.parseInt(checkedInTicket.eventId, 10)
+						: undefined,
 				};
 
 				toast.success(SUCCESS_MESSAGES.TICKET_VALID, {

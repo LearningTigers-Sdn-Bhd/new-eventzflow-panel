@@ -9,6 +9,6 @@ export {
 // Response types
 export type {
 	BackendTicket,
-	BackendUser,
+	ScanLogBackendUser,
 	ScannedLog,
 } from "./response";

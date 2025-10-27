@@ -1,9 +1,9 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ConsumptionCharge } from "@eventzflow-panel/api/routers/credits";
-import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { ConsumptionCharge } from "@/lib/api/credits";
 import { cn } from "@/lib/utils";
 
 export const consumptionColumns: ColumnDef<ConsumptionCharge>[] = [
@@ -37,11 +37,11 @@ export const consumptionColumns: ColumnDef<ConsumptionCharge>[] = [
 		accessorKey: "countryCode",
 		size: 200,
 		header: () => {
-			return <p className="font-medium text-center">Country Code</p>;
+			return <p className="text-center font-medium">Country Code</p>;
 		},
 		cell: ({ row }) => {
 			return (
-				<div className="font-mono text-center text-sm">
+				<div className="text-center font-mono text-sm">
 					{row.getValue("countryCode")}
 				</div>
 			);
@@ -51,7 +51,7 @@ export const consumptionColumns: ColumnDef<ConsumptionCharge>[] = [
 		accessorKey: "waMessageCredits",
 		size: 200,
 		header: () => {
-			return <p className="font-medium text-center">WA Message Credits</p>;
+			return <p className="text-center font-medium">WA Message Credits</p>;
 		},
 		cell: ({ row }) => {
 			const credits = row.getValue("waMessageCredits") as number;

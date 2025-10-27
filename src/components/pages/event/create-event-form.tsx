@@ -105,19 +105,21 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 		try {
 			const payload: {
 				title: string;
-				visibility?: boolean;
-				status?: "draft" | "published" | "cancelled";
+				visibility: boolean;
+				status: "draft" | "published" | "cancelled";
 				event_admin_id?: number;
 				description?: string;
 				start_date: string;
 				end_date: string;
+				multiple_scans: boolean;
 			} = {
 				title: formData.title.trim(),
-				visibility: formData.visibility,
-				status: formData.status,
+				visibility: formData.visibility ?? true,
+				status: formData.status ?? "draft",
 				description: formData.description.trim() || undefined,
 				start_date: formData.start_date?.toISOString() || "",
 				end_date: formData.end_date?.toISOString() || "",
+				multiple_scans: false,
 			};
 
 			if (formData.event_admin_id) {

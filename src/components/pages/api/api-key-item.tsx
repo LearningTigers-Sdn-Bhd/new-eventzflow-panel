@@ -3,8 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
+import type { ApiKey } from "@/lib/api/api-keys";
 import { ApiKeyActionsMenu } from "./action-menu";
-import type { ApiKey } from "./columns";
 
 interface ApiKeyItemProps {
 	apiKey: ApiKey;
@@ -12,7 +12,7 @@ interface ApiKeyItemProps {
 
 export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
 	const { formatDate } = useFormatDate();
-	
+
 	const id = String(apiKey.id || "");
 
 	return (
@@ -30,14 +30,21 @@ export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
 					<div className="grid grid-cols-2 gap-3 border-t pt-3">
 						<div>
 							<p className="text-muted-foreground text-xs">Created</p>
-							<p className="font-medium text-sm">{formatDate(apiKey.createdAt)}</p>
+							<p className="font-medium text-sm">
+								{formatDate(apiKey.createdAt)}
+							</p>
 						</div>
 						<div>
 							<p className="text-muted-foreground text-xs">Last Used</p>
 							{apiKey.lastUsedAt ? (
-								<p className="font-medium text-sm">{formatDate(apiKey.lastUsedAt)}</p>
+								<p className="font-medium text-sm">
+									{formatDate(apiKey.lastUsedAt)}
+								</p>
 							) : (
-								<Badge variant="outline" className="text-muted-foreground text-xs">
+								<Badge
+									variant="outline"
+									className="text-muted-foreground text-xs"
+								>
 									Never Used
 								</Badge>
 							)}

@@ -11,7 +11,7 @@ export const createTicketSchema = z.object({
 	attendee_email: z.string().email("Please enter a valid email address"),
 	attendee_phone: z.string().optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
-	custom_fields_data: z.record(z.string()).optional(),
+	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
 export const updateTicketSchema = z.object({
@@ -21,7 +21,7 @@ export const updateTicketSchema = z.object({
 	attendee_email: z.string().email("Please enter a valid email address"),
 	attendee_phone: z.string().optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
-	custom_fields_data: z.record(z.string()).optional(),
+	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
 // Export types for form data
