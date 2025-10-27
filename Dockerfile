@@ -34,12 +34,13 @@ ENV PORT=3001
 # Fix host binding for containerized environments
 ENV HOSTNAME=0.0.0.0
 
-# Copy package.json and bun.lock for production dependencies
+# Copy package.json and bun.lock for dependencies
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/bun.lock ./bun.lock
 
-# Install only production dependencies
-RUN bun install --frozen-lockfile --production
+# Install all dependencies (including devDependencies needed for TypeScript at runtime)
+# Next.js requires TypeScript to be available in production for next.config.ts
+RUN bun install --frozen-lockfile
 
 # Copy the build output from the builder stage
 COPY --from=builder /app/.next ./.next
