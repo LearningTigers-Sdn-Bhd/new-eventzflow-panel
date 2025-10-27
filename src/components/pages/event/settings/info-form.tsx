@@ -1,0 +1,411 @@
+"use client";
+
+import { useForm } from "@tanstack/react-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import * as React from "react";
+import { useId } from "react";
+import { toast } from "sonner";
+import * as z from "zod";
+import { LoadingState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+	FieldLegend,
+	FieldSeparator,
+	FieldSet,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
+import { getEventById, updateEvent } from "@/lib/api/event";
+import type { UpdateEventRequest } from "@/lib/api/event/request";
+import { queryClient } from "@/utils/rest-api";
+
+const formSchema = z.object({
+	title: z.string().min(3, "Title must be at least 3 characters"),
+	status: z.enum(["draft", "published", "cancelled"]),
+	visibility: z.boolean(),
+	description: z.string(),
+	webhookUrl: z
+		.string()
+		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
+			message: "Please enter a valid URL",
+		}),
+	multipleScans: z.boolean(),
+	startDate: z.date(),
+	endDate: z.date(),
+});
+
+interface InfoFormProps {
+	eventId: number;
+	onClose?: () => void;
+}
+
+export default function InfoForm({ eventId, onClose }: InfoFormProps) {
+	const formId = useId();
+	const sectionId = useId();
+	const { user } = useAuth();
+
+	// Check if user is org_owner
+	const isOrgOwner = user?.role === "org_owner";
+
+	// Fetch event data
+	const {
+		data: event,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId.toString()),
+	});
+
+	// Update event mutation
+	const updateEventMutation = useMutation({
+		mutationFn: async (payload: { id: number; data: UpdateEventRequest }) => {
+			return await updateEvent(eventId.toString(), payload.data);
+		},
+		onSuccess: () => {
+			toast.success("Event information updated successfully!");
+			// Invalidate queries to refetch data
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["events"],
+			});
+			// Close modal on success
+			onClose?.();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update event");
+		},
+	});
+
+	const form = useForm({
+		defaultValues: {
+			title: event?.title || "",
+			status: (event?.status || "draft") as "draft" | "published" | "cancelled",
+			visibility: event?.visibility ?? true,
+			description: event?.description || "",
+			webhookUrl: event?.webhook_url || "",
+			multipleScans: event?.multiple_scans || false,
+			startDate: event?.start_date ? new Date(event.start_date) : new Date(),
+			endDate: event?.end_date ? new Date(event.end_date) : new Date(),
+		},
+		validators: {
+			onSubmit: formSchema,
+		},
+		onSubmit: async ({ value }) => {
+			await updateEventMutation.mutateAsync({
+				id: eventId,
+				data: {
+					title: value.title,
+					status: value.status,
+					visibility: value.visibility,
+					description: value.description || undefined,
+					webhook_url: value.webhookUrl || "",
+					multiple_scans: value.multipleScans,
+					start_date: value.startDate.toISOString(),
+					end_date: value.endDate.toISOString(),
+				},
+			});
+		},
+	});
+
+	// Reset form with fresh data when event loads
+	React.useEffect(() => {
+		if (event) {
+			form.reset();
+		}
+	}, [event?.id, form.reset, event]); // Only reset when event ID changes (initial load)
+	if (isLoading) {
+		return (
+			<LoadingState
+				title="Loading event information..."
+				description="Please wait while we fetch the event details"
+			/>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="text-destructive">
+				Failed to load event information. Please try again.
+			</div>
+		);
+	}
+
+	return (
+		<section id={sectionId} className="w-full">
+			<form
+				id={formId}
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<FieldSet>
+					<FieldLegend className="font-bold text-xl!">
+						Event ID: {eventId}
+					</FieldLegend>
+					<FieldDescription>Manage your event information.</FieldDescription>
+					<FieldSeparator />
+					<FieldGroup>
+						{/* Row 1: Event Title (2 cols) and Event Status (1 col) */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<form.Field name="title">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field
+											data-invalid={isInvalid}
+											orientation="vertical"
+											className="md:col-span-2"
+										>
+											<FieldLabel htmlFor={field.name}>
+												Event Title *
+											</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												aria-invalid={isInvalid}
+												placeholder="Summer Festival 2024"
+												disabled={updateEventMutation.isPending}
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="status">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid} orientation="vertical">
+											<FieldLabel htmlFor={field.name}>
+												Event Status *
+											</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={(value) =>
+													field.handleChange(
+														value as "draft" | "published" | "cancelled",
+													)
+												}
+												disabled={updateEventMutation.isPending}
+											>
+												<SelectTrigger id={field.name} className="w-full">
+													<SelectValue placeholder="Select status" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="draft">Draft</SelectItem>
+													<SelectItem value="published">Published</SelectItem>
+													<SelectItem value="cancelled">Cancelled</SelectItem>
+												</SelectContent>
+											</Select>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+						</div>
+
+						{/* Row 2: Webhook URL, Multiple Scans, and Visibility (org_owner only) */}
+						<div
+							className={`grid grid-cols-1 gap-4 ${isOrgOwner ? "md:grid-cols-4" : "md:grid-cols-4"}`}
+						>
+							<form.Field name="webhookUrl">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field
+											data-invalid={isInvalid}
+											orientation="vertical"
+											className={isOrgOwner ? "md:col-span-2" : "md:col-span-3"}
+										>
+											<FieldLabel htmlFor={field.name}>Webhook URL</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												aria-invalid={isInvalid}
+												placeholder="https://example.com/webhook"
+												type="url"
+												disabled={updateEventMutation.isPending}
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="multipleScans">
+								{(field) => {
+									return (
+										<Field orientation="vertical">
+											<FieldLabel htmlFor={field.name}>
+												Multiple Scans
+											</FieldLabel>
+											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+												<Switch
+													id={field.name}
+													checked={field.state.value}
+													onCheckedChange={(checked) =>
+														field.handleChange(checked)
+													}
+													disabled={updateEventMutation.isPending}
+												/>
+												<span className="ml-2 text-muted-foreground text-sm">
+													{field.state.value ? "Enabled" : "Disabled"}
+												</span>
+											</div>
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							{/* Only show visibility for org_owner */}
+							{isOrgOwner && (
+								<form.Field name="visibility">
+									{(field) => {
+										return (
+											<Field orientation="vertical">
+												<FieldLabel htmlFor={field.name}>
+													Event Visibility
+												</FieldLabel>
+												<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+													<Switch
+														id={field.name}
+														checked={field.state.value}
+														onCheckedChange={(checked) =>
+															field.handleChange(checked)
+														}
+														disabled={updateEventMutation.isPending}
+													/>
+													<span className="ml-2 text-muted-foreground text-sm">
+														{field.state.value ? "Visible" : "Hidden"}
+													</span>
+												</div>
+											</Field>
+										);
+									}}
+								</form.Field>
+							)}
+						</div>
+
+						{/* Row 3: Start Date and End Date */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<form.Field name="startDate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid} orientation="vertical">
+											<FieldLabel htmlFor={field.name}>Start Date *</FieldLabel>
+											<DateTimePicker
+												date={field.state.value}
+												onDateChange={(date) =>
+													field.handleChange(date || new Date())
+												}
+												disabled={updateEventMutation.isPending}
+												placeholder="Pick start date and time"
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="endDate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid} orientation="vertical">
+											<FieldLabel htmlFor={field.name}>End Date *</FieldLabel>
+											<DateTimePicker
+												date={field.state.value}
+												onDateChange={(date) =>
+													field.handleChange(date || new Date())
+												}
+												disabled={updateEventMutation.isPending}
+												placeholder="Pick end date and time"
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+						</div>
+
+						{/* Row 4: Description (Full Width) */}
+						<form.Field name="description">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<Field data-invalid={isInvalid} orientation="vertical">
+										<FieldLabel htmlFor={field.name}>Description</FieldLabel>
+										<Textarea
+											id={field.name}
+											name={field.name}
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+											aria-invalid={isInvalid}
+											placeholder="Enter event description..."
+											className="min-h-[120px] resize-none"
+											disabled={updateEventMutation.isPending}
+										/>
+										{isInvalid && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								);
+							}}
+						</form.Field>
+
+						<div className="mt-6 flex justify-end">
+							<Button type="submit" disabled={updateEventMutation.isPending}>
+								{updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+							</Button>
+						</div>
+					</FieldGroup>
+				</FieldSet>
+			</form>
+		</section>
+	);
+}

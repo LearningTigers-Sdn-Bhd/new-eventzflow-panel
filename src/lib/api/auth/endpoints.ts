@@ -1,0 +1,255 @@
+import { useUserSessionStore } from "@/stores/new-auth-store";
+import { extractErrorMessage } from "@/utils/error-handler";
+import { restClient } from "@/utils/rest-api";
+import {
+	type LoginRequest,
+	loginRequestSchema,
+	type RefreshTokenRequest,
+	type RegisterRequest,
+	type RegisterRequestData,
+	refreshTokenRequestSchema,
+	registerRequestSchema,
+} from "./request";
+import {
+	type AuthResponse,
+	authResponseSchema,
+	type RefreshTokenResponse,
+	refreshTokenResponseSchema,
+} from "./response";
+
+// Token refresh state management
+let refreshPromise: Promise<string> | null = null;
+
+/**
+ * Convert expires_at string to timestamp
+ */
+function parseExpiresAt(expiresAt: string): number {
+	return new Date(expiresAt).getTime();
+}
+
+/**
+ * Check if token is expired or expiring soon (within 5 minutes)
+ */
+function isTokenExpiringSoon(expiresAt: number): boolean {
+	const now = Date.now();
+	const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+	return expiresAt - now <= fiveMinutes;
+}
+
+/**
+ * Refresh access token using refresh token
+ */
+export async function refreshToken(): Promise<string> {
+	// Prevent multiple simultaneous refresh attempts
+	if (refreshPromise) {
+		return refreshPromise;
+	}
+
+	const state = useUserSessionStore.getState();
+	const credentials = state.sessionCredentials;
+
+	if (!credentials?.refreshToken) {
+		throw new Error("No refresh token available");
+	}
+
+	refreshPromise = (async () => {
+		try {
+			// Validate refresh token request
+			const refreshRequest: RefreshTokenRequest = {
+				refresh_token: credentials.refreshToken,
+			};
+
+			const validatedRequest = refreshTokenRequestSchema.parse(refreshRequest);
+
+			const response = await restClient.post<RefreshTokenResponse>(
+				"v1/auth/refresh_token",
+				validatedRequest,
+			);
+
+			// Validate response
+			const validatedResponse = refreshTokenResponseSchema.parse(response);
+
+			if (!validatedResponse.success) {
+				throw new Error(validatedResponse.message || "Token refresh failed");
+			}
+
+			const { access_token, refresh_token, expires_at } =
+				validatedResponse.data;
+			const expiresAtTimestamp = parseExpiresAt(expires_at);
+
+			// Update store with new tokens
+			state.setSessionCredentials({
+				accessToken: access_token,
+				refreshToken: refresh_token,
+				expiresAt: expiresAtTimestamp,
+			});
+
+			return access_token;
+		} catch (error) {
+			if (error instanceof Error && error.name === "ZodError") {
+				throw new Error("Invalid refresh token data");
+			}
+			throw error;
+		} finally {
+			refreshPromise = null;
+		}
+	})();
+
+	return refreshPromise;
+}
+
+/**
+ * Login user with email and password
+ */
+export async function login(
+	email: string,
+	password: string,
+): Promise<AuthResponse> {
+	try {
+		// Validate login request
+		const loginRequest: LoginRequest = {
+			user: { email, password },
+		};
+
+		const validatedRequest = loginRequestSchema.parse(loginRequest);
+
+		const response = await restClient.post<AuthResponse>(
+			"v1/auth/login",
+			validatedRequest,
+		);
+
+		// Validate response
+		const validatedResponse = authResponseSchema.parse(response);
+
+		if (!validatedResponse.success) {
+			throw new Error(validatedResponse.message || "Login failed");
+		}
+
+		const { access_token, refresh_token, expires_at, user } =
+			validatedResponse.data;
+		const expiresAtTimestamp = parseExpiresAt(expires_at);
+
+		// Update store with tokens and user data
+		const state = useUserSessionStore.getState();
+		state.setSessionCredentials({
+			accessToken: access_token,
+			refreshToken: refresh_token,
+			expiresAt: expiresAtTimestamp,
+		});
+		state.setUser(user);
+
+		return validatedResponse;
+	} catch (error) {
+		// Handle validation errors
+		if (error instanceof Error && error.name === "ZodError") {
+			throw new Error("Invalid login data provided");
+		}
+
+		// Extract and throw user-friendly error message
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Register new user
+ */
+export async function register(
+	userData: RegisterRequestData,
+): Promise<AuthResponse> {
+	try {
+		// Validate register request
+		const registerRequest: RegisterRequest = {
+			user: userData,
+		};
+
+		const validatedRequest = registerRequestSchema.parse(registerRequest);
+
+		const response = await restClient.post<AuthResponse>(
+			"v1/auth/register",
+			validatedRequest,
+		);
+
+		// Validate response
+		const validatedResponse = authResponseSchema.parse(response);
+
+		if (!validatedResponse.success) {
+			throw new Error(validatedResponse.message || "Registration failed");
+		}
+
+		const { access_token, refresh_token, expires_at, user } =
+			validatedResponse.data;
+		const expiresAtTimestamp = parseExpiresAt(expires_at);
+
+		// Update store with tokens and user data
+		const state = useUserSessionStore.getState();
+		state.setSessionCredentials({
+			accessToken: access_token,
+			refreshToken: refresh_token,
+			expiresAt: expiresAtTimestamp,
+		});
+		state.setUser(user);
+
+		return validatedResponse;
+	} catch (error) {
+		// Handle validation errors
+		if (error instanceof Error && error.name === "ZodError") {
+			throw new Error("Invalid registration data provided");
+		}
+
+		// Extract and throw user-friendly error message
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Logout user
+ */
+export async function logout(): Promise<void> {
+	try {
+		// Call logout endpoint if available (optional)
+		await restClient.delete("v1/auth/logout");
+	} catch (error) {
+		// Ignore logout endpoint errors, still clear local session
+		console.warn("Logout endpoint failed:", error);
+	}
+
+	// Clear local session
+	const state = useUserSessionStore.getState();
+	state.removeSessionCredentials();
+	state.setUser(null);
+}
+
+/**
+ * Check if current token is expired or expiring soon
+ */
+export function isTokenExpired(): boolean {
+	const state = useUserSessionStore.getState();
+	const credentials = state.sessionCredentials;
+
+	if (!credentials) return true;
+
+	return isTokenExpiringSoon(credentials.expiresAt);
+}
+
+/**
+ * Get current access token, refreshing if needed
+ */
+export async function getAccessToken(): Promise<string | null> {
+	const state = useUserSessionStore.getState();
+	const credentials = state.sessionCredentials;
+
+	if (!credentials) return null;
+
+	if (isTokenExpiringSoon(credentials.expiresAt)) {
+		try {
+			return await refreshToken();
+		} catch (error) {
+			console.error("Failed to refresh token:", error);
+			return null;
+		}
+	}
+
+	return credentials.accessToken;
+}
