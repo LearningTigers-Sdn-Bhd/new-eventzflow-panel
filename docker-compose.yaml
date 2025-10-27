@@ -1,0 +1,21 @@
+version: "3.9"
+
+x-next-env: &next-env
+  NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+  NODE_ENV: production
+  PORT: 3001
+
+services:
+  web:
+    build: .
+    image: eventzflow-panel-web:latest
+    environment:
+      <<: *next-env
+    ports:
+      - "3001"
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
