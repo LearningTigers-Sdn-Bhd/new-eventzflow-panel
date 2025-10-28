@@ -6,6 +6,7 @@
 import { Clock, Filter, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Select,
 	SelectContent,
@@ -33,10 +34,39 @@ interface ActivityFeedProps {
 	searchQuery: string;
 	filterType: FilterType;
 	sortType: SortType;
+	isLoading?: boolean;
 	onSearchChange: (query: string) => void;
 	onFilterChange: (filter: FilterType) => void;
 	onSortChange: (sort: SortType) => void;
 	onExport?: () => void;
+}
+
+function TableRowSkeleton() {
+	return (
+		<TableRow>
+			<TableCell className="w-12 py-2 text-center sm:py-3">
+				<Skeleton className="mx-auto h-4 w-6" />
+			</TableCell>
+			<TableCell className="min-w-[100px] py-2 sm:py-3">
+				<Skeleton className="h-4 w-24" />
+			</TableCell>
+			<TableCell className="hidden min-w-[120px] py-2 sm:py-3 md:table-cell">
+				<Skeleton className="h-4 w-32" />
+			</TableCell>
+			<TableCell className="hidden min-w-[100px] py-2 sm:table-cell sm:py-3">
+				<Skeleton className="h-4 w-20" />
+			</TableCell>
+			<TableCell className="hidden min-w-[180px] py-2 sm:py-3 lg:table-cell">
+				<Skeleton className="h-4 w-40" />
+			</TableCell>
+			<TableCell className="whitespace-nowrap py-2 sm:py-3">
+				<Skeleton className="h-4 w-16" />
+			</TableCell>
+			<TableCell className="min-w-[150px] py-2 sm:py-3">
+				<Skeleton className="h-6 w-32 rounded-full" />
+			</TableCell>
+		</TableRow>
+	);
 }
 
 export function ActivityFeed({
@@ -45,6 +75,7 @@ export function ActivityFeed({
 	searchQuery,
 	filterType,
 	sortType,
+	isLoading = false,
 	onSearchChange,
 	onFilterChange,
 	onSortChange,
@@ -67,15 +98,19 @@ export function ActivityFeed({
 
 	return (
 		<Card className="w-full p-0">
-			{/* Header & Control Panel */}
-			<div className="space-y-3 border-b p-3 sm:space-y-4 sm:p-4">
-				<div>
-					<h2 className="font-bold text-base sm:text-lg">Scan History</h2>
+		{/* Header & Control Panel */}
+		<div className="space-y-3 border-b p-3 sm:space-y-4 sm:p-4">
+			<div>
+				<h2 className="font-bold text-base sm:text-lg">Scan History</h2>
+				{isLoading ? (
+					<Skeleton className="mt-1 h-4 w-20" />
+				) : (
 					<p className="text-muted-foreground text-xs sm:text-sm">
 						{filteredResults.length} result
 						{filteredResults.length !== 1 ? "s" : ""}
 					</p>
-				</div>
+				)}
+			</div>
 
 				{scanResults.length > 0 && (
 					<div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
@@ -119,13 +154,42 @@ export function ActivityFeed({
 				)}
 			</div>
 
-			{/* Table */}
-			<div className="max-h-[400px] overflow-auto sm:max-h-[600px]">
-				{filteredResults.length === 0 ? (
-					<div className="flex items-center justify-center p-8 sm:p-12">
-						<EmptyState hasScans={scanResults.length > 0} />
-					</div>
-				) : (
+		{/* Table */}
+		<div className="max-h-[400px] overflow-auto sm:max-h-[600px]">
+			{isLoading ? (
+				<Table>
+					<TableHeader className="sticky top-0 z-10 bg-background">
+						<TableRow>
+							<TableHead className="w-12 text-center text-xs sm:text-sm">
+								No
+							</TableHead>
+							<TableHead className="text-xs sm:text-sm">Attendee</TableHead>
+							<TableHead className="hidden text-xs sm:text-sm md:table-cell">
+								Event
+							</TableHead>
+							<TableHead className="hidden text-xs sm:table-cell sm:text-sm">
+								Ticket Type
+							</TableHead>
+							<TableHead className="hidden text-xs sm:text-sm lg:table-cell">
+								Ticket ID
+							</TableHead>
+							<TableHead className="whitespace-nowrap text-xs sm:text-sm">
+								Check-In Time
+							</TableHead>
+							<TableHead className="text-xs sm:text-sm">Status</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{Array.from({ length: 5 }).map((_, index) => (
+							<TableRowSkeleton key={index} />
+						))}
+					</TableBody>
+				</Table>
+			) : filteredResults.length === 0 ? (
+				<div className="flex items-center justify-center p-8 sm:p-12">
+					<EmptyState hasScans={scanResults.length > 0} />
+				</div>
+			) : (
 					<Table>
 						<TableHeader className="sticky top-0 z-10 bg-background">
 							<TableRow>

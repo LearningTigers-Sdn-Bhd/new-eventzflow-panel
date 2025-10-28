@@ -38,14 +38,14 @@ export async function checkInTicket(
 		return {
 			id: response.id.toString(),
 			publicId: response.public_id,
-			name: response.attendee_name,
+			name: response.attendee_name || "Unknown Attendee",
 			email: response.attendee_email,
-			phone: response.attendee_phone,
-			ticketTypeName: response.ticket_type_name,
-			value: response.value,
+			phone: response.attendee_phone || undefined,
+			ticketTypeName: response.ticket_type_name || "General Admission",
+			value: response.value || 0,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
-			eventName: response.event_name,
+			eventName: response.event_name || "Unknown Event",
 			eventId: response.event_id.toString(),
 		};
 	} catch (error) {
@@ -55,67 +55,82 @@ export async function checkInTicket(
 }
 
 /**
- * Get tickets scanned by current user
- * Replicates the tRPC getMyScannedTickets logic using REST endpoints
+ * Get tickets scanned by current authenticated user
+ * Returns only tickets where scanned_by_id matches the current user's ID
  */
 export async function getMyScannedTickets(
 	limit = 1000,
 ): Promise<ScannedTicket[]> {
-	// First, get current user profile to get their ID
-	const currentUser = await restClient.get<{ id: number }>("v1/users/profile");
-	const userId = currentUser.id;
-
-	// Fetch all events the user has access to
-	const events =
-		await restClient.get<Array<{ id: number; title: string }>>("v1/events");
-
-	// Fetch tickets from all events in parallel
-	const ticketPromises = events.map(async (event) => {
-		try {
-			const tickets = await restClient.get<BackendTicket[]>(
-				`v1/events/${event.id}/tickets`,
-			);
-			// Add event info to each ticket
-			return tickets.map((ticket) => ({
-				...ticket,
-				eventName: event.title,
-				eventId: event.id,
-			}));
-		} catch {
-			// Silently ignore events without tickets or access errors
-			return [];
+	try {
+		// First, get current user profile to get their ID
+		// Backend response structure: { success: boolean, message: string, data: { id, ... } }
+		const profileResponse = await restClient.get<{
+			success: boolean;
+			message: string;
+			data: { id: number };
+		}>("v1/users/profile");
+		
+		if (!profileResponse.success || !profileResponse.data) {
+			throw new Error(profileResponse.message || "Failed to fetch user profile");
 		}
-	});
+		
+		const userId = profileResponse.data.id;
+		
+		if (!userId) {
+			throw new Error("Could not get user ID from profile");
+		}
 
-	const allTicketsArrays = await Promise.all(ticketPromises);
-	const allTickets = allTicketsArrays.flat();
+		// Fetch all events the user has access to
+		const events =
+			await restClient.get<Array<{ id: number; title: string }>>("v1/events");
 
-	// Filter for tickets scanned by this user (checked_in = true and scanned_by_id = userId)
-	const scannedByUser = allTickets.filter(
-		(ticket) => ticket.checked_in && ticket.scanned_by_id === userId,
-	);
-
-	// Sort by check_in_at (newest first) and limit results
-	const sortedTickets = scannedByUser
-		.sort((a, b) => {
-			const dateA = a.check_in_at ? new Date(a.check_in_at).getTime() : 0;
-			const dateB = b.check_in_at ? new Date(b.check_in_at).getTime() : 0;
-			return dateB - dateA;
-		})
-		.slice(0, limit);
-
-	// Transform backend response to frontend format
-	return sortedTickets.map((ticket) => {
-		// Transform custom_fields_data to customLabels array
-		const customLabels: Array<{ name: string; value: string }> = [];
-		if (ticket.custom_fields_data) {
-			for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-				customLabels.push({ name: key, value: String(value) });
+		// Fetch tickets from all events in parallel
+		const ticketPromises = events.map(async (event) => {
+			try {
+				const tickets = await restClient.get<BackendTicket[]>(
+					`v1/events/${event.id}/tickets`,
+				);
+				// Add event info to each ticket
+				return tickets.map((ticket) => ({
+					...ticket,
+					eventName: event.title,
+					eventId: event.id,
+				}));
+			} catch {
+				// Silently ignore events without tickets or access errors
+				return [];
 			}
-		}
+		});
+
+		const allTicketsArrays = await Promise.all(ticketPromises);
+		const allTickets = allTicketsArrays.flat();
+
+		// Filter ONLY for tickets scanned BY this authenticated user
+		const scannedByCurrentUser = allTickets.filter(
+			(ticket) => ticket.checked_in && ticket.scanned_by_id === userId,
+		);
+
+		// Sort by check_in_at (newest first) and limit results
+		const sortedTickets = scannedByCurrentUser
+			.sort((a, b) => {
+				const dateA = a.check_in_at ? new Date(a.check_in_at).getTime() : 0;
+				const dateB = b.check_in_at ? new Date(b.check_in_at).getTime() : 0;
+				return dateB - dateA;
+			})
+			.slice(0, limit);
+
+		// Transform backend response to frontend format
+		return sortedTickets.map((ticket) => {
+			// Transform custom_fields_data to customLabels array
+			const customLabels: Array<{ name: string; value: string }> = [];
+			if (ticket.custom_fields_data) {
+				for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
+					customLabels.push({ name: key, value: String(value) });
+				}
+			}
 
 		return {
-			id: ticket.id.toString(),
+			id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
 			name: ticket.attendee_name,
 			email: ticket.attendee_email,
 			phone: ticket.attendee_phone || undefined,
@@ -129,7 +144,11 @@ export async function getMyScannedTickets(
 			createdAt: ticket.created_at,
 			customLabels: customLabels.length > 0 ? customLabels : undefined,
 		};
-	});
+		});
+	} catch (error) {
+		console.error("Error fetching scanned tickets:", error);
+		throw error;
+	}
 }
 
 /**

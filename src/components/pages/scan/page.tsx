@@ -125,18 +125,19 @@ export default function ScanContent() {
 				</div>
 			)}
 
-			{/* Activity Feed - Full Width */}
-			<ActivityFeed
-				scanResults={scanResults}
-				recentScan={recentScan}
-				searchQuery={searchQuery}
-				filterType={filterType}
-				sortType={sortType}
-				onSearchChange={setSearchQuery}
-				onFilterChange={setFilterType}
-				onSortChange={setSortType}
-				onExport={handleExport}
-			/>
+		{/* Activity Feed - Full Width */}
+		<ActivityFeed
+			scanResults={scanResults}
+			recentScan={recentScan}
+			searchQuery={searchQuery}
+			filterType={filterType}
+			sortType={sortType}
+			isLoading={isLoading}
+			onSearchChange={setSearchQuery}
+			onFilterChange={setFilterType}
+			onSortChange={setSortType}
+			onExport={handleExport}
+		/>
 		</div>
 	);
 }

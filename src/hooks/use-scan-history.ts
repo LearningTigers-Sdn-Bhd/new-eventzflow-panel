@@ -2,11 +2,11 @@
  * Scan History Hook
  *
  * Fetches and manages scan history from both:
- * 1. Backend: All tickets scanned by current user across all their events
+ * 1. Backend: Tickets scanned BY the current authenticated user
  * 2. Local: Recent scans from this session (before backend sync)
  *
  * How it works:
- * - On mount: Fetches all tickets scanned by user from backend
+ * - On mount: Fetches tickets where scanned_by_id = current user's ID
  * - On new scan: Shows immediately in local state, then syncs with backend
  * - Success scans: Persisted to backend, shown permanently
  * - Error/duplicate scans: Shown for 5 seconds, then removed (not persisted)
