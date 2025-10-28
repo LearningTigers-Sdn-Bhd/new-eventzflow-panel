@@ -15,8 +15,12 @@ export function LocationPageButton() {
 	};
 
 	return (
-		<div className="flex items-center gap-2">
-			<Button variant="outline" onClick={openLocationCreate}>
+		<div className="flex w-full items-center gap-2 lg:w-auto">
+			<Button 
+				variant="outline" 
+				onClick={openLocationCreate}
+				className="w-full lg:w-auto"
+			>
 				<Pencil className="h-4 w-4" />
 				Create Location
 			</Button>

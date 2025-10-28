@@ -232,8 +232,25 @@ export default function EventDetailLayout({
 					)}
 				</div>
 			</div>
-			<div className="rounded-lg border bg-card p-6">
-				<div className="mb-4 flex items-center justify-between gap-3">
+			<div className="rounded-lg border bg-card p-4 sm:p-6">
+				{/* Mobile Layout: Stack header and actions vertically */}
+				<div className="mb-4 flex flex-col gap-3 lg:hidden">
+					<div className="flex items-center gap-3">
+						<div className="rounded-md border bg-muted p-2">
+							<HeaderIcon className="h-5 w-5 text-muted-foreground sm:h-6 sm:w-6" />
+						</div>
+						<div className="flex flex-1 flex-col gap-0.5">
+							<h2 className="font-bold text-lg sm:text-xl">{currentTabItem.title}</h2>
+							<p className="text-muted-foreground text-xs sm:text-sm">
+								{currentTabItem.description}
+							</p>
+						</div>
+					</div>
+					<EventActionsSlot />
+				</div>
+
+				{/* Desktop Layout: Keep header and actions in one row */}
+				<div className="mb-4 hidden items-center justify-between gap-3 lg:flex">
 					<div className="flex w-full items-center gap-3">
 						<div className="rounded-md border bg-muted p-2">
 							<HeaderIcon className="h-6 w-6 text-muted-foreground" />

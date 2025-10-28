@@ -50,12 +50,12 @@ const data = {
 			icon: Key,
 			roleAllowed: ["org_owner"],
 		},
-		{
-			name: "Debug API",
-			url: "/debug-api" as Route,
-			icon: Bug,
-			roleAllowed: ["org_owner"],
-		},
+		// {
+		// 	name: "Debug API",
+		// 	url: "/debug-api" as Route,
+		// 	icon: Bug,
+		// 	roleAllowed: ["org_owner"],
+		// },
 		// {
 		// 	name: "Credits",
 		// 	url: "/credits" as Route,

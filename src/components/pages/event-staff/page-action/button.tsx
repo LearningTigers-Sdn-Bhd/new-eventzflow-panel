@@ -34,9 +34,11 @@ export function EventStaffPageButton() {
 	}
 
 	return (
-		<Button onClick={handleAssignStaff}>
-			<UserPlus className="mr-2 h-4 w-4" />
-			Assign Staff
-		</Button>
+		<div className="flex w-full items-center gap-2 lg:w-auto">
+			<Button onClick={handleAssignStaff} className="w-full lg:w-auto">
+				<UserPlus className="mr-2 h-4 w-4" />
+				Assign Staff
+			</Button>
+		</div>
 	);
 }

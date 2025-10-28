@@ -106,6 +106,7 @@ export default function AssignStaffForm({
 			<LoadingState
 				title="Loading team members..."
 				description="Please wait..."
+				height="h-[300px]"
 			/>
 		);
 	}
@@ -115,6 +116,7 @@ export default function AssignStaffForm({
 			<ErrorState
 				title="Failed to load team members"
 				description="Please try again later"
+				height="h-[300px]"
 			/>
 		);
 	}
@@ -124,7 +126,8 @@ export default function AssignStaffForm({
 			<EmptyState
 				title="No team members available"
 				description="All organization members are already assigned to this event or there are no team members to assign."
-				icon={<UserPlus />}
+				icon={<UserPlus className="size-8" />}
+				height="h-[300px]"
 				action={
 					<Button onClick={onClose} variant="outline">
 						Close
@@ -135,7 +138,7 @@ export default function AssignStaffForm({
 	}
 
 	return (
-		<div className="w-full">
+		<div className="w-full min-h-[300px]">
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldSeparator />

@@ -24,7 +24,7 @@ export function PendingTicketActionsMenu({
 				title: "Edit Pending Ticket",
 				description: "Edit the pending ticket information.",
 				size: "full",
-				showCloseButton: false,
+				showCloseButton: true,
 			},
 			props: { ticket },
 		});
@@ -36,7 +36,7 @@ export function PendingTicketActionsMenu({
 			config: {
 				title: "View Pending Ticket",
 				size: "2xl",
-				showCloseButton: false,
+				showCloseButton: true,
 			},
 			props: { ticket },
 		});

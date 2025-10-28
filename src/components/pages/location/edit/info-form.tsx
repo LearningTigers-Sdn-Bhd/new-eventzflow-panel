@@ -192,24 +192,24 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 									</Field>
 								);
 							}}
-						</form.Field>
-						<Field orientation="horizontal" className="mt-4 md:mt-6">
-							<Button type="submit" disabled={updateLocationMutation.isPending}>
-								{updateLocationMutation.isPending ? "Updating..." : "Submit"}
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => {
-									closeDialog();
-									if (onClose) onClose();
-								}}
-								disabled={updateLocationMutation.isPending}
-							>
-								Cancel
-							</Button>
-						</Field>
-					</FieldGroup>
+					</form.Field>
+				</FieldGroup>
+				<div className="mt-4 flex justify-end gap-2 md:mt-6">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							closeDialog();
+							if (onClose) onClose();
+						}}
+						disabled={updateLocationMutation.isPending}
+					>
+						Cancel
+					</Button>
+					<Button type="submit" disabled={updateLocationMutation.isPending}>
+						{updateLocationMutation.isPending ? "Updating..." : "Submit"}
+					</Button>
+				</div>
 				</FieldSet>
 			</form>
 		</section>

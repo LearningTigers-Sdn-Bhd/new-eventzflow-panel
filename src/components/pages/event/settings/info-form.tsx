@@ -96,14 +96,14 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 
 	const form = useForm({
 		defaultValues: {
-			title: event?.title || "",
-			status: (event?.status || "draft") as "draft" | "published" | "cancelled",
-			visibility: event?.visibility ?? true,
-			description: event?.description || "",
-			webhookUrl: event?.webhook_url || "",
-			multipleScans: event?.multiple_scans || false,
-			startDate: event?.start_date ? new Date(event.start_date) : new Date(),
-			endDate: event?.end_date ? new Date(event.end_date) : new Date(),
+			title: "",
+			status: "draft" as "draft" | "published" | "cancelled",
+			visibility: true,
+			description: "",
+			webhookUrl: "",
+			multipleScans: false,
+			startDate: new Date(),
+			endDate: new Date(),
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -125,12 +125,31 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 		},
 	});
 
-	// Reset form with fresh data when event loads
+	// Update form fields when event loads
+	const hasInitialized = React.useRef<number | null>(null);
 	React.useEffect(() => {
-		if (event) {
-			form.reset();
+		if (event && hasInitialized.current !== event.id) {
+			// Use setTimeout to ensure form fields are ready before setting values
+			setTimeout(() => {
+				form.setFieldValue("title", event.title || "");
+				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled");
+				form.setFieldValue("visibility", event.visibility ?? true);
+				form.setFieldValue("description", event.description || "");
+				form.setFieldValue("webhookUrl", event.webhook_url || "");
+				form.setFieldValue("multipleScans", event.multiple_scans || false);
+				form.setFieldValue(
+					"startDate",
+					event.start_date ? new Date(event.start_date) : new Date(),
+				);
+				form.setFieldValue(
+					"endDate",
+					event.end_date ? new Date(event.end_date) : new Date(),
+				);
+			}, 0);
+			
+			hasInitialized.current = event.id;
 		}
-	}, [event?.id, form.reset, event]); // Only reset when event ID changes (initial load)
+	}, [event, form]);
 	if (isLoading) {
 		return (
 			<LoadingState
@@ -145,6 +164,16 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			<div className="text-destructive">
 				Failed to load event information. Please try again.
 			</div>
+		);
+	}
+
+	// Don't render form until event is loaded
+	if (!event) {
+		return (
+			<LoadingState
+				title="Loading event information..."
+				description="Please wait while we fetch the event details"
+			/>
 		);
 	}
 
@@ -208,7 +237,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												Event Status *
 											</FieldLabel>
 											<Select
-												value={field.state.value}
+												value={String(field.state.value)}
 												onValueChange={(value) =>
 													field.handleChange(
 														value as "draft" | "published" | "cancelled",

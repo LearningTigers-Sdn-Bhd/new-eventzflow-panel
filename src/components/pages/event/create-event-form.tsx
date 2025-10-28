@@ -24,6 +24,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { createEvent } from "@/lib/api/event";
+import { getTeamMembers } from "@/lib/api/team";
 import { queryClient } from "@/utils/rest-api";
 
 interface CreateEventFormProps {
@@ -43,21 +44,23 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 		title: "",
 		visibility: true,
 		status: "draft" as "draft" | "published" | "cancelled",
-		event_admin_id: undefined as number | undefined,
+		event_admin_id: undefined as string | undefined,
 		description: "",
 		start_date: undefined as Date | undefined,
 		end_date: undefined as Date | undefined,
 	});
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	// Fetch member users for event admin selection
-	const { data: memberUsers = [], isLoading: isLoadingUsers } = useQuery({
-		queryKey: ["member-users"],
-		queryFn: async () => {
-			// TODO: Implement getMemberUsers API function
-			return [];
-		},
+	// Fetch team members for event admin selection (only members with role "member")
+	const { data: teamMembers = [], isLoading: isLoadingUsers } = useQuery({
+		queryKey: ["team-members"],
+		queryFn: getTeamMembers,
 	});
+
+	// Filter only users with role "member" and active status
+	const memberUsers = teamMembers.filter(
+		(member) => member.role === "member" && member.status === "active",
+	);
 
 	const createEventMutation = useMutation({
 		mutationFn: createEvent,
@@ -123,7 +126,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			};
 
 			if (formData.event_admin_id) {
-				payload.event_admin_id = formData.event_admin_id;
+				// Convert string ID to number for backend API
+				payload.event_admin_id = Number(formData.event_admin_id);
 			}
 
 			await createEventMutation.mutateAsync(payload);
@@ -223,12 +227,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									<FieldError>{errors.event_admin_id}</FieldError>
 								)}
 								<Select
-									value={formData.event_admin_id?.toString() || ""}
+									value={formData.event_admin_id || ""}
 									onValueChange={(value) =>
-										handleChange(
-											"event_admin_id",
-											value ? Number(value) : undefined,
-										)
+										handleChange("event_admin_id", value || undefined)
 									}
 									disabled={createEventMutation.isPending || isLoadingUsers}
 								>
@@ -244,20 +245,16 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									<SelectContent>
 										{memberUsers.length === 0 ? (
 											<div className="px-2 py-1.5 text-muted-foreground text-sm">
-												No members available
+												{isLoadingUsers
+													? "Loading members..."
+													: "No active members available"}
 											</div>
 										) : (
-											memberUsers.map(
-												(user: {
-													id: number;
-													full_name: string;
-													email: string;
-												}) => (
-													<SelectItem key={user.id} value={user.id.toString()}>
-														{user.full_name} ({user.email})
-													</SelectItem>
-												),
-											)
+											memberUsers.map((user) => (
+												<SelectItem key={user.id} value={user.id}>
+													{user.full_name} ({user.email})
+												</SelectItem>
+											))
 										)}
 									</SelectContent>
 								</Select>

@@ -23,7 +23,7 @@ export function TicketActionsMenu({ ticket }: TicketActionsMenuProps) {
 				title: "Edit Ticket",
 				description: "Edit the ticket information.",
 				size: "full",
-				showCloseButton: false,
+				showCloseButton: true,
 			},
 			props: { ticket },
 		});
@@ -35,7 +35,7 @@ export function TicketActionsMenu({ ticket }: TicketActionsMenuProps) {
 			config: {
 				title: "View Ticket",
 				size: "2xl",
-				showCloseButton: false,
+				showCloseButton: true,
 			},
 			props: { ticket },
 		});

@@ -92,11 +92,6 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 				}}
 			>
 				<FieldSet>
-					<FieldLegend className="font-bold text-xl!">
-						Create New Location
-					</FieldLegend>
-					<FieldDescription>Add a new location to your event.</FieldDescription>
-					<FieldSeparator />
 					<FieldGroup>
 						<form.Field name="name">
 							{(field) => {
@@ -154,12 +149,7 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 							}}
 						</form.Field>
 					</FieldGroup>
-					<Field orientation="horizontal" className="mt-4 md:mt-6">
-						<Button type="submit" disabled={createLocationMutation.isPending}>
-							{createLocationMutation.isPending
-								? "Creating..."
-								: "Create Location"}
-						</Button>
+					<div className="mt-4 flex justify-end gap-2 md:mt-6">
 						<Button
 							type="button"
 							variant="outline"
@@ -171,7 +161,12 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 						>
 							Cancel
 						</Button>
-					</Field>
+						<Button type="submit" disabled={createLocationMutation.isPending}>
+							{createLocationMutation.isPending
+								? "Creating..."
+								: "Create Location"}
+						</Button>
+					</div>
 				</FieldSet>
 			</form>
 		</section>

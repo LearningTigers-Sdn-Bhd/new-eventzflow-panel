@@ -169,8 +169,16 @@ export default function AssignMembersDialog({
 			<div className="rounded-md border bg-muted/50 p-3">
 				<h3 className="font-semibold text-sm">{location.name}</h3>
 				<p className="text-muted-foreground text-xs">
-					{selectedMemberIds.length} member
-					{selectedMemberIds.length !== 1 ? "s" : ""} selected
+					{selectedMemberIds.length === 0 ? (
+						<span className="text-amber-600">
+							No members selected (location will have no assigned staff)
+						</span>
+					) : (
+						<>
+							{selectedMemberIds.length} member
+							{selectedMemberIds.length !== 1 ? "s" : ""} selected
+						</>
+					)}
 				</p>
 			</div>
 

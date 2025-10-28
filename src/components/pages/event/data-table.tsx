@@ -51,7 +51,12 @@ export function DataTable<TData, TValue>({
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
 
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [sorting, setSorting] = React.useState<SortingState>([
+		{
+			id: "created_at",
+			desc: true, // Sort by newest first (descending)
+		},
+	]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
 	);

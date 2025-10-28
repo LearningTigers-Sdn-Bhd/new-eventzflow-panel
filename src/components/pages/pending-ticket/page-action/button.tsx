@@ -12,14 +12,14 @@ export function PendingTicketPageButton() {
 				title: "Create Pending Ticket",
 				description: "Create a new pending ticket for your event.",
 				size: "full",
-				showCloseButton: false,
+				showCloseButton: true,
 			},
 		});
 	};
 
 	return (
-		<div className="flex items-center gap-2">
-			<Button variant="outline" onClick={openPendingTicketCreate}>
+		<div className="flex w-full items-center gap-2 lg:w-auto">
+			<Button variant="outline" onClick={openPendingTicketCreate} className="w-full lg:w-auto">
 				<Plus className="h-4 w-4" />
 				Create Pending Ticket
 			</Button>
