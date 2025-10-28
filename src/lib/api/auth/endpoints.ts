@@ -15,6 +15,8 @@ import {
 	authResponseSchema,
 	type RefreshTokenResponse,
 	refreshTokenResponseSchema,
+	type VerifyEmailResponse,
+	verifyEmailResponseSchema,
 } from "./response";
 
 // Token refresh state management
@@ -252,4 +254,49 @@ export async function getAccessToken(): Promise<string | null> {
 	}
 
 	return credentials.accessToken;
+}
+
+/**
+ * Send verification code to user email
+ */
+export async function sendVerificationCode(): Promise<void> {
+	try {
+		await restClient.post("v1/auth/send-verification-code", {});
+	} catch (error) {
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Verify email with 6-digit code
+ */
+export async function verifyEmail(code: string): Promise<VerifyEmailResponse> {
+	try {
+		const response = await restClient.post<VerifyEmailResponse>(
+			"v1/auth/verify-email",
+			{ code },
+		);
+
+		// Validate response
+		const validatedResponse = verifyEmailResponseSchema.parse(response);
+
+		if (!validatedResponse.success) {
+			throw new Error(validatedResponse.message || "Email verification failed");
+		}
+
+		// Update user in store with updated email_verified status
+		const state = useUserSessionStore.getState();
+		state.setUser(validatedResponse.data.user);
+
+		return validatedResponse;
+	} catch (error) {
+		// Handle validation errors
+		if (error instanceof Error && error.name === "ZodError") {
+			throw new Error("Invalid verification response");
+		}
+
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
 }

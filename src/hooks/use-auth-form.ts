@@ -68,7 +68,7 @@ export function useAuthForm(): UseAuthFormReturn {
 		try {
 			await register(userData);
 			toast.success("Sign up successful");
-			router.push("/dashboard" as Route);
+			router.push("/verify-email" as Route);
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error
