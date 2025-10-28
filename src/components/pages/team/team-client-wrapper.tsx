@@ -17,9 +17,12 @@ export default function TeamClientWrapper({
 	const { openDialog, closeDialog } = useDialog();
 
 	// Filter out manager roles - only show org_owner and member
-	const filteredTeamMembers = teamMembers.filter(
-		(member) => member.role !== "manager",
-	);
+	// Sort by createdAt in descending order (latest first)
+	const filteredTeamMembers = teamMembers
+		.filter((member) => member.role !== "manager")
+		.sort((a, b) => {
+			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+		});
 
 	const handleAddMember = () => {
 		openDialog({
@@ -37,16 +40,15 @@ export default function TeamClientWrapper({
 
 	return (
 		<div className="p-2">
-			<div className="mb-8 flex items-center justify-between gap-4">
+			<div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div className="min-w-0 flex-1">
 					<h1 className="font-bold text-3xl tracking-tight">Team Members</h1>
 					<p className="text-muted-foreground">
 						Manage your team members and their roles.
 					</p>
 				</div>
-				<Button onClick={handleAddMember} className="shrink-0">
-					<span className="hidden sm:inline">Add Team Member</span>
-					<span className="sm:hidden">Add Team</span>
+				<Button onClick={handleAddMember} className="w-full lg:w-auto lg:shrink-0">
+					Add Team Member
 				</Button>
 			</div>
 			<DataTable columns={columns} data={filteredTeamMembers} />
