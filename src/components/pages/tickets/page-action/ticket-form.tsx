@@ -183,6 +183,7 @@ export default function TicketForm() {
 					Object.keys(customFieldsData).length > 0
 						? customFieldsData
 						: undefined,
+				payment_status: 1, // Automatically set to paid (1 = paid)
 			});
 		} catch (_error) {
 			// Error is handled by onError callback

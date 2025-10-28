@@ -191,6 +191,7 @@ export async function createTicket(data: {
 	attendee_phone?: string;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;
+	payment_status?: number;
 }): Promise<CreateTicketResponse> {
 	const validated = createTicketSchema.parse(data);
 	const { eventId, ...ticketData } = validated;
