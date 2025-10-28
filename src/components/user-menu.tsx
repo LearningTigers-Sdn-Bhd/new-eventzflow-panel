@@ -1,4 +1,4 @@
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -55,9 +55,17 @@ export default function UserMenu() {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					<Settings />
-					Account Settings
+				<DropdownMenuItem asChild>
+					<Link href="/dashboard">
+						<LayoutDashboard />
+						Dashboard
+					</Link>
+				</DropdownMenuItem>
+				<DropdownMenuItem asChild>
+					<Link href="/settings">
+						<Settings />
+						Account Settings
+					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					className="group cursor-pointer bg-destructive text-white transition-colors hover:bg-destructive/90 hover:text-red-950"

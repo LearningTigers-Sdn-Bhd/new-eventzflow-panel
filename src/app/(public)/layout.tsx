@@ -33,9 +33,11 @@ export default function PublicLayout({
 
 	// Render header layout for public routes (hide header on login page)
 	return (
-		<div className="grid h-svh grid-rows-[auto_1fr]">
+		<div className="min-h-screen w-full">
 			{!isLoginPage && <Header />}
-			{children}
+			<main className="w-full">
+				{children}
+			</main>
 		</div>
 	);
 }
