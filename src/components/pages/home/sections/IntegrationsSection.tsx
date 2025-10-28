@@ -79,7 +79,7 @@ const IntegrationsSection: React.FC = () => {
   ];
 
   return (
-    <section id="integrations-section" ref={sectionRef} className="py-12 sm:py-16 lg:py-20 xl:py-32 px-4 sm:px-6 lg:px-8 bg-background relative overflow-hidden">
+    <section id="integrations-section" ref={sectionRef} className="py-12 sm:py-16 lg:py-20 xl:py-32 px-4 sm:px-6 lg:px-8 bg-muted/40 relative overflow-hidden">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated Grid Pattern */}

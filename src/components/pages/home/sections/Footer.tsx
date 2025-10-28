@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2 sm:px-4 sm:py-2 bg-input border rounded-md sm:rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors text-sm sm:text-base"
+                  className="flex-1 px-3 py-2 sm:px-4 sm:py-2 bg-input border border-primary rounded-md sm:rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors text-sm sm:text-base"
                 />
                 <button className="bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md sm:rounded-lg hover:shadow-lg transition-all duration-200">
                   <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />

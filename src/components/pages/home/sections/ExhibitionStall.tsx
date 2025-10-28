@@ -13,6 +13,7 @@ import {
   Rocket,
   Presentation
 } from 'lucide-react';
+import Link from 'next/link';
 
 const ExhibitionStall: React.FC = () => {
   // EventzFlow Brand Colors (matching HeroSection)
@@ -277,23 +278,25 @@ const ExhibitionStall: React.FC = () => {
           viewport={{ once: false, amount: 0.05 }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
-          <motion.button 
-            className="group text-primary-foreground px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center space-x-3 mx-auto hover:shadow-2xl transition-all duration-300"
-            style={{
-              background: `linear-gradient(135deg, ${colors.primary}, ${colors.blue})`,
-              boxShadow: `0 10px 40px ${colors.primary}40`
-            }}
-            whileHover={{ 
-              scale: 1.05, 
-              y: -2,
-              boxShadow: `0 20px 60px ${colors.primary}60`
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <QrCode className="h-6 w-6" />
-            <span>Get Started</span>
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </motion.button>
+          <Link href="/login">
+            <motion.button 
+              className="group text-primary-foreground px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center space-x-3 mx-auto hover:shadow-2xl transition-all duration-300"
+              style={{
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.blue})`,
+                boxShadow: `0 10px 40px ${colors.primary}40`
+              }}
+              whileHover={{ 
+                scale: 1.05, 
+                y: -2,
+                boxShadow: `0 20px 60px ${colors.primary}60`
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <QrCode className="h-6 w-6" />
+              <span>Get Started</span>
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </Link>
           <p className="text-muted-foreground text-sm mt-4">
             ✓ Instant product info sharing ✓ Automatic lead capture ✓ Digital catalogs
           </p>

@@ -4,6 +4,7 @@ import React from 'react';
 import { ArrowRight, Calendar, Zap, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 const FinalCTA: React.FC = () => {
   // EventzFlow Brand Colors (matching HeroSection)
@@ -150,37 +151,41 @@ const FinalCTA: React.FC = () => {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button 
-                size="lg"
-                className="group text-sm sm:text-base"
-              >
-                <motion.div
-                  whileHover={{ rotate: 12 }}
-                  transition={{ duration: 0.15 }}
+              <Link href="/login">
+                <Button 
+                  size="lg"
+                  className="group text-sm sm:text-base"
                 >
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                </motion.div>
-                <span>Setup WhatsApp Automation</span>
-                <motion.div
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
-                </motion.div>
-              </Button>
+                  <motion.div
+                    whileHover={{ rotate: 12 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  </motion.div>
+                  <span>Get Started</span>
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
+                  </motion.div>
+                </Button>
+              </Link>
             </motion.div>
             
             <motion.div
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button 
-                variant="outline"
-                size="lg"
-                className="text-sm sm:text-base"
-              >
-                See Platform Demo
-              </Button>
+              <a href="#product-demo">
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  className="text-sm sm:text-base"
+                >
+                  See Platform Demo
+                </Button>
+              </a>
             </motion.div>
           </motion.div>
         </motion.div>

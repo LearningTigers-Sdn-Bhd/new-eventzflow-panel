@@ -104,7 +104,7 @@ const PainPoints: React.FC = () => {
   };
 
   return (
-    <section id="pain-points" className="py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-background overflow-x-hidden">
+    <section id="pain-points" className="py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-primary/5 overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
         <motion.div 
           className="text-center mb-12 sm:mb-16"
@@ -208,7 +208,7 @@ const PainPoints: React.FC = () => {
           transition={{ duration: 0.4, delay: 0.15 }}
           >
             <motion.h3 
-            className="text-lg sm:text-xl lg:text-2xl font-bold text-primary mb-6 sm:mb-8 flex items-center justify-center"
+            className="text-lg sm:text-xl lg:text-2xl font-bold text-green-500 mb-6 sm:mb-8 flex items-center justify-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.05 }}
@@ -230,7 +230,7 @@ const PainPoints: React.FC = () => {
               return (
                 <motion.div 
                   key={index} 
-                  className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-primary/20 border border-primary/30 rounded-lg sm:rounded-xl"
+                  className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-green-500/20 border border-green-500/30 rounded-lg sm:rounded-xl"
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: false, amount: 0.05 }}

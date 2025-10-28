@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, ArrowRight, Sparkles, Zap, Users, Star, TrendingUp, Ticket } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 const HeroSection: React.FC = () => {
 
@@ -382,42 +383,44 @@ const HeroSection: React.FC = () => {
               whileHover="hover"
               whileTap="tap"
             >
-              <Button 
-                size="lg"
-                className="group relative overflow-hidden w-full sm:w-auto shadow-2xl text-sm sm:text-base md:text-lg text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${colors.primary}, ${colors.blue})`,
-                  border: 'none',
-                }}
-              >
-                {/* Enhanced button effects */}
-                <motion.div 
-                  className="absolute inset-0"
+              <Link href="/login">
+                <Button 
+                  size="lg"
+                  className="group relative overflow-hidden w-full sm:w-auto shadow-2xl text-sm sm:text-base md:text-lg text-white"
                   style={{
-                    background: `linear-gradient(to right, ${colors.primary}33, ${colors.blue}33)`
+                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.blue})`,
+                    border: 'none',
                   }}
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: '100%' }}
-                  transition={{ duration: 0.15 }}
-                />
-                
-                <span className="relative z-10 flex items-center gap-2">
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  <span>Get Started Now</span>
+                >
+                  {/* Enhanced button effects */}
+                  <motion.div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to right, ${colors.primary}33, ${colors.blue}33)`
+                    }}
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  />
                   <motion.div
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  </motion.div>
-                </span>
-              </Button>
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.15 }}
+                  />
+                  
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                    <span>Get Started Now</span>
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    >
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                    </motion.div>
+                  </span>
+                </Button>
+              </Link>
             </motion.div>
             
             <motion.div
@@ -425,31 +428,33 @@ const HeroSection: React.FC = () => {
               whileHover="hover"
               whileTap="tap"
             >
-              <Button 
-                variant="outline"
-                size="lg"
-                className="group relative overflow-hidden w-full sm:w-auto backdrop-blur-xl text-sm sm:text-base md:text-lg"
-                style={{
-                  borderColor: colors.primary,
-                  borderWidth: '2px',
-                }}
-              >
-                {/* Glass morphism effect */}
-                <motion.div 
-                  className="absolute inset-0"
+              <a href="#product-demo">
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  className="group relative overflow-hidden w-full sm:w-auto backdrop-blur-xl text-sm sm:text-base md:text-lg"
                   style={{
-                    background: `linear-gradient(to right, ${colors.primary}1A, ${colors.blue}1A)`
+                    borderColor: colors.primary,
+                    borderWidth: '2px',
                   }}
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                />
-                
-                <span className="relative z-10 flex items-center gap-2">
-                  <Play className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  <span>Watch Demo</span>
-                </span>
-              </Button>
+                >
+                  {/* Glass morphism effect */}
+                  <motion.div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to right, ${colors.primary}1A, ${colors.blue}1A)`
+                    }}
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Play className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                    <span>Watch Demo</span>
+                  </span>
+                </Button>
+              </a>
             </motion.div>
           </motion.div>
 

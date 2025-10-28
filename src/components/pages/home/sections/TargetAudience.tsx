@@ -9,11 +9,9 @@ import {
   Briefcase, 
   TrendingUp,
   Sparkles,
-  CheckCircle,
-  ArrowRight
+  CheckCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
 import type { LucideIcon } from 'lucide-react';
 
 interface TargetAudience {
@@ -277,7 +275,6 @@ const TargetAudience: React.FC = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${audience.color} opacity-20 group-hover:opacity-30 transition-opacity`} />
                   </div>
 
                   {/* Card Content */}
@@ -328,15 +325,6 @@ const TargetAudience: React.FC = () => {
                         </div>
                       ))}
                     </div>
-
-                    {/* CTA Button */}
-                    <Button 
-                      className={`w-full bg-gradient-to-r ${audience.color} text-white hover:opacity-90 transition-opacity text-xs sm:text-sm`}
-                      size="sm"
-                    >
-                      <span>Learn More</span>
-                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" />
-                    </Button>
                   </div>
                 </motion.div>
               );
