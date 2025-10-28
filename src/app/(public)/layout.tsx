@@ -1,5 +1,5 @@
 "use client";
-import { usePathname, redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import Header from "@/components/header";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";

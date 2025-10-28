@@ -1,5 +1,6 @@
 "use client";
-import { redirect } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -9,15 +10,40 @@ import {
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 
 export default function AuthLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const isHydrated = useHydratedStore();
-	const { user } = useAuth();
+	const { user, isHydrated } = useAuth();
+	const router = useRouter();
+	const pathname = usePathname();
+
+	// Redirect unauthenticated users to login
+	useEffect(() => {
+		if (!user && isHydrated) {
+			router.push("/login");
+			return;
+		}
+	}, [user, isHydrated, router]);
+
+	// Handle email verification redirects
+	useEffect(() => {
+		if (!user || !isHydrated) return;
+
+		// Redirect to verify-email landing page if not verified
+		if (!user.email_verified && !pathname.startsWith("/verify-email")) {
+			router.push("/verify-email" as "/dashboard");
+			return;
+		}
+
+		// Redirect to dashboard if already verified and on verify-email pages
+		if (user.email_verified && pathname.startsWith("/verify-email")) {
+			router.push("/dashboard");
+			return;
+		}
+	}, [user, pathname, isHydrated, router]);
 
 	// Show loading spinner during hydration
 	if (!isHydrated) {
@@ -28,9 +54,22 @@ export default function AuthLayout({
 		);
 	}
 
-	// Redirect unauthenticated users to login
-	if (!user) {
-		redirect("/login");
+	// Return null while redirecting
+	if (!user) return null;
+
+	// Early return guard: Prevent unverified users from accessing non-verify-email routes
+	// This runs BEFORE children mount, preventing API calls
+	if (user && !user.email_verified && !pathname.startsWith("/verify-email")) {
+		return (
+			<div className="flex h-screen w-full items-center justify-center">
+				<Spinner className="size-16 text-emerald-500" />
+			</div>
+		);
+	}
+
+	// Render verify-email pages without sidebar
+	if (pathname.startsWith("/verify-email")) {
+		return <div className="grid h-svh grid-rows-[auto_1fr]">{children}</div>;
 	}
 
 	// Render sidebar layout for authenticated users

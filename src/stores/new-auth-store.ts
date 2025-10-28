@@ -7,6 +7,7 @@ interface User {
 	full_name?: string | null | undefined;
 	role: "org_owner" | "manager" | "member";
 	phone?: string | null | undefined;
+	email_verified: boolean;
 }
 
 interface SessionCredentials {

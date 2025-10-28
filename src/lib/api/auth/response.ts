@@ -7,6 +7,7 @@ export const userSchema = z.object({
 	email: z.string().email(),
 	role: z.enum(["org_owner", "manager", "member"]),
 	phone: z.string().nullable().optional(),
+	email_verified: z.boolean(),
 });
 
 // Auth response schema
@@ -32,7 +33,17 @@ export const refreshTokenResponseSchema = z.object({
 	}),
 });
 
+// Verify email response schema
+export const verifyEmailResponseSchema = z.object({
+	success: z.boolean(),
+	message: z.string(),
+	data: z.object({
+		user: userSchema,
+	}),
+});
+
 // Export TypeScript types derived from schemas
 export type User = z.infer<typeof userSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
+export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
