@@ -42,8 +42,24 @@ export const verifyEmailResponseSchema = z.object({
 	}),
 });
 
+// Password reset: request email response (backend may just return message)
+export const requestResetPasswordResponseSchema = z.object({
+	success: z.boolean().optional().default(true),
+	message: z.string().optional().default("Password reset email sent"),
+});
+
+// Password reset: reset result response (message oriented)
+export const resetPasswordResponseSchema = z.object({
+	success: z.boolean().optional().default(true),
+	message: z.string().optional().default("Password has been reset"),
+});
+
 // Export TypeScript types derived from schemas
 export type User = z.infer<typeof userSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
 export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
+export type RequestResetPasswordResponse = z.infer<
+	typeof requestResetPasswordResponseSchema
+>;
+export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;

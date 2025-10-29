@@ -7,14 +7,24 @@ import {
 	type RefreshTokenRequest,
 	type RegisterRequest,
 	type RegisterRequestData,
+	type RequestResetPasswordRequest,
+	type ResetPasswordRequest,
 	refreshTokenRequestSchema,
 	registerRequestSchema,
+	requestResetPasswordSchema,
+	resetPasswordSchema,
+	type VerifyResetPasswordRequest,
+	verifyResetPasswordRequestSchema,
 } from "./request";
 import {
 	type AuthResponse,
 	authResponseSchema,
 	type RefreshTokenResponse,
+	type RequestResetPasswordResponse,
+	type ResetPasswordResponse,
 	refreshTokenResponseSchema,
+	requestResetPasswordResponseSchema,
+	resetPasswordResponseSchema,
 	type VerifyEmailResponse,
 	verifyEmailResponseSchema,
 } from "./response";
@@ -296,6 +306,69 @@ export async function verifyEmail(code: string): Promise<VerifyEmailResponse> {
 			throw new Error("Invalid verification response");
 		}
 
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Request a password reset email
+ */
+export async function requestPasswordReset(
+	email: string,
+): Promise<RequestResetPasswordResponse> {
+	try {
+		const payload: RequestResetPasswordRequest =
+			requestResetPasswordSchema.parse({ email });
+		const response = await restClient.post<RequestResetPasswordResponse>(
+			"v1/auth/password/request_reset_password",
+			payload,
+		);
+		return requestResetPasswordResponseSchema.parse(response);
+	} catch (error) {
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Verify reset password request token validity
+ * Returns true if valid; throws on failure (e.g., 422)
+ */
+export async function verifyResetPasswordRequest(
+	token: string,
+): Promise<boolean> {
+	try {
+		const { token: validatedToken }: VerifyResetPasswordRequest =
+			verifyResetPasswordRequestSchema.parse({ token });
+		// Using query string since restClient.get doesn't accept params object
+		await restClient.get(
+			`v1/auth/password/verify_reset_password_request?token=${encodeURIComponent(
+				validatedToken,
+			)}`,
+		);
+		return true;
+	} catch (error) {
+		// Surface a friendly error; caller can decide to redirect
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Reset password using token
+ */
+export async function resetPassword(
+	data: ResetPasswordRequest,
+): Promise<ResetPasswordResponse> {
+	try {
+		const payload = resetPasswordSchema.parse(data);
+		const response = await restClient.post<ResetPasswordResponse>(
+			"v1/auth/password/reset_password",
+			payload,
+		);
+		return resetPasswordResponseSchema.parse(response);
+	} catch (error) {
 		const errorMessage = await extractErrorMessage(error);
 		throw new Error(errorMessage);
 	}

@@ -41,10 +41,39 @@ export const refreshTokenRequestSchema = z.object({
 	refresh_token: z.string().min(1, "Refresh token is required"),
 });
 
+// Password reset: request reset email
+export const requestResetPasswordSchema = z.object({
+	email: emailSchema,
+});
+
+// Password reset: verify reset request token
+export const verifyResetPasswordRequestSchema = z.object({
+	token: z.string().min(1, "Token is required"),
+});
+
+// Password reset: perform reset with token
+export const resetPasswordSchema = z
+	.object({
+		token: z.string().min(1, "Token is required"),
+		password: passwordSchema,
+		password_confirmation: passwordSchema,
+	})
+	.refine((data) => data.password === data.password_confirmation, {
+		message: "Passwords do not match",
+		path: ["password_confirmation"],
+	});
+
 // Export TypeScript types derived from schemas
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 export type RefreshTokenRequest = z.infer<typeof refreshTokenRequestSchema>;
+export type RequestResetPasswordRequest = z.infer<
+	typeof requestResetPasswordSchema
+>;
+export type VerifyResetPasswordRequest = z.infer<
+	typeof verifyResetPasswordRequestSchema
+>;
+export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;
 
 // Export individual field types for convenience
 export type LoginRequestData = LoginRequest["user"];
