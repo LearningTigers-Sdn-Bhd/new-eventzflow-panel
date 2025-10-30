@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { motion } from "framer-motion";
-import { Phone } from "@/components/devices/Phone";
+import type React from "react";
 import WhatsAppSalesDemo from "@/components/devices/screen/WhatsAppSalesDemo";
 
 const WhatsAppDemo: React.FC = () => {
@@ -17,15 +16,15 @@ const WhatsAppDemo: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.5 }}
 					>
-						<p className="mb-4 text-sm font-medium uppercase tracking-wider text-green-600">
+						<p className="mb-4 font-medium text-green-600 text-sm uppercase tracking-wider">
 							WHATSAPP AUTOMATION
 						</p>
-						<h2 className="mb-6 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
+						<h2 className="mb-6 font-bold text-3xl text-foreground sm:text-4xl lg:text-5xl">
 							Registration Through
 							<br />
 							<span className="text-green-600">WhatsApp Automation</span>
 						</h2>
-						<p className="mb-8 text-lg leading-relaxed text-muted-foreground">
+						<p className="mb-8 text-lg text-muted-foreground leading-relaxed">
 							Experience how our WhatsApp registration automation handles ticket
 							sales and attendee check-in seamlessly. Automated conversations in
 							7+ languages with instant payment processing.
@@ -46,14 +45,15 @@ const WhatsAppDemo: React.FC = () => {
 									title: "Multi-Language Support",
 									desc: "Serve global audiences with intelligent language detection",
 								},
-							].map((benefit, index) => (
-								<div key={index} className="flex gap-4">
-									<div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+							].map((benefit) => (
+								<div key={benefit.title} className="flex gap-4">
+									<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
 										<svg
 											className="h-4 w-4"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
+											aria-hidden="true"
 										>
 											<path
 												strokeLinecap="round"
@@ -67,7 +67,7 @@ const WhatsAppDemo: React.FC = () => {
 										<h4 className="font-semibold text-foreground">
 											{benefit.title}
 										</h4>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted-foreground text-sm">
 											{benefit.desc}
 										</p>
 									</div>
@@ -86,7 +86,7 @@ const WhatsAppDemo: React.FC = () => {
 					>
 						<div className="relative">
 							{/* Simple shadow */}
-							<div className="absolute -bottom-8 left-1/2 h-8 w-3/4 -translate-x-1/2 rounded-full bg-black/20 blur-2xl" />
+							<div className="-bottom-8 -translate-x-1/2 absolute left-1/2 h-8 w-3/4 rounded-full bg-black/20 blur-2xl" />
 							<WhatsAppSalesDemo />
 						</div>
 					</motion.div>
@@ -97,4 +97,3 @@ const WhatsAppDemo: React.FC = () => {
 };
 
 export default WhatsAppDemo;
-

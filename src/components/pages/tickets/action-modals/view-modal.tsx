@@ -75,17 +75,17 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 	};
 
 	return (
-		<div className="flex flex-col gap-6 md:h-[80vh] w-full max-w-4xl mx-auto">
+		<div className="mx-auto flex w-full max-w-4xl flex-col gap-6 md:h-[80vh]">
 			{/* Header with Ticket ID */}
-			<div className="flex items-center justify-between pb-4 border-b">
+			<div className="flex items-center justify-between border-b pb-4">
 				<div>
 					<h2 className="font-bold text-2xl">Ticket Details</h2>
-					<p className="text-muted-foreground text-sm mt-1">ID: {ticket.id}</p>
+					<p className="mt-1 text-muted-foreground text-sm">ID: {ticket.id}</p>
 				</div>
 				<Badge
 					variant={ticket.status === "scanned" ? "default" : "secondary"}
 					className={cn(
-						"text-sm px-4 py-2",
+						"px-4 py-2 text-sm",
 						ticket.status === "scanned"
 							? "bg-green-500 text-white hover:bg-green-500"
 							: "bg-gray-500 text-white hover:bg-gray-500",
@@ -104,7 +104,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							description="Basic information about the buyer of the ticket."
 						/>
 						<Separator className="my-4" />
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+						<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 							<InfoLabel
 								label="Name"
 								value={ticket.name}
@@ -113,7 +113,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							/>
 							<InfoLabel
 								label="Email"
-								value={ticket.email}
+								value={ticket.email ?? ""}
 								icon={Mail}
 								ticket={ticket}
 							/>
@@ -135,7 +135,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							)}
 							<InfoLabel
 								label="Ticket Price"
-								value={`RM${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}`}
+								value={`RM${(typeof ticket.value === "number" ? ticket.value : Number.parseFloat(ticket.value as string) || 0).toFixed(2)}`}
 								icon={DollarSign}
 								ticket={ticket}
 							/>
@@ -163,7 +163,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 						/>
 						<Separator className="my-4" />
 						{ticket.customLabels && ticket.customLabels.length > 0 ? (
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+							<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 								{ticket.customLabels.map((label, index) => (
 									<InfoLabel
 										key={`${label.name}-${index}`}
@@ -187,7 +187,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 				</div>
 			</ScrollArea>
 
-			<div className="flex justify-end gap-2 pt-4 border-t">
+			<div className="flex justify-end gap-2 border-t pt-4">
 				<Button type="button" variant="outline" onClick={handleClose}>
 					Close
 				</Button>

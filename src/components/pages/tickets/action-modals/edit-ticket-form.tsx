@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import { updateTicket } from "@/lib/api/ticket";
 import {
 	getEventTicketTypes,
@@ -30,7 +31,6 @@ import {
 } from "@/lib/api/ticket-type";
 import type { TicketType } from "@/lib/api/ticket-type/response";
 import type { BaseTicket } from "../columns";
-import { getEventById } from "@/lib/api/event";
 
 interface EditTicketFormProps {
 	ticket: BaseTicket;
@@ -44,7 +44,9 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 
 	// Form state - Initialize with ticket data
 	const [attendeeName, setAttendeeName] = useState(ticket.name);
-	const [attendeeEmail, setAttendeeEmail] = useState(ticket.email);
+	const [attendeeEmail, setAttendeeEmail] = useState<string>(
+		ticket.email ?? "",
+	);
 	const [attendeePhone, setAttendeePhone] = useState(ticket.phone || "");
 	const [ticketTypeId, setTicketTypeId] = useState<number | null>(
 		ticket.ticketTypeId || null,
@@ -94,19 +96,24 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 
 	// Initialize custom fields from event labels_data and populate with ticket data
 	useEffect(() => {
-		if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
-			const fields = Object.entries(eventData.labels_data).map(([key, labelNameValue]) => {
-				const currentLabelName = labelNameValue as string;
-				const existingLabel = ticket.customLabels?.find(
-					(label) => label.name === currentLabelName,
-				);
-				
-				return {
-					labelKey: key,
-					labelName: currentLabelName,
-					value: existingLabel?.value || "",
-				};
-			});
+		if (
+			eventData?.labels_data &&
+			Object.keys(eventData.labels_data).length > 0
+		) {
+			const fields = Object.entries(eventData.labels_data).map(
+				([key, labelNameValue]) => {
+					const currentLabelName = labelNameValue as string;
+					const existingLabel = ticket.customLabels?.find(
+						(label) => label.name === currentLabelName,
+					);
+
+					return {
+						labelKey: key,
+						labelName: currentLabelName,
+						value: existingLabel?.value || "",
+					};
+				},
+			);
 			setCustomFields(fields);
 		}
 	}, [eventData, ticket.customLabels]);
@@ -139,7 +146,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			newErrors.attendeeName = "Name must be at least 2 characters";
 		}
 
-		if (attendeeEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
+		if (
+			attendeeEmail.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)
+		) {
 			newErrors.attendeeEmail = "Please enter a valid email address";
 		}
 
@@ -170,7 +180,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				eventId,
 				ticketId: ticket.publicId,
 				attendee_name: attendeeName,
-				attendee_email: attendeeEmail.trim() || null,
+				attendee_email: attendeeEmail.trim() || undefined,
 				attendee_phone: attendeePhone || undefined,
 				ticket_type_id: ticketTypeId,
 				custom_fields_data:

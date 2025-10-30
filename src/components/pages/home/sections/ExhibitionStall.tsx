@@ -82,12 +82,12 @@ const ExhibitionStall: React.FC = () => {
 	return (
 		<section
 			id="exhibition-stall"
-			className="relative overflow-hidden bg-gradient-to-br from-background via-card to-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24"
+			className="relative overflow-hidden bg-linear-to-br from-background via-card to-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24"
 		>
 			{/* Background Effects */}
 			<div className="pointer-events-none absolute inset-0 overflow-hidden">
 				<motion.div
-					className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-gradient-to-r from-primary/15 to-ring/15 blur-3xl"
+					className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-linear-to-r from-primary/15 to-ring/15 blur-3xl"
 					animate={{
 						scale: [1, 1.2, 1],
 						opacity: [0.3, 0.5, 0.3],
@@ -99,7 +99,7 @@ const ExhibitionStall: React.FC = () => {
 					}}
 				/>
 				<motion.div
-					className="absolute bottom-1/4 left-10 h-80 w-80 rounded-full bg-gradient-to-r from-accent/10 to-primary/10 blur-3xl"
+					className="absolute bottom-1/4 left-10 h-80 w-80 rounded-full bg-linear-to-r from-accent/10 to-primary/10 blur-3xl"
 					animate={{
 						scale: [1.2, 1, 1.2],
 						opacity: [0.4, 0.6, 0.4],
@@ -183,7 +183,7 @@ const ExhibitionStall: React.FC = () => {
 						const IconComponent = feature.icon;
 						return (
 							<motion.div
-								key={index}
+								key={feature.title}
 								className="group rounded-xl border bg-background/60 p-4 backdrop-blur-sm transition-all duration-300 hover:border-primary sm:p-6"
 								initial={{ opacity: 0, y: 20, scale: 0.95 }}
 								whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -201,7 +201,7 @@ const ExhibitionStall: React.FC = () => {
 								}}
 							>
 								<div
-									className={`h-12 w-12 bg-gradient-to-br ${feature.color} mb-4 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110`}
+									className={`h-12 w-12 bg-linear-to-br ${feature.color} mb-4 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110`}
 								>
 									<IconComponent className="h-6 w-6 text-foreground" />
 								</div>
@@ -241,8 +241,8 @@ const ExhibitionStall: React.FC = () => {
 							const IconComponent = useCase.icon;
 							return (
 								<motion.div
-									key={index}
-									className="rounded-xl border bg-gradient-to-br from-background/80 to-background/40 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary"
+									key={useCase.title}
+									className="rounded-xl border bg-linear-to-br from-background/80 to-background/40 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary"
 									initial={{ opacity: 0, y: 20 }}
 									whileInView={{ opacity: 1, y: 0 }}
 									viewport={{ once: false, amount: 0.05 }}
@@ -284,7 +284,7 @@ const ExhibitionStall: React.FC = () => {
 						const IconComponent = stat.icon;
 						return (
 							<motion.div
-								key={index}
+								key={`${stat.label}-${stat.value}`}
 								className="rounded-xl border bg-background/40 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-background/60"
 								initial={{ opacity: 0, scale: 0.9 }}
 								whileInView={{ opacity: 1, scale: 1 }}

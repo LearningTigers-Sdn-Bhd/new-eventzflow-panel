@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +23,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
-import { updatePendingTicket } from "@/lib/api/event/pending";
 import { getEventById } from "@/lib/api/event";
+import { updatePendingTicket } from "@/lib/api/event/pending";
 import type { TicketType } from "@/lib/api/ticket-type";
 import {
 	getEventTicketTypes,
@@ -51,7 +51,9 @@ export default function PendingTicketEditModal({
 
 	// Form state - Initialize with ticket data
 	const [attendeeName, setAttendeeName] = useState(ticket.name);
-	const [attendeeEmail, setAttendeeEmail] = useState(ticket.email);
+	const [attendeeEmail, setAttendeeEmail] = useState<string>(
+		ticket.email ?? "",
+	);
 	const [attendeePhone, setAttendeePhone] = useState(ticket.phone || "");
 	const [ticketTypeId, setTicketTypeId] = useState<number | null>(
 		ticket.ticketTypeId || null,
@@ -107,19 +109,24 @@ export default function PendingTicketEditModal({
 		isLoadingEventTicketTypes || isLoadingGlobalTicketTypes;
 
 	useEffect(() => {
-		if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
-			const fields = Object.entries(eventData.labels_data).map(([key, labelNameValue]) => {
-				const currentLabelName = labelNameValue as string;
-				const existingLabel = ticket.customLabels?.find(
-					(label) => label.name === currentLabelName,
-				);
-				
-				return {
-					labelKey: key,
-					labelName: currentLabelName,
-					value: existingLabel?.value || "",
-				};
-			});
+		if (
+			eventData?.labels_data &&
+			Object.keys(eventData.labels_data).length > 0
+		) {
+			const fields = Object.entries(eventData.labels_data).map(
+				([key, labelNameValue]) => {
+					const currentLabelName = labelNameValue as string;
+					const existingLabel = ticket.customLabels?.find(
+						(label) => label.name === currentLabelName,
+					);
+
+					return {
+						labelKey: key,
+						labelName: currentLabelName,
+						value: existingLabel?.value || "",
+					};
+				},
+			);
 			setCustomFields(fields);
 		}
 	}, [eventData, ticket.customLabels]);
@@ -151,7 +158,10 @@ export default function PendingTicketEditModal({
 			newErrors.attendeeName = "Name must be at least 2 characters";
 		}
 
-		if (attendeeEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
+		if (
+			attendeeEmail.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)
+		) {
 			newErrors.attendeeEmail = "Please enter a valid email address";
 		}
 
@@ -173,7 +183,7 @@ export default function PendingTicketEditModal({
 				eventId,
 				ticketId: ticket.id,
 				attendee_name: attendeeName,
-				attendee_email: attendeeEmail.trim() || null,
+				attendee_email: attendeeEmail.trim() || undefined,
 				attendee_phone: attendeePhone || undefined,
 				ticket_type_id: ticketTypeId || undefined,
 				payment_status: paymentStatus, // Send payment status as number

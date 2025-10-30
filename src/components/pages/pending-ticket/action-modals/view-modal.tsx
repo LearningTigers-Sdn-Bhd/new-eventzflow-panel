@@ -19,7 +19,11 @@ import { Separator } from "@/components/ui/separator";
 import { useDialog } from "@/hooks/use-dialog";
 import { cn } from "../../../../lib/utils";
 import type { PendingTicket } from "../columns";
-import { formatTicketPrice, getPaymentStatusColor, getPaymentStatusText } from "../constants";
+import {
+	formatTicketPrice,
+	getPaymentStatusColor,
+	getPaymentStatusText,
+} from "../constants";
 
 interface PendingTicketViewModalProps {
 	ticket: PendingTicket;
@@ -81,7 +85,9 @@ const PaymentInfoLabel = ({
 	const isPaymentStatus = label === "Payment Status";
 	// Use stronger colors for modal view
 	const statusColor = isPaymentStatus
-		? getPaymentStatusColor(ticket.paymentStatus).replace("100", "500").replace("800", "white")
+		? getPaymentStatusColor(ticket.paymentStatus)
+				.replace("100", "500")
+				.replace("800", "white")
 		: "";
 
 	return (
@@ -137,13 +143,13 @@ export default function PendingTicketViewModal({
 						/>
 						<InfoLabel
 							label="Email"
-							value={ticket.email}
+							value={ticket.email ?? ""}
 							icon={Mail}
 							ticket={ticket}
 						/>
 						<InfoLabel
 							label="Phone Number"
-							value={ticket.phone}
+							value={ticket.phone ?? ""}
 							icon={Phone}
 							ticket={ticket}
 						/>
