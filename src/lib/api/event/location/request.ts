@@ -12,21 +12,41 @@ export const getLocationByIdSchema = z.object({
 });
 
 // Validation schema for creating a location
-export const createLocationSchema = z.object({
-	eventId: z.string().min(1, "Event ID is required"),
-	name: z.string().min(1, "Name is required"),
-	scanLimit: z.number().min(0, "Scan limit must be at least 0"),
-	memberIds: z.array(z.string()).optional(),
-});
+export const createLocationSchema = z
+	.object({
+		eventId: z.string().min(1, "Event ID is required"),
+		name: z.string().min(1, "Name is required"),
+		isUnlimited: z.boolean().optional().default(false),
+		scanLimit: z
+			.number()
+			.min(0, "Scan limit must be at least 0")
+			.nullable()
+			.optional(),
+		memberIds: z.array(z.string()).optional(),
+	})
+	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
+		message: "Scan limit is required when not unlimited",
+		path: ["scanLimit"],
+	});
 
 // Validation schema for updating a location
-export const updateLocationSchema = z.object({
-	eventId: z.string().min(1, "Event ID is required"),
-	locationId: z.string().min(1, "Location ID is required"),
-	name: z.string().min(1, "Name is required"),
-	scanLimit: z.number().min(0, "Scan limit must be at least 0"),
-	memberIds: z.array(z.string()).optional(),
-});
+export const updateLocationSchema = z
+	.object({
+		eventId: z.string().min(1, "Event ID is required"),
+		locationId: z.string().min(1, "Location ID is required"),
+		name: z.string().min(1, "Name is required"),
+		isUnlimited: z.boolean().optional().default(false),
+		scanLimit: z
+			.number()
+			.min(0, "Scan limit must be at least 0")
+			.nullable()
+			.optional(),
+		memberIds: z.array(z.string()).optional(),
+	})
+	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
+		message: "Scan limit is required when not unlimited",
+		path: ["scanLimit"],
+	});
 
 // Validation schema for deleting a location
 export const deleteLocationSchema = z.object({

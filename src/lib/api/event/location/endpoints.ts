@@ -25,6 +25,7 @@ function transformLocation(backendLocation: BackendLocation): Location {
 		id: backendLocation.id.toString(),
 		name: backendLocation.name,
 		scanLimit: backendLocation.scan_limit,
+		isUnlimited: backendLocation.is_unlimited,
 		assignedMembers: backendLocation.members.map((member) => ({
 			id: member.id.toString(),
 			name: member.full_name,
@@ -85,7 +86,8 @@ export async function createLocation(
 			{
 				event_location: {
 					name: validated.name,
-					scan_limit: validated.scanLimit,
+					scan_limit: validated.isUnlimited ? 1 : validated.scanLimit,
+					is_unlimited: validated.isUnlimited ?? false,
 					member_ids: validated.memberIds || [],
 				},
 			},
@@ -111,7 +113,8 @@ export async function updateLocation(
 			{
 				event_location: {
 					name: validated.name,
-					scan_limit: validated.scanLimit,
+					scan_limit: validated.isUnlimited ? 1 : validated.scanLimit,
+					is_unlimited: validated.isUnlimited ?? false,
 					member_ids: validated.memberIds || [],
 				},
 			},

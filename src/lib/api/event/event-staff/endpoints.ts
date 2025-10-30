@@ -54,9 +54,11 @@ function transformEventStaffMember(
 }
 
 // Error handler
-function handleApiError(error: any, context: string): never {
+function handleApiError(error: unknown, context: string): never {
 	console.error(`Error in ${context}:`, error);
-	throw new Error(error.message || `Failed to ${context}`);
+	const message =
+		(error as { message?: string })?.message || `Failed to ${context}`;
+	throw new Error(message);
 }
 
 /**
@@ -73,7 +75,7 @@ export async function getEventStaff(
 		);
 
 		return staffAssignments.map(transformEventStaffMember);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		handleApiError(error, "fetch event staff");
 	}
 }
@@ -87,15 +89,15 @@ export async function getAvailableTeamMembers(
 	try {
 		const validated = getAvailableTeamMembersSchema.parse(data);
 
-		const [allMembers, eventResponse] = await Promise.all([
+		const [allMembers, staffAssignments] = await Promise.all([
 			restClient.get<BackendUser[]>("v1/team_members"),
-			restClient.get<{
-				event_assignments?: Array<{ user_id: string }>;
-			}>(`v1/events/${validated.eventId}`),
+			restClient.get<BackendEventStaffResponse[]>(
+				`v1/events/${validated.eventId}/staff`,
+			),
 		]);
 
 		const assignedUserIds = new Set(
-			eventResponse.event_assignments?.map((a) => a.user_id) ?? [],
+			staffAssignments.map((a) => String(a.user.id ?? a.user_id ?? a.user?.id)),
 		);
 
 		return allMembers
@@ -110,7 +112,7 @@ export async function getAvailableTeamMembers(
 					status: member.status,
 				}),
 			);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		handleApiError(error, "fetch available team members");
 	}
 }
@@ -135,7 +137,7 @@ export async function assignStaff(
 		);
 
 		return { success: true, assignment };
-	} catch (error: any) {
+	} catch (error: unknown) {
 		handleApiError(error, "assign staff member");
 	}
 }
@@ -154,7 +156,7 @@ export async function removeStaff(
 		);
 
 		return { success: true };
-	} catch (error: any) {
+	} catch (error: unknown) {
 		handleApiError(error, "remove staff member");
 	}
 }
@@ -179,7 +181,7 @@ export async function updateStaffRole(
 		);
 
 		return { success: true, assignment };
-	} catch (error: any) {
+	} catch (error: unknown) {
 		handleApiError(error, "update staff role");
 	}
 }

@@ -21,13 +21,21 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
+import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import { getLocationById, updateLocation } from "@/lib/api/event/location";
+import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	scanLimit: z.number().min(1, "Scan limit is required"),
-});
+const formSchema = z
+	.object({
+		name: z.string().min(1, "Name is required"),
+		isUnlimited: z.boolean(),
+		scanLimit: z.number().min(1, "Scan limit is required").nullable(),
+	})
+	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
+		message: "Scan limit is required when not unlimited",
+		path: ["scanLimit"],
+	});
 
 interface InfoFormProps {
 	locationId: string;
@@ -50,12 +58,17 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 
 	// Update location mutation
 	const updateLocationMutation = useMutation({
-		mutationFn: async (values: { name: string; scanLimit: number }) => {
+		mutationFn: async (values: {
+			name: string;
+			scanLimit: number | null;
+			isUnlimited?: boolean;
+		}) => {
 			return await updateLocation({
 				eventId,
 				locationId,
 				name: values.name,
-				scanLimit: values.scanLimit,
+				isUnlimited: values.isUnlimited ?? false,
+				scanLimit: values.isUnlimited ? 1 : (values.scanLimit as number),
 			});
 		},
 		onSuccess: () => {
@@ -79,7 +92,8 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 	const form = useForm({
 		defaultValues: {
 			name: location?.name || "",
-			scanLimit: location?.scanLimit || 0,
+			isUnlimited: location?.isUnlimited ?? false,
+			scanLimit: location?.scanLimit ?? null,
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -93,7 +107,8 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 	React.useEffect(() => {
 		if (location) {
 			form.setFieldValue("name", location.name);
-			form.setFieldValue("scanLimit", location.scanLimit);
+			form.setFieldValue("isUnlimited", location.isUnlimited ?? false);
+			form.setFieldValue("scanLimit", location.scanLimit ?? null);
 		}
 	}, [location, form]);
 
@@ -167,49 +182,85 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 								);
 							}}
 						</form.Field>
-						<form.Field name="scanLimit">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<Field data-invalid={isInvalid}>
-										<FieldContent>
-											<FieldLabel htmlFor={field.name}>Scan Limit</FieldLabel>
-											<FieldDescription>
-												Maximum number of scans allowed for this location
-											</FieldDescription>
-										</FieldContent>
-										<NumberInput
-											value={field.state.value}
-											onChange={field.handleChange}
-											min={1}
-											max={9999}
-											step={1}
-										/>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
+						<form.Field name="isUnlimited">
+							{(field) => (
+								<Field
+									orientation="horizontal"
+									className={cn(
+										"bg-secondary border border-primary/30 rounded-md p-2",
+									)}
+								>
+									<FieldContent>
+										<FieldLabel htmlFor={field.name}>Unlimited</FieldLabel>
+										<FieldDescription>
+											No scan limit for this location
+										</FieldDescription>
+									</FieldContent>
+									<Switch
+										className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 ring-offset-1 ring-offset-primary"
+										checked={!!field.state.value}
+										onCheckedChange={(checked) => {
+											const value = !!checked;
+											field.handleChange(value);
+											if (value) {
+												form.setFieldValue("scanLimit", 1);
+											}
+										}}
+									/>
+								</Field>
+							)}
+						</form.Field>
+						<form.Subscribe selector={(state) => state.values.isUnlimited}>
+							{(isUnlimited) =>
+								!isUnlimited && (
+									<form.Field name="scanLimit">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<Field data-invalid={isInvalid}>
+													<FieldContent>
+														<FieldLabel htmlFor={field.name}>
+															Scan Limit
+														</FieldLabel>
+														<FieldDescription>
+															Maximum number of scans allowed for this location
+														</FieldDescription>
+													</FieldContent>
+													<NumberInput
+														value={field.state.value ?? 0}
+														onChange={field.handleChange}
+														min={1}
+														max={9999}
+														step={1}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									</form.Field>
+								)
+							}
+						</form.Subscribe>
+					</FieldGroup>
+					<div className="mt-4 flex justify-end gap-2 md:mt-6">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => {
+								closeDialog();
+								if (onClose) onClose();
 							}}
-					</form.Field>
-				</FieldGroup>
-				<div className="mt-4 flex justify-end gap-2 md:mt-6">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => {
-							closeDialog();
-							if (onClose) onClose();
-						}}
-						disabled={updateLocationMutation.isPending}
-					>
-						Cancel
-					</Button>
-					<Button type="submit" disabled={updateLocationMutation.isPending}>
-						{updateLocationMutation.isPending ? "Updating..." : "Submit"}
-					</Button>
-				</div>
+							disabled={updateLocationMutation.isPending}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={updateLocationMutation.isPending}>
+							{updateLocationMutation.isPending ? "Updating..." : "Submit"}
+						</Button>
+					</div>
 				</FieldSet>
 			</form>
 		</section>

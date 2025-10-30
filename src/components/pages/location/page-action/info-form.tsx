@@ -14,19 +14,25 @@ import {
 	FieldError,
 	FieldGroup,
 	FieldLabel,
-	FieldLegend,
-	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
+import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import { createLocation } from "@/lib/api/event/location";
+import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	scanLimit: z.number().min(1, "Scan limit is required"),
-});
+const formSchema = z
+	.object({
+		name: z.string().min(1, "Name is required"),
+		isUnlimited: z.boolean(),
+		scanLimit: z.number().min(1, "Scan limit is required").nullable(),
+	})
+	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
+		message: "Scan limit is required when not unlimited",
+		path: ["scanLimit"],
+	});
 
 interface InfoFormProps {
 	onClose?: () => void;
@@ -42,11 +48,16 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 
 	// Create location mutation
 	const createLocationMutation = useMutation({
-		mutationFn: async (values: { name: string; scanLimit: number }) => {
+		mutationFn: async (values: {
+			name: string;
+			scanLimit: number | null;
+			isUnlimited: boolean;
+		}) => {
 			return await createLocation({
 				eventId,
 				name: values.name,
-				scanLimit: values.scanLimit,
+				isUnlimited: values.isUnlimited,
+				scanLimit: values.isUnlimited ? 1 : (values.scanLimit as number),
 			});
 		},
 		onSuccess: () => {
@@ -67,7 +78,12 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 	const form = useForm({
 		defaultValues: {
 			name: "",
-			scanLimit: 1,
+			isUnlimited: false,
+			scanLimit: null,
+		} as unknown as {
+			name: string;
+			isUnlimited: boolean;
+			scanLimit: number | null;
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -122,32 +138,68 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 								);
 							}}
 						</form.Field>
-						<form.Field name="scanLimit">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<Field data-invalid={isInvalid}>
-										<FieldContent>
-											<FieldLabel htmlFor={field.name}>Scan Limit</FieldLabel>
-											<FieldDescription>
-												Maximum number of scans allowed for this location
-											</FieldDescription>
-										</FieldContent>
-										<NumberInput
-											value={field.state.value}
-											onChange={field.handleChange}
-											min={1}
-											max={9999}
-											step={1}
-										/>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
-							}}
+						<form.Field name="isUnlimited">
+							{(field) => (
+								<Field
+									orientation="horizontal"
+									className={cn(
+										"bg-secondary border border-primary/30 rounded-md p-2",
+									)}
+								>
+									<FieldContent>
+										<FieldLabel htmlFor={field.name}>Unlimited</FieldLabel>
+										<FieldDescription>
+											No scan limit for this location
+										</FieldDescription>
+									</FieldContent>
+									<Switch
+										className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 ring-offset-1 ring-offset-primary"
+										checked={!!field.state.value}
+										onCheckedChange={(checked) => {
+											const value = !!checked;
+											field.handleChange(value);
+											if (value) {
+												form.setFieldValue("scanLimit", 1);
+											}
+										}}
+									/>
+								</Field>
+							)}
 						</form.Field>
+						<form.Subscribe selector={(state) => state.values.isUnlimited}>
+							{(isUnlimited) =>
+								!isUnlimited && (
+									<form.Field name="scanLimit">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<Field data-invalid={isInvalid}>
+													<FieldContent>
+														<FieldLabel htmlFor={field.name}>
+															Scan Limit
+														</FieldLabel>
+														<FieldDescription>
+															Maximum number of scans allowed for this location
+														</FieldDescription>
+													</FieldContent>
+													<NumberInput
+														value={field.state.value ?? 0}
+														onChange={field.handleChange}
+														min={1}
+														max={9999}
+														step={1}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									</form.Field>
+								)
+							}
+						</form.Subscribe>
 					</FieldGroup>
 					<div className="mt-4 flex justify-end gap-2 md:mt-6">
 						<Button

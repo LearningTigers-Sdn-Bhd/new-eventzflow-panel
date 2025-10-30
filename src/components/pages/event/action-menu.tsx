@@ -3,7 +3,6 @@
 import {
 	ChartBar,
 	Cog,
-	Logs,
 	MapPin,
 	MoreHorizontal,
 	ScanQrCode,
@@ -84,13 +83,13 @@ export function EventActionsMenu({ eventId }: EventActionsMenuProps) {
 			route: `/event/${eventId}/analytics`,
 			className: "",
 		},
-		{
-			id: `export-logs-id${eventId}`,
-			name: "Export Logs",
-			icon: Logs,
-			route: `/event/${eventId}/export-logs`,
-			className: "",
-		},
+		// {
+		// 	id: `export-logs-id${eventId}`,
+		// 	name: "Export Logs",
+		// 	icon: Logs,
+		// 	route: `/event/${eventId}/export-logs`,
+		// 	className: "",
+		// },
 	];
 
 	const _openEventSettings = () => {

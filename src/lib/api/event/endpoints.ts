@@ -23,7 +23,9 @@ export async function getEvents(): Promise<Event[]> {
 export async function createEvent(data: CreateEventRequest): Promise<Event> {
 	const validated = createEventSchema.parse(data); // Validate form data
 
-	const response = await restClient.post<BackendEvent>("v1/events", validated);
+	const response = await restClient.post<BackendEvent>("v1/events", {
+		event: validated,
+	});
 
 	// Return full event data without transformation
 	return response;
