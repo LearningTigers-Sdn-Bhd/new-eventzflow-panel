@@ -2,7 +2,8 @@
 export type BackendLocation = {
 	id: number;
 	name: string;
-	scan_limit: number;
+	scan_limit: number | null;
+	is_unlimited: boolean;
 	event_id: number;
 	members: Array<{
 		id: number;
@@ -17,7 +18,8 @@ export type BackendLocation = {
 export type Location = {
 	id: string;
 	name: string;
-	scanLimit: number;
+	scanLimit: number | null;
+	isUnlimited: boolean;
 	assignedMembers: Array<{
 		id: string;
 		name: string;

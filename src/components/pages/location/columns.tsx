@@ -10,7 +10,8 @@ import { LocationActionsMenu } from "./action-menu";
 export type BaseLocation = {
 	id: string;
 	name: string;
-	scanLimit: number;
+    scanLimit: number | null;
+    isUnlimited?: boolean;
 	assignedMembers: Array<{
 		id: string;
 		name: string;
@@ -123,7 +124,12 @@ export const columns: ColumnDef<BaseLocation>[] = [
 		size: 120,
 		header: "Scan Limit",
 		cell: ({ row }) => {
-			return <div className="font-medium">{row.getValue("scanLimit")}</div>;
+      const original = row.original as BaseLocation;
+      return (
+        <div className="font-medium">
+          {original.isUnlimited ? "Unlimited" : (original.scanLimit ?? "N/A")}
+        </div>
+      );
 		},
 	},
 	{

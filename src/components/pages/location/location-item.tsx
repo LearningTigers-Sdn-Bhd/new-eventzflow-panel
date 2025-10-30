@@ -70,7 +70,7 @@ export function LocationItem({ location }: LocationItemProps) {
 				<div className="flex items-center gap-2">
 					<Scan className="size-4 text-muted-foreground" />
 					<h4 className="text-muted-foreground text-sm">
-						Scan limit: {location.scanLimit ?? "N/A"}
+						Scan limit: {('isUnlimited' in location && (location as any).isUnlimited) ? "Unlimited" : (location.scanLimit ?? "N/A")}
 					</h4>
 				</div>
 			</ItemContent>
