@@ -207,7 +207,7 @@ export async function getEventTickets(eventId: string): Promise<Ticket[]> {
 export async function createTicket(data: {
 	eventId: string;
 	attendee_name: string;
-	attendee_email: string;
+	attendee_email?: string | null;
 	attendee_phone?: string;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;
@@ -248,7 +248,7 @@ export async function updateTicket(data: {
 	eventId: string;
 	ticketId: string;
 	attendee_name: string;
-	attendee_email: string;
+	attendee_email?: string | null;
 	attendee_phone?: string;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;

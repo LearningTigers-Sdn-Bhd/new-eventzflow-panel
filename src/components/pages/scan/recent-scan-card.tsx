@@ -30,11 +30,12 @@ export function RecentScanCard({ scan }: RecentScanCardProps) {
 					<p className="truncate font-semibold text-sm">
 						{scan.attendeeName || "Unknown"}
 					</p>
-					{scan.attendeeEmail && (
-						<p className="truncate text-muted-foreground text-xs">
-							{scan.attendeeEmail}
-						</p>
-					)}
+					<p className={cn(
+						"truncate text-xs",
+						scan.attendeeEmail ? "text-muted-foreground" : "text-muted-foreground/60 italic"
+					)}>
+						{scan.attendeeEmail || "No email"}
+					</p>
 					{scan.ticketType && (
 						<p className="text-muted-foreground text-xs">
 							{scan.ticketType}

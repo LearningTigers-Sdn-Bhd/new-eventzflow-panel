@@ -167,9 +167,7 @@ export default function PendingTicketForm() {
 			newErrors.attendeeName = "Name must be at least 2 characters";
 		}
 
-		if (!attendeeEmail.trim()) {
-			newErrors.attendeeEmail = "Email is required";
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
+		if (attendeeEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
 			newErrors.attendeeEmail = "Please enter a valid email address";
 		}
 
@@ -199,7 +197,7 @@ export default function PendingTicketForm() {
 			await createMutation.mutateAsync({
 				eventId,
 				attendee_name: attendeeName,
-				attendee_email: attendeeEmail,
+				attendee_email: attendeeEmail.trim() || null,
 				attendee_phone: attendeePhone || undefined,
 				ticket_type_id: ticketTypeId,
 				payment_status: paymentStatus, // Send payment status as number
@@ -340,7 +338,6 @@ export default function PendingTicketForm() {
 										onChange={(e) =>
 											handleChange("attendeeEmail", e.target.value)
 										}
-										required
 										disabled={createMutation.isPending}
 									/>
 								</Field>

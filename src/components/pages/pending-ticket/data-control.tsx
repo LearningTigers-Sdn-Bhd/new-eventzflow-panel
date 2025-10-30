@@ -32,7 +32,7 @@ const PAYMENT_STATUS_OPTIONS = [
 	{ value: "rejected", label: "Rejected" },
 ] as const;
 
-const SEARCH_COLUMNS = ["name", "email", "phone"];
+const SEARCH_COLUMNS = ["name", "email"];
 
 export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();

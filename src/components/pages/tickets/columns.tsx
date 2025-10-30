@@ -16,7 +16,7 @@ export type BaseTicket = {
 	id: string;
 	publicId: string;
 	name: string;
-	email: string;
+	email: string | null;
 	phone: string;
 	value: number | string;
 	status: "scanned" | "not_scanned";
@@ -82,9 +82,17 @@ export const columns: ColumnDef<BaseTicket>[] = [
 				</div>
 			);
 		},
-		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("email")}</div>
-		),
+		cell: ({ row }) => {
+			const email = row.getValue("email") as string | null;
+			return (
+				<div className={cn(
+					"font-medium",
+					!email && "text-muted-foreground italic"
+				)}>
+					{email || "Not provided"}
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "ticketTypeName",

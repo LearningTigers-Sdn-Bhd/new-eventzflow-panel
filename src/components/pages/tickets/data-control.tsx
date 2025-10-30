@@ -77,7 +77,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="hidden items-center gap-2 py-4 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email", "phone"]}
+						columns={["name", "email"]}
 						placeholder="Search tickets..."
 					/>
 					<DropdownMenu>
@@ -165,7 +165,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="flex flex-col gap-2 py-4 lg:hidden">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email", "phone"]}
+						columns={["name", "email"]}
 						placeholder="Search tickets..."
 					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
