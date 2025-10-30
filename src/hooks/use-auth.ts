@@ -38,6 +38,9 @@ export function useAuth() {
 
 	const logout = async () => {
 		await authLogout();
+		localStorage.removeItem("offline_tickets");
+		localStorage.removeItem("offline_events");
+		localStorage.removeItem("offline_last_synced");
 	};
 
 	return {
