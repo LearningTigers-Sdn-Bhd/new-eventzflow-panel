@@ -152,7 +152,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 		try {
 			await updateTicketMutation.mutateAsync({
 				eventId,
-				ticketId: ticket.id,
+				ticketId: ticket.publicId,
 				attendee_name: attendeeName,
 				attendee_email: attendeeEmail,
 				attendee_phone: attendeePhone || undefined,
