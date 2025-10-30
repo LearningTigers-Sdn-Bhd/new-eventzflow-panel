@@ -27,10 +27,12 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
+import { useDialog } from "@/hooks/use-dialog";
 import { cn } from "@/lib/utils";
 import type { BaseLocation } from "./columns";
 import { DataControl } from "./data-control";
 import { LocationItem } from "./location-item";
+import InfoForm from "./page-action/info-form";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -43,6 +45,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const isTablet = useIsTablet();
+	const { openDialog } = useDialog();
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -51,6 +54,15 @@ export function DataTable<TData, TValue>({
 
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
+
+	const openLocationCreate = () => {
+		openDialog({
+			component: InfoForm,
+			config: {
+				title: "Create Location",
+			},
+		});
+	};
 
 	const table = useReactTable({
 		data,
@@ -135,7 +147,7 @@ export function DataTable<TData, TValue>({
 											description="Create your first location to get started"
 											icon={<Calendar />}
 											height="h-auto"
-											action={<Button>Create Location</Button>}
+											action={<Button onClick={openLocationCreate}>Create Location</Button>}
 										/>
 									</TableCell>
 								</TableRow>
@@ -157,7 +169,7 @@ export function DataTable<TData, TValue>({
 							description="Create your first location to get started"
 							icon={<Calendar />}
 							height="h-auto"
-							action={<Button>Create Location</Button>}
+							action={<Button onClick={openLocationCreate}>Create Location</Button>}
 						/>
 					)}
 				</div>
@@ -178,7 +190,7 @@ export function DataTable<TData, TValue>({
 							description="Create your first location to get started"
 							icon={<Calendar />}
 							height="h-auto"
-							action={<Button>Create Location</Button>}
+							action={<Button onClick={openLocationCreate}>Create Location</Button>}
 						/>
 					)}
 				</div>
