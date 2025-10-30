@@ -2,8 +2,11 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { CheckCircle2 } from "lucide-react";
+import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +24,8 @@ export default function ResetPasswordPage() {
 	const router = useRouter();
 	const params = useParams<{ token: string }>();
 	const token = useMemo(() => String(params?.token ?? ""), [params]);
+	const [isResetSuccess, setIsResetSuccess] = useState(false);
+	const [countdown, setCountdown] = useState(3);
 
 	const { isLoading, isError, isSuccess } = useQuery({
 		queryKey: ["verify-reset-token", token],
@@ -50,10 +55,59 @@ export default function ResetPasswordPage() {
 			if (!parsed.success) {
 				throw new Error(parsed.error.issues[0]?.message || "Invalid data");
 			}
-			await resetPassword(parsed.data);
-			router.push("/login");
+
+			const response = await resetPassword(parsed.data);
+
+			// Show success state
+			setIsResetSuccess(true);
+
+			// Show toast notification
+			toast.success("Password reset successful!", {
+				description: response.message || "Your password has been updated.",
+			});
+
+			// Start countdown
+			setCountdown(3);
 		},
 	});
+
+	// Handle countdown and redirect
+	useEffect(() => {
+		if (!isResetSuccess) return;
+
+		const timer = setInterval(() => {
+			setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+		}, 1000);
+
+		return () => clearInterval(timer);
+	}, [isResetSuccess]);
+
+	// Navigate when countdown ends (avoid side effects inside state updater)
+	useEffect(() => {
+		if (isResetSuccess && countdown === 0) {
+			router.push("/auth?mode=login" as Route);
+		}
+	}, [isResetSuccess, countdown, router]);
+
+	// Show success state after password reset
+	if (isResetSuccess) {
+		return (
+			<Card className="w-full max-w-md">
+				<CardContent className="flex flex-col items-center justify-center py-12 text-center">
+					<CheckCircle2 className="mb-4 h-16 w-16 text-green-500" />
+					<CardTitle className="mb-2 font-bold text-2xl">
+						Password reset successful!
+					</CardTitle>
+					<CardDescription className="mb-6 text-base">
+						Your password has been updated successfully.
+					</CardDescription>
+					<p className="text-muted-foreground text-sm">
+						Redirecting to login in {countdown} seconds...
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	if (isLoading || (!isSuccess && !isError)) {
 		return (

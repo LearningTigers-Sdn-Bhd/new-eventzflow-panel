@@ -24,7 +24,7 @@ export default function PublicLayout({
 	}
 
 	// Redirect authenticated users away from login to dashboard
-	if (user && pathname === "/login") {
+	if (user && pathname.startsWith("/auth")) {
 		redirect("/dashboard");
 	}
 
@@ -34,7 +34,7 @@ export default function PublicLayout({
 	}
 
 	// Check if we're on pages where header should be hidden
-	const isLoginPage = pathname === "/login";
+	const isLoginPage = pathname.startsWith("/auth");
 	const isForgotPasswordPage = pathname.startsWith("/forget-password");
 	const isHeaderHidden = isLoginPage || isForgotPasswordPage;
 

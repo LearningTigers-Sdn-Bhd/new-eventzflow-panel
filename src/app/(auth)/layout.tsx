@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -23,7 +24,7 @@ export default function AuthLayout({
 	// Redirect unauthenticated users to login
 	useEffect(() => {
 		if (!user && isHydrated) {
-			router.push("/login");
+			router.push("/auth?mode=login" as Route);
 			return;
 		}
 	}, [user, isHydrated, router]);
