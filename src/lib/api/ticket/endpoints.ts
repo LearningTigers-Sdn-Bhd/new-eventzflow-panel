@@ -208,7 +208,7 @@ export async function createTicket(data: {
 	eventId: string;
 	attendee_name: string;
 	attendee_email?: string | null;
-	attendee_phone?: string;
+	attendee_phone?: string | null;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;
 	payment_status?: number;
@@ -249,7 +249,7 @@ export async function updateTicket(data: {
 	ticketId: string;
 	attendee_name: string;
 	attendee_email?: string | null;
-	attendee_phone?: string;
+	attendee_phone?: string | null;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;
 }): Promise<UpdateTicketResponse> {

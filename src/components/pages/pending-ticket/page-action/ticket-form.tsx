@@ -198,7 +198,7 @@ export default function PendingTicketForm() {
 				eventId,
 				attendee_name: attendeeName,
 				attendee_email: attendeeEmail.trim() || null,
-				attendee_phone: attendeePhone || undefined,
+				attendee_phone: attendeePhone || null,
 				ticket_type_id: ticketTypeId,
 				payment_status: paymentStatus, // Send payment status as number
 				payment_screenshot_url: paymentScreenshotUrl || undefined,

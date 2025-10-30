@@ -8,8 +8,8 @@ export const checkInTicketSchema = z.object({
 export const createTicketSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	attendee_name: z.string().min(2, "Name must be at least 2 characters"),
-	attendee_email: z.union([z.string().email("Please enter a valid email address"), z.null()]).nullable(),
-	attendee_phone: z.string().optional(),
+	attendee_email: z.union([z.string().email("Please enter a valid email address"), z.literal(""), z.null(), z.undefined()]).optional(),
+	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 	payment_status: z.number().optional(),
@@ -19,8 +19,8 @@ export const updateTicketSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	ticketId: z.string().min(1, "Ticket ID is required"),
 	attendee_name: z.string().min(2, "Name must be at least 2 characters"),
-	attendee_email: z.union([z.string().email("Please enter a valid email address"), z.null()]).nullable(),
-	attendee_phone: z.string().optional(),
+	attendee_email: z.union([z.string().email("Please enter a valid email address"), z.literal(""), z.null(), z.undefined()]).optional(),
+	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });

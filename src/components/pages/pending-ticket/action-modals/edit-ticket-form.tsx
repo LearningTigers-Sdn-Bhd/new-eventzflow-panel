@@ -183,8 +183,8 @@ export default function PendingTicketEditModal({
 				eventId,
 				ticketId: ticket.id,
 				attendee_name: attendeeName,
-				attendee_email: attendeeEmail.trim() || undefined,
-				attendee_phone: attendeePhone || undefined,
+				attendee_email: attendeeEmail.trim() || null,
+				attendee_phone: attendeePhone || null,
 				ticket_type_id: ticketTypeId || undefined,
 				payment_status: paymentStatus, // Send payment status as number
 				payment_screenshot_url: paymentScreenshotUrl || undefined,

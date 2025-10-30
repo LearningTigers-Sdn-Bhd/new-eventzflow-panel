@@ -180,8 +180,8 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				eventId,
 				ticketId: ticket.publicId,
 				attendee_name: attendeeName,
-				attendee_email: attendeeEmail.trim() || undefined,
-				attendee_phone: attendeePhone || undefined,
+				attendee_email: attendeeEmail.trim() || null,
+				attendee_phone: attendeePhone || null,
 				ticket_type_id: ticketTypeId,
 				custom_fields_data:
 					Object.keys(customFieldsData).length > 0
