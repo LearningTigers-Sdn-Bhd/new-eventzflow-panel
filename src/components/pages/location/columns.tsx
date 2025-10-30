@@ -1,17 +1,19 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Copy } from "lucide-react";
+import { ArrowDown, Copy, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useDialog } from "@/hooks/use-dialog";
 import { cn } from "@/lib/utils";
 import { LocationActionsMenu } from "./action-menu";
+import ViewMembersDialog from "./view-members/modal";
 
 export type BaseLocation = {
 	id: string;
 	name: string;
-    scanLimit: number | null;
-    isUnlimited?: boolean;
+	scanLimit: number | null;
+	isUnlimited?: boolean;
 	assignedMembers: Array<{
 		id: string;
 		name: string;
@@ -112,9 +114,24 @@ export const columns: ColumnDef<BaseLocation>[] = [
 			);
 		},
 		cell: ({ row }) => {
+			const { openDialog } = useDialog();
+			const location = row.original as BaseLocation;
 			return (
-				<div className="font-medium">
-					{row.getValue("assignedMembersCount")}
+				<div className="flex items-center justify-center">
+					<p className="font-medium">{row.getValue("assignedMembersCount")}</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() =>
+							openDialog({
+								component: ViewMembersDialog,
+								props: { location },
+								config: { title: "View Assigned Members", size: "lg" },
+							})
+						}
+					>
+						<Eye className="size-4" />
+					</Button>
 				</div>
 			);
 		},
@@ -124,12 +141,12 @@ export const columns: ColumnDef<BaseLocation>[] = [
 		size: 120,
 		header: "Scan Limit",
 		cell: ({ row }) => {
-      const original = row.original as BaseLocation;
-      return (
-        <div className="font-medium">
-          {original.isUnlimited ? "Unlimited" : (original.scanLimit ?? "N/A")}
-        </div>
-      );
+			const original = row.original as BaseLocation;
+			return (
+				<div className="font-medium">
+					{original.isUnlimited ? "Unlimited" : (original.scanLimit ?? "N/A")}
+				</div>
+			);
 		},
 	},
 	{
