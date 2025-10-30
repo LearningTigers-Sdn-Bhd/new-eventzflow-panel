@@ -26,9 +26,8 @@ const centsToDollars = (cents: number): number => {
  * Get summary stats for all events (for quick overview)
  */
 export async function getAllEventsStats(): Promise<AllEventsStats> {
-	const stats = await restClient.get<BackendAllEventsStats>(
-		"v1/analytics/summary",
-	);
+	const stats =
+		await restClient.get<BackendAllEventsStats>("v1/metrics/summary");
 
 	return {
 		totalEvents: stats.total_events,
@@ -46,7 +45,7 @@ export async function getAllEventsStats(): Promise<AllEventsStats> {
 export async function getEventsOverview(): Promise<EventOverview[]> {
 	const response = await restClient.get<{
 		events: BackendEventOverview[];
-	}>("v1/analytics/events_overview");
+	}>("v1/metrics/events_overview");
 
 	// Transform backend response to frontend format
 	return response.events.map((event) => ({
@@ -90,25 +89,25 @@ export async function getEventAnalytics(
 		weeklySales,
 	] = await Promise.all([
 		restClient.get<BackendAnalyticsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_tickets`,
 		),
 		restClient.get<BackendScannedTicketsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_scanned_tickets`,
 		),
 		restClient.get<BackendUnscannedTicketsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_unscanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets`,
 		),
 		restClient.get<BackendRevenueResponse>(
-			`v1/events/${eventIdNum}/analytics/total_amount_price`,
+			`v1/events/${eventIdNum}/metrics/total_amount_price`,
 		),
 		restClient.get<BackendWeeklyRegisteredResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_registered_tickets`,
+			`v1/events/${eventIdNum}/metrics/weekly_registered`,
 		),
 		restClient.get<BackendWeeklyScannedResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/weekly_scanned`,
 		),
 		restClient.get<BackendWeeklySalesResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_sales_amount`,
+			`v1/events/${eventIdNum}/metrics/weekly_sales_amount`,
 		),
 	]);
 

@@ -15,8 +15,8 @@ import type {
 	BackendTicket,
 	BackendUnscannedTicketsResponse,
 	BackendWeeklyRegisteredResponse,
-	BackendWeeklyScannedResponse,
 	BackendWeeklySalesResponse,
+	BackendWeeklyScannedResponse,
 	EventAnalytics,
 	EventOverview,
 	RecentScan,
@@ -57,7 +57,7 @@ export async function getAllEventsStatsServer(
 	token: string,
 ): Promise<AllEventsStats> {
 	const stats = await serverFetch<BackendAllEventsStats>(
-		"v1/analytics/summary",
+		"v1/metrics/summary",
 		token,
 	);
 
@@ -78,14 +78,17 @@ export async function getEventsOverviewServer(
 	token: string,
 ): Promise<EventOverview[]> {
 	const response = await serverFetch<{ events: BackendEventOverview[] }>(
-		"v1/analytics/events_overview",
+		"v1/metrics/events_overview",
 		token,
 	);
 
 	return response.events.map((event) => ({
 		id: event.id.toString(),
 		title: event.title,
-		status: event.status === "published" ? ("active" as const) : ("inactive" as const),
+		status:
+			event.status === "published"
+				? ("active" as const)
+				: ("inactive" as const),
 		totalTickets: event.total_tickets,
 		scannedTickets: event.scanned_tickets,
 		totalRevenue: centsToDollars(event.total_revenue),
@@ -121,31 +124,31 @@ export async function getEventAnalyticsServer(
 		weeklySales,
 	] = await Promise.all([
 		serverFetch<BackendAnalyticsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_tickets`,
 			token,
 		),
 		serverFetch<BackendScannedTicketsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_scanned_tickets`,
 			token,
 		),
 		serverFetch<BackendUnscannedTicketsResponse>(
-			`v1/events/${eventIdNum}/analytics/total_unscanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets`,
 			token,
 		),
 		serverFetch<BackendRevenueResponse>(
-			`v1/events/${eventIdNum}/analytics/total_amount_price`,
+			`v1/events/${eventIdNum}/metrics/total_amount_price`,
 			token,
 		),
 		serverFetch<BackendWeeklyRegisteredResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_registered_tickets`,
+			`v1/events/${eventIdNum}/metrics/weekly_registered`,
 			token,
 		),
 		serverFetch<BackendWeeklyScannedResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/weekly_scanned`,
 			token,
 		),
 		serverFetch<BackendWeeklySalesResponse>(
-			`v1/events/${eventIdNum}/analytics/weekly_sales_amount`,
+			`v1/events/${eventIdNum}/metrics/weekly_sales_amount`,
 			token,
 		),
 	]);
