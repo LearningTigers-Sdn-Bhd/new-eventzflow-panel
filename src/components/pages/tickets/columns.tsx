@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./action-menu";
 
+function formatTicketPrice(value: number | string): string {
+	const price = typeof value === "number" ? value : parseFloat(value as string) || 0;
+	return `$${price.toFixed(2)}`;
+}
+
 export type BaseTicket = {
 	id: string;
 	publicId: string;
@@ -47,7 +52,12 @@ export const columns: ColumnDef<BaseTicket>[] = [
 			);
 		},
 		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("name")}</div>
+			<div className="flex flex-col gap-1">
+				<div className="truncate font-medium">{row.getValue("name")}</div>
+				<div className="truncate text-muted-foreground text-xs">
+					{row.original.phone}
+				</div>
+			</div>
 		),
 	},
 	{
@@ -77,51 +87,24 @@ export const columns: ColumnDef<BaseTicket>[] = [
 		),
 	},
 	{
-		accessorKey: "phone",
-		size: 140,
-		header: "Phone Number",
-		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("phone")}</div>
-		),
-	},
-	{
 		accessorKey: "ticketTypeName",
 		size: 140,
 		header: "Ticket Type",
-		cell: ({ row }) => (
-			<div className="font-medium">
-				{row.getValue("ticketTypeName") || "N/A"}
-			</div>
-		),
-	},
-	{
-		accessorKey: "value",
-		size: 120,
-		header: ({ column }) => {
+		cell: ({ row }) => {
+			const ticket = row.original;
 			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Ticket Price</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
+				<div className="flex flex-col gap-1">
+					<div className="truncate font-medium">
+						{row.getValue("ticketTypeName") || "N/A"}
+					</div>
+					<div className="truncate text-muted-foreground text-xs">
+						{formatTicketPrice(ticket.value)}
+					</div>
 				</div>
 			);
 		},
-		cell: ({ row }) => {
-			const value = row.getValue("value");
-			// Handle both number and string values
-			const price =
-				typeof value === "number" ? value : parseFloat(value as string) || 0;
-			return <div className="font-medium">${price.toFixed(2)}</div>;
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id));
 		},
 	},
 	{

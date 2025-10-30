@@ -93,37 +93,44 @@ function showPaymentInfoToast(ticket: PendingTicket) {
 export const columns: ColumnDef<PendingTicket>[] = [
 	{
 		accessorKey: "name",
-		size: 160,
+		size: 180,
 		header: ({ column }) => <SortableHeader title="Name" column={column} />,
 		cell: ({ row }) => (
-			<div className="truncate font-medium">{row.getValue("name")}</div>
+			<div className="flex flex-col gap-1">
+				<div className="truncate font-medium">{row.getValue("name")}</div>
+				<div className="truncate text-muted-foreground text-xs">
+					{row.original.phone}
+				</div>
+			</div>
 		),
 	},
 	{
 		accessorKey: "email",
-		size: 180,
+		size: 200,
 		header: ({ column }) => <SortableHeader title="Email" column={column} />,
 		cell: ({ row }) => (
 			<div className="truncate font-medium">{row.getValue("email")}</div>
 		),
 	},
 	{
-		accessorKey: "phone",
-		size: 130,
-		header: "Phone Number",
-		cell: ({ row }) => (
-			<div className="truncate font-medium">{row.getValue("phone")}</div>
-		),
-	},
-	{
-		accessorKey: "value",
-		size: 120,
-		header: ({ column }) => (
-			<SortableHeader title="Ticket Price" column={column} />
-		),
+		accessorKey: "ticketTypeName",
+		size: 180,
+		header: "Ticket Type",
 		cell: ({ row }) => {
-			const value = row.getValue("value") as number;
-			return <div className="font-medium">{formatTicketPrice(value)}</div>;
+			const ticket = row.original;
+			return (
+				<div className="flex flex-col gap-1">
+					<div className="truncate font-medium">
+						{row.getValue("ticketTypeName") || "N/A"}
+					</div>
+					<div className="truncate text-muted-foreground text-xs">
+						{formatTicketPrice(ticket.value)}
+					</div>
+				</div>
+			);
+		},
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id));
 		},
 	},
 	{

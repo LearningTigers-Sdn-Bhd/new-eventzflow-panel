@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ import {
 	getGlobalTicketTypes,
 } from "@/lib/api/ticket-type";
 import type { TicketType } from "@/lib/api/ticket-type/response";
+import { getEventById } from "@/lib/api/event";
 
 export default function TicketForm() {
 	const { closeDialog } = useDialog();
@@ -51,7 +52,7 @@ export default function TicketForm() {
 	const [attendeePhone, setAttendeePhone] = useState("");
 	const [ticketTypeId, setTicketTypeId] = useState<number | null>(null);
 	const [customFields, setCustomFields] = useState<
-		Array<{ id: string; key: string; value: string }>
+		Array<{ labelKey: string; labelName: string; value: string }>
 	>([]);
 
 	// Ticket type creation state
@@ -63,6 +64,12 @@ export default function TicketForm() {
 
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
+
+	// Fetch event details to get labels_data
+	const { data: eventData, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
 
 	// Fetch ticket types for this event
 	const { data: eventTicketTypes, isLoading: isLoadingEventTicketTypes } =
@@ -90,9 +97,17 @@ export default function TicketForm() {
 	const isLoadingTicketTypes =
 		isLoadingEventTicketTypes || isLoadingGlobalTicketTypes;
 
-	const _usingGlobalTypes =
-		!eventTicketTypes ||
-		(eventTicketTypes.length === 0 && ticketTypes.length > 0);
+	// Initialize custom fields from event labels_data
+	useEffect(() => {
+		if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
+			const fields = Object.entries(eventData.labels_data).map(([key, value]) => ({
+				labelKey: key,
+				labelName: value as string,
+				value: "",
+			}));
+			setCustomFields(fields);
+		}
+	}, [eventData]);
 
 	// Create ticket type mutation
 	const createTicketTypeMutation = useMutation({
@@ -162,8 +177,8 @@ export default function TicketForm() {
 		// Transform custom fields array to object
 		const customFieldsData: Record<string, string> = {};
 		customFields.forEach((field) => {
-			if (field.key.trim() && field.value.trim()) {
-				customFieldsData[field.key] = field.value;
+			if (field.value.trim()) {
+				customFieldsData[field.labelKey] = field.value;
 			}
 		});
 
@@ -207,27 +222,10 @@ export default function TicketForm() {
 	};
 
 	// Custom field handlers
-	const addCustomField = () => {
-		if (customFields.length < 10) {
-			setCustomFields([
-				...customFields,
-				{ id: crypto.randomUUID(), key: "", value: "" },
-			]);
-		}
-	};
-
-	const removeCustomField = (id: string) => {
-		setCustomFields(customFields.filter((field) => field.id !== id));
-	};
-
-	const updateCustomField = (
-		id: string,
-		type: "key" | "value",
-		newValue: string,
-	) => {
+	const updateCustomField = (labelKey: string, newValue: string) => {
 		setCustomFields(
 			customFields.map((field) =>
-				field.id === id ? { ...field, [type]: newValue } : field,
+				field.labelKey === labelKey ? { ...field, value: newValue } : field,
 			),
 		);
 	};
@@ -606,83 +604,31 @@ export default function TicketForm() {
 
 						{/* Custom Fields Section */}
 						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<h3 className="font-semibold text-lg">Custom Fields</h3>
-									<p className="text-muted-foreground text-sm">
-										Add optional custom fields for additional ticket information
-									</p>
-								</div>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={addCustomField}
-									disabled={
-										customFields.length >= 10 || createTicketMutation.isPending
-									}
-								>
-									<Plus className="mr-2 size-4" />
-									Add Custom Field{" "}
-									{customFields.length > 0 && `(${customFields.length}/10)`}
-								</Button>
+							<div>
+								<h3 className="font-semibold text-lg">Custom Labels</h3>
+								<p className="text-muted-foreground text-sm">
+									{isLoadingEvent
+										? "Loading custom labels..."
+										: customFields.length > 0
+											? "Fill in the custom labels configured for this event"
+											: "No custom labels configured for this event"}
+								</p>
 							</div>
 
 							{customFields.length > 0 && (
 								<div className="grid gap-4 md:grid-cols-2">
 									{customFields.map((field) => (
-										<div
-											key={field.id}
-											className="space-y-4 rounded-lg border p-4"
-										>
-											<div className="flex items-center justify-between">
-												<span className="font-medium text-sm">
-													Custom Field
-												</span>
-												<Button
-													type="button"
-													variant="ghost"
-													size="icon"
-													onClick={() => removeCustomField(field.id)}
-													disabled={createTicketMutation.isPending}
-													className="size-8 text-destructive hover:bg-destructive/10"
-												>
-													<Trash2 className="size-4" />
-												</Button>
-											</div>
-											<div className="space-y-3">
-												<div className="space-y-2">
-													<FieldLabel className="text-xs">
-														Field Name
-													</FieldLabel>
-													<Input
-														placeholder="e.g., Dietary Preference"
-														value={field.key}
-														onChange={(e) =>
-															updateCustomField(field.id, "key", e.target.value)
-														}
-														disabled={createTicketMutation.isPending}
-													/>
-												</div>
-												<div className="space-y-2">
-													<FieldLabel className="text-xs">
-														Field Value
-													</FieldLabel>
-													<Input
-														placeholder="e.g., Vegetarian"
-														value={field.value}
-														onChange={(e) =>
-															updateCustomField(
-																field.id,
-																"value",
-																e.target.value,
-															)
-														}
-														disabled={createTicketMutation.isPending}
-													/>
-												</div>
-											</div>
-										</div>
+										<Field key={field.labelKey} orientation="vertical">
+											<FieldLabel>{field.labelName}</FieldLabel>
+											<Input
+												placeholder={`Enter ${field.labelName.toLowerCase()}`}
+												value={field.value}
+												onChange={(e) =>
+													updateCustomField(field.labelKey, e.target.value)
+												}
+												disabled={createTicketMutation.isPending}
+											/>
+										</Field>
 									))}
 								</div>
 							)}

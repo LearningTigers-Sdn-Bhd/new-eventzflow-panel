@@ -210,12 +210,12 @@ export default function PendingTicketViewModal({
 					</div>
 				</div>
 
-				{/* Additional Information */}
+				{/* Custom Labels */}
 				<div className="space-y-4">
 					<IconHeading
 						icon={FileText}
-						title="Additional Information"
-						description="Additional information about the buyer of the ticket."
+						title="Custom Labels"
+						description="Custom labels configured for this event."
 					/>
 					<Separator className="my-4" />
 					{ticket.customLabels.length > 0 ? (
@@ -233,7 +233,7 @@ export default function PendingTicketViewModal({
 						</div>
 					) : (
 						<p className="text-muted-foreground text-sm">
-							No custom fields have been added to this ticket.
+							No custom labels have been configured for this event.
 						</p>
 					)}
 				</div>

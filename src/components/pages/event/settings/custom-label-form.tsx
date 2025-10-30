@@ -76,7 +76,7 @@ export default function CustomLabelForm({
 			const existingLabels = Object.entries(event.labels_data).map(
 				([key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
-					value: typeof value === "string" ? value : key,
+					value: typeof value === "string" ? value : "",
 				}),
 			);
 			setLabels(existingLabels);
@@ -111,12 +111,10 @@ export default function CustomLabelForm({
 		}
 
 		// Convert labels array to labels_data object
-		// Format: { "field_key": "Display Name", ... }
+		// Format: { "Label 1": "Display Name", "Label 2": "Another Name", ... }
 		const labelsData = nonEmptyLabels.reduce(
-			(acc, label) => {
-				// Create a safe key from the label value (lowercase, spaces to underscores)
-				const key = label.value.trim().toLowerCase().replace(/\s+/g, "_");
-				acc[key] = label.value.trim();
+			(acc, label, index) => {
+				acc[`Label ${index + 1}`] = label.value.trim();
 				return acc;
 			},
 			{} as Record<string, string>,
@@ -132,7 +130,7 @@ export default function CustomLabelForm({
 			const existingLabels = Object.entries(event.labels_data).map(
 				([key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
-					value: typeof value === "string" ? value : key,
+					value: typeof value === "string" ? value : "",
 				}),
 			);
 			setLabels(existingLabels);

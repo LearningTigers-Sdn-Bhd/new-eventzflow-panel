@@ -172,11 +172,12 @@ export async function getEventTickets(eventId: string): Promise<Ticket[]> {
 
 	// Transform backend response to frontend format
 	return paidTickets.map((ticket) => {
-		// Transform custom_fields_data to customLabels array
+		// Resolve label keys to current label names from event.labels_data
 		const customLabels: Array<{ name: string; value: string }> = [];
 		if (ticket.custom_fields_data) {
 			for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-				customLabels.push({ name: key, value: String(value) });
+				const labelName = event.labels_data?.[key] || key;
+				customLabels.push({ name: String(labelName), value: String(value) });
 			}
 		}
 
