@@ -1,7 +1,10 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowDown, ChevronDown } from "lucide-react";
+import { useParams } from "next/navigation";
+import * as React from "react";
 import { QuerySearchField } from "@/components/query-search-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { getPaymentStatusText } from "./constants";
 
 interface DataControlProps<TData> {
@@ -32,9 +36,35 @@ const SEARCH_COLUMNS = ["name", "email", "phone"];
 
 export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
+	const params = useParams();
+	const eventId = params.event_id as string;
+
+	const { data: eventTicketTypes } = useQuery({
+		queryKey: ["event", eventId, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId }),
+	});
+
+	const uniqueTicketTypeNames = React.useMemo(() => {
+		const names = new Set<string>();
+		table.getPreFilteredRowModel().rows.forEach((row) => {
+			const typeName = (row.original as any)?.ticketTypeName;
+			if (typeName && typeName !== "N/A") {
+				names.add(typeName);
+			}
+		});
+		return Array.from(names).sort();
+	}, [table]);
+
+	const ticketTypes =
+		eventTicketTypes && eventTicketTypes.length > 0
+			? eventTicketTypes
+			: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
 
 	const paymentStatusFilter =
 		(table.getColumn("paymentStatus")?.getFilterValue() as string[]) ?? [];
+
+	const ticketTypeFilter =
+		(table.getColumn("ticketTypeName")?.getFilterValue() as string[]) ?? [];
 
 	const handlePaymentStatusFilter = (status: string) => {
 		if (status === "all") {
@@ -44,9 +74,19 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 		}
 	};
 
-	const currentStatusLabel = paymentStatusFilter.length === 0
-		? "All"
-		: getPaymentStatusText(paymentStatusFilter[0] as any) || paymentStatusFilter[0];
+	const handleTicketTypeFilter = (ticketTypeName: string) => {
+		if (ticketTypeName === "all") {
+			table.getColumn("ticketTypeName")?.setFilterValue(undefined);
+		} else {
+			table.getColumn("ticketTypeName")?.setFilterValue([ticketTypeName]);
+		}
+	};
+
+	const currentStatusLabel =
+		paymentStatusFilter.length === 0
+			? "All"
+			: getPaymentStatusText(paymentStatusFilter[0] as any) ||
+				paymentStatusFilter[0];
 
 	return (
 		<>
@@ -78,8 +118,29 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					</DropdownMenu>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
+							<Button variant="outline">
+								Ticket Type:{" "}
+								{ticketTypeFilter.length === 0 ? "All" : ticketTypeFilter[0]}
+								<ChevronDown className="ml-2 h-4 w-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => handleTicketTypeFilter("all")}>
+								All
+							</DropdownMenuItem>
+							{ticketTypes?.map((ticketType) => (
+								<DropdownMenuItem
+									key={ticketType.id}
+									onClick={() => handleTicketTypeFilter(ticketType.name)}
+								>
+									{ticketType.name}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto">
-								{/* Number of columns visible */}
 								{table.getAllColumns().filter((column) => column.getIsVisible())
 									.length - 1}{" "}
 								columns

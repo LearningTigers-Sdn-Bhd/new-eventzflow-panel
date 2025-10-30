@@ -135,7 +135,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							)}
 							<InfoLabel
 								label="Ticket Price"
-								value={`$${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}`}
+								value={`RM${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}`}
 								icon={DollarSign}
 								ticket={ticket}
 							/>
@@ -154,12 +154,12 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 						</div>
 					</div>
 
-					{/* Additional Information */}
+					{/* Additional Information - Custom Labels */}
 					<div className="space-y-4">
 						<IconHeading
 							icon={FileText}
-							title="Additional Information"
-							description="Additional information about the buyer of the ticket."
+							title="Custom Labels"
+							description="Custom labels configured for this event."
 						/>
 						<Separator className="my-4" />
 						{ticket.customLabels && ticket.customLabels.length > 0 ? (
@@ -177,8 +177,8 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							</div>
 						) : (
 							<EmptyState
-								title="No custom fields"
-								description="No additional custom fields have been added to this ticket"
+								title="No custom labels"
+								description="No custom labels have been configured for this event"
 								icon={<Info className="size-8" />}
 								height="h-auto"
 							/>
