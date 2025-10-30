@@ -29,7 +29,7 @@ export async function getAllEventAnalytics(
 		// Execute first endpoint separately
 		console.log("📊 Fetching first endpoint - total tickets...");
 		const totalTickets = await restClient.get<TotalTicketsResponse>(
-			`v1/events/${eventId}/analytics/total_tickets`,
+			`v1/events/${eventId}/metrics/total_tickets`,
 		);
 		console.log(`✅ Total tickets fetched: ${totalTickets.totalTickets}`);
 
@@ -44,22 +44,22 @@ export async function getAllEventAnalytics(
 			weeklySalesAmount,
 		] = await Promise.all([
 			restClient.get<TotalScannedTicketsResponse>(
-				`v1/events/${eventId}/analytics/total_scanned_tickets`,
+				`v1/events/${eventId}/metrics/total_scanned_tickets`,
 			),
 			restClient.get<TotalUnscannedTicketsResponse>(
-				`v1/events/${eventId}/analytics/total_unscanned_tickets`,
+				`v1/events/${eventId}/metrics/total_unscanned_tickets`,
 			),
 			restClient.get<TotalAmountPriceResponse>(
-				`v1/events/${eventId}/analytics/total_amount_price`,
+				`v1/events/${eventId}/metrics/total_amount_price`,
 			),
 			restClient.get<WeeklyRegisteredTicketsResponse>(
-				`v1/events/${eventId}/analytics/weekly_registered_tickets`,
+				`v1/events/${eventId}/metrics/weekly_registered`,
 			),
 			restClient.get<WeeklyScannedTicketsResponse>(
-				`v1/events/${eventId}/analytics/weekly_scanned_tickets`,
+				`v1/events/${eventId}/metrics/weekly_scanned`,
 			),
 			restClient.get<WeeklySalesAmountResponse>(
-				`v1/events/${eventId}/analytics/weekly_sales_amount`,
+				`v1/events/${eventId}/metrics/weekly_sales_amount`,
 			),
 		]);
 
@@ -91,7 +91,7 @@ export async function getTotalTickets(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<TotalTicketsResponse>(
-			`v1/events/${validated.id}/analytics/total_tickets`,
+			`v1/events/${validated.id}/metrics/total_tickets`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -112,7 +112,7 @@ export async function getTotalScannedTickets(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<TotalScannedTicketsResponse>(
-			`v1/events/${validated.id}/analytics/total_scanned_tickets`,
+			`v1/events/${validated.id}/metrics/total_scanned_tickets`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -133,7 +133,7 @@ export async function getTotalUnscannedTickets(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<TotalUnscannedTicketsResponse>(
-			`v1/events/${validated.id}/analytics/total_unscanned_tickets`,
+			`v1/events/${validated.id}/metrics/total_unscanned_tickets`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -154,7 +154,7 @@ export async function getTotalAmountPrice(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<TotalAmountPriceResponse>(
-			`v1/events/${validated.id}/analytics/total_amount_price`,
+			`v1/events/${validated.id}/metrics/total_amount_price`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -175,7 +175,7 @@ export async function getWeeklyRegisteredTickets(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<WeeklyRegisteredTicketsResponse>(
-			`v1/events/${validated.id}/analytics/weekly_registered_tickets`,
+			`v1/events/${validated.id}/metrics/weekly_registered`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -198,7 +198,7 @@ export async function getWeeklyScannedTickets(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<WeeklyScannedTicketsResponse>(
-			`v1/events/${validated.id}/analytics/weekly_scanned_tickets`,
+			`v1/events/${validated.id}/metrics/weekly_scanned`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -219,7 +219,7 @@ export async function getWeeklySalesAmount(
 		const validated = getEventAnalyticsSchema.parse(data);
 
 		return await restClient.get<WeeklySalesAmountResponse>(
-			`v1/events/${validated.id}/analytics/weekly_sales_amount`,
+			`v1/events/${validated.id}/metrics/weekly_sales_amount`,
 		);
 	} catch (error: any) {
 		console.error(
