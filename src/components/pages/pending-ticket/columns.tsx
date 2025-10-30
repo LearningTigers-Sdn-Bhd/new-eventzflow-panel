@@ -125,14 +125,10 @@ export const columns: ColumnDef<PendingTicket>[] = [
 		size: 180,
 		header: "Ticket Type",
 		cell: ({ row }) => {
-			const ticket = row.original;
 			return (
 				<div className="flex flex-col gap-1">
 					<div className="truncate font-medium">
 						{row.getValue("ticketTypeName") || "N/A"}
-					</div>
-					<div className="truncate text-muted-foreground text-xs">
-						{formatTicketPrice(ticket.value)}
 					</div>
 				</div>
 			);
