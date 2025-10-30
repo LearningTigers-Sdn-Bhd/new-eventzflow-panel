@@ -1,4 +1,4 @@
-import { LogOut, Settings, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,8 +24,13 @@ export default function UserMenu() {
 
 	if (!user) {
 		return (
-			<Button variant="ghost" size="sm" asChild>
-				<Link href="/login">Sign In</Link>
+			<Button
+				variant="default"
+				size="sm"
+				// biome-ignore lint/suspicious/noExplicitAny: Next.js route type needs regeneration
+				onClick={() => router.push("/auth" as any)}
+			>
+				Get Started
 			</Button>
 		);
 	}
