@@ -138,7 +138,7 @@ export default function AssignStaffForm({
 	}
 
 	return (
-		<div className="w-full min-h-[300px]">
+		<div className="min-h-[300px] w-full">
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldSeparator />
