@@ -52,7 +52,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
 				<div className="flex w-full items-center justify-start gap-2">
 					<HiCash className="-ml-0.5 size-5 text-muted-foreground" />
 					<span className="truncate font-medium text-sm">
-						${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}
+						RM{(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}
 						{ticket.ticketTypeName && (
 							<span className="ml-2 text-muted-foreground">
 								({ticket.ticketTypeName})

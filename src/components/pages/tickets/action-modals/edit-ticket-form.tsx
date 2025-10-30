@@ -314,7 +314,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 												<div className="flex items-center justify-between gap-4">
 													<span className="font-medium">{ticketType.name}</span>
 													<span className="text-muted-foreground text-sm">
-														${ticketType.price.toFixed(2)}
+														RM{ticketType.price.toFixed(2)}
 														{usingGlobalTypes && " (Global)"}
 													</span>
 												</div>
@@ -324,7 +324,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 								</Select>
 								{selectedTicketType && (
 									<FieldDescription>
-										${selectedTicketType.price.toFixed(2)} |{" "}
+										RM{selectedTicketType.price.toFixed(2)} |{" "}
 										{selectedTicketType.quantity} available
 										{usingGlobalTypes && " (Global)"}
 									</FieldDescription>

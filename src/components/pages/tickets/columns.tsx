@@ -9,7 +9,7 @@ import { TicketActionsMenu } from "./action-menu";
 
 function formatTicketPrice(value: number | string): string {
 	const price = typeof value === "number" ? value : parseFloat(value as string) || 0;
-	return `$${price.toFixed(2)}`;
+	return `RM${price.toFixed(2)}`;
 }
 
 export type BaseTicket = {

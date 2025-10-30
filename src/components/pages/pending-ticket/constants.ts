@@ -66,7 +66,7 @@ export function getPaymentStatusColor(status: PaymentStatusString): string {
  */
 export function formatTicketPrice(value: number | string): string {
 	const price = typeof value === "number" ? value : Number(value) || 0;
-	return `$${price.toFixed(2)}`;
+	return `RM${price.toFixed(2)}`;
 }
 
 /**

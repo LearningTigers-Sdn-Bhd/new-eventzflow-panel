@@ -357,7 +357,7 @@ export default function PendingTicketEditModal({
 									<div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 py-2">
 										<span className="text-lg">
 											{selectedTicketType
-												? `$${selectedTicketType.price.toFixed(2)}`
+												? `RM${selectedTicketType.price.toFixed(2)}`
 												: formatTicketPrice(ticket.value)}
 										</span>
 									</div>

@@ -135,7 +135,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							)}
 							<InfoLabel
 								label="Ticket Price"
-								value={`$${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}`}
+								value={`RM${(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}`}
 								icon={DollarSign}
 								ticket={ticket}
 							/>

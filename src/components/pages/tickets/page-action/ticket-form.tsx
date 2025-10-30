@@ -435,7 +435,7 @@ export default function TicketForm() {
 										<div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 py-2">
 											<span className="text-lg">
 												{selectedTicketType
-													? `$${selectedTicketType.price.toFixed(2)}`
+													? `RM${selectedTicketType.price.toFixed(2)}`
 													: "-"}
 											</span>
 										</div>
@@ -508,7 +508,7 @@ export default function TicketForm() {
 										</Field>
 
 										<Field orientation="vertical">
-											<FieldLabel>Price ($)</FieldLabel>
+											<FieldLabel>Price (RM)</FieldLabel>
 											{errors.newTicketTypePrice && (
 												<FieldError>{errors.newTicketTypePrice}</FieldError>
 											)}
