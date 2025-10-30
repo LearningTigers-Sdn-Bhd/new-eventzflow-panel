@@ -65,6 +65,7 @@ export default function AssignMembersDialog({
 				eventId,
 				locationId: location.id,
 				name: location.name,
+				isUnlimited: location.isUnlimited ?? false,
 				scanLimit: location.scanLimit,
 				memberIds,
 			});
