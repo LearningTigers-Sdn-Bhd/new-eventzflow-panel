@@ -28,16 +28,21 @@ export default function PublicLayout({
 		redirect("/dashboard");
 	}
 
-	// Check if we're on the login page (hide header)
+	// Redirect authenticated users away from forget-password routes
+	if (user && pathname.startsWith("/forget-password")) {
+		redirect("/dashboard");
+	}
+
+	// Check if we're on pages where header should be hidden
 	const isLoginPage = pathname === "/login";
+	const isForgotPasswordPage = pathname.startsWith("/forget-password");
+	const isHeaderHidden = isLoginPage || isForgotPasswordPage;
 
 	// Render header layout for public routes (hide header on login page)
 	return (
 		<div className="min-h-screen w-full">
-			{!isLoginPage && <Header />}
-			<main className="w-full">
-				{children}
-			</main>
+			{!isHeaderHidden && <Header />}
+			<main className="h-full w-full">{children}</main>
 		</div>
 	);
 }

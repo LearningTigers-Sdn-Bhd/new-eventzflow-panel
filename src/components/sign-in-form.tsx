@@ -1,5 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthForm } from "@/hooks/use-auth-form";
 import { emailSchema, passwordSchema } from "@/lib/api/auth";
@@ -22,6 +24,7 @@ export default function SignInForm({
 }) {
 	const { isLoading, error, handleLogin } = useAuthForm();
 	const [showPassword, setShowPassword] = useState(false);
+	const router = useRouter();
 
 	const form = useForm({
 		defaultValues: {
@@ -236,7 +239,14 @@ export default function SignInForm({
 										</label>
 									)}
 								</form.Field>
-								<Button variant="link" type="button" className="px-0 text-sm">
+								<Button
+									variant="link"
+									type="button"
+									className="px-0 text-sm"
+									onClick={() => {
+										router.push("/forget-password" as Route);
+									}}
+								>
 									Forgot password?
 								</Button>
 							</div>

@@ -18,6 +18,10 @@ class RefreshQueueService {
 		"/auth/register",
 		"/auth/logout",
 		"/auth/refresh_token",
+		// Password reset flow (public endpoints)
+		"/auth/password/request_reset_password",
+		"/auth/password/verify_reset_password_request",
+		"/auth/password/reset_password",
 	];
 
 	/**
