@@ -55,6 +55,79 @@ export async function checkInTicket(
 }
 
 /**
+ * Find a ticket by contact information (email or phone) without checking in
+ * Public endpoint - does not require authentication
+ */
+export async function findTicketByContact(data: {
+	attendee_email?: string;
+	attendee_phone?: string;
+}): Promise<CheckInResponse> {
+	// Validate that at least one contact method is provided
+	if (!data.attendee_email && !data.attendee_phone) {
+		throw new Error("Either email or phone number is required");
+	}
+
+	const url = "v1/tickets/find_by_contact";
+
+	try {
+		const response = await restClient.post<BackendCheckInResponse>(url, data);
+
+		// Transform backend response to frontend format
+		return {
+			id: response.id.toString(),
+			publicId: response.public_id,
+			name: response.attendee_name || "Unknown Attendee",
+			email: response.attendee_email,
+			phone: response.attendee_phone || undefined,
+			ticketTypeName: response.ticket_type?.name || response.ticket_type_name || "General Admission",
+			value: response.ticket_type?.price || response.value || 0,
+			checkedIn: response.checked_in,
+			checkInAt: response.check_in_at,
+			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventId: response.event?.id.toString() || response.event_id.toString(),
+		};
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Confirm check-in for a ticket using public_id
+ * Public endpoint - does not require authentication and does not set scanned_by_id
+ */
+export async function confirmSelfCheckIn(publicId: string): Promise<CheckInResponse> {
+	// Validate public_id is provided
+	if (!publicId) {
+		throw new Error("Ticket ID is required");
+	}
+
+	const url = "v1/tickets/self_check_in";
+
+	try {
+		const response = await restClient.post<BackendCheckInResponse>(url, { public_id: publicId });
+
+		// Transform backend response to frontend format
+		return {
+			id: response.id.toString(),
+			publicId: response.public_id,
+			name: response.attendee_name || "Unknown Attendee",
+			email: response.attendee_email,
+			phone: response.attendee_phone || undefined,
+			ticketTypeName: response.ticket_type?.name || response.ticket_type_name || "General Admission",
+			value: response.ticket_type?.price || response.value || 0,
+			checkedIn: response.checked_in,
+			checkInAt: response.check_in_at,
+			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventId: response.event?.id.toString() || response.event_id.toString(),
+		};
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Get tickets scanned by current authenticated user
  * Returns only tickets where scanned_by_id matches the current user's ID
  */
