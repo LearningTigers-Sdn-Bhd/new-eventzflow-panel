@@ -396,12 +396,22 @@ export default function PublicCheckinPage() {
 						>
 							<Phone className="h-10 w-10 text-primary" />
 							<div className="space-y-1.5">
-								<p className="font-semibold text-base">Check in with Phone</p>
+								<p className="font-semibold text-base">Check in with Phone Number</p>
 								<p className="text-muted-foreground text-xs">
 									Use the phone number from your ticket
 								</p>
 							</div>
 						</Button>
+
+					<div className="text-center pt-4 border-t border-border/50">
+						<p className="text-sm text-muted-foreground/70 tracking-wide">
+							<span className="font-bold text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">EventzFlow</span>
+							{" "}
+							<span className="text-muted-foreground/60">by</span>
+							{" "}
+							<span className="font-semibold text-foreground/80">Sales Chatalyst</span>
+						</p>
+					</div>
 					</div>
 				) : (
 					/* Input Form */
