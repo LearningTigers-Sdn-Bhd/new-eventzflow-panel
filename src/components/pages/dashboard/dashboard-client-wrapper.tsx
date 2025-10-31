@@ -1,10 +1,11 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { List } from "lucide-react";
 import { useState } from "react";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import type { EventOverview } from "@/lib/api/dashboard/response";
@@ -56,29 +57,21 @@ export function DashboardClientWrapper({
 		<>
 			{/* All Events Overview Section */}
 			{!selectedEventId && (
-				<>
-					<div className="space-y-4">
-						<Separator />
-						<div className="flex items-center justify-between gap-4">
-							<div className="flex-1">
-								<h2 className="font-semibold text-xl">All Events Overview</h2>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Quick view of all your events and their performance
-								</p>
-							</div>
-							<div className="flex items-center gap-3">
-								<div className="hidden text-right sm:block">
-									<p className="font-medium text-sm">Switch Event</p>
-									<p className="text-muted-foreground text-xs">
-										Select to view details
-									</p>
-								</div>
-								<EventSwitcher
-									currentEventId={selectedEventId}
-									onEventChange={setSelectedEventId}
-									initialEvents={events}
-								/>
-							</div>
+				<div className="border-t border-dashed">
+					<div className="flex w-full flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:gap-1">
+						<div className="px-2 md:px-4">
+							<IconTitle
+								icon={List}
+								title="All Events Overview"
+								description="Quick view of all your events and their performance"
+							/>
+						</div>
+						<div className="w-full px-0 md:w-auto md:px-4">
+							<EventSwitcher
+								currentEventId={selectedEventId}
+								onEventChange={setSelectedEventId}
+								initialEvents={events}
+							/>
 						</div>
 					</div>
 					{eventsLoading && !initialEvents ? (
@@ -99,42 +92,36 @@ export function DashboardClientWrapper({
 							error={eventsError}
 						/>
 					)}
-				</>
+				</div>
 			)}
 
 			{/* Individual Event Analytics */}
 			{selectedEventId && (
-				<>
-					<div className="space-y-4">
-						<Separator />
-						<div className="flex items-center justify-between gap-4">
-							<div className="flex-1">
-								<h2 className="font-semibold text-xl">Event Analytics</h2>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Detailed insights and metrics for this event
-								</p>
-							</div>
-							<div className="flex items-center gap-3">
-								<div className="hidden text-right sm:block">
-									<p className="font-medium text-sm">Switch Event</p>
-									<p className="text-muted-foreground text-xs">
-										View different event
-									</p>
-								</div>
-								<EventSwitcher
-									currentEventId={selectedEventId}
-									onEventChange={setSelectedEventId}
-									initialEvents={events}
-								/>
-							</div>
+				<div className="border-t border-dashed">
+					<div className="flex w-full flex-col gap-4 pt-8 pb-6 lg:flex-row lg:items-center lg:justify-between lg:gap-1">
+						<div className="px-2 md:px-4">
+							<IconTitle
+								icon={List}
+								title="Event Analytics"
+								description="Detailed insights and metrics for this event"
+							/>
+						</div>
+						<div className="flex w-full flex-col px-0 md:w-auto md:px-4">
+							<EventSwitcher
+								currentEventId={selectedEventId}
+								onEventChange={setSelectedEventId}
+								initialEvents={events}
+							/>
 						</div>
 					</div>
-					<EventAnalytics
-						eventId={selectedEventId}
-						onBack={() => setSelectedEventId(null)}
-						showBackButton={false}
-					/>
-				</>
+					<div className="border-t border-dashed">
+						<EventAnalytics
+							eventId={selectedEventId}
+							onBack={() => setSelectedEventId(null)}
+							showBackButton={false}
+						/>
+					</div>
+				</div>
 			)}
 		</>
 	);

@@ -14,7 +14,6 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "../../../lib/utils";
 
 interface WeeklyChartProps {
 	title: string;
@@ -63,26 +62,30 @@ export function WeeklyChart({
 	}
 
 	return (
-		<Card className="p-0">
-			<CardHeader className="flex items-center gap-4 p-4 pb-6">
-				<div className={cn("rounded-md border p-2")}>
-					{icon && <div className="h-4 w-4">{icon}</div>}
+		<Card className="gap-0 rounded-none border border-border/90 border-x border-dashed p-0 shadow-none lg:border-l">
+			<CardHeader className="flex items-center gap-4 p-0">
+				<div className="h-full border-r border-dashed p-4">
+					{icon && (
+						<div className="flex h-full items-center justify-center">
+							{icon}
+						</div>
+					)}
 				</div>
-				<div className="flex flex-col gap-1">
-					<CardTitle>{title}</CardTitle>
-					<CardDescription>{description}</CardDescription>
+				<div className="flex flex-col gap-1 px-2 py-3">
+					<CardTitle className="text-sm">{title}</CardTitle>
+					<CardDescription className="text-xs">{description}</CardDescription>
 				</div>
 			</CardHeader>
-			<CardContent className="flex flex-col items-center justify-center p-0">
-				<ChartContainer config={chartConfig} className="h-[200px] w-full">
+			<CardContent className="flex flex-col items-center justify-center bg-accent p-0">
+				<ChartContainer config={chartConfig} className="h-[200px] w-full pt-2">
 					<AreaChart
 						accessibilityLayer
 						data={data}
 						margin={{
-							left: 0,
-							right: 20,
-							top: 12,
-							bottom: 12,
+							left: -20,
+							right: 30,
+							top: 20,
+							bottom: 5,
 						}}
 					>
 						<defs>
