@@ -20,9 +20,26 @@ import { getEventTicketTypes } from "@/lib/api/ticket-type";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	labelsData?: Record<string, string>;
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+function getColumnLabel(columnId: string, labelsData?: Record<string, string>): string {
+	if (columnId.startsWith("custom_")) {
+		const labelKey = columnId.replace("custom_", "");
+		return labelsData?.[labelKey] || columnId;
+	}
+
+	const standardLabels: Record<string, string> = {
+		name: "Name",
+		ticketTypeName: "Ticket Type",
+		status: "Status",
+		createdAt: "Created At",
+	};
+
+	return standardLabels[columnId] || columnId;
+}
+
+export function DataControl<TData>({ table, labelsData }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -72,12 +89,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 
 	return (
 		<>
-			{/* Desktop Control Panel */}
 			{!_isTablet ? (
 				<div className="hidden items-center gap-2 py-4 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email"]}
+						columns={["name", "phone"]}
+						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
 					<DropdownMenu>
@@ -133,13 +150,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto">
-								{table.getAllColumns().filter((column) => column.getIsVisible())
-									.length - 1}{" "}
-								columns
+								Columns ({table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1})
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent align="end" className="w-56">
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -147,13 +163,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
-											className="capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{getColumnLabel(column.id, labelsData)}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
@@ -161,14 +176,14 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					</DropdownMenu>
 				</div>
 			) : (
-				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 py-4 lg:hidden">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email"]}
+						columns={["name", "phone"]}
+						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
@@ -185,26 +200,6 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								className={cn(
 									"size-3.5 transition-transform",
 									table.getColumn("name")?.getIsSorted() === "asc" &&
-										"-rotate-180",
-								)}
-							/>
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() =>
-								table
-									.getColumn("email")
-									?.toggleSorting(
-										table.getColumn("email")?.getIsSorted() === "asc",
-									)
-							}
-							className="flex items-center justify-between text-xs"
-						>
-							Email
-							<ArrowDown
-								className={cn(
-									"size-3.5 transition-transform",
-									table.getColumn("email")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>

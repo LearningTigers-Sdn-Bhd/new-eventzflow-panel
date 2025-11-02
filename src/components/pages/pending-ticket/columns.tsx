@@ -105,6 +105,12 @@ export const columns: ColumnDef<PendingTicket>[] = [
 		),
 	},
 	{
+		accessorKey: "phone",
+		enableHiding: true,
+		enableSorting: false,
+		// Hidden column used for search functionality
+	},
+	{
 		accessorKey: "email",
 		size: 200,
 		header: ({ column }) => <SortableHeader title="Email" column={column} />,

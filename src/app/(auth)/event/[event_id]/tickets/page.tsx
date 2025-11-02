@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/tickets/columns";
 import { DataTable } from "@/components/pages/tickets/data-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/button";
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,7 @@ export default function TicketsPage({
 					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
 			) : (
-				<DataTable columns={columns} data={(tickets || []).map(t => ({ ...t, phone: t.phone || '' }))} />
+				<DataTable data={(tickets || []).map(t => ({ ...t, phone: t.phone || '' }))} />
 			)}
 		</div>
 	);

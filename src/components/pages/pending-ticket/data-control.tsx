@@ -21,6 +21,7 @@ import { getPaymentStatusText } from "./constants";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	labelsData?: Record<string, string>;
 }
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -32,9 +33,27 @@ const PAYMENT_STATUS_OPTIONS = [
 	{ value: "rejected", label: "Rejected" },
 ] as const;
 
-const SEARCH_COLUMNS = ["name", "email"];
+const SEARCH_COLUMNS = ["name", "email", "phone"];
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+function getColumnLabel(columnId: string, labelsData?: Record<string, string>): string {
+	if (columnId.startsWith("custom_")) {
+		const labelKey = columnId.replace("custom_", "");
+		return labelsData?.[labelKey] || columnId;
+	}
+
+	const standardLabels: Record<string, string> = {
+		name: "Name",
+		email: "Email",
+		ticketTypeName: "Ticket Type",
+		paymentStatus: "Payment Status",
+		transactionId: "Transaction ID",
+		createdAt: "Created At",
+	};
+
+	return standardLabels[columnId] || columnId;
+}
+
+export function DataControl<TData>({ table, labelsData }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -96,6 +115,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
+						searchCustomFields={true}
 						placeholder="Search pending tickets..."
 					/>
 					<DropdownMenu>
@@ -141,13 +161,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto">
-								{table.getAllColumns().filter((column) => column.getIsVisible())
-									.length - 1}{" "}
-								columns
+								Columns ({table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1})
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent align="end" className="w-56">
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -155,13 +174,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
-											className="capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{getColumnLabel(column.id, labelsData)}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
@@ -174,6 +192,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
+						searchCustomFields={true}
 						placeholder="Search pending tickets..."
 					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

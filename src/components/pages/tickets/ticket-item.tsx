@@ -11,15 +11,18 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
+import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./action-menu";
 import type { BaseTicket } from "./columns";
 
 interface TicketItemProps {
 	ticket: BaseTicket;
+	labelsData?: Record<string, string>;
 }
 
-export function TicketItem({ ticket }: TicketItemProps) {
+export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 	const date = new Date(ticket.createdAt);
+	const hasCustomLabels = labelsData && Object.keys(labelsData).length > 0;
 
 	return (
 		<Item variant="outline" className="h-full w-full">
@@ -38,7 +41,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
 					</Badge>
 				</ItemTitle>
 			</ItemHeader>
-			<ItemContent className="flex-1">
+			<ItemContent className="flex-1 space-y-3">
 				<div className="flex w-full items-center justify-start gap-2">
 					<Mail className="size-4 text-muted-foreground" />
 					<span className="truncate font-medium text-sm">{ticket.email}</span>
@@ -74,6 +77,35 @@ export function TicketItem({ ticket }: TicketItemProps) {
 						</span>
 					</div>
 				</div>
+
+				{hasCustomLabels && (
+					<div className="space-y-2 border-t pt-3">
+						<h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+							Additional Information
+						</h4>
+						<div className="grid grid-cols-1 gap-2">
+							{Object.entries(labelsData).map(([key, labelName]) => {
+								const value =
+									ticket.customLabels?.find((l) => l.name === labelName)?.value || "";
+								return (
+									<div key={key} className="space-y-0.5">
+										<p className="font-medium text-muted-foreground text-xs">
+											{labelName}
+										</p>
+										<p
+											className={cn(
+												"font-medium text-sm",
+												!value && "text-muted-foreground italic",
+											)}
+										>
+											{value || "Not provided"}
+										</p>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				)}
 			</ItemContent>
 			<ItemFooter className="flex w-full justify-end">
 				<ItemActions>
