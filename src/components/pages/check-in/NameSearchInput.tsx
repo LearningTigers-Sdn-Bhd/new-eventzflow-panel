@@ -141,8 +141,6 @@ export function NameSearchInput({ value, onChange, onTicketSelect, disabled }: N
 									<div className="flex items-start justify-between gap-2">
 										<div className="flex-1 min-w-0">
 											<p className="font-semibold text-sm truncate">{ticket.name}</p>
-											<p className="text-xs text-muted-foreground truncate">{ticket.email}</p>
-											{ticket.phone && <p className="text-xs text-muted-foreground">{ticket.phone}</p>}
 										</div>
 										{ticket.checkedIn && (
 											<span className="text-[10px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded whitespace-nowrap">
