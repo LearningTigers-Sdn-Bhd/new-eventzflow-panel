@@ -58,7 +58,7 @@ export function DashboardClientWrapper({
 			{/* All Events Overview Section */}
 			{!selectedEventId && (
 				<div className="border-t border-dashed">
-					<div className="flex w-full flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:gap-1">
+					<div className="page-header">
 						<div className="px-2 md:px-4">
 							<IconTitle
 								icon={List}
