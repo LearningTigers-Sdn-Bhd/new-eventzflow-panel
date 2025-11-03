@@ -40,7 +40,7 @@ export function ThemeSettings() {
 						<Button
 							key={themeOption.value}
 							variant={isSelected ? "default" : "outline"}
-							className="h-auto flex-col gap-2 p-4"
+							className="h-auto flex-col gap-2 rounded-none p-4"
 							onClick={() => setTheme(themeOption.value)}
 						>
 							<Icon className="h-6 w-6" />
@@ -53,7 +53,7 @@ export function ThemeSettings() {
 				})}
 			</div>
 
-			<div className="rounded-lg border p-4">
+			<div className="rounded-none border p-4">
 				<div className="flex items-center justify-between">
 					<div>
 						<Label className="font-medium text-sm">Current Theme</Label>
