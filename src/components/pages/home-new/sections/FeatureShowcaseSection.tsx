@@ -196,21 +196,21 @@ const features = [
 
 const FeatureShowcaseSection: React.FC = () => {
 	return (
-		<section id="features" className="bg-background px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+		<section id="features" className="bg-background px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
 			<div className="mx-auto max-w-7xl">
 				{/* Section Header */}
-				<div className="mb-16 text-center">
+				<div className="mb-8 text-center sm:mb-12 lg:mb-16">
 					<motion.span
-						className="mb-3 inline-block rounded-full bg-accent px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-accent-foreground"
+						className="mb-2 inline-block rounded-full bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent-foreground sm:mb-3 sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.5 }}
 					>
-						Powerful Features That Drive Results
+						<span className="whitespace-nowrap">Powerful Features That Drive Results</span>
 					</motion.span>
 					<motion.h2
-						className="text-3xl font-semibold text-foreground sm:text-4xl"
+						className="text-2xl font-semibold text-foreground sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -221,7 +221,7 @@ const FeatureShowcaseSection: React.FC = () => {
 						That Scales With Your Ambitions
 					</motion.h2>
 					<motion.p
-						className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground"
+						className="mx-auto mt-3 max-w-3xl px-2 text-sm text-muted-foreground sm:mt-4 sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -234,7 +234,7 @@ const FeatureShowcaseSection: React.FC = () => {
 				</div>
 
 				{/* Feature Cards - 3 Per Row Grid with Images */}
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+				<div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
 					{features.map((feature, index) => {
 						const Icon = feature.icon;
 
@@ -260,42 +260,42 @@ const FeatureShowcaseSection: React.FC = () => {
 											className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 										/>
 										{/* Badge on Image */}
-										<div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/95 px-2.5 py-1.5 backdrop-blur-sm">
-											<Icon className="h-4 w-4 text-primary" strokeWidth={2} />
-											<span className="text-xs font-semibold text-primary">
+										<div className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/95 px-2 py-1 backdrop-blur-sm sm:left-3 sm:top-3 sm:gap-2 sm:px-2.5 sm:py-1.5">
+											<Icon className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" strokeWidth={2} />
+											<span className="text-[10px] font-semibold text-primary sm:text-xs">
 												{feature.badge}
 											</span>
 										</div>
 									</div>
 
 								{/* Content */}
-								<div className="flex flex-1 flex-col p-5">
+								<div className="flex flex-1 flex-col p-4 sm:p-5">
 									{/* Title */}
-									<h3 className="mb-2 text-lg font-bold text-foreground transition-colors group-hover:text-primary">
+									<h3 className="mb-1.5 text-base font-bold text-foreground transition-colors group-hover:text-primary sm:mb-2 sm:text-lg">
 										{feature.title}
 									</h3>
 
 									{/* Subtitle */}
-									<p className="mb-3 text-sm font-medium text-muted-foreground">
+									<p className="mb-2 text-xs font-medium text-muted-foreground sm:mb-3 sm:text-sm">
 										{feature.subtitle}
 									</p>
 
 								{/* Description */}
-								<p className="mb-4 text-sm leading-relaxed text-foreground/80 bg-primary/5 border border-primary/20 rounded-lg p-2">
+								<p className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs leading-relaxed text-foreground/80 sm:mb-4 sm:text-sm">
 									{feature.description}
 								</p>
 
 									{/* Benefits - Push to bottom */}
-									<ul className="mt-auto space-y-2.5">
+									<ul className="mt-auto space-y-2 sm:space-y-2.5">
 										{feature.benefits.map((benefit, idx) => {
 											const BenefitIcon = benefit.icon;
 											return (
 												<li
 													key={idx}
-													className="flex items-start gap-2.5 text-sm"
+													className="flex items-start gap-2 text-xs sm:gap-2.5 sm:text-sm"
 												>
-													<BenefitIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-													<span className="text-muted-foreground leading-relaxed">
+													<BenefitIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary sm:h-4 sm:w-4" />
+													<span className="leading-relaxed text-muted-foreground">
 														{benefit.text}
 													</span>
 												</li>

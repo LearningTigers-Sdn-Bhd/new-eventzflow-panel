@@ -45,27 +45,27 @@ const benefits = [
 
 const BenefitsSection: React.FC = () => {
 	return (
-		<section className="bg-secondary py-16">
-			<div className="flex flex-col gap-8 px-8 lg:flex-row lg:items-start lg:gap-12 lg:px-16">
-				<div className="flex flex-1 gap-8">
+		<section className="bg-secondary px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+			<div className="mx-auto max-w-7xl">
+				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-5 lg:gap-6">
 					{benefits.map((item, index) => {
 						const Icon = item.icon;
 							return (
 							<motion.div
 								key={item.label}
-								className="flex flex-1 flex-col items-center text-center"
+								className="flex flex-col items-center text-center"
 								initial={{ opacity: 0, y: 16 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true }}
 								transition={{ duration: 0.4, delay: index * 0.05 }}
 							>
-								<div className="mb-4">
-									<Icon className="h-12 w-12 text-primary" />
+								<div className="mb-3 sm:mb-4">
+									<Icon className="h-10 w-10 text-primary sm:h-12 sm:w-12" />
 								</div>
-								<h3 className="mb-2 text-lg font-bold text-foreground">
+								<h3 className="mb-2 text-base font-bold text-foreground sm:text-lg">
 									{item.label}
 										</h3>
-										<p className="text-sm leading-relaxed text-muted-foreground">
+										<p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
 									{item.description}
 										</p>
 							</motion.div>

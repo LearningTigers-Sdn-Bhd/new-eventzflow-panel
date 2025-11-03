@@ -83,26 +83,26 @@ const TargetAudienceSection: React.FC = () => {
 	const cardWidth = 408;
 
 	return (
-		<section id="industries" className="relative overflow-hidden bg-muted/40 px-4 py-20 sm:px-6 lg:px-8">
+		<section id="industries" className="relative overflow-hidden bg-muted/40 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			<div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-primary/10 via-transparent to-transparent blur-3xl" />
 			<div className="pointer-events-none absolute right-[-15%] top-1/4 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
 
 			<div className="relative mx-auto max-w-7xl">
 				{/* Header */}
-				<div className="mb-12 flex flex-col items-center text-center sm:mb-16">
+				<div className="mb-8 flex flex-col items-center text-center sm:mb-12 lg:mb-16">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 10 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.4 }}
 					>
-						<Sparkles className="h-3.5 w-3.5" />
-						Trusted Across Industries
+						<Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+						<span className="whitespace-nowrap">Trusted Across Industries</span>
 					</motion.span>
 
 					<motion.h2
-						className="mt-6 text-3xl font-semibold text-foreground sm:text-4xl"
+						className="mt-4 text-2xl font-semibold text-foreground sm:mt-6 sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -114,7 +114,7 @@ const TargetAudienceSection: React.FC = () => {
 					</motion.h2>
 
 					<motion.p
-						className="mt-4 max-w-5xl text-lg text-muted-foreground"
+						className="mt-3 max-w-5xl px-2 text-sm text-muted-foreground sm:mt-4 sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -129,7 +129,7 @@ const TargetAudienceSection: React.FC = () => {
 				{/* Infinite Ticker Carousel */}
 				<div className="relative -mx-4 sm:mx-0">
 					<motion.div
-						className="flex gap-6 pl-4 sm:pl-0"
+						className="flex gap-4 pl-4 sm:gap-6 sm:pl-0"
 						animate={{
 							x: [0, -(cardWidth * audienceList.length)],
 						}}
@@ -147,14 +147,14 @@ const TargetAudienceSection: React.FC = () => {
 							return (
 								<motion.div
 									key={`${audience.title}-${index}`}
-									className="group w-96 flex-shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20"
+									className="group w-80 flex-shrink-0 overflow-hidden rounded-xl border border-border/60 bg-card shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 sm:w-96 sm:rounded-2xl"
 									initial={{ opacity: 0, y: 50 }}
 									whileInView={{ opacity: 1, y: 0 }}
 									viewport={{ once: true }}
 									transition={{ duration: 0.5, delay: (index % audienceList.length) * 0.1 }}
 								>
 									{/* Card Image */}
-									<div className="relative h-52 overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5">
+									<div className="relative h-40 overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 sm:h-52">
 										<img
 											src={audience.imageUrl}
 											alt={audience.title}
@@ -164,26 +164,26 @@ const TargetAudienceSection: React.FC = () => {
 										<div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
 										
 										{/* Floating Icon Badge */}
-										<div className="absolute bottom-4 left-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-											<Icon className="h-6 w-6 text-primary-foreground" />
+										<div className="absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 sm:bottom-4 sm:left-4 sm:h-12 sm:w-12 sm:rounded-xl">
+											<Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
 										</div>
 									</div>
 
 									{/* Card Content */}
-									<div className="space-y-5 p-6">
+									<div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
 										{/* Title Section */}
 										<div>
-											<h3 className="text-xl font-bold leading-tight text-foreground">
+											<h3 className="text-base font-bold leading-tight text-foreground sm:text-lg lg:text-xl">
 												{audience.title}
 											</h3>
 										</div>
 
 										{/* Descriptions with Visual Separators */}
-										<div className="space-y-4">
+										<div className="space-y-3 sm:space-y-4">
 											{audience.descriptions.map((description, idx) => (
-												<div key={idx} className="group/item flex gap-3">
-													<div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-primary/60 transition-colors group-hover/item:bg-primary" />
-													<p className="flex-1 text-sm leading-relaxed text-muted-foreground transition-colors group-hover/item:text-foreground">
+												<div key={idx} className="group/item flex gap-2 sm:gap-3">
+													<div className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60 transition-colors group-hover/item:bg-primary sm:mt-2 sm:h-2 sm:w-2" />
+													<p className="flex-1 text-xs leading-relaxed text-muted-foreground transition-colors group-hover/item:text-foreground sm:text-sm">
 														{description}
 													</p>
 												</div>

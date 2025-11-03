@@ -56,24 +56,24 @@ const galleryImages = [
 
 const SolutionsGallerySection: React.FC = () => {
 	return (
-		<section id="solutions" className="relative overflow-hidden bg-background px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+		<section id="solutions" className="relative overflow-hidden bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			{/* Professional background elements */}
 			<div className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-emerald-500/5 blur-3xl" />
 			
 			<div className="relative mx-auto max-w-6xl">
 				{/* Header */}
-				<div className="mb-12 flex flex-col items-center gap-4 text-center">
+				<div className="mb-8 flex flex-col items-center gap-3 text-center sm:mb-12 sm:gap-4">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 10 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.4 }}
 					>
-						Events That Inspire
+						<span className="whitespace-nowrap">Events That Inspire</span>
 					</motion.span>
 					<motion.h2
-						className="max-w-4xl text-3xl font-bold text-foreground sm:text-4xl"
+						className="max-w-4xl px-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -84,7 +84,7 @@ const SolutionsGallerySection: React.FC = () => {
 						World-Class Events
 					</motion.h2>
 					<motion.p
-						className="max-w-3xl text-lg text-muted-foreground"
+						className="max-w-3xl px-2 text-sm text-muted-foreground sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -97,7 +97,7 @@ const SolutionsGallerySection: React.FC = () => {
 				</div>
 
 				{/* Gallery Grid */}
-				<div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
+				<div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
 					{galleryImages.map((image, index) => (
 						<motion.div
 							key={index}

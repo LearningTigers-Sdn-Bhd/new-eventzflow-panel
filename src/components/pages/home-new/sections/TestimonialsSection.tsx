@@ -61,25 +61,25 @@ const TestimonialsSection: React.FC = () => {
 	return (
 		<section
 			id="testimonials"
-			className="relative overflow-hidden bg-background px-4 py-14 sm:px-6 lg:px-8"
+			className="relative overflow-hidden bg-background px-4 py-12 sm:px-6 sm:py-14 lg:px-8"
 		>
 			<div className="pointer-events-none absolute left-1/2 top-16 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
 			<div className="pointer-events-none absolute -bottom-28 right-12 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
 			<div className="pointer-events-none absolute -left-24 top-2/3 h-72 w-72 -translate-y-1/2 rotate-12 rounded-full bg-accent/10 blur-3xl" />
 
 			<div className="relative mx-auto max-w-6xl">
-				<div className="mb-14 flex flex-col items-center gap-6 text-center">
+				<div className="mb-8 flex flex-col items-center gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.4 }}
 					>
-						Client Success Stories
+						<span className="whitespace-nowrap">Client Success Stories</span>
 					</motion.span>
 					<motion.h2
-						className="text-3xl font-semibold text-foreground sm:text-4xl"
+						className="text-2xl font-semibold text-foreground sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -90,7 +90,7 @@ const TestimonialsSection: React.FC = () => {
 						Who Demand Results
 					</motion.h2>
 					<motion.p
-						className="max-w-5xl text-lg text-muted-foreground"
+						className="max-w-5xl px-2 text-sm text-muted-foreground sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -101,12 +101,12 @@ const TestimonialsSection: React.FC = () => {
 					</motion.p>
 				</div>
 
-				<div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
 					{testimonials.map((testimonial, index) => {
 						return (
 							<motion.div
 								key={testimonial.name}
-								className="group relative flex h-full flex-col gap-6 rounded-3xl border border-border/70 bg-card/90 p-8 shadow-sm backdrop-blur transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/5"
+								className="group relative flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/5 sm:gap-6 sm:rounded-3xl sm:p-8"
 								initial={{ opacity: 0, y: 32, scale: 0.96 }}
 								whileInView={{ opacity: 1, y: 0, scale: 1 }}
 								viewport={{ once: true }}
@@ -117,26 +117,26 @@ const TestimonialsSection: React.FC = () => {
 								}}
 							>
 								{/* Gradient overlay */}
-								<div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/40 via-primary/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-5" />
+								<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/40 via-primary/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-5 sm:rounded-3xl" />
 
 								{/* Quote icon with enhanced styling */}
-								<div className="absolute -top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30">
-									<Quote className="h-5 w-5" />
+								<div className="absolute -top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 sm:-top-6 sm:right-6 sm:h-12 sm:w-12">
+									<Quote className="h-4 w-4 sm:h-5 sm:w-5" />
 								</div>
 
 								{/* 5-star rating */}
-								<div className="relative flex items-center gap-1">
+								<div className="relative flex items-center gap-0.5 sm:gap-1">
 									{ratingStars.map((_, starIndex) => (
 										<Star
 											key={starIndex}
-											className="h-4 w-4 fill-yellow-400 text-yellow-400 transition-transform duration-200 group-hover:scale-110"
+											className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 transition-transform duration-200 group-hover:scale-110 sm:h-4 sm:w-4"
 											style={{ transitionDelay: `${starIndex * 50}ms` }}
 										/>
 									))}
 								</div>
 
 								{/* Testimonial text */}
-								<p className="relative flex-1 text-base leading-relaxed text-card-foreground">
+								<p className="relative flex-1 text-sm leading-relaxed text-card-foreground sm:text-base">
 									"{testimonial.statement}"
 								</p>
 
@@ -144,9 +144,9 @@ const TestimonialsSection: React.FC = () => {
 								<div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
 
 								{/* Author info with avatar */}
-								<div className="relative flex items-center gap-3">
+								<div className="relative flex items-center gap-2.5 sm:gap-3">
 									{/* Avatar with image */}
-									<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:ring-primary/40">
+									<div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:ring-primary/40 sm:h-12 sm:w-12">
 										<img
 											src={testimonial.avatar}
 											alt={testimonial.name}
@@ -154,23 +154,23 @@ const TestimonialsSection: React.FC = () => {
 										/>
 									</div>
 
-									<div className="flex-1">
-										<div className="flex items-center gap-1.5">
-											<p className="text-sm font-semibold text-card-foreground">
+									<div className="min-w-0 flex-1">
+										<div className="flex items-center gap-1 sm:gap-1.5">
+											<p className="truncate text-xs font-semibold text-card-foreground sm:text-sm">
 												{testimonial.name}
 											</p>
-											<Verified className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500" />
+											<Verified className="h-3 w-3 flex-shrink-0 fill-emerald-500 text-emerald-500 sm:h-3.5 sm:w-3.5" />
 										</div>
-										<p className="text-xs tracking-wide text-muted-foreground">
+										<p className="truncate text-[10px] tracking-wide text-muted-foreground sm:text-xs">
 											{testimonial.role}
 										</p>
 									</div>
 								</div>
 
 								{/* Metric badge - enhanced */}
-								<div className="relative inline-flex w-fit items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-600 ring-1 ring-emerald-500/20 backdrop-blur transition-all duration-300 group-hover:bg-emerald-500/15 group-hover:ring-emerald-500/30 dark:text-emerald-400">
-									<Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-									{testimonial.metric}
+								<div className="relative inline-flex w-fit items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-600 ring-1 ring-emerald-500/20 backdrop-blur transition-all duration-300 group-hover:bg-emerald-500/15 group-hover:ring-emerald-500/30 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-2 sm:text-xs dark:text-emerald-400">
+									<Star className="h-3 w-3 fill-yellow-400 text-yellow-400 sm:h-3.5 sm:w-3.5" />
+									<span className="whitespace-nowrap">{testimonial.metric}</span>
 								</div>
 							</motion.div>
 						);

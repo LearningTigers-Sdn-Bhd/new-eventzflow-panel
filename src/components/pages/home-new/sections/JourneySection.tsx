@@ -41,22 +41,22 @@ const JourneySection: React.FC = () => {
 	return (
 		<section
 			id="pain-points"
-			className="bg-background px-4 py-20 sm:px-6 lg:px-8"
+			className="bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
 		>
 			<div className="mx-auto max-w-6xl">
-				<div className="mb-14 flex flex-col gap-6 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
+				<div className="mb-8 flex flex-col gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between lg:text-left">
 					<div>
 						<motion.span
-							className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground"
+							className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
 							initial={{ opacity: 0, y: 10 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
 							transition={{ duration: 0.4 }}
 						>
-							Why Choose EventzFlow
+							<span className="whitespace-nowrap">Why Choose EventzFlow</span>
 						</motion.span>
 						<motion.h2
-							className="mt-4 text-3xl font-semibold text-foreground sm:text-4xl"
+							className="mt-3 text-2xl font-semibold text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
 							initial={{ opacity: 0, y: 16 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -68,7 +68,7 @@ const JourneySection: React.FC = () => {
 						</motion.h2>
 					</div>
 					<motion.p
-						className="text-lg text-muted-foreground lg:max-w-xl"
+						className="px-2 text-sm text-muted-foreground sm:text-base lg:max-w-xl lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -79,13 +79,13 @@ const JourneySection: React.FC = () => {
 					</motion.p>
 				</div>
 
-				<div className="grid gap-6 lg:grid-cols-2">
+				<div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
 					{valuePropositions.map((value, index) => {
 						const Icon = value.icon;
 						return (
 							<motion.div
 								key={value.title}
-								className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5"
+								className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 sm:rounded-2xl sm:p-8"
 								initial={{ opacity: 0, y: 24 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true }}
@@ -95,25 +95,25 @@ const JourneySection: React.FC = () => {
 								<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 								
 								<div className="relative">
-									<div className="mb-6 flex items-start gap-4">
-										<div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:ring-primary/30">
-											<Icon className="h-7 w-7" />
+									<div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
+										<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:ring-primary/30 sm:h-14 sm:w-14 sm:rounded-xl">
+											<Icon className="h-6 w-6 sm:h-7 sm:w-7" />
 										</div>
-										<div className="flex-1">
-											<h3 className="text-xl font-bold text-card-foreground transition-colors group-hover:text-primary">
+										<div className="min-w-0 flex-1">
+											<h3 className="text-base font-bold text-card-foreground transition-colors group-hover:text-primary sm:text-lg lg:text-xl">
 												{value.title}
 											</h3>
-											<p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+											<p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:mt-2 sm:text-sm">
 												{value.copy}
 											</p>
 										</div>
 									</div>
 
-									<div className="flex flex-wrap gap-2">
+									<div className="flex flex-wrap gap-1.5 sm:gap-2">
 										{value.pills.map((pill) => (
 											<span
 												key={pill}
-												className="inline-flex items-center rounded-lg border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-secondary-foreground backdrop-blur-sm transition-colors hover:bg-secondary"
+												className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-1 text-[10px] font-medium text-secondary-foreground backdrop-blur-sm transition-colors hover:bg-secondary sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs"
 											>
 												{pill}
 											</span>
@@ -126,28 +126,28 @@ const JourneySection: React.FC = () => {
 				</div>
 
 				<motion.div
-					className="mt-12 flex flex-col items-center gap-6 rounded-3xl bg-primary px-8 py-10 text-center text-primary-foreground lg:flex-row lg:justify-between lg:text-left"
+					className="mt-8 flex flex-col items-center gap-4 rounded-2xl bg-primary px-5 py-6 text-center text-primary-foreground sm:mt-10 sm:gap-6 sm:rounded-3xl sm:px-8 sm:py-10 lg:mt-12 lg:flex-row lg:justify-between lg:text-left"
 					initial={{ opacity: 0, y: 24 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.5, delay: 0.2 }}
 				>
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-foreground/15">
-							<Handshake className="h-6 w-6" />
+					<div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+						<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-foreground/15 sm:h-12 sm:w-12">
+							<Handshake className="h-5 w-5 sm:h-6 sm:w-6" />
 						</div>
-						<div>
-							<p className="text-lg font-semibold">Quick setup in minutes</p>
-							<p className="text-sm opacity-90">
+						<div className="min-w-0">
+							<p className="text-base font-semibold sm:text-lg">Quick setup in minutes</p>
+							<p className="mt-1 text-xs opacity-90 sm:text-sm">
 								Launch your complete event management platform in under 5 minutes with instant WhatsApp integration.
 							</p>
 						</div>
 					</div>
-					<div className="flex gap-3">
-						<span className="rounded-full border border-primary-foreground/20 px-4 py-2 text-xs uppercase tracking-widest">
+					<div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+						<span className="whitespace-nowrap rounded-full border border-primary-foreground/20 px-3 py-1.5 text-[10px] uppercase tracking-widest sm:px-4 sm:py-2 sm:text-xs">
 							24/7 Automation
 						</span>
-						<span className="rounded-full border border-primary-foreground/20 px-4 py-2 text-xs uppercase tracking-widest">
+						<span className="whitespace-nowrap rounded-full border border-primary-foreground/20 px-3 py-1.5 text-[10px] uppercase tracking-widest sm:px-4 sm:py-2 sm:text-xs">
 							Full API Access
 						</span>
 					</div>

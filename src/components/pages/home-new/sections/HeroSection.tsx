@@ -20,7 +20,7 @@ const HeroSection: React.FC = () => {
 			<FloatingNav />
 		<section
 			id="hero"
-			className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-background via-background to-muted/30 px-4 pb-20 pt-24 sm:px-6 lg:px-8 lg:pt-32 xl:px-12"
+			className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-background via-background to-muted/30 px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8 lg:pt-32 xl:px-12"
 		>
 			{/* Professional grid pattern background */}
 			<div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:4rem_4rem]" />
@@ -29,21 +29,21 @@ const HeroSection: React.FC = () => {
 			<div className="absolute left-1/4 top-1/4 h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-3xl" />
 			<div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full bg-blue-500/5 blur-3xl" />
 			
-			<div className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-12 lg:flex-row lg:items-center lg:gap-16 xl:gap-20">
-				<div className="flex-1 space-y-8 lg:space-y-10">
+			<div className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-8 sm:gap-12 lg:flex-row lg:items-center lg:gap-16 xl:gap-20">
+				<div className="flex-1 space-y-6 sm:space-y-8 lg:space-y-10">
 					{/* Trust badge */}
 					<motion.div
-						className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400"
+						className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-600 sm:px-4 sm:py-2 sm:text-sm dark:text-emerald-400"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
 					>
-						<Zap className="h-4 w-4" />
-						Trusted by 500+ event organizers worldwide
+						<Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+						<span className="whitespace-nowrap">Trusted by 500+ event organizers</span>
 					</motion.div>
 
 					<motion.h1
-						className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl xl:text-[4rem]"
+						className="text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl xl:text-[4rem]"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.1 }}
@@ -56,7 +56,7 @@ const HeroSection: React.FC = () => {
 					</motion.h1>
 					
 					<motion.p
-						className="max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
+						className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.2 }}
@@ -66,51 +66,51 @@ const HeroSection: React.FC = () => {
 
 					{/* Key metrics */}
 					<motion.div
-						className="flex flex-wrap gap-6 pt-2"
+						className="flex flex-wrap gap-4 pt-2 sm:gap-6"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.3 }}
 					>
 						<div className="flex items-center gap-2">
-							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-								<TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+							<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 sm:h-10 sm:w-10">
+								<TrendingUp className="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5 dark:text-emerald-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold text-foreground">98%</p>
-								<p className="text-sm text-muted-foreground">Check-in speed</p>
+								<p className="text-xl font-bold text-foreground sm:text-2xl">98%</p>
+								<p className="text-xs text-muted-foreground sm:text-sm">Check-in speed</p>
 							</div>
 						</div>
 						<div className="flex items-center gap-2">
-							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-								<Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+							<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 sm:h-10 sm:w-10">
+								<Users className="h-4 w-4 text-blue-600 sm:h-5 sm:w-5 dark:text-blue-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold text-foreground">50K+</p>
-								<p className="text-sm text-muted-foreground">Events managed</p>
+								<p className="text-xl font-bold text-foreground sm:text-2xl">50K+</p>
+								<p className="text-xs text-muted-foreground sm:text-sm">Events managed</p>
 							</div>
 						</div>
 					</motion.div>
 
 					<motion.div
-						className="flex flex-wrap items-center gap-4 pt-4"
+						className="flex flex-col items-stretch gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
 						initial={{ opacity: 0, y: 24 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.4 }}
 					>
-						<Link href={"/auth?mode=login" as Route}>
+						<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
 							<Button
 								size="lg"
-								className="group h-12 min-w-[220px] bg-emerald-600 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-600/30 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+								className="group h-11 w-full bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-600/30 sm:h-12 sm:min-w-[220px] sm:text-base dark:bg-emerald-500 dark:hover:bg-emerald-400"
 							>
 								Start Free Trial
-								<ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+								<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
 							</Button>
 						</Link>
 						<a
-							className="inline-flex h-12 items-center gap-2 rounded-lg border-2 border-border bg-background px-6 text-base font-semibold text-foreground transition-all hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400"
+							className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-border bg-background px-5 text-sm font-semibold text-foreground transition-all hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:h-12 sm:w-auto sm:px-6 sm:text-base dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400"
 							href="#product-demo"
 						>
-							<PlayCircle className="h-5 w-5" />
+							<PlayCircle className="h-4 w-4 sm:h-5 sm:w-5" />
 							Watch Demo
 						</a>
 					</motion.div>
@@ -125,86 +125,86 @@ const HeroSection: React.FC = () => {
 					{/* Professional dashboard preview */}
 					<div className="relative">
 						{/* Floating badge */}
-						<div className="absolute -right-4 -top-4 z-10 rounded-xl border border-emerald-500/20 bg-background px-4 py-2 shadow-xl">
-							<div className="flex items-center gap-2">
-								<div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-								<span className="text-sm font-semibold text-foreground">Live Event</span>
+						<div className="absolute -right-2 -top-2 z-10 rounded-lg border border-emerald-500/20 bg-background px-3 py-1.5 shadow-xl sm:-right-4 sm:-top-4 sm:rounded-xl sm:px-4 sm:py-2">
+							<div className="flex items-center gap-1.5 sm:gap-2">
+								<div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 sm:h-2 sm:w-2" />
+								<span className="text-xs font-semibold text-foreground sm:text-sm">Live Event</span>
 							</div>
 						</div>
 
 						{/* Main dashboard card */}
-						<div className="rounded-2xl border border-border bg-card shadow-2xl">
-							<div className="border-b border-border bg-muted/30 px-6 py-4">
+						<div className="rounded-xl border border-border bg-card shadow-2xl sm:rounded-2xl">
+							<div className="border-b border-border bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
 								<div className="flex items-center justify-between">
 									<div>
-										<h3 className="text-sm font-semibold text-muted-foreground">Event Dashboard</h3>
-										<p className="text-xl font-bold text-foreground">Tech Summit 2025</p>
+										<h3 className="text-xs font-semibold text-muted-foreground sm:text-sm">Event Dashboard</h3>
+										<p className="text-base font-bold text-foreground sm:text-xl">Tech Summit 2025</p>
 									</div>
-									<div className="rounded-lg bg-emerald-500/10 px-3 py-1.5">
-										<span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Active</span>
+									<div className="rounded-md bg-emerald-500/10 px-2 py-1 sm:rounded-lg sm:px-3 sm:py-1.5">
+										<span className="text-xs font-bold text-emerald-600 sm:text-sm dark:text-emerald-400">Active</span>
 									</div>
 								</div>
 							</div>
 							
-							<div className="space-y-4 p-6">
+							<div className="space-y-3 p-4 sm:space-y-4 sm:p-6">
 								{/* Stats grid */}
-								<div className="grid grid-cols-2 gap-4">
-									<div className="rounded-lg border border-border bg-muted/30 p-4">
-										<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								<div className="grid grid-cols-2 gap-3 sm:gap-4">
+									<div className="rounded-lg border border-border bg-muted/30 p-3 sm:p-4">
+										<p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
 											Attendees
 										</p>
-										<p className="mt-2 text-2xl font-bold text-foreground">
+										<p className="mt-1.5 text-xl font-bold text-foreground sm:mt-2 sm:text-2xl">
 											1,247
 										</p>
-										<div className="mt-1 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-											<TrendingUp className="h-3 w-3" />
+										<div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-emerald-600 sm:mt-1 sm:text-xs dark:text-emerald-400">
+											<TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
 											<span>+23%</span>
 										</div>
 									</div>
-									<div className="rounded-lg border border-border bg-muted/30 p-4">
-										<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+									<div className="rounded-lg border border-border bg-muted/30 p-3 sm:p-4">
+										<p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
 											Check-in Rate
 										</p>
-										<p className="mt-2 text-2xl font-bold text-foreground">
+										<p className="mt-1.5 text-xl font-bold text-foreground sm:mt-2 sm:text-2xl">
 											94%
 										</p>
-										<p className="mt-1 text-xs font-medium text-muted-foreground">
+										<p className="mt-0.5 text-[10px] font-medium text-muted-foreground sm:mt-1 sm:text-xs">
 											1,172 checked in
 										</p>
 									</div>
 								</div>
 
 								{/* Activity list */}
-								<div className="space-y-2">
-									<div className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
-										<div className="flex items-center gap-3">
-											<div className="h-2 w-2 rounded-full bg-emerald-500" />
-											<div>
-												<p className="text-sm font-medium text-foreground">Booth B-12 Analytics</p>
-												<p className="text-xs text-muted-foreground">High engagement detected</p>
+								<div className="space-y-1.5 sm:space-y-2">
+									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
+										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
+											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500 sm:h-2 sm:w-2" />
+											<div className="min-w-0">
+												<p className="truncate text-xs font-medium text-foreground sm:text-sm">Booth B-12 Analytics</p>
+												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">High engagement detected</p>
 											</div>
 										</div>
-										<span className="text-xs font-medium text-muted-foreground">2m ago</span>
+										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">2m ago</span>
 									</div>
-									<div className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
-										<div className="flex items-center gap-3">
-											<div className="h-2 w-2 rounded-full bg-blue-500" />
-											<div>
-												<p className="text-sm font-medium text-foreground">AI Segment Created</p>
-												<p className="text-xs text-muted-foreground">247 profiles matched</p>
+									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
+										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
+											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500 sm:h-2 sm:w-2" />
+											<div className="min-w-0">
+												<p className="truncate text-xs font-medium text-foreground sm:text-sm">AI Segment Created</p>
+												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">247 profiles matched</p>
 											</div>
 										</div>
-										<span className="text-xs font-medium text-muted-foreground">5m ago</span>
+										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">5m ago</span>
 									</div>
-									<div className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
-										<div className="flex items-center gap-3">
-											<div className="h-2 w-2 rounded-full bg-purple-500" />
-											<div>
-												<p className="text-sm font-medium text-foreground">Badge Printed</p>
-												<p className="text-xs text-muted-foreground">VIP attendee checked in</p>
+									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
+										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
+											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500 sm:h-2 sm:w-2" />
+											<div className="min-w-0">
+												<p className="truncate text-xs font-medium text-foreground sm:text-sm">Badge Printed</p>
+												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">VIP attendee checked in</p>
 											</div>
 										</div>
-										<span className="text-xs font-medium text-muted-foreground">8m ago</span>
+										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">8m ago</span>
 									</div>
 								</div>
 							</div>
