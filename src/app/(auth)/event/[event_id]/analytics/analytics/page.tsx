@@ -1,10 +1,10 @@
 "use client";
 
-import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getEventAnalytics } from "@/lib/api/dashboard";
+import { use } from "react";
 import { AnalyticsCounter } from "@/components/pages/analytics/analytics-counter";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
+import { getEventAnalytics } from "@/lib/api/dashboard";
 
 interface AnalyticsPageProps {
 	params: Promise<{
@@ -31,7 +31,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 	}
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			{/* Stats Cards Section */}
 			<div>
 				<h2 className="mb-4 font-semibold text-lg">Overview</h2>
@@ -66,4 +66,3 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 		</div>
 	);
 }
-

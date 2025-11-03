@@ -35,12 +35,14 @@ export default function DashboardPage() {
 	return (
 		<div className="space-y-0">
 			{/* Header */}
-			<div className="flex flex-row items-center justify-start gap-1 border-b border-dashed px-2 py-4 md:px-4">
-				<IconTitle
-					icon={MdSpaceDashboard}
-					title="Dashboard"
-					description="Monitor your events and track performance"
-				/>
+			<div className="page-header border-b border-dashed">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={MdSpaceDashboard}
+						title="Dashboard"
+						description="Monitor your events and track performance"
+					/>
+				</div>
 			</div>
 
 			{/* Overall Stats - Show skeleton while loading or error state */}

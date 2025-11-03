@@ -21,7 +21,7 @@ export default function TeamPage() {
 	});
 
 	return (
-		<div className="space-y-6 p-2">
+		<div className="space-y-6 p-0">
 			{/* Show loading state, error state, or content */}
 			{isLoading ? (
 				<LoadingState

@@ -96,6 +96,20 @@ export default function AuthLayout({
 				<div className="mx-auto w-full px-12">
 					<div className="w-full border-x border-dashed">{children}</div>
 				</div>
+				<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+						<Separator
+							orientation="vertical"
+							className="data-[orientation=vertical]:h-12"
+						/>
+					</div>
+					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+						<Separator
+							orientation="vertical"
+							className="data-[orientation=vertical]:h-12"
+						/>
+					</div>
+				</footer>
 			</SidebarInset>
 		</SidebarProvider>
 	);

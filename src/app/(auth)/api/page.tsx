@@ -22,7 +22,7 @@ export default function ApiPage() {
 	});
 
 	return (
-		<div className="space-y-6 p-2">
+		<div className="space-y-6 p-0">
 			{/* Show skeleton while loading or error state */}
 			{isLoading ? (
 				<ApiKeysSkeleton />
