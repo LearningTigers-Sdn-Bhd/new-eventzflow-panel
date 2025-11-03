@@ -40,6 +40,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -66,6 +67,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -94,6 +96,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -140,14 +143,27 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 							<ChevronDown className="size-4" />
 						</div>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="bottom">
-						<DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none bg-background"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
 							All Roles
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("event_admin")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("event_admin")}
+						>
 							Admin
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("event_team_member")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("event_team_member")}
+						>
 							Team Member
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -161,7 +177,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 				<Badge
 					variant="outline"
 					className={cn(
-						"min-w-20 font-bold capitalize",
+						"w-full min-w-20 max-w-24 rounded-none font-bold capitalize",
 						role === "event_admin" && "border-purple-500 text-purple-500",
 						role === "event_team_member" && "border-blue-500 text-blue-500",
 					)}
@@ -184,30 +200,45 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 				| undefined;
 			return (
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<div className="flex items-center gap-2">
-							<p className="font-medium">
-								Status
-								{filterStatus && (
-									<Badge
-										variant="secondary"
-										className="ml-2 bg-transparent text-xs capitalize underline"
-									>
-										{filterStatus}
-									</Badge>
-								)}
-							</p>
-							<ChevronDown className="size-4" />
-						</div>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="bottom">
-						<DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+					<div className="flex items-center gap-2">
+						<p className="font-medium">
+							Status
+							{filterStatus && (
+								<Badge
+									variant="secondary"
+									className="ml-2 bg-transparent text-xs capitalize underline"
+								>
+									{filterStatus}
+								</Badge>
+							)}
+						</p>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon" className="rounded-none">
+								<ChevronDown className="size-4" />
+							</Button>
+						</DropdownMenuTrigger>
+					</div>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none bg-background"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
 							All Status
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("active")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("active")}
+						>
 							Active
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("inactive")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("inactive")}
+						>
 							Inactive
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -217,7 +248,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 		cell: ({ row }) => (
 			<Badge
 				className={cn(
-					"min-w-16 font-bold capitalize",
+					"min-w-16 rounded-none font-bold capitalize",
 					row.getValue("status") === "active" && "bg-green-500",
 					row.getValue("status") === "inactive" && "bg-red-500",
 				)}
@@ -237,6 +268,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -273,7 +305,7 @@ const actionsColumn: ColumnDef<EventStaffMember> = {
 
 // Function to get columns based on user role
 export const getEventStaffColumns = (
-	userRole?: "org_owner" | "manager" | "member"
+	userRole?: "org_owner" | "manager" | "member",
 ): ColumnDef<EventStaffMember>[] => {
 	// Only org_owner can see actions column
 	if (userRole === "org_owner") {
@@ -283,4 +315,7 @@ export const getEventStaffColumns = (
 };
 
 // Default export for backward compatibility (with actions column)
-export const columns: ColumnDef<EventStaffMember>[] = [...baseColumns, actionsColumn];
+export const columns: ColumnDef<EventStaffMember>[] = [
+	...baseColumns,
+	actionsColumn,
+];

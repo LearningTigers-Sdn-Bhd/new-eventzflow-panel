@@ -34,14 +34,14 @@ export function EventItem({ event }: EventItemProps) {
 	};
 
 	return (
-		<Item variant="outline" className="h-full w-full">
+		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between">
 					<h3 className="text-balance font-bold text-xl">{event.title}</h3>
 					{isMobile && (
 						<Badge
 							className={cn(
-								"min-w-16 font-bold capitalize",
+								"min-w-16 rounded-none font-bold capitalize",
 								event.status === "published" && "bg-green-500",
 								event.status === "draft" && "bg-yellow-500",
 								event.status === "cancelled" && "bg-red-500",
@@ -55,7 +55,7 @@ export function EventItem({ event }: EventItemProps) {
 					{!isMobile && (
 						<Badge
 							className={cn(
-								"min-w-16 font-bold capitalize",
+								"min-w-16 rounded-none font-bold capitalize",
 								event.status === "published" && "bg-green-500",
 								event.status === "draft" && "bg-yellow-500",
 								event.status === "cancelled" && "bg-red-500",

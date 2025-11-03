@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import type { Table } from "@tanstack/react-table";
-import { ArrowDown, ChevronDown, Search, ScanLine } from "lucide-react";
+import { ArrowDown, ChevronDown, ScanLine, Search } from "lucide-react";
+import { useState } from "react";
+import { QuerySearchField } from "@/components/query-search-field";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -23,9 +24,9 @@ interface DataControlProps<TData> {
 	canScanTickets?: boolean;
 }
 
-export function DataControl<TData>({ 
-	table, 
-	eventId, 
+export function DataControl<TData>({
+	table,
+	eventId,
 	onRefetch,
 	canScanTickets = false,
 }: DataControlProps<TData>) {
@@ -47,7 +48,7 @@ export function DataControl<TData>({
 	};
 
 	return (
-		<>
+		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
 			{/* Scan Modal */}
 			<ScanModal
 				open={scanModalOpen}
@@ -58,18 +59,15 @@ export function DataControl<TData>({
 
 			{/* Desktop Control Panel */}
 			{!_isTablet ? (
-				<div className="hidden items-center gap-2 py-4 lg:flex">
-					<div className="relative flex-1">
-						<Search className="-translate-y-1/2 absolute top-1/2 left-2 h-4 w-4 text-muted-foreground" />
-						<Input
-							placeholder="Search scanned logs..."
-							className="pl-8"
-							onChange={(e) => handleSearch(e.target.value)}
-						/>
-					</div>
+				<div className="hidden items-center gap-2 lg:flex">
+					<QuerySearchField
+						table={table}
+						columns={["name", "locationName", "status", "checkedInAt"]}
+						placeholder="Search scanned logs..."
+					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline">
+							<Button variant="outline" className="rounded-none">
 								{/* Number of columns visible */}
 								{table.getAllColumns().filter((column) => column.getIsVisible())
 									.length - 1}{" "}
@@ -77,7 +75,10 @@ export function DataControl<TData>({
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -85,7 +86,7 @@ export function DataControl<TData>({
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
-											className="capitalize"
+											className="rounded-none capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
@@ -101,7 +102,7 @@ export function DataControl<TData>({
 						<Button
 							onClick={() => setScanModalOpen(true)}
 							variant="default"
-							className="gap-2"
+							className="gap-2 rounded-none"
 						>
 							<ScanLine className="h-4 w-4" />
 							Scan
@@ -110,7 +111,7 @@ export function DataControl<TData>({
 				</div>
 			) : (
 				/* Mobile Control Panel */
-				<div className="flex flex-col gap-2 py-4 lg:hidden">
+				<div className="flex flex-col gap-2 lg:hidden">
 					<div className="flex gap-2">
 						<div className="relative flex-1">
 							<Search className="-translate-y-1/2 absolute top-1/2 left-2 h-4 w-4 text-muted-foreground" />
@@ -124,7 +125,7 @@ export function DataControl<TData>({
 							<Button
 								onClick={() => setScanModalOpen(true)}
 								variant="default"
-								className="gap-2"
+								className="gap-2 rounded-none"
 							>
 								<ScanLine className="h-4 w-4" />
 								<span className="hidden sm:inline">Scan</span>
@@ -141,7 +142,7 @@ export function DataControl<TData>({
 										table.getColumn("name")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Name
 							<ArrowDown
@@ -161,7 +162,7 @@ export function DataControl<TData>({
 										table.getColumn("locationName")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Location
 							<ArrowDown
@@ -181,7 +182,7 @@ export function DataControl<TData>({
 										table.getColumn("status")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Status
 							<ArrowDown
@@ -201,7 +202,7 @@ export function DataControl<TData>({
 										table.getColumn("checkedInAt")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Checked In
 							<ArrowDown
@@ -215,6 +216,6 @@ export function DataControl<TData>({
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }

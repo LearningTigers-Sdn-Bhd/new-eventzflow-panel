@@ -34,8 +34,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["title", "id"]}
-						placeholder="Search events..."
+						columns={["full_name", "email", "phone"]}
+						placeholder="Search event staff..."
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -74,24 +74,24 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 			) : (
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField table={table} placeholder="Search events..." />
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+					<QuerySearchField table={table} placeholder="Search event staff..." />
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("id")
+									.getColumn("full_name")
 									?.toggleSorting(
-										table.getColumn("id")?.getIsSorted() === "asc",
+										table.getColumn("full_name")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-xs"
 						>
-							ID
+							Name
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("id")?.getIsSorted() === "asc" &&
+									table.getColumn("full_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
@@ -100,38 +100,18 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("title")
+									.getColumn("email")
 									?.toggleSorting(
-										table.getColumn("title")?.getIsSorted() === "asc",
+										table.getColumn("email")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-xs"
 						>
-							Title
+							Email
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("title")?.getIsSorted() === "asc" &&
-										"-rotate-180",
-								)}
-							/>
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() =>
-								table
-									.getColumn("created_at")
-									?.toggleSorting(
-										table.getColumn("created_at")?.getIsSorted() === "asc",
-									)
-							}
-							className="flex items-center justify-between rounded-none text-xs"
-						>
-							Created At
-							<ArrowDown
-								className={cn(
-									"size-3.5 transition-transform",
-									table.getColumn("created_at")?.getIsSorted() === "asc" &&
+									table.getColumn("email")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
@@ -146,21 +126,18 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 									?.setFilterValue(value === "all" ? undefined : value)
 							}
 						>
-							<SelectTrigger className="w-full rounded-none font-medium text-xs">
+							<SelectTrigger className="col-span-2 w-full rounded-none bg-background font-medium text-xs sm:col-span-1">
 								<SelectValue placeholder="All Statuses" />
 							</SelectTrigger>
 							<SelectContent className="rounded-none">
 								<SelectItem value="all" className="rounded-none">
 									All Statuses
 								</SelectItem>
-								<SelectItem value="draft" className="rounded-none">
-									Draft
+								<SelectItem value="active" className="rounded-none">
+									Active
 								</SelectItem>
-								<SelectItem value="published" className="rounded-none">
-									Published
-								</SelectItem>
-								<SelectItem value="cancelled" className="rounded-none">
-									Cancelled
+								<SelectItem value="inactive" className="rounded-none">
+									Inactive
 								</SelectItem>
 							</SelectContent>
 						</Select>

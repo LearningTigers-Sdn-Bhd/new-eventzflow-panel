@@ -46,6 +46,7 @@ const baseColumns: ColumnDef<Event>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
 					>
 						<ArrowDown
 							className={cn(
@@ -68,7 +69,7 @@ const baseColumns: ColumnDef<Event>[] = [
 					<Button
 						variant="ghost"
 						size="icon"
-						className="hover:border"
+						className="rounded-none hover:border"
 						onClick={() => copyToClipboard(row.getValue("id"))}
 					>
 						<Copy className="size-4" />
@@ -157,7 +158,7 @@ const baseColumns: ColumnDef<Event>[] = [
 		cell: ({ row }) => (
 			<Badge
 				className={cn(
-					"min-w-16 font-bold capitalize",
+					"w-full min-w-16 max-w-24 rounded-none font-bold capitalize",
 					row.getValue("status") === "published" && "bg-green-500",
 					row.getValue("status") === "draft" && "bg-yellow-500",
 					row.getValue("status") === "cancelled" && "bg-red-500",
@@ -178,6 +179,7 @@ const baseColumns: ColumnDef<Event>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
 					>
 						<ArrowDown
 							className={cn(
@@ -247,7 +249,7 @@ const visibilityColumn: ColumnDef<Event> = {
 		return (
 			<Badge
 				className={cn(
-					"font-semibold",
+					"w-full max-w-12 rounded-none font-semibold",
 					visibility
 						? "bg-green-500 hover:bg-green-600"
 						: "bg-gray-500 hover:bg-gray-600",

@@ -3,8 +3,8 @@
 import { UserPlus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useDialog } from "@/hooks/use-dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialog } from "@/hooks/use-dialog";
 import AssignStaffForm from "../assign-staff-form";
 
 export function EventStaffPageButton() {
@@ -35,7 +35,10 @@ export function EventStaffPageButton() {
 
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
-			<Button onClick={handleAssignStaff} className="w-full lg:w-auto">
+			<Button
+				onClick={handleAssignStaff}
+				className="w-full rounded-none lg:w-auto"
+			>
 				<UserPlus className="mr-2 h-4 w-4" />
 				Assign Staff
 			</Button>

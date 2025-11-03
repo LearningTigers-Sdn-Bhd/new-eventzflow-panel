@@ -33,6 +33,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
 					>
 						<ArrowDown
 							className={cn(
@@ -55,7 +56,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 					<Button
 						variant="ghost"
 						size="icon"
-						className="hover:border"
+						className="rounded-none hover:border"
 						onClick={() => copyToClipboard(row.getValue("id"))}
 					>
 						<Copy className="size-4" />
@@ -75,6 +76,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
 					>
 						<ArrowDown
 							className={cn(
@@ -102,6 +104,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
 					>
 						<ArrowDown
 							className={cn(
@@ -129,6 +132,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 								config: { title: "View Assigned Members", size: "lg" },
 							})
 						}
+						className="rounded-none hover:border"
 					>
 						<Eye className="size-4" />
 					</Button>

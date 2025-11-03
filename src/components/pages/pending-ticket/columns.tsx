@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PendingTicketActionsMenu } from "./action-menu";
 import {
-	formatTicketPrice,
 	getPaymentStatusColor,
 	getPaymentStatusText,
 	type PaymentStatusString,
@@ -48,6 +47,7 @@ function SortableHeader({
 				variant="ghost"
 				size="icon"
 				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				className="rounded-none"
 			>
 				<ArrowDown
 					className={cn(
@@ -111,10 +111,12 @@ export const columns: ColumnDef<PendingTicket>[] = [
 		cell: ({ row }) => {
 			const email = row.getValue("email") as string | null;
 			return (
-				<div className={cn(
-					"truncate font-medium",
-					!email && "text-muted-foreground italic"
-				)}>
+				<div
+					className={cn(
+						"truncate font-medium",
+						!email && "text-muted-foreground italic",
+					)}
+				>
 					{email || "Not provided"}
 				</div>
 			);
@@ -154,7 +156,7 @@ export const columns: ColumnDef<PendingTicket>[] = [
 							variant="ghost"
 							size="icon"
 							onClick={() => showPaymentInfoToast(ticket)}
-							className="h-6 w-6"
+							className="h-6 w-6 rounded-none"
 						>
 							<FileDigit className="h-3 w-3" />
 						</Button>
@@ -162,7 +164,7 @@ export const columns: ColumnDef<PendingTicket>[] = [
 					<div className="flex w-full items-center justify-start gap-2">
 						<Badge
 							variant="secondary"
-							className={getPaymentStatusColor(status)}
+							className={cn("rounded-none", getPaymentStatusColor(status))}
 						>
 							{getPaymentStatusText(status)}
 						</Badge>
@@ -180,7 +182,7 @@ export const columns: ColumnDef<PendingTicket>[] = [
 		header: "Transaction ID",
 		cell: ({ row }) => {
 			const tx = (row.getValue("transactionId") as string) || "-";
-			return <div className="truncate font-medium">{tx}</div>;
+			return <div className="truncate rounded-none font-medium">{tx}</div>;
 		},
 	},
 	{

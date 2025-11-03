@@ -16,10 +16,10 @@ export function LocationPageButton() {
 
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
-			<Button 
-				variant="outline" 
+			<Button
+				variant="outline"
 				onClick={openLocationCreate}
-				className="w-full lg:w-auto"
+				className="w-full rounded-none lg:w-auto"
 			>
 				<Pencil className="h-4 w-4" />
 				Create Location

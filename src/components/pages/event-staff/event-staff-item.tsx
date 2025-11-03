@@ -1,6 +1,13 @@
 "use client";
 
-import { Mail, MessageSquare, Shield, Users as UsersIcon } from "lucide-react";
+import {
+	Calendar,
+	ExternalLink,
+	Mail,
+	MessageSquare,
+	Shield,
+	UsersIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,69 +45,76 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 		member.eventRole === "event_admin" ? "Admin" : "Team Member";
 
 	return (
-		<Item variant="outline" className="w-full">
-			<ItemContent className="flex-1">
+		<Item variant="outline" className="w-full rounded-none">
+			<ItemContent className="flex flex-col gap-3">
 				<ItemTitle className="flex items-center justify-between">
-					<span className="flex items-center gap-2">
-						<span className="font-medium">{member.full_name}</span>
-						<Badge
-							variant="outline"
-							className={cn(
-								"min-w-20 font-bold capitalize",
-								member.eventRole === "event_admin" &&
-									"border-purple-500 text-purple-500",
-								member.eventRole === "event_team_member" &&
-									"border-blue-500 text-blue-500",
-							)}
-						>
-							{member.eventRole === "event_admin" ? (
-								<Shield className="mr-1 h-3 w-3" />
-							) : (
-								<UsersIcon className="mr-1 h-3 w-3" />
-							)}
-							{eventRoleLabel}
-						</Badge>
-						<Badge
-							className={cn(
-								"min-w-16 font-bold capitalize",
-								member.status === "active" && "bg-green-500",
-								member.status === "inactive" && "bg-red-500",
-							)}
-						>
-							{member.status}
-						</Badge>
-					</span>
+					<span className="font-bold">{member.full_name}</span>
 				</ItemTitle>
-				<div className="flex flex-col gap-1 text-muted-foreground text-sm">
-					<span className="flex items-center gap-2">
-						<Mail className="h-3 w-3" />
-						<span className="text-xs">{member.email}</span>
+				<div className="flex items-center gap-2">
+					<Badge
+						variant="outline"
+						className={cn(
+							"w-full max-w-36 rounded-none font-bold capitalize",
+							member.eventRole === "event_admin" &&
+								"border-purple-500 text-purple-500",
+							member.eventRole === "event_team_member" &&
+								"border-blue-500 text-blue-500",
+						)}
+					>
+						{member.eventRole === "event_admin" ? (
+							<Shield className="mr-1 h-3 w-3" />
+						) : (
+							<UsersIcon className="mr-1 h-3 w-3" />
+						)}
+						{eventRoleLabel}
+					</Badge>
+					<Badge
+						className={cn(
+							"w-full max-w-28 rounded-none font-bold capitalize",
+							member.status === "active" && "bg-green-500",
+							member.status === "inactive" && "bg-red-500",
+						)}
+					>
+						{member.status}
+					</Badge>
+				</div>
+				<div className="flex w-full flex-col text-muted-foreground text-sm">
+					<div className="group flex w-full items-center gap-0.5">
+						<Mail className="size-4" />
 						<Button
 							variant="ghost"
-							size="icon"
-							className="h-5 w-5"
+							size="sm"
+							className="rounded-none hover:bg-transparent"
 							onClick={handleEmailClick}
 						>
-							<Mail className="size-3" />
+							<span className="text-sm group-hover:underline">
+								{member.email}
+							</span>
+							<ExternalLink className="size-3" />
 						</Button>
-					</span>
+					</div>
 					{member.phone && (
-						<span className="flex items-center gap-2">
-							<MessageSquare className="h-3 w-3" />
-							<span className="text-xs">{member.phone}</span>
+						<div className="group flex w-full items-center gap-0.5">
+							<MessageSquare className="size-4" />
 							<Button
 								variant="ghost"
-								size="icon"
-								className="h-5 w-5"
+								size="sm"
+								className="rounded-none hover:bg-transparent"
 								onClick={handleWhatsAppClick}
 							>
-								<MessageSquare className="size-3" />
+								<span className="text-sm group-hover:underline">
+									{member.phone}
+								</span>
+								<ExternalLink className="size-3" />
 							</Button>
-						</span>
+						</div>
 					)}
-					<span className="text-xs">
-						Assigned on {formatDate(member.createdAt)}
-					</span>
+					<div className="flex w-full items-center gap-0.5">
+						<Calendar className="size-4" />
+						<span className="px-2.5 text-sm">
+							Assigned on {formatDate(member.createdAt)}
+						</span>
+					</div>
 				</div>
 			</ItemContent>
 			<ItemActions>

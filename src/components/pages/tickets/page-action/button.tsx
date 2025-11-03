@@ -19,7 +19,11 @@ export function TicketPageButton() {
 
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
-			<Button variant="outline" onClick={openTicketCreate} className="w-full lg:w-auto">
+			<Button
+				variant="outline"
+				onClick={openTicketCreate}
+				className="w-full rounded-none lg:w-auto"
+			>
 				<Plus className="h-4 w-4" />
 				Create Ticket
 			</Button>

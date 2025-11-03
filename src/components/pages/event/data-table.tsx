@@ -123,138 +123,146 @@ export function DataTable<TData, TValue>({
 			{/* Control Panel */}
 			<DataControl table={table} />
 
-			{/* Data Table */}
-			{!_isMobile && !isTablet ? (
-				<div className="overflow-x-auto rounded-md border">
-					<Table className="w-full">
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										const columnId = header.column.id;
-										let widthClass = "";
-										
-										// Set width classes based on column ID
-										if (columnId === "id") widthClass = "w-[140px]";
-										else if (columnId === "title") widthClass = "w-auto min-w-[300px]";
-										else if (columnId === "status") widthClass = "w-[160px]";
-										else if (columnId === "created_at") widthClass = "w-[140px]";
-										else if (columnId === "actions") widthClass = "w-[160px]";
-										
-										return (
-											<TableHead
-												key={header.id}
-												className={cn(
-													widthClass,
-													header.index === 0 && "ps-3"
-												)}
-											>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
-														)}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-									>
-										{row.getVisibleCells().map((cell) => {
-											const columnId = cell.column.id;
+			<div className="min-h-[65vh]">
+				{/* Data Table */}
+				{!_isMobile && !isTablet ? (
+					<div className="overflow-x-auto rounded-none border">
+						<Table className="w-full">
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => {
+											const columnId = header.column.id;
 											let widthClass = "";
-											
+
 											// Set width classes based on column ID
 											if (columnId === "id") widthClass = "w-[140px]";
-											else if (columnId === "title") widthClass = "w-auto min-w-[300px]";
+											else if (columnId === "title")
+												widthClass = "w-auto min-w-[300px]";
 											else if (columnId === "status") widthClass = "w-[160px]";
-											else if (columnId === "visibility") widthClass = "w-[120px]";
-											else if (columnId === "created_at") widthClass = "w-[140px]";
+											else if (columnId === "created_at")
+												widthClass = "w-[140px]";
 											else if (columnId === "actions") widthClass = "w-[160px]";
-											
+
 											return (
-												<TableCell
-													key={cell.id}
+												<TableHead
+													key={header.id}
 													className={cn(
 														widthClass,
-														table.getVisibleLeafColumns()[0]?.id ===
-															cell.column.id && "ps-4",
+														header.index === 0 && "ps-3",
 													)}
 												>
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext(),
-													)}
-												</TableCell>
+													{header.isPlaceholder
+														? null
+														: flexRender(
+																header.column.columnDef.header,
+																header.getContext(),
+															)}
+												</TableHead>
 											);
 										})}
 									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center"
-									>
-										<EmptyState
-											title={emptyStateProps.title}
-											description={emptyStateProps.description}
-											icon={<Calendar />}
-											height="h-auto"
-											action={emptyStateProps.action}
-										/>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			) : isTablet && !_isMobile ? (
-				<div className="grid grid-cols-2 gap-4">
-					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<div key={row.id} className="col-span-1">
-								<EventItem event={row.original as Event} />
-							</div>
-						))
-					) : (
-						<EmptyState
-							title={emptyStateProps.title}
-							description={emptyStateProps.description}
-							icon={<Calendar />}
-							height="h-auto"
-							action={emptyStateProps.action}
-						/>
-					)}
-				</div>
-			) : (
-				<div className="space-y-2">
-					{table.getRowModel().rows?.length ? (
-						table
-							.getRowModel()
-							.rows.map((row) => (
-								<EventItem key={row.id} event={row.original as Event} />
-							))
-					) : (
-						<EmptyState
-							title={emptyStateProps.title}
-							description={emptyStateProps.description}
-							icon={<Calendar />}
-							height="h-auto"
-							action={emptyStateProps.action}
-						/>
-					)}
-				</div>
-			)}
+								))}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow
+											key={row.id}
+											data-state={row.getIsSelected() && "selected"}
+										>
+											{row.getVisibleCells().map((cell) => {
+												const columnId = cell.column.id;
+												let widthClass = "";
 
+												// Set width classes based on column ID
+												if (columnId === "id") widthClass = "w-[140px]";
+												else if (columnId === "title")
+													widthClass = "w-auto min-w-[300px]";
+												else if (columnId === "status")
+													widthClass = "w-[160px]";
+												else if (columnId === "visibility")
+													widthClass = "w-[120px]";
+												else if (columnId === "created_at")
+													widthClass = "w-[140px]";
+												else if (columnId === "actions")
+													widthClass = "w-[160px]";
+
+												return (
+													<TableCell
+														key={cell.id}
+														className={cn(
+															widthClass,
+															table.getVisibleLeafColumns()[0]?.id ===
+																cell.column.id && "ps-4",
+														)}
+													>
+														{flexRender(
+															cell.column.columnDef.cell,
+															cell.getContext(),
+														)}
+													</TableCell>
+												);
+											})}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell
+											colSpan={columns.length}
+											className="h-24 text-center"
+										>
+											<EmptyState
+												title={emptyStateProps.title}
+												description={emptyStateProps.description}
+												icon={<Calendar />}
+												height="h-auto"
+												action={emptyStateProps.action}
+											/>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				) : isTablet && !_isMobile ? (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<EventItem event={row.original as Event} />
+								</div>
+							))
+						) : (
+							<EmptyState
+								title={emptyStateProps.title}
+								description={emptyStateProps.description}
+								icon={<Calendar />}
+								height="h-auto"
+								action={emptyStateProps.action}
+							/>
+						)}
+					</div>
+				) : (
+					<div className="space-y-2">
+						{table.getRowModel().rows?.length ? (
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<EventItem key={row.id} event={row.original as Event} />
+								))
+						) : (
+							<EmptyState
+								title={emptyStateProps.title}
+								description={emptyStateProps.description}
+								icon={<Calendar />}
+								height="h-auto"
+								action={emptyStateProps.action}
+							/>
+						)}
+					</div>
+				)}
+			</div>
 			<DataPagination table={table} />
 		</div>
 	);

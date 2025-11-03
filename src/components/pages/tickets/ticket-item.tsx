@@ -11,6 +11,7 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
+import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./action-menu";
 import type { BaseTicket } from "./columns";
 
@@ -22,17 +23,18 @@ export function TicketItem({ ticket }: TicketItemProps) {
 	const date = new Date(ticket.createdAt);
 
 	return (
-		<Item variant="outline" className="h-full w-full">
+		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between">
 					<h3 className="truncate font-bold text-xl">{ticket.name}</h3>
 					<Badge
 						variant={ticket.status === "scanned" ? "default" : "secondary"}
-						className={
+						className={cn(
+							"rounded-none",
 							ticket.status === "scanned"
 								? "bg-green-100 text-green-800 hover:bg-green-100"
-								: "bg-gray-100 text-gray-800 hover:bg-gray-100"
-						}
+								: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+						)}
 					>
 						{ticket.status === "scanned" ? "Scanned" : "Not Scanned"}
 					</Badge>
@@ -52,7 +54,11 @@ export function TicketItem({ ticket }: TicketItemProps) {
 				<div className="flex w-full items-center justify-start gap-2">
 					<HiCash className="-ml-0.5 size-5 text-muted-foreground" />
 					<span className="truncate font-medium text-sm">
-						RM{(typeof ticket.value === "number" ? ticket.value : parseFloat(ticket.value as string) || 0).toFixed(2)}
+						RM
+						{(typeof ticket.value === "number"
+							? ticket.value
+							: Number.parseFloat(ticket.value as string) || 0
+						).toFixed(2)}
 						{ticket.ticketTypeName && (
 							<span className="ml-2 text-muted-foreground">
 								({ticket.ticketTypeName})

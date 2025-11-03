@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./action-menu";
 
-function formatTicketPrice(value: number | string): string {
-	const price = typeof value === "number" ? value : parseFloat(value as string) || 0;
+function _formatTicketPrice(value: number | string): string {
+	const price =
+		typeof value === "number" ? value : Number.parseFloat(value as string) || 0;
 	return `RM${price.toFixed(2)}`;
 }
 
@@ -40,6 +41,7 @@ export const columns: ColumnDef<BaseTicket>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -71,6 +73,7 @@ export const columns: ColumnDef<BaseTicket>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -85,10 +88,12 @@ export const columns: ColumnDef<BaseTicket>[] = [
 		cell: ({ row }) => {
 			const email = row.getValue("email") as string | null;
 			return (
-				<div className={cn(
-					"font-medium",
-					!email && "text-muted-foreground italic"
-				)}>
+				<div
+					className={cn(
+						"font-medium",
+						!email && "text-muted-foreground italic",
+					)}
+				>
 					{email || "Not provided"}
 				</div>
 			);
@@ -124,6 +129,7 @@ export const columns: ColumnDef<BaseTicket>[] = [
 						status === "scanned"
 							? "bg-green-100 text-green-800 hover:bg-green-100"
 							: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+						"rounded-none",
 					)}
 				>
 					{status === "scanned" ? "Scanned" : "Not Scanned"}
@@ -145,6 +151,7 @@ export const columns: ColumnDef<BaseTicket>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(

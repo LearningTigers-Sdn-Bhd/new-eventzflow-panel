@@ -12,10 +12,14 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
-import { Button } from "../../ui/button";
+import { cn } from "@/lib/utils";
 import { PendingTicketActionsMenu } from "./action-menu";
 import type { PendingTicket } from "./columns";
-import { formatTicketPrice, getPaymentStatusColor, getPaymentStatusText } from "./constants";
+import {
+	formatTicketPrice,
+	getPaymentStatusColor,
+	getPaymentStatusText,
+} from "./constants";
 
 interface PendingTicketItemProps {
 	ticket: PendingTicket;
@@ -28,7 +32,7 @@ export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
 	const date = new Date(ticket.createdAt);
 
 	return (
-		<Item variant="outline" className="w-full">
+		<Item variant="outline" className="w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between">
 					<div className="flex flex-col justify-start gap-2">
@@ -38,7 +42,10 @@ export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
 				<ItemDescription className="flex w-full flex-col justify-start gap-2">
 					<Badge
 						variant="secondary"
-						className={getPaymentStatusColor(ticket.paymentStatus)}
+						className={cn(
+							"rounded-none",
+							getPaymentStatusColor(ticket.paymentStatus),
+						)}
 					>
 						{getPaymentStatusText(ticket.paymentStatus)}
 					</Badge>
@@ -48,7 +55,7 @@ export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
 				<div className="flex w-full items-center justify-start gap-2">
 					<FileDigit className="size-4 text-muted-foreground" />
 					<span className="truncate font-medium text-sm">
-						{ticket.transactionId}
+						{ticket.transactionId || "No transaction ID"}
 					</span>
 				</div>
 				<div className="flex w-full items-center justify-start gap-2">

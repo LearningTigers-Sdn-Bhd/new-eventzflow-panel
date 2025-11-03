@@ -32,7 +32,7 @@ export function LocationItem({ location }: LocationItemProps) {
 	const assignedCount = location.assignedMembers.length;
 
 	return (
-		<Item variant="outline" className="h-full w-full">
+		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				{!isMobile ? (
 					<ItemTitle className="min-h-12 w-full justify-between">
@@ -47,13 +47,13 @@ export function LocationItem({ location }: LocationItemProps) {
 					</ItemTitle>
 				)}
 				<ItemDescription className="flex w-full justify-start gap-2">
-					<span className="bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
+					<span className="rounded-none bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
 						ID: {location.id}
 					</span>
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-6 w-6 hover:border"
+						className="h-6 w-6 rounded-none hover:border"
 						onClick={handleCopyId}
 					>
 						<Copy className="size-3" />
@@ -70,7 +70,10 @@ export function LocationItem({ location }: LocationItemProps) {
 				<div className="flex items-center gap-2">
 					<Scan className="size-4 text-muted-foreground" />
 					<h4 className="text-muted-foreground text-sm">
-						Scan limit: {('isUnlimited' in location && (location as any).isUnlimited) ? "Unlimited" : (location.scanLimit ?? "N/A")}
+						Scan limit:{" "}
+						{"isUnlimited" in location && (location as any).isUnlimited
+							? "Unlimited"
+							: (location.scanLimit ?? "N/A")}
 					</h4>
 				</div>
 			</ItemContent>

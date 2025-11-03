@@ -106,6 +106,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -132,6 +133,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -173,6 +175,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -204,6 +207,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -255,7 +259,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 					<Button
 						variant="outline"
 						size="icon-sm"
-						className="text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
+						className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 						onClick={openViewModal}
 						title="Download Export"
 					>

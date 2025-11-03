@@ -89,128 +89,129 @@ export function DataTable<TData, TValue>({
 			{/* Control Panel */}
 			<DataControl table={table} />
 
-			{/* Data Table */}
-			{!_isMobile && !isTablet ? (
-				<div className="overflow-x-auto rounded-md border">
-					<Table className="w-full min-w-[1140px] table-fixed">
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead
-												key={header.id}
-												style={{ width: `${header.getSize()}px` }}
-												className={cn(header.index === 0 && "ps-3")}
-											>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
-														)}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell
-												key={cell.id}
-												style={{ width: `${cell.column.getSize()}px` }}
-												className={cn(
-													table.getVisibleLeafColumns()[0]?.id ===
-														cell.column.id && "ps-4",
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
+			<div className="min-h-[45vh]">
+				{/* Data Table */}
+				{!_isMobile && !isTablet ? (
+					<div className="overflow-x-auto rounded-none border">
+						<Table className="w-full">
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => {
+											return (
+												<TableHead
+													key={header.id}
+													style={{ width: `${header.getSize()}px` }}
+													className={cn(header.index === 0 && "ps-3")}
+												>
+													{header.isPlaceholder
+														? null
+														: flexRender(
+																header.column.columnDef.header,
+																header.getContext(),
+															)}
+												</TableHead>
+											);
+										})}
 									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center"
-									>
-										<EmptyState
-											title="No pending tickets found"
-											description="Create your first pending ticket to get started"
-											icon={<Calendar />}
-											height="h-auto"
-											action={
-												<Button onClick={openPendingTicketCreate}>
-													Create Pending Ticket
-												</Button>
-											}
-										/>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			) : isTablet && !_isMobile ? (
-				<div className="grid grid-cols-2 gap-4">
-					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<div key={row.id} className="col-span-1">
-								<PendingTicketItem ticket={row.original as PendingTicket} />
-							</div>
-						))
-					) : (
-						<EmptyState
-							title="No pending tickets found"
-							description="Create your first pending ticket to get started"
-							icon={<Calendar />}
-							height="h-auto"
-							action={
-								<Button onClick={openPendingTicketCreate}>
-									Create Pending Ticket
-								</Button>
-							}
-						/>
-					)}
-				</div>
-			) : (
-				<div className="space-y-2">
-					{table.getRowModel().rows?.length ? (
-						table
-							.getRowModel()
-							.rows.map((row) => (
-								<PendingTicketItem
-									key={row.id}
-									ticket={row.original as PendingTicket}
-								/>
+								))}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow
+											key={row.id}
+											data-state={row.getIsSelected() && "selected"}
+										>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell
+													key={cell.id}
+													style={{ width: `${cell.column.getSize()}px` }}
+													className={cn(
+														table.getVisibleLeafColumns()[0]?.id ===
+															cell.column.id && "ps-4",
+													)}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</TableCell>
+											))}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell
+											colSpan={columns.length}
+											className="h-24 text-center"
+										>
+											<EmptyState
+												title="No pending tickets found"
+												description="Create your first pending ticket to get started"
+												icon={<Calendar />}
+												height="h-auto"
+												action={
+													<Button onClick={openPendingTicketCreate}>
+														Create Pending Ticket
+													</Button>
+												}
+											/>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				) : isTablet && !_isMobile ? (
+					<div className="grid grid-cols-2 gap-2">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<PendingTicketItem ticket={row.original as PendingTicket} />
+								</div>
 							))
-					) : (
-						<EmptyState
-							title="No pending tickets found"
-							description="Create your first pending ticket to get started"
-							icon={<Calendar />}
-							height="h-auto"
-							action={
-								<Button onClick={openPendingTicketCreate}>
-									Create Pending Ticket
-								</Button>
-							}
-						/>
-					)}
-				</div>
-			)}
-
+						) : (
+							<EmptyState
+								title="No pending tickets found"
+								description="Create your first pending ticket to get started"
+								icon={<Calendar />}
+								height="h-auto"
+								action={
+									<Button onClick={openPendingTicketCreate}>
+										Create Pending Ticket
+									</Button>
+								}
+							/>
+						)}
+					</div>
+				) : (
+					<div className="space-y-2">
+						{table.getRowModel().rows?.length ? (
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<PendingTicketItem
+										key={row.id}
+										ticket={row.original as PendingTicket}
+									/>
+								))
+						) : (
+							<EmptyState
+								title="No pending tickets found"
+								description="Create your first pending ticket to get started"
+								icon={<Calendar />}
+								height="h-auto"
+								action={
+									<Button onClick={openPendingTicketCreate}>
+										Create Pending Ticket
+									</Button>
+								}
+							/>
+						)}
+					</div>
+				)}
+			</div>
 			<DataPagination table={table} />
 		</div>
 	);
