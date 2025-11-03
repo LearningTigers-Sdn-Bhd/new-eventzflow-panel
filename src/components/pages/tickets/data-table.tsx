@@ -13,7 +13,7 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
@@ -51,13 +51,6 @@ export function DataTable<TData, TValue>({ data }: DataTableProps<TData, TValue>
 		[],
 	);
 
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({
-			phone: false, // Hide phone column as it's only used for search
-		});
-	
-	const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
-
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
@@ -68,17 +61,42 @@ export function DataTable<TData, TValue>({ data }: DataTableProps<TData, TValue>
 		[eventData?.labels_data],
 	);
 
-	const columns = React.useMemo(
-		() => generateColumns() as ColumnDef<TData, TValue>[],
-		[],
-	);
+	// Generate initial visibility state for custom columns
+	// Show first 3 labels by default, hide the rest if there are more than 3
+	const initialVisibility = React.useMemo(() => {
+		const visibility: VisibilityState = {
+			phone: false, // Hide phone column as it's only used for search
+		};
+		
+		if (eventData?.labels_data) {
+			const labelKeys = Object.keys(eventData.labels_data);
+			const totalLabels = labelKeys.length;
+			
+			labelKeys.forEach((key, index) => {
+				// Show first 3 labels, hide the rest if there are more than 3
+				if (totalLabels <= 3) {
+					visibility[`custom_${key}`] = true; // Show all if 3 or fewer
+				} else {
+					visibility[`custom_${key}`] = index < 3; // Show first 3, hide rest
+				}
+			});
+		}
+		
+		return visibility;
+	}, [eventData?.labels_data]);
 
-	const toggleRowExpansion = (rowId: string) => {
-		setExpandedRows(prev => ({
-			...prev,
-			[rowId]: !prev[rowId]
-		}));
-	};
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>(initialVisibility);
+
+	// Update visibility when labels data changes
+	React.useEffect(() => {
+		setColumnVisibility(initialVisibility);
+	}, [initialVisibility]);
+
+	const columns = React.useMemo(
+		() => generateColumns(eventData?.labels_data) as ColumnDef<TData, TValue>[],
+		[eventData?.labels_data],
+	);
 
 	const table = useReactTable({
 		data,
@@ -108,15 +126,12 @@ export function DataTable<TData, TValue>({ data }: DataTableProps<TData, TValue>
 							{table.getHeaderGroups().map((headerGroup) => {
 								return (
 								<TableRow key={headerGroup.id}>
-										{hasCustomLabels && (
-											<TableHead className="w-12 ps-3"></TableHead>
-										)}
 									{headerGroup.headers.map((header) => {
 										return (
 											<TableHead
 												key={header.id}
 												style={{ width: `${header.getSize()}px` }}
-													className={cn(!hasCustomLabels && header.index === 0 && "ps-3")}
+												className={cn(header.index === 0 && "ps-3")}
 											>
 												{header.isPlaceholder
 													? null
@@ -134,95 +149,23 @@ export function DataTable<TData, TValue>({ data }: DataTableProps<TData, TValue>
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => {
-									const isExpanded = expandedRows[row.id];
-									const ticket = row.original as BaseTicket;
-
 									return (
-										<React.Fragment key={row.id}>
-											<TableRow data-state={row.getIsSelected() && "selected"}>
-												{hasCustomLabels && (
-													<TableCell className="w-12 ps-4">
-														<Button
-															variant="ghost"
-															size="sm"
-															onClick={() => toggleRowExpansion(row.id)}
-															className="h-8 w-8 p-0"
-														>
-															{isExpanded ? (
-																<ChevronDown className="h-4 w-4" />
-															) : (
-																<ChevronRight className="h-4 w-4" />
-															)}
-														</Button>
-													</TableCell>
-												)}
-												{row.getVisibleCells().map((cell, index) => (
-											<TableCell
-												key={cell.id}
-												style={{ width: `${cell.column.getSize()}px` }}
-												className={cn(
-															!hasCustomLabels &&
-													table.getVisibleLeafColumns()[0]?.id ===
-																	cell.column.id &&
-																"ps-4",
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
-									</TableRow>
-											{isExpanded && hasCustomLabels && (
-												<TableRow>
-													<TableCell
-														colSpan={
-															row.getVisibleCells().length + (hasCustomLabels ? 1 : 0)
-														}
-														className="border-t bg-gradient-to-br from-muted/30 to-muted/50 p-0"
-													>
-														<div className="px-6 py-4">
-															<div className="mb-3 border-b pb-2">
-																<h4 className="font-semibold text-sm text-foreground">
-																	Additional Information
-																</h4>
-															</div>
-															<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-																{eventData?.labels_data &&
-																	Object.entries(eventData.labels_data).map(
-																		([key, labelName]) => {
-																			const value =
-																				ticket.customLabels?.find(
-																					(l) => l.name === labelName,
-																				)?.value || "";
-																			return (
-																				<div
-																					key={key}
-																					className="space-y-1.5 rounded-md border bg-card/50 px-3 py-2.5 transition-colors hover:bg-card"
-																				>
-																					<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-																						{labelName}
-																					</p>
-																					<p
-																						className={cn(
-																							"font-medium text-sm",
-																							!value &&
-																								"text-muted-foreground italic",
-																						)}
-																					>
-																						{value || "Not provided"}
-																					</p>
-																				</div>
-																			);
-																		},
-																	)}
-															</div>
-														</div>
-													</TableCell>
-												</TableRow>
-											)}
-										</React.Fragment>
+										<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell
+													key={cell.id}
+													style={{ width: `${cell.column.getSize()}px` }}
+													className={cn(
+														table.getVisibleLeafColumns()[0]?.id === cell.column.id && "ps-4",
+													)}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</TableCell>
+											))}
+										</TableRow>
 									);
 								})
 							) : (

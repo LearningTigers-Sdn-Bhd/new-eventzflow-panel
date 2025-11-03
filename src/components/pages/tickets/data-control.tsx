@@ -155,11 +155,13 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-56">
+						<DropdownMenuContent align="end" className="w-64 max-h-[400px] overflow-y-auto">
 							{table
 								.getAllColumns()
-								.filter((column) => column.getCanHide())
+								.filter((column) => column.getCanHide() && column.id !== "phone")
 								.map((column) => {
+									const label = getColumnLabel(column.id, labelsData);
+									
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
@@ -168,7 +170,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 												column.toggleVisibility(!!value)
 											}
 										>
-											{getColumnLabel(column.id, labelsData)}
+											{label}
 										</DropdownMenuCheckboxItem>
 									);
 								})}

@@ -23,8 +23,8 @@ export type BaseTicket = {
 	checkInAt?: string | null;
 };
 
-export function generateColumns(): ColumnDef<BaseTicket>[] {
-	return [
+export function generateColumns(labelsData?: Record<string, string>): ColumnDef<BaseTicket>[] {
+	const baseColumns: ColumnDef<BaseTicket>[] = [
 		{
 			accessorKey: "name",
 			size: 200,
@@ -56,7 +56,7 @@ export function generateColumns(): ColumnDef<BaseTicket>[] {
 		},
 		{
 			accessorKey: "phone",
-			enableHiding: true,
+			enableHiding: false,
 			enableSorting: false,
 			// Hidden column used for search functionality
 		},
@@ -129,4 +129,55 @@ export function generateColumns(): ColumnDef<BaseTicket>[] {
 			),
 		},
 	];
+
+	// Generate dynamic columns for custom fields
+	const customColumns: ColumnDef<BaseTicket>[] = [];
+	if (labelsData && Object.keys(labelsData).length > 0) {
+		Object.entries(labelsData).forEach(([key, labelName]) => {
+			customColumns.push({
+				id: `custom_${key}`,
+				accessorFn: (row) => {
+					const customLabel = row.customLabels?.find((l) => l.name === labelName);
+					return customLabel?.value || "";
+				},
+				size: 180,
+				header: ({ column }) => (
+					<div className="flex items-center gap-2">
+						<p className="font-medium">{labelName}</p>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						>
+							<ArrowDown
+								className={cn(
+									"size-4 transition-transform",
+									column.getIsSorted() === "asc" && "-rotate-180",
+								)}
+							/>
+						</Button>
+					</div>
+				),
+				cell: ({ row }) => {
+					const customLabel = row.original.customLabels?.find((l) => l.name === labelName);
+					const value = customLabel?.value || "";
+					return (
+						<div
+							className={cn(
+								"truncate font-medium",
+								!value && "text-muted-foreground italic",
+							)}
+						>
+							{value || "Not provided"}
+						</div>
+					);
+				},
+				enableSorting: true,
+				enableHiding: true,
+			});
+		});
+	}
+
+	// Insert custom columns before the actions column
+	return [...baseColumns.slice(0, -1), ...customColumns, baseColumns[baseColumns.length - 1]];
 }
