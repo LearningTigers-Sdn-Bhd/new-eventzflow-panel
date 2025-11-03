@@ -40,6 +40,7 @@ High-level HTTP client with convenience methods:
 ```typescript
 export const restClient = {
   get: <T>(url: string, token?: string): Promise<T>
+  getBlob: (url: string, token?: string): Promise<{ blob: Blob; headers: Headers }>
   post: <T>(url: string, data?: unknown, token?: string): Promise<T>
   put: <T>(url: string, data?: unknown, token?: string): Promise<T>
   patch: <T>(url: string, data?: unknown, token?: string): Promise<T>
@@ -121,6 +122,16 @@ const patchedUser = await restClient.patch<User>(`/users/${id}`, {
 
 // DELETE - Remove resource
 await restClient.delete(`/users/${id}`);
+
+// GET BLOB - Download file
+const { blob, headers } = await restClient.getBlob(`/files/${fileId}`);
+const filename = headers.get('Content-Disposition')?.match(/filename="?(.+)"?/)?.[1] || 'file';
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = filename;
+a.click();
+URL.revokeObjectURL(url);
 ```
 
 ### With Custom Authentication
@@ -399,3 +410,19 @@ Make a DELETE request.
 - `token?: string` - Optional token override
 
 **Returns:** `Promise<T>` - Response data
+
+### `restClient.getBlob(url, token?)`
+
+Make a GET request that returns a blob (for file downloads).
+
+**Parameters:**
+- `url: string` - The endpoint URL
+- `token?: string` - Optional token override
+
+**Returns:** `Promise<{ blob: Blob; headers: Headers }>` - Object containing the blob and response headers (useful for extracting filename from Content-Disposition header)
+
+**Example:**
+```typescript
+const { blob, headers } = await restClient.getBlob('/files/123');
+const filename = headers.get('Content-Disposition')?.match(/filename="?(.+)"?/)?.[1] || 'download';
+```
