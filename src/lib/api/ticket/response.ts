@@ -109,12 +109,22 @@ export type BackendCheckInResponse = {
 	attendee_name: string;
 	attendee_email: string;
 	attendee_phone?: string;
-	ticket_type_name: string;
-	value: number;
+	ticket_type_name?: string;
+	value?: number;
 	checked_in: boolean;
 	check_in_at: string;
-	event_name: string;
+	event_name?: string;
 	event_id: number;
+	// Nested objects from includes
+	ticket_type?: {
+		id: number;
+		name: string;
+		price: number;
+	};
+	event?: {
+		id: number;
+		title: string;
+	};
 };
 
 // Scan-storage types (merged from scan-storage API)

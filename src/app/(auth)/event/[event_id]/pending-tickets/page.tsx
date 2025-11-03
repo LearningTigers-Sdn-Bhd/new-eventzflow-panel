@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/pending-ticket/columns";
 import { DataTable } from "@/components/pages/pending-ticket/data-table";
 import { PendingTicketPageButton } from "@/components/pages/pending-ticket/page-action/button";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,7 @@ export default function PendingTicketsPage({
 					}
 				/>
 			) : (
-				<DataTable columns={columns} data={pendingTickets} />
+				<DataTable data={pendingTickets} />
 			)}
 		</div>
 	);

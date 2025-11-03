@@ -36,7 +36,8 @@ export default function PublicLayout({
 	// Check if we're on pages where header should be hidden
 	const isLoginPage = pathname.startsWith("/auth");
 	const isForgotPasswordPage = pathname.startsWith("/forget-password");
-	const isHeaderHidden = isLoginPage || isForgotPasswordPage;
+	const isCheckinPage = pathname.startsWith("/check-in");
+	const isHeaderHidden = isLoginPage || isForgotPasswordPage || isCheckinPage;
 
 	// Render header layout for public routes (hide header on login page)
 	return (

@@ -27,6 +27,7 @@ interface SelectiveSearchProps<TData> {
 	table: Table<TData>;
 	columns: string[];
 	placeholder?: string;
+	searchCustomFields?: boolean;
 }
 
 type QuerySearchFieldProps<TData, TValue> =
@@ -91,14 +92,14 @@ export function QuerySearchField<TData, TValue>(
 	React.useEffect(() => {
 		const currentProps = propsRef.current;
 		if (isSelectiveSearch(currentProps) && selectiveFilter) {
-			const { table, columns } = currentProps;
+			const { table, columns, searchCustomFields } = currentProps;
 
 			// Set up custom global filter function for selective search
 			table.options.globalFilterFn = (row, _columnId, filterValue) => {
 				const searchTerm = filterValue?.toLowerCase() || "";
 
 				// Check if the search term matches any of the specified columns
-				return columns.some((colId) => {
+				const columnMatch = columns.some((colId) => {
 					let cellValue: unknown;
 					try {
 						// Try to get value from column if it exists
@@ -109,20 +110,35 @@ export function QuerySearchField<TData, TValue>(
 					}
 					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
 
-					// Special case: if searching by "name", also search phone since they're in the same cell
-					if (colId === "name") {
-						const phoneValue = (row.original as Record<string, unknown>).phone;
-						const phoneString = phoneValue
-							? String(phoneValue).toLowerCase()
-							: "";
-						return (
-							cellString.includes(searchTerm) ||
-							phoneString.includes(searchTerm)
-						);
+					// For phone column, remove common formatting characters for flexible matching
+					if (colId === "phone") {
+						// Remove spaces, dashes, parentheses, and dots from both search and value
+						const normalizedSearch = searchTerm.replace(/[\s\-().]/g, "");
+						const normalizedPhone = cellString.replace(/[\s\-().]/g, "");
+						return normalizedPhone.includes(normalizedSearch);
 					}
 
+					// For other columns, use standard string matching
 					return cellString.includes(searchTerm);
 				});
+
+				// If already matched in standard columns, return true
+				if (columnMatch) return true;
+
+				// Additionally search custom fields if enabled
+				if (searchCustomFields) {
+					const rowData = row.original as Record<string, unknown>;
+					if (rowData.customLabels && Array.isArray(rowData.customLabels)) {
+						return rowData.customLabels.some(
+							(label: { name: string; value: string }) => {
+								const labelValue = label.value?.toLowerCase() || "";
+								return labelValue.includes(searchTerm);
+							},
+						);
+					}
+				}
+
+				return false;
 			};
 
 			// Apply the global filter

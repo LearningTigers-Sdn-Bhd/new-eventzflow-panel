@@ -17,10 +17,11 @@ import {
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { cn } from "@/lib/utils";
-import { getPaymentStatusText } from "./constants";
+import { getPaymentStatusText, type PaymentStatusString } from "./constants";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	labelsData?: Record<string, string>;
 }
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -32,9 +33,39 @@ const PAYMENT_STATUS_OPTIONS = [
 	{ value: "rejected", label: "Rejected" },
 ] as const;
 
-const SEARCH_COLUMNS = ["name", "email", "ticketTypeName", "transactionId"];
+const SEARCH_COLUMNS = [
+	"name",
+	"email",
+	"phone",
+	"ticketTypeName",
+	"transactionId",
+];
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+function getColumnLabel(
+	columnId: string,
+	labelsData?: Record<string, string>,
+): string {
+	if (columnId.startsWith("custom_")) {
+		const labelKey = columnId.replace("custom_", "");
+		return labelsData?.[labelKey] || columnId;
+	}
+
+	const standardLabels: Record<string, string> = {
+		name: "Name",
+		email: "Email",
+		ticketTypeName: "Ticket Type",
+		paymentStatus: "Payment Status",
+		transactionId: "Transaction ID",
+		createdAt: "Created At",
+	};
+
+	return standardLabels[columnId] || columnId;
+}
+
+export function DataControl<TData>({
+	table,
+	labelsData,
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -47,9 +78,10 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const uniqueTicketTypeNames = React.useMemo(() => {
 		const names = new Set<string>();
 		table.getPreFilteredRowModel().rows.forEach((row) => {
-			const typeName = (row.original as any)?.ticketTypeName;
+			const typeName = (row.original as Record<string, unknown>)
+				?.ticketTypeName;
 			if (typeName && typeName !== "N/A") {
-				names.add(typeName);
+				names.add(typeName as string);
 			}
 		});
 		return Array.from(names).sort();
@@ -85,7 +117,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const currentStatusLabel =
 		paymentStatusFilter.length === 0
 			? "All"
-			: getPaymentStatusText(paymentStatusFilter[0] as any) ||
+			: getPaymentStatusText(paymentStatusFilter[0] as PaymentStatusString) ||
 				paymentStatusFilter[0];
 
 	return (
@@ -96,6 +128,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
+						searchCustomFields={true}
 						placeholder="Search pending tickets..."
 					/>
 					<DropdownMenu>
@@ -161,7 +194,9 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						>
 							{table
 								.getAllColumns()
-								.filter((column) => column.getCanHide())
+								.filter(
+									(column) => column.getCanHide() && column.id !== "phone",
+								)
 								.map((column) => {
 									return (
 										<DropdownMenuCheckboxItem
@@ -172,7 +207,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{getColumnLabel(column.id, labelsData)}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
@@ -185,6 +220,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
+						searchCustomFields={true}
 						placeholder="Search pending tickets..."
 					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

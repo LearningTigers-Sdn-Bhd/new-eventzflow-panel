@@ -20,9 +20,32 @@ import { cn } from "@/lib/utils";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	labelsData?: Record<string, string>;
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+function getColumnLabel(
+	columnId: string,
+	labelsData?: Record<string, string>,
+): string {
+	if (columnId.startsWith("custom_")) {
+		const labelKey = columnId.replace("custom_", "");
+		return labelsData?.[labelKey] || columnId;
+	}
+
+	const standardLabels: Record<string, string> = {
+		name: "Name",
+		ticketTypeName: "Ticket Type",
+		status: "Status",
+		createdAt: "Created At",
+	};
+
+	return standardLabels[columnId] || columnId;
+}
+
+export function DataControl<TData>({
+	table,
+	labelsData,
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -35,9 +58,10 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const uniqueTicketTypeNames = React.useMemo(() => {
 		const names = new Set<string>();
 		table.getPreFilteredRowModel().rows.forEach((row) => {
-			const typeName = (row.original as any)?.ticketTypeName;
+			const typeName = (row.original as Record<string, unknown>)
+				?.ticketTypeName;
 			if (typeName && typeName !== "N/A") {
-				names.add(typeName);
+				names.add(typeName as string);
 			}
 		});
 		return Array.from(names).sort();
@@ -77,7 +101,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email", "ticketTypeName"]}
+						columns={["name", "email", "phone", "ticketTypeName"]}
+						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
 					<DropdownMenu>
@@ -157,8 +182,12 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						>
 							{table
 								.getAllColumns()
-								.filter((column) => column.getCanHide())
+								.filter(
+									(column) => column.getCanHide() && column.id !== "phone",
+								)
 								.map((column) => {
+									const label = getColumnLabel(column.id, labelsData);
+
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
@@ -168,7 +197,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{label}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
@@ -180,10 +209,11 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="flex flex-col gap-2 lg:hidden">
 					<QuerySearchField
 						table={table}
-						columns={["name", "email", "ticketTypeName"]}
+						columns={["name", "email", "phone", "ticketTypeName"]}
+						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
