@@ -14,11 +14,11 @@ const Footer: React.FC = () => {
     {
       title: "Platform",
       links: [
-        { label: "Features", id: "feature-showcase" },
-        { label: "Solutions", id: "pain-points" },
-        { label: "Integrations", id: "integrations-section" },
-        { label: "Demo", id: "product-demo" },
-        // { label: "Pricing", id: "pricing-plans" }
+        { label: "Industries", id: "industries" },
+        { label: "Testimonials", id: "testimonials" },
+        { label: "Features", id: "features" },
+        { label: "Solutions", id: "solutions" },
+        { label: "FAQ", id: "faq" }
       ]
     },
     {
@@ -26,8 +26,7 @@ const Footer: React.FC = () => {
       links: [
         { label: "Help Center", id: null },
         { label: "Documentation", id: null },
-        { label: "Contact Support", id: null },
-        { label: "FAQ", id: "faq" }
+        { label: "Contact Support", id: null }
       ]
     },
     {
@@ -61,15 +60,15 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-primary/10 border-t border overflow-x-hidden">
+    <footer className="bg-muted overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
           {/* Logo and Description */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+            <div className="flex items-center space-x-3 mb-4 sm:mb-6 border-b border-border pb-4">
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
+                <span className="text-2xl sm:text-3xl font-bold leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
                   <span style={{ color: '#23c460' }}>Event</span>
                   <span style={{ color: '#2766ec' }}>z</span>
                   <span style={{ color: '#23c460' }}>Flow</span>

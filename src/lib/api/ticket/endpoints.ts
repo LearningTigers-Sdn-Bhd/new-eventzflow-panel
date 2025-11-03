@@ -57,24 +57,44 @@ export async function checkInTicket(
 }
 
 /**
- * Find a ticket by contact information (email or phone) without checking in
+ * Find a ticket by contact information (email, phone, or name) without checking in
  * Public endpoint - does not require authentication
+ * Returns single ticket for email/phone, or multiple tickets for name searches
  */
 export async function findTicketByContact(data: {
 	attendee_email?: string;
 	attendee_phone?: string;
-}): Promise<CheckInResponse> {
+	attendee_name?: string;
+}): Promise<CheckInResponse | CheckInResponse[]> {
 	// Validate that at least one contact method is provided
-	if (!data.attendee_email && !data.attendee_phone) {
-		throw new Error("Either email or phone number is required");
+	if (!data.attendee_email && !data.attendee_phone && !data.attendee_name) {
+		throw new Error("Either email, phone number, or name is required");
 	}
 
 	const url = "v1/tickets/find_by_contact";
 
 	try {
-		const response = await restClient.post<BackendCheckInResponse>(url, data);
+		const response = await restClient.post<any>(url, data);
 
-		// Transform backend response to frontend format
+		// Check if this is a multiple matches response (name search)
+		if (response.multiple_matches !== undefined && response.tickets) {
+			// Transform array of tickets
+			return response.tickets.map((ticket: BackendCheckInResponse) => ({
+				id: ticket.id.toString(),
+				publicId: ticket.public_id,
+				name: ticket.attendee_name || "Unknown Attendee",
+				email: ticket.attendee_email,
+				phone: ticket.attendee_phone || undefined,
+				ticketTypeName: ticket.ticket_type?.name || ticket.ticket_type_name || "General Admission",
+				value: ticket.ticket_type?.price || ticket.value || 0,
+				checkedIn: ticket.checked_in,
+				checkInAt: ticket.check_in_at,
+				eventName: ticket.event?.title || ticket.event_name || "Unknown Event",
+				eventId: ticket.event?.id.toString() || ticket.event_id.toString(),
+			}));
+		}
+
+		// Single ticket response (email/phone search)
 		return {
 			id: response.id.toString(),
 			publicId: response.public_id,
