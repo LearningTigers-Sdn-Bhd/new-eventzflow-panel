@@ -43,7 +43,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 	};
 
 	return (
-		<div className="flex items-center justify-end space-x-2 py-4">
+		<div className="flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent px-0 py-9 lg:flex-row lg:px-4">
 			<div className="flex-1 text-muted-foreground text-sm">
 				{table.getFilteredRowModel().rows.length} row(s) total.
 			</div>
@@ -51,6 +51,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 				<Button
 					variant="outline"
 					size="sm"
+					className="rounded-none"
 					onClick={() => table.previousPage()}
 					disabled={!table.getCanPreviousPage()}
 				>
@@ -64,7 +65,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 
 					return typeof page === "number" ? (
 						<Button
-							className="h-8 w-8 p-0"
+							className="h-8 w-8 rounded-none p-0"
 							key={uniqueKey}
 							onClick={() => table.setPageIndex(page)}
 							size="sm"
@@ -73,13 +74,14 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 							{page + 1}
 						</Button>
 					) : (
-						<span className="px-2" key={uniqueKey}>
+						<span className="rounded-none px-2" key={uniqueKey}>
 							{page}
 						</span>
 					);
 				})}
 				<Button
 					variant="outline"
+					className="rounded-none"
 					size="sm"
 					onClick={() => table.nextPage()}
 					disabled={!table.getCanNextPage()}

@@ -99,8 +99,28 @@ export function QuerySearchField<TData, TValue>(
 
 				// Check if the search term matches any of the specified columns
 				return columns.some((colId) => {
-					const cellValue = row.getValue(colId);
+					let cellValue: unknown;
+					try {
+						// Try to get value from column if it exists
+						cellValue = row.getValue(colId);
+					} catch {
+						// If column doesn't exist, fall back to accessing original data
+						cellValue = (row.original as Record<string, unknown>)[colId];
+					}
 					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
+
+					// Special case: if searching by "name", also search phone since they're in the same cell
+					if (colId === "name") {
+						const phoneValue = (row.original as Record<string, unknown>).phone;
+						const phoneString = phoneValue
+							? String(phoneValue).toLowerCase()
+							: "";
+						return (
+							cellString.includes(searchTerm) ||
+							phoneString.includes(searchTerm)
+						);
+					}
+
 					return cellString.includes(searchTerm);
 				});
 			};
@@ -120,7 +140,7 @@ export function QuerySearchField<TData, TValue>(
 		const placeholder = props.placeholder || "Search...";
 
 		return (
-			<InputGroup>
+			<InputGroup className="rounded-none bg-background">
 				<InputGroupInput
 					placeholder={placeholder}
 					value={globalFilter}
@@ -145,7 +165,7 @@ export function QuerySearchField<TData, TValue>(
 		const placeholder = props.placeholder || "Search...";
 
 		return (
-			<InputGroup>
+			<InputGroup className="rounded-none bg-background">
 				<InputGroupInput
 					placeholder={placeholder}
 					value={globalFilter}
@@ -170,7 +190,7 @@ export function QuerySearchField<TData, TValue>(
 	const filterValue = (column?.getFilterValue() as string) ?? "";
 
 	return (
-		<InputGroup>
+		<InputGroup className="rounded-none bg-background">
 			<InputGroupInput
 				placeholder={placeholder}
 				value={filterValue}

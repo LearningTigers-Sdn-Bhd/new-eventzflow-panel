@@ -3,10 +3,15 @@
  * Manages QR code scanner lifecycle and state
  */
 
-import { useRef, useEffect, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { SCANNER_CONFIG, SCANNER_STATES, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/components/pages/scan/constants";
+import {
+	ERROR_MESSAGES,
+	SCANNER_CONFIG,
+	SCANNER_STATES,
+	SUCCESS_MESSAGES,
+} from "@/components/pages/scan/constants";
 
 interface UseScannerOptions {
 	scannerId?: string;
@@ -14,7 +19,11 @@ interface UseScannerOptions {
 	onScanError?: (errorMessage: string) => void;
 }
 
-export function useScanner({ scannerId = SCANNER_CONFIG.SCANNER_DIV_ID, onScanSuccess, onScanError }: UseScannerOptions) {
+export function useScanner({
+	scannerId = SCANNER_CONFIG.SCANNER_DIV_ID,
+	onScanSuccess,
+	onScanError,
+}: UseScannerOptions) {
 	const scannerRef = useRef<Html5Qrcode | null>(null);
 	const isTransitioningRef = useRef<boolean>(false);
 
@@ -23,10 +32,12 @@ export function useScanner({ scannerId = SCANNER_CONFIG.SCANNER_DIV_ID, onScanSu
 	 */
 	const isActive = useCallback((): boolean => {
 		if (!scannerRef.current) return false;
-		
+
 		try {
 			const state = scannerRef.current.getState();
-			return state === SCANNER_STATES.SCANNING || state === SCANNER_STATES.PAUSED;
+			return (
+				state === SCANNER_STATES.SCANNING || state === SCANNER_STATES.PAUSED
+			);
 		} catch {
 			return false;
 		}
@@ -40,10 +51,15 @@ export function useScanner({ scannerId = SCANNER_CONFIG.SCANNER_DIV_ID, onScanSu
 
 		try {
 			const state = scannerRef.current.getState();
-			if (state === SCANNER_STATES.SCANNING || state === SCANNER_STATES.PAUSED) {
+			if (
+				state === SCANNER_STATES.SCANNING ||
+				state === SCANNER_STATES.PAUSED
+			) {
 				await scannerRef.current.stop();
 				// Wait for scanner to fully stop
-				await new Promise(resolve => setTimeout(resolve, SCANNER_CONFIG.STOP_DELAY_MS));
+				await new Promise((resolve) =>
+					setTimeout(resolve, SCANNER_CONFIG.STOP_DELAY_MS),
+				);
 			}
 		} catch (error) {
 			console.error("Error stopping scanner:", error);
@@ -81,9 +97,10 @@ export function useScanner({ scannerId = SCANNER_CONFIG.SCANNER_DIV_ID, onScanSu
 				{ facingMode: "environment" },
 				config,
 				onScanSuccess,
-				onScanError || ((errorMessage) => {
-					console.debug("QR scan error:", errorMessage);
-				})
+				onScanError ||
+					((errorMessage) => {
+						console.debug("QR scan error:", errorMessage);
+					}),
 			);
 
 			toast.success(SUCCESS_MESSAGES.CAMERA_ACTIVATED, {
@@ -94,14 +111,14 @@ export function useScanner({ scannerId = SCANNER_CONFIG.SCANNER_DIV_ID, onScanSu
 		} catch (err: any) {
 			console.error("Error starting scanner:", err);
 			const errorMsg = err?.message || ERROR_MESSAGES.CAMERA_START_FAILED;
-			
+
 			toast.error(
 				errorMsg.includes("Permission")
 					? ERROR_MESSAGES.CAMERA_PERMISSION_DENIED
 					: ERROR_MESSAGES.CAMERA_START_FAILED,
 				{
 					description: ERROR_MESSAGES.CAMERA_PERMISSION_HELP,
-				}
+				},
 			);
 
 			return false;
