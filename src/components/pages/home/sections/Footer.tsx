@@ -14,11 +14,11 @@ const Footer: React.FC = () => {
     {
       title: "Platform",
       links: [
-        { label: "Features", id: "feature-showcase" },
-        { label: "Solutions", id: "pain-points" },
-        { label: "Integrations", id: "integrations-section" },
-        { label: "Demo", id: "product-demo" },
-        // { label: "Pricing", id: "pricing-plans" }
+        { label: "Industries", id: "industries" },
+        { label: "Testimonials", id: "testimonials" },
+        { label: "Features", id: "features" },
+        { label: "Solutions", id: "solutions" },
+        { label: "FAQ", id: "faq" }
       ]
     },
     {
@@ -26,8 +26,7 @@ const Footer: React.FC = () => {
       links: [
         { label: "Help Center", id: null },
         { label: "Documentation", id: null },
-        { label: "Contact Support", id: null },
-        { label: "FAQ", id: "faq" }
+        { label: "Contact Support", id: null }
       ]
     },
     {
