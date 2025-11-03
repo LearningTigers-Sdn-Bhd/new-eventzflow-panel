@@ -241,7 +241,7 @@ export default function EventDetailLayout({
 					)}
 				</div>
 			</div>
-			<div className="rounded-none border border-dashed bg-card">
+			<div className="w-full rounded-none border border-dashed bg-card">
 				<TabHeader
 					icon={currentTabItem.icon}
 					title={currentTabItem.title}

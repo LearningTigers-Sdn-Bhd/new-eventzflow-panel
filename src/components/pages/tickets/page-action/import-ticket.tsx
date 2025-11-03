@@ -8,7 +8,7 @@ import TableUpload from "@/components/file-upload/table-upload";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { importTickets } from "@/lib/api/ticket";
+import { importTickets } from "@/lib/api/imports";
 
 function ImportTicketForm() {
 	const { closeDialog } = useDialog();
@@ -17,7 +17,7 @@ function ImportTicketForm() {
 
 	// Import tickets mutation
 	const importMutation = useMutation({
-		mutationFn: importTickets,
+		mutationFn: (file: File) => importTickets(file),
 		onSuccess: (data) => {
 			const { created, skipped, errors: importErrors } = data;
 			const message = `Import completed: ${created} created, ${skipped} skipped`;

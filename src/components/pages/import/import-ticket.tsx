@@ -8,8 +8,8 @@ import TableUpload from "@/components/file-upload/table-upload";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { ImportTicketsResponse } from "@/lib/api/ticket";
-import { importTickets, importTicketsDryRun } from "@/lib/api/ticket";
+import type { ImportTicketsResponse } from "@/lib/api/imports";
+import { importTickets, importTicketsDryRun } from "@/lib/api/imports";
 
 type ImportTicketFormProps = {
 	dryRun?: boolean;
