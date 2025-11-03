@@ -6,9 +6,9 @@ interface PhoneProps {
 
 const Phone: React.FC<PhoneProps> = ({ children }) => {
   return (
-    <div className="relative z-10 mx-auto h-[500px] w-[260px] rounded-[2.5rem] bg-black p-2.5 shadow-2xl">
+    <div className="relative z-10 mx-auto h-[500px] w-[260px] rounded-[2.5rem] bg-black p-2.5 shadow-2xl ring-1 ring-white/10 dark:ring-white/20">
       {/* Screen */}
-      <div className="h-full w-full overflow-hidden rounded-[2rem] bg-[#0a1014] flex flex-col relative">
+      <div className="h-full w-full overflow-hidden rounded-[2rem] bg-[#0a1014] flex flex-col relative ring-1 ring-white/5">
         {/* Status Bar */}
         <div className="flex h-9 items-center justify-between px-4 pt-1.5 text-white relative flex-shrink-0 z-10">
           <span className="text-[10px] font-medium">9:41</span>

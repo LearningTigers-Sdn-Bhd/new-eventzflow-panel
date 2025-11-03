@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Settings } from "lucide-react";
 
 const leftFeatures = [
 	"WhatsApp registration with automated QR code delivery and reminders",
@@ -45,6 +45,7 @@ const OnsiteSupportSection: React.FC = () => {
 							viewport={{ once: true }}
 							transition={{ duration: 0.4 }}
 						>
+							<Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 							<span className="whitespace-nowrap">Complete Onsite Solution</span>
 						</motion.span>
 						<motion.h2

@@ -8,6 +8,7 @@ import {
 	Handshake,
 	IdCard,
 	Share2,
+	Award,
 } from "lucide-react";
 
 const valuePropositions = [
@@ -53,6 +54,7 @@ const JourneySection: React.FC = () => {
 							viewport={{ once: true }}
 							transition={{ duration: 0.4 }}
 						>
+							<Award className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 							<span className="whitespace-nowrap">Why Choose EventzFlow</span>
 						</motion.span>
 						<motion.h2

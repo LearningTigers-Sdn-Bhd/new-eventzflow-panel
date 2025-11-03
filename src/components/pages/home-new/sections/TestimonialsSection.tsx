@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { motion } from "framer-motion";
-import { Quote, Star, Verified } from "lucide-react";
+import { Quote, Star, Verified, MessageSquareQuote } from "lucide-react";
 
 const testimonials = [
 	{
@@ -76,6 +76,7 @@ const TestimonialsSection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.4 }}
 					>
+						<MessageSquareQuote className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 						<span className="whitespace-nowrap">Client Success Stories</span>
 					</motion.span>
 					<motion.h2

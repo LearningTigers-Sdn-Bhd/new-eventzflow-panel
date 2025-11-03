@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { motion } from "framer-motion";
+import { Image } from "lucide-react";
 
 const galleryImages = [
 	{
@@ -70,6 +71,7 @@ const SolutionsGallerySection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.4 }}
 					>
+						<Image className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 						<span className="whitespace-nowrap">Events That Inspire</span>
 					</motion.span>
 					<motion.h2

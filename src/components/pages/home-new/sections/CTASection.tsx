@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PodcastIcon, Rocket } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type React from "react";
@@ -12,12 +12,13 @@ const CTASection: React.FC = () => {
 		<section className="relative overflow-hidden bg-primary px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			<div className="relative mx-auto flex max-w-5xl flex-col items-center text-center">
 				<motion.span
-					className="rounded-full bg-primary-foreground/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-foreground sm:px-4 sm:py-2 sm:text-xs"
+					className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-foreground sm:px-4 sm:py-2 sm:text-xs"
 					initial={{ opacity: 0, y: 12 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.4 }}
 				>
+					<Rocket className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 					Ready to transform your events?
 				</motion.span>
 				<motion.h2
@@ -46,25 +47,26 @@ const CTASection: React.FC = () => {
 					viewport={{ once: true }}
 					transition={{ duration: 0.5, delay: 0.15 }}
 				>
-					<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
-						<Button
-							size="lg"
-							className="group h-11 w-full rounded-lg bg-background text-sm font-semibold text-foreground shadow-lg transition-all hover:bg-background/90 sm:h-12 sm:min-w-[220px] sm:text-base"
-						>
-							Get started
-							<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-						</Button>
-					</Link>
+				<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
 					<Button
 						size="lg"
-						variant="outline"
-						asChild
-						className="h-11 w-full rounded-lg border-2 border-primary-foreground/60 bg-transparent text-sm font-semibold text-primary-foreground transition-all hover:border-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:h-12 sm:min-w-[220px] sm:text-base"
+						className="group h-11 w-full rounded-lg bg-background text-sm font-semibold text-foreground shadow-lg transition-all hover:bg-background/90 sm:h-12 sm:min-w-[220px] sm:text-base"
 					>
-						<a href="mailto:info@saleschatalyst.com">
-							Talk to sales
-						</a>
+						Get started
+						<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 					</Button>
+				</Link>
+				<Button
+					size="lg"
+					variant="outline"
+					asChild
+					className="h-11 w-full rounded-lg border-2 border-primary-foreground/60 bg-transparent text-sm font-semibold text-primary-foreground transition-all hover:border-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:h-12 sm:w-auto sm:min-w-[220px] sm:text-base"
+				>
+					<a href="mailto:info@eventzflow.com">
+						Talk to sales
+						<PodcastIcon className="ml-2 h-4 w-4" />
+					</a>
+				</Button>
 				</motion.div>
 				<motion.div
 					className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-primary-foreground/80 sm:mt-8 sm:gap-4 sm:text-sm lg:mt-10"

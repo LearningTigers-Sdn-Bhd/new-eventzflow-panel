@@ -3,18 +3,125 @@
 import { motion } from "framer-motion";
 import {
 	ArrowRight,
-	PlayCircle,
-	TrendingUp,
-	Users,
 	Zap,
+	PodcastIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import FloatingNav from "./FloatingNav";
+import WhatsApp from "@/components/devices/apps/WhatsApp";
+import type { ChatMessage } from "@/components/devices/apps/WhatsApp";
+
+// Event registration conversation
+const registrationMessages: ChatMessage[] = [
+	{
+		type: "customer",
+		text: "Hi! I want to register for SME Expo 2025",
+		time: "10:30",
+	},
+	{
+		type: "bot",
+		text: "Hello There! 👋\n\nI'd be happy to help you register. May I have your full name?",
+		time: "10:30",
+	},
+	{
+		type: "customer",
+		text: "John Smith",
+		time: "10:31",
+	},
+	{
+		type: "bot",
+		text: "Great! And your email address?",
+		time: "10:31",
+	},
+	{
+		type: "customer",
+		text: "john.smith@company.com",
+		time: "10:32",
+	},
+	{
+		type: "bot",
+		text: "Perfect! What's your role?",
+		time: "10:32",
+	},
+	{
+		type: "buttons",
+		buttons: ["🎯 Marketing", "💻 Developer", "📊 Product Manager", "👔 Executive"],
+		time: "10:32",
+	},
+	{
+		type: "customer",
+		text: "👔 Executive",
+		time: "10:33",
+	},
+	{
+		type: "bot",
+		text: "Excellent! ✅\n\nYou're all set for SME Expo 2025!\n\nHere's your QR code ticket:",
+		time: "10:33",
+	},
+	{
+		type: "qrcode",
+		text: "QR_CODE_PLACEHOLDER",
+		time: "10:33",
+	},
+	{
+		type: "bot",
+		text: "See you at the event! 🎉",
+		time: "10:34",
+	},
+];
 
 const HeroSection: React.FC = () => {
+	const [chatKey, setChatKey] = useState(0);
+
+	// Loop the chat animation
+	useEffect(() => {
+		// Total messages: 11, each takes 2 seconds, plus 2 seconds wait at end
+		const totalDuration = 11 * 2000 + 2000; // 24 seconds total
+		
+		const interval = setInterval(() => {
+			setChatKey((prev) => prev + 1);
+		}, totalDuration);
+
+		return () => clearInterval(interval);
+	}, []);
+
+	// Custom renderer for QR code message
+	const renderQRCode = (message: ChatMessage, index: number) => {
+		if (message.type === "qrcode") {
+			return (
+				<motion.div
+					key={index}
+					initial={{ opacity: 0, scale: 0.8, y: 20 }}
+					animate={{ opacity: 1, scale: 1, y: 0 }}
+					transition={{ 
+						type: "spring",
+						stiffness: 400,
+						damping: 25,
+						duration: 0.5
+					}}
+					className="flex justify-start"
+				>
+					<div className="rounded-[8px] bg-[#1f2c34] rounded-tl-[2px] p-2 shadow-md">
+						{/* QR Code */}
+						<div className="bg-white p-3 rounded-lg">
+							<svg width="120" height="120" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M0 0h7v7H0zM8 0h1v1H8zM10 0h1v1h-1zM12 0h2v1h-2zM15 0h1v2h-1zM17 0h5v1h-1v1h-1V1h-1v1h-1V1h-1zM22 0h7v7h-7zM1 1v5h5V1zM9 1h1v1H9zM11 1h1v2h1V2h2v1h-1v1h-2v1h-1V4h1V3h-1zM16 1v1h-1v1h2V2h1v2h-2v1h1v1h-2v1h1v1h-1v1h2V8h2v1h-1v2h1v-1h2V9h-2V8h1V7h-1V6h2V5h-1V4h1V3h-2V2h1V1h-3v1h-1v1h-1zM23 1v5h5V1zM2 2v3h3V2zM18 2h1v1h-1zM23 2v3h3V2zM10 3h1v1h-1zM9 4v1H8v2h1V6h1v1h2v1h-1v1H9V8h1V7H9V6H8v1H7v1h1v1H7v2H6v-2H5v1H4v2H3v1h1v-1h2v1h1v1H6v1h2v1H7v2H6v-1H4v1H3v1h1v1H3v1h2v1H4v-1H3v-1H2v1H1v1H0v-2h1v-1h1v-2h1v1H2v1h1v-2h1v1h1v2h1v-2H5v-1h1v-2H5v-1H4v-2H3v1H2v-2H1v-1H0V8h1V7h1V6h1v1h2V6H4v1h1V6h1v1h2V6h1zM20 4h1v1h-1zM21 5v1h-2v1h2v1h-3V7h1V6h1V5zM27 5h1v1h-1zM11 6h1v1h-1zM3 7v1H2V7zM5 7h1v2H5zM26 7h2v2h-2zM14 8h1v1h-1zM6 9h1v1H6zM23 9h1v2h1v-1h1v1h-1v1h2v1h-3v-1h-1v1h-1v-1h1v-2h-1v1h-1v-1h1V9h1zM27 9v3h-1v-1h-1v-1h2zM3 10v1H2v-1zM9 10h2v1h1v-1h1v2h-1v-1h-1v1H9v1h1v-1h2v2h-2v1h3v1h-1v1h1v1h-1v2h1v-1h2v1h1v-1h1v1h1v2h-1v-1h-3v2h1v1h1v1h-1v-1h-2v1h1v1H9v1h1v1H9v1h2v-2h1v2h-1v1h2v-2h1v1h2v1h-1v1h4v-1h-1v-1h-1v-2h-1v1h-2v-2h2v-1h2v2h-1v2h2v-1h2v-1h-1v-2h-1v1h-2v-2h1v-1h-1v-2h1v1h2v-2h-1v-1h1v-1h-2v-1h-1v-1h-1v-1h1v-1h-2v1h-1v-2h2v-1h-2v1h-2v-1h1V9h-2v1h-1V9h-2v1h1v1h-2v1h1v1h1v1h-1v-1h-2v-1h1v-2h-1v1H9v1h1v-1h2v1h-2v1h-1zM4 11h1v1H4zM6 11h1v1H6zM27 12h2v1h-1v1h-1zM10 13h1v1h-1zM0 14h1v1H0zM2 14h2v1H2zM5 14h2v2H6v-1H5zM1 15h1v1H1zM4 15h1v2H4zM18 15h1v1h-1zM28 15h1v3h-1zM0 16h1v2H0zM2 16h1v1H2zM22 16h2v1h-2zM25 16h1v1h-1zM1 17h1v1H1zM21 17h1v2h-2v-1h1zM24 17h1v1h-1zM26 17h1v1h-1zM6 18v1H5v1h2v-1h1v1H7v1h2v-1h1v1H9v2h1v-1h1v-1h-1v-1h2v-1h-1v-1h-1v-1H9v1H8v-1H7v1H6zM18 18h1v1h1v-1h2v1h-1v1h-1v2h-1v-1h-2v1h1v1h-2v-1h1v-2h2v-1h-1zM3 19h1v1H3zM23 19h1v1h-1zM25 19h2v1h-2zM15 20h1v1h-1zM24 20h1v1h-1zM1 21h2v1H1zM4 21h1v1H4zM0 22h1v7H0zM7 22h1v1H7zM14 22h1v2h-1zM22 22h7v7h-7zM1 23h1v1H1zM3 23h3v1h1v1H6v2H5v-1H4v-1H3v2H2v-3h1zM15 23h1v1h-1zM23 23v5h5v-5zM7 24h1v2H7zM1 25h1v2H1zM24 24v3h3v-3zM8 26h4v1h1v-1h1v1h-5v1h5v1h-6zM2 27h3v1H2zM0 28h1v1H0zM7 28h1v1H7z" fill="black"/>
+							</svg>
+						</div>
+						<div className="text-[9px] mt-1 text-[#8696a0]">
+							<span>{message.time}</span>
+						</div>
+					</div>
+				</motion.div>
+			);
+		}
+		return null;
+	};
+
 	return (
 		<>
 			<FloatingNav />
@@ -42,175 +149,76 @@ const HeroSection: React.FC = () => {
 						<span className="whitespace-nowrap">Trusted by 500+ event organizers</span>
 					</motion.div>
 
-					<motion.h1
-						className="text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl xl:text-[4rem]"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.1 }}
-					>
-						End-to-End Event
-						<br />
-						<span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400">
-							Intelligence Platform
-						</span>
-					</motion.h1>
+				<motion.h1
+					className="text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl xl:text-[4rem]"
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6, delay: 0.1 }}
+				>
+					End-to-End,
+					<br />
+					<span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400">
+						AI-Powered Event Intelligence
+					</span>
+				</motion.h1>
 					
-					<motion.p
-						className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.2 }}
-					>
-						Transform your events with AI-powered visitor tracking, seamless QR check-in, instant badge printing, and intelligent audience profiling. Everything you need in one unified platform.
-					</motion.p>
+			<motion.p
+				className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.6, delay: 0.2 }}
+			>
+				From visitor booth tracking and QR check-in with instant badge printing, to AI audience profiling and retargeting — EventzFlow connects every part of the event journey.
+			</motion.p>
 
-					{/* Key metrics */}
-					<motion.div
-						className="flex flex-wrap gap-4 pt-2 sm:gap-6"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.3 }}
+			<motion.div
+				className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
+				initial={{ opacity: 0, y: 24 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.6, delay: 0.4 }}
+			>
+				<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
+					<Button
+						size="lg"
+						className="group h-11 w-full bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-600/30 sm:h-12 sm:min-w-[200px] sm:text-base dark:bg-emerald-500 dark:hover:bg-emerald-400"
 					>
-						<div className="flex items-center gap-2">
-							<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 sm:h-10 sm:w-10">
-								<TrendingUp className="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5 dark:text-emerald-400" />
-							</div>
-							<div>
-								<p className="text-xl font-bold text-foreground sm:text-2xl">98%</p>
-								<p className="text-xs text-muted-foreground sm:text-sm">Check-in speed</p>
-							</div>
-						</div>
-						<div className="flex items-center gap-2">
-							<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 sm:h-10 sm:w-10">
-								<Users className="h-4 w-4 text-blue-600 sm:h-5 sm:w-5 dark:text-blue-400" />
-							</div>
-							<div>
-								<p className="text-xl font-bold text-foreground sm:text-2xl">50K+</p>
-								<p className="text-xs text-muted-foreground sm:text-sm">Events managed</p>
-							</div>
-						</div>
-					</motion.div>
-
-					<motion.div
-						className="flex flex-col items-stretch gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
-						initial={{ opacity: 0, y: 24 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.4 }}
-					>
-						<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
-							<Button
-								size="lg"
-								className="group h-11 w-full bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-600/30 sm:h-12 sm:min-w-[220px] sm:text-base dark:bg-emerald-500 dark:hover:bg-emerald-400"
-							>
-								Start Free Trial
-								<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
-							</Button>
-						</Link>
-						<a
-							className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-border bg-background px-5 text-sm font-semibold text-foreground transition-all hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:h-12 sm:w-auto sm:px-6 sm:text-base dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400"
-							href="#product-demo"
-						>
-							<PlayCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-							Watch Demo
-						</a>
-					</motion.div>
+						Start Now
+						<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
+					</Button>
+				</Link>
+				<Button
+					size="lg"
+					variant="outline"
+					asChild
+					className="h-11 w-full border-2 bg-background text-sm font-semibold transition-all hover:bg-muted sm:h-12 sm:w-auto sm:min-w-[200px] sm:text-base"
+				>
+					<a href="mailto:info@eventzflow.com">
+						Contact Sales
+						<PodcastIcon className="ml-2 h-4 w-4" />
+					</a>
+				</Button>
+			</motion.div>
 				</div>
 
-				<motion.div
-					className="relative w-full flex-shrink-0 lg:max-w-xl"
-					initial={{ opacity: 0, x: 20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.7, delay: 0.3 }}
-				>
-					{/* Professional dashboard preview */}
-					<div className="relative">
-						{/* Floating badge */}
-						<div className="absolute -right-2 -top-2 z-10 rounded-lg border border-emerald-500/20 bg-background px-3 py-1.5 shadow-xl sm:-right-4 sm:-top-4 sm:rounded-xl sm:px-4 sm:py-2">
-							<div className="flex items-center gap-1.5 sm:gap-2">
-								<div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 sm:h-2 sm:w-2" />
-								<span className="text-xs font-semibold text-foreground sm:text-sm">Live Event</span>
-							</div>
-						</div>
-
-						{/* Main dashboard card */}
-						<div className="rounded-xl border border-border bg-card shadow-2xl sm:rounded-2xl">
-							<div className="border-b border-border bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
-								<div className="flex items-center justify-between">
-									<div>
-										<h3 className="text-xs font-semibold text-muted-foreground sm:text-sm">Event Dashboard</h3>
-										<p className="text-base font-bold text-foreground sm:text-xl">Tech Summit 2025</p>
-									</div>
-									<div className="rounded-md bg-emerald-500/10 px-2 py-1 sm:rounded-lg sm:px-3 sm:py-1.5">
-										<span className="text-xs font-bold text-emerald-600 sm:text-sm dark:text-emerald-400">Active</span>
-									</div>
-								</div>
-							</div>
-							
-							<div className="space-y-3 p-4 sm:space-y-4 sm:p-6">
-								{/* Stats grid */}
-								<div className="grid grid-cols-2 gap-3 sm:gap-4">
-									<div className="rounded-lg border border-border bg-muted/30 p-3 sm:p-4">
-										<p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
-											Attendees
-										</p>
-										<p className="mt-1.5 text-xl font-bold text-foreground sm:mt-2 sm:text-2xl">
-											1,247
-										</p>
-										<div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-emerald-600 sm:mt-1 sm:text-xs dark:text-emerald-400">
-											<TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-											<span>+23%</span>
-										</div>
-									</div>
-									<div className="rounded-lg border border-border bg-muted/30 p-3 sm:p-4">
-										<p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
-											Check-in Rate
-										</p>
-										<p className="mt-1.5 text-xl font-bold text-foreground sm:mt-2 sm:text-2xl">
-											94%
-										</p>
-										<p className="mt-0.5 text-[10px] font-medium text-muted-foreground sm:mt-1 sm:text-xs">
-											1,172 checked in
-										</p>
-									</div>
-								</div>
-
-								{/* Activity list */}
-								<div className="space-y-1.5 sm:space-y-2">
-									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
-										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
-											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500 sm:h-2 sm:w-2" />
-											<div className="min-w-0">
-												<p className="truncate text-xs font-medium text-foreground sm:text-sm">Booth B-12 Analytics</p>
-												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">High engagement detected</p>
-											</div>
-										</div>
-										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">2m ago</span>
-									</div>
-									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
-										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
-											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500 sm:h-2 sm:w-2" />
-											<div className="min-w-0">
-												<p className="truncate text-xs font-medium text-foreground sm:text-sm">AI Segment Created</p>
-												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">247 profiles matched</p>
-											</div>
-										</div>
-										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">5m ago</span>
-									</div>
-									<div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 sm:p-3">
-										<div className="flex min-w-0 items-center gap-2 sm:gap-3">
-											<div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500 sm:h-2 sm:w-2" />
-											<div className="min-w-0">
-												<p className="truncate text-xs font-medium text-foreground sm:text-sm">Badge Printed</p>
-												<p className="truncate text-[10px] text-muted-foreground sm:text-xs">VIP attendee checked in</p>
-											</div>
-										</div>
-										<span className="flex-shrink-0 text-[10px] font-medium text-muted-foreground sm:text-xs">8m ago</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</motion.div>
+			<motion.div
+				className="relative w-full flex-shrink-0 lg:max-w-md"
+				initial={{ opacity: 0, x: 20 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ duration: 0.7, delay: 0.3 }}
+			>
+				{/* WhatsApp Event Registration Demo */}
+				<div className="mx-auto max-w-[320px]">
+					<WhatsApp
+						key={chatKey}
+						activeKey={chatKey}
+						contactName="EventzFlow"
+						contactAvatar="E"
+						contactStatus="online"
+						messages={registrationMessages}
+						renderCustomMessage={renderQRCode}
+					/>
+				</div>
+			</motion.div>
 			</div>
 		</section>
 		</>

@@ -14,6 +14,7 @@ import {
 	Handshake,
 	LayoutDashboard,
 	Zap,
+	Sparkles,
 } from "lucide-react";
 
 const features = [
@@ -201,12 +202,13 @@ const FeatureShowcaseSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="mb-8 text-center sm:mb-12 lg:mb-16">
 					<motion.span
-						className="mb-2 inline-block rounded-full bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent-foreground sm:mb-3 sm:px-4 sm:py-2 sm:text-xs"
+						className="mb-2 inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent-foreground sm:mb-3 sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.5 }}
 					>
+						<Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
 						<span className="whitespace-nowrap">Powerful Features That Drive Results</span>
 					</motion.span>
 					<motion.h2
