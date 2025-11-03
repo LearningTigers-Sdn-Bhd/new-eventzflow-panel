@@ -6,17 +6,12 @@
 
 "use client";
 
-import { Database, RefreshCw, Trash2 } from "lucide-react";
+import { Database, HardDrive, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { StatsCard } from "@/components/analytics-card";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { getAllForOffline } from "@/lib/api/ticket";
 import { ERROR_MESSAGES, STORAGE_CONFIG, SUCCESS_MESSAGES } from "./constants";
 
@@ -157,22 +152,56 @@ export function StorageStatus() {
 	};
 
 	return (
-		<Card>
-			<CardHeader>
-				<div className="flex items-start justify-between">
-					<div className="space-y-1">
-						<CardTitle>Scan Data Storage</CardTitle>
-						<CardDescription>
-							Manage downloaded data for offline ticket scanning
-						</CardDescription>
-					</div>
-					<div className="flex gap-2">
+		<div>
+			{/* Header */}
+			<div className="page-header mb-4 border-y border-dashed sm:mb-6 md:mb-8">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={HardDrive}
+						title="Scan Data Storage"
+						description="Manage downloaded data for offline ticket scanning"
+					/>
+				</div>
+
+				{/* Quick Actions */}
+				<div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:px-4">
+					<Button
+						onClick={handleClearData}
+						variant="outline"
+						size="sm"
+						disabled={isClearing || storageData.events === 0}
+						className="gap-2 rounded-none"
+					>
+						<Trash2 className="h-4 w-4" />
+						Clear Data
+					</Button>
+					<Button
+						onClick={handleSyncData}
+						size="sm"
+						disabled={isSyncing}
+						className="gap-2 rounded-none"
+					>
+						<RefreshCw
+							className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+						/>
+						Sync Data
+					</Button>
+				</div>
+			</div>
+			{/* <div className="page-header border-y border-dashed">
+				<div className="flex w-full flex-col items-start justify-between px-2 md:flex-row md:items-center md:px-4">
+					<IconTitle
+						icon={HardDrive}
+						title="Scan Data Storage"
+						description="Manage downloaded data for offline ticket scanning"
+					/>
+					<div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
 						<Button
 							onClick={handleClearData}
 							variant="outline"
 							size="sm"
 							disabled={isClearing || storageData.events === 0}
-							className="gap-2"
+							className="gap-2 rounded-none"
 						>
 							<Trash2 className="h-4 w-4" />
 							Clear Data
@@ -181,7 +210,7 @@ export function StorageStatus() {
 							onClick={handleSyncData}
 							size="sm"
 							disabled={isSyncing}
-							className="gap-2"
+							className="gap-2 rounded-none"
 						>
 							<RefreshCw
 								className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
@@ -190,58 +219,33 @@ export function StorageStatus() {
 						</Button>
 					</div>
 				</div>
-			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					{/* Events Card */}
-					<div className="flex items-start gap-4 rounded-lg border bg-card p-4">
-						<div className="rounded-lg bg-blue-500/10 p-3">
-							<Database className="h-6 w-6 text-blue-500" />
-						</div>
-						<div className="min-w-0 flex-1">
-							<p className="mb-1 font-medium text-muted-foreground text-sm">
-								Downloaded Events
-							</p>
-							<p className="font-bold text-3xl tracking-tight">
-								{storageData.events}
-							</p>
-							<p className="mt-1 text-muted-foreground text-xs">
-								Total events stored
-							</p>
-						</div>
-					</div>
+			</div> */}
+			<div className="grid h-full grid-cols-2 gap-2 border-b border-dashed">
+				<StatsCard
+					label="Downloaded Events"
+					value={storageData.events}
+					Icon={Database}
+					subtitle="Total events stored"
+				/>
+				<StatsCard
+					label="Downloaded Tickets"
+					value={storageData.tickets}
+					Icon={Database}
+					subtitle="Total tickets stored"
+				/>
+			</div>
 
-					{/* Tickets Card */}
-					<div className="flex items-start gap-4 rounded-lg border bg-card p-4">
-						<div className="rounded-lg bg-green-500/10 p-3">
-							<Database className="h-6 w-6 text-green-500" />
-						</div>
-						<div className="min-w-0 flex-1">
-							<p className="mb-1 font-medium text-muted-foreground text-sm">
-								Downloaded Tickets
-							</p>
-							<p className="font-bold text-3xl tracking-tight">
-								{storageData.tickets}
-							</p>
-							<p className="mt-1 text-muted-foreground text-xs">
-								Total tickets stored
-							</p>
-						</div>
-					</div>
+			{/* Last Synced Info */}
+			{storageData.lastSyncedAt && (
+				<div className="border-b border-dashed p-4">
+					<p className="text-muted-foreground text-xs">
+						Last synced:{" "}
+						<span className="font-medium text-foreground">
+							{storageData.lastSyncedAt.toLocaleString()}
+						</span>
+					</p>
 				</div>
-
-				{/* Last Synced Info */}
-				{storageData.lastSyncedAt && (
-					<div className="mt-4 border-t pt-4">
-						<p className="text-muted-foreground text-xs">
-							Last synced:{" "}
-							<span className="font-medium text-foreground">
-								{storageData.lastSyncedAt.toLocaleString()}
-							</span>
-						</p>
-					</div>
-				)}
-			</CardContent>
-		</Card>
+			)}
+		</div>
 	);
 }
