@@ -80,7 +80,7 @@ export function AccountInfoForm() {
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="space-y-4 md:min-h-[320px] flex flex-col justify-between"
+			className="flex flex-col justify-between space-y-4 md:min-h-[320px]"
 		>
 			<div className="space-y-4">
 				<div className="space-y-2">
@@ -89,7 +89,7 @@ export function AccountInfoForm() {
 						<span className="text-muted-foreground text-sm">
 							<Tooltip>
 								<TooltipTrigger>
-									<Info className="w-4 h-4" />
+									<Info className="h-4 w-4" />
 								</TooltipTrigger>
 								<TooltipContent>
 									<p>Email changes are not currently supported</p>
@@ -103,6 +103,7 @@ export function AccountInfoForm() {
 						value={profile.email || ""}
 						placeholder="Enter your email"
 						disabled // Email changes require special handling in Better Auth
+						className="rounded-none"
 					/>
 				</div>
 				<form.Field
@@ -126,6 +127,7 @@ export function AccountInfoForm() {
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
 								placeholder="Enter your full name"
+								className="rounded-none"
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
@@ -155,6 +157,7 @@ export function AccountInfoForm() {
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
 								placeholder="Enter your phone number"
+								className="rounded-none"
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
@@ -169,7 +172,7 @@ export function AccountInfoForm() {
 						<Button
 							type="submit"
 							disabled={!state.canSubmit || state.isSubmitting}
-							className="min-w-[100px]"
+							className="min-w-[100px] rounded-none"
 						>
 							{state.isSubmitting ? (
 								<Spinner className="h-4 w-4" />

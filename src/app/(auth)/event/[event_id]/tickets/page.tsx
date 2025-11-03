@@ -29,7 +29,7 @@ export default function TicketsPage({
 	});
 
 	return (
-		<div className="container mx-auto">
+		<div className="space-y-4">
 			{isLoading ? (
 				<LoadingState
 					title="Loading tickets..."
@@ -44,7 +44,9 @@ export default function TicketsPage({
 					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
 			) : (
-				<DataTable data={(tickets || []).map(t => ({ ...t, phone: t.phone || '' }))} />
+				<DataTable
+					data={(tickets || []).map((t) => ({ ...t, phone: t.phone || "" }))}
+				/>
 			)}
 		</div>
 	);

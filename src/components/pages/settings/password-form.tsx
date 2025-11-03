@@ -23,7 +23,7 @@ export function PasswordForm() {
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className="space-y-4 md:min-h-[320px] flex flex-col justify-between"
+			className="flex flex-col justify-between space-y-4 md:min-h-[320px]"
 		>
 			<div className="space-y-4">
 				<div className="space-y-2">
@@ -35,6 +35,7 @@ export function PasswordForm() {
 							value={currentPassword}
 							onChange={(e) => setCurrentPassword(e.target.value)}
 							placeholder="Enter your current password"
+							className="rounded-none"
 						/>
 						<Button
 							type="button"
@@ -61,6 +62,7 @@ export function PasswordForm() {
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							placeholder="Enter your new password"
+							className="rounded-none"
 						/>
 						<Button
 							type="button"
@@ -87,6 +89,7 @@ export function PasswordForm() {
 							value={confirmPassword}
 							onChange={(e) => setConfirmPassword(e.target.value)}
 							placeholder="Confirm your new password"
+							className="rounded-none"
 						/>
 						<Button
 							type="button"
@@ -105,7 +108,7 @@ export function PasswordForm() {
 				</div>
 			</div>
 			<div className="flex justify-end">
-				<Button type="submit" className="min-w-[120px]">
+				<Button type="submit" className="min-w-[120px] rounded-none">
 					Change Password
 				</Button>
 			</div>

@@ -47,7 +47,7 @@ export function PendingTicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
 				onClick={openEditModal}
 				title="Edit Ticket"
 			>
@@ -56,7 +56,7 @@ export function PendingTicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
+				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 				onClick={openViewModal}
 				title="View Ticket"
 			>

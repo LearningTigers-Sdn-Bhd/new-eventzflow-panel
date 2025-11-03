@@ -21,10 +21,10 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
 	return (
-		<>
+		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
 			{/* Desktop Control Panel */}
 			{!_isTablet ? (
-				<div className="hidden items-center gap-2 py-4 lg:flex">
+				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
 						columns={["name", "id"]}
@@ -32,7 +32,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
+							<Button variant="outline" className="ml-auto rounded-none">
 								{/* Number of columns visible */}
 								{table.getAllColumns().filter((column) => column.getIsVisible())
 									.length - 1}{" "}
@@ -40,7 +40,10 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -48,7 +51,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
-											className="capitalize"
+											className="rounded-none capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
@@ -63,13 +66,13 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				</div>
 			) : (
 				/* Mobile Control Panel */
-				<div className="flex flex-col gap-2 py-4 lg:hidden">
+				<div className="flex flex-col gap-2 lg:hidden">
 					<QuerySearchField
 						table={table}
 						columns={["name", "id"]}
 						placeholder="Search locations..."
 					/>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
@@ -79,7 +82,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 										table.getColumn("id")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
 							ID
 							<ArrowDown
@@ -99,7 +102,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 										table.getColumn("name")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
 							Name
 							<ArrowDown
@@ -120,7 +123,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 											"asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="col-span-2 flex items-center justify-between rounded-none text-xs sm:col-span-1"
 						>
 							Members
 							<ArrowDown
@@ -134,6 +137,6 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }

@@ -87,20 +87,30 @@ export function EventStaffActionsMenu({ member }: EventStaffActionsMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 p-0">
+				<Button variant="ghost" className="h-8 w-8 rounded-none p-0">
 					<span className="sr-only">Open menu</span>
 					<MoreHorizontal className="h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="center" side="left">
+			<DropdownMenuContent
+				align="center"
+				side="left"
+				className="rounded-none bg-background"
+			>
 				<DropdownMenuLabel>Actions</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleEditRoleClick}>
+				<DropdownMenuItem
+					className="rounded-none"
+					onClick={handleEditRoleClick}
+				>
 					<UserCog className="mr-2 h-4 w-4" />
 					Change Role
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleRemoveClick} className="text-red-600">
+				<DropdownMenuItem
+					className="rounded-none text-red-600"
+					onClick={handleRemoveClick}
+				>
 					<Trash2 className="mr-2 h-4 w-4" />
 					Remove from Event
 				</DropdownMenuItem>

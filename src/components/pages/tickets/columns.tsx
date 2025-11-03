@@ -23,7 +23,9 @@ export type BaseTicket = {
 	checkInAt?: string | null;
 };
 
-export function generateColumns(labelsData?: Record<string, string>): ColumnDef<BaseTicket>[] {
+export function generateColumns(
+	labelsData?: Record<string, string>,
+): ColumnDef<BaseTicket>[] {
 	const baseColumns: ColumnDef<BaseTicket>[] = [
 		{
 			accessorKey: "name",
@@ -35,6 +37,7 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -61,6 +64,45 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 			// Hidden column used for search functionality
 		},
 		{
+			accessorKey: "email",
+			size: 220,
+			header: ({ column }) => {
+				return (
+					<div className="flex items-center gap-2">
+						<p className="font-medium">Email</p>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() =>
+								column.toggleSorting(column.getIsSorted() === "asc")
+							}
+							className="rounded-none"
+						>
+							<ArrowDown
+								className={cn(
+									"size-4 transition-transform",
+									column.getIsSorted() === "asc" && "-rotate-180",
+								)}
+							/>
+						</Button>
+					</div>
+				);
+			},
+			cell: ({ row }) => {
+				const email = row.getValue("email") as string | null;
+				return (
+					<div
+						className={cn(
+							"font-medium",
+							!email && "text-muted-foreground italic",
+						)}
+					>
+						{email || "Not provided"}
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "ticketTypeName",
 			size: 140,
 			header: "Ticket Type",
@@ -84,6 +126,7 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 							status === "scanned"
 								? "bg-green-100 text-green-800 hover:bg-green-100"
 								: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+							"rounded-none",
 						)}
 					>
 						{status === "scanned" ? "Scanned" : "Not Scanned"}
@@ -102,6 +145,7 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -137,7 +181,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {
-					const customLabel = row.customLabels?.find((l) => l.name === labelName);
+					const customLabel = row.customLabels?.find(
+						(l) => l.name === labelName,
+					);
 					return customLabel?.value || "";
 				},
 				size: 180,
@@ -147,7 +193,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 						<Button
 							variant="ghost"
 							size="icon"
-							onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+							onClick={() =>
+								column.toggleSorting(column.getIsSorted() === "asc")
+							}
 						>
 							<ArrowDown
 								className={cn(
@@ -159,7 +207,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 					</div>
 				),
 				cell: ({ row }) => {
-					const customLabel = row.original.customLabels?.find((l) => l.name === labelName);
+					const customLabel = row.original.customLabels?.find(
+						(l) => l.name === labelName,
+					);
 					const value = customLabel?.value || "";
 					return (
 						<div
@@ -179,5 +229,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 	}
 
 	// Insert custom columns before the actions column
-	return [...baseColumns.slice(0, -1), ...customColumns, baseColumns[baseColumns.length - 1]];
+	return [
+		...baseColumns.slice(0, -1),
+		...customColumns,
+		baseColumns[baseColumns.length - 1],
+	];
 }

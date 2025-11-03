@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
 
 			{/* Data Table */}
 			{!_isMobile && !isTablet ? (
-				<div className="overflow-hidden rounded-md border">
+				<div className="overflow-hidden rounded-none border">
 					<Table className="w-full table-fixed">
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (

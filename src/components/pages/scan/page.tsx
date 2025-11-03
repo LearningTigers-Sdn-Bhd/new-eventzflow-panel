@@ -1,8 +1,9 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Download, ScanQrCode } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useScanHistory } from "@/hooks/use-scan-history";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
 import { ActivityFeed } from "./activity-feed";
@@ -72,39 +73,31 @@ export default function ScanContent() {
 	};
 
 	return (
-		<div className="mx-auto p-2">
+		<div className="p-0">
 			{/* Header */}
-			<div className="mb-4 sm:mb-6 md:mb-8">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-					<div>
-						<h1 className="font-bold text-2xl tracking-tight sm:text-3xl">
-							Ticket Scanner
-						</h1>
-						<p className="mt-1 text-muted-foreground text-sm sm:text-base">
-							Scan and validate event tickets instantly
-						</p>
-					</div>
-
-					{/* Quick Actions */}
-					{scanResults.length > 0 && (
-						<div className="flex items-center gap-2">
-							<Button
-								onClick={handleExport}
-								variant="outline"
-								size="sm"
-								className="flex-1 gap-2 sm:flex-none"
-							>
-								<Download className="h-4 w-4" />
-								<span>Export</span>
-							</Button>
-						</div>
-					)}
+			<div className="page-header mb-4 border-b border-dashed sm:mb-6 md:mb-8">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={ScanQrCode}
+						title="Ticket Scanner"
+						description="Scan and validate event tickets instantly"
+					/>
 				</div>
-			</div>
 
-			{/* Storage Status Section */}
-			<div className="mb-4 sm:mb-6">
-				<StorageStatus />
+				{/* Quick Actions */}
+				{scanResults.length > 0 && (
+					<div className="w-full px-0 md:w-auto md:px-4">
+						<Button
+							onClick={handleExport}
+							variant="outline"
+							size="sm"
+							className="w-full gap-2 rounded-none"
+						>
+							<Download className="h-4 w-4" />
+							<span>Export</span>
+						</Button>
+					</div>
+				)}
 			</div>
 
 			{/* Scanner Section - Hero Element */}
@@ -118,6 +111,11 @@ export default function ScanContent() {
 				/>
 			</div>
 
+			{/* Storage Status Section */}
+			<div className="mt-4 mb-4 sm:mt-8 sm:mb-6">
+				<StorageStatus />
+			</div>
+
 			{/* Statistics Bar */}
 			{scanResults.length > 0 && (
 				<div className="mb-4 sm:mb-6">
@@ -125,19 +123,19 @@ export default function ScanContent() {
 				</div>
 			)}
 
-		{/* Activity Feed - Full Width */}
-		<ActivityFeed
-			scanResults={scanResults}
-			recentScan={recentScan}
-			searchQuery={searchQuery}
-			filterType={filterType}
-			sortType={sortType}
-			isLoading={isLoading}
-			onSearchChange={setSearchQuery}
-			onFilterChange={setFilterType}
-			onSortChange={setSortType}
-			onExport={handleExport}
-		/>
+			{/* Activity Feed - Full Width */}
+			<ActivityFeed
+				scanResults={scanResults}
+				recentScan={recentScan}
+				searchQuery={searchQuery}
+				filterType={filterType}
+				sortType={sortType}
+				isLoading={isLoading}
+				onSearchChange={setSearchQuery}
+				onFilterChange={setFilterType}
+				onSortChange={setSortType}
+				onExport={handleExport}
+			/>
 		</div>
 	);
 }

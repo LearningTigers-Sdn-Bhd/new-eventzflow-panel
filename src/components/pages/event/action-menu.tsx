@@ -22,6 +22,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
+import { cn } from "@/lib/utils";
 import EventSettingsDialog from "./settings/modal";
 
 interface EventActionsMenuProps {
@@ -108,17 +109,25 @@ export function EventActionsMenu({ eventId }: EventActionsMenuProps) {
 
 	return (
 		<ButtonGroup>
-			<Button variant="outline" onClick={_openEventSettings}>
+			<Button
+				variant="outline"
+				className="rounded-none"
+				onClick={_openEventSettings}
+			>
 				<Cog className="h-4 w-4" />
 				Manage
 			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button className="px-2" variant="outline">
+					<Button className="rounded-none px-2" variant="outline">
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="center" side="left">
+				<DropdownMenuContent
+					align="center"
+					side="left"
+					className="rounded-none"
+				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					{routerItems.map((item) => {
@@ -126,7 +135,7 @@ export function EventActionsMenu({ eventId }: EventActionsMenuProps) {
 						return (
 							<DropdownMenuItem
 								key={item.id}
-								className={item.className}
+								className={cn(item.className, "rounded-none")}
 								onClick={() => {
 									_router.push(
 										item.route as Parameters<typeof _router.push>[0],

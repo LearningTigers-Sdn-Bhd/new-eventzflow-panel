@@ -1,7 +1,7 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
+import type { Table } from "@tanstack/react-table";
 import { ArrowDown, ChevronDown } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
@@ -15,15 +15,18 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
+import { cn } from "@/lib/utils";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
 }
 
-function getColumnLabel(columnId: string, labelsData?: Record<string, string>): string {
+function getColumnLabel(
+	columnId: string,
+	labelsData?: Record<string, string>,
+): string {
 	if (columnId.startsWith("custom_")) {
 		const labelKey = columnId.replace("custom_", "");
 		return labelsData?.[labelKey] || columnId;
@@ -39,7 +42,10 @@ function getColumnLabel(columnId: string, labelsData?: Record<string, string>): 
 	return standardLabels[columnId] || columnId;
 }
 
-export function DataControl<TData>({ table, labelsData }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	labelsData,
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -52,9 +58,10 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 	const uniqueTicketTypeNames = React.useMemo(() => {
 		const names = new Set<string>();
 		table.getPreFilteredRowModel().rows.forEach((row) => {
-			const typeName = (row.original as any)?.ticketTypeName;
+			const typeName = (row.original as Record<string, unknown>)
+				?.ticketTypeName;
 			if (typeName && typeName !== "N/A") {
-				names.add(typeName);
+				names.add(typeName as string);
 			}
 		});
 		return Array.from(names).sort();
@@ -67,7 +74,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 
 	const statusFilter =
 		(table.getColumn("status")?.getFilterValue() as string[]) ?? [];
-	
+
 	const ticketTypeFilter =
 		(table.getColumn("ticketTypeName")?.getFilterValue() as string[]) ?? [];
 
@@ -88,18 +95,19 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 	};
 
 	return (
-		<>
+		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
+			{/* Desktop Control Panel */}
 			{!_isTablet ? (
-				<div className="hidden items-center gap-2 py-4 lg:flex">
+				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["name", "phone"]}
+						columns={["name", "email", "phone", "ticketTypeName"]}
 						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline">
+							<Button variant="outline" className="rounded-none">
 								Status:{" "}
 								{statusFilter.length === 0
 									? "All"
@@ -109,15 +117,25 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => handleStatusFilter("all")}>
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
+							<DropdownMenuItem
+								onClick={() => handleStatusFilter("all")}
+								className="rounded-none"
+							>
 								All
 							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => handleStatusFilter("scanned")}>
+							<DropdownMenuItem
+								onClick={() => handleStatusFilter("scanned")}
+								className="rounded-none"
+							>
 								Scanned
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => handleStatusFilter("not_scanned")}
+								className="rounded-none"
 							>
 								Not Scanned
 							</DropdownMenuItem>
@@ -125,15 +143,16 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</DropdownMenu>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline">
+							<Button variant="outline" className="rounded-none">
 								Ticket Type:{" "}
-								{ticketTypeFilter.length === 0
-									? "All"
-									: ticketTypeFilter[0]}
+								{ticketTypeFilter.length === 0 ? "All" : ticketTypeFilter[0]}
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							<DropdownMenuItem onClick={() => handleTicketTypeFilter("all")}>
 								All
 							</DropdownMenuItem>
@@ -141,6 +160,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 								<DropdownMenuItem
 									key={ticketType.id}
 									onClick={() => handleTicketTypeFilter(ticketType.name)}
+									className="rounded-none"
 								>
 									{ticketType.name}
 								</DropdownMenuItem>
@@ -149,22 +169,29 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</DropdownMenu>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
-								Columns ({table.getAllColumns().filter((column) => column.getIsVisible())
-									.length - 1})
+							<Button variant="outline" className="ml-auto rounded-none">
+								{table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1}{" "}
+								columns
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-64 max-h-[400px] overflow-y-auto">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
-								.filter((column) => column.getCanHide() && column.id !== "phone")
+								.filter(
+									(column) => column.getCanHide() && column.id !== "phone",
+								)
 								.map((column) => {
 									const label = getColumnLabel(column.id, labelsData);
-									
+
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
+											className="rounded-none capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
@@ -178,10 +205,11 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</DropdownMenu>
 				</div>
 			) : (
-				<div className="flex flex-col gap-2 py-4 lg:hidden">
+				/* Mobile Control Panel */
+				<div className="flex flex-col gap-2 lg:hidden">
 					<QuerySearchField
 						table={table}
-						columns={["name", "phone"]}
+						columns={["name", "email", "phone", "ticketTypeName"]}
 						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
@@ -195,7 +223,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("name")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
 							Name
 							<ArrowDown
@@ -210,12 +238,32 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 							variant="outline"
 							onClick={() =>
 								table
+									.getColumn("email")
+									?.toggleSorting(
+										table.getColumn("email")?.getIsSorted() === "asc",
+									)
+							}
+							className="flex items-center justify-between rounded-none text-xs"
+						>
+							Email
+							<ArrowDown
+								className={cn(
+									"size-3.5 transition-transform",
+									table.getColumn("email")?.getIsSorted() === "asc" &&
+										"-rotate-180",
+								)}
+							/>
+						</Button>
+						<Button
+							variant="outline"
+							onClick={() =>
+								table
 									.getColumn("status")
 									?.toggleSorting(
 										table.getColumn("status")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
 							Status
 							<ArrowDown
@@ -235,7 +283,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("createdAt")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
 							Created
 							<ArrowDown
@@ -249,6 +297,6 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }

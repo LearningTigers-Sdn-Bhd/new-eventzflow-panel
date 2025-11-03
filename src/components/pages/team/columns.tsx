@@ -37,6 +37,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -63,6 +64,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -91,6 +93,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -138,14 +141,27 @@ export const columns: ColumnDef<TeamMember>[] = [
 							<ChevronDown className="size-4" />
 						</div>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="bottom">
-						<DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
 							All Roles
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("org_owner")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("org_owner")}
+						>
 							Owner
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("member")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("member")}
+						>
 							Member
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -154,12 +170,17 @@ export const columns: ColumnDef<TeamMember>[] = [
 		},
 		cell: ({ row }) => {
 			const role = row.getValue("role") as string;
-			const roleLabel = role === "org_owner" ? "Owner" : role === "manager" ? "Manager" : "Member";
+			const roleLabel =
+				role === "org_owner"
+					? "Owner"
+					: role === "manager"
+						? "Manager"
+						: "Member";
 			return (
 				<Badge
 					variant="outline"
 					className={cn(
-						"min-w-16 font-bold capitalize",
+						"min-w-16 rounded-none font-bold capitalize",
 						role === "org_owner" && "border-purple-500 text-purple-500",
 						role === "manager" && "border-blue-500 text-blue-500",
 						role === "member" && "border-gray-500 text-gray-500",
@@ -199,14 +220,27 @@ export const columns: ColumnDef<TeamMember>[] = [
 							<ChevronDown className="size-4" />
 						</div>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="bottom">
-						<DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
 							All Status
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("active")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("active")}
+						>
 							Active
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => column.setFilterValue("inactive")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("inactive")}
+						>
 							Inactive
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -216,7 +250,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 		cell: ({ row }) => (
 			<Badge
 				className={cn(
-					"min-w-16 font-bold capitalize",
+					"min-w-16 rounded-none font-bold capitalize",
 					row.getValue("status") === "active" && "bg-green-500",
 					row.getValue("status") === "inactive" && "bg-red-500",
 				)}
@@ -236,6 +270,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(

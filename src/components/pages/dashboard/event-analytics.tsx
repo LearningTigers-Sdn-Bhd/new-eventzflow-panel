@@ -5,19 +5,28 @@ import {
 	Activity,
 	ArrowLeft,
 	Clock,
+	DollarSign,
 	MapPin,
 	QrCode,
 	Scan,
+	ScanFace,
+	Search,
 	Ticket,
 	TrendingUp,
 	Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { RiCalendarEventLine } from "react-icons/ri";
+import {
+	BlankCard,
+	BlankCardWithButton,
+	StatsCard,
+	WeeklyChart,
+} from "@/components/analytics-card";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -81,19 +90,22 @@ export function EventAnalytics({
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4">
+			<div className="flex w-full items-center justify-between p-4 px-2 md:px-4">
+				<div className="flex w-full items-center gap-4">
 					{showBackButton && (
 						<Button variant="ghost" size="icon" onClick={onBack}>
 							<ArrowLeft className="h-5 w-5" />
 						</Button>
 					)}
-					<div>
-						<div className="flex items-center gap-3">
-							<h2 className="font-bold text-2xl tracking-tight">
-								{analytics.eventName}
-							</h2>
+					<div className="flex w-full flex-col gap-4 lg:flex-row">
+						<div className="w-full">
+							<IconTitle
+								icon={RiCalendarEventLine}
+								title={analytics.eventName}
+								description="Track your event efficiently"
+							/>
 							<Badge
+								className="mt-2 ml-12 rounded-none"
 								variant={
 									analytics.status === "active" ? "default" : "destructive"
 								}
@@ -101,194 +113,167 @@ export function EventAnalytics({
 								{analytics.status === "active" ? "Active" : "Inactive"}
 							</Badge>
 						</div>
-						<p className="mt-1 text-muted-foreground">
-							Track your event efficiently
-						</p>
-					</div>
-				</div>
-				<div className="flex gap-2">
-					<Button variant="outline" onClick={() => router.push("/scan")}>
-						<QrCode className="mr-2 h-4 w-4" />
-						Scan Tickets
-					</Button>
-					<Button
-						onClick={() =>
-							router.push(
-								`/event/${eventId}/tickets` as Parameters<
-									typeof router.push
-								>[0],
-							)
-						}
-					>
-						<Ticket className="mr-2 h-4 w-4" />
-						View All Tickets
-					</Button>
-				</div>
-			</div>
-
-			{/* Key Metrics */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<Card>
-					<CardContent className="p-6">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="font-medium text-muted-foreground text-sm">
-									Total Tickets
-								</p>
-								<p className="mt-2 font-bold text-3xl">
-									{analytics.totalTickets}
-								</p>
-							</div>
-							<div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
-								<Ticket className="h-6 w-6 text-blue-500" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent className="p-6">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="font-medium text-muted-foreground text-sm">
-									Scanned Tickets
-								</p>
-								<p className="mt-2 font-bold text-3xl text-green-600 dark:text-green-400">
-									{analytics.scannedTickets}
-								</p>
-							</div>
-							<div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
-								<QrCode className="h-6 w-6 text-green-500" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent className="p-6">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="font-medium text-muted-foreground text-sm">
-									Unscanned Tickets
-								</p>
-								<p className="mt-2 font-bold text-3xl text-orange-600 dark:text-orange-400">
-									{analytics.unscannedTickets}
-								</p>
-							</div>
-							<div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10">
-								<Clock className="h-6 w-6 text-orange-500" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent className="p-6">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="font-medium text-muted-foreground text-sm">
-									Total Amount
-								</p>
-								<p className="mt-2 font-bold text-3xl">
-									{analytics.totalRevenue.toLocaleString()}
-								</p>
-							</div>
-							<div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10">
-								<TrendingUp className="h-6 w-6 text-purple-500" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Charts Section */}
-			<AnalyticsGraph
-				weeklyRegisteredTickets={analytics.registrationData.map((d) => ({
-					date: d.date,
-					count: d.value,
-				}))}
-				weeklyScannedTickets={analytics.scanData.map((d) => ({
-					date: d.date,
-					count: d.value,
-				}))}
-				weeklySalesAmount={analytics.revenueData.map((d) => ({
-					date: d.date,
-					count: d.value,
-				}))}
-				isLoading={false}
-			/>
-
-			{/* Additional Info & Recent Scans */}
-			<div className="grid gap-6 lg:grid-cols-3">
-				{/* Quick Stats */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">Quick Info</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<MapPin className="h-4 w-4" />
-								<span className="text-sm">Locations</span>
-							</div>
-							<span className="font-semibold">{analytics.locations}</span>
-						</div>
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<Clock className="h-4 w-4" />
-								<span className="text-sm">Pending Tickets</span>
-							</div>
-							<span className="font-semibold text-orange-600 dark:text-orange-400">
-								{analytics.pendingTickets}
-							</span>
-						</div>
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<Activity className="h-4 w-4" />
-								<span className="text-sm">Scan Rate</span>
-							</div>
-							<span className="font-semibold">{scanRate}%</span>
-						</div>
-						<div className="mt-4">
-							<div className="mb-2 text-muted-foreground text-sm">Progress</div>
-							<div className="h-2 overflow-hidden rounded-full bg-secondary">
-								<div
-									className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all"
-									style={{ width: `${scanRate}%` }}
-								/>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Recent Scans */}
-				<Card className="lg:col-span-2">
-					<CardHeader>
-						<div className="flex items-center justify-between">
-							<CardTitle className="text-lg">Recent Scans</CardTitle>
+						<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
 							<Button
-								variant="outline"
-								size="sm"
+								className="w-full rounded-none border py-5 md:py-4 lg:w-auto"
+								variant="secondary"
+								onClick={() => router.push("/scan")}
+							>
+								<QrCode className="mr-2 h-4 w-4" />
+								Scan Tickets
+							</Button>
+							<Button
+								className="w-full rounded-none border py-5 md:py-4 lg:w-auto"
 								onClick={() =>
 									router.push(
-										`/event/${eventId}/scanned-logs` as Parameters<
+										`/event/${eventId}/tickets` as Parameters<
 											typeof router.push
 										>[0],
 									)
 								}
 							>
-								<Scan className="mr-2 h-4 w-4" />
-								View All Scan Logs
+								<Ticket className="mr-2 h-4 w-4" />
+								View All Tickets
 							</Button>
 						</div>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{analytics.recentScans.length > 0 ? (
-								analytics.recentScans.map((scan) => (
+					</div>
+				</div>
+			</div>
+
+			{/* Key Metrics */}
+			<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-4">
+				<StatsCard
+					label="Total Tickets"
+					value={analytics.totalTickets}
+					Icon={Ticket}
+				/>
+
+				<StatsCard
+					label="Scanned Tickets"
+					value={analytics.scannedTickets}
+					Icon={QrCode}
+				/>
+
+				<StatsCard
+					label="Unscanned Tickets"
+					value={analytics.unscannedTickets}
+					Icon={Clock}
+				/>
+
+				<StatsCard
+					label="Total Amount"
+					value={analytics.totalRevenue.toLocaleString()}
+					Icon={TrendingUp}
+				/>
+			</div>
+
+			{/* Charts & Additional Info */}
+			<div className="mb-8 grid grid-cols-1 gap-4 border-y border-dashed lg:grid-cols-3">
+				{/* Weekly Registered Tickets */}
+				<WeeklyChart
+					title="Weekly Registered Tickets"
+					description="Ticket registrations over the last 7 days"
+					data={analytics.registrationData.map((d) => ({
+						date: d.date,
+						count: d.value,
+					}))}
+					isLoading={false}
+					color="var(--chart-1)"
+					icon={<Ticket className="h-4 w-4" />}
+				/>
+
+				{/* Weekly Scanned Tickets */}
+				<WeeklyChart
+					title="Weekly Scanned Tickets"
+					description="Ticket scans over the last 7 days"
+					data={analytics.scanData.map((d) => ({
+						date: d.date,
+						count: d.value,
+					}))}
+					isLoading={false}
+					color="var(--chart-2)"
+					icon={<QrCode className="h-4 w-4" />}
+				/>
+
+				{/* Weekly Sales Amount */}
+				<WeeklyChart
+					title="Weekly Sales Amount"
+					description="Sales revenue over the last 7 days"
+					data={analytics.revenueData.map((d) => ({
+						date: d.date,
+						count: d.value,
+					}))}
+					isLoading={false}
+					color="var(--chart-3)"
+					icon={<DollarSign className="h-4 w-4" />}
+				/>
+
+				{/* Quick Stats */}
+				<BlankCard
+					title="Quick Info"
+					icon={<Search className="size-4" />}
+					className="h-full"
+				>
+					<div className="flex h-full flex-col justify-between">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<MapPin className="size-4" />
+									<span className="text-sm">Locations</span>
+								</div>
+								<span className="font-semibold">{analytics.locations}</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<Clock className="size-4" />
+									<span className="text-sm">Pending Tickets</span>
+								</div>
+								<span className="font-semibold text-orange-600 dark:text-orange-400">
+									{analytics.pendingTickets}
+								</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<Activity className="size-4" />
+									<span className="text-sm">Scan Rate</span>
+								</div>
+								<span className="font-semibold">{scanRate}%</span>
+							</div>
+						</div>
+						<div className="mt-4">
+							<div className="mb-2 text-muted-foreground text-sm">Progress</div>
+							<div className="h-2 overflow-hidden rounded-none border border-emerald-500/50 bg-secondary">
+								<div
+									className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all"
+									style={{ width: `${scanRate}%` }}
+								/>
+							</div>
+						</div>
+					</div>
+				</BlankCard>
+
+				{/* Recent Scans */}
+				<BlankCardWithButton
+					title="Recent Scans"
+					icon={<ScanFace className="size-4" />}
+					buttonLabel="View All Scan Logs"
+					buttonIcon={<Scan className="h-4 w-4" />}
+					onButtonClick={() =>
+						router.push(
+							`/event/${eventId}/scanned-logs` as Parameters<
+								typeof router.push
+							>[0],
+						)
+					}
+					className="lg:col-span-2"
+				>
+					<div className="h-[250px] ps-12">
+						{analytics.recentScans.length > 0 ? (
+							<div className="h-full overflow-y-auto border-l border-dashed">
+								{analytics.recentScans.map((scan) => (
 									<div
 										key={scan.id}
-										className="flex items-center justify-between rounded-lg border p-3"
+										className="flex items-center justify-between border-b border-dashed p-3"
 									>
 										<div className="flex items-center gap-3">
 											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -310,16 +295,16 @@ export function EventAnalytics({
 											</p>
 										</div>
 									</div>
-								))
-							) : (
-								<div className="py-8 text-center text-muted-foreground">
-									<Scan className="mx-auto mb-2 h-12 w-12 opacity-50" />
-									<p className="text-sm">No scans yet</p>
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
+								))}
+							</div>
+						) : (
+							<div className="py-8 text-center text-muted-foreground">
+								<Scan className="mx-auto mb-2 h-12 w-12 opacity-50" />
+								<p className="text-sm">No scans yet</p>
+							</div>
+						)}
+					</div>
+				</BlankCardWithButton>
 			</div>
 		</div>
 	);

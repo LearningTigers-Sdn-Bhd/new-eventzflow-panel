@@ -16,8 +16,8 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	useSidebar,
 } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function TeamSwitcher({
 	teams,
@@ -28,7 +28,7 @@ export function TeamSwitcher({
 		plan: string;
 	}[];
 }) {
-	const { isMobile } = useSidebar();
+	const isMobile = useIsMobile();
 	const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
 	if (!activeTeam) {
@@ -55,7 +55,7 @@ export function TeamSwitcher({
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
-						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-none"
 						align="start"
 						side={isMobile ? "bottom" : "right"}
 						sideOffset={4}

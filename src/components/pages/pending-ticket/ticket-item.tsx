@@ -7,16 +7,18 @@ import {
 	Item,
 	ItemActions,
 	ItemContent,
-	ItemDescription,
 	ItemFooter,
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
-import { Button } from "../../ui/button";
 import { PendingTicketActionsMenu } from "./action-menu";
 import type { PendingTicket } from "./columns";
-import { formatTicketPrice, getPaymentStatusColor, getPaymentStatusText } from "./constants";
+import {
+	formatTicketPrice,
+	getPaymentStatusColor,
+	getPaymentStatusText,
+} from "./constants";
 
 interface PendingTicketItemProps {
 	ticket: PendingTicket;
@@ -26,18 +28,24 @@ interface PendingTicketItemProps {
 /**
  * Mobile/Tablet view component for displaying a pending ticket card
  */
-export function PendingTicketItem({ ticket, labelsData }: PendingTicketItemProps) {
+export function PendingTicketItem({
+	ticket,
+	labelsData,
+}: PendingTicketItemProps) {
 	const date = new Date(ticket.createdAt);
 	const hasCustomLabels = labelsData && Object.keys(labelsData).length > 0;
 
 	return (
-		<Item variant="outline" className="h-full w-full">
+		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between">
 					<h3 className="truncate font-bold text-xl">{ticket.name}</h3>
 					<Badge
 						variant="secondary"
-						className={getPaymentStatusColor(ticket.paymentStatus)}
+						className={cn(
+							"rounded-none",
+							getPaymentStatusColor(ticket.paymentStatus),
+						)}
 					>
 						{getPaymentStatusText(ticket.paymentStatus)}
 					</Badge>
@@ -90,13 +98,14 @@ export function PendingTicketItem({ ticket, labelsData }: PendingTicketItemProps
 
 				{hasCustomLabels && (
 					<div className="space-y-2 border-t pt-3">
-						<h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+						<h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 							Additional Information
 						</h4>
 						<div className="grid grid-cols-1 gap-2">
 							{Object.entries(labelsData).map(([key, labelName]) => {
 								const value =
-									ticket.customLabels?.find((l) => l.name === labelName)?.value || "";
+									ticket.customLabels?.find((l) => l.name === labelName)
+										?.value || "";
 								return (
 									<div key={key} className="space-y-0.5">
 										<p className="font-medium text-muted-foreground text-xs">

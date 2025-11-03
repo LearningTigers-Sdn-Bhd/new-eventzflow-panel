@@ -1,6 +1,8 @@
 "use client";
 
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { TeamMember } from "@/lib/api/team";
 import { columns } from "./columns";
@@ -39,17 +41,23 @@ export default function TeamClientWrapper({
 	};
 
 	return (
-		<div className="p-2">
-			<div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-				<div className="min-w-0 flex-1">
-					<h1 className="font-bold text-3xl tracking-tight">Team Members</h1>
-					<p className="text-muted-foreground">
-						Manage your team members and their roles.
-					</p>
+		<div className="p-0">
+			<div className="page-header mb-6">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={Users}
+						title="Team Members"
+						description="Manage your team members and their roles."
+					/>
 				</div>
-				<Button onClick={handleAddMember} className="w-full lg:w-auto lg:shrink-0">
-					Add Team Member
-				</Button>
+				<div className="w-full px-0 md:w-auto md:px-4">
+					<Button
+						onClick={handleAddMember}
+						className="w-full shrink-0 rounded-none"
+					>
+						Add Team Member
+					</Button>
+				</div>
 			</div>
 			<DataTable columns={columns} data={filteredTeamMembers} />
 		</div>

@@ -134,19 +134,22 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 p-0">
+				<Button variant="ghost" className="h-8 w-8 rounded-none p-0">
 					<span className="sr-only">Open menu</span>
 					<MoreHorizontal className="h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="center" side="left">
-				<DropdownMenuLabel>Actions</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleEditClick}>
+			<DropdownMenuContent align="center" side="left" className="rounded-none">
+				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
+				<DropdownMenuSeparator className="rounded-none" />
+				<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit Member
 				</DropdownMenuItem>
-				<DropdownMenuItem onClick={handleToggleStatusClick}>
+				<DropdownMenuItem
+					className="rounded-none"
+					onClick={handleToggleStatusClick}
+				>
 					{member.status === "active" ? (
 						<>
 							<PowerOff className="mr-2 h-4 w-4" />
@@ -160,7 +163,10 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 					)}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">
+				<DropdownMenuItem
+					onClick={handleDeleteClick}
+					className="rounded-none text-red-600"
+				>
 					<Trash2 className="mr-2 h-4 w-4" />
 					Delete Member
 				</DropdownMenuItem>

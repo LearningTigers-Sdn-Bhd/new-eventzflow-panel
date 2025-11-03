@@ -2,11 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { RiCalendarEventFill } from "react-icons/ri";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { getColumns } from "@/components/pages/event/columns";
 import CreateEventForm from "@/components/pages/event/create-event-form";
 import { DataTable } from "@/components/pages/event/data-table";
 import { Button } from "@/components/ui/button";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEvents } from "@/lib/api/event";
@@ -42,16 +44,41 @@ export default function EventPage() {
 	};
 
 	return (
-		<div className="p-2">
-			<div className="mb-8 flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl tracking-tight">Events</h1>
-					<p className="text-muted-foreground">
-						Manage your events and view their details.
-					</p>
+		<div className="p-0">
+			{/* Header */}
+			{/* <div className="flex w-full flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:gap-1">
+						<div className="px-2 md:px-4">
+							<IconTitle
+								icon={List}
+								title="All Events Overview"
+								description="Quick view of all your events and their performance"
+							/>
+						</div>
+						<div className="w-full px-0 md:w-auto md:px-4">
+							<EventSwitcher
+								currentEventId={selectedEventId}
+								onEventChange={setSelectedEventId}
+								initialEvents={events}
+							/>
+						</div>
+					</div> */}
+			<div className="page-header">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={RiCalendarEventFill}
+						title="Events"
+						description="Manage your events and view their details."
+					/>
 				</div>
 				{user?.role === "org_owner" && (
-					<Button onClick={handleCreateEvent}>Create Event</Button>
+					<div className="w-full px-0 md:w-auto md:px-4">
+						<Button
+							onClick={handleCreateEvent}
+							className="w-full rounded-none border"
+						>
+							Create Event
+						</Button>
+					</div>
 				)}
 			</div>
 			{isLoading ? (

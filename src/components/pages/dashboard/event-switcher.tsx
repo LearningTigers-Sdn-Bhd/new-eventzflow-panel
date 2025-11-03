@@ -21,6 +21,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { EventOverview } from "@/lib/api/dashboard/response";
 
 interface EventSwitcherProps {
@@ -34,6 +35,7 @@ export function EventSwitcher({
 	onEventChange,
 	initialEvents,
 }: EventSwitcherProps) {
+	const isMobile = useIsMobile();
 	// Use the events passed from parent instead of fetching again
 	// This avoids duplicate API calls and potential auth timing issues
 	const events = initialEvents;
@@ -48,7 +50,7 @@ export function EventSwitcher({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="group relative gap-2 transition-all hover:border-primary/50 hover:bg-primary/5"
+							className="group relative w-full gap-2 rounded-none transition-all hover:border-primary/50 hover:bg-primary/5"
 						>
 							<ArrowLeftRight className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
 							<span className="max-w-[200px] truncate font-medium">
@@ -57,7 +59,7 @@ export function EventSwitcher({
 							{eventCount > 1 && (
 								<Badge
 									variant="secondary"
-									className="ml-1 h-5 px-1.5 text-xs rounded-md! bg-green-500/10 border-green-500/30 text-green-700"
+									className="ml-1 h-5 rounded-md! border-green-500/30 bg-green-500/10 px-1.5 text-green-700 text-xs"
 								>
 									{eventCount}
 								</Badge>
@@ -66,7 +68,7 @@ export function EventSwitcher({
 						</Button>
 					</DropdownMenuTrigger>
 				</TooltipTrigger>
-				<TooltipContent side="left" sideOffset={10}>
+				<TooltipContent side={isMobile ? "top" : "left"} sideOffset={10}>
 					<p className="font-medium">Switch between events</p>
 					<p className="mt-0.5 text-xs opacity-80">
 						{eventCount > 1
@@ -74,7 +76,10 @@ export function EventSwitcher({
 							: "Select an event to view"}
 					</p>
 				</TooltipContent>
-				<DropdownMenuContent align="start" className="w-[300px]">
+				<DropdownMenuContent
+					align={isMobile ? "center" : "end"}
+					className="h-[430px] w-[calc(100vw-7rem)] rounded-none md:w-[300px]"
+				>
 					<DropdownMenuLabel>Switch Event</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem

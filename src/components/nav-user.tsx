@@ -21,13 +21,13 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "./ui/skeleton";
 
 export function NavUser() {
-	const { isMobile } = useSidebar();
+	const isMobile = useIsMobile();
 	const router = useRouter();
 	const { user, isLoading, logout } = useAuth();
 
@@ -64,15 +64,15 @@ export function NavUser() {
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
-						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-none"
 						side={isMobile ? "bottom" : "top"}
 						align="start"
 						sideOffset={4}
 					>
 						<DropdownMenuLabel className="p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarFallback className="rounded-lg">
+								<Avatar className="h-8 w-8 rounded-none">
+									<AvatarFallback className="rounded-none">
 										{user.full_name?.charAt(0) ||
 											user.email.charAt(0).toUpperCase()}
 									</AvatarFallback>
@@ -88,24 +88,24 @@ export function NavUser() {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem
-								className="cursor-pointer"
+								className="cursor-pointer rounded-none"
 								onClick={() => router.push("/settings" as Route)}
 							>
 								<BadgeCheck />
 								Account Settings
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem className="rounded-none">
 								<CreditCard />
 								Billing Settings
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem className="rounded-none">
 								<Bell />
 								Notifications
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							className="group cursor-pointer bg-destructive text-white transition-colors hover:bg-destructive/90 hover:text-red-950"
+							className="group cursor-pointer rounded-none bg-destructive text-white transition-colors hover:bg-destructive/90 hover:text-red-950"
 							onClick={async () => {
 								await logout();
 								router.push("/");

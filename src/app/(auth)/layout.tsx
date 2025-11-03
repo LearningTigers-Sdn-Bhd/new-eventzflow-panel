@@ -78,7 +78,7 @@ export default function AuthLayout({
 		<SidebarProvider>
 			<AppSidebar />
 			<SidebarInset>
-				<header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+				<header className="flex h-12 flex-row items-center justify-between gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
 					<div className="flex items-center gap-2 px-4">
 						<SidebarTrigger className="-ml-1" />
 						<Separator
@@ -86,8 +86,30 @@ export default function AuthLayout({
 							className="mr-2 data-[orientation=vertical]:h-12"
 						/>
 					</div>
+					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+						<Separator
+							orientation="vertical"
+							className="data-[orientation=vertical]:h-12"
+						/>
+					</div>
 				</header>
-				<div className="mx-auto min-h-screen w-full p-4">{children}</div>
+				<div className="mx-auto w-full px-12">
+					<div className="w-full border-x border-dashed">{children}</div>
+				</div>
+				<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+						<Separator
+							orientation="vertical"
+							className="data-[orientation=vertical]:h-12"
+						/>
+					</div>
+					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+						<Separator
+							orientation="vertical"
+							className="data-[orientation=vertical]:h-12"
+						/>
+					</div>
+				</footer>
 			</SidebarInset>
 		</SidebarProvider>
 	);

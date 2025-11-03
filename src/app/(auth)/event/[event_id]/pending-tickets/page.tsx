@@ -28,7 +28,7 @@ export default function PendingTicketsPage({
 	});
 
 	return (
-		<div className="container mx-auto">
+		<div className="space-y-4">
 			{isLoading ? (
 				<LoadingState
 					title="Loading pending tickets..."

@@ -94,43 +94,52 @@ export function QuerySearchField<TData, TValue>(
 		if (isSelectiveSearch(currentProps) && selectiveFilter) {
 			const { table, columns, searchCustomFields } = currentProps;
 
-		// Set up custom global filter function for selective search
-		table.options.globalFilterFn = (row, _columnId, filterValue) => {
-			const searchTerm = filterValue?.toLowerCase() || "";
+			// Set up custom global filter function for selective search
+			table.options.globalFilterFn = (row, _columnId, filterValue) => {
+				const searchTerm = filterValue?.toLowerCase() || "";
 
-			// Check if the search term matches any of the specified columns
-			const columnMatch = columns.some((colId) => {
-				const cellValue = row.getValue(colId);
-				const cellString = cellValue ? String(cellValue).toLowerCase() : "";
-				
-				// For phone column, remove common formatting characters for flexible matching
-				if (colId === "phone") {
-					// Remove spaces, dashes, parentheses, and dots from both search and value
-					const normalizedSearch = searchTerm.replace(/[\s\-().]/g, "");
-					const normalizedPhone = cellString.replace(/[\s\-().]/g, "");
-					return normalizedPhone.includes(normalizedSearch);
+				// Check if the search term matches any of the specified columns
+				const columnMatch = columns.some((colId) => {
+					let cellValue: unknown;
+					try {
+						// Try to get value from column if it exists
+						cellValue = row.getValue(colId);
+					} catch {
+						// If column doesn't exist, fall back to accessing original data
+						cellValue = (row.original as Record<string, unknown>)[colId];
+					}
+					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
+
+					// For phone column, remove common formatting characters for flexible matching
+					if (colId === "phone") {
+						// Remove spaces, dashes, parentheses, and dots from both search and value
+						const normalizedSearch = searchTerm.replace(/[\s\-().]/g, "");
+						const normalizedPhone = cellString.replace(/[\s\-().]/g, "");
+						return normalizedPhone.includes(normalizedSearch);
+					}
+
+					// For other columns, use standard string matching
+					return cellString.includes(searchTerm);
+				});
+
+				// If already matched in standard columns, return true
+				if (columnMatch) return true;
+
+				// Additionally search custom fields if enabled
+				if (searchCustomFields) {
+					const rowData = row.original as Record<string, unknown>;
+					if (rowData.customLabels && Array.isArray(rowData.customLabels)) {
+						return rowData.customLabels.some(
+							(label: { name: string; value: string }) => {
+								const labelValue = label.value?.toLowerCase() || "";
+								return labelValue.includes(searchTerm);
+							},
+						);
+					}
 				}
-				
-				// For other columns, use standard string matching
-				return cellString.includes(searchTerm);
-			});
 
-			// If already matched in standard columns, return true
-			if (columnMatch) return true;
-
-			// Additionally search custom fields if enabled
-			if (searchCustomFields) {
-				const rowData = row.original as any;
-				if (rowData.customLabels && Array.isArray(rowData.customLabels)) {
-					return rowData.customLabels.some((label: { name: string; value: string }) => {
-						const labelValue = label.value?.toLowerCase() || "";
-						return labelValue.includes(searchTerm);
-					});
-				}
-			}
-
-			return false;
-		};
+				return false;
+			};
 
 			// Apply the global filter
 			table.setGlobalFilter(selectiveFilter);
@@ -147,7 +156,7 @@ export function QuerySearchField<TData, TValue>(
 		const placeholder = props.placeholder || "Search...";
 
 		return (
-			<InputGroup>
+			<InputGroup className="rounded-none bg-background">
 				<InputGroupInput
 					placeholder={placeholder}
 					value={globalFilter}
@@ -172,7 +181,7 @@ export function QuerySearchField<TData, TValue>(
 		const placeholder = props.placeholder || "Search...";
 
 		return (
-			<InputGroup>
+			<InputGroup className="rounded-none bg-background">
 				<InputGroupInput
 					placeholder={placeholder}
 					value={globalFilter}
@@ -197,7 +206,7 @@ export function QuerySearchField<TData, TValue>(
 	const filterValue = (column?.getFilterValue() as string) ?? "";
 
 	return (
-		<InputGroup>
+		<InputGroup className="rounded-none bg-background">
 			<InputGroupInput
 				placeholder={placeholder}
 				value={filterValue}

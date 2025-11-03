@@ -5,9 +5,13 @@ import { ChartBar, MapPin, ScanQrCode, Users } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
+import type { IconType } from "react-icons";
 import { HiTicket } from "react-icons/hi2";
+import { RiCalendarEventFill } from "react-icons/ri";
 import { TbClockDollar } from "react-icons/tb";
+import { TabHeader } from "@/components/pages/event/tab-header";
 import { Badge } from "@/components/ui/badge";
+import { IconTitle } from "@/components/ui/icon-heading";
 import {
 	Select,
 	SelectContent,
@@ -33,7 +37,7 @@ type TabItem = {
 	label: string;
 	title: string;
 	description: string;
-	icon: React.ComponentType<{ className?: string }>;
+	icon: IconType;
 	route: string;
 };
 
@@ -135,9 +139,6 @@ export default function EventDetailLayout({
 		return tabItems.find((item) => item.route === currentTab) || tabItems[0];
 	}, [currentTab]);
 
-	const HeaderIcon = currentTabItem.icon;
-	const CurrentTabIcon = currentTabItem.icon;
-
 	const handleTabChange = useCallback(
 		(value: string) => {
 			const path = `/event/${event_id}/${value}`;
@@ -147,60 +148,68 @@ export default function EventDetailLayout({
 	);
 
 	return (
-		<div className="p-2">
-			<div className="mb-6">
-				<div className="mb-4">
+		<div className="p-0">
+			<div className="">
+				<div className="border-b border-dashed">
 					{isLoading ? (
 						<>
 							<Skeleton className="mb-2 h-9 w-64" />
 							<Skeleton className="h-5 w-96" />
 						</>
 					) : (
-						<>
-							<h1 className="font-bold text-3xl tracking-tight">
-								Event Details
-							</h1>
-							<div className="mt-1 flex items-center gap-2">
-								<p className="text-muted-foreground">
-									Manage and view details for{" "}
-									{currentEvent?.title || `event ${event_id}`}
-								</p>
-								{currentEvent?.status && (
+						<div className="page-header">
+							<div className="px-2 md:px-4">
+								<IconTitle
+									icon={RiCalendarEventFill}
+									title="Event Details"
+									description={`Manage and view details for ${
+										currentEvent?.title || `event ${event_id}`
+									}`}
+								/>
+							</div>
+							{currentEvent?.status && (
+								<div className="px-2 md:px-4">
 									<Badge
 										variant={
 											currentEvent.status === "published"
 												? "default"
 												: "secondary"
 										}
+										className="rounded-none"
 									>
 										{currentEvent.status === "published"
 											? "Published"
 											: "Draft"}
 									</Badge>
-								)}
-							</div>
-						</>
+								</div>
+							)}
+						</div>
 					)}
 				</div>
-				<div className="w-full">
+				<div className="w-full border-y border-dashed">
 					{isTablet ? (
 						<Select value={currentTab} onValueChange={handleTabChange}>
-							<SelectTrigger className="w-full h-12!">
+							<SelectTrigger className="h-12! w-full rounded-none border-none bg-accent/50 transition-colors hover:bg-accent">
 								<SelectValue>
-									<div className="flex items-center gap-2">
-										<CurrentTabIcon className="size-4" />
-										<span>{currentTabItem.label}</span>
-									</div>
+									{(() => {
+										const IconComponent = currentTabItem.icon;
+										return (
+											<div className="flex items-center gap-2">
+												<IconComponent className="size-4" />
+												<span>{currentTabItem.label}</span>
+											</div>
+										);
+									})()}
 								</SelectValue>
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent className="rounded-none bg-background">
 								{tabItems.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<SelectItem
 											key={item.id}
 											value={item.route}
-											className="h-10!"
+											className="h-10! rounded-none"
 										>
 											<div className="flex items-center gap-2">
 												<IconComponent className="size-4" />
@@ -213,14 +222,14 @@ export default function EventDetailLayout({
 						</Select>
 					) : (
 						<Tabs value={currentTab} onValueChange={handleTabChange}>
-							<TabsList className="flex w-full h-12">
+							<TabsList className="flex h-12 w-full rounded-none">
 								{tabItems.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<TabsTrigger
 											key={item.id}
 											value={item.route}
-											className="flex flex-1 items-center justify-center gap-2"
+											className="flex flex-1 items-center justify-center gap-1 rounded-none lg:gap-2"
 										>
 											<IconComponent className="size-5 lg:size-4" />
 											<span className="hidden xl:inline">{item.label}</span>
@@ -232,39 +241,13 @@ export default function EventDetailLayout({
 					)}
 				</div>
 			</div>
-			<div className="rounded-lg border bg-card p-4 sm:p-6">
-				{/* Mobile Layout: Stack header and actions vertically */}
-				<div className="mb-4 flex flex-col gap-3 lg:hidden">
-					<div className="flex items-center gap-3">
-						<div className="rounded-md border bg-muted p-2">
-							<HeaderIcon className="h-5 w-5 text-muted-foreground sm:h-6 sm:w-6" />
-						</div>
-						<div className="flex flex-1 flex-col gap-0.5">
-							<h2 className="font-bold text-lg sm:text-xl">{currentTabItem.title}</h2>
-							<p className="text-muted-foreground text-xs sm:text-sm">
-								{currentTabItem.description}
-							</p>
-						</div>
-					</div>
-					<EventActionsSlot />
-				</div>
-
-				{/* Desktop Layout: Keep header and actions in one row */}
-				<div className="mb-4 hidden items-center justify-between gap-3 lg:flex">
-					<div className="flex w-full items-center gap-3">
-						<div className="rounded-md border bg-muted p-2">
-							<HeaderIcon className="h-6 w-6 text-muted-foreground" />
-						</div>
-						<div className="flex flex-col gap-1">
-							<h2 className="font-bold text-xl">{currentTabItem.title}</h2>
-							<p className="text-muted-foreground">
-								{currentTabItem.description}
-							</p>
-						</div>
-					</div>
-
-					<EventActionsSlot />
-				</div>
+			<div className="rounded-none border border-dashed bg-card">
+				<TabHeader
+					icon={currentTabItem.icon}
+					title={currentTabItem.title}
+					description={currentTabItem.description}
+					actions={<EventActionsSlot />}
+				/>
 				{children}
 			</div>
 		</div>

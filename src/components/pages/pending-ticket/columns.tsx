@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PendingTicketActionsMenu } from "./action-menu";
 import {
-	formatTicketPrice,
 	getPaymentStatusColor,
 	getPaymentStatusText,
 	type PaymentStatusString,
@@ -48,6 +47,7 @@ function SortableHeader({
 				variant="ghost"
 				size="icon"
 				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				className="rounded-none"
 			>
 				<ArrowDown
 					className={cn(
@@ -90,7 +90,9 @@ function showPaymentInfoToast(ticket: PendingTicket) {
 	}
 }
 
-export function generateColumns(labelsData?: Record<string, string>): ColumnDef<PendingTicket>[] {
+export function generateColumns(
+	labelsData?: Record<string, string>,
+): ColumnDef<PendingTicket>[] {
 	const baseColumns: ColumnDef<PendingTicket>[] = [
 		{
 			accessorKey: "name",
@@ -118,10 +120,12 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 			cell: ({ row }) => {
 				const email = row.getValue("email") as string | null;
 				return (
-					<div className={cn(
-						"truncate font-medium",
-						!email && "text-muted-foreground italic"
-					)}>
+					<div
+						className={cn(
+							"truncate font-medium",
+							!email && "text-muted-foreground italic",
+						)}
+					>
 						{email || "Not provided"}
 					</div>
 				);
@@ -169,7 +173,7 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 						<div className="flex w-full items-center justify-start gap-2">
 							<Badge
 								variant="secondary"
-								className={getPaymentStatusColor(status)}
+								className={cn(getPaymentStatusColor(status), "rounded-none")}
 							>
 								{getPaymentStatusText(status)}
 							</Badge>
@@ -224,7 +228,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {
-					const customLabel = row.customLabels?.find((l) => l.name === labelName);
+					const customLabel = row.customLabels?.find(
+						(l) => l.name === labelName,
+					);
 					return customLabel?.value || "";
 				},
 				size: 180,
@@ -234,7 +240,10 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 						<Button
 							variant="ghost"
 							size="icon"
-							onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+							onClick={() =>
+								column.toggleSorting(column.getIsSorted() === "asc")
+							}
+							className="rounded-none"
 						>
 							<ArrowDown
 								className={cn(
@@ -246,7 +255,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 					</div>
 				),
 				cell: ({ row }) => {
-					const customLabel = row.customLabels?.find((l) => l.name === labelName);
+					const customLabel = row.original.customLabels?.find(
+						(l) => l.name === labelName,
+					);
 					const value = customLabel?.value || "";
 					return (
 						<div
@@ -266,8 +277,9 @@ export function generateColumns(labelsData?: Record<string, string>): ColumnDef<
 	}
 
 	// Insert custom columns before the actions column
-	return [...baseColumns.slice(0, -1), ...customColumns, baseColumns[baseColumns.length - 1]];
+	return [
+		...baseColumns.slice(0, -1),
+		...customColumns,
+		baseColumns[baseColumns.length - 1],
+	];
 }
-
-// Keep the old export for backward compatibility if needed
-export const columns: ColumnDef<PendingTicket>[] = generateColumns();

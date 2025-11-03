@@ -1,11 +1,13 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { MdSpaceDashboard } from "react-icons/md";
 import { ErrorState } from "@/components/data-state";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
 import { Button } from "@/components/ui/button";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 
@@ -31,13 +33,16 @@ export default function DashboardPage() {
 	});
 
 	return (
-		<div className="space-y-6 p-2">
+		<div className="space-y-0">
 			{/* Header */}
-			<div>
-				<h1 className="font-bold text-3xl tracking-tight">Dashboard</h1>
-				<p className="text-muted-foreground">
-					Monitor your events and track performance
-				</p>
+			<div className="page-header border-b border-dashed">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={MdSpaceDashboard}
+						title="Dashboard"
+						description="Monitor your events and track performance"
+					/>
+				</div>
 			</div>
 
 			{/* Overall Stats - Show skeleton while loading or error state */}
@@ -56,7 +61,9 @@ export default function DashboardPage() {
 			) : null}
 
 			{/* Interactive Dashboard Content */}
-			<DashboardClientWrapper initialStats={stats} initialEvents={events} />
+			<div className="mt-6 border-t border-dashed lg:mt-16">
+				<DashboardClientWrapper initialStats={stats} initialEvents={events} />
+			</div>
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
+import type { Table } from "@tanstack/react-table";
 import { ArrowDown, ChevronDown } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
@@ -15,9 +15,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
-import { getPaymentStatusText } from "./constants";
+import { cn } from "@/lib/utils";
+import { getPaymentStatusText, type PaymentStatusString } from "./constants";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -33,9 +33,18 @@ const PAYMENT_STATUS_OPTIONS = [
 	{ value: "rejected", label: "Rejected" },
 ] as const;
 
-const SEARCH_COLUMNS = ["name", "email", "phone"];
+const SEARCH_COLUMNS = [
+	"name",
+	"email",
+	"phone",
+	"ticketTypeName",
+	"transactionId",
+];
 
-function getColumnLabel(columnId: string, labelsData?: Record<string, string>): string {
+function getColumnLabel(
+	columnId: string,
+	labelsData?: Record<string, string>,
+): string {
 	if (columnId.startsWith("custom_")) {
 		const labelKey = columnId.replace("custom_", "");
 		return labelsData?.[labelKey] || columnId;
@@ -53,7 +62,10 @@ function getColumnLabel(columnId: string, labelsData?: Record<string, string>): 
 	return standardLabels[columnId] || columnId;
 }
 
-export function DataControl<TData>({ table, labelsData }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	labelsData,
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -66,9 +78,10 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 	const uniqueTicketTypeNames = React.useMemo(() => {
 		const names = new Set<string>();
 		table.getPreFilteredRowModel().rows.forEach((row) => {
-			const typeName = (row.original as any)?.ticketTypeName;
+			const typeName = (row.original as Record<string, unknown>)
+				?.ticketTypeName;
 			if (typeName && typeName !== "N/A") {
-				names.add(typeName);
+				names.add(typeName as string);
 			}
 		});
 		return Array.from(names).sort();
@@ -104,14 +117,14 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 	const currentStatusLabel =
 		paymentStatusFilter.length === 0
 			? "All"
-			: getPaymentStatusText(paymentStatusFilter[0] as any) ||
+			: getPaymentStatusText(paymentStatusFilter[0] as PaymentStatusString) ||
 				paymentStatusFilter[0];
 
 	return (
-		<>
+		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
 			{/* Desktop Control Panel */}
 			{!_isTablet ? (
-				<div className="hidden items-center gap-2 py-4 lg:flex">
+				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
@@ -120,16 +133,20 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline">
+							<Button variant="outline" className="rounded-none">
 								Payment Status: {currentStatusLabel}
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{PAYMENT_STATUS_OPTIONS.map((option) => (
 								<DropdownMenuItem
 									key={option.value}
 									onClick={() => handlePaymentStatusFilter(option.value)}
+									className="rounded-none"
 								>
 									{option.label}
 								</DropdownMenuItem>
@@ -138,13 +155,16 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</DropdownMenu>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline">
+							<Button variant="outline" className="rounded-none">
 								Ticket Type:{" "}
 								{ticketTypeFilter.length === 0 ? "All" : ticketTypeFilter[0]}
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							<DropdownMenuItem onClick={() => handleTicketTypeFilter("all")}>
 								All
 							</DropdownMenuItem>
@@ -152,6 +172,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 								<DropdownMenuItem
 									key={ticketType.id}
 									onClick={() => handleTicketTypeFilter(ticketType.name)}
+									className="rounded-none"
 								>
 									{ticketType.name}
 								</DropdownMenuItem>
@@ -160,20 +181,27 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</DropdownMenu>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
-								Columns ({table.getAllColumns().filter((column) => column.getIsVisible())
-									.length - 1})
+							<Button variant="outline" className="ml-auto rounded-none">
+								{table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1}{" "}
+								columns
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-56">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
-								.filter((column) => column.getCanHide())
+								.filter(
+									(column) => column.getCanHide() && column.id !== "phone",
+								)
 								.map((column) => {
 									return (
 										<DropdownMenuCheckboxItem
 											key={column.id}
+											className="rounded-none capitalize"
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) =>
 												column.toggleVisibility(!!value)
@@ -188,7 +216,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 				</div>
 			) : (
 				/* Mobile Control Panel */
-				<div className="flex flex-col gap-2 py-4 lg:hidden">
+				<div className="flex flex-col gap-2 lg:hidden">
 					<QuerySearchField
 						table={table}
 						columns={SEARCH_COLUMNS}
@@ -205,7 +233,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("name")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Name
 							<ArrowDown
@@ -225,7 +253,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("email")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Email
 							<ArrowDown
@@ -245,7 +273,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("paymentStatus")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Payment Status
 							<ArrowDown
@@ -265,7 +293,7 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 										table.getColumn("createdAt")?.getIsSorted() === "asc",
 									)
 							}
-							className="flex items-center justify-between text-xs"
+							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
 							Created
 							<ArrowDown
@@ -279,6 +307,6 @@ export function DataControl<TData>({ table, labelsData }: DataControlProps<TData
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }

@@ -5,6 +5,7 @@ import { CreditCard, Info, Plus } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	getConsumptionCharges,
@@ -66,13 +67,14 @@ export default function CreditsContent() {
 
 	return (
 		<div className="p-2">
-			<div className="mb-4 sm:mb-8">
-				<h1 className="font-bold text-2xl tracking-tight sm:text-3xl">
-					WhatsApp Credits
-				</h1>
-				<p className="text-muted-foreground text-sm sm:text-base">
-					Manage your credit balance and view consumption details
-				</p>
+			<div className="page-header mb-4 sm:mb-8">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={CreditCard}
+						title="WhatsApp Credits"
+						description="Manage your credit balance and view consumption details"
+					/>
+				</div>
 			</div>
 
 			{isLoading ? (
