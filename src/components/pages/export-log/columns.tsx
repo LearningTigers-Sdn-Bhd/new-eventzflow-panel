@@ -9,58 +9,47 @@ import { Button } from "@/components/ui/button";
 import { IconHeading } from "@/components/ui/icon-heading";
 import { Separator } from "@/components/ui/separator";
 import { useDialog } from "@/hooks/use-dialog";
+import { downloadExportLog } from "@/lib/api/event/export-log";
 import { cn } from "@/lib/utils";
 
 export type ExportLogs = {
 	id: string;
-	fileName: string;
-	category: "scan_history" | "tickets";
-	recordCount: number;
-	fileUrl: string;
+	type: "ticket-list" | "scan_history";
+	downloadUrl: string;
 	createdAt: string;
 };
 
 const ExportLogViewModal = ({
-	fileName,
-	category,
-	recordCount,
-	fileUrl,
+	id,
+	type,
 	createdAt,
+	onDownload,
 }: {
-	fileName: string;
-	category: string;
-	recordCount: number;
-	fileUrl: string;
+	id: string;
+	type: string;
 	createdAt: string;
+	onDownload: () => void;
 }) => {
-	const handleDownload = () => {
-		toast.info(`Download URL: ${fileUrl}`);
+	const getTypeLabel = (type: string) => {
+		if (type === "ticket-list") return "Ticket List";
+		if (type === "scan_history") return "Scan History";
+		return type;
 	};
 
 	return (
 		<div>
 			<IconHeading
-				icon={category === "scan_history" ? FileText : FileSpreadsheet}
-				title={fileName}
+				icon={type === "scan_history" ? FileText : FileSpreadsheet}
+				title={`Export #${id}`}
 			/>
 			<Separator />
 			<div className="space-y-4">
 				<div className="flex items-center gap-2">
 					<div>
 						<Label className="font-medium text-muted-foreground text-sm">
-							Category
+							Type
 						</Label>
-						<p className={cn("font-medium")}>{category}</p>
-					</div>
-				</div>
-				<div className="flex items-center gap-2">
-					<div>
-						<Label className="font-medium text-muted-foreground text-sm">
-							Record Count
-						</Label>
-						<p className={cn("font-medium")}>
-							{recordCount.toLocaleString()} records
-						</p>
+						<p className={cn("font-medium")}>{getTypeLabel(type)}</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
@@ -73,15 +62,7 @@ const ExportLogViewModal = ({
 						</p>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					<div>
-						<Label className="font-medium text-muted-foreground text-sm">
-							Download URL
-						</Label>
-						<p className={cn("break-all font-medium text-xs")}>{fileUrl}</p>
-					</div>
-				</div>
-				<Button onClick={handleDownload} className="w-full">
+				<Button onClick={onDownload} className="w-full">
 					<Download className="mr-2 size-4" />
 					Download File
 				</Button>
@@ -92,43 +73,16 @@ const ExportLogViewModal = ({
 
 // Searchable content for global search
 export const getSearchableContent = (row: ExportLogs) =>
-	`${row.fileName} ${row.category}`;
+	`${row.id} ${row.type} ${new Date(row.createdAt).toLocaleDateString()}`;
 
 export const columns: ColumnDef<ExportLogs>[] = [
 	{
-		accessorKey: "fileName",
-		size: 300,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">File Name</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			return <div className="font-medium">{row.getValue("fileName")}</div>;
-		},
-	},
-	{
-		accessorKey: "category",
+		accessorKey: "id",
 		size: 150,
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Category</p>
+					<p className="font-medium">Export ID</p>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -146,54 +100,49 @@ export const columns: ColumnDef<ExportLogs>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const category = row.getValue("category") as string;
+			return <div className="font-medium">#{row.getValue("id")}</div>;
+		},
+	},
+	{
+		accessorKey: "type",
+		size: 200,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Type</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
+					>
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
+					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			const type = row.getValue("type") as string;
 			return (
 				<Badge
-					variant={category === "scan_history" ? "default" : "secondary"}
+					variant={type === "scan_history" ? "default" : "secondary"}
 					className={cn(
-						category === "scan_history"
+						type === "scan_history"
 							? "bg-blue-100 text-blue-800 hover:bg-blue-100"
 							: "bg-green-100 text-green-800 hover:bg-green-100",
 					)}
 				>
-					{category === "scan_history" ? "Scan History" : "Tickets"}
+					{type === "scan_history" ? "Scan History" : "Ticket List"}
 				</Badge>
 			);
 		},
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		},
-	},
-	{
-		accessorKey: "recordCount",
-		size: 140,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Record Count</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			const recordCount = row.getValue("recordCount") as number;
-			return (
-				<div className="font-medium">
-					{recordCount.toLocaleString()} records
-				</div>
-			);
 		},
 	},
 	{
@@ -236,6 +185,20 @@ export const columns: ColumnDef<ExportLogs>[] = [
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
 			const exportLog = row.original;
+
+			const handleDownload = async () => {
+				try {
+					await downloadExportLog({ exportId: exportLog.id });
+					toast.success("Export downloaded successfully");
+				} catch (error) {
+					toast.error(
+						error instanceof Error
+							? error.message
+							: "Failed to download export",
+					);
+				}
+			};
+
 			const openViewModal = () => {
 				openDialog({
 					component: ExportLogViewModal,
@@ -246,11 +209,10 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						showCloseButton: false,
 					},
 					props: {
-						fileName: exportLog.fileName,
-						category: exportLog.category,
-						recordCount: exportLog.recordCount,
-						fileUrl: exportLog.fileUrl,
+						id: exportLog.id,
+						type: exportLog.type,
 						createdAt: exportLog.createdAt,
+						onDownload: handleDownload,
 					},
 				});
 			};
@@ -261,7 +223,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						size="icon-sm"
 						className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 						onClick={openViewModal}
-						title="Download Export"
+						title="View Export Details"
 					>
 						<Download className="size-4" />
 					</Button>

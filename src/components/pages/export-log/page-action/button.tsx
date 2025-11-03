@@ -1,12 +1,27 @@
+"use client";
+
 import { FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function ExportLogPageButton() {
+interface ExportLogPageButtonProps {
+	onCreateExport: () => void;
+	isCreating: boolean;
+}
+
+export function ExportLogPageButton({
+	onCreateExport,
+	isCreating,
+}: ExportLogPageButtonProps) {
 	return (
 		<div className="flex items-center gap-2">
-			<Button variant="outline" disabled>
-				<FileDown className="h-4 w-4" />
-				Download All
+			<Button
+				variant="outline"
+				onClick={onCreateExport}
+				disabled={isCreating}
+				className="rounded-none"
+			>
+				<FileDown className="size-4" />
+				{isCreating ? "Creating Export..." : "Export Tickets"}
 			</Button>
 		</div>
 	);

@@ -94,7 +94,7 @@ export default function ConfirmDialog({
 				>
 					<IconComponent className={cn("h-6 w-6", style.icon)} strokeWidth={2} />
 				</div>
-				<p className="text-center text-sm text-muted-foreground">{message}</p>
+				<p className="text-center text-muted-foreground text-sm">{message}</p>
 			</div>
 			<Separator />
 			<div className="flex gap-3">

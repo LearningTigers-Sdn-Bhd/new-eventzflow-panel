@@ -143,7 +143,7 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 								<Field
 									orientation="horizontal"
 									className={cn(
-										"bg-secondary border border-primary/30 rounded-md p-2",
+										"rounded-md border border-primary/30 bg-secondary p-2",
 									)}
 								>
 									<FieldContent>
@@ -153,7 +153,7 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 										</FieldDescription>
 									</FieldContent>
 									<Switch
-										className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 ring-offset-1 ring-offset-primary"
+										className="ring-offset-1 ring-offset-primary data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
 										checked={!!field.state.value}
 										onCheckedChange={(checked) => {
 											const value = !!checked;

@@ -85,7 +85,7 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 
 				{hasCustomLabels && (
 					<div className="space-y-2 border-t pt-3">
-						<h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+						<h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 							Additional Information
 						</h4>
 						<div className="grid grid-cols-1 gap-2">

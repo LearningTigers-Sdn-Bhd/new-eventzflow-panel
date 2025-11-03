@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { use } from "react";
+import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/export-log/columns";
 import { DataTable } from "@/components/pages/export-log/data-table";
 import { ExportLogPageButton } from "@/components/pages/export-log/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { getExportLogs } from "@/lib/api/event/export-log";
+import { createExportLog, getExportLogs } from "@/lib/api/event/export-log";
 
 export default function ExportLogsPage({
 	params,
@@ -16,8 +17,7 @@ export default function ExportLogsPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
-
-	useSetEventActions(<ExportLogPageButton />);
+	const queryClient = useQueryClient();
 
 	const {
 		data: exportLogs,
@@ -27,6 +27,37 @@ export default function ExportLogsPage({
 		queryKey: ["event", event_id, "export-logs"],
 		queryFn: () => getExportLogs({ eventId: event_id }),
 	});
+
+	const createExportMutation = useMutation({
+		mutationFn: () => createExportLog({ eventId: event_id }),
+		onSuccess: (newExport) => {
+			// Invalidate and refetch the export logs
+			queryClient.invalidateQueries({
+				queryKey: ["event", event_id, "export-logs"],
+			});
+			toast.success(
+				`Export #${newExport.id} created successfully! The list will refresh automatically.`,
+			);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Failed to create export. Please try again.",
+			);
+		},
+	});
+
+	const handleCreateExport = () => {
+		createExportMutation.mutate();
+	};
+
+	useSetEventActions(
+		<ExportLogPageButton
+			onCreateExport={handleCreateExport}
+			isCreating={createExportMutation.isPending}
+		/>,
+	);
 
 	return (
 		<div className="space-y-4">
