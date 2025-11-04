@@ -115,8 +115,12 @@ export async function findTicketByContact(data: {
 /**
  * Confirm check-in for a ticket using public_id
  * Public endpoint - does not require authentication and does not set scanned_by_id
+ * Optionally accepts attendee_phone and attendee_email to update missing contact info
  */
-export async function confirmSelfCheckIn(publicId: string): Promise<CheckInResponse> {
+export async function confirmSelfCheckIn(
+	publicId: string,
+	contactInfo?: { attendee_phone?: string; attendee_email?: string }
+): Promise<CheckInResponse> {
 	// Validate public_id is provided
 	if (!publicId) {
 		throw new Error("Ticket ID is required");
@@ -125,7 +129,17 @@ export async function confirmSelfCheckIn(publicId: string): Promise<CheckInRespo
 	const url = "v1/tickets/self_check_in";
 
 	try {
-		const response = await restClient.post<BackendCheckInResponse>(url, { public_id: publicId });
+		const payload: any = { public_id: publicId };
+		
+		// Add optional contact info if provided
+		if (contactInfo?.attendee_phone) {
+			payload.attendee_phone = contactInfo.attendee_phone;
+		}
+		if (contactInfo?.attendee_email) {
+			payload.attendee_email = contactInfo.attendee_email;
+		}
+
+		const response = await restClient.post<BackendCheckInResponse>(url, payload);
 
 		// Transform backend response to frontend format
 		return {

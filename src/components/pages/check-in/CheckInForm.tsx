@@ -28,6 +28,7 @@ interface CheckInFormProps {
 	onSubmit: (e: React.FormEvent) => void;
 	onBack: () => void;
 	onTicketSelect?: (ticket: TicketData) => void;
+	onRegisterClick?: () => void;
 }
 
 export function CheckInForm({
@@ -42,6 +43,7 @@ export function CheckInForm({
 	onSubmit,
 	onBack,
 	onTicketSelect,
+	onRegisterClick,
 }: CheckInFormProps) {
 	return (
 		<form onSubmit={onSubmit} className="space-y-4">
@@ -96,6 +98,7 @@ export function CheckInForm({
 					value={name}
 					onChange={onNameChange}
 					onTicketSelect={onTicketSelect}
+					onRegisterClick={onRegisterClick}
 					disabled={isLoading}
 				/>
 			)}

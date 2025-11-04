@@ -16,9 +16,16 @@ interface TicketConfirmationProps {
 	isLoading: boolean;
 	onConfirm: () => void;
 	onBack: () => void;
+	// Optional newly collected contact info to display
+	newPhone?: string;
+	newEmail?: string;
 }
 
-export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack }: TicketConfirmationProps) {
+export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, newPhone, newEmail }: TicketConfirmationProps) {
+	// Determine what to display (newly collected data takes priority)
+	const displayEmail = newEmail || ticketData.email;
+	const displayPhone = newPhone || ticketData.phone;
+
 	return (
 		<div className="space-y-4">
 			<div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2.5">
@@ -30,14 +37,16 @@ export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack }:
 					</div>
 					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
 						<span className="text-muted-foreground">Email:</span>
-						<span className="font-medium break-all text-left">{ticketData.email}</span>
+						<span className={`font-medium break-all text-left ${!displayEmail ? "text-muted-foreground italic" : ""}`}>
+							{displayEmail || "Not provided"}
+						</span>
 					</div>
-					{ticketData.phone && (
-						<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-							<span className="text-muted-foreground">Phone:</span>
-							<span className="font-medium break-words">{ticketData.phone}</span>
-						</div>
-					)}
+					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+						<span className="text-muted-foreground">Phone:</span>
+						<span className={`font-medium break-words ${!displayPhone ? "text-muted-foreground italic" : ""}`}>
+							{displayPhone || "Not provided"}
+						</span>
+					</div>
 					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
 						<span className="text-muted-foreground">Ticket Type:</span>
 						<span className="font-medium break-words">{ticketData.ticketType}</span>

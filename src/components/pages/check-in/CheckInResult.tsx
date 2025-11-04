@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResultData {
@@ -6,6 +6,8 @@ interface ResultData {
 	message: string;
 	details?: {
 		name?: string;
+		email?: string;
+		phone?: string;
 		ticketType?: string;
 		eventName?: string;
 	};
@@ -14,9 +16,10 @@ interface ResultData {
 interface CheckInResultProps {
 	result: ResultData;
 	onReset: () => void;
+	onRegisterClick?: () => void;
 }
 
-export function CheckInResult({ result, onReset }: CheckInResultProps) {
+export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResultProps) {
 	return (
 		<div className="space-y-4">
 			<div
@@ -48,6 +51,16 @@ export function CheckInResult({ result, onReset }: CheckInResultProps) {
 									<span className="font-medium">Name:</span> {result.details.name}
 								</p>
 							)}
+							{result.details.email && (
+								<p>
+									<span className="font-medium">Email:</span> {result.details.email}
+								</p>
+							)}
+							{result.details.phone && (
+								<p>
+									<span className="font-medium">Phone:</span> {result.details.phone}
+								</p>
+							)}
 							{result.details.ticketType && (
 								<p>
 									<span className="font-medium">Ticket:</span> {result.details.ticketType}
@@ -62,6 +75,24 @@ export function CheckInResult({ result, onReset }: CheckInResultProps) {
 					)}
 				</div>
 			</div>
+
+			{/* Registration Prompt - Show only on failure */}
+			{!result.success && onRegisterClick && (
+				<div className="rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 p-3.5 text-center space-y-2">
+					<p className="font-medium text-sm text-foreground">
+						Haven't registered yet?
+					</p>
+					<Button
+						onClick={onRegisterClick}
+						variant="secondary"
+						size="sm"
+						className="w-full gap-2 border border-primary hover:bg-primary hover:text-white"
+					>
+						<UserPlus className="h-4 w-4" />
+						Click Here to Register
+					</Button>
+				</div>
+			)}
 
 			<Button onClick={onReset} variant="outline" className="w-full h-10">
 				Check In Another Attendee

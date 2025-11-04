@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { findTicketByContact } from "@/lib/api/ticket/endpoints";
 
 interface TicketData {
@@ -18,10 +19,11 @@ interface NameSearchInputProps {
 	value: string;
 	onChange: (value: string) => void;
 	onTicketSelect: (ticket: TicketData) => void;
+	onRegisterClick?: () => void;
 	disabled: boolean;
 }
 
-export function NameSearchInput({ value, onChange, onTicketSelect, disabled }: NameSearchInputProps) {
+export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterClick, disabled }: NameSearchInputProps) {
 	const [isSearching, setIsSearching] = useState(false);
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [searchResults, setSearchResults] = useState<TicketData[]>([]);
@@ -165,16 +167,47 @@ export function NameSearchInput({ value, onChange, onTicketSelect, disabled }: N
 				{/* No results message */}
 				{showDropdown && searchResults.length === 0 && !isSearching && value.trim().length >= 2 && (
 					<div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg p-4">
-						<div className="text-center space-y-2">
-							<p className="text-sm font-medium text-foreground">
-								No Ticket Found
-							</p>
-							<p className="text-xs text-muted-foreground">
-								We couldn't find any tickets matching "<span className="font-semibold">{value}</span>"
-							</p>
-							<p className="text-xs text-muted-foreground">
+						<div className="text-center space-y-3">
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-foreground">
+									No Ticket Found
+								</p>
+								<p className="text-xs text-muted-foreground">
+									We couldn't find any tickets matching "<span className="font-semibold">{value}</span>"
+								</p>
+							</div>
+
+							<p className="text-xs text-muted-foreground pt-1 border-t border-border/30">
 								Try using your email or phone number instead
 							</p>
+
+							{onRegisterClick && (
+								<div className="pt-1 space-y-2">
+									<div className="relative">
+										<div className="absolute inset-0 flex items-center">
+											<div className="w-full border-t border-border/50" />
+										</div>
+										<div className="relative flex justify-center">
+											<span className="bg-background px-2 text-muted-foreground text-xs">
+												Haven't registered yet?
+											</span>
+										</div>
+									</div>
+									<Button
+										type="button"
+										variant="secondary"
+										size="sm"
+										onClick={() => {
+											setShowDropdown(false);
+											onRegisterClick();
+										}}
+										className="w-full gap-2 border border-primary hover:bg-primary hover:text-white"
+									>
+										<UserPlus className="h-3.5 w-3.5" />
+										Click Here to Register
+									</Button>
+								</div>
+							)}
 						</div>
 					</div>
 				)}
