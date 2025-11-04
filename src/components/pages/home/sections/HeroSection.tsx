@@ -172,7 +172,7 @@ const HeroSection: React.FC = () => {
 			</motion.p>
 
 			<motion.div
-				className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
+				className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4 lg:justify-start justify-center"
 				initial={{ opacity: 0, y: 24 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.6, delay: 0.4 }}
