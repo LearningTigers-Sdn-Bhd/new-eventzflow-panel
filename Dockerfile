@@ -1,7 +1,7 @@
 # ---- Base Stage ----
 # Use the official Bun image as a base.
-# Pinning to a specific version ensures reproducible builds.
-FROM oven/bun:1.3 as base
+# Using latest to avoid known crashes in 1.3.1
+FROM oven/bun:latest as base
 WORKDIR /app
 
 # ---- Dependencies Stage ----
