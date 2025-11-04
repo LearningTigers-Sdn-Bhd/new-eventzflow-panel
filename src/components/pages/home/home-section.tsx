@@ -13,7 +13,6 @@ import SolutionsGallerySection from "./sections/SolutionsGallerySection";
 import SolutionsRibbon from "./sections/SolutionsRibbon";
 import TargetAudienceSection from "./sections/TargetAudienceSection";
 import TestimonialsSection from "./sections/TestimonialsSection";
-import Footer from "./sections/Footer";
 
 export default function HomeSection() {
 	return (
@@ -42,7 +41,6 @@ export default function HomeSection() {
 			<SolutionsRibbon />
 			<FAQSection />
 			<CTASection />
-			<Footer />
 		</div>
 	);
 }

@@ -3,14 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import UserMenu from "@/components/user-menu";
 
-const FloatingNav = () => {
+export default function FloatingNav() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 	const router = useRouter();
@@ -173,7 +170,4 @@ const FloatingNav = () => {
 			</AnimatePresence>
 		</>
 	);
-};
-
-export default FloatingNav;
-
+}

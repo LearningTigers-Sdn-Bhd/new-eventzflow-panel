@@ -196,9 +196,6 @@ const Footer: React.FC = () => {
             <a href="/terms-and-conditions" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
               Terms & Conditions
             </a>
-            <a href="/refund-policy" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
-              Refund & Booking Policy
-            </a>
           </div>
         </div>
       </div>

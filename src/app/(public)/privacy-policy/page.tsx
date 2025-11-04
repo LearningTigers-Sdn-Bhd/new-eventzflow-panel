@@ -43,7 +43,7 @@ function PolicySection({ id, sectionNumber, title, icon: Icon, children, highlig
 export default function PrivacyPolicyPage() {
 	return (
 		<div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/30">
-			<div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+			<div className="container mx-auto max-w-7xl px-4 py-26 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-12 text-center">
 					<div className="mb-6 inline-flex items-center justify-center rounded-2xl bg-primary/10 p-4">

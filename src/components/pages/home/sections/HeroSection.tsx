@@ -11,7 +11,6 @@ import Link from "next/link";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import FloatingNav from "./FloatingNav";
 import WhatsApp from "@/components/devices/apps/WhatsApp";
 import type { ChatMessage } from "@/components/devices/apps/WhatsApp";
 
@@ -124,7 +123,6 @@ const HeroSection: React.FC = () => {
 
 	return (
 		<>
-			<FloatingNav />
 		<section
 			id="hero"
 			className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-background via-background to-muted/30 px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8 lg:pt-32 xl:px-12"

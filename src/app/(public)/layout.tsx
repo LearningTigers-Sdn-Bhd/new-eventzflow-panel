@@ -1,6 +1,7 @@
 "use client";
 import { redirect, usePathname } from "next/navigation";
-import Header from "@/components/header";
+import FloatingNav from "@/components/floating-nav";
+import Footer from "@/components/footer";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
@@ -33,19 +34,25 @@ export default function PublicLayout({
 		redirect("/dashboard");
 	}
 
-	// Check if we're on pages where header should be hidden
+	// Check if we're on pages where floating nav should be hidden
 	const isLoginPage = pathname.startsWith("/auth");
 	const isForgotPasswordPage = pathname.startsWith("/forget-password");
 	const isCheckinPage = pathname.startsWith("/check-in");
+	const isNavHidden = isLoginPage || isForgotPasswordPage || isCheckinPage;
+
+	// Check if we're on pages where footer should be shown
 	const isHomePage = pathname === "/";
 	const isAboutPage = pathname.startsWith("/about");
-	const isHeaderHidden = isLoginPage || isForgotPasswordPage || isCheckinPage || isHomePage || isAboutPage;
+	const isPrivacyPolicyPage = pathname === "/privacy-policy";
+	const isTermsPage = pathname === "/terms-and-conditions";
+	const isFooterVisible = isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage;
 
-	// Render header layout for public routes (hide header on login page)
+	// Render layout with floating nav for public routes
 	return (
 		<div className="min-h-screen w-full">
-			{!isHeaderHidden && <Header />}
+			{!isNavHidden && <FloatingNav />}
 			<main className="h-full w-full">{children}</main>
+			{isFooterVisible && <Footer />}
 		</div>
 	);
 }
