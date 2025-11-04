@@ -246,13 +246,7 @@ export default function PublicCheckinPage() {
 
 		if (!ticketData) return;
 
-		// Validate phone number if required
-		const needsPhone = !ticketData.phone;
-		if (needsPhone && !missingPhone) {
-			toast.error("Required Field", { description: "Please enter your phone number" });
-			return;
-		}
-
+		// No validation - phone and email are optional
 		// Move to confirmation step
 		setCurrentStep("confirm");
 	};

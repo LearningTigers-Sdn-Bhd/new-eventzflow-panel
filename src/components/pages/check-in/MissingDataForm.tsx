@@ -55,7 +55,8 @@ export function MissingDataForm({
 				<div className="space-y-2">
 					<Label htmlFor="missing-phone" className="flex items-center gap-2 text-sm font-medium">
 						<Phone className="h-4 w-4" />
-						Phone Number {requirePhone && <span className="text-red-500">*</span>}
+						Phone Number
+						<span className="text-sm font-normal text-blue-600 dark:text-blue-400">(Recommended)</span>
 					</Label>
 					<Input
 						id="missing-phone"
@@ -67,12 +68,9 @@ export function MissingDataForm({
 						autoComplete="tel"
 						autoFocus
 						className="h-10"
-						required={requirePhone}
 					/>
 					<p className="text-muted-foreground text-xs">
-						{requirePhone
-							? "Required: We need your phone number for event updates and emergency contact"
-							: "Optional: Help us stay in touch with event updates"}
+						We need your phone number for event updates and emergency contact
 					</p>
 				</div>
 			)}
