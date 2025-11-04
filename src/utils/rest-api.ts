@@ -92,6 +92,56 @@ export const kyClient = ky.create({
 	},
 });
 
+// A dedicated ky client for multipart/form-data uploads (no default Content-Type)
+export const kyClientForFormData = ky.create({
+	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	timeout: 30000,
+	// Note: Do NOT set default headers here so the browser can set the multipart boundary
+	retry: {
+		limit: 3,
+		methods: ["get", "post", "put", "delete", "patch"],
+		statusCodes: [408, 429, 500, 502, 503, 504],
+	},
+	hooks: {
+		beforeRequest: [
+			async (request) => {
+				// Wait for token refresh if needed
+				try {
+					await refreshQueueService.waitForRefreshIfNeeded(request);
+				} catch (error) {
+					console.error(
+						"Token refresh failed in beforeRequest (FormData):",
+						error,
+					);
+				}
+
+				// Attach token if not already present
+				if (!request.headers.has("Authorization")) {
+					const isHydrated = useUserSessionStore.persist.hasHydrated();
+					if (!isHydrated) {
+						logger.debug("⚠️ Store not hydrated yet, waiting... (FormData)");
+						return;
+					}
+
+					const credentials = useUserSessionStore.getState().sessionCredentials;
+					if (credentials?.accessToken) {
+						request.headers.set(
+							"Authorization",
+							`Bearer ${credentials.accessToken}`,
+						);
+						logger.debug("✅ Token attached to request (FormData):", {
+							url: request.url,
+							tokenPreview: `${credentials.accessToken.substring(0, 20)}...`,
+						});
+					} else {
+						logger.debug("⚠️ No access token available (FormData)");
+					}
+				}
+			},
+		],
+	},
+});
+
 /**
  * REST API client with standard HTTP methods
  * Provides convenience methods for making authenticated HTTP requests
@@ -110,6 +160,41 @@ export const restClient = {
 		logger.debug("  - Token:", token);
 		logger.debug("  - Headers:", headers);
 		return kyClient.get(url, { headers }).json<T>();
+	},
+
+	/**
+	 * Make a GET request that returns a blob (for file downloads)
+	 * @param url - The endpoint URL
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to an object with blob and response headers
+	 */
+	getBlob: async (
+		url: string,
+		token?: string,
+	): Promise<{ blob: Blob; headers: Headers }> => {
+		const headers: Record<string, string> = token
+			? { Authorization: `Bearer ${token}` }
+			: {};
+		// Remove Content-Type header for blob downloads (not needed for GET requests)
+		const requestOptions = {
+			headers,
+			// Explicitly exclude Content-Type from default headers
+			hooks: {
+				beforeRequest: [
+					(request: Request) => {
+						// Remove Content-Type header if present (from kyClient defaults)
+						request.headers.delete("Content-Type");
+					},
+				],
+			},
+		};
+		logger.debug("🔍 HTTP Client Debug (GET BLOB):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Token:", token);
+		logger.debug("  - Headers:", headers);
+		const response = await kyClient.get(url, requestOptions);
+		const blob = await response.blob();
+		return { blob, headers: response.headers };
 	},
 
 	/**
@@ -176,5 +261,43 @@ export const restClient = {
 		logger.debug("  - Token:", token);
 		logger.debug("  - Headers:", headers);
 		return kyClient.delete(url, { headers }).json<T>();
+	},
+
+	/**
+	 * Make a POST request with FormData for file uploads
+	 * @param url - The endpoint URL
+	 * @param formData - FormData object containing files and other fields
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to the response data
+	 */
+	postFormData: <T>(
+		url: string,
+		formData: FormData,
+		token?: string,
+	): Promise<T> => {
+		const headers: Record<string, string> = token
+			? { Authorization: `Bearer ${token}` }
+			: {};
+
+		// Do NOT set Content-Type; let the browser set multipart/form-data with boundary
+		const requestOptions = {
+			body: formData,
+			headers,
+		} as const;
+
+		logger.debug("🔍 HTTP Client Debug (POST FORM DATA):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Token:", token);
+		logger.debug("  - Headers:", headers);
+		logger.debug(
+			"  - FormData entries:",
+			Array.from(formData.entries()).map(([key, value]) =>
+				value instanceof File
+					? [key, `File: ${value.name} (${value.size} bytes)`]
+					: [key, value],
+			),
+		);
+
+		return kyClientForFormData.post(url, requestOptions).json<T>();
 	},
 };

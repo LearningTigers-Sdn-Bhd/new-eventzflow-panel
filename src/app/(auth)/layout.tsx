@@ -94,7 +94,11 @@ export default function AuthLayout({
 					</div>
 				</header>
 				<div className="mx-auto w-full px-12">
-					<div className="w-full border-x border-dashed">{children}</div>
+					<div className="min-h-[calc(100vh-48px)] w-full border-x border-dashed">
+						<div className="w-full lg:mx-auto lg:max-w-[calc(100vw-370px)]">
+							{children}
+						</div>
+					</div>
 				</div>
 				<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
 					<div className="flex flex-row items-stretch justify-start gap-2 px-12">

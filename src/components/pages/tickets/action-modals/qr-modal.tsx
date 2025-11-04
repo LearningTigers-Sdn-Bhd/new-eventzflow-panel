@@ -166,7 +166,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 							<div className="rounded-full bg-primary/10 p-1.5">
 								<User className="size-3.5 text-primary md:size-4" />
 							</div>
-							<div className="flex-1 min-w-0">
+							<div className="min-w-0 flex-1">
 								<p className="font-medium text-muted-foreground text-xs">
 									Name
 								</p>
@@ -180,7 +180,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 							<div className="rounded-full bg-primary/10 p-1.5">
 								<Mail className="size-3.5 text-primary md:size-4" />
 							</div>
-							<div className="flex-1 min-w-0">
+							<div className="min-w-0 flex-1">
 								<p className="font-medium text-muted-foreground text-xs">
 									Email
 								</p>
@@ -195,7 +195,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 								<div className="rounded-full bg-primary/10 p-1.5">
 									<Phone className="size-3.5 text-primary md:size-4" />
 								</div>
-								<div className="flex-1 min-w-0">
+								<div className="min-w-0 flex-1">
 									<p className="font-medium text-muted-foreground text-xs">
 										Phone
 									</p>
@@ -211,7 +211,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 								<div className="rounded-full bg-primary/10 p-1.5">
 									<Ticket className="size-3.5 text-primary md:size-4" />
 								</div>
-								<div className="flex-1 min-w-0">
+								<div className="min-w-0 flex-1">
 									<p className="font-medium text-muted-foreground text-xs">
 										Ticket Type
 									</p>

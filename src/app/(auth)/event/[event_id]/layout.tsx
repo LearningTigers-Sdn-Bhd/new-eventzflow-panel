@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, MapPin, ScanQrCode, Users } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -94,15 +94,15 @@ const tabItems: TabItem[] = [
 		icon: ChartBar,
 		route: "analytics",
 	},
-	// {
-	// 	id: "export-logs",
-	// 	label: "Export Logs",
-	// 	title: "Export Logs",
-	// 	description:
-	// 		"This page will provide options to export event logs and data.",
-	// 	icon: Logs,
-	// 	route: "export-logs",
-	// },
+	{
+		id: "export-logs",
+		label: "Export Logs",
+		title: "Export Logs",
+		description:
+			"This page will provide options to export event logs and data.",
+		icon: Logs,
+		route: "export-logs",
+	},
 ];
 
 function EventActionsSlot() {
@@ -241,7 +241,7 @@ export default function EventDetailLayout({
 					)}
 				</div>
 			</div>
-			<div className="rounded-none border border-dashed bg-card">
+			<div className="w-full rounded-none border border-dashed bg-card">
 				<TabHeader
 					icon={currentTabItem.icon}
 					title={currentTabItem.title}

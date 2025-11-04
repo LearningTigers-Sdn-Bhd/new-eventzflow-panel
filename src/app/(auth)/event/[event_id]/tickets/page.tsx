@@ -5,6 +5,7 @@ import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/tickets/data-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/button";
+import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTickets } from "@/lib/api/ticket";
@@ -16,7 +17,12 @@ export default function TicketsPage({
 }) {
 	const { event_id } = use(params);
 
-	useSetEventActions(<TicketPageButton />);
+	useSetEventActions(
+		<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+			<ImportTicketButton />
+			<TicketPageButton />
+		</div>,
+	);
 
 	const {
 		data: tickets,

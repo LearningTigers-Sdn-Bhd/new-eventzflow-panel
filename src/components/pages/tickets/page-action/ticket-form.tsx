@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useId, useState, useEffect } from "react";
+import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import { createTicket } from "@/lib/api/ticket";
 import {
 	createTicketType,
@@ -32,7 +33,6 @@ import {
 	getGlobalTicketTypes,
 } from "@/lib/api/ticket-type";
 import type { TicketType } from "@/lib/api/ticket-type/response";
-import { getEventById } from "@/lib/api/event";
 
 export default function TicketForm() {
 	const { closeDialog } = useDialog();
@@ -99,12 +99,17 @@ export default function TicketForm() {
 
 	// Initialize custom fields from event labels_data
 	useEffect(() => {
-		if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
-			const fields = Object.entries(eventData.labels_data).map(([key, value]) => ({
-				labelKey: key,
-				labelName: value as string,
-				value: "",
-			}));
+		if (
+			eventData?.labels_data &&
+			Object.keys(eventData.labels_data).length > 0
+		) {
+			const fields = Object.entries(eventData.labels_data).map(
+				([key, value]) => ({
+					labelKey: key,
+					labelName: value as string,
+					value: "",
+				}),
+			);
 			setCustomFields(fields);
 		}
 	}, [eventData]);
@@ -159,7 +164,10 @@ export default function TicketForm() {
 			newErrors.attendeeName = "Name must be at least 2 characters";
 		}
 
-		if (attendeeEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
+		if (
+			attendeeEmail.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)
+		) {
 			newErrors.attendeeEmail = "Please enter a valid email address";
 		}
 

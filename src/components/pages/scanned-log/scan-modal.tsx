@@ -125,7 +125,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Quick Scan Ticket</DialogTitle>
 					<DialogDescription>
@@ -140,7 +140,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 							<div
 								id="modal-qr-reader"
 								className={cn(
-									"w-full aspect-square rounded-lg transition-all duration-500 max-w-sm"
+									"aspect-square w-full max-w-sm rounded-lg transition-all duration-500"
 								)}
 								style={{
 									position: "relative",
@@ -150,19 +150,19 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 
 							{/* Camera Off State */}
 							{!isScanning && (
-								<div className="absolute inset-0 flex items-center justify-center border border-dashed border-primary/30 rounded-lg">
-									<div className="text-center space-y-4 max-w-sm px-4">
+								<div className="absolute inset-0 flex items-center justify-center rounded-lg border border-primary/30 border-dashed">
+									<div className="max-w-sm space-y-4 px-4 text-center">
 										{/* Icon */}
-										<div className="inline-flex p-6 rounded-2xl bg-primary/5 border border-primary/10">
+										<div className="inline-flex rounded-2xl border border-primary/10 bg-primary/5 p-6">
 											<QrCode className="h-16 w-16 text-primary/60" />
 										</div>
 
 										{/* Text */}
 										<div className="space-y-2">
-											<h3 className="text-xl font-semibold text-foreground">
+											<h3 className="font-semibold text-foreground text-xl">
 												Ready to Scan
 											</h3>
-											<p className="text-sm text-muted-foreground leading-relaxed">
+											<p className="text-muted-foreground text-sm leading-relaxed">
 												Click the button below to activate your camera and start
 												scanning tickets
 											</p>
@@ -172,7 +172,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 										<Button
 											onClick={handleStartScanner}
 											size="lg"
-											className="gap-2 w-full"
+											className="w-full gap-2"
 											disabled={isTransitioning}
 										>
 											<Camera className="h-4 w-4" />
@@ -186,25 +186,25 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 							{isScanning && (
 								<>
 									{/* Status Badge */}
-									<div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-										<div className="bg-primary px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+									<div className="-translate-x-1/2 absolute top-4 left-1/2 z-20">
+										<div className="flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 shadow-lg">
 											<span className="relative flex h-2 w-2">
-												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-												<span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+												<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+												<span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
 											</span>
-											<span className="text-primary-foreground font-medium text-xs">
+											<span className="font-medium text-primary-foreground text-xs">
 												Scanning Active
 											</span>
 										</div>
 									</div>
 
 									{/* Stop Button */}
-									<div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-full px-4">
+									<div className="-translate-x-1/2 absolute bottom-4 left-1/2 z-20 w-full px-4">
 										<Button
 											onClick={handleStopScanner}
 											variant="destructive"
 											size="default"
-											className="shadow-lg gap-2 w-full"
+											className="w-full gap-2 shadow-lg"
 											disabled={isTransitioning}
 										>
 											<CameraOff className="h-4 w-4" />

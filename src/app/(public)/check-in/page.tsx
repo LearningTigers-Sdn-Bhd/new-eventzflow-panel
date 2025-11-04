@@ -1,22 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { findTicketByContact, confirmSelfCheckIn } from "@/lib/api/ticket/endpoints";
-import { cleanPhoneNumber, formatWithCountryStyle } from "@/utils/phone";
 import Image from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
-	CheckInMethodSelection,
 	CheckInForm,
-	TicketConfirmation,
-	TicketSelection,
-	CheckInResult,
 	type CheckInMethod,
+	CheckInMethodSelection,
+	CheckInResult,
 	type CheckInStep,
-	type TicketData,
 	type ResultData,
+	TicketConfirmation,
+	type TicketData,
+	TicketSelection,
 } from "@/components/pages/check-in";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	confirmSelfCheckIn,
+	findTicketByContact,
+} from "@/lib/api/ticket/endpoints";
+import { cleanPhoneNumber, formatWithCountryStyle } from "@/utils/phone";
 
 export default function PublicCheckinPage() {
 	const [checkInMethod, setCheckInMethod] = useState<CheckInMethod>(null);
@@ -58,25 +67,35 @@ export default function PublicCheckinPage() {
 		// Validation
 		if (checkInMethod === "email") {
 			if (!email) {
-				toast.error("Required Field", { description: "Please enter your email address" });
+				toast.error("Required Field", {
+					description: "Please enter your email address",
+				});
 				return;
 			}
 			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-				toast.error("Invalid Email", { description: "Please enter a valid email address" });
+				toast.error("Invalid Email", {
+					description: "Please enter a valid email address",
+				});
 				return;
 			}
 		} else if (checkInMethod === "phone") {
 			if (!phone) {
-				toast.error("Required Field", { description: "Please enter your phone number" });
+				toast.error("Required Field", {
+					description: "Please enter your phone number",
+				});
 				return;
 			}
 		} else if (checkInMethod === "name") {
 			if (!name) {
-				toast.error("Required Field", { description: "Please enter your name" });
+				toast.error("Required Field", {
+					description: "Please enter your name",
+				});
 				return;
 			}
 			if (name.trim().length < 2) {
-				toast.error("Invalid Name", { description: "Please enter at least 2 characters" });
+				toast.error("Invalid Name", {
+					description: "Please enter at least 2 characters",
+				});
 				return;
 			}
 			// If user already selected from dropdown
@@ -96,10 +115,17 @@ export default function PublicCheckinPage() {
 				const formattedPhone = formatWithCountryStyle(phone);
 
 				try {
-					response = await findTicketByContact({ attendee_phone: cleanedPhone });
+					response = await findTicketByContact({
+						attendee_phone: cleanedPhone,
+					});
 				} catch (error: any) {
-					if (error.message?.includes("No ticket found") || error.message?.includes("not found")) {
-						response = await findTicketByContact({ attendee_phone: formattedPhone });
+					if (
+						error.message?.includes("No ticket found") ||
+						error.message?.includes("not found")
+					) {
+						response = await findTicketByContact({
+							attendee_phone: formattedPhone,
+						});
 					} else {
 						throw error;
 					}
@@ -154,15 +180,19 @@ export default function PublicCheckinPage() {
 				}
 			}
 		} catch (error: any) {
-			let errorMessage = error.message || "Failed to find ticket. Please try again.";
+			let errorMessage =
+				error.message || "Failed to find ticket. Please try again.";
 
 			if (errorMessage.includes("No ticket found")) {
 				if (checkInMethod === "email") {
-					errorMessage = "No ticket found with this email. Try checking in with your phone number or name instead.";
+					errorMessage =
+						"No ticket found with this email. Try checking in with your phone number or name instead.";
 				} else if (checkInMethod === "phone") {
-					errorMessage = "No ticket found with this phone number. Try checking in with your email or name instead.";
+					errorMessage =
+						"No ticket found with this phone number. Try checking in with your email or name instead.";
 				} else if (checkInMethod === "name") {
-					errorMessage = "No ticket found with this name. Try checking in with your email or phone number instead.";
+					errorMessage =
+						"No ticket found with this name. Try checking in with your email or phone number instead.";
 				}
 			}
 
@@ -192,13 +222,16 @@ export default function PublicCheckinPage() {
 				},
 			});
 
-			toast.success("Check-in Successful", { description: `Welcome, ${response.name}!` });
+			toast.success("Check-in Successful", {
+				description: `Welcome, ${response.name}!`,
+			});
 			setCurrentStep("result");
 			setEmail("");
 			setPhone("");
 			setName("");
 		} catch (error: any) {
-			const errorMessage = error.message || "Failed to check in. Please try again.";
+			const errorMessage =
+				error.message || "Failed to check in. Please try again.";
 
 			setResult({ success: false, message: errorMessage });
 			toast.error("Check-in Failed", { description: errorMessage });
@@ -260,8 +293,10 @@ export default function PublicCheckinPage() {
 	};
 
 	const getStepDescription = () => {
-		if (!checkInMethod && currentStep === "input") return "Choose your check-in method";
-		if (checkInMethod && currentStep === "input") return "Enter your details to find your ticket";
+		if (!checkInMethod && currentStep === "input")
+			return "Choose your check-in method";
+		if (checkInMethod && currentStep === "input")
+			return "Enter your details to find your ticket";
 		if (currentStep === "select") return "Select your ticket";
 		if (currentStep === "confirm") return "Confirm your ticket details";
 		if (currentStep === "result") return "Check-in Result";
@@ -270,31 +305,31 @@ export default function PublicCheckinPage() {
 
 	return (
 		<Card className="w-full max-w-md shadow-xl">
-			<CardHeader className="text-center space-y-2 pb-4">
-				<div className="flex justify-center -mt-2">
+			<CardHeader className="space-y-2 pb-4 text-center">
+				<div className="-mt-2 flex justify-center">
 					<Image
 						src="/logo/EzFlow_Logo.png"
 						alt="EzFlow Logo"
 						width={400}
 						height={80}
-						className="object-contain rounded-lg"
+						className="rounded-lg object-contain"
 						priority
 					/>
 				</div>
 
 				<div className="space-y-2">
-					<CardTitle className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
+					<CardTitle className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text font-bold text-transparent text-xl tracking-tight sm:text-2xl dark:from-white dark:via-gray-100 dark:to-white">
 						Event Check-In
 					</CardTitle>
-					<div className="h-0.5 w-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 mx-auto rounded-full shadow-sm" />
+					<div className="mx-auto h-0.5 w-16 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 shadow-sm" />
 				</div>
 
-				<CardDescription className="text-sm text-muted-foreground/80 font-medium px-4 pt-1">
+				<CardDescription className="px-4 pt-1 font-medium text-muted-foreground/80 text-sm">
 					{getStepDescription()}
 				</CardDescription>
 			</CardHeader>
 
-			<CardContent className="px-4 sm:px-6 pb-3">
+			<CardContent className="px-4 pb-3 sm:px-6">
 				{currentStep === "result" && result ? (
 					<CheckInResult result={result} onReset={handleReset} />
 				) : currentStep === "select" && multipleTickets.length > 0 ? (
