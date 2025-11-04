@@ -1,6 +1,6 @@
 "use client";
 
-import { Bug, Key, LayoutDashboard, Users } from "lucide-react";
+import { Import, Key, LayoutDashboard, Users } from "lucide-react";
 import type { Route } from "next";
 import type * as React from "react";
 import { BiQrScan } from "react-icons/bi";
@@ -50,12 +50,12 @@ const data = {
 			icon: Key,
 			roleAllowed: ["org_owner"],
 		},
-		// {
-		// 	name: "Debug API",
-		// 	url: "/debug-api" as Route,
-		// 	icon: Bug,
-		// 	roleAllowed: ["org_owner"],
-		// },
+		{
+			name: "Import Tickets",
+			url: "/import" as Route,
+			icon: Import,
+			roleAllowed: ["org_owner"],
+		},
 		// {
 		// 	name: "Credits",
 		// 	url: "/credits" as Route,

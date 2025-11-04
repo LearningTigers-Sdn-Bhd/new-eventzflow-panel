@@ -74,111 +74,113 @@ export function DataTable<TData, TValue>({
 			<DataControl table={table} />
 
 			{/* Data Table */}
-			{!_isMobile && !isTablet ? (
-				<div className="overflow-hidden rounded-none border">
-					<Table className="w-full table-fixed">
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead
-												key={header.id}
-												style={{ width: `${header.getSize()}px` }}
-												className={cn(header.index === 0 && "ps-3")}
-											>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
-														)}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell
-												key={cell.id}
-												style={{ width: `${cell.column.getSize()}px` }}
-												className={cn(
-													table.getVisibleLeafColumns()[0]?.id ===
-														cell.column.id && "ps-4",
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
+			<div className="min-h-[45vh]">
+				{!_isMobile && !isTablet ? (
+					<div className="overflow-hidden rounded-none border">
+						<Table className="w-full table-fixed">
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => {
+											return (
+												<TableHead
+													key={header.id}
+													style={{ width: `${header.getSize()}px` }}
+													className={cn(header.index === 0 && "ps-3")}
+												>
+													{header.isPlaceholder
+														? null
+														: flexRender(
+																header.column.columnDef.header,
+																header.getContext(),
+															)}
+												</TableHead>
+											);
+										})}
 									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center"
-									>
-										<EmptyState
-											title="No export logs found"
-											description="No exports available for this event yet"
-											icon={<FileDown />}
-											height="h-auto"
-										/>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			) : isTablet && !_isMobile ? (
-				<div className="grid grid-cols-2 gap-4">
-					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<div key={row.id} className="col-span-1">
-								<ExportLogItem exportLog={row.original as ExportLogs} />
-							</div>
-						))
-					) : (
-						<EmptyState
-							title="No export logs found"
-							description="No exports available for this event yet"
-							icon={<FileDown />}
-							height="h-auto"
-						/>
-					)}
-				</div>
-			) : (
-				<div className="space-y-2">
-					{table.getRowModel().rows?.length ? (
-						table
-							.getRowModel()
-							.rows.map((row) => (
-								<ExportLogItem
-									key={row.id}
-									exportLog={row.original as ExportLogs}
-								/>
+								))}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow
+											key={row.id}
+											data-state={row.getIsSelected() && "selected"}
+										>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell
+													key={cell.id}
+													style={{ width: `${cell.column.getSize()}px` }}
+													className={cn(
+														table.getVisibleLeafColumns()[0]?.id ===
+															cell.column.id && "ps-4",
+													)}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</TableCell>
+											))}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell
+											colSpan={columns.length}
+											className="h-24 text-center"
+										>
+											<EmptyState
+												title="No export logs found"
+												description="No exports available for this event yet"
+												icon={<FileDown />}
+												height="h-auto"
+											/>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				) : isTablet && !_isMobile ? (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<ExportLogItem exportLog={row.original as ExportLogs} />
+								</div>
 							))
-					) : (
-						<EmptyState
-							title="No export logs found"
-							description="No exports available for this event yet"
-							icon={<FileDown />}
-							height="h-auto"
-						/>
-					)}
-				</div>
-			)}
+						) : (
+							<EmptyState
+								title="No export logs found"
+								description="No exports available for this event yet"
+								icon={<FileDown />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				) : (
+					<div className="space-y-2">
+						{table.getRowModel().rows?.length ? (
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<ExportLogItem
+										key={row.id}
+										exportLog={row.original as ExportLogs}
+									/>
+								))
+						) : (
+							<EmptyState
+								title="No export logs found"
+								description="No exports available for this event yet"
+								icon={<FileDown />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				)}
+			</div>
 
 			<DataPagination table={table} />
 		</div>

@@ -27,8 +27,10 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 	return (
 		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
-				<ItemTitle className="min-h-12 w-full justify-between">
-					<h3 className="truncate font-bold text-xl">{ticket.name}</h3>
+				<ItemTitle className="flex min-h-12 w-full flex-col items-start justify-start">
+					<h3 className="truncate text-wrap font-bold text-xl">
+						{ticket.name}
+					</h3>
 					<Badge
 						variant={ticket.status === "scanned" ? "default" : "secondary"}
 						className={cn(
@@ -42,33 +44,22 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 					</Badge>
 				</ItemTitle>
 			</ItemHeader>
-			<ItemContent className="flex-1 space-y-3">
-				<div className="flex w-full items-center justify-start gap-2">
-					<Mail className="size-4 text-muted-foreground" />
-					<span className="truncate font-medium text-sm">{ticket.email}</span>
-				</div>
-				{ticket.phone && (
+			<ItemContent className="flex flex-col gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					<div className="flex w-full items-center justify-start gap-2">
-						<Phone className="size-4 text-muted-foreground" />
-						<span className="truncate font-medium text-sm">{ticket.phone}</span>
+						<Mail className="size-4 text-muted-foreground" />
+						<span className="truncate font-medium text-sm">
+							{ticket.email || "Not provided"}
+						</span>
 					</div>
-				)}
-				<div className="flex w-full items-center justify-start gap-2">
-					<HiCash className="-ml-0.5 size-5 text-muted-foreground" />
-					<span className="truncate font-medium text-sm">
-						RM
-						{(typeof ticket.value === "number"
-							? ticket.value
-							: Number.parseFloat(ticket.value as string) || 0
-						).toFixed(2)}
-						{ticket.ticketTypeName && (
-							<span className="ml-2 text-muted-foreground">
-								({ticket.ticketTypeName})
+					{ticket.phone && (
+						<div className="flex w-full items-center justify-start gap-2">
+							<Phone className="size-4 text-muted-foreground" />
+							<span className="truncate font-medium text-sm">
+								{ticket.phone || "Not provided"}
 							</span>
-						)}
-					</span>
-				</div>
-				<div className="flex w-full max-w-1/2 flex-row items-center justify-between gap-2 md:max-w-none md:flex-col md:items-start md:justify-start">
+						</div>
+					)}
 					<div className="flex items-center justify-start gap-2">
 						<Calendar className="size-4 text-muted-foreground" />
 						<span className="truncate font-medium text-sm">
@@ -81,17 +72,30 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 							{date.toLocaleTimeString()}
 						</span>
 					</div>
+					<div className="col-span-2 flex w-full items-center justify-start gap-2">
+						<HiCash className="-ml-0.5 size-5 text-muted-foreground" />
+						<p className="truncate font-medium text-normal">
+							<span>RM</span>
+							{(typeof ticket.value === "number"
+								? ticket.value
+								: Number.parseFloat(ticket.value as string) || 0
+							).toFixed(2)}
+						</p>
+						{ticket.ticketTypeName && (
+							<p className="text-muted-foreground">({ticket.ticketTypeName})</p>
+						)}
+					</div>
 				</div>
-
 				{hasCustomLabels && (
 					<div className="space-y-2 border-t pt-3">
-						<h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+						<h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 							Additional Information
 						</h4>
 						<div className="grid grid-cols-1 gap-2">
 							{Object.entries(labelsData).map(([key, labelName]) => {
 								const value =
-									ticket.customLabels?.find((l) => l.name === labelName)?.value || "";
+									ticket.customLabels?.find((l) => l.name === labelName)
+										?.value || "";
 								return (
 									<div key={key} className="space-y-0.5">
 										<p className="font-medium text-muted-foreground text-xs">

@@ -90,23 +90,23 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							onChange={(e) => handleSearch(e.target.value)}
 						/>
 					</div>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("fileName")
+									.getColumn("id")
 									?.toggleSorting(
-										table.getColumn("fileName")?.getIsSorted() === "asc",
+										table.getColumn("id")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between text-xs"
 						>
-							File Name
+							Export ID
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("fileName")?.getIsSorted() === "asc" &&
+									table.getColumn("id")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
@@ -115,38 +115,18 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("category")
+									.getColumn("type")
 									?.toggleSorting(
-										table.getColumn("category")?.getIsSorted() === "asc",
+										table.getColumn("type")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between text-xs"
 						>
-							Category
+							Type
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("category")?.getIsSorted() === "asc" &&
-										"-rotate-180",
-								)}
-							/>
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() =>
-								table
-									.getColumn("recordCount")
-									?.toggleSorting(
-										table.getColumn("recordCount")?.getIsSorted() === "asc",
-									)
-							}
-							className="flex items-center justify-between text-xs"
-						>
-							Records
-							<ArrowDown
-								className={cn(
-									"size-3.5 transition-transform",
-									table.getColumn("recordCount")?.getIsSorted() === "asc" &&
+									table.getColumn("type")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>

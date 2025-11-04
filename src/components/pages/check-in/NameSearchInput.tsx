@@ -177,7 +177,7 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 								</p>
 							</div>
 
-							<p className="text-xs text-muted-foreground pt-1 border-t border-border/30">
+							<p className="text-xs text-muted-foreground">
 								Try using your email or phone number instead
 							</p>
 

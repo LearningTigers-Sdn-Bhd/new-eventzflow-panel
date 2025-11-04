@@ -1,10 +1,18 @@
 // Request types and schemas
 
 // API endpoints
-export { getExportLogs } from "./endpoints";
 export {
+	createExportLog,
+	downloadExportLog,
+	getExportLogs,
+} from "./endpoints";
+export {
+	type CreateExportLogRequest,
+	createExportLogSchema,
+	type DownloadExportLogRequest,
+	downloadExportLogSchema,
 	type GetExportLogsRequest,
 	getExportLogsSchema,
 } from "./request";
 // Response types
-export type { ExportLogs } from "./response";
+export type { BackendExportLog, ExportLogs } from "./response";

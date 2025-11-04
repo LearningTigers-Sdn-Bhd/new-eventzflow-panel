@@ -12,34 +12,41 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 	const pageCount = table.getPageCount();
 
 	const getPageNumbers = () => {
-		const pages: (number | string)[] = [];
-		const showEllipsisStart = currentPage > 2;
-		const showEllipsisEnd = currentPage < pageCount - 3;
-
 		if (pageCount <= 7) {
 			return Array.from({ length: pageCount }, (_, i) => i);
 		}
-		pages.push(0);
-		if (showEllipsisStart) {
-			pages.push("...");
-			pages.push(currentPage - 1, currentPage, currentPage + 1);
+
+		const nums = new Set<number>();
+		nums.add(0);
+		nums.add(pageCount - 1);
+
+		if (currentPage <= 2) {
+			const firstWindow = [1, 2, 3];
+			for (const n of firstWindow) {
+				if (n < pageCount - 1) nums.add(n);
+			}
+		} else if (currentPage >= pageCount - 3) {
+			const lastWindow = [pageCount - 4, pageCount - 3, pageCount - 2];
+			for (const n of lastWindow) {
+				if (n > 0 && n < pageCount - 1) nums.add(n);
+			}
 		} else {
-			pages.push(1, 2, 3);
-		}
-		if (showEllipsisEnd) {
-			pages.push("...");
-		} else if (currentPage < pageCount - 3) {
-			pages.push(pageCount - 3, pageCount - 2);
-		}
-		if (currentPage >= pageCount - 3) {
-			for (let i = Math.max(4, currentPage - 1); i < pageCount - 1; i++) {
-				if (!pages.includes(i)) {
-					pages.push(i);
-				}
+			const midWindow = [currentPage - 1, currentPage, currentPage + 1];
+			for (const n of midWindow) {
+				if (n > 0 && n < pageCount - 1) nums.add(n);
 			}
 		}
-		pages.push(pageCount - 1);
-		return pages;
+
+		const sorted = Array.from(nums).sort((a, b) => a - b);
+		const result: (number | string)[] = [];
+		for (let i = 0; i < sorted.length; i++) {
+			const n = sorted[i];
+			if (i > 0 && n - sorted[i - 1] > 1) {
+				result.push("...");
+			}
+			result.push(n);
+		}
+		return result;
 	};
 
 	return (
@@ -60,7 +67,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 				{getPageNumbers().map((page, index) => {
 					const uniqueKey =
 						typeof page === "number"
-							? `page-${page}`
+							? `page-${page}-${index}`
 							: `ellipsis-${currentPage}-${pageCount}-${index}`;
 
 					return typeof page === "number" ? (

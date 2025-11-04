@@ -8,10 +8,12 @@ import {
 } from "./request";
 import type {
 	BackendCheckInResponse,
+	BackendImportTicketsResponse,
 	BackendTicket,
 	BackendTicketTransformed,
 	CheckInResponse,
 	CreateTicketResponse,
+	ImportTicketsResponse,
 	OfflineData,
 	ScannedTicket,
 	Ticket,
@@ -99,11 +101,15 @@ export async function findTicketByContact(data: {
 			name: response.attendee_name || "Unknown Attendee",
 			email: response.attendee_email,
 			phone: response.attendee_phone || undefined,
-			ticketTypeName: response.ticket_type?.name || response.ticket_type_name || "General Admission",
+			ticketTypeName:
+				response.ticket_type?.name ||
+				response.ticket_type_name ||
+				"General Admission",
 			value: response.ticket_type?.price || response.value || 0,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
-			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventName:
+				response.event?.title || response.event_name || "Unknown Event",
 			eventId: response.event?.id.toString() || response.event_id.toString(),
 		};
 	} catch (error) {
@@ -148,11 +154,15 @@ export async function confirmSelfCheckIn(
 			name: response.attendee_name || "Unknown Attendee",
 			email: response.attendee_email,
 			phone: response.attendee_phone || undefined,
-			ticketTypeName: response.ticket_type?.name || response.ticket_type_name || "General Admission",
+			ticketTypeName:
+				response.ticket_type?.name ||
+				response.ticket_type_name ||
+				"General Admission",
 			value: response.ticket_type?.price || response.value || 0,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
-			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventName:
+				response.event?.title || response.event_name || "Unknown Event",
 			eventId: response.event?.id.toString() || response.event_id.toString(),
 		};
 	} catch (error) {
@@ -176,13 +186,15 @@ export async function getMyScannedTickets(
 			message: string;
 			data: { id: number };
 		}>("v1/users/profile");
-		
+
 		if (!profileResponse.success || !profileResponse.data) {
-			throw new Error(profileResponse.message || "Failed to fetch user profile");
+			throw new Error(
+				profileResponse.message || "Failed to fetch user profile",
+			);
 		}
-		
+
 		const userId = profileResponse.data.id;
-		
+
 		if (!userId) {
 			throw new Error("Could not get user ID from profile");
 		}
@@ -236,21 +248,21 @@ export async function getMyScannedTickets(
 				}
 			}
 
-		return {
-			id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
-			name: ticket.attendee_name,
-			email: ticket.attendee_email,
-			phone: ticket.attendee_phone || undefined,
-			ticketTypeName: ticket.ticket_type?.name || "Unknown",
-			ticketTypeId: ticket.ticket_type_id,
-			value: ticket.ticket_type?.price || 0,
-			checkedIn: ticket.checked_in,
-			checkInAt: ticket.check_in_at || undefined,
-			eventName: ticket.eventName,
-			eventId: ticket.eventId.toString(),
-			createdAt: ticket.created_at,
-			customLabels: customLabels.length > 0 ? customLabels : undefined,
-		};
+			return {
+				id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
+				name: ticket.attendee_name,
+				email: ticket.attendee_email,
+				phone: ticket.attendee_phone || undefined,
+				ticketTypeName: ticket.ticket_type?.name || "Unknown",
+				ticketTypeId: ticket.ticket_type_id,
+				value: ticket.ticket_type?.price || 0,
+				checkedIn: ticket.checked_in,
+				checkInAt: ticket.check_in_at || undefined,
+				eventName: ticket.eventName,
+				eventId: ticket.eventId.toString(),
+				createdAt: ticket.created_at,
+				customLabels: customLabels.length > 0 ? customLabels : undefined,
+			};
 		});
 	} catch (error) {
 		console.error("Error fetching scanned tickets:", error);
@@ -466,4 +478,86 @@ export async function getAllForOffline(): Promise<OfflineData> {
 		events: events.map((e) => ({ id: e.id, title: e.title })),
 		tickets: allTickets,
 	};
+}
+
+/**
+ * Import tickets from an Excel or CSV file
+ */
+export async function importTickets(
+	file: File,
+): Promise<ImportTicketsResponse> {
+	try {
+		// Validate file type
+		const validTypes = [
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+			"application/vnd.ms-excel", // .xls
+			"text/csv", // .csv
+		];
+		const validExtensions = [".xlsx", ".xls", ".csv"];
+
+		const fileExtension = file.name
+			.substring(file.name.lastIndexOf("."))
+			.toLowerCase();
+
+		if (
+			!validTypes.includes(file.type) &&
+			!validExtensions.includes(fileExtension)
+		) {
+			throw new Error(
+				"Invalid file type. Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.",
+			);
+		}
+
+		// Create FormData with the file
+		const formData = new FormData();
+		formData.append("file", file);
+
+		// Call the import endpoint
+		const response =
+			await restClient.postFormData<BackendImportTicketsResponse>(
+				"v1/tickets/import",
+				formData,
+			);
+
+		// Transform backend response to frontend format
+		return {
+			created: response.data.created,
+            updated: response.data.updated,
+			skipped: response.data.skipped,
+            duplicates_in_file: response.data.duplicates_in_file,
+			errors: response.data.errors || [],
+		};
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Import tickets in dry-run mode (no writes) and return detailed report
+ */
+export async function importTicketsDryRun(
+    file: File,
+): Promise<ImportTicketsResponse> {
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response =
+            await restClient.postFormData<BackendImportTicketsResponse>(
+                "v1/tickets/import?dry_run=true",
+                formData,
+            );
+
+        return {
+            created: response.data.created,
+            updated: response.data.updated,
+            skipped: response.data.skipped,
+            duplicates_in_file: response.data.duplicates_in_file,
+            errors: response.data.errors || [],
+        };
+    } catch (error) {
+        const message = await extractErrorMessage(error);
+        throw new Error(message);
+    }
 }
