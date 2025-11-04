@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import UserMenu from "@/components/user-menu";
@@ -12,6 +13,8 @@ import UserMenu from "@/components/user-menu";
 const FloatingNav = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
+	const router = useRouter();
+	const pathname = usePathname();
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -22,7 +25,36 @@ const FloatingNav = () => {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
+	// Handle hash navigation when landing on the page
+	useEffect(() => {
+		if (pathname === "/" && window.location.hash) {
+			const hash = window.location.hash.substring(1); // Remove the '#'
+			// Small delay to ensure page is fully loaded
+			setTimeout(() => {
+				const element = document.getElementById(hash);
+				if (element) {
+					const elementPosition = element.offsetTop;
+					window.scrollTo({
+						top: elementPosition,
+						behavior: "smooth",
+					});
+				}
+			}, 100);
+		}
+	}, [pathname]);
+
 	const scrollToSection = (sectionId: string) => {
+		// Check if we're on the home page
+		const isHomePage = pathname === "/";
+		
+		if (!isHomePage) {
+			// If not on home page, navigate to home page with hash
+			router.push(`/#${sectionId}`);
+			setIsOpen(false);
+			return;
+		}
+
+		// If on home page, scroll to section
 		const element = document.getElementById(sectionId);
 		if (element) {
 			const elementPosition = element.offsetTop;
@@ -35,7 +67,16 @@ const FloatingNav = () => {
 	};
 
 	const scrollToTop = () => {
-		window.scrollTo({ top: 0, behavior: "smooth" });
+		// Check if we're on the home page
+		const isHomePage = pathname === "/";
+		
+		if (!isHomePage) {
+			// If not on home page, navigate to home page
+			router.push("/");
+		} else {
+			// If on home page, scroll to top
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		}
 		setIsOpen(false);
 	};
 

@@ -1,6 +1,9 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import type { Route } from 'next';
 import { 
   Zap, 
   Mail, 
@@ -9,8 +12,22 @@ import {
   MessageCircle
 } from 'lucide-react';
 
+type FooterLink = {
+  label: string;
+  id?: string | null;
+  href?: string;
+};
+
+type FooterSection = {
+  title: string;
+  links: FooterLink[];
+};
+
 const Footer: React.FC = () => {
-  const footerSections = [
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const footerSections: FooterSection[] = [
     {
       title: "Platform",
       links: [
@@ -24,15 +41,15 @@ const Footer: React.FC = () => {
     {
       title: "Support", 
       links: [
-        { label: "Help Center", id: null },
-        { label: "Documentation", id: null },
-        { label: "Contact Support", id: null }
+        { label: "Help Center" },
+        { label: "Documentation" },
+        { label: "Contact Support" }
       ]
     },
     {
       title: "Company",
       links: [
-        { label: "About EventzFlow", id: null },
+        { label: "About EventzFlow", href: "/about" },
       ]
     }
   ];
@@ -47,6 +64,16 @@ const Footer: React.FC = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
+    // Check if we're on the home page
+    const isHomePage = pathname === "/";
+    
+    if (!isHomePage) {
+      // If not on home page, navigate to home page with hash
+      router.push(`/#${sectionId}`);
+      return;
+    }
+
+    // If on home page, scroll to section
     const element = document.getElementById(sectionId);
     if (element) {
       const headerHeight = 80; // Account for fixed header
@@ -126,11 +153,19 @@ const Footer: React.FC = () => {
                   <li key={linkIndex}>
                     {link.id ? (
                       <button
-                        onClick={() => scrollToSection(link.id)}
+                        type="button"
+                        onClick={() => link.id && scrollToSection(link.id)}
                         className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-xs sm:text-sm leading-relaxed cursor-pointer"
                       >
                         {link.label}
                       </button>
+                    ) : link.href ? (
+                      <Link
+                        href={link.href as Route}
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-xs sm:text-sm leading-relaxed"
+                      >
+                        {link.label}
+                      </Link>
                     ) : (
                       <a
                         href="#"
