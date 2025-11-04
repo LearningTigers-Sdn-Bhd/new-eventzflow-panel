@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({
 				{/* Data Table */}
 				{!_isMobile ? (
 					<div className="overflow-hidden rounded-none border-y border-dashed">
-						<Table className="w-full table-fixed">
+						<Table className="w-full">
 							<TableHeader>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id}>

@@ -18,7 +18,7 @@ export default function TicketsPage({
 	const { event_id } = use(params);
 
 	useSetEventActions(
-		<div className="flex w-full items-center gap-2 lg:w-auto">
+		<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
 			<ImportTicketButton />
 			<TicketPageButton />
 		</div>,
