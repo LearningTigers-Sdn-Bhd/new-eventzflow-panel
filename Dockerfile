@@ -24,8 +24,8 @@ RUN bun run build
 
 # ---- Runner Stage ----
 # Create the final, lightweight image to run the application.
-FROM base as runner
-WORKDIR /app
+# Inherit from builder to avoid copying issues with BuildKit
+FROM builder as runner
 
 # Set the environment to production.
 ENV NODE_ENV=production
@@ -34,20 +34,9 @@ ENV PORT=3001
 # Fix host binding for containerized environments
 ENV HOSTNAME=0.0.0.0
 
-# Copy package.json and bun.lock for dependencies
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/bun.lock ./bun.lock
-
-# Install all dependencies (including devDependencies needed for TypeScript at runtime)
-# Next.js requires TypeScript to be available in production for next.config.ts
-RUN bun install --frozen-lockfile
-
-# Copy the build output from the builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/next.config.ts ./next.config.ts
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
+# Clean up build artifacts and source files not needed in production
+# Keep only what's necessary for Next.js to run
+RUN rm -rf /app/.git /app/.github /app/.cursor /app/docs /app/.ruler || true
 
 EXPOSE 3001
 
