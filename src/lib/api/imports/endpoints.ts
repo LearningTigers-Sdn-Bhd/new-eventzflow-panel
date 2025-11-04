@@ -10,7 +10,7 @@ import type {
  */
 export async function importTickets(
 	file: File,
-	dryRun?: boolean,
+	options?: { dryRun?: boolean; full?: boolean },
 ): Promise<ImportTicketsResponse> {
 	try {
 		// Validate file type
@@ -38,9 +38,17 @@ export async function importTickets(
 		const formData = new FormData();
 		formData.append("file", file);
 
-		// Build URL with optional dry_run parameter
-		const url = dryRun
-			? "v1/imports/tickets?dry_run=true"
+		// Build URL with optional parameters
+		const params = new URLSearchParams();
+		if (options?.dryRun) {
+			params.append("dry_run", "true");
+		}
+		if (options?.full) {
+			params.append("full", "true");
+		}
+		const queryString = params.toString();
+		const url = queryString
+			? `v1/imports/tickets?${queryString}`
 			: "v1/imports/tickets";
 
 		// Call the import endpoint
@@ -51,12 +59,40 @@ export async function importTickets(
 			);
 
 		// Transform backend response to frontend format
+		const backendData = response.data;
+
+		// Calculate total
+		const total =
+			backendData.created.count +
+			(backendData.updated?.count || 0) +
+			backendData.skipped.count;
+
 		return {
-			created: response.data.created,
-			updated: response.data.updated,
-			skipped: response.data.skipped,
-			duplicates_in_file: response.data.duplicates_in_file,
-			errors: response.data.errors || [],
+			total,
+			created: {
+				count: backendData.created.count,
+				data: backendData.created.data || [],
+			},
+			updated: backendData.updated
+				? {
+						count: backendData.updated.count,
+						data: backendData.updated.data || [],
+					}
+				: undefined,
+			skipped: {
+				count: backendData.skipped.count,
+				data: backendData.skipped.data || [],
+			},
+			duplicates_in_file: backendData.duplicates_in_file
+				? {
+						count: backendData.duplicates_in_file.count,
+						data: backendData.duplicates_in_file.data || [],
+					}
+				: undefined,
+			errors: {
+				count: backendData.errors.count,
+				data: backendData.errors.data || [],
+			},
 		};
 	} catch (error) {
 		const message = await extractErrorMessage(error);
@@ -69,6 +105,7 @@ export async function importTickets(
  */
 export async function importTicketsDryRun(
 	file: File,
+	options?: { full?: boolean },
 ): Promise<ImportTicketsResponse> {
-	return importTickets(file, true);
+	return importTickets(file, { ...options, dryRun: true });
 }

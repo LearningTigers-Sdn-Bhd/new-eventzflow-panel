@@ -3,16 +3,11 @@
 import {
 	CloudUpload,
 	Download,
-	FileArchiveIcon,
-	FileSpreadsheetIcon,
-	FileTextIcon,
-	HeadphonesIcon,
-	ImageIcon,
+	FileText,
 	RefreshCwIcon,
 	Trash2,
 	TriangleAlert,
 	Upload,
-	VideoIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -35,12 +30,17 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	type FileMetadata,
+	getFileIcon,
+	getFileTypeBadgeColor,
+	getFileTypeLabel,
+} from "@/hooks/use-file-type";
+import {
 	type FileWithPreview,
 	formatBytes,
 	useFileUpload,
 } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/utils";
+import { IconTitle } from "../ui/icon-heading";
 
 interface FileUploadItem extends FileWithPreview {
 	progress: number;
@@ -156,82 +156,55 @@ export default function TableUpload({
 		);
 	};
 
-	const getFileIcon = (file: File | FileMetadata) => {
-		const type = file instanceof File ? file.type : file.type;
-		if (type.startsWith("image/")) return <ImageIcon className="size-4" />;
-		if (type.startsWith("video/")) return <VideoIcon className="size-4" />;
-		if (type.startsWith("audio/")) return <HeadphonesIcon className="size-4" />;
-		if (type.includes("pdf")) return <FileTextIcon className="size-4" />;
-		if (type.includes("word") || type.includes("doc"))
-			return <FileTextIcon className="size-4" />;
-		if (type.includes("excel") || type.includes("sheet"))
-			return <FileSpreadsheetIcon className="size-4" />;
-		if (type.includes("zip") || type.includes("rar"))
-			return <FileArchiveIcon className="size-4" />;
-		return <FileTextIcon className="size-4" />;
-	};
-
-	const getFileTypeLabel = (file: File | FileMetadata) => {
-		const type = file instanceof File ? file.type : file.type;
-		if (type.startsWith("image/")) return "Image";
-		if (type.startsWith("video/")) return "Video";
-		if (type.startsWith("audio/")) return "Audio";
-		if (type.includes("pdf")) return "PDF";
-		if (type.includes("word") || type.includes("doc")) return "Word";
-		if (type.includes("excel") || type.includes("sheet")) return "Excel";
-		if (type.includes("zip") || type.includes("rar")) return "Archive";
-		if (type.includes("json")) return "JSON";
-		if (type.includes("text")) return "Text";
-		return "File";
-	};
-
 	return (
-		<div className={cn("w-full space-y-4", className)}>
-			{/* Upload Area */}
-			{/* biome-ignore lint: File upload drop zone requires interactive div with drag handlers */}
-			<div
-				aria-label="File upload drop zone"
-				className={cn(
-					"relative cursor-pointer rounded-lg border border-dashed p-6 text-center transition-colors",
-					isDragging
-						? "border-primary bg-primary/5"
-						: "border-muted-foreground/25 hover:border-muted-foreground/50",
-				)}
-				onClick={openFileDialog}
-				onDragEnter={handleDragEnter}
-				onDragLeave={handleDragLeave}
-				onDragOver={handleDragOver}
-				onDrop={handleDrop}
-			>
-				<input {...getInputProps()} className="sr-only" />
+		<div className={cn("w-full space-y-4 border-t border-dashed", className)}>
+			<div className="p-2 md:p-4 bg-muted border-b border-dashed">
+				{/* Upload Area */}
+				{/* biome-ignore lint: File upload drop zone requires interactive div with drag handlers */}
+				<div
+					aria-label="File upload drop zone"
+					className={cn(
+						"relative cursor-pointer border border-dashed p-6 text-center transition-colors bg-background",
+						isDragging
+							? "border-primary bg-primary/5"
+							: "border-muted-foreground/25 hover:border-muted-foreground/50",
+					)}
+					onClick={openFileDialog}
+					onDragEnter={handleDragEnter}
+					onDragLeave={handleDragLeave}
+					onDragOver={handleDragOver}
+					onDrop={handleDrop}
+				>
+					<input {...getInputProps()} className="sr-only" />
 
-				<div className="flex flex-col items-center gap-4">
-					<div
-						className={cn(
-							"flex h-12 w-12 items-center justify-center rounded-full bg-muted transition-colors",
-							isDragging
-								? "border-primary bg-primary/10"
-								: "border-muted-foreground/25",
-						)}
-					>
-						<Upload className="h-5 w-5 text-muted-foreground" />
-					</div>
+					<div className="flex flex-col items-center gap-4">
+						<div
+							className={cn(
+								"flex h-12 w-12 items-center justify-center bg-muted transition-colors",
+								isDragging
+									? "border-primary bg-primary/10"
+									: "border-muted-foreground/25",
+							)}
+						>
+							<Upload className="h-5 w-5 text-muted-foreground" />
+						</div>
 
-					<div className="space-y-2">
-						<p className="text-sm font-medium">
-							Drop files here or{" "}
-							<button
-								type="button"
-								onClick={openFileDialog}
-								className="cursor-pointer text-primary underline-offset-4 hover:underline"
-							>
-								browse files
-							</button>
-						</p>
-						<p className="text-xs text-muted-foreground">
-							Maximum file size: {formatBytes(maxSize)} • Maximum files:{" "}
-							{maxFiles}
-						</p>
+						<div className="space-y-2">
+							<p className="text-sm font-medium">
+								Drop files here or{" "}
+								<button
+									type="button"
+									onClick={openFileDialog}
+									className="cursor-pointer text-primary underline-offset-4 hover:underline"
+								>
+									browse files
+								</button>
+							</p>
+							<p className="text-xs text-muted-foreground">
+								Maximum file size: {formatBytes(maxSize)} • Maximum files:{" "}
+								{maxFiles}
+							</p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -239,26 +212,42 @@ export default function TableUpload({
 			{/* Files Table */}
 			{uploadFiles.length > 0 && (
 				<div className="space-y-4">
-					<div className="flex items-center justify-between">
-						<h3 className="text-sm font-medium">
-							Files ({uploadFiles.length})
-						</h3>
-						<div className="flex gap-2">
-							<Button onClick={openFileDialog} variant="outline" size="sm">
-								<CloudUpload />
-								Add files
-							</Button>
-							<Button onClick={clearFiles} variant="outline" size="sm">
-								<Trash2 />
-								Remove all
-							</Button>
+					<div className="flex items-center justify-between border-y border-dashed py-4">
+						<div className="flex items-center gap-2 px-2 md:px-4">
+							<IconTitle
+								icon={FileText}
+								title="Uploaded Files"
+								description={`${uploadFiles.length} files uploaded`}
+							/>
 						</div>
+						{maxFiles > 1 && (
+							<div className="flex gap-2">
+								<Button
+									onClick={openFileDialog}
+									variant="outline"
+									size="sm"
+									className="rounded-none"
+								>
+									<CloudUpload />
+									Add files
+								</Button>
+								<Button
+									onClick={clearFiles}
+									variant="outline"
+									size="sm"
+									className="rounded-none"
+								>
+									<Trash2 />
+									Remove all
+								</Button>
+							</div>
+						)}
 					</div>
 
-					<div className="rounded-lg border">
+					<div className="border">
 						<Table>
 							<TableHeader>
-								<TableRow className="text-xs">
+								<TableRow className="text-xs bg-muted [&>th]:font-semibold">
 									<TableHead className="h-9">Name</TableHead>
 									<TableHead className="h-9">Type</TableHead>
 									<TableHead className="h-9">Size</TableHead>
@@ -323,26 +312,37 @@ export default function TableUpload({
 												<p className="flex items-center gap-1 truncate text-sm font-medium">
 													{fileItem.file.name}
 													{fileItem.status === "error" && (
-														<Badge variant="destructive">Error</Badge>
+														<Badge
+															variant="destructive"
+															className="rounded-none"
+														>
+															Error
+														</Badge>
 													)}
 												</p>
 											</div>
 										</TableCell>
 										<TableCell className="py-2">
-											<Badge variant="secondary" className="text-xs">
+											<Badge
+												variant="outline"
+												className={cn(
+													"text-xs rounded-none border",
+													getFileTypeBadgeColor(fileItem.file),
+												)}
+											>
 												{getFileTypeLabel(fileItem.file)}
 											</Badge>
 										</TableCell>
 										<TableCell className="py-2 text-sm text-muted-foreground">
 											{formatBytes(fileItem.file.size)}
 										</TableCell>
-										<TableCell className="py-2 pe-1">
-											<div className="flex items-center gap-1">
+										<TableCell className="py-2">
+											<div className="w-full flex items-center justify-end gap-1 pe-1.5">
 												{fileItem.preview && (
 													<Button
 														variant="default"
 														size="icon"
-														className="size-8"
+														className="size-8 rounded-none bg-green-500 hover:bg-green-600"
 														asChild
 													>
 														<Link
@@ -358,16 +358,16 @@ export default function TableUpload({
 														onClick={() => retryUpload(fileItem.id)}
 														variant="default"
 														size="icon"
-														className="size-8 text-destructive/80 hover:text-destructive"
+														className="size-8 rounded-none text-destructive/80 hover:text-destructive"
 													>
 														<RefreshCwIcon className="size-3.5" />
 													</Button>
 												) : (
 													<Button
 														onClick={() => removeUploadFile(fileItem.id)}
-														variant="default"
+														variant="destructive"
 														size="icon"
-														className="size-8"
+														className="size-8 rounded-none"
 													>
 														<Trash2 className="size-3.5" />
 													</Button>

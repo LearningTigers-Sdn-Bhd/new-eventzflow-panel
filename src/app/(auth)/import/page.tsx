@@ -1,66 +1,233 @@
 "use client";
 
-import { useState } from "react";
-import { default as ImportTicketForm } from "@/components/pages/import/import-ticket";
-import type { ImportTicketsResponse } from "@/lib/api/ticket";
+import { Import, Info, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
+import { EmptyState } from "@/components/data-state";
+import { ImportFullForm } from "@/components/pages/import/import-full-form";
+import { ImportedItem } from "@/components/pages/import/imported-item";
+import Banner from "@/components/ui/banner";
+import { Button } from "@/components/ui/button";
+import { IconTitle } from "@/components/ui/icon-heading";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { type FilterType, useImportResults } from "@/hooks/use-import-results";
+import { IMPORT_TYPES, type ImportType } from "@/lib/api/imports/types";
 
 export default function ImportPage() {
-	const [dryResult, setDryResult] = useState<ImportTicketsResponse | null>(
-		null,
+	const [selectedImportType, setSelectedImportType] =
+		useState<ImportType>("tickets");
+	const [currentPage, setCurrentPage] = useState(0);
+	const [itemsPerPage] = useState(10);
+	const {
+		liveResult,
+		setLiveResult,
+		filterType,
+		setFilterType,
+		filteredItems,
+	} = useImportResults();
+
+	const selectedTypeConfig = IMPORT_TYPES.find(
+		(type) => type.value === selectedImportType,
 	);
-	const [liveResult, setLiveResult] = useState<ImportTicketsResponse | null>(
-		null,
-	);
+
+	// Handle filter change and reset page
+	const handleFilterChange = (value: FilterType) => {
+		setFilterType(value);
+		setCurrentPage(0);
+	};
+
+	// Calculate pagination
+	const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+	const paginatedItems = useMemo(() => {
+		const startIndex = currentPage * itemsPerPage;
+		const endIndex = startIndex + itemsPerPage;
+		return filteredItems.slice(startIndex, endIndex);
+	}, [filteredItems, currentPage, itemsPerPage]);
+
+	// Generate page numbers for select dropdown (1-indexed)
+	const pageNumbers = useMemo(() => {
+		return Array.from({ length: totalPages }, (_, i) => i + 1);
+	}, [totalPages]);
 
 	return (
-		<div className="container mx-auto max-w-3xl p-6 space-y-6">
-			<h1 className="text-xl font-semibold">Ticket Import</h1>
-
-			{/* Dry-run section */}
-			<div className="space-y-2">
-				<h2 className="text-sm font-medium">Dry-run</h2>
-				<ImportTicketForm dryRun onResult={setDryResult} />
-				<div className="rounded-md border p-4">
-					<h3 className="mb-2 text-sm font-medium text-muted-foreground">
-						Result (dry-run)
-					</h3>
-					<pre className="whitespace-pre-wrap text-xs">
-						{JSON.stringify(
-							dryResult ?? {
-								created: 0,
-								updated: 0,
-								skipped: 0,
-								duplicates_in_file: 0,
-								errors: [],
-							},
-							null,
-							2,
-						)}
-					</pre>
+		<div className="p-0">
+			<div className="page-header">
+				<div className="px-2 md:px-4">
+					<IconTitle
+						icon={Import}
+						title="Import"
+						description={`Import ${selectedTypeConfig?.label.toLowerCase() || "data"} from a XLSX or CSV file.`}
+					/>
+				</div>
+				<div className="w-full px-0 md:w-auto md:px-4">
+					<Select
+						value={selectedImportType}
+						onValueChange={(value) =>
+							setSelectedImportType(value as ImportType)
+						}
+					>
+						<SelectTrigger className="w-full rounded-none border md:w-auto">
+							<SelectValue placeholder="Select import type" />
+						</SelectTrigger>
+						<SelectContent>
+							{IMPORT_TYPES.map((type) => (
+								<SelectItem key={type.value} value={type.value}>
+									{type.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			</div>
 
-			{/* Live import section */}
-			<div className="space-y-2">
-				<h2 className="text-sm font-medium">Import (apply changes)</h2>
-				<ImportTicketForm onResult={setLiveResult} />
-				<div className="rounded-md border p-4">
-					<h3 className="mb-2 text-sm font-medium text-muted-foreground">
-						Result (live)
-					</h3>
-					<pre className="whitespace-pre-wrap text-xs">
-						{JSON.stringify(
-							liveResult ?? {
-								created: 0,
-								updated: 0,
-								skipped: 0,
-								duplicates_in_file: 0,
-								errors: [],
-							},
-							null,
-							2,
+			<Banner
+				title="Import Guide"
+				description="You can import your data from a XLSX or CSV file. Only once is allowed for each import type."
+				leadingIcon={<Info />}
+				onCloser={true}
+			/>
+
+			<div className="min-h-[65vh] border-t border-dashed pt-6 grid grid-cols-1 gap-8 lg:gap-0 lg:grid-cols-2 divide-x-0 lg:divide-x divide-dashed">
+				<div className="mb-8 col-span-1 border-y border-dashed flex flex-col">
+					<div className="p-2 md:p-4">
+						<IconTitle
+							icon={Upload}
+							title="Upload Here"
+							description="Upload your data from a XLSX or CSV file here."
+						/>
+					</div>
+					<ImportFullForm
+						key={selectedImportType}
+						importType={selectedImportType}
+						onResult={setLiveResult}
+					/>
+				</div>
+				<div className="mb-8 border-y border-dashed col-span-1 flex flex-col">
+					<div className="p-2 md:p-4 border-b border-dashed">
+						<IconTitle
+							icon={Info}
+							title="Import Results"
+							description="View the results of your import."
+						/>
+					</div>
+					<div className="p-2 md:p-4 border-b border-dashed">
+						<Select
+							value={filterType}
+							onValueChange={(value) => handleFilterChange(value as FilterType)}
+							disabled={!liveResult}
+						>
+							<SelectTrigger className="w-full rounded-none border md:w-auto">
+								<SelectValue placeholder="Filter by status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-none">
+								<SelectItem className="rounded-none" value="all">
+									All Results
+								</SelectItem>
+								<SelectItem className="rounded-none" value="created">
+									Created
+								</SelectItem>
+								<SelectItem className="rounded-none" value="updated">
+									Updated
+								</SelectItem>
+								<SelectItem className="rounded-none" value="skipped">
+									Skipped
+								</SelectItem>
+								<SelectItem className="rounded-none" value="errors">
+									Errors
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="space-y-0">
+						{!liveResult ? (
+							<EmptyState
+								title="No import results"
+								description="Upload and import a file to see results here."
+								height="h-auto"
+								className="min-h-[200px]"
+							/>
+						) : filteredItems.length === 0 ? (
+							<EmptyState
+								title="No items found"
+								description={`No ${filterType === "all" ? "" : filterType} items match the current filter.`}
+								height="h-auto"
+								className="min-h-[200px]"
+							/>
+						) : (
+							<>
+								<div className="overflow-y-auto max-h-[calc(100vh-500px)] bg-muted/30 p-2 md:p-4">
+									<div className="grid grid-cols-1 gap-2">
+										{paginatedItems.map((item, index) => (
+											<ImportedItem
+												key={`${item.category}-${index}`}
+												item={item.data}
+												category={item.category}
+											/>
+										))}
+									</div>
+								</div>
+								{totalPages > 1 && (
+									<div className="flex flex-col items-center justify-center gap-4 border-t border-dashed p-2 md:p-4 lg:flex-row">
+										<div className="flex-1 text-muted-foreground text-sm">
+											{filteredItems.length} item(s) total.
+										</div>
+										<div className="flex items-center gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												className="rounded-none"
+												onClick={() =>
+													setCurrentPage((prev) => Math.max(0, prev - 1))
+												}
+												disabled={currentPage === 0}
+											>
+												Previous
+											</Button>
+											<Select
+												value={(currentPage + 1).toString()}
+												onValueChange={(value) =>
+													setCurrentPage(parseInt(value, 10) - 1)
+												}
+											>
+												<SelectTrigger className="w-auto rounded-none border min-w-[100px]">
+													<SelectValue placeholder="Select page" />
+												</SelectTrigger>
+												<SelectContent className="h-[250px] rounded-none">
+													{pageNumbers.map((page) => (
+														<SelectItem
+															className="rounded-none"
+															key={page}
+															value={page.toString()}
+														>
+															Page {page}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+											<Button
+												variant="outline"
+												className="rounded-none"
+												size="sm"
+												onClick={() =>
+													setCurrentPage((prev) =>
+														Math.min(totalPages - 1, prev + 1),
+													)
+												}
+												disabled={currentPage >= totalPages - 1}
+											>
+												Next
+											</Button>
+										</div>
+									</div>
+								)}
+							</>
 						)}
-					</pre>
+					</div>
 				</div>
 			</div>
 		</div>
