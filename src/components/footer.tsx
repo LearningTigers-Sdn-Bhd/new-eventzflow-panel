@@ -39,11 +39,11 @@ const Footer: React.FC = () => {
       ]
     },
     {
-      title: "Support", 
+      title: "Resources", 
       links: [
-        { label: "Help Center" },
-        { label: "Documentation" },
-        { label: "Contact Support" }
+        { label: "Why Us?", id: "pain-points" },
+        { label: "WhatsApp Registration", href: "/whatsapp-registration" },
+        { label: "On-site Check-in", href: "/check-in" }
       ]
     },
     {
