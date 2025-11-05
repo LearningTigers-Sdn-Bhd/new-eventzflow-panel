@@ -13,6 +13,7 @@ export interface UseImportFormOptions {
 	dryRun?: boolean;
 	importType?: ImportType;
 	full?: boolean;
+	noLabel?: boolean;
 	onResult?: (data: ImportTicketsResponse) => void;
 }
 
@@ -20,6 +21,7 @@ export function useImportForm({
 	dryRun = false,
 	importType = "tickets",
 	full = false,
+	noLabel = false,
 	onResult,
 }: UseImportFormOptions = {}) {
 	const { closeDialog, isOpen } = useDialog();
@@ -31,8 +33,8 @@ export function useImportForm({
 	const importMutation = useMutation({
 		mutationFn: async (file: File) =>
 			dryRun
-				? importTicketsDryRun(file, { full })
-				: importTickets(file, { full }),
+				? importTicketsDryRun(file, { full, noLabel })
+				: importTickets(file, { full, noLabel }),
 		onSuccess: (data) => {
 			const {
 				total,

@@ -1,8 +1,11 @@
 "use client";
 
 import { FileSpreadsheet, Upload } from "lucide-react";
+import { useState } from "react";
 import TableUpload from "@/components/file-upload/table-upload";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import { useImportForm } from "@/hooks/use-import-form";
 import type { ImportTicketsResponse } from "@/lib/api/imports";
@@ -20,6 +23,7 @@ function ImportQuickFormContent({
 	onResult,
 }: ImportQuickFormProps) {
 	const { closeDialog, isOpen } = useDialog();
+	const [useLabelMapping, setUseLabelMapping] = useState(false);
 	const {
 		selectedFiles,
 		resetKey,
@@ -31,6 +35,7 @@ function ImportQuickFormContent({
 		importType,
 		dryRun,
 		full: false, // Always use quick mode for quick form
+		noLabel: useLabelMapping,
 		onResult,
 	});
 
@@ -46,6 +51,23 @@ function ImportQuickFormContent({
 				onFilesChange={handleFilesChange}
 				className="w-full"
 			/>
+
+			<FieldGroup>
+				<Field>
+					<FieldLabel>Use Label N mapping</FieldLabel>
+					<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+						<Switch
+							id="use-label-mapping"
+							checked={useLabelMapping}
+							onCheckedChange={setUseLabelMapping}
+							disabled={importMutation.isPending}
+						/>
+						<span className="ml-2 text-muted-foreground text-sm">
+							{useLabelMapping ? "Label N" : "Header names"}
+						</span>
+					</div>
+				</Field>
+			</FieldGroup>
 
 			<div className="flex justify-end gap-2">
 				{isOpen && (

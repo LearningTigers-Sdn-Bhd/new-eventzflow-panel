@@ -10,7 +10,7 @@ import type {
  */
 export async function importTickets(
 	file: File,
-	options?: { dryRun?: boolean; full?: boolean },
+	options?: { dryRun?: boolean; full?: boolean; noLabel?: boolean },
 ): Promise<ImportTicketsResponse> {
 	try {
 		// Validate file type
@@ -46,6 +46,8 @@ export async function importTickets(
 		if (options?.full) {
 			params.append("full", "true");
 		}
+		// Always send no_label explicitly for clarity (default false)
+		params.append("no_label", options?.noLabel ? "true" : "false");
 		const queryString = params.toString();
 		const url = queryString
 			? `v1/imports/tickets?${queryString}`
