@@ -77,7 +77,7 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 					onClick={onRegisterClick}
 					variant="secondary"
 					size="sm"
-					className="w-full gap-2 border border-primary hover:bg-primary hover:text-white"
+					className="w-full gap-2 border border-primary hover:bg-primary hover:text-white dark:hover:text-black"
 				>
 					<UserPlus className="h-4 w-4" />
 					Click Here to Register

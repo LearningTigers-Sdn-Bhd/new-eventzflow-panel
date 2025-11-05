@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Edit2 } from "lucide-react";
 import {
 	CheckInForm,
 	CheckInMethodSelection,
@@ -30,6 +32,9 @@ import {
 import { cleanPhoneNumber, formatWithCountryStyle } from "@/utils/phone";
 
 export default function PublicCheckinPage() {
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	
 	const [checkInMethod, setCheckInMethod] = useState<CheckInMethod>(null);
 	const [currentStep, setCurrentStep] = useState<CheckInStep>("input");
 	const [email, setEmail] = useState("");
@@ -43,6 +48,29 @@ export default function PublicCheckinPage() {
 	// State for collecting missing contact info
 	const [missingPhone, setMissingPhone] = useState("");
 	const [missingEmail, setMissingEmail] = useState("");
+	
+	// Station management
+	const [station, setStation] = useState<string | null>(null);
+	const [showStationSelection, setShowStationSelection] = useState(false);
+
+	// Initialize station from URL or localStorage
+	useEffect(() => {
+		const urlStation = searchParams.get("station");
+		const savedStation = localStorage.getItem("checkin_station");
+
+		if (urlStation) {
+			// URL parameter takes priority
+			setStation(urlStation);
+			localStorage.setItem("checkin_station", urlStation);
+		} else if (savedStation) {
+			// Use saved station and update URL
+			setStation(savedStation);
+			router.replace(`/check-in?station=${savedStation}`);
+		} else {
+			// No station set, show selection
+			setShowStationSelection(true);
+		}
+	}, [searchParams, router]);
 
 	const handleTicketSelect = (ticket: TicketData) => {
 		setName(ticket.name);
@@ -251,6 +279,22 @@ export default function PublicCheckinPage() {
 		setCurrentStep("confirm");
 	};
 
+	const handleStationSelect = (stationNumber: string) => {
+		setStation(stationNumber);
+		localStorage.setItem("checkin_station", stationNumber);
+		router.replace(`/check-in?station=${stationNumber}`);
+		setShowStationSelection(false);
+		toast.success(`Station ${stationNumber} Selected`, {
+			description: "You can now start checking in attendees",
+		});
+	};
+
+	const handleChangeStation = () => {
+		setShowStationSelection(true);
+		setCheckInMethod(null);
+		setCurrentStep("input");
+	};
+
 	const handleConfirmCheckIn = async () => {
 		if (!ticketData) return;
 
@@ -258,12 +302,16 @@ export default function PublicCheckinPage() {
 
 		try {
 			// Prepare contact info if we collected any
-			const contactInfo: { attendee_phone?: string; attendee_email?: string } = {};
+			const contactInfo: { attendee_phone?: string; attendee_email?: string; check_in_url?: string } = {};
 			if (missingPhone) {
 				contactInfo.attendee_phone = missingPhone;
 			}
 			if (missingEmail) {
 				contactInfo.attendee_email = missingEmail;
+			}
+			// Send the full check-in URL with station parameter
+			if (station) {
+				contactInfo.check_in_url = `${window.location.origin}/check-in?station=${station}`;
 			}
 
 			const response = await confirmSelfCheckIn(
@@ -415,6 +463,64 @@ export default function PublicCheckinPage() {
 		return "";
 	};
 
+	// Show station selection if needed
+	if (showStationSelection) {
+		return (
+			<Card className="w-full max-w-md shadow-xl">
+				<CardHeader className="space-y-2 pb-4 text-center">
+					<div className="-mt-2 flex justify-center">
+						<Image
+							src="/logo/EzFlow_Logo.png"
+							alt="EzFlow Logo"
+							width={400}
+							height={80}
+							className="rounded-lg object-contain"
+							priority
+						/>
+					</div>
+
+					<div className="space-y-2">
+						<CardTitle className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
+							Select Your Station
+						</CardTitle>
+						<div className="mx-auto h-0.5 w-16 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 shadow-sm" />
+					</div>
+
+					<CardDescription className="px-4 pt-1 font-medium text-muted-foreground/80 text-sm">
+						Choose which check-in station you are using
+					</CardDescription>
+				</CardHeader>
+
+				<CardContent className="px-4 sm:px-6 pb-6">
+					<div className="grid grid-cols-1 gap-3">
+						{["1", "2", "3"].map((stationNum) => (
+							<button
+								key={stationNum}
+								onClick={() => handleStationSelect(stationNum)}
+								className="group relative overflow-hidden rounded-lg border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 text-center transition-all hover:border-emerald-400 hover:shadow-lg hover:scale-105 active:scale-95 dark:from-emerald-950 dark:to-teal-950 dark:border-emerald-800 dark:hover:border-emerald-600"
+							>
+								<div className="absolute inset-0 bg-gradient-to-br from-emerald-400/0 to-teal-400/0 group-hover:from-emerald-400/10 group-hover:to-teal-400/10 transition-all" />
+								<div className="relative flex items-center justify-center gap-3">
+									<div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white text-xl font-bold shadow-lg">
+										{stationNum}
+									</div>
+									<div className="text-left">
+										<div className="text-lg font-bold text-gray-900 dark:text-white">
+											Station {stationNum}
+										</div>
+										<div className="text-sm text-gray-600 dark:text-gray-400">
+											Printer {stationNum}
+										</div>
+									</div>
+								</div>
+							</button>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card className="w-full max-w-md shadow-xl">
 			<CardHeader className="space-y-2 pb-4 text-center">
@@ -428,6 +534,26 @@ export default function PublicCheckinPage() {
 						priority
 					/>
 				</div>
+
+				{/* Station Badge */}
+				{station && (
+					<div className="flex items-center justify-center gap-2 pb-2">
+						<div className="inline-flex items-center gap-2 rounded-md bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+							<span className="flex h-2 w-2">
+								<span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+								<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+							</span>
+							Station {station}
+						</div>
+						<button
+							onClick={handleChangeStation}
+							className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-muted transition-all hover:bg-primary/50 hover:shadow-sm active:scale-95"
+						>
+							<Edit2 className="h-3.5 w-3.5" />
+							Change
+						</button>
+					</div>
+				)}
 
 				<div className="space-y-2">
 					<CardTitle className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
