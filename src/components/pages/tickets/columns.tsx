@@ -51,7 +51,7 @@ export function generateColumns(
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1">
 					<div className="truncate font-medium">{row.getValue("name")}</div>
-					<div className="truncate text-muted-foreground text-xs">
+					<div className="truncate text-muted-foreground text-sm">
 						{row.original.phone || "No phone"}
 					</div>
 				</div>
@@ -228,10 +228,16 @@ export function generateColumns(
 		});
 	}
 
-	// Insert custom columns before the actions column
+	// Insert custom columns before the "Created At" column
+	// Base columns order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
+	// We want: Name, Phone (hidden), Email, Ticket Type, Status, [Custom Labels], Created At, Actions
+	const createdAtIndex = baseColumns.findIndex(
+		(col) => "accessorKey" in col && col.accessorKey === "createdAt",
+	);
+
 	return [
-		...baseColumns.slice(0, -1),
+		...baseColumns.slice(0, createdAtIndex),
 		...customColumns,
-		baseColumns[baseColumns.length - 1],
+		...baseColumns.slice(createdAtIndex),
 	];
 }

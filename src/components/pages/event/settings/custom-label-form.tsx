@@ -111,14 +111,30 @@ export default function CustomLabelForm({
 		}
 
 		// Convert labels array to labels_data object
-		// Format: { "Label 1": "Display Name", "Label 2": "Another Name", ... }
+		// Format: { "role": "Role", "company": "Company", ... }
+		// Keys are slugified versions of the values (lowercase, underscores)
 		const labelsData = nonEmptyLabels.reduce(
-			(acc, label, index) => {
-				acc[`Label ${index + 1}`] = label.value.trim();
+			(acc, label) => {
+				const trimmedValue = label.value.trim();
+				// Convert "Phone Number" -> "phone_number", "T-shirt Size" -> "t_shirt_size"
+				const key = trimmedValue
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, "_") // Replace non-alphanumeric with underscore
+					.replace(/^_|_$/g, ""); // Remove leading/trailing underscores
+				acc[key] = trimmedValue;
 				return acc;
 			},
 			{} as Record<string, string>,
 		);
+
+		// OLD CODE - Using generic "Label 1", "Label 2", etc. as keys
+		// const labelsData = nonEmptyLabels.reduce(
+		// 	(acc, label, index) => {
+		// 		acc[`Label ${index + 1}`] = label.value.trim();
+		// 		return acc;
+		// 	},
+		// 	{} as Record<string, string>,
+		// );
 
 		// Update event with labels_data
 		await updateEventMutation.mutateAsync(labelsData);
