@@ -57,6 +57,24 @@ export async function checkInTicket(
 }
 
 /**
+ * Unscan a ticket (org_owner only)
+ * Resets checked_in, check_in_at, scanned_by_id, and status
+ */
+export async function unscanTicket(ticketId: string): Promise<void> {
+	console.log("🔄 Unscanning ticket with ID:", ticketId);
+
+	const url = `v1/tickets/${ticketId}/unscan`;
+	console.log("🌐 Calling PATCH:", url);
+
+	try {
+		await restClient.patch(url, {});
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Find a ticket by contact information (email, phone, or name) without checking in
  * Public endpoint - does not require authentication
  * Returns single ticket for email/phone, or multiple tickets for name searches
