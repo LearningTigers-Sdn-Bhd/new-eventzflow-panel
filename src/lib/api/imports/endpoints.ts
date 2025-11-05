@@ -107,7 +107,7 @@ export async function importTickets(
  */
 export async function importTicketsDryRun(
 	file: File,
-	options?: { full?: boolean },
+	options?: { full?: boolean; noLabel?: boolean },
 ): Promise<ImportTicketsResponse> {
 	return importTickets(file, { ...options, dryRun: true });
 }
