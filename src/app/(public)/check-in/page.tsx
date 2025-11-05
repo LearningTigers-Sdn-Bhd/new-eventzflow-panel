@@ -29,7 +29,6 @@ import {
 	confirmSelfCheckIn,
 	findTicketByContact,
 } from "@/lib/api/ticket/endpoints";
-import { cleanPhoneNumber, formatWithCountryStyle } from "@/utils/phone";
 
 export default function PublicCheckinPage() {
 	const searchParams = useSearchParams();
@@ -160,25 +159,10 @@ export default function PublicCheckinPage() {
 			let response;
 
 			if (checkInMethod === "phone") {
-				const cleanedPhone = cleanPhoneNumber(phone);
-				const formattedPhone = formatWithCountryStyle(phone);
-
-				try {
-					response = await findTicketByContact({
-						attendee_phone: cleanedPhone,
-					});
-				} catch (error: any) {
-					if (
-						error.message?.includes("No ticket found") ||
-						error.message?.includes("not found")
-					) {
-						response = await findTicketByContact({
-							attendee_phone: formattedPhone,
-						});
-					} else {
-						throw error;
-					}
-				}
+				// Backend now handles phone normalization, just pass the phone as-is
+				response = await findTicketByContact({
+					attendee_phone: phone,
+				});
 			} else if (checkInMethod === "email") {
 				response = await findTicketByContact({ attendee_email: email });
 			} else {
