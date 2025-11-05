@@ -63,6 +63,18 @@ export const resetPasswordSchema = z
 		path: ["password_confirmation"],
 	});
 
+// Update password (authenticated user)
+export const updatePasswordRequestSchema = z
+	.object({
+		current_password: z.string().min(1, "Current password is required"),
+		new_password: passwordSchema,
+		confirm_new_password: passwordSchema,
+	})
+	.refine((data) => data.new_password === data.confirm_new_password, {
+		message: "Passwords do not match",
+		path: ["confirm_new_password"],
+	});
+
 // Export TypeScript types derived from schemas
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
@@ -74,6 +86,7 @@ export type VerifyResetPasswordRequest = z.infer<
 	typeof verifyResetPasswordRequestSchema
 >;
 export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;
+export type UpdatePasswordRequest = z.infer<typeof updatePasswordRequestSchema>;
 
 // Export individual field types for convenience
 export type LoginRequestData = LoginRequest["user"];

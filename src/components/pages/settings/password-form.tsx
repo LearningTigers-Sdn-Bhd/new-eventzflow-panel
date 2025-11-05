@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updatePassword } from "@/lib/api/auth/endpoints";
+import { updatePasswordRequestSchema } from "@/lib/api/auth/request";
 
 export function PasswordForm() {
 	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -13,11 +15,28 @@ export function PasswordForm() {
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+	const [submitting, setSubmitting] = useState(false);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// TODO: Implement password change logic
-		console.log("Password change form submitted");
+		if (submitting) return;
+		setSubmitting(true);
+		try {
+			const payload = updatePasswordRequestSchema.parse({
+				current_password: currentPassword,
+				new_password: newPassword,
+				confirm_new_password: confirmPassword,
+			});
+			await updatePassword(payload);
+			// Clear form on success; user remains signed in with fresh tokens
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirmPassword("");
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setSubmitting(false);
+		}
 	};
 
 	return (
@@ -108,7 +127,11 @@ export function PasswordForm() {
 				</div>
 			</div>
 			<div className="flex justify-end">
-				<Button type="submit" className="min-w-[120px] rounded-none">
+				<Button
+					type="submit"
+					disabled={submitting}
+					className="min-w-[120px] rounded-none"
+				>
 					Change Password
 				</Button>
 			</div>

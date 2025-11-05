@@ -54,6 +54,17 @@ export const resetPasswordResponseSchema = z.object({
 	message: z.string().optional().default("Password has been reset"),
 });
 
+// Update password response (returns fresh tokens)
+export const updatePasswordResponseSchema = z.object({
+	success: z.boolean().optional().default(true),
+	message: z.string().optional().default("Password updated successfully"),
+	data: z.object({
+		access_token: z.string(),
+		refresh_token: z.string(),
+		expires_at: z.string(),
+	}),
+});
+
 // Export TypeScript types derived from schemas
 export type User = z.infer<typeof userSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
@@ -63,3 +74,6 @@ export type RequestResetPasswordResponse = z.infer<
 	typeof requestResetPasswordResponseSchema
 >;
 export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
+export type UpdatePasswordResponse = z.infer<
+	typeof updatePasswordResponseSchema
+>;

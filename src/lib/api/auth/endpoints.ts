@@ -13,6 +13,8 @@ import {
 	registerRequestSchema,
 	requestResetPasswordSchema,
 	resetPasswordSchema,
+	type UpdatePasswordRequest,
+	updatePasswordRequestSchema,
 	type VerifyResetPasswordRequest,
 	verifyResetPasswordRequestSchema,
 } from "./request";
@@ -25,6 +27,8 @@ import {
 	refreshTokenResponseSchema,
 	requestResetPasswordResponseSchema,
 	resetPasswordResponseSchema,
+	type UpdatePasswordResponse,
+	updatePasswordResponseSchema,
 	type VerifyEmailResponse,
 	verifyEmailResponseSchema,
 } from "./response";
@@ -368,6 +372,36 @@ export async function resetPassword(
 			payload,
 		);
 		return resetPasswordResponseSchema.parse(response);
+	} catch (error) {
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Update password for authenticated user
+ */
+export async function updatePassword(
+	data: UpdatePasswordRequest,
+): Promise<UpdatePasswordResponse> {
+	try {
+		const payload = updatePasswordRequestSchema.parse(data);
+		const response = await restClient.patch<UpdatePasswordResponse>(
+			"v1/auth/password",
+			payload,
+		);
+		const validated = updatePasswordResponseSchema.parse(response);
+		if (validated.success) {
+			const { access_token, refresh_token, expires_at } = validated.data;
+			const expiresAtTimestamp = new Date(expires_at).getTime();
+			const state = useUserSessionStore.getState();
+			state.setSessionCredentials({
+				accessToken: access_token,
+				refreshToken: refresh_token,
+				expiresAt: expiresAtTimestamp,
+			});
+		}
+		return validated;
 	} catch (error) {
 		const errorMessage = await extractErrorMessage(error);
 		throw new Error(errorMessage);
