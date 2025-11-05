@@ -9,7 +9,13 @@ export type ImportTicketsResponse = {
 	};
 	updated?: {
 		count: number;
-		data: Array<Record<string, unknown> & { model: string; id: string }>;
+		data: Array<
+			Record<string, unknown> & {
+				model: string;
+				id: string;
+				changed_fields?: string[];
+			}
+		>;
 	};
 	skipped: {
 		count: number;
@@ -37,7 +43,13 @@ export type BackendImportTicketsResponse = {
 		};
 		updated?: {
 			count: number;
-			data: Array<Record<string, unknown> & { model: string; id: string }>;
+			data: Array<
+				Record<string, unknown> & {
+					model: string;
+					id: string;
+					changed_fields?: string[];
+				}
+			>;
 		};
 		skipped: {
 			count: number;

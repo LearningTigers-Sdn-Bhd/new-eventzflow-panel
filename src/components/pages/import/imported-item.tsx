@@ -4,8 +4,10 @@ import {
 	AlertCircle,
 	CheckCircle2,
 	ChevronDown,
+	CreditCard,
 	FileX,
 	RefreshCw,
+	Tag,
 } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +28,17 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const isError = category === "errors";
 	const itemData: string | Record<string, unknown> = item;
+
+	// Extract changed_fields for updated items
+	const changedFields =
+		category === "updated" && typeof itemData === "object"
+			? (itemData.changed_fields as string[] | undefined)
+			: undefined;
+
+	const hasPaymentStatusChange =
+		changedFields?.includes("payment_status") ?? false;
+	const hasCustomLabelsChange =
+		changedFields?.includes("custom_fields_data") ?? false;
 
 	const categoryConfig = {
 		created: {
@@ -68,7 +81,8 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 	const otherFields =
 		!isError && typeof itemData === "object"
 			? Object.entries(itemData as Record<string, unknown>).filter(
-					([key]) => key !== "model" && key !== "id",
+					([key]) =>
+						key !== "model" && key !== "id" && key !== "changed_fields",
 				)
 			: [];
 	const firstTwoFields = otherFields.slice(0, 2);
@@ -118,7 +132,7 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 										{config.icon}
 									</div>
 									<div className="min-w-0 flex-1 space-y-0">
-										<div className="flex items-center gap-2">
+										<div className="flex items-center gap-2 flex-wrap">
 											<Badge
 												className={cn(
 													"shrink-0 rounded-none text-xs font-medium",
@@ -127,6 +141,29 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 											>
 												{config.label}
 											</Badge>
+											{/* Show change indicators for updated items */}
+											{category === "updated" && (
+												<>
+													{hasPaymentStatusChange && (
+														<Badge
+															variant="outline"
+															className="shrink-0 rounded-none text-xs font-medium border-orange-500/50 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/20"
+														>
+															<CreditCard className="mr-1 h-3 w-3" />
+															Payment Status Changed
+														</Badge>
+													)}
+													{hasCustomLabelsChange && (
+														<Badge
+															variant="outline"
+															className="shrink-0 rounded-none text-xs font-medium border-purple-500/50 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20"
+														>
+															<Tag className="mr-1 h-3 w-3" />
+															Custom Labels Changed
+														</Badge>
+													)}
+												</>
+											)}
 										</div>
 										{(() => {
 											const data = itemData as Record<string, unknown>;

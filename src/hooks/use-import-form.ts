@@ -47,16 +47,45 @@ export function useImportForm({
 				updated ? `, ${updated.count} updated` : ""
 			}, ${skipped.count} skipped)`;
 
+			// Check if any updated items have payment status or custom labels changes
+			const hasPaymentStatusChanges =
+				updated?.data.some(
+					(item) =>
+						Array.isArray(item.changed_fields) &&
+						item.changed_fields.includes("payment_status"),
+				) ?? false;
+			const hasCustomLabelsChanges =
+				updated?.data.some(
+					(item) =>
+						Array.isArray(item.changed_fields) &&
+						item.changed_fields.includes("custom_fields_data"),
+				) ?? false;
+
+			const changeDescriptions: string[] = [];
+			if (hasPaymentStatusChanges) {
+				changeDescriptions.push("payment status");
+			}
+			if (hasCustomLabelsChanges) {
+				changeDescriptions.push("custom labels");
+			}
+
+			const changeDescription =
+				changeDescriptions.length > 0
+					? ` Some items had ${changeDescriptions.join(" and ")} changes.`
+					: "";
+
 			if (importErrors.count > 0) {
 				toast.warning(message, {
 					description: `Some rows had errors${
 						duplicates_in_file
 							? `; ${duplicates_in_file.count} duplicate(s) in file`
 							: ""
-					}: ${importErrors.data.join(", ")}`,
+					}: ${importErrors.data.join(", ")}${changeDescription}`,
 				});
 			} else {
-				toast.success(message);
+				toast.success(message, {
+					description: changeDescription || undefined,
+				});
 			}
 
 			onResult?.(data);
