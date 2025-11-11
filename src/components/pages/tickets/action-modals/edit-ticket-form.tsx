@@ -163,11 +163,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 		}
 
 		// Transform custom fields array to object
+		// Include ALL label fields, even if empty (as empty strings)
 		const customFieldsData: Record<string, string> = {};
 		customFields.forEach((field) => {
-			if (field.value.trim()) {
-				customFieldsData[field.labelKey] = field.value;
-			}
+			customFieldsData[field.labelKey] = field.value.trim();
 		});
 
 		if (!ticketTypeId) {
@@ -184,9 +183,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				attendee_phone: attendeePhone || null,
 				ticket_type_id: ticketTypeId,
 				custom_fields_data:
-					Object.keys(customFieldsData).length > 0
-						? customFieldsData
-						: undefined,
+					customFields.length > 0 ? customFieldsData : undefined,
 			});
 		} catch (_error) {
 			// Error is handled by onError callback
