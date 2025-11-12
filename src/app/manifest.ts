@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
 	return {
-		name: "eventzflow-panel",
-		short_name: "eventzflow-panel",
-		description: "my pwa app",
-		start_url: "/new",
+		name: "EventzFlow Panel",
+		short_name: "EventzFlow",
+		description: "EventzFlow - Manage events, scan tickets, and track attendance",
+		start_url: "/",
 		display: "standalone",
 		background_color: "#ffffff",
 		theme_color: "#000000",
