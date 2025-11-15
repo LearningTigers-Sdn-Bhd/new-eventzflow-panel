@@ -9,7 +9,7 @@ export type BackendEventStaffResponse = {
 		email: string;
 		full_name: string;
 		phone: string | null;
-		role: number; // 0=org_owner, 1=manager, 2=member
+		role: number; // 0=org_owner, 1=organizer, 2=member
 		status: number; // 1=active, 0=inactive
 	};
 };
@@ -19,7 +19,7 @@ export type BackendUser = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "manager" | "member";
+	role: "org_owner" | "organizer" | "member";
 	status: "active" | "inactive";
 	created_at: string;
 	updated_at: string;
@@ -40,7 +40,7 @@ export type EventStaffMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	globalRole: "org_owner" | "manager" | "member";
+	globalRole: "org_owner" | "organizer" | "member";
 	eventRole: "event_admin" | "event_team_member";
 	status: "active" | "inactive";
 	assignmentId: number;
@@ -53,7 +53,7 @@ export type AvailableTeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "manager" | "member";
+	role: "org_owner" | "organizer" | "member";
 	status: "active" | "inactive";
 };
 

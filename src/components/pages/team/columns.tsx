@@ -19,7 +19,7 @@ export type TeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "manager" | "member";
+	role: "org_owner" | "organizer" | "member";
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;
@@ -120,7 +120,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 		header: ({ column }) => {
 			const filterRole = column.getFilterValue() as
 				| "org_owner"
-				| "manager"
+				| "organizer"
 				| "member"
 				| undefined;
 			return (
@@ -160,6 +160,12 @@ export const columns: ColumnDef<TeamMember>[] = [
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							className="rounded-none"
+							onClick={() => column.setFilterValue("organizer")}
+						>
+							Organizer
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
 							onClick={() => column.setFilterValue("member")}
 						>
 							Member
@@ -173,8 +179,8 @@ export const columns: ColumnDef<TeamMember>[] = [
 			const roleLabel =
 				role === "org_owner"
 					? "Owner"
-					: role === "manager"
-						? "Manager"
+					: role === "organizer"
+						? "Organizer"
 						: "Member";
 			return (
 				<Badge
@@ -182,7 +188,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 					className={cn(
 						"min-w-16 rounded-none font-bold capitalize",
 						role === "org_owner" && "border-purple-500 text-purple-500",
-						role === "manager" && "border-blue-500 text-blue-500",
+						role === "organizer" && "border-blue-500 text-blue-500",
 						role === "member" && "border-gray-500 text-gray-500",
 					)}
 				>

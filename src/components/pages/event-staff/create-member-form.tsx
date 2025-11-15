@@ -41,7 +41,7 @@ export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
 		phone: "",
 		password: "",
 		confirmPassword: "",
-		role: "member" as "manager" | "member",
+		role: "member" as "organizer" | "member",
 	});
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -181,11 +181,11 @@ export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="member">Member</SelectItem>
-									<SelectItem value="manager">Manager</SelectItem>
+									<SelectItem value="organizer">Organizer</SelectItem>
 								</SelectContent>
 							</Select>
 							<FieldDescription>
-								Members have basic access. Managers can organize events.
+								Members have basic access. Organizers can manage events.
 							</FieldDescription>
 						</Field>
 

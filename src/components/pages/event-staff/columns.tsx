@@ -19,7 +19,7 @@ export type EventStaffMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	globalRole: "org_owner" | "manager" | "member";
+	globalRole: "org_owner" | "organizer" | "member";
 	eventRole: "event_admin" | "event_team_member";
 	status: "active" | "inactive";
 	assignmentId: number;
@@ -305,7 +305,7 @@ const actionsColumn: ColumnDef<EventStaffMember> = {
 
 // Function to get columns based on user role
 export const getEventStaffColumns = (
-	userRole?: "org_owner" | "manager" | "member",
+	userRole?: "org_owner" | "organizer" | "member",
 ): ColumnDef<EventStaffMember>[] => {
 	// Only org_owner can see actions column
 	if (userRole === "org_owner") {
