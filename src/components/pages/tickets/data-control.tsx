@@ -14,13 +14,24 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { cn } from "@/lib/utils";
 
+type TicketFilter = "active" | "archived" | "all";
+
 interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
+	ticketFilter?: TicketFilter;
+	onTicketFilterChange?: (filter: TicketFilter) => void;
 }
 
 function getColumnLabel(
@@ -45,6 +56,8 @@ function getColumnLabel(
 export function DataControl<TData>({
 	table,
 	labelsData,
+	ticketFilter = "active",
+	onTicketFilterChange,
 }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const params = useParams();
@@ -105,6 +118,29 @@ export function DataControl<TData>({
 						searchCustomFields={true}
 						placeholder="Search tickets..."
 					/>
+					{onTicketFilterChange && (
+						<Select
+							value={ticketFilter}
+							onValueChange={(value) =>
+								onTicketFilterChange(value as TicketFilter)
+							}
+						>
+							<SelectTrigger className="w-[140px] rounded-none font-medium bg-background">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent className="rounded-none">
+								<SelectItem value="active" className="rounded-none">
+									Active
+								</SelectItem>
+								<SelectItem value="archived" className="rounded-none">
+									Archived
+								</SelectItem>
+								<SelectItem value="all" className="rounded-none">
+									All
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					)}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="rounded-none">

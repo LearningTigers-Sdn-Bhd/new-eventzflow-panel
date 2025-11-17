@@ -31,6 +31,7 @@ export type Event = {
 	published: boolean;
 	created_at: string;
 	updated_at: string;
+	deleted_at: string | null;
 };
 
 // Base columns that everyone sees
@@ -203,7 +204,7 @@ const baseColumns: ColumnDef<Event>[] = [
 		header: "Actions",
 		cell: ({ row }) => {
 			const _event = row.original;
-			return <EventActionsMenu eventId={_event.id} />;
+			return <EventActionsMenu eventId={_event.id} deletedAt={_event.deleted_at} />;
 		},
 	},
 ];

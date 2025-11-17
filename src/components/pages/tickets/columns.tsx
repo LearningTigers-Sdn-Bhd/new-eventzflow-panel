@@ -21,6 +21,7 @@ export type BaseTicket = {
 	ticketTypeName?: string;
 	checkedIn?: boolean;
 	checkInAt?: string | null;
+	deletedAt?: string | null;
 };
 
 export function generateColumns(
@@ -166,11 +167,14 @@ export function generateColumns(
 			size: 120,
 			enableHiding: false,
 			header: () => <div className="text-center">Actions</div>,
-			cell: ({ row }) => (
-				<div className="flex justify-center">
-					<TicketActionsMenu ticket={row.original} />
-				</div>
-			),
+			cell: ({ row }) => {
+				const _ticket = row.original;
+				return (
+					<div className="flex justify-center">
+						<TicketActionsMenu ticket={_ticket} deletedAt={_ticket.deletedAt} />
+					</div>
+				);
+			},
 		},
 	];
 

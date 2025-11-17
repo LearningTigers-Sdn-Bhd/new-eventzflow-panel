@@ -91,7 +91,7 @@ export function EventItem({ event }: EventItemProps) {
 			</ItemContent>
 			<ItemFooter className="flex justify-end">
 				<ItemActions>
-					<EventActionsMenu eventId={event.id} />
+					<EventActionsMenu eventId={event.id} deletedAt={event.deleted_at} />
 				</ItemActions>
 			</ItemFooter>
 		</Item>

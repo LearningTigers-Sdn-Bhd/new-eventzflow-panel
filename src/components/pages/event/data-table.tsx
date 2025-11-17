@@ -35,16 +35,22 @@ import CreateEventForm from "./create-event-form";
 import { DataControl } from "./data-control";
 import { EventItem } from "./event-item";
 
+type EventFilter = "active" | "archived" | "all";
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	onCreateEvent?: () => void;
+	eventFilter?: EventFilter;
+	onEventFilterChange?: (filter: EventFilter) => void;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
 	onCreateEvent,
+	eventFilter = "active",
+	onEventFilterChange,
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const isTablet = useIsTablet();
@@ -121,7 +127,11 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				eventFilter={eventFilter}
+				onEventFilterChange={onEventFilterChange}
+			/>
 
 			<div className="min-h-[65vh]">
 				{/* Data Table */}
