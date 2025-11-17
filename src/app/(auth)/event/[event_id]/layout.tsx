@@ -152,7 +152,7 @@ export default function EventDetailLayout({
 	// Fetch event details
 	const { data: events, isLoading } = useQuery({
 		queryKey: ["events"],
-		queryFn: getEvents,
+		queryFn: () => getEvents(),
 	});
 	const currentEvent = events?.find(
 		(event) => event.id.toString() === event_id,
