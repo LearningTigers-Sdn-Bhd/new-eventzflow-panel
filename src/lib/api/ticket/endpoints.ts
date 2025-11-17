@@ -154,7 +154,7 @@ export async function confirmSelfCheckIn(
 
 	try {
 		const payload: any = { public_id: publicId };
-		
+
 		// Add optional contact info if provided
 		if (contactInfo?.attendee_phone) {
 			payload.attendee_phone = contactInfo.attendee_phone;
@@ -293,12 +293,35 @@ export async function getMyScannedTickets(
 
 /**
  * Get tickets for a specific event
+ * @param eventId - The event ID
+ * @param options - Query options for filtering tickets
+ * @param options.archived - If true, returns only archived tickets. If false/undefined, returns only active tickets.
+ * @param options.full - If true, returns all tickets (active + archived). Overrides archived parameter.
  */
-export async function getEventTickets(eventId: string): Promise<Ticket[]> {
+export async function getEventTickets(
+	eventId: string,
+	options?: {
+		archived?: boolean;
+		full?: boolean;
+	},
+): Promise<Ticket[]> {
+	// Build query parameters
+	const params = new URLSearchParams();
+	if (options?.full) {
+		params.append("full", "true");
+	} else if (options?.archived) {
+		params.append("archived", "true");
+	}
+
+	const queryString = params.toString();
+	const ticketsUrl = queryString
+		? `v1/events/${eventId}/tickets?${queryString}`
+		: `v1/events/${eventId}/tickets`;
+
 	// Fetch event details and tickets in parallel
 	const [event, response] = await Promise.all([
 		restClient.get<BackendEvent>(`v1/events/${eventId}`),
-		restClient.get<BackendTicket[]>(`v1/events/${eventId}/tickets`),
+		restClient.get<BackendTicket[]>(ticketsUrl),
 	]);
 
 	// Filter to only show paid tickets (payment_status = 1 or "paid")
@@ -336,6 +359,7 @@ export async function getEventTickets(eventId: string): Promise<Ticket[]> {
 			eventId: ticket.event_id.toString(),
 			status: ticket.status === "scanned" ? "scanned" : "not_scanned",
 			createdAt: ticket.created_at,
+			deletedAt: ticket.deleted_at || null,
 			customLabels: customLabels.length > 0 ? customLabels : undefined,
 		};
 	});
@@ -581,4 +605,73 @@ export async function importTicketsDryRun(
         const message = await extractErrorMessage(error);
         throw new Error(message);
     }
+}
+
+/**
+ * Archive a ticket (soft delete)
+ */
+export async function archiveTicket(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.delete<void>(`v1/events/${eventId}/tickets/${publicId}`);
+	} catch (error: any) {
+		console.error("Error archiving ticket:", error);
+		throw new Error(error.message || "Failed to archive ticket");
+	}
+}
+
+/**
+ * Force delete a ticket (permanent delete)
+ */
+export async function forceDeleteTicket(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.delete<void>(
+			`v1/events/${eventId}/tickets/${publicId}/force_delete`,
+		);
+	} catch (error: any) {
+		console.error("Error force deleting ticket:", error);
+		throw new Error(error.message || "Failed to force delete ticket");
+	}
+}
+
+/**
+ * Restore an archived ticket
+ */
+export async function restoreTicket(
+	eventId: string,
+	publicId: string,
+): Promise<Ticket> {
+	try {
+		const response = await restClient.patch<BackendTicketTransformed>(
+			`v1/events/${eventId}/tickets/${publicId}/restore`,
+		);
+
+		// Transform backend response to frontend format
+		return {
+			id: response.id.toString(),
+			publicId: response.public_id,
+			name: response.attendee_name,
+			email: response.attendee_email,
+			phone: response.attendee_phone,
+			ticketTypeName: response.ticket_type_name,
+			ticketTypeId: response.ticket_type_id,
+			value: response.value,
+			checkedIn: response.checked_in,
+			checkInAt: response.check_in_at,
+			eventName: response.event_name,
+			eventId: response.event_id.toString(),
+			status: response.checked_in ? "scanned" : "not_scanned",
+			createdAt: response.created_at || new Date().toISOString(),
+			deletedAt: null,
+			customLabels: response.custom_labels,
+		};
+	} catch (error: any) {
+		console.error("Error restoring ticket:", error);
+		throw new Error(error.message || "Failed to restore ticket");
+	}
 }

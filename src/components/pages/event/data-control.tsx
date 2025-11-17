@@ -20,11 +20,19 @@ import {
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
 
+type EventFilter = "active" | "archived" | "all";
+
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	eventFilter?: EventFilter;
+	onEventFilterChange?: (filter: EventFilter) => void;
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	eventFilter = "active",
+	onEventFilterChange,
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
 	return (
@@ -37,6 +45,29 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						columns={["title", "id"]}
 						placeholder="Search events..."
 					/>
+					{onEventFilterChange && (
+						<Select
+							value={eventFilter}
+							onValueChange={(value) =>
+								onEventFilterChange(value as EventFilter)
+							}
+						>
+							<SelectTrigger className="w-[140px] rounded-none font-medium bg-background">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent className="rounded-none">
+								<SelectItem value="active" className="rounded-none">
+									Active
+								</SelectItem>
+								<SelectItem value="archived" className="rounded-none">
+									Archived
+								</SelectItem>
+								<SelectItem value="all" className="rounded-none">
+									All
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					)}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
@@ -75,6 +106,29 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
 					<QuerySearchField table={table} placeholder="Search events..." />
+					{onEventFilterChange && (
+						<Select
+							value={eventFilter}
+							onValueChange={(value) =>
+								onEventFilterChange(value as EventFilter)
+							}
+						>
+							<SelectTrigger className="w-full rounded-none font-medium text-xs">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent className="rounded-none">
+								<SelectItem value="active" className="rounded-none">
+									Active Events
+								</SelectItem>
+								<SelectItem value="archived" className="rounded-none">
+									Archived Events
+								</SelectItem>
+								<SelectItem value="all" className="rounded-none">
+									All Events
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					)}
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						<Button
 							variant="outline"

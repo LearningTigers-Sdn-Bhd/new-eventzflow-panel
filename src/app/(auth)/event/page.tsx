@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { RiCalendarEventFill } from "react-icons/ri";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { getColumns } from "@/components/pages/event/columns";
@@ -13,15 +13,31 @@ import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEvents } from "@/lib/api/event";
 
+type EventFilter = "active" | "archived" | "all";
+
 export default function EventPage() {
 	const { user } = useAuth();
+	const [eventFilter, setEventFilter] = useState<EventFilter>("active");
+
+	// Build query options based on filter
+	const queryOptions = useMemo(() => {
+		if (eventFilter === "all") {
+			return { full: true };
+		}
+		if (eventFilter === "archived") {
+			return { archived: true };
+		}
+		return undefined; // Default: active events only
+	}, [eventFilter]);
+
 	const {
 		data: events,
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ["events"],
-		queryFn: getEvents,
+		// Use eventFilter directly in queryKey for better serialization and caching
+		queryKey: ["events", eventFilter],
+		queryFn: () => getEvents(queryOptions),
 	});
 
 	// Get columns based on user role
@@ -99,6 +115,8 @@ export default function EventPage() {
 					columns={columns}
 					data={events || []}
 					onCreateEvent={handleCreateEvent}
+					eventFilter={eventFilter}
+					onEventFilterChange={setEventFilter}
 				/>
 			)}
 		</div>

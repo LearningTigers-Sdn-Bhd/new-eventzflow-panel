@@ -36,11 +36,19 @@ import { generateColumns } from "./columns";
 import { DataControl } from "./data-control";
 import { TicketItem } from "./ticket-item";
 
+type TicketFilter = "active" | "archived" | "all";
+
 interface DataTableProps<TData> {
 	data: TData[];
+	ticketFilter?: TicketFilter;
+	onTicketFilterChange?: (filter: TicketFilter) => void;
 }
 
-export function DataTable<TData>({ data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+	data,
+	ticketFilter = "active",
+	onTicketFilterChange,
+}: DataTableProps<TData>) {
 	const _isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const params = useParams();
@@ -112,7 +120,12 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} labelsData={eventData?.labels_data} />
+			<DataControl
+				table={table}
+				labelsData={eventData?.labels_data}
+				ticketFilter={ticketFilter}
+				onTicketFilterChange={onTicketFilterChange}
+			/>
 
 			{/* Data Table */}
 			<div className="min-h-[45vh]">

@@ -118,7 +118,7 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 			</ItemContent>
 			<ItemFooter className="flex w-full justify-end">
 				<ItemActions>
-					<TicketActionsMenu ticket={ticket} />
+					<TicketActionsMenu ticket={ticket} deletedAt={ticket.deletedAt} />
 				</ItemActions>
 			</ItemFooter>
 		</Item>

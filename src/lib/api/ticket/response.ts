@@ -16,6 +16,7 @@ export type Ticket = {
 	eventId: string;
 	status: "scanned" | "not_scanned";
 	createdAt: string;
+	deletedAt?: string | null;
 	customLabels?: Array<{
 		name: string;
 		value: string;
@@ -97,6 +98,7 @@ export type BackendTicket = {
 	custom_fields_data: Record<string, string> | null;
 	created_at: string;
 	updated_at: string;
+	deleted_at: string | null;
 	ticket_type?: {
 		id: number;
 		name: string;
