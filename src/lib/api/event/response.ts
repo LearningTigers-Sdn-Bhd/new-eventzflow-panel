@@ -7,6 +7,7 @@ export type Event = {
 	status: "draft" | "published" | "cancelled";
 	visibility: boolean;
 	multiple_scans: boolean;
+	use_ticket: boolean;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;

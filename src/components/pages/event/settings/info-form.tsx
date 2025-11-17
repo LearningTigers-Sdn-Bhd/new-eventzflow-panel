@@ -38,6 +38,7 @@ const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
 	status: z.enum(["draft", "published", "cancelled"]),
 	visibility: z.boolean(),
+	useTicket: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -99,6 +100,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			title: "",
 			status: "draft" as "draft" | "published" | "cancelled",
 			visibility: true,
+			useTicket: true,
 			description: "",
 			webhookUrl: "",
 			multipleScans: false,
@@ -115,6 +117,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					title: value.title,
 					status: value.status,
 					visibility: value.visibility,
+					use_ticket: value.useTicket,
 					description: value.description || undefined,
 					webhook_url: value.webhookUrl || "",
 					multiple_scans: value.multipleScans,
@@ -134,6 +137,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("title", event.title || "");
 				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled");
 				form.setFieldValue("visibility", event.visibility ?? true);
+				form.setFieldValue("useTicket", event.use_ticket ?? true);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
@@ -146,7 +150,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.end_date ? new Date(event.end_date) : new Date(),
 				);
 			}, 0);
-			
 			hasInitialized.current = event.id;
 		}
 	}, [event, form]);
@@ -263,10 +266,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							</form.Field>
 						</div>
 
-						{/* Row 2: Webhook URL, Multiple Scans, and Visibility (org_owner only) */}
-						<div
-							className={`grid grid-cols-1 gap-4 ${isOrgOwner ? "md:grid-cols-4" : "md:grid-cols-4"}`}
-						>
+						{/* Row 2: Webhook URL (2 cols), Multiple Scans, Use Ticket, and Visibility (1 col each) */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-5">
 							<form.Field name="webhookUrl">
 								{(field) => {
 									const isInvalid =
@@ -275,7 +276,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<Field
 											data-invalid={isInvalid}
 											orientation="vertical"
-											className={isOrgOwner ? "md:col-span-2" : "md:col-span-3"}
+											className="md:col-span-2"
 										>
 											<FieldLabel htmlFor={field.name}>Webhook URL</FieldLabel>
 											<Input
@@ -303,6 +304,31 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<Field orientation="vertical">
 											<FieldLabel htmlFor={field.name}>
 												Multiple Scans
+											</FieldLabel>
+											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+												<Switch
+													id={field.name}
+													checked={field.state.value}
+													onCheckedChange={(checked) =>
+														field.handleChange(checked)
+													}
+													disabled={updateEventMutation.isPending}
+												/>
+												<span className="ml-2 text-muted-foreground text-sm">
+													{field.state.value ? "Enabled" : "Disabled"}
+												</span>
+											</div>
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="useTicket">
+								{(field) => {
+									return (
+										<Field orientation="vertical">
+											<FieldLabel htmlFor={field.name}>
+												Ticketing System
 											</FieldLabel>
 											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 												<Switch

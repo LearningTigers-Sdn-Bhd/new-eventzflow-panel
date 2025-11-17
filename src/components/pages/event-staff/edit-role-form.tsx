@@ -35,7 +35,7 @@ export default function EditRoleForm({
 }: EditRoleFormProps) {
 	const roleId = useId();
 	const [role, setRole] = useState<"event_admin" | "event_team_member">(
-		member.eventRole,
+		member.eventRole as "event_admin" | "event_team_member",
 	);
 
 	const queryClient = useQueryClient();
@@ -104,7 +104,7 @@ export default function EditRoleForm({
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								have limited access to event functions.
+								have limited access.
 							</FieldDescription>
 						</Field>
 
