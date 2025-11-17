@@ -8,6 +8,7 @@ export type BackendTeamMember = {
 	status: "active" | "inactive";
 	created_at: string;
 	updated_at: string;
+	created_by_id?: string | null;
 };
 
 // Frontend team member type
@@ -20,6 +21,7 @@ export type TeamMember = {
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;
+	createdById?: string | null;
 };
 
 // Response types for operations

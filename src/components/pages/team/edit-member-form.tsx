@@ -44,8 +44,9 @@ export default function EditMemberForm({
 		mutationFn: updateTeamMember,
 		onSuccess: () => {
 			toast.success("Team member updated successfully!");
-			// Invalidate and refetch team members query
+			// Invalidate and refetch team members queries
 			queryClient.invalidateQueries({ queryKey: ["team", "members"] });
+			queryClient.invalidateQueries({ queryKey: ["organizer-members"] });
 			onClose();
 		},
 		onError: (error: Error) => {

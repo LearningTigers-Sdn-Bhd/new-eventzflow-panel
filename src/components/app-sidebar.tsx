@@ -42,7 +42,7 @@ const data = {
 			name: "Team Members",
 			url: "/team" as Route,
 			icon: Users,
-			roleAllowed: ["org_owner"],
+			roleAllowed: ["org_owner", "organizer"],
 		},
 		{
 			name: "Vendors",

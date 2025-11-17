@@ -7,6 +7,7 @@ import {
 	Pencil,
 	PowerOff,
 	Trash2,
+	Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,7 +31,7 @@ interface TeamMemberActionsMenuProps {
 }
 
 export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
-	const _router = useRouter();
+	const router = useRouter();
 	const { openDialog, closeDialog } = useDialog();
 	const queryClient = useQueryClient();
 
@@ -40,8 +41,9 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 			const action =
 				variables.status === "inactive" ? "deactivated" : "activated";
 			toast.success(`Team member ${action} successfully!`);
-			// Invalidate and refetch team members query
+			// Invalidate and refetch team members queries
 			queryClient.invalidateQueries({ queryKey: ["team", "members"] });
+			queryClient.invalidateQueries({ queryKey: ["organizer-members"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -53,8 +55,9 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 		mutationFn: deleteMember,
 		onSuccess: () => {
 			toast.success("Team member deleted successfully!");
-			// Invalidate and refetch team members query
+			// Invalidate and refetch team members queries
 			queryClient.invalidateQueries({ queryKey: ["team", "members"] });
+			queryClient.invalidateQueries({ queryKey: ["organizer-members"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -131,6 +134,10 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 		});
 	};
 
+	const handleViewMembersClick = () => {
+		router.push(`/team/${member.id}`);
+	};
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -142,6 +149,15 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 			<DropdownMenuContent align="center" side="left" className="rounded-none">
 				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
 				<DropdownMenuSeparator className="rounded-none" />
+				{member.role === "organizer" && (
+					<>
+						<DropdownMenuItem className="rounded-none" onClick={handleViewMembersClick}>
+							<Users className="mr-2 h-4 w-4" />
+							View Members
+						</DropdownMenuItem>
+						<DropdownMenuSeparator className="rounded-none" />
+					</>
+				)}
 				<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit Member
