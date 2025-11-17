@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 import { createEvent } from "@/lib/api/event";
 import { getTeamMembers } from "@/lib/api/team";
 import { queryClient } from "@/utils/rest-api";
@@ -32,6 +33,7 @@ interface CreateEventFormProps {
 }
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
+	const { user } = useAuth();
 	const titleId = useId();
 	const visibilityId = useId();
 	const useTicketId = useId();
@@ -53,10 +55,15 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	});
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
+	// Only org_owner can assign event admin
+	const canAssignEventAdmin = user?.role === "org_owner";
+
 	// Fetch team members for event admin selection (only members with role "member")
+	// Only fetch if user is org_owner
 	const { data: teamMembers = [], isLoading: isLoadingUsers } = useQuery({
 		queryKey: ["team-members"],
 		queryFn: getTeamMembers,
+		enabled: canAssignEventAdmin,
 	});
 
 	// Filter only users with role "member" and active status
@@ -216,8 +223,75 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 						</div>
 
 						{/* Row 3: Event Status and Event Admin */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-							{/* Event Status */}
+						{canAssignEventAdmin ? (
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+								{/* Event Status */}
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={statusId}>Event Status *</FieldLabel>
+									{errors.status && <FieldError>{errors.status}</FieldError>}
+									<Select
+										value={formData.status}
+										onValueChange={(value) =>
+											handleChange(
+												"status",
+												value as "draft" | "published" | "cancelled",
+											)
+										}
+										disabled={createEventMutation.isPending}
+									>
+										<SelectTrigger id={statusId} className="w-full">
+											<SelectValue placeholder="Select event status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="draft">Draft</SelectItem>
+											<SelectItem value="published">Published</SelectItem>
+											<SelectItem value="cancelled">Cancelled</SelectItem>
+										</SelectContent>
+									</Select>
+								</Field>
+
+								{/* Event Admin - Only visible to org_owner */}
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={eventAdminId}>Event Admin</FieldLabel>
+									{errors.event_admin_id && (
+										<FieldError>{errors.event_admin_id}</FieldError>
+									)}
+									<Select
+										value={formData.event_admin_id || ""}
+										onValueChange={(value) =>
+											handleChange("event_admin_id", value || undefined)
+										}
+										disabled={createEventMutation.isPending || isLoadingUsers}
+									>
+										<SelectTrigger id={eventAdminId} className="w-full">
+											<SelectValue
+												placeholder={
+													isLoadingUsers
+														? "Loading users..."
+														: "Select event admin (optional)"
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											{memberUsers.length === 0 ? (
+												<div className="px-2 py-1.5 text-muted-foreground text-sm">
+													{isLoadingUsers
+														? "Loading members..."
+														: "No active members available"}
+												</div>
+											) : (
+												memberUsers.map((user) => (
+													<SelectItem key={user.id} value={user.id}>
+														{user.full_name} ({user.email})
+													</SelectItem>
+												))
+											)}
+										</SelectContent>
+									</Select>
+								</Field>
+							</div>
+						) : (
+							/* Event Status - Full width for organizers */
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={statusId}>Event Status *</FieldLabel>
 								{errors.status && <FieldError>{errors.status}</FieldError>}
@@ -241,47 +315,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									</SelectContent>
 								</Select>
 							</Field>
-
-							{/* Event Admin */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={eventAdminId}>Event Admin</FieldLabel>
-								{errors.event_admin_id && (
-									<FieldError>{errors.event_admin_id}</FieldError>
-								)}
-								<Select
-									value={formData.event_admin_id || ""}
-									onValueChange={(value) =>
-										handleChange("event_admin_id", value || undefined)
-									}
-									disabled={createEventMutation.isPending || isLoadingUsers}
-								>
-									<SelectTrigger id={eventAdminId} className="w-full">
-										<SelectValue
-											placeholder={
-												isLoadingUsers
-													? "Loading users..."
-													: "Select event admin (optional)"
-											}
-										/>
-									</SelectTrigger>
-									<SelectContent>
-										{memberUsers.length === 0 ? (
-											<div className="px-2 py-1.5 text-muted-foreground text-sm">
-												{isLoadingUsers
-													? "Loading members..."
-													: "No active members available"}
-											</div>
-										) : (
-											memberUsers.map((user) => (
-												<SelectItem key={user.id} value={user.id}>
-													{user.full_name} ({user.email})
-												</SelectItem>
-											))
-										)}
-									</SelectContent>
-								</Select>
-							</Field>
-						</div>
+						)}
 
 						{/* Row 4: Start and End Date */}
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
