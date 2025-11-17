@@ -205,7 +205,7 @@ export default function AssignStaffForm({
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								have limited access to event functions.
+								have limited access.
 							</FieldDescription>
 						</Field>
 

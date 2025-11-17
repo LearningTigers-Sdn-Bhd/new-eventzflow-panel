@@ -32,12 +32,7 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 		}
 	};
 
-	const roleLabel =
-		member.role === "org_owner"
-			? "Owner"
-			: member.role === "organizer"
-				? "Organizer"
-				: "Member";
+	const roleLabel = member.role === "org_owner" ? "Owner" : member.role === "organizer" ? "Organizer" : member.role === "vendor" ? "Vendor" : "Member";
 
 	return (
 		<Item variant="outline" className="w-full">
@@ -51,6 +46,7 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 								"min-w-16 font-bold capitalize",
 								member.role === "org_owner" && "border-purple-500 text-purple-500",
 								member.role === "organizer" && "border-blue-500 text-blue-500",
+								member.role === "vendor" && "border-orange-500 text-orange-500",
 								member.role === "member" && "border-gray-500 text-gray-500",
 							)}
 						>
