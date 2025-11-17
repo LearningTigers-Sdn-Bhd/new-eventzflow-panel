@@ -7,7 +7,7 @@ import type { Event } from "@/lib/api/event/response";
 
 /**
  * Hook to check event-specific permissions for the current user
- * 
+ *
  * This hook determines what actions a user can perform on a specific event
  * based on their global role, event staff assignment, and vendor assignment.
  */
@@ -19,14 +19,16 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 	const { data: eventStaff } = useQuery({
 		queryKey: ["event", eventIdStr, "staff"],
 		queryFn: () => getEventStaff({ eventId: eventIdStr }),
-		enabled: !!user && !!eventId && user.role !== "vendor",
+		enabled: !!user && !!eventId && user.role !== "vendor" && !!event,
+		retry: false,
 	});
 
 	// Fetch event vendors to check if user is a vendor
 	const { data: eventVendors } = useQuery({
 		queryKey: ["events", Number(eventId), "vendors"],
 		queryFn: () => getEventVendors(Number(eventId)),
-		enabled: !!user && !!eventId,
+		enabled: !!user && !!eventId && !!event,
+		retry: false,
 	});
 
 	const permissions = useMemo(() => {

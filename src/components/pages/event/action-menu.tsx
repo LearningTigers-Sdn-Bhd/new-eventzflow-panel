@@ -83,91 +83,91 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 	// Get event permissions for the current user
 	const permissions = useEventPermissions(eventId.toString(), currentEvent);
 
-	const allRouterItems: MenuItem[] = [
-		{
-			id: `view-location-id${eventId}`,
-			name: "View Location",
-			icon: MapPin,
-			route: `/event/${eventId}/location`,
-			className: "",
-			showCondition: "always",
-		},
-		{
-			id: `manage-tickets-id${eventId}`,
-			name: "Manage Tickets",
-			icon: HiTicket,
-			route: `/event/${eventId}/tickets`,
-			className: "",
-			showCondition: "ticket",
-		},
-		{
-			id: `pending-tickets-id${eventId}`,
-			name: "Pending Tickets",
-			icon: TbClockDollar,
-			route: `/event/${eventId}/pending-tickets`,
-			className: "",
-			showCondition: "ticket",
-		},
-		{
-			id: `scanned-logs-id${eventId}`,
-			name: "Scanned Logs",
-			icon: ScanQrCode,
-			route: `/event/${eventId}/scanned-logs`,
-			className: "",
-			showCondition: "ticket",
-		},
-		{
-			id: `visitors-id${eventId}`,
-			name: "Visitors",
-			icon: UserCheck,
-			route: `/event/${eventId}/visitors`,
-			className: "",
-			showCondition: "non-ticket",
-		},
-		{
-			id: `vendors-id${eventId}`,
-			name: "Vendors",
-			icon: Building2,
-			route: `/event/${eventId}/vendors`,
-			className: "",
-			showCondition: "permission-based",
-		},
-		{
-			id: `event-staff-id${eventId}`,
-			name: "Event Staff",
-			icon: Users,
-			route: `/event/${eventId}/event-staff`,
-			className: "",
-			showCondition: "permission-based",
-		},
-		{
-			id: `visitor-stamps-id${eventId}`,
-			name: "Stamp Scanner",
-			icon: ScanQrCode,
-			route: `/event/${eventId}/visitor-stamps`,
-			className: "",
-			showCondition: "non-ticket",
-		},
-		{
-			id: `analytics-id${eventId}`,
-			name: "Analytics",
-			icon: ChartBar,
-			route: `/event/${eventId}/analytics`,
-			className: "",
-			showCondition: "always",
-		},
-		// {
-		// 	id: `export-logs-id${eventId}`,
-		// 	name: "Export Logs",
-		// 	icon: Logs,
-		// 	route: `/event/${eventId}/export-logs`,
-		// 	className: "",
-		// 	showCondition: "always",
-		// },
-	];
-
 	// Filter menu items based on event type and permissions
 	const routerItems = useMemo(() => {
+		const allRouterItems: MenuItem[] = [
+			{
+				id: `view-location-id${eventId}`,
+				name: "View Location",
+				icon: MapPin,
+				route: `/event/${eventId}/location`,
+				className: "",
+				showCondition: "always",
+			},
+			{
+				id: `manage-tickets-id${eventId}`,
+				name: "Manage Tickets",
+				icon: HiTicket,
+				route: `/event/${eventId}/tickets`,
+				className: "",
+				showCondition: "ticket",
+			},
+			{
+				id: `pending-tickets-id${eventId}`,
+				name: "Pending Tickets",
+				icon: TbClockDollar,
+				route: `/event/${eventId}/pending-tickets`,
+				className: "",
+				showCondition: "ticket",
+			},
+			{
+				id: `scanned-logs-id${eventId}`,
+				name: "Scanned Logs",
+				icon: ScanQrCode,
+				route: `/event/${eventId}/scanned-logs`,
+				className: "",
+				showCondition: "ticket",
+			},
+			{
+				id: `visitors-id${eventId}`,
+				name: "Visitors",
+				icon: UserCheck,
+				route: `/event/${eventId}/visitors`,
+				className: "",
+				showCondition: "non-ticket",
+			},
+			{
+				id: `vendors-id${eventId}`,
+				name: "Vendors",
+				icon: Building2,
+				route: `/event/${eventId}/vendors`,
+				className: "",
+				showCondition: "permission-based",
+			},
+			{
+				id: `event-staff-id${eventId}`,
+				name: "Event Staff",
+				icon: Users,
+				route: `/event/${eventId}/event-staff`,
+				className: "",
+				showCondition: "permission-based",
+			},
+			{
+				id: `visitor-stamps-id${eventId}`,
+				name: "Stamp Scanner",
+				icon: ScanQrCode,
+				route: `/event/${eventId}/visitor-stamps`,
+				className: "",
+				showCondition: "non-ticket",
+			},
+			{
+				id: `analytics-id${eventId}`,
+				name: "Analytics",
+				icon: ChartBar,
+				route: `/event/${eventId}/analytics`,
+				className: "",
+				showCondition: "always",
+			},
+			// {
+			// 	id: `export-logs-id${eventId}`,
+			// 	name: "Export Logs",
+			// 	icon: Logs,
+			// 	route: `/event/${eventId}/export-logs`,
+			// 	className: "",
+			// 	showCondition: "always",
+			// },
+		];
+
 		return allRouterItems.filter((item) => {
 			// Always show these items
 			if (item.showCondition === "always") {
@@ -202,7 +202,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: archiveEvent,
 		onSuccess: () => {
 			toast.success("Event archived successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"] });
+			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -214,7 +214,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: forceDeleteEvent,
 		onSuccess: () => {
 			toast.success("Event deleted successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"] });
+			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -226,7 +226,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: restoreEvent,
 		onSuccess: () => {
 			toast.success("Event restored successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"] });
+			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
 			closeDialog();
 		},
 		onError: (error: Error) => {
