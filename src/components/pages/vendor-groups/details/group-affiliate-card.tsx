@@ -44,7 +44,11 @@ export function GroupAffiliateCard({ groupId }: GroupAffiliateCardProps) {
 							</CardDescription>
 						</div>
 						{canManageAffiliates && (
-							<Button size="sm" onClick={() => setIsAssignDialogOpen(true)}>
+							<Button
+								size="sm"
+								onClick={() => setIsAssignDialogOpen(true)}
+								className="rounded-none"
+							>
 								<Plus className="mr-2 h-4 w-4" />
 								Add Vendor
 							</Button>
@@ -57,7 +61,7 @@ export function GroupAffiliateCard({ groupId }: GroupAffiliateCardProps) {
 							<LoadingState title="Loading vendors..." />
 						</div>
 					) : !affiliates || affiliates.length === 0 ? (
-						<div className="flex h-[200px] items-center justify-center text-center">
+						<div className="flex h-[200px] items-center justify-center text-center border border-dashed rounded-none bg-muted/20">
 							<div>
 								<Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
 								<p className="mt-2 text-sm text-muted-foreground">

@@ -86,7 +86,7 @@ export default function EventPage() {
 						description="Manage your events and view their details."
 					/>
 				</div>
-				{user?.role === "org_owner" && (
+				{(user?.role === "org_owner" || user?.role === "organizer") && (
 					<div className="w-full px-0 md:w-auto md:px-4">
 						<Button
 							onClick={handleCreateEvent}

@@ -20,8 +20,8 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import { toggleVendorStatus } from "@/lib/api/vendor";
 import type { Vendor } from "@/lib/api/vendor";
-import ConfirmDialog from "./confirm-dialog";
-import EditVendorForm from "./edit-vendor-form";
+import ConfirmDialog from "../dialogs/confirm-dialog";
+import EditVendorForm from "../dialogs/edit-vendor-form";
 
 interface VendorActionsMenuProps {
 	vendor: Vendor;

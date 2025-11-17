@@ -29,6 +29,7 @@ function transformTeamMember(backendMember: BackendTeamMember): TeamMember {
 		status: backendMember.status,
 		createdAt: backendMember.created_at,
 		updatedAt: backendMember.updated_at,
+		createdById: backendMember.created_by_id,
 	};
 }
 
@@ -44,6 +45,30 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 		console.error("Error fetching team members:", error);
 		const errorMessage =
 			error instanceof Error ? error.message : "Failed to fetch team members";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Get members created by a specific organizer
+ * This is used by org_owners to view members under a specific organizer
+ */
+export async function getOrganizerMembers(
+	organizerId: string,
+): Promise<TeamMember[]> {
+	try {
+		// Use the dedicated backend endpoint for fetching organizer's members
+		const response = await restClient.get<BackendTeamMember[]>(
+			`v1/team_members/organizer/${organizerId}`,
+		);
+
+		return response.map(transformTeamMember);
+	} catch (error: unknown) {
+		console.error("Error fetching organizer members:", error);
+		const errorMessage =
+			error instanceof Error
+				? error.message
+				: "Failed to fetch organizer members";
 		throw new Error(errorMessage);
 	}
 }

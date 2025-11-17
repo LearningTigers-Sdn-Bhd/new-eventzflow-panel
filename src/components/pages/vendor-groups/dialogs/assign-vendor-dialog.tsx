@@ -208,6 +208,7 @@ export function AssignVendorDialog({
 									<Button
 										type="button"
 										variant="outline"
+										className = "rounded-none"
 										onClick={handleClose}
 										disabled={createAffiliate.isPending}
 									>

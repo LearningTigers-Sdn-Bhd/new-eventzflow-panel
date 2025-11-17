@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
 
 	// Get empty state props based on user role
 	const getEmptyStateProps = () => {
-		if (user?.role === "org_owner") {
+		if (user?.role === "org_owner" || user?.role === "organizer") {
 			return {
 				title: "No events found",
 				description: "Create your first event to get started",
