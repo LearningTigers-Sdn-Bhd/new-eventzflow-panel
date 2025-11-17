@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEvents } from "@/lib/api/event";
 import { useEventActionsStore } from "@/stores/event-actions-store";
@@ -77,6 +78,24 @@ const tabItems: TabItem[] = [
 		route: "scanned-logs",
 	},
 	{
+		id: "visitors",
+		label: "Visitors",
+		title: "Event Visitors",
+		description:
+			"Manage visitors for non-ticket events.",
+		icon: UserCheck,
+		route: "visitors",
+	},
+	{
+		id: "vendors",
+		label: "Vendors",
+		title: "Event Vendors",
+		description:
+			"Manage vendors for this event.",
+		icon: Building2,
+		route: "vendors",
+	},
+	{
 		id: "event-staff",
 		label: "Event Staff",
 		title: "Event Staff",
@@ -84,6 +103,15 @@ const tabItems: TabItem[] = [
 			"This page will display event staff assignments and management.",
 		icon: Users,
 		route: "event-staff",
+	},
+	{
+		id: "visitor-stamps",
+		label: "Stamp Scanner",
+		title: "Visitor Stamp Scanner",
+		description:
+			"Scan visitor QR codes to create stamps.",
+		icon: ScanQrCode,
+		route: "visitor-stamps",
 	},
 	{
 		id: "analytics",
@@ -130,14 +158,54 @@ export default function EventDetailLayout({
 		(event) => event.id.toString() === event_id,
 	);
 
+	// Get event permissions for the current user
+	const permissions = useEventPermissions(event_id, currentEvent);
+
+	// Filter tabs based on permissions and event type
+	const visibleTabs = useMemo(() => {
+		return tabItems.filter((tab) => {
+			// Always show these tabs
+			if (["location", "analytics", "export-logs"].includes(tab.id)) {
+				return true;
+			}
+
+			// Ticket-related tabs - only for ticket events
+			if (["tickets", "pending-tickets", "scanned-logs"].includes(tab.id)) {
+				return currentEvent?.use_ticket !== false;
+			}
+
+			// Event staff - only org_owner can manage
+			if (tab.id === "event-staff") {
+				return permissions.canManageEventStaff;
+			}
+
+			// Vendors tab - visible to event admins and vendors
+			if (tab.id === "vendors") {
+				return permissions.canViewVendorsTab;
+			}
+
+			// Visitors tab - only for non-ticket events, visible to event staff
+			if (tab.id === "visitors") {
+				return permissions.canViewVisitorsTab;
+			}
+
+			// Stamp scanner - only for non-ticket events, visible to vendors
+			if (tab.id === "visitor-stamps") {
+				return permissions.canViewStampScannerTab;
+			}
+
+			return true;
+		});
+	}, [currentEvent?.use_ticket, permissions]);
+
 	// Extract the current tab from pathname
 	const pathSegments = pathname.split("/");
 	const currentTab = pathSegments[pathSegments.length - 1] || "location";
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
-		return tabItems.find((item) => item.route === currentTab) || tabItems[0];
-	}, [currentTab]);
+		return visibleTabs.find((item) => item.route === currentTab) || visibleTabs[0];
+	}, [currentTab, visibleTabs]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -146,6 +214,17 @@ export default function EventDetailLayout({
 		},
 		[event_id, router],
 	);
+
+	// If no tabs are visible, show a message
+	if (visibleTabs.length === 0) {
+		return (
+			<div className="p-8 text-center">
+				<p className="text-muted-foreground">
+					You don't have permission to view this event.
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="p-0">
@@ -203,7 +282,7 @@ export default function EventDetailLayout({
 								</SelectValue>
 							</SelectTrigger>
 							<SelectContent className="rounded-none bg-background">
-								{tabItems.map((item) => {
+								{visibleTabs.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<SelectItem
@@ -223,7 +302,7 @@ export default function EventDetailLayout({
 					) : (
 						<Tabs value={currentTab} onValueChange={handleTabChange}>
 							<TabsList className="flex h-12 w-full rounded-none">
-								{tabItems.map((item) => {
+								{visibleTabs.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<TabsTrigger

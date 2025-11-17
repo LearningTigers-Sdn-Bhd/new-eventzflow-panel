@@ -19,7 +19,7 @@ export type TeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "organizer" | "member";
+	role: "org_owner" | "organizer" | "member" | "vendor";
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;
@@ -181,7 +181,9 @@ export const columns: ColumnDef<TeamMember>[] = [
 					? "Owner"
 					: role === "organizer"
 						? "Organizer"
-						: "Member";
+						: role === "vendor"
+							? "Vendor"
+							: "Member";
 			return (
 				<Badge
 					variant="outline"
@@ -189,6 +191,7 @@ export const columns: ColumnDef<TeamMember>[] = [
 						"min-w-16 rounded-none font-bold capitalize",
 						role === "org_owner" && "border-purple-500 text-purple-500",
 						role === "organizer" && "border-blue-500 text-blue-500",
+						role === "vendor" && "border-orange-500 text-orange-500",
 						role === "member" && "border-gray-500 text-gray-500",
 					)}
 				>

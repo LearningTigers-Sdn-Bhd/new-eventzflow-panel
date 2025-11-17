@@ -34,6 +34,7 @@ interface CreateEventFormProps {
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const titleId = useId();
 	const visibilityId = useId();
+	const useTicketId = useId();
 	const statusId = useId();
 	const eventAdminId = useId();
 	const descriptionId = useId();
@@ -43,6 +44,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const [formData, setFormData] = useState({
 		title: "",
 		visibility: true,
+		use_ticket: true,
 		status: "draft" as "draft" | "published" | "cancelled",
 		event_admin_id: undefined as string | undefined,
 		description: "",
@@ -109,6 +111,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			const payload: {
 				title: string;
 				visibility: boolean;
+				use_ticket: boolean;
 				status: "draft" | "published" | "cancelled";
 				event_admin_id?: number;
 				description?: string;
@@ -118,6 +121,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			} = {
 				title: formData.title.trim(),
 				visibility: formData.visibility ?? true,
+				use_ticket: formData.use_ticket ?? true,
 				status: formData.status ?? "draft",
 				description: formData.description.trim() || undefined,
 				start_date: formData.start_date?.toISOString() || "",
@@ -157,23 +161,23 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				<FieldSet>
 					<FieldSeparator />
 					<FieldGroup>
-						{/* Row 1: Event Title (2 cols) and Visibility (1 col) */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-							{/* Event Title */}
-							<Field orientation="vertical" className="md:col-span-2">
-								<FieldLabel htmlFor={titleId}>Event Title *</FieldLabel>
-								{errors.title && <FieldError>{errors.title}</FieldError>}
-								<Input
-									id={titleId}
-									placeholder="Enter event title"
-									value={formData.title}
-									onChange={(e) => handleChange("title", e.target.value)}
-									required
-									disabled={createEventMutation.isPending}
-									autoFocus
-								/>
-							</Field>
+						{/* Row 1: Event Title (Full Width) */}
+						<Field orientation="vertical">
+							<FieldLabel htmlFor={titleId}>Event Title *</FieldLabel>
+							{errors.title && <FieldError>{errors.title}</FieldError>}
+							<Input
+								id={titleId}
+								placeholder="Enter event title"
+								value={formData.title}
+								onChange={(e) => handleChange("title", e.target.value)}
+								required
+								disabled={createEventMutation.isPending}
+								autoFocus
+							/>
+						</Field>
 
+						{/* Row 2: Visibility and Ticketing System */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							{/* Visibility */}
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={visibilityId}>Visibility</FieldLabel>
@@ -191,9 +195,27 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									</span>
 								</div>
 							</Field>
+
+							{/* Ticketing System */}
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={useTicketId}>Ticketing System</FieldLabel>
+								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+									<Switch
+										id={useTicketId}
+										checked={formData.use_ticket}
+										onCheckedChange={(checked) =>
+											handleChange("use_ticket", checked)
+										}
+										disabled={createEventMutation.isPending}
+									/>
+									<span className="ml-2 text-muted-foreground text-sm">
+										{formData.use_ticket ? "Enabled" : "Disabled"}
+									</span>
+								</div>
+							</Field>
 						</div>
 
-						{/* Row 2: Event Status and Event Admin */}
+						{/* Row 3: Event Status and Event Admin */}
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							{/* Event Status */}
 							<Field orientation="vertical">
@@ -261,7 +283,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 							</Field>
 						</div>
 
-						{/* Row 3: Start and End Date */}
+						{/* Row 4: Start and End Date */}
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							{/* Start Date */}
 							<Field orientation="vertical">
