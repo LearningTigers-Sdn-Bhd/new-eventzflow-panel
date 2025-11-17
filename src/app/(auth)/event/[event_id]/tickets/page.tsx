@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { use } from "react";
+import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/tickets/data-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/button";
@@ -10,12 +10,15 @@ import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTickets } from "@/lib/api/ticket";
 
+type TicketFilter = "active" | "archived" | "all";
+
 export default function TicketsPage({
 	params,
 }: {
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const [ticketFilter, setTicketFilter] = useState<TicketFilter>("active");
 
 	useSetEventActions(
 		<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
@@ -24,14 +27,25 @@ export default function TicketsPage({
 		</div>,
 	);
 
+	// Build query options based on filter
+	const queryOptions = useMemo(() => {
+		if (ticketFilter === "all") {
+			return { full: true };
+		}
+		if (ticketFilter === "archived") {
+			return { archived: true };
+		}
+		return undefined; // Default: active tickets only
+	}, [ticketFilter]);
+
 	const {
 		data: tickets,
 		isLoading,
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["event", event_id, "tickets"],
-		queryFn: () => getEventTickets(event_id),
+		queryKey: ["event", event_id, "tickets", ticketFilter],
+		queryFn: () => getEventTickets(event_id, queryOptions),
 	});
 
 	return (
@@ -52,6 +66,8 @@ export default function TicketsPage({
 			) : (
 				<DataTable
 					data={(tickets || []).map((t) => ({ ...t, phone: t.phone || "" }))}
+					ticketFilter={ticketFilter}
+					onTicketFilterChange={setTicketFilter}
 				/>
 			)}
 		</div>
