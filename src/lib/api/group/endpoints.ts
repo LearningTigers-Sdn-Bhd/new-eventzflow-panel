@@ -22,7 +22,7 @@ export async function getGroup(id: number): Promise<GroupWithMembers> {
 }
 
 /**
- * Create a new group (org_owner only)
+ * Create a new group (org_owner and organizer)
  */
 export async function createGroup(data: CreateGroupRequest): Promise<Group> {
 	const validated = createGroupSchema.parse(data);

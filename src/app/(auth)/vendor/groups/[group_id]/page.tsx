@@ -1,18 +1,23 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { use } from "react";
 import { Users } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { GroupDetailsHeader } from "@/components/pages/groups/details/group-details-header";
-import { GroupAffiliateCard } from "@/components/pages/groups/details/group-affiliate-card";
+import { GroupDetailsHeader } from "@/components/pages/vendor-groups/details/group-details-header";
+import { GroupAffiliateCard } from "@/components/pages/vendor-groups/details/group-affiliate-card";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/hooks/use-groups";
 
-export default function GroupDetailsPage() {
-	const params = useParams();
-	const groupId = Number(params.group_id);
+interface GroupDetailPageProps {
+	params: Promise<{
+		group_id: string;
+	}>;
+}
+
+export default function GroupDetailPage({ params }: GroupDetailPageProps) {
+	const { group_id } = use(params);
+	const groupId = Number(group_id);
 
 	const { data: group, isLoading, error } = useGroup(groupId);
 
@@ -25,21 +30,16 @@ export default function GroupDetailsPage() {
 		);
 	}
 
-	if (error) {
+	if (error || !group) {
 		return (
 			<ErrorState
 				title="Failed to load group"
 				description="We couldn't load the group details. Please try again."
-				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
-			/>
-		);
-	}
-
-	if (!group) {
-		return (
-			<ErrorState
-				title="Group not found"
-				description="The group you're looking for doesn't exist."
+				action={
+					<Button onClick={() => window.location.reload()} className="rounded-none">
+						Retry
+					</Button>
+				}
 			/>
 		);
 	}
@@ -60,11 +60,9 @@ export default function GroupDetailsPage() {
 
 			<div className="space-y-6 rounded-none border border-dashed bg-card p-2 md:p-4">
 				<GroupDetailsHeader group={group} />
-
-				<div className="space-y-6">
-					<GroupAffiliateCard groupId={groupId} />
-				</div>
+				<GroupAffiliateCard groupId={groupId} />
 			</div>
 		</div>
 	);
 }
+

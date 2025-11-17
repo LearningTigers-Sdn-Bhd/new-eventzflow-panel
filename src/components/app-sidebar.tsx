@@ -1,6 +1,6 @@
 "use client";
 
-import { Boxes, Import, Key, LayoutDashboard, Store, Users } from "lucide-react";
+import { Import, Key, LayoutDashboard, Store, Users } from "lucide-react";
 import type { Route } from "next";
 import type * as React from "react";
 import { BiQrScan } from "react-icons/bi";
@@ -39,12 +39,6 @@ const data = {
 			roleAllowed: ["org_owner", "organizer", "member"],
 		},
 		{
-			name: "Groups",
-			url: "/groups" as Route,
-			icon: Boxes,
-			roleAllowed: ["org_owner", "organizer", "member", "vendor"],
-		},
-		{
 			name: "Team Members",
 			url: "/team" as Route,
 			icon: Users,
@@ -54,7 +48,7 @@ const data = {
 			name: "Vendors",
 			url: "/vendor" as Route,
 			icon: Store,
-			roleAllowed: ["org_owner"],
+			roleAllowed: ["org_owner", "organizer"],
 		},
 		{
 			name: "API Keys",

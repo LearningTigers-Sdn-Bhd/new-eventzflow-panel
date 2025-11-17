@@ -52,7 +52,7 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	});
 
 	const handleManageClick = () => {
-		router.push(`/groups/${group.id}`);
+		router.push(`/vendor/groups/${group.id}`);
 	};
 
 	const handleEditClick = () => {
