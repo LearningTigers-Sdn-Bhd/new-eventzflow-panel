@@ -24,19 +24,19 @@ const data = {
 			name: "Dashboard",
 			url: "/dashboard" as Route,
 			icon: LayoutDashboard,
-			roleAllowed: ["org_owner", "manager", "member"],
+			roleAllowed: ["org_owner", "organizer", "member"],
 		},
 		{
 			name: "Events",
 			url: "/event" as Route,
 			icon: MdEvent,
-			roleAllowed: ["org_owner", "manager", "member"],
+			roleAllowed: ["org_owner", "organizer", "member"],
 		},
 		{
 			name: "Scans",
 			url: "/scan" as Route,
 			icon: BiQrScan,
-			roleAllowed: ["org_owner", "manager", "member"],
+			roleAllowed: ["org_owner", "organizer", "member"],
 		},
 		{
 			name: "Team Members",

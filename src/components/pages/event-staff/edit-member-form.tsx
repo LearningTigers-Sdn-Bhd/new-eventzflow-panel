@@ -91,7 +91,7 @@ export default function EditMemberForm({
 				full_name: formData.full_name,
 				email: formData.email,
 				phone: formData.phone || undefined,
-				role: formData.role as "org_owner" | "manager" | "member",
+				role: formData.role as "org_owner" | "organizer" | "member",
 				newPassword: formData.newPassword || undefined,
 			});
 		} catch {
@@ -185,14 +185,14 @@ export default function EditMemberForm({
 									>
 										Owner
 									</SelectItem>
-									<SelectItem value="manager">Manager</SelectItem>
+									<SelectItem value="organizer">Organizer</SelectItem>
 									<SelectItem value="member">Member</SelectItem>
 								</SelectContent>
 							</Select>
 							<FieldDescription>
 								{member.globalRole === "org_owner"
 									? "Owner role cannot be changed"
-									: "Members have basic access. Managers can organize events."}
+									: "Members have basic access. Organizers can manage events."}
 							</FieldDescription>
 						</Field>
 

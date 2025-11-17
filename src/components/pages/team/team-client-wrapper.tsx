@@ -18,10 +18,10 @@ export default function TeamClientWrapper({
 }: TeamClientWrapperProps) {
 	const { openDialog, closeDialog } = useDialog();
 
-	// Filter out manager roles - only show org_owner and member
+	// Filter out organizer roles - only show org_owner and member
 	// Sort by createdAt in descending order (latest first)
 	const filteredTeamMembers = teamMembers
-		.filter((member) => member.role !== "manager")
+		.filter((member) => member.role !== "organizer")
 		.sort((a, b) => {
 			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 		});

@@ -4,7 +4,7 @@ export type BackendTeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "manager" | "member";
+	role: "org_owner" | "organizer" | "member";
 	status: "active" | "inactive";
 	created_at: string;
 	updated_at: string;
@@ -16,7 +16,7 @@ export type TeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "manager" | "member";
+	role: "org_owner" | "organizer" | "member";
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;

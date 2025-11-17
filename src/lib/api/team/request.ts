@@ -6,7 +6,7 @@ export const createTeamMemberSchema = z.object({
 	email: z.string().email("Invalid email address"),
 	phone: z.string().optional(),
 	password: z.string().min(8, "Password must be at least 8 characters"),
-	role: z.enum(["manager", "member"]).default("member"),
+	role: z.enum(["organizer", "member"]).default("member"),
 });
 
 // Validation schema for updating a team member
@@ -15,7 +15,7 @@ export const updateTeamMemberSchema = z.object({
 	full_name: z.string().min(2, "Name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	phone: z.string().optional(),
-	role: z.enum(["org_owner", "manager", "member"]).optional(),
+	role: z.enum(["org_owner", "organizer", "member"]).optional(),
 	newPassword: z.string().optional(),
 });
 

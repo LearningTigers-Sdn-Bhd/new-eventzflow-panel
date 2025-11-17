@@ -21,9 +21,9 @@ import type {
 } from "./response";
 
 // Constants
-const ROLE_MAP: Record<number, "org_owner" | "manager" | "member"> = {
+const ROLE_MAP: Record<number, "org_owner" | "organizer" | "member"> = {
 	0: "org_owner",
-	1: "manager",
+	1: "organizer",
 	2: "member",
 } as const;
 
