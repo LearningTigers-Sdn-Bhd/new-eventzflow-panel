@@ -28,7 +28,7 @@ export default function UserMenu() {
 				variant="default"
 				size="sm"
 				// biome-ignore lint/suspicious/noExplicitAny: Next.js route type needs regeneration
-				onClick={() => router.push("/auth" as any)}
+				onClick={() => router.push("/auth?mode=login" as any)}
 			>
 				Get Started
 			</Button>
