@@ -8,7 +8,7 @@ import { Toaster } from "./ui/sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 	const enableDevtools =
-		process.env.ENABLE_DEVTOOLS === "true" ||
+		process.env.NEXT_PUBLIC_ENABLE_DEVTOOLS === "true" ||
 		process.env.NODE_ENV === "development";
 
 	return (
