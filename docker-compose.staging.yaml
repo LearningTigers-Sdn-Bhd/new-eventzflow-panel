@@ -3,6 +3,7 @@ version: "3.9"
 x-next-env: &next-env
   NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
   NODE_ENV: production
+  NEXT_PUBLIC_ENABLE_DEVTOOLS: "true"
   NEXT_PUBLIC_DEPLOYMENT_ENV: staging
   PORT: 3001
 
@@ -12,7 +13,7 @@ services:
       context: .
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_ENABLE_DEVTOOLS: ${NEXT_PUBLIC_ENABLE_DEVTOOLS}
+        NEXT_PUBLIC_ENABLE_DEVTOOLS: "true"
         NEXT_PUBLIC_DEPLOYMENT_ENV: staging
     image: eventzflow-panel-web-staging:latest
     environment:

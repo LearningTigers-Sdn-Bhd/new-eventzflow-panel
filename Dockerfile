@@ -17,17 +17,16 @@ RUN bun install --frozen-lockfile
 # ---- Build Stage ----
 # Build the Next.js application.
 FROM dependencies as builder
-# Accept build arguments for Next.js public environment variables
-# These are embedded into the JavaScript bundle at build time
+# Copy the rest of the source code.
+COPY . .
+# Accept build arguments for NEXT_PUBLIC_ variables
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_ENABLE_DEVTOOLS
 ARG NEXT_PUBLIC_DEPLOYMENT_ENV
-# Convert ARG to ENV so they're available during next build
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV NEXT_PUBLIC_ENABLE_DEVTOOLS=${NEXT_PUBLIC_ENABLE_DEVTOOLS}
-ENV NEXT_PUBLIC_DEPLOYMENT_ENV=${NEXT_PUBLIC_DEPLOYMENT_ENV}
-# Copy the rest of the source code.
-COPY . .
+# Make them available as environment variables during build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_ENABLE_DEVTOOLS=$NEXT_PUBLIC_ENABLE_DEVTOOLS
+ENV NEXT_PUBLIC_DEPLOYMENT_ENV=$NEXT_PUBLIC_DEPLOYMENT_ENV
 # Run the build command.
 RUN bun run build
 
