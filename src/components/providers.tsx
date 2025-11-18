@@ -7,6 +7,10 @@ import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+	const enableDevtools =
+		process.env.ENABLE_DEVTOOLS === "true" ||
+		process.env.NODE_ENV === "development";
+
 	return (
 		<ThemeProvider
 			attribute="class"
@@ -16,7 +20,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 		>
 			<QueryClientProvider client={queryClient}>
 				{children}
-				<ReactQueryDevtools />
+				{enableDevtools && <ReactQueryDevtools />}
 			</QueryClientProvider>
 			<Toaster richColors />
 		</ThemeProvider>

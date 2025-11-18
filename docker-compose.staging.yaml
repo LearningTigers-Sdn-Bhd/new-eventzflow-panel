@@ -2,7 +2,9 @@ version: "3.9"
 
 x-next-env: &next-env
   NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-  NODE_ENV: staging
+  NODE_ENV: production
+  ENABLE_DEVTOOLS: "true"
+  NEXT_PUBLIC_DEPLOYMENT_ENV: staging
   PORT: 3001
 
 services:
