@@ -19,6 +19,14 @@ RUN bun install --frozen-lockfile
 FROM dependencies as builder
 # Copy the rest of the source code.
 COPY . .
+# Accept build arguments for NEXT_PUBLIC_ variables
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_ENABLE_DEVTOOLS
+ARG NEXT_PUBLIC_DEPLOYMENT_ENV
+# Make them available as environment variables during build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_ENABLE_DEVTOOLS=$NEXT_PUBLIC_ENABLE_DEVTOOLS
+ENV NEXT_PUBLIC_DEPLOYMENT_ENV=$NEXT_PUBLIC_DEPLOYMENT_ENV
 # Run the build command.
 RUN bun run build
 
