@@ -3,8 +3,11 @@ import { z } from "zod";
 // Zod schemas for form validation and request data
 export const updateVendorProfileSchema = z.object({
 	image_path: z.string().optional(),
-	vendor_name: z.string().min(1, "Vendor name is required"),
-	vendor_description: z.string().optional(),
+	description: z.string().optional(),
+	category: z.string().optional(),
+	person_in_charge: z.string().optional(),
+	address: z.string().optional(),
+	notes: z.string().optional(),
 });
 
 // Export types for form data

@@ -4,6 +4,7 @@ export {
 	getVendors,
 	updateVendor,
 	toggleVendorStatus,
+	deleteVendor,
 } from "./endpoints";
 export {
 	type CreateVendorRequest,
@@ -12,6 +13,8 @@ export {
 	updateVendorSchema,
 	type ToggleVendorStatusRequest,
 	toggleVendorStatusSchema,
+	type DeleteVendorRequest,
+	deleteVendorSchema,
 } from "./request";
 // Response types
 export type {
@@ -19,5 +22,6 @@ export type {
 	CreateVendorResponse,
 	UpdateVendorResponse,
 	ToggleVendorStatusResponse,
+	DeleteVendorResponse,
 	Vendor,
 } from "./response";

@@ -15,6 +15,23 @@ export async function getEventVendors(eventId: number): Promise<EventVendor[]> {
 }
 
 /**
+ * Get a single event vendor by event_vendor id from the list
+ * Note: There's no direct GET endpoint for a single event vendor,
+ * so we fetch the list and find the matching one
+ */
+export async function getEventVendor(
+	eventId: number,
+	eventVendorId: number,
+): Promise<EventVendor> {
+	const vendors = await getEventVendors(eventId);
+	const vendor = vendors.find((v) => v.id === eventVendorId);
+	if (!vendor) {
+		throw new Error(`Event vendor with id ${eventVendorId} not found`);
+	}
+	return vendor;
+}
+
+/**
  * Add a vendor to an event
  */
 export async function createEventVendor(

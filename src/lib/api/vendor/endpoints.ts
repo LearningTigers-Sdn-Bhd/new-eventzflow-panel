@@ -1,6 +1,6 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, Vendor } from "./response";
-import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema } from "./request";
+import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor } from "./response";
+import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema, type DeleteVendorRequest, deleteVendorSchema } from "./request";
 
 // Transform backend response to frontend format
 function transformVendor(backendVendor: BackendVendor): Vendor {
@@ -13,6 +13,7 @@ function transformVendor(backendVendor: BackendVendor): Vendor {
 		status: backendVendor.status,
 		createdAt: backendVendor.created_at,
 		updatedAt: backendVendor.updated_at,
+		vendorProfile: backendVendor.vendor_profile,
 	};
 }
 
@@ -87,6 +88,11 @@ export async function updateVendor(
 			payload.vendor.password_confirmation = validated.newPassword;
 		}
 
+		// Include vendor_profile_attributes if provided
+		if (validated.vendor_profile_attributes) {
+			payload.vendor.vendor_profile_attributes = validated.vendor_profile_attributes;
+		}
+
 		const response = await restClient.patch<BackendVendor>(
 			`v1/vendors/${validated.id}`,
 			payload,
@@ -128,6 +134,31 @@ export async function toggleVendorStatus(
 		console.error("Error toggling vendor status:", error);
 		const errorMessage =
 			error instanceof Error ? error.message : "Failed to toggle vendor status";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Delete a vendor
+ */
+export async function deleteVendor(
+	data: DeleteVendorRequest,
+): Promise<DeleteVendorResponse> {
+	try {
+		const validated = deleteVendorSchema.parse(data);
+
+		const response = await restClient.delete<BackendVendor>(
+			`v1/vendors/${validated.id}`,
+		);
+
+		return {
+			success: true,
+			vendor: transformVendor(response),
+		};
+	} catch (error: unknown) {
+		console.error("Error deleting vendor:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to delete vendor";
 		throw new Error(errorMessage);
 	}
 }

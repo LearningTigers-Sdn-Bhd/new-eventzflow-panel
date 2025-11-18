@@ -10,7 +10,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/api/vendor";
 import { VendorActionsMenu } from "./action-menu";
@@ -22,7 +21,7 @@ export const columns: ColumnDef<Vendor>[] = [
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Name</p>
+					<p className="font-medium">Vendor Name</p>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -44,62 +43,34 @@ export const columns: ColumnDef<Vendor>[] = [
 		),
 	},
 	{
-		accessorKey: "email",
-		size: 250,
-		header: ({ column }) => {
+		id: "person_in_charge",
+		size: 180,
+		accessorFn: (row) => row.vendorProfile?.person_in_charge,
+		header: () => <p className="font-medium">Person In Charge</p>,
+		cell: ({ row }) => {
+			const personInCharge = row.original.vendorProfile?.person_in_charge;
 			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Email</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
+				<div className="text-sm">
+					{personInCharge || "-"}
 				</div>
 			);
 		},
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("email")}
-			</div>
-		),
 	},
 	{
-		accessorKey: "phone",
-		size: 180,
-		header: ({ column }) => {
+		id: "contact",
+		size: 250,
+		header: () => <p className="font-medium">Contact</p>,
+		cell: ({ row }) => {
+			const vendor = row.original;
 			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Phone</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
+				<div className="text-sm space-y-0.5">
+					<div className="text-muted-foreground">{vendor.email}</div>
+					{vendor.phone && (
+						<div className="text-muted-foreground text-xs">{vendor.phone}</div>
+					)}
 				</div>
 			);
 		},
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("phone") || "-"}
-			</div>
-		),
 	},
 	{
 		accessorKey: "status",
@@ -168,34 +139,6 @@ export const columns: ColumnDef<Vendor>[] = [
 				{row.getValue("status")}
 			</Badge>
 		),
-	},
-	{
-		accessorKey: "createdAt",
-		size: 130,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Created At</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			const { formatDate } = useFormatDate();
-			return <div>{formatDate(row.getValue("createdAt"))}</div>;
-		},
 	},
 	{
 		id: "actions",

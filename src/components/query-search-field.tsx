@@ -97,17 +97,30 @@ export function QuerySearchField<TData, TValue>(
 			// Set up custom global filter function for selective search
 			table.options.globalFilterFn = (row, _columnId, filterValue) => {
 				const searchTerm = filterValue?.toLowerCase() || "";
+				
+				// Get all column IDs to safely check if a column exists
+				const allColumnIds = new Set(
+					table.getAllColumns().map((col) => col.id)
+				);
 
 				// Check if the search term matches any of the specified columns
 				const columnMatch = columns.some((colId) => {
 					let cellValue: unknown;
-					try {
-						// Try to get value from column if it exists
-						cellValue = row.getValue(colId);
-					} catch {
-						// If column doesn't exist, fall back to accessing original data
+					
+					// Check if column exists in the table
+					if (allColumnIds.has(colId)) {
+						// Column exists, try to get value from it
+						try {
+							cellValue = row.getValue(colId);
+						} catch {
+							// If getValue fails, fall back to accessing original data
+							cellValue = (row.original as Record<string, unknown>)[colId];
+						}
+					} else {
+						// Column doesn't exist in table, access directly from original data
 						cellValue = (row.original as Record<string, unknown>)[colId];
 					}
+					
 					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
 
 					// For phone column, remove common formatting characters for flexible matching

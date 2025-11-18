@@ -2,23 +2,17 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-	CheckCircle,
-	MoreHorizontal,
 	Pencil,
+	Power,
 	PowerOff,
+	Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { toggleVendorStatus } from "@/lib/api/vendor";
+import { toggleVendorStatus, deleteVendor } from "@/lib/api/vendor";
 import type { Vendor } from "@/lib/api/vendor";
 import ConfirmDialog from "../dialogs/confirm-dialog";
 import EditVendorForm from "../dialogs/edit-vendor-form";
@@ -30,6 +24,10 @@ interface VendorActionsMenuProps {
 export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 	const { openDialog, closeDialog } = useDialog();
 	const queryClient = useQueryClient();
+	const { user } = useAuth();
+
+	// Only org_owner and organizer can delete vendors
+	const canDelete = user?.role === "org_owner" || user?.role === "organizer";
 
 	const toggleStatusMutation = useMutation({
 		mutationFn: toggleVendorStatus,
@@ -45,6 +43,18 @@ export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 		},
 	});
 
+	const deleteMutation = useMutation({
+		mutationFn: deleteVendor,
+		onSuccess: () => {
+			toast.success("Vendor deleted successfully!");
+			queryClient.invalidateQueries({ queryKey: ["vendors"] });
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to delete vendor");
+		},
+	});
+
 	const handleEditClick = () => {
 		openDialog({
 			component: EditVendorForm,
@@ -54,8 +64,9 @@ export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 			},
 			config: {
 				title: "Edit Vendor",
-				description: "Update vendor information and credentials",
-				size: "2xl",
+				description: "Update vendor information and profile details",
+				size: "full",
+				showCloseButton: true,
 			},
 		});
 	};
@@ -91,38 +102,67 @@ export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 		});
 	};
 
+	const handleDeleteClick = () => {
+		openDialog({
+			component: ConfirmDialog,
+			props: {
+				message: `Are you sure you want to delete ${vendor.full_name}? This action cannot be undone and will permanently remove the vendor from the system.`,
+				confirmLabel: "Delete",
+				variant: "destructive",
+				icon: "alert",
+				onConfirm: () => {
+					deleteMutation.mutate({
+						id: vendor.id,
+					});
+				},
+				onCancel: closeDialog,
+			},
+			config: {
+				title: "Delete Vendor",
+				size: "sm",
+			},
+		});
+	};
+
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 rounded-none p-0">
-					<span className="sr-only">Open menu</span>
-					<MoreHorizontal className="h-4 w-4" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="center" side="left" className="rounded-none">
-				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
-				<DropdownMenuSeparator className="rounded-none" />
-				<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
-					<Pencil className="mr-2 h-4 w-4" />
-					Edit Vendor
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					className="rounded-none"
-					onClick={handleToggleStatusClick}
+		<ButtonGroup>
+			<Button
+				size="icon-sm"
+				variant="outline"
+				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+				onClick={handleEditClick}
+				title="Edit Vendor"
+			>
+				<Pencil className="size-4" />
+			</Button>
+			<Button
+				size="icon-sm"
+				variant="outline"
+				className={
+					vendor.status === "active"
+						? "rounded-none text-orange-500 hover:bg-orange-50 hover:text-orange-600 [&_svg]:text-orange-500 hover:[&_svg]:text-orange-600"
+						: "rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
+				}
+				onClick={handleToggleStatusClick}
+				title={vendor.status === "active" ? "Deactivate Vendor" : "Activate Vendor"}
+			>
+				{vendor.status === "active" ? (
+					<PowerOff className="size-4" />
+				) : (
+					<Power className="size-4" />
+				)}
+			</Button>
+			{canDelete && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
+					onClick={handleDeleteClick}
+					title="Delete Vendor"
 				>
-					{vendor.status === "active" ? (
-						<>
-							<PowerOff className="mr-2 h-4 w-4" />
-							Deactivate Vendor
-						</>
-					) : (
-						<>
-							<CheckCircle className="mr-2 h-4 w-4" />
-							Activate Vendor
-						</>
-					)}
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+					<Trash2 className="size-4" />
+				</Button>
+			)}
+		</ButtonGroup>
 	);
 }

@@ -1,20 +1,56 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
-import { StampAnalyticsCard } from "@/components/pages/visitors/stamp-analytics-card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
-import { useStampAnalytics } from "@/hooks/use-stamp-analytics";
+import { getEventVendor } from "@/lib/api/event-vendor";
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 
 export default function VendorProfilePage() {
 	const params = useParams();
 	const eventId = Number(params.event_id);
-	const vendorId = Number(params.vendor_id);
+	const eventVendorId = Number(params.vendor_id);
+	const { user } = useAuth();
+	const permissions = useEventPermissions(eventId);
 
-	const { data: profile, isLoading, error } = useVendorProfile(eventId, vendorId);
-	const { data: analytics } = useStampAnalytics(eventId, vendorId);
+	// Get the event vendor to find the actual vendor_id
+	const { data: eventVendor, isLoading: isLoadingEventVendor, error: eventVendorError } = useQuery({
+		queryKey: ["event", eventId, "vendors", eventVendorId],
+		queryFn: () => getEventVendor(eventId, eventVendorId),
+	});
+
+	// Get vendor_id from event vendor
+	const vendorId = eventVendor?.vendor_id;
+
+	// Fetch vendor profile using vendor_id (only when vendorId is available)
+	const { data: profile, isLoading: isLoadingProfile, error: profileError } = useVendorProfile(
+		vendorId,
+		vendorId !== undefined, // Only fetch when vendorId is available
+	);
+
+	// Check if user has permission to view this vendor profile
+	const canViewProfile = useMemo(() => {
+		if (!user || !eventVendor) return false;
+
+		// Vendor itself can view their own profile
+		if (user.id === eventVendor.vendor_id) return true;
+
+		// org_owner can view any vendor profile
+		if (user.role === "org_owner") return true;
+
+		// Organizer can view vendor profiles
+		if (user.role === "organizer") return true;
+
+		return false;
+	}, [user, eventVendor]);
+
+	const isLoading = isLoadingEventVendor || isLoadingProfile;
+	const error = eventVendorError || profileError;
 
 	if (isLoading) {
 		return (
@@ -35,7 +71,16 @@ export default function VendorProfilePage() {
 		);
 	}
 
-	if (!profile) {
+	if (!canViewProfile) {
+		return (
+			<ErrorState
+				title="Access Denied"
+				description="You don't have permission to view this vendor profile."
+			/>
+		);
+	}
+
+	if (!profile || !eventVendor) {
 		return (
 			<ErrorState
 				title="Profile not found"
@@ -45,20 +90,8 @@ export default function VendorProfilePage() {
 	}
 
 	return (
-		<div className="space-y-6 p-6">
-			<div>
-				<h1 className="text-3xl font-bold tracking-tight">Vendor Profile</h1>
-				<p className="text-muted-foreground">
-					View and manage vendor information
-				</p>
-			</div>
-
-			<div className="grid gap-6 md:grid-cols-2">
-				<VendorProfileCard eventId={eventId} vendorId={vendorId} profile={profile} />
-				{analytics && (
-					<StampAnalyticsCard analytics={analytics} />
-				)}
-			</div>
+		<div>
+			<VendorProfileCard profile={profile} />
 		</div>
 	);
 }

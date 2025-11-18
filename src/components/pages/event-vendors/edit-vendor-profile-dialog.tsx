@@ -18,29 +18,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface EditVendorProfileDialogProps {
-	eventId: number;
-	vendorId: number;
 	profile: VendorProfile;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
 export function EditVendorProfileDialog({
-	eventId,
-	vendorId,
 	profile,
 	open,
 	onOpenChange,
 }: EditVendorProfileDialogProps) {
-	const [vendorName, setVendorName] = useState(profile.vendor_name);
-	const [vendorDescription, setVendorDescription] = useState(profile.vendor_description || "");
+	const [description, setDescription] = useState(profile.description || "");
 	const [imagePath, setImagePath] = useState(profile.image_path || "");
+	const [category, setCategory] = useState(profile.category || "");
+	const [personInCharge, setPersonInCharge] = useState(profile.person_in_charge || "");
+	const [address, setAddress] = useState(profile.address || "");
+	const [notes, setNotes] = useState(profile.notes || "");
 	const updateProfile = useUpdateVendorProfile();
 
 	useEffect(() => {
-		setVendorName(profile.vendor_name);
-		setVendorDescription(profile.vendor_description || "");
+		setDescription(profile.description || "");
 		setImagePath(profile.image_path || "");
+		setCategory(profile.category || "");
+		setPersonInCharge(profile.person_in_charge || "");
+		setAddress(profile.address || "");
+		setNotes(profile.notes || "");
 	}, [profile]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -48,13 +50,12 @@ export function EditVendorProfileDialog({
 
 		try {
 			await updateProfile.mutateAsync({
-				eventId,
-				vendorId,
-				data: {
-					vendor_name: vendorName,
-					vendor_description: vendorDescription || undefined,
-					image_path: imagePath || undefined,
-				},
+				description: description || undefined,
+				image_path: imagePath || undefined,
+				category: category || undefined,
+				person_in_charge: personInCharge || undefined,
+				address: address || undefined,
+				notes: notes || undefined,
 			});
 			toast.success("Profile updated successfully");
 			onOpenChange(false);
@@ -75,32 +76,60 @@ export function EditVendorProfileDialog({
 				<form onSubmit={handleSubmit}>
 					<div className="space-y-4 py-4">
 						<div className="space-y-2">
-							<Label htmlFor="vendorName">Vendor Name</Label>
-							<Input
-								id="vendorName"
-								value={vendorName}
-								onChange={(e) => setVendorName(e.target.value)}
-								placeholder="Enter vendor name"
-								required
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="vendorDescription">Description</Label>
-							<Textarea
-								id="vendorDescription"
-								value={vendorDescription}
-								onChange={(e) => setVendorDescription(e.target.value)}
-								placeholder="Enter vendor description"
-								rows={3}
-							/>
-						</div>
-						<div className="space-y-2">
 							<Label htmlFor="imagePath">Image URL</Label>
 							<Input
 								id="imagePath"
 								value={imagePath}
 								onChange={(e) => setImagePath(e.target.value)}
 								placeholder="https://example.com/image.jpg"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="category">Category</Label>
+							<Input
+								id="category"
+								value={category}
+								onChange={(e) => setCategory(e.target.value)}
+								placeholder="e.g., Food & Beverage, Technology, etc."
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="personInCharge">Person in Charge</Label>
+							<Input
+								id="personInCharge"
+								value={personInCharge}
+								onChange={(e) => setPersonInCharge(e.target.value)}
+								placeholder="Enter contact person name"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="description">Description</Label>
+							<Textarea
+								id="description"
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
+								placeholder="Enter vendor description"
+								rows={3}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="address">Address</Label>
+							<Textarea
+								id="address"
+								value={address}
+								onChange={(e) => setAddress(e.target.value)}
+								placeholder="Enter business address"
+								rows={2}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="notes">Notes</Label>
+							<Textarea
+								id="notes"
+								value={notes}
+								onChange={(e) => setNotes(e.target.value)}
+								placeholder="Additional notes"
+								rows={2}
 							/>
 						</div>
 					</div>

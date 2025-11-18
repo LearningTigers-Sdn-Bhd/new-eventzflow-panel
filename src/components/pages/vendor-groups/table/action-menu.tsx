@@ -2,8 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-	Cog,
-	MoreHorizontal,
+	Eye,
 	Pencil,
 	Trash2,
 } from "lucide-react";
@@ -11,14 +10,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteGroup } from "@/lib/api/group";
@@ -96,37 +87,34 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	return (
 		<ButtonGroup>
 			<Button
+				size="icon-sm"
 				variant="outline"
-				className="rounded-none"
+				className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
 				onClick={handleManageClick}
+				title="View Group"
 			>
-				<Cog className="h-4 w-4" />
-				Manage
+				<Eye className="size-4" />
 			</Button>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button className="rounded-none px-2" variant="outline">
-						<MoreHorizontal className="h-4 w-4" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="center" side="left" className="rounded-none">
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
-						<Pencil className="mr-2 h-4 w-4" />
-						Edit Group
-					</DropdownMenuItem>
-					{canDeleteGroup && (
-						<DropdownMenuItem
-							className="rounded-none text-destructive"
-							onClick={handleDeleteClick}
-						>
-							<Trash2 className="mr-2 h-4 w-4" />
-							Delete Group
-						</DropdownMenuItem>
-					)}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<Button
+				size="icon-sm"
+				variant="outline"
+				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+				onClick={handleEditClick}
+				title="Edit Group"
+			>
+				<Pencil className="size-4" />
+			</Button>
+			{canDeleteGroup && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
+					onClick={handleDeleteClick}
+					title="Delete Group"
+				>
+					<Trash2 className="size-4" />
+				</Button>
+			)}
 		</ButtonGroup>
 	);
 }

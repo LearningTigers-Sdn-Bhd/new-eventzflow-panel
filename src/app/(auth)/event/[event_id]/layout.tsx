@@ -198,9 +198,23 @@ export default function EventDetailLayout({
 		});
 	}, [currentEvent?.use_ticket, permissions]);
 
-	// Extract the current tab from pathname
-	const pathSegments = pathname.split("/");
-	const currentTab = pathSegments[pathSegments.length - 1] || "location";
+	// Extract the current tab from pathname.
+	// For nested routes like /event/[id]/vendors/[vendor_id]/profile,
+	// we still want the "vendors" tab to be active.
+	const currentTab = useMemo(() => {
+		const segments = pathname.split("/").filter(Boolean);
+
+		// Walk from the end and find the first segment that matches a tab route
+		for (let i = segments.length - 1; i >= 0; i--) {
+			const segment = segments[i];
+			if (visibleTabs.some((tab) => tab.route === segment)) {
+				return segment;
+			}
+		}
+
+		// Default to the first visible tab (usually "location")
+		return visibleTabs[0]?.route ?? "location";
+	}, [pathname, visibleTabs]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
