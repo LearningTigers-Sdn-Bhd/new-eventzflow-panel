@@ -33,10 +33,12 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 	const vendorNameId = useId();
 	const redirectUrlId = useId();
 	const posterUrlId = useId();
+	const qrUrlId = useId();
 
 	// Form state - Initialize with vendor data
 	const [redirectUrl, setRedirectUrl] = useState(vendor.redirect_url || "");
 	const [posterUrl, setPosterUrl] = useState(vendor.poster_url || "");
+	const [qrUrl, setQrUrl] = useState(vendor.qr_url || "");
 
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,6 +78,11 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 			newErrors.posterUrl = "Please enter a valid URL (must start with http:// or https://)";
 		}
 
+		// Validate QR URL if provided
+		if (qrUrl.trim() && !/^https?:\/\/.+/.test(qrUrl.trim())) {
+			newErrors.qrUrl = "Please enter a valid URL (must start with http:// or https://)";
+		}
+
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors);
 			return;
@@ -85,6 +92,7 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 			const vendorData: UpdateEventVendorRequest = {
 				redirect_url: redirectUrl.trim() || undefined,
 				poster_url: posterUrl.trim() || undefined,
+				qr_url: qrUrl.trim() || undefined,
 			};
 			await updateVendorMutation.mutateAsync(vendorData);
 		} catch (_error) {
@@ -95,6 +103,7 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 	const handleChange = (field: string, value: string) => {
 		if (field === "redirectUrl") setRedirectUrl(value);
 		if (field === "posterUrl") setPosterUrl(value);
+		if (field === "qrUrl") setQrUrl(value);
 
 		// Clear error for this field when user starts typing
 		if (errors[field]) {
@@ -171,6 +180,25 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 									/>
 									<FieldDescription>
 										Optional URL for the vendor's poster or banner image
+									</FieldDescription>
+								</Field>
+
+								{/* QR URL */}
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={qrUrlId}>QR Code URL</FieldLabel>
+									{errors.qrUrl && (
+										<FieldError>{errors.qrUrl}</FieldError>
+									)}
+									<Input
+										id={qrUrlId}
+										type="url"
+										placeholder="https://example.com"
+										value={qrUrl}
+										onChange={(e) => handleChange("qrUrl", e.target.value)}
+										disabled={updateVendorMutation.isPending}
+									/>
+									<FieldDescription>
+										URL to be encoded in the QR code (e.g., vendor website, social media link)
 									</FieldDescription>
 								</Field>
 							</div>

@@ -7,6 +7,7 @@ export interface EventVendor {
 	type: "Exhibitor" | "Merchant";
 	redirect_url: string | null;
 	poster_url: string | null;
+	qr_url: string | null;
 	vendor: {
 		id: number;
 		email: string;

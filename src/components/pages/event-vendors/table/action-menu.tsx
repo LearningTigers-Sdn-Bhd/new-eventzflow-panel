@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Eye, Pencil } from "lucide-react";
+import { Trash2, Eye, Pencil, QrCode } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { deleteEventVendor } from "@/lib/api/event-vendor";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import ConfirmDialog from "../../event-staff/confirm-dialog";
 import EditEventVendorForm from "../forms/edit-vendor/edit-form";
+import QrCodeDialog from "../dialogs/qr-code-dialog";
 
 interface EventVendorActionsMenuProps {
 	vendor: EventVendor;
@@ -56,6 +57,19 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 		router.push(`/event/${eventId}/vendors/${vendor.id}/profile`);
 	};
 
+	const handleQrCodeClick = () => {
+		openDialog({
+			component: QrCodeDialog,
+			props: {
+				vendor,
+			},
+			config: {
+				title: "QR Code",
+				size: "lg",
+			},
+		});
+	};
+
 	const handleRemoveClick = () => {
 		openDialog({
 			component: ConfirmDialog,
@@ -97,6 +111,17 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 			>
 				<Eye className="size-4" />
 			</Button>
+			{vendor.qr_url && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
+					onClick={handleQrCodeClick}
+					title="View QR Code"
+				>
+					<QrCode className="size-4" />
+				</Button>
+			)}
 			<Button
 				size="icon-sm"
 				variant="outline"

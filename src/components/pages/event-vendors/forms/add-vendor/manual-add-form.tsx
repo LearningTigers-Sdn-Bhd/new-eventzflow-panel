@@ -39,10 +39,12 @@ export default function ManualAddForm({
 	const vendorIdField = useId();
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
+	const qrUrlField = useId();
 
 	const [vendorId, setVendorId] = useState<string>("");
 	const [redirectUrl, setRedirectUrl] = useState("");
 	const [posterUrl, setPosterUrl] = useState("");
+	const [qrUrl, setQrUrl] = useState("");
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch available vendors
@@ -76,6 +78,7 @@ export default function ManualAddForm({
 			vendor_id: number;
 			redirect_url?: string;
 			poster_url?: string;
+			qr_url?: string;
 		}) => createEventVendor(eventId, data),
 		onSuccess: () => {
 			toast.success("Vendor added to event successfully!");
@@ -111,6 +114,7 @@ export default function ManualAddForm({
 				vendor_id: number;
 				redirect_url?: string;
 				poster_url?: string;
+				qr_url?: string;
 			} = {
 				vendor_id: Number(vendorId),
 			};
@@ -123,6 +127,11 @@ export default function ManualAddForm({
 			const trimmedPosterUrl = posterUrl.trim();
 			if (trimmedPosterUrl) {
 				data.poster_url = trimmedPosterUrl;
+			}
+
+			const trimmedQrUrl = qrUrl.trim();
+			if (trimmedQrUrl) {
+				data.qr_url = trimmedQrUrl;
 			}
 
 			await createVendorMutation.mutateAsync(data);
@@ -291,6 +300,27 @@ export default function ManualAddForm({
 							/>
 							<FieldDescription>
 								Optional poster image URL for the vendor's display.
+							</FieldDescription>
+						</Field>
+
+						<FieldSeparator />
+
+						{/* QR URL (Optional) */}
+						<Field orientation="vertical">
+							<FieldLabel htmlFor={qrUrlField}>
+								QR Code URL (Optional)
+							</FieldLabel>
+							<Input
+								id={qrUrlField}
+								type="url"
+								value={qrUrl}
+								onChange={(e) => setQrUrl(e.target.value)}
+								placeholder="https://example.com"
+								disabled={createVendorMutation.isPending}
+								className="rounded-none"
+							/>
+							<FieldDescription>
+								URL to be encoded in the QR code (e.g., vendor website, social media link).
 							</FieldDescription>
 						</Field>
 

@@ -18,6 +18,12 @@ export const createEventVendorSchema = z.object({
 		.optional()
 		.or(z.literal(""))
 		.or(z.undefined()),
+	qr_url: z
+		.string()
+		.regex(urlPattern, "Must be a valid URL")
+		.optional()
+		.or(z.literal(""))
+		.or(z.undefined()),
 	exhibitor_owner_id: z.number().optional(), // Only for Exhibitor type (ticket events)
 });
 
@@ -29,6 +35,12 @@ export const updateEventVendorSchema = z.object({
 		.or(z.literal(""))
 		.or(z.undefined()),
 	poster_url: z
+		.string()
+		.regex(urlPattern, "Must be a valid URL")
+		.optional()
+		.or(z.literal(""))
+		.or(z.undefined()),
+	qr_url: z
 		.string()
 		.regex(urlPattern, "Must be a valid URL")
 		.optional()
