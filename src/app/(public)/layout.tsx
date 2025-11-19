@@ -38,7 +38,8 @@ export default function PublicLayout({
 	const isLoginPage = pathname.startsWith("/auth");
 	const isForgotPasswordPage = pathname.startsWith("/forget-password");
 	const isCheckinPage = pathname.startsWith("/check-in");
-	const isNavHidden = isLoginPage || isForgotPasswordPage || isCheckinPage;
+	const isPublicVoucherPage = pathname.startsWith("/event");
+	const isNavHidden = isLoginPage || isForgotPasswordPage || isCheckinPage || isPublicVoucherPage;
 
 	// Check if we're on pages where footer should be shown
 	const isHomePage = pathname === "/";

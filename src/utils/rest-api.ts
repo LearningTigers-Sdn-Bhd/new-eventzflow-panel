@@ -28,6 +28,9 @@ const logger = {
 	},
 };
 
+// Export the base API URL for use in other modules
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
 export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error: Error) => {
@@ -299,5 +302,16 @@ export const restClient = {
 		);
 
 		return kyClientForFormData.post(url, requestOptions).json<T>();
+	},
+
+	/**
+	 * Get the full URL for an image endpoint
+	 * @param path - The image path (e.g., "v1/voucher_images/filename.jpg")
+	 * @returns Full URL to access the image
+	 */
+	getImageUrl: (path: string): string => {
+		// Remove leading slash if present to avoid double slashes
+		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		return `${API_BASE_URL}/${cleanPath}`;
 	},
 };

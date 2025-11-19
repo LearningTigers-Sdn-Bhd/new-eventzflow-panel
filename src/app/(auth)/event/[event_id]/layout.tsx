@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -94,6 +94,15 @@ const tabItems: TabItem[] = [
 			"Manage vendors for this event.",
 		icon: Building2,
 		route: "vendors",
+	},
+	{
+		id: "vouchers",
+		label: "Vouchers",
+		title: "Event Vouchers",
+		description:
+			"Manage vouchers for this event.",
+		icon: Ticket,
+		route: "vouchers",
 	},
 	{
 		id: "event-staff",

@@ -1,0 +1,98 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useFormatDate } from "@/hooks/use-format-date";
+import { cn } from "@/lib/utils";
+import type { Voucher } from "./columns";
+import { VoucherActionsMenu } from "./action-menu";
+
+interface VoucherItemProps {
+	voucher: Voucher;
+}
+
+export function VoucherItem({ voucher }: VoucherItemProps) {
+	const { formatDate } = useFormatDate();
+	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
+
+	return (
+		<Card className="rounded-none border-dashed">
+			<CardContent className="p-4">
+				<div className="flex items-start justify-between">
+					<div className="flex-1 space-y-3">
+						{/* Title and Merchant */}
+						<div>
+							<h3 className="font-semibold text-lg">{voucher.title}</h3>
+							<p className="text-sm text-muted-foreground">
+								{voucher.vendor?.fullName || "N/A"}
+							</p>
+						</div>
+
+						{/* Status and Type */}
+						<div className="flex flex-wrap gap-2">
+							<Badge
+								variant={voucher.status === "active" ? "default" : "secondary"}
+								className={cn(
+									"rounded-none font-bold capitalize",
+									voucher.status === "active" && "bg-green-500 text-white",
+									voucher.status === "inactive" && "bg-gray-500 text-white",
+								)}
+							>
+								{voucher.status}
+							</Badge>
+							<Badge variant="outline" className="rounded-none capitalize">
+								{voucher.voucherType.replace(/_/g, " ")}
+							</Badge>
+						</div>
+
+						{/* Details Grid */}
+						<div className="grid grid-cols-2 gap-3 text-sm">
+							<div>
+								<p className="text-muted-foreground">Value</p>
+								<p className="font-medium">
+									{voucher.voucherType === "percentage"
+										? `${voucher.voucherValue}%`
+										: `RM ${voucher.voucherValue.toFixed(2)}`}
+								</p>
+							</div>
+							<div>
+								<p className="text-muted-foreground">Quota</p>
+								<p className="font-medium">{voucher.totalRedemptionAvailable}</p>
+							</div>
+							<div>
+								<p className="text-muted-foreground">Validity</p>
+								<div className="flex flex-col">
+									<span className="text-xs">
+										<span className="text-muted-foreground">Start: </span>
+										{formatDate(voucher.startDate)}
+									</span>
+									<span className="text-xs">
+										<span className="text-muted-foreground">End: </span>
+										{formatDate(voucher.endDate)}
+									</span>
+								</div>
+							</div>
+							<div>
+								<p className="text-muted-foreground">Redemptions</p>
+								<div className="flex flex-col">
+									<span className="font-medium text-green-600">
+										{remaining} left
+									</span>
+									<span className="text-xs text-muted-foreground">
+										{voucher.redeemedCount} / {voucher.totalRedemptionAvailable}{" "}
+										redeemed
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Actions */}
+					<div className="ml-2">
+						<VoucherActionsMenu voucher={voucher} />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
