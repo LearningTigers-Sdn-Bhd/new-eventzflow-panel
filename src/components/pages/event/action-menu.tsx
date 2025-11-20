@@ -341,15 +341,27 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		});
 	};
 
+	// Check if user is a vendor
+	const isVendor = user?.role === "vendor";
+
+	// For vendors, redirect to vendors tab instead of opening settings
+	const handleMainButtonClick = () => {
+		if (isVendor) {
+			_router.push(`/event/${eventId}/vendors`);
+		} else {
+			_openEventSettings();
+		}
+	};
+
 	return (
 		<ButtonGroup>
 			<Button
 				variant="outline"
 				className="rounded-none"
-				onClick={_openEventSettings}
+				onClick={handleMainButtonClick}
 			>
 				<Cog className="h-4 w-4" />
-				Manage
+				{isVendor ? "Show" : "Manage"}
 			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>

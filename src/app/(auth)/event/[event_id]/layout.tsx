@@ -88,21 +88,39 @@ const tabItems: TabItem[] = [
 	},
 	{
 		id: "vendors",
-		label: "Vendors",
-		title: "Event Vendors",
+		label: "Vendor Profile",
+		title: "Vendor Profile",
 		description:
-			"Manage vendors for this event.",
+			"View and manage vendor profile information.",
 		icon: Building2,
 		route: "vendors",
 	},
 	{
 		id: "vouchers",
 		label: "Vouchers",
-		title: "Event Vouchers",
+		title: "Vouchers",
 		description:
-			"Manage vouchers for this event.",
+			"View and manage vouchers created by this vendor.",
 		icon: Ticket,
 		route: "vouchers",
+	},
+	{
+		id: "voucher-redemption",
+		label: "Scan Voucher",
+		title: "Scan Voucher / Redeem Voucher",
+		description:
+			"Scan and redeem vouchers.",
+		icon: ScanQrCode,
+		route: "voucher-redemption",
+	},
+	{
+		id: "voucher-analytics",
+		label: "Voucher Analytics",
+		title: "Voucher Analytics",
+		description:
+			"View analytics and insights for vouchers.",
+		icon: ChartBar,
+		route: "analytics",
 	},
 	{
 		id: "event-staff",
@@ -121,15 +139,6 @@ const tabItems: TabItem[] = [
 			"Scan visitor QR codes to create stamps.",
 		icon: ScanQrCode,
 		route: "visitor-stamps",
-	},
-	{
-		id: "analytics",
-		label: "Analytics",
-		title: "Analytics",
-		description:
-			"This page will display event analytics, charts, and insights.",
-		icon: ChartBar,
-		route: "analytics",
 	},
 	{
 		id: "export-logs",
@@ -173,9 +182,19 @@ export default function EventDetailLayout({
 	// Filter tabs based on permissions and event type
 	const visibleTabs = useMemo(() => {
 		return tabItems.filter((tab) => {
-			// Always show these tabs
-			if (["location", "analytics", "export-logs"].includes(tab.id)) {
+			// For vendors, only show these 4 specific tabs
+			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+				return ["vendors", "vouchers", "voucher-redemption", "voucher-analytics"].includes(tab.id);
+			}
+
+			// Always show these tabs (for non-vendors)
+			if (["location"].includes(tab.id)) {
 				return true;
+			}
+
+			// Export logs - hide for vendors
+			if (tab.id === "export-logs") {
+				return !permissions.isEventVendor;
 			}
 
 			// Ticket-related tabs - only for ticket events
@@ -193,6 +212,21 @@ export default function EventDetailLayout({
 				return permissions.canViewVendorsTab;
 			}
 
+			// Vouchers tab - visible to event admins and vendors
+			if (tab.id === "vouchers") {
+				return permissions.canViewVendorsTab;
+			}
+
+			// Voucher redemption - only for vendors
+			if (tab.id === "voucher-redemption") {
+				return permissions.isEventVendor;
+			}
+
+			// Voucher analytics - only for vendors and event admins
+			if (tab.id === "voucher-analytics") {
+				return permissions.isEventVendor || permissions.canManageEventVendors;
+			}
+
 			// Visitors tab - only for non-ticket events, visible to event staff
 			if (tab.id === "visitors") {
 				return permissions.canViewVisitorsTab;
@@ -206,6 +240,31 @@ export default function EventDetailLayout({
 			return true;
 		});
 	}, [currentEvent?.use_ticket, permissions]);
+
+	// Update vendor tab label, title, and description based on user role
+	const tabsWithDynamicLabels = useMemo(() => {
+		return visibleTabs.map((tab) => {
+			if (tab.id === "vendors") {
+				// If user is a vendor (not admin), show "Vendor Profile"
+				if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+					return {
+						...tab,
+						label: "Vendor Profile",
+						title: "Vendor Profile",
+						description: "View and manage your vendor profile information.",
+					};
+				}
+				// Otherwise show "Vendors" for admins/organizers
+				return {
+					...tab,
+					label: "Vendors",
+					title: "Event Vendors",
+					description: "View and manage vendors for this event.",
+				};
+			}
+			return tab;
+		});
+	}, [visibleTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
 
 	// Extract the current tab from pathname.
 	// For nested routes like /event/[id]/vendors/[vendor_id]/profile,
@@ -227,8 +286,8 @@ export default function EventDetailLayout({
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
-		return visibleTabs.find((item) => item.route === currentTab) || visibleTabs[0];
-	}, [currentTab, visibleTabs]);
+		return tabsWithDynamicLabels.find((item) => item.route === currentTab) || tabsWithDynamicLabels[0];
+	}, [currentTab, tabsWithDynamicLabels]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -239,7 +298,7 @@ export default function EventDetailLayout({
 	);
 
 	// If no tabs are visible, show a message
-	if (visibleTabs.length === 0) {
+	if (tabsWithDynamicLabels.length === 0) {
 		return (
 			<div className="p-8 text-center">
 				<p className="text-muted-foreground">
@@ -305,7 +364,7 @@ export default function EventDetailLayout({
 								</SelectValue>
 							</SelectTrigger>
 							<SelectContent className="rounded-none bg-background">
-								{visibleTabs.map((item) => {
+								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<SelectItem
@@ -325,7 +384,7 @@ export default function EventDetailLayout({
 					) : (
 						<Tabs value={currentTab} onValueChange={handleTabChange}>
 							<TabsList className="flex h-12 w-full rounded-none">
-								{visibleTabs.map((item) => {
+								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
 									return (
 										<TabsTrigger
