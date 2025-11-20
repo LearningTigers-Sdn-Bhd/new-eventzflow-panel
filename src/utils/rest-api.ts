@@ -68,6 +68,11 @@ export const kyClient = ky.create({
 					// Let the request proceed anyway, it may still work or fail with 401
 				}
 
+				// Remove Content-Type header for GET requests (GET requests should not have a body)
+				if (request.method === "GET") {
+					request.headers.delete("Content-Type");
+				}
+
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
 					const isHydrated = useUserSessionStore.persist.hasHydrated();

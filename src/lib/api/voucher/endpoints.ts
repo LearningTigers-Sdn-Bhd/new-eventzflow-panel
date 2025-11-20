@@ -107,8 +107,8 @@ export async function getVouchers(params?: {
 		// Handle both direct array and wrapped response
 		const vouchers = Array.isArray(response) ? response : response.data;
 
-		if (!Array.isArray(vouchers)) {
-			console.error("Unexpected response format:", response);
+		// If no vouchers, return empty array (handles empty object {} or undefined)
+		if (!vouchers || !Array.isArray(vouchers)) {
 			return [];
 		}
 
