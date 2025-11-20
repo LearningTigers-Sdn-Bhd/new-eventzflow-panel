@@ -26,18 +26,15 @@ export function getVoucherImageUrl(filename: string): string {
 
 // Transform backend response to frontend format
 function transformVoucher(backendVoucher: BackendVoucher): Voucher {
-	// Convert backend voucher_type to frontend format
-	const voucherTypeMap = {
-		FIXED_AMOUNT: "fixed_amount",
-		PERCENTAGE: "percentage",
-		FREE_ITEM: "free_item",
-	} as const;
+	// Rails enum automatically converts to string names in as_json
+	// Backend returns: "active" | "inactive" and "fixed_amount" | "percentage" | "free_item"
+	// Frontend uses the same format, so we can use them directly
 
 	// Transform image_path to full URL using the serve_image endpoint
 	// Backend returns path like "voucher_images/voucher-20231119_143022-a1b2c3d4.jpg"
 	// Extract filename and construct full URL
 	let imagePath: string | null = null;
-	
+
 	if (backendVoucher.image_path) {
 		// Extract filename from the path (e.g., "voucher_images/filename.jpg" -> "filename.jpg")
 		const filename = backendVoucher.image_path.split('/').pop();
@@ -54,7 +51,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		vendorId: backendVoucher.vendor_id,
 		eventId: backendVoucher.event_id,
 		voucherCode: backendVoucher.voucher_code,
-		status: backendVoucher.status,
+		status: backendVoucher.status as "active" | "inactive",
 		startDate: backendVoucher.start_date,
 		endDate: backendVoucher.end_date,
 		startTime: backendVoucher.start_time,
@@ -63,9 +60,9 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,
-		voucherType:
-			voucherTypeMap[backendVoucher.voucher_type] || "fixed_amount",
+		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
+		voucherCategory: backendVoucher.voucher_category,
 		imagePath,
 		createdAt: backendVoucher.created_at,
 		updatedAt: backendVoucher.updated_at,

@@ -14,8 +14,9 @@ export const createVoucherSchema = z.object({
 	end_time: z.string().optional(),
 	total_redemption_available: z.number().min(1),
 	max_redemptions_per_user: z.number().min(1).default(1),
-	voucher_type: z.enum(["FIXED_AMOUNT", "PERCENTAGE", "FREE_ITEM"]),
+	voucher_type: z.enum(["fixed_amount", "percentage", "free_item"]),
 	voucher_value: z.number().min(0),
+	voucher_category: z.string().optional(),
 	image: z.any().optional(), // For file upload
 });
 
@@ -33,8 +34,9 @@ export const updateVoucherSchema = z.object({
 	end_time: z.string().optional(),
 	total_redemption_available: z.number().min(1).optional(),
 	max_redemptions_per_user: z.number().min(1).optional(),
-	voucher_type: z.enum(["FIXED_AMOUNT", "PERCENTAGE", "FREE_ITEM"]).optional(),
+	voucher_type: z.enum(["fixed_amount", "percentage", "free_item"]).optional(),
 	voucher_value: z.number().min(0).optional(),
+	voucher_category: z.string().optional(),
 	image: z.any().optional(), // For file upload
 });
 

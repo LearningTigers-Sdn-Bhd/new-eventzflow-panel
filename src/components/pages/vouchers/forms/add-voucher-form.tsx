@@ -27,18 +27,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { createVoucher } from "@/lib/api/voucher";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AddVoucherFormProps {
 	eventId: number;
 	onClose?: () => void;
 }
 
-type VoucherType = "FIXED_AMOUNT" | "PERCENTAGE" | "FREE_ITEM";
+type VoucherType = "fixed_amount" | "percentage" | "free_item";
 
 export default function AddVoucherForm({
 	eventId,
 	onClose,
 }: AddVoucherFormProps) {
+	const { user } = useAuth();
 	const queryClient = useQueryClient();
 	const voucherTitleField = useId();
 	const descriptionField = useId();
@@ -46,6 +48,7 @@ export default function AddVoucherForm({
 	const voucherTypeField = useId();
 	const voucherValueField = useId();
 	const voucherCodeField = useId();
+	const voucherCategoryField = useId();
 	const statusField = useId();
 	const startDateField = useId();
 	const endDateField = useId();
@@ -53,12 +56,16 @@ export default function AddVoucherForm({
 	const maxPerUserField = useId();
 	const imageField = useId();
 
+	// Check if user is a vendor
+	const isVendor = user?.role === "vendor";
+
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [merchantId, setMerchantId] = useState("");
+	const [merchantId, setMerchantId] = useState(isVendor && user?.id ? user.id.toString() : "");
 	const [voucherType, setVoucherType] = useState<VoucherType | "">("");
 	const [voucherValue, setVoucherValue] = useState("");
 	const [voucherCode, setVoucherCode] = useState("");
+	const [voucherCategory, setVoucherCategory] = useState("");
 	const [status, setStatus] = useState<"active" | "inactive">("active");
 	const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 	const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -102,7 +109,8 @@ export default function AddVoucherForm({
 			newErrors.title = "Voucher title is required";
 		}
 
-		if (!merchantId) {
+		// Only validate merchantId for non-vendor users
+		if (!isVendor && !merchantId) {
 			newErrors.merchantId = "Please select a merchant";
 		}
 
@@ -114,7 +122,7 @@ export default function AddVoucherForm({
 			newErrors.voucherValue = "Please enter a valid voucher value";
 		}
 
-		if (voucherType === "PERCENTAGE" && Number(voucherValue) > 100) {
+		if (voucherType === "percentage" && Number(voucherValue) > 100) {
 			newErrors.voucherValue = "Percentage cannot exceed 100";
 		}
 
@@ -160,8 +168,9 @@ export default function AddVoucherForm({
 			end_time: endDate ? formatTime(endDate) : undefined,
 			total_redemption_available: Number(globalLimit),
 			max_redemptions_per_user: Number(maxPerUser),
-			voucher_type: voucherType as "FIXED_AMOUNT" | "PERCENTAGE" | "FREE_ITEM",
+			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: Number(voucherValue),
+			voucher_category: voucherCategory.trim() || undefined,
 			image: image || undefined,
 		});
 	};
@@ -217,7 +226,7 @@ export default function AddVoucherForm({
 								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div className={`grid grid-cols-1 gap-4 ${isVendor ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
 								{/* Voucher Title */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherTitleField}>
@@ -247,45 +256,64 @@ export default function AddVoucherForm({
 									</FieldDescription>
 								</Field>
 
-								{/* Merchant Selection */}
+								{/* Merchant Selection - Hidden for vendors */}
+								{!isVendor && (
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={merchantField}>Merchant *</FieldLabel>
+										{errors.merchantId && (
+											<FieldError>{errors.merchantId}</FieldError>
+										)}
+										<Select
+											value={merchantId}
+											onValueChange={(value) => {
+												setMerchantId(value);
+												if (errors.merchantId) {
+													setErrors((prev) => {
+														const newErrors = { ...prev };
+														delete newErrors.merchantId;
+														return newErrors;
+													});
+												}
+											}}
+											disabled={createMutation.isPending}
+										>
+											<SelectTrigger id={merchantField}>
+												<SelectValue placeholder="Select a merchant" />
+											</SelectTrigger>
+											<SelectContent>
+												{merchants.map((merchant) => (
+													<SelectItem
+														key={merchant.id}
+														value={merchant.vendor_id.toString()}
+													>
+														<div className="flex items-center gap-2">
+															<Building2 className="h-4 w-4 text-muted-foreground" />
+															<span>{merchant.vendor.full_name}</span>
+														</div>
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FieldDescription>
+											Select the merchant offering this voucher
+										</FieldDescription>
+									</Field>
+								)}
+
+								{/* Voucher Category */}
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={merchantField}>Merchant *</FieldLabel>
-									{errors.merchantId && (
-										<FieldError>{errors.merchantId}</FieldError>
-									)}
-									<Select
-										value={merchantId}
-										onValueChange={(value) => {
-											setMerchantId(value);
-											if (errors.merchantId) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.merchantId;
-													return newErrors;
-												});
-											}
-										}}
+									<FieldLabel htmlFor={voucherCategoryField}>
+										Voucher Category
+									</FieldLabel>
+									<Input
+										id={voucherCategoryField}
+										value={voucherCategory}
+										onChange={(e) => setVoucherCategory(e.target.value)}
+										placeholder="e.g., Food & Beverage, Merchandise"
 										disabled={createMutation.isPending}
-									>
-										<SelectTrigger id={merchantField}>
-											<SelectValue placeholder="Select a merchant" />
-										</SelectTrigger>
-										<SelectContent>
-											{merchants.map((merchant) => (
-												<SelectItem
-													key={merchant.id}
-													value={merchant.vendor_id.toString()}
-												>
-													<div className="flex items-center gap-2">
-														<Building2 className="h-4 w-4 text-muted-foreground" />
-														<span>{merchant.vendor.full_name}</span>
-													</div>
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+									/>
 									<FieldDescription>
-										Select the merchant offering this voucher
+										Category to organize vouchers
 									</FieldDescription>
 								</Field>
 							</div>
@@ -329,11 +357,11 @@ export default function AddVoucherForm({
 											<SelectValue placeholder="Select voucher type" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="PERCENTAGE">
+											<SelectItem value="percentage">
 												Percentage Discount
 											</SelectItem>
-											<SelectItem value="FIXED_AMOUNT">Fixed Amount</SelectItem>
-											<SelectItem value="FREE_ITEM">Free Item</SelectItem>
+											<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+											<SelectItem value="free_item">Free Item</SelectItem>
 										</SelectContent>
 									</Select>
 									<FieldDescription>
@@ -366,16 +394,16 @@ export default function AddVoucherForm({
 											}
 										}}
 										placeholder={
-											voucherType === "PERCENTAGE"
+											voucherType === "percentage"
 												? "e.g., 10, 20, 50"
 												: "e.g., 10.00, 50.00"
 										}
 										disabled={createMutation.isPending}
 									/>
 									<FieldDescription>
-										{voucherType === "PERCENTAGE"
+										{voucherType === "percentage"
 											? "Enter percentage (1-100)"
-											: voucherType === "FIXED_AMOUNT"
+											: voucherType === "fixed_amount"
 												? "Enter amount in RM"
 												: "Enter value (e.g., 1 for 1 free item)"}
 									</FieldDescription>
@@ -384,7 +412,7 @@ export default function AddVoucherForm({
 								{/* Voucher Code */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherCodeField}>
-										Voucher Code - Optional
+										Voucher Code
 									</FieldLabel>
 									<Input
 										id={voucherCodeField}
@@ -394,7 +422,7 @@ export default function AddVoucherForm({
 										disabled={createMutation.isPending}
 									/>
 									<FieldDescription>
-										Custom code for this voucher (optional)
+										Custom code for this voucher
 									</FieldDescription>
 								</Field>
 							</div>
@@ -403,7 +431,7 @@ export default function AddVoucherForm({
 								{/* Description */}
 								<Field orientation="vertical" className="md:col-span-2">
 									<FieldLabel htmlFor={descriptionField}>
-										Description - Optional
+										Description
 									</FieldLabel>
 									<Textarea
 										id={descriptionField}

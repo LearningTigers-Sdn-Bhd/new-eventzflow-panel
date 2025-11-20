@@ -7,7 +7,7 @@ export type BackendVoucher = {
 	vendor_id: number;
 	event_id: number;
 	voucher_code: string;
-	status: string;
+	status: string; // Rails enum returns string: "active" | "inactive"
 	start_date: string;
 	end_date: string;
 	start_time: string | null;
@@ -16,8 +16,9 @@ export type BackendVoucher = {
 	redeemed_count: number;
 	max_redemptions_per_user: number;
 	user_role_restriction: string | null;
-	voucher_type: "FIXED_AMOUNT" | "PERCENTAGE" | "FREE_ITEM";
+	voucher_type: string; // Rails enum returns string: "fixed_amount" | "percentage" | "free_item"
 	voucher_value: string;
+	voucher_category: string | null;
 	image_path: string | null;
 	created_at: string;
 	updated_at: string;
@@ -49,6 +50,7 @@ export type Voucher = {
 	userRoleRestriction: string | null;
 	voucherType: "fixed_amount" | "percentage" | "free_item";
 	voucherValue: number;
+	voucherCategory: string | null;
 	imagePath: string | null;
 	createdAt: string;
 	updatedAt: string;
