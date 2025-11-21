@@ -87,6 +87,15 @@ const tabItems: TabItem[] = [
 		route: "visitors",
 	},
 	{
+		id: "event-staff",
+		label: "Event Staff",
+		title: "Event Staff",
+		description:
+			"This page will display event staff assignments and management.",
+		icon: Users,
+		route: "event-staff",
+	},
+	{
 		id: "vendors",
 		label: "Vendor Profile",
 		title: "Vendor Profile",
@@ -114,24 +123,6 @@ const tabItems: TabItem[] = [
 		route: "voucher-redemption",
 	},
 	{
-		id: "voucher-analytics",
-		label: "Voucher Analytics",
-		title: "Voucher Analytics",
-		description:
-			"View analytics and insights for vouchers.",
-		icon: ChartBar,
-		route: "analytics",
-	},
-	{
-		id: "event-staff",
-		label: "Event Staff",
-		title: "Event Staff",
-		description:
-			"This page will display event staff assignments and management.",
-		icon: Users,
-		route: "event-staff",
-	},
-	{
 		id: "visitor-stamps",
 		label: "Stamp Scanner",
 		title: "Visitor Stamp Scanner",
@@ -139,6 +130,24 @@ const tabItems: TabItem[] = [
 			"Scan visitor QR codes to create stamps.",
 		icon: ScanQrCode,
 		route: "visitor-stamps",
+	},
+	{
+		id: "voucher-analytics",
+		label: "Voucher Analytics",
+		title: "Voucher Analytics",
+		description:
+			"View analytics and insights for vouchers.",
+		icon: ChartBar,
+		route: "voucher-analytics",
+	},
+	{
+		id: "analytics",
+		label: "Analytics",
+		title: "Analytics",
+		description:
+			"This page will display event analytics, charts, and insights.",
+		icon: ChartBar,
+		route: "analytics",
 	},
 	{
 		id: "export-logs",
@@ -182,9 +191,9 @@ export default function EventDetailLayout({
 	// Filter tabs based on permissions and event type
 	const visibleTabs = useMemo(() => {
 		return tabItems.filter((tab) => {
-			// For vendors, only show these 4 specific tabs
+			// For vendors, only show these 5 specific tabs
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
-				return ["vendors", "vouchers", "voucher-redemption", "voucher-analytics"].includes(tab.id);
+				return ["vendors", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"].includes(tab.id);
 			}
 
 			// Always show these tabs (for non-vendors)
@@ -198,7 +207,7 @@ export default function EventDetailLayout({
 			}
 
 			// Ticket-related tabs - only for ticket events
-			if (["tickets", "pending-tickets", "scanned-logs"].includes(tab.id)) {
+			if (["tickets", "pending-tickets", "scanned-logs", "analytics"].includes(tab.id)) {
 				return currentEvent?.use_ticket !== false;
 			}
 
@@ -232,8 +241,13 @@ export default function EventDetailLayout({
 				return permissions.canViewVisitorsTab;
 			}
 
-			// Stamp scanner - only for non-ticket events, visible to vendors
+			// Stamp scanner - visible to vendors and event staff for non-ticket events
 			if (tab.id === "visitor-stamps") {
+				// Vendors can always see it
+				if (permissions.isEventVendor) {
+					return true;
+				}
+				// Event staff can see it only for non-ticket events
 				return permissions.canViewStampScannerTab;
 			}
 
