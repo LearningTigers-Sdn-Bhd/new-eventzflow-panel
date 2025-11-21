@@ -104,53 +104,53 @@ export default function EditVoucherForm({
 
 	// Pre-populate form with existing voucher data
 	useEffect(() => {
-		if (voucher) {
-			setTitle(voucher.title);
-			setDescription(voucher.description || "");
-			setMerchantId(voucher.vendorId.toString());
-			setVoucherType(voucher.voucherType);
-			setVoucherValue(voucher.voucherValue.toString());
-			setVoucherCode(voucher.voucherCode || "");
-			setVoucherCategory(voucher.voucherCategory || "");
-			setStatus(voucher.status as "active" | "inactive");
-			setGlobalLimit(voucher.totalRedemptionAvailable.toString());
-			setMaxPerUser(voucher.maxRedemptionsPerUser.toString());
+		// Parse dates safely
+		const parseDateTime = (
+			dateStr: string | null | undefined,
+			timeStr: string | null | undefined,
+		): Date | undefined => {
+			if (!dateStr) return undefined;
 
-			// Parse dates safely
-			const parseDateTime = (
-				dateStr: string | null | undefined,
-				timeStr: string | null | undefined,
-			): Date | undefined => {
-				if (!dateStr) return undefined;
-
-				try {
-					// If we have a time, combine date and time
-					if (timeStr) {
-						const dateTime = new Date(`${dateStr}T${timeStr}`);
-						// Check if date is valid
-						if (!isNaN(dateTime.getTime())) {
-							return dateTime;
-						}
-					}
-
-					// Try parsing just the date
-					const date = new Date(dateStr);
+			try {
+				// If we have a time, combine date and time
+				if (timeStr) {
+					const dateTime = new Date(`${dateStr}T${timeStr}`);
 					// Check if date is valid
-					if (!isNaN(date.getTime())) {
-						return date;
+					if (!isNaN(dateTime.getTime())) {
+						return dateTime;
 					}
-
-					return undefined;
-				} catch (error) {
-					console.error("Error parsing date:", error);
-					return undefined;
 				}
-			};
 
-			setStartDate(parseDateTime(voucher.startDate, voucher.startTime));
-			setEndDate(parseDateTime(voucher.endDate, voucher.endTime));
-		}
-	}, [voucher]);
+				// Try parsing just the date
+				const date = new Date(dateStr);
+				// Check if date is valid
+				if (!isNaN(date.getTime())) {
+					return date;
+				}
+
+				return undefined;
+			} catch (error) {
+				console.error("Error parsing date:", error);
+				return undefined;
+			}
+		};
+
+		// Always reset form with voucher data
+		setTitle(voucher.title);
+		setDescription(voucher.description || "");
+		setMerchantId(voucher.vendorId.toString());
+		setVoucherType(voucher.voucherType);
+		setVoucherValue(voucher.voucherValue.toString());
+		setVoucherCode(voucher.voucherCode || "");
+		setVoucherCategory(voucher.voucherCategory || "");
+		setStatus(voucher.status as "active" | "inactive");
+		setGlobalLimit(voucher.totalRedemptionAvailable.toString());
+		setMaxPerUser(voucher.maxRedemptionsPerUser.toString());
+		setStartDate(parseDateTime(voucher.startDate, voucher.startTime));
+		setEndDate(parseDateTime(voucher.endDate, voucher.endTime));
+		setErrors({});
+		setImage(null);
+	}, [voucher.id, voucher.title, voucher.description, voucher.vendorId, voucher.voucherType, voucher.voucherValue, voucher.voucherCode, voucher.voucherCategory, voucher.status, voucher.totalRedemptionAvailable, voucher.maxRedemptionsPerUser, voucher.startDate, voucher.startTime, voucher.endDate, voucher.endTime]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -317,6 +317,7 @@ export default function EditVoucherForm({
 											<FieldError>{errors.merchantId}</FieldError>
 										)}
 										<Select
+											key={`merchant-${voucher.id}-${merchantId}`}
 											value={merchantId}
 											onValueChange={(value) => {
 												setMerchantId(value);
@@ -393,6 +394,7 @@ export default function EditVoucherForm({
 										<FieldError>{errors.voucherType}</FieldError>
 									)}
 									<Select
+										key={`voucher-type-${voucher.id}-${voucherType}`}
 										value={voucherType}
 										onValueChange={(value: VoucherType) => {
 											setVoucherType(value);
@@ -501,6 +503,7 @@ export default function EditVoucherForm({
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={statusField}>Status *</FieldLabel>
 									<Select
+										key={`status-${voucher.id}-${status}`}
 										value={status}
 										onValueChange={(value: "active" | "inactive") =>
 											setStatus(value)
