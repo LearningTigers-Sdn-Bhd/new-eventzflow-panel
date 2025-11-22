@@ -3,6 +3,7 @@
 // API endpoints
 export {
 	getAllEventAnalytics,
+	getMallLiveFeed,
 	getTotalAmountPrice,
 	getTotalScannedTickets,
 	getTotalTickets,
@@ -19,6 +20,9 @@ export {
 export type {
 	AllEventAnalyticsResponse,
 	DateCountColumn,
+	LocationTraffic,
+	MallLiveFeedResponse,
+	TopMerchant,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
 	TotalTicketsResponse,

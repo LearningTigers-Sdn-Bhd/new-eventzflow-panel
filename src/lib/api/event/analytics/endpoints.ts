@@ -5,6 +5,7 @@ import {
 } from "./request";
 import type {
 	AllEventAnalyticsResponse,
+	MallLiveFeedResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
 	TotalTicketsResponse,
@@ -227,5 +228,26 @@ export async function getWeeklySalesAmount(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch weekly sales amount");
+	}
+}
+
+/**
+ * Get mall live feed data for an event
+ */
+export async function getMallLiveFeed(
+	data: GetEventAnalyticsRequest,
+): Promise<MallLiveFeedResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<MallLiveFeedResponse>(
+			`v1/events/${validated.id}/metrics/mall_live_feed`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get mall live feed for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch mall live feed");
 	}
 }

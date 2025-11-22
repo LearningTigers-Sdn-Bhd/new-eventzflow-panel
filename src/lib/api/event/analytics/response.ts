@@ -42,3 +42,24 @@ export type AllEventAnalyticsResponse = {
 	weeklyScannedTickets: DateCountColumn[];
 	weeklySalesAmount: DateCountColumn[];
 };
+
+// Mall Live Feed types
+export type TopMerchant = {
+	name: string;
+	count: number;
+};
+
+export type LocationTraffic = {
+	name: string;
+	count: number;
+};
+
+export type MallLiveFeedResponse = {
+	shoppers_registered_today: number;
+	estimated_sales_today: number;
+	voucher_issuances: number;
+	voucher_redemptions: number;
+	redemption_rate: number;
+	top_merchants: TopMerchant[];
+	location_traffic: LocationTraffic[];
+};

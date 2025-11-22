@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -150,6 +150,15 @@ const tabItems: TabItem[] = [
 		route: "analytics",
 	},
 	{
+		id: "mall-live-feed",
+		label: "Mall Live Feed",
+		title: "Mall Live Feed",
+		description:
+			"Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
+		icon: TrendingUp,
+		route: "mall-live-feed",
+	},
+	{
 		id: "export-logs",
 		label: "Export Logs",
 		title: "Export Logs",
@@ -209,6 +218,11 @@ export default function EventDetailLayout({
 			// Ticket-related tabs - only for ticket events
 			if (["tickets", "pending-tickets", "scanned-logs", "analytics"].includes(tab.id)) {
 				return currentEvent?.use_ticket !== false;
+			}
+
+			// Mall live feed - only for non-ticket events (mall events)
+			if (tab.id === "mall-live-feed") {
+				return currentEvent?.use_ticket === false;
 			}
 
 			// Event staff - only org_owner can manage
