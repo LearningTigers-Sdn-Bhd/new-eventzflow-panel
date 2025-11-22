@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera, CameraOff, CheckCircle2, QrCode } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useScanner } from "@/hooks/use-scanner";
@@ -35,6 +35,17 @@ export function RedemptionScanner({
 			onScanSuccess,
 		});
 
+	// Auto-open scanner for visitor step (camera permission already granted from voucher step)
+	useEffect(() => {
+		if (currentStep === "visitor" && !isScanning && !isTransitioning) {
+			// Small delay to ensure DOM is ready
+			const timer = setTimeout(() => {
+				handleStartScanner();
+			}, 300);
+			return () => clearTimeout(timer);
+		}
+	}, [currentStep]);
+
 	const handleStartScanner = async () => {
 		setIsTransitioning(true);
 		const success = await startScannerHook();
@@ -67,7 +78,7 @@ export function RedemptionScanner({
 		<Card className="overflow-hidden rounded-lg border-primary/20 bg-accent p-4 shadow-sm">
 			{/* Progress Steps */}
 			<div className="mb-4 flex items-center justify-center gap-2">
-				{(["voucher", "visitor", "amount"] as ScanStep[]).map((step, idx) => (
+				{(["voucher", "visitor", "review"] as ScanStep[]).map((step, idx) => (
 					<div key={step} className="flex items-center gap-2">
 						<div
 							className={cn(
@@ -75,14 +86,20 @@ export function RedemptionScanner({
 								currentStep === step
 									? "bg-primary text-primary-foreground"
 									: step === "voucher" && scannedData.voucherUuid
-										? "bg-green-500 text-white"
+										? "bg-green-600 text-white"
 										: step === "visitor" && scannedData.visitorId
-											? "bg-green-500 text-white"
+											? "bg-green-600 text-white"
 											: "bg-muted text-muted-foreground",
 							)}
 						>
 							{getStepIcon(step) || (
-								<span className="font-semibold">{idx + 1}</span>
+								<span className={cn(
+									"font-semibold",
+									(step === "voucher" && scannedData.voucherUuid) || 
+									(step === "visitor" && scannedData.visitorId)
+										? "text-white"
+										: ""
+								)}>{idx + 1}</span>
 							)}
 							<span className="hidden sm:inline">{STEP_LABELS[step]}</span>
 						</div>

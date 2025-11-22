@@ -135,7 +135,11 @@ const baseColumns: ColumnDef<Voucher>[] = [
 			const type = row.original.voucherType;
 			return (
 				<div className="font-medium">
-					{type === "percentage" ? `${value}%` : `RM ${value.toFixed(2)}`}
+					{type === "free_item"
+						? "-"
+						: type === "percentage"
+							? `${value}%`
+							: `RM ${value.toFixed(2)}`}
 				</div>
 			);
 		},
@@ -296,7 +300,7 @@ const baseColumns: ColumnDef<Voucher>[] = [
 		header: () => <p className="font-medium">Redemptions</p>,
 		cell: ({ row }) => {
 			const total = row.original.totalRedemptionAvailable;
-			const redeemed = row.original.redeemedCount;
+			const redeemed = row.original.redeemedCount || 0;
 			const remaining = total - redeemed;
 			return (
 				<div className="flex flex-col gap-1">

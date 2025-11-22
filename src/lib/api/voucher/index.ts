@@ -3,6 +3,7 @@ export {
 	createVoucher,
 	getVouchers,
 	getVoucher,
+	getVoucherByUuid,
 	updateVoucher,
 	deleteVoucher,
 } from "./endpoints";

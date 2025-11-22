@@ -140,6 +140,39 @@ export async function getVoucher(id: number | string): Promise<Voucher> {
 }
 
 /**
+ * Get a single voucher by UUID
+ */
+export async function getVoucherByUuid(uuid: string): Promise<Voucher> {
+	try {
+		// Get all vouchers and find by UUID
+		// Note: Backend doesn't have a direct endpoint for voucher by UUID,
+		// so we need to fetch and filter, or use the vouchers list endpoint
+		const response = await restClient.get<
+			BackendVoucher[] | { data: BackendVoucher[] }
+		>("v1/vouchers");
+
+		const vouchers = Array.isArray(response) ? response : response.data;
+
+		if (!vouchers || !Array.isArray(vouchers)) {
+			throw new Error("No vouchers found");
+		}
+
+		const voucher = vouchers.find((v) => v.voucher_uuid === uuid);
+
+		if (!voucher) {
+			throw new Error("Voucher not found");
+		}
+
+		return transformVoucher(voucher);
+	} catch (error: unknown) {
+		console.error("Error fetching voucher by UUID:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch voucher";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
  * Create a new voucher
  */
 export async function createVoucher(

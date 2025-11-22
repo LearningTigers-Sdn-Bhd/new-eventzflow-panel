@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 export const redeemVoucherSchema = z.object({
 	voucher_uuid: z.string().min(1, "Voucher UUID is required"),
-	gross_amount: z.number().positive("Gross amount must be positive"),
+	net_amount: z.number().nonnegative("Net amount must be zero or positive"),
 	user_id: z.number().optional(),
 	visitor_id: z.string().optional(),
 });

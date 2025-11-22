@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, XCircle, RotateCcw } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { RedemptionResult } from "./types";
@@ -15,6 +15,7 @@ export function RedemptionResultCard({
 	onReset,
 }: RedemptionResultProps) {
 	const isSuccess = result.success;
+	const isFreeItem = result.voucherType === "free_item";
 
 	return (
 		<Card className="overflow-hidden rounded-lg border-primary/20 bg-accent p-6 shadow-sm">
@@ -28,7 +29,11 @@ export function RedemptionResultCard({
 					}`}
 				>
 					{isSuccess ? (
-						<CheckCircle2 className="h-16 w-16 text-green-500" />
+						isFreeItem ? (
+							<PartyPopper className="h-16 w-16 text-green-500" />
+						) : (
+							<CheckCircle2 className="h-16 w-16 text-green-500" />
+						)
 					) : (
 						<XCircle className="h-16 w-16 text-red-500" />
 					)}
@@ -41,26 +46,34 @@ export function RedemptionResultCard({
 							isSuccess ? "text-green-600" : "text-red-600"
 						}`}
 					>
-						{isSuccess ? "Redemption Successful!" : "Redemption Failed"}
+						{isSuccess 
+							? isFreeItem 
+								? "Free Item Redeemed!" 
+								: "Redemption Successful!"
+							: "Redemption Failed"}
 					</h3>
-					<p className="text-muted-foreground text-sm">{result.message}</p>
+					<p className="text-muted-foreground text-sm">
+						{isFreeItem && isSuccess 
+							? "The free item voucher has been successfully redeemed"
+							: result.message}
+					</p>
 				</div>
 
-				{/* Details */}
-				{isSuccess && result.netAmount !== undefined && (
+				{/* Details - Only show for non-free items */}
+				{isSuccess && !isFreeItem && result.netAmount !== undefined && (
 					<div className="space-y-3 rounded-lg border bg-white p-4">
 						<div className="flex items-center justify-between">
 							<span className="text-muted-foreground text-sm">
 								Discount Applied:
 							</span>
 							<span className="font-semibold text-green-600">
-								${result.discountApplied?.toFixed(2)}
+								RM {result.discountApplied?.toFixed(2) || "0.00"}
 							</span>
 						</div>
 						<div className="flex items-center justify-between border-t pt-3">
 							<span className="font-medium">Net Amount:</span>
 							<span className="font-bold text-lg">
-								${result.netAmount.toFixed(2)}
+								RM {result.netAmount.toFixed(2)}
 							</span>
 						</div>
 						{result.voucherType && (
@@ -71,6 +84,17 @@ export function RedemptionResultCard({
 								</span>
 							</div>
 						)}
+					</div>
+				)}
+
+				{/* Marketing Quote */}
+				{isSuccess && (
+					<div className="rounded-lg bg-muted/50 px-4 py-3 border border-muted">
+						<p className="text-muted-foreground text-sm italic">
+							{isFreeItem 
+								? "\"Every great experience starts with a special moment. Thank you for being here!\"" 
+								: "\"Great savings make great memories. Enjoy your visit!\""}
+						</p>
 					</div>
 				)}
 

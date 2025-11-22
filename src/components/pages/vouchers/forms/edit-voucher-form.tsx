@@ -172,12 +172,15 @@ export default function EditVoucherForm({
 			newErrors.voucherType = "Please select a voucher type";
 		}
 
-		if (!voucherValue || Number(voucherValue) <= 0) {
-			newErrors.voucherValue = "Please enter a valid voucher value";
-		}
+		// Skip voucher value validation for free_item type
+		if (voucherType !== "free_item") {
+			if (!voucherValue || Number(voucherValue) <= 0) {
+				newErrors.voucherValue = "Please enter a valid voucher value";
+			}
 
-		if (voucherType === "percentage" && Number(voucherValue) > 100) {
-			newErrors.voucherValue = "Percentage cannot exceed 100";
+			if (voucherType === "percentage" && Number(voucherValue) > 100) {
+				newErrors.voucherValue = "Percentage cannot exceed 100";
+			}
 		}
 
 		if (!startDate) {
@@ -224,7 +227,7 @@ export default function EditVoucherForm({
 			total_redemption_available: Number(globalLimit),
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
-			voucher_value: Number(voucherValue),
+			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
 			voucher_category: voucherCategory.trim() || undefined,
 			image: image || undefined,
 		});
@@ -384,7 +387,7 @@ export default function EditVoucherForm({
 								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<div className={`grid grid-cols-1 gap-4 ${voucherType === "free_item" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
 								{/* Voucher Type */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherTypeField}>
@@ -398,6 +401,10 @@ export default function EditVoucherForm({
 										value={voucherType}
 										onValueChange={(value: VoucherType) => {
 											setVoucherType(value);
+											// Clear voucher value when switching to free_item
+											if (value === "free_item") {
+												setVoucherValue("0");
+											}
 											if (errors.voucherType) {
 												setErrors((prev) => {
 													const newErrors = { ...prev };
@@ -422,45 +429,45 @@ export default function EditVoucherForm({
 									<FieldDescription>Choose the type of voucher</FieldDescription>
 								</Field>
 
-								{/* Voucher Value */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={voucherValueField}>
-										Voucher Value *
-									</FieldLabel>
-									{errors.voucherValue && (
-										<FieldError>{errors.voucherValue}</FieldError>
-									)}
-									<Input
-										id={voucherValueField}
-										type="number"
-										min="0"
-										step="0.01"
-										value={voucherValue}
-										onChange={(e) => {
-											setVoucherValue(e.target.value);
-											if (errors.voucherValue) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.voucherValue;
-													return newErrors;
-												});
+								{/* Voucher Value - Hidden for free_item */}
+								{voucherType !== "free_item" && (
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={voucherValueField}>
+											Voucher Value *
+										</FieldLabel>
+										{errors.voucherValue && (
+											<FieldError>{errors.voucherValue}</FieldError>
+										)}
+										<Input
+											id={voucherValueField}
+											type="number"
+											min="0"
+											step="0.01"
+											value={voucherValue}
+											onChange={(e) => {
+												setVoucherValue(e.target.value);
+												if (errors.voucherValue) {
+													setErrors((prev) => {
+														const newErrors = { ...prev };
+														delete newErrors.voucherValue;
+														return newErrors;
+													});
+												}
+											}}
+											placeholder={
+												voucherType === "percentage"
+													? "e.g., 10, 20, 50"
+													: "e.g., 10.00, 50.00"
 											}
-										}}
-										placeholder={
-											voucherType === "percentage"
-												? "e.g., 10, 20, 50"
-												: "e.g., 10.00, 50.00"
-										}
-										disabled={updateMutation.isPending}
-									/>
-									<FieldDescription>
-										{voucherType === "percentage"
-											? "Enter percentage (1-100)"
-											: voucherType === "fixed_amount"
-												? "Enter amount in RM"
-												: "Enter value (e.g., 1 for 1 free item)"}
-									</FieldDescription>
-								</Field>
+											disabled={updateMutation.isPending}
+										/>
+										<FieldDescription>
+											{voucherType === "percentage"
+												? "Enter percentage (1-100)"
+												: "Enter amount in RM"}
+										</FieldDescription>
+									</Field>
+								)}
 
 								{/* Voucher Code */}
 								<Field orientation="vertical">

@@ -31,7 +31,7 @@ export default function VoucherRedemptionContent() {
 			config: {
 				title: "Redeem Voucher",
 				description: "Scan voucher and visitor QR codes to process redemption",
-				size: "2xl",
+				size: "3xl",
 				showCloseButton: true,
 			},
 		});

@@ -136,7 +136,7 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Gross</p>
+					<p className="font-medium">Original Price</p>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -175,7 +175,7 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Net</p>
+					<p className="font-medium">Price after Discount</p>
 					<Button
 						variant="ghost"
 						size="icon"

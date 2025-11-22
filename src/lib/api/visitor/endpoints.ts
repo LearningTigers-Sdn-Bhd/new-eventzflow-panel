@@ -25,6 +25,25 @@ export async function getVisitor(
 }
 
 /**
+ * Get a visitor by their public_id (UUID from QR code)
+ * The backend supports finding by public_id in the visitors#show endpoint
+ */
+export async function getVisitorByPublicId(
+	eventId: number,
+	publicId: string,
+): Promise<Visitor> {
+	try {
+		// Backend controller handles public_id lookup in set_visitor method
+		return await restClient.get<Visitor>(`v1/events/${eventId}/visitors/${publicId}`);
+	} catch (error: unknown) {
+		console.error("Error fetching visitor by public_id:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch visitor";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
  * Create a new visitor (webhook endpoint)
  */
 export async function createVisitor(

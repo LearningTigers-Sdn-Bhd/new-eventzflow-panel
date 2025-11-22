@@ -30,7 +30,8 @@ export const ERROR_MESSAGES = {
 };
 
 export const STEP_LABELS = {
-	voucher: "Scan Voucher QR",
-	visitor: "Scan Visitor QR",
+	voucher: "Scan Voucher",
+	visitor: "Scan Visitor",
+	review: "Review Details",
 	amount: "Enter Amount",
 };

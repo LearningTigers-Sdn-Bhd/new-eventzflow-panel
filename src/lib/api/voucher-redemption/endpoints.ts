@@ -59,7 +59,7 @@ export async function redeemVoucher(
 			{
 				voucher_redemption: {
 					voucher_uuid: validated.voucher_uuid,
-					gross_amount: validated.gross_amount,
+					net_amount: validated.net_amount,
 					...(validated.user_id && { user_id: validated.user_id }),
 					...(validated.visitor_id && { visitor_id: validated.visitor_id }),
 				},
