@@ -3,16 +3,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
+	Building2,
 	ChartBar,
 	Cog,
+	Logs,
 	MapPin,
 	MoreHorizontal,
 	RotateCcw,
 	ScanQrCode,
+	Ticket,
 	Trash2,
-	Users,
-	Building2,
+	TrendingUp,
 	UserCheck,
+	Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -47,13 +50,21 @@ interface EventActionsMenuProps {
 	deletedAt?: string | null;
 }
 
+type MenuContext = {
+	isTicketEvent: boolean;
+	isNonTicketEvent: boolean;
+	isVendorUser: boolean;
+	permissions: ReturnType<typeof useEventPermissions>;
+};
+
 type MenuItem = {
 	id: string;
 	name: string;
 	icon: React.ComponentType<{ className?: string }>;
 	route: string;
 	className: string;
-	showCondition?: "always" | "ticket" | "non-ticket" | "permission-based";
+	featureKey: string;
+	shouldDisplay?: (context: MenuContext) => boolean;
 };
 
 type CrudActionItem = {
@@ -82,9 +93,19 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 
 	// Get event permissions for the current user
 	const permissions = useEventPermissions(eventId.toString(), currentEvent);
+	const isVendor = user?.role === "vendor";
 
 	// Filter menu items based on event type and permissions
 	const routerItems = useMemo(() => {
+		const isTicketEvent = currentEvent?.use_ticket !== false;
+		const isNonTicketEvent = !isTicketEvent;
+		const menuContext: MenuContext = {
+			isTicketEvent,
+			isNonTicketEvent,
+			isVendorUser: isVendor,
+			permissions,
+		};
+
 		const allRouterItems: MenuItem[] = [
 			{
 				id: `view-location-id${eventId}`,
@@ -92,7 +113,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: MapPin,
 				route: `/event/${eventId}/location`,
 				className: "",
-				showCondition: "always",
+				featureKey: "location",
 			},
 			{
 				id: `manage-tickets-id${eventId}`,
@@ -100,7 +121,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: HiTicket,
 				route: `/event/${eventId}/tickets`,
 				className: "",
-				showCondition: "ticket",
+				featureKey: "tickets",
+				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
 			{
 				id: `pending-tickets-id${eventId}`,
@@ -108,7 +130,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: TbClockDollar,
 				route: `/event/${eventId}/pending-tickets`,
 				className: "",
-				showCondition: "ticket",
+				featureKey: "pending-tickets",
+				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
 			{
 				id: `scanned-logs-id${eventId}`,
@@ -116,7 +139,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: ScanQrCode,
 				route: `/event/${eventId}/scanned-logs`,
 				className: "",
-				showCondition: "ticket",
+				featureKey: "scanned-logs",
+				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
 			{
 				id: `visitors-id${eventId}`,
@@ -124,7 +148,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: UserCheck,
 				route: `/event/${eventId}/visitors`,
 				className: "",
-				showCondition: "non-ticket",
+				featureKey: "visitors",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVisitorsTab),
 			},
 			{
 				id: `vendors-id${eventId}`,
@@ -132,7 +157,36 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: Building2,
 				route: `/event/${eventId}/vendors`,
 				className: "",
-				showCondition: "permission-based",
+				featureKey: "vendors",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVendorsTab),
+			},
+			{
+				id: `vouchers-id${eventId}`,
+				name: "Vouchers",
+				icon: Ticket,
+				route: `/event/${eventId}/vouchers`,
+				className: "",
+				featureKey: "vouchers",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVendorsTab),
+			},
+			{
+				id: `voucher-redemption-id${eventId}`,
+				name: "Scan Voucher",
+				icon: ScanQrCode,
+				route: `/event/${eventId}/voucher-redemption`,
+				className: "",
+				featureKey: "voucher-redemption",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.isEventVendor),
+			},
+			{
+				id: `voucher-analytics-id${eventId}`,
+				name: "Voucher Analytics",
+				icon: ChartBar,
+				route: `/event/${eventId}/voucher-analytics`,
+				className: "",
+				featureKey: "voucher-analytics",
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.isEventVendor || permissions.canManageEventVendors),
 			},
 			{
 				id: `event-staff-id${eventId}`,
@@ -140,7 +194,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: Users,
 				route: `/event/${eventId}/event-staff`,
 				className: "",
-				showCondition: "permission-based",
+				featureKey: "event-staff",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.canManageEventStaff),
 			},
 			{
 				id: `visitor-stamps-id${eventId}`,
@@ -148,7 +203,9 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: ScanQrCode,
 				route: `/event/${eventId}/visitor-stamps`,
 				className: "",
-				showCondition: "non-ticket",
+				featureKey: "visitor-stamps",
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.isEventVendor || permissions.canViewStampScannerTab),
 			},
 			{
 				id: `analytics-id${eventId}`,
@@ -156,47 +213,50 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				icon: ChartBar,
 				route: `/event/${eventId}/analytics`,
 				className: "",
-				showCondition: "always",
+				featureKey: "analytics",
+				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
-			// {
-			// 	id: `export-logs-id${eventId}`,
-			// 	name: "Export Logs",
-			// 	icon: Logs,
-			// 	route: `/event/${eventId}/export-logs`,
-			// 	className: "",
-			// 	showCondition: "always",
-			// },
+			{
+				id: `mall-live-feed-id${eventId}`,
+				name: "Mall Live Feed",
+				icon: TrendingUp,
+				route: `/event/${eventId}/mall-live-feed`,
+				className: "",
+				featureKey: "mall-live-feed",
+				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
+					Boolean(isNonTicketEvent && !permissions.isEventVendor),
+			},
+			{
+				id: `export-logs-id${eventId}`,
+				name: "Export Logs",
+				icon: Logs,
+				route: `/event/${eventId}/export-logs`,
+				className: "",
+				featureKey: "export-logs",
+				shouldDisplay: ({ permissions }) => Boolean(!permissions.isEventVendor),
+			},
 		];
 
-		return allRouterItems.filter((item) => {
-			// Always show these items
-			if (item.showCondition === "always") {
-				return true;
-			}
+		const filteredItems = allRouterItems.filter((item) =>
+			item.shouldDisplay ? item.shouldDisplay(menuContext) : true,
+		);
 
-			// Ticket-related items - only for ticket events
-			if (item.showCondition === "ticket") {
-				return currentEvent?.use_ticket !== false;
-			}
+		if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+			const vendorVisibleFeatures = new Set([
+				"vendors",
+				"vouchers",
+				"voucher-redemption",
+				"voucher-analytics",
+				"visitor-stamps",
+			]);
 
-			// Non-ticket items - only for non-ticket events
-			if (item.showCondition === "non-ticket") {
-				return currentEvent?.use_ticket === false;
-			}
+			return filteredItems.filter((item) =>
+				vendorVisibleFeatures.has(item.featureKey),
+			);
+		}
 
-			// Permission-based items
-			if (item.showCondition === "permission-based") {
-				if (item.id.includes("event-staff")) {
-					return permissions.canManageEventStaff;
-				}
-				if (item.id.includes("vendors")) {
-					return permissions.canViewVendorsTab;
-				}
-			}
-
-			return true;
-		});
-	}, [currentEvent?.use_ticket, permissions, eventId]);
+		return filteredItems;
+	}, [currentEvent?.use_ticket, permissions, eventId, isVendor]);
 
 	const archiveEventMutation = useMutation({
 		mutationFn: archiveEvent,
@@ -341,9 +401,6 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		});
 	};
 
-	// Check if user is a vendor
-	const isVendor = user?.role === "vendor";
-
 	// For vendors, redirect to vendors tab instead of opening settings
 	const handleMainButtonClick = () => {
 		if (isVendor) {
@@ -363,63 +420,65 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				<Cog className="h-4 w-4" />
 				{isVendor ? "Show" : "Manage"}
 			</Button>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button className="rounded-none px-2" variant="outline">
-						<MoreHorizontal className="h-4 w-4" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align="center"
-					side="left"
-					className="rounded-none"
-				>
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					{routerItems.map((item) => {
-						const IconComponent = item.icon;
-						return (
-							<DropdownMenuItem
-								key={item.id}
-								className={cn(item.className, "rounded-none")}
-								onClick={() => {
-									_router.push(
-										item.route as Parameters<typeof _router.push>[0],
-									);
-								}}
-							>
-								<IconComponent className="mr-2 h-4 w-4" />
-								{item.name}
-							</DropdownMenuItem>
-						);
-					})}
-					{(() => {
-						const filteredActions = crudActions.filter(
-							(action) =>
-								action.roleAllowed.includes(user?.role || "member") &&
-								action.showInMenu,
-						);
-						return filteredActions.length > 0 ? (
-							<>
-								<DropdownMenuSeparator />
-								{filteredActions.map((action) => {
-									const IconComponent = action.icon;
-									return (
-										<DropdownMenuItem
-											key={action.id}
-											className={cn(action.className, "rounded-none")}
-											onClick={action.onClick}
-										>
-											<IconComponent className="mr-2 h-4 w-4" />
-											{action.name}
-										</DropdownMenuItem>
-									);
-								})}
-							</>
-						) : null;
-					})()}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			{!isVendor && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button className="rounded-none px-2" variant="outline">
+							<MoreHorizontal className="h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="center"
+						side="left"
+						className="rounded-none"
+					>
+						<DropdownMenuLabel>Actions</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						{routerItems.map((item) => {
+							const IconComponent = item.icon;
+							return (
+								<DropdownMenuItem
+									key={item.id}
+									className={cn(item.className, "rounded-none")}
+									onClick={() => {
+										_router.push(
+											item.route as Parameters<typeof _router.push>[0],
+										);
+									}}
+								>
+									<IconComponent className="mr-2 h-4 w-4" />
+									{item.name}
+								</DropdownMenuItem>
+							);
+						})}
+						{(() => {
+							const filteredActions = crudActions.filter(
+								(action) =>
+									action.roleAllowed.includes(user?.role || "member") &&
+									action.showInMenu,
+							);
+							return filteredActions.length > 0 ? (
+								<>
+									<DropdownMenuSeparator />
+									{filteredActions.map((action) => {
+										const IconComponent = action.icon;
+										return (
+											<DropdownMenuItem
+												key={action.id}
+												className={cn(action.className, "rounded-none")}
+												onClick={action.onClick}
+											>
+												<IconComponent className="mr-2 h-4 w-4" />
+												{action.name}
+											</DropdownMenuItem>
+										);
+									})}
+								</>
+							) : null;
+						})()}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
 		</ButtonGroup>
 	);
 }
