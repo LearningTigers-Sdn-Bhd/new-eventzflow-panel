@@ -40,25 +40,29 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 	});
 
 	const formatCurrency = (amount?: number) => {
-		if (!amount) return "$0.00";
-		return new Intl.NumberFormat("en-US", {
+		if (!amount) return "RM0.00";
+		return new Intl.NumberFormat("ms-MY", {
 			style: "currency",
-			currency: "USD",
+			currency: "MYR",
 		}).format(amount);
 	};
 
-	// Prepare pie chart data with colors
-	const COLORS = [
-		"hsl(var(--chart-1))",
-		"hsl(var(--chart-2))",
-		"hsl(var(--chart-3))",
-		"hsl(var(--chart-4))",
-		"hsl(var(--chart-5))",
-	];
+	// Generate dynamic colors for any number of locations using HSL color space
+	// Ensures visually distinct colors by distributing hues across the color wheel
+	const generateColor = (index: number, total: number): string => {
+		// Distribute hues evenly across the 360° color wheel
+		const hue = (index * 360) / Math.max(total, 1);
+		
+		// Vary saturation and lightness slightly for better distinction
+		const saturation = 70 + (index % 3) * 5; // 70-80%
+		const lightness = 55 + (index % 2) * 5; // 55-60%
+		
+		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+	};
 
 	const locationTrafficData = useMemo(() => {
 		// If no data, show placeholder data
-		if (!data?.location_traffic || data.location_traffic.length === 0) {
+		if (!data?.popular_halls || data.popular_halls.length === 0) {
 			return [
 				{
 					name: "No Data",
@@ -69,21 +73,16 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 			];
 		}
 
-		const totalTraffic = data.location_traffic.reduce(
-			(sum, loc) => sum + loc.count,
-			0,
-		);
+		const total = data.popular_halls.length;
 
-		return data.location_traffic.map((location, index) => ({
-			name: location.name,
-			value: location.count,
-			percentage:
-				totalTraffic > 0
-					? ((location.count / totalTraffic) * 100).toFixed(1)
-					: "0.0",
-			fill: COLORS[index % COLORS.length],
+		// Backend already provides percentage, we just need to format it
+		return data.popular_halls.map((hall, index) => ({
+			name: hall.name,
+			value: hall.percentage, // Use percentage as value for the pie chart
+			percentage: hall.percentage.toFixed(1),
+			fill: generateColor(index, total),
 		}));
-	}, [data?.location_traffic]);
+	}, [data?.popular_halls]);
 
 	if (Number.isNaN(eventId)) {
 		return (
@@ -177,98 +176,89 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<MapPin className="size-5" />
-							Hall/Section Traffic Distribution
+							Most Popular Location
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (
 							<Skeleton className="h-80 w-full" />
 						) : (
-							<div className="space-y-4">
-								<ResponsiveContainer width="100%" height={300}>
-									<PieChart>
-										<Pie
-											data={locationTrafficData}
-											cx="50%"
-											cy="50%"
-											labelLine={false}
-											label={
-												locationTrafficData[0]?.name === "No Data"
-													? false
-													: ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }) => {
-															const RADIAN = Math.PI / 180;
-															const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-															const x = cx + radius * Math.cos(-midAngle * RADIAN);
-															const y = cy + radius * Math.sin(-midAngle * RADIAN);
+							<div className="space-y-6">
+								{/* Pie Chart - Clean without labels */}
+								<div className="flex items-center justify-center">
+									<ResponsiveContainer width="100%" height={280}>
+										<PieChart>
+											<Pie
+												data={locationTrafficData}
+												cx="50%"
+												cy="50%"
+												labelLine={false}
+												label={false}
+												outerRadius={100}
+												innerRadius={60}
+												fill="#8884d8"
+												dataKey="value"
+												paddingAngle={3}
+											>
+												{locationTrafficData.map((entry, index) => (
+													<Cell key={`cell-${index}`} fill={entry.fill} />
+												))}
+											</Pie>
+											{locationTrafficData[0]?.name !== "No Data" && (
+												<Tooltip
+													formatter={(value: number, name: string) => [
+														`${value.toFixed(1)}%`,
+														name,
+													]}
+												/>
+											)}
+										</PieChart>
+									</ResponsiveContainer>
+								</div>
 
-															return (
-																<text
-																	x={x}
-																	y={y}
-																	fill="white"
-																	textAnchor={x > cx ? "start" : "end"}
-																	dominantBaseline="central"
-																	className="font-bold text-lg"
-																>
-																	{`${percentage}%`}
-																</text>
-															);
-													  }
-											}
-											outerRadius={120}
-											innerRadius={70}
-											fill="#8884d8"
-											dataKey="value"
-											paddingAngle={2}
-										>
-											{locationTrafficData.map((entry, index) => (
-												<Cell key={`cell-${index}`} fill={entry.fill} />
-											))}
-										</Pie>
-										{locationTrafficData[0]?.name !== "No Data" && (
-											<Tooltip
-												formatter={(value: number) => [
-													`${value.toLocaleString()} visits`,
-													"Traffic",
-												]}
-											/>
-										)}
-									</PieChart>
-								</ResponsiveContainer>
+								{/* Legend Below Chart */}
 								{locationTrafficData[0]?.name === "No Data" ? (
-									<div className="flex flex-col items-center justify-center space-y-2 border-t pt-4">
+									<div className="flex flex-col items-center justify-center space-y-2 pt-4">
 										<p className="text-center text-sm text-muted-foreground">
 											No location traffic data available yet
 										</p>
 										<p className="text-center text-xs text-muted-foreground">
-											Data will appear once visitors start checking in at different
-											locations
+											Data will appear once vendors are assigned to locations and visitors get stamped
 										</p>
 									</div>
 								) : (
-									<div className="space-y-2 border-t pt-4">
-										{locationTrafficData.map((location, index) => (
-											<div
-												key={index}
-												className="flex items-center justify-between text-sm"
-											>
-												<div className="flex items-center gap-2">
+									<div className="space-y-4">
+										{/* Legend - Capsule Design with Percentages */}
+										<div className="flex flex-wrap items-center justify-center gap-3">
+											{locationTrafficData.map((location, index) => (
+												<div
+													key={index}
+													className="flex items-center gap-2 rounded-full px-3 py-1.5"
+													style={{ 
+														backgroundColor: `${location.fill}15`,
+														border: `1.5px solid ${location.fill}`
+													}}
+												>
 													<div
-														className="size-3 rounded-full"
+														className="size-2.5 rounded-full"
 														style={{ backgroundColor: location.fill }}
 													/>
-													<span className="font-medium">{location.name}</span>
-												</div>
-												<div className="flex items-center gap-3">
-													<span className="text-muted-foreground">
-														{location.value.toLocaleString()} visits
-													</span>
-													<span className="font-semibold">
-														{location.percentage}%
+													<span className="text-sm font-medium whitespace-nowrap">
+														{location.name} ({location.percentage}%)
 													</span>
 												</div>
-											</div>
-										))}
+											))}
+										</div>
+
+										{/* Leading Location Message */}
+										{locationTrafficData.length > 0 && (
+											<p className="text-center text-sm text-muted-foreground">
+												<span className="font-semibold text-foreground">
+													{locationTrafficData[0].name}
+												</span>{" "}
+												leads current traffic.
+											</p>
+										)}
 									</div>
 								)}
 							</div>

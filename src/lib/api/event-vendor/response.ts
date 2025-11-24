@@ -12,6 +12,7 @@ export interface EventVendor {
 		id: number;
 		email: string;
 		full_name: string;
+		phone?: string;
 	};
 	created_at: string;
 	updated_at: string;

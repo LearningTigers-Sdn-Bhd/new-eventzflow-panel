@@ -8,8 +8,10 @@ import {
 	type GetLocationsRequest,
 	getLocationByIdSchema,
 	getLocationsSchema,
-	type UpdateLocationRequest,
-	updateLocationSchema,
+	type UpdateLocationInfoRequest,
+	type UpdateLocationMembersRequest,
+	updateLocationInfoSchema,
+	updateLocationMembersSchema,
 	type AssignMemberToLocationRequest,
 	assignMemberToLocationSchema,
 } from "./request";
@@ -117,13 +119,14 @@ export async function createLocation(
 }
 
 /**
- * Update an existing location
+ * Update location info (name, floor, limits, details)
+ * Does NOT update members - use updateLocationMembers for that
  */
-export async function updateLocation(
-	data: UpdateLocationRequest,
+export async function updateLocationInfo(
+	data: UpdateLocationInfoRequest,
 ): Promise<UpdateLocationResponse> {
 	try {
-		const validated = updateLocationSchema.parse(data);
+		const validated = updateLocationInfoSchema.parse(data);
 
 		const location = await restClient.put<BackendLocation>(
 			`v1/events/${validated.eventId}/event_locations/${validated.locationId}`,
@@ -133,15 +136,45 @@ export async function updateLocation(
 					floor: validated.floor,
 					scan_limit: validated.isUnlimited ? 1 : validated.scanLimit,
 					is_unlimited: validated.isUnlimited ?? false,
-					member_ids: validated.memberIds || [],
+					location_details: validated.locationDetails || {},
+					// Explicitly NOT including member_ids
+				},
+			},
+		);
+		return transformLocation(location);
+	} catch (error: any) {
+		console.error("Error updating location info:", error);
+		throw new Error(error.message || "Failed to update location info");
+	}
+}
+
+/**
+ * Update location members (staff and vendors)
+ * Used by assign members/vendors modals
+ */
+export async function updateLocationMembers(
+	data: UpdateLocationMembersRequest,
+): Promise<UpdateLocationResponse> {
+	try {
+		const validated = updateLocationMembersSchema.parse(data);
+
+		const location = await restClient.put<BackendLocation>(
+			`v1/events/${validated.eventId}/event_locations/${validated.locationId}`,
+			{
+				event_location: {
+					name: validated.name,
+					floor: validated.floor,
+					scan_limit: validated.isUnlimited ? 1 : validated.scanLimit,
+					is_unlimited: validated.isUnlimited ?? false,
+					member_ids: validated.memberIds, // Explicitly updating members
 					location_details: validated.locationDetails || {},
 				},
 			},
 		);
 		return transformLocation(location);
 	} catch (error: any) {
-		console.error("Error updating location:", error);
-		throw new Error(error.message || "Failed to update location");
+		console.error("Error updating location members:", error);
+		throw new Error(error.message || "Failed to update location members");
 	}
 }
 

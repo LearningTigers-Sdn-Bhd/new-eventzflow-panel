@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventStaff } from "@/lib/api/event/event-staff";
-import { getLocations, updateLocation } from "@/lib/api/event/location";
+import { getLocations, updateLocationMembers } from "@/lib/api/event/location";
 import type { BaseLocation } from "../columns";
 
 interface AssignMembersDialogProps {
@@ -61,7 +61,7 @@ export default function AssignMembersDialog({
 	// Update location mutation
 	const updateLocationMutation = useMutation({
 		mutationFn: async (memberIds: string[]) => {
-			return await updateLocation({
+			return await updateLocationMembers({
 				eventId,
 				locationId: location.id,
 				name: location.name,

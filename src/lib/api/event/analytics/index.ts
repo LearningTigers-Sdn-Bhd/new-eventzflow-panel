@@ -20,8 +20,8 @@ export {
 export type {
 	AllEventAnalyticsResponse,
 	DateCountColumn,
-	LocationTraffic,
 	MallLiveFeedResponse,
+	PopularHall,
 	TopMerchant,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,

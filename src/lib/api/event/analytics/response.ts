@@ -49,9 +49,9 @@ export type TopMerchant = {
 	count: number;
 };
 
-export type LocationTraffic = {
+export type PopularHall = {
 	name: string;
-	count: number;
+	percentage: number;
 };
 
 export type MallLiveFeedResponse = {
@@ -61,5 +61,5 @@ export type MallLiveFeedResponse = {
 	voucher_redemptions: number;
 	redemption_rate: number;
 	top_merchants: TopMerchant[];
-	location_traffic: LocationTraffic[];
+	popular_halls: PopularHall[];
 };

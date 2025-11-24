@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { getSearchableContent } from "./columns";
 import { ScanModal } from "./scan-modal";
 import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
+import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -31,6 +32,7 @@ export function DataControl<TData>({
 }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 	const [scanModalOpen, setScanModalOpen] = useState(false);
+	const { isVendor } = useCurrentUserEventVendorId(Number(eventId));
 
 	// Custom search handler for multi-field search
 	const handleSearch = (searchTerm: string) => {
@@ -97,14 +99,16 @@ export function DataControl<TData>({
 								})}
 						</DropdownMenuContent>
 					</DropdownMenu>
-					<Button
-						onClick={() => setScanModalOpen(true)}
-						variant="default"
-						className="gap-2 rounded-none"
-					>
-						<QrCode className="h-4 w-4" />
-						Scan Visitor
-					</Button>
+					{isVendor && (
+						<Button
+							onClick={() => setScanModalOpen(true)}
+							variant="default"
+							className="gap-2 rounded-none"
+						>
+							<QrCode className="h-4 w-4" />
+							Scan Visitor
+						</Button>
+					)}
 				</div>
 			) : (
 				/* Mobile Control Panel */
@@ -118,14 +122,16 @@ export function DataControl<TData>({
 								onChange={(e) => handleSearch(e.target.value)}
 							/>
 						</div>
-						<Button
-							onClick={() => setScanModalOpen(true)}
-							variant="default"
-							className="gap-2 rounded-none"
-						>
-							<QrCode className="h-4 w-4" />
-							<span className="hidden sm:inline">Scan</span>
-						</Button>
+						{isVendor && (
+							<Button
+								onClick={() => setScanModalOpen(true)}
+								variant="default"
+								className="gap-2 rounded-none"
+							>
+								<QrCode className="h-4 w-4" />
+								<span className="hidden sm:inline">Scan</span>
+							</Button>
+						)}
 					</div>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						<Button

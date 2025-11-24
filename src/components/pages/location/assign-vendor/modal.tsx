@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventVendors } from "@/lib/api/event-vendor/endpoints";
-import { getLocations, updateLocation } from "@/lib/api/event/location";
+import { getLocations, updateLocationMembers } from "@/lib/api/event/location";
 import type { BaseLocation } from "../columns";
 
 interface AssignVendorDialogProps {
@@ -70,7 +70,7 @@ export default function AssignVendorDialog({
 			// Combine staff and vendor IDs
 			const allMemberIds = [...staffIds, ...vendorIds];
 			
-			return await updateLocation({
+			return await updateLocationMembers({
 				eventId,
 				locationId: location.id,
 				name: location.name,

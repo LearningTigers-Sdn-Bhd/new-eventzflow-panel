@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
-import { getLocationById, updateLocation } from "@/lib/api/event/location";
+import { getLocationById, updateLocationInfo } from "@/lib/api/event/location";
 import { cn } from "@/lib/utils";
 
 const formSchema = z
@@ -82,7 +82,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 				locationDetails.notes = values.notes;
 			}
 			
-			return await updateLocation({
+			return await updateLocationInfo({
 				eventId,
 				locationId,
 				name: values.name,

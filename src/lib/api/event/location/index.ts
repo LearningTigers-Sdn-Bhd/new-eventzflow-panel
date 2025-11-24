@@ -6,7 +6,8 @@ export {
 	deleteLocation,
 	getLocationById,
 	getLocations,
-	updateLocation,
+	updateLocationInfo,
+	updateLocationMembers,
 } from "./endpoints";
 export {
 	type CreateLocationRequest,
@@ -17,8 +18,10 @@ export {
 	type GetLocationsRequest,
 	getLocationByIdSchema,
 	getLocationsSchema,
-	type UpdateLocationRequest,
-	updateLocationSchema,
+	type UpdateLocationInfoRequest,
+	type UpdateLocationMembersRequest,
+	updateLocationInfoSchema,
+	updateLocationMembersSchema,
 } from "./request";
 // Response types
 export type {
