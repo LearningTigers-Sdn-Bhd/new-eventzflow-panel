@@ -43,7 +43,7 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 			component: LocationSettingsDialog,
 			config: {
 				title: "Location Settings",
-				size: "4xl", // Better for mobile - not too wide
+				size: "full", // Better for mobile - not too wide
 			},
 			props: { location },
 		});

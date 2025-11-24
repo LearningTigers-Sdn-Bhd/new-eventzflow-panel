@@ -123,7 +123,7 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 	return (
 		<section
 			id={sectionId}
-			className="w-full"
+			className="w-full px-8"
 			data-section="location-information"
 		>
 			<form
