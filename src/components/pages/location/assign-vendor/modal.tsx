@@ -11,69 +11,78 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
-import { getEventStaff } from "@/lib/api/event/event-staff";
+import { getEventVendors } from "@/lib/api/event-vendor/endpoints";
 import { getLocations, updateLocation } from "@/lib/api/event/location";
 import type { BaseLocation } from "../columns";
 
-interface AssignMembersDialogProps {
+interface AssignVendorDialogProps {
 	location: BaseLocation;
 	onClose?: () => void;
 }
 
-export default function AssignMembersDialog({
+export default function AssignVendorDialog({
 	location,
 	onClose,
-}: AssignMembersDialogProps) {
+}: AssignVendorDialogProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { closeDialog } = useDialog();
 	const queryClient = useQueryClient();
 
 	const [searchTerm, setSearchTerm] = useState("");
-	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+	const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
 
-	// Fetch event staff (users assigned to this event via event_assignments)
-	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({
-		queryKey: ["event", eventId, "staff"],
-		queryFn: () => getEventStaff({ eventId }),
+	// Fetch event vendors
+	const { data: eventVendors, isLoading: isLoadingVendors } = useQuery({
+		queryKey: ["event-vendors", eventId],
+		queryFn: () => getEventVendors(parseInt(eventId)),
 	});
 
-	// Fetch all locations to check which staff are already assigned
+	// Fetch all locations to check which vendors are already assigned
 	const { data: allLocations, isLoading: isLoadingLocations } = useQuery({
 		queryKey: ["event", eventId, "locations"],
 		queryFn: () => getLocations({ eventId }),
 	});
 
-	const isLoading = isLoadingStaff || isLoadingLocations;
+	const isLoading = isLoadingVendors || isLoadingLocations;
 
-	// Update selected members when location data is loaded
+	// Update selected vendors when location data is loaded
 	useEffect(() => {
 		if (allLocations) {
 			const currentLocation = allLocations.find(
 				(loc) => loc.id === location.id,
 			);
 			if (currentLocation) {
-				setSelectedMemberIds(currentLocation.assignedMembers.map((m) => m.id));
+				// Get IDs of vendors already assigned to this location
+				const assignedVendorIds = currentLocation.vendors?.map((v) => v.id) || [];
+				setSelectedVendorIds(assignedVendorIds);
 			}
 		}
 	}, [allLocations, location.id]);
 
 	// Update location mutation
 	const updateLocationMutation = useMutation({
-		mutationFn: async (memberIds: string[]) => {
+		mutationFn: async (vendorIds: string[]) => {
+			// Get existing staff member IDs (not vendors)
+			const currentLocation = allLocations?.find((loc) => loc.id === location.id);
+			const staffIds = currentLocation?.staffMembers?.map((m) => m.id) || [];
+			
+			// Combine staff and vendor IDs
+			const allMemberIds = [...staffIds, ...vendorIds];
+			
 			return await updateLocation({
 				eventId,
 				locationId: location.id,
 				name: location.name,
-				floor: location.floor || undefined,
+				floor: location.floor,
 				isUnlimited: location.isUnlimited ?? false,
 				scanLimit: location.scanLimit,
-				memberIds,
-				locationDetails: location.locationDetails, // Preserve location details
+				memberIds: allMemberIds,
+				locationDetails: location.locationDetails,
 			});
 		},
 		onSuccess: () => {
-			toast.success("Members assigned successfully");
+			toast.success("Vendors assigned successfully");
 			// Invalidate and refetch locations
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "locations"],
@@ -86,76 +95,72 @@ export default function AssignMembersDialog({
 			if (onClose) onClose();
 		},
 		onError: (error: Error) => {
-			toast.error(`Failed to assign members: ${error.message}`);
+			toast.error(`Failed to assign vendors: ${error.message}`);
 		},
 	});
 
-	const handleToggleMember = (memberId: string) => {
-		setSelectedMemberIds((prev) =>
-			prev.includes(memberId)
-				? prev.filter((id) => id !== memberId)
-				: [...prev, memberId],
+	const handleToggleVendor = (vendorId: string) => {
+		setSelectedVendorIds((prev) =>
+			prev.includes(vendorId)
+				? prev.filter((id) => id !== vendorId)
+				: [...prev, vendorId],
 		);
 	};
 
 	const handleSave = async () => {
 		// Ensure all IDs are strings
-		const memberIdsAsStrings = selectedMemberIds.map((id) => String(id));
-		await updateLocationMutation.mutateAsync(memberIdsAsStrings);
+		const vendorIdsAsStrings = selectedVendorIds.map((id) => String(id));
+		await updateLocationMutation.mutateAsync(vendorIdsAsStrings);
 	};
 
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading event staff..."
-				description="Please wait while we fetch the event staff members."
+				title="Loading vendors..."
+				description="Please wait while we fetch the event vendors."
 				height="h-64"
 			/>
 		);
 	}
 
-	if (!eventStaff || !allLocations) {
+	if (!eventVendors || !allLocations) {
 		return (
 			<ErrorState
-				title="Failed to load event staff"
-				description="Unable to fetch event staff. Please try again."
+				title="Failed to load vendors"
+				description="Unable to fetch event vendors. Please try again."
 				height="h-64"
 			/>
 		);
 	}
 
-	// Get all member IDs that are already assigned to OTHER locations
-	const assignedMemberIds = new Set<string>();
+	// Get all vendor IDs that are already assigned to OTHER locations
+	const assignedVendorIds = new Set<string>();
 	allLocations.forEach((loc) => {
 		// Skip the current location we're editing
 		if (loc.id !== location.id) {
-			loc.assignedMembers.forEach((member) => {
-				assignedMemberIds.add(member.id);
+			loc.vendors?.forEach((vendor) => {
+				assignedVendorIds.add(vendor.id);
 			});
 		}
 	});
 
-	// Filter out staff already assigned to other locations
-	const availableStaff = eventStaff.filter(
-		(member) => !assignedMemberIds.has(member.id),
+	// Filter out vendors already assigned to other locations
+	const availableVendors = eventVendors.filter(
+		(eventVendor) => !assignedVendorIds.has(eventVendor.vendor.id.toString()),
 	);
 
-	// Filter members by search term
-	const filteredMembers = availableStaff.filter(
-		(member) =>
-			member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			member.email.toLowerCase().includes(searchTerm.toLowerCase()),
+	// Filter vendors by search term
+	const filteredVendors = availableVendors.filter(
+		(eventVendor) =>
+			eventVendor.vendor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			eventVendor.vendor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			eventVendor.type.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
-	// Only show active members
-	const activeFilteredMembers = filteredMembers.filter(
-		(m) => m.status === "active",
-	);
-
-	// Sort: checked members first, then alphabetically by name
-	const activeMembers = activeFilteredMembers.sort((a, b) => {
-		const aSelected = selectedMemberIds.includes(a.id);
-		const bSelected = selectedMemberIds.includes(b.id);
+	// Sort: checked vendors first, then alphabetically by name
+	const sortedVendors = filteredVendors.sort((a, b) => {
+		const aSelected = selectedVendorIds.includes(a.vendor.id.toString());
+		const bSelected = selectedVendorIds.includes(b.vendor.id.toString());
 
 		// If selection status is different, selected comes first
 		if (aSelected !== bSelected) {
@@ -163,7 +168,7 @@ export default function AssignMembersDialog({
 		}
 
 		// If both have same selection status, sort alphabetically by name
-		return a.full_name.localeCompare(b.full_name);
+		return a.vendor.full_name.localeCompare(b.vendor.full_name);
 	});
 
 	return (
@@ -174,14 +179,14 @@ export default function AssignMembersDialog({
 					{location.locationDisplayName || location.name}
 				</h3>
 				<p className="text-muted-foreground text-xs">
-					{selectedMemberIds.length === 0 ? (
+					{selectedVendorIds.length === 0 ? (
 						<span className="text-amber-600">
-							No members selected (location will have no assigned staff)
+							No vendors selected
 						</span>
 					) : (
 						<>
-							{selectedMemberIds.length} member
-							{selectedMemberIds.length !== 1 ? "s" : ""} selected
+							{selectedVendorIds.length} vendor
+							{selectedVendorIds.length !== 1 ? "s" : ""} selected
 						</>
 					)}
 				</p>
@@ -191,7 +196,7 @@ export default function AssignMembersDialog({
 			<div className="relative">
 				<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
 				<Input
-					placeholder="Search members by name or email..."
+					placeholder="Search vendors by name, email, or type..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
 					className="pl-9"
@@ -208,32 +213,33 @@ export default function AssignMembersDialog({
 				)}
 			</div>
 
-			{/* Members list */}
+			{/* Vendors list */}
 			<ScrollArea className="h-[400px] rounded-md border">
 				<div className="space-y-1 p-2">
-					{activeMembers.length === 0 ? (
+					{sortedVendors.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-12 text-center">
 							<p className="text-muted-foreground text-sm">
 								{searchTerm
-									? "No staff members found matching your search"
-									: "No available event staff"}
+									? "No vendors found matching your search"
+									: "No available event vendors"}
 							</p>
 							{!searchTerm && (
 								<p className="mt-2 max-w-xs text-muted-foreground text-xs">
-									{assignedMemberIds.size > 0
-										? "All staff are already assigned to other locations. Each staff member can only be assigned to one location."
-										: "Assign staff to this event first from the Team page"}
+									{assignedVendorIds.size > 0
+										? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
+										: "Add vendors to this event first from the Vendors page"}
 								</p>
 							)}
 						</div>
 					) : (
-						activeMembers.map((member) => {
-							const isSelected = selectedMemberIds.includes(member.id);
+						sortedVendors.map((eventVendor) => {
+							const vendorId = eventVendor.vendor.id.toString();
+							const isSelected = selectedVendorIds.includes(vendorId);
 							return (
 								<button
-									key={member.id}
+									key={eventVendor.id}
 									type="button"
-									onClick={() => handleToggleMember(member.id)}
+									onClick={() => handleToggleVendor(vendorId)}
 									className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
 								>
 									<div
@@ -248,27 +254,21 @@ export default function AssignMembersDialog({
 									<div className="min-w-0 flex-1">
 										<div className="flex items-center gap-2">
 											<p className="truncate font-medium text-sm">
-												{member.full_name}
+												{eventVendor.vendor.full_name}
 											</p>
 											<Badge
 												variant="outline"
-												className={`text-xs ${
-													member.eventRole === "event_admin"
-														? "border-blue-500 bg-blue-50 text-blue-700"
-														: "border-gray-500 bg-gray-50 text-gray-700"
-												}`}
+												className="border-green-500 bg-green-50 text-green-700 text-xs"
 											>
-												{member.eventRole === "event_admin"
-													? "Admin"
-													: "Team Member"}
+												{eventVendor.type}
 											</Badge>
 										</div>
 										<p className="truncate text-muted-foreground text-xs">
-											{member.email}
+											{eventVendor.vendor.email}
 										</p>
-										{member.phone && (
+										{eventVendor.vendor.phone && (
 											<p className="truncate text-muted-foreground text-xs">
-												{member.phone}
+												{eventVendor.vendor.phone}
 											</p>
 										)}
 									</div>

@@ -25,6 +25,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
@@ -46,6 +47,8 @@ export function DataTable<TData, TValue>({
 	const _isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const { openDialog } = useDialog();
+	const { user } = useAuth();
+	const isVendor = user?.role === "vendor";
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -145,13 +148,15 @@ export function DataTable<TData, TValue>({
 										>
 											<EmptyState
 												title="No locations found"
-												description="Create your first location to get started"
+												description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
 												icon={<Calendar />}
 												height="h-auto"
 												action={
-													<Button onClick={openLocationCreate}>
-														Create Location
-													</Button>
+													!isVendor ? (
+														<Button onClick={openLocationCreate}>
+															Create Location
+														</Button>
+													) : undefined
 												}
 											/>
 										</TableCell>
@@ -172,11 +177,13 @@ export function DataTable<TData, TValue>({
 					) : (
 						<EmptyState
 							title="No locations found"
-							description="Create your first location to get started"
+							description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
 							icon={<Calendar />}
 							height="h-auto"
 							action={
-								<Button onClick={openLocationCreate}>Create Location</Button>
+								!isVendor ? (
+									<Button onClick={openLocationCreate}>Create Location</Button>
+								) : undefined
 							}
 						/>
 					)
@@ -194,11 +201,13 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No locations found"
-								description="Create your first location to get started"
+								description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
 								icon={<Calendar />}
 								height="h-auto"
 								action={
-									<Button onClick={openLocationCreate}>Create Location</Button>
+									!isVendor ? (
+										<Button onClick={openLocationCreate}>Create Location</Button>
+									) : undefined
 								}
 							/>
 						)}

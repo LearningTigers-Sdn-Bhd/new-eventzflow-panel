@@ -7,6 +7,7 @@ import { columns } from "@/components/pages/location/columns";
 import { DataTable } from "@/components/pages/location/data-table";
 import { LocationPageButton } from "@/components/pages/location/page-action/button";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getLocations } from "@/lib/api/event/location";
 
@@ -16,8 +17,11 @@ export default function LocationPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const { user } = useAuth();
 
-	useSetEventActions(<LocationPageButton />);
+	// Only show create button if user is not a vendor
+	const isVendor = user?.role === "vendor";
+	useSetEventActions(isVendor ? null : <LocationPageButton />);
 
 	const {
 		data: locations,

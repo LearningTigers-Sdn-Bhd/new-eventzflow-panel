@@ -10,6 +10,7 @@ export function LocationPageButton() {
 			component: InfoForm,
 			config: {
 				title: "Create Location",
+				size: "4xl", // Better for mobile - not too wide
 			},
 		});
 	};

@@ -206,10 +206,10 @@ export default function EventDetailLayout({
 
 	// Filter tabs based on permissions and event type
 	const visibleTabs = useMemo(() => {
-		return tabItems.filter((tab) => {
-			// For vendors, only show these 5 specific tabs
+		const filtered = tabItems.filter((tab) => {
+			// For vendors, only show these 6 specific tabs (including location)
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
-				return ["vendors", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"].includes(tab.id);
+				return ["location", "vendors", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"].includes(tab.id);
 			}
 
 			// Always show these tabs (for non-vendors)
@@ -274,6 +274,18 @@ export default function EventDetailLayout({
 
 			return true;
 		});
+		
+		// For vendors, reorder tabs to put location after vendors
+		if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+			const vendorTabOrder = ["vendors", "location", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"];
+			return filtered.sort((a, b) => {
+				const indexA = vendorTabOrder.indexOf(a.id);
+				const indexB = vendorTabOrder.indexOf(b.id);
+				return indexA - indexB;
+			});
+		}
+		
+		return filtered;
 	}, [currentEvent?.use_ticket, permissions]);
 
 	// Group ticket-related tabs for dropdown

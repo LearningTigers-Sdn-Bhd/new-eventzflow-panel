@@ -72,7 +72,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						columns={["name", "id"]}
 						placeholder="Search locations..."
 					/>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						<Button
 							variant="outline"
 							onClick={() =>
@@ -117,20 +117,39 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("assignedMembersCount")
+									.getColumn("staffCount")
 									?.toggleSorting(
-										table.getColumn("assignedMembersCount")?.getIsSorted() ===
-											"asc",
+										table.getColumn("staffCount")?.getIsSorted() === "asc",
 									)
 							}
-							className="col-span-2 flex items-center justify-between rounded-none text-xs sm:col-span-1"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
-							Members
+							Staff
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("assignedMembersCount")?.getIsSorted() ===
-										"asc" && "-rotate-180",
+									table.getColumn("staffCount")?.getIsSorted() === "asc" &&
+										"-rotate-180",
+								)}
+							/>
+						</Button>
+						<Button
+							variant="outline"
+							onClick={() =>
+								table
+									.getColumn("vendorCount")
+									?.toggleSorting(
+										table.getColumn("vendorCount")?.getIsSorted() === "asc",
+									)
+							}
+							className="flex items-center justify-between rounded-none text-xs"
+						>
+							Vendors
+							<ArrowDown
+								className={cn(
+									"size-3.5 transition-transform",
+									table.getColumn("vendorCount")?.getIsSorted() === "asc" &&
+										"-rotate-180",
 								)}
 							/>
 						</Button>

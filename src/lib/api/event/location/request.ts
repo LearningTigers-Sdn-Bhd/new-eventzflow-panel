@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// Location details schema (dynamic keys allowed)
+export const locationDetailsSchema = z.record(z.string(), z.string().optional());
+
 // Validation schema for getting locations
 export const getLocationsSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
@@ -16,6 +19,7 @@ export const createLocationSchema = z
 	.object({
 		eventId: z.string().min(1, "Event ID is required"),
 		name: z.string().min(1, "Name is required"),
+		floor: z.string().nullable().optional(),
 		isUnlimited: z.boolean().optional().default(false),
 		scanLimit: z
 			.number()
@@ -23,6 +27,7 @@ export const createLocationSchema = z
 			.nullable()
 			.optional(),
 		memberIds: z.array(z.string()).optional(),
+		locationDetails: locationDetailsSchema.optional(),
 	})
 	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
 		message: "Scan limit is required when not unlimited",
@@ -35,6 +40,7 @@ export const updateLocationSchema = z
 		eventId: z.string().min(1, "Event ID is required"),
 		locationId: z.string().min(1, "Location ID is required"),
 		name: z.string().min(1, "Name is required"),
+		floor: z.string().nullable().optional(),
 		isUnlimited: z.boolean().optional().default(false),
 		scanLimit: z
 			.number()
@@ -42,6 +48,7 @@ export const updateLocationSchema = z
 			.nullable()
 			.optional(),
 		memberIds: z.array(z.string()).optional(),
+		locationDetails: locationDetailsSchema.optional(),
 	})
 	.refine((data) => data.isUnlimited || typeof data.scanLimit === "number", {
 		message: "Scan limit is required when not unlimited",
@@ -60,3 +67,14 @@ export type GetLocationByIdRequest = z.infer<typeof getLocationByIdSchema>;
 export type CreateLocationRequest = z.infer<typeof createLocationSchema>;
 export type UpdateLocationRequest = z.infer<typeof updateLocationSchema>;
 export type DeleteLocationRequest = z.infer<typeof deleteLocationSchema>;
+
+// Validation schema for assigning a member to a location
+export const assignMemberToLocationSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	locationId: z.string().min(1, "Location ID is required"),
+	memberId: z.string().min(1, "Member ID is required"),
+});
+
+export type AssignMemberToLocationRequest = z.infer<
+	typeof assignMemberToLocationSchema
+>;

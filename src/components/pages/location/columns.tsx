@@ -1,24 +1,36 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Copy, Eye } from "lucide-react";
+import { ArrowDown, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { useDialog } from "@/hooks/use-dialog";
 import { cn } from "@/lib/utils";
 import { LocationActionsMenu } from "./action-menu";
-import ViewMembersDialog from "./view-members/modal";
+
+export type LocationDetails = {
+	notes?: string;
+	[key: string]: string | undefined;
+};
+
+export type LocationMember = {
+	id: string;
+	name: string;
+	email: string;
+	role: string;
+	memberType: "staff" | "vendor";
+};
 
 export type BaseLocation = {
 	id: string;
 	name: string;
 	scanLimit: number | null;
 	isUnlimited?: boolean;
-	assignedMembers: Array<{
-		id: string;
-		name: string;
-		email: string;
-	}>;
+	floor?: string | null;
+	locationDetails?: LocationDetails;
+	locationDisplayName?: string;
+	staffMembers?: LocationMember[];
+	vendors?: LocationMember[];
+	assignedMembers: LocationMember[];
 };
 
 export const columns: ColumnDef<BaseLocation>[] = [
@@ -71,35 +83,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Name</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none hover:border"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("name")}</div>
-		),
-	},
-	{
-		id: "assignedMembersCount",
-		accessorFn: (row) => row.assignedMembers.length,
-		size: 120,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Members</p>
+					<p className="font-medium">Location</p>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -117,25 +101,109 @@ export const columns: ColumnDef<BaseLocation>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const { openDialog } = useDialog();
 			const location = row.original as BaseLocation;
+			
 			return (
-				<div className="flex items-center justify-center">
-					<p className="font-medium">{row.getValue("assignedMembersCount")}</p>
+				<div className="font-medium">
+					{location.name}
+				</div>
+			);
+		},
+	},
+	{
+		accessorKey: "floor",
+		size: 100,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Floor</p>
 					<Button
 						variant="ghost"
 						size="icon"
-						onClick={() =>
-							openDialog({
-								component: ViewMembersDialog,
-								props: { location },
-								config: { title: "View Assigned Members", size: "lg" },
-							})
-						}
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 						className="rounded-none hover:border"
 					>
-						<Eye className="size-4" />
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
 					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			const floor = row.getValue("floor") as string | undefined | null;
+			return (
+				<div className="font-medium">
+					{floor || "-"}
+				</div>
+			);
+		},
+	},
+	{
+		id: "staffCount",
+		accessorFn: (row) => row.staffMembers?.length || 0,
+		size: 100,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Staff</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
+					>
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
+					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			const count = row.getValue("staffCount") as number;
+			return (
+				<div className="flex items-center justify-center">
+					<span className="font-medium">{count}</span>
+				</div>
+			);
+		},
+	},
+	{
+		id: "vendorCount",
+		accessorFn: (row) => row.vendors?.length || 0,
+		size: 100,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Vendors</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none hover:border"
+					>
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
+					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			const count = row.getValue("vendorCount") as number;
+			return (
+				<div className="flex items-center justify-center">
+					<span className="font-medium">{count}</span>
 				</div>
 			);
 		},

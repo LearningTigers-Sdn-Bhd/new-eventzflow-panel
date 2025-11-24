@@ -54,13 +54,32 @@ export function UniversalDialog() {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogContent
-				className={cn(sizeClass, isFullScreen && "rounded-none border-0 p-0")}
+				className={cn(
+					sizeClass, 
+					isFullScreen && "rounded-none border-0 p-0",
+					// Mobile optimization: full height on mobile
+					"max-h-[95vh] sm:max-h-[90vh]",
+					// Responsive padding
+					"p-4 sm:p-6",
+					// Flex layout for scrollable content
+					"flex flex-col"
+				)}
 				showCloseButton={config.showCloseButton}
 			>
-				<DialogHeader className={isFullScreen ? "p-6" : ""}>
-					{config.title && <DialogTitle>{config.title}</DialogTitle>}
+				<DialogHeader className={cn(
+					isFullScreen ? "p-6" : "",
+					// Sticky header
+					"flex-shrink-0"
+				)}>
+					{config.title && (
+						<DialogTitle className="text-base sm:text-lg">
+							{config.title}
+						</DialogTitle>
+					)}
 					{config.description ? (
-						<DialogDescription>{config.description}</DialogDescription>
+						<DialogDescription className="text-xs sm:text-sm">
+							{config.description}
+						</DialogDescription>
 					) : (
 						<DialogDescription className="sr-only">
 							Dialog content
@@ -70,8 +89,12 @@ export function UniversalDialog() {
 
 				<div
 					className={cn(
-						"flex-1 justify-start",
-						isFullScreen && "h-[calc(100vh-8rem)] flex-1 overflow-auto",
+						"flex-1 justify-start overflow-y-auto",
+						isFullScreen && "h-[calc(100vh-8rem)]",
+						// Add custom scrollbar styling
+						"scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent",
+						// Padding for scrollable area
+						"pr-2"
 					)}
 				>
 					<ContentComponent {...props} />
