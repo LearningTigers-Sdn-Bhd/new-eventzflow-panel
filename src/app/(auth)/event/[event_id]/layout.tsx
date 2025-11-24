@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp, ChevronDown } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -21,10 +21,17 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEvents } from "@/lib/api/event";
 import { useEventActionsStore } from "@/stores/event-actions-store";
+import { cn } from "@/lib/utils";
 
 interface EventDetailLayoutProps {
 	children: React.ReactNode;
@@ -142,8 +149,8 @@ const tabItems: TabItem[] = [
 	},
 	{
 		id: "analytics",
-		label: "Analytics",
-		title: "Analytics",
+		label: "Ticket Analytics",
+		title: "Ticket Analytics",
 		description:
 			"This page will display event analytics, charts, and insights.",
 		icon: ChartBar,
@@ -269,9 +276,59 @@ export default function EventDetailLayout({
 		});
 	}, [currentEvent?.use_ticket, permissions]);
 
+	// Group ticket-related tabs for dropdown
+	const ticketTabIds = ["tickets", "pending-tickets", "scanned-logs"];
+	const ticketTabs = useMemo(() => {
+		return visibleTabs.filter((tab) => ticketTabIds.includes(tab.id));
+	}, [visibleTabs]);
+
+	// Group analytics-related tabs for dropdown
+	const analyticsTabIds = ["analytics", "voucher-analytics", "mall-live-feed"];
+	const analyticsTabs = useMemo(() => {
+		return visibleTabs.filter((tab) => analyticsTabIds.includes(tab.id));
+	}, [visibleTabs]);
+
+	// Main tabs (excluding ticket and analytics sub-tabs, but we'll add group tabs)
+	const mainTabs = useMemo(() => {
+		const filtered = visibleTabs.filter((tab) => !ticketTabIds.includes(tab.id) && !analyticsTabIds.includes(tab.id));
+		
+		// If there are ticket tabs, add a grouped "Tickets" tab
+		if (ticketTabs.length > 0) {
+			// Insert the tickets group after location
+			const locationIndex = filtered.findIndex((tab) => tab.id === "location");
+			const ticketsGroupTab: TabItem = {
+				id: "tickets-group",
+				label: "Tickets",
+				title: "Ticket Management",
+				description: "Manage tickets, pending transactions, and scan logs",
+				icon: HiTicket,
+				route: "tickets", // Default to tickets page
+			};
+			filtered.splice(locationIndex + 1, 0, ticketsGroupTab);
+		}
+		
+		// If there are analytics tabs, add a grouped "Analytics" tab
+		if (analyticsTabs.length > 0) {
+			// Insert analytics group before export-logs or at the end
+			const exportLogsIndex = filtered.findIndex((tab) => tab.id === "export-logs");
+			const insertIndex = exportLogsIndex !== -1 ? exportLogsIndex : filtered.length;
+			const analyticsGroupTab: TabItem = {
+				id: "analytics-group",
+				label: "Analytics",
+				title: "Analytics & Insights",
+				description: "View ticket analytics, voucher insights, and mall live feed",
+				icon: ChartBar,
+				route: "analytics", // Default to analytics page
+			};
+			filtered.splice(insertIndex, 0, analyticsGroupTab);
+		}
+		
+		return filtered;
+	}, [visibleTabs, ticketTabs, analyticsTabs]);
+
 	// Update vendor tab label, title, and description based on user role
 	const tabsWithDynamicLabels = useMemo(() => {
-		return visibleTabs.map((tab) => {
+		return mainTabs.map((tab) => {
 			if (tab.id === "vendors") {
 				// If user is a vendor (not admin), show "Vendor Profile"
 				if (permissions.isEventVendor && !permissions.canManageEventVendors) {
@@ -292,7 +349,7 @@ export default function EventDetailLayout({
 			}
 			return tab;
 		});
-	}, [visibleTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
+	}, [mainTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
 
 	// Extract the current tab from pathname.
 	// For nested routes like /event/[id]/vendors/[vendor_id]/profile,
@@ -303,6 +360,14 @@ export default function EventDetailLayout({
 		// Walk from the end and find the first segment that matches a tab route
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
+			// Check if it's a ticket-related tab
+			if (ticketTabIds.includes(segment)) {
+				return "tickets-group";
+			}
+			// Check if it's an analytics-related tab
+			if (analyticsTabIds.includes(segment)) {
+				return "analytics-group";
+			}
 			if (visibleTabs.some((tab) => tab.route === segment)) {
 				return segment;
 			}
@@ -310,12 +375,21 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs]);
+	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
+		// If we're on a ticket-related or analytics-related page, find the specific tab
+		const segments = pathname.split("/").filter(Boolean);
+		for (let i = segments.length - 1; i >= 0; i--) {
+			const segment = segments[i];
+			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment)) {
+				return visibleTabs.find((item) => item.route === segment) || tabsWithDynamicLabels[0];
+			}
+		}
+		
 		return tabsWithDynamicLabels.find((item) => item.route === currentTab) || tabsWithDynamicLabels[0];
-	}, [currentTab, tabsWithDynamicLabels]);
+	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -377,7 +451,14 @@ export default function EventDetailLayout({
 				</div>
 				<div className="w-full border-y border-dashed">
 					{isTablet ? (
-						<Select value={currentTab} onValueChange={handleTabChange}>
+						<Select 
+							value={
+								currentTab === "tickets-group" ? "tickets" : 
+								currentTab === "analytics-group" ? "analytics" : 
+								currentTab
+							} 
+							onValueChange={handleTabChange}
+						>
 							<SelectTrigger className="h-12! w-full rounded-none border-none bg-accent/50 transition-colors hover:bg-accent">
 								<SelectValue>
 									{(() => {
@@ -394,6 +475,45 @@ export default function EventDetailLayout({
 							<SelectContent className="rounded-none bg-background">
 								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
+									
+									// If this is the tickets group, show all ticket options
+									if (item.id === "tickets-group") {
+										return ticketTabs.map((ticketTab) => {
+											const TicketIcon = ticketTab.icon;
+											return (
+												<SelectItem
+													key={ticketTab.id}
+													value={ticketTab.route}
+													className="h-10! rounded-none"
+												>
+													<div className="flex items-center gap-2">
+														<TicketIcon className="size-4" />
+														<span>{ticketTab.label}</span>
+													</div>
+												</SelectItem>
+											);
+										});
+									}
+									
+									// If this is the analytics group, show all analytics options
+									if (item.id === "analytics-group") {
+										return analyticsTabs.map((analyticsTab) => {
+											const AnalyticsIcon = analyticsTab.icon;
+											return (
+												<SelectItem
+													key={analyticsTab.id}
+													value={analyticsTab.route}
+													className="h-10! rounded-none"
+												>
+													<div className="flex items-center gap-2">
+														<AnalyticsIcon className="size-4" />
+														<span>{analyticsTab.label}</span>
+													</div>
+												</SelectItem>
+											);
+										});
+									}
+									
 									return (
 										<SelectItem
 											key={item.id}
@@ -414,6 +534,88 @@ export default function EventDetailLayout({
 							<TabsList className="flex h-12 w-full rounded-none">
 								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
+									
+									// Render tickets dropdown
+									if (item.id === "tickets-group") {
+										const isTicketTabActive = ticketTabIds.includes(currentTab) || currentTab === "tickets-group";
+										
+										return (
+											<DropdownMenu key={item.id}>
+												<DropdownMenuTrigger asChild>
+													<button
+														className={cn(
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
+															"hover:bg-accent hover:text-accent-foreground",
+															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+															"dark:text-muted-foreground",
+															isTicketTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+														)}
+													>
+														<IconComponent className="size-5 lg:size-4" />
+														<span className="hidden xl:inline">{item.label}</span>
+														<ChevronDown className="ml-0.5 size-3 opacity-50" />
+													</button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="start" className="min-w-[200px]">
+													{ticketTabs.map((ticketTab) => {
+														const TicketIcon = ticketTab.icon;
+														return (
+															<DropdownMenuItem
+																key={ticketTab.id}
+																onClick={() => handleTabChange(ticketTab.route)}
+																className="cursor-pointer"
+															>
+																<TicketIcon className="mr-2 size-4" />
+																<span>{ticketTab.label}</span>
+															</DropdownMenuItem>
+														);
+													})}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										);
+									}
+									
+									// Render analytics dropdown
+									if (item.id === "analytics-group") {
+										const isAnalyticsTabActive = analyticsTabIds.includes(currentTab) || currentTab === "analytics-group";
+										
+										return (
+											<DropdownMenu key={item.id}>
+												<DropdownMenuTrigger asChild>
+													<button
+														className={cn(
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
+															"hover:bg-accent hover:text-accent-foreground",
+															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+															"dark:text-muted-foreground",
+															isAnalyticsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+														)}
+													>
+														<IconComponent className="size-5 lg:size-4" />
+														<span className="hidden xl:inline">{item.label}</span>
+														<ChevronDown className="ml-0.5 size-3 opacity-50" />
+													</button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="start" className="min-w-[200px]">
+													{analyticsTabs.map((analyticsTab) => {
+														const AnalyticsIcon = analyticsTab.icon;
+														return (
+															<DropdownMenuItem
+																key={analyticsTab.id}
+																onClick={() => handleTabChange(analyticsTab.route)}
+																className="cursor-pointer"
+															>
+																<AnalyticsIcon className="mr-2 size-4" />
+																<span>{analyticsTab.label}</span>
+															</DropdownMenuItem>
+														);
+													})}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										);
+									}
+									
+									// Regular tab
 									return (
 										<TabsTrigger
 											key={item.id}

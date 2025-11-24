@@ -107,6 +107,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		};
 
 		const allRouterItems: MenuItem[] = [
+			// === BASIC INFO ===
 			{
 				id: `view-location-id${eventId}`,
 				name: "View Location",
@@ -115,6 +116,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				className: "",
 				featureKey: "location",
 			},
+			
+			// === TICKET MANAGEMENT (for ticket events) ===
 			{
 				id: `manage-tickets-id${eventId}`,
 				name: "Manage Tickets",
@@ -142,6 +145,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				featureKey: "scanned-logs",
 				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
+			
+			// === VISITOR MANAGEMENT (for non-ticket events) ===
 			{
 				id: `visitors-id${eventId}`,
 				name: "Visitors",
@@ -151,6 +156,19 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				featureKey: "visitors",
 				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVisitorsTab),
 			},
+			
+			// === STAFF MANAGEMENT ===
+			{
+				id: `event-staff-id${eventId}`,
+				name: "Event Staff",
+				icon: Users,
+				route: `/event/${eventId}/event-staff`,
+				className: "",
+				featureKey: "event-staff",
+				shouldDisplay: ({ permissions }) => Boolean(permissions.canManageEventStaff),
+			},
+			
+			// === VENDOR & VOUCHER MANAGEMENT ===
 			{
 				id: `vendors-id${eventId}`,
 				name: "Vendors",
@@ -179,25 +197,6 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ permissions }) => Boolean(permissions.isEventVendor),
 			},
 			{
-				id: `voucher-analytics-id${eventId}`,
-				name: "Voucher Analytics",
-				icon: ChartBar,
-				route: `/event/${eventId}/voucher-analytics`,
-				className: "",
-				featureKey: "voucher-analytics",
-				shouldDisplay: ({ permissions }) =>
-					Boolean(permissions.isEventVendor || permissions.canManageEventVendors),
-			},
-			{
-				id: `event-staff-id${eventId}`,
-				name: "Event Staff",
-				icon: Users,
-				route: `/event/${eventId}/event-staff`,
-				className: "",
-				featureKey: "event-staff",
-				shouldDisplay: ({ permissions }) => Boolean(permissions.canManageEventStaff),
-			},
-			{
 				id: `visitor-stamps-id${eventId}`,
 				name: "Stamp Scanner",
 				icon: ScanQrCode,
@@ -207,14 +206,26 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ permissions }) =>
 					Boolean(permissions.isEventVendor || permissions.canViewStampScannerTab),
 			},
+			
+			// === ANALYTICS & INSIGHTS ===
 			{
 				id: `analytics-id${eventId}`,
-				name: "Analytics",
+				name: "Ticket Analytics",
 				icon: ChartBar,
 				route: `/event/${eventId}/analytics`,
 				className: "",
 				featureKey: "analytics",
 				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
+			},
+			{
+				id: `voucher-analytics-id${eventId}`,
+				name: "Voucher Analytics",
+				icon: ChartBar,
+				route: `/event/${eventId}/voucher-analytics`,
+				className: "",
+				featureKey: "voucher-analytics",
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.isEventVendor || permissions.canManageEventVendors),
 			},
 			{
 				id: `mall-live-feed-id${eventId}`,
@@ -226,6 +237,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
 					Boolean(isNonTicketEvent && !permissions.isEventVendor),
 			},
+			
+			// === DATA EXPORT ===
 			{
 				id: `export-logs-id${eventId}`,
 				name: "Export Logs",

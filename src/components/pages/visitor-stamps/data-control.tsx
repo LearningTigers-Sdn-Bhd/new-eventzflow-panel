@@ -132,9 +132,9 @@ export function DataControl<TData>({
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("full_name")
+									.getColumn("visitor_name")
 									?.toggleSorting(
-										table.getColumn("full_name")?.getIsSorted() === "asc",
+										table.getColumn("visitor_name")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-left text-xs"
@@ -143,7 +143,7 @@ export function DataControl<TData>({
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("full_name")?.getIsSorted() === "asc" &&
+									table.getColumn("visitor_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
@@ -152,9 +152,9 @@ export function DataControl<TData>({
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("public_id")
+									.getColumn("visitor_public_id")
 									?.toggleSorting(
-										table.getColumn("public_id")?.getIsSorted() === "asc",
+										table.getColumn("visitor_public_id")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-left text-xs"
@@ -163,7 +163,7 @@ export function DataControl<TData>({
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("public_id")?.getIsSorted() === "asc" &&
+									table.getColumn("visitor_public_id")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
@@ -172,18 +172,18 @@ export function DataControl<TData>({
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn("phone")
+									.getColumn("vendor_name")
 									?.toggleSorting(
-										table.getColumn("phone")?.getIsSorted() === "asc",
+										table.getColumn("vendor_name")?.getIsSorted() === "asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
-							Phone
+							Vendor
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("phone")?.getIsSorted() === "asc" &&
+									table.getColumn("vendor_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
