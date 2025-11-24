@@ -183,7 +183,13 @@ export async function getEventAnalyticsServer(
 
 	const userLocationMap = new Map<number, string>();
 	for (const location of locationsWithMembers) {
-		for (const member of location.members) {
+		// Combine staff_members and vendors arrays
+		const allMembers = [
+			...(location.staff_members || []),
+			...(location.vendors || []),
+		];
+		
+		for (const member of allMembers) {
 			userLocationMap.set(member.id, location.name);
 		}
 	}

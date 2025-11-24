@@ -71,17 +71,8 @@ export default function VouchersPage({
 						<Button onClick={() => refetch()}>Retry</Button>
 					}
 				/>
-			) : !filteredVouchers || filteredVouchers.length === 0 ? (
-				<EmptyState
-					title="No vouchers found"
-					description={isEventVendor && !canManageEventVendors 
-						? "You haven't created any vouchers yet" 
-						: "Create vouchers to get started"}
-					icon={<Ticket className="size-12" />}
-					height="h-[400px]"
-				/>
 			) : (
-				<DataTable columns={columns} data={filteredVouchers} />
+				<DataTable columns={columns} data={filteredVouchers || []} />
 			)}
 		</div>
 	);

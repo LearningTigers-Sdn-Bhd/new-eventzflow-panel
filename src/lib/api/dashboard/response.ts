@@ -133,8 +133,14 @@ export type BackendTicket = {
 export type BackendEventLocation = {
 	id: number;
 	name: string;
-	members: Array<{
+	staff_members?: Array<{
 		id: number;
 		full_name: string;
+		email: string;
+	}>;
+	vendors?: Array<{
+		id: number;
+		full_name: string;
+		email: string;
 	}>;
 };

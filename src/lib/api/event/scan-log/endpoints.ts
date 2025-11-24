@@ -59,7 +59,8 @@ export async function getScanLogs(
 				Array<{
 					id: number;
 					name: string;
-					members: Array<{ id: number; full_name: string; email: string }>;
+					staff_members?: Array<{ id: number; full_name: string; email: string }>;
+					vendors?: Array<{ id: number; full_name: string; email: string }>;
 				}>
 			>(`v1/events/${eventId}/event_locations`),
 		]);
@@ -70,7 +71,13 @@ export async function getScanLogs(
 		// Create a map of user_id -> location_name
 		const userLocationMap = new Map<number, string>();
 		for (const location of locations) {
-			for (const member of location.members) {
+			// Combine staff_members and vendors arrays
+			const allMembers = [
+				...(location.staff_members || []),
+				...(location.vendors || []),
+			];
+			
+			for (const member of allMembers) {
 				userLocationMap.set(member.id, location.name);
 			}
 		}

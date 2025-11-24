@@ -127,8 +127,8 @@ export function DataTable<TData, TValue>({
 											className="h-24 text-center"
 										>
 											<EmptyState
-												title="No vouchers found"
-												description="Create vouchers to get started"
+												title="No vouchers assigned"
+												description="Add vouchers to this event to get started"
 												icon={<Ticket />}
 												height="h-auto"
 											/>
@@ -151,8 +151,8 @@ export function DataTable<TData, TValue>({
 								))
 						) : (
 							<EmptyState
-								title="No vouchers found"
-								description="Create vouchers to get started"
+								title="No vouchers assigned"
+								description="Add vouchers to this event to get started"
 								icon={<Ticket />}
 								height="h-auto"
 							/>
