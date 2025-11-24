@@ -84,7 +84,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				)}
 				<div className="absolute inset-x-0 top-0 flex items-center justify-between px-2.5 sm:px-4 py-2">
 					<Badge variant="secondary" className="w-fit bg-primary backdrop-blur-sm text-[9px] sm:text-[11px] uppercase tracking-wide border-0 text-white dark:text-black">
-						{voucher.voucherType.replace(/_/g, " ")}
+						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
 					<span className="text-[10px] sm:text-xs font-medium backdrop-blur-sm rounded-full bg-black/20 px-2 py-0.5 text-white/90">
 						{isAvailable ? `${Math.min(100, Math.round(percentageUsed))}% claimed` : "Sold out"}

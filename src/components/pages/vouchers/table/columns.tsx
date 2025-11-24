@@ -102,7 +102,7 @@ const baseColumns: ColumnDef<Voucher>[] = [
 			const type = row.getValue("voucherType") as string;
 			return (
 				<div className="text-sm capitalize">
-					{type.replace(/_/g, " ")}
+					{(type || "").replace(/_/g, " ")}
 				</div>
 			);
 		},

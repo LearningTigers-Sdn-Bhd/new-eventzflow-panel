@@ -41,7 +41,7 @@ export function VoucherItem({ voucher }: VoucherItemProps) {
 								{voucher.status}
 							</Badge>
 							<Badge variant="outline" className="rounded-none capitalize">
-								{voucher.voucherType.replace(/_/g, " ")}
+								{(voucher.voucherType || "").replace(/_/g, " ")}
 							</Badge>
 						</div>
 

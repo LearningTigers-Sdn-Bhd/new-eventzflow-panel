@@ -64,7 +64,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id.replace(/_/g, " ")}
+											{(column.id || "").replace(/_/g, " ")}
 										</DropdownMenuCheckboxItem>
 									);
 								})}

@@ -275,7 +275,7 @@ export function PublicVoucherDetail() {
 						<section className="rounded-[28px] border bg-card p-5 sm:p-7 shadow-sm space-y-6">
 							<div className="flex flex-wrap items-center gap-3">
 								<Badge variant="secondary" className="capitalize bg-primary/10 text-primary">
-									{voucher.voucherType.replace(/_/g, " ")}
+									{(voucher.voucherType || "").replace(/_/g, " ")}
 								</Badge>
 								<span className={`inline-flex items-center gap-2 rounded-full border border-current px-3 py-1 text-[11px] font-semibold ${statusAccent} sm:text-xs`}>
 									<span className={`h-2 w-2 rounded-full ${statusBgClass}`} />
