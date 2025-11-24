@@ -2,6 +2,7 @@ import { z } from "zod";
 
 // Zod schemas for form validation and request data
 export const updateVendorProfileSchema = z.object({
+	image: z.any().optional(),
 	image_path: z.string().optional(),
 	description: z.string().optional(),
 	category: z.string().optional(),

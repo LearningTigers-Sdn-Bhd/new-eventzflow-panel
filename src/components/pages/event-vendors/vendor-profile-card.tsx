@@ -49,24 +49,24 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 				</div>
 
-				<div className="grid gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
-					<div className="space-y-4">
-						<div className="overflow-hidden rounded-xl border bg-muted/60">
-							{profile.image_path ? (
-								<img
-									src={profile.image_path}
-									alt={profile.vendor.full_name}
-									className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-								/>
-							) : (
-								<div className="flex h-105 items-center justify-center text-xs text-muted-foreground">
-									No image been added yet.
-								</div>
-							)}
-						</div>
+			<div className="grid gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
+				<div className="space-y-4">
+					<div className="overflow-hidden border bg-muted/60">
+						{profile.image_path ? (
+							<img
+								src={profile.image_path}
+								alt={profile.vendor.full_name}
+								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+							/>
+						) : (
+							<div className="flex h-105 items-center justify-center text-xs text-muted-foreground">
+								No image been added yet.
+							</div>
+						)}
 					</div>
+				</div>
 
-					<div className="space-y-4 rounded-xl border bg-background/60 p-4">
+				<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">
 							<p className="text-xs font-medium uppercase text-muted-foreground">
 								About

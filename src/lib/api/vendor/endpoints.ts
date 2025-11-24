@@ -1,6 +1,36 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor } from "./response";
+import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor, VendorProfile } from "./response";
 import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema, type DeleteVendorRequest, deleteVendorSchema } from "./request";
+
+/**
+ * Get the full URL for a vendor image
+ * @param filename - The image filename (e.g., "vendor-20231119_143022-a1b2c3d4.jpg")
+ * @returns Full URL to access the image
+ */
+export function getVendorImageUrl(filename: string): string {
+	return restClient.getImageUrl(`v1/vendor_images/${filename}`);
+}
+
+/**
+ * Transform vendor profile image_path to full URL
+ */
+function transformVendorProfile(profile: VendorProfile | null): VendorProfile | null {
+	if (!profile) return null;
+
+	let imagePath: string | null = null;
+	if (profile.image_path) {
+		// Extract filename from the path (e.g., "vendor_images/filename.jpg" -> "filename.jpg")
+		const filename = profile.image_path.split('/').pop();
+		if (filename) {
+			imagePath = getVendorImageUrl(filename);
+		}
+	}
+
+	return {
+		...profile,
+		image_path: imagePath,
+	};
+}
 
 // Transform backend response to frontend format
 function transformVendor(backendVendor: BackendVendor): Vendor {
@@ -13,7 +43,7 @@ function transformVendor(backendVendor: BackendVendor): Vendor {
 		status: backendVendor.status,
 		createdAt: backendVendor.created_at,
 		updatedAt: backendVendor.updated_at,
-		vendorProfile: backendVendor.vendor_profile,
+		vendorProfile: transformVendorProfile(backendVendor.vendor_profile),
 	};
 }
 
@@ -74,6 +104,51 @@ export async function updateVendor(
 	try {
 		const validated = updateVendorSchema.parse(data);
 
+		// Check if we have an image file to upload
+		const hasImage =
+			validated.vendor_profile_attributes?.image instanceof File;
+
+		if (hasImage) {
+			const formData = new FormData();
+			formData.append("vendor[full_name]", validated.full_name);
+			formData.append("vendor[email]", validated.email);
+			if (validated.phone) {
+				formData.append("vendor[phone]", validated.phone);
+			}
+
+			if (validated.newPassword) {
+				formData.append("vendor[password]", validated.newPassword);
+				formData.append("vendor[password_confirmation]", validated.newPassword);
+			}
+
+			if (validated.vendor_profile_attributes) {
+				const { image, ...rest } = validated.vendor_profile_attributes;
+				
+				if (image instanceof File) {
+					formData.append("vendor[vendor_profile_attributes][image]", image);
+				}
+
+				Object.entries(rest).forEach(([key, value]) => {
+					if (value !== undefined && value !== null) {
+						formData.append(
+							`vendor[vendor_profile_attributes][${key}]`,
+							value as string,
+						);
+					}
+				});
+			}
+
+			const response = await restClient.patchFormData<BackendVendor>(
+				`v1/vendors/${validated.id}`,
+				formData,
+			);
+
+			return {
+				success: true,
+				vendor: transformVendor(response),
+			};
+		}
+
 		const payload: any = {
 			vendor: {
 				full_name: validated.full_name,
@@ -90,7 +165,9 @@ export async function updateVendor(
 
 		// Include vendor_profile_attributes if provided
 		if (validated.vendor_profile_attributes) {
-			payload.vendor.vendor_profile_attributes = validated.vendor_profile_attributes;
+			// Remove image field if it's not a File (e.g. if it's undefined or null or a URL string which we don't send)
+			const { image, ...rest } = validated.vendor_profile_attributes;
+			payload.vendor.vendor_profile_attributes = rest;
 		}
 
 		const response = await restClient.patch<BackendVendor>(

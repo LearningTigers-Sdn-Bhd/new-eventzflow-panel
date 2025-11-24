@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 
 interface EditVendorProfileDialogProps {
 	profile: VendorProfile;
@@ -30,6 +31,8 @@ export function EditVendorProfileDialog({
 }: EditVendorProfileDialogProps) {
 	const [description, setDescription] = useState(profile.description || "");
 	const [imagePath, setImagePath] = useState(profile.image_path || "");
+	const [image, setImage] = useState<File | null>(null);
+	const [removeImage, setRemoveImage] = useState(false);
 	const [category, setCategory] = useState(profile.category || "");
 	const [personInCharge, setPersonInCharge] = useState(profile.person_in_charge || "");
 	const [address, setAddress] = useState(profile.address || "");
@@ -37,13 +40,17 @@ export function EditVendorProfileDialog({
 	const updateProfile = useUpdateVendorProfile();
 
 	useEffect(() => {
-		setDescription(profile.description || "");
-		setImagePath(profile.image_path || "");
-		setCategory(profile.category || "");
-		setPersonInCharge(profile.person_in_charge || "");
-		setAddress(profile.address || "");
-		setNotes(profile.notes || "");
-	}, [profile]);
+		if (open) {
+			setDescription(profile.description || "");
+			setImagePath(profile.image_path || "");
+			setImage(null);
+			setRemoveImage(false);
+			setCategory(profile.category || "");
+			setPersonInCharge(profile.person_in_charge || "");
+			setAddress(profile.address || "");
+			setNotes(profile.notes || "");
+		}
+	}, [profile, open]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -51,7 +58,8 @@ export function EditVendorProfileDialog({
 		try {
 			await updateProfile.mutateAsync({
 				description: description || undefined,
-				image_path: imagePath || undefined,
+				image: image || undefined,
+				image_path: removeImage ? "" : undefined, // Explicitly set empty string to remove
 				category: category || undefined,
 				person_in_charge: personInCharge || undefined,
 				address: address || undefined,
@@ -64,44 +72,60 @@ export function EditVendorProfileDialog({
 		}
 	};
 
+	const handleImageChange = (file: File | null) => {
+		setImage(file);
+		if (file === null && imagePath) {
+			// User removed the existing image
+			setRemoveImage(true);
+			setImagePath("");
+		} else if (file !== null) {
+			// User uploaded a new image
+			setRemoveImage(false);
+		}
+	};
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
+			<DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 gap-0">
+				<DialogHeader className="p-6 pb-2">
 					<DialogTitle>Edit Vendor Profile</DialogTitle>
 					<DialogDescription>
 						Update vendor marketing information.
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit}>
-					<div className="space-y-4 py-4">
+				
+				<div className="flex-1 overflow-y-auto p-6 pt-2">
+					<form id="edit-profile-form" onSubmit={handleSubmit} className="space-y-6">
 						<div className="space-y-2">
-							<Label htmlFor="imagePath">Image URL</Label>
-							<Input
-								id="imagePath"
-								value={imagePath}
-								onChange={(e) => setImagePath(e.target.value)}
-								placeholder="https://example.com/image.jpg"
+							<Label>Vendor Image</Label>
+							<ImageUpload
+								value={image || imagePath}
+								onChange={handleImageChange}
+								disabled={updateProfile.isPending}
 							/>
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="category">Category</Label>
-							<Input
-								id="category"
-								value={category}
-								onChange={(e) => setCategory(e.target.value)}
-								placeholder="e.g., Food & Beverage, Technology, etc."
-							/>
+						
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div className="space-y-2">
+								<Label htmlFor="category">Category</Label>
+								<Input
+									id="category"
+									value={category}
+									onChange={(e) => setCategory(e.target.value)}
+									placeholder="e.g., Food & Beverage"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="personInCharge">Person in Charge</Label>
+								<Input
+									id="personInCharge"
+									value={personInCharge}
+									onChange={(e) => setPersonInCharge(e.target.value)}
+									placeholder="Contact person name"
+								/>
+							</div>
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="personInCharge">Person in Charge</Label>
-							<Input
-								id="personInCharge"
-								value={personInCharge}
-								onChange={(e) => setPersonInCharge(e.target.value)}
-								placeholder="Enter contact person name"
-							/>
-						</div>
+
 						<div className="space-y-2">
 							<Label htmlFor="description">Description</Label>
 							<Textarea
@@ -109,9 +133,10 @@ export function EditVendorProfileDialog({
 								value={description}
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Enter vendor description"
-								rows={3}
+								rows={4}
 							/>
 						</div>
+
 						<div className="space-y-2">
 							<Label htmlFor="address">Address</Label>
 							<Textarea
@@ -122,6 +147,7 @@ export function EditVendorProfileDialog({
 								rows={2}
 							/>
 						</div>
+
 						<div className="space-y-2">
 							<Label htmlFor="notes">Notes</Label>
 							<Textarea
@@ -132,20 +158,26 @@ export function EditVendorProfileDialog({
 								rows={2}
 							/>
 						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={updateProfile.isPending}>
-							{updateProfile.isPending ? "Updating..." : "Update Profile"}
-						</Button>
-					</DialogFooter>
-				</form>
+					</form>
+				</div>
+
+				<DialogFooter className="p-6 pt-2 border-t mt-auto">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onOpenChange(false)}
+						disabled={updateProfile.isPending}
+					>
+						Cancel
+					</Button>
+					<Button 
+						type="submit" 
+						form="edit-profile-form"
+						disabled={updateProfile.isPending}
+					>
+						{updateProfile.isPending ? "Updating..." : "Update Profile"}
+					</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);

@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateVendor } from "@/lib/api/vendor";
 import type { Vendor } from "@/lib/api/vendor";
+import ImageUpload from "@/components/file-upload/image-upload";
 
 interface EditVendorFormProps {
 	vendor: Vendor;
@@ -36,7 +37,6 @@ export default function EditVendorForm({
 	const descriptionId = useId();
 	const addressId = useId();
 	const notesId = useId();
-	const imagePathId = useId();
 
 	const [formData, setFormData] = useState({
 		full_name: vendor.full_name,
@@ -49,10 +49,13 @@ export default function EditVendorForm({
 		description: vendor.vendorProfile?.description || "",
 		address: vendor.vendorProfile?.address || "",
 		notes: vendor.vendorProfile?.notes || "",
-		image_path: vendor.vendorProfile?.image_path || "",
 	});
 
+	const [image, setImage] = useState<File | null>(null);
+	const [imagePath, setImagePath] = useState(vendor.vendorProfile?.image_path || "");
+	const [removeImage, setRemoveImage] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+
 
 	const queryClient = useQueryClient();
 	const updateVendorMutation = useMutation({
@@ -100,11 +103,24 @@ export default function EditVendorForm({
 					description: formData.description || undefined,
 					address: formData.address || undefined,
 					notes: formData.notes || undefined,
-					image_path: formData.image_path || undefined,
+					image: image || undefined,
+					image_path: removeImage ? "" : undefined,
 				},
 			});
 		} catch {
 			// Error is handled by onError callback
+		}
+	};
+
+	const handleImageChange = (file: File | null) => {
+		setImage(file);
+		if (file === null && imagePath) {
+			// User removed the existing image
+			setRemoveImage(true);
+			setImagePath("");
+		} else if (file !== null) {
+			// User uploaded a new image
+			setRemoveImage(false);
 		}
 	};
 
@@ -226,14 +242,12 @@ export default function EditVendorForm({
 									/>
 								</Field>
 
-								{/* Image Path */}
+								{/* Vendor Image */}
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={imagePathId}>Image URL</FieldLabel>
-									<Input
-										id={imagePathId}
-										placeholder="https://example.com/image.jpg"
-										value={formData.image_path}
-										onChange={(e) => handleChange("image_path", e.target.value)}
+									<FieldLabel>Vendor Image</FieldLabel>
+									<ImageUpload
+										value={image || imagePath}
+										onChange={handleImageChange}
 										disabled={updateVendorMutation.isPending}
 									/>
 								</Field>

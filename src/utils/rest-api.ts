@@ -310,6 +310,44 @@ export const restClient = {
 	},
 
 	/**
+	 * Make a PATCH request with FormData for file uploads
+	 * @param url - The endpoint URL
+	 * @param formData - FormData object containing files and other fields
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to the response data
+	 */
+	patchFormData: <T>(
+		url: string,
+		formData: FormData,
+		token?: string,
+	): Promise<T> => {
+		const headers: Record<string, string> = token
+			? { Authorization: `Bearer ${token}` }
+			: {};
+
+		// Do NOT set Content-Type; let the browser set multipart/form-data with boundary
+		const requestOptions = {
+			body: formData,
+			headers,
+		} as const;
+
+		logger.debug("🔍 HTTP Client Debug (PATCH FORM DATA):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Token:", token);
+		logger.debug("  - Headers:", headers);
+		logger.debug(
+			"  - FormData entries:",
+			Array.from(formData.entries()).map(([key, value]) =>
+				value instanceof File
+					? [key, `File: ${value.name} (${value.size} bytes)`]
+					: [key, value],
+			),
+		);
+
+		return kyClientForFormData.patch(url, requestOptions).json<T>();
+	},
+
+	/**
 	 * Get the full URL for an image endpoint
 	 * @param path - The image path (e.g., "v1/voucher_images/filename.jpg")
 	 * @returns Full URL to access the image

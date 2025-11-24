@@ -9,6 +9,7 @@ export const createVendorSchema = z.object({
 });
 
 export const vendorProfileAttributesSchema = z.object({
+	image: z.any().optional(),
 	image_path: z.string().optional(),
 	description: z.string().optional(),
 	category: z.string().optional(),
