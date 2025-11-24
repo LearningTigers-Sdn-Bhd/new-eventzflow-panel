@@ -94,7 +94,7 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center gap-2">
-						<p className="font-medium">Created</p>
+						<p className="font-medium">Created At</p>
 						<Button
 							variant="ghost"
 							size="icon"
@@ -114,11 +114,21 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 				);
 			},
 			cell: ({ row }) => {
-				const createdAt = row.getValue("created_at") as string;
+				const date = new Date(row.getValue("created_at"));
+
+				// Time with 'short' style (e.g., "9:55 AM")
+				const timePart = date.toLocaleString('en-US', { timeStyle: 'medium' }); 
+				
+				// Date with 'medium' style (e.g., "Nov 24, 2025")
+				const datePart = date.toLocaleString('en-US', { dateStyle: 'medium' });
+
 				return (
-					<div className="text-sm">
-						{new Date(createdAt).toLocaleDateString()} at{" "}
-						{new Date(createdAt).toLocaleTimeString()}
+					<div className="font-medium">
+						{/* Time: Use a stronger class like "font-bold" */}
+						<div className="font-semibold">{timePart}</div> 
+						
+						{/* Date: Use a slightly less pronounced style or default */}
+						<div className="text-gray-500 text-sm">{datePart}</div> 
 					</div>
 				);
 			},
