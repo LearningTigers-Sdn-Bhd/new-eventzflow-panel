@@ -9,19 +9,25 @@ import { useGroupAffiliates, useDeleteGroupAffiliate } from "@/hooks/use-group-a
 import { toast } from "sonner";
 import { AssignVendorDialog } from "../dialogs/assign-vendor-dialog";
 import { LoadingState } from "@/components/data-state";
+import type { GroupWithMembers } from "@/lib/api/group";
 
 interface GroupAffiliateCardProps {
 	groupId: number;
+	group: GroupWithMembers;
 }
 
-export function GroupAffiliateCard({ groupId }: GroupAffiliateCardProps) {
+export function GroupAffiliateCard({ groupId, group }: GroupAffiliateCardProps) {
 	const { user } = useAuth();
 	const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 	const { data: affiliates, isLoading } = useGroupAffiliates(groupId);
 	const deleteAffiliate = useDeleteGroupAffiliate();
 
-	// Only org_owner can assign/remove vendors from groups
-	const canManageAffiliates = user?.role === "org_owner";
+	// Check if current user has manager access for this specific group
+	const currentUserMember = group.members?.find((member) => member.user_id === user?.id);
+	const hasManagerAccess = currentUserMember?.has_manager_access || false;
+	
+	// Only org_owner or users with manager access for this group can assign/remove vendors
+	const canManageAffiliates = user?.role === "org_owner" || hasManagerAccess;
 
 	const handleRemove = async (affiliateId: number, vendorName: string) => {
 		try {

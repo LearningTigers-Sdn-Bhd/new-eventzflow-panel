@@ -34,11 +34,13 @@ import { TeamMemberItem } from "./team-member-item";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	onAddMember?: () => void;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	onAddMember,
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -135,7 +137,7 @@ export function DataTable<TData, TValue>({
 												description="Add your first team member to get started"
 												icon={<Users />}
 												height="h-auto"
-												action={<Button>Add Team Member</Button>}
+												action={<Button onClick={onAddMember}>Add Team Member</Button>}
 											/>
 										</TableCell>
 									</TableRow>
@@ -160,7 +162,7 @@ export function DataTable<TData, TValue>({
 								description="Add your first team member to get started"
 								icon={<Users />}
 								height="h-auto"
-								action={<Button>Add Team Member</Button>}
+								action={<Button onClick={onAddMember}>Add Team Member</Button>}
 							/>
 						)}
 					</div>

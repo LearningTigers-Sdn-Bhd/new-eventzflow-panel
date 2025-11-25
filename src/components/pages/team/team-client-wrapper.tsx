@@ -58,7 +58,7 @@ export default function TeamClientWrapper({
 					</Button>
 				</div>
 			</div>
-			<DataTable columns={columns} data={filteredTeamMembers} />
+			<DataTable columns={columns} data={filteredTeamMembers} onAddMember={handleAddMember} />
 		</div>
 	);
 }

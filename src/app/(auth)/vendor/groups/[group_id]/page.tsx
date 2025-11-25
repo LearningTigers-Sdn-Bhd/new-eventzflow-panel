@@ -60,7 +60,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
 			<div className="space-y-6 rounded-none border border-dashed bg-card p-2 md:p-4">
 				<GroupDetailsHeader group={group} />
-				<GroupAffiliateCard groupId={groupId} />
+				<GroupAffiliateCard groupId={groupId} group={group} />
 			</div>
 		</div>
 	);
