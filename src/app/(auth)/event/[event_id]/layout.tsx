@@ -217,9 +217,9 @@ export default function EventDetailLayout({
 				return true;
 			}
 
-			// Export logs - hide for vendors
+			// Export logs - hide for vendors and non-ticket events
 			if (tab.id === "export-logs") {
-				return !permissions.isEventVendor;
+				return currentEvent?.use_ticket !== false && !permissions.isEventVendor;
 			}
 
 			// Ticket-related tabs - only for ticket events

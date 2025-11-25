@@ -2,14 +2,21 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-	Eye,
+	Settings,
 	Pencil,
 	Trash2,
+	MoreHorizontal,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteGroup } from "@/lib/api/group";
@@ -87,34 +94,43 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	return (
 		<ButtonGroup>
 			<Button
-				size="icon-sm"
+				size="sm"
 				variant="outline"
-				className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
+				className="rounded-none"
 				onClick={handleManageClick}
-				title="View Group"
 			>
-				<Eye className="size-4" />
+				<Settings className="mr-2 size-4" />
+				Manage
 			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
-				onClick={handleEditClick}
-				title="Edit Group"
-			>
-				<Pencil className="size-4" />
-			</Button>
-			{canDeleteGroup && (
-				<Button
-					size="icon-sm"
-					variant="outline"
-					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
-					onClick={handleDeleteClick}
-					title="Delete Group"
-				>
-					<Trash2 className="size-4" />
-				</Button>
-			)}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						size="icon-sm"
+						variant="outline"
+						className="rounded-none"
+					>
+						<MoreHorizontal className="size-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="rounded-none">
+					<DropdownMenuItem
+						onClick={handleEditClick}
+						className="rounded-none"
+					>
+						<Pencil className="mr-2 size-4" />
+						Edit
+					</DropdownMenuItem>
+					{canDeleteGroup && (
+						<DropdownMenuItem
+							onClick={handleDeleteClick}
+							className="rounded-none text-red-600 focus:text-red-600"
+						>
+							<Trash2 className="mr-2 size-4" />
+							Delete
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</ButtonGroup>
 	);
 }

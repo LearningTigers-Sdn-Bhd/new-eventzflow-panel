@@ -246,7 +246,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				route: `/event/${eventId}/export-logs`,
 				className: "",
 				featureKey: "export-logs",
-				shouldDisplay: ({ permissions }) => Boolean(!permissions.isEventVendor),
+				shouldDisplay: ({ isTicketEvent, permissions }) => 
+					Boolean(isTicketEvent && !permissions.isEventVendor),
 			},
 		];
 
