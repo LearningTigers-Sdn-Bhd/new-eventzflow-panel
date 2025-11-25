@@ -28,8 +28,8 @@ export function EventStaffPageButton() {
 		});
 	};
 
-	// Only org_owner can assign staff
-	if (user?.role !== "org_owner") {
+	// Only org_owner and organizer can assign staff
+	if (user?.role !== "org_owner" && user?.role !== "organizer") {
 		return null;
 	}
 

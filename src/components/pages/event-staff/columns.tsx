@@ -307,8 +307,8 @@ const actionsColumn: ColumnDef<EventStaffMember> = {
 export const getEventStaffColumns = (
 	userRole?: "org_owner" | "organizer" | "member" | "vendor",
 ): ColumnDef<EventStaffMember>[] => {
-	// Only org_owner can see actions column
-	if (userRole === "org_owner") {
+	// Only org_owner and organizer can see actions column
+	if (userRole === "org_owner" || userRole === "organizer") {
 		return [...baseColumns, actionsColumn];
 	}
 	return baseColumns;

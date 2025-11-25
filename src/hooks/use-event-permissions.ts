@@ -92,7 +92,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 
 		// Calculate specific permissions
 		const canManageEvent = isOrgOwner || isEventAdmin;
-		const canManageEventStaff = isOrgOwner;
+		const canManageEventStaff = isOrgOwner || isOrganizer;
 		const canManageEventVendors = isOrgOwner || isEventAdmin;
 		const canViewAnalytics = isOrgOwner || isEventAdmin;
 		const canManageTickets = isOrgOwner || isEventAdmin;
