@@ -436,10 +436,8 @@ export default function EventDetailLayout({
 							<div className="px-2 md:px-4">
 								<IconTitle
 									icon={RiCalendarEventFill}
-									title="Event Details"
-									description={`Manage and view details for ${
-										currentEvent?.title || `event ${event_id}`
-									}`}
+									title={currentEvent?.title || `Event ${event_id}`}
+									description={currentEvent?.description || "Manage and view details for this event"}
 								/>
 							</div>
 							{currentEvent?.status && (
