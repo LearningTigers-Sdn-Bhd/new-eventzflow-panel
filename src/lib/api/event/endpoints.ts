@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { restClient, publicRestClient } from "@/utils/rest-api";
 import {
 	type CreateEventRequest,
 	createEventSchema,
@@ -112,5 +112,44 @@ export async function restoreEvent(eventId: string): Promise<Event> {
 	} catch (error: any) {
 		console.error("Error restoring event:", error);
 		throw new Error(error.message || "Failed to restore event");
+	}
+}
+
+// ============================================================================
+// PUBLIC ENDPOINTS - No authentication required
+// ============================================================================
+
+/**
+ * Public event info response (limited fields)
+ */
+export interface PublicEventInfo {
+	id: number;
+	title: string;
+	slug: string;
+	description: string | null;
+	start_date: string | null;
+	end_date: string | null;
+	start_time: string | null;
+	end_time: string | null;
+	venue_name: string | null;
+	venue_address: string | null;
+	status: string;
+}
+
+/**
+ * Get public event info by ID (PUBLIC - no authentication required)
+ * Returns limited event information for public display
+ */
+export async function getPublicEventById(eventId: string): Promise<PublicEventInfo> {
+	try {
+		const response = await publicRestClient.get<{ data: PublicEventInfo }>(
+			`v1/public/events/${eventId}`
+		);
+		return response.data;
+	} catch (error: unknown) {
+		console.error("Error fetching public event:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch event";
+		throw new Error(errorMessage);
 	}
 }

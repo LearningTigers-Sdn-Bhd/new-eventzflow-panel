@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { intervalToDuration, isPast } from "date-fns";
-import { getVoucher } from "@/lib/api/voucher";
+import { getPublicVoucher } from "@/lib/api/voucher";
 import { getVendorProfileById } from "@/lib/api/vendor-profile";
 
 export function PublicVoucherDetail() {
@@ -30,7 +30,7 @@ export function PublicVoucherDetail() {
 	} = useQuery({
 		queryKey: ["public", "event", eventId, "voucher", voucherId],
 		enabled: Boolean(eventId) && Number.isFinite(voucherId),
-		queryFn: () => getVoucher(voucherId),
+		queryFn: () => getPublicVoucher(voucherId),
 	});
 
 	// Fetch vendor profile if voucher has a vendor_id but no vendor data

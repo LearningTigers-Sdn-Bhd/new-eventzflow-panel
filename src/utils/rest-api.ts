@@ -100,6 +100,32 @@ export const kyClient = ky.create({
 	},
 });
 
+// A public ky client that doesn't require authentication
+// Use this for public-facing pages that should be accessible without login
+export const kyPublicClient = ky.create({
+	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	timeout: 30000,
+	headers: {
+		"Content-Type": "application/json",
+	},
+	retry: {
+		limit: 3,
+		methods: ["get"],
+		statusCodes: [408, 429, 500, 502, 503, 504],
+	},
+	hooks: {
+		beforeRequest: [
+			(request) => {
+				// Remove Content-Type header for GET requests
+				if (request.method === "GET") {
+					request.headers.delete("Content-Type");
+				}
+				// No authentication token is attached for public requests
+			},
+		],
+	},
+});
+
 // A dedicated ky client for multipart/form-data uploads (no default Content-Type)
 export const kyClientForFormData = ky.create({
 	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
@@ -345,6 +371,34 @@ export const restClient = {
 		);
 
 		return kyClientForFormData.patch(url, requestOptions).json<T>();
+	},
+
+	/**
+	 * Get the full URL for an image endpoint
+	 * @param path - The image path (e.g., "v1/voucher_images/filename.jpg")
+	 * @returns Full URL to access the image
+	 */
+	getImageUrl: (path: string): string => {
+		// Remove leading slash if present to avoid double slashes
+		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		return `${API_BASE_URL}/${cleanPath}`;
+	},
+};
+
+/**
+ * Public REST API client - does NOT require authentication
+ * Use this for public-facing pages that should be accessible without login
+ */
+export const publicRestClient = {
+	/**
+	 * Make a GET request without authentication
+	 * @param url - The endpoint URL
+	 * @returns Promise resolving to the response data
+	 */
+	get: <T>(url: string): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (GET):");
+		logger.debug("  - URL:", url);
+		return kyPublicClient.get(url).json<T>();
 	},
 
 	/**
