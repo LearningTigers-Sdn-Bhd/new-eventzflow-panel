@@ -232,7 +232,7 @@ export function PublicVouchersPage() {
 				</div>
 
 				{/* Vouchers Grid */}
-				<section className="border-y border-dashed bg-background/30 p-4 md:p-6">
+				<section>
 					{filteredVouchers.length === 0 ? (
 						<div className="border bg-background/60 backdrop-blur-sm px-4 sm:px-6 py-12 sm:py-16 text-center">
 							<div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted flex items-center justify-center mb-3 sm:mb-4">
