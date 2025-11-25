@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { getPublicEventById } from "@/lib/api/event";
 import { getPublicVouchers } from "@/lib/api/voucher";
+import { EventNotFound } from "./event-not-found";
 import { PublicVoucherCard } from "./voucher-card";
 
 // Map backend voucher type to display categories
@@ -56,10 +57,22 @@ export function PublicVouchersPage() {
 	const [selectedCategory, setSelectedCategory] = useState<"all" | DiscountCategory>("all");
 
 	// Fetch event details for title (public endpoint - no auth required)
-	const { data: event } = useQuery({
+	const { 
+		data: event, 
+		isLoading: isLoadingEvent, 
+		error: eventError 
+	} = useQuery({
 		queryKey: ["public", "event", eventId],
-		queryFn: () => getPublicEventById(eventId),
+		queryFn: async () => {
+			try {
+				return await getPublicEventById(eventId);
+			} catch (error) {
+				// Silently catch the error - we'll handle it in the UI
+				return null;
+			}
+		},
 		enabled: Boolean(eventId),
+		retry: false,
 	});
 
 	const {
@@ -69,7 +82,7 @@ export function PublicVouchersPage() {
 	} = useQuery({
 		queryKey: ["public", "event", eventId, "vouchers"],
 		queryFn: () => getPublicVouchers({ event_id: Number(eventId) }),
-		enabled: Boolean(eventId),
+		enabled: Boolean(eventId) && Boolean(event),
 	});
 
 	const filteredVouchers = vouchers?.filter((voucher) => {
@@ -79,7 +92,7 @@ export function PublicVouchersPage() {
 		return voucher.voucherType === selectedCategory;
 	}) || [];
 
-	if (isLoading) {
+	if (isLoading || isLoadingEvent) {
 		return (
 			<div className="min-h-screen bg-background relative mt-16">
 				<div className="relative container mx-auto px-4 py-8 lg:py-12">
@@ -91,6 +104,10 @@ export function PublicVouchersPage() {
 				</div>
 			</div>
 		);
+	}
+
+	if (!event) {
+		return <EventNotFound />;
 	}
 
 	if (error) {

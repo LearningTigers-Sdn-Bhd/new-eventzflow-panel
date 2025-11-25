@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { differenceInDays, isPast } from "date-fns";
 import { getPublicVoucher } from "@/lib/api/voucher";
 import { getPublicEventById } from "@/lib/api/event";
+import { EventNotFound } from "./event-not-found";
 
 type VoucherStatus = {
 	label: string;
@@ -114,10 +115,22 @@ export function PublicVoucherDetail() {
 	});
 
 	// Fetch event info for display
-	const { data: event } = useQuery({
+	const { 
+		data: event, 
+		isLoading: isLoadingEvent, 
+		error: eventError 
+	} = useQuery({
 		queryKey: ["public", "event", eventId],
-		queryFn: () => getPublicEventById(eventId!),
+		queryFn: async () => {
+			try {
+				return await getPublicEventById(eventId!);
+			} catch (error) {
+				// Silently catch the error - we'll handle it in the UI
+				return null;
+			}
+		},
 		enabled: Boolean(eventId),
+		retry: false,
 	});
 
 	const navigateBack = () => {
@@ -128,7 +141,7 @@ export function PublicVoucherDetail() {
 		router.push(`/event/${eventId}/voucher-showcase` as Route);
 	};
 
-	if (isLoading || (!voucher && !isError)) {
+	if (isLoading || isLoadingEvent || (!voucher && !isError)) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				<LoadingState
@@ -138,6 +151,10 @@ export function PublicVoucherDetail() {
 				/>
 			</div>
 		);
+	}
+
+	if (!event) {
+		return <EventNotFound />;
 	}
 
 	if (isError || !voucher) {
