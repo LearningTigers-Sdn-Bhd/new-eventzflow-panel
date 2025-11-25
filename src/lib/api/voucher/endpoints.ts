@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { restClient, publicRestClient, API_BASE_URL } from "@/utils/rest-api";
 import type {
 	BackendVoucher,
 	CreateVoucherResponse,
@@ -338,6 +338,121 @@ export async function deleteVoucher(
 		console.error("Error deleting voucher:", error);
 		const errorMessage =
 			error instanceof Error ? error.message : "Failed to delete voucher";
+		throw new Error(errorMessage);
+	}
+}
+
+// ============================================================================
+// PUBLIC ENDPOINTS - No authentication required
+// Use these for public-facing pages accessible without login
+// ============================================================================
+
+/**
+ * Get the full URL for a voucher image (public access)
+ * @param filename - The image filename (e.g., "voucher-20231119_143022-a1b2c3d4.jpg")
+ * @returns Full URL to access the image
+ */
+export function getPublicVoucherImageUrl(filename: string): string {
+	return publicRestClient.getImageUrl(`v1/voucher_images/${filename}`);
+}
+
+// Transform backend response to frontend format (for public endpoints)
+function transformPublicVoucher(backendVoucher: BackendVoucher): Voucher {
+	let imagePath: string | null = null;
+
+	if (backendVoucher.image_path) {
+		const filename = backendVoucher.image_path.split('/').pop();
+		if (filename) {
+			imagePath = getPublicVoucherImageUrl(filename);
+		}
+	}
+
+	return {
+		id: backendVoucher.id,
+		title: backendVoucher.title,
+		voucherUuid: backendVoucher.voucher_uuid,
+		description: backendVoucher.description,
+		vendorId: backendVoucher.vendor_id,
+		eventId: backendVoucher.event_id,
+		voucherCode: backendVoucher.voucher_code,
+		status: backendVoucher.status as "active" | "inactive",
+		startDate: backendVoucher.start_date,
+		endDate: backendVoucher.end_date,
+		startTime: backendVoucher.start_time,
+		endTime: backendVoucher.end_time,
+		totalRedemptionAvailable: backendVoucher.total_redemption_available,
+		redeemedCount: backendVoucher.redeemed_count,
+		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
+		userRoleRestriction: backendVoucher.user_role_restriction,
+		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
+		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
+		voucherCategory: backendVoucher.voucher_category,
+		imagePath,
+		createdAt: backendVoucher.created_at,
+		updatedAt: backendVoucher.updated_at,
+		vendor: backendVoucher.vendor
+			? {
+					id: backendVoucher.vendor.id,
+					fullName: backendVoucher.vendor.full_name,
+					email: backendVoucher.vendor.email,
+					phone: backendVoucher.vendor.phone,
+				}
+			: undefined,
+	};
+}
+
+/**
+ * Get all vouchers for an event (PUBLIC - no authentication required)
+ * Use this for public voucher showcase pages
+ */
+export async function getPublicVouchers(params: {
+	event_id: number;
+}): Promise<Voucher[]> {
+	try {
+		const queryParams = new URLSearchParams();
+		queryParams.append("event_id", params.event_id.toString());
+
+		const url = `v1/public/vouchers?${queryParams.toString()}`;
+
+		const response = await publicRestClient.get<
+			BackendVoucher[] | { data: BackendVoucher[] }
+		>(url);
+
+		// Handle both direct array and wrapped response
+		const vouchers = Array.isArray(response) ? response : response.data;
+
+		// If no vouchers, return empty array
+		if (!vouchers || !Array.isArray(vouchers)) {
+			return [];
+		}
+
+		return vouchers.map(transformPublicVoucher);
+	} catch (error: unknown) {
+		console.error("Error fetching public vouchers:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch vouchers";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Get a single voucher by ID (PUBLIC - no authentication required)
+ * Use this for public voucher detail pages
+ */
+export async function getPublicVoucher(id: number | string): Promise<Voucher> {
+	try {
+		const response = await publicRestClient.get<
+			BackendVoucher | { data: BackendVoucher }
+		>(`v1/public/vouchers/${id}`);
+
+		// Handle both direct object and wrapped response
+		const voucher = "data" in response ? response.data : response;
+
+		return transformPublicVoucher(voucher);
+	} catch (error: unknown) {
+		console.error("Error fetching public voucher:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch voucher";
 		throw new Error(errorMessage);
 	}
 }

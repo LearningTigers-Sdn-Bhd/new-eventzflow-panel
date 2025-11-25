@@ -1,13 +1,11 @@
 "use client";
 
-import { Building2, Calendar, Ticket } from "lucide-react";
+import { AlertTriangle, Building2, Calendar, Clock, Hourglass, Ticket, Zap } from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useFormatDate } from "@/hooks/use-format-date";
-import { intervalToDuration, isPast } from "date-fns";
+import { intervalToDuration, isPast, differenceInDays } from "date-fns";
 
 import type { Voucher } from "@/lib/api/voucher";
 
@@ -15,51 +13,84 @@ interface PublicVoucherCardProps {
 	voucher: Voucher;
 }
 
+type VoucherStatus = {
+	label: string;
+	color: string;
+	bgColor: string;
+	icon: React.ReactNode;
+};
+
+function getVoucherStatus(voucher: Voucher): VoucherStatus {
+	const now = new Date();
+	const startDate = new Date(voucher.startDate);
+	const endDate = new Date(voucher.endDate);
+	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
+	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2 && remaining > 0;
+	const isSoldOut = remaining <= 0;
+	const daysUntilEnd = differenceInDays(endDate, now);
+
+	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Limited Stock > Available
+	if (isSoldOut) {
+		return {
+			label: "Sold Out",
+			color: "text-red-600",
+			bgColor: "bg-red-500/10 border-red-500/20",
+			icon: <AlertTriangle className="h-3 w-3" />,
+		};
+	}
+
+	if (isPast(endDate)) {
+		return {
+			label: "Expired",
+			color: "text-red-600",
+			bgColor: "bg-red-500/10 border-red-500/20",
+			icon: <Clock className="h-3 w-3" />,
+		};
+	}
+
+	if (now < startDate) {
+		return {
+			label: "Upcoming",
+			color: "text-blue-600",
+			bgColor: "bg-blue-500/10 border-blue-500/20",
+			icon: <Hourglass className="h-3 w-3" />,
+		};
+	}
+
+	if (daysUntilEnd <= 3) {
+		return {
+			label: "Ending Soon",
+			color: "text-orange-600",
+			bgColor: "bg-orange-500/10 border-orange-500/20",
+			icon: <Clock className="h-3 w-3" />,
+		};
+	}
+
+	if (isLowStock) {
+		return {
+			label: "Limited Stock",
+			color: "text-amber-600",
+			bgColor: "bg-amber-500/10 border-amber-500/20",
+			icon: <Zap className="h-3 w-3" />,
+		};
+	}
+
+	return {
+		label: "Available",
+		color: "text-emerald-600",
+		bgColor: "bg-emerald-500/10 border-emerald-500/20",
+		icon: <Ticket className="h-3 w-3" />,
+	};
+}
+
 export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
-	const { formatDate } = useFormatDate();
 	const router = useRouter();
 	const params = useParams<{ event_id: string }>();
 	const eventId = params?.event_id;
 	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const percentageUsed = voucher.totalRedemptionAvailable
-		? Math.min((voucher.redeemedCount / voucher.totalRedemptionAvailable) * 100, 100)
-		: 0;
-	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2;
-	const isAvailable = remaining > 0;
+	const isAvailable = remaining > 0 && !isPast(new Date(voucher.endDate));
 
-	const now = new Date();
-	const startDate = new Date(voucher.startDate);
-	const endDate = new Date(voucher.endDate);
-
-	// Determine voucher status
-	const isUpcoming = now < startDate;
-	const isActive = now >= startDate && now <= endDate;
-	const isExpired = now > endDate;
-
-	let validityString = "";
-	let validityColor = "";
-
-	if (isUpcoming) {
-		// Voucher hasn't started yet
-		const durationToStart = intervalToDuration({
-			start: now,
-			end: startDate,
-		});
-		validityString = `Upcoming • Starts in ${durationToStart.days ?? 0}d ${durationToStart.hours ?? 0}h`;
-		validityColor = "text-blue-600";
-	} else if (isActive) {
-		// Voucher is currently active
-		const durationRemaining = intervalToDuration({
-			start: now,
-			end: endDate,
-		});
-		validityString = `${durationRemaining.days ?? 0}d ${durationRemaining.hours ?? 0}h left`;
-		validityColor = "text-emerald-600";
-	} else {
-		// Voucher has expired
-		validityString = "Expired";
-		validityColor = "text-red-600";
-	}
+	const status = getVoucherStatus(voucher);
 
 	return (
 		<article className="group flex h-full flex-col overflow-hidden rounded-none border border-border bg-background transition hover:border-primary/50">
@@ -86,8 +117,10 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					<Badge variant="secondary" className="w-fit bg-primary/90 text-[9px] sm:text-[11px] capitalize tracking-wide border-0 text-primary-foreground rounded-none">
 						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
-					<span className="text-[10px] sm:text-xs font-medium bg-black/40 px-2 py-0.5 text-white backdrop-blur-sm">
-						{isAvailable ? `${Math.min(100, Math.round(percentageUsed))}% claimed` : "Sold out"}
+					{/* Status badge instead of percentage claimed */}
+					<span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 border backdrop-blur-sm ${status.bgColor} ${status.color}`}>
+						{status.icon}
+						{status.label}
 					</span>
 				</div>
 			</div>
@@ -107,31 +140,23 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					{voucher.description || "No description available"}
 				</p>
 
-				{/* Mobile: Minimalist validity info */}
+				{/* Mobile: Minimalist status info */}
 				<div className="flex items-center gap-1 sm:hidden text-[10px] text-muted-foreground">
 					<Calendar className="h-3 w-3" />
-					<span className={validityColor}>
-						{validityString}
+					<span className={status.color}>
+						{status.label}
 					</span>
 				</div>
 
-				{/* Desktop: Full validity card */}
+				{/* Desktop: Status card */}
 				<div className="hidden sm:block border border-primary/10 bg-primary/5 px-2.5 py-2 text-xs">
 					<div className="flex items-center justify-between font-semibold text-primary">
-						<span>Validity</span>
-						<span className={validityColor}>
-							{validityString}
+						<span>Status</span>
+						<span className={`flex items-center gap-1.5 ${status.color}`}>
+							{status.icon}
+							{status.label}
 						</span>
 					</div>
-				</div>
-
-				{/* Desktop: Progress bar */}
-				<div className="hidden sm:flex flex-col gap-2 border bg-muted/30 px-3 py-3">
-					<div className="flex items-center justify-between">
-						<p className="text-xs uppercase tracking-wide text-muted-foreground">Redeemed</p>
-						<p className="text-xl font-bold text-foreground">{Math.round(percentageUsed)}%</p>
-					</div>
-					<Progress value={percentageUsed} className="h-2 rounded-none" />
 				</div>
 			</div>
 
@@ -149,7 +174,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				>
 					<div className="flex items-center justify-center gap-1.5 sm:gap-2">
 						<Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
-						<span>{isAvailable ? "Claim Voucher" : "Sold Out"}</span>
+						<span>{isAvailable ? "View Voucher" : "Unavailable"}</span>
 					</div>
 				</Button>
 			</div>

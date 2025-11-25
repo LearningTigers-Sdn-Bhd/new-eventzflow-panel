@@ -6,7 +6,8 @@ import type { LucideIcon } from "lucide-react";
 import { Ticket, Gift, Store, Percent, Wallet, ArrowLeftRight } from "lucide-react";
 import { useParams } from "next/navigation";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
-import { getVouchers } from "@/lib/api/voucher";
+import { getPublicEventById } from "@/lib/api/event";
+import { getPublicVouchers } from "@/lib/api/voucher";
 import { PublicVoucherCard } from "./voucher-card";
 
 // Map backend voucher type to display categories
@@ -54,13 +55,10 @@ export function PublicVouchersPage() {
 	const eventId = params.event_id as string;
 	const [selectedCategory, setSelectedCategory] = useState<"all" | DiscountCategory>("all");
 
-	// Fetch event details for title
+	// Fetch event details for title (public endpoint - no auth required)
 	const { data: event } = useQuery({
-		queryKey: ["event", eventId],
-		queryFn: async () => {
-			const { getEventById } = await import("@/lib/api/event");
-			return getEventById(eventId);
-		},
+		queryKey: ["public", "event", eventId],
+		queryFn: () => getPublicEventById(eventId),
 		enabled: Boolean(eventId),
 	});
 
@@ -70,7 +68,8 @@ export function PublicVouchersPage() {
 		error,
 	} = useQuery({
 		queryKey: ["public", "event", eventId, "vouchers"],
-		queryFn: () => getVouchers({ event_id: Number(eventId) }),
+		queryFn: () => getPublicVouchers({ event_id: Number(eventId) }),
+		enabled: Boolean(eventId),
 	});
 
 	const filteredVouchers = vouchers?.filter((voucher) => {
@@ -233,7 +232,7 @@ export function PublicVouchersPage() {
 				</div>
 
 				{/* Vouchers Grid */}
-				<section className="border-y border-dashed bg-background/30 p-4 md:p-6">
+				<section>
 					{filteredVouchers.length === 0 ? (
 						<div className="border bg-background/60 backdrop-blur-sm px-4 sm:px-6 py-12 sm:py-16 text-center">
 							<div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted flex items-center justify-center mb-3 sm:mb-4">

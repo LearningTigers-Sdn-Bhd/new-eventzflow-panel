@@ -3,17 +3,97 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
-import { ArrowLeft, Calendar, CheckCircle2, Clock, Copy, Mail, MapPin, Phone, QrCode, Quote, Share2, Sparkles, Store, Tag, Ticket, User } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calendar, CheckCircle2, Clock, Copy, Hourglass, QrCode, Quote, Share2, Sparkles, Store, Ticket, Zap } from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useFormatDate } from "@/hooks/use-format-date";
-import { intervalToDuration, isPast } from "date-fns";
-import { getVoucher } from "@/lib/api/voucher";
-import { getVendorProfileById } from "@/lib/api/vendor-profile";
+import { differenceInDays, isPast } from "date-fns";
+import { getPublicVoucher } from "@/lib/api/voucher";
+import { getPublicEventById } from "@/lib/api/event";
+
+type VoucherStatus = {
+	label: string;
+	description: string;
+	color: string;
+	bgColor: string;
+	icon: React.ReactNode;
+};
+
+function getVoucherStatus(voucher: {
+	startDate: string;
+	endDate: string;
+	totalRedemptionAvailable: number;
+	redeemedCount: number;
+}): VoucherStatus {
+	const now = new Date();
+	const startDate = new Date(voucher.startDate);
+	const endDate = new Date(voucher.endDate);
+	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
+	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2 && remaining > 0;
+	const isSoldOut = remaining <= 0;
+	const daysUntilEnd = differenceInDays(endDate, now);
+
+	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Limited Stock > Available
+	if (isSoldOut) {
+		return {
+			label: "Sold Out",
+			description: "This voucher has been fully redeemed",
+			color: "text-red-600",
+			bgColor: "bg-red-500/10 border-red-500/20",
+			icon: <AlertTriangle className="h-4 w-4" />,
+		};
+	}
+
+	if (isPast(endDate)) {
+		return {
+			label: "Expired",
+			description: "This voucher is no longer valid",
+			color: "text-red-600",
+			bgColor: "bg-red-500/10 border-red-500/20",
+			icon: <Clock className="h-4 w-4" />,
+		};
+	}
+
+	if (now < startDate) {
+		return {
+			label: "Upcoming",
+			description: "This voucher is not yet active",
+			color: "text-blue-600",
+			bgColor: "bg-blue-500/10 border-blue-500/20",
+			icon: <Hourglass className="h-4 w-4" />,
+		};
+	}
+
+	if (daysUntilEnd <= 3) {
+		return {
+			label: "Ending Soon",
+			description: "Hurry! This voucher expires soon",
+			color: "text-orange-600",
+			bgColor: "bg-orange-500/10 border-orange-500/20",
+			icon: <Clock className="h-4 w-4" />,
+		};
+	}
+
+	if (isLowStock) {
+		return {
+			label: "Limited Stock",
+			description: "Only a few vouchers remaining",
+			color: "text-amber-600",
+			bgColor: "bg-amber-500/10 border-amber-500/20",
+			icon: <Zap className="h-4 w-4" />,
+		};
+	}
+
+	return {
+		label: "Available",
+		description: "This voucher is ready to be redeemed",
+		color: "text-emerald-600",
+		bgColor: "bg-emerald-500/10 border-emerald-500/20",
+		icon: <Ticket className="h-4 w-4" />,
+	};
+}
 
 export function PublicVoucherDetail() {
 	const router = useRouter();
@@ -30,17 +110,15 @@ export function PublicVoucherDetail() {
 	} = useQuery({
 		queryKey: ["public", "event", eventId, "voucher", voucherId],
 		enabled: Boolean(eventId) && Number.isFinite(voucherId),
-		queryFn: () => getVoucher(voucherId),
+		queryFn: () => getPublicVoucher(voucherId),
 	});
 
-	// Fetch vendor profile if voucher has a vendor_id but no vendor data
-	const { data: vendorProfile } = useQuery({
-		queryKey: ["vendor-profile", voucher?.vendorId],
-		queryFn: () => getVendorProfileById(voucher!.vendorId),
-		enabled: Boolean(voucher?.vendorId) && !voucher?.vendor,
+	// Fetch event info for display
+	const { data: event } = useQuery({
+		queryKey: ["public", "event", eventId],
+		queryFn: () => getPublicEventById(eventId!),
+		enabled: Boolean(eventId),
 	});
-
-	const { formatDate } = useFormatDate();
 
 	const navigateBack = () => {
 		if (!eventId) {
@@ -79,16 +157,9 @@ export function PublicVoucherDetail() {
 		);
 	}
 
+	const status = getVoucherStatus(voucher);
 	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const percentageUsed = voucher.totalRedemptionAvailable
-		? Math.min((voucher.redeemedCount / voucher.totalRedemptionAvailable) * 100, 100)
-		: 0;
-	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2;
-	const canClaim = remaining > 0;
-
-	const statusAccent = !canClaim ? "text-red-600" : isLowStock ? "text-orange-500" : "text-emerald-500";
-	const statusBgClass = statusAccent.replace("text-", "bg-");
-	const statusLabel = !canClaim ? "Sold out" : isLowStock ? "Limited" : "Available";
+	const canClaim = remaining > 0 && !isPast(new Date(voucher.endDate));
 
 	const redemptionCode = voucher.voucherUuid;
 	const qrValue = voucher.voucherUuid;
@@ -97,26 +168,6 @@ export function PublicVoucherDetail() {
 		await navigator.clipboard.writeText(redemptionCode);
 		setCopiedCode(true);
 		setTimeout(() => setCopiedCode(false), 2000);
-	};
-
-	const getVoucherValueDisplay = () => {
-		if (voucher.voucherType === "percentage") {
-			return `${voucher.voucherValue}%`;
-		} else if (voucher.voucherType === "fixed_amount") {
-			return `RM ${voucher.voucherValue.toFixed(2)}`;
-		} else {
-			return `${voucher.voucherValue}`;
-		}
-	};
-
-	const getVoucherValueLabel = () => {
-		if (voucher.voucherType === "percentage") {
-			return "OFF";
-		} else if (voucher.voucherType === "fixed_amount") {
-			return "DISCOUNT";
-		} else {
-			return "FREE ITEMS";
-		}
 	};
 
 	const handleShare = async () => {
@@ -142,42 +193,8 @@ export function PublicVoucherDetail() {
 		}
 	};
 
-	const now = new Date();
-	const startDate = new Date(voucher.startDate);
-	const validUntil = new Date(voucher.endDate);
-	const isExpired = isPast(validUntil);
-	const isUpcoming = now < startDate;
-
-	const duration = intervalToDuration({
-		start: now,
-		end: isUpcoming ? startDate : validUntil,
-	});
-
-	let validityString = "";
-	if (isExpired) {
-		validityString = "Expired";
-	} else if (isUpcoming) {
-		validityString = `Upcoming • Starts in ${duration.days ?? 0}d ${duration.hours ?? 0}h`;
-	} else {
-		validityString = `${duration.days ?? 0} Days ${duration.hours ?? 0} Hours left`;
-	}
-
-	// Use vendor data from voucher or from vendor profile
-	const vendorData = voucher.vendor || (vendorProfile ? {
-		id: vendorProfile.vendor.id,
-		fullName: vendorProfile.vendor.full_name,
-		email: vendorProfile.vendor.email,
-		phone: vendorProfile.vendor.phone,
-	} : null);
-
-	const hasVendor = Boolean(vendorData);
-	const vendorName = vendorData?.fullName || "Event Organizer";
-	const vendorEmail = vendorData?.email;
-	const vendorPhone = vendorData?.phone;
-	const vendorDescription = vendorProfile?.description;
-	const vendorAddress = vendorProfile?.address;
-	const vendorPersonInCharge = vendorProfile?.person_in_charge;
-	const vendorCategory = vendorProfile?.category;
+	// Vendor name only
+	const vendorName = voucher.vendor?.fullName || "Event Organizer";
 
 	return (
 		<div className="h-screen overflow-hidden bg-background">
@@ -205,8 +222,8 @@ export function PublicVoucherDetail() {
 				</div>
 
 				{/* Main Content - Grid Layout */}
-				<div className="flex-1 overflow-auto">
-					<div className="mx-auto max-w-[1800px] p-4 md:p-6">
+				<div className="flex-1 overflow-auto flex items-center justify-center">
+					<div className="mx-auto max-w-[1800px] w-full p-4 md:p-6">
 						<div className="grid grid-cols-12 gap-4 items-stretch">
 						{/* Left Column - QR Code */}
 						<div className="col-span-12 lg:col-span-4">
@@ -229,63 +246,32 @@ export function PublicVoucherDetail() {
 									/>
 								</div>
 
-								<div className="space-y-2">
-									<div className="flex gap-2">
-										<Button 
-											variant="outline" 
-											size="sm"
-											className="flex-1" 
-											onClick={handleCopyCode}
-										>
-											{copiedCode ? (
-												<>
-													<CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-													Copied!
-												</>
-											) : (
-												<>
-													<Copy className="mr-2 h-3.5 w-3.5" />
-													Copy Code
-												</>
-											)}
-										</Button>
-										<Button 
-											variant="outline" 
-											size="sm"
-											className="flex-1" 
-											onClick={handleShare}
-										>
-											<Share2 className="mr-2 h-3.5 w-3.5" />
-											{shared ? "Shared!" : "Share"}
-										</Button>
-									</div>
-									
-									<div className="rounded-none border bg-muted/50 p-2.5">
-										<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-											Code
-										</p>
-										<p className="font-mono text-xs font-semibold tracking-wider break-all">
-											{redemptionCode}
-										</p>
-									</div>
+								{/* Code display only - buttons moved to right column */}
+								<div className="rounded-none border bg-muted/50 p-2.5">
+									<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+										Code
+									</p>
+									<p className="font-mono text-xs font-semibold tracking-wider break-all">
+										{redemptionCode}
+									</p>
 								</div>
 							</div>
 						</div>
 
 						{/* Right Column - Voucher Details */}
 						<div className="col-span-12 flex flex-col gap-4 lg:col-span-8">
-							{/* Title & Value Card with Badges and Share */}
+							{/* Title & Value Card with Badges */}
 							<div className="rounded-none border bg-background p-5 shadow-none">
 								<div className="mb-3 flex flex-wrap items-center gap-2">
 									<Badge variant="secondary" className="h-6 bg-primary/10 text-primary border-primary/20 text-xs capitalize">
 										<Sparkles className="mr-1 h-3 w-3" />
 										{(voucher.voucherType || "").replace(/_/g, " ")}
 									</Badge>
-									<span className={`inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold ${statusAccent}`}>
-										<span className={`h-1.5 w-1.5 rounded-full ${statusBgClass}`} />
-										{statusLabel}
+									{/* Status badge */}
+									<span className={`inline-flex h-6 items-center gap-1.5 border px-2.5 text-xs font-semibold ${status.bgColor} ${status.color}`}>
+										{status.icon}
+										{status.label}
 									</span>
-
 								</div>
 
 								
@@ -294,7 +280,7 @@ export function PublicVoucherDetail() {
 										{voucher.title}
 									</h1>
 									
-									{/* Value Display (Moved to top right visually on desktop, or inline on mobile) */}
+									{/* Value Display */}
 									<div className="shrink-0 text-left sm:text-right">
 										{voucher.voucherType === "percentage" ? (
 											<div className="flex items-baseline justify-start sm:justify-end gap-1">
@@ -322,105 +308,94 @@ export function PublicVoucherDetail() {
 								)}
 							</div>
 
-							{/* Stats Grid */}
-							<div className="grid grid-cols-3 gap-2 sm:gap-4">
-								<div className="rounded-none border bg-background p-4 text-center shadow-none">
-									<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Available</p>
-									<p className="mt-1.5 text-2xl font-bold">{voucher.totalRedemptionAvailable ?? 0}</p>
-								</div>
-								<div className="rounded-none border bg-background p-4 text-center shadow-none">
-									<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Redeemed</p>
-									<p className="mt-1.5 text-2xl font-bold">{voucher.redeemedCount ?? 0}</p>
-								</div>
-								<div className="rounded-none border bg-background p-4 text-center shadow-none">
-									<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Remaining</p>
-									<p className={`mt-1.5 text-2xl font-bold ${!canClaim ? "text-destructive" : isLowStock ? "text-orange-500" : "text-primary"}`}>
-										{Math.max(remaining, 0)}
-									</p>
-								</div>
-							</div>
-
-							{/* Availability Progress */}
-							<div className="rounded-none border bg-background p-4 shadow-none">
-								<div className="mb-3 flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<Ticket className="h-4 w-4 text-primary" />
-										<span className="text-sm font-semibold">Availability</span>
-									</div>
-									<span className={`text-xs font-semibold ${statusAccent}`}>
-										{remaining} / {voucher.totalRedemptionAvailable}
-									</span>
-								</div>
-								<Progress value={percentageUsed} className="h-2" />
-								<div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-									<span>{percentageUsed.toFixed(1)}% redeemed</span>
-									<span className={isLowStock ? "font-semibold text-orange-500" : ""}>
-										{isLowStock ? "Limited" : "In stock"}
-									</span>
-								</div>
-							</div>
-
-							{/* Dates & Validity */}
+							{/* Status & Validity Card */}
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-								<div className="rounded-none border bg-background p-4 shadow-none">
+								<div className={`rounded-none border p-4 shadow-none ${status.bgColor}`}>
 									<div className="mb-2 flex items-center gap-1.5 text-muted-foreground">
 										<Clock className="h-3.5 w-3.5" />
-										<p className="text-[10px] font-medium uppercase tracking-wider">Validity</p>
+										<p className="text-[10px] font-medium uppercase tracking-wider">Status</p>
 									</div>
-									<p className={`text-lg font-bold ${isExpired ? "text-destructive" : isUpcoming ? "text-blue-600" : "text-primary"}`}>
-										{validityString}
+									<p className={`text-lg font-bold ${status.color}`}>
+										{status.label}
 									</p>
 								</div>
 								<div className="rounded-none border bg-background p-4 shadow-none flex items-center gap-4">
 									<Quote className="h-10 w-10 text-muted-foreground/20 shrink-0 fill-current" />
 									<p className="text-sm font-medium leading-relaxed text-muted-foreground">
-										This voucher is valid until <span className="font-bold text-foreground">{formatDate(voucher.endDate)}</span>. Make sure to redeem it before it expires.
+										{status.description}
 									</p>
 								</div>
 							</div>
 
-							{/* Vendor Info - Vertical Card */}
-							<div className="rounded-none border bg-background p-5 shadow-none">
-								<div className="mb-4 flex items-center gap-3">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border bg-primary/5">
-										<Store className="h-5 w-5 text-primary" />
-									</div>
-									<div className="min-w-0">
-										<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-											{hasVendor ? "Vendor" : "Provider"}
-										</p>
-										<h3 className="truncate text-sm font-semibold">{vendorName}</h3>
+							{/* Vendor & Event Info - Side by Side */}
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								{/* Vendor Card */}
+								<div className="rounded-none border bg-background p-5 shadow-none">
+									<div className="flex items-center gap-3">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border bg-primary/5">
+											<Store className="h-5 w-5 text-primary" />
+										</div>
+										<div className="min-w-0">
+											<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+												Vendor
+											</p>
+											<h3 className="truncate text-sm font-semibold">{vendorName}</h3>
+										</div>
 									</div>
 								</div>
 
-								<div className="space-y-3">
-									{hasVendor && (vendorEmail || vendorPhone) && (
-										<div className="space-y-2">
-											<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-												Contact
-											</p>
-											<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-												{vendorEmail && (
-													<div className="flex items-start gap-2 rounded-none border bg-muted/30 p-2.5">
-														<Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-														<div className="min-w-0 flex-1">
-															<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Email</p>
-															<p className="mt-0.5 break-all text-xs font-semibold">{vendorEmail}</p>
-														</div>
-													</div>
-												)}
-												{vendorPhone && (
-													<div className="flex items-start gap-2 rounded-none border bg-muted/30 p-2.5">
-														<Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-														<div className="min-w-0 flex-1">
-															<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Phone</p>
-															<p className="mt-0.5 break-all text-xs font-semibold">{vendorPhone}</p>
-														</div>
-													</div>
-												)}
-											</div>
+								{/* Event Card */}
+								<div className="rounded-none border bg-background p-5 shadow-none">
+									<div className="flex items-center gap-3">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border bg-primary/5">
+											<Calendar className="h-5 w-5 text-primary" />
 										</div>
-									)}
+										<div className="min-w-0">
+											<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+												Event
+											</p>
+											<h3 className="truncate text-sm font-semibold">{event?.title || "Event"}</h3>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Actions Card - Copy & Share */}
+							<div className="rounded-none border bg-background p-5 shadow-none">
+								<div className="flex flex-col gap-3">
+									<div className="flex items-center gap-2">
+										<Share2 className="h-4 w-4 text-primary" />
+										<p className="text-sm font-semibold">Share this voucher</p>
+									</div>
+									<div className="flex gap-2">
+										<Button 
+											variant="outline" 
+											size="sm"
+											className="flex-1" 
+											onClick={handleCopyCode}
+										>
+											{copiedCode ? (
+												<>
+													<CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+													Copied!
+												</>
+											) : (
+												<>
+													<Copy className="mr-2 h-3.5 w-3.5" />
+													Copy Code
+												</>
+											)}
+										</Button>
+										<Button 
+											variant="outline" 
+											size="sm"
+											className="flex-1" 
+											onClick={handleShare}
+										>
+											<Share2 className="mr-2 h-3.5 w-3.5" />
+											{shared ? "Shared!" : "Share Link"}
+										</Button>
+									</div>
 								</div>
 							</div>
 						</div>
