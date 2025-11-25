@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
@@ -26,8 +26,20 @@ export function VouchersPageButton() {
 		});
 	};
 
+	const handleViewShowcase = () => {
+		window.open(`/event/${eventId}/voucher-showcase`, "_blank");
+	};
+
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
+			<Button
+				variant="outline"
+				className="w-full rounded-none lg:w-auto"
+				onClick={handleViewShowcase}
+			>
+				<Eye className="mr-2 h-4 w-4" />
+				View Showcase
+			</Button>
 			<Button
 				onClick={handleAddVoucher}
 				className="w-full rounded-none lg:w-auto"

@@ -16,6 +16,7 @@ interface ImageUploadProps {
 	className?: string;
 	disabled?: boolean;
 	maxSize?: number; // Default 5MB
+	fillHeight?: boolean; // If true, fills the available height instead of fixed height
 }
 
 export default function ImageUpload({
@@ -24,6 +25,7 @@ export default function ImageUpload({
 	className,
 	disabled = false,
 	maxSize = 5 * 1024 * 1024, // 5MB
+	fillHeight = false,
 }: ImageUploadProps) {
 	// We need to track the preview URL separately
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export default function ImageUpload({
 	};
 
 	return (
-		<div className={cn("w-full space-y-2", className)}>
+		<div className={cn("w-full", fillHeight ? "h-full flex flex-col min-h-0" : "space-y-2", className)}>
 			<div
 				aria-label="Image upload drop zone"
 				className={cn(
@@ -101,7 +103,7 @@ export default function ImageUpload({
 						? "border-primary bg-primary/5"
 						: "border-muted-foreground/25 hover:border-muted-foreground/50",
 					disabled && "opacity-60 cursor-not-allowed pointer-events-none",
-					displayPreview ? "h-64" : "h-40",
+					fillHeight ? "flex-1 min-h-40 min-w-0" : (displayPreview ? "h-64" : "h-40"),
 					"bg-muted/30"
 				)}
 				onClick={!displayPreview ? openFileDialog : undefined}

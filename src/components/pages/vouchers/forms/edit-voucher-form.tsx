@@ -1,5 +1,6 @@
 "use client";
 
+import ImageUpload from "@/components/file-upload/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
@@ -387,168 +388,164 @@ export default function EditVoucherForm({
 								</p>
 							</div>
 
-							<div className={`grid grid-cols-1 gap-4 ${voucherType === "free_item" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
-								{/* Voucher Type */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={voucherTypeField}>
-										Voucher Type *
-									</FieldLabel>
-									{errors.voucherType && (
-										<FieldError>{errors.voucherType}</FieldError>
-									)}
-									<Select
-										key={`voucher-type-${voucher.id}-${voucherType}`}
-										value={voucherType}
-										onValueChange={(value: VoucherType) => {
-											setVoucherType(value);
-											// Clear voucher value when switching to free_item
-											if (value === "free_item") {
-												setVoucherValue("0");
-											}
-											if (errors.voucherType) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.voucherType;
-													return newErrors;
-												});
-											}
-										}}
-										disabled={updateMutation.isPending}
-									>
-										<SelectTrigger id={voucherTypeField}>
-											<SelectValue placeholder="Select voucher type" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="percentage">
-												Percentage Discount
-											</SelectItem>
-											<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
-											<SelectItem value="free_item">Free Item</SelectItem>
-										</SelectContent>
-									</Select>
-									<FieldDescription>Choose the type of voucher</FieldDescription>
-								</Field>
+							<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+								{/* Left Column: Form Fields */}
+								<div className="space-y-4 lg:col-span-2">
+									<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+										{/* Voucher Type */}
+										<Field orientation="vertical">
+											<FieldLabel htmlFor={voucherTypeField}>
+												Voucher Type *
+											</FieldLabel>
+											{errors.voucherType && (
+												<FieldError>{errors.voucherType}</FieldError>
+											)}
+											<Select
+												key={`voucher-type-${voucher.id}-${voucherType}`}
+												value={voucherType}
+												onValueChange={(value: VoucherType) => {
+													setVoucherType(value);
+													// Clear voucher value when switching to free_item
+													if (value === "free_item") {
+														setVoucherValue("0");
+													}
+													if (errors.voucherType) {
+														setErrors((prev) => {
+															const newErrors = { ...prev };
+															delete newErrors.voucherType;
+															return newErrors;
+														});
+													}
+												}}
+												disabled={updateMutation.isPending}
+											>
+												<SelectTrigger id={voucherTypeField}>
+													<SelectValue placeholder="Select voucher type" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="percentage">
+														Percentage Discount
+													</SelectItem>
+													<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+													<SelectItem value="free_item">Free Item</SelectItem>
+												</SelectContent>
+											</Select>
+											<FieldDescription>Choose the type of voucher</FieldDescription>
+										</Field>
 
-								{/* Voucher Value - Hidden for free_item */}
-								{voucherType !== "free_item" && (
-									<Field orientation="vertical">
-										<FieldLabel htmlFor={voucherValueField}>
-											Voucher Value *
-										</FieldLabel>
-										{errors.voucherValue && (
-											<FieldError>{errors.voucherValue}</FieldError>
+										{/* Voucher Value - Hidden for free_item */}
+										{voucherType !== "free_item" && (
+											<Field orientation="vertical">
+												<FieldLabel htmlFor={voucherValueField}>
+													Voucher Value *
+												</FieldLabel>
+												{errors.voucherValue && (
+													<FieldError>{errors.voucherValue}</FieldError>
+												)}
+												<Input
+													id={voucherValueField}
+													type="number"
+													min="0"
+													step="0.01"
+													value={voucherValue}
+													onChange={(e) => {
+														setVoucherValue(e.target.value);
+														if (errors.voucherValue) {
+															setErrors((prev) => {
+																const newErrors = { ...prev };
+																delete newErrors.voucherValue;
+																return newErrors;
+															});
+														}
+													}}
+													placeholder={
+														voucherType === "percentage"
+															? "e.g., 10, 20, 50"
+															: "e.g., 10.00, 50.00"
+													}
+													disabled={updateMutation.isPending}
+												/>
+												<FieldDescription>
+													{voucherType === "percentage"
+														? "Enter percentage (1-100)"
+														: "Enter amount in RM"}
+												</FieldDescription>
+											</Field>
 										)}
-										<Input
-											id={voucherValueField}
-											type="number"
-											min="0"
-											step="0.01"
-											value={voucherValue}
-											onChange={(e) => {
-												setVoucherValue(e.target.value);
-												if (errors.voucherValue) {
-													setErrors((prev) => {
-														const newErrors = { ...prev };
-														delete newErrors.voucherValue;
-														return newErrors;
-													});
+
+										{/* Voucher Code */}
+										<Field orientation="vertical">
+											<FieldLabel htmlFor={voucherCodeField}>
+												Voucher Code
+											</FieldLabel>
+											<Input
+												id={voucherCodeField}
+												value={voucherCode}
+												onChange={(e) => setVoucherCode(e.target.value)}
+												placeholder="e.g., SAVE20"
+												disabled={updateMutation.isPending}
+											/>
+											<FieldDescription>
+												Custom code for this voucher
+											</FieldDescription>
+										</Field>
+
+										{/* Status */}
+										<Field orientation="vertical">
+											<FieldLabel htmlFor={statusField}>Status *</FieldLabel>
+											<Select
+												key={`status-${voucher.id}-${status}`}
+												value={status}
+												onValueChange={(value: "active" | "inactive") =>
+													setStatus(value)
 												}
-											}}
-											placeholder={
-												voucherType === "percentage"
-													? "e.g., 10, 20, 50"
-													: "e.g., 10.00, 50.00"
-											}
+												disabled={updateMutation.isPending}
+											>
+												<SelectTrigger id={statusField}>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="active">Active</SelectItem>
+													<SelectItem value="inactive">Inactive</SelectItem>
+												</SelectContent>
+											</Select>
+											<FieldDescription>Set voucher status</FieldDescription>
+										</Field>
+									</div>
+
+									{/* Description */}
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={descriptionField}>
+											Description
+										</FieldLabel>
+										<Textarea
+											id={descriptionField}
+											value={description}
+											onChange={(e) => setDescription(e.target.value)}
+											placeholder="Describe the voucher details..."
+											disabled={updateMutation.isPending}
+											className="min-h-[100px]"
+										/>
+										<FieldDescription>
+											Additional details about this voucher
+										</FieldDescription>
+									</Field>
+								</div>
+
+								{/* Right Column: Image Upload */}
+								<div className="lg:col-span-1">
+									<Field orientation="vertical">
+										<FieldLabel>Voucher Image - Optional</FieldLabel>
+										<ImageUpload
+											value={image || voucher.imagePath || undefined}
+											onChange={(file) => setImage(file)}
 											disabled={updateMutation.isPending}
 										/>
 										<FieldDescription>
-											{voucherType === "percentage"
-												? "Enter percentage (1-100)"
-												: "Enter amount in RM"}
+											Upload a new image for this voucher
 										</FieldDescription>
 									</Field>
-								)}
-
-								{/* Voucher Code */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={voucherCodeField}>
-										Voucher Code
-									</FieldLabel>
-									<Input
-										id={voucherCodeField}
-										value={voucherCode}
-										onChange={(e) => setVoucherCode(e.target.value)}
-										placeholder="e.g., SAVE20"
-										disabled={updateMutation.isPending}
-									/>
-									<FieldDescription>
-										Custom code for this voucher
-									</FieldDescription>
-								</Field>
-							</div>
-
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-								{/* Description */}
-								<Field orientation="vertical" className="md:col-span-2">
-									<FieldLabel htmlFor={descriptionField}>
-										Description
-									</FieldLabel>
-									<Textarea
-										id={descriptionField}
-										value={description}
-										onChange={(e) => setDescription(e.target.value)}
-										placeholder="Describe the voucher details..."
-										disabled={updateMutation.isPending}
-										className="min-h-[80px]"
-									/>
-									<FieldDescription>
-										Additional details about this voucher
-									</FieldDescription>
-								</Field>
-
-								{/* Status */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={statusField}>Status *</FieldLabel>
-									<Select
-										key={`status-${voucher.id}-${status}`}
-										value={status}
-										onValueChange={(value: "active" | "inactive") =>
-											setStatus(value)
-										}
-										disabled={updateMutation.isPending}
-									>
-										<SelectTrigger id={statusField}>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="active">Active</SelectItem>
-											<SelectItem value="inactive">Inactive</SelectItem>
-										</SelectContent>
-									</Select>
-									<FieldDescription>Set voucher status</FieldDescription>
-								</Field>
-
-								{/* Image Upload */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={imageField}>
-										Voucher Image - Optional
-									</FieldLabel>
-									<Input
-										id={imageField}
-										type="file"
-										accept="image/*"
-										onChange={(e) => {
-											const file = e.target.files?.[0];
-											if (file) {
-												setImage(file);
-											}
-										}}
-										disabled={updateMutation.isPending}
-									/>
-									<FieldDescription>
-										Upload a new image for this voucher
-									</FieldDescription>
-								</Field>
+								</div>
 							</div>
 						</div>
 
