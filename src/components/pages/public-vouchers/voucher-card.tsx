@@ -62,7 +62,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	}
 
 	return (
-		<article className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-border/50 bg-card shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-xl">
+		<article className="group flex h-full flex-col overflow-hidden rounded-none border border-border bg-background transition hover:border-primary/50">
 			<div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
 				{voucher.imagePath ? (
 					<>
@@ -83,10 +83,10 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					</>
 				)}
 				<div className="absolute inset-x-0 top-0 flex items-center justify-between px-2.5 sm:px-4 py-2">
-					<Badge variant="secondary" className="w-fit bg-primary backdrop-blur-sm text-[9px] sm:text-[11px] uppercase tracking-wide border-0 text-white dark:text-black">
+					<Badge variant="secondary" className="w-fit bg-primary/90 text-[9px] sm:text-[11px] capitalize tracking-wide border-0 text-primary-foreground rounded-none">
 						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
-					<span className="text-[10px] sm:text-xs font-medium backdrop-blur-sm rounded-full bg-black/20 px-2 py-0.5 text-white/90">
+					<span className="text-[10px] sm:text-xs font-medium bg-black/40 px-2 py-0.5 text-white backdrop-blur-sm">
 						{isAvailable ? `${Math.min(100, Math.round(percentageUsed))}% claimed` : "Sold out"}
 					</span>
 				</div>
@@ -116,7 +116,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				</div>
 
 				{/* Desktop: Full validity card */}
-				<div className="hidden sm:block rounded-xl border border-primary/10 bg-primary/5 px-2.5 py-2 text-xs">
+				<div className="hidden sm:block border border-primary/10 bg-primary/5 px-2.5 py-2 text-xs">
 					<div className="flex items-center justify-between font-semibold text-primary">
 						<span>Validity</span>
 						<span className={validityColor}>
@@ -126,18 +126,18 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				</div>
 
 				{/* Desktop: Progress bar */}
-				<div className="hidden sm:flex flex-col gap-2 rounded-xl border bg-muted/30 px-3 py-3">
+				<div className="hidden sm:flex flex-col gap-2 border bg-muted/30 px-3 py-3">
 					<div className="flex items-center justify-between">
 						<p className="text-xs uppercase tracking-wide text-muted-foreground">Redeemed</p>
 						<p className="text-xl font-bold text-foreground">{Math.round(percentageUsed)}%</p>
 					</div>
-					<Progress value={percentageUsed} className="h-2" />
+					<Progress value={percentageUsed} className="h-2 rounded-none" />
 				</div>
 			</div>
 
 			<div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4">
 				<Button
-					className="w-full rounded-xl text-[11px] h-8 sm:h-9 font-medium sm:rounded-2xl sm:text-sm"
+					className="w-full rounded-none text-[11px] h-8 sm:h-9 font-medium sm:text-sm"
 					size="sm"
 					disabled={!isAvailable}
 					onClick={() => {
