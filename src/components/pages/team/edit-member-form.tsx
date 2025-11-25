@@ -13,6 +13,14 @@ import {
 	FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/hooks/use-auth";
 import { updateTeamMember } from "@/lib/api/team";
 import type { TeamMember } from "./columns";
 
@@ -25,16 +33,19 @@ export default function EditMemberForm({
 	member,
 	onClose,
 }: EditMemberFormProps) {
+	const { user } = useAuth();
 	const nameId = useId();
 	const emailId = useId();
 	const phoneId = useId();
 	const passwordId = useId();
+	const roleId = useId();
 
 	const [formData, setFormData] = useState({
 		full_name: member.full_name,
 		email: member.email,
 		phone: member.phone || "",
 		newPassword: "",
+		role: member.role,
 	});
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -80,7 +91,7 @@ export default function EditMemberForm({
 				full_name: formData.full_name,
 				email: formData.email,
 				phone: formData.phone || undefined,
-				role: member.role, // Keep existing role, don't allow changes
+				role: formData.role,
 				newPassword: formData.newPassword || undefined,
 			});
 		} catch {
@@ -152,6 +163,31 @@ export default function EditMemberForm({
 						</div>
 
 						<FieldSeparator />
+
+						{/* Role - Only visible for org_owner and not for org_owner members */}
+						{user?.role === "org_owner" && member.role !== "org_owner" && (
+							<>
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={roleId}>Role</FieldLabel>
+									<Select
+										value={formData.role}
+										onValueChange={(value) =>
+											handleChange("role", value)
+										}
+										disabled={updateMemberMutation.isPending}
+									>
+										<SelectTrigger id={roleId}>
+											<SelectValue placeholder="Select role" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="member">Member</SelectItem>
+											<SelectItem value="organizer">Organizer</SelectItem>
+										</SelectContent>
+									</Select>
+								</Field>
+								<FieldSeparator />
+							</>
+						)}
 
 						{/* New Password - Full Width */}
 						<Field orientation="vertical">

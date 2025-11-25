@@ -13,6 +13,14 @@ import {
 	FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/hooks/use-auth";
 import { createTeamMember } from "@/lib/api/team";
 
 interface CreateMemberFormProps {
@@ -20,11 +28,13 @@ interface CreateMemberFormProps {
 }
 
 export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
+	const { user } = useAuth();
 	const nameId = useId();
 	const emailId = useId();
 	const phoneId = useId();
 	const passwordId = useId();
 	const confirmPasswordId = useId();
+	const roleId = useId();
 
 	const [formData, setFormData] = useState({
 		full_name: "",
@@ -32,6 +42,7 @@ export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
 		phone: "",
 		password: "",
 		confirmPassword: "",
+		role: "member" as "member" | "organizer",
 	});
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -84,7 +95,7 @@ export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
 				email: formData.email,
 				phone: formData.phone || undefined,
 				password: formData.password,
-				role: "member", // Always create as member role
+				role: formData.role,
 			});
 		} catch {
 			// Error is handled by onError callback
@@ -155,6 +166,31 @@ export default function CreateMemberForm({ onClose }: CreateMemberFormProps) {
 						</div>
 
 						<FieldSeparator />
+
+						{/* Role - Only visible for org_owner */}
+						{user?.role === "org_owner" && (
+							<>
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={roleId}>Role</FieldLabel>
+									<Select
+										value={formData.role}
+										onValueChange={(value) =>
+											handleChange("role", value as "member" | "organizer")
+										}
+										disabled={createMemberMutation.isPending}
+									>
+										<SelectTrigger id={roleId}>
+											<SelectValue placeholder="Select role" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="member">Member</SelectItem>
+											<SelectItem value="organizer">Organizer</SelectItem>
+										</SelectContent>
+									</Select>
+								</Field>
+								<FieldSeparator />
+							</>
+						)}
 
 						{/* Password and Confirm Password - Two Columns */}
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
