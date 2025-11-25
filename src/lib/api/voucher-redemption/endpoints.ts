@@ -70,8 +70,28 @@ export async function redeemVoucher(
 		return transformRedemptionResponse(response);
 	} catch (error: unknown) {
 		console.error("Error redeeming voucher:", error);
-		const errorMessage =
-			error instanceof Error ? error.message : "Failed to redeem voucher";
+		
+		// Extract error message from backend response
+		let errorMessage = "Failed to redeem voucher";
+		
+		// Check if it's a ky HTTPError with response
+		if (error && typeof error === 'object' && 'response' in error) {
+			const httpError = error as { response: Response };
+			try {
+				const errorData = await httpError.response.json() as { message?: string; success?: boolean };
+				console.error("Backend error response:", errorData);
+				
+				// Use the backend's error message if available
+				if (errorData.message) {
+					errorMessage = errorData.message;
+				}
+			} catch (parseError) {
+				console.error("Failed to parse error response:", parseError);
+			}
+		} else if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+		
 		throw new Error(errorMessage);
 	}
 }
