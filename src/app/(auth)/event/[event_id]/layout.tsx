@@ -437,7 +437,7 @@ export default function EventDetailLayout({
 								<IconTitle
 									icon={RiCalendarEventFill}
 									title={currentEvent?.title || `Event ${event_id}`}
-									description={currentEvent?.description || "Manage and view details for this event"}
+									description="Manage and view details for this event"
 								/>
 							</div>
 							{currentEvent?.status && (

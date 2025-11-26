@@ -276,7 +276,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: archiveEvent,
 		onSuccess: () => {
 			toast.success("Event archived successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -288,7 +288,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: forceDeleteEvent,
 		onSuccess: () => {
 			toast.success("Event deleted successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -300,7 +300,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: restoreEvent,
 		onSuccess: () => {
 			toast.success("Event restored successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {

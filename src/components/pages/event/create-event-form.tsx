@@ -205,7 +205,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 							{/* Ticketing System */}
 							<Field orientation="vertical">
-								<FieldLabel htmlFor={useTicketId}>Ticketing System</FieldLabel>
+								<FieldLabel htmlFor={useTicketId}>Use Ticketing System</FieldLabel>
 								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 									<Switch
 										id={useTicketId}
