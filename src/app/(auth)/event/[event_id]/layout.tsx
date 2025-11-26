@@ -148,6 +148,24 @@ const tabItems: TabItem[] = [
 		route: "voucher-analytics",
 	},
 	{
+		id: "voucher-logs",
+		label: "Voucher Logs",
+		title: "Voucher Logs",
+		description:
+			"View all voucher redemption logs for this event.",
+		icon: Logs,
+		route: "voucher-logs",
+	},
+	{
+		id: "stamp-logs",
+		label: "Stamp Logs",
+		title: "Stamp Logs",
+		description:
+			"View all visitor stamp logs for this event.",
+		icon: Logs,
+		route: "stamp-logs",
+	},
+	{
 		id: "analytics",
 		label: "Ticket Analytics",
 		title: "Ticket Analytics",
@@ -257,35 +275,81 @@ export default function EventDetailLayout({
 				return permissions.isEventVendor || permissions.canManageEventVendors;
 			}
 
+			// Voucher logs - only for event admins and staff (not vendors)
+			if (tab.id === "voucher-logs") {
+				return permissions.canManageEventVendors || permissions.canManageEventStaff;
+			}
+
+			// Stamp logs - only for event admins and staff (not vendors), only for non-ticket events
+			if (tab.id === "stamp-logs") {
+				return (permissions.canManageEventVendors || permissions.canManageEventStaff) && currentEvent?.use_ticket === false;
+			}
+
 			// Visitors tab - only for non-ticket events, visible to event staff
 			if (tab.id === "visitors") {
 				return permissions.canViewVisitorsTab;
 			}
 
-			// Stamp scanner - visible to vendors and event staff for non-ticket events
+			// Stamp scanner - only for vendors
 			if (tab.id === "visitor-stamps") {
-				// Vendors can always see it
-				if (permissions.isEventVendor) {
-					return true;
-				}
-				// Event staff can see it only for non-ticket events
-				return permissions.canViewStampScannerTab;
+				return permissions.isEventVendor;
 			}
 
 			return true;
 		});
 		
-		// For vendors, reorder tabs to put location after vendors
-		if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+		// Sort tabs based on optimal UX order
+		const isTicketEvent = currentEvent?.use_ticket !== false;
+		const isVendor = permissions.isEventVendor && !permissions.canManageEventVendors;
+
+		if (isVendor) {
+			// Vendor tab order: Profile → Operations → Analytics
 			const vendorTabOrder = ["vendors", "location", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"];
 			return filtered.sort((a, b) => {
 				const indexA = vendorTabOrder.indexOf(a.id);
 				const indexB = vendorTabOrder.indexOf(b.id);
 				return indexA - indexB;
 			});
+		} else if (isTicketEvent) {
+			// Ticket event order: Location → Tickets → People → Partners → Promotions → Insights → History
+			const ticketEventOrder = [
+				"location",
+				"tickets", "pending-tickets", "scanned-logs", // Tickets group
+				"visitors",
+				"event-staff",
+				"vendors",
+				"vouchers",
+				"analytics", "voucher-analytics", // Analytics group
+				"voucher-logs", "export-logs", // Logs group
+			];
+			return filtered.sort((a, b) => {
+				const indexA = ticketEventOrder.indexOf(a.id);
+				const indexB = ticketEventOrder.indexOf(b.id);
+				// If not found in order array, put at end
+				const finalA = indexA === -1 ? 999 : indexA;
+				const finalB = indexB === -1 ? 999 : indexB;
+				return finalA - finalB;
+			});
+		} else {
+			// Non-ticket event order: Location → People → Partners → Promotions → Insights → History
+			const nonTicketEventOrder = [
+				"location",
+				"visitors",
+				"vendors",
+				"vouchers",
+				"event-staff",
+				"voucher-analytics", "mall-live-feed", // Analytics group
+				"voucher-logs", "stamp-logs", // Logs group
+			];
+			return filtered.sort((a, b) => {
+				const indexA = nonTicketEventOrder.indexOf(a.id);
+				const indexB = nonTicketEventOrder.indexOf(b.id);
+				// If not found in order array, put at end
+				const finalA = indexA === -1 ? 999 : indexA;
+				const finalB = indexB === -1 ? 999 : indexB;
+				return finalA - finalB;
+			});
 		}
-		
-		return filtered;
 	}, [currentEvent?.use_ticket, permissions]);
 
 	// Group ticket-related tabs for dropdown
@@ -300,9 +364,15 @@ export default function EventDetailLayout({
 		return visibleTabs.filter((tab) => analyticsTabIds.includes(tab.id));
 	}, [visibleTabs]);
 
-	// Main tabs (excluding ticket and analytics sub-tabs, but we'll add group tabs)
+	// Group logs-related tabs for dropdown
+	const logsTabIds = ["voucher-logs", "stamp-logs", "export-logs"];
+	const logsTabs = useMemo(() => {
+		return visibleTabs.filter((tab) => logsTabIds.includes(tab.id));
+	}, [visibleTabs]);
+
+	// Main tabs (excluding ticket, analytics, and logs sub-tabs, but we'll add group tabs)
 	const mainTabs = useMemo(() => {
-		const filtered = visibleTabs.filter((tab) => !ticketTabIds.includes(tab.id) && !analyticsTabIds.includes(tab.id));
+		const filtered = visibleTabs.filter((tab) => !ticketTabIds.includes(tab.id) && !analyticsTabIds.includes(tab.id) && !logsTabIds.includes(tab.id));
 		
 		// If there are ticket tabs, add a grouped "Tickets" tab
 		if (ticketTabs.length > 0) {
@@ -321,9 +391,7 @@ export default function EventDetailLayout({
 		
 		// If there are analytics tabs, add a grouped "Analytics" tab
 		if (analyticsTabs.length > 0) {
-			// Insert analytics group before export-logs or at the end
-			const exportLogsIndex = filtered.findIndex((tab) => tab.id === "export-logs");
-			const insertIndex = exportLogsIndex !== -1 ? exportLogsIndex : filtered.length;
+			// Insert analytics group at the end
 			const analyticsGroupTab: TabItem = {
 				id: "analytics-group",
 				label: "Analytics",
@@ -332,11 +400,25 @@ export default function EventDetailLayout({
 				icon: ChartBar,
 				route: "analytics", // Default to analytics page
 			};
-			filtered.splice(insertIndex, 0, analyticsGroupTab);
+			filtered.push(analyticsGroupTab);
+		}
+
+		// If there are logs tabs, add a grouped "Logs" tab
+		if (logsTabs.length > 0) {
+			// Insert logs group at the end
+			const logsGroupTab: TabItem = {
+				id: "logs-group",
+				label: "Logs",
+				title: "Activity Logs",
+				description: "View voucher redemption, stamp logs, and export logs",
+				icon: Logs,
+				route: "voucher-logs", // Default to voucher-logs page
+			};
+			filtered.push(logsGroupTab);
 		}
 		
 		return filtered;
-	}, [visibleTabs, ticketTabs, analyticsTabs]);
+	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs]);
 
 	// Update vendor tab label, title, and description based on user role
 	const tabsWithDynamicLabels = useMemo(() => {
@@ -380,6 +462,10 @@ export default function EventDetailLayout({
 			if (analyticsTabIds.includes(segment)) {
 				return "analytics-group";
 			}
+			// Check if it's a logs-related tab
+			if (logsTabIds.includes(segment)) {
+				return "logs-group";
+			}
 			if (visibleTabs.some((tab) => tab.route === segment)) {
 				return segment;
 			}
@@ -387,21 +473,21 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds]);
+	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
-		// If we're on a ticket-related or analytics-related page, find the specific tab
+		// If we're on a ticket-related, analytics-related, or logs-related page, find the specific tab
 		const segments = pathname.split("/").filter(Boolean);
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
-			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment)) {
+			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment) || logsTabIds.includes(segment)) {
 				return visibleTabs.find((item) => item.route === segment) || tabsWithDynamicLabels[0];
 			}
 		}
 		
 		return tabsWithDynamicLabels.find((item) => item.route === currentTab) || tabsWithDynamicLabels[0];
-	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds]);
+	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -465,6 +551,7 @@ export default function EventDetailLayout({
 							value={
 								currentTab === "tickets-group" ? "tickets" : 
 								currentTab === "analytics-group" ? "analytics" : 
+								currentTab === "logs-group" ? "voucher-logs" :
 								currentTab
 							} 
 							onValueChange={handleTabChange}
@@ -518,6 +605,25 @@ export default function EventDetailLayout({
 													<div className="flex items-center gap-2">
 														<AnalyticsIcon className="size-4" />
 														<span>{analyticsTab.label}</span>
+													</div>
+												</SelectItem>
+											);
+										});
+									}
+
+									// If this is the logs group, show all logs options
+									if (item.id === "logs-group") {
+										return logsTabs.map((logsTab) => {
+											const LogsIcon = logsTab.icon;
+											return (
+												<SelectItem
+													key={logsTab.id}
+													value={logsTab.route}
+													className="h-10! rounded-none"
+												>
+													<div className="flex items-center gap-2">
+														<LogsIcon className="size-4" />
+														<span>{logsTab.label}</span>
 													</div>
 												</SelectItem>
 											);
@@ -617,6 +723,46 @@ export default function EventDetailLayout({
 															>
 																<AnalyticsIcon className="mr-2 size-4" />
 																<span>{analyticsTab.label}</span>
+															</DropdownMenuItem>
+														);
+													})}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										);
+									}
+
+									// Render logs dropdown
+									if (item.id === "logs-group") {
+										const isLogsTabActive = logsTabIds.includes(currentTab) || currentTab === "logs-group";
+										
+										return (
+											<DropdownMenu key={item.id}>
+												<DropdownMenuTrigger asChild>
+													<button
+														className={cn(
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
+															"hover:bg-accent hover:text-accent-foreground",
+															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+															"dark:text-muted-foreground",
+															isLogsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+														)}
+													>
+														<IconComponent className="size-5 lg:size-4" />
+														<span className="hidden xl:inline">{item.label}</span>
+														<ChevronDown className="ml-0.5 size-3 opacity-50" />
+													</button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="start" className="min-w-[200px]">
+													{logsTabs.map((logsTab) => {
+														const LogsIcon = logsTab.icon;
+														return (
+															<DropdownMenuItem
+																key={logsTab.id}
+																onClick={() => handleTabChange(logsTab.route)}
+																className="cursor-pointer"
+															>
+																<LogsIcon className="mr-2 size-4" />
+																<span>{logsTab.label}</span>
 															</DropdownMenuItem>
 														);
 													})}
