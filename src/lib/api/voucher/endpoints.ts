@@ -212,6 +212,9 @@ export async function createVoucher(
 			);
 			formData.append("voucher_type", validated.voucher_type);
 			formData.append("voucher_value", validated.voucher_value.toString());
+			if (validated.voucher_category) {
+				formData.append("voucher_category", validated.voucher_category);
+			}
 			formData.append("image", validated.image);
 
 			const response = await restClient.postFormData<
@@ -245,6 +248,7 @@ export async function createVoucher(
 			max_redemptions_per_user: validated.max_redemptions_per_user,
 			voucher_type: validated.voucher_type,
 			voucher_value: validated.voucher_value,
+			voucher_category: validated.voucher_category,
 		});
 
 		// Handle wrapped response
