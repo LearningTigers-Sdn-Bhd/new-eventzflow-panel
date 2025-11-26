@@ -95,6 +95,7 @@ export default function EditVoucherForm({
 	const [globalLimit, setGlobalLimit] = useState("");
 	const [maxPerUser, setMaxPerUser] = useState("1");
 	const [image, setImage] = useState<File | null>(null);
+	const [imageRemoved, setImageRemoved] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch event vendors (merchants)
@@ -183,6 +184,7 @@ export default function EditVoucherForm({
 		setEndDate(parseDateTime(voucher.endDate, voucher.endTime));
 		setErrors({});
 		setImage(null);
+		setImageRemoved(false);
 	}, [voucher.id, voucher.title, voucher.description, voucher.vendorId, voucher.voucherType, voucher.voucherValue, voucher.voucherCode, voucher.voucherCategory, voucher.status, voucher.totalRedemptionAvailable, voucher.maxRedemptionsPerUser, voucher.startDate, voucher.startTime, voucher.endDate, voucher.endTime]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -255,7 +257,7 @@ export default function EditVoucherForm({
 			event_id: eventId,
 			title: title.trim(),
 			description: description.trim() || undefined,
-			voucher_code: voucherCode.trim() || undefined,
+			voucher_code: voucherCode.trim() || null,
 			status,
 			start_date: formatDate(startDate!),
 			end_date: formatDate(endDate!),
@@ -269,6 +271,7 @@ export default function EditVoucherForm({
 				? customCategory.trim() || undefined 
 				: voucherCategory.trim() || undefined,
 			image: image || undefined,
+			remove_image: imageRemoved && !image ? true : undefined,
 		});
 	};
 
@@ -621,8 +624,16 @@ export default function EditVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={image || voucher.imagePath || undefined}
-											onChange={(file) => setImage(file)}
+											value={imageRemoved ? undefined : (image || voucher.imagePath || undefined)}
+											onChange={(file) => {
+												if (file) {
+													setImage(file);
+													setImageRemoved(false);
+												} else {
+													setImage(null);
+													setImageRemoved(true);
+												}
+											}}
 											disabled={updateMutation.isPending}
 										/>
 										<FieldDescription>

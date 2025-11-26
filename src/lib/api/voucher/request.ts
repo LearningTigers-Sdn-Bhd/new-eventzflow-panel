@@ -26,7 +26,7 @@ export const updateVoucherSchema = z.object({
 	event_id: z.number().optional(),
 	title: z.string().min(2, "Title must be at least 2 characters").optional(),
 	description: z.string().optional(),
-	voucher_code: z.string().optional(),
+	voucher_code: z.string().nullable().optional(),
 	status: z.enum(["active", "inactive"]).optional(),
 	start_date: z.string().optional(),
 	end_date: z.string().optional(),
@@ -38,6 +38,7 @@ export const updateVoucherSchema = z.object({
 	voucher_value: z.number().min(0).optional(),
 	voucher_category: z.string().optional(),
 	image: z.any().optional(), // For file upload
+	remove_image: z.boolean().optional(), // For removing existing image
 });
 
 export const deleteVoucherSchema = z.object({
