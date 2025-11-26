@@ -244,23 +244,21 @@ export default function VoucherAnalyticsPage({
 								{data.topScannedVouchers.map((voucher, index) => (
 									<div
 										key={voucher.voucher_id}
-										className="flex items-center justify-between border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
+										className="flex items-center gap-3 border border-border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
 									>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-												{index + 1}
-											</div>
-											<div className="min-w-0 flex-1">
-												<p className="truncate font-semibold">{voucher.voucher_title}</p>
-												{voucher.voucher_code && (
-													<p className="text-xs text-muted-foreground">
-														{voucher.voucher_code}
-													</p>
-												)}
-											</div>
+										<div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+											{index + 1}
 										</div>
-										<div className="ml-4 flex-shrink-0 text-right">
-											<p className="text-2xl font-bold">{voucher.redemption_count}</p>
+										<div className="min-w-0 flex-1 overflow-hidden">
+											<p className="truncate text-sm font-semibold" title={voucher.voucher_title}>
+												{voucher.voucher_title}
+											</p>
+											<p className="truncate text-xs text-muted-foreground">
+												{voucher.vendor_name || "Unknown Vendor"}
+											</p>
+										</div>
+										<div className="flex-shrink-0 text-right">
+											<p className="text-lg font-bold">{voucher.redemption_count}</p>
 											<p className="text-xs text-muted-foreground">scans</p>
 										</div>
 									</div>
