@@ -13,9 +13,11 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { Store } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -128,9 +130,14 @@ export function DataTable<TData, TValue>({
 										>
 											<EmptyState
 												title="No vendors assigned"
-												description="Add vendors to this event to get started"
+												description="Assign existing vendors to this event. Need to create a new vendor first?"
 												icon={<Store />}
 												height="h-auto"
+												action={
+													<Button variant="link" asChild className="p-0 h-auto">
+														<Link href="/vendor">Go to Vendors page</Link>
+													</Button>
+												}
 											/>
 										</TableCell>
 									</TableRow>
@@ -152,9 +159,14 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No vendors assigned"
-								description="Add vendors to this event to get started"
+								description="Assign existing vendors to this event. Need to create a new vendor first?"
 								icon={<Store />}
 								height="h-auto"
+								action={
+									<Button variant="link" asChild className="p-0 h-auto">
+										<Link href="/vendor">Go to Vendors page</Link>
+									</Button>
+								}
 							/>
 						)}
 					</div>

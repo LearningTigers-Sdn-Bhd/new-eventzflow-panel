@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Info } from "lucide-react";
+import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { getEventVendorColumns } from "@/components/pages/event-vendors/table/columns";
 import { DataTable } from "@/components/pages/event-vendors/table/data-table";
@@ -48,6 +50,23 @@ export function VendorsListView({ eventId, canManageVendors }: VendorsListViewPr
 
 	return (
 		<div className="space-y-4">
+			<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex items-start gap-3">
+					<Info className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+					<div className="space-y-1">
+						<p className="text-sm font-medium">Assign vendors to this event</p>
+						<p className="text-sm text-muted-foreground">
+							This page shows vendors assigned to this event. To create new vendors, go to the Vendors page.
+						</p>
+					</div>
+				</div>
+				<Button variant="outline" asChild className="w-full rounded-none sm:w-auto sm:shrink-0">
+					<Link href="/vendor">
+						Go to Vendors
+						<ArrowRight className="ml-2 h-4 w-4" />
+					</Link>
+				</Button>
+			</div>
 			<DataTable columns={columns} data={vendors || []} />
 		</div>
 	);

@@ -13,9 +13,11 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { Users } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -128,9 +130,14 @@ export function DataTable<TData, TValue>({
 										>
 											<EmptyState
 												title="No staff members assigned"
-												description="Assign team members to this event to get started"
+												description="Assign team members to this event. Need to add new team members first?"
 												icon={<Users />}
 												height="h-auto"
+												action={
+													<Button variant="link" asChild className="p-0 h-auto">
+														<Link href="/team">Go to Team page</Link>
+													</Button>
+												}
 											/>
 										</TableCell>
 									</TableRow>
@@ -152,9 +159,14 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No staff members assigned"
-								description="Assign team members to this event to get started"
+								description="Assign team members to this event. Need to add new team members first?"
 								icon={<Users />}
 								height="h-auto"
+								action={
+									<Button variant="link" asChild className="p-0 h-auto">
+										<Link href="/team">Go to Team page</Link>
+									</Button>
+								}
 							/>
 						)}
 					</div>

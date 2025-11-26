@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
@@ -125,13 +126,18 @@ export default function AssignStaffForm({
 		return (
 			<EmptyState
 				title="No team members available"
-				description="All organization members are already assigned to this event or there are no team members to assign."
+				description="All organization members are already assigned to this event. Add new team members from the Team page."
 				icon={<UserPlus className="size-8" />}
 				height="h-[300px]"
 				action={
-					<Button onClick={onClose} variant="outline">
-						Close
-					</Button>
+					<div className="flex gap-2">
+						<Button onClick={onClose} variant="outline">
+							Close
+						</Button>
+						<Button asChild>
+							<Link href="/team">Go to Team</Link>
+						</Button>
+					</div>
 				}
 			/>
 		);

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 import { useId, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
@@ -89,7 +90,7 @@ export default function ManualAddForm({
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to add vendor");
+			toast.error(error.message || "Failed to assign vendor");
 		},
 	});
 
@@ -164,13 +165,18 @@ export default function ManualAddForm({
 		return (
 			<EmptyState
 				title="No vendors available"
-				description="There are no vendors in the system. Please create a vendor first."
+				description="There are no vendors in the system. Create vendors first from the Vendors page."
 				icon={<Building2 className="size-8" />}
 				height="h-[300px]"
 				action={
-					<Button onClick={onClose} variant="outline">
-						Close
-					</Button>
+					<div className="flex gap-2">
+						<Button onClick={onClose} variant="outline">
+							Close
+						</Button>
+						<Button asChild>
+							<Link href="/vendor">Go to Vendors</Link>
+						</Button>
+					</div>
 				}
 			/>
 		);
@@ -183,13 +189,18 @@ export default function ManualAddForm({
 		return (
 			<EmptyState
 				title="No active vendors available"
-				description="All vendors are currently inactive. Please activate a vendor first."
+				description="All vendors are currently inactive. Activate vendors from the Vendors page."
 				icon={<Building2 className="size-8" />}
 				height="h-[300px]"
 				action={
-					<Button onClick={onClose} variant="outline">
-						Close
-					</Button>
+					<div className="flex gap-2">
+						<Button onClick={onClose} variant="outline">
+							Close
+						</Button>
+						<Button asChild>
+							<Link href="/vendor">Go to Vendors</Link>
+						</Button>
+					</div>
 				}
 			/>
 		);
@@ -200,7 +211,7 @@ export default function ManualAddForm({
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldLegend className="font-bold text-xl">
-						Add Individual Vendor
+						Assign Individual Vendor
 					</FieldLegend>
 					<FieldDescription>
 						Select a vendor and configure their settings for this event.
@@ -258,7 +269,7 @@ export default function ManualAddForm({
 								</SelectContent>
 							</Select>
 							<FieldDescription>
-								Select a vendor to add to this event.
+								Select a vendor to assign to this event.
 							</FieldDescription>
 						</Field>
 
@@ -337,7 +348,7 @@ export default function ManualAddForm({
 								Cancel
 							</Button>
 							<Button type="submit" disabled={createVendorMutation.isPending}>
-								{createVendorMutation.isPending ? "Adding..." : "Add Vendor"}
+								{createVendorMutation.isPending ? "Assigning..." : "Assign Vendor"}
 							</Button>
 						</div>
 					</FieldGroup>

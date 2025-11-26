@@ -13,7 +13,7 @@ export function EventVendorsPageButton() {
 	const { openDialog, closeDialog } = useDialog();
 	const permissions = useEventPermissions(eventId);
 
-	const handleAddVendor = () => {
+	const handleAssignVendor = () => {
 		openDialog({
 			component: AddVendorModal,
 			props: {
@@ -21,14 +21,14 @@ export function EventVendorsPageButton() {
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Add Vendor to Event",
-				description: "Add vendors to this event individually or from a group.",
+				title: "Assign Vendor to Event",
+				description: "Assign vendors to this event individually or from a group.",
 				size: "full",
 			},
 		});
 	};
 
-	// Only event_admin (or org_owner) can add vendors
+	// Only event_admin (or org_owner) can assign vendors
 	if (!permissions.canManageEventVendors) {
 		return null;
 	}
@@ -36,11 +36,11 @@ export function EventVendorsPageButton() {
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
 			<Button
-				onClick={handleAddVendor}
+				onClick={handleAssignVendor}
 				className="w-full rounded-none lg:w-auto"
 			>
 				<Plus className="mr-2 h-4 w-4" />
-				Add Vendor
+				Assign Vendor
 			</Button>
 		</div>
 	);
