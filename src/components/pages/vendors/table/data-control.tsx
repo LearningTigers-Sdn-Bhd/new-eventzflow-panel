@@ -34,7 +34,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["full_name", "email", "phone"]}
+						columns={["full_name", "person_in_charge"]}
 						placeholder="Search vendors..."
 					/>
 					<DropdownMenu>
@@ -78,7 +78,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						table={table}
 						placeholder="Search vendors..."
 					/>
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+					<div className="grid grid-cols-2 gap-2">
 						<Button
 							variant="outline"
 							onClick={() =>
@@ -95,26 +95,6 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								className={cn(
 									"size-3.5 transition-transform",
 									table.getColumn("full_name")?.getIsSorted() === "asc" &&
-										"-rotate-180",
-								)}
-							/>
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() =>
-								table
-									.getColumn("email")
-									?.toggleSorting(
-										table.getColumn("email")?.getIsSorted() === "asc",
-									)
-							}
-							className="flex items-center justify-between rounded-none text-xs"
-						>
-							Email
-							<ArrowDown
-								className={cn(
-									"size-3.5 transition-transform",
-									table.getColumn("email")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>

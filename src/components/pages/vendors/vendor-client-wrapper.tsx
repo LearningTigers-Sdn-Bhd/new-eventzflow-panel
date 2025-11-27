@@ -33,8 +33,9 @@ export default function VendorClientWrapper({
 			},
 			config: {
 				title: "Add Vendor",
-				description: "Create a new vendor account with login credentials.",
-				size: "2xl",
+				description: "Create a new vendor account with profile details",
+				size: "full",
+				showCloseButton: true,
 			},
 		});
 	};
