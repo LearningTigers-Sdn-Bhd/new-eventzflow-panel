@@ -89,7 +89,7 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 					<div>
 						<h3 className="font-semibold text-lg">Scan Visitor QR Code</h3>
 						<p className="text-muted-foreground text-sm">
-							Enter visitor public ID to create a stamp
+							Enter visitor ID to create a stamp
 						</p>
 					</div>
 				</div>
@@ -105,12 +105,12 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 					)}
 
 					<div className="space-y-2">
-						<Label htmlFor="publicId">Visitor Public ID</Label>
+						<Label htmlFor="publicId">Visitor ID</Label>
 						<Input
 							id="publicId"
 							value={publicId}
 							onChange={(e) => setPublicId(e.target.value)}
-							placeholder="VIS-ABC123"
+							placeholder="Enter visitor ID"
 							required
 						/>
 					</div>

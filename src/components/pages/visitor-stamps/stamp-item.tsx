@@ -15,35 +15,36 @@ interface VisitorStampItemProps {
 }
 
 export function VisitorStampItem({ stamp }: VisitorStampItemProps) {
+	const hasContact = stamp.visitor_email || stamp.visitor_phone;
+
 	return (
 		<Item variant="outline" className="h-full w-full">
-			<ItemHeader className="flex flex-col gap-3">
+			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="w-full">
 					<h3 className="font-bold text-lg leading-tight">{stamp.visitor_name}</h3>
 				</ItemTitle>
-				<ItemDescription className="flex w-full justify-start">
-					<code className="break-all bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
-						{stamp.visitor_public_id}
-					</code>
-				</ItemDescription>
+				{hasContact && (
+					<ItemDescription className="flex w-full flex-col gap-1">
+						{stamp.visitor_phone && (
+							<div className="flex items-center gap-1.5">
+								<Phone className="size-3 shrink-0 text-muted-foreground" />
+								<span className="font-medium text-muted-foreground text-sm">
+									{stamp.visitor_phone}
+								</span>
+							</div>
+						)}
+						{stamp.visitor_email && (
+							<div className="flex items-center gap-1.5">
+								<Mail className="size-3 shrink-0 text-muted-foreground" />
+								<span className="break-all font-medium text-muted-foreground text-sm">
+									{stamp.visitor_email}
+								</span>
+							</div>
+						)}
+					</ItemDescription>
+				)}
 			</ItemHeader>
 			<ItemContent className="flex flex-col gap-3">
-				{stamp.visitor_email && (
-					<div className="flex items-start gap-2">
-						<Mail className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-						<span className="break-all font-medium text-muted-foreground text-sm">
-							{stamp.visitor_email}
-						</span>
-					</div>
-				)}
-				{stamp.visitor_phone && (
-					<div className="flex items-center gap-2">
-						<Phone className="size-4 shrink-0 text-muted-foreground" />
-						<span className="font-medium text-muted-foreground text-sm">
-							{stamp.visitor_phone}
-						</span>
-					</div>
-				)}
 				<div className="flex items-center gap-2">
 					<Store className="size-4 shrink-0 text-muted-foreground" />
 					<span className="font-medium text-muted-foreground text-sm">

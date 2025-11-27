@@ -123,11 +123,11 @@ export function QuerySearchField<TData, TValue>(
 					
 					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
 
-					// For phone column, remove common formatting characters for flexible matching
-					if (colId === "phone") {
-						// Remove spaces, dashes, parentheses, and dots from both search and value
-						const normalizedSearch = searchTerm.replace(/[\s\-().]/g, "");
-						const normalizedPhone = cellString.replace(/[\s\-().]/g, "");
+					// For phone columns, remove common formatting characters for flexible matching
+					if (colId === "phone" || colId.includes("phone")) {
+						// Remove spaces, dashes, parentheses, dots, and plus signs from both search and value
+						const normalizedSearch = searchTerm.replace(/[\s\-().+]/g, "");
+						const normalizedPhone = cellString.replace(/[\s\-().+]/g, "");
 						return normalizedPhone.includes(normalizedSearch);
 					}
 

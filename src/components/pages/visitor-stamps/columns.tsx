@@ -4,7 +4,7 @@ import { Label } from "@radix-ui/react-label";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, Copy, Eye, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { cn } from "@/lib/utils";
@@ -189,11 +189,8 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 		cell: ({ row }) => {
 			const stamp = row.original;
 			return (
-				<div className="flex flex-col gap-1">
+				<div className="flex flex-col">
 					<h3 className="font-medium">{stamp.visitor_name}</h3>
-					<p className="text-muted-foreground text-sm">
-						{stamp.visitor_email || "No email"}
-					</p>
 				</div>
 			);
 		},
@@ -240,33 +237,38 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 		},
 	},
 	{
-		accessorKey: "visitor_public_id",
-		size: 180,
-		header: ({ column }) => {
+		id: "contact",
+		size: 220,
+		header: () => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Public ID</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
+					<p className="font-medium">Contact</p>
 				</div>
 			);
 		},
 		cell: ({ row }) => {
+			const stamp = row.original;
+			const phone = stamp.visitor_phone;
+			const email = stamp.visitor_email;
+
 			return (
-				<code className="rounded bg-muted px-2 py-1 font-mono text-xs">
-					{row.getValue("visitor_public_id")}
-				</code>
+				<div className="flex flex-col gap-1 min-w-0">
+					{phone && (
+						<div className="flex items-center gap-1.5 text-sm">
+							<Phone className="size-3 shrink-0 text-muted-foreground" />
+							<span className="truncate">{phone}</span>
+						</div>
+					)}
+					{email && (
+						<div className="flex items-center gap-1.5 text-sm">
+							<Mail className="size-3 shrink-0 text-muted-foreground" />
+							<span className="truncate max-w-[180px]" title={email}>{email}</span>
+						</div>
+					)}
+					{!phone && !email && (
+						<span className="text-muted-foreground text-sm">No contact info</span>
+					)}
+				</div>
 			);
 		},
 	},
