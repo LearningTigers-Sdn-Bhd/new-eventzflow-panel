@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
-import { AlertTriangle, ArrowLeft, Calendar, CheckCircle2, Clock, Copy, Hourglass, QrCode, Quote, Share2, Sparkles, Store, Ticket, Zap } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calendar, CheckCircle2, Clock, Copy, Hourglass, QrCode, Share2, Sparkles, Store, Ticket, Zap } from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -14,33 +14,34 @@ import { getPublicVoucher } from "@/lib/api/voucher";
 import { getPublicEventById } from "@/lib/api/event";
 import { EventNotFound } from "./event-not-found";
 
-type VoucherStatus = {
-	label: string;
-	description: string;
+type VoucherMessage = {
+	headline: string;
+	subtext: string;
 	color: string;
 	bgColor: string;
 	icon: React.ReactNode;
 };
 
-function getVoucherStatus(voucher: {
+function getVoucherMessage(voucher: {
 	startDate: string;
 	endDate: string;
 	totalRedemptionAvailable: number;
 	redeemedCount: number;
-}): VoucherStatus {
+}): VoucherMessage {
 	const now = new Date();
 	const startDate = new Date(voucher.startDate);
 	const endDate = new Date(voucher.endDate);
 	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2 && remaining > 0;
+	const total = voucher.totalRedemptionAvailable;
+	const claimedPercent = total > 0 ? ((total - remaining) / total) * 100 : 0;
 	const isSoldOut = remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
 
-	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Limited Stock > Available
+	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Claim levels > Available
 	if (isSoldOut) {
 		return {
-			label: "Sold Out",
-			description: "This voucher has been fully redeemed",
+			headline: "We're sorry, this voucher is overclaimed",
+			subtext: "It's a bummer, we may raise some more vouchers soon…",
 			color: "text-red-600",
 			bgColor: "bg-red-500/10 border-red-500/20",
 			icon: <AlertTriangle className="h-4 w-4" />,
@@ -49,8 +50,8 @@ function getVoucherStatus(voucher: {
 
 	if (isPast(endDate)) {
 		return {
-			label: "Expired",
-			description: "This voucher is no longer valid",
+			headline: "Oops, you just missed it!",
+			subtext: "This voucher has expired. Keep an eye out for new ones!",
 			color: "text-red-600",
 			bgColor: "bg-red-500/10 border-red-500/20",
 			icon: <Clock className="h-4 w-4" />,
@@ -59,8 +60,8 @@ function getVoucherStatus(voucher: {
 
 	if (now < startDate) {
 		return {
-			label: "Upcoming",
-			description: "This voucher is not yet active",
+			headline: "Coming soon!",
+			subtext: "This voucher isn't active yet. Mark your calendar and check back!",
 			color: "text-blue-600",
 			bgColor: "bg-blue-500/10 border-blue-500/20",
 			icon: <Hourglass className="h-4 w-4" />,
@@ -69,27 +70,48 @@ function getVoucherStatus(voucher: {
 
 	if (daysUntilEnd <= 3) {
 		return {
-			label: "Ending Soon",
-			description: "Hurry! This voucher expires soon",
+			headline: "Finishing soon…",
+			subtext: "Time's running out! Grab this before it's gone.",
 			color: "text-orange-600",
 			bgColor: "bg-orange-500/10 border-orange-500/20",
 			icon: <Clock className="h-4 w-4" />,
 		};
 	}
 
-	if (isLowStock) {
+	// Messages based on claim percentage
+	if (claimedPercent >= 80) {
 		return {
-			label: "Limited Stock",
-			description: "Only a few vouchers remaining",
-			color: "text-amber-600",
-			bgColor: "bg-amber-500/10 border-amber-500/20",
+			headline: "Not many left…",
+			subtext: "Almost gone! Only a handful remaining.",
+			color: "text-red-500",
+			bgColor: "bg-red-500/10 border-red-500/20",
 			icon: <Zap className="h-4 w-4" />,
 		};
 	}
 
+	if (claimedPercent >= 60) {
+		return {
+			headline: "It's going fast…",
+			subtext: "Still available, but not for long!",
+			color: "text-orange-600",
+			bgColor: "bg-orange-500/10 border-orange-500/20",
+			icon: <Zap className="h-4 w-4" />,
+		};
+	}
+
+	if (claimedPercent >= 40) {
+		return {
+			headline: "Many have claimed this…",
+			subtext: "People are loving this one. Don't miss out!",
+			color: "text-amber-600",
+			bgColor: "bg-amber-500/10 border-amber-500/20",
+			icon: <Ticket className="h-4 w-4" />,
+		};
+	}
+
 	return {
-		label: "Available",
-		description: "This voucher is ready to be redeemed",
+		headline: "Grab while it lasts…",
+		subtext: "This voucher is up for grabs. Claim yours now!",
 		color: "text-emerald-600",
 		bgColor: "bg-emerald-500/10 border-emerald-500/20",
 		icon: <Ticket className="h-4 w-4" />,
@@ -174,9 +196,7 @@ export function PublicVoucherDetail() {
 		);
 	}
 
-	const status = getVoucherStatus(voucher);
-	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const canClaim = remaining > 0 && !isPast(new Date(voucher.endDate));
+	const voucherMessage = getVoucherMessage(voucher);
 
 	const redemptionCode = voucher.voucherUuid;
 	const qrValue = voucher.voucherUuid;
@@ -239,7 +259,7 @@ export function PublicVoucherDetail() {
 				</div>
 
 				{/* Main Content - Grid Layout */}
-				<div className="flex-1 overflow-auto flex items-center justify-center">
+				<div className="flex-1 overflow-auto">
 					<div className="mx-auto max-w-[1800px] w-full p-4 md:p-6">
 						<div className="grid grid-cols-12 gap-4 items-stretch">
 						{/* Left Column - QR Code */}
@@ -284,10 +304,10 @@ export function PublicVoucherDetail() {
 										<Sparkles className="mr-1 h-3 w-3" />
 										{(voucher.voucherType || "").replace(/_/g, " ")}
 									</Badge>
-									{/* Status badge */}
-									<span className={`inline-flex h-6 items-center gap-1.5 border px-2.5 text-xs font-semibold ${status.bgColor} ${status.color}`}>
-										{status.icon}
-										{status.label}
+									{/* Message badge */}
+									<span className={`inline-flex h-6 items-center gap-1.5 border px-2.5 text-xs font-semibold ${voucherMessage.bgColor} ${voucherMessage.color}`}>
+										{voucherMessage.icon}
+										{voucherMessage.headline}
 									</span>
 								</div>
 
@@ -318,29 +338,34 @@ export function PublicVoucherDetail() {
 										)}
 									</div>
 								</div>
-								{voucher.description && (
-									<p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
-										{voucher.description}
-									</p>
-								)}
 							</div>
 
-							{/* Status & Validity Card */}
-							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-								<div className={`rounded-none border p-4 shadow-none ${status.bgColor}`}>
-									<div className="mb-2 flex items-center gap-1.5 text-muted-foreground">
-										<Clock className="h-3.5 w-3.5" />
-										<p className="text-[10px] font-medium uppercase tracking-wider">Status</p>
-									</div>
-									<p className={`text-lg font-bold ${status.color}`}>
-										{status.label}
+							{/* Description Card - Full text */}
+							{voucher.description && (
+								<div className="rounded-none border bg-background p-5 shadow-none">
+									<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
+										Description
+									</p>
+									<p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap text-justify">
+										{voucher.description}
 									</p>
 								</div>
-								<div className="rounded-none border bg-background p-4 shadow-none flex items-center gap-4">
-									<Quote className="h-10 w-10 text-muted-foreground/20 shrink-0 fill-current" />
-									<p className="text-sm font-medium leading-relaxed text-muted-foreground">
-										{status.description}
-									</p>
+							)}
+
+							{/* Voucher Message Card */}
+							<div className={`rounded-none border p-5 shadow-none ${voucherMessage.bgColor}`}>
+								<div className="flex items-center gap-4">
+									<div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${voucherMessage.bgColor}`}>
+										{voucherMessage.icon}
+									</div>
+									<div className="flex-1">
+										<p className={`text-lg font-bold ${voucherMessage.color}`}>
+											{voucherMessage.headline}
+										</p>
+										<p className="text-sm text-muted-foreground mt-1">
+											{voucherMessage.subtext}
+										</p>
+									</div>
 								</div>
 							</div>
 

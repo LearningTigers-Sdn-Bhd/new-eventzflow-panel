@@ -1,11 +1,11 @@
 "use client";
 
-import { AlertTriangle, Building2, Calendar, Clock, Hourglass, Ticket, Zap } from "lucide-react";
+import { AlertTriangle, Building2, Clock, Hourglass, Ticket, Zap } from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { intervalToDuration, isPast, differenceInDays } from "date-fns";
+import { isPast, differenceInDays } from "date-fns";
 
 import type { Voucher } from "@/lib/api/voucher";
 
@@ -13,72 +13,110 @@ interface PublicVoucherCardProps {
 	voucher: Voucher;
 }
 
-type VoucherStatus = {
-	label: string;
+type VoucherMessage = {
+	headline: string;
+	badge: string;
 	color: string;
 	bgColor: string;
+	badgeBg: string; // Solid color for badge on image overlay
 	icon: React.ReactNode;
 };
 
-function getVoucherStatus(voucher: Voucher): VoucherStatus {
+function getVoucherMessage(voucher: Voucher): VoucherMessage {
 	const now = new Date();
 	const startDate = new Date(voucher.startDate);
 	const endDate = new Date(voucher.endDate);
 	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const isLowStock = remaining <= voucher.totalRedemptionAvailable * 0.2 && remaining > 0;
+	const total = voucher.totalRedemptionAvailable;
+	const claimedPercent = total > 0 ? ((total - remaining) / total) * 100 : 0;
 	const isSoldOut = remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
 
-	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Limited Stock > Available
+	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Claim levels > Available
 	if (isSoldOut) {
 		return {
-			label: "Sold Out",
+			headline: "Sorry, this one's overclaimed",
+			badge: "Overclaimed",
 			color: "text-red-600",
 			bgColor: "bg-red-500/10 border-red-500/20",
+			badgeBg: "bg-red-600 text-white border-0",
 			icon: <AlertTriangle className="h-3 w-3" />,
 		};
 	}
 
 	if (isPast(endDate)) {
 		return {
-			label: "Expired",
+			headline: "You just missed it!",
+			badge: "Expired",
 			color: "text-red-600",
 			bgColor: "bg-red-500/10 border-red-500/20",
+			badgeBg: "bg-red-600 text-white border-0",
 			icon: <Clock className="h-3 w-3" />,
 		};
 	}
 
 	if (now < startDate) {
 		return {
-			label: "Upcoming",
+			headline: "Coming soon!",
+			badge: "Coming soon",
 			color: "text-blue-600",
 			bgColor: "bg-blue-500/10 border-blue-500/20",
+			badgeBg: "bg-blue-600 text-white border-0",
 			icon: <Hourglass className="h-3 w-3" />,
 		};
 	}
 
 	if (daysUntilEnd <= 3) {
 		return {
-			label: "Ending Soon",
+			headline: "Finishing soon…",
+			badge: "Ending soon",
 			color: "text-orange-600",
 			bgColor: "bg-orange-500/10 border-orange-500/20",
+			badgeBg: "bg-orange-500 text-white border-0",
 			icon: <Clock className="h-3 w-3" />,
 		};
 	}
 
-	if (isLowStock) {
+	// Messages based on claim percentage
+	if (claimedPercent >= 80) {
 		return {
-			label: "Limited Stock",
-			color: "text-amber-600",
-			bgColor: "bg-amber-500/10 border-amber-500/20",
+			headline: "Not many left…",
+			badge: "Almost gone",
+			color: "text-red-500",
+			bgColor: "bg-red-500/10 border-red-500/20",
+			badgeBg: "bg-red-500 text-white border-0",
 			icon: <Zap className="h-3 w-3" />,
 		};
 	}
 
+	if (claimedPercent >= 60) {
+		return {
+			headline: "It's going fast…",
+			badge: "Going fast",
+			color: "text-orange-600",
+			bgColor: "bg-orange-500/10 border-orange-500/20",
+			badgeBg: "bg-orange-500 text-white border-0",
+			icon: <Zap className="h-3 w-3" />,
+		};
+	}
+
+	if (claimedPercent >= 40) {
+		return {
+			headline: "Many have claimed this…",
+			badge: "Popular",
+			color: "text-amber-600",
+			bgColor: "bg-amber-500/10 border-amber-500/20",
+			badgeBg: "bg-amber-500 text-white border-0",
+			icon: <Ticket className="h-3 w-3" />,
+		};
+	}
+
 	return {
-		label: "Available",
+		headline: "Grab while it lasts…",
+		badge: "Available",
 		color: "text-emerald-600",
 		bgColor: "bg-emerald-500/10 border-emerald-500/20",
+		badgeBg: "bg-emerald-600 text-white border-0",
 		icon: <Ticket className="h-3 w-3" />,
 	};
 }
@@ -90,7 +128,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
 	const isAvailable = remaining > 0 && !isPast(new Date(voucher.endDate));
 
-	const status = getVoucherStatus(voucher);
+	const voucherMessage = getVoucherMessage(voucher);
 
 	return (
 		<article className="group flex h-full flex-col overflow-hidden rounded-none border border-border bg-background transition hover:border-primary/50">
@@ -117,10 +155,10 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					<Badge variant="secondary" className="w-fit bg-primary/90 text-[9px] sm:text-[11px] capitalize tracking-wide border-0 text-primary-foreground rounded-none">
 						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
-					{/* Status badge instead of percentage claimed */}
-					<span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 border backdrop-blur-sm ${status.bgColor} ${status.color}`}>
-						{status.icon}
-						{status.label}
+					{/* Message badge - solid color for visibility on images */}
+					<span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 ${voucherMessage.badgeBg}`}>
+						{voucherMessage.icon}
+						{voucherMessage.badge}
 					</span>
 				</div>
 			</div>
@@ -136,26 +174,26 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					</div>
 				</div>
 
-				<p className="hidden sm:block text-xs leading-relaxed text-muted-foreground line-clamp-2 sm:text-sm">
-					{voucher.description || "No description available"}
-				</p>
+				{/* Description - hidden on mobile, max 2 lines on desktop */}
+				{voucher.description && (
+					<p className="hidden sm:line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+						{voucher.description}
+					</p>
+				)}
 
-				{/* Mobile: Minimalist status info */}
+				{/* Mobile: Minimalist message */}
 				<div className="flex items-center gap-1 sm:hidden text-[10px] text-muted-foreground">
-					<Calendar className="h-3 w-3" />
-					<span className={status.color}>
-						{status.label}
+					{voucherMessage.icon}
+					<span className={voucherMessage.color}>
+						{voucherMessage.badge}
 					</span>
 				</div>
 
-				{/* Desktop: Status card */}
-				<div className="hidden sm:block border border-primary/10 bg-primary/5 px-2.5 py-2 text-xs">
-					<div className="flex items-center justify-between font-semibold text-primary">
-						<span>Status</span>
-						<span className={`flex items-center gap-1.5 ${status.color}`}>
-							{status.icon}
-							{status.label}
-						</span>
+				{/* Desktop: Full message */}
+				<div className={`hidden sm:block border px-2.5 py-2 text-xs ${voucherMessage.bgColor}`}>
+					<div className={`flex items-center gap-1.5 font-semibold ${voucherMessage.color}`}>
+						{voucherMessage.icon}
+						<span>{voucherMessage.headline}</span>
 					</div>
 				</div>
 			</div>
