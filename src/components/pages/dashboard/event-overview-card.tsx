@@ -81,7 +81,7 @@ export function EventOverviewCard({
 							<span>Revenue</span>
 						</div>
 						<p className="font-bold text-xl">
-							${event.totalRevenue.toLocaleString()}
+							RM{event.totalRevenue.toLocaleString()}
 						</p>
 					</div>
 					<div className="space-y-1">

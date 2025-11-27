@@ -6,13 +6,21 @@ import { ErrorState } from "@/components/data-state";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
+import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
+import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 
 export default function DashboardPage() {
 	const isHydrated = useHydratedStore();
+	const { user } = useAuth();
+
+	// Show vendor dashboard for vendor role
+	if (user?.role === "vendor") {
+		return <VendorDashboard />;
+	}
 
 	const [
 		{ data: stats, isLoading: statsLoading, error: statsError },
