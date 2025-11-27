@@ -25,7 +25,7 @@ export const updateVoucherSchema = z.object({
 	vendor_id: z.number().optional(),
 	event_id: z.number().optional(),
 	title: z.string().min(2, "Title must be at least 2 characters").optional(),
-	description: z.string().optional(),
+	description: z.string().nullable().optional(),
 	voucher_code: z.string().nullable().optional(),
 	status: z.enum(["active", "inactive"]).optional(),
 	start_date: z.string().optional(),

@@ -256,7 +256,7 @@ export default function EditVoucherForm({
 			vendor_id: Number(merchantId),
 			event_id: eventId,
 			title: title.trim(),
-			description: description.trim() || undefined,
+			description: description.trim() || null,
 			voucher_code: voucherCode.trim() || null,
 			status,
 			start_date: formatDate(startDate!),
