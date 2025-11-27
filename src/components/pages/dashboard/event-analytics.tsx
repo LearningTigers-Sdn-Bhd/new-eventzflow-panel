@@ -11,6 +11,8 @@ import {
 	Scan,
 	ScanFace,
 	Search,
+	ShoppingBag,
+	Stamp,
 	Ticket,
 	TrendingUp,
 	Users,
@@ -30,6 +32,9 @@ import { IconTitle } from "@/components/ui/icon-heading";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
+import { getEventById } from "@/lib/api/event";
+import { getMallLiveFeed } from "@/lib/api/event/analytics";
+import { useUserSessionStore } from "@/stores/new-auth-store";
 
 interface EventAnalyticsProps {
 	eventId: string;
@@ -46,15 +51,44 @@ export function EventAnalytics({
 }: EventAnalyticsProps) {
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
+
+	// Get user role to determine Live Feed visibility (must be before any early returns)
+	const user = useUserSessionStore((state) => state.user);
+	const canViewLiveFeed = user?.role === "org_owner" || user?.role === "organizer";
+
+	// Fetch event details to determine event type
+	const { data: eventDetails, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+
+	const isTicketEvent = eventDetails?.use_ticket !== false;
+
+	// Fetch ticket analytics (for ticket events)
 	const {
 		data: analytics,
-		isLoading,
-		error,
+		isLoading: analyticsLoading,
+		error: analyticsError,
 	} = useQuery({
 		queryKey: ["event-analytics", eventId],
 		queryFn: () => getEventAnalytics(eventId),
 		initialData,
+		enabled: isTicketEvent,
 	});
+
+	// Fetch mall live feed (for non-ticket events)
+	const {
+		data: mallData,
+		isLoading: mallLoading,
+		error: mallError,
+	} = useQuery({
+		queryKey: ["event", eventId, "mall-live-feed"],
+		queryFn: () => getMallLiveFeed({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
+	const isLoading = eventLoading || (isTicketEvent ? analyticsLoading : mallLoading);
+	const error = isTicketEvent ? analyticsError : mallError;
 
 	if (isLoading) {
 		return (
@@ -65,7 +99,7 @@ export function EventAnalytics({
 		);
 	}
 
-	if (error || !analytics) {
+	if (error || (isTicketEvent && !analytics)) {
 		return (
 			<ErrorState
 				title="Failed to load analytics"
@@ -82,9 +116,28 @@ export function EventAnalytics({
 		);
 	}
 
+	// For non-ticket events, render visitor analytics
+	if (!isTicketEvent) {
+		return (
+			<VisitorEventAnalytics
+				eventId={eventId}
+				eventName={eventDetails?.title || "Event"}
+				status={eventDetails?.status === "published" ? "active" : "inactive"}
+				mallData={mallData}
+				onBack={onBack}
+				showBackButton={showBackButton}
+				router={router}
+				canViewLiveFeed={canViewLiveFeed}
+			/>
+		);
+	}
+
+	// For ticket events, render ticket analytics
+	// At this point, analytics is guaranteed to exist due to the error check above
+	const ticketAnalytics = analytics!;
 	const scanRate =
-		analytics.totalTickets > 0
-			? Math.round((analytics.scannedTickets / analytics.totalTickets) * 100)
+		ticketAnalytics.totalTickets > 0
+			? Math.round((ticketAnalytics.scannedTickets / ticketAnalytics.totalTickets) * 100)
 			: 0;
 
 	return (
@@ -101,16 +154,16 @@ export function EventAnalytics({
 						<div className="w-full">
 							<IconTitle
 								icon={RiCalendarEventLine}
-								title={analytics.eventName}
+								title={ticketAnalytics.eventName}
 								description="Track your event efficiently"
 							/>
 							<Badge
 								className="mt-2 ml-12 rounded-none"
 								variant={
-									analytics.status === "active" ? "default" : "destructive"
+									ticketAnalytics.status === "active" ? "default" : "destructive"
 								}
 							>
-								{analytics.status === "active" ? "Active" : "Inactive"}
+								{ticketAnalytics.status === "active" ? "Active" : "Inactive"}
 							</Badge>
 						</div>
 						<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
@@ -144,25 +197,25 @@ export function EventAnalytics({
 			<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-4">
 				<StatsCard
 					label="Total Tickets"
-					value={analytics.totalTickets}
+					value={ticketAnalytics.totalTickets}
 					Icon={Ticket}
 				/>
 
 				<StatsCard
 					label="Scanned Tickets"
-					value={analytics.scannedTickets}
+					value={ticketAnalytics.scannedTickets}
 					Icon={QrCode}
 				/>
 
 				<StatsCard
 					label="Unscanned Tickets"
-					value={analytics.unscannedTickets}
+					value={ticketAnalytics.unscannedTickets}
 					Icon={Clock}
 				/>
 
 				<StatsCard
 					label="Total Amount"
-					value={analytics.totalRevenue.toLocaleString()}
+					value={ticketAnalytics.totalRevenue.toLocaleString()}
 					Icon={TrendingUp}
 				/>
 			</div>
@@ -173,7 +226,7 @@ export function EventAnalytics({
 				<WeeklyChart
 					title="Weekly Registered Tickets"
 					description="Ticket registrations over the last 7 days"
-					data={analytics.registrationData.map((d) => ({
+					data={ticketAnalytics.registrationData.map((d) => ({
 						date: d.date,
 						count: d.value,
 					}))}
@@ -186,7 +239,7 @@ export function EventAnalytics({
 				<WeeklyChart
 					title="Weekly Scanned Tickets"
 					description="Ticket scans over the last 7 days"
-					data={analytics.scanData.map((d) => ({
+					data={ticketAnalytics.scanData.map((d) => ({
 						date: d.date,
 						count: d.value,
 					}))}
@@ -199,7 +252,7 @@ export function EventAnalytics({
 				<WeeklyChart
 					title="Weekly Sales Amount"
 					description="Sales revenue over the last 7 days"
-					data={analytics.revenueData.map((d) => ({
+					data={ticketAnalytics.revenueData.map((d) => ({
 						date: d.date,
 						count: d.value,
 					}))}
@@ -221,7 +274,7 @@ export function EventAnalytics({
 									<MapPin className="size-4" />
 									<span className="text-sm">Locations</span>
 								</div>
-								<span className="font-semibold">{analytics.locations}</span>
+								<span className="font-semibold">{ticketAnalytics.locations}</span>
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2 text-muted-foreground">
@@ -229,7 +282,7 @@ export function EventAnalytics({
 									<span className="text-sm">Pending Tickets</span>
 								</div>
 								<span className="font-semibold text-orange-600 dark:text-orange-400">
-									{analytics.pendingTickets}
+									{ticketAnalytics.pendingTickets}
 								</span>
 							</div>
 							<div className="flex items-center justify-between">
@@ -268,9 +321,9 @@ export function EventAnalytics({
 					className="lg:col-span-2"
 				>
 					<div className="h-[250px] ps-12">
-						{analytics.recentScans.length > 0 ? (
+						{ticketAnalytics.recentScans.length > 0 ? (
 							<div className="h-full overflow-y-auto border-l border-dashed">
-								{analytics.recentScans.map((scan) => (
+								{ticketAnalytics.recentScans.map((scan) => (
 									<div
 										key={scan.id}
 										className="flex items-center justify-between border-b border-dashed p-3"
@@ -301,6 +354,208 @@ export function EventAnalytics({
 							<div className="py-8 text-center text-muted-foreground">
 								<Scan className="mx-auto mb-2 h-12 w-12 opacity-50" />
 								<p className="text-sm">No scans yet</p>
+							</div>
+						)}
+					</div>
+				</BlankCardWithButton>
+			</div>
+		</div>
+	);
+}
+
+
+// Visitor Event Analytics Component for non-ticket events
+interface VisitorEventAnalyticsProps {
+	eventId: string;
+	eventName: string;
+	status: "active" | "inactive";
+	mallData?: {
+		shoppers_registered_today: number;
+		estimated_sales_today: number;
+		voucher_issuances: number;
+		voucher_redemptions: number;
+		redemption_rate: number;
+		top_merchants: Array<{ name: string; count: number }>;
+		popular_halls: Array<{ name: string; percentage: number }>;
+	};
+	onBack: () => void;
+	showBackButton: boolean;
+	router: ReturnType<typeof useRouter>;
+	canViewLiveFeed: boolean;
+}
+
+function VisitorEventAnalytics({
+	eventId,
+	eventName,
+	status,
+	mallData,
+	onBack,
+	showBackButton,
+	router,
+	canViewLiveFeed,
+}: VisitorEventAnalyticsProps) {
+	const redemptionRate = mallData?.redemption_rate ?? 0;
+
+	const formatCurrency = (amount?: number) => {
+		if (!amount) return "RM0.00";
+		return new Intl.NumberFormat("ms-MY", {
+			style: "currency",
+			currency: "MYR",
+		}).format(amount);
+	};
+
+	return (
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex w-full items-center justify-between p-4 px-2 md:px-4">
+				<div className="flex w-full items-center gap-4">
+					{showBackButton && (
+						<Button variant="ghost" size="icon" onClick={onBack}>
+							<ArrowLeft className="h-5 w-5" />
+						</Button>
+					)}
+					<div className="flex w-full flex-col gap-4 lg:flex-row">
+						<div className="w-full">
+							<IconTitle
+								icon={RiCalendarEventLine}
+								title={eventName}
+								description="Track visitor engagement"
+							/>
+							<Badge
+								className="mt-2 ml-12 rounded-none"
+								variant={status === "active" ? "default" : "destructive"}
+							>
+								{status === "active" ? "Active" : "Inactive"}
+							</Badge>
+						</div>
+						<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
+							<Button
+								className="w-full rounded-none border py-5 md:py-4 lg:w-auto"
+								variant="secondary"
+								onClick={() => router.push(`/event/${eventId}/visitors` as Parameters<typeof router.push>[0])}
+							>
+								<Users className="mr-2 h-4 w-4" />
+								View Visitors
+							</Button>
+							{canViewLiveFeed && (
+								<Button
+									className="w-full rounded-none border py-5 md:py-4 lg:w-auto"
+									onClick={() => router.push(`/event/${eventId}/mall-live-feed` as Parameters<typeof router.push>[0])}
+								>
+									<Activity className="mr-2 h-4 w-4" />
+									Live Feed
+								</Button>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Key Metrics */}
+			<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-4">
+				<StatsCard
+					label="Shoppers Today"
+					value={mallData?.shoppers_registered_today ?? 0}
+					Icon={Users}
+				/>
+				<StatsCard
+					label="Estimated Sales"
+					value={formatCurrency(mallData?.estimated_sales_today)}
+					Icon={DollarSign}
+				/>
+				<StatsCard
+					label="Voucher Issuances"
+					value={mallData?.voucher_issuances ?? 0}
+					Icon={Ticket}
+				/>
+				<StatsCard
+					label="Voucher Redemptions"
+					value={mallData?.voucher_redemptions ?? 0}
+					Icon={ShoppingBag}
+				/>
+			</div>
+
+			{/* Additional Info */}
+			<div className="mb-8 grid grid-cols-1 gap-4 border-y border-dashed lg:grid-cols-2">
+				{/* Quick Stats */}
+				<BlankCard
+					title="Engagement Overview"
+					icon={<Search className="size-4" />}
+					className="h-full"
+				>
+					<div className="flex h-full flex-col justify-between">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<TrendingUp className="size-4" />
+									<span className="text-sm">Redemption Rate</span>
+								</div>
+								<span className="font-semibold">{redemptionRate.toFixed(1)}%</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<Stamp className="size-4" />
+									<span className="text-sm">Total Vouchers</span>
+								</div>
+								<span className="font-semibold">
+									{mallData?.voucher_issuances ?? 0}
+								</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<ShoppingBag className="size-4" />
+									<span className="text-sm">Redeemed</span>
+								</div>
+								<span className="font-semibold text-green-600 dark:text-green-400">
+									{mallData?.voucher_redemptions ?? 0}
+								</span>
+							</div>
+						</div>
+						<div className="mt-4">
+							<div className="mb-2 text-muted-foreground text-sm">Redemption Progress</div>
+							<div className="h-2 overflow-hidden rounded-none border border-blue-500/50 bg-secondary">
+								<div
+									className="h-full bg-linear-to-r from-blue-500 to-cyan-500 transition-all"
+									style={{ width: `${Math.min(redemptionRate, 100)}%` }}
+								/>
+							</div>
+						</div>
+					</div>
+				</BlankCard>
+
+				{/* Top Merchants */}
+				<BlankCardWithButton
+					title="Top Merchants"
+					icon={<MapPin className="size-4" />}
+					buttonLabel="View All Vendors"
+					buttonIcon={<Users className="h-4 w-4" />}
+					onButtonClick={() => router.push(`/event/${eventId}/vendors` as Parameters<typeof router.push>[0])}
+				>
+					<div className="h-[250px] ps-12">
+						{mallData?.top_merchants && mallData.top_merchants.length > 0 ? (
+							<div className="h-full overflow-y-auto border-l border-dashed">
+								{mallData.top_merchants.map((merchant, index) => (
+									<div
+										key={`${merchant.name}-${index}`}
+										className="flex items-center justify-between border-b border-dashed p-3"
+									>
+										<div className="flex items-center gap-3">
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-sm font-bold text-blue-600 dark:text-blue-400">
+												{index + 1}
+											</div>
+											<p className="font-medium text-sm">{merchant.name}</p>
+										</div>
+										<div className="text-right">
+											<p className="font-semibold">{merchant.count}</p>
+											<p className="text-muted-foreground text-xs">visits</p>
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="py-8 text-center text-muted-foreground">
+								<Users className="mx-auto mb-2 h-12 w-12 opacity-50" />
+								<p className="text-sm">No merchant data yet</p>
 							</div>
 						)}
 					</div>

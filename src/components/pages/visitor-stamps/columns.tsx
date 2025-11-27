@@ -305,7 +305,7 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 		header: ({ column }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<p className="font-medium">Registered At</p>
+					<p className="font-medium">Stamped At</p>
 					<Button
 						variant="ghost"
 						size="icon"

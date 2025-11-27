@@ -2,8 +2,8 @@
 
 import ImageUpload from "@/components/file-upload/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2 } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { Calendar, Ticket } from "lucide-react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getEventVendors } from "@/lib/api/event-vendor";
-import { updateVoucher, type Voucher } from "@/lib/api/voucher";
+import { getEvents } from "@/lib/api/event";
+import { createVoucher } from "@/lib/api/voucher";
 import { useAuth } from "@/hooks/use-auth";
 
-interface EditVoucherFormProps {
-	eventId: number;
-	voucher: Voucher;
+interface AddVendorVoucherFormProps {
 	onClose?: () => void;
 }
 
@@ -52,21 +50,16 @@ const VOUCHER_CATEGORIES = [
 	"Others",
 ] as const;
 
-// Predefined categories (excluding "Others") for checking custom values
-const PREDEFINED_CATEGORIES: string[] = VOUCHER_CATEGORIES.filter(
-	(c): c is Exclude<typeof c, "Others"> => c !== "Others",
-).map((c) => c as string);
-
-export default function EditVoucherForm({
-	eventId,
-	voucher,
+export default function AddVendorVoucherForm({
 	onClose,
-}: EditVoucherFormProps) {
+}: AddVendorVoucherFormProps) {
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
+
+	// Field IDs
+	const eventField = useId();
 	const voucherTitleField = useId();
 	const descriptionField = useId();
-	const merchantField = useId();
 	const voucherTypeField = useId();
 	const voucherValueField = useId();
 	const voucherCodeField = useId();
@@ -76,14 +69,11 @@ export default function EditVoucherForm({
 	const endDateField = useId();
 	const globalLimitField = useId();
 	const maxPerUserField = useId();
-	const imageField = useId();
 
-	// Check if user is a vendor
-	const isVendor = user?.role === "vendor";
-
+	// Form state
+	const [selectedEventId, setSelectedEventId] = useState("");
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [merchantId, setMerchantId] = useState("");
 	const [voucherType, setVoucherType] = useState<VoucherType | "">("");
 	const [voucherValue, setVoucherValue] = useState("");
 	const [voucherCode, setVoucherCode] = useState("");
@@ -95,97 +85,34 @@ export default function EditVoucherForm({
 	const [globalLimit, setGlobalLimit] = useState("");
 	const [maxPerUser, setMaxPerUser] = useState("1");
 	const [image, setImage] = useState<File | null>(null);
-	const [imageRemoved, setImageRemoved] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	// Fetch event vendors (merchants)
+	// Fetch events the vendor has access to
 	const {
-		data: merchants,
-		isLoading: isLoadingMerchants,
-		error: merchantsError,
+		data: events,
+		isLoading: isLoadingEvents,
+		error: eventsError,
 	} = useQuery({
-		queryKey: ["event", eventId.toString(), "vendors"],
-		queryFn: () => getEventVendors(eventId),
+		queryKey: ["events"],
+		queryFn: () => getEvents(),
 	});
 
-	// Update voucher mutation
-	const updateMutation = useMutation({
-		mutationFn: updateVoucher,
+	// Create voucher mutation
+	const createMutation = useMutation({
+		mutationFn: createVoucher,
 		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["vendor-vouchers"] });
 			queryClient.invalidateQueries({ queryKey: ["vouchers"] });
-			queryClient.invalidateQueries({
-				queryKey: ["event", eventId.toString(), "vouchers"],
-			});
-			toast.success("Voucher updated successfully!");
+			if (selectedEventId) {
+				queryClient.invalidateQueries({ queryKey: ["event", selectedEventId, "vouchers"] });
+			}
+			toast.success("Voucher created successfully!");
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update voucher");
+			toast.error(error.message || "Failed to create voucher");
 		},
 	});
-
-	// Pre-populate form with existing voucher data
-	useEffect(() => {
-		// Parse dates safely
-		const parseDateTime = (
-			dateStr: string | null | undefined,
-			timeStr: string | null | undefined,
-		): Date | undefined => {
-			if (!dateStr) return undefined;
-
-			try {
-				// If we have a time, combine date and time
-				if (timeStr) {
-					const dateTime = new Date(`${dateStr}T${timeStr}`);
-					// Check if date is valid
-					if (!isNaN(dateTime.getTime())) {
-						return dateTime;
-					}
-				}
-
-				// Try parsing just the date
-				const date = new Date(dateStr);
-				// Check if date is valid
-				if (!isNaN(date.getTime())) {
-					return date;
-				}
-
-				return undefined;
-			} catch (error) {
-				console.error("Error parsing date:", error);
-				return undefined;
-			}
-		};
-
-		// Always reset form with voucher data
-		setTitle(voucher.title);
-		setDescription(voucher.description || "");
-		setMerchantId(voucher.vendorId.toString());
-		setVoucherType(voucher.voucherType);
-		setVoucherValue(voucher.voucherValue.toString());
-		setVoucherCode(voucher.voucherCode || "");
-		// Handle category - check if it's a predefined category or custom
-		const existingCategory = voucher.voucherCategory || "";
-		if (!existingCategory) {
-			setVoucherCategory("");
-			setCustomCategory("");
-		} else if (PREDEFINED_CATEGORIES.includes(existingCategory)) {
-			setVoucherCategory(existingCategory);
-			setCustomCategory("");
-		} else {
-			// Custom category - show "Others" and populate custom field
-			setVoucherCategory("Others");
-			setCustomCategory(existingCategory);
-		}
-		setStatus(voucher.status as "active" | "inactive");
-		setGlobalLimit(voucher.totalRedemptionAvailable.toString());
-		setMaxPerUser(voucher.maxRedemptionsPerUser.toString());
-		setStartDate(parseDateTime(voucher.startDate, voucher.startTime));
-		setEndDate(parseDateTime(voucher.endDate, voucher.endTime));
-		setErrors({});
-		setImage(null);
-		setImageRemoved(false);
-	}, [voucher.id, voucher.title, voucher.description, voucher.vendorId, voucher.voucherType, voucher.voucherValue, voucher.voucherCode, voucher.voucherCategory, voucher.status, voucher.totalRedemptionAvailable, voucher.maxRedemptionsPerUser, voucher.startDate, voucher.startTime, voucher.endDate, voucher.endTime]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -194,13 +121,12 @@ export default function EditVoucherForm({
 		// Validation
 		const newErrors: Record<string, string> = {};
 
-		if (!title.trim()) {
-			newErrors.title = "Voucher title is required";
+		if (!selectedEventId) {
+			newErrors.eventId = "Please select an event";
 		}
 
-		// Only validate merchantId for non-vendor users
-		if (!isVendor && !merchantId) {
-			newErrors.merchantId = "Please select a merchant";
+		if (!title.trim()) {
+			newErrors.title = "Voucher title is required";
 		}
 
 		if (!voucherType) {
@@ -251,13 +177,12 @@ export default function EditVoucherForm({
 		const formatDate = (date: Date) => date.toISOString().split("T")[0];
 		const formatTime = (date: Date) => date.toTimeString().split(" ")[0];
 
-		updateMutation.mutate({
-			id: voucher.id,
-			vendor_id: Number(merchantId),
-			event_id: eventId,
+		createMutation.mutate({
+			vendor_id: user!.id,
+			event_id: Number(selectedEventId),
 			title: title.trim(),
-			description: description.trim() || null,
-			voucher_code: voucherCode.trim() || null,
+			description: description.trim() || undefined,
+			voucher_code: voucherCode.trim() || undefined,
 			status,
 			start_date: formatDate(startDate!),
 			end_date: formatDate(endDate!),
@@ -271,36 +196,35 @@ export default function EditVoucherForm({
 				? customCategory.trim() || undefined 
 				: voucherCategory.trim() || undefined,
 			image: image || undefined,
-			remove_image: imageRemoved && !image ? true : undefined,
 		});
 	};
 
-	if (isLoadingMerchants) {
+	if (isLoadingEvents) {
 		return (
 			<LoadingState
-				title="Loading merchants..."
+				title="Loading events..."
 				description="Please wait..."
 				height="h-[300px]"
 			/>
 		);
 	}
 
-	if (merchantsError) {
+	if (eventsError) {
 		return (
 			<ErrorState
-				title="Failed to load merchants"
+				title="Failed to load events"
 				description="Please try again later"
 				height="h-[300px]"
 			/>
 		);
 	}
 
-	if (!merchants || merchants.length === 0) {
+	if (!events || events.length === 0) {
 		return (
 			<EmptyState
-				title="No merchants available"
-				description="Please add merchants to this event first before editing vouchers."
-				icon={<Building2 className="size-8" />}
+				title="No events available"
+				description="You need to be assigned to an event before you can create vouchers."
+				icon={<Calendar className="size-8" />}
 				height="h-[300px]"
 				action={
 					<Button onClick={onClose} variant="outline">
@@ -310,6 +234,7 @@ export default function EditVoucherForm({
 			/>
 		);
 	}
+
 
 	return (
 		<div className="mx-auto w-full max-w-8xl px-8">
@@ -326,7 +251,9 @@ export default function EditVoucherForm({
 								</p>
 							</div>
 
-							<div className={`grid grid-cols-1 gap-4 ${isVendor ? (voucherCategory === "Others" ? "md:grid-cols-3" : "md:grid-cols-2") : (voucherCategory === "Others" ? "md:grid-cols-4" : "md:grid-cols-3")}`}>
+							<div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
+								voucherCategory === "Others" ? "lg:grid-cols-4" : "lg:grid-cols-3"
+							}`}>
 								{/* Voucher Title */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherTitleField}>
@@ -347,57 +274,49 @@ export default function EditVoucherForm({
 											}
 										}}
 										placeholder="e.g., Free Drink Combo, Buy 2 Get 1 Free"
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 									/>
 									<FieldDescription>
 										A descriptive title for the voucher
 									</FieldDescription>
 								</Field>
 
-								{/* Merchant Selection - Hidden for vendors */}
-								{!isVendor && (
-									<Field orientation="vertical">
-										<FieldLabel htmlFor={merchantField}>Merchant *</FieldLabel>
-										{errors.merchantId && (
-											<FieldError>{errors.merchantId}</FieldError>
-										)}
-										<Select
-											key={`merchant-${voucher.id}-${merchantId}`}
-											value={merchantId}
-											onValueChange={(value) => {
-												setMerchantId(value);
-												if (errors.merchantId) {
-													setErrors((prev) => {
-														const newErrors = { ...prev };
-														delete newErrors.merchantId;
-														return newErrors;
-													});
-												}
-											}}
-											disabled={updateMutation.isPending}
-										>
-											<SelectTrigger id={merchantField}>
-												<SelectValue placeholder="Select a merchant" />
-											</SelectTrigger>
-											<SelectContent>
-												{merchants.map((merchant) => (
-													<SelectItem
-														key={merchant.id}
-														value={merchant.vendor_id.toString()}
-													>
-														<div className="flex items-center gap-2">
-															<Building2 className="h-4 w-4 text-muted-foreground" />
-															<span>{merchant.vendor.full_name}</span>
-														</div>
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<FieldDescription>
-											Select the merchant offering this voucher
-										</FieldDescription>
-									</Field>
-								)}
+								{/* Event Selection */}
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={eventField}>Event *</FieldLabel>
+									{errors.eventId && <FieldError>{errors.eventId}</FieldError>}
+									<Select
+										value={selectedEventId}
+										onValueChange={(value) => {
+											setSelectedEventId(value);
+											if (errors.eventId) {
+												setErrors((prev) => {
+													const newErrors = { ...prev };
+													delete newErrors.eventId;
+													return newErrors;
+												});
+											}
+										}}
+										disabled={createMutation.isPending}
+									>
+										<SelectTrigger id={eventField}>
+											<SelectValue placeholder="Select an event" />
+										</SelectTrigger>
+										<SelectContent>
+											{events.map((event) => (
+												<SelectItem key={event.id} value={event.id.toString()}>
+													<div className="flex items-center gap-2">
+														<Calendar className="h-4 w-4 text-muted-foreground" />
+														<span>{event.title}</span>
+													</div>
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldDescription>
+										Select the event for this voucher
+									</FieldDescription>
+								</Field>
 
 								{/* Voucher Category */}
 								<Field orientation="vertical">
@@ -405,7 +324,6 @@ export default function EditVoucherForm({
 										Voucher Category
 									</FieldLabel>
 									<Select
-										key={`category-${voucher.id}-${voucherCategory}`}
 										value={voucherCategory}
 										onValueChange={(value) => {
 											setVoucherCategory(value);
@@ -413,7 +331,7 @@ export default function EditVoucherForm({
 												setCustomCategory("");
 											}
 										}}
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 									>
 										<SelectTrigger id={voucherCategoryField}>
 											<SelectValue placeholder="Select a category" />
@@ -431,7 +349,7 @@ export default function EditVoucherForm({
 									</FieldDescription>
 								</Field>
 
-								{/* Custom Category Input - shown when "Others" is selected */}
+								{/* Custom Category Input */}
 								{voucherCategory === "Others" && (
 									<Field orientation="vertical">
 										<FieldLabel htmlFor={`${voucherCategoryField}-custom`}>
@@ -454,7 +372,7 @@ export default function EditVoucherForm({
 												}
 											}}
 											placeholder="Enter your custom category"
-											disabled={updateMutation.isPending}
+											disabled={createMutation.isPending}
 										/>
 										<FieldDescription>
 											Enter a custom category name
@@ -488,11 +406,9 @@ export default function EditVoucherForm({
 												<FieldError>{errors.voucherType}</FieldError>
 											)}
 											<Select
-												key={`voucher-type-${voucher.id}-${voucherType}`}
 												value={voucherType}
 												onValueChange={(value: VoucherType) => {
 													setVoucherType(value);
-													// Clear voucher value when switching to free_item
 													if (value === "free_item") {
 														setVoucherValue("0");
 													}
@@ -504,7 +420,7 @@ export default function EditVoucherForm({
 														});
 													}
 												}}
-												disabled={updateMutation.isPending}
+												disabled={createMutation.isPending}
 											>
 												<SelectTrigger id={voucherTypeField}>
 													<SelectValue placeholder="Select voucher type" />
@@ -517,10 +433,12 @@ export default function EditVoucherForm({
 													<SelectItem value="free_item">Free Item</SelectItem>
 												</SelectContent>
 											</Select>
-											<FieldDescription>Choose the type of voucher</FieldDescription>
+											<FieldDescription>
+												Choose the type of voucher
+											</FieldDescription>
 										</Field>
 
-										{/* Voucher Value - Hidden for free_item */}
+										{/* Voucher Value */}
 										{voucherType !== "free_item" && (
 											<Field orientation="vertical">
 												<FieldLabel htmlFor={voucherValueField}>
@@ -550,7 +468,7 @@ export default function EditVoucherForm({
 															? "e.g., 10, 20, 50"
 															: "e.g., 10.00, 50.00"
 													}
-													disabled={updateMutation.isPending}
+													disabled={createMutation.isPending}
 												/>
 												<FieldDescription>
 													{voucherType === "percentage"
@@ -570,7 +488,7 @@ export default function EditVoucherForm({
 												value={voucherCode}
 												onChange={(e) => setVoucherCode(e.target.value)}
 												placeholder="e.g., SAVE20"
-												disabled={updateMutation.isPending}
+												disabled={createMutation.isPending}
 											/>
 											<FieldDescription>
 												Custom code for this voucher
@@ -581,12 +499,11 @@ export default function EditVoucherForm({
 										<Field orientation="vertical">
 											<FieldLabel htmlFor={statusField}>Status *</FieldLabel>
 											<Select
-												key={`status-${voucher.id}-${status}`}
 												value={status}
 												onValueChange={(value: "active" | "inactive") =>
 													setStatus(value)
 												}
-												disabled={updateMutation.isPending}
+												disabled={createMutation.isPending}
 											>
 												<SelectTrigger id={statusField}>
 													<SelectValue />
@@ -610,7 +527,7 @@ export default function EditVoucherForm({
 											value={description}
 											onChange={(e) => setDescription(e.target.value)}
 											placeholder="Describe the voucher details..."
-											disabled={updateMutation.isPending}
+											disabled={createMutation.isPending}
 											className="min-h-[100px]"
 										/>
 										<FieldDescription>
@@ -624,20 +541,12 @@ export default function EditVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={imageRemoved ? undefined : (image || voucher.imagePath || undefined)}
-											onChange={(file) => {
-												if (file) {
-													setImage(file);
-													setImageRemoved(false);
-												} else {
-													setImage(null);
-													setImageRemoved(true);
-												}
-											}}
-											disabled={updateMutation.isPending}
+											value={image || undefined}
+											onChange={(file) => setImage(file)}
+											disabled={createMutation.isPending}
 										/>
 										<FieldDescription>
-											Upload a new image for this voucher
+											Upload an image for this voucher
 										</FieldDescription>
 									</Field>
 								</div>
@@ -655,7 +564,7 @@ export default function EditVoucherForm({
 								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 								{/* Start Date/Time */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={startDateField}>
@@ -676,7 +585,7 @@ export default function EditVoucherForm({
 												});
 											}
 										}}
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 										placeholder="Select start date and time"
 									/>
 									<FieldDescription>
@@ -704,10 +613,12 @@ export default function EditVoucherForm({
 												});
 											}
 										}}
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 										placeholder="Select end date and time"
 									/>
-									<FieldDescription>When the voucher expires.</FieldDescription>
+									<FieldDescription>
+										When the voucher expires.
+									</FieldDescription>
 								</Field>
 
 								{/* Global Usage Limit */}
@@ -734,7 +645,7 @@ export default function EditVoucherForm({
 											}
 										}}
 										placeholder="e.g., 100"
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 									/>
 									<FieldDescription>
 										Total number of times this voucher can be redeemed.
@@ -765,7 +676,7 @@ export default function EditVoucherForm({
 											}
 										}}
 										placeholder="e.g., 1, 3, 5"
-										disabled={updateMutation.isPending}
+										disabled={createMutation.isPending}
 									/>
 									<FieldDescription>
 										Maximum times a single user can redeem this voucher.
@@ -776,18 +687,18 @@ export default function EditVoucherForm({
 
 						<FieldSeparator />
 
-						{/* Submit Buttons - Right Aligned */}
+						{/* Submit Buttons */}
 						<div className="flex justify-end gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={onClose}
-								disabled={updateMutation.isPending}
+								disabled={createMutation.isPending}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={updateMutation.isPending}>
-								{updateMutation.isPending ? "Updating..." : "Update Voucher"}
+							<Button type="submit" disabled={createMutation.isPending}>
+								{createMutation.isPending ? "Creating..." : "Create Voucher"}
 							</Button>
 						</div>
 					</FieldGroup>

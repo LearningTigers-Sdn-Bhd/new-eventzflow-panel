@@ -12,12 +12,10 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Store } from "lucide-react";
-import Link from "next/link";
+import { Ticket } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -28,16 +26,16 @@ import {
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
-import type { EventVendorMember } from "./columns";
+import type { VendorVoucher } from "./columns";
 import { DataControl } from "./data-control";
-import { EventVendorItem } from "./event-vendor-item";
+import { VendorVoucherItem } from "./voucher-item";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function VendorVoucherDataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
@@ -66,12 +64,13 @@ export function DataTable<TData, TValue>({
 		},
 	});
 
+
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
 			<DataControl table={table} />
 
-			<div className="min-h-[45vh]">
+			<div className="min-h-[65vh]">
 				{/* Data Table */}
 				{!isTablet ? (
 					<div className="overflow-hidden rounded-none border">
@@ -129,15 +128,10 @@ export function DataTable<TData, TValue>({
 											className="h-24 text-center"
 										>
 											<EmptyState
-												title="No vendors assigned"
-												description="Assign existing vendors to this event. Need to create a new vendor first?"
-												icon={<Store />}
+												title="No vouchers yet"
+												description="Create your first voucher to start offering discounts"
+												icon={<Ticket />}
 												height="h-auto"
-												action={
-													<Button variant="link" asChild className="p-0 h-auto">
-														<Link href="/vendor">Go to Vendors page</Link>
-													</Button>
-												}
 											/>
 										</TableCell>
 									</TableRow>
@@ -151,22 +145,17 @@ export function DataTable<TData, TValue>({
 							table
 								.getRowModel()
 								.rows.map((row) => (
-									<EventVendorItem
+									<VendorVoucherItem
 										key={row.id}
-										vendor={row.original as EventVendorMember}
+										voucher={row.original as VendorVoucher}
 									/>
 								))
 						) : (
 							<EmptyState
-								title="No vendors assigned"
-								description="Assign existing vendors to this event. Need to create a new vendor first?"
-								icon={<Store />}
+								title="No vouchers yet"
+								description="Create your first voucher to start offering discounts"
+								icon={<Ticket />}
 								height="h-auto"
-								action={
-									<Button variant="link" asChild className="p-0 h-auto">
-										<Link href="/vendor">Go to Vendors page</Link>
-									</Button>
-								}
 							/>
 						)}
 					</div>

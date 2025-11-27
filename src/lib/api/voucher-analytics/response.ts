@@ -17,6 +17,7 @@ export type TopScannedVoucher = {
 	voucher_id: number;
 	voucher_title: string;
 	voucher_code: string;
+	vendor_name?: string;
 	redemption_count: number;
 };
 

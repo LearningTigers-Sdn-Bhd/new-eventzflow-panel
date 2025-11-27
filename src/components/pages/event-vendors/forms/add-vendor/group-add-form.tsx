@@ -92,7 +92,7 @@ export default function GroupAddForm({
 	const queryClient = useQueryClient();
 	const createVendorMutation = useMutation({
 		mutationFn: async (vendorIds: number[]) => {
-			// Add vendors sequentially to avoid race conditions
+			// Assign vendors sequentially to avoid race conditions
 			const results = [];
 			for (const vendorId of vendorIds) {
 				const result = await createEventVendor(eventId, {
@@ -114,7 +114,7 @@ export default function GroupAddForm({
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to add vendors");
+			toast.error(error.message || "Failed to assign vendors");
 		},
 	});
 
@@ -214,10 +214,10 @@ export default function GroupAddForm({
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldLegend className="font-bold text-xl!">
-						Add Vendors from Group
+						Assign Vendors from Group
 					</FieldLegend>
 					<FieldDescription>
-						Select a group and choose which vendors to add to this event in bulk.
+						Select a group and choose which vendors to assign to this event in bulk.
 					</FieldDescription>
 					<FieldSeparator />
 					<FieldGroup>
@@ -253,7 +253,7 @@ export default function GroupAddForm({
 								</SelectContent>
 							</Select>
 							<FieldDescription>
-								Select a group to view and add its vendors.
+								Select a group to view and assign its vendors.
 							</FieldDescription>
 						</Field>
 
@@ -387,8 +387,8 @@ export default function GroupAddForm({
 							</Button>
 							<Button type="submit" disabled={createVendorMutation.isPending || selectedVendorIds.size === 0}>
 								{createVendorMutation.isPending
-									? `Adding ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}...`
-									: `Add ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}`
+									? `Assigning ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}...`
+									: `Assign ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}`
 								}
 							</Button>
 						</div>

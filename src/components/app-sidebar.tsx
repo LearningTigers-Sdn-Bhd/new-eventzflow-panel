@@ -1,6 +1,6 @@
 "use client";
 
-import { Import, Key, LayoutDashboard, Store, Users } from "lucide-react";
+import { Import, Key, LayoutDashboard, Store, Ticket, Users } from "lucide-react";
 import type { Route } from "next";
 import type * as React from "react";
 import { BiQrScan } from "react-icons/bi";
@@ -31,6 +31,12 @@ const data = {
 			url: "/event" as Route,
 			icon: MdEvent,
 			roleAllowed: ["org_owner", "organizer", "member", "vendor"],
+		},
+		{
+			name: "My Vouchers",
+			url: "/voucher" as Route,
+			icon: Ticket,
+			roleAllowed: ["vendor"],
 		},
 		{
 			name: "Scans",

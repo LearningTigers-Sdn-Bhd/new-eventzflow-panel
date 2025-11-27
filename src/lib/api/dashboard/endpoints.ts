@@ -36,6 +36,14 @@ export async function getAllEventsStats(): Promise<AllEventsStats> {
 		totalRevenue: centsToDollars(stats.total_revenue),
 		totalCheckins: stats.total_scanned,
 		totalLocations: stats.total_locations,
+		// Non-ticket event stats
+		totalVisitors: stats.total_visitors ?? 0,
+		totalVendors: stats.total_vendors ?? 0,
+		totalVouchers: stats.total_vouchers ?? 0,
+		totalVouchersRedeemed: stats.total_vouchers_redeemed ?? 0,
+		// Event type counts
+		ticketEvents: stats.ticket_events ?? 0,
+		nonTicketEvents: stats.non_ticket_events ?? 0,
 	};
 }
 
@@ -55,10 +63,15 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 			event.status === "published"
 				? ("active" as const)
 				: ("inactive" as const),
-		totalTickets: event.total_tickets,
-		scannedTickets: event.scanned_tickets,
-		totalRevenue: centsToDollars(event.total_revenue),
-		pendingTickets: event.unscanned_tickets,
+		useTicket: event.use_ticket ?? true,
+		// Ticket event stats
+		totalTickets: event.total_tickets ?? 0,
+		scannedTickets: event.scanned_tickets ?? 0,
+		totalRevenue: centsToDollars(event.total_revenue ?? 0),
+		pendingTickets: event.unscanned_tickets ?? 0,
+		// Non-ticket event stats
+		totalVisitors: event.total_visitors ?? 0,
+		totalStamps: event.total_stamps ?? 0,
 		lastActivity: event.last_activity,
 	}));
 }

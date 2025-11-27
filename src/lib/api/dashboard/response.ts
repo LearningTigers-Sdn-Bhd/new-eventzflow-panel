@@ -8,16 +8,29 @@ export type AllEventsStats = {
 	totalRevenue: number;
 	totalCheckins: number;
 	totalLocations: number;
+	// Non-ticket event stats
+	totalVisitors: number;
+	totalVendors: number;
+	totalVouchers: number;
+	totalVouchersRedeemed: number;
+	// Event type counts
+	ticketEvents: number;
+	nonTicketEvents: number;
 };
 
 export type EventOverview = {
 	id: string;
 	title: string;
 	status: "active" | "inactive";
+	useTicket: boolean;
+	// Ticket event stats
 	totalTickets: number;
 	scannedTickets: number;
 	totalRevenue: number;
 	pendingTickets: number;
+	// Non-ticket event stats
+	totalVisitors: number;
+	totalStamps: number;
 	lastActivity: string;
 };
 
@@ -60,16 +73,29 @@ export type BackendAllEventsStats = {
 	total_revenue: number;
 	total_scanned: number;
 	total_locations: number;
+	// Non-ticket event stats
+	total_visitors: number;
+	total_vendors: number;
+	total_vouchers: number;
+	total_vouchers_redeemed: number;
+	// Event type counts
+	ticket_events: number;
+	non_ticket_events: number;
 };
 
 export type BackendEventOverview = {
 	id: number;
 	title: string;
 	status: string;
+	use_ticket: boolean;
+	// Ticket event stats
 	total_tickets: number;
 	scanned_tickets: number;
 	total_revenue: number;
 	unscanned_tickets: number;
+	// Non-ticket event stats
+	total_visitors: number;
+	total_stamps: number;
 	last_activity: string;
 };
 

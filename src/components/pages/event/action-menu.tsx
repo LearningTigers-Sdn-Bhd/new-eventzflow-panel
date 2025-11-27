@@ -171,7 +171,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 			// === VENDOR & VOUCHER MANAGEMENT ===
 			{
 				id: `vendors-id${eventId}`,
-				name: "Vendors",
+				name: "Assign Vendor",
 				icon: Building2,
 				route: `/event/${eventId}/vendors`,
 				className: "",
@@ -197,14 +197,33 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ permissions }) => Boolean(permissions.isEventVendor),
 			},
 			{
+				id: `voucher-logs-id${eventId}`,
+				name: "Voucher Logs",
+				icon: Logs,
+				route: `/event/${eventId}/voucher-logs`,
+				className: "",
+				featureKey: "voucher-logs",
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.canManageEventVendors || permissions.canManageEventStaff),
+			},
+			{
 				id: `visitor-stamps-id${eventId}`,
 				name: "Stamp Scanner",
 				icon: ScanQrCode,
 				route: `/event/${eventId}/visitor-stamps`,
 				className: "",
 				featureKey: "visitor-stamps",
-				shouldDisplay: ({ permissions }) =>
-					Boolean(permissions.isEventVendor || permissions.canViewStampScannerTab),
+				shouldDisplay: ({ permissions }) => Boolean(permissions.isEventVendor),
+			},
+			{
+				id: `stamp-logs-id${eventId}`,
+				name: "Stamp Logs",
+				icon: Logs,
+				route: `/event/${eventId}/stamp-logs`,
+				className: "",
+				featureKey: "stamp-logs",
+				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
+					Boolean(isNonTicketEvent && (permissions.canManageEventVendors || permissions.canManageEventStaff)),
 			},
 			
 			// === ANALYTICS & INSIGHTS ===
@@ -276,7 +295,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: archiveEvent,
 		onSuccess: () => {
 			toast.success("Event archived successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -288,7 +307,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: forceDeleteEvent,
 		onSuccess: () => {
 			toast.success("Event deleted successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -300,7 +319,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		mutationFn: restoreEvent,
 		onSuccess: () => {
 			toast.success("Event restored successfully!");
-			queryClient.invalidateQueries({ queryKey: ["events"], exact: true });
+			queryClient.invalidateQueries({ queryKey: ["events"] });
 			closeDialog();
 		},
 		onError: (error: Error) => {

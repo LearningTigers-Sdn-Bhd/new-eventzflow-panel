@@ -22,6 +22,12 @@ interface DashboardClientWrapperProps {
 		totalRevenue: number;
 		totalCheckins: number;
 		totalLocations: number;
+		totalVisitors: number;
+		totalVendors: number;
+		totalVouchers: number;
+		totalVouchersRedeemed: number;
+		ticketEvents: number;
+		nonTicketEvents: number;
 	};
 	initialEvents?: EventOverview[];
 }

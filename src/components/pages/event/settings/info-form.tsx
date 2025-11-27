@@ -118,7 +118,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
-					description: value.description || undefined,
+					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
@@ -328,7 +328,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 									return (
 										<Field orientation="vertical">
 											<FieldLabel htmlFor={field.name}>
-												Ticketing System
+												Use Ticketing System
 											</FieldLabel>
 											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 												<Switch

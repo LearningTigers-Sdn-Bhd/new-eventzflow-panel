@@ -205,7 +205,7 @@ export function DataControl<TData>({
 							}
 							className="flex items-center justify-between rounded-none text-left text-xs"
 						>
-							Registered
+							Stamped
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",

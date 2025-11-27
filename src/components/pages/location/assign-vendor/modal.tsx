@@ -227,7 +227,7 @@ export default function AssignVendorDialog({
 								<p className="mt-2 max-w-xs text-muted-foreground text-xs">
 									{assignedVendorIds.size > 0
 										? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
-										: "Add vendors to this event first from the Vendors page"}
+										: "Assign vendors to this event first from the Vendors page"}
 								</p>
 							)}
 						</div>

@@ -212,6 +212,9 @@ export async function createVoucher(
 			);
 			formData.append("voucher_type", validated.voucher_type);
 			formData.append("voucher_value", validated.voucher_value.toString());
+			if (validated.voucher_category) {
+				formData.append("voucher_category", validated.voucher_category);
+			}
 			formData.append("image", validated.image);
 
 			const response = await restClient.postFormData<
@@ -245,6 +248,7 @@ export async function createVoucher(
 			max_redemptions_per_user: validated.max_redemptions_per_user,
 			voucher_type: validated.voucher_type,
 			voucher_value: validated.voucher_value,
+			voucher_category: validated.voucher_category,
 		});
 
 		// Handle wrapped response
@@ -270,10 +274,10 @@ export async function updateVoucher(
 ): Promise<UpdateVoucherResponse> {
 	try {
 		const validated = updateVoucherSchema.parse(data);
-		const { id, ...updateData } = validated;
+		const { id, remove_image, ...updateData } = validated;
 
-		// If there's an image, use FormData with PUT method (Rails expects PATCH/PUT for updates)
-		if (validated.image) {
+		// If there's an image or remove_image flag, use FormData with PATCH method
+		if (validated.image || remove_image) {
 			const formData = new FormData();
 			Object.entries(updateData).forEach(([key, value]) => {
 				if (value !== undefined && key !== "image") {
@@ -282,6 +286,9 @@ export async function updateVoucher(
 			});
 			if (validated.image) {
 				formData.append("image", validated.image);
+			}
+			if (remove_image) {
+				formData.append("remove_image", "true");
 			}
 
 			// Note: Using kyClientForFormData directly since restClient doesn't have patchFormData

@@ -37,6 +37,20 @@ interface AddVoucherFormProps {
 
 type VoucherType = "fixed_amount" | "percentage" | "free_item";
 
+const VOUCHER_CATEGORIES = [
+	"Food & Beverage",
+	"Merchandise",
+	"Services",
+	"Entertainment",
+	"Beauty & Wellness",
+	"Travel & Transport",
+	"Electronics",
+	"Fashion & Apparel",
+	"Health & Fitness",
+	"Education",
+	"Others",
+] as const;
+
 export default function AddVoucherForm({
 	eventId,
 	onClose,
@@ -67,6 +81,7 @@ export default function AddVoucherForm({
 	const [voucherValue, setVoucherValue] = useState("");
 	const [voucherCode, setVoucherCode] = useState("");
 	const [voucherCategory, setVoucherCategory] = useState("");
+	const [customCategory, setCustomCategory] = useState("");
 	const [status, setStatus] = useState<"active" | "inactive">("active");
 	const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 	const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -150,6 +165,10 @@ export default function AddVoucherForm({
 			newErrors.maxPerUser = "Please enter a valid max redemptions per user";
 		}
 
+		if (voucherCategory === "Others" && !customCategory.trim()) {
+			newErrors.customCategory = "Please enter a custom category";
+		}
+
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors);
 			return;
@@ -174,7 +193,9 @@ export default function AddVoucherForm({
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
-			voucher_category: voucherCategory.trim() || undefined,
+			voucher_category: voucherCategory === "Others" 
+				? customCategory.trim() || undefined 
+				: voucherCategory.trim() || undefined,
 			image: image || undefined,
 		});
 	};
@@ -230,9 +251,13 @@ export default function AddVoucherForm({
 								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+							<div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
+								isVendor 
+									? (voucherCategory === "Others" ? "lg:grid-cols-3" : "lg:grid-cols-2")
+									: (voucherCategory === "Others" ? "lg:grid-cols-5" : "lg:grid-cols-4")
+							}`}>
 								{/* Voucher Title */}
-								<Field orientation="vertical" className="lg:col-span-2">
+								<Field orientation="vertical" className={isVendor ? "" : "lg:col-span-2"}>
 									<FieldLabel htmlFor={voucherTitleField}>
 										Voucher Title *
 									</FieldLabel>
@@ -305,21 +330,66 @@ export default function AddVoucherForm({
 								)}
 
 								{/* Voucher Category */}
-								<Field orientation="vertical" className={isVendor ? "lg:col-span-2" : ""}>
+								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherCategoryField}>
 										Voucher Category
 									</FieldLabel>
-									<Input
-										id={voucherCategoryField}
+									<Select
 										value={voucherCategory}
-										onChange={(e) => setVoucherCategory(e.target.value)}
-										placeholder="e.g., Food & Beverage, Merchandise"
+										onValueChange={(value) => {
+											setVoucherCategory(value);
+											if (value !== "Others") {
+												setCustomCategory("");
+											}
+										}}
 										disabled={createMutation.isPending}
-									/>
+									>
+										<SelectTrigger id={voucherCategoryField}>
+											<SelectValue placeholder="Select a category" />
+										</SelectTrigger>
+										<SelectContent>
+											{VOUCHER_CATEGORIES.map((category) => (
+												<SelectItem key={category} value={category}>
+													{category}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 									<FieldDescription>
 										Category to organize vouchers
 									</FieldDescription>
 								</Field>
+
+								{/* Custom Category Input - shown when "Others" is selected */}
+								{voucherCategory === "Others" && (
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={`${voucherCategoryField}-custom`}>
+											Custom Category *
+										</FieldLabel>
+										{errors.customCategory && (
+											<FieldError>{errors.customCategory}</FieldError>
+										)}
+										<Input
+											id={`${voucherCategoryField}-custom`}
+											value={customCategory}
+											onChange={(e) => {
+												setCustomCategory(e.target.value);
+												if (errors.customCategory) {
+													setErrors((prev) => {
+														const newErrors = { ...prev };
+														delete newErrors.customCategory;
+														return newErrors;
+													});
+												}
+											}}
+											placeholder="Enter your custom category"
+											disabled={createMutation.isPending}
+										/>
+										<FieldDescription>
+											Enter a custom category name
+										</FieldDescription>
+									</Field>
+								)}
 							</div>
 						</div>
 
