@@ -57,6 +57,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		startTime: backendVoucher.start_time,
 		endTime: backendVoucher.end_time,
 		totalRedemptionAvailable: backendVoucher.total_redemption_available,
+		isUnlimited: backendVoucher.is_unlimited ?? false,
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,
@@ -202,10 +203,13 @@ export async function createVoucher(
 			if (validated.end_time) {
 				formData.append("end_time", validated.end_time);
 			}
-			formData.append(
-				"total_redemption_available",
-				validated.total_redemption_available.toString(),
-			);
+			formData.append("is_unlimited", validated.is_unlimited.toString());
+			if (!validated.is_unlimited && validated.total_redemption_available) {
+				formData.append(
+					"total_redemption_available",
+					validated.total_redemption_available.toString(),
+				);
+			}
 			formData.append(
 				"max_redemptions_per_user",
 				validated.max_redemptions_per_user.toString(),
@@ -244,7 +248,8 @@ export async function createVoucher(
 			end_date: validated.end_date,
 			start_time: validated.start_time,
 			end_time: validated.end_time,
-			total_redemption_available: validated.total_redemption_available,
+			is_unlimited: validated.is_unlimited,
+			total_redemption_available: validated.is_unlimited ? undefined : validated.total_redemption_available,
 			max_redemptions_per_user: validated.max_redemptions_per_user,
 			voucher_type: validated.voucher_type,
 			voucher_value: validated.voucher_value,
@@ -281,7 +286,14 @@ export async function updateVoucher(
 			const formData = new FormData();
 			Object.entries(updateData).forEach(([key, value]) => {
 				if (value !== undefined && key !== "image") {
-					formData.append(key, value.toString());
+					// Handle is_unlimited: if true, send empty string to clear the value
+					if (key === "total_redemption_available" && updateData.is_unlimited) {
+						formData.append(key, "");
+						return;
+					}
+					if (value !== null) {
+						formData.append(key, value.toString());
+					}
 				}
 			});
 			if (validated.image) {
@@ -306,10 +318,16 @@ export async function updateVoucher(
 			};
 		}
 
-		// Otherwise, use JSON
+		// Otherwise, use JSON - handle is_unlimited logic
+		const jsonData = { ...updateData };
+		if (jsonData.is_unlimited) {
+			// Explicitly send null to clear the value in the backend
+			jsonData.total_redemption_available = null;
+		}
+
 		const response = await restClient.patch<
 			BackendVoucher | { data: BackendVoucher }
-		>(`v1/vouchers/${id}`, updateData);
+		>(`v1/vouchers/${id}`, jsonData);
 
 		// Handle wrapped response
 		const voucher = "data" in response ? response.data : response;
@@ -388,6 +406,7 @@ function transformPublicVoucher(backendVoucher: BackendVoucher): Voucher {
 		startTime: backendVoucher.start_time,
 		endTime: backendVoucher.end_time,
 		totalRedemptionAvailable: backendVoucher.total_redemption_available,
+		isUnlimited: backendVoucher.is_unlimited ?? false,
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,

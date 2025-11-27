@@ -12,7 +12,8 @@ export type BackendVoucher = {
 	end_date: string;
 	start_time: string | null;
 	end_time: string | null;
-	total_redemption_available: number;
+	total_redemption_available: number | null;
+	is_unlimited: boolean;
 	redeemed_count: number;
 	max_redemptions_per_user: number;
 	user_role_restriction: string | null;
@@ -44,7 +45,8 @@ export type Voucher = {
 	endDate: string;
 	startTime: string | null;
 	endTime: string | null;
-	totalRedemptionAvailable: number;
+	totalRedemptionAvailable: number | null;
+	isUnlimited: boolean;
 	redeemedCount: number;
 	maxRedemptionsPerUser: number;
 	userRoleRestriction: string | null;

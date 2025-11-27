@@ -25,16 +25,18 @@ type VoucherMessage = {
 function getVoucherMessage(voucher: {
 	startDate: string;
 	endDate: string;
-	totalRedemptionAvailable: number;
+	totalRedemptionAvailable: number | null;
+	isUnlimited: boolean;
 	redeemedCount: number;
 }): VoucherMessage {
 	const now = new Date();
 	const startDate = new Date(voucher.startDate);
 	const endDate = new Date(voucher.endDate);
-	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const total = voucher.totalRedemptionAvailable;
-	const claimedPercent = total > 0 ? ((total - remaining) / total) * 100 : 0;
-	const isSoldOut = remaining <= 0;
+	const isUnlimited = voucher.isUnlimited;
+	const total = voucher.totalRedemptionAvailable ?? 0;
+	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const claimedPercent = !isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
+	const isSoldOut = !isUnlimited && remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
 
 	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Claim levels > Available

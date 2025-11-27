@@ -26,10 +26,11 @@ function getVoucherMessage(voucher: Voucher): VoucherMessage {
 	const now = new Date();
 	const startDate = new Date(voucher.startDate);
 	const endDate = new Date(voucher.endDate);
-	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const total = voucher.totalRedemptionAvailable;
-	const claimedPercent = total > 0 ? ((total - remaining) / total) * 100 : 0;
-	const isSoldOut = remaining <= 0;
+	const isUnlimited = voucher.isUnlimited;
+	const total = voucher.totalRedemptionAvailable ?? 0;
+	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const claimedPercent = !isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
+	const isSoldOut = !isUnlimited && remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
 
 	// Priority order: Sold Out > Expired > Upcoming > Ending Soon > Claim levels > Available
@@ -125,8 +126,10 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	const router = useRouter();
 	const params = useParams<{ event_id: string }>();
 	const eventId = params?.event_id;
-	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
-	const isAvailable = remaining > 0 && !isPast(new Date(voucher.endDate));
+	const isUnlimited = voucher.isUnlimited;
+	const total = voucher.totalRedemptionAvailable ?? 0;
+	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const isAvailable = (isUnlimited || remaining > 0) && !isPast(new Date(voucher.endDate));
 
 	const voucherMessage = getVoucherMessage(voucher);
 

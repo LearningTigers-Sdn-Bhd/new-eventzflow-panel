@@ -25,6 +25,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getEvents } from "@/lib/api/event";
 import { updateVoucher, type Voucher } from "@/lib/api/voucher";
@@ -89,6 +90,7 @@ export default function EditVendorVoucherForm({
 	const [status, setStatus] = useState<"active" | "inactive">("active");
 	const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 	const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+	const [isUnlimited, setIsUnlimited] = useState(false);
 	const [globalLimit, setGlobalLimit] = useState("");
 	const [maxPerUser, setMaxPerUser] = useState("1");
 	const [image, setImage] = useState<File | null>(null);
@@ -162,7 +164,8 @@ export default function EditVendorVoucherForm({
 		}
 		
 		setStatus(voucher.status as "active" | "inactive");
-		setGlobalLimit(voucher.totalRedemptionAvailable.toString());
+		setIsUnlimited(voucher.isUnlimited ?? false);
+		setGlobalLimit(voucher.totalRedemptionAvailable?.toString() ?? "");
 		setMaxPerUser(voucher.maxRedemptionsPerUser.toString());
 		setStartDate(parseDateTime(voucher.startDate, voucher.startTime));
 		setEndDate(parseDateTime(voucher.endDate, voucher.endTime));
@@ -210,7 +213,8 @@ export default function EditVendorVoucherForm({
 			newErrors.endDate = "End date must be after start date";
 		}
 
-		if (!globalLimit || Number(globalLimit) <= 0) {
+		// Only validate globalLimit if not unlimited
+		if (!isUnlimited && (!globalLimit || Number(globalLimit) <= 0)) {
 			newErrors.globalLimit = "Please enter a valid global usage limit";
 		}
 
@@ -242,7 +246,8 @@ export default function EditVendorVoucherForm({
 			end_date: formatDate(endDate!),
 			start_time: startDate ? formatTime(startDate) : undefined,
 			end_time: endDate ? formatTime(endDate) : undefined,
-			total_redemption_available: Number(globalLimit),
+			is_unlimited: isUnlimited,
+			total_redemption_available: isUnlimited ? null : Number(globalLimit),
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
@@ -631,7 +636,8 @@ export default function EditVendorVoucherForm({
 								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+							{/* Row 1: Date/Time */}
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 								{/* Start Date/Time */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={startDateField}>
@@ -687,37 +693,69 @@ export default function EditVendorVoucherForm({
 										When the voucher expires.
 									</FieldDescription>
 								</Field>
+							</div>
 
-								{/* Global Usage Limit */}
+							{/* Row 2: Usage Limits */}
+							<div className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+								{/* Unlimited Toggle */}
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={globalLimitField}>
-										Global Usage Limit *
-									</FieldLabel>
-									{errors.globalLimit && (
-										<FieldError>{errors.globalLimit}</FieldError>
-									)}
-									<Input
-										id={globalLimitField}
-										type="number"
-										min="1"
-										value={globalLimit}
-										onChange={(e) => {
-											setGlobalLimit(e.target.value);
-											if (errors.globalLimit) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.globalLimit;
-													return newErrors;
-												});
-											}
-										}}
-										placeholder="e.g., 100"
-										disabled={updateMutation.isPending}
-									/>
+									<FieldLabel>Unlimited Redemptions</FieldLabel>
+									<div className="flex items-center gap-2 border bg-accent rounded-lg p-2">
+										<Switch
+											checked={isUnlimited}
+											onCheckedChange={(checked) => {
+												setIsUnlimited(checked);
+												if (checked && errors.globalLimit) {
+													setErrors((prev) => {
+														const newErrors = { ...prev };
+														delete newErrors.globalLimit;
+														return newErrors;
+													});
+												}
+											}}
+											disabled={updateMutation.isPending}
+										/>
+										<span className="text-sm">
+											{isUnlimited ? "Unlimited" : "Limited"}
+										</span>
+									</div>
 									<FieldDescription>
-										Total number of times this voucher can be redeemed.
+										Enable for unlimited redemptions.
 									</FieldDescription>
 								</Field>
+
+								{/* Usage Limit - Only show when not unlimited */}
+								{!isUnlimited && (
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={globalLimitField}>
+											Usage Limit *
+										</FieldLabel>
+										{errors.globalLimit && (
+											<FieldError>{errors.globalLimit}</FieldError>
+										)}
+										<Input
+											id={globalLimitField}
+											type="number"
+											min="1"
+											value={globalLimit}
+											onChange={(e) => {
+												setGlobalLimit(e.target.value);
+												if (errors.globalLimit) {
+													setErrors((prev) => {
+														const newErrors = { ...prev };
+														delete newErrors.globalLimit;
+														return newErrors;
+													});
+												}
+											}}
+											placeholder="e.g., 100"
+											disabled={updateMutation.isPending}
+										/>
+										<FieldDescription>
+											Total number of times this voucher can be redeemed.
+										</FieldDescription>
+									</Field>
+								)}
 
 								{/* Max Redemptions Per User */}
 								<Field orientation="vertical">

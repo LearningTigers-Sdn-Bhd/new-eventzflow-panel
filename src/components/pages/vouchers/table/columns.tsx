@@ -290,8 +290,13 @@ const baseColumns: ColumnDef<Voucher>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const total = row.getValue("totalRedemptionAvailable") as number;
-			return <div className="text-center font-medium">{total}</div>;
+			const isUnlimited = row.original.isUnlimited;
+			const total = row.getValue("totalRedemptionAvailable") as number | null;
+			return (
+				<div className="text-center font-medium">
+					{isUnlimited ? "Unlimited" : total}
+				</div>
+			);
 		},
 	},
 	{
@@ -299,16 +304,17 @@ const baseColumns: ColumnDef<Voucher>[] = [
 		size: 160,
 		header: () => <p className="font-medium">Redemptions</p>,
 		cell: ({ row }) => {
-			const total = row.original.totalRedemptionAvailable;
+			const isUnlimited = row.original.isUnlimited;
+			const total = row.original.totalRedemptionAvailable ?? 0;
 			const redeemed = row.original.redeemedCount || 0;
 			const remaining = total - redeemed;
 			return (
 				<div className="flex flex-col gap-1">
 					<div className="text-sm font-medium text-green-600">
-						{remaining} left
+						{isUnlimited ? "Unlimited" : `${remaining} left`}
 					</div>
 					<div className="text-xs text-muted-foreground">
-						{redeemed} / {total} redeemed
+						{redeemed} {isUnlimited ? "redeemed" : `/ ${total} redeemed`}
 					</div>
 				</div>
 			);

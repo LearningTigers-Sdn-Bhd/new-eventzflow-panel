@@ -142,7 +142,7 @@ export function PublicVouchersPage() {
 	const eventDisplayName = event?.title || "Event Vouchers";
 
 	const totalVouchers = vouchers.length;
-	const availableVouchers = vouchers.filter((v) => v.totalRedemptionAvailable - v.redeemedCount > 0).length;
+	const availableVouchers = vouchers.filter((v) => v.isUnlimited || (v.totalRedemptionAvailable ?? 0) - v.redeemedCount > 0).length;
 	const totalVendors = vouchers ? new Set(vouchers.map((voucher) => voucher.vendor?.fullName || "Unknown")).size : 0;
 
 	const summaryCards = [

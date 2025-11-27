@@ -13,7 +13,8 @@ interface VoucherItemProps {
 
 export function VoucherItem({ voucher }: VoucherItemProps) {
 	const { formatDate } = useFormatDate();
-	const remaining = voucher.totalRedemptionAvailable - voucher.redeemedCount;
+	const isUnlimited = voucher.isUnlimited;
+	const remaining = isUnlimited ? null : (voucher.totalRedemptionAvailable ?? 0) - voucher.redeemedCount;
 
 	return (
 		<Card className="rounded-none border-dashed">
@@ -57,7 +58,9 @@ export function VoucherItem({ voucher }: VoucherItemProps) {
 							</div>
 							<div>
 								<p className="text-muted-foreground">Quota</p>
-								<p className="font-medium">{voucher.totalRedemptionAvailable}</p>
+								<p className="font-medium">
+									{isUnlimited ? "Unlimited" : voucher.totalRedemptionAvailable}
+								</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Validity</p>
@@ -76,11 +79,10 @@ export function VoucherItem({ voucher }: VoucherItemProps) {
 								<p className="text-muted-foreground">Redemptions</p>
 								<div className="flex flex-col">
 									<span className="font-medium text-green-600">
-										{remaining} left
+										{isUnlimited ? "Unlimited" : `${remaining} left`}
 									</span>
 									<span className="text-xs text-muted-foreground">
-										{voucher.redeemedCount} / {voucher.totalRedemptionAvailable}{" "}
-										redeemed
+										{voucher.redeemedCount} {isUnlimited ? "redeemed" : `/ ${voucher.totalRedemptionAvailable} redeemed`}
 									</span>
 								</div>
 							</div>
