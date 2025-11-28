@@ -17,6 +17,7 @@ export const updateTeamMemberSchema = z.object({
 	phone: z.string().optional(),
 	role: z.enum(["org_owner", "organizer", "member", "vendor"]).optional(),
 	newPassword: z.string().optional(),
+	email_verified_at: z.string().nullable().optional(),
 });
 
 // Validation schema for toggling team member status

@@ -9,6 +9,7 @@ export type BackendTeamMember = {
 	created_at: string;
 	updated_at: string;
 	created_by_id?: string | null;
+	email_verified_at?: string | null;
 };
 
 // Frontend team member type
@@ -22,6 +23,7 @@ export type TeamMember = {
 	createdAt: string;
 	updatedAt: string;
 	createdById?: string | null;
+	emailVerifiedAt?: string | null;
 };
 
 // Response types for operations

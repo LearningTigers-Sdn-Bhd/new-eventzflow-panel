@@ -30,6 +30,7 @@ function transformTeamMember(backendMember: BackendTeamMember): TeamMember {
 		createdAt: backendMember.created_at,
 		updatedAt: backendMember.updated_at,
 		createdById: backendMember.created_by_id,
+		emailVerifiedAt: backendMember.email_verified_at,
 	};
 }
 
@@ -125,6 +126,7 @@ export async function updateTeamMember(
 				role?: string;
 				password?: string;
 				password_confirmation?: string;
+				email_verified_at?: string | null;
 			};
 		} = {
 			team_member: {
@@ -140,6 +142,11 @@ export async function updateTeamMember(
 			const password = validated.newPassword;
 			updateData.team_member.password = password;
 			updateData.team_member.password_confirmation = password;
+		}
+
+		// Include email_verified_at if explicitly provided (including null for revoke)
+		if (validated.email_verified_at !== undefined) {
+			updateData.team_member.email_verified_at = validated.email_verified_at;
 		}
 
 		const response = await restClient.put<BackendTeamMember>(

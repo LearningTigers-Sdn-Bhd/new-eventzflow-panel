@@ -20,6 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { updateTeamMember } from "@/lib/api/team";
 import type { TeamMember } from "./columns";
@@ -46,7 +47,10 @@ export default function EditMemberForm({
 		phone: member.phone || "",
 		newPassword: "",
 		role: member.role,
+		emailVerifiedAt: member.emailVerifiedAt,
 	});
+
+	const isEmailVerified = !!formData.emailVerifiedAt;
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -93,6 +97,7 @@ export default function EditMemberForm({
 				phone: formData.phone || undefined,
 				role: formData.role,
 				newPassword: formData.newPassword || undefined,
+				email_verified_at: formData.emailVerifiedAt,
 			});
 		} catch {
 			// Error is handled by onError callback
@@ -164,27 +169,46 @@ export default function EditMemberForm({
 
 						<FieldSeparator />
 
-						{/* Role - Only visible for org_owner and not for org_owner members */}
+						{/* Role and Verified - Two Columns (org_owner only) */}
 						{user?.role === "org_owner" && member.role !== "org_owner" && (
 							<>
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={roleId}>Role</FieldLabel>
-									<Select
-										value={formData.role}
-										onValueChange={(value) =>
-											handleChange("role", value)
-										}
-										disabled={updateMemberMutation.isPending}
-									>
-										<SelectTrigger id={roleId}>
-											<SelectValue placeholder="Select role" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="member">Member</SelectItem>
-											<SelectItem value="organizer">Organizer</SelectItem>
-										</SelectContent>
-									</Select>
-								</Field>
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={roleId}>Role</FieldLabel>
+										<Select
+											value={formData.role}
+											onValueChange={(value) => handleChange("role", value)}
+											disabled={updateMemberMutation.isPending}
+										>
+											<SelectTrigger id={roleId}>
+												<SelectValue placeholder="Select role" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="member">Member</SelectItem>
+												<SelectItem value="organizer">Organizer</SelectItem>
+											</SelectContent>
+										</Select>
+									</Field>
+
+									<Field orientation="vertical">
+										<FieldLabel>Verify Email</FieldLabel>
+										<div className="flex h-9 items-center gap-3 bg-accent border rounded-lg p-2">
+											<Switch
+												checked={isEmailVerified}
+												onCheckedChange={(checked) =>
+													setFormData((prev) => ({
+														...prev,
+														emailVerifiedAt: checked ? new Date().toISOString() : null,
+													}))
+												}
+												disabled={updateMemberMutation.isPending}
+											/>
+											<span className="text-sm">
+												{isEmailVerified ? "Verified" : "Not Verified"}
+											</span>
+										</div>
+									</Field>
+								</div>
 								<FieldSeparator />
 							</>
 						)}

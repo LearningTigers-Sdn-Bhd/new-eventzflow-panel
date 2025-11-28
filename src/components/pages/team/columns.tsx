@@ -23,6 +23,7 @@ export type TeamMember = {
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;
+	emailVerifiedAt?: string | null;
 };
 
 export const columns: ColumnDef<TeamMember>[] = [
