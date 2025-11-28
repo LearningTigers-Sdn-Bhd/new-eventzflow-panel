@@ -82,7 +82,7 @@ export function VoucherRedemptionModal({
 					voucherType: voucherData.voucherType,
 					voucherValue: voucherData.voucherValue,
 					description: voucherData.description,
-					totalRedemptionAvailable: voucherData.totalRedemptionAvailable,
+					totalRedemptionAvailable: voucherData.totalRedemptionAvailable ?? 0,
 					redeemedCount: voucherData.redeemedCount,
 					status: voucherData.status,
 				},

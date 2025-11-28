@@ -68,6 +68,12 @@ export async function getAllEventsStatsServer(
 		totalRevenue: centsToDollars(stats.total_revenue),
 		totalCheckins: stats.total_scanned,
 		totalLocations: stats.total_locations,
+		totalVisitors: stats.total_visitors,
+		totalVendors: stats.total_vendors,
+		totalVouchers: stats.total_vouchers,
+		totalVouchersRedeemed: stats.total_vouchers_redeemed,
+		ticketEvents: stats.ticket_events,
+		nonTicketEvents: stats.non_ticket_events,
 	};
 }
 
@@ -89,10 +95,13 @@ export async function getEventsOverviewServer(
 			event.status === "published"
 				? ("active" as const)
 				: ("inactive" as const),
+		useTicket: event.use_ticket,
 		totalTickets: event.total_tickets,
 		scannedTickets: event.scanned_tickets,
 		totalRevenue: centsToDollars(event.total_revenue),
 		pendingTickets: event.unscanned_tickets,
+		totalVisitors: event.total_visitors,
+		totalStamps: event.total_stamps,
 		lastActivity: event.last_activity,
 	}));
 }
