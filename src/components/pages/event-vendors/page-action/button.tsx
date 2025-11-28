@@ -1,10 +1,11 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Link2, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { InviteVendorDialog } from "../dialogs/invite-vendor-dialog";
 import AddVendorModal from "../forms/add-vendor";
 
 export function EventVendorsPageButton() {
@@ -33,8 +34,21 @@ export function EventVendorsPageButton() {
 		return null;
 	}
 
+	const canInviteVendor = permissions.isOrganizer || permissions.isEventAdmin;
+
 	return (
 		<div className="flex w-full items-center gap-2 lg:w-auto">
+			{canInviteVendor && (
+				<InviteVendorDialog
+					eventId={Number(eventId)}
+					trigger={
+						<Button variant="outline" className="w-full rounded-none lg:w-auto">
+							<Link2 className="mr-2 h-4 w-4" />
+							Invite Vendor
+						</Button>
+					}
+				/>
+			)}
 			<Button
 				onClick={handleAssignVendor}
 				className="w-full rounded-none lg:w-auto"
