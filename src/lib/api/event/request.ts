@@ -10,6 +10,7 @@ export const createEventSchema = z.object({
 		.default("draft"),
 	visibility: z.boolean().optional().default(true),
 	use_ticket: z.boolean().optional().default(true),
+	use_exhibitor_kit: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
 	end_date: z.string(), // ISO date string
 	multiple_scans: z.boolean().optional().default(false),
@@ -27,6 +28,7 @@ export const updateEventSchema = z.object({
 	status: z.enum(["draft", "published", "cancelled"]).optional(),
 	visibility: z.boolean().optional(),
 	use_ticket: z.boolean().optional(),
+	use_exhibitor_kit: z.boolean().optional(),
 	start_date: z.string().optional(),
 	end_date: z.string().optional(),
 	multiple_scans: z.boolean().optional(),

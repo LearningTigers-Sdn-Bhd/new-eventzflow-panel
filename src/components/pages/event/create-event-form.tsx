@@ -37,6 +37,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const titleId = useId();
 	const visibilityId = useId();
 	const useTicketId = useId();
+	const useExhibitorKitId = useId();
 	const statusId = useId();
 	const eventAdminId = useId();
 	const descriptionId = useId();
@@ -47,6 +48,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 		title: "",
 		visibility: true,
 		use_ticket: true,
+		use_exhibitor_kit: false,
 		status: "draft" as "draft" | "published" | "cancelled",
 		event_admin_id: undefined as string | undefined,
 		description: "",
@@ -119,6 +121,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				title: string;
 				visibility: boolean;
 				use_ticket: boolean;
+				use_exhibitor_kit: boolean;
 				status: "draft" | "published" | "cancelled";
 				event_admin_id?: number;
 				description?: string;
@@ -129,6 +132,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				title: formData.title.trim(),
 				visibility: formData.visibility ?? true,
 				use_ticket: formData.use_ticket ?? true,
+				use_exhibitor_kit: formData.use_exhibitor_kit ?? false,
 				status: formData.status ?? "draft",
 				description: formData.description.trim() || undefined,
 				start_date: formData.start_date?.toISOString() || "",
@@ -183,8 +187,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 							/>
 						</Field>
 
-						{/* Row 2: Visibility and Ticketing System */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						{/* Row 2: Visibility, Ticketing System, and Exhibitor Kit */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 							{/* Visibility */}
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={visibilityId}>Visibility</FieldLabel>
@@ -217,6 +221,24 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									/>
 									<span className="ml-2 text-muted-foreground text-sm">
 										{formData.use_ticket ? "Enabled" : "Disabled"}
+									</span>
+								</div>
+							</Field>
+
+							{/* Exhibitor Kit */}
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={useExhibitorKitId}>Use Exhibitor Kit</FieldLabel>
+								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+									<Switch
+										id={useExhibitorKitId}
+										checked={formData.use_exhibitor_kit}
+										onCheckedChange={(checked) =>
+											handleChange("use_exhibitor_kit", checked)
+										}
+										disabled={createEventMutation.isPending}
+									/>
+									<span className="ml-2 text-muted-foreground text-sm">
+										{formData.use_exhibitor_kit ? "Enabled" : "Disabled"}
 									</span>
 								</div>
 							</Field>
