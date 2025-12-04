@@ -25,6 +25,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
 import { getVendors } from "@/lib/api/vendor";
 
@@ -38,11 +39,21 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
 	const qrUrlField = useId();
+	const picFullNameField = useId();
+	const picContactNumberField = useId();
+	const picEmailField = useId();
+	const specialRequirementsField = useId();
 
 	const [vendorId, setVendorId] = useState<string>("");
 	const [redirectUrl, setRedirectUrl] = useState("");
 	const [posterUrl, setPosterUrl] = useState("");
 	const [qrUrl, setQrUrl] = useState("");
+
+	// PIC fields for exhibitor kit
+	const [picFullName, setPicFullName] = useState("");
+	const [picContactNumber, setPicContactNumber] = useState("");
+	const [picEmail, setPicEmail] = useState("");
+	const [specialRequirements, setSpecialRequirements] = useState("");
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -69,18 +80,18 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 	}, [eventVendors]);
 
 	const queryClient = useQueryClient();
-	const createVendorMutation = useMutation({
+	const createExhibitorMutation = useMutation({
 		mutationFn: (data: Parameters<typeof createEventVendor>[1]) =>
 			createEventVendor(eventId, data),
 		onSuccess: () => {
-			toast.success("Vendor added to event successfully!");
+			toast.success("Exhibitor added to event successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId.toString(), "vendors"],
 			});
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to assign vendor");
+			toast.error(error.message || "Failed to assign exhibitor");
 		},
 	});
 
@@ -92,6 +103,14 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 
 		if (!vendorId) {
 			newErrors.vendorId = "Please select a vendor";
+		}
+
+		// Validate PIC fields (required for exhibitors)
+		if (!picFullName.trim()) {
+			newErrors.picFullName = "PIC full name is required";
+		}
+		if (!picContactNumber.trim()) {
+			newErrors.picContactNumber = "PIC contact number is required";
 		}
 
 		if (Object.keys(newErrors).length > 0) {
@@ -119,7 +138,15 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 				data.qr_url = trimmedQrUrl;
 			}
 
-			await createVendorMutation.mutateAsync(data);
+			// Add exhibitor kit attributes
+			data.exhibitor_kit_attributes = {
+				pic_full_name: picFullName.trim(),
+				pic_contact_number: picContactNumber.trim(),
+				pic_email_address: picEmail.trim() || undefined,
+				special_requirements: specialRequirements.trim() || undefined,
+			};
+
+			await createExhibitorMutation.mutateAsync(data);
 		} catch {
 			// Error is handled by onError callback
 		}
@@ -195,10 +222,10 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldLegend className="font-bold text-xl">
-						Assign Individual Vendor
+						Assign Individual Exhibitor
 					</FieldLegend>
 					<FieldDescription>
-						Select a vendor and configure their settings for this event.
+						Select a vendor and configure their exhibitor details for this event.
 					</FieldDescription>
 					<FieldSeparator />
 					<FieldGroup>
@@ -218,7 +245,7 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 										});
 									}
 								}}
-								disabled={createVendorMutation.isPending}
+								disabled={createExhibitorMutation.isPending}
 							>
 								<SelectTrigger id={vendorIdField}>
 									<SelectValue placeholder="Select a vendor" />
@@ -253,7 +280,7 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 								</SelectContent>
 							</Select>
 							<FieldDescription>
-								Select a vendor to assign to this event.
+								Select a vendor to assign as exhibitor to this event.
 							</FieldDescription>
 						</Field>
 
@@ -271,7 +298,7 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 									value={redirectUrl}
 									onChange={(e) => setRedirectUrl(e.target.value)}
 									placeholder="https://example.com"
-									disabled={createVendorMutation.isPending}
+									disabled={createExhibitorMutation.isPending}
 									className="rounded-none"
 								/>
 							</Field>
@@ -286,7 +313,7 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 									value={posterUrl}
 									onChange={(e) => setPosterUrl(e.target.value)}
 									placeholder="https://example.com/poster.jpg"
-									disabled={createVendorMutation.isPending}
+									disabled={createExhibitorMutation.isPending}
 									className="rounded-none"
 								/>
 							</Field>
@@ -301,8 +328,100 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 									value={qrUrl}
 									onChange={(e) => setQrUrl(e.target.value)}
 									placeholder="https://example.com"
-									disabled={createVendorMutation.isPending}
+									disabled={createExhibitorMutation.isPending}
 									className="rounded-none"
+								/>
+							</Field>
+						</div>
+
+						<FieldSeparator />
+
+						{/* PIC Information */}
+						<div className="rounded-none border border-dashed bg-muted/30 p-4">
+							<p className="text-sm font-medium mb-4">
+								Person In Charge (PIC) Information
+							</p>
+
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-4">
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={picFullNameField}>Full Name *</FieldLabel>
+									{errors.picFullName && (
+										<FieldError>{errors.picFullName}</FieldError>
+									)}
+									<Input
+										id={picFullNameField}
+										type="text"
+										value={picFullName}
+										onChange={(e) => {
+											setPicFullName(e.target.value);
+											if (errors.picFullName) {
+												setErrors((prev) => {
+													const newErrors = { ...prev };
+													delete newErrors.picFullName;
+													return newErrors;
+												});
+											}
+										}}
+										placeholder="Enter full name"
+										disabled={createExhibitorMutation.isPending}
+										className="rounded-none"
+									/>
+								</Field>
+
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={picContactNumberField}>
+										Contact Number *
+									</FieldLabel>
+									{errors.picContactNumber && (
+										<FieldError>{errors.picContactNumber}</FieldError>
+									)}
+									<Input
+										id={picContactNumberField}
+										type="tel"
+										value={picContactNumber}
+										onChange={(e) => {
+											setPicContactNumber(e.target.value);
+											if (errors.picContactNumber) {
+												setErrors((prev) => {
+													const newErrors = { ...prev };
+													delete newErrors.picContactNumber;
+													return newErrors;
+												});
+											}
+										}}
+										placeholder="Enter contact number"
+										disabled={createExhibitorMutation.isPending}
+										className="rounded-none"
+									/>
+								</Field>
+
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={picEmailField}>
+										Email Address (Optional)
+									</FieldLabel>
+									<Input
+										id={picEmailField}
+										type="email"
+										value={picEmail}
+										onChange={(e) => setPicEmail(e.target.value)}
+										placeholder="Enter email address"
+										disabled={createExhibitorMutation.isPending}
+										className="rounded-none"
+									/>
+								</Field>
+							</div>
+
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={specialRequirementsField}>
+									Special Requirements (Optional)
+								</FieldLabel>
+								<Textarea
+									id={specialRequirementsField}
+									value={specialRequirements}
+									onChange={(e) => setSpecialRequirements(e.target.value)}
+									placeholder="Enter any special requirements..."
+									disabled={createExhibitorMutation.isPending}
+									className="rounded-none min-h-[80px]"
 								/>
 							</Field>
 						</div>
@@ -315,12 +434,14 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 								type="button"
 								variant="outline"
 								onClick={onClose}
-								disabled={createVendorMutation.isPending}
+								disabled={createExhibitorMutation.isPending}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createVendorMutation.isPending}>
-								{createVendorMutation.isPending ? "Assigning..." : "Assign Vendor"}
+							<Button type="submit" disabled={createExhibitorMutation.isPending}>
+								{createExhibitorMutation.isPending
+									? "Assigning..."
+									: "Assign Exhibitor"}
 							</Button>
 						</div>
 					</FieldGroup>

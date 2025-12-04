@@ -8,6 +8,7 @@ export type Event = {
 	visibility: boolean;
 	multiple_scans: boolean;
 	use_ticket: boolean;
+	use_exhibitor_kit: boolean;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;

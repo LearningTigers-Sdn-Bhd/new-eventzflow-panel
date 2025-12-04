@@ -94,6 +94,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 	// Get event permissions for the current user
 	const permissions = useEventPermissions(eventId.toString(), currentEvent);
 	const isVendor = user?.role === "vendor";
+	const isExhibitionContractor = user?.role === "exhibition_contractor";
 
 	// Filter menu items based on event type and permissions
 	const routerItems = useMemo(() => {
@@ -169,15 +170,32 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 			},
 			
 			// === VENDOR & VOUCHER MANAGEMENT ===
-			{
-				id: `vendors-id${eventId}`,
-				name: "Assign Vendor",
-				icon: Building2,
-				route: `/event/${eventId}/vendors`,
-				className: "",
-				featureKey: "vendors",
-				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVendorsTab),
-			},
+			// Show "Assign Exhibitor" when use_exhibitor_kit is true, otherwise "Assign Vendor"
+			...(currentEvent?.use_exhibitor_kit === true
+				? [
+						{
+							id: `exhibitor-id${eventId}`,
+							name: "Assign Exhibitor",
+							icon: Building2,
+							route: `/event/${eventId}/exhibitor`,
+							className: "",
+							featureKey: "exhibitor",
+							shouldDisplay: ({ permissions }: MenuContext) =>
+								Boolean(permissions.canViewVendorsTab),
+						},
+					]
+				: [
+						{
+							id: `vendors-id${eventId}`,
+							name: "Assign Vendor",
+							icon: Building2,
+							route: `/event/${eventId}/vendors`,
+							className: "",
+							featureKey: "vendors",
+							shouldDisplay: ({ permissions }: MenuContext) =>
+								Boolean(permissions.canViewVendorsTab),
+						},
+					]),
 			{
 				id: `vouchers-id${eventId}`,
 				name: "Vouchers",
@@ -277,6 +295,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		if (permissions.isEventVendor && !permissions.canManageEventVendors) {
 			const vendorVisibleFeatures = new Set([
 				"vendors",
+				"exhibitor",
 				"vouchers",
 				"voucher-redemption",
 				"voucher-analytics",
@@ -289,7 +308,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		}
 
 		return filteredItems;
-	}, [currentEvent?.use_ticket, permissions, eventId, isVendor]);
+	}, [currentEvent?.use_ticket, currentEvent?.use_exhibitor_kit, permissions, eventId, isVendor]);
 
 	const archiveEventMutation = useMutation({
 		mutationFn: archiveEvent,
@@ -434,14 +453,19 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		});
 	};
 
-	// For vendors, redirect to vendors tab instead of opening settings
+	// For vendors and exhibition contractors, redirect to vendors tab instead of opening settings
 	const handleMainButtonClick = () => {
 		if (isVendor) {
+			_router.push(`/event/${eventId}/vendors`);
+		} else if (isExhibitionContractor) {
 			_router.push(`/event/${eventId}/vendors`);
 		} else {
 			_openEventSettings();
 		}
 	};
+
+	// Determine if user should see "View" button instead of "Manage"
+	const shouldShowViewButton = isVendor || isExhibitionContractor;
 
 	return (
 		<ButtonGroup>
@@ -451,9 +475,9 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				onClick={handleMainButtonClick}
 			>
 				<Cog className="h-4 w-4" />
-				{isVendor ? "Show" : "Manage"}
+				{shouldShowViewButton ? "View" : "Manage"}
 			</Button>
-			{!isVendor && (
+			{!shouldShowViewButton && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button className="rounded-none px-2" variant="outline">

@@ -17,7 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 interface DataControlProps<TData> {
@@ -25,28 +25,21 @@ interface DataControlProps<TData> {
 }
 
 export function DataControl<TData>({ table }: DataControlProps<TData>) {
-	const _isTablet = useIsTablet();
-
-	const searchColumns = ["full_name", "email"];
-	const primarySortColumn = "full_name";
-	const secondarySortColumn = "created_at";
-	const primarySortLabel = "Name";
-	const secondarySortLabel = "Added At";
+	const _isMobile = useIsMobile();
 
 	return (
 		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
 			{/* Desktop Control Panel */}
-			{!_isTablet ? (
+			{!_isMobile ? (
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={searchColumns}
-						placeholder="Search event vendors..."
+						columns={["full_name", "company_name", "email"]}
+						placeholder="Search contractors..."
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
-								{/* Number of columns visible */}
 								{table.getAllColumns().filter((column) => column.getIsVisible())
 									.length - 1}{" "}
 								columns
@@ -70,7 +63,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{column.id.replace(/_/g, " ")}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
@@ -80,67 +73,74 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 			) : (
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField table={table} columns={searchColumns} placeholder="Search event vendors..." />
+					<QuerySearchField
+						table={table}
+						placeholder="Search contractors..."
+					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn(primarySortColumn)
+									.getColumn("full_name")
 									?.toggleSorting(
-										table.getColumn(primarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn("full_name")?.getIsSorted() === "asc",
 									)
 							}
-							className="rounded-none"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
+							Name
 							<ArrowDown
 								className={cn(
-									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(primarySortColumn)?.getIsSorted() === "asc" &&
+									"size-3.5 transition-transform",
+									table.getColumn("full_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
-							{primarySortLabel}
 						</Button>
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn(secondarySortColumn)
+									.getColumn("company_name")
 									?.toggleSorting(
-										table.getColumn(secondarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn("company_name")?.getIsSorted() === "asc",
 									)
 							}
-							className="rounded-none"
+							className="flex items-center justify-between rounded-none text-xs"
 						>
+							Company
 							<ArrowDown
 								className={cn(
-									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(secondarySortColumn)?.getIsSorted() === "asc" &&
+									"size-3.5 transition-transform",
+									table.getColumn("company_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
-							{secondarySortLabel}
 						</Button>
 						<Select
-							value={`${table.getState().pagination.pageSize}`}
-							onValueChange={(value) => {
-								table.setPageSize(Number(value));
-							}}
+							value={
+								(table.getColumn("status")?.getFilterValue() as string) || "all"
+							}
+							onValueChange={(value) =>
+								table
+									.getColumn("status")
+									?.setFilterValue(value === "all" ? undefined : value)
+							}
 						>
-							<SelectTrigger className="rounded-none">
-								<SelectValue placeholder="Page size" />
+							<SelectTrigger className="w-full rounded-none font-medium text-xs">
+								<SelectValue placeholder="All Statuses" />
 							</SelectTrigger>
-							<SelectContent className="rounded-none bg-background">
-								{[10, 20, 30, 40, 50].map((pageSize) => (
-									<SelectItem
-										key={pageSize}
-										value={`${pageSize}`}
-										className="rounded-none"
-									>
-										{pageSize} rows
-									</SelectItem>
-								))}
+							<SelectContent className="rounded-none">
+								<SelectItem value="all" className="rounded-none">
+									All Statuses
+								</SelectItem>
+								<SelectItem value="active" className="rounded-none">
+									Active
+								</SelectItem>
+								<SelectItem value="inactive" className="rounded-none">
+									Inactive
+								</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>

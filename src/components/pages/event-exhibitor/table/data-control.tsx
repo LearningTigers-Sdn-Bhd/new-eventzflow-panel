@@ -27,26 +27,20 @@ interface DataControlProps<TData> {
 export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
-	const searchColumns = ["full_name", "email"];
-	const primarySortColumn = "full_name";
-	const secondarySortColumn = "created_at";
-	const primarySortLabel = "Name";
-	const secondarySortLabel = "Added At";
+	const searchColumns = ["company_name", "booth_number"];
 
 	return (
 		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
-			{/* Desktop Control Panel */}
 			{!_isTablet ? (
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
 						columns={searchColumns}
-						placeholder="Search event vendors..."
+						placeholder="Search exhibitors..."
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
-								{/* Number of columns visible */}
 								{table.getAllColumns().filter((column) => column.getIsVisible())
 									.length - 1}{" "}
 								columns
@@ -78,17 +72,20 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					</DropdownMenu>
 				</div>
 			) : (
-				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField table={table} columns={searchColumns} placeholder="Search event vendors..." />
+					<QuerySearchField
+						table={table}
+						columns={searchColumns}
+						placeholder="Search exhibitors..."
+					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn(primarySortColumn)
+									.getColumn("company_name")
 									?.toggleSorting(
-										table.getColumn(primarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn("company_name")?.getIsSorted() === "asc",
 									)
 							}
 							className="rounded-none"
@@ -96,19 +93,19 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(primarySortColumn)?.getIsSorted() === "asc" &&
+									table.getColumn("company_name")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
-							{primarySortLabel}
+							Company
 						</Button>
 						<Button
 							variant="outline"
 							onClick={() =>
 								table
-									.getColumn(secondarySortColumn)
+									.getColumn("booth_number")
 									?.toggleSorting(
-										table.getColumn(secondarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn("booth_number")?.getIsSorted() === "asc",
 									)
 							}
 							className="rounded-none"
@@ -116,11 +113,11 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(secondarySortColumn)?.getIsSorted() === "asc" &&
+									table.getColumn("booth_number")?.getIsSorted() === "asc" &&
 										"-rotate-180",
 								)}
 							/>
-							{secondarySortLabel}
+							Booth No.
 						</Button>
 						<Select
 							value={`${table.getState().pagination.pageSize}`}

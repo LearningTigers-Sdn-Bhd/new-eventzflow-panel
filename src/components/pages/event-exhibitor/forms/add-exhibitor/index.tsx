@@ -3,24 +3,24 @@
 import { useState } from "react";
 import ManualAddForm from "./manual-add-form";
 import GroupAddForm from "./group-add-form";
-import AddVendorNavigation from "./navigation";
+import AddExhibitorNavigation from "./navigation";
 
-interface AddVendorModalProps {
+interface AddExhibitorModalProps {
 	eventId: number;
 	onClose?: () => void;
 }
 
-export default function AddVendorModal({
+export default function AddExhibitorModal({
 	eventId,
 	onClose,
-}: AddVendorModalProps) {
+}: AddExhibitorModalProps) {
 	const [activeTab, setActiveTab] = useState<"manual-add" | "group-add">(
 		"manual-add",
 	);
 
 	return (
 		<div className="relative flex flex-col justify-start gap-4 px-6 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6">
-			<AddVendorNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+			<AddExhibitorNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 			<div className="flex flex-col gap-4">
 				{activeTab === "manual-add" && (
 					<ManualAddForm eventId={eventId} onClose={onClose} />

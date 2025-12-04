@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp, ChevronDown } from "lucide-react";
+import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp, ChevronDown, HardHat } from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -104,12 +104,30 @@ const tabItems: TabItem[] = [
 	},
 	{
 		id: "vendors",
-		label: "Vendor Profile",
-		title: "Vendor Profile",
+		label: "Vendors",
+		title: "Vendors",
 		description:
-			"View and manage vendor profile information.",
+			"View and manage vendors for this event.",
 		icon: Building2,
 		route: "vendors",
+	},
+	{
+		id: "exhibitor",
+		label: "Exhibitor",
+		title: "Exhibitor",
+		description:
+			"View and manage exhibitors and their kits for this event.",
+		icon: Building2,
+		route: "exhibitor",
+	},
+	{
+		id: "exhibitor-contractor",
+		label: "Exhibitor Contractor",
+		title: "Exhibitor Contractor",
+		description:
+			"Assign and manage exhibitor contractors for this event.",
+		icon: HardHat,
+		route: "exhibitor-contractor",
 	},
 	{
 		id: "vouchers",
@@ -255,9 +273,19 @@ export default function EventDetailLayout({
 				return permissions.canManageEventStaff;
 			}
 
-			// Vendors tab - visible to event admins and vendors
+			// Vendors tab - only visible when use_exhibitor_kit is false
 			if (tab.id === "vendors") {
-				return permissions.canViewVendorsTab;
+				return permissions.canViewVendorsTab && currentEvent?.use_exhibitor_kit !== true;
+			}
+
+			// Exhibitor tab - only visible when use_exhibitor_kit is enabled
+			if (tab.id === "exhibitor") {
+				return currentEvent?.use_exhibitor_kit === true && permissions.canViewVendorsTab;
+			}
+
+			// Exhibitor Contractor tab - only visible to org_owner (same as event staff)
+			if (tab.id === "exhibitor-contractor") {
+				return permissions.canManageEventStaff;
 			}
 
 			// Vouchers tab - visible to event admins and vendors
@@ -304,7 +332,7 @@ export default function EventDetailLayout({
 
 		if (isVendor) {
 			// Vendor tab order: Profile → Operations → Analytics
-			const vendorTabOrder = ["vendors", "location", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"];
+			const vendorTabOrder = ["vendors", "exhibitor", "location", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"];
 			return filtered.sort((a, b) => {
 				const indexA = vendorTabOrder.indexOf(a.id);
 				const indexB = vendorTabOrder.indexOf(b.id);
@@ -317,7 +345,7 @@ export default function EventDetailLayout({
 				"tickets", "pending-tickets", "scanned-logs", // Tickets group
 				"visitors",
 				"event-staff",
-				"vendors",
+				"vendors", "exhibitor", // Vendors OR Exhibitor (mutually exclusive)
 				"vouchers",
 				"analytics", "voucher-analytics", // Analytics group
 				"voucher-logs", "export-logs", // Logs group
@@ -335,7 +363,7 @@ export default function EventDetailLayout({
 			const nonTicketEventOrder = [
 				"location",
 				"visitors",
-				"vendors",
+				"vendors", "exhibitor", // Vendors OR Exhibitor (mutually exclusive)
 				"vouchers",
 				"event-staff",
 				"voucher-analytics", "mall-live-feed", // Analytics group
@@ -370,9 +398,20 @@ export default function EventDetailLayout({
 		return visibleTabs.filter((tab) => logsTabIds.includes(tab.id));
 	}, [visibleTabs]);
 
-	// Main tabs (excluding ticket, analytics, and logs sub-tabs, but we'll add group tabs)
+	// Group user management tabs for dropdown (event-staff, vendors/exhibitor, and exhibitor-contractor)
+	const userManagementTabIds = ["event-staff", "vendors", "exhibitor", "exhibitor-contractor"];
+	const userManagementTabs = useMemo(() => {
+		return visibleTabs.filter((tab) => userManagementTabIds.includes(tab.id));
+	}, [visibleTabs]);
+
+	// Main tabs (excluding ticket, analytics, logs, and user management sub-tabs, but we'll add group tabs)
 	const mainTabs = useMemo(() => {
-		const filtered = visibleTabs.filter((tab) => !ticketTabIds.includes(tab.id) && !analyticsTabIds.includes(tab.id) && !logsTabIds.includes(tab.id));
+		const filtered = visibleTabs.filter((tab) => 
+			!ticketTabIds.includes(tab.id) && 
+			!analyticsTabIds.includes(tab.id) && 
+			!logsTabIds.includes(tab.id) &&
+			!userManagementTabIds.includes(tab.id)
+		);
 		
 		// If there are ticket tabs, add a grouped "Tickets" tab
 		if (ticketTabs.length > 0) {
@@ -387,6 +426,23 @@ export default function EventDetailLayout({
 				route: "tickets", // Default to tickets page
 			};
 			filtered.splice(locationIndex + 1, 0, ticketsGroupTab);
+		}
+
+		// If there are user management tabs, add a grouped "User Management" tab
+		if (userManagementTabs.length > 0) {
+			// Find position after tickets group or after location
+			const ticketsGroupIndex = filtered.findIndex((tab) => tab.id === "tickets-group");
+			const insertIndex = ticketsGroupIndex !== -1 ? ticketsGroupIndex + 1 : filtered.findIndex((tab) => tab.id === "location") + 1;
+			
+			const userManagementGroupTab: TabItem = {
+				id: "user-management-group",
+				label: "User Management",
+				title: "User Management",
+				description: "Manage event staff and vendors",
+				icon: Users,
+				route: userManagementTabs[0]?.route || "event-staff", // Default to first available tab
+			};
+			filtered.splice(insertIndex, 0, userManagementGroupTab);
 		}
 		
 		// If there are analytics tabs, add a grouped "Analytics" tab
@@ -418,32 +474,32 @@ export default function EventDetailLayout({
 		}
 		
 		return filtered;
-	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs]);
+	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs, userManagementTabs]);
 
-	// Update vendor tab label, title, and description based on user role
-	const tabsWithDynamicLabels = useMemo(() => {
-		return mainTabs.map((tab) => {
+	// Update vendor tab label, title, and description based on user role (for userManagementTabs)
+	const userManagementTabsWithDynamicLabels = useMemo(() => {
+		return userManagementTabs.map((tab) => {
 			if (tab.id === "vendors") {
-				// If user is a vendor (not admin), show "Vendor Profile"
-				if (permissions.isEventVendor && !permissions.canManageEventVendors) {
-					return {
-						...tab,
-						label: "Vendor Profile",
-						title: "Vendor Profile",
-						description: "View and manage your vendor profile information.",
-					};
-				}
-				// Otherwise show "Vendors" for admins/organizers
+				// Always show "Vendors" in the dropdown
 				return {
 					...tab,
 					label: "Vendors",
-					title: "Event Vendors",
-					description: "View and manage vendors for this event.",
+					title: permissions.isEventVendor && !permissions.canManageEventVendors 
+						? "Vendor Profile" 
+						: "Event Vendors",
+					description: permissions.isEventVendor && !permissions.canManageEventVendors
+						? "View and manage your vendor profile information."
+						: "View and manage vendors for this event.",
 				};
 			}
 			return tab;
 		});
-	}, [mainTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
+	}, [userManagementTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
+
+	// Main tabs with dynamic labels (no changes needed since vendors is now in user management group)
+	const tabsWithDynamicLabels = useMemo(() => {
+		return mainTabs;
+	}, [mainTabs]);
 
 	// Extract the current tab from pathname.
 	// For nested routes like /event/[id]/vendors/[vendor_id]/profile,
@@ -466,6 +522,10 @@ export default function EventDetailLayout({
 			if (logsTabIds.includes(segment)) {
 				return "logs-group";
 			}
+			// Check if it's a user management tab
+			if (userManagementTabIds.includes(segment)) {
+				return "user-management-group";
+			}
 			if (visibleTabs.some((tab) => tab.route === segment)) {
 				return segment;
 			}
@@ -473,21 +533,21 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds]);
+	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds, userManagementTabIds]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
-		// If we're on a ticket-related, analytics-related, or logs-related page, find the specific tab
+		// If we're on a ticket-related, analytics-related, logs-related, or user management page, find the specific tab
 		const segments = pathname.split("/").filter(Boolean);
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
-			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment) || logsTabIds.includes(segment)) {
+			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment) || logsTabIds.includes(segment) || userManagementTabIds.includes(segment)) {
 				return visibleTabs.find((item) => item.route === segment) || tabsWithDynamicLabels[0];
 			}
 		}
 		
 		return tabsWithDynamicLabels.find((item) => item.route === currentTab) || tabsWithDynamicLabels[0];
-	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds]);
+	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds, userManagementTabIds]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -547,15 +607,16 @@ export default function EventDetailLayout({
 				</div>
 				<div className="w-full border-y border-dashed">
 					{isTablet ? (
-						<Select 
-							value={
-								currentTab === "tickets-group" ? "tickets" : 
-								currentTab === "analytics-group" ? "analytics" : 
-								currentTab === "logs-group" ? "voucher-logs" :
-								currentTab
-							} 
-							onValueChange={handleTabChange}
-						>
+					<Select 
+						value={
+							currentTab === "tickets-group" ? "tickets" : 
+							currentTab === "analytics-group" ? "analytics" : 
+							currentTab === "logs-group" ? "voucher-logs" :
+							currentTab === "user-management-group" ? (userManagementTabs[0]?.route || "event-staff") :
+							currentTab
+						} 
+						onValueChange={handleTabChange}
+					>
 							<SelectTrigger className="h-12! w-full rounded-none border-none bg-accent/50 transition-colors hover:bg-accent">
 								<SelectValue>
 									{(() => {
@@ -629,6 +690,25 @@ export default function EventDetailLayout({
 											);
 										});
 									}
+
+									// If this is the user management group, show all user management options
+									if (item.id === "user-management-group") {
+										return userManagementTabsWithDynamicLabels.map((userTab) => {
+											const UserIcon = userTab.icon;
+											return (
+												<SelectItem
+													key={userTab.id}
+													value={userTab.route}
+													className="h-10! rounded-none"
+												>
+													<div className="flex items-center gap-2">
+														<UserIcon className="size-4" />
+														<span>{userTab.label}</span>
+													</div>
+												</SelectItem>
+											);
+										});
+									}
 									
 									return (
 										<SelectItem
@@ -660,8 +740,7 @@ export default function EventDetailLayout({
 												<DropdownMenuTrigger asChild>
 													<button
 														className={cn(
-															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
-															"hover:bg-accent hover:text-accent-foreground",
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
 															isTicketTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
@@ -690,6 +769,45 @@ export default function EventDetailLayout({
 											</DropdownMenu>
 										);
 									}
+
+									// Render user management dropdown
+									if (item.id === "user-management-group") {
+										const isUserManagementTabActive = userManagementTabIds.includes(currentTab) || currentTab === "user-management-group";
+										
+										return (
+											<DropdownMenu key={item.id}>
+												<DropdownMenuTrigger asChild>
+													<button
+														className={cn(
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
+															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+															"dark:text-muted-foreground",
+															isUserManagementTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+														)}
+													>
+														<IconComponent className="size-5 lg:size-4" />
+														<span className="hidden xl:inline">{item.label}</span>
+														<ChevronDown className="ml-0.5 size-3 opacity-50" />
+													</button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="start" className="min-w-[200px]">
+													{userManagementTabsWithDynamicLabels.map((userTab) => {
+														const UserIcon = userTab.icon;
+														return (
+															<DropdownMenuItem
+																key={userTab.id}
+																onClick={() => handleTabChange(userTab.route)}
+																className="cursor-pointer"
+															>
+																<UserIcon className="mr-2 size-4" />
+																<span>{userTab.label}</span>
+															</DropdownMenuItem>
+														);
+													})}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										);
+									}
 									
 									// Render analytics dropdown
 									if (item.id === "analytics-group") {
@@ -700,8 +818,7 @@ export default function EventDetailLayout({
 												<DropdownMenuTrigger asChild>
 													<button
 														className={cn(
-															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
-															"hover:bg-accent hover:text-accent-foreground",
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
 															isAnalyticsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
@@ -740,8 +857,7 @@ export default function EventDetailLayout({
 												<DropdownMenuTrigger asChild>
 													<button
 														className={cn(
-															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] lg:gap-1.5",
-															"hover:bg-accent hover:text-accent-foreground",
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
 															isLogsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"

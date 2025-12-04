@@ -1,5 +1,7 @@
 // Pure TypeScript types for API responses
 
+import type { ExhibitorKit } from "../exhibitor-kit/response";
+
 export interface EventVendor {
 	id: number;
 	event_id: number;
@@ -14,6 +16,7 @@ export interface EventVendor {
 		full_name: string;
 		phone?: string;
 	};
+	exhibitor_kit?: ExhibitorKit;
 	created_at: string;
 	updated_at: string;
 }

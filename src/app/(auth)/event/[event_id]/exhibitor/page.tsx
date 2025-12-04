@@ -1,13 +1,13 @@
 "use client";
 
 import { use } from "react";
-import { EventVendorsPageButton } from "@/components/pages/event-vendors/page-action/button";
+import { ExhibitorPageButton } from "@/components/pages/event-exhibitor/page-action/button";
+import { ExhibitorListView } from "@/components/pages/event-exhibitor/exhibitor-list-view";
 import { VendorProfileView } from "@/components/pages/event-vendors/vendor-profile-view";
-import { VendorsListView } from "@/components/pages/event-vendors/vendors-list-view";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 
-export default function EventVendorsPage({
+export default function ExhibitorPage({
 	params,
 }: {
 	params: Promise<{ event_id: string }>;
@@ -17,17 +17,12 @@ export default function EventVendorsPage({
 	// Check permissions
 	const { canManageEventVendors, isEventVendor } = useEventPermissions(event_id);
 
-	useSetEventActions(canManageEventVendors ? <EventVendorsPageButton /> : null);
+	useSetEventActions(canManageEventVendors ? <ExhibitorPageButton /> : null);
 
 	// If user is a vendor (not admin), show their profile
 	if (isEventVendor && !canManageEventVendors) {
 		return <VendorProfileView />;
 	}
 
-	return (
-		<VendorsListView 
-			eventId={event_id} 
-			canManageVendors={canManageEventVendors}
-		/>
-	);
+	return <ExhibitorListView eventId={event_id} canManageVendors={canManageEventVendors} />;
 }
