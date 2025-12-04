@@ -1,6 +1,6 @@
 "use client";
 
-import { Import, Key, LayoutDashboard, Store, Ticket, Users } from "lucide-react";
+import { HardHat, Import, Key, LayoutDashboard, Package, Store, Ticket, Users } from "lucide-react";
 import type { Route } from "next";
 import type * as React from "react";
 import { BiQrScan } from "react-icons/bi";
@@ -24,13 +24,19 @@ const data = {
 			name: "Dashboard",
 			url: "/dashboard" as Route,
 			icon: LayoutDashboard,
-			roleAllowed: ["org_owner", "organizer", "member", "vendor"],
+			roleAllowed: ["org_owner", "organizer", "member", "vendor", "exhibition_contractor"],
 		},
 		{
 			name: "Events",
 			url: "/event" as Route,
 			icon: MdEvent,
-			roleAllowed: ["org_owner", "organizer", "member", "vendor"],
+			roleAllowed: ["org_owner", "organizer", "member", "vendor", "exhibition_contractor"],
+		},
+		{
+			name: "Exhibitor Kit",
+			url: "/exhibitor-kit" as Route,
+			icon: Package,
+			roleAllowed: ["exhibition_contractor"],
 		},
 		{
 			name: "My Vouchers",
@@ -49,6 +55,12 @@ const data = {
 			url: "/team" as Route,
 			icon: Users,
 			roleAllowed: ["org_owner", "organizer"],
+		},
+		{
+			name: "Exhibitor Contractor",
+			url: "/exhibitor-contractor" as Route,
+			icon: HardHat,
+			roleAllowed: ["org_owner"],
 		},
 		{
 			name: "Vendors",
