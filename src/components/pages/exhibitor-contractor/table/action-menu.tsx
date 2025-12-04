@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2, Power } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Power, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import type { ExhibitionContractor } from "@/lib/api/contractor";
 import { toggleContractorStatus } from "@/lib/api/contractor";
 import { ContractorEditContent } from "../contractor-edit-dialog";
 import { DeleteContractorContent } from "../delete-contractor-dialog";
+import { AssignToEventDialog } from "../assign-to-event-dialog";
 
 interface ContractorActionsMenuProps {
 	contractor: ExhibitionContractor;
@@ -58,6 +59,18 @@ export function ContractorActionsMenu({
 		});
 	};
 
+	const handleAssignToEventClick = () => {
+		openDialog({
+			component: AssignToEventDialog,
+			props: { contractor },
+			config: {
+				title: "Assign to Event",
+				description: `Manage event assignments for ${contractor.full_name}`,
+				size: "lg",
+			},
+		});
+	};
+
 	const handleDeleteClick = () => {
 		openDialog({
 			component: DeleteContractorContent,
@@ -83,6 +96,10 @@ export function ContractorActionsMenu({
 				<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit Contractor
+				</DropdownMenuItem>
+				<DropdownMenuItem className="rounded-none" onClick={handleAssignToEventClick}>
+					<CalendarPlus className="mr-2 h-4 w-4" />
+					Assign to Event
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					className="rounded-none"

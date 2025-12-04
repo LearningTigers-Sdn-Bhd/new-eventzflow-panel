@@ -24,3 +24,14 @@ export interface ExhibitionContractor {
 	updated_at: string;
 	exhibition_contractor_profile: ExhibitionContractorProfile | null;
 }
+
+export interface ContractorAssignedEvent {
+	id: number;
+	title: string;
+	description: string | null;
+	status: "draft" | "published" | "cancelled";
+	start_date: string;
+	end_date: string;
+	created_at: string;
+	updated_at: string;
+}

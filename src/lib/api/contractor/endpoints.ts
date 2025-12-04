@@ -1,5 +1,5 @@
 import { restClient } from "@/utils/rest-api";
-import type { ExhibitionContractor, ExhibitionContractorProfile } from "./response";
+import type { ExhibitionContractor, ExhibitionContractorProfile, ContractorAssignedEvent } from "./response";
 import {
 	type CreateContractorRequest,
 	createContractorSchema,
@@ -100,6 +100,17 @@ export async function updateContractorProfile(
 		{
 			exhibition_contractor_profile: data,
 		},
+	);
+}
+
+/**
+ * Get events assigned to an exhibition contractor
+ */
+export async function getContractorAssignedEvents(
+	contractorId: number,
+): Promise<ContractorAssignedEvent[]> {
+	return restClient.get<ContractorAssignedEvent[]>(
+		`v1/exhibition_contractors/${contractorId}/assigned_events`,
 	);
 }
 
