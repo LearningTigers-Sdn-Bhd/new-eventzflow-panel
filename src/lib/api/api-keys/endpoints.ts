@@ -21,6 +21,7 @@ function transformApiKey(backendKey: BackendApiKey): ApiKey {
 		name: backendKey.name,
 		lastUsedAt: backendKey.last_used_at,
 		createdAt: backendKey.created_at,
+		isActive: backendKey.is_active,
 	};
 }
 

@@ -1,42 +1,36 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useFormatDate } from "@/hooks/use-format-date";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { ApiKey } from "@/lib/api/api-keys";
 import { cn } from "@/lib/utils";
 import { ApiKeyActionsMenu } from "./action-menu";
 
+// Format date with time
+function formatDateTime(date: string | Date): string {
+	if (!date) return "N/A";
+	const dateObj = typeof date === "string" ? new Date(date) : date;
+	if (Number.isNaN(dateObj.getTime())) return "Invalid Date";
+	return dateObj.toLocaleString();
+}
+
+// Format date only
+function formatDate(date: string | Date): string {
+	if (!date) return "N/A";
+	const dateObj = typeof date === "string" ? new Date(date) : date;
+	if (Number.isNaN(dateObj.getTime())) return "Invalid Date";
+	return dateObj.toLocaleDateString();
+}
+
 export const columns: ColumnDef<ApiKey>[] = [
-	{
-		accessorKey: "id",
-		size: 120,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Key ID</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			const id = String(row.getValue("id") || "");
-			return <div className="font-mono text-sm">{id}</div>;
-		},
-	},
 	{
 		accessorKey: "name",
 		size: 200,
@@ -48,6 +42,7 @@ export const columns: ColumnDef<ApiKey>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -65,30 +60,72 @@ export const columns: ColumnDef<ApiKey>[] = [
 		},
 	},
 	{
-		accessorKey: "createdAt",
-		size: 180,
+		accessorKey: "isActive",
+		size: 120,
+		filterFn: (row, id, value) => {
+			return row.getValue(id) === value;
+		},
 		header: ({ column }) => {
+			const filterStatus = column.getFilterValue() as boolean | undefined;
 			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Created At</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<div className="flex cursor-pointer items-center gap-2">
+							<p className="font-medium">
+								Status
+								{filterStatus !== undefined && (
+									<Badge
+										variant="secondary"
+										className="ml-2 bg-transparent text-xs capitalize underline"
+									>
+										{filterStatus ? "Active" : "Revoked"}
+									</Badge>
+								)}
+							</p>
+							<ChevronDown className="size-4" />
+						</div>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none bg-background"
 					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
+							All Status
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(true)}
+						>
+							Active
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(false)}
+						>
+							Revoked
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			);
 		},
 		cell: ({ row }) => {
-			const { formatDate } = useFormatDate();
-			return <div>{formatDate(row.getValue("createdAt"))}</div>;
+			const isActive = row.getValue("isActive") as boolean;
+			return (
+				<Badge
+					variant={isActive ? "default" : "secondary"}
+					className={cn(
+						"min-w-16 rounded-none font-bold capitalize",
+						isActive && "bg-green-500 text-white",
+						!isActive && "bg-red-500 text-white",
+					)}
+				>
+					{isActive ? "Active" : "Revoked"}
+				</Badge>
+			);
 		},
 	},
 	{
@@ -102,6 +139,7 @@ export const columns: ColumnDef<ApiKey>[] = [
 						variant="ghost"
 						size="icon"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
 					>
 						<ArrowDown
 							className={cn(
@@ -114,18 +152,44 @@ export const columns: ColumnDef<ApiKey>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const { formatDate } = useFormatDate();
 			const lastUsedAt = row.getValue("lastUsedAt") as string | null;
 
 			if (!lastUsedAt) {
 				return (
-					<Badge variant="outline" className="text-muted-foreground">
+					<Badge variant="outline" className="rounded-none text-muted-foreground">
 						Never Used
 					</Badge>
 				);
 			}
 
-			return <div>{formatDate(lastUsedAt)}</div>;
+			return <div className="text-sm">{formatDate(lastUsedAt)}</div>;
+		},
+	},
+	{
+		accessorKey: "createdAt",
+		size: 200,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Created At</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
+					>
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
+					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			return <div className="text-sm">{formatDateTime(row.getValue("createdAt"))}</div>;
 		},
 	},
 	{

@@ -4,6 +4,7 @@ export type BackendApiKey = {
 	name: string;
 	last_used_at: string | null;
 	created_at: string;
+	is_active: boolean;
 };
 
 // Backend API response type for API Key creation (POST /v1/api_keys)
@@ -20,6 +21,7 @@ export type ApiKey = {
 	name: string;
 	lastUsedAt: string | null;
 	createdAt: string;
+	isActive: boolean;
 };
 
 // Frontend API key creation response

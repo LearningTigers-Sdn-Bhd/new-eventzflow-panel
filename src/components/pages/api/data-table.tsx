@@ -24,7 +24,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 import type { ApiKey } from "@/lib/api/api-keys";
 import { ApiKeyItem } from "./api-key-item";
 import { DataControl } from "./data-control";
@@ -38,22 +39,22 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
+	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
 	);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
-	const isMobile = useIsMobile();
 
 	const table = useReactTable({
 		data,
 		columns,
+		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
-		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		state: {
@@ -64,14 +65,15 @@ export function DataTable<TData, TValue>({
 	});
 
 	return (
-		<div className="space-y-4">
+		<div className="w-full">
 			{/* Control Panel */}
 			<DataControl table={table} />
 
-			<div className="min-h-[65vh]">
-				{!isMobile ? (
-					<div className="rounded-md border">
-						<Table>
+			<div className="min-h-[45vh]">
+				{/* Data Table */}
+				{!isTablet ? (
+					<div className="overflow-hidden rounded-none border">
+						<Table className="w-full">
 							<TableHeader>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id}>
@@ -79,12 +81,8 @@ export function DataTable<TData, TValue>({
 											return (
 												<TableHead
 													key={header.id}
-													style={{
-														width:
-															header.getSize() !== 150
-																? header.getSize()
-																: undefined,
-													}}
+													style={{ width: `${header.getSize()}px` }}
+													className={cn(header.index === 0 && "ps-3")}
 												>
 													{header.isPlaceholder
 														? null
@@ -106,7 +104,14 @@ export function DataTable<TData, TValue>({
 											data-state={row.getIsSelected() && "selected"}
 										>
 											{row.getVisibleCells().map((cell) => (
-												<TableCell key={cell.id}>
+												<TableCell
+													key={cell.id}
+													style={{ width: `${cell.column.getSize()}px` }}
+													className={cn(
+														table.getVisibleLeafColumns()[0]?.id ===
+															cell.column.id && "ps-4",
+													)}
+												>
 													{flexRender(
 														cell.column.columnDef.cell,
 														cell.getContext(),
@@ -125,6 +130,7 @@ export function DataTable<TData, TValue>({
 												icon={<Key />}
 												title="No API keys found"
 												description="Generate your first API key to get started."
+												height="h-auto"
 											/>
 										</TableCell>
 									</TableRow>
@@ -145,13 +151,15 @@ export function DataTable<TData, TValue>({
 								icon={<Key />}
 								title="No API keys found"
 								description="Generate your first API key to get started."
+								height="h-auto"
 							/>
 						)}
 					</div>
 				)}
 			</div>
 
-			{table.getRowModel().rows?.length > 0 && <DataPagination table={table} />}
+			{/* Pagination */}
+			<DataPagination table={table} />
 		</div>
 	);
 }

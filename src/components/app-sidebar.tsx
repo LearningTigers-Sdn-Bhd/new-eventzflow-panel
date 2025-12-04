@@ -60,7 +60,7 @@ const data = {
 			name: "Exhibitor Contractor",
 			url: "/exhibitor-contractor" as Route,
 			icon: HardHat,
-			roleAllowed: ["org_owner"],
+			roleAllowed: ["org_owner", "organizer"],
 		},
 		{
 			name: "Vendors",
@@ -72,7 +72,7 @@ const data = {
 			name: "API Keys",
 			url: "/api" as Route,
 			icon: Key,
-			roleAllowed: ["org_owner"],
+			roleAllowed: ["org_owner", "organizer"],
 		},
 		{
 			name: "Import Tickets",

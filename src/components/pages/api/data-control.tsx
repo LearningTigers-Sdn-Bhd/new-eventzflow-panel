@@ -1,7 +1,7 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { QuerySearchField } from "@/components/query-search-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,49 +17,34 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
 }
 
 export function DataControl<TData>({ table }: DataControlProps<TData>) {
+	const _isTablet = useIsTablet();
+
 	return (
 		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
-			<div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-				<QuerySearchField
-					table={table}
-					columns={["id", "name"]}
-					placeholder="Search by key ID or name..."
-				/>
-				<div className="flex w-full items-center justify-between gap-2 sm:w-auto">
-					<Select
-						value={`${table.getState().pagination.pageSize}`}
-						onValueChange={(value) => {
-							table.setPageSize(Number(value));
-						}}
-					>
-						<SelectTrigger className="h-8 w-[120px] rounded-none sm:w-[150px]">
-							<SelectValue placeholder={table.getState().pagination.pageSize} />
-						</SelectTrigger>
-						<SelectContent side="top" className="rounded-none">
-							{[10, 20, 30, 40, 50].map((pageSize) => (
-								<SelectItem
-									key={pageSize}
-									value={`${pageSize}`}
-									className="rounded-none"
-								>
-									{pageSize} per page
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+			{/* Desktop Control Panel */}
+			{!_isTablet ? (
+				<div className="hidden items-center gap-2 lg:flex">
+					<QuerySearchField
+						table={table}
+						columns={["name"]}
+						placeholder="Search API keys..."
+					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button
-								variant="outline"
-								className="ml-auto h-8 shrink-0 rounded-none"
-							>
-								Columns <ChevronDown className="ml-2 h-4 w-4" />
+							<Button variant="outline" className="ml-auto rounded-none">
+								{/* Number of columns visible */}
+								{table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1}{" "}
+								columns
+								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
@@ -79,14 +64,107 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{(column.id || "").replace(/_/g, " ")}
 										</DropdownMenuCheckboxItem>
 									);
 								})}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
-			</div>
+			) : (
+				/* Mobile Control Panel */
+				<div className="flex flex-col gap-2 p-2 lg:hidden">
+					<div className="flex items-center gap-2">
+						<div className="flex-1">
+							<QuerySearchField table={table} placeholder="Search..." />
+						</div>
+						<Select
+							value={
+								table.getColumn("isActive")?.getFilterValue() === true
+									? "active"
+									: table.getColumn("isActive")?.getFilterValue() === false
+										? "revoked"
+										: "all"
+							}
+							onValueChange={(value) => {
+								table
+									.getColumn("isActive")
+									?.setFilterValue(
+										value === "all"
+											? undefined
+											: value === "active"
+												? true
+												: false,
+									);
+							}}
+						>
+							<SelectTrigger className="w-24 rounded-none">
+								<SelectValue placeholder="Status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-none bg-background">
+								<SelectItem value="all" className="rounded-none">
+									All
+								</SelectItem>
+								<SelectItem value="active" className="rounded-none">
+									Active
+								</SelectItem>
+								<SelectItem value="revoked" className="rounded-none">
+									Revoked
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex gap-1">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									table
+										.getColumn("name")
+										?.toggleSorting(
+											table.getColumn("name")?.getIsSorted() === "asc",
+										)
+								}
+								className="h-8 rounded-none px-2 text-xs"
+							>
+								<ArrowDown
+									className={cn(
+										"mr-1 h-3 w-3 transition-transform",
+										table.getColumn("name")?.getIsSorted() === "asc" &&
+											"-rotate-180",
+									)}
+								/>
+								Name
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									table
+										.getColumn("createdAt")
+										?.toggleSorting(
+											table.getColumn("createdAt")?.getIsSorted() === "asc",
+										)
+								}
+								className="h-8 rounded-none px-2 text-xs"
+							>
+								<ArrowDown
+									className={cn(
+										"mr-1 h-3 w-3 transition-transform",
+										table.getColumn("createdAt")?.getIsSorted() === "asc" &&
+											"-rotate-180",
+									)}
+								/>
+								Date
+							</Button>
+						</div>
+						<span className="text-xs text-muted-foreground">
+							{table.getFilteredRowModel().rows.length} keys
+						</span>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
