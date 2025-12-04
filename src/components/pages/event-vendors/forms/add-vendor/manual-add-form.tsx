@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useState, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -33,10 +33,7 @@ interface ManualAddFormProps {
 	onClose?: () => void;
 }
 
-export default function ManualAddForm({
-	eventId,
-	onClose,
-}: ManualAddFormProps) {
+export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) {
 	const vendorIdField = useId();
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
@@ -46,6 +43,7 @@ export default function ManualAddForm({
 	const [redirectUrl, setRedirectUrl] = useState("");
 	const [posterUrl, setPosterUrl] = useState("");
 	const [qrUrl, setQrUrl] = useState("");
+
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch available vendors
@@ -59,10 +57,7 @@ export default function ManualAddForm({
 	});
 
 	// Fetch existing event vendors to check which are already added
-	const {
-		data: eventVendors,
-		isLoading: isLoadingEventVendors,
-	} = useQuery({
+	const { data: eventVendors, isLoading: isLoadingEventVendors } = useQuery({
 		queryKey: ["event", eventId.toString(), "vendors"],
 		queryFn: () => getEventVendors(eventId),
 	});
@@ -70,20 +65,15 @@ export default function ManualAddForm({
 	// Create a set of already added vendor IDs for quick lookup
 	const addedVendorIds = useMemo(() => {
 		if (!eventVendors) return new Set<number>();
-		return new Set(eventVendors.map(ev => ev.vendor_id));
+		return new Set(eventVendors.map((ev) => ev.vendor_id));
 	}, [eventVendors]);
 
 	const queryClient = useQueryClient();
 	const createVendorMutation = useMutation({
-		mutationFn: (data: {
-			vendor_id: number;
-			redirect_url?: string;
-			poster_url?: string;
-			qr_url?: string;
-		}) => createEventVendor(eventId, data),
+		mutationFn: (data: Parameters<typeof createEventVendor>[1]) =>
+			createEventVendor(eventId, data),
 		onSuccess: () => {
 			toast.success("Vendor added to event successfully!");
-			// Invalidate and refetch event vendors query
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId.toString(), "vendors"],
 			});
@@ -98,7 +88,6 @@ export default function ManualAddForm({
 		e.preventDefault();
 		setErrors({});
 
-		// Validation
 		const newErrors: Record<string, string> = {};
 
 		if (!vendorId) {
@@ -111,12 +100,7 @@ export default function ManualAddForm({
 		}
 
 		try {
-			const data: {
-				vendor_id: number;
-				redirect_url?: string;
-				poster_url?: string;
-				qr_url?: string;
-			} = {
+			const data: Parameters<typeof createEventVendor>[1] = {
 				vendor_id: Number(vendorId),
 			};
 
@@ -275,65 +259,53 @@ export default function ManualAddForm({
 
 						<FieldSeparator />
 
-						{/* Redirect URL */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={redirectUrlField}>Redirect URL (Optional)</FieldLabel>
-							<Input
-								id={redirectUrlField}
-								type="url"
-								value={redirectUrl}
-								onChange={(e) => setRedirectUrl(e.target.value)}
-								placeholder="https://example.com"
-								disabled={createVendorMutation.isPending}
-								className="rounded-none"
-							/>
-							<FieldDescription>
-								The URL where visitors will be redirected when they interact
-								with this vendor.
-							</FieldDescription>
-						</Field>
+						{/* URL Fields */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={redirectUrlField}>
+									Redirect URL (Optional)
+								</FieldLabel>
+								<Input
+									id={redirectUrlField}
+									type="url"
+									value={redirectUrl}
+									onChange={(e) => setRedirectUrl(e.target.value)}
+									placeholder="https://example.com"
+									disabled={createVendorMutation.isPending}
+									className="rounded-none"
+								/>
+							</Field>
 
-						<FieldSeparator />
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={posterUrlField}>
+									Poster URL (Optional)
+								</FieldLabel>
+								<Input
+									id={posterUrlField}
+									type="url"
+									value={posterUrl}
+									onChange={(e) => setPosterUrl(e.target.value)}
+									placeholder="https://example.com/poster.jpg"
+									disabled={createVendorMutation.isPending}
+									className="rounded-none"
+								/>
+							</Field>
 
-						{/* Poster URL (Optional) */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={posterUrlField}>
-								Poster URL (Optional)
-							</FieldLabel>
-							<Input
-								id={posterUrlField}
-								type="url"
-								value={posterUrl}
-								onChange={(e) => setPosterUrl(e.target.value)}
-								placeholder="https://example.com/poster.jpg"
-								disabled={createVendorMutation.isPending}
-								className="rounded-none"
-							/>
-							<FieldDescription>
-								Optional poster image URL for the vendor's display.
-							</FieldDescription>
-						</Field>
-
-						<FieldSeparator />
-
-						{/* QR URL (Optional) */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={qrUrlField}>
-								QR Code URL (Optional)
-							</FieldLabel>
-							<Input
-								id={qrUrlField}
-								type="url"
-								value={qrUrl}
-								onChange={(e) => setQrUrl(e.target.value)}
-								placeholder="https://example.com"
-								disabled={createVendorMutation.isPending}
-								className="rounded-none"
-							/>
-							<FieldDescription>
-								URL to be encoded in the QR code (e.g., vendor website, social media link).
-							</FieldDescription>
-						</Field>
+							<Field orientation="vertical">
+								<FieldLabel htmlFor={qrUrlField}>
+									QR Code URL (Optional)
+								</FieldLabel>
+								<Input
+									id={qrUrlField}
+									type="url"
+									value={qrUrl}
+									onChange={(e) => setQrUrl(e.target.value)}
+									placeholder="https://example.com"
+									disabled={createVendorMutation.isPending}
+									className="rounded-none"
+								/>
+							</Field>
+						</div>
 
 						<FieldSeparator />
 

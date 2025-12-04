@@ -17,7 +17,6 @@ export default function EventVendorsPage({
 	// Check permissions
 	const { canManageEventVendors, isEventVendor } = useEventPermissions(event_id);
 
-	// Only show action button for event admins
 	useSetEventActions(canManageEventVendors ? <EventVendorsPageButton /> : null);
 
 	// If user is a vendor (not admin), show their profile
@@ -25,6 +24,10 @@ export default function EventVendorsPage({
 		return <VendorProfileView />;
 	}
 
-	// For event admins, show vendor list
-	return <VendorsListView eventId={event_id} canManageVendors={canManageEventVendors} />;
+	return (
+		<VendorsListView 
+			eventId={event_id} 
+			canManageVendors={canManageEventVendors}
+		/>
+	);
 }

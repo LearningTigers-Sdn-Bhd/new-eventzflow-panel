@@ -37,12 +37,12 @@ export function EventVendorsPageButton() {
 	const canInviteVendor = permissions.isOrganizer || permissions.isEventAdmin;
 
 	return (
-		<div className="flex w-full items-center gap-2 lg:w-auto">
+		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
 			{canInviteVendor && (
 				<InviteVendorDialog
 					eventId={Number(eventId)}
 					trigger={
-						<Button variant="outline" className="w-full rounded-none lg:w-auto">
+						<Button variant="outline" className="w-full rounded-none sm:w-auto">
 							<Link2 className="mr-2 h-4 w-4" />
 							Invite Vendor
 						</Button>
@@ -51,7 +51,7 @@ export function EventVendorsPageButton() {
 			)}
 			<Button
 				onClick={handleAssignVendor}
-				className="w-full rounded-none lg:w-auto"
+				className="w-full rounded-none sm:w-auto"
 			>
 				<Plus className="mr-2 h-4 w-4" />
 				Assign Vendor

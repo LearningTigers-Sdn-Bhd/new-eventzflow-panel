@@ -1,11 +1,17 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Eye, Pencil, QrCode } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { Eye, MoreHorizontal, Pencil, QrCode, Trash2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteEventVendor } from "@/lib/api/event-vendor";
 import type { EventVendor } from "@/lib/api/event-vendor";
@@ -17,7 +23,9 @@ interface EventVendorActionsMenuProps {
 	vendor: EventVendor;
 }
 
-export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) {
+export function EventVendorActionsMenu({
+	vendor,
+}: EventVendorActionsMenuProps) {
 	const router = useRouter();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -29,7 +37,6 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 			deleteEventVendor(Number(eventId), vendorId),
 		onSuccess: () => {
 			toast.success("Vendor removed from event successfully!");
-			// Invalidate and refetch event vendors query
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "vendors"],
 			});
@@ -53,7 +60,7 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 		});
 	};
 
-	const handleViewProfile = () => {
+	const handleViewVendorClick = () => {
 		router.push(`/event/${eventId}/vendors/${vendor.id}/profile`);
 	};
 
@@ -70,7 +77,7 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 		});
 	};
 
-	const handleRemoveClick = () => {
+	const handleDeleteClick = () => {
 		openDialog({
 			component: ConfirmDialog,
 			props: {
@@ -92,45 +99,47 @@ export function EventVendorActionsMenu({ vendor }: EventVendorActionsMenuProps) 
 	};
 
 	return (
-		<ButtonGroup>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
-				onClick={handleEditClick}
-				title="Edit Vendor"
-			>
-				<Pencil className="size-4" />
-			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
-				onClick={handleViewProfile}
-				title="View Profile"
-			>
-				<Eye className="size-4" />
-			</Button>
-			{vendor.qr_url && (
-				<Button
-					size="icon-sm"
-					variant="outline"
-					className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
-					onClick={handleQrCodeClick}
-					title="View QR Code"
-				>
-					<QrCode className="size-4" />
+		<DropdownMenu modal={false}>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" size="icon-sm" className="rounded-none">
+					<MoreHorizontal className="size-4" />
+					<span className="sr-only">Open menu</span>
 				</Button>
-			)}
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
-				onClick={handleRemoveClick}
-				title="Remove from Event"
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				align="end"
+				className="rounded-none bg-background w-48"
 			>
-				<Trash2 className="size-4" />
-			</Button>
-		</ButtonGroup>
+				<DropdownMenuItem
+					onClick={handleEditClick}
+					className="rounded-none cursor-pointer"
+				>
+					<Pencil className="mr-2 size-4" />
+					Edit Form
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={handleViewVendorClick}
+					className="rounded-none cursor-pointer"
+				>
+					<Eye className="mr-2 size-4" />
+					View Vendor
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={handleQrCodeClick}
+					className="rounded-none cursor-pointer"
+				>
+					<QrCode className="mr-2 size-4" />
+					QR Code
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem
+					onClick={handleDeleteClick}
+					className="rounded-none cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+				>
+					<Trash2 className="mr-2 size-4" />
+					Delete
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }

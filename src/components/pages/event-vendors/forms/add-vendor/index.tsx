@@ -14,17 +14,20 @@ export default function AddVendorModal({
 	eventId,
 	onClose,
 }: AddVendorModalProps) {
-	const [activeTab, setActiveTab] = useState<"manual-add" | "group-add">("manual-add");
+	const [activeTab, setActiveTab] = useState<"manual-add" | "group-add">(
+		"manual-add",
+	);
 
 	return (
 		<div className="relative flex flex-col justify-start gap-4 px-6 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6">
-			<AddVendorNavigation
-				activeTab={activeTab}
-				onTabChange={setActiveTab}
-			/>
+			<AddVendorNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 			<div className="flex flex-col gap-4">
-				{activeTab === "manual-add" && <ManualAddForm eventId={eventId} onClose={onClose} />}
-				{activeTab === "group-add" && <GroupAddForm eventId={eventId} onClose={onClose} />}
+				{activeTab === "manual-add" && (
+					<ManualAddForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "group-add" && (
+					<GroupAddForm eventId={eventId} onClose={onClose} />
+				)}
 			</div>
 		</div>
 	);
