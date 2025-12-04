@@ -26,12 +26,9 @@ import type {
 export async function checkInTicket(
 	publicId: string,
 ): Promise<CheckInResponse> {
-	console.log("🔍 Scanning ticket with ID:", publicId);
-
-	checkInTicketSchema.parse({ publicId }); // Validate request data
+	checkInTicketSchema.parse({ publicId });
 
 	const url = `v1/tickets/${publicId}/check_in`;
-	console.log("🌐 Calling PATCH:", url);
 
 	try {
 		const response = await restClient.patch<BackendCheckInResponse>(url, {});
@@ -43,12 +40,15 @@ export async function checkInTicket(
 			name: response.attendee_name || "Unknown Attendee",
 			email: response.attendee_email,
 			phone: response.attendee_phone || undefined,
-			ticketTypeName: response.ticket_type_name || "General Admission",
-			value: response.value || 0,
+			ticketTypeName:
+				response.ticket_type?.name ||
+				response.ticket_type_name ||
+				"General Admission",
+			value: parseFloat(String(response.ticket_type?.price)) || response.value || 0,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
-			eventName: response.event_name || "Unknown Event",
-			eventId: response.event_id.toString(),
+			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventId: response.event?.id?.toString() || response.event_id.toString(),
 		};
 	} catch (error) {
 		const message = await extractErrorMessage(error);

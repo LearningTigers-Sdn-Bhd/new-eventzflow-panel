@@ -11,6 +11,7 @@ import {
 	CheckInResult,
 	MissingDataForm,
 	RegistrationQR,
+	ScanCheckIn,
 	type CheckInMethod,
 	type CheckInStep,
 	type ResultData,
@@ -437,6 +438,8 @@ export default function PublicCheckinPage() {
 	const getStepDescription = () => {
 		if (!checkInMethod && currentStep === "input")
 			return "Choose your check-in method";
+		if (checkInMethod === "scan" || currentStep === "scan")
+			return "Scan your ticket QR code";
 		if (checkInMethod && currentStep === "input")
 			return "Enter your details to find your ticket";
 		if (currentStep === "select") return "Select your ticket";
@@ -589,6 +592,15 @@ export default function PublicCheckinPage() {
 						onBack={handleBack}
 						newPhone={missingPhone}
 						newEmail={missingEmail}
+					/>
+				) : checkInMethod === "scan" ? (
+					<ScanCheckIn
+						onBack={handleBack}
+						onResult={(scanResult) => {
+							setResult(scanResult);
+							setCurrentStep("result");
+						}}
+						station={station}
 					/>
 				) : !checkInMethod ? (
 					<CheckInMethodSelection 

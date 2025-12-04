@@ -1,7 +1,7 @@
-import { Mail, Phone, User, UserPlus } from "lucide-react";
+import { Mail, Phone, QrCode, User, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type CheckInMethod = "email" | "phone" | "name";
+type CheckInMethod = "email" | "phone" | "name" | "scan";
 
 interface CheckInMethodSelectionProps {
 	onSelectMethod: (method: CheckInMethod) => void;
@@ -12,7 +12,7 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 	return (
 		<div className="space-y-3">
 			{/* Check-in Methods - More Compact Design */}
-			<div className="grid grid-cols-3 gap-2.5">
+			<div className="grid grid-cols-2 gap-2.5">
 				<Button
 					onClick={() => onSelectMethod("email")}
 					variant="outline"
@@ -51,6 +51,20 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 						<span className="font-semibold text-sm block">Name</span>
 						<span className="text-xs text-muted-foreground leading-tight block">
 							Check-in by name
+						</span>
+					</div>
+				</Button>
+
+				<Button
+					onClick={() => onSelectMethod("scan")}
+					variant="outline"
+					className="h-auto py-4 flex flex-col items-center gap-1.5 hover:border-primary hover:bg-primary/5 transition-all group"
+				>
+					<QrCode className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+					<div className="space-y-0.5">
+						<span className="font-semibold text-sm block">Scan</span>
+						<span className="text-xs text-muted-foreground leading-tight block">
+							Scan QR code
 						</span>
 					</div>
 				</Button>

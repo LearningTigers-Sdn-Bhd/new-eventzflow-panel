@@ -1,5 +1,5 @@
-export type CheckInMethod = "email" | "phone" | "name" | null;
-export type CheckInStep = "input" | "select" | "confirm" | "missing_data" | "result" | "registration";
+export type CheckInMethod = "email" | "phone" | "name" | "scan" | null;
+export type CheckInStep = "input" | "select" | "confirm" | "missing_data" | "result" | "registration" | "scan";
 
 export interface TicketData {
 	publicId: string;

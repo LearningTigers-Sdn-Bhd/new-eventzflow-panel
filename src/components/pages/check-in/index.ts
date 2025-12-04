@@ -6,4 +6,5 @@ export { TicketSelection } from "./TicketSelection";
 export { CheckInResult } from "./CheckInResult";
 export { MissingDataForm } from "./MissingDataForm";
 export { RegistrationQR } from "./RegistrationQR";
+export { ScanCheckIn } from "./ScanCheckIn";
 export * from "./types";
