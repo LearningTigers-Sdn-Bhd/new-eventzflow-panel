@@ -85,6 +85,14 @@ const tabItems: TabItem[] = [
 		route: "scanned-logs",
 	},
 	{
+		id: "ticket-types",
+		label: "Ticket Types",
+		title: "Ticket Types",
+		description: "Manage ticket types for this event.",
+		icon: HiTicket,
+		route: "ticket-types",
+	},
+	{
 		id: "visitors",
 		label: "Visitors",
 		title: "Event Visitors",
@@ -259,7 +267,7 @@ export default function EventDetailLayout({
 			}
 
 			// Ticket-related tabs - only for ticket events
-			if (["tickets", "pending-tickets", "scanned-logs", "analytics"].includes(tab.id)) {
+			if (["tickets", "pending-tickets", "scanned-logs", "ticket-types", "analytics"].includes(tab.id)) {
 				return currentEvent?.use_ticket !== false;
 			}
 
@@ -381,7 +389,7 @@ export default function EventDetailLayout({
 	}, [currentEvent?.use_ticket, permissions]);
 
 	// Group ticket-related tabs for dropdown
-	const ticketTabIds = ["tickets", "pending-tickets", "scanned-logs"];
+	const ticketTabIds = ["tickets", "pending-tickets", "scanned-logs", "ticket-types"];
 	const ticketTabs = useMemo(() => {
 		return visibleTabs.filter((tab) => ticketTabIds.includes(tab.id));
 	}, [visibleTabs]);

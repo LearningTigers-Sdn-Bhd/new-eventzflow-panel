@@ -1,0 +1,155 @@
+"use client";
+
+import {
+	type ColumnFiltersState,
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable,
+	type VisibilityState,
+} from "@tanstack/react-table";
+import { Ticket } from "lucide-react";
+import * as React from "react";
+import { DataPagination } from "@/components/data-pagination";
+import { EmptyState } from "@/components/data-state";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/use-tablet";
+import type { TicketType } from "@/lib/api/ticket-type";
+import { cn } from "@/lib/utils";
+import { columns } from "./columns";
+import { DataControl } from "./data-control";
+import { TicketTypeItem } from "./ticket-type-item";
+
+interface DataTableProps {
+	data: TicketType[];
+	eventId: string;
+}
+
+export function DataTable({ data, eventId }: DataTableProps) {
+	const isMobile = useIsMobile();
+	const isTablet = useIsTablet();
+
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+
+	const table = useReactTable({
+		data,
+		columns,
+		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
+		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		onColumnVisibilityChange: setColumnVisibility,
+		state: { sorting, columnFilters, columnVisibility },
+	});
+
+	return (
+		<div className="w-full">
+			<DataControl table={table} eventId={eventId} />
+
+			<div className="min-h-[45vh]">
+				{!isMobile && !isTablet ? (
+					<div className="overflow-hidden rounded-none border">
+						<Table className="w-full table-fixed">
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => (
+											<TableHead
+												key={header.id}
+												style={{ width: `${header.getSize()}px` }}
+												className={cn(header.index === 0 && "ps-3")}
+											>
+												{header.isPlaceholder
+													? null
+													: flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
+								))}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell
+													key={cell.id}
+													style={{ width: `${cell.column.getSize()}px` }}
+													className={cn(
+														table.getVisibleLeafColumns()[0]?.id === cell.column.id && "ps-4",
+													)}
+												>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												</TableCell>
+											))}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell colSpan={columns.length} className="h-24 text-center">
+											<EmptyState
+												title="No ticket types found"
+												description="Create your first ticket type to get started"
+												icon={<Ticket />}
+												height="h-auto"
+											/>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				) : isTablet && !isMobile ? (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<TicketTypeItem ticketType={row.original} />
+								</div>
+							))
+						) : (
+							<EmptyState
+								title="No ticket types found"
+								description="Create your first ticket type to get started"
+								icon={<Ticket />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				) : (
+					<div className="space-y-2">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<TicketTypeItem key={row.id} ticketType={row.original} />
+							))
+						) : (
+							<EmptyState
+								title="No ticket types found"
+								description="Create your first ticket type to get started"
+								icon={<Ticket />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				)}
+			</div>
+
+			<DataPagination table={table} />
+		</div>
+	);
+}
