@@ -10,13 +10,20 @@ import { registerInvitedVendorSchema } from "./request";
 
 /**
  * Generate vendor invitation link for an event (organizer only)
+ * @param eventId - The event ID
+ * @param groupId - Optional group ID to auto-assign vendor to group on registration
  */
 export async function generateVendorInviteLink(
 	eventId: number,
+	groupId?: number,
 ): Promise<GenerateInviteLinkResponse> {
+	const body: Record<string, unknown> = {};
+	if (groupId) {
+		body.group_id = groupId;
+	}
 	return restClient.post<GenerateInviteLinkResponse>(
 		`v1/events/${eventId}/vendor_invitations/generate_link`,
-		{},
+		body,
 	);
 }
 
@@ -107,6 +114,31 @@ export async function registerInvitedVendor(
 
 		if (Object.keys(eventVendor).length > 0) {
 			payload.event_vendor = eventVendor;
+		}
+	}
+
+	// Add exhibitor_kit if provided (for exhibitor events)
+	if (validated.exhibitor_kit) {
+		const exhibitorKit: Record<string, string> = {};
+		if (validated.exhibitor_kit.booth_number)
+			exhibitorKit.booth_number = validated.exhibitor_kit.booth_number;
+		if (validated.exhibitor_kit.booth_type)
+			exhibitorKit.booth_type = validated.exhibitor_kit.booth_type;
+		if (validated.exhibitor_kit.name_on_fascia)
+			exhibitorKit.name_on_fascia = validated.exhibitor_kit.name_on_fascia;
+		if (validated.exhibitor_kit.company_name)
+			exhibitorKit.company_name = validated.exhibitor_kit.company_name;
+		if (validated.exhibitor_kit.company_address)
+			exhibitorKit.company_address = validated.exhibitor_kit.company_address;
+		if (validated.exhibitor_kit.pic_full_name)
+			exhibitorKit.pic_full_name = validated.exhibitor_kit.pic_full_name;
+		if (validated.exhibitor_kit.pic_contact_number)
+			exhibitorKit.pic_contact_number = validated.exhibitor_kit.pic_contact_number;
+		if (validated.exhibitor_kit.pic_email_address)
+			exhibitorKit.pic_email_address = validated.exhibitor_kit.pic_email_address;
+
+		if (Object.keys(exhibitorKit).length > 0) {
+			payload.exhibitor_kit = exhibitorKit;
 		}
 	}
 

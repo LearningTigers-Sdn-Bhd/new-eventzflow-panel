@@ -26,14 +26,25 @@ interface EventInfo {
 	end_date: string | null;
 }
 
+interface GroupInfo {
+	id: number;
+	name: string;
+}
+
 interface VendorSignInFormProps {
 	event: EventInfo | undefined;
+	group?: GroupInfo | null;
+	vendorType?: "Exhibitor" | "Merchant";
+	useExhibitorKit?: boolean;
 	onSuccess: (accessToken: string, refreshToken: string) => void;
 	onBack: () => void;
 }
 
 export function VendorSignInForm({
 	event,
+	group,
+	vendorType,
+	useExhibitorKit,
 	onSuccess,
 	onBack,
 }: VendorSignInFormProps) {
@@ -73,7 +84,7 @@ export function VendorSignInForm({
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} />
+			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
 
 			<PatternedLayout>
 				<div className="w-full max-w-md space-y-4">

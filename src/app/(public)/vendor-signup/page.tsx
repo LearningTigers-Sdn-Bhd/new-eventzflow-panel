@@ -8,6 +8,7 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { AlreadyAssignedCard } from "@/components/pages/vendor-signup/already-assigned-card";
 import { CheckAccountForm } from "@/components/pages/vendor-signup/check-account-form";
 import { JoinEventForm } from "@/components/pages/vendor-signup/join-event-form";
+import { UnauthorizedCard } from "@/components/pages/vendor-signup/unauthorized-card";
 import { VendorSignInForm } from "@/components/pages/vendor-signup/vendor-signin-form";
 import { VendorSignupForm } from "@/components/pages/vendor-signup/vendor-signup-form";
 import { VendorSignupSuccessCard } from "@/components/pages/vendor-signup/vendor-signup-success-card";
@@ -19,6 +20,7 @@ import { useUserSessionStore } from "@/stores/new-auth-store";
 type PageState =
 	| "loading"
 	| "invalid_token"
+	| "unauthorized"
 	| "already_assigned"
 	| "check_account"
 	| "sign_in"
@@ -94,6 +96,14 @@ function VendorSignupContent() {
 		retry: false,
 	});
 
+	// Check if user is logged in with non-vendor role
+	const isNonVendorAuthenticated = useMemo(() => {
+		if (isHydrated && sessionCredentials?.accessToken && user) {
+			return user.role !== "vendor";
+		}
+		return false;
+	}, [isHydrated, sessionCredentials, user]);
+
 	// Update page state based on verification result
 	useEffect(() => {
 		// Don't override state if we're already in a "final" or "in-progress" state
@@ -111,6 +121,9 @@ function VendorSignupContent() {
 			setPageState("invalid_token");
 		} else if (!isHydrated || isVerifying || !eventId) {
 			setPageState("loading");
+		} else if (isNonVendorAuthenticated) {
+			// User is logged in but not as a vendor
+			setPageState("unauthorized");
 		} else if (isVerifyError) {
 			setPageState("invalid_token");
 		} else if (verifyData) {
@@ -132,9 +145,12 @@ function VendorSignupContent() {
 				setPageState("check_account");
 			}
 		}
-	}, [token, isHydrated, isVerifying, isVerifyError, verifyData, eventId, storedAccessToken, pageState]);
+	}, [token, isHydrated, isVerifying, isVerifyError, verifyData, eventId, storedAccessToken, pageState, isNonVendorAuthenticated]);
 
 	const event = verifyData?.data?.event;
+	const group = verifyData?.data?.group;
+	const vendorType = verifyData?.data?.vendor_type;
+	const useExhibitorKit = verifyData?.data?.use_exhibitor_kit ?? false;
 
 	const handleSignIn = () => {
 		setPageState("sign_in");
@@ -144,9 +160,21 @@ function VendorSignupContent() {
 		setPageState("registration_form");
 	};
 
-	const handleSignInSuccess = (token: string) => {
-		setAccessToken(token);
-		setPageState("join_event");
+	const handleSignInSuccess = async (newAccessToken: string) => {
+		setAccessToken(newAccessToken);
+		// Re-verify token with new access token to check if already assigned
+		setPageState("loading");
+		try {
+			const result = await verifyVendorInviteToken(eventId as number, token, newAccessToken);
+			if (result.data?.is_assigned) {
+				setPageState("already_assigned");
+			} else {
+				setPageState("join_event");
+			}
+		} catch {
+			// If verification fails, still try to join
+			setPageState("join_event");
+		}
 	};
 
 	const handleBackToOptions = () => {
@@ -206,6 +234,9 @@ function VendorSignupContent() {
 				</div>
 			);
 
+		case "unauthorized":
+			return <UnauthorizedCard />;
+
 		case "already_assigned":
 			return <AlreadyAssignedCard event={event} />;
 
@@ -213,6 +244,9 @@ function VendorSignupContent() {
 			return (
 				<CheckAccountForm
 					event={event}
+					group={group}
+					vendorType={vendorType}
+					useExhibitorKit={useExhibitorKit}
 					onSignIn={handleSignIn}
 					onCreateAccount={handleCreateAccount}
 				/>
@@ -222,6 +256,9 @@ function VendorSignupContent() {
 			return (
 				<VendorSignInForm
 					event={event}
+					group={group}
+					vendorType={vendorType}
+					useExhibitorKit={useExhibitorKit}
 					onSuccess={handleSignInSuccess}
 					onBack={handleBackToOptions}
 				/>
@@ -231,6 +268,9 @@ function VendorSignupContent() {
 			return (
 				<JoinEventForm
 					event={event}
+					group={group}
+					vendorType={vendorType}
+					useExhibitorKit={useExhibitorKit}
 					token={token}
 					accessToken={accessToken}
 					onSuccess={handleJoinSuccess}
@@ -242,6 +282,9 @@ function VendorSignupContent() {
 				<VendorSignupForm
 					token={token}
 					event={event}
+					group={group}
+					vendorType={vendorType}
+					useExhibitorKit={useExhibitorKit}
 					onSuccess={handleRegistrationSuccess}
 					onBack={handleBackToOptions}
 				/>

@@ -40,6 +40,19 @@ export const registerInvitedVendorSchema = z
 					.or(z.literal("")),
 			})
 			.optional(),
+		// Exhibitor kit fields (only for events with use_ticket = true)
+		exhibitor_kit: z
+			.object({
+				booth_number: z.string().optional(),
+				booth_type: z.enum(["shell_scheme", "raw_space"]).optional(),
+				name_on_fascia: z.string().max(25, "Max 25 characters").optional(),
+				company_name: z.string().optional(),
+				company_address: z.string().optional(),
+				pic_full_name: z.string().min(1, "PIC name is required"),
+				pic_contact_number: z.string().min(1, "PIC contact is required"),
+				pic_email_address: z.string().email("Invalid email").optional().or(z.literal("")),
+			})
+			.optional(),
 	})
 	.refine((data) => data.password === data.password_confirmation, {
 		message: "Passwords don't match",

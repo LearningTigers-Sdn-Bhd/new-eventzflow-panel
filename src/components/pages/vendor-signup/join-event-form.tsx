@@ -12,6 +12,7 @@ import {
 	InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { ExhibitorKitSection } from "./exhibitor-kit-section";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -22,18 +23,47 @@ interface EventInfo {
 	end_date: string | null;
 }
 
+interface GroupInfo {
+	id: number;
+	name: string;
+}
+
 interface JoinEventFormProps {
 	event: EventInfo | undefined;
+	group?: GroupInfo | null;
+	vendorType?: "Exhibitor" | "Merchant";
+	useExhibitorKit?: boolean;
 	token: string;
 	accessToken: string;
 	onSuccess: () => void;
+}
+
+interface ExhibitorKitData {
+	booth_number?: string;
+	booth_type?: string;
+	name_on_fascia?: string;
+	company_name?: string;
+	company_address?: string;
+	pic_full_name: string;
+	pic_contact_number: string;
+	pic_email_address?: string;
 }
 
 async function joinEventAsVendor(
 	token: string,
 	accessToken: string,
 	eventVendor: { redirect_url?: string; poster_url?: string },
+	exhibitorKit?: ExhibitorKitData,
 ) {
+	const body: Record<string, unknown> = {
+		token,
+		event_vendor: eventVendor,
+	};
+
+	if (exhibitorKit) {
+		body.exhibitor_kit = exhibitorKit;
+	}
+
 	const response = await fetch(
 		`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/join_event_as_vendor`,
 		{
@@ -42,10 +72,7 @@ async function joinEventAsVendor(
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${accessToken}`,
 			},
-			body: JSON.stringify({
-				token,
-				event_vendor: eventVendor,
-			}),
+			body: JSON.stringify(body),
 		},
 	);
 
@@ -59,13 +86,18 @@ async function joinEventAsVendor(
 
 export function JoinEventForm({
 	event,
+	group,
+	vendorType,
+	useExhibitorKit,
 	token,
 	accessToken,
 	onSuccess,
 }: JoinEventFormProps) {
 	const joinMutation = useMutation({
-		mutationFn: (data: { redirect_url?: string; poster_url?: string }) =>
-			joinEventAsVendor(token, accessToken, data),
+		mutationFn: (data: {
+			eventVendor: { redirect_url?: string; poster_url?: string };
+			exhibitorKit?: ExhibitorKitData;
+		}) => joinEventAsVendor(token, accessToken, data.eventVendor, data.exhibitorKit),
 		onSuccess: () => {
 			toast.success("Successfully joined!", {
 				description: `You are now a vendor for ${event?.title}.`,
@@ -83,21 +115,52 @@ export function JoinEventForm({
 		defaultValues: {
 			redirect_url: "",
 			poster_url: "",
+			// Exhibitor kit fields
+			booth_number: "",
+			booth_type: "",
+			name_on_fascia: "",
+			company_name: "",
+			company_address: "",
+			pic_full_name: "",
+			pic_contact_number: "",
+			pic_email_address: "",
 		},
 		onSubmit: async ({ value }) => {
+			// Validate exhibitor kit required fields
+			if (useExhibitorKit) {
+				if (!value.pic_full_name || !value.pic_contact_number) {
+					toast.error("Please fill in required PIC details");
+					return;
+				}
+			}
+
 			await joinMutation.mutateAsync({
-				redirect_url: value.redirect_url || undefined,
-				poster_url: value.poster_url || undefined,
+				eventVendor: {
+					redirect_url: value.redirect_url || undefined,
+					poster_url: value.poster_url || undefined,
+				},
+				...(useExhibitorKit && {
+					exhibitorKit: {
+						booth_number: value.booth_number || undefined,
+						booth_type: value.booth_type || undefined,
+						name_on_fascia: value.name_on_fascia || undefined,
+						company_name: value.company_name || undefined,
+						company_address: value.company_address || undefined,
+						pic_full_name: value.pic_full_name,
+						pic_contact_number: value.pic_contact_number,
+						pic_email_address: value.pic_email_address || undefined,
+					},
+				}),
 			});
 		},
 	});
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} />
+			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
 
 			<PatternedLayout>
-				<div className="w-full max-w-lg space-y-4">
+				<div className="w-full max-w-5xl space-y-4">
 					{/* Header */}
 					<div className="rounded-none border bg-background p-5 text-center">
 						<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -178,6 +241,54 @@ export function JoinEventForm({
 								</form.Field>
 							</div>
 						</div>
+
+						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
+						{useExhibitorKit && (
+							<div className="rounded-none border bg-background p-5">
+								<form.Field name="booth_number">
+									{(boothNumberField) => (
+										<form.Field name="booth_type">
+											{(boothTypeField) => (
+												<form.Field name="name_on_fascia">
+													{(nameOnFasciaField) => (
+														<form.Field name="company_name">
+															{(companyNameField) => (
+																<form.Field name="company_address">
+																	{(companyAddressField) => (
+																		<form.Field name="pic_full_name">
+																			{(picFullNameField) => (
+																				<form.Field name="pic_contact_number">
+																					{(picContactNumberField) => (
+																						<form.Field name="pic_email_address">
+																							{(picEmailAddressField) => (
+																								<ExhibitorKitSection
+																									boothNumberField={boothNumberField}
+																									boothTypeField={boothTypeField}
+																									nameOnFasciaField={nameOnFasciaField}
+																									companyNameField={companyNameField}
+																									companyAddressField={companyAddressField}
+																									picFullNameField={picFullNameField}
+																									picContactNumberField={picContactNumberField}
+																									picEmailAddressField={picEmailAddressField}
+																								/>
+																							)}
+																						</form.Field>
+																					)}
+																				</form.Field>
+																			)}
+																		</form.Field>
+																	)}
+																</form.Field>
+															)}
+														</form.Field>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
+						)}
 
 						{/* Submit Button */}
 						<Button

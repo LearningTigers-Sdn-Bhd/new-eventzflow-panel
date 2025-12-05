@@ -20,6 +20,8 @@ export interface VerifyInviteTokenResponse {
 		expires_at: string;
 		is_authenticated: boolean;
 		is_assigned: boolean;
+		vendor_type: "Exhibitor" | "Merchant";
+		use_exhibitor_kit: boolean;
 		event: {
 			id: number;
 			title: string;
@@ -27,6 +29,10 @@ export interface VerifyInviteTokenResponse {
 			start_date: string | null;
 			end_date: string | null;
 		};
+		group?: {
+			id: number;
+			name: string;
+		} | null;
 	};
 }
 

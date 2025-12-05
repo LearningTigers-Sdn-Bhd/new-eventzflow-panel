@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link2, Copy, Check, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { generateVendorInviteLink } from "@/lib/api/vendor-invitation";
+import { getGroups } from "@/lib/api/group";
 
 interface InviteVendorDialogProps {
 	eventId: number;
@@ -27,9 +35,22 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 	const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 	const [expiresAt, setExpiresAt] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
+	const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+
+	// Fetch groups for the dropdown
+	const { data: groups = [], isLoading: isLoadingGroups } = useQuery({
+		queryKey: ["groups"],
+		queryFn: getGroups,
+		enabled: open,
+	});
 
 	const generateMutation = useMutation({
-		mutationFn: () => generateVendorInviteLink(eventId),
+		mutationFn: () => {
+			const groupId = selectedGroupId && selectedGroupId !== "none" 
+				? Number.parseInt(selectedGroupId) 
+				: undefined;
+			return generateVendorInviteLink(eventId, groupId);
+		},
 		onSuccess: (response) => {
 			setInviteUrl(response.data.invite_url);
 			setExpiresAt(response.data.expires_at);
@@ -41,12 +62,10 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 		},
 	});
 
-	// Generate link immediately when dialog opens
-	useEffect(() => {
-		if (open && !inviteUrl && !generateMutation.isPending) {
-			generateMutation.mutate();
-		}
-	}, [open]);
+	// Don't auto-generate - wait for user to optionally select a group first
+	const handleGenerateLink = () => {
+		generateMutation.mutate();
+	};
 
 	const handleCopy = async () => {
 		if (inviteUrl) {
@@ -64,6 +83,7 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 			setInviteUrl(null);
 			setExpiresAt(null);
 			setCopied(false);
+			setSelectedGroupId("");
 		}
 	};
 
@@ -97,7 +117,52 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 				</DialogHeader>
 
 				<div className="space-y-4 pt-4">
-					{generateMutation.isPending || (!inviteUrl && !generateMutation.isError) ? (
+					{!inviteUrl && !generateMutation.isPending ? (
+						// Step 1: Select group (optional) and generate link
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label>Assign to Group (Optional)</Label>
+								<Select
+									value={selectedGroupId}
+									onValueChange={setSelectedGroupId}
+									disabled={isLoadingGroups}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder={isLoadingGroups ? "Loading groups..." : "Select a group"} />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="none">No group</SelectItem>
+										{groups.map((group) => (
+											<SelectItem key={group.id} value={group.id.toString()}>
+												{group.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<p className="text-muted-foreground text-xs">
+									The vendor will be automatically added to this group when they register.
+								</p>
+							</div>
+
+							<Button
+								onClick={handleGenerateLink}
+								disabled={generateMutation.isPending}
+								className="w-full"
+							>
+								{generateMutation.isPending ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Generating...
+									</>
+								) : (
+									<>
+										<Link2 className="mr-2 h-4 w-4" />
+										Generate Invitation Link
+									</>
+								)}
+							</Button>
+						</div>
+					) : generateMutation.isPending ? (
 						<div className="flex flex-col items-center justify-center py-8 text-center">
 							<Loader2 className="mb-4 h-8 w-8 animate-spin text-muted-foreground" />
 							<p className="text-muted-foreground text-sm">
@@ -133,6 +198,17 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 									</p>
 								)}
 							</div>
+
+							{selectedGroupId && selectedGroupId !== "none" && (
+								<div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+									<p className="text-sm">
+										<span className="text-muted-foreground">Will be assigned to group: </span>
+										<span className="font-medium">
+											{groups.find((g) => g.id.toString() === selectedGroupId)?.name}
+										</span>
+									</p>
+								</div>
+							)}
 
 							<div className="rounded-lg border bg-muted/50 p-4">
 								<h4 className="mb-2 font-medium text-sm">How to use:</h4>

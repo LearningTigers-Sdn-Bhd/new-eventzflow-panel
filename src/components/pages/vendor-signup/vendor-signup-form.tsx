@@ -14,6 +14,7 @@ import {
 } from "./account-info-section";
 import { BusinessDetailsSection } from "./business-details-section";
 import { EventSettingsSection } from "./event-settings-section";
+import { ExhibitorKitSection } from "./exhibitor-kit-section";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -24,9 +25,17 @@ interface EventInfo {
 	end_date: string | null;
 }
 
+interface GroupInfo {
+	id: number;
+	name: string;
+}
+
 interface VendorSignupFormProps {
 	token: string;
 	event?: EventInfo;
+	group?: GroupInfo | null;
+	vendorType?: "Exhibitor" | "Merchant";
+	useExhibitorKit?: boolean;
 	onSuccess: (eventTitle: string) => void;
 	onBack: () => void;
 }
@@ -34,6 +43,9 @@ interface VendorSignupFormProps {
 export function VendorSignupForm({
 	token,
 	event,
+	group,
+	vendorType,
+	useExhibitorKit = false,
 	onSuccess,
 	onBack,
 }: VendorSignupFormProps) {
@@ -90,11 +102,28 @@ export function VendorSignupForm({
 			vendor_notes: "",
 			redirect_url: "",
 			poster_url: "",
+			// Exhibitor kit fields
+			booth_number: "",
+			booth_type: "",
+			name_on_fascia: "",
+			company_name: "",
+			company_address: "",
+			pic_full_name: "",
+			pic_contact_number: "",
+			pic_email_address: "",
 		},
 		onSubmit: async ({ value }) => {
 			if (value.password !== value.password_confirmation) {
 				toast.error("Passwords do not match");
 				return;
+			}
+
+			// Validate exhibitor kit required fields
+			if (useExhibitorKit) {
+				if (!value.pic_full_name || !value.pic_contact_number) {
+					toast.error("Please fill in required PIC details");
+					return;
+				}
 			}
 
 			const finalCategory =
@@ -120,13 +149,26 @@ export function VendorSignupForm({
 					redirect_url: value.redirect_url || undefined,
 					poster_url: value.poster_url || undefined,
 				},
+				// Include exhibitor kit only when event uses exhibitor kit
+				...(useExhibitorKit && {
+					exhibitor_kit: {
+						booth_number: value.booth_number || undefined,
+						booth_type: value.booth_type as "shell_scheme" | "raw_space" | undefined,
+						name_on_fascia: value.name_on_fascia || undefined,
+						company_name: value.company_name || undefined,
+						company_address: value.company_address || undefined,
+						pic_full_name: value.pic_full_name,
+						pic_contact_number: value.pic_contact_number,
+						pic_email_address: value.pic_email_address || undefined,
+					},
+				}),
 			});
 		},
 	});
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} />
+			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
 
 			<PatternedLayout centered={false}>
 				<div className="mx-auto w-full max-w-5xl py-6 lg:py-10">
@@ -232,6 +274,54 @@ export function VendorSignupForm({
 								)}
 							</form.Field>
 						</div>
+
+						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
+						{useExhibitorKit && (
+							<div className="rounded-none border bg-background p-5">
+								<form.Field name="booth_number">
+									{(boothNumberField) => (
+										<form.Field name="booth_type">
+											{(boothTypeField) => (
+												<form.Field name="name_on_fascia">
+													{(nameOnFasciaField) => (
+														<form.Field name="company_name">
+															{(companyNameField) => (
+																<form.Field name="company_address">
+																	{(companyAddressField) => (
+																		<form.Field name="pic_full_name">
+																			{(picFullNameField) => (
+																				<form.Field name="pic_contact_number">
+																					{(picContactNumberField) => (
+																						<form.Field name="pic_email_address">
+																							{(picEmailAddressField) => (
+																								<ExhibitorKitSection
+																									boothNumberField={boothNumberField}
+																									boothTypeField={boothTypeField}
+																									nameOnFasciaField={nameOnFasciaField}
+																									companyNameField={companyNameField}
+																									companyAddressField={companyAddressField}
+																									picFullNameField={picFullNameField}
+																									picContactNumberField={picContactNumberField}
+																									picEmailAddressField={picEmailAddressField}
+																								/>
+																							)}
+																						</form.Field>
+																					)}
+																				</form.Field>
+																			)}
+																		</form.Field>
+																	)}
+																</form.Field>
+															)}
+														</form.Field>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
+						)}
 
 						{/* Event Settings Section */}
 						<div className="rounded-none border bg-background p-5">

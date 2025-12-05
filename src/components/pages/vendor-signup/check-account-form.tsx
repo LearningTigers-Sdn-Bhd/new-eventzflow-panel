@@ -13,20 +13,31 @@ interface EventInfo {
 	end_date: string | null;
 }
 
+interface GroupInfo {
+	id: number;
+	name: string;
+}
+
 interface CheckAccountFormProps {
 	event: EventInfo | undefined;
+	group?: GroupInfo | null;
+	vendorType?: "Exhibitor" | "Merchant";
+	useExhibitorKit?: boolean;
 	onSignIn: () => void;
 	onCreateAccount: () => void;
 }
 
 export function CheckAccountForm({
 	event,
+	group,
+	vendorType,
+	useExhibitorKit,
 	onSignIn,
 	onCreateAccount,
 }: CheckAccountFormProps) {
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} />
+			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
 
 			<PatternedLayout>
 				<div className="w-full max-w-md space-y-4">

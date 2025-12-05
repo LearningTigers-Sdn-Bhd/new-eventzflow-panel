@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Store } from "lucide-react";
+import { Calendar, Store, Users, BadgeCheck } from "lucide-react";
 
 interface EventInfo {
 	title?: string;
@@ -9,12 +9,23 @@ interface EventInfo {
 	description?: string | null;
 }
 
+interface GroupInfo {
+	id: number;
+	name: string;
+}
+
 interface VendorSignupEventSidebarProps {
 	event?: EventInfo;
+	group?: GroupInfo | null;
+	vendorType?: "Exhibitor" | "Merchant";
+	useExhibitorKit?: boolean;
 }
 
 export function VendorSignupEventSidebar({
 	event,
+	group,
+	vendorType,
+	useExhibitorKit,
 }: VendorSignupEventSidebarProps) {
 	const formatEventDate = (startDate: string | null | undefined, endDate: string | null | undefined) => {
 		if (!startDate) return null;
@@ -100,6 +111,47 @@ export function VendorSignupEventSidebar({
 						</div>
 					)}
 				</div>
+
+				{/* Vendor type & Group info */}
+				{(vendorType || group) && (
+					<div className="mt-6 space-y-3">
+						{vendorType && (
+							<div className="rounded-none border border-primary-foreground/30 bg-primary-foreground/15 p-4">
+								<div className="flex items-start gap-3">
+									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-primary-foreground/20 bg-primary-foreground/10">
+										<BadgeCheck className="h-4 w-4" />
+									</div>
+									<div>
+										<p className="text-xs font-medium text-primary-foreground/60">
+											Joining as
+										</p>
+										<p className="font-semibold">{vendorType}</p>
+										{useExhibitorKit && (
+											<p className="text-xs text-primary-foreground/70 mt-1">
+												You'll need to fill in exhibitor kit details
+											</p>
+										)}
+									</div>
+								</div>
+							</div>
+						)}
+						{group && (
+							<div className="rounded-none border border-primary-foreground/30 bg-primary-foreground/15 p-4">
+								<div className="flex items-start gap-3">
+									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-primary-foreground/20 bg-primary-foreground/10">
+										<Users className="h-4 w-4" />
+									</div>
+									<div>
+										<p className="text-xs font-medium text-primary-foreground/60">
+											Assigned to group
+										</p>
+										<p className="font-semibold">{group.name}</p>
+									</div>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
 
 				{/* Highlight box */}
 				<div className="mt-6 rounded-none border border-primary-foreground/20 bg-primary-foreground/10 p-4">
