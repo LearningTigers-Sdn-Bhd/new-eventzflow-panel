@@ -152,7 +152,6 @@ function VendorEventCard({
 	formatDate,
 	onViewDetails,
 }: VendorEventCardProps) {
-	const isActive = event.status === "published";
 	const isTicketEvent = event.use_ticket !== false;
 
 	return (
@@ -175,11 +174,14 @@ function VendorEventCard({
 				<div className="flex flex-wrap items-center gap-2">
 					<Badge
 						className={cn(
-							"shrink-0 rounded-none text-xs",
-							isActive ? "bg-green-500 text-white" : "bg-red-500 text-white",
+							"shrink-0 rounded-none text-xs capitalize",
+							event.status === "published" && "bg-green-500 text-white",
+							event.status === "draft" && "bg-yellow-500 text-white",
+							event.status === "cancelled" && "bg-red-500 text-white",
+							event.status === "completed" && "bg-blue-500 text-white",
 						)}
 					>
-						{isActive ? "Active" : "Inactive"}
+						{event.status}
 					</Badge>
 					<span className="text-muted-foreground text-xs">
 						{formatDate(event.start_date)} - {formatDate(event.end_date)}
