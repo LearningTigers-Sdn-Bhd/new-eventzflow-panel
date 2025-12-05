@@ -36,7 +36,7 @@ import { queryClient } from "@/utils/rest-api";
 
 const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
-	status: z.enum(["draft", "published", "cancelled"]),
+	status: z.enum(["draft", "published", "cancelled", "completed"]),
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
 	description: z.string(),
@@ -98,7 +98,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 	const form = useForm({
 		defaultValues: {
 			title: "",
-			status: "draft" as "draft" | "published" | "cancelled",
+			status: "draft" as "draft" | "published" | "cancelled" | "completed",
 			visibility: true,
 			useTicket: true,
 			description: "",
@@ -135,7 +135,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			// Use setTimeout to ensure form fields are ready before setting values
 			setTimeout(() => {
 				form.setFieldValue("title", event.title || "");
-				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled");
+				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled" | "completed");
 				form.setFieldValue("visibility", event.visibility ?? true);
 				form.setFieldValue("useTicket", event.use_ticket ?? true);
 				form.setFieldValue("description", event.description || "");
@@ -243,7 +243,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												value={String(field.state.value)}
 												onValueChange={(value) =>
 													field.handleChange(
-														value as "draft" | "published" | "cancelled",
+														value as "draft" | "published" | "cancelled" | "completed",
 													)
 												}
 												disabled={updateEventMutation.isPending}
@@ -255,6 +255,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 													<SelectItem value="draft">Draft</SelectItem>
 													<SelectItem value="published">Published</SelectItem>
 													<SelectItem value="cancelled">Cancelled</SelectItem>
+													<SelectItem value="completed">Completed</SelectItem>
 												</SelectContent>
 											</Select>
 											{isInvalid && (

@@ -45,6 +45,7 @@ export function EventItem({ event }: EventItemProps) {
 								event.status === "published" && "bg-green-500",
 								event.status === "draft" && "bg-yellow-500",
 								event.status === "cancelled" && "bg-red-500",
+								event.status === "completed" && "bg-blue-500",
 							)}
 						>
 							{event.status}
@@ -59,6 +60,7 @@ export function EventItem({ event }: EventItemProps) {
 								event.status === "published" && "bg-green-500",
 								event.status === "draft" && "bg-yellow-500",
 								event.status === "cancelled" && "bg-red-500",
+								event.status === "completed" && "bg-blue-500",
 							)}
 						>
 							{event.status}

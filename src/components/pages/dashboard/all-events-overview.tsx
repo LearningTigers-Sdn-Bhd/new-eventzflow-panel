@@ -88,13 +88,14 @@ function TicketEventCard({
 				<div className="flex items-center gap-2">
 					<Badge
 						className={cn(
-							"shrink-0 rounded-none",
-							event.status === "active"
-								? "bg-green-500 text-white"
-								: "bg-red-500 text-white",
+							"shrink-0 rounded-none capitalize",
+							event.status === "published" && "bg-green-500 text-white",
+							event.status === "draft" && "bg-yellow-500 text-white",
+							event.status === "cancelled" && "bg-red-500 text-white",
+							event.status === "completed" && "bg-blue-500 text-white",
 						)}
 					>
-						{event.status === "active" ? "Active" : "Inactive"}
+						{event.status}
 					</Badge>
 					<span className="text-muted-foreground text-xs">
 						Last activity: {formatDate(event.lastActivity)}
@@ -189,13 +190,14 @@ function VisitorEventCard({
 				<div className="flex items-center gap-2">
 					<Badge
 						className={cn(
-							"shrink-0 rounded-none",
-							event.status === "active"
-								? "bg-green-500 text-white"
-								: "bg-red-500 text-white",
+							"shrink-0 rounded-none capitalize",
+							event.status === "published" && "bg-green-500 text-white",
+							event.status === "draft" && "bg-yellow-500 text-white",
+							event.status === "cancelled" && "bg-red-500 text-white",
+							event.status === "completed" && "bg-blue-500 text-white",
 						)}
 					>
-						{event.status === "active" ? "Active" : "Inactive"}
+						{event.status}
 					</Badge>
 					<span className="text-muted-foreground text-xs">
 						Last activity: {formatDate(event.lastActivity)}

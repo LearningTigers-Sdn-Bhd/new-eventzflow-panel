@@ -12,11 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
+import { cn } from "@/lib/utils";
 
 export type EventOverview = {
 	id: string;
 	title: string;
-	status: "active" | "inactive";
+	status: "draft" | "published" | "cancelled" | "completed";
 	totalTickets: number;
 	scannedTickets: number;
 	totalRevenue: number;
@@ -48,10 +49,15 @@ export function EventOverviewCard({
 							{event.title}
 						</h3>
 						<Badge
-							variant={event.status === "active" ? "default" : "secondary"}
-							className="text-xs"
+							className={cn(
+								"text-xs capitalize",
+								event.status === "published" && "bg-green-500 text-white",
+								event.status === "draft" && "bg-yellow-500 text-white",
+								event.status === "cancelled" && "bg-red-500 text-white",
+								event.status === "completed" && "bg-blue-500 text-white",
+							)}
 						>
-							{event.status === "active" ? "Active" : "Inactive"}
+							{event.status}
 						</Badge>
 					</div>
 				</div>

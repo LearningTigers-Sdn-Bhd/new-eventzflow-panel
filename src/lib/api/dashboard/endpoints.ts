@@ -59,10 +59,7 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 	return response.events.map((event) => ({
 		id: event.id.toString(),
 		title: event.title,
-		status:
-			event.status === "published"
-				? ("active" as const)
-				: ("inactive" as const),
+		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		useTicket: event.use_ticket ?? true,
 		// Ticket event stats
 		totalTickets: event.total_tickets ?? 0,
@@ -183,7 +180,7 @@ export async function getEventAnalytics(
 	return {
 		eventId: event.id.toString(),
 		eventName: event.title,
-		status: event.status === "published" ? "active" : "inactive",
+		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		totalTickets: totalTickets.totalTickets,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,

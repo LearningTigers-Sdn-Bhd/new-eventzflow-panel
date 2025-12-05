@@ -21,7 +21,7 @@ export type AllEventsStats = {
 export type EventOverview = {
 	id: string;
 	title: string;
-	status: "active" | "inactive";
+	status: "draft" | "published" | "cancelled" | "completed";
 	useTicket: boolean;
 	// Ticket event stats
 	totalTickets: number;
@@ -52,7 +52,7 @@ export type RecentScan = {
 export type EventAnalytics = {
 	eventId: string;
 	eventName: string;
-	status: "active" | "inactive";
+	status: "draft" | "published" | "cancelled" | "completed";
 	totalTickets: number;
 	scannedTickets: number;
 	unscannedTickets: number;

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { EventOverview } from "@/lib/api/dashboard/response";
+import { cn } from "@/lib/utils";
 
 interface EventSwitcherProps {
 	currentEventId: string | null;
@@ -107,10 +108,13 @@ export function EventSwitcher({
 										<div className="truncate font-medium">{event.title}</div>
 										<div className="mt-0.5 flex items-center gap-2">
 											<Badge
-												variant={
-													event.status === "active" ? "default" : "secondary"
-												}
-												className="text-xs"
+												className={cn(
+													"text-xs capitalize",
+													event.status === "published" && "bg-green-500 text-white",
+													event.status === "draft" && "bg-yellow-500 text-white",
+													event.status === "cancelled" && "bg-red-500 text-white",
+													event.status === "completed" && "bg-blue-500 text-white",
+												)}
 											>
 												{event.status}
 											</Badge>

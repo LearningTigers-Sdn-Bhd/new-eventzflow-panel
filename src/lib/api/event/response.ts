@@ -4,7 +4,7 @@ export type Event = {
 	id: number;
 	title: string;
 	description: string | null;
-	status: "draft" | "published" | "cancelled";
+	status: "draft" | "published" | "cancelled" | "completed";
 	visibility: boolean;
 	multiple_scans: boolean;
 	use_ticket: boolean;

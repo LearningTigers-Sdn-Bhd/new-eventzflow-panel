@@ -29,7 +29,7 @@ export interface ContractorAssignedEvent {
 	id: number;
 	title: string;
 	description: string | null;
-	status: "draft" | "published" | "cancelled";
+	status: "draft" | "published" | "cancelled" | "completed";
 	start_date: string;
 	end_date: string;
 	created_at: string;

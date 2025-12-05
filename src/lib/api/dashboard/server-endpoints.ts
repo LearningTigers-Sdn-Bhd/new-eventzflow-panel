@@ -91,10 +91,7 @@ export async function getEventsOverviewServer(
 	return response.events.map((event) => ({
 		id: event.id.toString(),
 		title: event.title,
-		status:
-			event.status === "published"
-				? ("active" as const)
-				: ("inactive" as const),
+		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		useTicket: event.use_ticket,
 		totalTickets: event.total_tickets,
 		scannedTickets: event.scanned_tickets,
@@ -224,7 +221,7 @@ export async function getEventAnalyticsServer(
 	return {
 		eventId: event.id.toString(),
 		eventName: event.title,
-		status: event.status === "published" ? "active" : "inactive",
+		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		totalTickets: totalTickets.totalTickets,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,

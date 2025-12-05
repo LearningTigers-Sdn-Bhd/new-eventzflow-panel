@@ -19,7 +19,7 @@ export type Event = {
 	id: number;
 	title: string;
 	description: string | null;
-	status: "draft" | "published" | "cancelled";
+	status: "draft" | "published" | "cancelled" | "completed";
 	visibility: boolean;
 	multiple_scans: boolean;
 	start_date: string;
@@ -116,6 +116,7 @@ const baseColumns: ColumnDef<Event>[] = [
 				| "draft"
 				| "published"
 				| "cancelled"
+				| "completed"
 				| undefined;
 			return (
 				<DropdownMenu>
@@ -152,6 +153,11 @@ const baseColumns: ColumnDef<Event>[] = [
 						>
 							Cancelled
 						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => column.setFilterValue("completed")}
+						>
+							Completed
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
@@ -163,6 +169,7 @@ const baseColumns: ColumnDef<Event>[] = [
 					row.getValue("status") === "published" && "bg-green-500",
 					row.getValue("status") === "draft" && "bg-yellow-500",
 					row.getValue("status") === "cancelled" && "bg-red-500",
+					row.getValue("status") === "completed" && "bg-blue-500",
 				)}
 			>
 				{row.getValue("status")}

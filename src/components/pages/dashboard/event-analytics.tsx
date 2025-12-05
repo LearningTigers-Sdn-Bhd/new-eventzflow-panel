@@ -34,6 +34,7 @@ import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
 import { getEventById } from "@/lib/api/event";
 import { getMallLiveFeed } from "@/lib/api/event/analytics";
+import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 
 interface EventAnalyticsProps {
@@ -122,7 +123,7 @@ export function EventAnalytics({
 			<VisitorEventAnalytics
 				eventId={eventId}
 				eventName={eventDetails?.title || "Event"}
-				status={eventDetails?.status === "published" ? "active" : "inactive"}
+				status={eventDetails?.status || "draft"}
 				mallData={mallData}
 				onBack={onBack}
 				showBackButton={showBackButton}
@@ -158,12 +159,15 @@ export function EventAnalytics({
 								description="Track your event efficiently"
 							/>
 							<Badge
-								className="mt-2 ml-12 rounded-none"
-								variant={
-									ticketAnalytics.status === "active" ? "default" : "destructive"
-								}
+								className={cn(
+									"mt-2 ml-12 rounded-none capitalize",
+									ticketAnalytics.status === "published" && "bg-green-500 text-white",
+									ticketAnalytics.status === "draft" && "bg-yellow-500 text-white",
+									ticketAnalytics.status === "cancelled" && "bg-red-500 text-white",
+									ticketAnalytics.status === "completed" && "bg-blue-500 text-white",
+								)}
 							>
-								{ticketAnalytics.status === "active" ? "Active" : "Inactive"}
+								{ticketAnalytics.status}
 							</Badge>
 						</div>
 						<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
@@ -368,7 +372,7 @@ export function EventAnalytics({
 interface VisitorEventAnalyticsProps {
 	eventId: string;
 	eventName: string;
-	status: "active" | "inactive";
+	status: "draft" | "published" | "cancelled" | "completed";
 	mallData?: {
 		shoppers_registered_today: number;
 		estimated_sales_today: number;
@@ -422,10 +426,15 @@ function VisitorEventAnalytics({
 								description="Track visitor engagement"
 							/>
 							<Badge
-								className="mt-2 ml-12 rounded-none"
-								variant={status === "active" ? "default" : "destructive"}
+								className={cn(
+									"mt-2 ml-12 rounded-none capitalize",
+									status === "published" && "bg-green-500 text-white",
+									status === "draft" && "bg-yellow-500 text-white",
+									status === "cancelled" && "bg-red-500 text-white",
+									status === "completed" && "bg-blue-500 text-white",
+								)}
 							>
-								{status === "active" ? "Active" : "Inactive"}
+								{status}
 							</Badge>
 						</div>
 						<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">

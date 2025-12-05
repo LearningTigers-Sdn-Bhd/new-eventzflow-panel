@@ -5,7 +5,7 @@ export const createEventSchema = z.object({
 	title: z.string().min(3, "Event name must be at least 3 characters"),
 	description: z.string().optional(),
 	status: z
-		.enum(["draft", "published", "cancelled"])
+		.enum(["draft", "published", "cancelled", "completed"])
 		.optional()
 		.default("draft"),
 	visibility: z.boolean().optional().default(true),
@@ -25,7 +25,7 @@ export const updateEventSchema = z.object({
 		.min(3, "Event name must be at least 3 characters")
 		.optional(),
 	description: z.string().optional(),
-	status: z.enum(["draft", "published", "cancelled"]).optional(),
+	status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),
 	visibility: z.boolean().optional(),
 	use_ticket: z.boolean().optional(),
 	use_exhibitor_kit: z.boolean().optional(),
