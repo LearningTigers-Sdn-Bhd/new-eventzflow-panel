@@ -29,19 +29,35 @@ const logger = {
 };
 
 // Export the base API URL for use in other modules
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+export const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			retry: 2, // Retry failed requests 2 times
+			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+			refetchOnWindowFocus: false, // Don't refetch on window focus to reduce unnecessary requests
+		},
+	},
 	queryCache: new QueryCache({
-		onError: (error: Error) => {
-			toast.error(error.message, {
-				action: {
-					label: "retry",
-					onClick: () => {
-						queryClient.invalidateQueries();
+		onError: (error: Error, query) => {
+			// Only show error toast if query has exhausted all retries
+			// Query state will have failureCount >= retry count
+			const failureCount = query.state.failureCount || 0;
+			const retryCount = query.options.retry ?? 2;
+
+			// Only show error if all retries are exhausted
+			if (failureCount > retryCount) {
+				toast.error(error.message, {
+					action: {
+						label: "retry",
+						onClick: () => {
+							queryClient.invalidateQueries({ queryKey: query.queryKey });
+						},
 					},
-				},
-			});
+				});
+			}
 		},
 	}),
 });
@@ -380,7 +396,7 @@ export const restClient = {
 	 */
 	getImageUrl: (path: string): string => {
 		// Remove leading slash if present to avoid double slashes
-		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		const cleanPath = path.startsWith("/") ? path.slice(1) : path;
 		return `${API_BASE_URL}/${cleanPath}`;
 	},
 };
@@ -408,7 +424,7 @@ export const publicRestClient = {
 	 */
 	getImageUrl: (path: string): string => {
 		// Remove leading slash if present to avoid double slashes
-		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		const cleanPath = path.startsWith("/") ? path.slice(1) : path;
 		return `${API_BASE_URL}/${cleanPath}`;
 	},
 };

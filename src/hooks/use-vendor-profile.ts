@@ -12,7 +12,7 @@ import {
  * @param vendorId - Optional vendor ID. If provided, fetches that vendor's profile. If undefined, fetches current user's profile.
  * @param enabled - Optional flag to control when the query should run. Defaults to true.
  */
-export const useVendorProfile = (vendorId?: number, enabled: boolean = true) => {
+export const useVendorProfile = (vendorId?: number, enabled = true) => {
 	return useQuery({
 		queryKey: ["vendor-profile", vendorId],
 		queryFn: () =>
