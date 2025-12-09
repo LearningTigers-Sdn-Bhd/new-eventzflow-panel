@@ -252,7 +252,7 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 			const email = stamp.visitor_email;
 
 			return (
-				<div className="flex flex-col gap-1 min-w-0">
+				<div className="flex min-w-0 flex-col gap-1">
 					{phone && (
 						<div className="flex items-center gap-1.5 text-sm">
 							<Phone className="size-3 shrink-0 text-muted-foreground" />
@@ -262,7 +262,7 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 					{email && (
 						<div className="flex items-center gap-1.5 text-sm">
 							<Mail className="size-3 shrink-0 text-muted-foreground" />
-							<span className="truncate max-w-[180px]" title={email}>{email}</span>
+							<span className="max-w-[180px] truncate" title={email}>{email}</span>
 						</div>
 					)}
 					{!phone && !email && (

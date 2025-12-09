@@ -54,28 +54,28 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 		switch (voucherDetails.voucherType) {
 			case "percentage":
 				return (
-					<div className="rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
-						<p className="text-blue-900 text-sm text-center">
+					<div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+						<p className="text-center text-blue-900 text-sm">
 							<span className="font-semibold">{voucherDetails.voucherValue}% discount</span> applied
 						</p>
 						{originalPrice && (
-							<div className="border-t border-blue-200 pt-2 text-center">
+							<div className="border-blue-200 border-t pt-2 text-center">
 								<p className="text-blue-700 text-xs">Original Price</p>
-								<p className="text-blue-900 font-semibold text-lg">RM {originalPrice.toFixed(2)}</p>
+								<p className="font-semibold text-blue-900 text-lg">RM {originalPrice.toFixed(2)}</p>
 							</div>
 						)}
 					</div>
 				);
 			case "fixed_amount":
 				return (
-					<div className="rounded-lg border border-green-200 bg-green-50 p-3 space-y-2">
-						<p className="text-green-900 text-sm text-center">
+					<div className="space-y-2 rounded-lg border border-green-200 bg-green-50 p-3">
+						<p className="text-center text-green-900 text-sm">
 							<span className="font-semibold">RM {voucherDetails.voucherValue.toFixed(2)} discount</span> applied
 						</p>
 						{originalPrice && (
-							<div className="border-t border-green-200 pt-2 text-center">
+							<div className="border-green-200 border-t pt-2 text-center">
 								<p className="text-green-700 text-xs">Original Price</p>
-								<p className="text-green-900 font-semibold text-lg">RM {originalPrice.toFixed(2)}</p>
+								<p className="font-semibold text-green-900 text-lg">RM {originalPrice.toFixed(2)}</p>
 							</div>
 						)}
 					</div>
@@ -105,7 +105,7 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 				<div className="space-y-2">
 					<Label htmlFor="amount">Final Sale Price (After Discount)</Label>
 					<div className="relative">
-						<span className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground text-sm font-medium">RM</span>
+						<span className="-translate-y-1/2 absolute top-1/2 left-3 font-medium text-muted-foreground text-sm">RM</span>
 						<Input
 							id="amount"
 							type="number"

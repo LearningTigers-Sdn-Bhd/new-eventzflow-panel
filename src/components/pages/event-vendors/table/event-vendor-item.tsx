@@ -122,7 +122,7 @@ export function EventVendorItem({ vendor }: EventVendorItemProps) {
 								Added on {formatDate(vendor.created_at)}
 							</span>
 						</div>
-						<span className="px-2.5 pl-7 text-xs text-muted-foreground">
+						<span className="px-2.5 pl-7 text-muted-foreground text-xs">
 							{new Date(vendor.created_at).toLocaleTimeString('en-US', {
 								hour: '2-digit',
 								minute: '2-digit',

@@ -310,10 +310,10 @@ const baseColumns: ColumnDef<Voucher>[] = [
 			const remaining = total - redeemed;
 			return (
 				<div className="flex flex-col gap-1">
-					<div className="text-sm font-medium text-green-600">
+					<div className="font-medium text-green-600 text-sm">
 						{isUnlimited ? "Unlimited" : `${remaining} left`}
 					</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{redeemed} {isUnlimited ? "redeemed" : `/ ${total} redeemed`}
 					</div>
 				</div>
@@ -340,7 +340,7 @@ const actionsColumn: ColumnDef<Voucher> = {
 
 // Function to get columns based on permissions
 export const getVoucherColumns = (
-	canManageVouchers: boolean = false,
+	canManageVouchers = false,
 ): ColumnDef<Voucher>[] => {
 	if (canManageVouchers) {
 		return [...baseColumns, actionsColumn];

@@ -192,7 +192,7 @@ export default function EditMemberForm({
 
 									<Field orientation="vertical">
 										<FieldLabel>Verify Email</FieldLabel>
-										<div className="flex h-9 items-center gap-3 bg-accent border rounded-lg p-2">
+										<div className="flex h-9 items-center gap-3 rounded-lg border bg-accent p-2">
 											<Switch
 												checked={isEmailVerified}
 												onCheckedChange={(checked) =>

@@ -45,7 +45,7 @@ export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResul
 						{result.message}
 					</p>
 					{result.success && result.details && (
-						<div className="space-y-0.5 text-sm text-emerald-700 dark:text-emerald-300">
+						<div className="space-y-0.5 text-emerald-700 text-sm dark:text-emerald-300">
 							{result.details.name && (
 								<p>
 									<span className="font-medium">Name:</span> {result.details.name}
@@ -78,8 +78,8 @@ export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResul
 
 			{/* Registration Prompt - Show only on failure */}
 			{!result.success && onRegisterClick && (
-				<div className="rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 p-3.5 text-center space-y-2">
-					<p className="font-medium text-sm text-foreground">
+				<div className="space-y-2 rounded-lg border-2 border-muted-foreground/30 border-dashed bg-muted/30 p-3.5 text-center">
+					<p className="font-medium text-foreground text-sm">
 						Haven't registered yet?
 					</p>
 					<Button
@@ -94,7 +94,7 @@ export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResul
 				</div>
 			)}
 
-			<Button onClick={onReset} variant="outline" className="w-full h-10">
+			<Button onClick={onReset} variant="outline" className="h-10 w-full">
 				Check In Another Attendee
 			</Button>
 		</div>

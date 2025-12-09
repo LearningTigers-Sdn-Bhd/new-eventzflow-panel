@@ -61,26 +61,26 @@ export function ScannedInfoCard({
 
 	return (
 		<Card className="overflow-hidden rounded-lg border-primary/20 bg-white p-3 shadow-sm">
-			<h3 className="mb-2 font-semibold text-xs text-muted-foreground">Scanned Information</h3>
+			<h3 className="mb-2 font-semibold text-muted-foreground text-xs">Scanned Information</h3>
 			<div className="flex flex-wrap gap-2">
 				{voucherUuid && (
-					<div className="flex items-center justify-between rounded-lg border bg-green-50 px-3 py-2 flex-1 min-w-[200px]">
-						<div className="flex items-center gap-2 flex-1 min-w-0">
+					<div className="flex min-w-[200px] flex-1 items-center justify-between rounded-lg border bg-green-50 px-3 py-2">
+						<div className="flex min-w-0 flex-1 items-center gap-2">
 							{isLoadingVoucher ? (
-								<Loader2 className="h-3.5 w-3.5 animate-spin text-green-500 flex-shrink-0" />
+								<Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin text-green-500" />
 							) : (
 								<div className="flex-shrink-0">{getVoucherIcon()}</div>
 							)}
-							<div className="flex items-center gap-2 flex-1 min-w-0">
+							<div className="flex min-w-0 flex-1 items-center gap-2">
 								{isLoadingVoucher ? (
 									<Skeleton className="h-4 w-24" />
 								) : voucherDetails ? (
 									<>
-										<span className="font-medium text-sm truncate">{voucherDetails.title}</span>
+										<span className="truncate font-medium text-sm">{voucherDetails.title}</span>
 										{getVoucherValueDisplay()}
 									</>
 								) : (
-									<span className="font-mono text-xs truncate">{voucherUuid}</span>
+									<span className="truncate font-mono text-xs">{voucherUuid}</span>
 								)}
 							</div>
 						</div>
@@ -89,7 +89,7 @@ export function ScannedInfoCard({
 								variant="ghost"
 								size="sm"
 								onClick={onClearVoucher}
-								className="h-6 w-6 p-0 flex-shrink-0 ml-2"
+								className="ml-2 h-6 w-6 flex-shrink-0 p-0"
 							>
 								<X className="h-3.5 w-3.5" />
 							</Button>
@@ -98,23 +98,23 @@ export function ScannedInfoCard({
 				)}
 
 				{visitorId && (
-					<div className="flex items-center justify-between rounded-lg border bg-blue-50 px-3 py-2 flex-1 min-w-[200px]">
-						<div className="flex items-center gap-2 flex-1 min-w-0">
+					<div className="flex min-w-[200px] flex-1 items-center justify-between rounded-lg border bg-blue-50 px-3 py-2">
+						<div className="flex min-w-0 flex-1 items-center gap-2">
 							{isLoadingVisitor ? (
-								<Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500 flex-shrink-0" />
+								<Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin text-blue-500" />
 							) : (
-								<User className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+								<User className="h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
 							)}
-							<div className="flex items-center gap-2 flex-1 min-w-0">
+							<div className="flex min-w-0 flex-1 items-center gap-2">
 								{isLoadingVisitor ? (
 									<Skeleton className="h-4 w-24" />
 								) : visitorDetails ? (
 									<>
-										<span className="font-medium text-sm truncate">{visitorDetails.fullName}</span>
-										<span className="text-muted-foreground text-xs truncate">({visitorDetails.email || visitorDetails.phone})</span>
+										<span className="truncate font-medium text-sm">{visitorDetails.fullName}</span>
+										<span className="truncate text-muted-foreground text-xs">({visitorDetails.email || visitorDetails.phone})</span>
 									</>
 								) : (
-									<span className="font-mono text-xs truncate">{visitorId}</span>
+									<span className="truncate font-mono text-xs">{visitorId}</span>
 								)}
 							</div>
 						</div>
@@ -123,7 +123,7 @@ export function ScannedInfoCard({
 								variant="ghost"
 								size="sm"
 								onClick={onClearVisitor}
-								className="h-6 w-6 p-0 flex-shrink-0 ml-2"
+								className="ml-2 h-6 w-6 flex-shrink-0 p-0"
 							>
 								<X className="h-3.5 w-3.5" />
 							</Button>

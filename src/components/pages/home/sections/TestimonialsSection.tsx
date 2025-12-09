@@ -63,14 +63,14 @@ const TestimonialsSection: React.FC = () => {
 			id="testimonials"
 			className="relative overflow-hidden bg-background px-4 py-12 sm:px-6 sm:py-14 lg:px-8"
 		>
-			<div className="pointer-events-none absolute left-1/2 top-16 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-			<div className="pointer-events-none absolute -bottom-28 right-12 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
-			<div className="pointer-events-none absolute -left-24 top-2/3 h-72 w-72 -translate-y-1/2 rotate-12 rounded-full bg-accent/10 blur-3xl" />
+			<div className="-translate-x-1/2 pointer-events-none absolute top-16 left-1/2 h-64 w-64 rounded-full bg-primary/15 blur-3xl" />
+			<div className="-bottom-28 pointer-events-none absolute right-12 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
+			<div className="-left-24 -translate-y-1/2 pointer-events-none absolute top-2/3 h-72 w-72 rotate-12 rounded-full bg-accent/10 blur-3xl" />
 
 			<div className="relative mx-auto max-w-6xl">
 				<div className="mb-8 flex flex-col items-center gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -80,7 +80,7 @@ const TestimonialsSection: React.FC = () => {
 						<span className="whitespace-nowrap">Client Success Stories</span>
 					</motion.span>
 					<motion.h2
-						className="text-2xl font-semibold text-foreground sm:text-3xl lg:text-4xl"
+						className="font-semibold text-2xl text-foreground sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -91,7 +91,7 @@ const TestimonialsSection: React.FC = () => {
 						Who Demand Results
 					</motion.h2>
 					<motion.p
-						className="max-w-5xl px-2 text-sm text-muted-foreground sm:text-base lg:text-lg"
+						className="max-w-5xl px-2 text-muted-foreground text-sm sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -107,7 +107,7 @@ const TestimonialsSection: React.FC = () => {
 						return (
 							<motion.div
 								key={testimonial.name}
-								className="group relative flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/5 sm:gap-6 sm:rounded-3xl sm:p-8"
+								className="group hover:-translate-y-2 relative flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur transition-all duration-500 hover:border-primary/60 hover:shadow-primary/5 hover:shadow-xl sm:gap-6 sm:rounded-3xl sm:p-8"
 								initial={{ opacity: 0, y: 32, scale: 0.96 }}
 								whileInView={{ opacity: 1, y: 0, scale: 1 }}
 								viewport={{ once: true }}
@@ -121,7 +121,7 @@ const TestimonialsSection: React.FC = () => {
 								<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/40 via-primary/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-5 sm:rounded-3xl" />
 
 								{/* Quote icon with enhanced styling */}
-								<div className="absolute -top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 sm:-top-6 sm:right-6 sm:h-12 sm:w-12">
+								<div className="-top-4 sm:-top-6 absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-primary/30 group-hover:shadow-xl sm:right-6 sm:h-12 sm:w-12">
 									<Quote className="h-4 w-4 sm:h-5 sm:w-5" />
 								</div>
 
@@ -137,7 +137,7 @@ const TestimonialsSection: React.FC = () => {
 								</div>
 
 								{/* Testimonial text */}
-								<p className="relative flex-1 text-sm leading-relaxed text-card-foreground sm:text-base">
+								<p className="relative flex-1 text-card-foreground text-sm leading-relaxed sm:text-base">
 									"{testimonial.statement}"
 								</p>
 
@@ -157,19 +157,19 @@ const TestimonialsSection: React.FC = () => {
 
 									<div className="min-w-0 flex-1">
 										<div className="flex items-center gap-1 sm:gap-1.5">
-											<p className="truncate text-xs font-semibold text-card-foreground sm:text-sm">
+											<p className="truncate font-semibold text-card-foreground text-xs sm:text-sm">
 												{testimonial.name}
 											</p>
 											<Verified className="h-3 w-3 flex-shrink-0 fill-emerald-500 text-emerald-500 sm:h-3.5 sm:w-3.5" />
 										</div>
-										<p className="truncate text-[10px] tracking-wide text-muted-foreground sm:text-xs">
+										<p className="truncate text-[10px] text-muted-foreground tracking-wide sm:text-xs">
 											{testimonial.role}
 										</p>
 									</div>
 								</div>
 
 								{/* Metric badge - enhanced */}
-								<div className="relative inline-flex w-fit items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-600 ring-1 ring-emerald-500/20 backdrop-blur transition-all duration-300 group-hover:bg-emerald-500/15 group-hover:ring-emerald-500/30 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-2 sm:text-xs dark:text-emerald-400">
+								<div className="relative inline-flex w-fit items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1.5 font-semibold text-[10px] text-emerald-600 ring-1 ring-emerald-500/20 backdrop-blur transition-all duration-300 group-hover:bg-emerald-500/15 group-hover:ring-emerald-500/30 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-2 sm:text-xs dark:text-emerald-400">
 									<Star className="h-3 w-3 fill-yellow-400 text-yellow-400 sm:h-3.5 sm:w-3.5" />
 									<span className="whitespace-nowrap">{testimonial.metric}</span>
 								</div>

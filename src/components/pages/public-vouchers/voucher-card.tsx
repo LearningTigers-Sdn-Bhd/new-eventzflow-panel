@@ -28,7 +28,7 @@ function getVoucherMessage(voucher: Voucher): VoucherMessage {
 	const endDate = new Date(voucher.endDate);
 	const isUnlimited = voucher.isUnlimited;
 	const total = voucher.totalRedemptionAvailable ?? 0;
-	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const remaining = isUnlimited ? Number.POSITIVE_INFINITY : total - voucher.redeemedCount;
 	const claimedPercent = !isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
 	const isSoldOut = !isUnlimited && remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
@@ -128,7 +128,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	const eventId = params?.event_id;
 	const isUnlimited = voucher.isUnlimited;
 	const total = voucher.totalRedemptionAvailable ?? 0;
-	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const remaining = isUnlimited ? Number.POSITIVE_INFINITY : total - voucher.redeemedCount;
 	const isAvailable = (isUnlimited || remaining > 0) && !isPast(new Date(voucher.endDate));
 
 	const voucherMessage = getVoucherMessage(voucher);
@@ -139,7 +139,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				{voucher.imagePath ? (
 					<>
 						<div
-							className="absolute inset-0 transition duration-500 group-hover:scale-105 bg-cover bg-center"
+							className="absolute inset-0 bg-center bg-cover transition duration-500 group-hover:scale-105"
 							style={{ backgroundImage: `url(${voucher.imagePath})` }}
 						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -147,19 +147,19 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				) : (
 					<>
 						<div className="absolute inset-0 flex items-center justify-center">
-							<p className="text-sm sm:text-base font-medium text-muted-foreground/60">
+							<p className="font-medium text-muted-foreground/60 text-sm sm:text-base">
 								No image added
 							</p>
 						</div>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 					</>
 				)}
-				<div className="absolute inset-x-0 top-0 flex items-center justify-between px-2.5 sm:px-4 py-2">
-					<Badge variant="secondary" className="w-fit bg-primary/90 text-[9px] sm:text-[11px] capitalize tracking-wide border-0 text-primary-foreground rounded-none">
+				<div className="absolute inset-x-0 top-0 flex items-center justify-between px-2.5 py-2 sm:px-4">
+					<Badge variant="secondary" className="w-fit rounded-none border-0 bg-primary/90 text-[9px] text-primary-foreground capitalize tracking-wide sm:text-[11px]">
 						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
 					{/* Message badge - solid color for visibility on images */}
-					<span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 ${voucherMessage.badgeBg}`}>
+					<span className={`inline-flex items-center gap-1 px-2 py-0.5 font-medium text-[10px] sm:text-xs ${voucherMessage.badgeBg}`}>
 						{voucherMessage.icon}
 						{voucherMessage.badge}
 					</span>
@@ -168,24 +168,24 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 
 			<div className="flex flex-1 flex-col gap-2 px-2.5 py-2.5 sm:gap-3 sm:px-4 sm:py-4">
 				<div className="flex flex-col gap-0.5 sm:gap-1">
-					<h3 className="text-[13px] sm:text-lg font-semibold leading-snug text-foreground line-clamp-2">
+					<h3 className="line-clamp-2 font-semibold text-[13px] text-foreground leading-snug sm:text-lg">
 						{voucher.title}
 					</h3>
-					<div className="flex items-center gap-1 text-[11px] sm:text-sm text-muted-foreground">
-						<Building2 className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+					<div className="flex items-center gap-1 text-[11px] text-muted-foreground sm:text-sm">
+						<Building2 className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
 						<span className="truncate">{voucher.vendor?.fullName || "Unknown Merchant"}</span>
 					</div>
 				</div>
 
 				{/* Description - hidden on mobile, max 2 lines on desktop */}
 				{voucher.description && (
-					<p className="hidden sm:line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+					<p className="hidden text-muted-foreground text-sm leading-relaxed sm:line-clamp-2">
 						{voucher.description}
 					</p>
 				)}
 
 				{/* Mobile: Minimalist message */}
-				<div className="flex items-center gap-1 sm:hidden text-[10px] text-muted-foreground">
+				<div className="flex items-center gap-1 text-[10px] text-muted-foreground sm:hidden">
 					{voucherMessage.icon}
 					<span className={voucherMessage.color}>
 						{voucherMessage.badge}
@@ -193,7 +193,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				</div>
 
 				{/* Desktop: Full message */}
-				<div className={`hidden sm:block border px-2.5 py-2 text-xs ${voucherMessage.bgColor}`}>
+				<div className={`hidden border px-2.5 py-2 text-xs sm:block ${voucherMessage.bgColor}`}>
 					<div className={`flex items-center gap-1.5 font-semibold ${voucherMessage.color}`}>
 						{voucherMessage.icon}
 						<span>{voucherMessage.headline}</span>
@@ -203,7 +203,7 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 
 			<div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4">
 				<Button
-					className="w-full rounded-none text-[11px] h-8 sm:h-9 font-medium sm:text-sm"
+					className="h-8 w-full rounded-none font-medium text-[11px] sm:h-9 sm:text-sm"
 					size="sm"
 					disabled={!isAvailable}
 					onClick={() => {

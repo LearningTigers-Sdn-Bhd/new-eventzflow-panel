@@ -39,7 +39,7 @@ const OnsiteSupportSection: React.FC = () => {
 				<div className="mb-8 flex flex-col gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between lg:text-left">
 					<div>
 						<motion.span
-							className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-400 sm:px-4 sm:py-2 sm:text-xs"
+							className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1.5 font-semibold text-[10px] text-emerald-400 uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 							initial={{ opacity: 0, y: 10 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -49,7 +49,7 @@ const OnsiteSupportSection: React.FC = () => {
 							<span className="whitespace-nowrap">Complete Onsite Solution</span>
 						</motion.span>
 						<motion.h2
-							className="mt-3 text-2xl font-semibold text-white sm:mt-4 sm:text-3xl lg:text-4xl"
+							className="mt-3 font-semibold text-2xl text-white sm:mt-4 sm:text-3xl lg:text-4xl"
 							initial={{ opacity: 0, y: 16 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -97,7 +97,7 @@ const OnsiteSupportSection: React.FC = () => {
 								<div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-400/20 sm:h-6 sm:w-6">
 									<Check className="h-3.5 w-3.5 text-cyan-400 sm:h-4 sm:w-4" />
 								</div>
-								<p className="text-sm font-medium text-white sm:text-base">{feature}</p>
+								<p className="font-medium text-sm text-white sm:text-base">{feature}</p>
 							</motion.div>
 						))}
 					</motion.div>
@@ -122,7 +122,7 @@ const OnsiteSupportSection: React.FC = () => {
 								<div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-400/20 sm:h-6 sm:w-6">
 									<Check className="h-3.5 w-3.5 text-cyan-400 sm:h-4 sm:w-4" />
 								</div>
-								<p className="text-sm font-medium text-white sm:text-base">{feature}</p>
+								<p className="font-medium text-sm text-white sm:text-base">{feature}</p>
 							</motion.div>
 						))}
 					</motion.div>

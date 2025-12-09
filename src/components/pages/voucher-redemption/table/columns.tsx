@@ -42,7 +42,7 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 							year: "numeric",
 						})}
 					</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{date.toLocaleTimeString("en-US", {
 							hour: "2-digit",
 							minute: "2-digit",
@@ -62,7 +62,7 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 			return (
 				<div className="space-y-0.5">
 					<div className="font-medium">{voucher?.title || "-"}</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{voucher?.voucherCode || "-"}
 					</div>
 				</div>
@@ -79,7 +79,7 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 			return (
 				<div className="space-y-0.5">
 					<div className="font-medium">{redeemer?.fullName || "-"}</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{redeemer?.email || redeemer?.phone || "-"}
 					</div>
 				</div>

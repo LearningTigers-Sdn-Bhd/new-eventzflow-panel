@@ -35,60 +35,60 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 					{/* Main metrics grid */}
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 						{/* Total Stamps */}
-						<div className="rounded-lg border bg-card p-4 space-y-2">
+						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium text-muted-foreground">Total Stamps</p>
+								<p className="font-medium text-muted-foreground text-sm">Total Stamps</p>
 								<BarChart3 className="h-4 w-4 text-primary opacity-60" />
 							</div>
-							<p className="text-3xl font-bold">{analytics.stamp_count}</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="font-bold text-3xl">{analytics.stamp_count}</p>
+							<p className="text-muted-foreground text-xs">
 								Total visitor scans recorded
 							</p>
 						</div>
 
 						{/* Unique Visitors */}
-						<div className="rounded-lg border bg-card p-4 space-y-2">
+						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium text-muted-foreground">Unique Visitors</p>
+								<p className="font-medium text-muted-foreground text-sm">Unique Visitors</p>
 								<Users className="h-4 w-4 text-blue-500 opacity-60" />
 							</div>
-							<p className="text-3xl font-bold">{analytics.unique_visitors}</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="font-bold text-3xl">{analytics.unique_visitors}</p>
+							<p className="text-muted-foreground text-xs">
 								Different visitors scanned
 							</p>
 						</div>
 
 						{/* Average per Visitor */}
-						<div className="rounded-lg border bg-card p-4 space-y-2">
+						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium text-muted-foreground">Avg per Visitor</p>
+								<p className="font-medium text-muted-foreground text-sm">Avg per Visitor</p>
 								<Activity className="h-4 w-4 text-green-500 opacity-60" />
 							</div>
-							<p className="text-3xl font-bold">{avgStampsPerVisitor}</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="font-bold text-3xl">{avgStampsPerVisitor}</p>
+							<p className="text-muted-foreground text-xs">
 								Stamps per visitor
 							</p>
 						</div>
 
 						{/* Engagement Rate */}
-						<div className="rounded-lg border bg-card p-4 space-y-2">
+						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium text-muted-foreground">Repeat Rate</p>
+								<p className="font-medium text-muted-foreground text-sm">Repeat Rate</p>
 								<TrendingUp className="h-4 w-4 text-orange-500 opacity-60" />
 							</div>
-							<p className="text-3xl font-bold">
+							<p className="font-bold text-3xl">
 								{engagementRate > 0 ? engagementRate.toFixed(0) : 0}%
 							</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-muted-foreground text-xs">
 								Visitor interaction intensity
 							</p>
 						</div>
 					</div>
 
 					{/* Summary stats */}
-					<div className="rounded-lg bg-muted/50 p-4 space-y-2">
-						<p className="text-sm font-medium">Summary</p>
-						<div className="text-sm text-muted-foreground space-y-1">
+					<div className="space-y-2 rounded-lg bg-muted/50 p-4">
+						<p className="font-medium text-sm">Summary</p>
+						<div className="space-y-1 text-muted-foreground text-sm">
 							{analytics.stamp_count > 0 && analytics.unique_visitors > 0 ? (
 								<>
 									<p>
@@ -99,7 +99,7 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 										On average, each visitor was scanned{' '}
 										<strong>{avgStampsPerVisitor} times</strong> by this vendor.
 									</p>
-									<p className="pt-2 text-xs font-medium text-foreground">
+									<p className="pt-2 font-medium text-foreground text-xs">
 										🎯 This indicates strong visitor engagement at this vendor's booth!
 									</p>
 								</>

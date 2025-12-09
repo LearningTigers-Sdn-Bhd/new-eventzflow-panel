@@ -149,7 +149,7 @@ export function DataTable<TData, TValue>({
 								.rows.map((row) => (
 									<div
 										key={row.id}
-										className="rounded-none border bg-card p-4 space-y-2"
+										className="space-y-2 rounded-none border bg-card p-4"
 									>
 										{row.getVisibleCells().map((cell) => (
 											<div key={cell.id}>

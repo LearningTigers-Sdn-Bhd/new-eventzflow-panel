@@ -163,11 +163,11 @@ export function JoinEventForm({
 				<div className="w-full max-w-5xl space-y-4">
 					{/* Header */}
 					<div className="rounded-none border bg-background p-5 text-center">
-						<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 							Final Step
 						</p>
-						<h1 className="text-2xl font-bold tracking-tight">Almost there!</h1>
-						<p className="mt-2 text-sm text-muted-foreground">
+						<h1 className="font-bold text-2xl tracking-tight">Almost there!</h1>
+						<p className="mt-2 text-muted-foreground text-sm">
 							Configure your settings for {event?.title}
 						</p>
 					</div>
@@ -182,7 +182,7 @@ export function JoinEventForm({
 						className="space-y-4"
 					>
 						<div className="rounded-none border bg-background p-5">
-							<div className="flex items-center gap-2 border-b pb-2 mb-4">
+							<div className="mb-4 flex items-center gap-2 border-b pb-2">
 								<Globe className="h-5 w-5 text-primary" />
 								<h3 className="font-semibold text-lg">Event Settings</h3>
 								<span className="text-muted-foreground text-sm">(Optional)</span>
@@ -293,7 +293,7 @@ export function JoinEventForm({
 						{/* Submit Button */}
 						<Button
 							type="submit"
-							className="h-12 w-full rounded-none text-base font-medium"
+							className="h-12 w-full rounded-none font-medium text-base"
 							size="lg"
 							disabled={joinMutation.isPending}
 						>

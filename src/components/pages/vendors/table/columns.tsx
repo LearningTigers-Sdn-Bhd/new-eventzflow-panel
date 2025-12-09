@@ -63,7 +63,7 @@ export const columns: ColumnDef<Vendor>[] = [
 		cell: ({ row }) => {
 			const vendor = row.original;
 			return (
-				<div className="text-sm space-y-0.5">
+				<div className="space-y-0.5 text-sm">
 					<div className="text-muted-foreground">{vendor.email}</div>
 					{vendor.phone && (
 						<div className="text-muted-foreground text-xs">{vendor.phone}</div>

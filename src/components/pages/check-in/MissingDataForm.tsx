@@ -38,12 +38,12 @@ export function MissingDataForm({
 	return (
 		<form onSubmit={onSubmit} className="space-y-4">
 			{/* Info Banner */}
-			<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950 p-4">
+			<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
 				<div className="space-y-2">
-					<p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+					<p className="font-semibold text-amber-900 text-sm dark:text-amber-100">
 						📋 Complete Your Information
 					</p>
-					<p className="text-xs text-amber-800 dark:text-amber-200">
+					<p className="text-amber-800 text-xs dark:text-amber-200">
 						Hi <span className="font-semibold">{ticketData.name}</span>! Before checking in, we need to
 						collect some missing contact information for event updates and communication.
 					</p>
@@ -53,10 +53,10 @@ export function MissingDataForm({
 			{/* Phone Number Field */}
 			{missingPhone && (
 				<div className="space-y-2">
-					<Label htmlFor="missing-phone" className="flex items-center gap-2 text-sm font-medium">
+					<Label htmlFor="missing-phone" className="flex items-center gap-2 font-medium text-sm">
 						<Phone className="h-4 w-4" />
 						Phone Number
-						<span className="text-sm font-normal text-blue-600 dark:text-blue-400">(Recommended)</span>
+						<span className="font-normal text-blue-600 text-sm dark:text-blue-400">(Recommended)</span>
 					</Label>
 					<Input
 						id="missing-phone"
@@ -78,7 +78,7 @@ export function MissingDataForm({
 			{/* Email Field */}
 			{missingEmail && (
 				<div className="space-y-2">
-					<Label htmlFor="missing-email" className="flex items-center gap-2 text-sm font-medium">
+					<Label htmlFor="missing-email" className="flex items-center gap-2 font-medium text-sm">
 						<Mail className="h-4 w-4" />
 						Email Address (Optional) {requireEmail && <span className="text-red-500">*</span>}
 					</Label>
@@ -108,13 +108,13 @@ export function MissingDataForm({
 					type="button"
 					variant="outline"
 					onClick={onBack}
-					className="gap-2 h-10 px-5"
+					className="h-10 gap-2 px-5"
 					disabled={isLoading}
 				>
 					<ArrowLeft className="h-4 w-4" />
 					Back
 				</Button>
-				<Button type="submit" className="flex-1 h-10" disabled={isLoading}>
+				<Button type="submit" className="h-10 flex-1" disabled={isLoading}>
 					{isLoading ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />

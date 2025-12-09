@@ -99,7 +99,7 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 
 	return (
 		<div className="space-y-2">
-			<Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
+			<Label htmlFor="name" className="flex items-center gap-2 font-medium text-sm">
 				<Search className="h-4 w-4" />
 				Search by Name
 			</Label>
@@ -119,42 +119,42 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 					className="h-10"
 				/>
 				{isSearching && (
-					<div className="absolute right-3 top-2.5">
+					<div className="absolute top-2.5 right-3">
 						<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 					</div>
 				)}
 
 				{/* Dropdown Results */}
 				{showDropdown && searchResults.length > 0 && (
-					<div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
+					<div className="absolute z-50 mt-1 max-h-[300px] w-full overflow-y-auto rounded-lg border bg-background shadow-lg">
 						{searchResults.map((ticket) => (
 							<button
 								key={ticket.publicId}
 								type="button"
 								onClick={() => handleTicketClick(ticket)}
 								disabled={ticket.checkedIn}
-								className={`w-full text-left p-3 border-b last:border-b-0 transition-colors ${
+								className={`w-full border-b p-3 text-left transition-colors last:border-b-0 ${
 									ticket.checkedIn
-										? "bg-gray-50 opacity-60 cursor-not-allowed dark:bg-gray-900"
-										: "hover:bg-primary/5 cursor-pointer"
+										? "cursor-not-allowed bg-gray-50 opacity-60 dark:bg-gray-900"
+										: "cursor-pointer hover:bg-primary/5"
 								}`}
 							>
 								<div className="space-y-1">
 									<div className="flex items-start justify-between gap-2">
-										<div className="flex-1 min-w-0">
-											<p className="font-semibold text-sm truncate">{ticket.name}</p>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-semibold text-sm">{ticket.name}</p>
 										</div>
 										{ticket.checkedIn && (
-											<span className="text-[10px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded whitespace-nowrap">
+											<span className="whitespace-nowrap rounded bg-red-50 px-1.5 py-0.5 font-medium text-[10px] text-red-600 dark:bg-red-950 dark:text-red-400">
 												Checked In
 											</span>
 										)}
 									</div>
-									<div className="flex gap-1.5 flex-wrap">
-										<span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+									<div className="flex flex-wrap gap-1.5">
+										<span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
 											{ticket.ticketType}
 										</span>
-										<span className="text-[10px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded">
+										<span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] text-secondary-foreground">
 											{ticket.eventName}
 										</span>
 									</div>
@@ -166,26 +166,26 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 
 				{/* No results message */}
 				{showDropdown && searchResults.length === 0 && !isSearching && value.trim().length >= 2 && (
-					<div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg p-4">
-						<div className="text-center space-y-3">
+					<div className="absolute z-50 mt-1 w-full rounded-lg border bg-background p-4 shadow-lg">
+						<div className="space-y-3 text-center">
 							<div className="space-y-1">
-								<p className="text-sm font-medium text-foreground">
+								<p className="font-medium text-foreground text-sm">
 									No Ticket Found
 								</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									We couldn't find any tickets matching "<span className="font-semibold">{value}</span>"
 								</p>
 							</div>
 
-							<p className="text-xs text-muted-foreground">
+							<p className="text-muted-foreground text-xs">
 								Try using your email or phone number instead
 							</p>
 
 							{onRegisterClick && (
-								<div className="pt-1 space-y-2">
+								<div className="space-y-2 pt-1">
 									<div className="relative">
 										<div className="absolute inset-0 flex items-center">
-											<div className="w-full border-t border-border/50" />
+											<div className="w-full border-border/50 border-t" />
 										</div>
 										<div className="relative flex justify-center">
 											<span className="bg-background px-2 text-muted-foreground text-xs">

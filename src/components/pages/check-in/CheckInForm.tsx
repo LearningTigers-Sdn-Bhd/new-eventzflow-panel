@@ -49,7 +49,7 @@ export function CheckInForm({
 		<form onSubmit={onSubmit} className="space-y-4">
 			{checkInMethod === "email" && (
 				<div className="space-y-2">
-					<Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+					<Label htmlFor="email" className="flex items-center gap-2 font-medium text-sm">
 						<Mail className="h-4 w-4" />
 						Email Address
 					</Label>
@@ -72,7 +72,7 @@ export function CheckInForm({
 
 			{checkInMethod === "phone" && (
 				<div className="space-y-2">
-					<Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+					<Label htmlFor="phone" className="flex items-center gap-2 font-medium text-sm">
 						<Phone className="h-4 w-4" />
 						Phone Number
 					</Label>
@@ -108,7 +108,7 @@ export function CheckInForm({
 					type="button"
 					variant="outline"
 					onClick={onBack}
-					className="gap-2 h-10 px-5"
+					className="h-10 gap-2 px-5"
 					disabled={isLoading}
 				>
 					<ArrowLeft className="h-4 w-4" />
@@ -116,7 +116,7 @@ export function CheckInForm({
 				</Button>
 				<Button
 					type="submit"
-					className="flex-1 h-10"
+					className="h-10 flex-1"
 					disabled={
 						isLoading ||
 						(checkInMethod === "email" && !email) ||

@@ -18,7 +18,7 @@ export function GroupDetailsHeader({ group }: GroupDetailsHeaderProps) {
 			<CardHeader className="pb-3">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-2">
-						<CardTitle className="text-2xl font-bold">{group.name}</CardTitle>
+						<CardTitle className="font-bold text-2xl">{group.name}</CardTitle>
 						<CardDescription className="text-sm">
 							{group.description || "No description provided"}
 						</CardDescription>
@@ -34,8 +34,8 @@ export function GroupDetailsHeader({ group }: GroupDetailsHeaderProps) {
 								<Calendar className="h-5 w-5 text-muted-foreground" />
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created</p>
-								<p className="text-sm font-bold">{new Date(group.created_at).toLocaleDateString()}</p>
+								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Created</p>
+								<p className="font-bold text-sm">{new Date(group.created_at).toLocaleDateString()}</p>
 							</div>
 						</div>
 					</div>
@@ -47,8 +47,8 @@ export function GroupDetailsHeader({ group }: GroupDetailsHeaderProps) {
 								<Building2 className="h-5 w-5 text-muted-foreground" />
 							</div>
 							<div className="space-y-1">
-								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vendors</p>
-								<p className="text-2xl font-bold">{vendorCount}</p>
+								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Vendors</p>
+								<p className="font-bold text-2xl">{vendorCount}</p>
 							</div>
 						</div>
 					</div>

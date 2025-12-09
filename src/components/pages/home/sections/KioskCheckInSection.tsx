@@ -54,15 +54,15 @@ const KioskCheckInSection: React.FC = () => {
 		<section className="relative overflow-hidden bg-muted/30 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			{/* Professional background elements */}
 			<div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-			<div className="pointer-events-none absolute left-0 top-1/4 h-[400px] w-[400px] rounded-full bg-emerald-500/5 blur-3xl" />
-			<div className="pointer-events-none absolute bottom-1/4 right-0 h-[350px] w-[350px] rounded-full bg-blue-500/5 blur-3xl" />
+			<div className="pointer-events-none absolute top-1/4 left-0 h-[400px] w-[400px] rounded-full bg-emerald-500/5 blur-3xl" />
+			<div className="pointer-events-none absolute right-0 bottom-1/4 h-[350px] w-[350px] rounded-full bg-blue-500/5 blur-3xl" />
 
 			<div className="relative mx-auto max-w-6xl">
 				{/* Header */}
 				<div className="mb-8 flex flex-col gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between lg:text-left">
 					<div>
 				<motion.span
-					className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
+					className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 					initial={{ opacity: 0, y: 10 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
@@ -72,7 +72,7 @@ const KioskCheckInSection: React.FC = () => {
 					<span className="whitespace-nowrap">Effortless On-Site Check-In</span>
 				</motion.span>
 				<motion.h2
-					className="mt-3 text-2xl font-semibold text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
+					className="mt-3 font-semibold text-2xl text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
 					initial={{ opacity: 0, y: 16 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
@@ -82,7 +82,7 @@ const KioskCheckInSection: React.FC = () => {
 				</motion.h2>
 			</div>
 			<motion.p
-				className="px-2 text-sm text-muted-foreground sm:text-base lg:max-w-xl lg:text-lg"
+				className="px-2 text-muted-foreground text-sm sm:text-base lg:max-w-xl lg:text-lg"
 				initial={{ opacity: 0, y: 16 }}
 				whileInView={{ opacity: 1, y: 0 }}
 				viewport={{ once: true }}
@@ -109,7 +109,7 @@ const KioskCheckInSection: React.FC = () => {
 							return (
 						<motion.div
 							key={feature.title}
-							className="group flex gap-2.5 rounded-lg border border-border bg-card p-3 shadow-sm transition-all hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-500/5 sm:gap-3 sm:rounded-xl sm:p-3.5"
+							className="group flex gap-2.5 rounded-lg border border-border bg-card p-3 shadow-sm transition-all hover:border-emerald-500/30 hover:shadow-emerald-500/5 hover:shadow-md sm:gap-3 sm:rounded-xl sm:p-3.5"
 							initial={{ opacity: 0, y: 20 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -119,10 +119,10 @@ const KioskCheckInSection: React.FC = () => {
 								<Icon className="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5 dark:text-emerald-400" />
 							</div>
 							<div className="min-w-0">
-								<h3 className="text-sm font-semibold text-foreground sm:text-base">
+								<h3 className="font-semibold text-foreground text-sm sm:text-base">
 									{feature.title}
 								</h3>
-								<p className="mt-0.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+								<p className="mt-0.5 text-muted-foreground text-xs leading-relaxed sm:text-sm">
 									{feature.description}
 								</p>
 							</div>
@@ -144,10 +144,10 @@ const KioskCheckInSection: React.FC = () => {
 						<UserCheck className="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5 dark:text-emerald-400" />
 					</div>
 					<div className="min-w-0">
-						<h4 className="text-sm font-semibold text-foreground sm:text-base">
+						<h4 className="font-semibold text-foreground text-sm sm:text-base">
 							Flexible Check-In Options
 						</h4>
-						<p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+						<p className="mt-1 text-muted-foreground text-xs sm:text-sm">
 							Pre-registered attendees use QR codes, while walk-ins can check in
 							with their email or phone number—no pre-registration required.
 						</p>
@@ -183,14 +183,14 @@ const KioskCheckInSection: React.FC = () => {
 							{/* Navigation Arrows */}
 							<button
 								onClick={prevImage}
-								className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-background"
+								className="-translate-y-1/2 absolute top-1/2 left-4 rounded-full bg-background/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-background"
 								aria-label="Previous image"
 							>
 								<ChevronLeft className="h-6 w-6 text-foreground" />
 							</button>
 							<button
 								onClick={nextImage}
-								className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-background"
+								className="-translate-y-1/2 absolute top-1/2 right-4 rounded-full bg-background/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-background"
 								aria-label="Next image"
 							>
 								<ChevronRight className="h-6 w-6 text-foreground" />
@@ -198,7 +198,7 @@ const KioskCheckInSection: React.FC = () => {
 						</div>
 
 						{/* Thumbnail Strip */}
-						<div className="flex gap-1.5 border-t border-border bg-muted/50 p-2 sm:gap-2 sm:p-3">
+						<div className="flex gap-1.5 border-border border-t bg-muted/50 p-2 sm:gap-2 sm:p-3">
 							{images.map((img, index) => (
 								<button
 									key={index}

@@ -85,13 +85,13 @@ const TargetAudienceSection: React.FC = () => {
 	return (
 		<section id="industries" className="relative overflow-hidden bg-muted/40 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			<div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-primary/10 via-transparent to-transparent blur-3xl" />
-			<div className="pointer-events-none absolute right-[-15%] top-1/4 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+			<div className="pointer-events-none absolute top-1/4 right-[-15%] h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
 
 			<div className="relative mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-8 flex flex-col items-center text-center sm:mb-12 lg:mb-16">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 10 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -102,7 +102,7 @@ const TargetAudienceSection: React.FC = () => {
 					</motion.span>
 
 					<motion.h2
-						className="mt-4 text-2xl font-semibold text-foreground sm:mt-6 sm:text-3xl lg:text-4xl"
+						className="mt-4 font-semibold text-2xl text-foreground sm:mt-6 sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -114,7 +114,7 @@ const TargetAudienceSection: React.FC = () => {
 					</motion.h2>
 
 					<motion.p
-						className="mt-3 max-w-5xl px-2 text-sm text-muted-foreground sm:mt-4 sm:text-base lg:text-lg"
+						className="mt-3 max-w-5xl px-2 text-muted-foreground text-sm sm:mt-4 sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -127,7 +127,7 @@ const TargetAudienceSection: React.FC = () => {
 				</div>
 
 				{/* Infinite Ticker Carousel */}
-				<div className="relative -mx-4 sm:mx-0">
+				<div className="-mx-4 relative sm:mx-0">
 					<motion.div
 						className="flex gap-4 pl-4 sm:gap-6 sm:pl-0"
 						animate={{
@@ -147,7 +147,7 @@ const TargetAudienceSection: React.FC = () => {
 							return (
 								<motion.div
 									key={`${audience.title}-${index}`}
-									className="group w-80 flex-shrink-0 overflow-hidden rounded-xl border border-border/60 bg-card shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 sm:w-96 sm:rounded-2xl"
+									className="group hover:-translate-y-2 w-80 flex-shrink-0 overflow-hidden rounded-xl border border-border/60 bg-card shadow-md backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:shadow-primary/20 hover:shadow-xl sm:w-96 sm:rounded-2xl"
 									initial={{ opacity: 0, y: 50 }}
 									whileInView={{ opacity: 1, y: 0 }}
 									viewport={{ once: true }}
@@ -173,7 +173,7 @@ const TargetAudienceSection: React.FC = () => {
 									<div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
 										{/* Title Section */}
 										<div>
-											<h3 className="text-base font-bold leading-tight text-foreground sm:text-lg lg:text-xl">
+											<h3 className="font-bold text-base text-foreground leading-tight sm:text-lg lg:text-xl">
 												{audience.title}
 											</h3>
 										</div>
@@ -183,7 +183,7 @@ const TargetAudienceSection: React.FC = () => {
 											{audience.descriptions.map((description, idx) => (
 												<div key={idx} className="group/item flex gap-2 sm:gap-3">
 													<div className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60 transition-colors group-hover/item:bg-primary sm:mt-2 sm:h-2 sm:w-2" />
-													<p className="flex-1 text-xs leading-relaxed text-muted-foreground transition-colors group-hover/item:text-foreground sm:text-sm">
+													<p className="flex-1 text-muted-foreground text-xs leading-relaxed transition-colors group-hover/item:text-foreground sm:text-sm">
 														{description}
 													</p>
 												</div>

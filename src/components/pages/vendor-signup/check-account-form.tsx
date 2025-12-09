@@ -43,19 +43,19 @@ export function CheckAccountForm({
 				<div className="w-full max-w-md space-y-4">
 					{/* Header */}
 					<div className="rounded-none border bg-background p-5 text-center">
-						<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 							Get Started
 						</p>
-						<h1 className="text-2xl font-bold tracking-tight">
+						<h1 className="font-bold text-2xl tracking-tight">
 							Ready to join as a vendor?
 						</h1>
-						<p className="mt-2 text-sm text-muted-foreground">
+						<p className="mt-2 text-muted-foreground text-sm">
 							Let us know if you already have an account with us
 						</p>
 					</div>
 
 					{/* Options */}
-					<div className="rounded-none border bg-background p-5 space-y-4">
+					<div className="space-y-4 rounded-none border bg-background p-5">
 						<Button
 							variant="default"
 							className="h-14 w-full rounded-none text-base"

@@ -84,7 +84,7 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 		<div className="w-full space-y-4">
 			{/* Header / Vendor Info */}
 			<div className="space-y-1 text-center">
-				<p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+				<p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
 					Vendor QR Code
 				</p>
 				<div className="flex flex-col items-center gap-1">
@@ -115,10 +115,10 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 				{/* URL + Actions */}
 				<div className="w-full space-y-2">
 					<div className="rounded-md bg-muted px-3 py-2 text-center">
-						<p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
 							Destination URL
 						</p>
-						<p className="text-muted-foreground text-[11px] break-all">
+						<p className="break-all text-[11px] text-muted-foreground">
 							{vendor.qr_url}
 						</p>
 					</div>
@@ -139,7 +139,7 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 							) : (
 								<>
 									<Copy className="mr-2 size-3.5" />
-									<span className="text-xs p-2">Copy URL</span>
+									<span className="p-2 text-xs">Copy URL</span>
 								</>
 							)}
 						</Button>
@@ -151,7 +151,7 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 							size="sm"
 						>
 							<Download className="mr-2 size-3.5" />
-							<span className="text-xs p-2">Download QR</span>
+							<span className="p-2 text-xs">Download QR</span>
 						</Button>
 					</div>
 				</div>

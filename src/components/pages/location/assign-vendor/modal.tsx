@@ -35,7 +35,7 @@ export default function AssignVendorDialog({
 	// Fetch event vendors
 	const { data: eventVendors, isLoading: isLoadingVendors } = useQuery({
 		queryKey: ["event-vendors", eventId],
-		queryFn: () => getEventVendors(parseInt(eventId)),
+		queryFn: () => getEventVendors(Number.parseInt(eventId)),
 	});
 
 	// Fetch all locations to check which vendors are already assigned

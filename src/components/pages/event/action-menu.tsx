@@ -350,7 +350,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: `Are you sure you want to archive this event? The event will be archived and hidden from the main list.`,
+				message: "Are you sure you want to archive this event? The event will be archived and hidden from the main list.",
 				confirmLabel: "Archive",
 				cancelLabel: "Cancel",
 				variant: "warning",
@@ -371,7 +371,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: `Are you sure you want to permanently delete this event? This action cannot be undone and all associated data will be permanently removed.`,
+				message: "Are you sure you want to permanently delete this event? This action cannot be undone and all associated data will be permanently removed.",
 				confirmLabel: "Delete",
 				cancelLabel: "Cancel",
 				variant: "destructive",
@@ -392,7 +392,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: `Are you sure you want to restore this event? The event will be unarchived and visible in the main list again.`,
+				message: "Are you sure you want to restore this event? The event will be unarchived and visible in the main list again.",
 				confirmLabel: "Restore",
 				cancelLabel: "Cancel",
 				variant: "success",
