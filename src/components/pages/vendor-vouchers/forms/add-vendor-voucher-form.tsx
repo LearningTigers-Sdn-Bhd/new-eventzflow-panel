@@ -632,7 +632,7 @@ export default function AddVendorVoucherForm({
 								{/* Unlimited Toggle */}
 								<Field orientation="vertical">
 									<FieldLabel>Unlimited Redemptions</FieldLabel>
-									<div className="flex items-center gap-2 border bg-accent rounded-lg p-2">
+									<div className="flex items-center gap-2 rounded-lg border bg-accent p-2">
 										<Switch
 											checked={isUnlimited}
 											onCheckedChange={(checked) => {

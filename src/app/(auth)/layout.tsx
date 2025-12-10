@@ -73,6 +73,11 @@ export default function AuthLayout({
 		return <div className="grid h-svh grid-rows-[auto_1fr]">{children}</div>;
 	}
 
+	// Render lucky-draw session pages without sidebar
+	if (pathname.includes("lucky-draw/session")) {
+		return <div className="mx-auto">{children}</div>;
+	}
+
 	// Render sidebar layout for authenticated users
 	return (
 		<SidebarProvider>
@@ -95,9 +100,7 @@ export default function AuthLayout({
 				</header>
 				<div className="mx-auto w-full px-12">
 					<div className="min-h-[calc(100vh-48px)] w-full border-x border-dashed">
-						<div className="w-full lg:mx-auto lg:max-w-[calc(100vw-370px)]">
-							{children}
-						</div>
+						<div className="w-full">{children}</div>
 					</div>
 				</div>
 				<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

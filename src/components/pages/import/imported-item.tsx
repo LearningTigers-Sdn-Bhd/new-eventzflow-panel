@@ -91,13 +91,13 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 			<Card
 				className={cn(
-					"rounded-none border-2 transition-all p-0 gap-0",
+					"gap-0 rounded-none border-2 p-0 transition-all",
 					config.bg,
 					config.border,
 				)}
 			>
 				{isError ? (
-					<CardContent className="px-2 md:px-4 py-4">
+					<CardContent className="px-2 py-4 md:px-4">
 						<div className="flex items-start gap-3">
 							<div className={cn("shrink-0 rounded-lg p-2", config.iconBg)}>
 								{config.icon}
@@ -106,14 +106,14 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 								<div className="flex items-center gap-2">
 									<Badge
 										className={cn(
-											"shrink-0 rounded-none text-xs font-medium",
+											"shrink-0 rounded-none font-medium text-xs",
 											config.badgeBg,
 										)}
 									>
 										{config.label}
 									</Badge>
 								</div>
-								<p className="wrap-break-word font-medium text-sm text-foreground">
+								<p className="wrap-break-word font-medium text-foreground text-sm">
 									{itemData as string}
 								</p>
 							</div>
@@ -124,7 +124,7 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 						<CollapsibleTrigger asChild>
 							<CardHeader
 								className={cn(
-									"px-2 md:px-4 py-4 cursor-pointer hover:bg-opacity-50 transition-colors",
+									"cursor-pointer px-2 py-4 transition-colors hover:bg-opacity-50 md:px-4",
 								)}
 							>
 								<div className="flex items-start gap-3">
@@ -132,10 +132,10 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 										{config.icon}
 									</div>
 									<div className="min-w-0 flex-1 space-y-0">
-										<div className="flex items-center gap-2 flex-wrap">
+										<div className="flex flex-wrap items-center gap-2">
 											<Badge
 												className={cn(
-													"shrink-0 rounded-none text-xs font-medium",
+													"shrink-0 rounded-none font-medium text-xs",
 													config.badgeBg,
 												)}
 											>
@@ -147,7 +147,7 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 													{hasPaymentStatusChange && (
 														<Badge
 															variant="outline"
-															className="shrink-0 rounded-none text-xs font-medium border-orange-500/50 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/20"
+															className="shrink-0 rounded-none border-orange-500/50 bg-orange-50 font-medium text-orange-700 text-xs dark:bg-orange-950/20 dark:text-orange-400"
 														>
 															<CreditCard className="mr-1 h-3 w-3" />
 															Payment Status Changed
@@ -156,7 +156,7 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 													{hasCustomLabelsChange && (
 														<Badge
 															variant="outline"
-															className="shrink-0 rounded-none text-xs font-medium border-purple-500/50 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20"
+															className="shrink-0 rounded-none border-purple-500/50 bg-purple-50 font-medium text-purple-700 text-xs dark:bg-purple-950/20 dark:text-purple-400"
 														>
 															<Tag className="mr-1 h-3 w-3" />
 															Custom Labels Changed
@@ -216,7 +216,7 @@ export function ImportedItem({ item, category }: ImportedItemProps) {
 							</CardHeader>
 						</CollapsibleTrigger>
 						<CollapsibleContent>
-							<CardContent className="px-2 md:px-4 pb-4 pt-0">
+							<CardContent className="px-2 pt-0 pb-4 md:px-4">
 								<div className="space-y-1 pl-11">
 									{/* Display all fields in content */}
 									{otherFields.map(([key, value]) => (

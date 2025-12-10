@@ -24,7 +24,7 @@ export function VoucherItem({ voucher }: VoucherItemProps) {
 						{/* Title and Merchant */}
 						<div>
 							<h3 className="font-semibold text-lg">{voucher.title}</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								{voucher.vendor?.fullName || "N/A"}
 							</p>
 						</div>
@@ -81,7 +81,7 @@ export function VoucherItem({ voucher }: VoucherItemProps) {
 									<span className="font-medium text-green-600">
 										{isUnlimited ? "Unlimited" : `${remaining} left`}
 									</span>
-									<span className="text-xs text-muted-foreground">
+									<span className="text-muted-foreground text-xs">
 										{voucher.redeemedCount} {isUnlimited ? "redeemed" : `/ ${voucher.totalRedemptionAvailable} redeemed`}
 									</span>
 								</div>

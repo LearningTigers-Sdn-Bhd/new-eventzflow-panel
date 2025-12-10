@@ -76,7 +76,7 @@ export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) 
 						<div className="flex h-[200px] items-center justify-center text-center">
 							<div>
 								<User className="mx-auto h-12 w-12 text-muted-foreground" />
-								<p className="mt-2 text-sm text-muted-foreground">
+								<p className="mt-2 text-muted-foreground text-sm">
 									No members yet. Add your first member.
 								</p>
 							</div>
@@ -88,13 +88,13 @@ export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) 
 									key={member.id}
 									className="flex items-center justify-between rounded-none border border-dashed bg-muted/20 p-4 transition-colors hover:bg-muted/30"
 								>
-									<div className="flex flex-1 items-center gap-4 min-w-0">
-										<div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-none border border-dashed bg-background">
+									<div className="flex min-w-0 flex-1 items-center gap-4">
+										<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-none border border-dashed bg-background">
 											<User className="h-5 w-5 text-muted-foreground" />
 										</div>
 										<div className="min-w-0 flex-1">
-											<p className="font-medium truncate">{member.user.full_name}</p>
-											<p className="text-xs text-muted-foreground truncate">
+											<p className="truncate font-medium">{member.user.full_name}</p>
+											<p className="truncate text-muted-foreground text-xs">
 												{member.user.email}
 											</p>
 										</div>

@@ -77,7 +77,7 @@ export function RedemptionResultCard({
 							</span>
 						</div>
 						{result.voucherType && (
-							<div className="flex items-center justify-between text-xs text-muted-foreground">
+							<div className="flex items-center justify-between text-muted-foreground text-xs">
 								<span>Voucher Type:</span>
 								<span className="capitalize">
 									{result.voucherType.replace("_", " ")}
@@ -89,7 +89,7 @@ export function RedemptionResultCard({
 
 				{/* Marketing Quote */}
 				{isSuccess && (
-					<div className="rounded-lg bg-muted/50 px-4 py-3 border border-muted">
+					<div className="rounded-lg border border-muted bg-muted/50 px-4 py-3">
 						<p className="text-muted-foreground text-sm italic">
 							{isFreeItem 
 								? "\"Every great experience starts with a special moment. Thank you for being here!\"" 

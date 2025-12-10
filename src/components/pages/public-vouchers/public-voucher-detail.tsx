@@ -34,7 +34,7 @@ function getVoucherMessage(voucher: {
 	const endDate = new Date(voucher.endDate);
 	const isUnlimited = voucher.isUnlimited;
 	const total = voucher.totalRedemptionAvailable ?? 0;
-	const remaining = isUnlimited ? Infinity : total - voucher.redeemedCount;
+	const remaining = isUnlimited ? Number.POSITIVE_INFINITY : total - voucher.redeemedCount;
 	const claimedPercent = !isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
 	const isSoldOut = !isUnlimited && remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
@@ -124,7 +124,7 @@ export function PublicVoucherDetail() {
 	const router = useRouter();
 	const params = useParams<{ event_id: string; voucher_id: string }>();
 	const eventId = params?.event_id;
-	const voucherId = useMemo(() => Number(params?.voucher_id ?? NaN), [params]);
+	const voucherId = useMemo(() => Number(params?.voucher_id ?? Number.NaN), [params]);
 	const [copiedCode, setCopiedCode] = useState(false);
 	const [shared, setShared] = useState(false);
 
@@ -167,7 +167,7 @@ export function PublicVoucherDetail() {
 
 	if (isLoading || isLoadingEvent || (!voucher && !isError)) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
+			<div className="flex min-h-screen items-center justify-center">
 				<LoadingState
 					title="Loading voucher..."
 					description="Please wait while we fetch this voucher."
@@ -183,7 +183,7 @@ export function PublicVoucherDetail() {
 
 	if (isError || !voucher) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
+			<div className="flex min-h-screen items-center justify-center">
 				<ErrorState
 					title="Voucher not found"
 					description="We couldn't find this voucher. It may have been removed or is no longer available."
@@ -248,7 +248,7 @@ export function PublicVoucherDetail() {
 
 			<div className="relative flex h-full flex-col">
 				{/* Header */}
-				<div className="border-b bg-card/50 backdrop-blur-sm px-6 py-3">
+				<div className="border-b bg-card/50 px-6 py-3 backdrop-blur-sm">
 					<Button 
 						variant="ghost" 
 						size="sm" 
@@ -262,8 +262,8 @@ export function PublicVoucherDetail() {
 
 				{/* Main Content - Grid Layout */}
 				<div className="flex-1 overflow-auto">
-					<div className="mx-auto max-w-[1800px] w-full p-4 md:p-6">
-						<div className="grid grid-cols-12 gap-4 items-stretch">
+					<div className="mx-auto w-full max-w-[1800px] p-4 md:p-6">
+						<div className="grid grid-cols-12 items-stretch gap-4">
 						{/* Left Column - QR Code */}
 						<div className="col-span-12 lg:col-span-4">
 							<div className="flex h-full flex-col rounded-none border bg-background p-5 shadow-none">
@@ -271,13 +271,13 @@ export function PublicVoucherDetail() {
 									<div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
 										<QrCode className="h-5 w-5 text-primary" />
 									</div>
-									<h3 className="text-sm font-semibold">Redeem Code</h3>
-									<p className="mt-1 text-xs text-muted-foreground">
+									<h3 className="font-semibold text-sm">Redeem Code</h3>
+									<p className="mt-1 text-muted-foreground text-xs">
 										Scan to claim
 									</p>
 								</div>
 
-								<div className="mb-4 flex flex-1 items-center justify-center rounded-none border-2 border-dashed border-border bg-muted/30 p-4 min-h-[250px] sm:min-h-[300px]">
+								<div className="mb-4 flex min-h-[250px] flex-1 items-center justify-center rounded-none border-2 border-border border-dashed bg-muted/30 p-4 sm:min-h-[300px]">
 									<QRCode 
 										value={qrValue} 
 										size={256} 
@@ -287,10 +287,10 @@ export function PublicVoucherDetail() {
 
 								{/* Code display only - buttons moved to right column */}
 								<div className="rounded-none border bg-muted/50 p-2.5">
-									<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+									<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 										Code
 									</p>
-									<p className="font-mono text-xs font-semibold tracking-wider break-all">
+									<p className="break-all font-mono font-semibold text-xs tracking-wider">
 										{redemptionCode}
 									</p>
 								</div>
@@ -302,12 +302,12 @@ export function PublicVoucherDetail() {
 							{/* Title & Value Card with Badges */}
 							<div className="rounded-none border bg-background p-5 shadow-none">
 								<div className="mb-3 flex flex-wrap items-center gap-2">
-									<Badge variant="secondary" className="h-6 bg-primary/10 text-primary border-primary/20 text-xs capitalize">
+									<Badge variant="secondary" className="h-6 border-primary/20 bg-primary/10 text-primary text-xs capitalize">
 										<Sparkles className="mr-1 h-3 w-3" />
 										{(voucher.voucherType || "").replace(/_/g, " ")}
 									</Badge>
 									{/* Message badge */}
-									<span className={`inline-flex h-6 items-center gap-1.5 border px-2.5 text-xs font-semibold ${voucherMessage.bgColor} ${voucherMessage.color}`}>
+									<span className={`inline-flex h-6 items-center gap-1.5 border px-2.5 font-semibold text-xs ${voucherMessage.bgColor} ${voucherMessage.color}`}>
 										{voucherMessage.icon}
 										{voucherMessage.headline}
 									</span>
@@ -315,28 +315,28 @@ export function PublicVoucherDetail() {
 
 								
 								<div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-									<h1 className="text-2xl font-bold leading-tight sm:text-3xl">
+									<h1 className="font-bold text-2xl leading-tight sm:text-3xl">
 										{voucher.title}
 									</h1>
 									
 									{/* Value Display */}
 									<div className="shrink-0 text-left sm:text-right">
 										{voucher.voucherType === "percentage" ? (
-											<div className="flex items-baseline justify-start sm:justify-end gap-1">
-												<span className="text-3xl font-bold text-primary sm:text-4xl">
+											<div className="flex items-baseline justify-start gap-1 sm:justify-end">
+												<span className="font-bold text-3xl text-primary sm:text-4xl">
 													{voucher.voucherValue}%
 												</span>
-												<span className="text-lg font-semibold text-muted-foreground">OFF</span>
+												<span className="font-semibold text-lg text-muted-foreground">OFF</span>
 											</div>
 										) : voucher.voucherType === "fixed_amount" ? (
-											<div className="flex items-baseline justify-start sm:justify-end gap-1">
-												<span className="text-3xl font-bold text-primary sm:text-4xl">
+											<div className="flex items-baseline justify-start gap-1 sm:justify-end">
+												<span className="font-bold text-3xl text-primary sm:text-4xl">
 													RM {voucher.voucherValue.toFixed(2)}
 												</span>
-												<span className="text-sm font-medium text-muted-foreground">DISCOUNT</span>
+												<span className="font-medium text-muted-foreground text-sm">DISCOUNT</span>
 											</div>
 										) : (
-											<span className="text-2xl font-bold text-primary sm:text-3xl">FREE ITEMS</span>
+											<span className="font-bold text-2xl text-primary sm:text-3xl">FREE ITEMS</span>
 										)}
 									</div>
 								</div>
@@ -345,10 +345,10 @@ export function PublicVoucherDetail() {
 							{/* Description Card - Full text */}
 							{voucher.description && (
 								<div className="rounded-none border bg-background p-5 shadow-none">
-									<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
+									<p className="mb-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 										Description
 									</p>
-									<p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap text-justify">
+									<p className="whitespace-pre-wrap text-justify text-foreground text-sm leading-relaxed">
 										{voucher.description}
 									</p>
 								</div>
@@ -361,10 +361,10 @@ export function PublicVoucherDetail() {
 										{voucherMessage.icon}
 									</div>
 									<div className="flex-1">
-										<p className={`text-lg font-bold ${voucherMessage.color}`}>
+										<p className={`font-bold text-lg ${voucherMessage.color}`}>
 											{voucherMessage.headline}
 										</p>
-										<p className="text-sm text-muted-foreground mt-1">
+										<p className="mt-1 text-muted-foreground text-sm">
 											{voucherMessage.subtext}
 										</p>
 									</div>
@@ -380,10 +380,10 @@ export function PublicVoucherDetail() {
 											<Store className="h-5 w-5 text-primary" />
 										</div>
 										<div className="min-w-0">
-											<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+											<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 												Vendor
 											</p>
-											<h3 className="truncate text-sm font-semibold">{vendorName}</h3>
+											<h3 className="truncate font-semibold text-sm">{vendorName}</h3>
 										</div>
 									</div>
 								</div>
@@ -395,10 +395,10 @@ export function PublicVoucherDetail() {
 											<Calendar className="h-5 w-5 text-primary" />
 										</div>
 										<div className="min-w-0">
-											<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+											<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 												Event
 											</p>
-											<h3 className="truncate text-sm font-semibold">{event?.title || "Event"}</h3>
+											<h3 className="truncate font-semibold text-sm">{event?.title || "Event"}</h3>
 										</div>
 									</div>
 								</div>
@@ -409,7 +409,7 @@ export function PublicVoucherDetail() {
 								<div className="flex flex-col gap-3">
 									<div className="flex items-center gap-2">
 										<Share2 className="h-4 w-4 text-primary" />
-										<p className="text-sm font-semibold">Share this voucher</p>
+										<p className="font-semibold text-sm">Share this voucher</p>
 									</div>
 									<div className="flex gap-2">
 										<Button 

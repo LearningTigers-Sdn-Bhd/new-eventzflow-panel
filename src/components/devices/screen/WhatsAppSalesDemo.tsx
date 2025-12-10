@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { motion } from 'framer-motion';
 import WhatsApp, { type ChatMessage } from '../apps/WhatsApp';
 
@@ -103,31 +103,31 @@ const WhatsAppSalesDemo: React.FC = () => {
           }}
           className="flex justify-start"
         >
-          <div className="bg-[#1f2c34] rounded-[8px] rounded-tl-[2px] px-2.5 py-2 max-w-[85%] shadow-md">
+          <div className="max-w-[85%] rounded-[8px] rounded-tl-[2px] bg-[#1f2c34] px-2.5 py-2 shadow-md">
             {/* Ticket File Card */}
-            <div className="bg-[#0a1420] rounded-lg p-2 border border-slate-700">
+            <div className="rounded-lg border border-slate-700 bg-[#0a1420] p-2">
               <div className="flex items-center gap-2">
                 {/* PDF Icon */}
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-red-600">
+                  <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
                   </svg>
                 </div>
                 {/* File Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-white text-[11px] font-medium truncate">VIP_Tickets_x2.pdf</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium text-[11px] text-white">VIP_Tickets_x2.pdf</div>
                   <div className="text-[#8696a0] text-[9px]">2 pages • 145 KB</div>
                 </div>
                 {/* Download Icon */}
                 <div className="flex-shrink-0">
-                  <svg className="w-4 h-4 text-[#8696a0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-[#8696a0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
               </div>
             </div>
             {/* Timestamp */}
-            <div className="text-[9px] text-[#8696a0] mt-1">
+            <div className="mt-1 text-[#8696a0] text-[9px]">
               {message.time}
             </div>
           </div>
@@ -138,7 +138,7 @@ const WhatsAppSalesDemo: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="flex h-full items-center justify-center">
       <WhatsApp 
         contactName="TicketZ Bot"
         contactAvatar="TB"

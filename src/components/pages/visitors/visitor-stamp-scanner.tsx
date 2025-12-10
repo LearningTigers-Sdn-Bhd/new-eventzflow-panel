@@ -131,11 +131,11 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 					</Button>
 
 					{recentScans.size > 0 && (
-						<div className="pt-4 border-t">
-							<p className="font-medium text-sm mb-2">
+						<div className="border-t pt-4">
+							<p className="mb-2 font-medium text-sm">
 								Recent scans ({recentScans.size})
 							</p>
-							<div className="space-y-1 max-h-[150px] overflow-y-auto">
+							<div className="max-h-[150px] space-y-1 overflow-y-auto">
 								{Array.from(recentScans.entries()).map(([key, timestamp]) => (
 									<p key={key} className="text-muted-foreground text-sm">
 										• {key} - {new Date(timestamp).toLocaleTimeString()}

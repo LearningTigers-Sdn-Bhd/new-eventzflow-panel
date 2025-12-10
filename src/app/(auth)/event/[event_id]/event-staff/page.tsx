@@ -40,10 +40,10 @@ export default function EventStaffPage({
 		<div className="space-y-4">
 			<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-start gap-3">
-					<Info className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+					<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 					<div className="space-y-1">
-						<p className="text-sm font-medium">Assign staff to this event</p>
-						<p className="text-sm text-muted-foreground">
+						<p className="font-medium text-sm">Assign staff to this event</p>
+						<p className="text-muted-foreground text-sm">
 							This page shows staff assigned to this event. To add new team members, go to the Team page.
 						</p>
 					</div>

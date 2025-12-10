@@ -15,10 +15,10 @@ export function VendorEmptyState({ onAddVendor }: VendorEmptyStateProps) {
 					<Package className="h-12 w-12 text-slate-400" />
 				</div>
 				<div className="space-y-2">
-					<h3 className="text-lg font-semibold text-foreground">
+					<h3 className="font-semibold text-foreground text-lg">
 						No vendors yet
 					</h3>
-					<p className="max-w-sm text-sm text-muted-foreground">
+					<p className="max-w-sm text-muted-foreground text-sm">
 						Get started by adding your first vendor. Manage vendor profiles,
 						contact information, and track their activity.
 					</p>

@@ -24,19 +24,19 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 			<section className="space-y-6 border-t border-dashed">
 				<div className="flex flex-col gap-3 border-b border-dashed p-4 sm:flex-row sm:items-start sm:justify-between">
 					<div className="space-y-1">
-						<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						<p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 							Vendor Profile
 						</p>
-						<h2 className="text-2xl font-semibold tracking-tight">
+						<h2 className="font-semibold text-2xl tracking-tight">
 							{profile.vendor.full_name}
 						</h2>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							Marketing profile and contact information
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
 						{profile.category && (
-							<Badge variant="outline" className="px-2 py-0.5 text-xs font-medium">
+							<Badge variant="outline" className="px-2 py-0.5 font-medium text-xs">
 								{profile.category}
 							</Badge>
 						)}
@@ -49,7 +49,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 				</div>
 
-			<div className="grid gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
+			<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
 				<div className="space-y-4">
 					<div className="overflow-hidden border bg-muted/60">
 						{profile.image_path ? (
@@ -59,7 +59,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
 							/>
 						) : (
-							<div className="flex h-105 items-center justify-center text-xs text-muted-foreground">
+							<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
 								No image been added yet.
 							</div>
 						)}
@@ -68,7 +68,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 
 				<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">
-							<p className="text-xs font-medium uppercase text-muted-foreground">
+							<p className="font-medium text-muted-foreground text-xs uppercase">
 								About
 							</p>
 							{profile.description ? (
@@ -76,47 +76,47 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 									{profile.description}
 								</p>
 							) : (
-								<p className="text-sm italic text-muted-foreground/60">
+								<p className="text-muted-foreground/60 text-sm italic">
 									No description provided yet.
 								</p>
 							)}
 						</div>
 
 						<div className="space-y-3 border-t pt-4">
-							<p className="text-xs font-medium uppercase text-muted-foreground">
+							<p className="font-medium text-muted-foreground text-xs uppercase">
 								Contact
 							</p>
 							<div className="space-y-3 text-sm">
 								<div className="flex items-start gap-3">
 									<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="text-xs font-medium uppercase text-muted-foreground">Email</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">Email</p>
 										{profile.vendor.email ? (
 											<p>{profile.vendor.email}</p>
 										) : (
-											<p className="text-sm italic text-muted-foreground/60">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="text-xs font-medium uppercase text-muted-foreground">Phone</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">Phone</p>
 										{profile.vendor.phone ? (
 											<p>{profile.vendor.phone}</p>
 										) : (
-											<p className="text-sm italic text-muted-foreground/60">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<User2 className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="text-xs font-medium uppercase text-muted-foreground">Person in Charge</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">Person in Charge</p>
 										{profile.person_in_charge ? (
 											<p>{profile.person_in_charge}</p>
 										) : (
-											<p className="text-sm italic text-muted-foreground/60">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
 										)}
 									</div>
 								</div>
@@ -124,29 +124,29 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 						</div>
 
 						<div className="space-y-3 border-t pt-4">
-							<p className="text-xs font-medium uppercase text-muted-foreground">
+							<p className="font-medium text-muted-foreground text-xs uppercase">
 								Location &amp; Notes
 							</p>
 							<div className="space-y-3 text-sm">
 								<div className="flex items-start gap-3">
 									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="text-xs font-medium uppercase text-muted-foreground">Address</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">Address</p>
 										{profile.address ? (
 											<p className="whitespace-pre-line">{profile.address}</p>
 										) : (
-											<p className="text-sm italic text-muted-foreground/60">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<StickyNote className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="text-xs font-medium uppercase text-muted-foreground">Notes</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">Notes</p>
 										{profile.notes ? (
 											<p className="whitespace-pre-line">{profile.notes}</p>
 										) : (
-											<p className="text-sm italic text-muted-foreground/60">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
 										)}
 									</div>
 								</div>

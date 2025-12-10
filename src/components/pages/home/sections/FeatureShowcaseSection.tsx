@@ -202,7 +202,7 @@ const FeatureShowcaseSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="mb-8 text-center sm:mb-12 lg:mb-16">
 					<motion.span
-						className="mb-2 inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent-foreground sm:mb-3 sm:px-4 sm:py-2 sm:text-xs"
+						className="mb-2 inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-medium text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:mb-3 sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -212,7 +212,7 @@ const FeatureShowcaseSection: React.FC = () => {
 						<span className="whitespace-nowrap">Powerful Features That Drive Results</span>
 					</motion.span>
 					<motion.h2
-						className="text-2xl font-semibold text-foreground sm:text-3xl lg:text-4xl"
+						className="font-semibold text-2xl text-foreground sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -223,7 +223,7 @@ const FeatureShowcaseSection: React.FC = () => {
 						That Scales With Your Ambitions
 					</motion.h2>
 					<motion.p
-						className="mx-auto mt-3 max-w-3xl px-2 text-sm text-muted-foreground sm:mt-4 sm:text-base lg:text-lg"
+						className="mx-auto mt-3 max-w-3xl px-2 text-muted-foreground text-sm sm:mt-4 sm:text-base lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -243,7 +243,7 @@ const FeatureShowcaseSection: React.FC = () => {
 						return (
 							<motion.div
 								key={feature.title}
-								className="group relative overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5"
+								className="group hover:-translate-y-1 relative overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
 								initial={{ opacity: 0, y: 20 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true, margin: "-50px" }}
@@ -262,9 +262,9 @@ const FeatureShowcaseSection: React.FC = () => {
 											className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 										/>
 										{/* Badge on Image */}
-										<div className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/95 px-2 py-1 backdrop-blur-sm sm:left-3 sm:top-3 sm:gap-2 sm:px-2.5 sm:py-1.5">
+										<div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/95 px-2 py-1 backdrop-blur-sm sm:top-3 sm:left-3 sm:gap-2 sm:px-2.5 sm:py-1.5">
 											<Icon className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" strokeWidth={2} />
-											<span className="text-[10px] font-semibold text-primary sm:text-xs">
+											<span className="font-semibold text-[10px] text-primary sm:text-xs">
 												{feature.badge}
 											</span>
 										</div>
@@ -273,17 +273,17 @@ const FeatureShowcaseSection: React.FC = () => {
 								{/* Content */}
 								<div className="flex flex-1 flex-col p-4 sm:p-5">
 									{/* Title */}
-									<h3 className="mb-1.5 text-base font-bold text-foreground transition-colors group-hover:text-primary sm:mb-2 sm:text-lg">
+									<h3 className="mb-1.5 font-bold text-base text-foreground transition-colors group-hover:text-primary sm:mb-2 sm:text-lg">
 										{feature.title}
 									</h3>
 
 									{/* Subtitle */}
-									<p className="mb-2 text-xs font-medium text-muted-foreground sm:mb-3 sm:text-sm">
+									<p className="mb-2 font-medium text-muted-foreground text-xs sm:mb-3 sm:text-sm">
 										{feature.subtitle}
 									</p>
 
 								{/* Description */}
-								<p className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs leading-relaxed text-foreground/80 sm:mb-4 sm:text-sm">
+								<p className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-foreground/80 text-xs leading-relaxed sm:mb-4 sm:text-sm">
 									{feature.description}
 								</p>
 
@@ -297,7 +297,7 @@ const FeatureShowcaseSection: React.FC = () => {
 													className="flex items-start gap-2 text-xs sm:gap-2.5 sm:text-sm"
 												>
 													<BenefitIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary sm:h-4 sm:w-4" />
-													<span className="leading-relaxed text-muted-foreground">
+													<span className="text-muted-foreground leading-relaxed">
 														{benefit.text}
 													</span>
 												</li>

@@ -2,7 +2,7 @@
 # See https://okigu.com/ruler for documentation.
 
 # Default agents to run when --agents is not specified
-default_agents = ["copilot", "cursor", "gemini-cli", "zed"]
+default_agents = ["copilot", "cursor", "gemini-cli", "zed", "claude"]
 
 # --- Global MCP Server Configuration ---
 [mcp]
@@ -13,15 +13,15 @@ merge_strategy = "merge"
 
 # --- MCP Server Definitions ---
 [mcp_servers.context7]
-command = "npx"
+command = "bunx"
 args = ["-y", "@upstash/context7-mcp"]
 
 [mcp_servers.shadcn]
-command = "npx"
+command = "bunx"
 args = ["shadcn@latest", "mcp"]
 
 [mcp_servers.next-devtools]
-command = "npx"
+command = "bunx"
 args = ["-y", "next-devtools-mcp@latest"]
 
 # --- Global .gitignore Configuration ---

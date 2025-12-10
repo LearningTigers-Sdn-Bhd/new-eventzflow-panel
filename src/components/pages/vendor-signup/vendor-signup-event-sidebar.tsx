@@ -50,14 +50,14 @@ export function VendorSignupEventSidebar({
 	return (
 		<div className="relative flex w-full flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground lg:sticky lg:top-0 lg:h-screen lg:w-[400px] lg:p-10 xl:w-[480px]">
 			{/* Decorative circles */}
-			<div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
-			<div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full border border-primary-foreground/10 bg-primary-foreground/5" />
+			<div className="-top-20 -right-20 pointer-events-none absolute h-64 w-64 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
+			<div className="-bottom-32 -left-32 pointer-events-none absolute h-80 w-80 rounded-full border border-primary-foreground/10 bg-primary-foreground/5" />
 			<div className="pointer-events-none absolute top-1/2 right-10 h-24 w-24 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
 
 			<div className="relative z-10">
 				{/* Brand */}
 				<div className="mb-10">
-					<p className="text-sm font-medium text-primary-foreground/70">EventzFlow</p>
+					<p className="font-medium text-primary-foreground/70 text-sm">EventzFlow</p>
 					<h1 className="mt-1 font-bold text-2xl tracking-tight">
 						Vendor Registration
 					</h1>
@@ -65,7 +65,7 @@ export function VendorSignupEventSidebar({
 
 				{/* Event Title Section */}
 				<div className="mb-8">
-					<p className="mb-2 text-xs font-medium uppercase tracking-wider text-primary-foreground/60">
+					<p className="mb-2 font-medium text-primary-foreground/60 text-xs uppercase tracking-wider">
 						You're joining
 					</p>
 					<h2 className="font-bold text-3xl leading-tight lg:text-4xl">
@@ -74,14 +74,14 @@ export function VendorSignupEventSidebar({
 				</div>
 
 				{/* Event Info */}
-				<div className="rounded-none border border-primary-foreground/20 bg-primary-foreground/10 divide-y divide-primary-foreground/20">
+				<div className="divide-y divide-primary-foreground/20 rounded-none border border-primary-foreground/20 bg-primary-foreground/10">
 					{eventDate && (
 						<div className="flex items-start gap-3 p-4">
 							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border border-primary-foreground/20 bg-primary-foreground/10">
 								<Calendar className="h-5 w-5" />
 							</div>
 							<div>
-								<p className="text-xs font-medium text-primary-foreground/60">
+								<p className="font-medium text-primary-foreground/60 text-xs">
 									Date
 								</p>
 								{typeof eventDate === "string" ? (
@@ -101,10 +101,10 @@ export function VendorSignupEventSidebar({
 								<Store className="h-5 w-5" />
 							</div>
 							<div>
-								<p className="text-xs font-medium text-primary-foreground/60">
+								<p className="font-medium text-primary-foreground/60 text-xs">
 									About
 								</p>
-								<p className="line-clamp-3 text-sm leading-relaxed text-primary-foreground/90">
+								<p className="line-clamp-3 text-primary-foreground/90 text-sm leading-relaxed">
 									{event.description}
 								</p>
 							</div>
@@ -155,7 +155,7 @@ export function VendorSignupEventSidebar({
 
 				{/* Highlight box */}
 				<div className="mt-6 rounded-none border border-primary-foreground/20 bg-primary-foreground/10 p-4">
-					<p className="text-sm leading-relaxed text-primary-foreground/90">
+					<p className="text-primary-foreground/90 text-sm leading-relaxed">
 						Complete your registration to access the vendor dashboard and start managing your booth.
 					</p>
 				</div>
@@ -163,7 +163,7 @@ export function VendorSignupEventSidebar({
 
 			{/* Footer */}
 			<div className="relative z-10 mt-8 hidden lg:block">
-				<p className="text-xs text-primary-foreground/50">
+				<p className="text-primary-foreground/50 text-xs">
 					© {new Date().getFullYear()} EventzFlow. All rights reserved.
 				</p>
 			</div>

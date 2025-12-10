@@ -86,7 +86,7 @@ export function EditVendorProfileDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 gap-0">
+			<DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[600px]">
 				<DialogHeader className="p-6 pb-2">
 					<DialogTitle>Edit Vendor Profile</DialogTitle>
 					<DialogDescription>
@@ -161,7 +161,7 @@ export function EditVendorProfileDialog({
 					</form>
 				</div>
 
-				<DialogFooter className="p-6 pt-2 border-t mt-auto">
+				<DialogFooter className="mt-auto border-t p-6 pt-2">
 					<Button
 						type="button"
 						variant="outline"

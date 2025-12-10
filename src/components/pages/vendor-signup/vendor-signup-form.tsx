@@ -174,13 +174,13 @@ export function VendorSignupForm({
 				<div className="mx-auto w-full max-w-5xl py-6 lg:py-10">
 					{/* Header */}
 					<div className="mb-6 rounded-none border bg-background p-5">
-						<p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 							Vendor Registration
 						</p>
-						<h1 className="text-2xl font-bold tracking-tight">
+						<h1 className="font-bold text-2xl tracking-tight">
 							Create your account
 						</h1>
-						<p className="mt-2 text-sm text-muted-foreground">
+						<p className="mt-2 text-muted-foreground text-sm">
 							Enter your details below to register as a vendor.
 						</p>
 					</div>
@@ -355,7 +355,7 @@ export function VendorSignupForm({
 								{(state) => (
 									<Button
 										type="submit"
-										className="h-12 flex-1 rounded-none text-base font-medium"
+										className="h-12 flex-1 rounded-none font-medium text-base"
 										size="lg"
 										disabled={!state.canSubmit || state.isSubmitting}
 									>

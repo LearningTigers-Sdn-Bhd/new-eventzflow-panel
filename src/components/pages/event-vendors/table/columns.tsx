@@ -206,7 +206,7 @@ const baseColumns: ColumnDef<EventVendorMember>[] = [
 			return (
 				<div className="flex flex-col">
 					<div className="text-sm">{formattedDate}</div>
-					<div className="text-xs text-muted-foreground">{formattedTime}</div>
+					<div className="text-muted-foreground text-xs">{formattedTime}</div>
 				</div>
 			);
 		},
@@ -231,7 +231,7 @@ const actionsColumn: ColumnDef<EventVendorMember> = {
 
 // Function to get columns based on permissions
 export const getEventVendorColumns = (
-	canManageVendors: boolean = false,
+	canManageVendors = false,
 ): ColumnDef<EventVendorMember>[] => {
 	// Only users who can manage vendors see actions column
 	if (canManageVendors) {

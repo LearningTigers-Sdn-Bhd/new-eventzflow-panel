@@ -39,10 +39,10 @@ const benefits = [
 
 const BenefitsSection: React.FC = () => {
 	return (
-		<section className="relative bg-secondary dark:bg-background border-y border-primary px-4 pb-10 pt-16 sm:px-6 sm:pb-12 sm:pt-20 lg:px-8 lg:pb-14 lg:pt-24">
+		<section className="relative border-primary border-y bg-secondary px-4 pt-16 pb-10 sm:px-6 sm:pt-20 sm:pb-12 lg:px-8 lg:pt-24 lg:pb-14 dark:bg-background">
 			<div className="mx-auto max-w-7xl">
 				<motion.div
-					className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2"
+					className="-translate-x-1/2 -translate-y-1/2 absolute top-0 left-1/2"
 					initial={{ opacity: 0, y: 20 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
@@ -50,7 +50,7 @@ const BenefitsSection: React.FC = () => {
 				>
 					<div className="inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-2 shadow-lg sm:px-8 sm:py-3">
 						<FlameIcon className="h-3.5 w-3.5 text-background sm:h-4 sm:w-4" />
-						<span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-background sm:text-sm">
+						<span className="whitespace-nowrap font-bold text-background text-xs uppercase tracking-wider sm:text-sm">
 							Here's What We Bring to You
 						</span>
 					</div>
@@ -70,10 +70,10 @@ const BenefitsSection: React.FC = () => {
 								<div className="mb-3 sm:mb-4">
 									<Icon className="h-9 w-9 text-primary sm:h-10 sm:w-10" />
 								</div>
-								<h3 className="mb-2 text-base font-extrabold text-foreground sm:mb-2.5 sm:text-lg">
+								<h3 className="mb-2 font-extrabold text-base text-foreground sm:mb-2.5 sm:text-lg">
 									{item.label}
 										</h3>
-										<p className="text-sm leading-relaxed text-muted-foreground">
+										<p className="text-muted-foreground text-sm leading-relaxed">
 									{item.description}
 										</p>
 							</motion.div>

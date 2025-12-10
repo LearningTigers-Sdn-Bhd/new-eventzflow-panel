@@ -46,7 +46,7 @@ const eventColumn: ColumnDef<VendorVoucher> = {
 		);
 	},
 	cell: ({ row }) => (
-		<div className="text-sm font-medium">{row.original.eventName || `Event #${row.original.eventId}`}</div>
+		<div className="font-medium text-sm">{row.original.eventName || `Event #${row.original.eventId}`}</div>
 	),
 };
 
@@ -316,10 +316,10 @@ const baseColumns: ColumnDef<VendorVoucher>[] = [
 			const remaining = total - redeemed;
 			return (
 				<div className="flex flex-col gap-1">
-					<div className="text-sm font-medium text-green-600">
+					<div className="font-medium text-green-600 text-sm">
 						{isUnlimited ? "Unlimited" : `${remaining} left`}
 					</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{redeemed} {isUnlimited ? "redeemed" : `/ ${total} redeemed`}
 					</div>
 				</div>

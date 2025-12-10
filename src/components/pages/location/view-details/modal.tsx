@@ -22,25 +22,25 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 		<div className="flex flex-col gap-6">
 			{/* Basic Info */}
 			<div className="space-y-3">
-				<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+				<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 					Location Information
 				</h3>
 				<div className="space-y-2">
-					<div className="flex justify-between items-start">
-						<span className="text-sm text-muted-foreground">Name:</span>
-						<span className="text-sm font-medium text-right">
+					<div className="flex items-start justify-between">
+						<span className="text-muted-foreground text-sm">Name:</span>
+						<span className="text-right font-medium text-sm">
 							{location.locationDisplayName || location.name}
 						</span>
 					</div>
 					{location.floor && (
-						<div className="flex justify-between items-start">
-							<span className="text-sm text-muted-foreground">Floor:</span>
-							<span className="text-sm font-medium">{location.floor}</span>
+						<div className="flex items-start justify-between">
+							<span className="text-muted-foreground text-sm">Floor:</span>
+							<span className="font-medium text-sm">{location.floor}</span>
 						</div>
 					)}
-					<div className="flex justify-between items-start">
-						<span className="text-sm text-muted-foreground">Scan Limit:</span>
-						<span className="text-sm font-medium">
+					<div className="flex items-start justify-between">
+						<span className="text-muted-foreground text-sm">Scan Limit:</span>
+						<span className="font-medium text-sm">
 							{location.isUnlimited ? "Unlimited" : location.scanLimit}
 						</span>
 					</div>
@@ -51,14 +51,14 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 
 			{/* Members Summary */}
 			<div className="space-y-3">
-				<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+				<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 					Assigned Members
 				</h3>
 				<div className="space-y-2">
-					<div className="flex justify-between items-center">
-						<span className="text-sm text-muted-foreground">Staff:</span>
+					<div className="flex items-center justify-between">
+						<span className="text-muted-foreground text-sm">Staff:</span>
 						<div className="flex items-center gap-2">
-							<span className="text-sm font-medium">{staffCount}</span>
+							<span className="font-medium text-sm">{staffCount}</span>
 							{staffCount > 0 && (
 								<Badge
 									variant="outline"
@@ -69,10 +69,10 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 							)}
 						</div>
 					</div>
-					<div className="flex justify-between items-center">
-						<span className="text-sm text-muted-foreground">Vendors:</span>
+					<div className="flex items-center justify-between">
+						<span className="text-muted-foreground text-sm">Vendors:</span>
 						<div className="flex items-center gap-2">
-							<span className="text-sm font-medium">{vendorCount}</span>
+							<span className="font-medium text-sm">{vendorCount}</span>
 							{vendorCount > 0 && (
 								<Badge
 									variant="outline"
@@ -83,9 +83,9 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 							)}
 						</div>
 					</div>
-					<div className="flex justify-between items-center pt-1 border-t">
-						<span className="text-sm font-semibold">Total Members:</span>
-						<span className="text-sm font-semibold">{totalMembers}</span>
+					<div className="flex items-center justify-between border-t pt-1">
+						<span className="font-semibold text-sm">Total Members:</span>
+						<span className="font-semibold text-sm">{totalMembers}</span>
 					</div>
 				</div>
 			</div>
@@ -95,16 +95,16 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 				<>
 					<Separator />
 					<div className="space-y-3">
-						<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+						<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 							Additional Details
 						</h3>
 						<div className="space-y-2">
 							{additionalDetails.map(([key, value]) => (
-								<div key={key} className="flex justify-between items-start">
-									<span className="text-sm text-muted-foreground capitalize">
+								<div key={key} className="flex items-start justify-between">
+									<span className="text-muted-foreground text-sm capitalize">
 										{key.replace(/_/g, " ")}:
 									</span>
-									<span className="text-sm font-medium text-right">{value}</span>
+									<span className="text-right font-medium text-sm">{value}</span>
 								</div>
 							))}
 						</div>
@@ -117,10 +117,10 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 				<>
 					<Separator />
 					<div className="space-y-3">
-						<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+						<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 							Notes
 						</h3>
-						<p className="text-sm text-muted-foreground leading-relaxed">
+						<p className="text-muted-foreground text-sm leading-relaxed">
 							{location.locationDetails.notes}
 						</p>
 					</div>

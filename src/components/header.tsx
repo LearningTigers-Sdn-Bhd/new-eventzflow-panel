@@ -69,14 +69,14 @@ export default function Header() {
 	];
 
 	return (
-		<header className="w-full border-b px-4 py-2 sticky top-0 z-40 bg-background">
-			<div className="flex w-full items-center justify-between lg:justify-between lg:relative">
+		<header className="sticky top-0 z-40 w-full border-b bg-background px-4 py-2">
+			<div className="flex w-full items-center justify-between lg:relative lg:justify-between">
 				{/* Logo - Desktop Left Corner */}
 				<button 
 					onClick={scrollToTop}
-					className="hidden lg:flex items-center space-x-3 hover:opacity-80 transition-opacity"
+					className="hidden items-center space-x-3 transition-opacity hover:opacity-80 lg:flex"
 				>
-					<span className="text-2xl font-bold leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
+					<span className="font-bold text-2xl leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
 						<span style={{ color: '#23c460' }}>Event</span>
 						<span style={{ color: '#2766ec' }}>z</span>
 						<span style={{ color: '#23c460' }}>Flow</span>
@@ -93,17 +93,17 @@ export default function Header() {
 									<span className="sr-only">Toggle menu</span>
 								</Button>
 							</SheetTrigger>
-							<SheetContent side="left" className="w-[300px] sm:w-[400px] flex flex-col p-0">
-							<SheetHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
+							<SheetContent side="left" className="flex w-[300px] flex-col p-0 sm:w-[400px]">
+							<SheetHeader className="sticky top-0 z-10 border-b bg-background px-6 pt-6 pb-4">
 								{/* Logo in Mobile Sheet */}
 								<button 
 									onClick={() => {
 										scrollToTop();
 										setOpen(false);
 									}}
-									className="flex items-center space-x-3 mb-4 hover:opacity-80 transition-opacity w-fit"
+									className="mb-4 flex w-fit items-center space-x-3 transition-opacity hover:opacity-80"
 								>
-									<span className="text-2xl font-bold leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
+									<span className="font-bold text-2xl leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
 										<span style={{ color: '#23c460' }}>Event</span>
 										<span style={{ color: '#2766ec' }}>z</span>
 										<span style={{ color: '#23c460' }}>Flow</span>
@@ -121,7 +121,7 @@ export default function Header() {
 											key={index}
 											type="button"
 											onClick={() => scrollToSection(link.id)}
-											className="text-muted-foreground hover:text-foreground transition-colors py-2.5 px-4 rounded-lg hover:bg-accent text-left w-full text-sm"
+											className="w-full rounded-lg px-4 py-2.5 text-left text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-foreground"
 										>
 											{link.label}
 										</button>
@@ -134,7 +134,7 @@ export default function Header() {
 				</div>
 
 				{/* Desktop Navigation - Centered */}
-				<div className="hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+				<div className="lg:-translate-x-1/2 hidden lg:absolute lg:left-1/2 lg:flex">
 					<NavigationMenu viewport={false}>
 						<NavigationMenuList>
 							{navigationLinks.map((link, index) => (

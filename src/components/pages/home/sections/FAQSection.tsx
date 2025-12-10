@@ -88,14 +88,14 @@ const FAQSection: React.FC = () => {
 	return (
 		<section id="faq" className="relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 			{/* Decorative background elements */}
-			<div className="pointer-events-none absolute left-0 top-20 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
-			<div className="pointer-events-none absolute bottom-20 right-0 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+			<div className="pointer-events-none absolute top-20 left-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+			<div className="pointer-events-none absolute right-0 bottom-20 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
 			
 			<div className="relative mx-auto max-w-4xl">
 				{/* Header */}
 				<div className="mb-8 text-center sm:mb-12">
 					<motion.span
-						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
+						className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-medium text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 						initial={{ opacity: 0, y: 12 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -105,7 +105,7 @@ const FAQSection: React.FC = () => {
 						FAQ
 					</motion.span>
 					<motion.h2
-						className="mt-3 text-2xl font-semibold text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
+						className="mt-3 font-semibold text-2xl text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -114,7 +114,7 @@ const FAQSection: React.FC = () => {
 						Frequently Asked Questions
 					</motion.h2>
 					<motion.p
-						className="mx-auto mt-3 max-w-2xl px-2 text-sm text-muted-foreground sm:mt-4 sm:text-base"
+						className="mx-auto mt-3 max-w-2xl px-2 text-muted-foreground text-sm sm:mt-4 sm:text-base"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -144,7 +144,7 @@ const FAQSection: React.FC = () => {
 									onClick={() => handleToggle(index)}
 									className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/40 sm:gap-4 sm:px-5 sm:py-4 lg:px-6 lg:py-5"
 								>
-									<h3 className="flex-1 text-xs font-semibold text-foreground sm:text-sm lg:text-base">
+									<h3 className="flex-1 font-semibold text-foreground text-xs sm:text-sm lg:text-base">
 										{faq.question}
 									</h3>
 									<div
@@ -166,7 +166,7 @@ const FAQSection: React.FC = () => {
 											exit={{ height: 0, opacity: 0 }}
 											transition={{ duration: 0.3, ease: "easeInOut" }}
 										>
-											<div className="border-t border-border/50 bg-muted/20 px-4 pb-4 pt-3 text-xs leading-relaxed text-muted-foreground sm:px-5 sm:pb-5 sm:text-sm lg:px-6 lg:pb-6 lg:pt-4 lg:text-base">
+											<div className="border-border/50 border-t bg-muted/20 px-4 pt-3 pb-4 text-muted-foreground text-xs leading-relaxed sm:px-5 sm:pb-5 sm:text-sm lg:px-6 lg:pt-4 lg:pb-6 lg:text-base">
 												{faq.answer}
 											</div>
 										</motion.div>

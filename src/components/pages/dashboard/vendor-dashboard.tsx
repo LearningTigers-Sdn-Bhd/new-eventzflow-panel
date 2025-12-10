@@ -168,7 +168,7 @@ function VendorEventCard({
 						className="shrink-0 gap-1 rounded-none text-xs transition-shadow group-hover:shadow-md sm:text-sm"
 					>
 						View
-						<ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform group-hover:translate-x-0.5" />
+						<ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
 					</Button>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -199,7 +199,7 @@ function VendorEventCard({
 						<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 							<Stamp className="size-4 text-muted-foreground sm:size-5" />
 							<div>
-								<p className="text-muted-foreground text-[10px] sm:text-xs">Your Stamps</p>
+								<p className="text-[10px] text-muted-foreground sm:text-xs">Your Stamps</p>
 								<p className="font-bold text-base sm:text-lg">{event.stamp_count}</p>
 							</div>
 						</div>
@@ -209,7 +209,7 @@ function VendorEventCard({
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 						<Ticket className="size-4 text-muted-foreground sm:size-5" />
 						<div>
-							<p className="text-muted-foreground text-[10px] sm:text-xs">Vouchers</p>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">Vouchers</p>
 							<p className="font-bold text-base sm:text-lg">{event.total_vouchers}</p>
 						</div>
 					</div>
@@ -217,7 +217,7 @@ function VendorEventCard({
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 						<ShoppingBag className="size-4 text-muted-foreground sm:size-5" />
 						<div>
-							<p className="text-muted-foreground text-[10px] sm:text-xs">Redeemed</p>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">Redeemed</p>
 							<p className="font-bold text-base text-green-600 sm:text-lg dark:text-green-400">
 								{event.total_redeemed}
 							</p>

@@ -549,7 +549,7 @@ function VisitorEventAnalytics({
 										className="flex items-center justify-between border-b border-dashed p-3"
 									>
 										<div className="flex items-center gap-3">
-											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-sm font-bold text-blue-600 dark:text-blue-400">
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-600 text-sm dark:text-blue-400">
 												{index + 1}
 											</div>
 											<p className="font-medium text-sm">{merchant.name}</p>

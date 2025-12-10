@@ -53,7 +53,7 @@ export default function VoucherLogsPage({
 			<div className="flex items-center justify-center py-12">
 				<div className="flex flex-col items-center gap-2">
 					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted-foreground text-sm">
 						Loading voucher logs...
 					</p>
 				</div>

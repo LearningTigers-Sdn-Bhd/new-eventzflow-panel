@@ -16,12 +16,12 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 				<Button
 					onClick={() => onSelectMethod("email")}
 					variant="outline"
-					className="h-auto py-4 flex flex-col items-center gap-1.5 hover:border-primary hover:bg-primary/5 transition-all group"
+					className="group flex h-auto flex-col items-center gap-1.5 py-4 transition-all hover:border-primary hover:bg-primary/5"
 				>
-					<Mail className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+					<Mail className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
 					<div className="space-y-0.5">
-						<span className="font-semibold text-sm block">Email</span>
-						<span className="text-xs text-muted-foreground leading-tight block">
+						<span className="block font-semibold text-sm">Email</span>
+						<span className="block text-muted-foreground text-xs leading-tight">
 							Check-in by email
 						</span>
 					</div>
@@ -30,12 +30,12 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 				<Button
 					onClick={() => onSelectMethod("phone")}
 					variant="outline"
-					className="h-auto py-4 flex flex-col items-center gap-1.5 hover:border-primary hover:bg-primary/5 transition-all group"
+					className="group flex h-auto flex-col items-center gap-1.5 py-4 transition-all hover:border-primary hover:bg-primary/5"
 				>
-					<Phone className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+					<Phone className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
 					<div className="space-y-0.5">
-						<span className="font-semibold text-sm block">Phone</span>
-						<span className="text-xs text-muted-foreground leading-tight block">
+						<span className="block font-semibold text-sm">Phone</span>
+						<span className="block text-muted-foreground text-xs leading-tight">
 							Check-in by phone
 						</span>
 					</div>
@@ -44,12 +44,12 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 				<Button
 					onClick={() => onSelectMethod("name")}
 					variant="outline"
-					className="h-auto py-4 flex flex-col items-center gap-1.5 hover:border-primary hover:bg-primary/5 transition-all group"
+					className="group flex h-auto flex-col items-center gap-1.5 py-4 transition-all hover:border-primary hover:bg-primary/5"
 				>
-					<User className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+					<User className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
 					<div className="space-y-0.5">
-						<span className="font-semibold text-sm block">Name</span>
-						<span className="text-xs text-muted-foreground leading-tight block">
+						<span className="block font-semibold text-sm">Name</span>
+						<span className="block text-muted-foreground text-xs leading-tight">
 							Check-in by name
 						</span>
 					</div>
@@ -73,7 +73,7 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 			{/* Divider */}
 			<div className="relative py-2">
 				<div className="absolute inset-0 flex items-center">
-					<div className="w-full border-t border-border/50" />
+					<div className="w-full border-border/50 border-t" />
 				</div>
 				<div className="relative flex justify-center">
 					<span className="bg-card px-3 text-muted-foreground text-xs">
@@ -83,8 +83,8 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 			</div>
 
 			{/* Registration Prompt - Moved to Bottom */}
-			<div className="rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 p-3.5 text-center space-y-2">
-				<p className="font-medium text-sm text-foreground">
+			<div className="space-y-2 rounded-lg border-2 border-muted-foreground/30 border-dashed bg-muted/30 p-3.5 text-center">
+				<p className="font-medium text-foreground text-sm">
 					Haven't registered yet?
 				</p>
 				<Button
@@ -102,9 +102,9 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 			</div>
 
 			{/* Footer */}
-			<div className="text-center pt-2 border-t border-border/50">
-				<p className="text-xs text-muted-foreground/70 tracking-wide">
-					<span className="font-bold text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+			<div className="border-border/50 border-t pt-2 text-center">
+				<p className="text-muted-foreground/70 text-xs tracking-wide">
+					<span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text font-bold text-primary text-transparent">
 						EventzFlow
 					</span>
 					{" "}

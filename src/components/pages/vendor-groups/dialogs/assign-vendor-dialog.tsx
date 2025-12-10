@@ -151,7 +151,7 @@ export function AssignVendorDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="max-w-2xl max-h-[80vh]">
+			<DialogContent className="max-h-[80vh] max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>Assign Vendors</DialogTitle>
 					<DialogDescription>

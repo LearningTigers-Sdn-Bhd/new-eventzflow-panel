@@ -23,10 +23,10 @@ export function VendorSignupSuccessCard({
 						<div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
 							<CheckCircle2 className="h-8 w-8 text-green-600" />
 						</div>
-						<h1 className="mb-2 text-2xl font-bold tracking-tight">
+						<h1 className="mb-2 font-bold text-2xl tracking-tight">
 							{isExistingVendor ? "You're In!" : "Welcome Aboard!"}
 						</h1>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							{isExistingVendor
 								? "You've successfully joined the event!"
 								: "Your registration is complete!"}
@@ -37,40 +37,40 @@ export function VendorSignupSuccessCard({
 					<div className="rounded-none border bg-background p-5">
 						<div className="mb-3 flex items-center gap-2">
 							<Store className="h-4 w-4 text-primary" />
-							<p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+							<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 								You're now a vendor for
 							</p>
 						</div>
-						<h2 className="text-lg font-semibold">{eventTitle}</h2>
+						<h2 className="font-semibold text-lg">{eventTitle}</h2>
 					</div>
 
 					{/* Next Steps */}
 					<div className="rounded-none border bg-background p-5">
-						<p className="mb-4 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+						<p className="mb-4 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 							What's Next?
 						</p>
 						<ul className="space-y-3">
 							<li className="flex items-start gap-3">
-								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
 									1
 								</span>
-								<span className="text-sm text-muted-foreground">
+								<span className="text-muted-foreground text-sm">
 									Go to your dashboard to view the event
 								</span>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
 									2
 								</span>
-								<span className="text-sm text-muted-foreground">
+								<span className="text-muted-foreground text-sm">
 									Update your event settings if needed
 								</span>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+								<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
 									3
 								</span>
-								<span className="text-sm text-muted-foreground">
+								<span className="text-muted-foreground text-sm">
 									Get ready for the event!
 								</span>
 							</li>

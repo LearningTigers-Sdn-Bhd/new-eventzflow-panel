@@ -52,11 +52,11 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 	const generateColor = (index: number, total: number): string => {
 		// Distribute hues evenly across the 360° color wheel
 		const hue = (index * 360) / Math.max(total, 1);
-		
+
 		// Vary saturation and lightness slightly for better distinction
 		const saturation = 70 + (index % 3) * 5; // 70-80%
 		const lightness = 55 + (index % 2) * 5; // 55-60%
-		
+
 		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 	};
 
@@ -219,10 +219,10 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 								{/* Legend Below Chart */}
 								{locationTrafficData[0]?.name === "No Data" ? (
 									<div className="flex flex-col items-center justify-center space-y-2 pt-4">
-										<p className="text-center text-sm text-muted-foreground">
+										<p className="text-center text-muted-foreground text-sm">
 											No location traffic data available yet
 										</p>
-										<p className="text-center text-xs text-muted-foreground">
+										<p className="text-center text-muted-foreground text-xs">
 											Data will appear once vendors are assigned to locations and visitors get stamped
 										</p>
 									</div>
@@ -234,7 +234,7 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 												<div
 													key={index}
 													className="flex items-center gap-2 rounded-full px-3 py-1.5"
-													style={{ 
+													style={{
 														backgroundColor: `${location.fill}15`,
 														border: `1.5px solid ${location.fill}`
 													}}
@@ -243,7 +243,7 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 														className="size-2.5 rounded-full"
 														style={{ backgroundColor: location.fill }}
 													/>
-													<span className="text-sm font-medium whitespace-nowrap">
+													<span className="whitespace-nowrap font-medium text-sm">
 														{location.name} ({location.percentage}%)
 													</span>
 												</div>
@@ -252,7 +252,7 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 
 										{/* Leading Location Message */}
 										{locationTrafficData.length > 0 && (
-											<p className="text-center text-sm text-muted-foreground">
+											<p className="text-center text-muted-foreground text-sm">
 												<span className="font-semibold text-foreground">
 													{locationTrafficData[0].name}
 												</span>{" "}
@@ -290,7 +290,7 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 										className="flex items-center justify-between border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
 									>
 										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+											<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-sm">
 												{index + 1}
 											</div>
 											<div className="min-w-0 flex-1">
@@ -298,10 +298,10 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 											</div>
 										</div>
 										<div className="ml-4 flex-shrink-0 text-right">
-											<p className="text-2xl font-bold">
+											<p className="font-bold text-2xl">
 												{merchant.count.toLocaleString()}
 											</p>
-											<p className="text-xs text-muted-foreground">visits</p>
+											<p className="text-muted-foreground text-xs">visits</p>
 										</div>
 									</div>
 								),

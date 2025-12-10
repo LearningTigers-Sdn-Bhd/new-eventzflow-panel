@@ -52,7 +52,7 @@ export function DataControl<TData>({
 								onEventFilterChange(value as EventFilter)
 							}
 						>
-							<SelectTrigger className="w-[140px] rounded-none font-medium bg-background">
+							<SelectTrigger className="w-[140px] rounded-none bg-background font-medium">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent className="rounded-none">

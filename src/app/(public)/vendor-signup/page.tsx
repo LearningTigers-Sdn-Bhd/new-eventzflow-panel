@@ -207,7 +207,7 @@ function VendorSignupContent() {
 				</div>
 			);
 
-		case "invalid_token":
+		case "invalid_token": {
 			const errorMessage =
 				verifyError instanceof Error
 					? verifyError.message
@@ -233,6 +233,7 @@ function VendorSignupContent() {
 					</Card>
 				</div>
 			);
+		}
 
 		case "unauthorized":
 			return <UnauthorizedCard />;

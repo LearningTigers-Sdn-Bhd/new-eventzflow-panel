@@ -1,0 +1,209 @@
+"use client";
+
+import type * as d3 from "d3";
+import type React from "react";
+import { useMemo } from "react";
+import { useWheel } from "@/hooks/draw-styles/use-wheel";
+import type { DrawProps } from "../type";
+import { WheelStand } from "./wheel-stand";
+
+const SpinWheel: React.FC<DrawProps> = ({
+	participants,
+	onDrawComplete,
+	isDrawing,
+}) => {
+	// Colorful theme: Vibrant 10-color palette
+	const baseColors = useMemo(() => {
+		return [
+			"#FF4444", // Red
+			"#FF8C42", // Orange
+			"#FFD93D", // Yellow
+			"#6BCF7F", // Lime green
+			"#4ECDC4", // Teal
+			"#45B7D1", // Light blue
+			"#5B7FFF", // Blue
+			"#9D4EDD", // Purple
+			"#FF6B9D", // Pink
+		];
+	}, []);
+
+	const radius = 250; // SVG coordinate system radius
+	const width = 500;
+	const height = 500;
+	// Calculate border ring dimensions
+	const innerRadius = radius - 1; // 249
+	const outerRadius = radius - 1 + 25; // 274
+	const ringCenterRadius = (innerRadius + outerRadius) / 2; // Center of the ring: 261.5
+
+	// Calculate dot positions for viewBox sizing
+	const dotRadius = ringCenterRadius; // Dots centered in the ring
+	const dotOuterRadius = dotRadius + 8; // 269.5 (dot radius 8)
+	// ViewBox needs to accommodate the full wheel including border and dots
+	const viewBoxPadding = Math.ceil(dotOuterRadius - radius) + 10; // Extra padding for safety
+
+	const {
+		rotation,
+		internalParticipants,
+		arcs,
+		arcGenerator,
+		getSliceColor,
+		svgRef,
+		handleTransitionEnd,
+		isEmpty,
+		// Optional rendering features
+		innerShadowArcGenerator,
+		borderRingGenerator,
+		borderRingData,
+		decorativeDots,
+		pointerPosition,
+		pointerIcon: PointerIcon,
+	} = useWheel(
+		{ participants, onDrawComplete, isDrawing },
+		{
+			baseColors,
+			pointerAngle: 90, // Pointer at 3 o'clock
+			pointerVariant: "rounded",
+			gapBetweenWheelAndOuter: 1,
+			// Enable optional features
+			enableInnerShadow: true,
+			innerShadowDepth: 10,
+			innerShadowOffset: -1,
+			enableBorderRing: true,
+			borderRingInnerRadius: innerRadius,
+			borderRingOuterRadius: outerRadius,
+			enableDecorativeDots: true,
+			decorativeDotsCount: 22,
+			decorativeDotsRadius: dotRadius,
+			decorativeDotsStartAngle: -90,
+		},
+	);
+
+	if (isEmpty) {
+		return (
+			<div className="flex aspect-square w-full items-center justify-center rounded-full border-2 border-black border-dashed bg-gray-50 font-mono text-gray-400">
+				Add participants
+			</div>
+		);
+	}
+
+	return (
+		<div className="relative mx-auto flex w-full max-w-[450px] flex-col items-center justify-center">
+			{/* The Wheel */}
+			<div className="relative aspect-square w-full max-w-[600px]">
+				{/* Pointer - always rendered inside wheel container */}
+				<div {...pointerPosition}>
+					<PointerIcon
+						className="size-10 text-yellow-400 drop-shadow-xl"
+						aria-label="Wheel pointer"
+						style={{
+							fill: "currentColor",
+						}}
+					/>
+				</div>
+				<svg
+					ref={svgRef}
+					viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${width + viewBoxPadding * 2} ${height + viewBoxPadding * 2}`}
+					className="h-full w-full drop-shadow-xl"
+					aria-label="Spin wheel"
+					style={{
+						transform: `rotate(${rotation}deg)`,
+						transition: isDrawing
+							? "transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)"
+							: "none",
+					}}
+					onTransitionEnd={handleTransitionEnd}
+				>
+					<title>Spin wheel</title>
+					<g transform={`translate(${width / 2}, ${height / 2})`}>
+						{/* Outer Rim - Layered circles */}
+						{/* Outer stroke circle */}
+						<circle
+							r={radius - 1 + 25}
+							fill="none"
+							stroke="#ffac63"
+							strokeWidth="8"
+						/>
+						{/* Yellow background ring (only fills border area) */}
+						{borderRingGenerator && borderRingData && (
+							<path
+								d={borderRingGenerator(borderRingData) || undefined}
+								fill="#FF8C42"
+							/>
+						)}
+						{/* Inner stroke circle (creates border edge) */}
+						<circle
+							r={radius - 1}
+							fill="none"
+							stroke="#FF8C42"
+							strokeWidth="4"
+						/>
+						{/* Decorative Dots - on top of yellow background, centered in ring */}
+						{decorativeDots?.map((dot) => (
+							<circle
+								key={`decorative-dot-${dot.angle.toFixed(2)}`}
+								cx={dot.x}
+								cy={dot.y}
+								r="8"
+								fill="white"
+							/>
+						))}
+
+						{/* Slices */}
+						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
+							// Find the participant for this arc to use as key
+							const participant = internalParticipants.find(
+								(p) => p.name === d.data,
+							);
+							return (
+								<g key={participant?.publicId || i}>
+									<path
+										d={arcGenerator(d) || undefined}
+										fill={getSliceColor(i)}
+									/>
+									{/* Inner Shadow - creates depth at outer edge of slice */}
+									{innerShadowArcGenerator && (
+										<path
+											d={innerShadowArcGenerator(d) || undefined}
+											fill="rgba(0, 0, 0, 0.15)"
+										/>
+									)}
+									{/* Text Labels */}
+									<g transform={`translate(${arcGenerator.centroid(d)})`}>
+										<g
+											transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
+										>
+											{/* Rotate text to align with wedge center angle, then adjust for readability */}
+											<text
+												transform={"rotate(-90)"} // Orient text outwards
+												textAnchor="middle"
+												dominantBaseline="middle"
+												className="select-none fill-black font-semibold text-xs"
+												style={{
+													fontSize:
+														internalParticipants.length > 12 ? "10px" : "14px",
+												}}
+											>
+												{d.data.length > 15
+													? `${d.data.substring(0, 12)}...`
+													: d.data}
+											</text>
+										</g>
+									</g>
+								</g>
+							);
+						})}
+
+						{/* Center Hub */}
+						<circle r="48" fill="#FF7F50" />
+						<circle r="40" fill="#ffac63" />
+					</g>
+				</svg>
+			</div>
+
+			{/* Stand */}
+			<WheelStand standColor="#FF7F50" baseColor="#ffac63" />
+		</div>
+	);
+};
+
+export default SpinWheel;

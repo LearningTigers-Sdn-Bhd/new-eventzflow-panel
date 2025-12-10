@@ -12,27 +12,27 @@ interface VisitorItemProps {
 
 export function VisitorItem({ visitor }: VisitorItemProps) {
 	return (
-		<div className="rounded-lg border bg-card p-4 space-y-3">
+		<div className="space-y-3 rounded-lg border bg-card p-4">
 			{/* Name and Basic Info */}
 			<div>
 				<p className="font-semibold text-base">{visitor.full_name}</p>
-				<p className="text-sm text-muted-foreground">{visitor.email || "No email"}</p>
+				<p className="text-muted-foreground text-sm">{visitor.email || "No email"}</p>
 				{visitor.phone && (
-					<p className="text-sm text-muted-foreground">{visitor.phone}</p>
+					<p className="text-muted-foreground text-sm">{visitor.phone}</p>
 				)}
 			</div>
 
 			{/* Public ID and Date */}
 			<div className="grid grid-cols-2 gap-2 border-t pt-3">
 				<div>
-					<p className="text-xs text-muted-foreground font-medium">Public ID</p>
-					<code className="text-xs bg-muted px-2 py-1 rounded font-mono block mt-1 truncate">
+					<p className="font-medium text-muted-foreground text-xs">Public ID</p>
+					<code className="mt-1 block truncate rounded bg-muted px-2 py-1 font-mono text-xs">
 						{visitor.public_id}
 					</code>
 				</div>
 				<div>
-					<p className="text-xs text-muted-foreground font-medium">Created</p>
-					<p className="text-xs mt-1">
+					<p className="font-medium text-muted-foreground text-xs">Created</p>
+					<p className="mt-1 text-xs">
 						{new Date(visitor.created_at).toLocaleDateString()}
 					</p>
 				</div>
@@ -43,7 +43,7 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 				<Dialog>
 					<DialogTrigger asChild>
 						<Button variant="outline" size="sm" className="flex-1">
-							<QrCode className="h-4 w-4 mr-2" />
+							<QrCode className="mr-2 h-4 w-4" />
 							View QR
 						</Button>
 					</DialogTrigger>
@@ -55,7 +55,7 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 							<QRCode value={visitor.public_id} size={256} />
 							<div className="text-center">
 								<p className="font-medium">{visitor.full_name}</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									{visitor.public_id}
 								</p>
 							</div>

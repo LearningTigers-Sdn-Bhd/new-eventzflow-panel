@@ -125,7 +125,7 @@ export function DataControl<TData>({
 								onTicketFilterChange(value as TicketFilter)
 							}
 						>
-							<SelectTrigger className="w-[140px] rounded-none font-medium bg-background">
+							<SelectTrigger className="w-[140px] rounded-none bg-background font-medium">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent className="rounded-none">

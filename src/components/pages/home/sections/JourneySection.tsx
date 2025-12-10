@@ -48,7 +48,7 @@ const JourneySection: React.FC = () => {
 				<div className="mb-8 flex flex-col gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between lg:text-left">
 					<div>
 						<motion.span
-							className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground sm:px-4 sm:py-2 sm:text-xs"
+							className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
 							initial={{ opacity: 0, y: 10 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -58,7 +58,7 @@ const JourneySection: React.FC = () => {
 							<span className="whitespace-nowrap">Why Choose EventzFlow</span>
 						</motion.span>
 						<motion.h2
-							className="mt-3 text-2xl font-semibold text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
+							className="mt-3 font-semibold text-2xl text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
 							initial={{ opacity: 0, y: 16 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
@@ -70,7 +70,7 @@ const JourneySection: React.FC = () => {
 						</motion.h2>
 					</div>
 					<motion.p
-						className="px-2 text-sm text-muted-foreground sm:text-base lg:max-w-xl lg:text-lg"
+						className="px-2 text-muted-foreground text-sm sm:text-base lg:max-w-xl lg:text-lg"
 						initial={{ opacity: 0, y: 16 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
@@ -87,7 +87,7 @@ const JourneySection: React.FC = () => {
 						return (
 							<motion.div
 								key={value.title}
-								className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 sm:rounded-2xl sm:p-8"
+								className="group hover:-translate-y-1 relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:shadow-primary/5 hover:shadow-xl sm:rounded-2xl sm:p-8"
 								initial={{ opacity: 0, y: 24 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true }}
@@ -102,10 +102,10 @@ const JourneySection: React.FC = () => {
 											<Icon className="h-6 w-6 sm:h-7 sm:w-7" />
 										</div>
 										<div className="min-w-0 flex-1">
-											<h3 className="text-base font-bold text-card-foreground transition-colors group-hover:text-primary sm:text-lg lg:text-xl">
+											<h3 className="font-bold text-base text-card-foreground transition-colors group-hover:text-primary sm:text-lg lg:text-xl">
 												{value.title}
 											</h3>
-											<p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:mt-2 sm:text-sm">
+											<p className="mt-1.5 text-muted-foreground text-xs leading-relaxed sm:mt-2 sm:text-sm">
 												{value.copy}
 											</p>
 										</div>
@@ -115,7 +115,7 @@ const JourneySection: React.FC = () => {
 										{value.pills.map((pill) => (
 											<span
 												key={pill}
-												className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-1 text-[10px] font-medium text-secondary-foreground backdrop-blur-sm transition-colors hover:bg-secondary sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs"
+												className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-1 font-medium text-[10px] text-secondary-foreground backdrop-blur-sm transition-colors hover:bg-secondary sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs"
 											>
 												{pill}
 											</span>
@@ -139,7 +139,7 @@ const JourneySection: React.FC = () => {
 							<Handshake className="h-5 w-5 sm:h-6 sm:w-6" />
 						</div>
 						<div className="min-w-0">
-							<p className="text-base font-semibold sm:text-lg">Quick setup in minutes</p>
+							<p className="font-semibold text-base sm:text-lg">Quick setup in minutes</p>
 							<p className="mt-1 text-xs opacity-90 sm:text-sm">
 								Launch your complete event management platform in under 5 minutes with instant WhatsApp integration.
 							</p>

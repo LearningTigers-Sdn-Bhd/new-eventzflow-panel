@@ -190,11 +190,11 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 			>
 				<FieldSet>
 					{/* Two Column Layout - Stack on mobile, side-by-side on desktop */}
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
 						{/* LEFT COLUMN - Location Info */}
 						<div className="space-y-3 md:space-y-4">
 							<div className="border-b pb-1.5 md:pb-2">
-								<h3 className="font-semibold text-xs md:text-sm uppercase tracking-wide text-muted-foreground">
+								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide md:text-sm">
 									Location Info
 								</h3>
 							</div>
@@ -318,7 +318,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 						{/* RIGHT COLUMN - Additional Details */}
 						<div className="space-y-3 md:space-y-4">
 							<div className="border-b pb-1.5 md:pb-2">
-								<h3 className="font-semibold text-xs md:text-sm uppercase tracking-wide text-muted-foreground">
+								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide md:text-sm">
 									Additional Details
 								</h3>
 							</div>
@@ -382,25 +382,25 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 								{/* Custom Details - excluding Wing and Zone */}
 								{customDetails.filter(d => d.key !== "Wing" && d.key !== "Zone").length > 0 && (
 									<div className="space-y-3 pt-2">
-										<p className="text-xs font-medium text-muted-foreground">Custom Details</p>
+										<p className="font-medium text-muted-foreground text-xs">Custom Details</p>
 										{customDetails
 											.map((detail, index) => ({ detail, index }))
 											.filter(({ detail }) => detail.key !== "Wing" && detail.key !== "Zone")
 											.map(({ detail, index }) => (
 												<div key={index} className="space-y-2 border bg-muted p-2">
 													<div className="flex items-center justify-between">
-														<div className="grid grid-cols-2 gap-2 flex-1">
-															<label className="text-xs font-medium">
+														<div className="grid flex-1 grid-cols-2 gap-2">
+															<label className="font-medium text-xs">
 																Title
 															</label>
-															<label className="text-xs font-medium">
+															<label className="font-medium text-xs">
 																Value
 															</label>
 														</div>
 														<div className="w-9" /> {/* Spacer for delete button */}
 													</div>
-													<div className="flex gap-2 items-start">
-														<div className="flex-1 grid grid-cols-2 gap-2">
+													<div className="flex items-start gap-2">
+														<div className="grid flex-1 grid-cols-2 gap-2">
 															<Input
 																placeholder="e.g., Section"
 																value={detail.key}
@@ -409,7 +409,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 																	newDetails[index].key = e.target.value;
 																	setCustomDetails(newDetails);
 																}}
-																className="text-sm bg-white"
+																className="bg-white text-sm"
 															/>
 															<Input
 																placeholder="e.g., B"
@@ -419,7 +419,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 																	newDetails[index].value = e.target.value;
 																	setCustomDetails(newDetails);
 																}}
-																className="text-sm bg-white"
+																className="bg-white text-sm"
 															/>
 														</div>
 														<Button
@@ -429,7 +429,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 															onClick={() => {
 																setCustomDetails(customDetails.filter((_, i) => i !== index));
 															}}
-															className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50"
+															className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-600"
 														>
 															<X className="size-4" />
 														</Button>
@@ -444,9 +444,9 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 									size="sm"
 									variant="outline"
 									onClick={() => setCustomDetails([...customDetails, { key: "", value: "" }])}
-									className="w-full h-9 text-xs mt-2"
+									className="mt-2 h-9 w-full text-xs"
 								>
-									<Plus className="size-3 mr-1" />
+									<Plus className="mr-1 size-3" />
 									Add Custom Detail
 								</Button>
 							</FieldGroup>
@@ -476,7 +476,7 @@ export default function InfoForm({ locationId, onClose }: InfoFormProps) {
 						</form.Field>
 					</div>
 
-					<div className="mt-4 md:mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2">
+					<div className="mt-4 flex flex-col-reverse justify-end gap-2 sm:flex-row md:mt-6">
 						<Button
 							type="button"
 							variant="outline"

@@ -29,16 +29,26 @@ const logger = {
 };
 
 // Export the base API URL for use in other modules
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+export const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			retry: 2, // Retry failed requests 2 times
+			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+			refetchOnWindowFocus: false, // Don't refetch on window focus to reduce unnecessary requests
+		},
+	},
 	queryCache: new QueryCache({
-		onError: (error: Error) => {
+		onError: (error: Error, query) => {
+			// onError is called after all retries are exhausted
+			// Show error toast with retry option
 			toast.error(error.message, {
 				action: {
 					label: "retry",
 					onClick: () => {
-						queryClient.invalidateQueries();
+						queryClient.invalidateQueries({ queryKey: query.queryKey });
 					},
 				},
 			});
@@ -380,7 +390,7 @@ export const restClient = {
 	 */
 	getImageUrl: (path: string): string => {
 		// Remove leading slash if present to avoid double slashes
-		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		const cleanPath = path.startsWith("/") ? path.slice(1) : path;
 		return `${API_BASE_URL}/${cleanPath}`;
 	},
 };
@@ -408,7 +418,7 @@ export const publicRestClient = {
 	 */
 	getImageUrl: (path: string): string => {
 		// Remove leading slash if present to avoid double slashes
-		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+		const cleanPath = path.startsWith("/") ? path.slice(1) : path;
 		return `${API_BASE_URL}/${cleanPath}`;
 	},
 };

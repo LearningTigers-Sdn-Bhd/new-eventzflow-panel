@@ -28,32 +28,32 @@ export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, n
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2.5">
+			<div className="space-y-2.5 rounded-lg border border-primary/20 bg-primary/5 p-4">
 				<h3 className="font-semibold text-base">Ticket Found!</h3>
 				<div className="space-y-1.5 text-sm">
-					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Name:</span>
-						<span className="font-medium break-words">{ticketData.name}</span>
+						<span className="break-words font-medium">{ticketData.name}</span>
 					</div>
-					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Email:</span>
-						<span className={`font-medium break-all text-left ${!displayEmail ? "text-muted-foreground italic" : ""}`}>
+						<span className={`break-all text-left font-medium ${!displayEmail ? "text-muted-foreground italic" : ""}`}>
 							{displayEmail || "Not provided"}
 						</span>
 					</div>
-					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Phone:</span>
-						<span className={`font-medium break-words ${!displayPhone ? "text-muted-foreground italic" : ""}`}>
+						<span className={`break-words font-medium ${!displayPhone ? "text-muted-foreground italic" : ""}`}>
 							{displayPhone || "Not provided"}
 						</span>
 					</div>
-					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Ticket Type:</span>
-						<span className="font-medium break-words">{ticketData.ticketType}</span>
+						<span className="break-words font-medium">{ticketData.ticketType}</span>
 					</div>
-					<div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Event:</span>
-						<span className="font-medium break-words">{ticketData.eventName}</span>
+						<span className="break-words font-medium">{ticketData.eventName}</span>
 					</div>
 				</div>
 			</div>
@@ -67,13 +67,13 @@ export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, n
 					type="button"
 					variant="outline"
 					onClick={onBack}
-					className="gap-2 h-10 px-5"
+					className="h-10 gap-2 px-5"
 					disabled={isLoading}
 				>
 					<ArrowLeft className="h-4 w-4" />
 					Back
 				</Button>
-				<Button onClick={onConfirm} className="flex-1 h-10" disabled={isLoading}>
+				<Button onClick={onConfirm} className="h-10 flex-1" disabled={isLoading}>
 					{isLoading ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />

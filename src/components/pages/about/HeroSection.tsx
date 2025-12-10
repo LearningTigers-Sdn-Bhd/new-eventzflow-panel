@@ -1,20 +1,20 @@
 "use client";
 
-import React from 'react';
+import type React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 export const HeroSection: React.FC = () => {
   return (
-    <section className="relative overflow-hidden bg-muted pt-24 pb-12 lg:min-h-screen lg:flex lg:items-center">
+    <section className="relative overflow-hidden bg-muted pt-24 pb-12 lg:flex lg:min-h-screen lg:items-center">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(var(--primary-rgb),0.05)_0%,_transparent_50%)]" />
+      <div className="absolute top-0 left-0 h-full w-full bg-[radial-gradient(circle_at_center,_rgba(var(--primary-rgb),0.05)_0%,_transparent_50%)]" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <motion.div 
-            className="inline-flex items-center gap-2 rounded-full bg-background/60 backdrop-blur-sm border border-border/40 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground"
+            className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/60 px-3 py-1.5 font-semibold text-[10px] text-muted-foreground uppercase tracking-[0.25em] backdrop-blur-sm sm:px-4 sm:py-2 sm:text-xs"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -24,19 +24,19 @@ export const HeroSection: React.FC = () => {
           </motion.div>
 
           <motion.h1 
-            className="mt-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight px-2"
+            className="mt-4 px-2 font-bold text-3xl text-foreground leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
           >
             The Future of Event Management
-            <span className="block mt-2 sm:mt-3 bg-gradient-to-r from-primary to-green-400 text-transparent bg-clip-text">
+            <span className="mt-2 block bg-gradient-to-r from-primary to-green-400 bg-clip-text text-transparent sm:mt-3">
               Simple, Powerful, and Intuitive
             </span>
           </motion.h1>
 
           <motion.p 
-            className="max-w-3xl mx-auto mt-3 sm:mt-5 lg:mt-6 text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed px-4"
+            className="mx-auto mt-3 max-w-3xl px-4 text-muted-foreground text-sm leading-relaxed sm:mt-5 sm:text-base lg:mt-6 lg:text-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
@@ -46,12 +46,12 @@ export const HeroSection: React.FC = () => {
         </div>
 
         <motion.div 
-          className="mt-6 sm:mt-10 lg:mt-16 max-w-4xl mx-auto"
+          className="mx-auto mt-6 max-w-4xl sm:mt-10 lg:mt-16"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
         >
-          <div className="relative aspect-[16/9] overflow-hidden rounded-xl sm:rounded-2xl border border-border/60 bg-card shadow-lg transition-transform hover:scale-[1.02] duration-300">
+          <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-border/60 bg-card shadow-lg transition-transform duration-300 hover:scale-[1.02] sm:rounded-2xl">
             <Image
               src="/images/about/hero-team.png"
               alt="EventzFlow team in a planning session"

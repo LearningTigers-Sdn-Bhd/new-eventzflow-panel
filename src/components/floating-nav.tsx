@@ -91,9 +91,9 @@ export default function FloatingNav() {
 				initial={{ y: -100 }}
 				animate={{ y: 0 }}
 				transition={{ duration: 0.3 }}
-				className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+				className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
 					scrolled
-						? "border-b border-border bg-background/95 shadow-lg backdrop-blur-lg"
+						? "border-border border-b bg-background/95 shadow-lg backdrop-blur-lg"
 						: "bg-transparent"
 				}`}
 			>
@@ -104,7 +104,7 @@ export default function FloatingNav() {
 						className="flex items-center space-x-2 transition-opacity hover:opacity-80"
 					>
 						<span
-							className="text-xl font-bold leading-tight lg:text-2xl"
+							className="font-bold text-xl leading-tight lg:text-2xl"
 							style={{ fontFamily: "Times New Roman, serif" }}
 						>
 							<span style={{ color: "#23c460" }}>Event</span>
@@ -119,7 +119,7 @@ export default function FloatingNav() {
 							<button
 								key={link.id}
 								onClick={() => scrollToSection(link.id)}
-								className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+								className="rounded-lg px-4 py-2 font-medium text-muted-foreground text-sm transition-all hover:bg-accent hover:text-foreground"
 							>
 								{link.label}
 							</button>
@@ -150,7 +150,7 @@ export default function FloatingNav() {
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -20 }}
 						transition={{ duration: 0.2 }}
-						className="fixed left-0 right-0 top-[72px] z-40 border-b border-border bg-background/95 backdrop-blur-xl lg:hidden"
+						className="fixed top-[72px] right-0 left-0 z-40 border-border border-b bg-background/95 backdrop-blur-xl lg:hidden"
 					>
 						<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
 							<div className="flex flex-col gap-2">
@@ -158,7 +158,7 @@ export default function FloatingNav() {
 									<button
 										key={link.id}
 										onClick={() => scrollToSection(link.id)}
-										className="rounded-lg px-4 py-3 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+										className="rounded-lg px-4 py-3 text-left font-medium text-muted-foreground text-sm transition-all hover:bg-accent hover:text-foreground"
 									>
 										{link.label}
 									</button>

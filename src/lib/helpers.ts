@@ -36,7 +36,7 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
-  return function (...args: Parameters<T>): void {
+  return (...args: Parameters<T>): void => {
     if (timeout) {
       clearTimeout(timeout);
     }
@@ -117,7 +117,7 @@ export function formatDateTime(input: Date | string | number): string {
  * @param locale - The locale for formatting (e.g., "en-US"). Defaults to "en-US".
  * @returns A string formatted as currency.
  */
-export function formatCurrency(amount: number, currency: string = 'USD', locale: string = 'en-US'): string {
+export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US'): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -168,7 +168,7 @@ export const getTimeZones = (): { label: string; value: string }[] => {
       return {
         value: timezone,
         label: `(${formattedOffset}) ${timezone.replace(/_/g, ' ')}`,
-        numericOffset: parseInt(formattedOffset.replace('GMT', '').replace('+', '') || '0'),
+        numericOffset: Number.parseInt(formattedOffset.replace('GMT', '').replace('+', '') || '0'),
       };
     })
     .sort((a, b) => a.numericOffset - b.numericOffset);

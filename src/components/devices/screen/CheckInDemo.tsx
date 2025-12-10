@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Camera, User } from 'lucide-react';
 import Phone from '../Phone';
@@ -39,23 +40,23 @@ const CheckInDemo: React.FC = () => {
 
   return (
     <Phone>
-      <div className="h-full bg-gradient-to-b from-slate-800 to-slate-900 flex flex-col">
+      <div className="flex h-full flex-col bg-gradient-to-b from-slate-800 to-slate-900">
       {/* Header */}
-      <div className="bg-slate-800/50 backdrop-blur-sm p-3 border-b border-slate-700">
+      <div className="border-slate-700 border-b bg-slate-800/50 p-3 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-white font-bold text-xs">Gate 3 - Check-in</h3>
-            <p className="text-slate-400 text-[10px]">Corporate Gala 2025</p>
+            <h3 className="font-bold text-white text-xs">Gate 3 - Check-in</h3>
+            <p className="text-[10px] text-slate-400">Corporate Gala 2025</p>
           </div>
           <div className="text-right">
-            <p className="text-green-400 font-bold text-xs">542 Checked In</p>
-            <p className="text-slate-400 text-[10px]">308 Remaining</p>
+            <p className="font-bold text-green-400 text-xs">542 Checked In</p>
+            <p className="text-[10px] text-slate-400">308 Remaining</p>
           </div>
         </div>
       </div>
 
       {/* Scanner Area */}
-      <div className="flex-1 flex items-center justify-center p-3">
+      <div className="flex flex-1 items-center justify-center p-3">
         <AnimatePresence mode="wait">
           {scanState === 'scanning' && (
             <motion.div
@@ -66,25 +67,25 @@ const CheckInDemo: React.FC = () => {
               className="text-center"
             >
               <div className="relative mb-3">
-                <div className="w-40 h-40 border-4 border-blue-500 rounded-2xl mx-auto relative overflow-hidden">
+                <div className="relative mx-auto h-40 w-40 overflow-hidden rounded-2xl border-4 border-blue-500">
                   {/* Scanning Line Animation */}
                   <motion.div
-                    className="absolute inset-x-0 h-1 bg-blue-400 shadow-lg shadow-blue-500/50"
+                    className="absolute inset-x-0 h-1 bg-blue-400 shadow-blue-500/50 shadow-lg"
                     animate={{ y: [0, 150, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                   />
                   <div className="absolute inset-0 bg-blue-500/10" />
                   
                   {/* Corner Brackets */}
-                  <div className="absolute top-2 left-2 w-5 h-5 border-l-4 border-t-4 border-blue-400" />
-                  <div className="absolute top-2 right-2 w-5 h-5 border-r-4 border-t-4 border-blue-400" />
-                  <div className="absolute bottom-2 left-2 w-5 h-5 border-l-4 border-b-4 border-blue-400" />
-                  <div className="absolute bottom-2 right-2 w-5 h-5 border-r-4 border-b-4 border-blue-400" />
+                  <div className="absolute top-2 left-2 h-5 w-5 border-blue-400 border-t-4 border-l-4" />
+                  <div className="absolute top-2 right-2 h-5 w-5 border-blue-400 border-t-4 border-r-4" />
+                  <div className="absolute bottom-2 left-2 h-5 w-5 border-blue-400 border-b-4 border-l-4" />
+                  <div className="absolute right-2 bottom-2 h-5 w-5 border-blue-400 border-r-4 border-b-4" />
                 </div>
-                <Camera className="w-6 h-6 text-blue-400 mx-auto mt-2" />
+                <Camera className="mx-auto mt-2 h-6 w-6 text-blue-400" />
               </div>
-              <p className="text-blue-400 font-medium text-xs">Scanning QR Code...</p>
-              <p className="text-slate-500 text-[10px] mt-1">Position code in frame</p>
+              <p className="font-medium text-blue-400 text-xs">Scanning QR Code...</p>
+              <p className="mt-1 text-[10px] text-slate-500">Position code in frame</p>
             </motion.div>
           )}
 
@@ -100,35 +101,35 @@ const CheckInDemo: React.FC = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="w-16 h-16 mx-auto mb-3 rounded-full bg-green-500 flex items-center justify-center"
+                className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-500"
               >
-                <CheckCircle className="w-10 h-10 text-white" />
+                <CheckCircle className="h-10 w-10 text-white" />
               </motion.div>
               
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="bg-slate-800 rounded-2xl p-3 border border-green-500/30"
+                className="rounded-2xl border border-green-500/30 bg-slate-800 p-3"
               >
-                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-700">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
+                <div className="mb-2 flex items-center gap-2 border-slate-700 border-b pb-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500">
+                    <User className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-white font-bold text-xs">{guestInfo.name}</h4>
-                    <p className="text-green-400 text-[10px] font-medium">✓ VALID TICKET</p>
+                    <h4 className="font-bold text-white text-xs">{guestInfo.name}</h4>
+                    <p className="font-medium text-[10px] text-green-400">✓ VALID TICKET</p>
                   </div>
                 </div>
 
                 <div className="space-y-1.5 text-[10px]">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Ticket Type:</span>
-                    <span className="text-white font-semibold">{guestInfo.ticketType}</span>
+                    <span className="font-semibold text-white">{guestInfo.ticketType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Order ID:</span>
-                    <span className="text-white font-mono">{guestInfo.orderId}</span>
+                    <span className="font-mono text-white">{guestInfo.orderId}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Check-in Time:</span>
@@ -136,7 +137,7 @@ const CheckInDemo: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Status:</span>
-                    <span className="text-green-400 font-medium">First Entry ✓</span>
+                    <span className="font-medium text-green-400">First Entry ✓</span>
                   </div>
                 </div>
 
@@ -144,9 +145,9 @@ const CheckInDemo: React.FC = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="mt-3 pt-2 border-t border-slate-700"
+                  className="mt-3 border-slate-700 border-t pt-2"
                 >
-                  <button className="w-full py-1.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-xs transition-colors">
+                  <button className="w-full rounded-lg bg-green-500 py-1.5 font-medium text-white text-xs transition-colors hover:bg-green-600">
                     Allow Entry
                   </button>
                 </motion.div>
@@ -166,11 +167,11 @@ const CheckInDemo: React.FC = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-500 flex items-center justify-center"
+                className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-red-500"
               >
-                <XCircle className="w-12 h-12 text-white" />
+                <XCircle className="h-12 w-12 text-white" />
               </motion.div>
-              <h4 className="text-red-400 font-bold text-lg mb-2">Invalid Ticket</h4>
+              <h4 className="mb-2 font-bold text-lg text-red-400">Invalid Ticket</h4>
               <p className="text-slate-400 text-sm">Already used or not found</p>
             </motion.div>
           )}

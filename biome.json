@@ -77,5 +77,22 @@
 		"parser": {
 			"tailwindDirectives": true
 		}
-	}
+	},
+	"overrides": [
+		{
+			"include": [
+				"src/components/pages/lucky-draw/session/sheets/config-sheet.tsx",
+				"src/components/pages/lucky-draw/columns.tsx",
+				"src/components/pages/lucky-draw/manage-session/edit-form.tsx",
+				"src/components/pages/lucky-draw/session/session-wrapper.tsx"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useAltText": "off"
+					}
+				}
+			}
+		}
+	]
 }

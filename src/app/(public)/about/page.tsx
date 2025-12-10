@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import type React from 'react';
 import { HeroSection } from '@/components/pages/about/HeroSection';
 import { StorySection } from '@/components/pages/about/StorySection';
 import { ValuesSection } from '@/components/pages/about/ValuesSection';

@@ -113,7 +113,7 @@ export default function ViewMembersDialog({
 								<>
 									{staffMembers.length > 0 && (
 										<div className="mb-4">
-											<h4 className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+											<h4 className="mb-2 px-2 font-semibold text-muted-foreground text-xs">
 												STAFF MEMBERS
 											</h4>
 											<div className="space-y-1">
@@ -123,7 +123,7 @@ export default function ViewMembersDialog({
 									)}
 									{vendors.length > 0 && (
 										<div>
-											<h4 className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+											<h4 className="mb-2 px-2 font-semibold text-muted-foreground text-xs">
 												VENDORS
 											</h4>
 											<div className="space-y-1">

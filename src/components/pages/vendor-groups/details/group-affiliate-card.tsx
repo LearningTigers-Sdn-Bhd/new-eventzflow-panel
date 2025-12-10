@@ -67,31 +67,31 @@ export function GroupAffiliateCard({ groupId, group }: GroupAffiliateCardProps) 
 							<LoadingState title="Loading vendors..." />
 						</div>
 					) : !affiliates || affiliates.length === 0 ? (
-						<div className="flex h-[200px] items-center justify-center text-center border border-dashed rounded-none bg-muted/20">
+						<div className="flex h-[200px] items-center justify-center rounded-none border border-dashed bg-muted/20 text-center">
 							<div>
 								<Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
-								<p className="mt-2 text-sm text-muted-foreground">
+								<p className="mt-2 text-muted-foreground text-sm">
 									No vendors assigned yet.
 								</p>
 							</div>
 						</div>
 					) : (
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+						<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 							{affiliates.map((affiliate) => (
 								<div
 									key={affiliate.id}
 									className="rounded-none border border-dashed bg-muted/20 p-4 transition-colors hover:bg-muted/30"
 								>
 									<div className="flex items-center justify-between gap-4">
-										<div className="flex flex-1 items-center gap-4 min-w-0">
-											<div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-none border border-dashed bg-background">
+										<div className="flex min-w-0 flex-1 items-center gap-4">
+											<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-none border border-dashed bg-background">
 												<Building2 className="h-5 w-5 text-muted-foreground" />
 											</div>
 											<div className="min-w-0 flex-1">
-												<p className="font-medium truncate">
+												<p className="truncate font-medium">
 													{affiliate.vendor.full_name}
 												</p>
-												<p className="text-xs text-muted-foreground truncate">
+												<p className="truncate text-muted-foreground text-xs">
 													{affiliate.vendor.email}
 												</p>
 											</div>
