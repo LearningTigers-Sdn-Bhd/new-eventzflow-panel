@@ -58,7 +58,11 @@ export function UniversalDialog() {
 				showCloseButton={config.showCloseButton}
 			>
 				<DialogHeader className={isFullScreen ? "p-6" : ""}>
-					{config.title && <DialogTitle>{config.title}</DialogTitle>}
+					{config.title ? (
+						<DialogTitle>{config.title}</DialogTitle>
+					) : (
+						<DialogTitle className="sr-only">Dialog</DialogTitle>
+					)}
 					{config.description ? (
 						<DialogDescription>{config.description}</DialogDescription>
 					) : (
