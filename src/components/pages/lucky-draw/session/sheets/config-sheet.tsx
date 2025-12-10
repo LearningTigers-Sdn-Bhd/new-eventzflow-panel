@@ -223,7 +223,7 @@ export function ConfigSheet({
 				<Button
 					variant="outline"
 					size="sm"
-					className="flex w-full items-center justify-start gap-2 rounded-none"
+					className="flex items-center justify-start gap-2 rounded-none"
 				>
 					<Settings className="size-4" />
 					<span className="hidden text-sm md:block">Draw Settings</span>

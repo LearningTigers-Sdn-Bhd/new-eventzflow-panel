@@ -240,31 +240,10 @@ export function LuckyDrawWrapper({
 	return (
 		<div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6">
 			{/* Header Row */}
-			<div className="flex items-center justify-between gap-4">
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => router.push(`/event/${eventId}/lucky-draw`)}
-						className="gap-2 rounded-none"
-					>
-						<ArrowLeft className="h-4 w-4" />
-						<span className="text-sm">Back</span>
-					</Button>
-				</div>
-
+			<div className="flex flex-col gap-4 pt-4">
 				{/* Session Info */}
 				<div className="flex flex-1 items-center justify-center gap-4">
 					<div className="flex flex-col items-center">
-						{session.logo && (
-							<div className="relative mb-1 size-14 overflow-hidden">
-								<img
-									src={getLuckyDrawSessionLogoUrl(session.logo)}
-									alt={session.title}
-									className="h-full w-full object-cover"
-								/>
-							</div>
-						)}
 						<h1 className="font-bold text-xl">{session.title}</h1>
 						{session.draw_date && (
 							<span className="text-muted-foreground text-xs">
@@ -274,41 +253,67 @@ export function LuckyDrawWrapper({
 					</div>
 				</div>
 
-				{/* Controls */}
-				<div className="grid grid-cols-2 items-end gap-2">
-					<ParticipantsSheet
-						open={participantSheetOpen}
-						onOpenChange={setParticipantSheetOpen}
-						luckyDraw={luckyDraw}
-					/>
-					<ConfigSheet
-						open={configSheetOpen}
-						onOpenChange={setConfigSheetOpen}
-						luckyDraw={luckyDraw}
-					/>
-					<GiftInvalidListSheet
-						open={giftSheetOpen}
-						onOpenChange={setGiftSheetOpen}
-						luckyDraw={luckyDraw}
-					/>
-					<Button
-						size="sm"
-						onClick={handleDraw}
-						disabled={!canDraw || isDrawing}
-						className="flex w-full items-center justify-start gap-2 rounded-none"
-					>
-						<Download className="size-4" />
-						{isDrawing ? "Drawing..." : "Draw"}
-					</Button>
+				{/* Menu */}
+				<div className="flex w-full flex-row items-center justify-between gap-2">
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => router.push(`/event/${eventId}/lucky-draw`)}
+							className="gap-2 rounded-none"
+						>
+							<ArrowLeft className="h-4 w-4" />
+							<span className="text-sm">Back</span>
+						</Button>
+					</div>
+					<div className="flex items-center gap-2">
+						<ParticipantsSheet
+							open={participantSheetOpen}
+							onOpenChange={setParticipantSheetOpen}
+							luckyDraw={luckyDraw}
+						/>
+						<ConfigSheet
+							open={configSheetOpen}
+							onOpenChange={setConfigSheetOpen}
+							luckyDraw={luckyDraw}
+						/>
+						<GiftInvalidListSheet
+							open={giftSheetOpen}
+							onOpenChange={setGiftSheetOpen}
+							luckyDraw={luckyDraw}
+						/>
+					</div>
+					<div className="flex items-center gap-2">
+						<Button
+							size="sm"
+							onClick={handleDraw}
+							disabled={!canDraw || isDrawing}
+							className="flex items-center justify-start gap-2 rounded-none"
+						>
+							<Download className="size-4" />
+							{isDrawing ? "Drawing..." : "Draw"}
+						</Button>
+					</div>
 				</div>
 			</div>
 
 			{/* Draw Area */}
 			<div
-				className="flex h-screen flex-1 flex-col items-center justify-center rounded-none border bg-card p-0 md:p-6"
+				className="flex h-screen flex-1 flex-col items-center justify-center gap-10 rounded-none border bg-card p-0 md:p-6"
 				style={backgroundStyle}
 			>
-				<div className="flex h-[75%] w-full flex-col items-center justify-center">
+				<div className="flex items-start justify-center">
+					{session.logo && (
+						<div className="relative mb-1 h-16 w-full overflow-hidden">
+							<img
+								src={getLuckyDrawSessionLogoUrl(session.logo)}
+								alt={session.title}
+								className="h-full w-full object-cover"
+							/>
+						</div>
+					)}
+				</div>
+				<div className="z-10 flex h-[75%] w-full flex-col items-center justify-center pb-18">
 					{renderDrawComponent()}
 				</div>
 			</div>

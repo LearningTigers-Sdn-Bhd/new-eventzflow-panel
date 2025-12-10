@@ -654,7 +654,11 @@ export function GiftInvalidListSheet({
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetTrigger asChild>
-				<Button variant="outline" size="sm" className="gap-2 rounded-none">
+				<Button
+					variant="outline"
+					size="sm"
+					className="flex items-center justify-start gap-2 rounded-none"
+				>
 					<List className="size-4" />
 					<span className="hidden text-sm md:block">
 						{useGifts ? "Manage Gifts" : "Invalid List"}

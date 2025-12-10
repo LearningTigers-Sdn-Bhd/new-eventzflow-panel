@@ -87,14 +87,17 @@ const SpinWheel: React.FC<DrawProps> = ({
 	}
 
 	return (
-		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
+		<div className="relative mx-auto flex w-full max-w-[450px] flex-col items-center justify-center">
 			{/* The Wheel */}
 			<div className="relative aspect-square w-full max-w-[600px]">
 				{/* Pointer - always rendered inside wheel container */}
 				<div {...pointerPosition}>
 					<PointerIcon
-						className="size-10 text-red-500"
+						className="size-10 text-yellow-400 drop-shadow-xl"
 						aria-label="Wheel pointer"
+						style={{
+							fill: "currentColor",
+						}}
 					/>
 				</div>
 				<svg

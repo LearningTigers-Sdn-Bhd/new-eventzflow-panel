@@ -42,22 +42,16 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
-			// Only show error toast if query has exhausted all retries
-			// Query state will have failureCount >= retry count
-			const failureCount = query.state.failureCount || 0;
-			const retryCount = query.options.retry ?? 2;
-
-			// Only show error if all retries are exhausted
-			if (failureCount > retryCount) {
-				toast.error(error.message, {
-					action: {
-						label: "retry",
-						onClick: () => {
-							queryClient.invalidateQueries({ queryKey: query.queryKey });
-						},
+			// onError is called after all retries are exhausted
+			// Show error toast with retry option
+			toast.error(error.message, {
+				action: {
+					label: "retry",
+					onClick: () => {
+						queryClient.invalidateQueries({ queryKey: query.queryKey });
 					},
-				});
-			}
+				},
+			});
 		},
 	}),
 });
