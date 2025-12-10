@@ -92,8 +92,8 @@ export default function ImportPage() {
 				onCloser={true}
 			/>
 
-			<div className="min-h-[65vh] border-t border-dashed pt-6 grid grid-cols-1 gap-8 lg:gap-0 lg:grid-cols-2 divide-x-0 lg:divide-x divide-dashed">
-				<div className="mb-8 col-span-1 border-y border-dashed flex flex-col">
+			<div className="grid min-h-[65vh] grid-cols-1 gap-8 divide-x-0 divide-dashed border-t border-dashed pt-6 lg:grid-cols-2 lg:gap-0 lg:divide-x">
+				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
 					<div className="p-2 md:p-4">
 						<IconTitle
 							icon={Upload}
@@ -107,15 +107,15 @@ export default function ImportPage() {
 						onResult={setLiveResult}
 					/>
 				</div>
-				<div className="mb-8 border-y border-dashed col-span-1 flex flex-col">
-					<div className="p-2 md:p-4 border-b border-dashed">
+				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
+					<div className="border-b border-dashed p-2 md:p-4">
 						<IconTitle
 							icon={Info}
 							title="Import Results"
 							description="View the results of your import."
 						/>
 					</div>
-					<div className="p-2 md:p-4 border-b border-dashed">
+					<div className="border-b border-dashed p-2 md:p-4">
 						<Select
 							value={filterType}
 							onValueChange={(value) => handleFilterChange(value as FilterType)}
@@ -160,7 +160,7 @@ export default function ImportPage() {
 							/>
 						) : (
 							<>
-								<div className="overflow-y-auto max-h-[calc(100vh-500px)] bg-muted/30 p-2 md:p-4">
+								<div className="max-h-[calc(100vh-500px)] overflow-y-auto bg-muted/30 p-2 md:p-4">
 									<div className="grid grid-cols-1 gap-2">
 										{paginatedItems.map((item, index) => (
 											<ImportedItem
@@ -191,10 +191,10 @@ export default function ImportPage() {
 											<Select
 												value={(currentPage + 1).toString()}
 												onValueChange={(value) =>
-													setCurrentPage(parseInt(value, 10) - 1)
+													setCurrentPage(Number.parseInt(value, 10) - 1)
 												}
 											>
-												<SelectTrigger className="w-auto rounded-none border min-w-[100px]">
+												<SelectTrigger className="w-auto min-w-[100px] rounded-none border">
 													<SelectValue placeholder="Select page" />
 												</SelectTrigger>
 												<SelectContent className="h-[250px] rounded-none">

@@ -246,20 +246,20 @@ export default function VoucherAnalyticsPage({
 										key={voucher.voucher_id}
 										className="flex items-center gap-3 border border-border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
 									>
-										<div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+										<div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-xs">
 											{index + 1}
 										</div>
 										<div className="min-w-0 flex-1 overflow-hidden">
-											<p className="truncate text-sm font-semibold" title={voucher.voucher_title}>
+											<p className="truncate font-semibold text-sm" title={voucher.voucher_title}>
 												{voucher.voucher_title}
 											</p>
-											<p className="truncate text-xs text-muted-foreground">
+											<p className="truncate text-muted-foreground text-xs">
 												{voucher.vendor_name || "Unknown Vendor"}
 											</p>
 										</div>
 										<div className="flex-shrink-0 text-right">
-											<p className="text-lg font-bold">{voucher.redemption_count}</p>
-											<p className="text-xs text-muted-foreground">scans</p>
+											<p className="font-bold text-lg">{voucher.redemption_count}</p>
+											<p className="text-muted-foreground text-xs">scans</p>
 										</div>
 									</div>
 								))}
@@ -303,12 +303,12 @@ export default function VoucherAnalyticsPage({
 											<TableCell>{transaction.vendor_name || "N/A"}</TableCell>
 											<TableCell className="text-right">
 												{formatCurrency(
-													parseFloat(transaction.transaction_gross_amount),
+													Number.parseFloat(transaction.transaction_gross_amount),
 												)}
 											</TableCell>
 											<TableCell className="text-right">
 												{formatCurrency(
-													parseFloat(transaction.discount_applied_value),
+													Number.parseFloat(transaction.discount_applied_value),
 												)}
 											</TableCell>
 											<TableCell className="text-right">
