@@ -1,7 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChartBar, Logs, MapPin, ScanQrCode, Users, Building2, UserCheck, Ticket, TrendingUp, ChevronDown, HardHat } from "lucide-react";
+import {
+	Building2,
+	ChartBar,
+	ChevronDown,
+	Gift,
+	HardHat,
+	Logs,
+	MapPin,
+	ScanQrCode,
+	Ticket,
+	TrendingUp,
+	UserCheck,
+	Users,
+} from "lucide-react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useCallback, useMemo } from "react";
@@ -11,6 +24,12 @@ import { RiCalendarEventFill } from "react-icons/ri";
 import { TbClockDollar } from "react-icons/tb";
 import { TabHeader } from "@/components/pages/event/tab-header";
 import { Badge } from "@/components/ui/badge";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { IconTitle } from "@/components/ui/icon-heading";
 import {
 	Select,
@@ -21,17 +40,11 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEvents } from "@/lib/api/event";
-import { useEventActionsStore } from "@/stores/event-actions-store";
 import { cn } from "@/lib/utils";
+import { useEventActionsStore } from "@/stores/event-actions-store";
 
 interface EventDetailLayoutProps {
 	children: React.ReactNode;
@@ -57,6 +70,14 @@ const tabItems: TabItem[] = [
 		description: "This page will display the event location details and map.",
 		icon: MapPin,
 		route: "location",
+	},
+	{
+		id: "lucky-draw",
+		label: "Lucky Draw",
+		title: "Lucky Draw Sessions",
+		description: "Manage lucky draw sessions, configurations, and prizes.",
+		icon: Gift,
+		route: "lucky-draw",
 	},
 	{
 		id: "tickets",
@@ -96,8 +117,7 @@ const tabItems: TabItem[] = [
 		id: "visitors",
 		label: "Visitors",
 		title: "Event Visitors",
-		description:
-			"Manage visitors for non-ticket events.",
+		description: "Manage visitors for non-ticket events.",
 		icon: UserCheck,
 		route: "visitors",
 	},
@@ -114,8 +134,7 @@ const tabItems: TabItem[] = [
 		id: "vendors",
 		label: "Vendors",
 		title: "Vendors",
-		description:
-			"View and manage vendors for this event.",
+		description: "View and manage vendors for this event.",
 		icon: Building2,
 		route: "vendors",
 	},
@@ -123,8 +142,7 @@ const tabItems: TabItem[] = [
 		id: "exhibitor",
 		label: "Exhibitor",
 		title: "Exhibitor",
-		description:
-			"View and manage exhibitors and their kits for this event.",
+		description: "View and manage exhibitors and their kits for this event.",
 		icon: Building2,
 		route: "exhibitor",
 	},
@@ -132,8 +150,7 @@ const tabItems: TabItem[] = [
 		id: "exhibitor-contractor",
 		label: "Exhibitor Contractor",
 		title: "Exhibitor Contractor",
-		description:
-			"Assign and manage exhibitor contractors for this event.",
+		description: "Assign and manage exhibitor contractors for this event.",
 		icon: HardHat,
 		route: "exhibitor-contractor",
 	},
@@ -141,8 +158,7 @@ const tabItems: TabItem[] = [
 		id: "vouchers",
 		label: "Vouchers",
 		title: "Vouchers",
-		description:
-			"View and manage vouchers created by this vendor.",
+		description: "View and manage vouchers created by this vendor.",
 		icon: Ticket,
 		route: "vouchers",
 	},
@@ -150,8 +166,7 @@ const tabItems: TabItem[] = [
 		id: "voucher-redemption",
 		label: "Scan Voucher",
 		title: "Scan Voucher / Redeem Voucher",
-		description:
-			"Scan and redeem vouchers.",
+		description: "Scan and redeem vouchers.",
 		icon: ScanQrCode,
 		route: "voucher-redemption",
 	},
@@ -159,8 +174,7 @@ const tabItems: TabItem[] = [
 		id: "visitor-stamps",
 		label: "Stamp Scanner",
 		title: "Visitor Stamp Scanner",
-		description:
-			"Scan visitor QR codes to create stamps.",
+		description: "Scan visitor QR codes to create stamps.",
 		icon: ScanQrCode,
 		route: "visitor-stamps",
 	},
@@ -168,8 +182,7 @@ const tabItems: TabItem[] = [
 		id: "voucher-analytics",
 		label: "Voucher Analytics",
 		title: "Voucher Analytics",
-		description:
-			"View analytics and insights for vouchers.",
+		description: "View analytics and insights for vouchers.",
 		icon: ChartBar,
 		route: "voucher-analytics",
 	},
@@ -177,8 +190,7 @@ const tabItems: TabItem[] = [
 		id: "voucher-logs",
 		label: "Voucher Logs",
 		title: "Voucher Logs",
-		description:
-			"View all voucher redemption logs for this event.",
+		description: "View all voucher redemption logs for this event.",
 		icon: Logs,
 		route: "voucher-logs",
 	},
@@ -186,8 +198,7 @@ const tabItems: TabItem[] = [
 		id: "stamp-logs",
 		label: "Stamp Logs",
 		title: "Stamp Logs",
-		description:
-			"View all visitor stamp logs for this event.",
+		description: "View all visitor stamp logs for this event.",
 		icon: Logs,
 		route: "stamp-logs",
 	},
@@ -253,11 +264,18 @@ export default function EventDetailLayout({
 		const filtered = tabItems.filter((tab) => {
 			// For vendors, only show these 6 specific tabs (including location)
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
-				return ["location", "vendors", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"].includes(tab.id);
+				return [
+					"location",
+					"vendors",
+					"vouchers",
+					"voucher-redemption",
+					"voucher-analytics",
+					"visitor-stamps",
+				].includes(tab.id);
 			}
 
 			// Always show these tabs (for non-vendors)
-			if (["location"].includes(tab.id)) {
+			if (["location", "lucky-draw"].includes(tab.id)) {
 				return true;
 			}
 
@@ -267,7 +285,15 @@ export default function EventDetailLayout({
 			}
 
 			// Ticket-related tabs - only for ticket events
-			if (["tickets", "pending-tickets", "scanned-logs", "ticket-types", "analytics"].includes(tab.id)) {
+			if (
+				[
+					"tickets",
+					"pending-tickets",
+					"scanned-logs",
+					"ticket-types",
+					"analytics",
+				].includes(tab.id)
+			) {
 				return currentEvent?.use_ticket !== false;
 			}
 
@@ -283,12 +309,18 @@ export default function EventDetailLayout({
 
 			// Vendors tab - only visible when use_exhibitor_kit is false
 			if (tab.id === "vendors") {
-				return permissions.canViewVendorsTab && currentEvent?.use_exhibitor_kit !== true;
+				return (
+					permissions.canViewVendorsTab &&
+					currentEvent?.use_exhibitor_kit !== true
+				);
 			}
 
 			// Exhibitor tab - only visible when use_exhibitor_kit is enabled
 			if (tab.id === "exhibitor") {
-				return currentEvent?.use_exhibitor_kit === true && permissions.canViewVendorsTab;
+				return (
+					currentEvent?.use_exhibitor_kit === true &&
+					permissions.canViewVendorsTab
+				);
 			}
 
 			// Exhibitor Contractor tab - only visible to org_owner (same as event staff)
@@ -313,12 +345,18 @@ export default function EventDetailLayout({
 
 			// Voucher logs - only for event admins and staff (not vendors)
 			if (tab.id === "voucher-logs") {
-				return permissions.canManageEventVendors || permissions.canManageEventStaff;
+				return (
+					permissions.canManageEventVendors || permissions.canManageEventStaff
+				);
 			}
 
 			// Stamp logs - only for event admins and staff (not vendors), only for non-ticket events
 			if (tab.id === "stamp-logs") {
-				return (permissions.canManageEventVendors || permissions.canManageEventStaff) && currentEvent?.use_ticket === false;
+				return (
+					(permissions.canManageEventVendors ||
+						permissions.canManageEventStaff) &&
+					currentEvent?.use_ticket === false
+				);
 			}
 
 			// Visitors tab - only for non-ticket events, visible to event staff
@@ -333,30 +371,46 @@ export default function EventDetailLayout({
 
 			return true;
 		});
-		
+
 		// Sort tabs based on optimal UX order
 		const isTicketEvent = currentEvent?.use_ticket !== false;
-		const isVendor = permissions.isEventVendor && !permissions.canManageEventVendors;
+		const isVendor =
+			permissions.isEventVendor && !permissions.canManageEventVendors;
 
 		if (isVendor) {
 			// Vendor tab order: Profile → Operations → Analytics
-			const vendorTabOrder = ["vendors", "exhibitor", "location", "vouchers", "voucher-redemption", "voucher-analytics", "visitor-stamps"];
+			const vendorTabOrder = [
+				"vendors",
+				"exhibitor",
+				"location",
+				"vouchers",
+				"voucher-redemption",
+				"voucher-analytics",
+				"visitor-stamps",
+			];
 			return filtered.sort((a, b) => {
 				const indexA = vendorTabOrder.indexOf(a.id);
 				const indexB = vendorTabOrder.indexOf(b.id);
 				return indexA - indexB;
 			});
-		} else if (isTicketEvent) {
-			// Ticket event order: Location → Tickets → People → Partners → Promotions → Insights → History
+		}
+		if (isTicketEvent) {
+			// Ticket event order: Location → Lucky Draw → Tickets → People → Partners → Promotions → Insights → History
 			const ticketEventOrder = [
 				"location",
-				"tickets", "pending-tickets", "scanned-logs", // Tickets group
+				"lucky-draw",
+				"tickets",
+				"pending-tickets",
+				"scanned-logs", // Tickets group
 				"visitors",
 				"event-staff",
-				"vendors", "exhibitor", // Vendors OR Exhibitor (mutually exclusive)
+				"vendors",
+				"exhibitor", // Vendors OR Exhibitor (mutually exclusive)
 				"vouchers",
-				"analytics", "voucher-analytics", // Analytics group
-				"voucher-logs", "export-logs", // Logs group
+				"analytics",
+				"voucher-analytics", // Analytics group
+				"voucher-logs",
+				"export-logs", // Logs group
 			];
 			return filtered.sort((a, b) => {
 				const indexA = ticketEventOrder.indexOf(a.id);
@@ -366,30 +420,38 @@ export default function EventDetailLayout({
 				const finalB = indexB === -1 ? 999 : indexB;
 				return finalA - finalB;
 			});
-		} else {
-			// Non-ticket event order: Location → People → Partners → Promotions → Insights → History
-			const nonTicketEventOrder = [
-				"location",
-				"visitors",
-				"vendors", "exhibitor", // Vendors OR Exhibitor (mutually exclusive)
-				"vouchers",
-				"event-staff",
-				"voucher-analytics", "mall-live-feed", // Analytics group
-				"voucher-logs", "stamp-logs", // Logs group
-			];
-			return filtered.sort((a, b) => {
-				const indexA = nonTicketEventOrder.indexOf(a.id);
-				const indexB = nonTicketEventOrder.indexOf(b.id);
-				// If not found in order array, put at end
-				const finalA = indexA === -1 ? 999 : indexA;
-				const finalB = indexB === -1 ? 999 : indexB;
-				return finalA - finalB;
-			});
 		}
-	}, [currentEvent?.use_ticket, permissions]);
+		// Non-ticket event order: Location → Lucky Draw → People → Partners → Promotions → Insights → History
+		const nonTicketEventOrder = [
+			"location",
+			"lucky-draw",
+			"visitors",
+			"vendors",
+			"exhibitor", // Vendors OR Exhibitor (mutually exclusive)
+			"vouchers",
+			"event-staff",
+			"voucher-analytics",
+			"mall-live-feed", // Analytics group
+			"voucher-logs",
+			"stamp-logs", // Logs group
+		];
+		return filtered.sort((a, b) => {
+			const indexA = nonTicketEventOrder.indexOf(a.id);
+			const indexB = nonTicketEventOrder.indexOf(b.id);
+			// If not found in order array, put at end
+			const finalA = indexA === -1 ? 999 : indexA;
+			const finalB = indexB === -1 ? 999 : indexB;
+			return finalA - finalB;
+		});
+	}, [currentEvent?.use_ticket, permissions, currentEvent?.use_exhibitor_kit]);
 
 	// Group ticket-related tabs for dropdown
-	const ticketTabIds = ["tickets", "pending-tickets", "scanned-logs", "ticket-types"];
+	const ticketTabIds = [
+		"tickets",
+		"pending-tickets",
+		"scanned-logs",
+		"ticket-types",
+	];
 	const ticketTabs = useMemo(() => {
 		return visibleTabs.filter((tab) => ticketTabIds.includes(tab.id));
 	}, [visibleTabs]);
@@ -407,20 +469,26 @@ export default function EventDetailLayout({
 	}, [visibleTabs]);
 
 	// Group user management tabs for dropdown (event-staff, vendors/exhibitor, and exhibitor-contractor)
-	const userManagementTabIds = ["event-staff", "vendors", "exhibitor", "exhibitor-contractor"];
+	const userManagementTabIds = [
+		"event-staff",
+		"vendors",
+		"exhibitor",
+		"exhibitor-contractor",
+	];
 	const userManagementTabs = useMemo(() => {
 		return visibleTabs.filter((tab) => userManagementTabIds.includes(tab.id));
 	}, [visibleTabs]);
 
 	// Main tabs (excluding ticket, analytics, logs, and user management sub-tabs, but we'll add group tabs)
 	const mainTabs = useMemo(() => {
-		const filtered = visibleTabs.filter((tab) => 
-			!ticketTabIds.includes(tab.id) && 
-			!analyticsTabIds.includes(tab.id) && 
-			!logsTabIds.includes(tab.id) &&
-			!userManagementTabIds.includes(tab.id)
+		const filtered = visibleTabs.filter(
+			(tab) =>
+				!ticketTabIds.includes(tab.id) &&
+				!analyticsTabIds.includes(tab.id) &&
+				!logsTabIds.includes(tab.id) &&
+				!userManagementTabIds.includes(tab.id),
 		);
-		
+
 		// If there are ticket tabs, add a grouped "Tickets" tab
 		if (ticketTabs.length > 0) {
 			// Insert the tickets group after location
@@ -439,9 +507,14 @@ export default function EventDetailLayout({
 		// If there are user management tabs, add a grouped "User Management" tab
 		if (userManagementTabs.length > 0) {
 			// Find position after tickets group or after location
-			const ticketsGroupIndex = filtered.findIndex((tab) => tab.id === "tickets-group");
-			const insertIndex = ticketsGroupIndex !== -1 ? ticketsGroupIndex + 1 : filtered.findIndex((tab) => tab.id === "location") + 1;
-			
+			const ticketsGroupIndex = filtered.findIndex(
+				(tab) => tab.id === "tickets-group",
+			);
+			const insertIndex =
+				ticketsGroupIndex !== -1
+					? ticketsGroupIndex + 1
+					: filtered.findIndex((tab) => tab.id === "location") + 1;
+
 			const userManagementGroupTab: TabItem = {
 				id: "user-management-group",
 				label: "User Management",
@@ -452,7 +525,7 @@ export default function EventDetailLayout({
 			};
 			filtered.splice(insertIndex, 0, userManagementGroupTab);
 		}
-		
+
 		// If there are analytics tabs, add a grouped "Analytics" tab
 		if (analyticsTabs.length > 0) {
 			// Insert analytics group at the end
@@ -460,7 +533,8 @@ export default function EventDetailLayout({
 				id: "analytics-group",
 				label: "Analytics",
 				title: "Analytics & Insights",
-				description: "View ticket analytics, voucher insights, and mall live feed",
+				description:
+					"View ticket analytics, voucher insights, and mall live feed",
 				icon: ChartBar,
 				route: "analytics", // Default to analytics page
 			};
@@ -480,7 +554,7 @@ export default function EventDetailLayout({
 			};
 			filtered.push(logsGroupTab);
 		}
-		
+
 		return filtered;
 	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs, userManagementTabs]);
 
@@ -492,17 +566,23 @@ export default function EventDetailLayout({
 				return {
 					...tab,
 					label: "Vendors",
-					title: permissions.isEventVendor && !permissions.canManageEventVendors 
-						? "Vendor Profile" 
-						: "Event Vendors",
-					description: permissions.isEventVendor && !permissions.canManageEventVendors
-						? "View and manage your vendor profile information."
-						: "View and manage vendors for this event.",
+					title:
+						permissions.isEventVendor && !permissions.canManageEventVendors
+							? "Vendor Profile"
+							: "Event Vendors",
+					description:
+						permissions.isEventVendor && !permissions.canManageEventVendors
+							? "View and manage your vendor profile information."
+							: "View and manage vendors for this event.",
 				};
 			}
 			return tab;
 		});
-	}, [userManagementTabs, permissions.isEventVendor, permissions.canManageEventVendors]);
+	}, [
+		userManagementTabs,
+		permissions.isEventVendor,
+		permissions.canManageEventVendors,
+	]);
 
 	// Main tabs with dynamic labels (no changes needed since vendors is now in user management group)
 	const tabsWithDynamicLabels = useMemo(() => {
@@ -541,7 +621,7 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds, userManagementTabIds]);
+	}, [pathname, visibleTabs]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
@@ -549,13 +629,24 @@ export default function EventDetailLayout({
 		const segments = pathname.split("/").filter(Boolean);
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
-			if (ticketTabIds.includes(segment) || analyticsTabIds.includes(segment) || logsTabIds.includes(segment) || userManagementTabIds.includes(segment)) {
-				return visibleTabs.find((item) => item.route === segment) || tabsWithDynamicLabels[0];
+			if (
+				ticketTabIds.includes(segment) ||
+				analyticsTabIds.includes(segment) ||
+				logsTabIds.includes(segment) ||
+				userManagementTabIds.includes(segment)
+			) {
+				return (
+					visibleTabs.find((item) => item.route === segment) ||
+					tabsWithDynamicLabels[0]
+				);
 			}
 		}
-		
-		return tabsWithDynamicLabels.find((item) => item.route === currentTab) || tabsWithDynamicLabels[0];
-	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, ticketTabIds, analyticsTabIds, logsTabIds, userManagementTabIds]);
+
+		return (
+			tabsWithDynamicLabels.find((item) => item.route === currentTab) ||
+			tabsWithDynamicLabels[0]
+		);
+	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
@@ -564,6 +655,13 @@ export default function EventDetailLayout({
 		},
 		[event_id, router],
 	);
+
+	// Check if we're on the lucky-draw session route - render centered layout without header
+	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
+
+	if (isLuckyDrawSessionRoute) {
+		return <div className="mx-auto">{children}</div>;
+	}
 
 	// If no tabs are visible, show a message
 	if (tabsWithDynamicLabels.length === 0) {
@@ -615,16 +713,20 @@ export default function EventDetailLayout({
 				</div>
 				<div className="w-full border-y border-dashed">
 					{isTablet ? (
-					<Select 
-						value={
-							currentTab === "tickets-group" ? "tickets" : 
-							currentTab === "analytics-group" ? "analytics" : 
-							currentTab === "logs-group" ? "voucher-logs" :
-							currentTab === "user-management-group" ? (userManagementTabs[0]?.route || "event-staff") :
-							currentTab
-						} 
-						onValueChange={handleTabChange}
-					>
+						<Select
+							value={
+								currentTab === "tickets-group"
+									? "tickets"
+									: currentTab === "analytics-group"
+										? "analytics"
+										: currentTab === "logs-group"
+											? "voucher-logs"
+											: currentTab === "user-management-group"
+												? userManagementTabs[0]?.route || "event-staff"
+												: currentTab
+							}
+							onValueChange={handleTabChange}
+						>
 							<SelectTrigger className="h-12! w-full rounded-none border-none bg-accent/50 transition-colors hover:bg-accent">
 								<SelectValue>
 									{(() => {
@@ -641,7 +743,7 @@ export default function EventDetailLayout({
 							<SelectContent className="rounded-none bg-background">
 								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
-									
+
 									// If this is the tickets group, show all ticket options
 									if (item.id === "tickets-group") {
 										return ticketTabs.map((ticketTab) => {
@@ -660,7 +762,7 @@ export default function EventDetailLayout({
 											);
 										});
 									}
-									
+
 									// If this is the analytics group, show all analytics options
 									if (item.id === "analytics-group") {
 										return analyticsTabs.map((analyticsTab) => {
@@ -701,23 +803,25 @@ export default function EventDetailLayout({
 
 									// If this is the user management group, show all user management options
 									if (item.id === "user-management-group") {
-										return userManagementTabsWithDynamicLabels.map((userTab) => {
-											const UserIcon = userTab.icon;
-											return (
-												<SelectItem
-													key={userTab.id}
-													value={userTab.route}
-													className="h-10! rounded-none"
-												>
-													<div className="flex items-center gap-2">
-														<UserIcon className="size-4" />
-														<span>{userTab.label}</span>
-													</div>
-												</SelectItem>
-											);
-										});
+										return userManagementTabsWithDynamicLabels.map(
+											(userTab) => {
+												const UserIcon = userTab.icon;
+												return (
+													<SelectItem
+														key={userTab.id}
+														value={userTab.route}
+														className="h-10! rounded-none"
+													>
+														<div className="flex items-center gap-2">
+															<UserIcon className="size-4" />
+															<span>{userTab.label}</span>
+														</div>
+													</SelectItem>
+												);
+											},
+										);
 									}
-									
+
 									return (
 										<SelectItem
 											key={item.id}
@@ -738,28 +842,37 @@ export default function EventDetailLayout({
 							<TabsList className="flex h-12 w-full rounded-none">
 								{tabsWithDynamicLabels.map((item) => {
 									const IconComponent = item.icon;
-									
+
 									// Render tickets dropdown
 									if (item.id === "tickets-group") {
-										const isTicketTabActive = ticketTabIds.includes(currentTab) || currentTab === "tickets-group";
-										
+										const isTicketTabActive =
+											ticketTabIds.includes(currentTab) ||
+											currentTab === "tickets-group";
+
 										return (
 											<DropdownMenu key={item.id}>
 												<DropdownMenuTrigger asChild>
 													<button
+														type="button"
 														className={cn(
 															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
-															isTicketTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+															isTicketTabActive &&
+																"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
 														)}
 													>
 														<IconComponent className="size-5 lg:size-4" />
-														<span className="hidden xl:inline">{item.label}</span>
+														<span className="hidden xl:inline">
+															{item.label}
+														</span>
 														<ChevronDown className="ml-0.5 size-3 opacity-50" />
 													</button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent align="start" className="min-w-[200px]">
+												<DropdownMenuContent
+													align="start"
+													className="min-w-[200px]"
+												>
 													{ticketTabs.map((ticketTab) => {
 														const TicketIcon = ticketTab.icon;
 														return (
@@ -780,70 +893,92 @@ export default function EventDetailLayout({
 
 									// Render user management dropdown
 									if (item.id === "user-management-group") {
-										const isUserManagementTabActive = userManagementTabIds.includes(currentTab) || currentTab === "user-management-group";
-										
+										const isUserManagementTabActive =
+											userManagementTabIds.includes(currentTab) ||
+											currentTab === "user-management-group";
+
 										return (
 											<DropdownMenu key={item.id}>
 												<DropdownMenuTrigger asChild>
 													<button
+														type="button"
 														className={cn(
 															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
-															isUserManagementTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+															isUserManagementTabActive &&
+																"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
 														)}
 													>
 														<IconComponent className="size-5 lg:size-4" />
-														<span className="hidden xl:inline">{item.label}</span>
+														<span className="hidden xl:inline">
+															{item.label}
+														</span>
 														<ChevronDown className="ml-0.5 size-3 opacity-50" />
 													</button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent align="start" className="min-w-[200px]">
-													{userManagementTabsWithDynamicLabels.map((userTab) => {
-														const UserIcon = userTab.icon;
-														return (
-															<DropdownMenuItem
-																key={userTab.id}
-																onClick={() => handleTabChange(userTab.route)}
-																className="cursor-pointer"
-															>
-																<UserIcon className="mr-2 size-4" />
-																<span>{userTab.label}</span>
-															</DropdownMenuItem>
-														);
-													})}
+												<DropdownMenuContent
+													align="start"
+													className="min-w-[200px]"
+												>
+													{userManagementTabsWithDynamicLabels.map(
+														(userTab) => {
+															const UserIcon = userTab.icon;
+															return (
+																<DropdownMenuItem
+																	key={userTab.id}
+																	onClick={() => handleTabChange(userTab.route)}
+																	className="cursor-pointer"
+																>
+																	<UserIcon className="mr-2 size-4" />
+																	<span>{userTab.label}</span>
+																</DropdownMenuItem>
+															);
+														},
+													)}
 												</DropdownMenuContent>
 											</DropdownMenu>
 										);
 									}
-									
+
 									// Render analytics dropdown
 									if (item.id === "analytics-group") {
-										const isAnalyticsTabActive = analyticsTabIds.includes(currentTab) || currentTab === "analytics-group";
-										
+										const isAnalyticsTabActive =
+											analyticsTabIds.includes(currentTab) ||
+											currentTab === "analytics-group";
+
 										return (
 											<DropdownMenu key={item.id}>
 												<DropdownMenuTrigger asChild>
 													<button
+														type="button"
 														className={cn(
 															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
-															isAnalyticsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+															isAnalyticsTabActive &&
+																"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
 														)}
 													>
 														<IconComponent className="size-5 lg:size-4" />
-														<span className="hidden xl:inline">{item.label}</span>
+														<span className="hidden xl:inline">
+															{item.label}
+														</span>
 														<ChevronDown className="ml-0.5 size-3 opacity-50" />
 													</button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent align="start" className="min-w-[200px]">
+												<DropdownMenuContent
+													align="start"
+													className="min-w-[200px]"
+												>
 													{analyticsTabs.map((analyticsTab) => {
 														const AnalyticsIcon = analyticsTab.icon;
 														return (
 															<DropdownMenuItem
 																key={analyticsTab.id}
-																onClick={() => handleTabChange(analyticsTab.route)}
+																onClick={() =>
+																	handleTabChange(analyticsTab.route)
+																}
 																className="cursor-pointer"
 															>
 																<AnalyticsIcon className="mr-2 size-4" />
@@ -858,25 +993,34 @@ export default function EventDetailLayout({
 
 									// Render logs dropdown
 									if (item.id === "logs-group") {
-										const isLogsTabActive = logsTabIds.includes(currentTab) || currentTab === "logs-group";
-										
+										const isLogsTabActive =
+											logsTabIds.includes(currentTab) ||
+											currentTab === "logs-group";
+
 										return (
 											<DropdownMenu key={item.id}>
 												<DropdownMenuTrigger asChild>
 													<button
+														type="button"
 														className={cn(
 															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 															"dark:text-muted-foreground",
-															isLogsTabActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground"
+															isLogsTabActive &&
+																"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
 														)}
 													>
 														<IconComponent className="size-5 lg:size-4" />
-														<span className="hidden xl:inline">{item.label}</span>
+														<span className="hidden xl:inline">
+															{item.label}
+														</span>
 														<ChevronDown className="ml-0.5 size-3 opacity-50" />
 													</button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent align="start" className="min-w-[200px]">
+												<DropdownMenuContent
+													align="start"
+													className="min-w-[200px]"
+												>
 													{logsTabs.map((logsTab) => {
 														const LogsIcon = logsTab.icon;
 														return (
@@ -894,7 +1038,7 @@ export default function EventDetailLayout({
 											</DropdownMenu>
 										);
 									}
-									
+
 									// Regular tab
 									return (
 										<TabsTrigger

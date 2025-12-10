@@ -73,6 +73,11 @@ export default function AuthLayout({
 		return <div className="grid h-svh grid-rows-[auto_1fr]">{children}</div>;
 	}
 
+	// Render lucky-draw session pages without sidebar
+	if (pathname.includes("lucky-draw/session")) {
+		return <div className="mx-auto">{children}</div>;
+	}
+
 	// Render sidebar layout for authenticated users
 	return (
 		<SidebarProvider>
