@@ -13,6 +13,11 @@ export interface LuckyDrawSession {
 		style: "wheel" | "slot" | "box";
 		theme: "wireframe" | "colorful" | "cartoon";
 	};
+	wrapper_background: {
+		useImage: boolean;
+		backgroundImgUrl?: string;
+		backgroundColor?: string;
+	};
 	use_gifts: boolean;
 	created_at: string;
 	updated_at: string;

@@ -10,6 +10,11 @@ export interface CreateLuckyDrawSessionRequest {
 		style: "wheel" | "slot" | "box";
 		theme: "wireframe" | "colorful" | "cartoon";
 	};
+	wrapper_background?: {
+		useImage: boolean;
+		backgroundImgUrl?: string;
+		backgroundColor?: string;
+	};
 	use_gifts?: boolean;
 	// Logo is handled via FormData
 }
@@ -23,6 +28,11 @@ export interface UpdateLuckyDrawSessionRequest {
 	draw_styles?: {
 		style: "wheel" | "slot" | "box";
 		theme: "wireframe" | "colorful" | "cartoon";
+	};
+	wrapper_background?: {
+		useImage: boolean;
+		backgroundImgUrl?: string;
+		backgroundColor?: string;
 	};
 	use_gifts?: boolean;
 	// Logo is handled via FormData

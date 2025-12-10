@@ -24,7 +24,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
-import { updateLuckyDrawSession } from "@/lib/api/lucky-draw";
+import {
+	getLuckyDrawSessionLogoUrl,
+	updateLuckyDrawSession,
+} from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 
 type DrawStyle = "wheel" | "slot" | "box";
@@ -42,14 +45,6 @@ const formSchema = z.object({
 interface EditFormProps {
 	session: LuckyDrawSession;
 }
-
-const getImageUrl = (path: string) => {
-	if (path.startsWith("http")) return path;
-	const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-	const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-	const cleanApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-	return `${cleanApiUrl}/${cleanPath}`;
-};
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -81,7 +76,7 @@ export default function EditForm({ session }: EditFormProps) {
 			draw_theme: session.draw_styles?.theme || "wireframe",
 			use_gifts: session.use_gifts,
 			logo: (session.logo
-				? getImageUrl(session.logo)
+				? getLuckyDrawSessionLogoUrl(session.logo)
 				: null) as FormValues["logo"],
 		} satisfies Partial<FormValues>,
 		validators: {
@@ -307,7 +302,9 @@ export default function EditForm({ session }: EditFormProps) {
 									<Select
 										value={field.state.value}
 										onValueChange={(value) => {
-											field.handleChange(value as "wireframe" | "colorful" | "cartoon");
+											field.handleChange(
+												value as "wireframe" | "colorful" | "cartoon",
+											);
 										}}
 										disabled={isPending}
 									>

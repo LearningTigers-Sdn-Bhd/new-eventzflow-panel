@@ -2,20 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { getLuckyDrawSessionLogoUrl } from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import { ActionMenu } from "./action-menu";
-
-const getImageUrl = (path: string) => {
-	if (path.startsWith("http")) return path;
-	// Remove leading slash if present to avoid double slash with API_URL if it has one
-	const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-	const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-	// Check if API_URL ends with /
-	const cleanApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-	return `${cleanApiUrl}/${cleanPath}`;
-};
 
 export const columns: ColumnDef<LuckyDrawSession>[] = [
 	{
@@ -25,11 +15,10 @@ export const columns: ColumnDef<LuckyDrawSession>[] = [
 			const logo = row.getValue("logo") as string;
 			return logo ? (
 				<div className="relative h-10 w-10 overflow-hidden rounded-md border">
-					<Image
-						src={getImageUrl(logo)}
+					<img
+						src={getLuckyDrawSessionLogoUrl(logo)}
 						alt={row.original.title}
-						fill
-						className="object-cover"
+						className="h-full w-full object-cover"
 					/>
 				</div>
 			) : (

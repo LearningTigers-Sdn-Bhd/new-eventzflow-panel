@@ -18,6 +18,7 @@ import {
 	removeInvalidParticipant,
 	updateGift,
 	updateLuckyDrawSession,
+	updateSessionBackground,
 } from "@/lib/api/lucky-draw";
 
 /**
@@ -243,6 +244,26 @@ export function useClearInvalidParticipants(eventId: string, sessionId: number) 
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["lucky-draw", "participants", eventId, sessionId],
+			});
+		},
+	});
+}
+
+/**
+ * Mutation Hook: Update Session Background
+ */
+export function useUpdateSessionBackground(eventId: string, sessionId: number) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: {
+			useImage: boolean;
+			backgroundImage?: File;
+			backgroundColor?: string;
+		}) => updateSessionBackground(eventId, sessionId, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw-session", eventId, sessionId],
 			});
 		},
 	});

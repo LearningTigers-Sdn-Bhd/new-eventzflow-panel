@@ -1,5 +1,5 @@
 import { extractErrorMessage } from "@/utils/error-handler";
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	AddInvalidParticipantRequest,
 	AssignWinnerRequest,
@@ -20,6 +20,34 @@ import type {
 } from "./response";
 
 /**
+ * Get the full URL for a lucky draw session logo
+ * @param path - The logo path from backend (e.g., "lucky_draw_session_logos/session-20240101_120000-abc123.jpg")
+ * @returns Full URL to access the logo
+ */
+export function getLuckyDrawSessionLogoUrl(path: string): string {
+	if (path.startsWith("http")) return path;
+	// Extract filename from path (e.g., "lucky_draw_session_logos/filename.jpg" -> "filename.jpg")
+	const filename = path.includes("/") ? (path.split("/").pop() ?? path) : path;
+	return publicRestClient.getImageUrl(
+		`v1/lucky_draw_session_logos/${filename}`,
+	);
+}
+
+/**
+ * Get the full URL for a lucky draw session background image
+ * @param path - The background path from backend (e.g., "lucky_draw_session_backgrounds/bg-20240101_120000-abc123.jpg")
+ * @returns Full URL to access the background image
+ */
+export function getLuckyDrawSessionBackgroundUrl(path: string): string {
+	if (path.startsWith("http")) return path;
+	// Extract filename from path (e.g., "lucky_draw_session_backgrounds/filename.jpg" -> "filename.jpg")
+	const filename = path.includes("/") ? (path.split("/").pop() ?? path) : path;
+	return publicRestClient.getImageUrl(
+		`v1/lucky_draw_session_backgrounds/${filename}`,
+	);
+}
+
+/**
  * Get Lucky Draw Sessions
  * GET /v1/events/:event_id/lucky_draw/sessions
  */
@@ -27,9 +55,9 @@ export async function getLuckyDrawSessions(
 	eventId: string,
 ): Promise<LuckyDrawSession[]> {
 	try {
-		const response = await restClient.get<
-			ApiResponse<LuckyDrawSession[]>
-		>(`v1/events/${eventId}/lucky_draw/sessions`);
+		const response = await restClient.get<ApiResponse<LuckyDrawSession[]>>(
+			`v1/events/${eventId}/lucky_draw/sessions`,
+		);
 
 		if (!response.success) {
 			throw new Error(
@@ -54,14 +82,12 @@ export async function getLuckyDrawSession(
 	sessionId: number,
 ): Promise<LuckyDrawSession> {
 	try {
-		const response = await restClient.get<
-			ApiResponse<LuckyDrawSession>
-		>(`v1/events/${eventId}/lucky_draw/sessions/${sessionId}`);
+		const response = await restClient.get<ApiResponse<LuckyDrawSession>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}`,
+		);
 
 		if (!response.success || !response.data) {
-			throw new Error(
-				response.message || "Failed to fetch lucky draw session",
-			);
+			throw new Error(response.message || "Failed to fetch lucky draw session");
 		}
 
 		return response.data;
@@ -87,13 +113,31 @@ export async function createLuckyDrawSession(
 			formData.append("draw_styles[style]", data.draw_styles.style);
 			formData.append("draw_styles[theme]", data.draw_styles.theme);
 		}
-		if (data.use_gifts !== undefined) formData.append("use_gifts", String(data.use_gifts));
+		if (data.wrapper_background) {
+			formData.append(
+				"wrapper_background[useImage]",
+				String(data.wrapper_background.useImage),
+			);
+			if (data.wrapper_background.backgroundImgUrl) {
+				formData.append(
+					"wrapper_background[backgroundImgUrl]",
+					data.wrapper_background.backgroundImgUrl,
+				);
+			}
+			if (data.wrapper_background.backgroundColor) {
+				formData.append(
+					"wrapper_background[backgroundColor]",
+					data.wrapper_background.backgroundColor,
+				);
+			}
+		}
+		if (data.use_gifts !== undefined)
+			formData.append("use_gifts", String(data.use_gifts));
 		if (data.logo) formData.append("logo", data.logo);
 
-		const response = await restClient.postFormData<ApiResponse<LuckyDrawSession>>(
-			`v1/events/${eventId}/lucky_draw/sessions`,
-			formData,
-		);
+		const response = await restClient.postFormData<
+			ApiResponse<LuckyDrawSession>
+		>(`v1/events/${eventId}/lucky_draw/sessions`, formData);
 
 		if (!response.success || !response.data) {
 			throw new Error(
@@ -125,14 +169,32 @@ export async function updateLuckyDrawSession(
 			formData.append("draw_styles[style]", data.draw_styles.style);
 			formData.append("draw_styles[theme]", data.draw_styles.theme);
 		}
-		if (data.use_gifts !== undefined) formData.append("use_gifts", String(data.use_gifts));
+		if (data.wrapper_background) {
+			formData.append(
+				"wrapper_background[useImage]",
+				String(data.wrapper_background.useImage),
+			);
+			if (data.wrapper_background.backgroundImgUrl) {
+				formData.append(
+					"wrapper_background[backgroundImgUrl]",
+					data.wrapper_background.backgroundImgUrl,
+				);
+			}
+			if (data.wrapper_background.backgroundColor) {
+				formData.append(
+					"wrapper_background[backgroundColor]",
+					data.wrapper_background.backgroundColor,
+				);
+			}
+		}
+		if (data.use_gifts !== undefined)
+			formData.append("use_gifts", String(data.use_gifts));
 		if (data.logo) formData.append("logo", data.logo);
 		if (data.remove_logo) formData.append("remove_logo", "true");
 
-		const response = await restClient.patchFormData<ApiResponse<LuckyDrawSession>>(
-			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}`,
-			formData,
-		);
+		const response = await restClient.patchFormData<
+			ApiResponse<LuckyDrawSession>
+		>(`v1/events/${eventId}/lucky_draw/sessions/${sessionId}`, formData);
 
 		if (!response.success || !response.data) {
 			throw new Error(
@@ -169,7 +231,10 @@ export async function deleteLuckyDrawSession(
  * Get Gifts
  * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/gifts
  */
-export async function getGifts(eventId: string, sessionId: number): Promise<Gift[]> {
+export async function getGifts(
+	eventId: string,
+	sessionId: number,
+): Promise<Gift[]> {
 	try {
 		const response = await restClient.get<ApiResponse<Gift[]>>(
 			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/gifts`,
@@ -249,7 +314,9 @@ export async function deleteGift(
 	giftId: number,
 ): Promise<void> {
 	try {
-		await restClient.delete(`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/gifts/${giftId}`);
+		await restClient.delete(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/gifts/${giftId}`,
+		);
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);
@@ -412,9 +479,7 @@ export async function addInvalidParticipant(
 		);
 
 		if (!response.success || !response.data) {
-			throw new Error(
-				response.message || "Failed to add invalid participant",
-			);
+			throw new Error(response.message || "Failed to add invalid participant");
 		}
 
 		return response.data;
@@ -455,6 +520,89 @@ export async function clearInvalidParticipants(
 		await restClient.delete(
 			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants`,
 		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Get Session Background Configuration
+ * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/background-manager
+ */
+export async function getSessionBackground(
+	eventId: string,
+	sessionId: number,
+): Promise<{ wrapper_background: LuckyDrawSession["wrapper_background"] }> {
+	try {
+		const response = await restClient.get<
+			ApiResponse<{
+				wrapper_background: LuckyDrawSession["wrapper_background"];
+			}>
+		>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/background-manager`,
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(response.message || "Failed to fetch session background");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Update Session Background Configuration
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/background-manager
+ */
+export async function updateSessionBackground(
+	eventId: string,
+	sessionId: number,
+	data: {
+		useImage: boolean;
+		backgroundImage?: File;
+		backgroundColor?: string;
+	},
+): Promise<{ wrapper_background: LuckyDrawSession["wrapper_background"] }> {
+	try {
+		const formData = new FormData();
+		formData.append("useImage", String(data.useImage));
+
+		if (data.useImage) {
+			// Only require a new file if provided - existing images are handled by the backend
+			if (data.backgroundImage) {
+				formData.append("backgroundImage", data.backgroundImage);
+			}
+			// Also send backgroundColor if provided to preserve it when switching to image mode
+			if (data.backgroundColor) {
+				formData.append("backgroundColor", data.backgroundColor);
+			}
+		} else {
+			if (!data.backgroundColor) {
+				throw new Error("Background color is required when useImage is false");
+			}
+			formData.append("backgroundColor", data.backgroundColor);
+		}
+
+		const response = await restClient.postFormData<
+			ApiResponse<{
+				wrapper_background: LuckyDrawSession["wrapper_background"];
+			}>
+		>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/background-manager`,
+			formData,
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(
+				response.message || "Failed to update session background",
+			);
+		}
+
+		return response.data;
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

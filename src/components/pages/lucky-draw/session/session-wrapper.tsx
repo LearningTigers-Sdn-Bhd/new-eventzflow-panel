@@ -1,15 +1,18 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDialog } from "@/hooks/use-dialog";
 import { useLuckyDraw } from "@/hooks/use-lucky-draw";
+import {
+	getLuckyDrawSessionBackgroundUrl,
+	getLuckyDrawSessionLogoUrl,
+} from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import type { Participant } from "@/stores/lucky-draw-store";
 import { WinnerDialogContent } from "../winner-dialog-content";
@@ -26,14 +29,6 @@ interface LuckyDrawWrapperProps {
 	session: LuckyDrawSession;
 	eventName: string;
 }
-
-const getImageUrl = (path: string) => {
-	if (path.startsWith("http")) return path;
-	const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-	const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-	const cleanApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-	return `${cleanApiUrl}/${cleanPath}`;
-};
 
 export function LuckyDrawWrapper({
 	eventId,
@@ -61,6 +56,7 @@ export function LuckyDrawWrapper({
 		drawStyle,
 		drawTheme,
 		useGifts,
+		wrapperBackground,
 		useTicket,
 		canDraw,
 
@@ -220,8 +216,29 @@ export function LuckyDrawWrapper({
 		}
 	};
 
+	// Calculate background style
+	const backgroundStyle = useMemo(() => {
+		if (!wrapperBackground) return {};
+		if (wrapperBackground.useImage && wrapperBackground.backgroundImgUrl) {
+			return {
+				backgroundImage: `url(${getLuckyDrawSessionBackgroundUrl(
+					wrapperBackground.backgroundImgUrl,
+				)})`,
+				backgroundSize: "cover",
+				backgroundPosition: "center",
+				backgroundRepeat: "no-repeat",
+			};
+		}
+		if (!wrapperBackground.useImage && wrapperBackground.backgroundColor) {
+			return {
+				backgroundColor: wrapperBackground.backgroundColor,
+			};
+		}
+		return {};
+	}, [wrapperBackground]);
+
 	return (
-		<div className="mx-auto flex h-screen w-full max-w-7xl flex-col gap-6 p-6">
+		<div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6">
 			{/* Header Row */}
 			<div className="flex items-center justify-between gap-4">
 				<div className="flex items-center gap-2">
@@ -240,12 +257,11 @@ export function LuckyDrawWrapper({
 				<div className="flex flex-1 items-center justify-center gap-4">
 					<div className="flex flex-col items-center">
 						{session.logo && (
-							<div className="relative mb-1 h-12 w-12 overflow-hidden rounded-full border">
-								<Image
-									src={getImageUrl(session.logo)}
+							<div className="relative mb-1 size-14 overflow-hidden">
+								<img
+									src={getLuckyDrawSessionLogoUrl(session.logo)}
 									alt={session.title}
-									fill
-									className="object-cover"
+									className="h-full w-full object-cover"
 								/>
 							</div>
 						)}
@@ -259,7 +275,7 @@ export function LuckyDrawWrapper({
 				</div>
 
 				{/* Controls */}
-				<div className="flex items-center gap-2">
+				<div className="grid grid-cols-2 items-end gap-2">
 					<ParticipantsSheet
 						open={participantSheetOpen}
 						onOpenChange={setParticipantSheetOpen}
@@ -275,25 +291,30 @@ export function LuckyDrawWrapper({
 						onOpenChange={setGiftSheetOpen}
 						luckyDraw={luckyDraw}
 					/>
+					<Button
+						size="sm"
+						onClick={handleDraw}
+						disabled={!canDraw || isDrawing}
+						className="flex w-full items-center justify-start gap-2 rounded-none"
+					>
+						<Download className="size-4" />
+						{isDrawing ? "Drawing..." : "Draw"}
+					</Button>
 				</div>
 			</div>
 
 			{/* Draw Area */}
-			<div className="flex flex-1 flex-col items-center justify-center rounded-none border bg-card p-0 md:p-6">
-				{renderDrawComponent()}
+			<div
+				className="flex h-screen flex-1 flex-col items-center justify-center rounded-none border bg-card p-0 md:p-6"
+				style={backgroundStyle}
+			>
+				<div className="flex h-[75%] w-full flex-col items-center justify-center">
+					{renderDrawComponent()}
+				</div>
 			</div>
 
 			{/* Draw Button */}
-			<div className="flex justify-center pb-12">
-				<Button
-					size="lg"
-					onClick={handleDraw}
-					disabled={!canDraw || isDrawing}
-					className="gap-2 rounded-none px-8 py-6 text-lg"
-				>
-					{isDrawing ? "Drawing..." : "Draw"}
-				</Button>
-			</div>
+			<div className="flex justify-center pb-12" />
 		</div>
 	);
 }

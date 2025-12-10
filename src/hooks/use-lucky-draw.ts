@@ -3,18 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { getEventById } from "@/lib/api/event";
 import {
 	type AddInvalidParticipantRequest,
 	type CreateGiftRequest,
 	type GetParticipantsQuery,
-	type UpdateGiftRequest,
-	type UpdateLuckyDrawSessionRequest,
 	getGifts,
 	getInvalidParticipants,
 	getLuckyDrawSession,
 	getParticipants,
+	type UpdateGiftRequest,
+	type UpdateLuckyDrawSessionRequest,
 } from "@/lib/api/lucky-draw";
-import { getEventById } from "@/lib/api/event";
 import {
 	transformGift,
 	transformInvalidParticipant,
@@ -37,6 +37,7 @@ import {
 	useRemoveInvalidParticipant,
 	useUpdateGift,
 	useUpdateLuckyDrawSession,
+	useUpdateSessionBackground,
 } from "./use-lucky-draw-queries";
 
 /**
@@ -50,7 +51,11 @@ import {
  *
  * Components should consume data from this hook directly, NOT from Zustand store
  */
-export function useLuckyDraw(eventId: string, sessionId: number, eventName?: string) {
+export function useLuckyDraw(
+	eventId: string,
+	sessionId: number,
+	eventName?: string,
+) {
 	// ========================================
 	// UI State (Zustand) - For drawing state only
 	// ========================================
@@ -61,9 +66,9 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 	if (store.eventId !== eventId) {
 		store.setEventId(eventId);
 	}
-    if (store.sessionId !== sessionId) {
-        store.setSessionId(sessionId);
-    }
+	if (store.sessionId !== sessionId) {
+		store.setSessionId(sessionId);
+	}
 	if (eventName && store.eventName !== eventName) {
 		store.setEventName(eventName);
 	}
@@ -98,11 +103,16 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		enabled: !!eventId && !!sessionId,
 	});
 
-	const drawStyle =
-		(sessionData?.draw_styles?.style as DrawStyle) || "wheel";
+	const drawStyle = (sessionData?.draw_styles?.style as DrawStyle) || "wheel";
 	const drawTheme =
-		(sessionData?.draw_styles?.theme as "wireframe" | "colorful" | "cartoon") || "wireframe";
+		(sessionData?.draw_styles?.theme as "wireframe" | "colorful" | "cartoon") ||
+		"wireframe";
 	const useGifts = sessionData?.use_gifts ?? false;
+	const wrapperBackground = sessionData?.wrapper_background || {
+		useImage: false,
+		backgroundImgUrl: undefined,
+		backgroundColor: undefined,
+	};
 
 	// Fetch gifts
 	const {
@@ -126,7 +136,13 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		isLoading: isLoadingParticipants,
 		isError: isErrorParticipants,
 	} = useQuery({
-		queryKey: ["lucky-draw", "participants", eventId, sessionId, participantQuery],
+		queryKey: [
+			"lucky-draw",
+			"participants",
+			eventId,
+			sessionId,
+			participantQuery,
+		],
 		queryFn: () => getParticipants(eventId, sessionId, participantQuery),
 		enabled: !!eventId && !!sessionId,
 	});
@@ -251,14 +267,27 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 	// ========================================
 
 	const updateConfigMutation = useUpdateLuckyDrawSession(eventId, sessionId);
+	const updateSessionBackgroundMutation = useUpdateSessionBackground(
+		eventId,
+		sessionId,
+	);
 	const createGiftMutation = useCreateGift(eventId, sessionId);
 	const updateGiftMutation = useUpdateGift(eventId, sessionId);
 	const deleteGiftMutation = useDeleteGift(eventId, sessionId);
 	const assignWinnerMutation = useAssignWinner(eventId, sessionId);
 	const clearWinnerMutation = useClearWinner(eventId, sessionId);
-	const addInvalidParticipantMutation = useAddInvalidParticipant(eventId, sessionId);
-	const removeInvalidParticipantMutation = useRemoveInvalidParticipant(eventId, sessionId);
-	const clearInvalidParticipantsMutation = useClearInvalidParticipants(eventId, sessionId);
+	const addInvalidParticipantMutation = useAddInvalidParticipant(
+		eventId,
+		sessionId,
+	);
+	const removeInvalidParticipantMutation = useRemoveInvalidParticipant(
+		eventId,
+		sessionId,
+	);
+	const clearInvalidParticipantsMutation = useClearInvalidParticipants(
+		eventId,
+		sessionId,
+	);
 
 	// ========================================
 	// Actions - Wrapped mutations with toast
@@ -431,11 +460,37 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		[updateConfigMutation],
 	);
 
+	const setWrapperBackground = useCallback(
+		async (value: {
+			useImage: boolean;
+			backgroundImage?: File;
+			backgroundColor?: string;
+		}) => {
+			try {
+				await updateSessionBackgroundMutation.mutateAsync({
+					useImage: value.useImage,
+					backgroundImage: value.backgroundImage,
+					backgroundColor: value.backgroundColor,
+				});
+				toast.success("Background settings updated successfully");
+			} catch (error) {
+				toast.error(
+					error instanceof Error
+						? error.message
+						: "Failed to update background settings",
+				);
+			}
+		},
+		[updateSessionBackgroundMutation],
+	);
+
 	const addInvalidParticipant = useCallback(
 		async (participant: Participant, useTicket: boolean) => {
 			try {
-				const request: AddInvalidParticipantRequest =
-					transformParticipantToAPI(participant, useTicket);
+				const request: AddInvalidParticipantRequest = transformParticipantToAPI(
+					participant,
+					useTicket,
+				);
 				await addInvalidParticipantMutation.mutateAsync(request);
 			} catch (error) {
 				toast.error(
@@ -489,7 +544,7 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 
 	const resetDraw = useCallback(() => {
 		store.setEventId(eventId);
-        store.setSessionId(sessionId);
+		store.setSessionId(sessionId);
 		store.setDrawingState(false);
 	}, [store, eventId, sessionId]);
 
@@ -507,6 +562,7 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		drawStyle,
 		drawTheme,
 		useGifts,
+		wrapperBackground,
 		useTicket,
 		canDraw,
 
@@ -519,7 +575,7 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		// UI State
 		isDrawing,
 		eventId: store.eventId,
-        sessionId: store.sessionId,
+		sessionId: store.sessionId,
 		eventName: store.eventName,
 
 		// Loading states
@@ -546,6 +602,7 @@ export function useLuckyDraw(eventId: string, sessionId: number, eventName?: str
 		setDrawStyle,
 		setDrawTheme,
 		setUseGifts,
+		setWrapperBackground,
 		startDrawing,
 		stopDrawing,
 		resetDraw,
