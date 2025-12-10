@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import WhatsApp from '../apps/WhatsApp';
 import type { ChatMessage } from '../apps/WhatsApp';
 

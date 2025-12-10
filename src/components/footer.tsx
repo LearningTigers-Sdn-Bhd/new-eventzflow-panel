@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import type React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import type { Route } from 'next';
@@ -87,40 +87,40 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-muted overflow-x-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="overflow-x-hidden bg-muted">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="py-12 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 gap-6 py-12 sm:gap-8 sm:py-16 md:grid-cols-2 lg:grid-cols-5">
           {/* Logo and Description */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6 border-b border-border pb-4">
+            <div className="mb-4 flex items-center space-x-3 border-border border-b pb-4 sm:mb-6">
               <div className="flex flex-col">
-                <span className="text-2xl sm:text-3xl font-bold leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
+                <span className="font-bold text-2xl leading-tight sm:text-3xl" style={{ fontFamily: 'Times New Roman, serif' }}>
                   <span style={{ color: '#23c460' }}>Event</span>
                   <span style={{ color: '#2766ec' }}>z</span>
                   <span style={{ color: '#23c460' }}>Flow</span>
                 </span>
-                <span className="text-xs text-muted-foreground font-medium -mt-1">
+                <span className="-mt-1 font-medium text-muted-foreground text-xs">
                   by Sales Chatalyst
                 </span>
               </div>
             </div>
             
-            <p className="text-muted-foreground leading-relaxed max-w-md mb-4 sm:mb-6 text-sm sm:text-base">
+            <p className="mb-4 max-w-md text-muted-foreground text-sm leading-relaxed sm:mb-6 sm:text-base">
               Complete event ticketing and management platform with integrated Sales Chatalyst 
               for automated attendee engagement and communications.
             </p>
 
             {/* Newsletter */}
             <div className="mb-4 sm:mb-6">
-              <h4 className="text-foreground font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Event Management Tips</h4>
+              <h4 className="mb-2 font-semibold text-foreground text-sm sm:mb-3 sm:text-base">Event Management Tips</h4>
               <div className="flex gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2 sm:px-4 sm:py-2 bg-input border border-primary rounded-md sm:rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors text-sm sm:text-base"
+                  className="flex-1 rounded-md border border-primary bg-input px-3 py-2 text-foreground text-sm transition-colors placeholder:text-muted-foreground focus:border-primary focus:outline-none sm:rounded-lg sm:px-4 sm:py-2 sm:text-base"
                 />
-                <button className="bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md sm:rounded-lg hover:shadow-lg transition-all duration-200">
+                <button className="rounded-md bg-primary px-3 py-2 text-primary-foreground transition-all duration-200 hover:shadow-lg sm:rounded-lg sm:px-4 sm:py-2">
                   <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
                 </button>
               </div>
@@ -135,7 +135,7 @@ const Footer: React.FC = () => {
                     key={index}
                     href={social.href}
                     aria-label={social.label}
-                    className="w-8 h-8 sm:w-10 sm:h-10 bg-card border rounded-md sm:rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary transition-colors duration-200"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border bg-card text-muted-foreground transition-colors duration-200 hover:border-primary hover:text-foreground sm:h-10 sm:w-10 sm:rounded-lg"
                   >
                     <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
                   </a>
@@ -147,7 +147,7 @@ const Footer: React.FC = () => {
           {/* Footer Links */}
           {footerSections.map((section, index) => (
             <div key={index}>
-              <h4 className="text-foreground font-semibold mb-3 sm:mb-4 text-sm sm:text-base">{section.title}</h4>
+              <h4 className="mb-3 font-semibold text-foreground text-sm sm:mb-4 sm:text-base">{section.title}</h4>
               <ul className="space-y-1.5 sm:space-y-2">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
@@ -155,21 +155,21 @@ const Footer: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => link.id && scrollToSection(link.id)}
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-xs sm:text-sm leading-relaxed cursor-pointer"
+                        className="cursor-pointer text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
                       >
                         {link.label}
                       </button>
                     ) : link.href ? (
                       <Link
                         href={link.href as Route}
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-xs sm:text-sm leading-relaxed"
+                        className="text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
                       >
                         {link.label}
                       </Link>
                     ) : (
                       <a
                         href="#"
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-xs sm:text-sm leading-relaxed"
+                        className="text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
                       >
                         {link.label}
                       </a>
@@ -182,18 +182,18 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t py-6 sm:py-8 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
+        <div className="flex flex-col items-center justify-between gap-3 border-t py-6 sm:gap-4 sm:py-8 md:flex-row">
           {/* Copyright */}
-          <div className="text-muted-foreground text-xs sm:text-sm text-center md:text-left">
+          <div className="text-center text-muted-foreground text-xs sm:text-sm md:text-left">
             © 2025 EventzFlow by Sales Chatalyst. All rights reserved.
           </div>
 
           {/* Legal Links */}
-          <div className="flex items-center space-x-4 sm:space-x-6 text-xs sm:text-sm">
-            <a href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <div className="flex items-center space-x-4 text-xs sm:space-x-6 sm:text-sm">
+            <a href="/privacy-policy" className="text-muted-foreground transition-colors duration-200 hover:text-foreground">
               Privacy Policy
             </a>
-            <a href="/terms-and-conditions" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <a href="/terms-and-conditions" className="text-muted-foreground transition-colors duration-200 hover:text-foreground">
               Terms & Conditions
             </a>
           </div>

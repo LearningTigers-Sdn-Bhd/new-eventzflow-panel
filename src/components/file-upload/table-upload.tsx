@@ -158,13 +158,13 @@ export default function TableUpload({
 
 	return (
 		<div className={cn("w-full space-y-4 border-t border-dashed", className)}>
-			<div className="p-2 md:p-4 bg-muted border-b border-dashed">
+			<div className="border-b border-dashed bg-muted p-2 md:p-4">
 				{/* Upload Area */}
 				{/* biome-ignore lint: File upload drop zone requires interactive div with drag handlers */}
 				<div
 					aria-label="File upload drop zone"
 					className={cn(
-						"relative cursor-pointer border border-dashed p-6 text-center transition-colors bg-background",
+						"relative cursor-pointer border border-dashed bg-background p-6 text-center transition-colors",
 						isDragging
 							? "border-primary bg-primary/5"
 							: "border-muted-foreground/25 hover:border-muted-foreground/50",
@@ -190,7 +190,7 @@ export default function TableUpload({
 						</div>
 
 						<div className="space-y-2">
-							<p className="text-sm font-medium">
+							<p className="font-medium text-sm">
 								Drop files here or{" "}
 								<button
 									type="button"
@@ -200,7 +200,7 @@ export default function TableUpload({
 									browse files
 								</button>
 							</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-muted-foreground text-xs">
 								Maximum file size: {formatBytes(maxSize)} • Maximum files:{" "}
 								{maxFiles}
 							</p>
@@ -247,7 +247,7 @@ export default function TableUpload({
 					<div className="border">
 						<Table>
 							<TableHeader>
-								<TableRow className="text-xs bg-muted [&>th]:font-semibold">
+								<TableRow className="bg-muted text-xs [&>th]:font-semibold">
 									<TableHead className="h-9">Name</TableHead>
 									<TableHead className="h-9">Type</TableHead>
 									<TableHead className="h-9">Size</TableHead>
@@ -263,14 +263,14 @@ export default function TableUpload({
 											<div className="flex items-center gap-1">
 												<div
 													className={cn(
-														"size-8 shrink-0 relative flex items-center justify-center text-muted-foreground/80",
+														"relative flex size-8 shrink-0 items-center justify-center text-muted-foreground/80",
 													)}
 												>
 													{fileItem.status === "uploading" ? (
 														<div className="relative">
 															{/* Circular progress background */}
 															<svg
-																className="size-8 -rotate-90"
+																className="-rotate-90 size-8"
 																viewBox="0 0 32 32"
 																aria-label={`Uploading ${fileItem.file.name}: ${Math.round(fileItem.progress)}%`}
 															>
@@ -304,12 +304,12 @@ export default function TableUpload({
 															</div>
 														</div>
 													) : (
-														<div className="not-[]:size-8 flex items-center justify-center">
+														<div className="flex not-[]:size-8 items-center justify-center">
 															{getFileIcon(fileItem.file)}
 														</div>
 													)}
 												</div>
-												<p className="flex items-center gap-1 truncate text-sm font-medium">
+												<p className="flex items-center gap-1 truncate font-medium text-sm">
 													{fileItem.file.name}
 													{fileItem.status === "error" && (
 														<Badge
@@ -326,18 +326,18 @@ export default function TableUpload({
 											<Badge
 												variant="outline"
 												className={cn(
-													"text-xs rounded-none border",
+													"rounded-none border text-xs",
 													getFileTypeBadgeColor(fileItem.file),
 												)}
 											>
 												{getFileTypeLabel(fileItem.file)}
 											</Badge>
 										</TableCell>
-										<TableCell className="py-2 text-sm text-muted-foreground">
+										<TableCell className="py-2 text-muted-foreground text-sm">
 											{formatBytes(fileItem.file.size)}
 										</TableCell>
 										<TableCell className="py-2">
-											<div className="w-full flex items-center justify-end gap-1 pe-1.5">
+											<div className="flex w-full items-center justify-end gap-1 pe-1.5">
 												{fileItem.preview && (
 													<Button
 														variant="default"
