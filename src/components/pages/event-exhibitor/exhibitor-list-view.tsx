@@ -1,13 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, Info, Package, Printer, Users } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { columns } from "./table/columns";
 import { DataTable } from "./table/data-table";
+import { OrderedItemsView } from "./ordered-items-view";
+import { OrderedServicesView } from "./ordered-services-view";
 
 interface ExhibitorListViewProps {
 	eventId: string;
@@ -18,6 +22,8 @@ interface ExhibitorListViewProps {
  * Component for admins to view and manage exhibitors list
  */
 export function ExhibitorListView({ eventId, canManageVendors }: ExhibitorListViewProps) {
+	const [activeTab, setActiveTab] = useState("exhibitors");
+
 	const {
 		data: vendors,
 		isLoading,
@@ -47,25 +53,67 @@ export function ExhibitorListView({ eventId, canManageVendors }: ExhibitorListVi
 	}
 
 	return (
-		<div className="space-y-4">
-			<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex items-start gap-3">
-					<Info className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-					<div className="space-y-1">
-						<p className="text-sm font-medium">Assign exhibitors to this event</p>
-						<p className="text-sm text-muted-foreground">
-							This page shows exhibitors assigned to this event. To create new vendors, go to the Vendors page.
-						</p>
-					</div>
+		<div className="space-y-4 p-0">
+			<Tabs value={activeTab} onValueChange={setActiveTab}>
+				<div className="w-full border-y border-dashed">
+					<TabsList className="flex h-12 w-full rounded-none">
+						<TabsTrigger
+							value="exhibitors"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<Users className="size-4" />
+							Exhibitors
+						</TabsTrigger>
+						<TabsTrigger
+							value="items"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<Package className="size-4" />
+							Ordered Items
+						</TabsTrigger>
+						<TabsTrigger
+							value="services"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<Printer className="size-4" />
+							Ordered Services
+						</TabsTrigger>
+					</TabsList>
 				</div>
-				<Button variant="outline" asChild className="w-full rounded-none sm:w-auto sm:shrink-0">
-					<Link href="/vendor">
-						Go to Vendors
-						<ArrowRight className="ml-2 h-4 w-4" />
-					</Link>
-				</Button>
-			</div>
-			<DataTable columns={columns} data={vendors || []} canManageVendors={canManageVendors} />
+
+				<div className="mt-6">
+					<TabsContent value="exhibitors" className="mt-0">
+						<div className="space-y-4">
+							<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+								<div className="flex items-start gap-3">
+									<Info className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+									<div className="space-y-1">
+										<p className="text-sm font-medium">Assign exhibitors to this event</p>
+										<p className="text-sm text-muted-foreground">
+											This page shows exhibitors assigned to this event. To create new vendors, go to the Vendors page.
+										</p>
+									</div>
+								</div>
+								<Button variant="outline" asChild className="w-full rounded-none sm:w-auto sm:shrink-0">
+									<Link href="/vendor">
+										Go to Vendors
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Link>
+								</Button>
+							</div>
+							<DataTable columns={columns} data={vendors || []} canManageVendors={canManageVendors} />
+						</div>
+					</TabsContent>
+
+					<TabsContent value="items" className="mt-0">
+						<OrderedItemsView eventId={eventId} />
+					</TabsContent>
+
+					<TabsContent value="services" className="mt-0">
+						<OrderedServicesView eventId={eventId} />
+					</TabsContent>
+				</div>
+			</Tabs>
 		</div>
 	);
 }

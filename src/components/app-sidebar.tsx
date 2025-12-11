@@ -1,6 +1,6 @@
 "use client";
 
-import { HardHat, Import, Key, LayoutDashboard, Package, Store, Ticket, Users } from "lucide-react";
+import { FolderOpen, HardHat, Import, Key, LayoutDashboard, Package, Printer, Store, Ticket, Users } from "lucide-react";
 import type { Route } from "next";
 import type * as React from "react";
 import { BiQrScan } from "react-icons/bi";
@@ -36,6 +36,18 @@ const data = {
 			name: "Exhibitor Kit",
 			url: "/exhibitor-kit" as Route,
 			icon: Package,
+			roleAllowed: ["exhibition_contractor"],
+		},
+		{
+			name: "Rentable Items",
+			url: "/rentable-items" as Route,
+			icon: Package,
+			roleAllowed: ["exhibition_contractor"],
+		},
+		{
+			name: "Printing Services",
+			url: "/printing-services" as Route,
+			icon: Printer,
 			roleAllowed: ["exhibition_contractor"],
 		},
 		{
@@ -79,6 +91,12 @@ const data = {
 			url: "/import" as Route,
 			icon: Import,
 			roleAllowed: ["org_owner"],
+		},
+		{
+			name: "Item Categories",
+			url: "/item-categories" as Route,
+			icon: FolderOpen,
+			roleAllowed: ["org_owner", "organizer"],
 		},
 		// {
 		// 	name: "Credits",

@@ -1,9 +1,45 @@
 import { restClient } from "@/utils/rest-api";
 import type { ExhibitorKit } from "./response";
 import {
+	type CreateExhibitorKitRequest,
 	type UpdateExhibitorKitRequest,
+	createExhibitorKitSchema,
 	updateExhibitorKitSchema,
 } from "./request";
+
+/**
+ * Get all exhibitor kits for an event
+ */
+export async function getExhibitorKits(eventId: number): Promise<ExhibitorKit[]> {
+	return restClient.get<ExhibitorKit[]>(`v1/events/${eventId}/exhibitor_kits`);
+}
+
+/**
+ * Get a specific exhibitor kit
+ */
+export async function getExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<ExhibitorKit> {
+	return restClient.get<ExhibitorKit>(`v1/events/${eventId}/exhibitor_kits/${kitId}`);
+}
+
+/**
+ * Create an exhibitor kit with items and printings
+ * Used when vendors submit their orders
+ */
+export async function createExhibitorKit(
+	eventId: number,
+	data: CreateExhibitorKitRequest,
+): Promise<ExhibitorKit> {
+	const validated = createExhibitorKitSchema.parse(data);
+	return restClient.post<ExhibitorKit>(
+		`v1/events/${eventId}/exhibitor_kits`,
+		{
+			exhibitor_kit: validated,
+		},
+	);
+}
 
 /**
  * Update an exhibitor kit
