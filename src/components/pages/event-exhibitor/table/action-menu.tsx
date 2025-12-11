@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Eye,
 	MoreHorizontal,
@@ -25,9 +25,10 @@ import { deleteEventVendor } from "@/lib/api/event-vendor";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import ConfirmDialog from "../../event-staff/confirm-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
-import { ManageKitsForm } from "../forms/manage-kits-form";
+import { ManageKitsModal } from "../forms/manage-kits-modal";
 import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
+import { getEventById } from "@/lib/api/event";
 
 interface ExhibitorActionsMenuProps {
 	exhibitor: EventVendor;
@@ -40,6 +41,11 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	const { openDialog, closeDialog } = useDialog();
 
 	const queryClient = useQueryClient();
+
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
 	const deleteExhibitorMutation = useMutation({
 		mutationFn: (exhibitorId: number) =>
 			deleteEventVendor(Number(eventId), exhibitorId),
@@ -74,9 +80,10 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 			return;
 		}
 		openDialog({
-			component: ManageKitsForm,
+			component: ManageKitsModal,
 			props: {
 				vendor: exhibitor,
+				showPrintingServices: event?.allow_contractor_printing_services ?? false,
 				onClose: closeDialog,
 			},
 			config: {

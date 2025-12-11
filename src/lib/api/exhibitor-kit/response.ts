@@ -7,6 +7,41 @@ export interface ExhibitorTeamMember {
 	_destroy?: boolean;
 }
 
+export interface RentableItemInfo {
+	id: number;
+	name: string;
+	unit_of_measure: string;
+	default_price: number;
+}
+
+export interface PrintingServiceInfo {
+	id: number;
+	name: string;
+	unit_of_measure: string;
+	default_price: number;
+}
+
+export interface ExhibitorKitItem {
+	id: number;
+	exhibitor_kit_id: number;
+	rentable_item_id: number;
+	quantity: number;
+	agreed_price: number;
+	notes?: string;
+	rentable_item?: RentableItemInfo;
+}
+
+export interface ExhibitorKitPrinting {
+	id: number;
+	exhibitor_kit_id: number;
+	printing_service_id: number;
+	quantity: number;
+	agreed_price: number;
+	file_reference?: string;
+	notes?: string;
+	printing_service?: PrintingServiceInfo;
+}
+
 export type BoothType = "shell_scheme" | "raw_space";
 export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
 
@@ -43,6 +78,8 @@ export interface ExhibitorKit {
 	payment_note?: string;
 	indemnity_link?: string;
 	exhibitor_team_members: ExhibitorTeamMember[];
+	exhibitor_kit_items?: ExhibitorKitItem[];
+	exhibitor_kit_printings?: ExhibitorKitPrinting[];
 	created_at?: string;
 	updated_at?: string;
 }
