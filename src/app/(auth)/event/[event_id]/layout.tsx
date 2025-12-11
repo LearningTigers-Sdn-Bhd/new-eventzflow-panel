@@ -155,6 +155,30 @@ const tabItems: TabItem[] = [
 		route: "exhibitor-contractor",
 	},
 	{
+		id: "contractor-profile",
+		label: "My Profile",
+		title: "My Profile",
+		description: "View and manage your contractor profile information.",
+		icon: HardHat,
+		route: "exhibitor-contractor",
+	},
+	{
+		id: "rentable-items",
+		label: "Rentable Items",
+		title: "Event Rentable Items",
+		description: "Link your rentable items to this event and configure pricing tiers.",
+		icon: Building2,
+		route: "rentable-items",
+	},
+	{
+		id: "printing-services",
+		label: "Printing Services",
+		title: "Event Printing Services",
+		description: "Link your printing services to this event and manage pricing.",
+		icon: Building2,
+		route: "printing-services",
+	},
+	{
 		id: "vouchers",
 		label: "Vouchers",
 		title: "Vouchers",
@@ -262,6 +286,11 @@ export default function EventDetailLayout({
 	// Filter tabs based on permissions and event type
 	const visibleTabs = useMemo(() => {
 		const filtered = tabItems.filter((tab) => {
+			// For exhibition contractors, only show their specific tabs (My Profile, Rentable Items, Printing Services)
+			if (permissions.isExhibitionContractor) {
+				return ["contractor-profile", "rentable-items", "printing-services"].includes(tab.id);
+			}
+
 			// For vendors, only show these 6 specific tabs (including location)
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
 				return [
@@ -274,7 +303,7 @@ export default function EventDetailLayout({
 				].includes(tab.id);
 			}
 
-			// Always show these tabs (for non-vendors)
+			// Always show these tabs (for non-vendors and non-exhibition-contractors)
 			if (["location", "lucky-draw"].includes(tab.id)) {
 				return true;
 			}
@@ -610,8 +639,8 @@ export default function EventDetailLayout({
 			if (logsTabIds.includes(segment)) {
 				return "logs-group";
 			}
-			// Check if it's a user management tab
-			if (userManagementTabIds.includes(segment)) {
+			// Check if it's a user management tab (but not for exhibition contractors viewing their profile)
+			if (userManagementTabIds.includes(segment) && !permissions.isExhibitionContractor) {
 				return "user-management-group";
 			}
 			if (visibleTabs.some((tab) => tab.route === segment)) {
@@ -621,7 +650,7 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs]);
+	}, [pathname, visibleTabs, permissions.isExhibitionContractor]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {

@@ -38,6 +38,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const visibilityId = useId();
 	const useTicketId = useId();
 	const useExhibitorKitId = useId();
+	const allowPrintingServicesId = useId();
 	const statusId = useId();
 	const eventAdminId = useId();
 	const descriptionId = useId();
@@ -49,6 +50,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 		visibility: true,
 		use_ticket: true,
 		use_exhibitor_kit: false,
+		allow_contractor_printing_services: false,
 		status: "draft" as "draft" | "published" | "cancelled",
 		event_admin_id: undefined as string | undefined,
 		description: "",
@@ -122,6 +124,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				visibility: boolean;
 				use_ticket: boolean;
 				use_exhibitor_kit: boolean;
+				allow_contractor_printing_services: boolean;
 				status: "draft" | "published" | "cancelled";
 				event_admin_id?: number;
 				description?: string;
@@ -133,6 +136,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				visibility: formData.visibility ?? true,
 				use_ticket: formData.use_ticket ?? true,
 				use_exhibitor_kit: formData.use_exhibitor_kit ?? false,
+				allow_contractor_printing_services: formData.allow_contractor_printing_services ?? false,
 				status: formData.status ?? "draft",
 				description: formData.description.trim() || undefined,
 				start_date: formData.start_date?.toISOString() || "",
@@ -187,8 +191,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 							/>
 						</Field>
 
-						{/* Row 2: Visibility, Ticketing System, and Exhibitor Kit */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						{/* Row 2: All Toggles in one row - dynamically adjust columns based on exhibitor kit state */}
+						<div className={`grid grid-cols-1 gap-4 ${formData.use_exhibitor_kit ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
 							{/* Visibility */}
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={visibilityId}>Visibility</FieldLabel>
@@ -232,9 +236,13 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									<Switch
 										id={useExhibitorKitId}
 										checked={formData.use_exhibitor_kit}
-										onCheckedChange={(checked) =>
-											handleChange("use_exhibitor_kit", checked)
-										}
+										onCheckedChange={(checked) => {
+											handleChange("use_exhibitor_kit", checked);
+											// Reset printing services when exhibitor kit is disabled
+											if (!checked) {
+												handleChange("allow_contractor_printing_services", false);
+											}
+										}}
 										disabled={createEventMutation.isPending}
 									/>
 									<span className="ml-2 text-muted-foreground text-sm">
@@ -242,6 +250,28 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									</span>
 								</div>
 							</Field>
+
+							{/* Use Printing Services - only show when exhibitor kit is enabled */}
+							{formData.use_exhibitor_kit && (
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={allowPrintingServicesId}>
+										Use Printing Services
+									</FieldLabel>
+									<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+										<Switch
+											id={allowPrintingServicesId}
+											checked={formData.allow_contractor_printing_services}
+											onCheckedChange={(checked) =>
+												handleChange("allow_contractor_printing_services", checked)
+											}
+											disabled={createEventMutation.isPending}
+										/>
+										<span className="ml-2 text-muted-foreground text-sm">
+											{formData.allow_contractor_printing_services ? "Enabled" : "Disabled"}
+										</span>
+									</div>
+								</Field>
+							)}
 						</div>
 
 						{/* Row 3: Event Status and Event Admin */}

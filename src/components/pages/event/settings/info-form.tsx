@@ -39,6 +39,8 @@ const formSchema = z.object({
 	status: z.enum(["draft", "published", "cancelled", "completed"]),
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
+	useExhibitorKit: z.boolean(),
+	allowPrintingServices: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -101,6 +103,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			status: "draft" as "draft" | "published" | "cancelled" | "completed",
 			visibility: true,
 			useTicket: true,
+			useExhibitorKit: false,
+			allowPrintingServices: false,
 			description: "",
 			webhookUrl: "",
 			multipleScans: false,
@@ -118,6 +122,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
+					use_exhibitor_kit: value.useExhibitorKit,
+					allow_contractor_printing_services: value.allowPrintingServices,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					multiple_scans: value.multipleScans,
@@ -138,6 +144,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled" | "completed");
 				form.setFieldValue("visibility", event.visibility ?? true);
 				form.setFieldValue("useTicket", event.use_ticket ?? true);
+				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
+				form.setFieldValue("allowPrintingServices", event.allow_contractor_printing_services ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
@@ -197,8 +205,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					<FieldDescription>Manage your event information.</FieldDescription>
 					<FieldSeparator />
 					<FieldGroup>
-						{/* Row 1: Event Title (2 cols) and Event Status (1 col) */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						{/* Row 1: Event Title, Webhook URL, and Event Status */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
 							<form.Field name="title">
 								{(field) => {
 									const isInvalid =
@@ -220,6 +228,35 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												onChange={(e) => field.handleChange(e.target.value)}
 												aria-invalid={isInvalid}
 												placeholder="Summer Festival 2024"
+												disabled={updateEventMutation.isPending}
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="webhookUrl">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field
+											data-invalid={isInvalid}
+											orientation="vertical"
+										>
+											<FieldLabel htmlFor={field.name}>Webhook URL</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												aria-invalid={isInvalid}
+												placeholder="https://example.com/webhook"
+												type="url"
 												disabled={updateEventMutation.isPending}
 											/>
 											{isInvalid && (
@@ -267,116 +304,146 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							</form.Field>
 						</div>
 
-						{/* Row 2: Webhook URL (2 cols), Multiple Scans, Use Ticket, and Visibility (1 col each) */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-							<form.Field name="webhookUrl">
-								{(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-									return (
-										<Field
-											data-invalid={isInvalid}
-											orientation="vertical"
-											className="md:col-span-2"
-										>
-											<FieldLabel htmlFor={field.name}>Webhook URL</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-												aria-invalid={isInvalid}
-												placeholder="https://example.com/webhook"
-												type="url"
-												disabled={updateEventMutation.isPending}
-											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							</form.Field>
+						{/* Row 2: All Toggles in one row - dynamically adjust columns based on exhibitor kit state */}
+						<form.Field name="useExhibitorKit" mode="array">
+							{(exhibitorKitField) => {
+								const useExhibitorKitValue = exhibitorKitField.state.value;
+								const gridCols = useExhibitorKitValue ? "md:grid-cols-5" : "md:grid-cols-4";
+								
+								return (
+									<div className={`grid grid-cols-1 gap-4 ${gridCols}`}>
+										<form.Field name="multipleScans">
+											{(field) => {
+												return (
+													<Field orientation="vertical">
+														<FieldLabel htmlFor={field.name}>
+															Multiple Scans
+														</FieldLabel>
+														<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+															<Switch
+																id={field.name}
+																checked={field.state.value}
+																onCheckedChange={(checked) =>
+																	field.handleChange(checked)
+																}
+																disabled={updateEventMutation.isPending}
+															/>
+															<span className="ml-2 text-muted-foreground text-sm">
+																{field.state.value ? "Enabled" : "Disabled"}
+															</span>
+														</div>
+													</Field>
+												);
+											}}
+										</form.Field>
 
-							<form.Field name="multipleScans">
-								{(field) => {
-									return (
+										{/* Only show visibility for org_owner */}
+										{isOrgOwner && (
+											<form.Field name="visibility">
+												{(field) => {
+													return (
+														<Field orientation="vertical">
+															<FieldLabel htmlFor={field.name}>
+																Event Visibility
+															</FieldLabel>
+															<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+																<Switch
+																	id={field.name}
+																	checked={field.state.value}
+																	onCheckedChange={(checked) =>
+																		field.handleChange(checked)
+																	}
+																	disabled={updateEventMutation.isPending}
+																/>
+																<span className="ml-2 text-muted-foreground text-sm">
+																	{field.state.value ? "Visible" : "Hidden"}
+																</span>
+															</div>
+														</Field>
+													);
+												}}
+											</form.Field>
+										)}
+
+										<form.Field name="useTicket">
+											{(field) => {
+												return (
+													<Field orientation="vertical">
+														<FieldLabel htmlFor={field.name}>
+															Use Ticketing System
+														</FieldLabel>
+														<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+															<Switch
+																id={field.name}
+																checked={field.state.value}
+																onCheckedChange={(checked) =>
+																	field.handleChange(checked)
+																}
+																disabled={updateEventMutation.isPending}
+															/>
+															<span className="ml-2 text-muted-foreground text-sm">
+																{field.state.value ? "Enabled" : "Disabled"}
+															</span>
+														</div>
+													</Field>
+												);
+											}}
+										</form.Field>
+
 										<Field orientation="vertical">
-											<FieldLabel htmlFor={field.name}>
-												Multiple Scans
+											<FieldLabel htmlFor={exhibitorKitField.name}>
+												Use Exhibitor Kit
 											</FieldLabel>
 											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 												<Switch
-													id={field.name}
-													checked={field.state.value}
-													onCheckedChange={(checked) =>
-														field.handleChange(checked)
-													}
-													disabled={updateEventMutation.isPending}
-												/>
-												<span className="ml-2 text-muted-foreground text-sm">
-													{field.state.value ? "Enabled" : "Disabled"}
-												</span>
-											</div>
-										</Field>
-									);
-								}}
-							</form.Field>
-
-							<form.Field name="useTicket">
-								{(field) => {
-									return (
-										<Field orientation="vertical">
-											<FieldLabel htmlFor={field.name}>
-												Use Ticketing System
-											</FieldLabel>
-											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-												<Switch
-													id={field.name}
-													checked={field.state.value}
-													onCheckedChange={(checked) =>
-														field.handleChange(checked)
-													}
-													disabled={updateEventMutation.isPending}
-												/>
-												<span className="ml-2 text-muted-foreground text-sm">
-													{field.state.value ? "Enabled" : "Disabled"}
-												</span>
-											</div>
-										</Field>
-									);
-								}}
-							</form.Field>
-
-							{/* Only show visibility for org_owner */}
-							{isOrgOwner && (
-								<form.Field name="visibility">
-									{(field) => {
-										return (
-											<Field orientation="vertical">
-												<FieldLabel htmlFor={field.name}>
-													Event Visibility
-												</FieldLabel>
-												<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-													<Switch
-														id={field.name}
-														checked={field.state.value}
-														onCheckedChange={(checked) =>
-															field.handleChange(checked)
+													id={exhibitorKitField.name}
+													checked={exhibitorKitField.state.value}
+													onCheckedChange={(checked) => {
+														exhibitorKitField.handleChange(checked);
+														// Reset printing services when exhibitor kit is disabled
+														if (!checked) {
+															form.setFieldValue("allowPrintingServices", false);
 														}
-														disabled={updateEventMutation.isPending}
-													/>
-													<span className="ml-2 text-muted-foreground text-sm">
-														{field.state.value ? "Visible" : "Hidden"}
-													</span>
-												</div>
-											</Field>
-										);
-									}}
-								</form.Field>
-							)}
-						</div>
+													}}
+													disabled={updateEventMutation.isPending}
+												/>
+												<span className="ml-2 text-muted-foreground text-sm">
+													{exhibitorKitField.state.value ? "Enabled" : "Disabled"}
+												</span>
+											</div>
+										</Field>
+
+										{/* Only show printing services when exhibitor kit is enabled */}
+										{useExhibitorKitValue && (
+											<form.Field name="allowPrintingServices">
+												{(field) => {
+													return (
+														<Field orientation="vertical">
+															<FieldLabel htmlFor={field.name}>
+																Use Printing Services
+															</FieldLabel>
+															<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+																<Switch
+																	id={field.name}
+																	checked={field.state.value}
+																	onCheckedChange={(checked) =>
+																		field.handleChange(checked)
+																	}
+																	disabled={updateEventMutation.isPending}
+																/>
+																<span className="ml-2 text-muted-foreground text-sm">
+																	{field.state.value ? "Enabled" : "Disabled"}
+																</span>
+															</div>
+														</Field>
+													);
+												}}
+											</form.Field>
+										)}
+									</div>
+								);
+							}}
+						</form.Field>
 
 						{/* Row 3: Start Date and End Date */}
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">

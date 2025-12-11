@@ -9,6 +9,7 @@ export type Event = {
 	multiple_scans: boolean;
 	use_ticket: boolean;
 	use_exhibitor_kit: boolean;
+	allow_contractor_printing_services: boolean;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;

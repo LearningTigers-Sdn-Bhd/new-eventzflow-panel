@@ -15,19 +15,22 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 	const { user } = useAuth();
 	const eventIdStr = String(eventId);
 
-	// Fetch event staff assignments (only for non-vendor users)
+	// Check if user is an exhibition contractor
+	const isExhibitionContractor = user?.role === "exhibition_contractor";
+
+	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
 	const { data: eventStaff } = useQuery({
 		queryKey: ["event", eventIdStr, "staff"],
 		queryFn: () => getEventStaff({ eventId: eventIdStr }),
-		enabled: !!user && !!eventId && user.role !== "vendor" && !!event,
+		enabled: !!user && !!eventId && user.role !== "vendor" && !isExhibitionContractor && !!event,
 		retry: false,
 	});
 
-	// Fetch event vendors to check if user is a vendor
+	// Fetch event vendors to check if user is a vendor (not for exhibition contractors)
 	const { data: eventVendors } = useQuery({
 		queryKey: ["events", Number(eventId), "vendors"],
 		queryFn: () => getEventVendors(Number(eventId)),
-		enabled: !!user && !!eventId && !!event,
+		enabled: !!user && !!eventId && !isExhibitionContractor && !!event,
 		retry: false,
 	});
 
@@ -39,6 +42,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 				isOrganizer: false,
 				isMember: false,
 				isVendor: false,
+				isExhibitionContractor: false,
 
 				// Event-specific roles
 				isEventAdmin: false,
@@ -113,6 +117,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 			isOrganizer,
 			isMember,
 			isVendor,
+			isExhibitionContractor,
 
 			// Event-specific roles
 			isEventAdmin,
@@ -137,7 +142,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 			canViewVisitorsTab,
 			canViewStampScannerTab,
 		};
-	}, [user, eventStaff, eventVendors, event?.use_ticket]);
+	}, [user, eventStaff, eventVendors, event?.use_ticket, isExhibitionContractor]);
 
 	return permissions;
 }
