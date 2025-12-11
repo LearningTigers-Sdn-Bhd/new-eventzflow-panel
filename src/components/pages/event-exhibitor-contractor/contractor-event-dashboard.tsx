@@ -22,6 +22,7 @@ export function ContractorEventDashboard({ eventId }: ContractorEventDashboardPr
 			route: `/event/${eventId}/rentable-items` as Route,
 			color: "text-blue-500",
 			bgColor: "bg-blue-500/10",
+			disabled: false,
 		},
 		{
 			title: "Event Printing Services",
@@ -30,6 +31,7 @@ export function ContractorEventDashboard({ eventId }: ContractorEventDashboardPr
 			route: `/event/${eventId}/printing-services` as Route,
 			color: "text-purple-500",
 			bgColor: "bg-purple-500/10",
+			disabled: false,
 		},
 	];
 
