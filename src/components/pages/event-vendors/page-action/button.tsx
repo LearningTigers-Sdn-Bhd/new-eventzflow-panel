@@ -34,7 +34,7 @@ export function EventVendorsPageButton() {
 		return null;
 	}
 
-	const canInviteVendor = permissions.isOrganizer || permissions.isEventAdmin;
+	const canInviteVendor = permissions.isOrgOwner || permissions.isOrganizer || permissions.isEventAdmin;
 
 	return (
 		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">

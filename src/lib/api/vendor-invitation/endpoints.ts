@@ -12,14 +12,19 @@ import { registerInvitedVendorSchema } from "./request";
  * Generate vendor invitation link for an event (organizer only)
  * @param eventId - The event ID
  * @param groupId - Optional group ID to auto-assign vendor to group on registration
+ * @param organizerId - Optional organizer ID (for org_owner to specify which organizer)
  */
 export async function generateVendorInviteLink(
 	eventId: number,
 	groupId?: number,
+	organizerId?: string,
 ): Promise<GenerateInviteLinkResponse> {
 	const body: Record<string, unknown> = {};
 	if (groupId) {
 		body.group_id = groupId;
+	}
+	if (organizerId) {
+		body.organizer_id = organizerId;
 	}
 	return restClient.post<GenerateInviteLinkResponse>(
 		`v1/events/${eventId}/vendor_invitations/generate_link`,
