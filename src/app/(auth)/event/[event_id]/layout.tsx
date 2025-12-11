@@ -9,7 +9,9 @@ import {
 	HardHat,
 	Logs,
 	MapPin,
+	Package,
 	ScanQrCode,
+	ShoppingBag,
 	Ticket,
 	TrendingUp,
 	UserCheck,
@@ -70,6 +72,22 @@ const tabItems: TabItem[] = [
 		description: "This page will display the event location details and map.",
 		icon: MapPin,
 		route: "location",
+	},
+	{
+		id: "my-items",
+		label: "My Items",
+		title: "My Ordered Items",
+		description: "View your ordered items and printing services.",
+		icon: ShoppingBag,
+		route: "my-exhibitor-kit/my-items",
+	},
+	{
+		id: "order-items",
+		label: "Order Items",
+		title: "Order Items & Services",
+		description: "Browse and order rentable items and printing services for your booth.",
+		icon: Package,
+		route: "my-exhibitor-kit/order-items",
 	},
 	{
 		id: "lucky-draw",
@@ -291,16 +309,29 @@ export default function EventDetailLayout({
 				return ["contractor-profile", "rentable-items", "printing-services"].includes(tab.id);
 			}
 
-			// For vendors, only show these 6 specific tabs (including location)
+			// For vendors, only show these specific tabs (excluding location)
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+				// My items and order items only available when exhibitor kit is enabled
+				if (tab.id === "my-items" || tab.id === "order-items") {
+					return currentEvent?.use_exhibitor_kit === true;
+				}
 				return [
-					"location",
 					"vendors",
 					"vouchers",
 					"voucher-redemption",
 					"voucher-analytics",
 					"visitor-stamps",
 				].includes(tab.id);
+			}
+
+			// Hide contractor-specific tabs from organizers and org_owners
+			if (["contractor-profile", "rentable-items", "printing-services"].includes(tab.id)) {
+				return permissions.isExhibitionContractor;
+			}
+
+			// Hide vendor-specific tabs from organizers and org_owners
+			if (tab.id === "my-items" || tab.id === "order-items") {
+				return permissions.isEventVendor && !permissions.canManageEventVendors && currentEvent?.use_exhibitor_kit === true;
 			}
 
 			// Always show these tabs (for non-vendors and non-exhibition-contractors)
@@ -407,11 +438,11 @@ export default function EventDetailLayout({
 			permissions.isEventVendor && !permissions.canManageEventVendors;
 
 		if (isVendor) {
-			// Vendor tab order: Profile → Operations → Analytics
+			// Vendor tab order: Profile → Exhibitor Kit → Operations → Analytics
 			const vendorTabOrder = [
 				"vendors",
 				"exhibitor",
-				"location",
+				"exhibitor-kit-group",
 				"vouchers",
 				"voucher-redemption",
 				"voucher-analytics",
@@ -497,6 +528,12 @@ export default function EventDetailLayout({
 		return visibleTabs.filter((tab) => logsTabIds.includes(tab.id));
 	}, [visibleTabs]);
 
+	// Group exhibitor kit tabs for dropdown
+	const exhibitorKitTabIds = ["my-items", "order-items"];
+	const exhibitorKitTabs = useMemo(() => {
+		return visibleTabs.filter((tab) => exhibitorKitTabIds.includes(tab.id));
+	}, [visibleTabs]);
+
 	// Group user management tabs for dropdown (event-staff, vendors/exhibitor, and exhibitor-contractor)
 	const userManagementTabIds = [
 		"event-staff",
@@ -508,13 +545,14 @@ export default function EventDetailLayout({
 		return visibleTabs.filter((tab) => userManagementTabIds.includes(tab.id));
 	}, [visibleTabs]);
 
-	// Main tabs (excluding ticket, analytics, logs, and user management sub-tabs, but we'll add group tabs)
+	// Main tabs (excluding ticket, analytics, logs, exhibitor kit, and user management sub-tabs, but we'll add group tabs)
 	const mainTabs = useMemo(() => {
 		const filtered = visibleTabs.filter(
 			(tab) =>
 				!ticketTabIds.includes(tab.id) &&
 				!analyticsTabIds.includes(tab.id) &&
 				!logsTabIds.includes(tab.id) &&
+				!exhibitorKitTabIds.includes(tab.id) &&
 				!userManagementTabIds.includes(tab.id),
 		);
 
@@ -531,6 +569,31 @@ export default function EventDetailLayout({
 				route: "tickets", // Default to tickets page
 			};
 			filtered.splice(locationIndex + 1, 0, ticketsGroupTab);
+		}
+
+		// If there are exhibitor kit tabs, add a grouped "Exhibitor Kit" tab
+		if (exhibitorKitTabs.length > 0) {
+			// Insert after location or after tickets group
+			const ticketsGroupIndex = filtered.findIndex(
+				(tab) => tab.id === "tickets-group",
+			);
+			const locationIndex = filtered.findIndex((tab) => tab.id === "location");
+			const insertIndex =
+				ticketsGroupIndex !== -1
+					? ticketsGroupIndex + 1
+					: locationIndex !== -1
+						? locationIndex + 1
+						: 0;
+
+			const exhibitorKitGroupTab: TabItem = {
+				id: "exhibitor-kit-group",
+				label: "Exhibitor Kit",
+				title: "Exhibitor Kit",
+				description: "View your items and order more for your booth",
+				icon: Package,
+				route: exhibitorKitTabs[0]?.route || "my-exhibitor-kit/my-items",
+			};
+			filtered.splice(insertIndex, 0, exhibitorKitGroupTab);
 		}
 
 		// If there are user management tabs, add a grouped "User Management" tab
@@ -585,7 +648,7 @@ export default function EventDetailLayout({
 		}
 
 		return filtered;
-	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs, userManagementTabs]);
+	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs, exhibitorKitTabs, userManagementTabs]);
 
 	// Update vendor tab label, title, and description based on user role (for userManagementTabs)
 	const userManagementTabsWithDynamicLabels = useMemo(() => {
@@ -624,6 +687,18 @@ export default function EventDetailLayout({
 	const currentTab = useMemo(() => {
 		const segments = pathname.split("/").filter(Boolean);
 
+		// Check for nested routes first (e.g., my-exhibitor-kit/order-items)
+		// Find the event_id index and check the remaining path
+		const eventIdIndex = segments.findIndex((s) => s === event_id);
+		if (eventIdIndex !== -1) {
+			const remainingPath = segments.slice(eventIdIndex + 1).join("/");
+			// Check if the remaining path matches any tab's route (including nested routes)
+			const matchedTab = visibleTabs.find((tab) => remainingPath.startsWith(tab.route));
+			if (matchedTab) {
+				return matchedTab.id;
+			}
+		}
+
 		// Walk from the end and find the first segment that matches a tab route
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
@@ -639,6 +714,10 @@ export default function EventDetailLayout({
 			if (logsTabIds.includes(segment)) {
 				return "logs-group";
 			}
+			// Check if it's an exhibitor kit tab
+			if (exhibitorKitTabIds.includes(segment)) {
+				return "exhibitor-kit-group";
+			}
 			// Check if it's a user management tab (but not for exhibition contractors viewing their profile)
 			if (userManagementTabIds.includes(segment) && !permissions.isExhibitionContractor) {
 				return "user-management-group";
@@ -650,18 +729,29 @@ export default function EventDetailLayout({
 
 		// Default to the first visible tab (usually "location")
 		return visibleTabs[0]?.route ?? "location";
-	}, [pathname, visibleTabs, permissions.isExhibitionContractor]);
+	}, [pathname, visibleTabs, permissions.isExhibitionContractor, event_id]);
 
 	// Find the current tab item for dynamic header
 	const currentTabItem = useMemo(() => {
-		// If we're on a ticket-related, analytics-related, logs-related, or user management page, find the specific tab
+		// First, try to find by matching the full route path (for nested routes)
 		const segments = pathname.split("/").filter(Boolean);
+		const eventIdIndex = segments.findIndex((s) => s === event_id);
+		if (eventIdIndex !== -1) {
+			const remainingPath = segments.slice(eventIdIndex + 1).join("/");
+			const matchedTab = visibleTabs.find((tab) => remainingPath.startsWith(tab.route));
+			if (matchedTab) {
+				return matchedTab;
+			}
+		}
+
+		// If we're on a ticket-related, analytics-related, logs-related, exhibitor kit, or user management page, find the specific tab
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];
 			if (
 				ticketTabIds.includes(segment) ||
 				analyticsTabIds.includes(segment) ||
 				logsTabIds.includes(segment) ||
+				exhibitorKitTabIds.includes(segment) ||
 				userManagementTabIds.includes(segment)
 			) {
 				return (
@@ -671,15 +761,20 @@ export default function EventDetailLayout({
 			}
 		}
 
+		// Find by id first (for tabs like order-items), then fallback to route
 		return (
+			tabsWithDynamicLabels.find((item) => item.id === currentTab) ||
 			tabsWithDynamicLabels.find((item) => item.route === currentTab) ||
 			tabsWithDynamicLabels[0]
 		);
-	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs]);
+	}, [currentTab, tabsWithDynamicLabels, pathname, visibleTabs, event_id]);
 
 	const handleTabChange = useCallback(
 		(value: string) => {
-			const path = `/event/${event_id}/${value}`;
+			// Look up the route from tab id (for tabs with nested routes like order-items)
+			const tab = tabItems.find((t) => t.id === value);
+			const route = tab?.route ?? value;
+			const path = `/event/${event_id}/${route}`;
 			(router as AppRouterInstance).push(path);
 		},
 		[event_id, router],
@@ -750,9 +845,11 @@ export default function EventDetailLayout({
 										? "analytics"
 										: currentTab === "logs-group"
 											? "voucher-logs"
-											: currentTab === "user-management-group"
-												? userManagementTabs[0]?.route || "event-staff"
-												: currentTab
+											: currentTab === "exhibitor-kit-group"
+												? exhibitorKitTabs[0]?.route || "my-exhibitor-kit/my-items"
+												: currentTab === "user-management-group"
+													? userManagementTabs[0]?.route || "event-staff"
+													: currentTab
 							}
 							onValueChange={handleTabChange}
 						>
@@ -824,6 +921,25 @@ export default function EventDetailLayout({
 													<div className="flex items-center gap-2">
 														<LogsIcon className="size-4" />
 														<span>{logsTab.label}</span>
+													</div>
+												</SelectItem>
+											);
+										});
+									}
+
+									// If this is the exhibitor kit group, show all exhibitor kit options
+									if (item.id === "exhibitor-kit-group") {
+										return exhibitorKitTabs.map((kitTab) => {
+											const KitIcon = kitTab.icon;
+											return (
+												<SelectItem
+													key={kitTab.id}
+													value={kitTab.route}
+													className="h-10! rounded-none"
+												>
+													<div className="flex items-center gap-2">
+														<KitIcon className="size-4" />
+														<span>{kitTab.label}</span>
 													</div>
 												</SelectItem>
 											);
@@ -970,6 +1086,54 @@ export default function EventDetailLayout({
 										);
 									}
 
+									// Render exhibitor kit dropdown
+									if (item.id === "exhibitor-kit-group") {
+										const isExhibitorKitTabActive =
+											exhibitorKitTabIds.includes(currentTab) ||
+											currentTab === "exhibitor-kit-group";
+
+										return (
+											<DropdownMenu key={item.id}>
+												<DropdownMenuTrigger asChild>
+													<button
+														type="button"
+														className={cn(
+															"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
+															"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+															"dark:text-muted-foreground",
+															isExhibitorKitTabActive &&
+																"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
+														)}
+													>
+														<IconComponent className="size-5 lg:size-4" />
+														<span className="hidden xl:inline">
+															{item.label}
+														</span>
+														<ChevronDown className="ml-0.5 size-3 opacity-50" />
+													</button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent
+													align="start"
+													className="min-w-[200px]"
+												>
+													{exhibitorKitTabs.map((kitTab) => {
+														const KitIcon = kitTab.icon;
+														return (
+															<DropdownMenuItem
+																key={kitTab.id}
+																onClick={() => handleTabChange(kitTab.route)}
+																className="cursor-pointer"
+															>
+																<KitIcon className="mr-2 size-4" />
+																<span>{kitTab.label}</span>
+															</DropdownMenuItem>
+														);
+													})}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										);
+									}
+
 									// Render analytics dropdown
 									if (item.id === "analytics-group") {
 										const isAnalyticsTabActive =
@@ -1072,7 +1236,7 @@ export default function EventDetailLayout({
 									return (
 										<TabsTrigger
 											key={item.id}
-											value={item.route}
+											value={item.id}
 											className="flex flex-1 items-center justify-center gap-1 rounded-none lg:gap-2"
 										>
 											<IconComponent className="size-5 lg:size-4" />
