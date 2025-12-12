@@ -453,10 +453,10 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		});
 	};
 
-	// For vendors and exhibition contractors, redirect to vendors tab instead of opening settings
+	// For vendors and exhibition contractors, redirect to their profile pages instead of opening settings
 	const handleMainButtonClick = () => {
 		if (isVendor) {
-			_router.push(`/event/${eventId}/vendors` as Parameters<typeof _router.push>[0]);
+			_router.push(`/event/${eventId}/my-profile` as Parameters<typeof _router.push>[0]);
 		} else if (isExhibitionContractor) {
 			_router.push(`/event/${eventId}/exhibitor-contractor` as Parameters<typeof _router.push>[0]);
 		} else {

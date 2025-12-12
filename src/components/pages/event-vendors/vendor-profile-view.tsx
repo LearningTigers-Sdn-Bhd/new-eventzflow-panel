@@ -2,23 +2,51 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { getEventVendors } from "@/lib/api/event-vendor";
 import { getVendorProfile } from "@/lib/api/vendor-profile";
+
+interface VendorProfileViewProps {
+	eventId?: string;
+}
 
 /**
  * Component for vendors to view their own profile
  * Uses GET /v1/vendor_profile endpoint
  */
-export function VendorProfileView() {
+export function VendorProfileView({ eventId }: VendorProfileViewProps) {
+	const { user } = useAuth();
+
 	const {
 		data: profile,
-		isLoading,
-		error,
+		isLoading: isLoadingProfile,
+		error: profileError,
 	} = useQuery({
 		queryKey: ["vendor-profile"],
 		queryFn: () => getVendorProfile(),
 	});
+
+	// Fetch event vendors to find the current user's event vendor record
+	const {
+		data: eventVendors,
+		isLoading: isLoadingVendors,
+		error: vendorsError,
+	} = useQuery({
+		queryKey: ["event", eventId, "vendors"],
+		queryFn: () => getEventVendors(Number(eventId)),
+		enabled: !!eventId && !!user,
+	});
+
+	// Find the current user's event vendor record
+	const currentEventVendor = eventVendors?.find(
+		(ev) => ev.vendor_id === user?.id,
+	);
+
+	const isLoading = isLoadingProfile || isLoadingVendors;
+	const error = profileError || vendorsError;
 
 	if (isLoading) {
 		return (
@@ -49,8 +77,11 @@ export function VendorProfileView() {
 	}
 
 	return (
-		<div>
+		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
+			{currentEventVendor && (
+				<ExhibitorKitDetailsSection eventVendor={currentEventVendor} />
+			)}
 		</div>
 	);
 }

@@ -48,6 +48,7 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 
 		const result = [...filtered];
 		const locationIndex = result.findIndex((tab) => tab.id === "location");
+		const vendorProfileIndex = result.findIndex((tab) => tab.id === "vendor-profile");
 		let insertIndex = locationIndex !== -1 ? locationIndex + 1 : 0;
 
 		// Add tickets group
@@ -62,9 +63,15 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 			});
 		}
 
-		// Add exhibitor kit group
+		// Add exhibitor kit group AFTER vendor-profile if it exists
 		if (exhibitorKitTabs.length > 0) {
-			result.splice(insertIndex++, 0, {
+			// Find vendor-profile position after previous insertions
+			const currentVendorProfileIndex = result.findIndex((tab) => tab.id === "vendor-profile");
+			const exhibitorKitInsertIndex = currentVendorProfileIndex !== -1 
+				? currentVendorProfileIndex + 1 
+				: insertIndex;
+			
+			result.splice(exhibitorKitInsertIndex, 0, {
 				id: "exhibitor-kit-group",
 				label: "Exhibitor Kit",
 				title: "Exhibitor Kit",
@@ -72,6 +79,7 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 				icon: Package,
 				route: exhibitorKitTabs[0]?.route || "my-exhibitor-kit/my-items",
 			});
+			insertIndex = exhibitorKitInsertIndex + 1;
 		}
 
 		// Add user management group

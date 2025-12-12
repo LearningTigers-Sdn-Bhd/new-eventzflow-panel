@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
+import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
@@ -90,8 +91,9 @@ export default function VendorProfilePage() {
 	}
 
 	return (
-		<div>
+		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
+			<ExhibitorKitDetailsSection eventVendor={eventVendor} />
 		</div>
 	);
 }

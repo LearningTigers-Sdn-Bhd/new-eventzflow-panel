@@ -34,7 +34,7 @@ export function useTabFiltering(
 					return currentEvent?.use_exhibitor_kit === true;
 				}
 				return [
-					"vendors",
+					"vendor-profile",
 					"vouchers",
 					"voucher-redemption",
 					"voucher-analytics",
@@ -61,6 +61,11 @@ export function useTabFiltering(
 					!permissions.canManageEventVendors &&
 					currentEvent?.use_exhibitor_kit === true
 				);
+			}
+
+			// Hide vendor-profile tab from non-vendors
+			if (tab.id === "vendor-profile") {
+				return permissions.isEventVendor && !permissions.canManageEventVendors;
 			}
 
 			// Always show these tabs

@@ -128,7 +128,7 @@ export function VendorDashboard() {
 								event={event}
 								formatDate={formatDate}
 								onViewDetails={() =>
-									router.push(`/event/${event.id}/vendors` as any)
+									router.push(`/event/${event.id}/my-profile` as any)
 								}
 							/>
 						))}
