@@ -1,6 +1,6 @@
 "use client";
 
-import { InfoIcon, Package, Printer } from "lucide-react";
+import { FileQuestion, InfoIcon, Package, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -10,7 +10,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-export type ManageKitsTab = "exhibitor-info" | "rentable-items" | "printing-services";
+export type ManageKitsTab = "exhibitor-info" | "rentable-items" | "printing-services" | "custom-requests";
 
 interface NavigationItem {
 	id: ManageKitsTab;
@@ -25,6 +25,7 @@ interface ManageKitsNavigationProps {
 	showPrintingServices?: boolean;
 	itemsCount?: number;
 	printingsCount?: number;
+	customRequestsCount?: number;
 }
 
 export function ManageKitsNavigation({
@@ -33,6 +34,7 @@ export function ManageKitsNavigation({
 	showPrintingServices = true,
 	itemsCount = 0,
 	printingsCount = 0,
+	customRequestsCount = 0,
 }: ManageKitsNavigationProps) {
 	const navigationItems: NavigationItem[] = [
 		{
@@ -57,6 +59,12 @@ export function ManageKitsNavigation({
 					},
 				]
 			: []),
+		{
+			id: "custom-requests",
+			label: `Custom Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
+			shortLabel: `Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
+			icon: FileQuestion,
+		},
 	];
 
 	const activeItem = navigationItems.find((item) => item.id === activeTab);

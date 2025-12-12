@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, ChevronDown } from "lucide-react";
+import { ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,33 @@ import { ExhibitorActionsMenu } from "./action-menu";
 export type ExhibitorMember = EventVendor;
 
 const baseColumns: ColumnDef<ExhibitorMember>[] = [
+	{
+		id: "expand",
+		size: 50,
+		header: () => null,
+		cell: ({ row, table }) => {
+			const isExpanded = (table.options.meta as any)?.expandedRows?.[row.id] || false;
+			return (
+				<Button
+					variant="ghost"
+					size="icon"
+					className="rounded-none"
+					onClick={() => {
+						const meta = table.options.meta as any;
+						if (meta?.toggleRow) {
+							meta.toggleRow(row.id);
+						}
+					}}
+				>
+					{isExpanded ? (
+						<ChevronDown className="size-4" />
+					) : (
+						<ChevronRight className="size-4" />
+					)}
+				</Button>
+			);
+		},
+	},
 	{
 		accessorKey: "exhibitor_kit.booth_number",
 		id: "booth_number",
