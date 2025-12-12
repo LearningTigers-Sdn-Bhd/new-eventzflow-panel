@@ -45,14 +45,12 @@ export interface ExhibitorKitPrinting {
 export type BoothType = "shell_scheme" | "raw_space";
 export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
 
-export type CustomRequestStatus = "pending" | "approved" | "rejected";
-
 export interface CustomRequest {
 	id: number;
 	exhibitor_kit_id: number;
 	description: string;
 	quantity: number;
-	status: CustomRequestStatus;
+	status: "pending" | "approved" | "rejected";
 	resolved_price?: number;
 	response_notes?: string;
 	created_at?: string;
