@@ -45,6 +45,20 @@ export interface ExhibitorKitPrinting {
 export type BoothType = "shell_scheme" | "raw_space";
 export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
 
+export type CustomRequestStatus = "pending" | "approved" | "rejected";
+
+export interface CustomRequest {
+	id: number;
+	exhibitor_kit_id: number;
+	description: string;
+	quantity: number;
+	status: CustomRequestStatus;
+	resolved_price?: number;
+	response_notes?: string;
+	created_at?: string;
+	updated_at?: string;
+}
+
 export interface ExhibitorKit {
 	id: number;
 	event_vendor_id: number;
@@ -80,6 +94,7 @@ export interface ExhibitorKit {
 	exhibitor_team_members: ExhibitorTeamMember[];
 	exhibitor_kit_items?: ExhibitorKitItem[];
 	exhibitor_kit_printings?: ExhibitorKitPrinting[];
+	custom_requests?: CustomRequest[];
 	created_at?: string;
 	updated_at?: string;
 }

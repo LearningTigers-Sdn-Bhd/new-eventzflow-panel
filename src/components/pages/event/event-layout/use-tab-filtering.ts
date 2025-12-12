@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import type { Event } from "@/lib/api/event";
-import type { TabItem } from "./tab-config";
 import { TAB_ITEMS } from "./tab-config";
 
 type EventPermissions = {
@@ -20,7 +19,12 @@ export function useTabFiltering(
 		return TAB_ITEMS.filter((tab) => {
 			// For exhibition contractors, only show their specific tabs
 			if (permissions.isExhibitionContractor) {
-				return ["contractor-profile", "rentable-items", "printing-services"].includes(tab.id);
+				return [
+					"contractor-profile",
+					"rentable-items",
+					"printing-services",
+					"contractor-custom-requests",
+				].includes(tab.id);
 			}
 
 			// For vendors, only show these specific tabs
@@ -39,13 +43,24 @@ export function useTabFiltering(
 			}
 
 			// Hide contractor-specific tabs from organizers and org_owners
-			if (["contractor-profile", "rentable-items", "printing-services"].includes(tab.id)) {
+			if (
+				[
+					"contractor-profile",
+					"rentable-items",
+					"printing-services",
+					"contractor-custom-requests",
+				].includes(tab.id)
+			) {
 				return permissions.isExhibitionContractor;
 			}
 
 			// Hide vendor-specific exhibitor kit tabs
 			if (["my-items", "order-items", "custom-requests"].includes(tab.id)) {
-				return permissions.isEventVendor && !permissions.canManageEventVendors && currentEvent?.use_exhibitor_kit === true;
+				return (
+					permissions.isEventVendor &&
+					!permissions.canManageEventVendors &&
+					currentEvent?.use_exhibitor_kit === true
+				);
 			}
 
 			// Always show these tabs
@@ -59,7 +74,15 @@ export function useTabFiltering(
 			}
 
 			// Ticket-related tabs - only for ticket events
-			if (["tickets", "pending-tickets", "scanned-logs", "ticket-types", "analytics"].includes(tab.id)) {
+			if (
+				[
+					"tickets",
+					"pending-tickets",
+					"scanned-logs",
+					"ticket-types",
+					"analytics",
+				].includes(tab.id)
+			) {
 				return currentEvent?.use_ticket !== false;
 			}
 
@@ -75,12 +98,18 @@ export function useTabFiltering(
 
 			// Vendors tab - only visible when use_exhibitor_kit is false
 			if (tab.id === "vendors") {
-				return permissions.canViewVendorsTab && currentEvent?.use_exhibitor_kit !== true;
+				return (
+					permissions.canViewVendorsTab &&
+					currentEvent?.use_exhibitor_kit !== true
+				);
 			}
 
 			// Exhibitor tab - only visible when use_exhibitor_kit is enabled
 			if (tab.id === "exhibitor") {
-				return currentEvent?.use_exhibitor_kit === true && permissions.canViewVendorsTab;
+				return (
+					currentEvent?.use_exhibitor_kit === true &&
+					permissions.canViewVendorsTab
+				);
 			}
 
 			// Exhibitor Contractor tab - only visible to org_owner
@@ -105,12 +134,18 @@ export function useTabFiltering(
 
 			// Voucher logs - only for event admins and staff
 			if (tab.id === "voucher-logs") {
-				return permissions.canManageEventVendors || permissions.canManageEventStaff;
+				return (
+					permissions.canManageEventVendors || permissions.canManageEventStaff
+				);
 			}
 
 			// Stamp logs - only for event admins and staff, only for non-ticket events
 			if (tab.id === "stamp-logs") {
-				return (permissions.canManageEventVendors || permissions.canManageEventStaff) && currentEvent?.use_ticket === false;
+				return (
+					(permissions.canManageEventVendors ||
+						permissions.canManageEventStaff) &&
+					currentEvent?.use_ticket === false
+				);
 			}
 
 			// Visitors tab - only for non-ticket events

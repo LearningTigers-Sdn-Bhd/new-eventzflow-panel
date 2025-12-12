@@ -11,11 +11,17 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { Package, Printer } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { QuerySearchField } from "@/components/query-search-field";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	Table,
 	TableBody,
@@ -27,6 +33,11 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
+interface FilterOption {
+	label: string;
+	value: string;
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
@@ -35,6 +46,11 @@ interface DataTableProps<TData, TValue> {
 	emptyIcon: React.ReactNode;
 	searchPlaceholder?: string;
 	searchColumns?: string[];
+	statusFilter?: {
+		column: string;
+		placeholder: string;
+		options: FilterOption[];
+	};
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +61,7 @@ export function DataTable<TData, TValue>({
 	emptyIcon,
 	searchPlaceholder = "Search...",
 	searchColumns = ["name"],
+	statusFilter,
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -70,12 +87,44 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full">
 			{/* Search Control */}
-			<div className="mb-4 border-y border-dashed bg-accent px-2 py-4 lg:px-4">
+			<div className="mb-4 flex flex-col gap-3 border-y border-dashed bg-accent px-2 py-4 sm:flex-row sm:items-center lg:px-4">
 				<QuerySearchField
 					table={table}
 					columns={searchColumns}
 					placeholder={searchPlaceholder}
 				/>
+				{statusFilter && (
+					<Select
+						value={
+							(table
+								.getColumn(statusFilter.column)
+								?.getFilterValue() as string) ?? "all"
+						}
+						onValueChange={(value) =>
+							table
+								.getColumn(statusFilter.column)
+								?.setFilterValue(value === "all" ? undefined : value)
+						}
+					>
+						<SelectTrigger className="h-10 w-full rounded-none sm:w-[180px]">
+							<SelectValue placeholder={statusFilter.placeholder} />
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							<SelectItem value="all" className="rounded-none">
+								All Status
+							</SelectItem>
+							{statusFilter.options.map((option) => (
+								<SelectItem
+									key={option.value}
+									value={option.value}
+									className="rounded-none"
+								>
+									{option.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				)}
 			</div>
 
 			<div className="min-h-[50vh]">
