@@ -31,7 +31,7 @@ export function VouchersPageButton() {
 	};
 
 	return (
-		<div className="flex w-full items-center gap-2 lg:w-auto">
+		<div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
 			<Button
 				variant="outline"
 				className="w-full rounded-none lg:w-auto"
