@@ -25,6 +25,25 @@ export const exhibitorKitPrintingSchema = z.object({
 	_destroy: z.boolean().optional(),
 });
 
+// Custom request status enum
+export const customRequestStatusEnum = z.enum(["pending", "approved", "rejected"]);
+
+// Custom request schema for nested attributes
+export const customRequestSchema = z
+	.object({
+		id: z.number().optional(),
+		description: z.string().optional(),
+		quantity: z.number().min(0, "Quantity must be 0 or more").optional(),
+		status: customRequestStatusEnum.optional(),
+		resolved_price: z.number().min(0).optional(),
+		response_notes: z.string().optional(),
+		_destroy: z.boolean().optional(),
+	})
+	.refine(
+		(data) => data._destroy === true || (data.description && data.description.length >= 1),
+		{ message: "Description is required", path: ["description"] }
+	);
+
 // Booth type enum
 export const boothTypeEnum = z.enum(["shell_scheme", "raw_space"]);
 
@@ -65,6 +84,7 @@ export const createExhibitorKitSchema = z.object({
 	exhibitor_team_members_attributes: z.array(exhibitorTeamMemberSchema).optional(),
 	exhibitor_kit_items_attributes: z.array(exhibitorKitItemSchema).optional(),
 	exhibitor_kit_printings_attributes: z.array(exhibitorKitPrintingSchema).optional(),
+	custom_requests_attributes: z.array(customRequestSchema).optional(),
 });
 
 // Update exhibitor kit schema (all fields optional, no defaults applied)
@@ -101,6 +121,7 @@ export const updateExhibitorKitSchema = z.object({
 	exhibitor_team_members_attributes: z.array(exhibitorTeamMemberSchema).optional(),
 	exhibitor_kit_items_attributes: z.array(exhibitorKitItemSchema).optional(),
 	exhibitor_kit_printings_attributes: z.array(exhibitorKitPrintingSchema).optional(),
+	custom_requests_attributes: z.array(customRequestSchema).optional(),
 });
 
 // Export types for form data
@@ -109,3 +130,5 @@ export type UpdateExhibitorKitRequest = z.infer<typeof updateExhibitorKitSchema>
 export type ExhibitorTeamMemberInput = z.infer<typeof exhibitorTeamMemberSchema>;
 export type ExhibitorKitItemInput = z.infer<typeof exhibitorKitItemSchema>;
 export type ExhibitorKitPrintingInput = z.infer<typeof exhibitorKitPrintingSchema>;
+export type CustomRequestInput = z.infer<typeof customRequestSchema>;
+export type CustomRequestStatus = z.infer<typeof customRequestStatusEnum>;

@@ -1,4 +1,3 @@
-import type { IconType } from "react-icons";
 import {
 	Building2,
 	ChartBar,
@@ -14,6 +13,7 @@ import {
 	UserCheck,
 	Users,
 } from "lucide-react";
+import type { IconType } from "react-icons";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
 
@@ -47,7 +47,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "order-items",
 		label: "Order Items",
 		title: "Order Items & Services",
-		description: "Browse and order rentable items and printing services for your booth.",
+		description:
+			"Browse and order rentable items and printing services for your booth.",
 		icon: Package,
 		route: "my-exhibitor-kit/order-items",
 	},
@@ -71,7 +72,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "tickets",
 		label: "Manage Tickets",
 		title: "Manage Tickets",
-		description: "This page will display ticket management interface and controls.",
+		description:
+			"This page will display ticket management interface and controls.",
 		icon: HiTicket,
 		route: "tickets",
 	},
@@ -79,7 +81,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "pending-tickets",
 		label: "Pending Tickets",
 		title: "Pending Tickets",
-		description: "This page will display pending ticket transactions and approvals.",
+		description:
+			"This page will display pending ticket transactions and approvals.",
 		icon: TbClockDollar,
 		route: "pending-tickets",
 	},
@@ -111,7 +114,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "event-staff",
 		label: "Event Staff",
 		title: "Event Staff",
-		description: "This page will display event staff assignments and management.",
+		description:
+			"This page will display event staff assignments and management.",
 		icon: Users,
 		route: "event-staff",
 	},
@@ -151,7 +155,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "rentable-items",
 		label: "Rentable Items",
 		title: "Event Rentable Items",
-		description: "Link your rentable items to this event and configure pricing tiers.",
+		description:
+			"Link your rentable items to this event and configure pricing tiers.",
 		icon: Building2,
 		route: "rentable-items",
 	},
@@ -159,9 +164,18 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "printing-services",
 		label: "Printing Services",
 		title: "Event Printing Services",
-		description: "Link your printing services to this event and manage pricing.",
+		description:
+			"Link your printing services to this event and manage pricing.",
 		icon: Building2,
 		route: "printing-services",
+	},
+	{
+		id: "contractor-custom-requests",
+		label: "Custom Requests",
+		title: "Custom Requests",
+		description: "Review and manage custom requests from exhibitors.",
+		icon: Package,
+		route: "contractor-custom-requests",
 	},
 	{
 		id: "vouchers",
@@ -215,7 +229,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "analytics",
 		label: "Ticket Analytics",
 		title: "Ticket Analytics",
-		description: "This page will display event analytics, charts, and insights.",
+		description:
+			"This page will display event analytics, charts, and insights.",
 		icon: ChartBar,
 		route: "analytics",
 	},
@@ -223,7 +238,8 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "mall-live-feed",
 		label: "Mall Live Feed",
 		title: "Mall Live Feed",
-		description: "Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
+		description:
+			"Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
 		icon: TrendingUp,
 		route: "mall-live-feed",
 	},
@@ -231,14 +247,33 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "export-logs",
 		label: "Export Logs",
 		title: "Export Logs",
-		description: "This page will provide options to export event logs and data.",
+		description:
+			"This page will provide options to export event logs and data.",
 		icon: Logs,
 		route: "export-logs",
 	},
 ];
 
-export const TICKET_TAB_IDS = ["tickets", "pending-tickets", "scanned-logs", "ticket-types"];
-export const ANALYTICS_TAB_IDS = ["analytics", "voucher-analytics", "mall-live-feed"];
+export const TICKET_TAB_IDS = [
+	"tickets",
+	"pending-tickets",
+	"scanned-logs",
+	"ticket-types",
+];
+export const ANALYTICS_TAB_IDS = [
+	"analytics",
+	"voucher-analytics",
+	"mall-live-feed",
+];
 export const LOGS_TAB_IDS = ["voucher-logs", "stamp-logs", "export-logs"];
-export const EXHIBITOR_KIT_TAB_IDS = ["my-items", "order-items", "custom-requests"];
-export const USER_MANAGEMENT_TAB_IDS = ["event-staff", "vendors", "exhibitor", "exhibitor-contractor"];
+export const EXHIBITOR_KIT_TAB_IDS = [
+	"my-items",
+	"order-items",
+	"custom-requests",
+];
+export const USER_MANAGEMENT_TAB_IDS = [
+	"event-staff",
+	"vendors",
+	"exhibitor",
+	"exhibitor-contractor",
+];

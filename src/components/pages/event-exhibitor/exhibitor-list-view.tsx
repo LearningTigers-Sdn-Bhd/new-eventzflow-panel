@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Info, Package, Printer, Users } from "lucide-react";
+import { ArrowRight, FileQuestion, Info, Package, Printer, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -12,6 +12,7 @@ import { columns } from "./table/columns";
 import { DataTable } from "./table/data-table";
 import { OrderedItemsView } from "./ordered-items-view";
 import { OrderedServicesView } from "./ordered-services-view";
+import { CustomRequestsView } from "./custom-requests-view";
 
 interface ExhibitorListViewProps {
 	eventId: string;
@@ -78,6 +79,13 @@ export function ExhibitorListView({ eventId, canManageVendors }: ExhibitorListVi
 							<Printer className="size-4" />
 							Ordered Services
 						</TabsTrigger>
+						<TabsTrigger
+							value="custom-requests"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<FileQuestion className="size-4" />
+							Custom Requests
+						</TabsTrigger>
 					</TabsList>
 				</div>
 
@@ -111,6 +119,10 @@ export function ExhibitorListView({ eventId, canManageVendors }: ExhibitorListVi
 
 					<TabsContent value="services" className="mt-0">
 						<OrderedServicesView eventId={eventId} />
+					</TabsContent>
+
+					<TabsContent value="custom-requests" className="mt-0">
+						<CustomRequestsView eventId={eventId} />
 					</TabsContent>
 				</div>
 			</Tabs>
