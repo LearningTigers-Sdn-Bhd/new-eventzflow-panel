@@ -65,8 +65,12 @@ export function ReviewRequestDialog({
 			setAction(null);
 			setPrice("");
 			setNotes("");
+			// Invalidate both query keys to ensure real-time updates
 			queryClient.invalidateQueries({
 				queryKey: ["event", String(eventId), "vendors"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
 			});
 		},
 		onError: (error: Error) => {

@@ -40,6 +40,8 @@ export function RevokeRequestDialog({
 						description: request.description,
 						quantity: request.quantity,
 						status: "pending",
+						resolved_price: 0,
+						response_notes: "",
 					},
 				],
 			});
@@ -47,8 +49,12 @@ export function RevokeRequestDialog({
 		onSuccess: () => {
 			toast.success("Request revoked and set back to pending");
 			setOpen(false);
+			// Invalidate both query keys to ensure real-time updates
 			queryClient.invalidateQueries({
 				queryKey: ["event", String(eventId), "vendors"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
 			});
 		},
 		onError: (error: Error) => {
@@ -68,8 +74,7 @@ export function RevokeRequestDialog({
 				<DialogHeader>
 					<DialogTitle>Revoke to Pending?</DialogTitle>
 					<DialogDescription>
-						This will revert the request back to pending status so you can
-						review it again.
+						This will revert the request back to pending status and clear the price and notes so you can review it again.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-2 rounded border bg-muted/30 p-3">
