@@ -5,13 +5,45 @@ import { getEventStaff } from "@/lib/api/event/event-staff";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import type { Event } from "@/lib/api/event/response";
 
+export type EventPermissions = {
+	// Global permissions
+	isOrgOwner: boolean;
+	isOrganizer: boolean;
+	isMember: boolean;
+	isVendor: boolean;
+	isExhibitionContractor: boolean;
+
+	// Event-specific roles
+	isEventAdmin: boolean;
+	isEventTeamMember: boolean;
+	isEventStaff: boolean;
+	isEventVendor: boolean;
+
+	// Specific permissions
+	canManageEvent: boolean;
+	canManageEventStaff: boolean;
+	canManageEventVendors: boolean;
+	canViewAnalytics: boolean;
+	canManageTickets: boolean;
+	canScanTickets: boolean;
+	canViewVisitors: boolean;
+	canScanVisitorStamps: boolean;
+	canEditVendorProfile: boolean;
+	canViewStampAnalytics: boolean;
+
+	// Tab visibility
+	canViewVendorsTab: boolean;
+	canViewVisitorsTab: boolean;
+	canViewStampScannerTab: boolean;
+};
+
 /**
  * Hook to check event-specific permissions for the current user
  *
  * This hook determines what actions a user can perform on a specific event
  * based on their global role, event staff assignment, and vendor assignment.
  */
-export function useEventPermissions(eventId: string | number, event?: Event) {
+export function useEventPermissions(eventId: string | number, event?: Event): EventPermissions {
 	const { user } = useAuth();
 	const eventIdStr = String(eventId);
 
@@ -89,7 +121,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 		// Check if user is a vendor for this event
 		const isEventVendor = eventVendors?.some(
 			(vendor) => vendor.vendor_id === user.id,
-		);
+		) ?? false;
 
 		// Determine if event uses tickets
 		const useTicket = event?.use_ticket ?? true;
@@ -109,7 +141,7 @@ export function useEventPermissions(eventId: string | number, event?: Event) {
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
 		const canViewVisitorsTab = !useTicket && canViewVisitors;
-		const canViewStampScannerTab = !useTicket && canScanVisitorStamps;
+		const canViewStampScannerTab = !useTicket && (canScanVisitorStamps ?? false);
 
 		return {
 			// Global permissions
