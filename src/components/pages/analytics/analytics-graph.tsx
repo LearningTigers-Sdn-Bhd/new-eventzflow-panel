@@ -1,5 +1,5 @@
 import { DollarSign, QrCode, Ticket } from "lucide-react";
-import { WeeklyChart } from "@/components/analytics-card";
+import { WeeklyChart } from "@/components/admin-ui/analytic";
 
 interface AnalyticsGraphProps {
 	weeklyRegisteredTickets?: { date: string; count: number }[];

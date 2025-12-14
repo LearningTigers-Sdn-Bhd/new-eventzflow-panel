@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MdSpaceDashboard } from "react-icons/md";
-import { StatsCard } from "@/components/analytics-card";
+import { StatsCard } from "@/components/admin-ui/analytic";
 import { ErrorState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,9 @@ export function VendorDashboard() {
 					<Card className="mx-3 sm:mx-4">
 						<CardContent className="p-8 text-center sm:p-12">
 							<Calendar className="mx-auto mb-4 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
-							<h3 className="mb-2 font-semibold text-base sm:text-lg">No events assigned</h3>
+							<h3 className="mb-2 font-semibold text-base sm:text-lg">
+								No events assigned
+							</h3>
 							<p className="text-muted-foreground text-sm">
 								You haven't been assigned to any events yet.
 							</p>
@@ -138,7 +140,6 @@ export function VendorDashboard() {
 		</div>
 	);
 }
-
 
 // Vendor Event Card - displays pre-fetched analytics
 interface VendorEventCardProps {
@@ -190,17 +191,23 @@ function VendorEventCard({
 			</CardHeader>
 			<CardContent className="border-t p-0">
 				{/* Vendor Stats - optimized for mobile */}
-				<div className={cn(
-					"grid gap-2 p-3 sm:gap-3 sm:p-4",
-					isTicketEvent ? "grid-cols-2" : "grid-cols-3"
-				)}>
+				<div
+					className={cn(
+						"grid gap-2 p-3 sm:gap-3 sm:p-4",
+						isTicketEvent ? "grid-cols-2" : "grid-cols-3",
+					)}
+				>
 					{/* Stamp count - only for non-ticket events */}
 					{!isTicketEvent && (
 						<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 							<Stamp className="size-4 text-muted-foreground sm:size-5" />
 							<div>
-								<p className="text-[10px] text-muted-foreground sm:text-xs">Your Stamps</p>
-								<p className="font-bold text-base sm:text-lg">{event.stamp_count}</p>
+								<p className="text-[10px] text-muted-foreground sm:text-xs">
+									Your Stamps
+								</p>
+								<p className="font-bold text-base sm:text-lg">
+									{event.stamp_count}
+								</p>
 							</div>
 						</div>
 					)}
@@ -209,15 +216,21 @@ function VendorEventCard({
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 						<Ticket className="size-4 text-muted-foreground sm:size-5" />
 						<div>
-							<p className="text-[10px] text-muted-foreground sm:text-xs">Vouchers</p>
-							<p className="font-bold text-base sm:text-lg">{event.total_vouchers}</p>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">
+								Vouchers
+							</p>
+							<p className="font-bold text-base sm:text-lg">
+								{event.total_vouchers}
+							</p>
 						</div>
 					</div>
 
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 						<ShoppingBag className="size-4 text-muted-foreground sm:size-5" />
 						<div>
-							<p className="text-[10px] text-muted-foreground sm:text-xs">Redeemed</p>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">
+								Redeemed
+							</p>
 							<p className="font-bold text-base text-green-600 sm:text-lg dark:text-green-400">
 								{event.total_redeemed}
 							</p>
@@ -229,7 +242,9 @@ function VendorEventCard({
 				<div className="border-t p-3 sm:p-4">
 					<div className="flex items-center justify-between text-xs">
 						<span className="text-muted-foreground">Redemption Rate</span>
-						<span className="font-medium font-mono">{event.redemption_rate.toFixed(1)}%</span>
+						<span className="font-medium font-mono">
+							{event.redemption_rate.toFixed(1)}%
+						</span>
 					</div>
 					<div className="mt-2 h-1.5 overflow-hidden rounded-none bg-secondary">
 						<div

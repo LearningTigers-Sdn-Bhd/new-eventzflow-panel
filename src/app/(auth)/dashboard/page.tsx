@@ -2,26 +2,23 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { MdSpaceDashboard } from "react-icons/md";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
 import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
 import { Button } from "@/components/ui/button";
-import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
+import { useIsTablet } from "@/hooks/use-tablet";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
 	const isHydrated = useHydratedStore();
 	const { user } = useAuth();
-
-	// Show vendor dashboard for vendor role
-	if (user?.role === "vendor") {
-		return <VendorDashboard />;
-	}
-
+	const isTablet = useIsTablet();
 	const [
 		{ data: stats, isLoading: statsLoading, error: statsError },
 		{ data: events },
@@ -40,11 +37,18 @@ export default function DashboardPage() {
 		],
 	});
 
+	// Show vendor dashboard for vendor role
+	if (user?.role === "vendor") {
+		return <VendorDashboard />;
+	}
+
 	return (
 		<div className="space-y-0">
 			{/* Header */}
-			<div className="page-header border-b border-dashed">
-				<div className="px-2 md:px-4">
+			<div
+				className={cn("page-header", !isTablet ? "border-b border-dashed" : "")}
+			>
+				<div className="w-full px-0 lg:px-4">
 					<IconTitle
 						icon={MdSpaceDashboard}
 						title="Dashboard"
@@ -69,7 +73,7 @@ export default function DashboardPage() {
 			) : null}
 
 			{/* Interactive Dashboard Content */}
-			<div className="mt-6 border-t border-dashed lg:mt-16">
+			<div className={cn("mt-6", !isTablet ? "border-t border-dashed" : "")}>
 				<DashboardClientWrapper initialStats={stats} initialEvents={events} />
 			</div>
 		</div>
