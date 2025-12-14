@@ -1,6 +1,23 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor, VendorProfile } from "./response";
-import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema, type DeleteVendorRequest, deleteVendorSchema } from "./request";
+import {
+	type CreateVendorRequest,
+	createVendorSchema,
+	type DeleteVendorRequest,
+	deleteVendorSchema,
+	type ToggleVendorStatusRequest,
+	toggleVendorStatusSchema,
+	type UpdateVendorRequest,
+	updateVendorSchema,
+} from "./request";
+import type {
+	BackendVendor,
+	CreateVendorResponse,
+	DeleteVendorResponse,
+	ToggleVendorStatusResponse,
+	UpdateVendorResponse,
+	Vendor,
+	VendorProfile,
+} from "./response";
 
 /**
  * Get the full URL for a vendor image
@@ -14,13 +31,15 @@ export function getVendorImageUrl(filename: string): string {
 /**
  * Transform vendor profile image_path to full URL
  */
-function transformVendorProfile(profile: VendorProfile | null): VendorProfile | null {
+function transformVendorProfile(
+	profile: VendorProfile | null,
+): VendorProfile | null {
 	if (!profile) return null;
 
 	let imagePath: string | null = null;
 	if (profile.image_path) {
 		// Extract filename from the path (e.g., "vendor_images/filename.jpg" -> "filename.jpg")
-		const filename = profile.image_path.split('/').pop();
+		const filename = profile.image_path.split("/").pop();
 		if (filename) {
 			imagePath = getVendorImageUrl(filename);
 		}
@@ -52,8 +71,7 @@ function transformVendor(backendVendor: BackendVendor): Vendor {
  */
 export async function getVendors(): Promise<Vendor[]> {
 	try {
-		const response =
-			await restClient.get<BackendVendor[]>("v1/vendors");
+		const response = await restClient.get<BackendVendor[]>("v1/vendors");
 		return response.map(transformVendor);
 	} catch (error: unknown) {
 		console.error("Error fetching vendors:", error);
@@ -73,8 +91,7 @@ export async function createVendor(
 		const validated = createVendorSchema.parse(data);
 
 		// Check if we have an image file to upload
-		const hasImage =
-			validated.vendor_profile_attributes?.image instanceof File;
+		const hasImage = validated.vendor_profile_attributes?.image instanceof File;
 
 		if (hasImage) {
 			const formData = new FormData();
@@ -131,11 +148,15 @@ export async function createVendor(
 				(v) => v !== undefined && v !== null && v !== "",
 			);
 			if (hasProfileData) {
-				(payload.vendor as Record<string, unknown>).vendor_profile_attributes = rest;
+				(payload.vendor as Record<string, unknown>).vendor_profile_attributes =
+					rest;
 			}
 		}
 
-		const response = await restClient.post<BackendVendor>("v1/vendors", payload);
+		const response = await restClient.post<BackendVendor>(
+			"v1/vendors",
+			payload,
+		);
 
 		return {
 			success: true,
@@ -149,7 +170,6 @@ export async function createVendor(
 	}
 }
 
-
 /**
  * Update an existing vendor
  */
@@ -160,8 +180,7 @@ export async function updateVendor(
 		const validated = updateVendorSchema.parse(data);
 
 		// Check if we have an image file to upload
-		const hasImage =
-			validated.vendor_profile_attributes?.image instanceof File;
+		const hasImage = validated.vendor_profile_attributes?.image instanceof File;
 
 		if (hasImage) {
 			const formData = new FormData();
@@ -178,7 +197,7 @@ export async function updateVendor(
 
 			if (validated.vendor_profile_attributes) {
 				const { image, ...rest } = validated.vendor_profile_attributes;
-				
+
 				if (image instanceof File) {
 					formData.append("vendor[vendor_profile_attributes][image]", image);
 				}
@@ -214,8 +233,10 @@ export async function updateVendor(
 
 		// Only include password if provided
 		if (validated.newPassword) {
-			(payload.vendor as Record<string, unknown>).password = validated.newPassword;
-			(payload.vendor as Record<string, unknown>).password_confirmation = validated.newPassword;
+			(payload.vendor as Record<string, unknown>).password =
+				validated.newPassword;
+			(payload.vendor as Record<string, unknown>).password_confirmation =
+				validated.newPassword;
 		}
 
 		// Include vendor_profile_attributes if provided
@@ -229,7 +250,8 @@ export async function updateVendor(
 					filteredRest[key] = value as string;
 				}
 			});
-			(payload.vendor as Record<string, unknown>).vendor_profile_attributes = filteredRest;
+			(payload.vendor as Record<string, unknown>).vendor_profile_attributes =
+				filteredRest;
 		}
 
 		const response = await restClient.patch<BackendVendor>(

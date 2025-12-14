@@ -1,11 +1,11 @@
 // Request types and schemas
-export {
-	getVoucherAnalyticsSchema,
-	type GetVoucherAnalyticsRequest,
-} from "./request";
 
 // API endpoints
 export { getVoucherAnalytics } from "./endpoints";
+export {
+	type GetVoucherAnalyticsRequest,
+	getVoucherAnalyticsSchema,
+} from "./request";
 
 // Response types
 export type {
@@ -15,4 +15,3 @@ export type {
 	TopScannedVoucher,
 	VoucherAnalyticsResponse,
 } from "./response";
-

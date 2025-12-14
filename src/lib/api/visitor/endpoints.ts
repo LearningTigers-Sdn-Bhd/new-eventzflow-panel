@@ -1,11 +1,11 @@
 import { restClient } from "@/utils/rest-api";
-import type { Visitor } from "./response";
 import {
 	type CreateVisitorRequest,
-	type UpdateVisitorRequest,
 	createVisitorSchema,
+	type UpdateVisitorRequest,
 	updateVisitorSchema,
 } from "./request";
+import type { Visitor } from "./response";
 
 /**
  * Get all visitors for an event
@@ -34,7 +34,9 @@ export async function getVisitorByPublicId(
 ): Promise<Visitor> {
 	try {
 		// Backend controller handles public_id lookup in set_visitor method
-		return await restClient.get<Visitor>(`v1/events/${eventId}/visitors/${publicId}`);
+		return await restClient.get<Visitor>(
+			`v1/events/${eventId}/visitors/${publicId}`,
+		);
 	} catch (error: unknown) {
 		console.error("Error fetching visitor by public_id:", error);
 		const errorMessage =

@@ -1,6 +1,6 @@
 import { restClient } from "@/utils/rest-api";
-import type { VisitorStamp, VisitorStampWithDetails } from "./response";
 import { type CreateStampRequest, createStampSchema } from "./request";
+import type { VisitorStamp, VisitorStampWithDetails } from "./response";
 
 /**
  * Create a stamp (vendor scans visitor)
@@ -18,6 +18,10 @@ export async function createStamp(
 /**
  * Get all stamps for an event
  */
-export async function getEventStamps(eventId: string): Promise<VisitorStampWithDetails[]> {
-	return restClient.get<VisitorStampWithDetails[]>(`v1/events/${eventId}/visitor-stamps`);
+export async function getEventStamps(
+	eventId: string,
+): Promise<VisitorStampWithDetails[]> {
+	return restClient.get<VisitorStampWithDetails[]>(
+		`v1/events/${eventId}/visitor-stamps`,
+	);
 }

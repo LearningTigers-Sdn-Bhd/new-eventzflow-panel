@@ -24,7 +24,10 @@ export const updateVendorSchema = z.object({
 	email: z.string().email("Must be a valid email"),
 	full_name: z.string().min(2, "Full name must be at least 2 characters"),
 	phone: z.string().optional(),
-	newPassword: z.string().min(8, "Password must be at least 8 characters").optional(),
+	newPassword: z
+		.string()
+		.min(8, "Password must be at least 8 characters")
+		.optional(),
 	vendor_profile_attributes: vendorProfileAttributesSchema.optional(),
 });
 
@@ -40,5 +43,7 @@ export const deleteVendorSchema = z.object({
 // Export types for form data
 export type CreateVendorRequest = z.infer<typeof createVendorSchema>;
 export type UpdateVendorRequest = z.infer<typeof updateVendorSchema>;
-export type ToggleVendorStatusRequest = z.infer<typeof toggleVendorStatusSchema>;
+export type ToggleVendorStatusRequest = z.infer<
+	typeof toggleVendorStatusSchema
+>;
 export type DeleteVendorRequest = z.infer<typeof deleteVendorSchema>;

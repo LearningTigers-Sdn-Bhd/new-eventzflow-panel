@@ -1,9 +1,9 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendRedemptionLog, RedemptionLog } from "./response";
 import {
 	type GetRedemptionLogsRequest,
 	getRedemptionLogsSchema,
 } from "./request";
+import type { BackendRedemptionLog, RedemptionLog } from "./response";
 
 /**
  * Transform backend voucher type to frontend format

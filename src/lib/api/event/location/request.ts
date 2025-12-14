@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 // Location details schema (dynamic keys allowed)
-export const locationDetailsSchema = z.record(z.string(), z.string().optional());
+export const locationDetailsSchema = z.record(
+	z.string(),
+	z.string().optional(),
+);
 
 // Validation schema for getting locations
 export const getLocationsSchema = z.object({
@@ -81,8 +84,12 @@ export const deleteLocationSchema = z.object({
 export type GetLocationsRequest = z.infer<typeof getLocationsSchema>;
 export type GetLocationByIdRequest = z.infer<typeof getLocationByIdSchema>;
 export type CreateLocationRequest = z.infer<typeof createLocationSchema>;
-export type UpdateLocationInfoRequest = z.infer<typeof updateLocationInfoSchema>;
-export type UpdateLocationMembersRequest = z.infer<typeof updateLocationMembersSchema>;
+export type UpdateLocationInfoRequest = z.infer<
+	typeof updateLocationInfoSchema
+>;
+export type UpdateLocationMembersRequest = z.infer<
+	typeof updateLocationMembersSchema
+>;
 export type DeleteLocationRequest = z.infer<typeof deleteLocationSchema>;
 
 // Validation schema for assigning a member to a location

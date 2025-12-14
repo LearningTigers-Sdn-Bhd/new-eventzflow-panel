@@ -59,7 +59,11 @@ export async function getScanLogs(
 				Array<{
 					id: number;
 					name: string;
-					staff_members?: Array<{ id: number; full_name: string; email: string }>;
+					staff_members?: Array<{
+						id: number;
+						full_name: string;
+						email: string;
+					}>;
 					vendors?: Array<{ id: number; full_name: string; email: string }>;
 				}>
 			>(`v1/events/${eventId}/event_locations`),
@@ -76,7 +80,7 @@ export async function getScanLogs(
 				...(location.staff_members || []),
 				...(location.vendors || []),
 			];
-			
+
 			for (const member of allMembers) {
 				userLocationMap.set(member.id, location.name);
 			}

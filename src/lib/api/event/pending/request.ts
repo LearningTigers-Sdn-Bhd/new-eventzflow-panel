@@ -9,7 +9,9 @@ export const getPendingTicketsSchema = z.object({
 export const createPendingTicketSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	attendee_name: z.string().min(1),
-	attendee_email: z.union([z.string().email(), z.literal(""), z.null(), z.undefined()]).optional(),
+	attendee_email: z
+		.union([z.string().email(), z.literal(""), z.null(), z.undefined()])
+		.optional(),
 	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().int().positive(),
 	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment
@@ -24,7 +26,9 @@ export const updatePendingTicketSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	ticketId: z.string().min(1, "Ticket ID is required"),
 	attendee_name: z.string().optional(),
-	attendee_email: z.union([z.string().email(), z.literal(""), z.null(), z.undefined()]).optional(),
+	attendee_email: z
+		.union([z.string().email(), z.literal(""), z.null(), z.undefined()])
+		.optional(),
 	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().optional(),
 	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment

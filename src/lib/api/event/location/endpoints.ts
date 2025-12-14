@@ -1,5 +1,7 @@
 import { restClient } from "@/utils/rest-api";
 import {
+	type AssignMemberToLocationRequest,
+	assignMemberToLocationSchema,
 	type CreateLocationRequest,
 	createLocationSchema,
 	type DeleteLocationRequest,
@@ -12,8 +14,6 @@ import {
 	type UpdateLocationMembersRequest,
 	updateLocationInfoSchema,
 	updateLocationMembersSchema,
-	type AssignMemberToLocationRequest,
-	assignMemberToLocationSchema,
 } from "./request";
 import type {
 	BackendLocation,
@@ -33,7 +33,8 @@ function transformLocation(backendLocation: BackendLocation): Location {
 		memberType: member.member_type as "staff" | "vendor",
 	});
 
-	const staffMembers = backendLocation.staff_members?.map(transformMember) || [];
+	const staffMembers =
+		backendLocation.staff_members?.map(transformMember) || [];
 	const vendors = backendLocation.vendors?.map(transformMember) || [];
 	const allMembers = [...staffMembers, ...vendors];
 
@@ -44,7 +45,8 @@ function transformLocation(backendLocation: BackendLocation): Location {
 		isUnlimited: backendLocation.is_unlimited,
 		floor: backendLocation.floor,
 		locationDetails: backendLocation.location_details || {},
-		locationDisplayName: backendLocation.location_display_name || backendLocation.name,
+		locationDisplayName:
+			backendLocation.location_display_name || backendLocation.name,
 		staffMembers,
 		vendors,
 		assignedMembers: allMembers, // For backward compatibility

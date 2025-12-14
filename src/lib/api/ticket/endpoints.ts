@@ -44,10 +44,14 @@ export async function checkInTicket(
 				response.ticket_type?.name ||
 				response.ticket_type_name ||
 				"General Admission",
-			value: parseFloat(String(response.ticket_type?.price)) || response.value || 0,
+			value:
+				Number.parseFloat(String(response.ticket_type?.price)) ||
+				response.value ||
+				0,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
-			eventName: response.event?.title || response.event_name || "Unknown Event",
+			eventName:
+				response.event?.title || response.event_name || "Unknown Event",
 			eventId: response.event?.id?.toString() || response.event_id.toString(),
 		};
 	} catch (error) {
@@ -103,7 +107,10 @@ export async function findTicketByContact(data: {
 				name: ticket.attendee_name || "Unknown Attendee",
 				email: ticket.attendee_email,
 				phone: ticket.attendee_phone || undefined,
-				ticketTypeName: ticket.ticket_type?.name || ticket.ticket_type_name || "General Admission",
+				ticketTypeName:
+					ticket.ticket_type?.name ||
+					ticket.ticket_type_name ||
+					"General Admission",
 				value: ticket.ticket_type?.price || ticket.value || 0,
 				checkedIn: ticket.checked_in,
 				checkInAt: ticket.check_in_at,
@@ -143,7 +150,11 @@ export async function findTicketByContact(data: {
  */
 export async function confirmSelfCheckIn(
 	publicId: string,
-	contactInfo?: { attendee_phone?: string; attendee_email?: string; check_in_url?: string }
+	contactInfo?: {
+		attendee_phone?: string;
+		attendee_email?: string;
+		check_in_url?: string;
+	},
 ): Promise<CheckInResponse> {
 	// Validate public_id is provided
 	if (!publicId) {
@@ -166,7 +177,10 @@ export async function confirmSelfCheckIn(
 			payload.check_in_url = contactInfo.check_in_url;
 		}
 
-		const response = await restClient.post<BackendCheckInResponse>(url, payload);
+		const response = await restClient.post<BackendCheckInResponse>(
+			url,
+			payload,
+		);
 
 		// Transform backend response to frontend format
 		return {
@@ -567,9 +581,9 @@ export async function importTickets(
 		// Transform backend response to frontend format
 		return {
 			created: response.data.created,
-            updated: response.data.updated,
+			updated: response.data.updated,
 			skipped: response.data.skipped,
-            duplicates_in_file: response.data.duplicates_in_file,
+			duplicates_in_file: response.data.duplicates_in_file,
 			errors: response.data.errors || [],
 		};
 	} catch (error) {
@@ -582,29 +596,29 @@ export async function importTickets(
  * Import tickets in dry-run mode (no writes) and return detailed report
  */
 export async function importTicketsDryRun(
-    file: File,
+	file: File,
 ): Promise<ImportTicketsResponse> {
-    try {
-        const formData = new FormData();
-        formData.append("file", file);
+	try {
+		const formData = new FormData();
+		formData.append("file", file);
 
-        const response =
-            await restClient.postFormData<BackendImportTicketsResponse>(
-                "v1/tickets/import?dry_run=true",
-                formData,
-            );
+		const response =
+			await restClient.postFormData<BackendImportTicketsResponse>(
+				"v1/tickets/import?dry_run=true",
+				formData,
+			);
 
-        return {
-            created: response.data.created,
-            updated: response.data.updated,
-            skipped: response.data.skipped,
-            duplicates_in_file: response.data.duplicates_in_file,
-            errors: response.data.errors || [],
-        };
-    } catch (error) {
-        const message = await extractErrorMessage(error);
-        throw new Error(message);
-    }
+		return {
+			created: response.data.created,
+			updated: response.data.updated,
+			skipped: response.data.skipped,
+			duplicates_in_file: response.data.duplicates_in_file,
+			errors: response.data.errors || [],
+		};
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
 }
 
 /**

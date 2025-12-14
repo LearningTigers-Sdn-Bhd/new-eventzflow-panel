@@ -1,12 +1,12 @@
-import { restClient, kyPublicClient } from "@/utils/rest-api";
-import type {
-	GenerateInviteLinkResponse,
-	VerifyInviteTokenResponse,
-	CheckAccountResponse,
-	RegisterInvitedVendorResponse,
-} from "./response";
+import { kyPublicClient, restClient } from "@/utils/rest-api";
 import type { RegisterInvitedVendorRequest } from "./request";
 import { registerInvitedVendorSchema } from "./request";
+import type {
+	CheckAccountResponse,
+	GenerateInviteLinkResponse,
+	RegisterInvitedVendorResponse,
+	VerifyInviteTokenResponse,
+} from "./response";
 
 /**
  * Generate vendor invitation link for an event (organizer only)
@@ -96,7 +96,8 @@ export async function registerInvitedVendor(
 		if (validated.vendor_profile.category)
 			vendorProfile.category = validated.vendor_profile.category;
 		if (validated.vendor_profile.person_in_charge)
-			vendorProfile.person_in_charge = validated.vendor_profile.person_in_charge;
+			vendorProfile.person_in_charge =
+				validated.vendor_profile.person_in_charge;
 		if (validated.vendor_profile.address)
 			vendorProfile.address = validated.vendor_profile.address;
 		if (validated.vendor_profile.notes)
@@ -138,9 +139,11 @@ export async function registerInvitedVendor(
 		if (validated.exhibitor_kit.pic_full_name)
 			exhibitorKit.pic_full_name = validated.exhibitor_kit.pic_full_name;
 		if (validated.exhibitor_kit.pic_contact_number)
-			exhibitorKit.pic_contact_number = validated.exhibitor_kit.pic_contact_number;
+			exhibitorKit.pic_contact_number =
+				validated.exhibitor_kit.pic_contact_number;
 		if (validated.exhibitor_kit.pic_email_address)
-			exhibitorKit.pic_email_address = validated.exhibitor_kit.pic_email_address;
+			exhibitorKit.pic_email_address =
+				validated.exhibitor_kit.pic_email_address;
 
 		if (Object.keys(exhibitorKit).length > 0) {
 			payload.exhibitor_kit = exhibitorKit;

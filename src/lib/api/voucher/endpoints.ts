@@ -1,19 +1,19 @@
-import { restClient, publicRestClient, API_BASE_URL } from "@/utils/rest-api";
-import type {
-	BackendVoucher,
-	CreateVoucherResponse,
-	UpdateVoucherResponse,
-	DeleteVoucherResponse,
-	Voucher,
-} from "./response";
+import { API_BASE_URL, publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type CreateVoucherRequest,
 	createVoucherSchema,
-	type UpdateVoucherRequest,
-	updateVoucherSchema,
 	type DeleteVoucherRequest,
 	deleteVoucherSchema,
+	type UpdateVoucherRequest,
+	updateVoucherSchema,
 } from "./request";
+import type {
+	BackendVoucher,
+	CreateVoucherResponse,
+	DeleteVoucherResponse,
+	UpdateVoucherResponse,
+	Voucher,
+} from "./response";
 
 /**
  * Get the full URL for a voucher image
@@ -37,7 +37,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 
 	if (backendVoucher.image_path) {
 		// Extract filename from the path (e.g., "voucher_images/filename.jpg" -> "filename.jpg")
-		const filename = backendVoucher.image_path.split('/').pop();
+		const filename = backendVoucher.image_path.split("/").pop();
 		if (filename) {
 			imagePath = getVoucherImageUrl(filename);
 		}
@@ -61,7 +61,10 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,
-		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
+		voucherType: backendVoucher.voucher_type as
+			| "fixed_amount"
+			| "percentage"
+			| "free_item",
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
 		voucherCategory: backendVoucher.voucher_category,
 		imagePath,
@@ -249,7 +252,9 @@ export async function createVoucher(
 			start_time: validated.start_time,
 			end_time: validated.end_time,
 			is_unlimited: validated.is_unlimited,
-			total_redemption_available: validated.is_unlimited ? undefined : validated.total_redemption_available,
+			total_redemption_available: validated.is_unlimited
+				? undefined
+				: validated.total_redemption_available,
 			max_redemptions_per_user: validated.max_redemptions_per_user,
 			voucher_type: validated.voucher_type,
 			voucher_value: validated.voucher_value,
@@ -386,7 +391,7 @@ function transformPublicVoucher(backendVoucher: BackendVoucher): Voucher {
 	let imagePath: string | null = null;
 
 	if (backendVoucher.image_path) {
-		const filename = backendVoucher.image_path.split('/').pop();
+		const filename = backendVoucher.image_path.split("/").pop();
 		if (filename) {
 			imagePath = getPublicVoucherImageUrl(filename);
 		}
@@ -410,7 +415,10 @@ function transformPublicVoucher(backendVoucher: BackendVoucher): Voucher {
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,
-		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
+		voucherType: backendVoucher.voucher_type as
+			| "fixed_amount"
+			| "percentage"
+			| "free_item",
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
 		voucherCategory: backendVoucher.voucher_category,
 		imagePath,
@@ -482,4 +490,3 @@ export async function getPublicVoucher(id: number | string): Promise<Voucher> {
 		throw new Error(errorMessage);
 	}
 }
-
