@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createStamp, getEventStamps, type CreateStampRequest } from "@/lib/api/visitor-stamp";
+import {
+	type CreateStampRequest,
+	createStamp,
+	getEventStamps,
+} from "@/lib/api/visitor-stamp";
 
 /**
  * Hook to create a stamp (vendor scans visitor)

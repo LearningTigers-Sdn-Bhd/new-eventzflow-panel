@@ -5,7 +5,13 @@ interface User {
 	id: number;
 	email: string;
 	full_name?: string | null | undefined;
-	role: "org_owner" | "organizer" | "member" | "vendor" | "exhibitor" | "exhibition_contractor";
+	role:
+		| "org_owner"
+		| "organizer"
+		| "member"
+		| "vendor"
+		| "exhibitor"
+		| "exhibition_contractor";
 	phone?: string | null | undefined;
 	email_verified: boolean;
 }

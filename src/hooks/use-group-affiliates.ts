@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	getGroupAffiliates,
+	type CreateAffiliateRequest,
 	createGroupAffiliate,
 	deleteGroupAffiliate,
-	type CreateAffiliateRequest,
+	getGroupAffiliates,
 } from "@/lib/api/group-affiliate";
 
 /**
@@ -49,12 +49,19 @@ export const useDeleteGroupAffiliate = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ groupId, affiliateId }: { groupId: number; affiliateId: number }) => 
-			deleteGroupAffiliate(groupId, affiliateId),
+		mutationFn: ({
+			groupId,
+			affiliateId,
+		}: {
+			groupId: number;
+			affiliateId: number;
+		}) => deleteGroupAffiliate(groupId, affiliateId),
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: ["groups", variables.groupId] });
-			queryClient.invalidateQueries({ 
-				queryKey: ["groups", variables.groupId, "affiliates"] 
+			queryClient.invalidateQueries({
+				queryKey: ["groups", variables.groupId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["groups", variables.groupId, "affiliates"],
 			});
 			queryClient.invalidateQueries({ queryKey: ["groups"] });
 		},

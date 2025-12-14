@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { useAuth } from "./use-auth";
 import { getEventStaff } from "@/lib/api/event/event-staff";
-import { getEventVendors } from "@/lib/api/event-vendor";
 import type { Event } from "@/lib/api/event/response";
+import { getEventVendors } from "@/lib/api/event-vendor";
+import { useAuth } from "./use-auth";
 
 export type EventPermissions = {
 	// Global permissions

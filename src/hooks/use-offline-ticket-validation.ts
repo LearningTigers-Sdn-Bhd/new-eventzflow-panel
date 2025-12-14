@@ -5,9 +5,13 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
+import {
+	ERROR_MESSAGES,
+	STORAGE_CONFIG,
+	SUCCESS_MESSAGES,
+} from "@/components/pages/scan/constants";
 import type { ScanResult } from "@/components/pages/scan/types";
 import { playBeep } from "@/components/pages/scan/utils";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES, STORAGE_CONFIG } from "@/components/pages/scan/constants";
 
 interface OfflineTicket {
 	publicId: string;
@@ -53,7 +57,9 @@ export function useOfflineTicketValidation() {
 				}
 
 				// Load offline tickets
-				const ticketsData = localStorage.getItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY);
+				const ticketsData = localStorage.getItem(
+					STORAGE_CONFIG.OFFLINE_TICKETS_KEY,
+				);
 				if (!ticketsData) {
 					return {
 						ticketId,
@@ -65,7 +71,7 @@ export function useOfflineTicketValidation() {
 
 				const tickets: OfflineTicket[] = JSON.parse(ticketsData);
 				const ticket = tickets.find(
-					(t) => t.publicId.toLowerCase() === normalizedTicketId
+					(t) => t.publicId.toLowerCase() === normalizedTicketId,
 				);
 
 				if (!ticket) {
@@ -96,7 +102,10 @@ export function useOfflineTicketValidation() {
 				// Mark as checked in in offline data
 				ticket.checkedIn = true;
 				ticket.checkInAt = new Date().toISOString();
-				localStorage.setItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY, JSON.stringify(tickets));
+				localStorage.setItem(
+					STORAGE_CONFIG.OFFLINE_TICKETS_KEY,
+					JSON.stringify(tickets),
+				);
 
 				// Create success result
 				const result: ScanResult = {
@@ -132,7 +141,7 @@ export function useOfflineTicketValidation() {
 				};
 			}
 		},
-		[]
+		[],
 	);
 
 	return {
@@ -140,4 +149,3 @@ export function useOfflineTicketValidation() {
 		hasOfflineData,
 	};
 }
-
