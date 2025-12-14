@@ -12,7 +12,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { MessageSquare, Filter } from "lucide-react";
+import { Filter, MessageSquare } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";

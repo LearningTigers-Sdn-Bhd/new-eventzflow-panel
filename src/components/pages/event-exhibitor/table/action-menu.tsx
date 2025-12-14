@@ -21,13 +21,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
-import { deleteEventVendor } from "@/lib/api/event-vendor";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { deleteEventVendor } from "@/lib/api/event-vendor";
 import ConfirmDialog from "../../event-staff/confirm-dialog";
+import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
 import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
-import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import { getEventById } from "@/lib/api/event";
 
 interface ExhibitorActionsMenuProps {
@@ -161,39 +161,39 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="rounded-none bg-background w-48"
+				className="w-48 rounded-none bg-background"
 			>
 				<DropdownMenuItem
 					onClick={handleEditClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Pencil className="mr-2 size-4" />
 					Edit Form
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleManageKitsClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Package className="mr-2 size-4" />
 					Manage Kits
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleViewExhibitorClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Eye className="mr-2 size-4" />
 					View Exhibitor
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleQrCodeClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<QrCode className="mr-2 size-4" />
 					QR Code
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleManageMemberClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Users className="mr-2 size-4" />
 					Manage Member
@@ -201,7 +201,7 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={handleDeleteClick}
-					className="rounded-none cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
 				>
 					<Trash2 className="mr-2 size-4" />
 					Delete

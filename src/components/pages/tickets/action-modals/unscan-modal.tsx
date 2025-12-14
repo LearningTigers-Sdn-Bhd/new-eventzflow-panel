@@ -3,10 +3,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { unscanTicket } from "@/lib/api/ticket";
-import { toast } from "sonner";
 import type { BaseTicket } from "../columns";
 
 interface UnscanModalProps {
@@ -32,7 +32,8 @@ export default function UnscanModal({ ticket }: UnscanModalProps) {
 		},
 		onError: (error: Error) => {
 			toast.error("Failed to unscan ticket", {
-				description: error.message || "An error occurred while unscanning the ticket.",
+				description:
+					error.message || "An error occurred while unscanning the ticket.",
 			});
 		},
 	});
@@ -50,7 +51,8 @@ export default function UnscanModal({ ticket }: UnscanModalProps) {
 						Warning: This action will reset the ticket status
 					</p>
 					<p className="text-amber-800 text-xs dark:text-amber-200">
-						This will set the ticket back to "Not Scanned" and clear all check-in information.
+						This will set the ticket back to "Not Scanned" and clear all
+						check-in information.
 					</p>
 				</div>
 			</div>
@@ -72,7 +74,9 @@ export default function UnscanModal({ ticket }: UnscanModalProps) {
 					</p>
 					<p>
 						<span className="text-muted-foreground">Ticket Type:</span>{" "}
-						<span className="font-medium">{ticket.ticketTypeName || "N/A"}</span>
+						<span className="font-medium">
+							{ticket.ticketTypeName || "N/A"}
+						</span>
 					</p>
 					<p>
 						<span className="text-muted-foreground">Ticket ID:</span>{" "}

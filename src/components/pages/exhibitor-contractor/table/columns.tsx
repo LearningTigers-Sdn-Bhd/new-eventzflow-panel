@@ -2,11 +2,11 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
+import { cn } from "@/lib/utils";
 import { ContractorActionsMenu } from "./action-menu";
 
 export const columns: ColumnDef<ExhibitionContractor>[] = [

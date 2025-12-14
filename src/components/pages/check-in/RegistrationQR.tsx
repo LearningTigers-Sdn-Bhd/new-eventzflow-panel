@@ -6,7 +6,8 @@ interface RegistrationQRProps {
 	onBack: () => void;
 }
 
-const REGISTRATION_LINK = "https://wa.me/601161753725?text=Register+for+SME+EXPO+and+AI+Summit+2025+%5BPlease+press+%2ASEND%2A+directly%5D";
+const REGISTRATION_LINK =
+	"https://wa.me/601161753725?text=Register+for+SME+EXPO+and+AI+Summit+2025+%5BPlease+press+%2ASEND%2A+directly%5D";
 
 export function RegistrationQR({ onBack }: RegistrationQRProps) {
 	return (

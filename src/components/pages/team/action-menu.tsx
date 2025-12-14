@@ -151,7 +151,10 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 				<DropdownMenuSeparator className="rounded-none" />
 				{member.role === "organizer" && (
 					<>
-						<DropdownMenuItem className="rounded-none" onClick={handleViewMembersClick}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={handleViewMembersClick}
+						>
 							<Users className="mr-2 h-4 w-4" />
 							View Members
 						</DropdownMenuItem>

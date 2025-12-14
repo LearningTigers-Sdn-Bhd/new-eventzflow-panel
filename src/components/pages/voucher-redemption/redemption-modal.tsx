@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDialog } from "@/hooks/use-dialog";
-import { redeemVoucher } from "@/lib/api/voucher-redemption";
-import { getVoucherByUuid } from "@/lib/api/voucher";
 import { getVisitorByPublicId } from "@/lib/api/visitor";
+import { getVoucherByUuid } from "@/lib/api/voucher";
+import { redeemVoucher } from "@/lib/api/voucher-redemption";
 import { AmountForm } from "./amount-form";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "./constants";
 import { RedemptionResultCard } from "./redemption-result";
+import { RedemptionReviewCard } from "./redemption-review-card";
 import { RedemptionScanner } from "./redemption-scanner";
 import { ScannedInfoCard } from "./scanned-info-card";
-import { RedemptionReviewCard } from "./redemption-review-card";
 import type { RedemptionResult, RedemptionState } from "./types";
 
 interface VoucherRedemptionModalProps {
@@ -73,7 +73,7 @@ export function VoucherRedemptionModal({
 
 		try {
 			const voucherData = await getVoucherByUuid(decodedText);
-			
+
 			setRedemptionState((prev) => ({
 				...prev,
 				voucherDetails: {
@@ -94,8 +94,11 @@ export function VoucherRedemptionModal({
 				description: "Now scan the visitor's QR code",
 			});
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Failed to fetch voucher details";
-			
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to fetch voucher details";
+
 			setRedemptionState((prev) => ({
 				...prev,
 				isLoadingVoucher: false,
@@ -146,7 +149,7 @@ export function VoucherRedemptionModal({
 
 		try {
 			const visitorData = await getVisitorByPublicId(eventId, decodedText);
-			
+
 			setRedemptionState((prev) => ({
 				...prev,
 				visitorDetails: {
@@ -165,8 +168,11 @@ export function VoucherRedemptionModal({
 				description: "Review the details below",
 			});
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Failed to fetch visitor details";
-			
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to fetch visitor details";
+
 			setRedemptionState((prev) => ({
 				...prev,
 				isLoadingVisitor: false,
@@ -217,19 +223,22 @@ export function VoucherRedemptionModal({
 				message: response.message,
 				netAmount: response.netAmount,
 				discountApplied: response.discountApplied,
-				voucherType: redemptionState.voucherDetails?.voucherType || response.voucherType,
+				voucherType:
+					redemptionState.voucherDetails?.voucherType || response.voucherType,
 				timestamp: new Date().toISOString(),
 			});
 
 			toast.success(SUCCESS_MESSAGES.REDEMPTION_SUCCESS);
-			
+
 			// Call onSuccess callback if provided
 			if (onSuccess) {
 				onSuccess();
 			}
 		} catch (error) {
 			const errorMessage =
-				error instanceof Error ? error.message : ERROR_MESSAGES.REDEMPTION_FAILED;
+				error instanceof Error
+					? error.message
+					: ERROR_MESSAGES.REDEMPTION_FAILED;
 
 			setResult({
 				success: false,
@@ -313,18 +322,19 @@ export function VoucherRedemptionModal({
 			) : (
 				<>
 					{/* Scanned Info Card - Only show on voucher step (not on visitor step since review will show full details) */}
-					{redemptionState.currentStep === "voucher" && redemptionState.voucherUuid && (
-						<ScannedInfoCard
-							voucherUuid={redemptionState.voucherUuid}
-							visitorId={null}
-							voucherDetails={redemptionState.voucherDetails}
-							visitorDetails={null}
-							isLoadingVoucher={redemptionState.isLoadingVoucher}
-							isLoadingVisitor={false}
-							onClearVoucher={handleClearVoucher}
-							onClearVisitor={undefined}
-						/>
-					)}
+					{redemptionState.currentStep === "voucher" &&
+						redemptionState.voucherUuid && (
+							<ScannedInfoCard
+								voucherUuid={redemptionState.voucherUuid}
+								visitorId={null}
+								voucherDetails={redemptionState.voucherDetails}
+								visitorDetails={null}
+								isLoadingVoucher={redemptionState.isLoadingVoucher}
+								isLoadingVisitor={false}
+								onClearVoucher={handleClearVoucher}
+								onClearVisitor={undefined}
+							/>
+						)}
 
 					{/* Step Content */}
 					{redemptionState.currentStep === "voucher" ? (
@@ -361,4 +371,3 @@ export function VoucherRedemptionModal({
 		</div>
 	);
 }
-

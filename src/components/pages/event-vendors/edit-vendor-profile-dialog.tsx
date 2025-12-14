@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useUpdateVendorProfile } from "@/hooks/use-vendor-profile";
-import type { VendorProfile } from "@/lib/api/vendor-profile";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -11,12 +12,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import ImageUpload from "@/components/file-upload/image-upload";
+import { useUpdateVendorProfile } from "@/hooks/use-vendor-profile";
+import type { VendorProfile } from "@/lib/api/vendor-profile";
 
 interface EditVendorProfileDialogProps {
 	profile: VendorProfile;
@@ -34,7 +34,9 @@ export function EditVendorProfileDialog({
 	const [image, setImage] = useState<File | null>(null);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [category, setCategory] = useState(profile.category || "");
-	const [personInCharge, setPersonInCharge] = useState(profile.person_in_charge || "");
+	const [personInCharge, setPersonInCharge] = useState(
+		profile.person_in_charge || "",
+	);
 	const [address, setAddress] = useState(profile.address || "");
 	const [notes, setNotes] = useState(profile.notes || "");
 	const updateProfile = useUpdateVendorProfile();
@@ -93,9 +95,13 @@ export function EditVendorProfileDialog({
 						Update vendor marketing information.
 					</DialogDescription>
 				</DialogHeader>
-				
+
 				<div className="flex-1 overflow-y-auto p-6 pt-2">
-					<form id="edit-profile-form" onSubmit={handleSubmit} className="space-y-6">
+					<form
+						id="edit-profile-form"
+						onSubmit={handleSubmit}
+						className="space-y-6"
+					>
 						<div className="space-y-2">
 							<Label>Vendor Image</Label>
 							<ImageUpload
@@ -104,7 +110,7 @@ export function EditVendorProfileDialog({
 								disabled={updateProfile.isPending}
 							/>
 						</div>
-						
+
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="category">Category</Label>
@@ -170,8 +176,8 @@ export function EditVendorProfileDialog({
 					>
 						Cancel
 					</Button>
-					<Button 
-						type="submit" 
+					<Button
+						type="submit"
 						form="edit-profile-form"
 						disabled={updateProfile.isPending}
 					>

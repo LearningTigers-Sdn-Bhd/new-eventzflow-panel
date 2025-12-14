@@ -21,12 +21,16 @@ export default function ViewMembersDialog({
 	const vendors = location.vendors || [];
 	const totalMembers = staffMembers.length + vendors.length;
 
-	const renderMemberList = (members: typeof staffMembers, type: "staff" | "vendor") => {
+	const renderMemberList = (
+		members: typeof staffMembers,
+		type: "staff" | "vendor",
+	) => {
 		if (members.length === 0) {
 			return (
 				<div className="flex flex-col items-center justify-center py-12 text-center">
 					<p className="text-muted-foreground text-sm">
-						No {type === "staff" ? "staff members" : "vendors"} assigned to this location.
+						No {type === "staff" ? "staff members" : "vendors"} assigned to this
+						location.
 					</p>
 				</div>
 			);
@@ -39,9 +43,7 @@ export default function ViewMembersDialog({
 			>
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
-						<p className="truncate font-medium text-sm">
-							{member.name}
-						</p>
+						<p className="truncate font-medium text-sm">{member.name}</p>
 						<Badge
 							variant="outline"
 							className={
@@ -80,7 +82,8 @@ export default function ViewMembersDialog({
 						</span>
 					) : (
 						<>
-							{staffMembers.length} staff • {vendors.length} vendor{vendors.length !== 1 ? "s" : ""}
+							{staffMembers.length} staff • {vendors.length} vendor
+							{vendors.length !== 1 ? "s" : ""}
 						</>
 					)}
 				</p>
@@ -89,15 +92,9 @@ export default function ViewMembersDialog({
 			{/* Tabs for Staff and Vendors */}
 			<Tabs defaultValue="all" className="w-full">
 				<TabsList className="grid w-full grid-cols-3">
-					<TabsTrigger value="all">
-						All ({totalMembers})
-					</TabsTrigger>
-					<TabsTrigger value="staff">
-						Staff ({staffMembers.length})
-					</TabsTrigger>
-					<TabsTrigger value="vendors">
-						Vendors ({vendors.length})
-					</TabsTrigger>
+					<TabsTrigger value="all">All ({totalMembers})</TabsTrigger>
+					<TabsTrigger value="staff">Staff ({staffMembers.length})</TabsTrigger>
+					<TabsTrigger value="vendors">Vendors ({vendors.length})</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="all">

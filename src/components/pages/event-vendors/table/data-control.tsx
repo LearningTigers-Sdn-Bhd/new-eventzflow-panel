@@ -80,7 +80,11 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 			) : (
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField table={table} columns={searchColumns} placeholder="Search event vendors..." />
+					<QuerySearchField
+						table={table}
+						columns={searchColumns}
+						placeholder="Search event vendors..."
+					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						<Button
 							variant="outline"
@@ -108,7 +112,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								table
 									.getColumn(secondarySortColumn)
 									?.toggleSorting(
-										table.getColumn(secondarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn(secondarySortColumn)?.getIsSorted() ===
+											"asc",
 									)
 							}
 							className="rounded-none"
@@ -116,8 +121,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(secondarySortColumn)?.getIsSorted() === "asc" &&
-										"-rotate-180",
+									table.getColumn(secondarySortColumn)?.getIsSorted() ===
+										"asc" && "-rotate-180",
 								)}
 							/>
 							{secondarySortLabel}

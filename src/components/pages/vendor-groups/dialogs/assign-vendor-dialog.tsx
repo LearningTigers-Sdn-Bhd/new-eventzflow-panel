@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -22,9 +23,11 @@ import {
 	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+	useCreateGroupAffiliate,
+	useGroupAffiliates,
+} from "@/hooks/use-group-affiliates";
 import { getVendors } from "@/lib/api/vendor";
-import { useCreateGroupAffiliate, useGroupAffiliates } from "@/hooks/use-group-affiliates";
 
 interface AssignVendorDialogProps {
 	groupId: number;
@@ -37,7 +40,9 @@ export function AssignVendorDialog({
 	open,
 	onOpenChange,
 }: AssignVendorDialogProps) {
-	const [selectedVendorIds, setSelectedVendorIds] = useState<Set<number>>(new Set());
+	const [selectedVendorIds, setSelectedVendorIds] = useState<Set<number>>(
+		new Set(),
+	);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const createAffiliate = useCreateGroupAffiliate();
 
@@ -93,7 +98,7 @@ export function AssignVendorDialog({
 				toast.success(
 					`${successCount} vendor${successCount > 1 ? "s" : ""} assigned successfully${
 						failCount > 0 ? `, ${failCount} failed` : ""
-					}`
+					}`,
 				);
 			} else {
 				toast.error("Failed to assign vendors");
@@ -145,9 +150,10 @@ export function AssignVendorDialog({
 	const assignedVendorIds = new Set(affiliates?.map((a) => a.vendor_id) || []);
 
 	// Filter only active vendors that are not already assigned
-	const activeVendors = vendors?.filter(
-		(v) => v.status === "active" && !assignedVendorIds.has(Number(v.id))
-	) || [];
+	const activeVendors =
+		vendors?.filter(
+			(v) => v.status === "active" && !assignedVendorIds.has(Number(v.id)),
+		) || [];
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
@@ -227,9 +233,7 @@ export function AssignVendorDialog({
 											</Button>
 										</div>
 									</div>
-									{errors.vendors && (
-										<FieldError>{errors.vendors}</FieldError>
-									)}
+									{errors.vendors && <FieldError>{errors.vendors}</FieldError>}
 									<div className="max-h-[400px] space-y-2 overflow-y-auto rounded-none border border-dashed p-4">
 										{activeVendors.map((vendor) => (
 											<div
@@ -239,7 +243,9 @@ export function AssignVendorDialog({
 												<Checkbox
 													id={`vendor-${vendor.id}`}
 													checked={selectedVendorIds.has(Number(vendor.id))}
-													onCheckedChange={() => toggleVendor(Number(vendor.id))}
+													onCheckedChange={() =>
+														toggleVendor(Number(vendor.id))
+													}
 													disabled={createAffiliate.isPending}
 													className="rounded-none"
 												/>
@@ -284,7 +290,9 @@ export function AssignVendorDialog({
 									</Button>
 									<Button
 										type="submit"
-										disabled={createAffiliate.isPending || selectedVendorIds.size === 0}
+										disabled={
+											createAffiliate.isPending || selectedVendorIds.size === 0
+										}
 										className="rounded-none"
 									>
 										{createAffiliate.isPending

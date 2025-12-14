@@ -30,11 +30,11 @@ import {
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
+import ConfirmDialog from "../event/settings/confirm-dialog";
 import TicketEditModal from "./action-modals/edit-ticket-form";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
 import TicketViewModal from "./action-modals/view-modal";
-import ConfirmDialog from "../event/settings/confirm-dialog";
 import type { BaseTicket } from "./columns";
 
 interface TicketActionsMenuProps {
@@ -105,13 +105,16 @@ export function TicketActionsMenu({
 
 	// Check if unscan button should be shown
 	// Only for org_owner and when ticket status is "scanned"
-	const showUnscanButton = user?.role === "org_owner" && ticket.status === "scanned";
+	const showUnscanButton =
+		user?.role === "org_owner" && ticket.status === "scanned";
 
 	const archiveTicketMutation = useMutation({
 		mutationFn: () => archiveTicket(eventId, ticket.publicId),
 		onSuccess: () => {
 			toast.success("Ticket archived successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "tickets"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -123,7 +126,9 @@ export function TicketActionsMenu({
 		mutationFn: () => forceDeleteTicket(eventId, ticket.publicId),
 		onSuccess: () => {
 			toast.success("Ticket deleted successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "tickets"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -135,7 +140,9 @@ export function TicketActionsMenu({
 		mutationFn: () => restoreTicket(eventId, ticket.publicId),
 		onSuccess: () => {
 			toast.success("Ticket restored successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "tickets"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -210,9 +217,11 @@ export function TicketActionsMenu({
 	};
 
 	// Determine which actions to show based on role and archive status
-	const showArchive = !isArchived && ["org_owner", "organizer"].includes(user?.role || "");
+	const showArchive =
+		!isArchived && ["org_owner", "organizer"].includes(user?.role || "");
 	const showDelete = user?.role === "org_owner";
-	const showRestore = isArchived && ["org_owner", "organizer"].includes(user?.role || "");
+	const showRestore =
+		isArchived && ["org_owner", "organizer"].includes(user?.role || "");
 	const showMoreMenu = showArchive || showDelete || showRestore;
 
 	return (
@@ -258,7 +267,12 @@ export function TicketActionsMenu({
 			{showMoreMenu && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button size="icon-sm" variant="outline" className="rounded-none" title="More Actions">
+						<Button
+							size="icon-sm"
+							variant="outline"
+							className="rounded-none"
+							title="More Actions"
+						>
 							<MoreHorizontal className="size-4" />
 						</Button>
 					</DropdownMenuTrigger>

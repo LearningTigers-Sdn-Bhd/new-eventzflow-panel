@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Building2 } from "lucide-react";
+import { Building2, User } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -22,9 +23,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { updateVendor } from "@/lib/api/vendor";
 import type { Vendor } from "@/lib/api/vendor";
-import ImageUpload from "@/components/file-upload/image-upload";
+import { updateVendor } from "@/lib/api/vendor";
 
 const VENDOR_CATEGORIES = [
 	"Food & Beverage",
@@ -43,10 +43,15 @@ const VENDOR_CATEGORIES = [
 ] as const;
 
 // Helper to determine if a category is predefined or custom
-function getCategoryState(category: string | null | undefined): { selected: string; custom: string } {
+function getCategoryState(category: string | null | undefined): {
+	selected: string;
+	custom: string;
+} {
 	if (!category) return { selected: "", custom: "" };
-	const isPredefined = VENDOR_CATEGORIES.includes(category as typeof VENDOR_CATEGORIES[number]);
-	return isPredefined 
+	const isPredefined = VENDOR_CATEGORIES.includes(
+		category as (typeof VENDOR_CATEGORIES)[number],
+	);
+	return isPredefined
 		? { selected: category, custom: "" }
 		: { selected: "Others", custom: category };
 }
@@ -71,7 +76,7 @@ export default function EditVendorForm({
 	const notesId = useId();
 
 	const initialCategoryState = getCategoryState(vendor.vendorProfile?.category);
-	
+
 	const [formData, setFormData] = useState({
 		full_name: vendor.full_name,
 		email: vendor.email,
@@ -87,7 +92,9 @@ export default function EditVendorForm({
 	});
 
 	const [image, setImage] = useState<File | null>(null);
-	const [imagePath, setImagePath] = useState(vendor.vendorProfile?.image_path || "");
+	const [imagePath, setImagePath] = useState(
+		vendor.vendorProfile?.image_path || "",
+	);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -147,20 +154,21 @@ export default function EditVendorForm({
 
 		try {
 			// Determine final category value
-			const finalCategory = formData.category === "Others" 
-				? formData.customCategory.trim() 
-				: formData.category;
+			const finalCategory =
+				formData.category === "Others"
+					? formData.customCategory.trim()
+					: formData.category;
 
 			// Build profile attributes - send empty string to clear fields, undefined to keep unchanged
 			const profileAttributes: Record<string, string | File | undefined> = {};
-			
+
 			// For text fields: send the value (empty string clears, value updates)
 			profileAttributes.category = finalCategory;
 			profileAttributes.person_in_charge = formData.person_in_charge;
 			profileAttributes.description = formData.description;
 			profileAttributes.address = formData.address;
 			profileAttributes.notes = formData.notes;
-			
+
 			// Handle image
 			if (image) {
 				profileAttributes.image = image;
@@ -224,7 +232,9 @@ export default function EditVendorForm({
 								{/* Name - Full Width */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={nameId}>Vendor Name</FieldLabel>
-									{errors.full_name && <FieldError>{errors.full_name}</FieldError>}
+									{errors.full_name && (
+										<FieldError>{errors.full_name}</FieldError>
+									)}
 									<Input
 										id={nameId}
 										placeholder="John Doe"
@@ -273,7 +283,9 @@ export default function EditVendorForm({
 										type="password"
 										placeholder="Leave blank to keep current password"
 										value={formData.newPassword}
-										onChange={(e) => handleChange("newPassword", e.target.value)}
+										onChange={(e) =>
+											handleChange("newPassword", e.target.value)
+										}
 										disabled={updateVendorMutation.isPending}
 									/>
 								</Field>
@@ -287,7 +299,9 @@ export default function EditVendorForm({
 								</div>
 
 								{/* Category */}
-								<div className={`grid gap-4 ${formData.category === "Others" ? "grid-cols-2" : "grid-cols-1"}`}>
+								<div
+									className={`grid gap-4 ${formData.category === "Others" ? "grid-cols-2" : "grid-cols-1"}`}
+								>
 									<Field orientation="vertical">
 										<FieldLabel htmlFor={categoryId}>Category</FieldLabel>
 										<Select
@@ -315,12 +329,16 @@ export default function EditVendorForm({
 
 									{formData.category === "Others" && (
 										<Field orientation="vertical">
-											<FieldLabel htmlFor={`${categoryId}-custom`}>Custom Category</FieldLabel>
+											<FieldLabel htmlFor={`${categoryId}-custom`}>
+												Custom Category
+											</FieldLabel>
 											<Input
 												id={`${categoryId}-custom`}
 												placeholder="Enter custom category"
 												value={formData.customCategory}
-												onChange={(e) => handleChange("customCategory", e.target.value)}
+												onChange={(e) =>
+													handleChange("customCategory", e.target.value)
+												}
 												disabled={updateVendorMutation.isPending}
 											/>
 										</Field>
@@ -336,7 +354,9 @@ export default function EditVendorForm({
 										id={personInChargeId}
 										placeholder="Contact person name"
 										value={formData.person_in_charge}
-										onChange={(e) => handleChange("person_in_charge", e.target.value)}
+										onChange={(e) =>
+											handleChange("person_in_charge", e.target.value)
+										}
 										disabled={updateVendorMutation.isPending}
 									/>
 								</Field>
@@ -353,14 +373,14 @@ export default function EditVendorForm({
 
 								{/* Description */}
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={descriptionId}>
-										Description
-									</FieldLabel>
+									<FieldLabel htmlFor={descriptionId}>Description</FieldLabel>
 									<Textarea
 										id={descriptionId}
 										placeholder="Vendor description"
 										value={formData.description}
-										onChange={(e) => handleChange("description", e.target.value)}
+										onChange={(e) =>
+											handleChange("description", e.target.value)
+										}
 										disabled={updateVendorMutation.isPending}
 										rows={3}
 									/>

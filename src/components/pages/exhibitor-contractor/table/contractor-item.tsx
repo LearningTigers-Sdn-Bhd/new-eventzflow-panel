@@ -41,7 +41,7 @@ export function ContractorItem({ contractor }: ContractorItemProps) {
 					<span className="flex items-center gap-2">
 						<div className="flex flex-col">
 							<span className="font-medium">{contractor.full_name}</span>
-							<span className="text-muted-foreground text-xs font-normal">
+							<span className="font-normal text-muted-foreground text-xs">
 								{profile?.company_name ?? "No company"}
 							</span>
 						</div>

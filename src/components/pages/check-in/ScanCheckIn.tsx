@@ -50,7 +50,10 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 		if (isProcessing) return;
 		if (checkAndMark(decodedText)) return;
 
-		const result = await validateTicket(decodedText, scannedTicketIdsRef.current);
+		const result = await validateTicket(
+			decodedText,
+			scannedTicketIdsRef.current,
+		);
 
 		if (result.status === "success") {
 			scannedTicketIdsRef.current.add(result.ticketId.toLowerCase());
@@ -94,10 +97,11 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 		}
 	};
 
-	const { startScanner: startScannerHook, stopScanner: stopScannerHook } = useScanner({
-		scannerId: SCANNER_CONFIG.SCANNER_DIV_ID,
-		onScanSuccess: handleScanSuccess,
-	});
+	const { startScanner: startScannerHook, stopScanner: stopScannerHook } =
+		useScanner({
+			scannerId: SCANNER_CONFIG.SCANNER_DIV_ID,
+			onScanSuccess: handleScanSuccess,
+		});
 
 	const handleStartScanner = async () => {
 		setIsTransitioning(true);
@@ -161,14 +165,14 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 	if (!isAuthenticated) {
 		return (
 			<div className="space-y-4">
-				<div className="rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-6 text-center dark:border-amber-700 dark:bg-amber-950/30">
+				<div className="rounded-lg border-2 border-amber-300 border-dashed bg-amber-50 p-6 text-center dark:border-amber-700 dark:bg-amber-950/30">
 					<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
 						<LogIn className="h-8 w-8 text-amber-600 dark:text-amber-400" />
 					</div>
-					<h3 className="mb-2 text-lg font-semibold text-amber-800 dark:text-amber-200">
+					<h3 className="mb-2 font-semibold text-amber-800 text-lg dark:text-amber-200">
 						Login Required
 					</h3>
-					<p className="mb-4 text-sm text-amber-700 dark:text-amber-300">
+					<p className="mb-4 text-amber-700 text-sm dark:text-amber-300">
 						You need to be logged in to use the QR scanner for check-in.
 					</p>
 					<Button onClick={handleLoginRedirect} className="w-full gap-2">
@@ -193,21 +197,21 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 					id={SCANNER_CONFIG.SCANNER_DIV_ID}
 					className={cn(
 						"aspect-square w-full rounded-lg transition-all duration-500",
-						"mx-auto max-w-xs"
+						"mx-auto max-w-xs",
 					)}
 					style={{ position: "relative", overflow: "hidden" }}
 				/>
 
 				{/* Camera Off State */}
 				{!isScanning && (
-					<div className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-dashed border-primary/30 bg-muted/50">
+					<div className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-primary/30 border-dashed bg-muted/50">
 						<div className="max-w-xs space-y-4 px-4 text-center">
 							<div className="inline-flex rounded-full border border-primary/20 bg-primary/10 p-4">
 								<QrCode className="h-10 w-10 text-primary/70" />
 							</div>
 							<div className="space-y-1">
 								<h3 className="font-semibold text-foreground">Ready to Scan</h3>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									Activate the camera to scan ticket QR codes
 								</p>
 							</div>
@@ -226,18 +230,18 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 				{/* Active Scanning Overlay */}
 				{isScanning && (
 					<>
-						<div className="absolute top-2 left-1/2 z-20 -translate-x-1/2">
+						<div className="-translate-x-1/2 absolute top-2 left-1/2 z-20">
 							<div className="flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 shadow-lg">
 								<span className="relative flex h-2 w-2">
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
 								</span>
-								<span className="text-xs font-medium text-primary-foreground">
+								<span className="font-medium text-primary-foreground text-xs">
 									Scanning...
 								</span>
 							</div>
 						</div>
-						<div className="absolute bottom-2 left-1/2 z-20 w-full -translate-x-1/2 px-4">
+						<div className="-translate-x-1/2 absolute bottom-2 left-1/2 z-20 w-full px-4">
 							<Button
 								onClick={handleStopScanner}
 								variant="destructive"
@@ -260,7 +264,7 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 						"rounded-lg border-2 p-3",
 						lastResult.success
 							? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30"
-							: "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
+							: "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30",
 					)}
 				>
 					<div className="flex items-start gap-3">
@@ -275,7 +279,7 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 									"font-semibold text-sm",
 									lastResult.success
 										? "text-emerald-700 dark:text-emerald-300"
-										: "text-red-700 dark:text-red-300"
+										: "text-red-700 dark:text-red-300",
 								)}
 							>
 								{lastResult.message}
@@ -286,22 +290,25 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 										"mt-1 space-y-0.5 text-xs",
 										lastResult.success
 											? "text-emerald-600 dark:text-emerald-400"
-											: "text-red-600 dark:text-red-400"
+											: "text-red-600 dark:text-red-400",
 									)}
 								>
 									{lastResult.details.name && (
 										<p>
-											<span className="font-medium">Name:</span> {lastResult.details.name}
+											<span className="font-medium">Name:</span>{" "}
+											{lastResult.details.name}
 										</p>
 									)}
 									{lastResult.details.ticketType && (
 										<p>
-											<span className="font-medium">Ticket:</span> {lastResult.details.ticketType}
+											<span className="font-medium">Ticket:</span>{" "}
+											{lastResult.details.ticketType}
 										</p>
 									)}
 									{lastResult.details.eventName && (
 										<p>
-											<span className="font-medium">Event:</span> {lastResult.details.eventName}
+											<span className="font-medium">Event:</span>{" "}
+											{lastResult.details.eventName}
 										</p>
 									)}
 								</div>

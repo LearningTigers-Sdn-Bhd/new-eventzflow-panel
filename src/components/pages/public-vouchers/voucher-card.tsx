@@ -1,11 +1,18 @@
 "use client";
 
-import { AlertTriangle, Building2, Clock, Hourglass, Ticket, Zap } from "lucide-react";
+import { differenceInDays, isPast } from "date-fns";
+import {
+	AlertTriangle,
+	Building2,
+	Clock,
+	Hourglass,
+	Ticket,
+	Zap,
+} from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { isPast, differenceInDays } from "date-fns";
 
 import type { Voucher } from "@/lib/api/voucher";
 
@@ -28,8 +35,11 @@ function getVoucherMessage(voucher: Voucher): VoucherMessage {
 	const endDate = new Date(voucher.endDate);
 	const isUnlimited = voucher.isUnlimited;
 	const total = voucher.totalRedemptionAvailable ?? 0;
-	const remaining = isUnlimited ? Number.POSITIVE_INFINITY : total - voucher.redeemedCount;
-	const claimedPercent = !isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
+	const remaining = isUnlimited
+		? Number.POSITIVE_INFINITY
+		: total - voucher.redeemedCount;
+	const claimedPercent =
+		!isUnlimited && total > 0 ? ((total - remaining) / total) * 100 : 0;
 	const isSoldOut = !isUnlimited && remaining <= 0;
 	const daysUntilEnd = differenceInDays(endDate, now);
 
@@ -128,8 +138,11 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	const eventId = params?.event_id;
 	const isUnlimited = voucher.isUnlimited;
 	const total = voucher.totalRedemptionAvailable ?? 0;
-	const remaining = isUnlimited ? Number.POSITIVE_INFINITY : total - voucher.redeemedCount;
-	const isAvailable = (isUnlimited || remaining > 0) && !isPast(new Date(voucher.endDate));
+	const remaining = isUnlimited
+		? Number.POSITIVE_INFINITY
+		: total - voucher.redeemedCount;
+	const isAvailable =
+		(isUnlimited || remaining > 0) && !isPast(new Date(voucher.endDate));
 
 	const voucherMessage = getVoucherMessage(voucher);
 
@@ -155,11 +168,16 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					</>
 				)}
 				<div className="absolute inset-x-0 top-0 flex items-center justify-between px-2.5 py-2 sm:px-4">
-					<Badge variant="secondary" className="w-fit rounded-none border-0 bg-primary/90 text-[9px] text-primary-foreground capitalize tracking-wide sm:text-[11px]">
+					<Badge
+						variant="secondary"
+						className="w-fit rounded-none border-0 bg-primary/90 text-[9px] text-primary-foreground capitalize tracking-wide sm:text-[11px]"
+					>
 						{(voucher.voucherType || "").replace(/_/g, " ")}
 					</Badge>
 					{/* Message badge - solid color for visibility on images */}
-					<span className={`inline-flex items-center gap-1 px-2 py-0.5 font-medium text-[10px] sm:text-xs ${voucherMessage.badgeBg}`}>
+					<span
+						className={`inline-flex items-center gap-1 px-2 py-0.5 font-medium text-[10px] sm:text-xs ${voucherMessage.badgeBg}`}
+					>
 						{voucherMessage.icon}
 						{voucherMessage.badge}
 					</span>
@@ -173,7 +191,9 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 					</h3>
 					<div className="flex items-center gap-1 text-[11px] text-muted-foreground sm:text-sm">
 						<Building2 className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
-						<span className="truncate">{voucher.vendor?.fullName || "Unknown Merchant"}</span>
+						<span className="truncate">
+							{voucher.vendor?.fullName || "Unknown Merchant"}
+						</span>
 					</div>
 				</div>
 
@@ -187,14 +207,16 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 				{/* Mobile: Minimalist message */}
 				<div className="flex items-center gap-1 text-[10px] text-muted-foreground sm:hidden">
 					{voucherMessage.icon}
-					<span className={voucherMessage.color}>
-						{voucherMessage.badge}
-					</span>
+					<span className={voucherMessage.color}>{voucherMessage.badge}</span>
 				</div>
 
 				{/* Desktop: Full message */}
-				<div className={`hidden border px-2.5 py-2 text-xs sm:block ${voucherMessage.bgColor}`}>
-					<div className={`flex items-center gap-1.5 font-semibold ${voucherMessage.color}`}>
+				<div
+					className={`hidden border px-2.5 py-2 text-xs sm:block ${voucherMessage.bgColor}`}
+				>
+					<div
+						className={`flex items-center gap-1.5 font-semibold ${voucherMessage.color}`}
+					>
 						{voucherMessage.icon}
 						<span>{voucherMessage.headline}</span>
 					</div>

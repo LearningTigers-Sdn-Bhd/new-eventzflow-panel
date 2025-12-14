@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { AlertCircle, QrCode } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateStamp } from "@/hooks/use-visitor-stamps";
-import { toast } from "sonner";
-import { QrCode, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface VisitorStampScannerProps {
 	eventId: number;
@@ -19,7 +19,9 @@ const DUPLICATE_SCAN_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 	const [publicId, setPublicId] = useState("");
 	const [eventVendorId, setEventVendorId] = useState("");
-	const [recentScans, setRecentScans] = useState<Map<string, number>>(new Map());
+	const [recentScans, setRecentScans] = useState<Map<string, number>>(
+		new Map(),
+	);
 	const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
 	const createStamp = useCreateStamp();
 
@@ -28,13 +30,13 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 		const interval = setInterval(() => {
 			const now = Date.now();
 			const updatedScans = new Map(recentScans);
-			
+
 			for (const [key, timestamp] of updatedScans.entries()) {
 				if (now - timestamp > DUPLICATE_SCAN_COOLDOWN) {
 					updatedScans.delete(key);
 				}
 			}
-			
+
 			setRecentScans(updatedScans);
 		}, 30000); // Check every 30 seconds
 
@@ -50,9 +52,11 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 		const lastScanTime = recentScans.get(scanKey);
 		const now = Date.now();
 
-		if (lastScanTime && (now - lastScanTime) < DUPLICATE_SCAN_COOLDOWN) {
-			const minutesRemaining = Math.ceil((DUPLICATE_SCAN_COOLDOWN - (now - lastScanTime)) / 60000);
-			const warningMsg = `This visitor was scanned recently. Please wait ${minutesRemaining} minute${minutesRemaining > 1 ? 's' : ''} before scanning again.`;
+		if (lastScanTime && now - lastScanTime < DUPLICATE_SCAN_COOLDOWN) {
+			const minutesRemaining = Math.ceil(
+				(DUPLICATE_SCAN_COOLDOWN - (now - lastScanTime)) / 60000,
+			);
+			const warningMsg = `This visitor was scanned recently. Please wait ${minutesRemaining} minute${minutesRemaining > 1 ? "s" : ""} before scanning again.`;
 			setDuplicateWarning(warningMsg);
 			toast.warning(warningMsg);
 			return;
@@ -64,18 +68,18 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 				data: { event_vendor_id: Number(eventVendorId) },
 			});
 			toast.success("Stamp created successfully!");
-			
+
 			// Update recent scans tracking
-			setRecentScans(prev => new Map(prev).set(scanKey, now));
+			setRecentScans((prev) => new Map(prev).set(scanKey, now));
 			setPublicId("");
 		} catch (error: any) {
 			const errorMsg = error?.message || "Failed to create stamp";
-			
+
 			// Handle backend duplicate error
 			if (errorMsg.includes("duplicate") || errorMsg.includes("already")) {
 				toast.error("This visitor has already been stamped by this vendor.");
 				// Update recent scans to prevent immediate retry
-				setRecentScans(prev => new Map(prev).set(scanKey, now));
+				setRecentScans((prev) => new Map(prev).set(scanKey, now));
 			} else {
 				toast.error(errorMsg);
 			}
@@ -125,7 +129,11 @@ export function VisitorStampScanner({ eventId }: VisitorStampScannerProps) {
 							required
 						/>
 					</div>
-					<Button type="submit" className="w-full rounded-none" disabled={createStamp.isPending}>
+					<Button
+						type="submit"
+						className="w-full rounded-none"
+						disabled={createStamp.isPending}
+					>
 						<QrCode className="mr-2 h-4 w-4" />
 						{createStamp.isPending ? "Creating Stamp..." : "Create Stamp"}
 					</Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, User, Phone, Mail, Hash, Tag } from "lucide-react";
+import { Building2, Hash, Mail, Phone, Tag, User } from "lucide-react";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -60,7 +60,7 @@ export function ExhibitorKitSection({
 
 			{/* Booth Information */}
 			<div className="space-y-4">
-				<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+				<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 					Booth Information
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
@@ -120,7 +120,7 @@ export function ExhibitorKitSection({
 
 			{/* Company Information */}
 			<div className="space-y-4">
-				<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+				<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 					Company Information
 				</h4>
 				<div className="space-y-4">
@@ -156,7 +156,7 @@ export function ExhibitorKitSection({
 
 			{/* Person In Charge */}
 			<div className="space-y-4">
-				<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+				<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 					Person In Charge (PIC) <span className="text-destructive">*</span>
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
@@ -197,7 +197,9 @@ export function ExhibitorKitSection({
 								placeholder="+60 12-345 6789"
 								value={picContactNumberField.state.value}
 								onBlur={picContactNumberField.handleBlur}
-								onChange={(e) => picContactNumberField.handleChange(e.target.value)}
+								onChange={(e) =>
+									picContactNumberField.handleChange(e.target.value)
+								}
 								required
 							/>
 						</InputGroup>
@@ -221,7 +223,9 @@ export function ExhibitorKitSection({
 							placeholder="pic@company.com"
 							value={picEmailAddressField.state.value}
 							onBlur={picEmailAddressField.handleBlur}
-							onChange={(e) => picEmailAddressField.handleChange(e.target.value)}
+							onChange={(e) =>
+								picEmailAddressField.handleChange(e.target.value)
+							}
 						/>
 					</InputGroup>
 				</div>

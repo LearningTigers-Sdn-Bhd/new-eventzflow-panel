@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, Loader2, UserPlus } from "lucide-react";
+import { Loader2, Search, UserPlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { findTicketByContact } from "@/lib/api/ticket/endpoints";
 
 interface TicketData {
@@ -23,7 +23,13 @@ interface NameSearchInputProps {
 	disabled: boolean;
 }
 
-export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterClick, disabled }: NameSearchInputProps) {
+export function NameSearchInput({
+	value,
+	onChange,
+	onTicketSelect,
+	onRegisterClick,
+	disabled,
+}: NameSearchInputProps) {
 	const [isSearching, setIsSearching] = useState(false);
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [searchResults, setSearchResults] = useState<TicketData[]>([]);
@@ -32,7 +38,10 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 	// Close dropdown when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target as Node)
+			) {
 				setShowDropdown(false);
 			}
 		};
@@ -65,7 +74,7 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 							ticketType: ticket.ticketTypeName,
 							eventName: ticket.eventName,
 							checkedIn: ticket.checkedIn,
-					  }))
+						}))
 					: [
 							{
 								publicId: response.publicId,
@@ -76,13 +85,13 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 								eventName: response.eventName,
 								checkedIn: response.checkedIn,
 							},
-					  ];
+						];
 
 				setSearchResults(tickets);
 				setShowDropdown(true);
 			} catch (error) {
 				setSearchResults([]);
-				setShowDropdown(true); 
+				setShowDropdown(true);
 			} finally {
 				setIsSearching(false);
 			}
@@ -99,7 +108,10 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 
 	return (
 		<div className="space-y-2">
-			<Label htmlFor="name" className="flex items-center gap-2 font-medium text-sm">
+			<Label
+				htmlFor="name"
+				className="flex items-center gap-2 font-medium text-sm"
+			>
 				<Search className="h-4 w-4" />
 				Search by Name
 			</Label>
@@ -142,7 +154,9 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 								<div className="space-y-1">
 									<div className="flex items-start justify-between gap-2">
 										<div className="min-w-0 flex-1">
-											<p className="truncate font-semibold text-sm">{ticket.name}</p>
+											<p className="truncate font-semibold text-sm">
+												{ticket.name}
+											</p>
 										</div>
 										{ticket.checkedIn && (
 											<span className="whitespace-nowrap rounded bg-red-50 px-1.5 py-0.5 font-medium text-[10px] text-red-600 dark:bg-red-950 dark:text-red-400">
@@ -165,52 +179,56 @@ export function NameSearchInput({ value, onChange, onTicketSelect, onRegisterCli
 				)}
 
 				{/* No results message */}
-				{showDropdown && searchResults.length === 0 && !isSearching && value.trim().length >= 2 && (
-					<div className="absolute z-50 mt-1 w-full rounded-lg border bg-background p-4 shadow-lg">
-						<div className="space-y-3 text-center">
-							<div className="space-y-1">
-								<p className="font-medium text-foreground text-sm">
-									No Ticket Found
-								</p>
-								<p className="text-muted-foreground text-xs">
-									We couldn't find any tickets matching "<span className="font-semibold">{value}</span>"
-								</p>
-							</div>
-
-							<p className="text-muted-foreground text-xs">
-								Try using your email or phone number instead
-							</p>
-
-							{onRegisterClick && (
-								<div className="space-y-2 pt-1">
-									<div className="relative">
-										<div className="absolute inset-0 flex items-center">
-											<div className="w-full border-border/50 border-t" />
-										</div>
-										<div className="relative flex justify-center">
-											<span className="bg-background px-2 text-muted-foreground text-xs">
-												Haven't registered yet?
-											</span>
-										</div>
-									</div>
-									<Button
-										type="button"
-										variant="secondary"
-										size="sm"
-										onClick={() => {
-											setShowDropdown(false);
-											onRegisterClick();
-										}}
-										className="w-full gap-2 border border-primary hover:bg-primary hover:text-white"
-									>
-										<UserPlus className="h-3.5 w-3.5" />
-										Click Here to Register
-									</Button>
+				{showDropdown &&
+					searchResults.length === 0 &&
+					!isSearching &&
+					value.trim().length >= 2 && (
+						<div className="absolute z-50 mt-1 w-full rounded-lg border bg-background p-4 shadow-lg">
+							<div className="space-y-3 text-center">
+								<div className="space-y-1">
+									<p className="font-medium text-foreground text-sm">
+										No Ticket Found
+									</p>
+									<p className="text-muted-foreground text-xs">
+										We couldn't find any tickets matching "
+										<span className="font-semibold">{value}</span>"
+									</p>
 								</div>
-							)}
+
+								<p className="text-muted-foreground text-xs">
+									Try using your email or phone number instead
+								</p>
+
+								{onRegisterClick && (
+									<div className="space-y-2 pt-1">
+										<div className="relative">
+											<div className="absolute inset-0 flex items-center">
+												<div className="w-full border-border/50 border-t" />
+											</div>
+											<div className="relative flex justify-center">
+												<span className="bg-background px-2 text-muted-foreground text-xs">
+													Haven't registered yet?
+												</span>
+											</div>
+										</div>
+										<Button
+											type="button"
+											variant="secondary"
+											size="sm"
+											onClick={() => {
+												setShowDropdown(false);
+												onRegisterClick();
+											}}
+											className="w-full gap-2 border border-primary hover:bg-primary hover:text-white"
+										>
+											<UserPlus className="h-3.5 w-3.5" />
+											Click Here to Register
+										</Button>
+									</div>
+								)}
+							</div>
 						</div>
-					</div>
-				)}
+					)}
 			</div>
 			<p className="text-muted-foreground text-xs">
 				Type your first name, last name, or full name to see matching tickets

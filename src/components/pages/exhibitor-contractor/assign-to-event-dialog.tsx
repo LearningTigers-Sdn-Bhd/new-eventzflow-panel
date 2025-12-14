@@ -1,23 +1,26 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Check, Loader2, CalendarX2, X } from "lucide-react";
+import { Calendar, CalendarX2, Check, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { useDialog } from "@/hooks/use-dialog";
+import { useFormatDate } from "@/hooks/use-format-date";
+import type {
+	ContractorAssignedEvent,
+	ExhibitionContractor,
+} from "@/lib/api/contractor";
+import { getContractorAssignedEvents } from "@/lib/api/contractor";
 import { getEvents } from "@/lib/api/event";
 import {
 	assignEventExhibitionContractor,
 	removeEventExhibitionContractor,
 } from "@/lib/api/event-exhibition-contractor";
-import { getContractorAssignedEvents } from "@/lib/api/contractor";
-import type { ExhibitionContractor, ContractorAssignedEvent } from "@/lib/api/contractor";
-import { useFormatDate } from "@/hooks/use-format-date";
-import { useDialog } from "@/hooks/use-dialog";
+import { cn } from "@/lib/utils";
 
 interface AssignToEventDialogProps {
 	contractor: ExhibitionContractor;
@@ -27,7 +30,9 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 	const queryClient = useQueryClient();
 	const { formatDate } = useFormatDate();
 	const { closeDialog } = useDialog();
-	const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
+	const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(
+		new Set(),
+	);
 	const [removingEventId, setRemovingEventId] = useState<number | null>(null);
 
 	const profileId = contractor.exhibition_contractor_profile?.id;
@@ -46,10 +51,13 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 	});
 
 	// Filter available events (not already assigned to this contractor)
-	const assignedEventIds = new Set(assignedEvents?.map((e: { id: number }) => e.id) || []);
+	const assignedEventIds = new Set(
+		assignedEvents?.map((e: { id: number }) => e.id) || [],
+	);
 	const availableEvents =
 		allEvents?.filter(
-			(event) => !assignedEventIds.has(event.id) && event.status === "published"
+			(event) =>
+				!assignedEventIds.has(event.id) && event.status === "published",
 		) || [];
 
 	// Toggle event selection
@@ -82,8 +90,8 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 				eventIds.map((eventId) =>
 					assignEventExhibitionContractor(eventId, {
 						exhibition_contractor_profile_id: profileId!,
-					})
-				)
+					}),
+				),
 			);
 			const failures = results.filter((r) => r.status === "rejected");
 			if (failures.length > 0) {
@@ -94,7 +102,7 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 		onSuccess: () => {
 			const count = selectedEventIds.size;
 			toast.success(
-				`Contractor assigned to ${count} event${count > 1 ? "s" : ""} successfully!`
+				`Contractor assigned to ${count} event${count > 1 ? "s" : ""} successfully!`,
 			);
 			queryClient.invalidateQueries({
 				queryKey: ["contractor", contractor.id, "assigned-events"],
@@ -146,7 +154,8 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 
 	const isLoading = isLoadingEvents || isLoadingAssigned;
 	const allSelected =
-		availableEvents.length > 0 && selectedEventIds.size === availableEvents.length;
+		availableEvents.length > 0 &&
+		selectedEventIds.size === availableEvents.length;
 	const someSelected = selectedEventIds.size > 0;
 
 	if (isLoading) {
@@ -160,10 +169,16 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 	return (
 		<Tabs defaultValue="available" className="w-full">
 			<TabsList className="grid w-full grid-cols-2 rounded-none">
-				<TabsTrigger value="available" className="rounded-none text-xs sm:text-sm">
+				<TabsTrigger
+					value="available"
+					className="rounded-none text-xs sm:text-sm"
+				>
 					Available ({availableEvents.length})
 				</TabsTrigger>
-				<TabsTrigger value="assigned" className="rounded-none text-xs sm:text-sm">
+				<TabsTrigger
+					value="assigned"
+					className="rounded-none text-xs sm:text-sm"
+				>
 					Assigned ({assignedEvents?.length || 0})
 				</TabsTrigger>
 			</TabsList>
@@ -173,8 +188,10 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 					<div className="flex flex-col items-center justify-center gap-3 py-6 text-center sm:gap-4 sm:py-8">
 						<CalendarX2 className="h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
 						<div>
-							<p className="text-sm font-medium sm:text-base">No Available Events</p>
-							<p className="text-xs text-muted-foreground sm:text-sm">
+							<p className="font-medium text-sm sm:text-base">
+								No Available Events
+							</p>
+							<p className="text-muted-foreground text-xs sm:text-sm">
 								All published events are already assigned.
 							</p>
 						</div>
@@ -182,7 +199,7 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 				) : (
 					<>
 						<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-							<p className="text-xs text-muted-foreground sm:text-sm">
+							<p className="text-muted-foreground text-xs sm:text-sm">
 								{selectedEventIds.size} of {availableEvents.length} selected
 							</p>
 							<div className="flex shrink-0 gap-2">
@@ -220,26 +237,28 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 												"w-full rounded-none border border-dashed p-3 text-left transition-colors sm:p-4",
 												isSelected
 													? "border-primary bg-primary/5"
-													: "hover:border-muted-foreground/50 hover:bg-muted/30"
+													: "hover:border-muted-foreground/50 hover:bg-muted/30",
 											)}
 										>
 											<div className="flex items-start gap-2 sm:gap-3">
 												<div
 													className={cn(
 														"flex h-8 w-8 shrink-0 items-center justify-center rounded-none sm:h-10 sm:w-10",
-														isSelected ? "bg-primary/10" : "bg-muted"
+														isSelected ? "bg-primary/10" : "bg-muted",
 													)}
 												>
 													<Calendar
 														className={cn(
 															"h-4 w-4 sm:h-5 sm:w-5",
-															isSelected ? "text-primary" : "text-muted-foreground"
+															isSelected
+																? "text-primary"
+																: "text-muted-foreground",
 														)}
 													/>
 												</div>
 												<div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
 													<div className="flex items-start gap-2">
-														<p className="line-clamp-2 text-sm font-medium leading-tight sm:text-base">
+														<p className="line-clamp-2 font-medium text-sm leading-tight sm:text-base">
 															{event.title}
 														</p>
 														{isSelected && (
@@ -249,7 +268,8 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 														)}
 													</div>
 													<p className="text-[10px] text-muted-foreground sm:text-xs">
-														{formatDate(event.start_date)} - {formatDate(event.end_date)}
+														{formatDate(event.start_date)} -{" "}
+														{formatDate(event.end_date)}
 													</p>
 												</div>
 											</div>
@@ -269,14 +289,19 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 							</Button>
 							<Button
 								onClick={handleAssign}
-								disabled={selectedEventIds.size === 0 || assignMutation.isPending}
+								disabled={
+									selectedEventIds.size === 0 || assignMutation.isPending
+								}
 								className="order-1 w-full rounded-none sm:order-2 sm:w-auto"
 							>
 								{assignMutation.isPending && (
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 								)}
 								<span className="truncate">
-									Assign{selectedEventIds.size > 0 ? ` (${selectedEventIds.size})` : ""}
+									Assign
+									{selectedEventIds.size > 0
+										? ` (${selectedEventIds.size})`
+										: ""}
 								</span>
 							</Button>
 						</div>
@@ -289,8 +314,10 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 					<div className="flex flex-col items-center justify-center gap-3 py-6 text-center sm:gap-4 sm:py-8">
 						<CalendarX2 className="h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
 						<div>
-							<p className="text-sm font-medium sm:text-base">No Assigned Events</p>
-							<p className="text-xs text-muted-foreground sm:text-sm">
+							<p className="font-medium text-sm sm:text-base">
+								No Assigned Events
+							</p>
+							<p className="text-muted-foreground text-xs sm:text-sm">
 								This contractor is not assigned to any events yet.
 							</p>
 						</div>
@@ -305,7 +332,7 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 										key={event.id}
 										className={cn(
 											"w-full rounded-none border p-3 text-left sm:p-4",
-											isRemoving && "opacity-50"
+											isRemoving && "opacity-50",
 										)}
 									>
 										<div className="flex items-start gap-2 sm:gap-3">
@@ -314,7 +341,7 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 											</div>
 											<div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
 												<div className="flex items-start gap-2">
-													<p className="line-clamp-2 flex-1 text-sm font-medium leading-tight sm:text-base">
+													<p className="line-clamp-2 flex-1 font-medium text-sm leading-tight sm:text-base">
 														{event.title}
 													</p>
 													<Button
@@ -333,7 +360,8 @@ export function AssignToEventDialog({ contractor }: AssignToEventDialogProps) {
 												</div>
 												<div className="flex items-center gap-2">
 													<p className="text-[10px] text-muted-foreground sm:text-xs">
-														{formatDate(event.start_date)} - {formatDate(event.end_date)}
+														{formatDate(event.start_date)} -{" "}
+														{formatDate(event.end_date)}
 													</p>
 													<Badge
 														variant="outline"

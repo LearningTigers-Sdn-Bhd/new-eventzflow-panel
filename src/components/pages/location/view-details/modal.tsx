@@ -8,14 +8,18 @@ interface ViewDetailsDialogProps {
 	location: BaseLocation;
 }
 
-export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) {
+export default function ViewDetailsDialog({
+	location,
+}: ViewDetailsDialogProps) {
 	const staffCount = location.staffMembers?.length || 0;
 	const vendorCount = location.vendors?.length || 0;
 	const totalMembers = staffCount + vendorCount;
 
 	// Get location details excluding notes
 	const additionalDetails = location.locationDetails
-		? Object.entries(location.locationDetails).filter(([key]) => key !== "notes")
+		? Object.entries(location.locationDetails).filter(
+				([key]) => key !== "notes",
+			)
 		: [];
 
 	return (
@@ -104,7 +108,9 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 									<span className="text-muted-foreground text-sm capitalize">
 										{key.replace(/_/g, " ")}:
 									</span>
-									<span className="text-right font-medium text-sm">{value}</span>
+									<span className="text-right font-medium text-sm">
+										{value}
+									</span>
 								</div>
 							))}
 						</div>
@@ -129,4 +135,3 @@ export default function ViewDetailsDialog({ location }: ViewDetailsDialogProps) 
 		</div>
 	);
 }
-

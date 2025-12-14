@@ -11,12 +11,10 @@ import {
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
-
 import { ScanModal } from "./scan-modal";
-import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -48,7 +46,12 @@ export function DataControl<TData>({
 				<div className="hidden items-center gap-2 lg:flex">
 					<QuerySearchField
 						table={table}
-						columns={["visitor_name", "visitor_email", "visitor_phone", "vendor_name"]}
+						columns={[
+							"visitor_name",
+							"visitor_email",
+							"visitor_phone",
+							"vendor_name",
+						]}
 						placeholder="Search by name, email, phone..."
 					/>
 					<DropdownMenu>
@@ -102,7 +105,12 @@ export function DataControl<TData>({
 						<div className="flex-1">
 							<QuerySearchField
 								table={table}
-								columns={["visitor_name", "visitor_email", "visitor_phone", "vendor_name"]}
+								columns={[
+									"visitor_name",
+									"visitor_email",
+									"visitor_phone",
+									"vendor_name",
+								]}
 								placeholder="Search by name, email, phone..."
 							/>
 						</div>

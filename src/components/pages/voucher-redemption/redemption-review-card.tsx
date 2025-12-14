@@ -1,12 +1,22 @@
 "use client";
 
-import { ArrowLeft, CheckCircle, Gift, Percent, Ticket, User, Wallet, Loader2, PartyPopper } from "lucide-react";
+import {
+	ArrowLeft,
+	CheckCircle,
+	Gift,
+	Loader2,
+	PartyPopper,
+	Percent,
+	Ticket,
+	User,
+	Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { VoucherDetails, VisitorDetails } from "./types";
+import type { VisitorDetails, VoucherDetails } from "./types";
 
 interface RedemptionReviewCardProps {
 	voucherDetails: VoucherDetails | null;
@@ -100,9 +110,10 @@ export function RedemptionReviewCard({
 		}
 	};
 
-	const vouchersLeft = voucherDetails.totalRedemptionAvailable === 0 
-		? "Unlimited" 
-		: `${voucherDetails.totalRedemptionAvailable - voucherDetails.redeemedCount} / ${voucherDetails.totalRedemptionAvailable}`;
+	const vouchersLeft =
+		voucherDetails.totalRedemptionAvailable === 0
+			? "Unlimited"
+			: `${voucherDetails.totalRedemptionAvailable - voucherDetails.redeemedCount} / ${voucherDetails.totalRedemptionAvailable}`;
 
 	const originalPrice = calculateOriginalPrice();
 
@@ -111,7 +122,9 @@ export function RedemptionReviewCard({
 			<Card className="space-y-4 p-4 sm:space-y-5 sm:p-6">
 				<div className="flex items-center gap-2">
 					<CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />
-					<h3 className="font-semibold text-base sm:text-lg">Review & Confirm</h3>
+					<h3 className="font-semibold text-base sm:text-lg">
+						Review & Confirm
+					</h3>
 				</div>
 
 				{/* Desktop: 2-column layout, Mobile: stacked */}
@@ -127,18 +140,24 @@ export function RedemptionReviewCard({
 							<div className="space-y-1.5 rounded-lg border bg-muted/30 p-3 text-sm">
 								<div className="flex justify-between gap-2">
 									<span className="text-muted-foreground text-xs">Name</span>
-									<span className="text-right font-medium">{visitorDetails.fullName}</span>
+									<span className="text-right font-medium">
+										{visitorDetails.fullName}
+									</span>
 								</div>
 								{visitorDetails.email && (
 									<div className="flex justify-between gap-2">
 										<span className="text-muted-foreground text-xs">Email</span>
-										<span className="truncate text-right text-xs">{visitorDetails.email}</span>
+										<span className="truncate text-right text-xs">
+											{visitorDetails.email}
+										</span>
 									</div>
 								)}
 								{visitorDetails.phone && (
 									<div className="flex justify-between gap-2">
 										<span className="text-muted-foreground text-xs">Phone</span>
-										<span className="text-right text-xs">{visitorDetails.phone}</span>
+										<span className="text-right text-xs">
+											{visitorDetails.phone}
+										</span>
 									</div>
 								)}
 							</div>
@@ -153,25 +172,37 @@ export function RedemptionReviewCard({
 							<div className="space-y-1.5 rounded-lg border bg-muted/30 p-3 text-sm">
 								<div className="flex justify-between gap-2">
 									<span className="text-muted-foreground text-xs">Title</span>
-									<span className="text-right font-medium">{voucherDetails.title}</span>
+									<span className="text-right font-medium">
+										{voucherDetails.title}
+									</span>
 								</div>
 								<div className="flex justify-between gap-2">
 									<span className="text-muted-foreground text-xs">Type</span>
-									<span className="text-right font-medium text-xs">{getVoucherTypeLabel()}</span>
+									<span className="text-right font-medium text-xs">
+										{getVoucherTypeLabel()}
+									</span>
 								</div>
 								<div className="flex justify-between gap-2">
-									<span className="text-muted-foreground text-xs">Discount</span>
+									<span className="text-muted-foreground text-xs">
+										Discount
+									</span>
 									<span className="text-right font-semibold text-green-600">
 										{getVoucherValueDisplay()}
 									</span>
 								</div>
 								<div className="flex justify-between gap-2">
-									<span className="text-muted-foreground text-xs">Available</span>
-									<span className="text-right font-medium text-xs">{vouchersLeft}</span>
+									<span className="text-muted-foreground text-xs">
+										Available
+									</span>
+									<span className="text-right font-medium text-xs">
+										{vouchersLeft}
+									</span>
 								</div>
 								{voucherDetails.description && (
 									<div className="mt-1.5 border-t pt-1.5">
-										<p className="text-muted-foreground text-xs">{voucherDetails.description}</p>
+										<p className="text-muted-foreground text-xs">
+											{voucherDetails.description}
+										</p>
 									</div>
 								)}
 							</div>
@@ -189,15 +220,15 @@ export function RedemptionReviewCard({
 									<p className="font-medium text-green-700 text-sm">
 										Free Item Voucher
 									</p>
-									<p className="text-green-600 text-xs">
-										No payment required
-									</p>
+									<p className="text-green-600 text-xs">No payment required</p>
 								</div>
 							</div>
 						) : (
 							<div className="space-y-3">
 								<div className="space-y-2">
-									<Label htmlFor="amount" className="text-sm">Final Sale Price (After Discount)</Label>
+									<Label htmlFor="amount" className="text-sm">
+										Final Sale Price (After Discount)
+									</Label>
 									<div className="relative">
 										<span className="-translate-y-1/2 absolute top-1/2 left-3 font-medium text-muted-foreground text-sm">
 											RM
@@ -222,45 +253,57 @@ export function RedemptionReviewCard({
 								</div>
 
 								{/* Discount Calculation Display - Always visible */}
-								<div className={`space-y-2 rounded-lg border p-3 ${
-									voucherDetails.voucherType === "percentage" 
-										? "border-blue-200 bg-blue-50" 
-										: "border-green-200 bg-green-50"
-								}`}>
+								<div
+									className={`space-y-2 rounded-lg border p-3 ${
+										voucherDetails.voucherType === "percentage"
+											? "border-blue-200 bg-blue-50"
+											: "border-green-200 bg-green-50"
+									}`}
+								>
 									<div className="flex items-center justify-between">
-										<span className={`font-medium text-xs ${
-											voucherDetails.voucherType === "percentage" 
-												? "text-blue-700" 
-												: "text-green-700"
-										}`}>
+										<span
+											className={`font-medium text-xs ${
+												voucherDetails.voucherType === "percentage"
+													? "text-blue-700"
+													: "text-green-700"
+											}`}
+										>
 											Discount Applied
 										</span>
-										<span className={`font-semibold text-sm ${
-											voucherDetails.voucherType === "percentage" 
-												? "text-blue-900" 
-												: "text-green-900"
-										}`}>
+										<span
+											className={`font-semibold text-sm ${
+												voucherDetails.voucherType === "percentage"
+													? "text-blue-900"
+													: "text-green-900"
+											}`}
+										>
 											{getVoucherValueDisplay()}
 										</span>
 									</div>
-									<div className={`border-t pt-2 ${
-										voucherDetails.voucherType === "percentage" 
-											? "border-blue-200" 
-											: "border-green-200"
-									}`}>
+									<div
+										className={`border-t pt-2 ${
+											voucherDetails.voucherType === "percentage"
+												? "border-blue-200"
+												: "border-green-200"
+										}`}
+									>
 										<div className="flex items-center justify-between">
-											<span className={`text-xs ${
-												voucherDetails.voucherType === "percentage" 
-													? "text-blue-700" 
-													: "text-green-700"
-											}`}>
+											<span
+												className={`text-xs ${
+													voucherDetails.voucherType === "percentage"
+														? "text-blue-700"
+														: "text-green-700"
+												}`}
+											>
 												Original Price
 											</span>
-											<span className={`font-bold text-base ${
-												voucherDetails.voucherType === "percentage" 
-													? "text-blue-900" 
-													: "text-green-900"
-											}`}>
+											<span
+												className={`font-bold text-base ${
+													voucherDetails.voucherType === "percentage"
+														? "text-blue-900"
+														: "text-green-900"
+												}`}
+											>
 												RM {originalPrice.toFixed(2)}
 											</span>
 										</div>
@@ -285,7 +328,10 @@ export function RedemptionReviewCard({
 					</Button>
 					<Button
 						type="submit"
-						disabled={isProcessing || (!isFreeItem && (!amount || Number.parseFloat(amount) <= 0))}
+						disabled={
+							isProcessing ||
+							(!isFreeItem && (!amount || Number.parseFloat(amount) <= 0))
+						}
 						className="min-w-[160px]"
 					>
 						{isProcessing ? (
@@ -302,4 +348,3 @@ export function RedemptionReviewCard({
 		</form>
 	);
 }
-

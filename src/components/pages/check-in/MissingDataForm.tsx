@@ -1,4 +1,4 @@
-import { ArrowLeft, Loader2, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,8 +44,9 @@ export function MissingDataForm({
 						📋 Complete Your Information
 					</p>
 					<p className="text-amber-800 text-xs dark:text-amber-200">
-						Hi <span className="font-semibold">{ticketData.name}</span>! Before checking in, we need to
-						collect some missing contact information for event updates and communication.
+						Hi <span className="font-semibold">{ticketData.name}</span>! Before
+						checking in, we need to collect some missing contact information for
+						event updates and communication.
 					</p>
 				</div>
 			</div>
@@ -53,10 +54,15 @@ export function MissingDataForm({
 			{/* Phone Number Field */}
 			{missingPhone && (
 				<div className="space-y-2">
-					<Label htmlFor="missing-phone" className="flex items-center gap-2 font-medium text-sm">
+					<Label
+						htmlFor="missing-phone"
+						className="flex items-center gap-2 font-medium text-sm"
+					>
 						<Phone className="h-4 w-4" />
 						Phone Number
-						<span className="font-normal text-blue-600 text-sm dark:text-blue-400">(Recommended)</span>
+						<span className="font-normal text-blue-600 text-sm dark:text-blue-400">
+							(Recommended)
+						</span>
 					</Label>
 					<Input
 						id="missing-phone"
@@ -78,9 +84,13 @@ export function MissingDataForm({
 			{/* Email Field */}
 			{missingEmail && (
 				<div className="space-y-2">
-					<Label htmlFor="missing-email" className="flex items-center gap-2 font-medium text-sm">
+					<Label
+						htmlFor="missing-email"
+						className="flex items-center gap-2 font-medium text-sm"
+					>
 						<Mail className="h-4 w-4" />
-						Email Address (Optional) {requireEmail && <span className="text-red-500">*</span>}
+						Email Address (Optional){" "}
+						{requireEmail && <span className="text-red-500">*</span>}
 					</Label>
 					<Input
 						id="missing-email"

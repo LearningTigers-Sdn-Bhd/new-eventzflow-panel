@@ -13,11 +13,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
-import { deleteEventVendor } from "@/lib/api/event-vendor";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { deleteEventVendor } from "@/lib/api/event-vendor";
 import ConfirmDialog from "../../event-staff/confirm-dialog";
-import EditEventVendorForm from "../forms/edit-vendor/edit-form";
 import QrCodeDialog from "../dialogs/qr-code-dialog";
+import EditEventVendorForm from "../forms/edit-vendor/edit-form";
 
 interface EventVendorActionsMenuProps {
 	vendor: EventVendor;
@@ -108,25 +108,25 @@ export function EventVendorActionsMenu({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="rounded-none bg-background w-48"
+				className="w-48 rounded-none bg-background"
 			>
 				<DropdownMenuItem
 					onClick={handleEditClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Pencil className="mr-2 size-4" />
 					Edit Form
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleViewVendorClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<Eye className="mr-2 size-4" />
 					View Vendor
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleQrCodeClick}
-					className="rounded-none cursor-pointer"
+					className="cursor-pointer rounded-none"
 				>
 					<QrCode className="mr-2 size-4" />
 					QR Code
@@ -134,7 +134,7 @@ export function EventVendorActionsMenu({
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={handleDeleteClick}
-					className="rounded-none cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
 				>
 					<Trash2 className="mr-2 size-4" />
 					Delete

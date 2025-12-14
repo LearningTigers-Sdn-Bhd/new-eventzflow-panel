@@ -8,7 +8,10 @@ interface CheckInMethodSelectionProps {
 	onRegisterClick: () => void;
 }
 
-export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: CheckInMethodSelectionProps) {
+export function CheckInMethodSelection({
+	onSelectMethod,
+	onRegisterClick,
+}: CheckInMethodSelectionProps) {
 	return (
 		<div className="space-y-3">
 			{/* Check-in Methods - More Compact Design */}
@@ -58,12 +61,12 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 				<Button
 					onClick={() => onSelectMethod("scan")}
 					variant="outline"
-					className="h-auto py-4 flex flex-col items-center gap-1.5 hover:border-primary hover:bg-primary/5 transition-all group"
+					className="group flex h-auto flex-col items-center gap-1.5 py-4 transition-all hover:border-primary hover:bg-primary/5"
 				>
-					<QrCode className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+					<QrCode className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
 					<div className="space-y-0.5">
-						<span className="font-semibold text-sm block">Scan</span>
-						<span className="text-xs text-muted-foreground leading-tight block">
+						<span className="block font-semibold text-sm">Scan</span>
+						<span className="block text-muted-foreground text-xs leading-tight">
 							Scan QR code
 						</span>
 					</div>
@@ -76,9 +79,7 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 					<div className="w-full border-border/50 border-t" />
 				</div>
 				<div className="relative flex justify-center">
-					<span className="bg-card px-3 text-muted-foreground text-xs">
-						or
-					</span>
+					<span className="bg-card px-3 text-muted-foreground text-xs">or</span>
 				</div>
 			</div>
 
@@ -106,11 +107,11 @@ export function CheckInMethodSelection({ onSelectMethod, onRegisterClick }: Chec
 				<p className="text-muted-foreground/70 text-xs tracking-wide">
 					<span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text font-bold text-primary text-transparent">
 						EventzFlow
+					</span>{" "}
+					<span className="text-muted-foreground/60">by</span>{" "}
+					<span className="font-semibold text-foreground/80">
+						Sales Chatalyst
 					</span>
-					{" "}
-					<span className="text-muted-foreground/60">by</span>
-					{" "}
-					<span className="font-semibold text-foreground/80">Sales Chatalyst</span>
 				</p>
 			</div>
 		</div>

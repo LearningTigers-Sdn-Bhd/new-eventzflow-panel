@@ -156,7 +156,10 @@ export const columns: ColumnDef<ApiKey>[] = [
 
 			if (!lastUsedAt) {
 				return (
-					<Badge variant="outline" className="rounded-none text-muted-foreground">
+					<Badge
+						variant="outline"
+						className="rounded-none text-muted-foreground"
+					>
 						Never Used
 					</Badge>
 				);
@@ -189,7 +192,11 @@ export const columns: ColumnDef<ApiKey>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			return <div className="text-sm">{formatDateTime(row.getValue("createdAt"))}</div>;
+			return (
+				<div className="text-sm">
+					{formatDateTime(row.getValue("createdAt"))}
+				</div>
+			);
 		},
 	},
 	{

@@ -1,11 +1,11 @@
 "use client";
 
-import ImageUpload from "@/components/file-upload/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
@@ -27,9 +27,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { updateVoucher, type Voucher } from "@/lib/api/voucher";
-import { useAuth } from "@/hooks/use-auth";
 
 interface EditVoucherFormProps {
 	eventId: number;
@@ -187,7 +187,24 @@ export default function EditVoucherForm({
 		setErrors({});
 		setImage(null);
 		setImageRemoved(false);
-	}, [voucher.id, voucher.title, voucher.description, voucher.vendorId, voucher.voucherType, voucher.voucherValue, voucher.voucherCode, voucher.voucherCategory, voucher.status, voucher.isUnlimited, voucher.totalRedemptionAvailable, voucher.maxRedemptionsPerUser, voucher.startDate, voucher.startTime, voucher.endDate, voucher.endTime]);
+	}, [
+		voucher.id,
+		voucher.title,
+		voucher.description,
+		voucher.vendorId,
+		voucher.voucherType,
+		voucher.voucherValue,
+		voucher.voucherCode,
+		voucher.voucherCategory,
+		voucher.status,
+		voucher.isUnlimited,
+		voucher.totalRedemptionAvailable,
+		voucher.maxRedemptionsPerUser,
+		voucher.startDate,
+		voucher.startTime,
+		voucher.endDate,
+		voucher.endTime,
+	]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -271,9 +288,10 @@ export default function EditVoucherForm({
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
-			voucher_category: voucherCategory === "Others" 
-				? customCategory.trim() || undefined 
-				: voucherCategory.trim() || undefined,
+			voucher_category:
+				voucherCategory === "Others"
+					? customCategory.trim() || undefined
+					: voucherCategory.trim() || undefined,
 			image: image || undefined,
 			remove_image: imageRemoved && !image ? true : undefined,
 		});
@@ -330,7 +348,9 @@ export default function EditVoucherForm({
 								</p>
 							</div>
 
-							<div className={`grid grid-cols-1 gap-4 ${isVendor ? (voucherCategory === "Others" ? "md:grid-cols-3" : "md:grid-cols-2") : (voucherCategory === "Others" ? "md:grid-cols-4" : "md:grid-cols-3")}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 ${isVendor ? (voucherCategory === "Others" ? "md:grid-cols-3" : "md:grid-cols-2") : voucherCategory === "Others" ? "md:grid-cols-4" : "md:grid-cols-3"}`}
+							>
 								{/* Voucher Title */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherTitleField}>
@@ -517,11 +537,15 @@ export default function EditVoucherForm({
 													<SelectItem value="percentage">
 														Percentage Discount
 													</SelectItem>
-													<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+													<SelectItem value="fixed_amount">
+														Fixed Amount
+													</SelectItem>
 													<SelectItem value="free_item">Free Item</SelectItem>
 												</SelectContent>
 											</Select>
-											<FieldDescription>Choose the type of voucher</FieldDescription>
+											<FieldDescription>
+												Choose the type of voucher
+											</FieldDescription>
 										</Field>
 
 										{/* Voucher Value - Hidden for free_item */}
@@ -628,7 +652,11 @@ export default function EditVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={imageRemoved ? undefined : (image || voucher.imagePath || undefined)}
+											value={
+												imageRemoved
+													? undefined
+													: image || voucher.imagePath || undefined
+											}
 											onChange={(file) => {
 												if (file) {
 													setImage(file);
@@ -694,9 +722,7 @@ export default function EditVoucherForm({
 									<FieldLabel htmlFor={endDateField}>
 										End Date & Time *
 									</FieldLabel>
-									{errors.endDate && (
-										<FieldError>{errors.endDate}</FieldError>
-									)}
+									{errors.endDate && <FieldError>{errors.endDate}</FieldError>}
 									<DateTimePicker
 										date={endDate}
 										onDateChange={(date: Date | undefined) => {
@@ -717,7 +743,9 @@ export default function EditVoucherForm({
 							</div>
 
 							{/* Row 2: Usage Limits */}
-							<div className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+							>
 								{/* Unlimited Toggle */}
 								<Field orientation="vertical">
 									<FieldLabel>Unlimited Redemptions</FieldLabel>

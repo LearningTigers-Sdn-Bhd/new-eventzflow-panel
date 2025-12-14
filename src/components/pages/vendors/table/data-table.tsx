@@ -26,8 +26,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/api/vendor";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { VendorItem } from "./vendor-item";
 
@@ -155,10 +155,7 @@ export function DataTable<TData, TValue>({
 							table
 								.getRowModel()
 								.rows.map((row) => (
-									<VendorItem
-										key={row.id}
-										vendor={row.original as Vendor}
-									/>
+									<VendorItem key={row.id} vendor={row.original as Vendor} />
 								))
 						) : (
 							<EmptyState

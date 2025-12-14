@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -12,18 +13,18 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { useQuery } from "@tanstack/react-query";
-import {
-	ArrowDown,
-	ChevronDown,
-} from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { QuerySearchField } from "@/components/query-search-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getOrganizerMembers } from "@/lib/api/team";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -31,7 +32,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TeamMemberActionsMenu } from "./action-menu";
 import {
 	Table,
 	TableBody,
@@ -40,16 +40,20 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { TeamMember } from "@/lib/api/team";
 import { useFormatDate } from "@/hooks/use-format-date";
+import type { TeamMember } from "@/lib/api/team";
+import { getOrganizerMembers } from "@/lib/api/team";
 import { cn } from "@/lib/utils";
+import { TeamMemberActionsMenu } from "./action-menu";
 
 interface OrganizerMembersContentProps {
 	organizer: TeamMember;
 }
 
 // Define columns for the table
-const getColumns = (formatDate: (date: string) => string): ColumnDef<TeamMember>[] => [
+const getColumns = (
+	formatDate: (date: string) => string,
+): ColumnDef<TeamMember>[] => [
 	{
 		accessorKey: "full_name",
 		size: 200,
@@ -254,8 +258,11 @@ export default function OrganizerMembersContent({
 	const { formatDate } = useFormatDate();
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
 
 	const columns = React.useMemo(() => getColumns(formatDate), [formatDate]);
 
@@ -346,7 +353,9 @@ export default function OrganizerMembersContent({
 					</CardHeader>
 				</Card>
 				<div className="flex items-center justify-center py-12">
-					<p className="text-destructive">Failed to load members. Please try again.</p>
+					<p className="text-destructive">
+						Failed to load members. Please try again.
+					</p>
 				</div>
 			</div>
 		);
@@ -490,4 +499,3 @@ export default function OrganizerMembersContent({
 		</div>
 	);
 }
-

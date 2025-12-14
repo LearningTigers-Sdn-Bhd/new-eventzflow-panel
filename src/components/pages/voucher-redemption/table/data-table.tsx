@@ -144,23 +144,21 @@ export function DataTable<TData, TValue>({
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<div
-										key={row.id}
-										className="space-y-2 rounded-none border bg-card p-4"
-									>
-										{row.getVisibleCells().map((cell) => (
-											<div key={cell.id}>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</div>
-										))}
-									</div>
-								))
+							table.getRowModel().rows.map((row) => (
+								<div
+									key={row.id}
+									className="space-y-2 rounded-none border bg-card p-4"
+								>
+									{row.getVisibleCells().map((cell) => (
+										<div key={cell.id}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</div>
+									))}
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No redemption logs found"
@@ -178,4 +176,3 @@ export function DataTable<TData, TValue>({
 		</div>
 	);
 }
-

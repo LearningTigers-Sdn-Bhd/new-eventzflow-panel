@@ -1,11 +1,11 @@
 "use client";
 
-import ImageUpload from "@/components/file-upload/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
@@ -27,9 +27,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 import { getEvents } from "@/lib/api/event";
 import { updateVoucher, type Voucher } from "@/lib/api/voucher";
-import { useAuth } from "@/hooks/use-auth";
 
 interface EditVendorVoucherFormProps {
 	voucher: Voucher;
@@ -55,7 +55,6 @@ const VOUCHER_CATEGORIES = [
 const PREDEFINED_CATEGORIES: string[] = VOUCHER_CATEGORIES.filter(
 	(c): c is Exclude<typeof c, "Others"> => c !== "Others",
 ).map((c) => c as string);
-
 
 export default function EditVendorVoucherForm({
 	voucher,
@@ -114,7 +113,9 @@ export default function EditVendorVoucherForm({
 			queryClient.invalidateQueries({ queryKey: ["vendor-vouchers"] });
 			queryClient.invalidateQueries({ queryKey: ["vouchers"] });
 			if (selectedEventId) {
-				queryClient.invalidateQueries({ queryKey: ["event", selectedEventId, "vouchers"] });
+				queryClient.invalidateQueries({
+					queryKey: ["event", selectedEventId, "vouchers"],
+				});
 			}
 			toast.success("Voucher updated successfully!");
 			onClose?.();
@@ -150,7 +151,7 @@ export default function EditVendorVoucherForm({
 		setVoucherType(voucher.voucherType);
 		setVoucherValue(voucher.voucherValue.toString());
 		setVoucherCode(voucher.voucherCode || "");
-		
+
 		const existingCategory = voucher.voucherCategory || "";
 		if (!existingCategory) {
 			setVoucherCategory("");
@@ -162,7 +163,7 @@ export default function EditVendorVoucherForm({
 			setVoucherCategory("Others");
 			setCustomCategory(existingCategory);
 		}
-		
+
 		setStatus(voucher.status as "active" | "inactive");
 		setIsUnlimited(voucher.isUnlimited ?? false);
 		setGlobalLimit(voucher.totalRedemptionAvailable?.toString() ?? "");
@@ -251,9 +252,10 @@ export default function EditVendorVoucherForm({
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
-			voucher_category: voucherCategory === "Others" 
-				? customCategory.trim() || undefined 
-				: voucherCategory.trim() || undefined,
+			voucher_category:
+				voucherCategory === "Others"
+					? customCategory.trim() || undefined
+					: voucherCategory.trim() || undefined,
 			image: image || undefined,
 			remove_image: imageRemoved && !image ? true : undefined,
 		});
@@ -295,7 +297,6 @@ export default function EditVendorVoucherForm({
 		);
 	}
 
-
 	return (
 		<div className="mx-auto w-full max-w-8xl px-8">
 			<form onSubmit={handleSubmit}>
@@ -311,9 +312,13 @@ export default function EditVendorVoucherForm({
 								</p>
 							</div>
 
-							<div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
-								voucherCategory === "Others" ? "lg:grid-cols-4" : "lg:grid-cols-3"
-							}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
+									voucherCategory === "Others"
+										? "lg:grid-cols-4"
+										: "lg:grid-cols-3"
+								}`}
+							>
 								{/* Voucher Title */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={voucherTitleField}>
@@ -492,7 +497,9 @@ export default function EditVendorVoucherForm({
 													<SelectItem value="percentage">
 														Percentage Discount
 													</SelectItem>
-													<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+													<SelectItem value="fixed_amount">
+														Fixed Amount
+													</SelectItem>
 													<SelectItem value="free_item">Free Item</SelectItem>
 												</SelectContent>
 											</Select>
@@ -605,7 +612,11 @@ export default function EditVendorVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={imageRemoved ? undefined : (image || voucher.imagePath || undefined)}
+											value={
+												imageRemoved
+													? undefined
+													: image || voucher.imagePath || undefined
+											}
 											onChange={(file) => {
 												if (file) {
 													setImage(file);
@@ -671,9 +682,7 @@ export default function EditVendorVoucherForm({
 									<FieldLabel htmlFor={endDateField}>
 										End Date & Time *
 									</FieldLabel>
-									{errors.endDate && (
-										<FieldError>{errors.endDate}</FieldError>
-									)}
+									{errors.endDate && <FieldError>{errors.endDate}</FieldError>}
 									<DateTimePicker
 										date={endDate}
 										onDateChange={(date: Date | undefined) => {
@@ -689,14 +698,14 @@ export default function EditVendorVoucherForm({
 										disabled={updateMutation.isPending}
 										placeholder="Select end date and time"
 									/>
-									<FieldDescription>
-										When the voucher expires.
-									</FieldDescription>
+									<FieldDescription>When the voucher expires.</FieldDescription>
 								</Field>
 							</div>
 
 							{/* Row 2: Usage Limits */}
-							<div className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+							>
 								{/* Unlimited Toggle */}
 								<Field orientation="vertical">
 									<FieldLabel>Unlimited Redemptions</FieldLabel>

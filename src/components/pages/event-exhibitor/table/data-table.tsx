@@ -156,7 +156,7 @@ export function DataTable<TData, TValue>({
 												icon={<Building2 />}
 												height="h-auto"
 												action={
-													<Button variant="link" asChild className="p-0 h-auto">
+													<Button variant="link" asChild className="h-auto p-0">
 														<Link href="/vendor">Go to Vendors page</Link>
 													</Button>
 												}
@@ -185,7 +185,7 @@ export function DataTable<TData, TValue>({
 								icon={<Building2 />}
 								height="h-auto"
 								action={
-									<Button variant="link" asChild className="p-0 h-auto">
+									<Button variant="link" asChild className="h-auto p-0">
 										<Link href="/vendor">Go to Vendors page</Link>
 									</Button>
 								}

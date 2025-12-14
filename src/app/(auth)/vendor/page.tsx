@@ -4,18 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Boxes, Store } from "lucide-react";
 import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import VendorClientWrapper from "@/components/pages/vendors/vendor-client-wrapper";
-import CreateVendorForm from "@/components/pages/vendors/dialogs/create-vendor-form";
-import GroupClientWrapper from "@/components/pages/vendor-groups/group-client-wrapper";
 import { CreateGroupDialog } from "@/components/pages/vendor-groups/dialogs/create-group-dialog";
+import GroupClientWrapper from "@/components/pages/vendor-groups/group-client-wrapper";
+import CreateVendorForm from "@/components/pages/vendors/dialogs/create-vendor-form";
+import VendorClientWrapper from "@/components/pages/vendors/vendor-client-wrapper";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
+import { useGroups } from "@/hooks/use-groups";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getVendors } from "@/lib/api/vendor";
-import { useGroups } from "@/hooks/use-groups";
 
 export default function VendorPage() {
 	const isHydrated = useHydratedStore();
@@ -25,8 +25,10 @@ export default function VendorPage() {
 	const [activeTab, setActiveTab] = useState("vendors");
 
 	// Only org_owner and organizer can create vendors/groups
-	const canCreateVendor = user?.role === "org_owner" || user?.role === "organizer";
-	const canCreateGroup = user?.role === "org_owner" || user?.role === "organizer";
+	const canCreateVendor =
+		user?.role === "org_owner" || user?.role === "organizer";
+	const canCreateGroup =
+		user?.role === "org_owner" || user?.role === "organizer";
 
 	const {
 		data: vendors,
@@ -110,7 +112,11 @@ export default function VendorPage() {
 						)}
 					</div>
 
-					<Tabs defaultValue="vendors" className="w-full" onValueChange={setActiveTab}>
+					<Tabs
+						defaultValue="vendors"
+						className="w-full"
+						onValueChange={setActiveTab}
+					>
 						<div className="w-full border-y border-dashed">
 							<TabsList className="flex h-12 w-full rounded-none">
 								<TabsTrigger
@@ -132,7 +138,10 @@ export default function VendorPage() {
 
 						<div className="mt-6">
 							<TabsContent value="vendors" className="mt-0">
-								<VendorClientWrapper vendors={vendors || []} showHeader={false} />
+								<VendorClientWrapper
+									vendors={vendors || []}
+									showHeader={false}
+								/>
 							</TabsContent>
 
 							<TabsContent value="groups" className="mt-0">

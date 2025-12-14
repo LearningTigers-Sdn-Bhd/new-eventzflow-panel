@@ -112,7 +112,7 @@ export function ContractorFormContent() {
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 				{/* Left Column - Account Details */}
 				<div className="space-y-4">
-					<h4 className="font-medium text-sm text-muted-foreground border-b pb-2">
+					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
 						Account Details
 					</h4>
 
@@ -196,7 +196,7 @@ export function ContractorFormContent() {
 
 				{/* Right Column - Company Profile */}
 				<div className="space-y-4">
-					<h4 className="font-medium text-sm text-muted-foreground border-b pb-2">
+					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
 						Company Profile
 					</h4>
 
@@ -228,7 +228,9 @@ export function ContractorFormContent() {
 							disabled={isPending}
 						/>
 						{errors.contact_person && (
-							<p className="text-destructive text-sm">{errors.contact_person}</p>
+							<p className="text-destructive text-sm">
+								{errors.contact_person}
+							</p>
 						)}
 					</div>
 

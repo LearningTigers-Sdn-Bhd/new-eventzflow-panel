@@ -5,8 +5,8 @@ import { Plus, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { getContractors } from "@/lib/api/contractor";
+import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { AssignContractorDialog } from "../assign-contractor-dialog";
 import { RemoveContractorDialog } from "../remove-contractor-dialog";
 
@@ -29,7 +29,9 @@ export function ExhibitorContractorPageButton() {
 
 	// Find the assigned contractor details
 	const assignedContractor = allContractors?.find(
-		(c) => c.exhibition_contractor_profile?.id === eventContractor?.exhibition_contractor_profile_id
+		(c) =>
+			c.exhibition_contractor_profile?.id ===
+			eventContractor?.exhibition_contractor_profile_id,
 	);
 
 	const handleAssignContractor = () => {
@@ -52,7 +54,10 @@ export function ExhibitorContractorPageButton() {
 			component: RemoveContractorDialog,
 			props: {
 				eventId: Number(eventId),
-				contractorName: assignedContractor?.exhibition_contractor_profile?.company_name || assignedContractor?.full_name || "this contractor",
+				contractorName:
+					assignedContractor?.exhibition_contractor_profile?.company_name ||
+					assignedContractor?.full_name ||
+					"this contractor",
 				onClose: closeDialog,
 			},
 			config: {
@@ -86,4 +91,3 @@ export function ExhibitorContractorPageButton() {
 		</Button>
 	);
 }
-

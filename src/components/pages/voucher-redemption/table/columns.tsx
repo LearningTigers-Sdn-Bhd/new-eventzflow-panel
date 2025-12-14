@@ -4,8 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { RedemptionLog } from "@/lib/api/voucher-redemption-log";
+import { cn } from "@/lib/utils";
 
 export const columns: ColumnDef<RedemptionLog>[] = [
 	{
@@ -165,7 +165,9 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 		cell: ({ row }) => {
 			const discount = row.getValue("discountAppliedValue") as number;
 			return (
-				<div className="font-medium text-green-600">-RM {discount.toFixed(2)}</div>
+				<div className="font-medium text-green-600">
+					-RM {discount.toFixed(2)}
+				</div>
 			);
 		},
 	},
@@ -198,4 +200,3 @@ export const columns: ColumnDef<RedemptionLog>[] = [
 		},
 	},
 ];
-

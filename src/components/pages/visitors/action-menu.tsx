@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Visitor } from "@/lib/api/visitor";
+import EditVisitorForm from "./action-modals/edit-form";
 import VisitorQRModal from "./action-modals/qr-modal";
 import VisitorViewModal from "./action-modals/view-modal";
-import EditVisitorForm from "./action-modals/edit-form";
 
 interface VisitorActionsMenuProps {
 	visitor: Visitor;

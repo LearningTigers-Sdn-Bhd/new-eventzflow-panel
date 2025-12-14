@@ -26,10 +26,10 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
-import { DataControl } from "./data-control";
+import { cn } from "@/lib/utils";
 import { ContractorItem } from "./contractor-item";
+import { DataControl } from "./data-control";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -170,9 +170,7 @@ export function DataTable<TData, TValue>({
 								height="h-auto"
 								action={
 									onAddContractor && (
-										<Button onClick={onAddContractor}>
-											Add Contractor
-										</Button>
+										<Button onClick={onAddContractor}>Add Contractor</Button>
 									)
 								}
 							/>

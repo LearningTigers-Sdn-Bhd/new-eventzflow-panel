@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import type { VendorProfile } from "@/lib/api/vendor-profile";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Edit, Mail, MapPin, Phone, StickyNote, User2 } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import type { VendorProfile } from "@/lib/api/vendor-profile";
 import { EditVendorProfileDialog } from "./edit-vendor-profile-dialog";
 
 interface VendorProfileCardProps {
@@ -36,7 +36,10 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 					<div className="flex items-center gap-2">
 						{profile.category && (
-							<Badge variant="outline" className="px-2 py-0.5 font-medium text-xs">
+							<Badge
+								variant="outline"
+								className="px-2 py-0.5 font-medium text-xs"
+							>
 								{profile.category}
 							</Badge>
 						)}
@@ -49,24 +52,24 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 				</div>
 
-			<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-				<div className="space-y-4">
-					<div className="overflow-hidden border bg-muted/60">
-						{profile.image_path ? (
-							<img
-								src={profile.image_path}
-								alt={profile.vendor.full_name}
-								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-							/>
-						) : (
-							<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
-								No image been added yet.
-							</div>
-						)}
+				<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+					<div className="space-y-4">
+						<div className="overflow-hidden border bg-muted/60">
+							{profile.image_path ? (
+								<img
+									src={profile.image_path}
+									alt={profile.vendor.full_name}
+									className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+								/>
+							) : (
+								<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
+									No image been added yet.
+								</div>
+							)}
+						</div>
 					</div>
-				</div>
 
-				<div className="space-y-4 border bg-background/60 p-4">
+					<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">
 							<p className="font-medium text-muted-foreground text-xs uppercase">
 								About
@@ -90,33 +93,45 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 								<div className="flex items-start gap-3">
 									<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="font-medium text-muted-foreground text-xs uppercase">Email</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											Email
+										</p>
 										{profile.vendor.email ? (
 											<p>{profile.vendor.email}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">
+												Not provided
+											</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="font-medium text-muted-foreground text-xs uppercase">Phone</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											Phone
+										</p>
 										{profile.vendor.phone ? (
 											<p>{profile.vendor.phone}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">
+												Not provided
+											</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<User2 className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="font-medium text-muted-foreground text-xs uppercase">Person in Charge</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											Person in Charge
+										</p>
 										{profile.person_in_charge ? (
 											<p>{profile.person_in_charge}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">
+												Not provided
+											</p>
 										)}
 									</div>
 								</div>
@@ -131,22 +146,30 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 								<div className="flex items-start gap-3">
 									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="font-medium text-muted-foreground text-xs uppercase">Address</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											Address
+										</p>
 										{profile.address ? (
 											<p className="whitespace-pre-line">{profile.address}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">
+												Not provided
+											</p>
 										)}
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<StickyNote className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
-										<p className="font-medium text-muted-foreground text-xs uppercase">Notes</p>
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											Notes
+										</p>
 										{profile.notes ? (
 											<p className="whitespace-pre-line">{profile.notes}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">Not provided</p>
+											<p className="text-muted-foreground/60 text-sm italic">
+												Not provided
+											</p>
 										)}
 									</div>
 								</div>

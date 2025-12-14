@@ -1,10 +1,16 @@
 "use client";
 
 import { QrCode } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import type { Visitor } from "@/lib/api/visitor";
 import QRCode from "react-qr-code";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import type { Visitor } from "@/lib/api/visitor";
 
 interface VisitorItemProps {
 	visitor: Visitor;
@@ -16,7 +22,9 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 			{/* Name and Basic Info */}
 			<div>
 				<p className="font-semibold text-base">{visitor.full_name}</p>
-				<p className="text-muted-foreground text-sm">{visitor.email || "No email"}</p>
+				<p className="text-muted-foreground text-sm">
+					{visitor.email || "No email"}
+				</p>
 				{visitor.phone && (
 					<p className="text-muted-foreground text-sm">{visitor.phone}</p>
 				)}

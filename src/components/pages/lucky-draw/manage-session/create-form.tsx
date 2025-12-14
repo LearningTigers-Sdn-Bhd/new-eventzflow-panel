@@ -258,7 +258,9 @@ export default function CreateForm() {
 									<Select
 										value={field.state.value}
 										onValueChange={(value) => {
-											field.handleChange(value as "wireframe" | "colorful" | "cartoon");
+											field.handleChange(
+												value as "wireframe" | "colorful" | "cartoon",
+											);
 										}}
 										disabled={isPending}
 									>

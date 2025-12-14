@@ -23,7 +23,8 @@ export function EventVendorsPageButton() {
 			},
 			config: {
 				title: "Assign Vendor to Event",
-				description: "Assign vendors to this event individually or from a group.",
+				description:
+					"Assign vendors to this event individually or from a group.",
 				size: "full",
 			},
 		});

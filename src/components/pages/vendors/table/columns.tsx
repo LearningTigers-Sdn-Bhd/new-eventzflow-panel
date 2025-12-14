@@ -10,8 +10,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/api/vendor";
+import { cn } from "@/lib/utils";
 import { VendorActionsMenu } from "./action-menu";
 
 export const columns: ColumnDef<Vendor>[] = [
@@ -49,11 +49,7 @@ export const columns: ColumnDef<Vendor>[] = [
 		header: () => <p className="font-medium">Person In Charge</p>,
 		cell: ({ row }) => {
 			const personInCharge = row.original.vendorProfile?.person_in_charge;
-			return (
-				<div className="text-sm">
-					{personInCharge || "-"}
-				</div>
-			);
+			return <div className="text-sm">{personInCharge || "-"}</div>;
 		},
 	},
 	{

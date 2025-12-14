@@ -1,9 +1,10 @@
 "use client";
 
 import { Camera, CameraOff, QrCode } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -11,10 +12,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
+import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { useScanner } from "@/hooks/use-scanner";
 import { useCreateStamp } from "@/hooks/use-visitor-stamps";
-import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { cn } from "@/lib/utils";
 
 interface ScanModalProps {
@@ -33,16 +33,23 @@ const SCANNER_CONFIG = {
 // Track recent scans to prevent duplicates within 5 seconds
 const DUPLICATE_SCAN_COOLDOWN = 5000; // 5 seconds
 
-export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalProps) {
+export function ScanModal({
+	open,
+	onOpenChange,
+	eventId,
+	onRefetch,
+}: ScanModalProps) {
 	const [isScanning, setIsScanning] = useState(false);
 	const [isTransitioning, setIsTransitioning] = useState(false);
 	const recentScansRef = useRef<Map<string, number>>(new Map());
 	const createStamp = useCreateStamp();
 
 	// Get the current user's event vendor ID for this event
-	const { eventVendorId, isLoading: isLoadingVendorId, isVendor } = useCurrentUserEventVendorId(
-		Number(eventId)
-	);
+	const {
+		eventVendorId,
+		isLoading: isLoadingVendorId,
+		isVendor,
+	} = useCurrentUserEventVendorId(Number(eventId));
 
 	/**
 	 * Handle successful QR code scan
@@ -56,8 +63,8 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 		// Check for rapid duplicate scan
 		const now = Date.now();
 		const lastScanTime = recentScansRef.current.get(decodedText);
-		
-		if (lastScanTime && (now - lastScanTime) < DUPLICATE_SCAN_COOLDOWN) {
+
+		if (lastScanTime && now - lastScanTime < DUPLICATE_SCAN_COOLDOWN) {
 			return; // Silently ignore duplicate within cooldown
 		}
 
@@ -74,7 +81,8 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 		try {
 			if (!eventVendorId) {
 				toast.error("You are not assigned as a vendor for this event.", {
-					description: "Please contact the event administrator to get vendor access."
+					description:
+						"Please contact the event administrator to get vendor access.",
 				});
 				return;
 			}
@@ -144,7 +152,9 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 	 */
 	const playBeep = (frequency: number, duration: number) => {
 		try {
-			const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+			const audioContext = new (
+				window.AudioContext || (window as any).webkitAudioContext
+			)();
 			const oscillator = audioContext.createOscillator();
 			const gainNode = audioContext.createGain();
 
@@ -206,7 +216,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 							<div
 								id={SCANNER_CONFIG.SCANNER_DIV_ID}
 								className={cn(
-									"aspect-square w-full max-w-sm rounded-lg transition-all duration-500"
+									"aspect-square w-full max-w-sm rounded-lg transition-all duration-500",
 								)}
 								style={{
 									position: "relative",
@@ -245,7 +255,8 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 												Access Denied
 											</h3>
 											<p className="text-muted-foreground text-sm leading-relaxed">
-												You are not assigned as a vendor for this event. Please contact the event administrator.
+												You are not assigned as a vendor for this event. Please
+												contact the event administrator.
 											</p>
 										</div>
 									</div>

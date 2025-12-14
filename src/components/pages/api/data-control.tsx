@@ -159,7 +159,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								Date
 							</Button>
 						</div>
-						<span className="text-xs text-muted-foreground">
+						<span className="text-muted-foreground text-xs">
 							{table.getFilteredRowModel().rows.length} keys
 						</span>
 					</div>

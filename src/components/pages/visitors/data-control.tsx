@@ -12,8 +12,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import type { Visitor } from "@/lib/api/visitor";
+import { cn } from "@/lib/utils";
 
 interface DataControlProps {
 	table: Table<Visitor>;
