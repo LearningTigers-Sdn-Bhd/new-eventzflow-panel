@@ -1,14 +1,8 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
-import {
-	Zap,
-	Shield,
-	Clock,
-	TrendingUp,
-	FlameIcon,
-} from "lucide-react";
+import { Clock, FlameIcon, Shield, TrendingUp, Zap } from "lucide-react";
+import type React from "react";
 
 const benefits = [
 	{
@@ -58,7 +52,7 @@ const BenefitsSection: React.FC = () => {
 				<div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
 					{benefits.map((item, index) => {
 						const Icon = item.icon;
-							return (
+						return (
 							<motion.div
 								key={item.label}
 								className="flex flex-col items-center text-center"
@@ -72,13 +66,13 @@ const BenefitsSection: React.FC = () => {
 								</div>
 								<h3 className="mb-2 font-extrabold text-base text-foreground sm:mb-2.5 sm:text-lg">
 									{item.label}
-										</h3>
-										<p className="text-muted-foreground text-sm leading-relaxed">
+								</h3>
+								<p className="text-muted-foreground text-sm leading-relaxed">
 									{item.description}
-										</p>
+								</p>
 							</motion.div>
-							);
-						})}
+						);
+					})}
 				</div>
 			</div>
 		</section>
@@ -86,4 +80,3 @@ const BenefitsSection: React.FC = () => {
 };
 
 export default BenefitsSection;
-

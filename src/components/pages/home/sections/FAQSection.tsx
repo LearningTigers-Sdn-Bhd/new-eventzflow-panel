@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { HelpCircle, Plus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Plus, HelpCircle } from "lucide-react";
 
 type FaqItem = {
 	question: string;
@@ -37,7 +37,8 @@ const faqs: FaqItem[] = [
 			"Our AI analyzes attendee behavior—booth visits, session attendance, dwell time—and automatically segments them into audiences. You can then send targeted WhatsApp messages, emails, or push notifications with relevant content or offers.",
 	},
 	{
-		question: "Does EventzFlow integrate with our existing CRM or marketing tools?",
+		question:
+			"Does EventzFlow integrate with our existing CRM or marketing tools?",
 		answer:
 			"Yes. We offer native integrations with HubSpot, Salesforce, Mailchimp, Stripe, and WhatsApp Business API. For custom systems, our REST API and webhooks ensure seamless data sync across all your platforms.",
 	},
@@ -57,12 +58,14 @@ const faqs: FaqItem[] = [
 			"EventzFlow provides real-time dashboards with check-in velocity, booth heat maps, attendance trends, engagement scores, and post-event exports. All data can be exported to Excel or integrated directly into your BI tools via API.",
 	},
 	{
-		question: "Can multiple team members manage the event with different permissions?",
+		question:
+			"Can multiple team members manage the event with different permissions?",
 		answer:
 			"Absolutely. EventzFlow includes granular role-based access control. You can assign staff to specific events, gates, or tasks with custom permissions—ensuring each team member sees only what they need.",
 	},
 	{
-		question: "What happens if attendees lose their QR code or confirmation email?",
+		question:
+			"What happens if attendees lose their QR code or confirmation email?",
 		answer:
 			"No problem. We offer self-service kiosks where attendees can look up their registration using email or phone number. Staff can also search and manually check in attendees from the dashboard in seconds.",
 	},
@@ -86,11 +89,14 @@ const FAQSection: React.FC = () => {
 	};
 
 	return (
-		<section id="faq" className="relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+		<section
+			id="faq"
+			className="relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+		>
 			{/* Decorative background elements */}
 			<div className="pointer-events-none absolute top-20 left-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
 			<div className="pointer-events-none absolute right-0 bottom-20 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
-			
+
 			<div className="relative mx-auto max-w-4xl">
 				{/* Header */}
 				<div className="mb-8 text-center sm:mb-12">
@@ -154,7 +160,10 @@ const FAQSection: React.FC = () => {
 												: "bg-muted text-muted-foreground"
 										}`}
 									>
-										<Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+										<Plus
+											className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+											strokeWidth={2.5}
+										/>
 									</div>
 								</button>
 
@@ -182,4 +191,3 @@ const FAQSection: React.FC = () => {
 };
 
 export default FAQSection;
-

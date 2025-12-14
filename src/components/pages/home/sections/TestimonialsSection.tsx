@@ -1,8 +1,8 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
-import { Quote, Star, Verified, MessageSquareQuote } from "lucide-react";
+import { MessageSquareQuote, Quote, Star, Verified } from "lucide-react";
+import type React from "react";
 
 const testimonials = [
 	{
@@ -97,8 +97,9 @@ const TestimonialsSection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.5, delay: 0.08 }}
 					>
-						Don't just take our word for it. See how event organizers across Asia-Pacific 
-						achieve measurable improvements with EventzFlow's intelligent platform.
+						Don't just take our word for it. See how event organizers across
+						Asia-Pacific achieve measurable improvements with EventzFlow's
+						intelligent platform.
 					</motion.p>
 				</div>
 
@@ -171,7 +172,9 @@ const TestimonialsSection: React.FC = () => {
 								{/* Metric badge - enhanced */}
 								<div className="relative inline-flex w-fit items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1.5 font-semibold text-[10px] text-emerald-600 ring-1 ring-emerald-500/20 backdrop-blur transition-all duration-300 group-hover:bg-emerald-500/15 group-hover:ring-emerald-500/30 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-2 sm:text-xs dark:text-emerald-400">
 									<Star className="h-3 w-3 fill-yellow-400 text-yellow-400 sm:h-3.5 sm:w-3.5" />
-									<span className="whitespace-nowrap">{testimonial.metric}</span>
+									<span className="whitespace-nowrap">
+										{testimonial.metric}
+									</span>
 								</div>
 							</motion.div>
 						);
