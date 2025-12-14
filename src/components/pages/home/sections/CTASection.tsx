@@ -37,8 +37,9 @@ const CTASection: React.FC = () => {
 					viewport={{ once: true }}
 					transition={{ duration: 0.5, delay: 0.1 }}
 				>
-					From registration to retargeting, manage everything in one powerful platform. 
-					Get started in minutes with our intuitive dashboard and expert support.
+					From registration to retargeting, manage everything in one powerful
+					platform. Get started in minutes with our intuitive dashboard and
+					expert support.
 				</motion.p>
 				<motion.div
 					className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 lg:mt-10"
@@ -47,26 +48,26 @@ const CTASection: React.FC = () => {
 					viewport={{ once: true }}
 					transition={{ duration: 0.5, delay: 0.15 }}
 				>
-				<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
+					<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
+						<Button
+							size="lg"
+							className="group h-11 w-full rounded-lg bg-background font-semibold text-foreground text-sm shadow-lg transition-all hover:bg-background/90 sm:h-12 sm:min-w-[220px] sm:text-base"
+						>
+							Get started
+							<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+						</Button>
+					</Link>
 					<Button
 						size="lg"
-						className="group h-11 w-full rounded-lg bg-background font-semibold text-foreground text-sm shadow-lg transition-all hover:bg-background/90 sm:h-12 sm:min-w-[220px] sm:text-base"
+						variant="outline"
+						asChild
+						className="h-11 w-full rounded-lg border-2 border-primary-foreground/60 bg-transparent font-semibold text-primary-foreground text-sm transition-all hover:border-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:h-12 sm:w-auto sm:min-w-[220px] sm:text-base"
 					>
-						Get started
-						<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+						<a href="mailto:info@eventzflow.com">
+							Talk to sales
+							<PodcastIcon className="ml-2 h-4 w-4" />
+						</a>
 					</Button>
-				</Link>
-				<Button
-					size="lg"
-					variant="outline"
-					asChild
-					className="h-11 w-full rounded-lg border-2 border-primary-foreground/60 bg-transparent font-semibold text-primary-foreground text-sm transition-all hover:border-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:h-12 sm:w-auto sm:min-w-[220px] sm:text-base"
-				>
-					<a href="mailto:info@eventzflow.com">
-						Talk to sales
-						<PodcastIcon className="ml-2 h-4 w-4" />
-					</a>
-				</Button>
 				</motion.div>
 				<motion.div
 					className="mt-6 flex flex-wrap items-center justify-center gap-2 text-primary-foreground/80 text-xs sm:mt-8 sm:gap-4 sm:text-sm lg:mt-10"
@@ -87,4 +88,3 @@ const CTASection: React.FC = () => {
 };
 
 export default CTASection;
-

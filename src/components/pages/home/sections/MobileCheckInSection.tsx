@@ -1,16 +1,16 @@
 "use client";
 
-import type React from "react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-	Smartphone,
 	CheckCircle,
-	Users,
-	Shield,
 	ChevronLeft,
 	ChevronRight,
+	Shield,
+	Smartphone,
+	Users,
 } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
 
 const images = [
 	"https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=800&h=600&fit=crop",
@@ -24,22 +24,26 @@ const features = [
 	{
 		icon: Smartphone,
 		title: "No App Required",
-		description: "Attendees use WhatsApp—a platform they already have. No downloads or installations needed for registration.",
+		description:
+			"Attendees use WhatsApp—a platform they already have. No downloads or installations needed for registration.",
 	},
 	{
 		icon: CheckCircle,
 		title: "Instant Registration",
-		description: "Register through conversational WhatsApp flows with automated confirmations and QR code delivery straight to their phone.",
+		description:
+			"Register through conversational WhatsApp flows with automated confirmations and QR code delivery straight to their phone.",
 	},
 	{
 		icon: Users,
 		title: "Automated Campaigns",
-		description: "Send event reminders, updates, promotional messages, and registration links automatically via WhatsApp.",
+		description:
+			"Send event reminders, updates, promotional messages, and registration links automatically via WhatsApp.",
 	},
 	{
 		icon: Shield,
 		title: "Secure & Verified",
-		description: "Phone number verification ensures authentic registrations with automated QR code delivery for entry validation.",
+		description:
+			"Phone number verification ensures authentic registrations with automated QR code delivery for entry validation.",
 	},
 ];
 
@@ -60,42 +64,43 @@ const MobileCheckInSection: React.FC = () => {
 			<div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:4rem_4rem]" />
 			<div className="pointer-events-none absolute top-1/4 left-0 h-[400px] w-[400px] rounded-full bg-emerald-500/5 blur-3xl" />
 			<div className="pointer-events-none absolute right-0 bottom-1/4 h-[350px] w-[350px] rounded-full bg-blue-500/5 blur-3xl" />
-			
+
 			<div className="relative mx-auto max-w-6xl">
 				{/* Header */}
 				<div className="mb-8 flex flex-col gap-4 text-center sm:mb-12 sm:gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between lg:text-left">
 					<div>
-				<motion.span
-					className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
-					initial={{ opacity: 0, y: 10 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.4 }}
-				>
-					<Smartphone className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-					<span className="whitespace-nowrap">WhatsApp Registration</span>
-				</motion.span>
-				<motion.h2
-					className="mt-3 font-semibold text-2xl text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
-					initial={{ opacity: 0, y: 16 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.5, delay: 0.05 }}
-				>
-					Register attendees via WhatsApp automation
-				</motion.h2>
-			</div>
-			<motion.p
-				className="px-2 text-muted-foreground text-sm sm:text-base lg:max-w-xl lg:text-lg"
-				initial={{ opacity: 0, y: 16 }}
-				whileInView={{ opacity: 1, y: 0 }}
-				viewport={{ once: true }}
-				transition={{ duration: 0.5, delay: 0.08 }}
-			>
-				Let attendees register using WhatsApp—the platform they already use every day.
-				No apps to download, no passwords to remember. Just simple, conversational registration
-				with instant QR code delivery through WhatsApp automation.
-			</motion.p>
+						<motion.span
+							className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 font-semibold text-[10px] text-accent-foreground uppercase tracking-[0.2em] sm:px-4 sm:py-2 sm:text-xs"
+							initial={{ opacity: 0, y: 10 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.4 }}
+						>
+							<Smartphone className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+							<span className="whitespace-nowrap">WhatsApp Registration</span>
+						</motion.span>
+						<motion.h2
+							className="mt-3 font-semibold text-2xl text-foreground sm:mt-4 sm:text-3xl lg:text-4xl"
+							initial={{ opacity: 0, y: 16 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.5, delay: 0.05 }}
+						>
+							Register attendees via WhatsApp automation
+						</motion.h2>
+					</div>
+					<motion.p
+						className="px-2 text-muted-foreground text-sm sm:text-base lg:max-w-xl lg:text-lg"
+						initial={{ opacity: 0, y: 16 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.5, delay: 0.08 }}
+					>
+						Let attendees register using WhatsApp—the platform they already use
+						every day. No apps to download, no passwords to remember. Just
+						simple, conversational registration with instant QR code delivery
+						through WhatsApp automation.
+					</motion.p>
 				</div>
 
 				<div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12">
@@ -111,16 +116,16 @@ const MobileCheckInSection: React.FC = () => {
 							{/* Main Image */}
 							<div className="relative aspect-[4/3]">
 								<AnimatePresence mode="wait">
-							<motion.img
-								key={currentImage}
-								src={images[currentImage]}
-								alt={`WhatsApp registration solution ${currentImage + 1}`}
-								className="h-full w-full object-cover"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								transition={{ duration: 0.5 }}
-							/>
+									<motion.img
+										key={currentImage}
+										src={images[currentImage]}
+										alt={`WhatsApp registration solution ${currentImage + 1}`}
+										className="h-full w-full object-cover"
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										exit={{ opacity: 0 }}
+										transition={{ duration: 0.5 }}
+									/>
 								</AnimatePresence>
 
 								{/* Navigation Arrows */}
@@ -206,4 +211,3 @@ const MobileCheckInSection: React.FC = () => {
 };
 
 export default MobileCheckInSection;
-

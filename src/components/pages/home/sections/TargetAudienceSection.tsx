@@ -1,16 +1,16 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import {
-	Users,
-	Building2,
 	Briefcase,
+	Building2,
+	CheckCircle,
 	GraduationCap,
 	Handshake,
 	Sparkles,
-	CheckCircle,
+	Users,
 } from "lucide-react";
+import type React from "react";
 
 const audienceList = [
 	{
@@ -21,7 +21,8 @@ const audienceList = [
 			"Collaborate effortlessly with your team, clients, and vendors—all in one place, so nothing falls through the cracks.",
 			"Deliver fully branded experiences with white-label solutions that make every event unmistakably yours.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=300&fit=crop",
 	},
 	{
 		icon: Building2,
@@ -31,7 +32,8 @@ const audienceList = [
 			"Understand what resonates with your audience through detailed insights and engagement metrics that prove your event's impact.",
 			"Work seamlessly with the tools your team already uses—no complicated setup, just smooth connections.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=300&fit=crop",
 	},
 	{
 		icon: Briefcase,
@@ -41,7 +43,8 @@ const audienceList = [
 			"Welcome diverse communities with multi-language support that ensures everyone feels included and informed.",
 			"Maintain complete records and reporting that give you confidence in every decision and outcome.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1577415124269-fc1140a69e91?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1577415124269-fc1140a69e91?w=400&h=300&fit=crop",
 	},
 	{
 		icon: GraduationCap,
@@ -51,7 +54,8 @@ const audienceList = [
 			"Empower students and faculty with easy access to sessions, workshops, and resources—all organized in one platform.",
 			"Stay connected with your community through automated updates and communication tools that keep everyone informed.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&h=300&fit=crop",
 	},
 	{
 		icon: Handshake,
@@ -61,7 +65,8 @@ const audienceList = [
 			"Strengthen your mission with tools that help coordinate volunteers, track contributions, and celebrate every milestone.",
 			"Build deeper connections with your community through insights that show you what matters most to your members.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop",
 	},
 	{
 		icon: Sparkles,
@@ -71,19 +76,23 @@ const audienceList = [
 			"Give exhibitors the spotlight they deserve with organized booth management and floor plans that maximize visibility.",
 			"Turn conversations into opportunities with powerful lead capture tools that help exhibitors connect and grow their business.",
 		],
-		imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop",
+		imageUrl:
+			"https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop",
 	},
 ];
 
 const TargetAudienceSection: React.FC = () => {
 	// Duplicate the array for infinite loop effect
 	const duplicatedAudiences = [...audienceList, ...audienceList];
-	
+
 	// Card width + gap = 384px + 24px = 408px
 	const cardWidth = 408;
 
 	return (
-		<section id="industries" className="relative overflow-hidden bg-muted/40 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+		<section
+			id="industries"
+			className="relative overflow-hidden bg-muted/40 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+		>
 			<div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-primary/10 via-transparent to-transparent blur-3xl" />
 			<div className="pointer-events-none absolute top-1/4 right-[-15%] h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
 
@@ -120,9 +129,10 @@ const TargetAudienceSection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.5, delay: 0.08 }}
 					>
-						From global corporations to government agencies, EventzFlow delivers enterprise-grade 
-						event technology that adapts to your unique workflows—whether you're managing intimate 
-						executive briefings or international conferences with thousands of attendees.
+						From global corporations to government agencies, EventzFlow delivers
+						enterprise-grade event technology that adapts to your unique
+						workflows—whether you're managing intimate executive briefings or
+						international conferences with thousands of attendees.
 					</motion.p>
 				</div>
 
@@ -151,7 +161,10 @@ const TargetAudienceSection: React.FC = () => {
 									initial={{ opacity: 0, y: 50 }}
 									whileInView={{ opacity: 1, y: 0 }}
 									viewport={{ once: true }}
-									transition={{ duration: 0.5, delay: (index % audienceList.length) * 0.1 }}
+									transition={{
+										duration: 0.5,
+										delay: (index % audienceList.length) * 0.1,
+									}}
 								>
 									{/* Card Image */}
 									<div className="relative h-40 overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 sm:h-52">
@@ -162,7 +175,7 @@ const TargetAudienceSection: React.FC = () => {
 											loading="lazy"
 										/>
 										<div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
-										
+
 										{/* Floating Icon Badge */}
 										<div className="absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 sm:bottom-4 sm:left-4 sm:h-12 sm:w-12 sm:rounded-xl">
 											<Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
@@ -181,7 +194,10 @@ const TargetAudienceSection: React.FC = () => {
 										{/* Descriptions with Visual Separators */}
 										<div className="space-y-3 sm:space-y-4">
 											{audience.descriptions.map((description, idx) => (
-												<div key={idx} className="group/item flex gap-2 sm:gap-3">
+												<div
+													key={idx}
+													className="group/item flex gap-2 sm:gap-3"
+												>
 													<div className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60 transition-colors group-hover/item:bg-primary sm:mt-2 sm:h-2 sm:w-2" />
 													<p className="flex-1 text-muted-foreground text-xs leading-relaxed transition-colors group-hover/item:text-foreground sm:text-sm">
 														{description}
@@ -201,4 +217,3 @@ const TargetAudienceSection: React.FC = () => {
 };
 
 export default TargetAudienceSection;
-
