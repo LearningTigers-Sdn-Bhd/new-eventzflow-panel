@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import UserMenu from "@/components/user-menu";
 
@@ -43,7 +43,7 @@ export default function FloatingNav() {
 	const scrollToSection = (sectionId: string) => {
 		// Check if we're on the home page
 		const isHomePage = pathname === "/";
-		
+
 		if (!isHomePage) {
 			// If not on home page, navigate to home page with hash
 			router.push(`/#${sectionId}`);
@@ -66,7 +66,7 @@ export default function FloatingNav() {
 	const scrollToTop = () => {
 		// Check if we're on the home page
 		const isHomePage = pathname === "/";
-		
+
 		if (!isHomePage) {
 			// If not on home page, navigate to home page
 			router.push("/");
@@ -130,13 +130,17 @@ export default function FloatingNav() {
 					<div className="flex items-center gap-2">
 						<ModeToggle />
 						<UserMenu />
-						
+
 						{/* Mobile Menu Button */}
 						<button
 							onClick={() => setIsOpen(!isOpen)}
 							className="rounded-lg p-2 text-foreground transition-colors hover:bg-accent lg:hidden"
 						>
-							{isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+							{isOpen ? (
+								<X className="h-5 w-5" />
+							) : (
+								<Menu className="h-5 w-5" />
+							)}
 						</button>
 					</div>
 				</div>

@@ -29,7 +29,7 @@ export function PatternedLayout({
 			<div
 				className={cn(
 					"relative min-h-screen p-6 lg:p-10",
-					centered && "flex items-center justify-center"
+					centered && "flex items-center justify-center",
 				)}
 			>
 				{children}
