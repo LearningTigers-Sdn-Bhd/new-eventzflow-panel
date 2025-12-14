@@ -40,7 +40,9 @@ function VendorSignupContent() {
 	const [isHydrated, setIsHydrated] = useState(false);
 
 	// Get session from store
-	const sessionCredentials = useUserSessionStore((state) => state.sessionCredentials);
+	const sessionCredentials = useUserSessionStore(
+		(state) => state.sessionCredentials,
+	);
 	const user = useUserSessionStore((state) => state.user);
 
 	// Wait for store hydration
@@ -77,7 +79,11 @@ function VendorSignupContent() {
 
 	// Get stored access token if user is logged in as vendor
 	const storedAccessToken = useMemo(() => {
-		if (isHydrated && sessionCredentials?.accessToken && user?.role === "vendor") {
+		if (
+			isHydrated &&
+			sessionCredentials?.accessToken &&
+			user?.role === "vendor"
+		) {
 			return sessionCredentials.accessToken;
 		}
 		return undefined;
@@ -91,7 +97,8 @@ function VendorSignupContent() {
 		error: verifyError,
 	} = useQuery({
 		queryKey: ["verify-vendor-invite", eventId, token, storedAccessToken],
-		queryFn: () => verifyVendorInviteToken(eventId as number, token, storedAccessToken),
+		queryFn: () =>
+			verifyVendorInviteToken(eventId as number, token, storedAccessToken),
 		enabled: Boolean(token) && Boolean(eventId) && isHydrated,
 		retry: false,
 	});
@@ -145,7 +152,17 @@ function VendorSignupContent() {
 				setPageState("check_account");
 			}
 		}
-	}, [token, isHydrated, isVerifying, isVerifyError, verifyData, eventId, storedAccessToken, pageState, isNonVendorAuthenticated]);
+	}, [
+		token,
+		isHydrated,
+		isVerifying,
+		isVerifyError,
+		verifyData,
+		eventId,
+		storedAccessToken,
+		pageState,
+		isNonVendorAuthenticated,
+	]);
 
 	const event = verifyData?.data?.event;
 	const group = verifyData?.data?.group;
@@ -165,7 +182,11 @@ function VendorSignupContent() {
 		// Re-verify token with new access token to check if already assigned
 		setPageState("loading");
 		try {
-			const result = await verifyVendorInviteToken(eventId as number, token, newAccessToken);
+			const result = await verifyVendorInviteToken(
+				eventId as number,
+				token,
+				newAccessToken,
+			);
 			if (result.data?.is_assigned) {
 				setPageState("already_assigned");
 			} else {

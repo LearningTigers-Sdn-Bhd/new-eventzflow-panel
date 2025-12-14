@@ -1,15 +1,15 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import {
+	Award,
 	CalendarRange,
 	Compass,
 	Handshake,
 	IdCard,
 	Share2,
-	Award,
 } from "lucide-react";
+import type React from "react";
 
 const valuePropositions = [
 	{
@@ -76,8 +76,9 @@ const JourneySection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.5, delay: 0.08 }}
 					>
-						Less manual work. Lower costs. Happier attendees. EventzFlow automates 
-						the tedious tasks so you can focus on creating exceptional experiences.
+						Less manual work. Lower costs. Happier attendees. EventzFlow
+						automates the tedious tasks so you can focus on creating exceptional
+						experiences.
 					</motion.p>
 				</div>
 
@@ -95,7 +96,7 @@ const JourneySection: React.FC = () => {
 							>
 								{/* Gradient overlay on hover */}
 								<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-								
+
 								<div className="relative">
 									<div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
 										<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:ring-primary/30 sm:h-14 sm:w-14 sm:rounded-xl">
@@ -139,9 +140,12 @@ const JourneySection: React.FC = () => {
 							<Handshake className="h-5 w-5 sm:h-6 sm:w-6" />
 						</div>
 						<div className="min-w-0">
-							<p className="font-semibold text-base sm:text-lg">Quick setup in minutes</p>
+							<p className="font-semibold text-base sm:text-lg">
+								Quick setup in minutes
+							</p>
 							<p className="mt-1 text-xs opacity-90 sm:text-sm">
-								Launch your complete event management platform in under 5 minutes with instant WhatsApp integration.
+								Launch your complete event management platform in under 5
+								minutes with instant WhatsApp integration.
 							</p>
 						</div>
 					</div>

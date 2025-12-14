@@ -1,8 +1,8 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import { Check, Settings } from "lucide-react";
+import type React from "react";
 
 const leftFeatures = [
 	"WhatsApp registration with automated QR code delivery and reminders",
@@ -46,7 +46,9 @@ const OnsiteSupportSection: React.FC = () => {
 							transition={{ duration: 0.4 }}
 						>
 							<Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-							<span className="whitespace-nowrap">Complete Onsite Solution</span>
+							<span className="whitespace-nowrap">
+								Complete Onsite Solution
+							</span>
 						</motion.span>
 						<motion.h2
 							className="mt-3 font-semibold text-2xl text-white sm:mt-4 sm:text-3xl lg:text-4xl"
@@ -68,9 +70,11 @@ const OnsiteSupportSection: React.FC = () => {
 						transition={{ duration: 0.5, delay: 0.08 }}
 					>
 						<p className="text-sm text-white sm:text-base lg:text-lg">
-							From the moment attendees arrive to the final analytics report, EventzFlow handles every aspect 
-							of your onsite operations. Our comprehensive platform combines mobile technology, real-time tracking, 
-							and intelligent automation to deliver seamless experiences for events of any scale.
+							From the moment attendees arrive to the final analytics report,
+							EventzFlow handles every aspect of your onsite operations. Our
+							comprehensive platform combines mobile technology, real-time
+							tracking, and intelligent automation to deliver seamless
+							experiences for events of any scale.
 						</p>
 					</motion.div>
 				</div>
@@ -97,7 +101,9 @@ const OnsiteSupportSection: React.FC = () => {
 								<div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-400/20 sm:h-6 sm:w-6">
 									<Check className="h-3.5 w-3.5 text-cyan-400 sm:h-4 sm:w-4" />
 								</div>
-								<p className="font-medium text-sm text-white sm:text-base">{feature}</p>
+								<p className="font-medium text-sm text-white sm:text-base">
+									{feature}
+								</p>
 							</motion.div>
 						))}
 					</motion.div>
@@ -122,7 +128,9 @@ const OnsiteSupportSection: React.FC = () => {
 								<div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-400/20 sm:h-6 sm:w-6">
 									<Check className="h-3.5 w-3.5 text-cyan-400 sm:h-4 sm:w-4" />
 								</div>
-								<p className="font-medium text-sm text-white sm:text-base">{feature}</p>
+								<p className="font-medium text-sm text-white sm:text-base">
+									{feature}
+								</p>
 							</motion.div>
 						))}
 					</motion.div>

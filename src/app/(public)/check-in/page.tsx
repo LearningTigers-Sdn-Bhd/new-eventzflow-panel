@@ -1,20 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { Edit2 } from "lucide-react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
 	CheckInForm,
+	type CheckInMethod,
 	CheckInMethodSelection,
 	CheckInResult,
+	type CheckInStep,
 	MissingDataForm,
 	RegistrationQR,
-	ScanCheckIn,
-	type CheckInMethod,
-	type CheckInStep,
 	type ResultData,
+	ScanCheckIn,
 	TicketConfirmation,
 	type TicketData,
 	TicketSelection,
@@ -34,7 +34,7 @@ import {
 export default function PublicCheckinPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	
+
 	const [checkInMethod, setCheckInMethod] = useState<CheckInMethod>(null);
 	const [currentStep, setCurrentStep] = useState<CheckInStep>("input");
 	const [email, setEmail] = useState("");
@@ -44,11 +44,11 @@ export default function PublicCheckinPage() {
 	const [multipleTickets, setMultipleTickets] = useState<TicketData[]>([]);
 	const [ticketData, setTicketData] = useState<TicketData | null>(null);
 	const [result, setResult] = useState<ResultData | null>(null);
-	
+
 	// State for collecting missing contact info
 	const [missingPhone, setMissingPhone] = useState("");
 	const [missingEmail, setMissingEmail] = useState("");
-	
+
 	// Station management
 	const [station, setStation] = useState<string | null>(null);
 	const [showStationSelection, setShowStationSelection] = useState(false);
@@ -91,7 +91,7 @@ export default function PublicCheckinPage() {
 			});
 		} else {
 			setTicketData(ticket);
-			
+
 			// Check if we need to collect missing contact info
 			const needsPhone = !ticket.phone;
 			const needsEmail = !ticket.email && checkInMethod === "name";
@@ -287,7 +287,11 @@ export default function PublicCheckinPage() {
 
 		try {
 			// Prepare contact info if we collected any
-			const contactInfo: { attendee_phone?: string; attendee_email?: string; check_in_url?: string } = {};
+			const contactInfo: {
+				attendee_phone?: string;
+				attendee_email?: string;
+				check_in_url?: string;
+			} = {};
 			if (missingPhone) {
 				contactInfo.attendee_phone = missingPhone;
 			}
@@ -301,7 +305,7 @@ export default function PublicCheckinPage() {
 
 			const response = await confirmSelfCheckIn(
 				ticketData.publicId,
-				Object.keys(contactInfo).length > 0 ? contactInfo : undefined
+				Object.keys(contactInfo).length > 0 ? contactInfo : undefined,
 			);
 
 			// Use the updated data from response (which includes newly collected contact info)
@@ -364,8 +368,9 @@ export default function PublicCheckinPage() {
 		if (currentStep === "confirm") {
 			// Check if we came from missing_data step
 			const needsPhone = ticketData && !ticketData.phone;
-			const needsEmail = ticketData && !ticketData.email && checkInMethod === "name";
-			
+			const needsEmail =
+				ticketData && !ticketData.email && checkInMethod === "name";
+
 			if (needsPhone || needsEmail) {
 				setCurrentStep("missing_data");
 			} else if (multipleTickets.length > 0) {
@@ -411,7 +416,7 @@ export default function PublicCheckinPage() {
 			});
 		} else {
 			setTicketData(ticket);
-			
+
 			// Check if we need to collect missing contact info
 			const needsPhone = !ticket.phone;
 			const needsEmail = !ticket.email && checkInMethod === "name";
@@ -446,7 +451,8 @@ export default function PublicCheckinPage() {
 		if (currentStep === "missing_data") return "Complete your information";
 		if (currentStep === "confirm") return "Confirm your ticket details";
 		if (currentStep === "result") return "Check-in Result";
-		if (currentStep === "registration") return "Scan the QR code to complete registration";
+		if (currentStep === "registration")
+			return "Scan the QR code to complete registration";
 		return "";
 	};
 
@@ -556,12 +562,10 @@ export default function PublicCheckinPage() {
 
 			<CardContent className="px-4 pb-3 sm:px-6">
 				{currentStep === "registration" ? (
-					<RegistrationQR 
-						onBack={handleBackFromRegistration}
-					/>
+					<RegistrationQR onBack={handleBackFromRegistration} />
 				) : currentStep === "result" && result ? (
-					<CheckInResult 
-						result={result} 
+					<CheckInResult
+						result={result}
 						onReset={handleReset}
 						onRegisterClick={handleRegisterClick}
 					/>
@@ -603,7 +607,7 @@ export default function PublicCheckinPage() {
 						station={station}
 					/>
 				) : !checkInMethod ? (
-					<CheckInMethodSelection 
+					<CheckInMethodSelection
 						onSelectMethod={setCheckInMethod}
 						onRegisterClick={handleRegisterClick}
 					/>
