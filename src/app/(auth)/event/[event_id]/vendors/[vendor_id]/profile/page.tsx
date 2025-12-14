@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
 import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
@@ -9,8 +11,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { getEventVendor } from "@/lib/api/event-vendor";
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
 
 export default function VendorProfilePage() {
 	const params = useParams();
@@ -20,7 +20,11 @@ export default function VendorProfilePage() {
 	const permissions = useEventPermissions(eventId);
 
 	// Get the event vendor to find the actual vendor_id
-	const { data: eventVendor, isLoading: isLoadingEventVendor, error: eventVendorError } = useQuery({
+	const {
+		data: eventVendor,
+		isLoading: isLoadingEventVendor,
+		error: eventVendorError,
+	} = useQuery({
 		queryKey: ["event", eventId, "vendors", eventVendorId],
 		queryFn: () => getEventVendor(eventId, eventVendorId),
 	});
@@ -29,7 +33,11 @@ export default function VendorProfilePage() {
 	const vendorId = eventVendor?.vendor_id;
 
 	// Fetch vendor profile using vendor_id (only when vendorId is available)
-	const { data: profile, isLoading: isLoadingProfile, error: profileError } = useVendorProfile(
+	const {
+		data: profile,
+		isLoading: isLoadingProfile,
+		error: profileError,
+	} = useVendorProfile(
 		vendorId,
 		vendorId !== undefined, // Only fetch when vendorId is available
 	);

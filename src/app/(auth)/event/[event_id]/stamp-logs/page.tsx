@@ -1,8 +1,8 @@
 "use client";
 
-import { use } from "react";
 import { Stamp } from "lucide-react";
-import { ErrorState, LoadingState, EmptyState } from "@/components/data-state";
+import { use } from "react";
+import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/visitor-stamps/columns";
 import { DataTable } from "@/components/pages/visitor-stamps/data-table";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,7 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 	// Check permissions - only org_owner, organizer, event_admin can view
 	const permissions = useEventPermissions(event_id);
 
-	const {
-		data: stamps,
-		isLoading,
-		error,
-		refetch,
-	} = useEventStamps(event_id);
+	const { data: stamps, isLoading, error, refetch } = useEventStamps(event_id);
 
 	// Permission check - vendors should not see this page
 	if (permissions.isEventVendor && !permissions.canManageEventVendors) {

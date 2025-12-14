@@ -1,14 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { RiCalendarEventFill } from "react-icons/ri";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { getColumns } from "@/components/pages/event/columns";
 import CreateEventForm from "@/components/pages/event/create-event-form";
 import { DataTable } from "@/components/pages/event/data-table";
 import { Button } from "@/components/ui/button";
-import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEvents } from "@/lib/api/event";
@@ -54,32 +55,15 @@ export default function EventPage() {
 			config: {
 				title: "Create New Event",
 				description: "Fill in the details to create a new event",
-				size: "2xl",
+				size: "full",
 			},
 		});
 	};
 
 	return (
 		<div className="p-0">
-			{/* Header */}
-			{/* <div className="flex w-full flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:gap-1">
-						<div className="px-2 md:px-4">
-							<IconTitle
-								icon={List}
-								title="All Events Overview"
-								description="Quick view of all your events and their performance"
-							/>
-						</div>
-						<div className="w-full px-0 md:w-auto md:px-4">
-							<EventSwitcher
-								currentEventId={selectedEventId}
-								onEventChange={setSelectedEventId}
-								initialEvents={events}
-							/>
-						</div>
-					</div> */}
 			<div className="page-header">
-				<div className="px-2 md:px-4">
+				<div className="w-full px-0 lg:px-4">
 					<IconTitle
 						icon={RiCalendarEventFill}
 						title="Events"
@@ -90,9 +74,10 @@ export default function EventPage() {
 					<div className="w-full px-0 md:w-auto md:px-4">
 						<Button
 							onClick={handleCreateEvent}
-							className="w-full rounded-none border"
+							className="w-full rounded-none border py-6 md:py-0"
 						>
 							Create Event
+							<Plus className="mb-0.5 ml-1 size-4" />
 						</Button>
 					</div>
 				)}
