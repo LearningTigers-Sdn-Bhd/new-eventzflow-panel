@@ -1,12 +1,14 @@
 "use client";
 
 import {
+	FolderOpen,
 	HardHat,
 	Import,
 	Key,
 	LayoutDashboard,
 	List,
 	Package,
+	Printer,
 	Store,
 	Ticket,
 	Users,
@@ -60,18 +62,30 @@ export const navigationData = {
 				"exhibition_contractor",
 			],
 		},
-		{
-			name: "Exhibitor Kit",
-			url: "/exhibitor-kit" as Route,
-			icon: Package,
-			roleAllowed: ["exhibition_contractor"],
-		},
-		{
-			name: "My Vouchers",
-			url: "/voucher" as Route,
-			icon: Ticket,
-			roleAllowed: ["vendor"],
-		},
+	{
+		name: "Exhibitor Kits",
+		url: "/exhibitor-kits" as Route,
+		icon: Package,
+		roleAllowed: ["exhibition_contractor"],
+	},
+	{
+		name: "Rentable Items",
+		url: "/rentable-items" as Route,
+		icon: Package,
+		roleAllowed: ["exhibition_contractor"],
+	},
+	{
+		name: "Printing Services",
+		url: "/printing-services" as Route,
+		icon: Printer,
+		roleAllowed: ["exhibition_contractor"],
+	},
+	{
+		name: "My Vouchers",
+		url: "/voucher" as Route,
+		icon: Ticket,
+		roleAllowed: ["vendor"],
+	},
 		{
 			name: "Scans",
 			url: "/scan" as Route,
@@ -121,6 +135,12 @@ export const navigationData = {
 			url: "/import" as Route,
 			icon: Import,
 			roleAllowed: ["org_owner"],
+		},
+		{
+			name: "Item Categories",
+			url: "/item-categories" as Route,
+			icon: FolderOpen,
+			roleAllowed: ["org_owner", "organizer"],
 		},
 	],
 };

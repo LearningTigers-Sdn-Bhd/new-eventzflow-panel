@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	type FileWithPreview,
@@ -67,7 +67,7 @@ export default function ImageUpload({
 		if (prevValueRef.current === value) {
 			return;
 		}
-		
+
 		prevValueRef.current = value;
 
 		if (typeof value === "string" && value) {
@@ -94,17 +94,27 @@ export default function ImageUpload({
 	};
 
 	return (
-		<div className={cn("w-full", fillHeight ? "h-full flex flex-col min-h-0" : "space-y-2", className)}>
+		<div
+			className={cn(
+				"w-full",
+				fillHeight ? "flex h-full min-h-0 flex-col" : "space-y-2",
+				className,
+			)}
+		>
 			<div
 				aria-label="Image upload drop zone"
 				className={cn(
-					"relative flex flex-col items-center justify-center rounded-lg border border-dashed transition-colors overflow-hidden",
+					"relative flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed transition-colors",
 					isDragging
 						? "border-primary bg-primary/5"
 						: "border-muted-foreground/25 hover:border-muted-foreground/50",
-					disabled && "opacity-60 cursor-not-allowed pointer-events-none",
-					fillHeight ? "flex-1 min-h-40 min-w-0" : (displayPreview ? "h-64" : "h-40"),
-					"bg-muted/30"
+					disabled && "pointer-events-none cursor-not-allowed opacity-60",
+					fillHeight
+						? "min-h-40 min-w-0 flex-1"
+						: displayPreview
+							? "h-64"
+							: "h-40",
+					"bg-muted/30",
 				)}
 				onClick={!displayPreview ? openFileDialog : undefined}
 				onDragEnter={handleDragEnter}
@@ -149,16 +159,16 @@ export default function ImageUpload({
 						<div
 							className={cn(
 								"flex h-10 w-10 items-center justify-center rounded-full bg-muted transition-colors",
-								isDragging && "bg-primary/10"
+								isDragging && "bg-primary/10",
 							)}
 						>
 							<Upload className="h-5 w-5 text-muted-foreground" />
 						</div>
 						<div className="space-y-1">
-							<p className="text-sm font-medium">
+							<p className="font-medium text-sm">
 								Drag & drop or click to upload
 							</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-muted-foreground text-xs">
 								Max size: {formatBytes(maxSize)}
 							</p>
 						</div>
@@ -167,7 +177,7 @@ export default function ImageUpload({
 			</div>
 
 			{errors.length > 0 && (
-				<p className="text-xs text-destructive">{errors[0]}</p>
+				<p className="text-destructive text-xs">{errors[0]}</p>
 			)}
 		</div>
 	);
