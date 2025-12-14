@@ -51,7 +51,7 @@ export function EventSwitcher({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="group relative w-full gap-2 rounded-none transition-all hover:border-primary/50 hover:bg-primary/5"
+							className="group relative w-full gap-2 rounded-none py-6 transition-all hover:border-primary/50 hover:bg-primary/5 md:py-4"
 						>
 							<ArrowLeftRight className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
 							<span className="max-w-[200px] truncate font-medium">
@@ -110,10 +110,14 @@ export function EventSwitcher({
 											<Badge
 												className={cn(
 													"text-xs capitalize",
-													event.status === "published" && "bg-green-500 text-white",
-													event.status === "draft" && "bg-yellow-500 text-white",
-													event.status === "cancelled" && "bg-red-500 text-white",
-													event.status === "completed" && "bg-blue-500 text-white",
+													event.status === "published" &&
+														"bg-green-500 text-white",
+													event.status === "draft" &&
+														"bg-yellow-500 text-white",
+													event.status === "cancelled" &&
+														"bg-red-500 text-white",
+													event.status === "completed" &&
+														"bg-blue-500 text-white",
 												)}
 											>
 												{event.status}

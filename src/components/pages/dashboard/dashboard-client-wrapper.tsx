@@ -3,9 +3,9 @@
 import { useQueries } from "@tanstack/react-query";
 import { List } from "lucide-react";
 import { useState } from "react";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { IconTitle } from "@/components/ui/icon-heading";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import type { EventOverview } from "@/lib/api/dashboard/response";
@@ -40,7 +40,7 @@ export function DashboardClientWrapper({
 	const isHydrated = useHydratedStore();
 
 	const [
-		{ data: stats, isLoading: statsLoading, error: statsError },
+		{ data: _stats, isLoading: _statsLoading, error: _statsError },
 		{ data: events, isLoading: eventsLoading, error: eventsError },
 	] = useQueries({
 		queries: [
@@ -60,12 +60,12 @@ export function DashboardClientWrapper({
 	});
 
 	return (
-		<>
+		<div className="flex flex-col pb-12">
 			{/* All Events Overview Section */}
 			{!selectedEventId && (
 				<div className="border-t border-dashed">
 					<div className="page-header">
-						<div className="px-2 md:px-4">
+						<div className="w-full px-0 lg:px-4">
 							<IconTitle
 								icon={List}
 								title="All Events Overview"
@@ -105,7 +105,7 @@ export function DashboardClientWrapper({
 			{selectedEventId && (
 				<div className="border-t border-dashed">
 					<div className="flex w-full flex-col gap-4 pt-8 pb-6 lg:flex-row lg:items-center lg:justify-between lg:gap-1">
-						<div className="px-2 md:px-4">
+						<div className="px-0 md:px-4">
 							<IconTitle
 								icon={List}
 								title="Event Analytics"
@@ -129,6 +129,6 @@ export function DashboardClientWrapper({
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }

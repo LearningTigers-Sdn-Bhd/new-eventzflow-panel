@@ -4,7 +4,6 @@ import {
 	Calendar,
 	ChevronRight,
 	Clock,
-	type LucideIcon,
 	ScanFace,
 	Stamp,
 	Tickets,
@@ -12,7 +11,7 @@ import {
 	Users,
 } from "lucide-react";
 import type { ReactElement } from "react";
-import type { IconType } from "react-icons";
+import { CompactStatsCard } from "@/components/admin-ui/analytic";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Banner } from "@/components/ui/banner";
@@ -26,28 +25,63 @@ interface AllEventsOverviewProps {
 	onEventSelect: (eventId: string) => void;
 	events?: EventOverview[];
 	isLoading?: boolean;
-	error?: any;
+	error?: unknown;
 }
 
-interface EventCardProps {
-	icon: LucideIcon | IconType;
-	label: string;
-	count: number;
-	countClassName?: string;
-}
-
-function StatCard({
-	icon: Icon,
-	label,
-	count,
-	countClassName,
-}: EventCardProps): ReactElement {
+function EventCardHeader({
+	event,
+	onEventSelect,
+	formatDate,
+}: {
+	event: EventOverview;
+	onEventSelect: (eventId: string) => void;
+	formatDate: (date: string | Date) => string;
+}): ReactElement {
 	return (
-		<div className="flex min-w-0 flex-col items-center gap-1 border border-primary/20 bg-primary/5 p-2 text-center">
-			<Icon className="size-5 text-muted-foreground" />
-			<p className="text-muted-foreground text-xs">{label}</p>
-			<p className={cn("font-bold text-lg", countClassName)}>{count}</p>
-		</div>
+		<CardHeader className="space-y-2 px-4 pt-4">
+			<div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between md:gap-2">
+				<div className="flex flex-col items-start gap-2">
+					<CardTitle className="line-clamp-2 text-balance font-bold text-base tracking-tight">
+						{event.title}
+					</CardTitle>
+					<span className="text-muted-foreground text-xs">
+						Last activity: {formatDate(event.lastActivity)}
+					</span>
+					<div className="flex flex-row items-center gap-1.5">
+						<Badge
+							className={cn(
+								"min-w-24 shrink-0 rounded-none py-0.5 capitalize md:py-1",
+								event.status === "published" && "bg-green-500 text-white",
+								event.status === "draft" && "bg-yellow-500 text-white",
+								event.status === "cancelled" && "bg-red-500 text-white",
+								event.status === "completed" && "bg-blue-500 text-white",
+							)}
+						>
+							{event.status}
+						</Badge>
+						<Badge
+							className={cn(
+								"min-w-24 shrink-0 rounded-none py-0.5 capitalize md:py-1",
+								event.useTicket
+									? "bg-purple-500 text-white"
+									: "bg-cyan-500 text-white",
+							)}
+						>
+							{event.useTicket ? "Ticket Event" : "Visitor Event"}
+						</Badge>
+					</div>
+				</div>
+				<Button
+					variant="default"
+					size="sm"
+					onClick={() => onEventSelect(event.id)}
+					className="w-full shrink-0 gap-1 rounded-none py-6 transition-shadow group-hover:shadow-md sm:w-auto md:py-0"
+				>
+					Details
+					<ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+				</Button>
+			</div>
+		</CardHeader>
 	);
 }
 
@@ -58,7 +92,7 @@ function TicketEventCard({
 }: {
 	event: EventOverview;
 	onEventSelect: (eventId: string) => void;
-	formatDate: (date: any) => string;
+	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	const scanRate =
 		event.totalTickets > 0
@@ -70,53 +104,31 @@ function TicketEventCard({
 			key={event.id}
 			className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md"
 		>
-			<CardHeader className="space-y-2 p-4">
-				<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-					<CardTitle className="line-clamp-2 text-balance">
-						{event.title}
-					</CardTitle>
-					<Button
-						variant="default"
-						size="sm"
-						onClick={() => onEventSelect(event.id)}
-						className="w-full shrink-0 gap-1 rounded-none transition-shadow group-hover:shadow-md sm:w-auto"
-					>
-						Details
-						<ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-					</Button>
-				</div>
-				<div className="flex items-center gap-2">
-					<Badge
-						className={cn(
-							"shrink-0 rounded-none capitalize",
-							event.status === "published" && "bg-green-500 text-white",
-							event.status === "draft" && "bg-yellow-500 text-white",
-							event.status === "cancelled" && "bg-red-500 text-white",
-							event.status === "completed" && "bg-blue-500 text-white",
-						)}
-					>
-						{event.status}
-					</Badge>
-					<span className="text-muted-foreground text-xs">
-						Last activity: {formatDate(event.lastActivity)}
-					</span>
-				</div>
-			</CardHeader>
+			<EventCardHeader
+				event={event}
+				onEventSelect={onEventSelect}
+				formatDate={formatDate}
+			/>
 			<CardContent className="p-0">
 				{/* Stats Grid */}
 				<div className="grid grid-cols-3 gap-2 px-3 pb-3">
-					<StatCard icon={Tickets} label="Total" count={event.totalTickets} />
-					<StatCard
+					<CompactStatsCard
+						icon={Tickets}
+						label="Total"
+						count={event.totalTickets}
+						variant="sky"
+					/>
+					<CompactStatsCard
 						icon={ScanFace}
 						label="Scanned"
 						count={event.scannedTickets}
-						countClassName="text-green-500 dark:text-green-400"
+						variant="emerald"
 					/>
-					<StatCard
+					<CompactStatsCard
 						icon={Clock}
 						label="Pending"
 						count={event.pendingTickets}
-						countClassName="text-yellow-600 dark:text-yellow-400"
+						variant="yellow"
 					/>
 				</div>
 
@@ -160,7 +172,7 @@ function VisitorEventCard({
 }: {
 	event: EventOverview;
 	onEventSelect: (eventId: string) => void;
-	formatDate: (date: any) => string;
+	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	const engagementRate =
 		event.totalVisitors > 0
@@ -172,47 +184,24 @@ function VisitorEventCard({
 			key={event.id}
 			className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md"
 		>
-			<CardHeader className="space-y-2 p-4">
-				<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-					<CardTitle className="line-clamp-2 text-balance">
-						{event.title}
-					</CardTitle>
-					<Button
-						variant="default"
-						size="sm"
-						onClick={() => onEventSelect(event.id)}
-						className="w-full shrink-0 gap-1 rounded-none transition-shadow group-hover:shadow-md sm:w-auto"
-					>
-						Details
-						<ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-					</Button>
-				</div>
-				<div className="flex items-center gap-2">
-					<Badge
-						className={cn(
-							"shrink-0 rounded-none capitalize",
-							event.status === "published" && "bg-green-500 text-white",
-							event.status === "draft" && "bg-yellow-500 text-white",
-							event.status === "cancelled" && "bg-red-500 text-white",
-							event.status === "completed" && "bg-blue-500 text-white",
-						)}
-					>
-						{event.status}
-					</Badge>
-					<span className="text-muted-foreground text-xs">
-						Last activity: {formatDate(event.lastActivity)}
-					</span>
-				</div>
-			</CardHeader>
+			<EventCardHeader
+				event={event}
+				onEventSelect={onEventSelect}
+				formatDate={formatDate}
+			/>
 			<CardContent className="p-0">
 				{/* Stats Grid */}
 				<div className="grid grid-cols-2 gap-2 px-3 pb-3">
-					<StatCard icon={Users} label="Visitors" count={event.totalVisitors} />
-					<StatCard
+					<CompactStatsCard
+						icon={Users}
+						label="Visitors"
+						count={event.totalVisitors}
+					/>
+					<CompactStatsCard
 						icon={Stamp}
 						label="Stamps"
 						count={event.totalStamps}
-						countClassName="text-blue-500 dark:text-blue-400"
+						variant="sky"
 					/>
 				</div>
 
@@ -244,7 +233,7 @@ function EventOverviewCard({
 }: {
 	event: EventOverview;
 	onEventSelect: (eventId: string) => void;
-	formatDate: (date: any) => string;
+	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	if (event.useTicket) {
 		return (
