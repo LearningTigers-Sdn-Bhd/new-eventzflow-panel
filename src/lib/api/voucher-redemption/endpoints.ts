@@ -1,12 +1,9 @@
 import { restClient } from "@/utils/rest-api";
+import { type RedeemVoucherRequest, redeemVoucherSchema } from "./request";
 import type {
 	BackendRedeemVoucherResponse,
 	VoucherRedemptionResponse,
 } from "./response";
-import {
-	type RedeemVoucherRequest,
-	redeemVoucherSchema,
-} from "./request";
 
 /**
  * Transform backend voucher type to frontend format
@@ -70,17 +67,20 @@ export async function redeemVoucher(
 		return transformRedemptionResponse(response);
 	} catch (error: unknown) {
 		console.error("Error redeeming voucher:", error);
-		
+
 		// Extract error message from backend response
 		let errorMessage = "Failed to redeem voucher";
-		
+
 		// Check if it's a ky HTTPError with response
-		if (error && typeof error === 'object' && 'response' in error) {
+		if (error && typeof error === "object" && "response" in error) {
 			const httpError = error as { response: Response };
 			try {
-				const errorData = await httpError.response.json() as { message?: string; success?: boolean };
+				const errorData = (await httpError.response.json()) as {
+					message?: string;
+					success?: boolean;
+				};
 				console.error("Backend error response:", errorData);
-				
+
 				// Use the backend's error message if available
 				if (errorData.message) {
 					errorMessage = errorData.message;
@@ -91,7 +91,7 @@ export async function redeemVoucher(
 		} else if (error instanceof Error) {
 			errorMessage = error.message;
 		}
-		
+
 		throw new Error(errorMessage);
 	}
 }

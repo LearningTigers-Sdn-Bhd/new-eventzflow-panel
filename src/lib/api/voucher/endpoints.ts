@@ -9,10 +9,10 @@ import type {
 import {
 	type CreateVoucherRequest,
 	createVoucherSchema,
-	type UpdateVoucherRequest,
-	updateVoucherSchema,
 	type DeleteVoucherRequest,
 	deleteVoucherSchema,
+	type UpdateVoucherRequest,
+	updateVoucherSchema,
 } from "./request";
 
 // Transform backend response to frontend format
@@ -35,7 +35,10 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		redeemedCount: backendVoucher.redeemed_count,
 		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
 		userRoleRestriction: backendVoucher.user_role_restriction,
-		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
+		voucherType: backendVoucher.voucher_type as
+			| "fixed_amount"
+			| "percentage"
+			| "free_item",
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
 		voucherCategory: backendVoucher.voucher_category,
 		imageUrl: backendVoucher.image_url,
@@ -223,7 +226,9 @@ export async function createVoucher(
 			start_time: validated.start_time,
 			end_time: validated.end_time,
 			is_unlimited: validated.is_unlimited,
-			total_redemption_available: validated.is_unlimited ? undefined : validated.total_redemption_available,
+			total_redemption_available: validated.is_unlimited
+				? undefined
+				: validated.total_redemption_available,
 			max_redemptions_per_user: validated.max_redemptions_per_user,
 			voucher_type: validated.voucher_type,
 			voucher_value: validated.voucher_value,
@@ -401,4 +406,3 @@ export async function getPublicVoucher(id: number | string): Promise<Voucher> {
 		throw new Error(errorMessage);
 	}
 }
-

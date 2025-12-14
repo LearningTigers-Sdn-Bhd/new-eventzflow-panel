@@ -194,7 +194,7 @@ export async function getEventAnalyticsServer(
 			...(location.staff_members || []),
 			...(location.vendors || []),
 		];
-		
+
 		for (const member of allMembers) {
 			userLocationMap.set(member.id, location.name);
 		}

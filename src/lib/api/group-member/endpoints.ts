@@ -1,11 +1,11 @@
 import { restClient } from "@/utils/rest-api";
-import type { GroupMember, AvailableMember } from "./response";
 import {
 	type AddMemberRequest,
-	type UpdateMemberRequest,
 	addMemberSchema,
+	type UpdateMemberRequest,
 	updateMemberSchema,
 } from "./request";
+import type { AvailableMember, GroupMember } from "./response";
 
 /**
  * Get all members of a group
