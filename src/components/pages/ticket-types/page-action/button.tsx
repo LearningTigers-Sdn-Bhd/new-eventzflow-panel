@@ -28,7 +28,10 @@ export function TicketTypePageButton({ eventId }: TicketTypePageButtonProps) {
 	};
 
 	return (
-		<Button onClick={handleCreateClick} className="w-full gap-2 rounded-none lg:w-auto">
+		<Button
+			onClick={handleCreateClick}
+			className="w-full gap-2 rounded-none lg:w-auto"
+		>
 			<Plus className="h-4 w-4" />
 			Add Ticket Type
 		</Button>

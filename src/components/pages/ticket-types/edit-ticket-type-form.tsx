@@ -20,7 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { updateTicketType, type TicketType } from "@/lib/api/ticket-type";
+import { type TicketType, updateTicketType } from "@/lib/api/ticket-type";
 
 interface EditTicketTypeFormProps {
 	ticketType: TicketType;
@@ -28,7 +28,11 @@ interface EditTicketTypeFormProps {
 	onClose: () => void;
 }
 
-export function EditTicketTypeForm({ ticketType, eventId, onClose }: EditTicketTypeFormProps) {
+export function EditTicketTypeForm({
+	ticketType,
+	eventId,
+	onClose,
+}: EditTicketTypeFormProps) {
 	const nameId = useId();
 	const priceId = useId();
 	const quantityId = useId();
@@ -50,7 +54,9 @@ export function EditTicketTypeForm({ ticketType, eventId, onClose }: EditTicketT
 		mutationFn: updateTicketType,
 		onSuccess: () => {
 			toast.success("Ticket type updated successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "ticket-types"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "ticket-types"],
+			});
 			onClose();
 		},
 		onError: (error: Error) => {
@@ -169,14 +175,18 @@ export function EditTicketTypeForm({ ticketType, eventId, onClose }: EditTicketT
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={maxPerOrderId}>Max Per Order</FieldLabel>
-								{errors.max_per_order && <FieldError>{errors.max_per_order}</FieldError>}
+								{errors.max_per_order && (
+									<FieldError>{errors.max_per_order}</FieldError>
+								)}
 								<Input
 									id={maxPerOrderId}
 									type="number"
 									min="1"
 									placeholder="10"
 									value={formData.max_per_order}
-									onChange={(e) => handleChange("max_per_order", e.target.value)}
+									onChange={(e) =>
+										handleChange("max_per_order", e.target.value)
+									}
 									required
 									disabled={updateMutation.isPending}
 								/>

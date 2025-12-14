@@ -137,7 +137,9 @@ export function DataTable<TData, TValue>({
 												description="Add your first team member to get started"
 												icon={<Users />}
 												height="h-auto"
-												action={<Button onClick={onAddMember}>Add Team Member</Button>}
+												action={
+													<Button onClick={onAddMember}>Add Team Member</Button>
+												}
 											/>
 										</TableCell>
 									</TableRow>

@@ -4,11 +4,11 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 import TableUpload from "@/components/file-upload/table-upload";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
 import { useImportForm } from "@/hooks/use-import-form";
 import type { ImportTicketsResponse } from "@/lib/api/imports";
 import type { ImportType } from "@/lib/api/imports/types";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Switch } from "@/components/ui/switch";
 
 type ImportFullFormProps = {
 	importType?: ImportType;
@@ -21,8 +21,8 @@ export function ImportFullForm({
 	dryRun = false,
 	onResult,
 }: ImportFullFormProps) {
-    const [useLabelMapping, setUseLabelMapping] = useState(false);
-    const {
+	const [useLabelMapping, setUseLabelMapping] = useState(false);
+	const {
 		selectedFiles,
 		resetKey,
 		importMutation,
@@ -32,13 +32,13 @@ export function ImportFullForm({
 	} = useImportForm({
 		importType,
 		dryRun,
-        full: true, // Always use full mode for full form
-        noLabel: useLabelMapping,
+		full: true, // Always use full mode for full form
+		noLabel: useLabelMapping,
 		onResult,
 	});
 
 	return (
-        <form onSubmit={handleSubmit} className="space-y-8 pb-8">
+		<form onSubmit={handleSubmit} className="space-y-8 pb-8">
 			<TableUpload
 				key={`${importType}-${resetKey}`}
 				maxFiles={1}
@@ -50,24 +50,24 @@ export function ImportFullForm({
 				className="w-full"
 			/>
 
-            <FieldGroup>
-                <Field>
-                    <FieldLabel>Use Label N mapping</FieldLabel>
-                    <div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-                        <Switch
-                            id="use-label-mapping"
-                            checked={useLabelMapping}
-                            onCheckedChange={setUseLabelMapping}
-                            disabled={importMutation.isPending}
-                        />
-                        <span className="ml-2 text-muted-foreground text-sm">
-                            {useLabelMapping ? "Label N" : "Header names"}
-                        </span>
-                    </div>
-                </Field>
-            </FieldGroup>
+			<FieldGroup>
+				<Field>
+					<FieldLabel>Use Label N mapping</FieldLabel>
+					<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+						<Switch
+							id="use-label-mapping"
+							checked={useLabelMapping}
+							onCheckedChange={setUseLabelMapping}
+							disabled={importMutation.isPending}
+						/>
+						<span className="ml-2 text-muted-foreground text-sm">
+							{useLabelMapping ? "Label N" : "Header names"}
+						</span>
+					</div>
+				</Field>
+			</FieldGroup>
 
-            {/* Only show import button when file is uploaded */}
+			{/* Only show import button when file is uploaded */}
 			{selectedFiles.length > 0 && (
 				<div className="flex justify-end px-2 md:px-4">
 					<Button

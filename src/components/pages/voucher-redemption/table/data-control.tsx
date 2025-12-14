@@ -86,7 +86,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								table
 									.getColumn("redemptionTimestamp")
 									?.toggleSorting(
-										table.getColumn("redemptionTimestamp")?.getIsSorted() === "asc",
+										table.getColumn("redemptionTimestamp")?.getIsSorted() ===
+											"asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-xs"
@@ -95,8 +96,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("redemptionTimestamp")?.getIsSorted() === "asc" &&
-										"-rotate-180",
+									table.getColumn("redemptionTimestamp")?.getIsSorted() ===
+										"asc" && "-rotate-180",
 								)}
 							/>
 						</Button>
@@ -106,7 +107,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								table
 									.getColumn("transactionNetAmount")
 									?.toggleSorting(
-										table.getColumn("transactionNetAmount")?.getIsSorted() === "asc",
+										table.getColumn("transactionNetAmount")?.getIsSorted() ===
+											"asc",
 									)
 							}
 							className="flex items-center justify-between rounded-none text-xs"
@@ -115,14 +117,15 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"size-3.5 transition-transform",
-									table.getColumn("transactionNetAmount")?.getIsSorted() === "asc" &&
-										"-rotate-180",
+									table.getColumn("transactionNetAmount")?.getIsSorted() ===
+										"asc" && "-rotate-180",
 								)}
 							/>
 						</Button>
 						<Select
 							value={
-								(table.getColumn("redeemerType")?.getFilterValue() as string) || "all"
+								(table.getColumn("redeemerType")?.getFilterValue() as string) ||
+								"all"
 							}
 							onValueChange={(value) =>
 								table
@@ -147,8 +150,9 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						</Select>
 						<Select
 							value={
-								(table.getColumn("redemptionStatus")?.getFilterValue() as string) ||
-								"all"
+								(table
+									.getColumn("redemptionStatus")
+									?.getFilterValue() as string) || "all"
 							}
 							onValueChange={(value) =>
 								table
@@ -177,4 +181,3 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 		</div>
 	);
 }
-

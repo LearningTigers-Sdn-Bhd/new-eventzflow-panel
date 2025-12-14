@@ -31,8 +31,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { getAvailableGroupMembers } from "@/lib/api/group-member";
 import { useAddGroupMember } from "@/hooks/use-group-members";
+import { getAvailableGroupMembers } from "@/lib/api/group-member";
 
 interface AddMemberDialogProps {
 	groupId: number;
@@ -140,9 +140,7 @@ export function AddMemberDialog({
 								{/* Member Selection */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor="memberId">Member</FieldLabel>
-									{errors.userId && (
-										<FieldError>{errors.userId}</FieldError>
-									)}
+									{errors.userId && <FieldError>{errors.userId}</FieldError>}
 									<Select
 										value={userId}
 										onValueChange={(value) => {

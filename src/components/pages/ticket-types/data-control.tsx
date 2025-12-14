@@ -17,7 +17,10 @@ interface DataControlProps<TData> {
 	eventId: string;
 }
 
-export function DataControl<TData>({ table, eventId: _eventId }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	eventId: _eventId,
+}: DataControlProps<TData>) {
 	const isTablet = useIsTablet();
 
 	return (
@@ -32,11 +35,16 @@ export function DataControl<TData>({ table, eventId: _eventId }: DataControlProp
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="rounded-none">
-								{table.getAllColumns().filter((column) => column.getIsVisible()).length - 1} columns
+								{table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1}{" "}
+								columns
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="rounded-none bg-background">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -45,7 +53,9 @@ export function DataControl<TData>({ table, eventId: _eventId }: DataControlProp
 										key={column.id}
 										className="rounded-none capitalize"
 										checked={column.getIsVisible()}
-										onCheckedChange={(value) => column.toggleVisibility(!!value)}
+										onCheckedChange={(value) =>
+											column.toggleVisibility(!!value)
+										}
 									>
 										{column.id}
 									</DropdownMenuCheckboxItem>

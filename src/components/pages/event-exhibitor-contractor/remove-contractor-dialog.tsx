@@ -12,10 +12,10 @@ interface RemoveContractorDialogProps {
 	onClose?: () => void;
 }
 
-export function RemoveContractorDialog({ 
-	eventId, 
+export function RemoveContractorDialog({
+	eventId,
 	contractorName,
-	onClose 
+	onClose,
 }: RemoveContractorDialogProps) {
 	const queryClient = useQueryClient();
 
@@ -42,21 +42,18 @@ export function RemoveContractorDialog({
 				</div>
 				<div className="space-y-2">
 					<p className="text-sm">
-						Are you sure you want to remove <strong>{contractorName}</strong> from this event?
+						Are you sure you want to remove <strong>{contractorName}</strong>{" "}
+						from this event?
 					</p>
-					<p className="text-sm text-muted-foreground">
-						This action will unassign the exhibitor contractor from this event. 
+					<p className="text-muted-foreground text-sm">
+						This action will unassign the exhibitor contractor from this event.
 						The exhibitor kit feature may also be disabled.
 					</p>
 				</div>
 			</div>
 
 			<div className="flex justify-end gap-2 border-t pt-4">
-				<Button
-					variant="outline"
-					onClick={onClose}
-					className="rounded-none"
-				>
+				<Button variant="outline" onClick={onClose} className="rounded-none">
 					Cancel
 				</Button>
 				<Button
@@ -74,4 +71,3 @@ export function RemoveContractorDialog({
 		</div>
 	);
 }
-

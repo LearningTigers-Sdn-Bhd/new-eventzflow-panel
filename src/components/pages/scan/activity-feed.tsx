@@ -4,7 +4,7 @@
  */
 
 import { ScanFace } from "lucide-react";
-import { IconTitle } from "@/components/ui/icon-heading";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import type { FilterType, ScanResult, SortType } from "./types";
@@ -34,8 +34,8 @@ export function ActivityFeed({
 }: ActivityFeedProps) {
 	return (
 		<div className="space-y-0">
-			<div className="page-header border-y border-dashed">
-				<div className="px-2 md:px-4">
+			<div className="page-header">
+				<div className="w-full px-0 md:px-4">
 					<IconTitle
 						icon={ScanFace}
 						title="Activity Feed"

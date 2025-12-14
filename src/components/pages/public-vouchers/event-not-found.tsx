@@ -10,7 +10,7 @@ export function EventNotFound() {
 				className="pointer-events-none fixed inset-0 opacity-[0.02] dark:opacity-[0.03]"
 				style={{
 					backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-					backgroundSize: '60px 60px',
+					backgroundSize: "60px 60px",
 				}}
 			/>
 
@@ -18,29 +18,30 @@ export function EventNotFound() {
 			<div
 				className="pointer-events-none fixed inset-0 opacity-[0.02] dark:opacity-[0.025]"
 				style={{
-					backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
-					backgroundSize: '24px 24px',
+					backgroundImage:
+						"radial-gradient(circle, currentColor 1px, transparent 1px)",
+					backgroundSize: "24px 24px",
 				}}
 			/>
 
 			{/* Animated Gradient Mesh */}
 			<div className="pointer-events-none fixed inset-0 overflow-hidden">
 				{/* Top right gradient orb */}
-				<div 
+				<div
 					className="-top-40 -right-40 absolute h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-primary/8 via-primary/4 to-transparent blur-3xl"
-					style={{ animationDuration: '4s' }}
+					style={{ animationDuration: "4s" }}
 				/>
-				
+
 				{/* Bottom left gradient orb */}
-				<div 
+				<div
 					className="-bottom-40 -left-40 absolute h-96 w-96 animate-pulse rounded-full bg-gradient-to-tr from-primary/8 via-primary/4 to-transparent blur-3xl"
-					style={{ animationDuration: '4s', animationDelay: '2s' }}
+					style={{ animationDuration: "4s", animationDelay: "2s" }}
 				/>
-				
+
 				{/* Center accent orb */}
-				<div 
+				<div
 					className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-[600px] w-[600px] animate-pulse rounded-full bg-gradient-to-br from-primary/3 via-transparent to-primary/3 blur-3xl"
-					style={{ animationDuration: '6s', animationDelay: '1s' }}
+					style={{ animationDuration: "6s", animationDelay: "1s" }}
 				/>
 			</div>
 
@@ -65,11 +66,14 @@ export function EventNotFound() {
 						{/* Pulsing rings */}
 						<div className="absolute inset-0 animate-ping rounded-full bg-primary/10" />
 						<div className="absolute inset-0 animate-pulse rounded-full bg-primary/5" />
-						
+
 						{/* Main icon - responsive sizing */}
 						<div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/20 border-dashed bg-background sm:h-32 sm:w-32 sm:border-4">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 sm:h-20 sm:w-20">
-								<AlertCircle className="h-8 w-8 text-primary sm:h-10 sm:w-10" strokeWidth={2} />
+								<AlertCircle
+									className="h-8 w-8 text-primary sm:h-10 sm:w-10"
+									strokeWidth={2}
+								/>
 							</div>
 						</div>
 					</div>
@@ -78,7 +82,9 @@ export function EventNotFound() {
 					<div className="space-y-2">
 						<div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 sm:px-4 sm:py-1.5">
 							<div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary sm:h-2 sm:w-2" />
-							<span className="font-semibold text-primary text-xs tracking-wider sm:text-sm">ERROR 404</span>
+							<span className="font-semibold text-primary text-xs tracking-wider sm:text-sm">
+								ERROR 404
+							</span>
 						</div>
 					</div>
 
@@ -88,7 +94,8 @@ export function EventNotFound() {
 							Event Not Found
 						</h1>
 						<p className="mx-auto max-w-md px-2 text-base text-muted-foreground leading-relaxed sm:text-lg md:text-xl">
-							The event you're looking for doesn't exist or has been removed. Please check the URL and try again.
+							The event you're looking for doesn't exist or has been removed.
+							Please check the URL and try again.
 						</p>
 					</div>
 
@@ -108,7 +115,8 @@ export function EventNotFound() {
 							<div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
 								<p className="font-semibold text-xs sm:text-sm">Need help?</p>
 								<p className="text-[11px] text-muted-foreground leading-relaxed sm:text-xs">
-									If you believe this is an error, please contact the event organizer or check your invitation link.
+									If you believe this is an error, please contact the event
+									organizer or check your invitation link.
 								</p>
 							</div>
 						</div>

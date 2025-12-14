@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDialog } from "@/hooks/use-dialog";
 import {
-	updateContractor,
 	type ExhibitionContractor,
+	updateContractor,
 } from "@/lib/api/contractor";
 
 interface ContractorEditContentProps {
@@ -129,7 +129,7 @@ export function ContractorEditContent({
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 				{/* Left Column - Account Details */}
 				<div className="space-y-4">
-					<h4 className="font-medium text-sm text-muted-foreground border-b pb-2">
+					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
 						Account Details
 					</h4>
 
@@ -194,7 +194,7 @@ export function ContractorEditContent({
 
 				{/* Right Column - Company Profile */}
 				<div className="space-y-4">
-					<h4 className="font-medium text-sm text-muted-foreground border-b pb-2">
+					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
 						Company Profile
 					</h4>
 
@@ -226,7 +226,9 @@ export function ContractorEditContent({
 							disabled={isPending}
 						/>
 						{errors.contact_person && (
-							<p className="text-destructive text-sm">{errors.contact_person}</p>
+							<p className="text-destructive text-sm">
+								{errors.contact_person}
+							</p>
 						)}
 					</div>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useDeleteGroup } from "@/hooks/use-groups";
-import type { Group } from "@/lib/api/group";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -10,8 +10,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useDeleteGroup } from "@/hooks/use-groups";
+import type { Group } from "@/lib/api/group";
 
 interface DeleteGroupDialogProps {
 	group: Group;
@@ -42,8 +42,8 @@ export function DeleteGroupDialog({
 				<DialogHeader>
 					<DialogTitle>Delete Group</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to delete "{group.name}"? This action cannot be
-						undone.
+						Are you sure you want to delete "{group.name}"? This action cannot
+						be undone.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>

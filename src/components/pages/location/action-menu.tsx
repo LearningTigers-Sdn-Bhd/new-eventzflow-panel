@@ -1,6 +1,13 @@
 "use client";
 
-import { Eye, MoreVertical, Pencil, Store, Trash2, UserPlus } from "lucide-react";
+import {
+	Eye,
+	MoreVertical,
+	Pencil,
+	Store,
+	Trash2,
+	UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -84,11 +91,7 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="size-8"
-				>
+				<Button variant="ghost" size="icon" className="size-8">
 					<MoreVertical className="size-4" />
 					<span className="sr-only">Open menu</span>
 				</Button>
@@ -98,7 +101,7 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 					<Eye className="mr-2 size-4" />
 					View Details
 				</DropdownMenuItem>
-				
+
 				{/* Only show edit/assign/delete for non-vendors */}
 				{!isVendor && (
 					<>
@@ -116,7 +119,10 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 							Assign Vendors
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={openDeleteConfirmation} className="text-red-600">
+						<DropdownMenuItem
+							onClick={openDeleteConfirmation}
+							className="text-red-600"
+						>
 							<Trash2 className="mr-2 size-4" />
 							Delete Location
 						</DropdownMenuItem>
@@ -126,4 +132,3 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 		</DropdownMenu>
 	);
 }
-

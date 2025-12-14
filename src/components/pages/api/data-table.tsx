@@ -25,8 +25,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import type { ApiKey } from "@/lib/api/api-keys";
+import { cn } from "@/lib/utils";
 import { ApiKeyItem } from "./api-key-item";
 import { DataControl } from "./data-control";
 

@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
-import { DataTable } from "./table/data-table";
 import { columns } from "./table/columns";
+import { DataTable } from "./table/data-table";
 
 /**
  * Table component to display voucher redemption logs

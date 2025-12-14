@@ -3,12 +3,12 @@
 import {
 	Calendar,
 	FileText,
+	Hash,
+	type LucideIcon,
 	Mail,
 	Phone,
 	User,
 	Users,
-	Hash,
-	type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,11 @@ export default function VisitorViewModal({ visitor }: VisitorViewModalProps) {
 						/>
 						<Separator className="my-4" />
 						<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-							<InfoLabel label="Full Name" value={visitor.full_name} icon={User} />
+							<InfoLabel
+								label="Full Name"
+								value={visitor.full_name}
+								icon={User}
+							/>
 							<InfoLabel
 								label="Email"
 								value={visitor.email || "Not provided"}

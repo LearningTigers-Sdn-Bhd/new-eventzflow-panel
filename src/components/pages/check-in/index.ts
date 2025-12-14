@@ -1,10 +1,10 @@
-export { CheckInMethodSelection } from "./CheckInMethodSelection";
 export { CheckInForm } from "./CheckInForm";
-export { NameSearchInput } from "./NameSearchInput";
-export { TicketConfirmation } from "./TicketConfirmation";
-export { TicketSelection } from "./TicketSelection";
+export { CheckInMethodSelection } from "./CheckInMethodSelection";
 export { CheckInResult } from "./CheckInResult";
 export { MissingDataForm } from "./MissingDataForm";
+export { NameSearchInput } from "./NameSearchInput";
 export { RegistrationQR } from "./RegistrationQR";
 export { ScanCheckIn } from "./ScanCheckIn";
+export { TicketConfirmation } from "./TicketConfirmation";
+export { TicketSelection } from "./TicketSelection";
 export * from "./types";

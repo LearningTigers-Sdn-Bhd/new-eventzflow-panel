@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
-import { Ticket, Gift, Store, Percent, Wallet, ArrowLeftRight } from "lucide-react";
+import {
+	ArrowLeftRight,
+	Gift,
+	Percent,
+	Store,
+	Ticket,
+	Wallet,
+} from "lucide-react";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { getPublicEventById } from "@/lib/api/event";
 import { getPublicVouchers } from "@/lib/api/voucher";
@@ -19,7 +26,10 @@ type DiscountCategory = (typeof discountCategories)[number];
 const isDiscountCategory = (value: string): value is DiscountCategory =>
 	(discountCategories as readonly string[]).includes(value);
 
-const categoryMeta: Record<DiscountCategory, { label: string; description: string; Icon: LucideIcon }> = {
+const categoryMeta: Record<
+	DiscountCategory,
+	{ label: string; description: string; Icon: LucideIcon }
+> = {
 	percentage: {
 		label: "Percentage",
 		description: "Save with % off items",
@@ -54,13 +64,15 @@ const emptyCategoryCounts: Record<DiscountCategory, number> = {
 export function PublicVouchersPage() {
 	const params = useParams();
 	const eventId = params.event_id as string;
-	const [selectedCategory, setSelectedCategory] = useState<"all" | DiscountCategory>("all");
+	const [selectedCategory, setSelectedCategory] = useState<
+		"all" | DiscountCategory
+	>("all");
 
 	// Fetch event details for title (public endpoint - no auth required)
-	const { 
-		data: event, 
-		isLoading: isLoadingEvent, 
-		error: eventError 
+	const {
+		data: event,
+		isLoading: isLoadingEvent,
+		error: eventError,
 	} = useQuery({
 		queryKey: ["public", "event", eventId],
 		queryFn: async () => {
@@ -85,12 +97,13 @@ export function PublicVouchersPage() {
 		enabled: Boolean(eventId) && Boolean(event),
 	});
 
-	const filteredVouchers = vouchers?.filter((voucher) => {
-		if (selectedCategory === "all") {
-			return true;
-		}
-		return voucher.voucherType === selectedCategory;
-	}) || [];
+	const filteredVouchers =
+		vouchers?.filter((voucher) => {
+			if (selectedCategory === "all") {
+				return true;
+			}
+			return voucher.voucherType === selectedCategory;
+		}) || [];
 
 	if (isLoading || isLoadingEvent) {
 		return (
@@ -142,8 +155,14 @@ export function PublicVouchersPage() {
 	const eventDisplayName = event?.title || "Event Vouchers";
 
 	const totalVouchers = vouchers.length;
-	const availableVouchers = vouchers.filter((v) => v.isUnlimited || (v.totalRedemptionAvailable ?? 0) - v.redeemedCount > 0).length;
-	const totalVendors = vouchers ? new Set(vouchers.map((voucher) => voucher.vendor?.fullName || "Unknown")).size : 0;
+	const availableVouchers = vouchers.filter(
+		(v) =>
+			v.isUnlimited || (v.totalRedemptionAvailable ?? 0) - v.redeemedCount > 0,
+	).length;
+	const totalVendors = vouchers
+		? new Set(vouchers.map((voucher) => voucher.vendor?.fullName || "Unknown"))
+				.size
+		: 0;
 
 	const summaryCards = [
 		{
@@ -158,12 +177,17 @@ export function PublicVouchersPage() {
 		},
 	];
 
-	const categoryCounts = (vouchers ?? []).reduce<Record<DiscountCategory, number>>((acc, voucher) => {
-		if (isDiscountCategory(voucher.voucherType)) {
-			acc[voucher.voucherType] += 1;
-		}
-		return acc;
-	}, { ...emptyCategoryCounts });
+	const categoryCounts = (vouchers ?? []).reduce<
+		Record<DiscountCategory, number>
+	>(
+		(acc, voucher) => {
+			if (isDiscountCategory(voucher.voucherType)) {
+				acc[voucher.voucherType] += 1;
+			}
+			return acc;
+		},
+		{ ...emptyCategoryCounts },
+	);
 
 	const categoryOptions: CategoryOption[] = [
 		{
@@ -184,7 +208,8 @@ export function PublicVouchersPage() {
 			.filter((option) => option.count > 0),
 	];
 
-	const selectedCategoryLabel = selectedCategory === "all" ? null : categoryMeta[selectedCategory].label;
+	const selectedCategoryLabel =
+		selectedCategory === "all" ? null : categoryMeta[selectedCategory].label;
 
 	return (
 		<div className="relative mt-8 min-h-screen bg-background sm:mt-16">
@@ -193,7 +218,7 @@ export function PublicVouchersPage() {
 				className="pointer-events-none fixed inset-0 opacity-[0.15]"
 				style={{
 					backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%239C92AC' fill-opacity='0.4' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-					backgroundSize: '28px 49px'
+					backgroundSize: "28px 49px",
 				}}
 			/>
 
@@ -202,26 +227,36 @@ export function PublicVouchersPage() {
 				<div className="mb-6 text-center sm:mb-10">
 					<div className="mb-3 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 sm:mb-4 sm:px-4">
 						<Ticket className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
-						<span className="font-medium text-primary text-xs sm:text-sm">Exclusive Event Deals</span>
+						<span className="font-medium text-primary text-xs sm:text-sm">
+							Exclusive Event Deals
+						</span>
 					</div>
 					<h1 className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text px-2 font-bold font-heading text-2xl text-transparent tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
 						{eventDisplayName}
 					</h1>
 					<p className="mx-auto mt-3 max-w-3xl px-4 text-muted-foreground text-sm leading-relaxed sm:mt-4 sm:text-lg md:text-xl">
-						Discover amazing deals from our event partners. Claim your vouchers now and enjoy exclusive discounts on-site! 🎉
+						Discover amazing deals from our event partners. Claim your vouchers
+						now and enjoy exclusive discounts on-site! 🎉
 					</p>
 
 					{/* Stats Bar */}
 					<div className="mt-6 flex justify-center sm:mt-8">
 						<div className="inline-flex flex-row divide-x divide-border border bg-background">
 							{summaryCards.map(({ label, value, Icon }) => (
-								<div key={label} className="flex items-center gap-3 px-6 py-4 sm:gap-4 sm:px-10 sm:py-5">
+								<div
+									key={label}
+									className="flex items-center gap-3 px-6 py-4 sm:gap-4 sm:px-10 sm:py-5"
+								>
 									<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-10 sm:w-10">
 										<Icon className="h-4 w-4 sm:h-5 sm:w-5" />
 									</div>
 									<div className="text-left">
-										<p className="font-bold text-foreground text-lg leading-none tracking-tight sm:text-2xl">{value}</p>
-										<p className="mt-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider sm:text-xs">{label}</p>
+										<p className="font-bold text-foreground text-lg leading-none tracking-tight sm:text-2xl">
+											{value}
+										</p>
+										<p className="mt-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider sm:text-xs">
+											{label}
+										</p>
 									</div>
 								</div>
 							))}
@@ -255,7 +290,9 @@ export function PublicVouchersPage() {
 							<div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center bg-muted sm:mb-4 sm:h-16 sm:w-16">
 								<Ticket className="h-6 w-6 text-muted-foreground sm:h-8 sm:w-8" />
 							</div>
-							<p className="mb-2 font-semibold text-lg sm:text-xl">No vouchers found</p>
+							<p className="mb-2 font-semibold text-lg sm:text-xl">
+								No vouchers found
+							</p>
 							<p className="mx-auto max-w-md px-4 text-muted-foreground text-sm sm:text-base">
 								{selectedCategory === "all"
 									? "We couldn't find any public vouchers right now. Check back soon for fresh offers."
@@ -275,9 +312,12 @@ export function PublicVouchersPage() {
 				{filteredVouchers.length > 0 && (
 					<div className="mt-8 text-center sm:mt-12">
 						<div className="inline-block w-full border bg-muted p-5 sm:p-8">
-							<p className="mb-1 font-semibold text-base sm:mb-2 sm:text-lg">Don't miss out on these exclusive deals!</p>
+							<p className="mb-1 font-semibold text-base sm:mb-2 sm:text-lg">
+								Don't miss out on these exclusive deals!
+							</p>
 							<p className="text-muted-foreground text-xs sm:text-sm">
-								Vouchers are limited and available on a first-come, first-served basis.
+								Vouchers are limited and available on a first-come, first-served
+								basis.
 							</p>
 						</div>
 					</div>

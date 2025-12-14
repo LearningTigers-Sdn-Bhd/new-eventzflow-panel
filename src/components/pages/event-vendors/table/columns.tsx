@@ -11,8 +11,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { cn } from "@/lib/utils";
 import { EventVendorActionsMenu } from "./action-menu";
 
 export type EventVendorMember = EventVendor;
@@ -197,10 +197,10 @@ const baseColumns: ColumnDef<EventVendorMember>[] = [
 			const createdAt = row.getValue("created_at") as string;
 			const date = new Date(createdAt);
 			const formattedDate = formatDate(createdAt);
-			const formattedTime = date.toLocaleTimeString('en-US', {
-				hour: '2-digit',
-				minute: '2-digit',
-				hour12: true
+			const formattedTime = date.toLocaleTimeString("en-US", {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: true,
 			});
 
 			return (

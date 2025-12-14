@@ -24,10 +24,7 @@ export function VendorEmptyState({ onAddVendor }: VendorEmptyStateProps) {
 					</p>
 				</div>
 				{onAddVendor && (
-					<Button
-						onClick={onAddVendor}
-						className="gap-2"
-					>
+					<Button onClick={onAddVendor} className="gap-2">
 						<Plus className="h-4 w-4" />
 						Add Your First Vendor
 					</Button>

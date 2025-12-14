@@ -102,12 +102,8 @@ export const columns: ColumnDef<BaseLocation>[] = [
 		},
 		cell: ({ row }) => {
 			const location = row.original as BaseLocation;
-			
-			return (
-				<div className="font-medium">
-					{location.name}
-				</div>
-			);
+
+			return <div className="font-medium">{location.name}</div>;
 		},
 	},
 	{
@@ -135,11 +131,7 @@ export const columns: ColumnDef<BaseLocation>[] = [
 		},
 		cell: ({ row }) => {
 			const floor = row.getValue("floor") as string | undefined | null;
-			return (
-				<div className="font-medium">
-					{floor || "-"}
-				</div>
-			);
+			return <div className="font-medium">{floor || "-"}</div>;
 		},
 	},
 	{

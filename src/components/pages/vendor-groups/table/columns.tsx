@@ -4,8 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { Group } from "@/lib/api/group/response";
+import { cn } from "@/lib/utils";
 import { GroupActionsMenu } from "./action-menu";
 
 export const columns: ColumnDef<Group>[] = [

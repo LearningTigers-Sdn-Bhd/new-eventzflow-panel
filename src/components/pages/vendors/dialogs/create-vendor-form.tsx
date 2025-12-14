@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Building2 } from "lucide-react";
+import { Building2, User } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createVendor } from "@/lib/api/vendor";
-import ImageUpload from "@/components/file-upload/image-upload";
 
 const VENDOR_CATEGORIES = [
 	"Food & Beverage",
@@ -116,9 +116,10 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 
 		try {
 			// Determine final category value
-			const finalCategory = formData.category === "Others" 
-				? formData.customCategory.trim() 
-				: formData.category;
+			const finalCategory =
+				formData.category === "Others"
+					? formData.customCategory.trim()
+					: formData.category;
 
 			await createVendorMutation.mutateAsync({
 				full_name: formData.full_name,
@@ -154,7 +155,6 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 		}
 	};
 
-
 	return (
 		<div className="mx-auto w-full max-w-8xl px-8">
 			<form onSubmit={handleSubmit}>
@@ -171,7 +171,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={nameId}>Vendor Name</FieldLabel>
-									{errors.full_name && <FieldError>{errors.full_name}</FieldError>}
+									{errors.full_name && (
+										<FieldError>{errors.full_name}</FieldError>
+									)}
 									<Input
 										id={nameId}
 										placeholder="John Doe"
@@ -210,7 +212,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={passwordId}>Password</FieldLabel>
-									{errors.password && <FieldError>{errors.password}</FieldError>}
+									{errors.password && (
+										<FieldError>{errors.password}</FieldError>
+									)}
 									<Input
 										id={passwordId}
 										type="password"
@@ -223,20 +227,25 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 								</Field>
 
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={confirmPasswordId}>Confirm Password</FieldLabel>
-									{errors.confirmPassword && <FieldError>{errors.confirmPassword}</FieldError>}
+									<FieldLabel htmlFor={confirmPasswordId}>
+										Confirm Password
+									</FieldLabel>
+									{errors.confirmPassword && (
+										<FieldError>{errors.confirmPassword}</FieldError>
+									)}
 									<Input
 										id={confirmPasswordId}
 										type="password"
 										placeholder="Confirm password"
 										value={formData.confirmPassword}
-										onChange={(e) => handleChange("confirmPassword", e.target.value)}
+										onChange={(e) =>
+											handleChange("confirmPassword", e.target.value)
+										}
 										required
 										disabled={createVendorMutation.isPending}
 									/>
 								</Field>
 							</div>
-
 
 							{/* RIGHT COLUMN - Profile Information */}
 							<div className="space-y-4">
@@ -245,7 +254,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 									<h3 className="font-semibold text-lg">Profile Information</h3>
 								</div>
 
-								<div className={`grid gap-4 ${formData.category === "Others" ? "grid-cols-2" : "grid-cols-1"}`}>
+								<div
+									className={`grid gap-4 ${formData.category === "Others" ? "grid-cols-2" : "grid-cols-1"}`}
+								>
 									<Field orientation="vertical">
 										<FieldLabel htmlFor={categoryId}>Category</FieldLabel>
 										<Select
@@ -273,12 +284,16 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 
 									{formData.category === "Others" && (
 										<Field orientation="vertical">
-											<FieldLabel htmlFor={`${categoryId}-custom`}>Custom Category</FieldLabel>
+											<FieldLabel htmlFor={`${categoryId}-custom`}>
+												Custom Category
+											</FieldLabel>
 											<Input
 												id={`${categoryId}-custom`}
 												placeholder="Enter custom category"
 												value={formData.customCategory}
-												onChange={(e) => handleChange("customCategory", e.target.value)}
+												onChange={(e) =>
+													handleChange("customCategory", e.target.value)
+												}
 												disabled={createVendorMutation.isPending}
 											/>
 										</Field>
@@ -286,12 +301,16 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 								</div>
 
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={personInChargeId}>Person in Charge</FieldLabel>
+									<FieldLabel htmlFor={personInChargeId}>
+										Person in Charge
+									</FieldLabel>
 									<Input
 										id={personInChargeId}
 										placeholder="Contact person name"
 										value={formData.person_in_charge}
-										onChange={(e) => handleChange("person_in_charge", e.target.value)}
+										onChange={(e) =>
+											handleChange("person_in_charge", e.target.value)
+										}
 										disabled={createVendorMutation.isPending}
 									/>
 								</Field>
@@ -311,7 +330,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 										id={descriptionId}
 										placeholder="Vendor description"
 										value={formData.description}
-										onChange={(e) => handleChange("description", e.target.value)}
+										onChange={(e) =>
+											handleChange("description", e.target.value)
+										}
 										disabled={createVendorMutation.isPending}
 										rows={3}
 									/>
@@ -355,7 +376,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 								Cancel
 							</Button>
 							<Button type="submit" disabled={createVendorMutation.isPending}>
-								{createVendorMutation.isPending ? "Creating..." : "Create Vendor"}
+								{createVendorMutation.isPending
+									? "Creating..."
+									: "Create Vendor"}
 							</Button>
 						</div>
 					</FieldGroup>

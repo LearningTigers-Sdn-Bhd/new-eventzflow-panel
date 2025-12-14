@@ -4,15 +4,18 @@ import { useQueries } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
-import { vendorVoucherColumns, type VendorVoucher } from "@/components/pages/vendor-vouchers/table/columns";
-import { VendorVoucherDataTable } from "@/components/pages/vendor-vouchers/table/data-table";
 import { VendorVouchersPageButton } from "@/components/pages/vendor-vouchers/page-action/button";
+import {
+	type VendorVoucher,
+	vendorVoucherColumns,
+} from "@/components/pages/vendor-vouchers/table/columns";
+import { VendorVoucherDataTable } from "@/components/pages/vendor-vouchers/table/data-table";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
-import { getVouchers } from "@/lib/api/voucher";
 import { getEvents } from "@/lib/api/event";
+import { getVouchers } from "@/lib/api/voucher";
 
 export default function VendorVouchersPage() {
 	const { user } = useAuth();
@@ -20,7 +23,12 @@ export default function VendorVouchersPage() {
 
 	// Fetch vouchers and events in parallel
 	const [
-		{ data: vouchers, isLoading: isLoadingVouchers, error: vouchersError, refetch },
+		{
+			data: vouchers,
+			isLoading: isLoadingVouchers,
+			error: vouchersError,
+			refetch,
+		},
 		{ data: events, isLoading: isLoadingEvents },
 	] = useQueries({
 		queries: [
@@ -43,9 +51,9 @@ export default function VendorVouchersPage() {
 	// Map event names to vouchers
 	const vouchersWithEvent: VendorVoucher[] = useMemo(() => {
 		if (!vouchers) return [];
-		
+
 		const eventMap = new Map(events?.map((e) => [e.id, e.title]) || []);
-		
+
 		return vouchers.map((voucher) => ({
 			...voucher,
 			eventName: eventMap.get(voucher.eventId) || `Event #${voucher.eventId}`,
@@ -88,7 +96,10 @@ export default function VendorVouchersPage() {
 					height="h-[400px]"
 				/>
 			) : (
-				<VendorVoucherDataTable columns={vendorVoucherColumns} data={vouchersWithEvent} />
+				<VendorVoucherDataTable
+					columns={vendorVoucherColumns}
+					data={vouchersWithEvent}
+				/>
 			)}
 		</div>
 	);

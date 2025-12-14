@@ -144,10 +144,7 @@ export function DataTable<TData, TValue>({
 							table
 								.getRowModel()
 								.rows.map((row) => (
-									<VoucherItem
-										key={row.id}
-										voucher={row.original as Voucher}
-									/>
+									<VoucherItem key={row.id} voucher={row.original as Voucher} />
 								))
 						) : (
 							<EmptyState

@@ -26,8 +26,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
-import { getGroupAffiliates } from "@/lib/api/group-affiliate";
 import { getGroups } from "@/lib/api/group";
+import { getGroupAffiliates } from "@/lib/api/group-affiliate";
 
 interface GroupAddFormProps {
 	eventId: number;
@@ -259,7 +259,7 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
 											<Users className="h-4 w-4 text-muted-foreground" />
-											<p className="text-sm font-medium">
+											<p className="font-medium text-sm">
 												Vendors in this group
 											</p>
 											{isLoadingAffiliates && (
@@ -305,11 +305,11 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 												/>
 											</div>
 										) : !groupAffiliates || groupAffiliates.length === 0 ? (
-											<p className="text-sm text-muted-foreground">
+											<p className="text-muted-foreground text-sm">
 												No vendors in this group yet.
 											</p>
 										) : (
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+											<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 												{groupAffiliates.map((affiliate) => {
 													const isSelected = selectedVendorIds.has(
 														affiliate.vendor_id,
@@ -322,7 +322,7 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 															key={affiliate.id}
 															className={`flex items-center gap-2 rounded-none border border-dashed p-2 transition-colors ${
 																isAlreadyAdded
-																	? "bg-muted/30 border-muted opacity-60"
+																	? "border-muted bg-muted/30 opacity-60"
 																	: "bg-background hover:bg-muted/50"
 															}`}
 														>
@@ -345,24 +345,24 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 																		: "cursor-pointer"
 																}`}
 															>
-																<Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-																<div className="flex-1 min-w-0">
-																	<p className="text-sm font-medium truncate">
+																<Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+																<div className="min-w-0 flex-1">
+																	<p className="truncate font-medium text-sm">
 																		{affiliate.vendor.full_name}
 																	</p>
-																	<p className="text-xs text-muted-foreground truncate">
+																	<p className="truncate text-muted-foreground text-xs">
 																		{affiliate.vendor.email}
 																	</p>
 																</div>
 																{isAlreadyAdded ? (
-																	<div className="flex items-center gap-1 text-muted-foreground shrink-0">
+																	<div className="flex shrink-0 items-center gap-1 text-muted-foreground">
 																		<CheckCircle2 className="h-3.5 w-3.5" />
-																		<span className="text-xs font-medium whitespace-nowrap">
+																		<span className="whitespace-nowrap font-medium text-xs">
 																			Already Added
 																		</span>
 																	</div>
 																) : isSelected ? (
-																	<CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+																	<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
 																) : null}
 															</label>
 														</div>
@@ -378,7 +378,7 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 												{selectedVendorIds.size} exhibitor
 												{selectedVendorIds.size > 1 ? "s" : ""} selected
 											</Badge>
-											<span className="text-xs text-muted-foreground">
+											<span className="text-muted-foreground text-xs">
 												PIC details can be updated after assignment
 											</span>
 										</div>

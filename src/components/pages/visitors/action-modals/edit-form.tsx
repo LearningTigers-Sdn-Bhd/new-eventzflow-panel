@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useState, useId } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +23,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
+import type { UpdateVisitorRequest, Visitor } from "@/lib/api/visitor";
 import { updateVisitor } from "@/lib/api/visitor";
-import type { Visitor, UpdateVisitorRequest } from "@/lib/api/visitor";
 
 interface EditVisitorFormProps {
 	visitor: Visitor;
@@ -48,7 +48,9 @@ export default function EditVisitorForm({ visitor }: EditVisitorFormProps) {
 	const [email, setEmail] = useState(visitor.email || "");
 	const [phone, setPhone] = useState(visitor.phone || "");
 	const [gender, setGender] = useState<string>(visitor.gender || "");
-	const [age, setAge] = useState<string>(visitor.age ? visitor.age.toString() : "");
+	const [age, setAge] = useState<string>(
+		visitor.age ? visitor.age.toString() : "",
+	);
 
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -240,10 +242,7 @@ export default function EditVisitorForm({ visitor }: EditVisitorFormProps) {
 							>
 								Cancel
 							</Button>
-							<Button
-								type="submit"
-								disabled={updateVisitorMutation.isPending}
-							>
+							<Button type="submit" disabled={updateVisitorMutation.isPending}>
 								{updateVisitorMutation.isPending
 									? "Updating..."
 									: "Update Visitor"}

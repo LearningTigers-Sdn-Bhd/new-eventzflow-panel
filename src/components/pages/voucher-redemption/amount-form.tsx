@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Banknote } from "lucide-react";
+import { Banknote, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,11 @@ interface AmountFormProps {
 	voucherDetails: VoucherDetails | null;
 }
 
-export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFormProps) {
+export function AmountForm({
+	onSubmit,
+	isProcessing,
+	voucherDetails,
+}: AmountFormProps) {
 	const [amount, setAmount] = useState("");
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -56,12 +60,17 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 				return (
 					<div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
 						<p className="text-center text-blue-900 text-sm">
-							<span className="font-semibold">{voucherDetails.voucherValue}% discount</span> applied
+							<span className="font-semibold">
+								{voucherDetails.voucherValue}% discount
+							</span>{" "}
+							applied
 						</p>
 						{originalPrice && (
 							<div className="border-blue-200 border-t pt-2 text-center">
 								<p className="text-blue-700 text-xs">Original Price</p>
-								<p className="font-semibold text-blue-900 text-lg">RM {originalPrice.toFixed(2)}</p>
+								<p className="font-semibold text-blue-900 text-lg">
+									RM {originalPrice.toFixed(2)}
+								</p>
 							</div>
 						)}
 					</div>
@@ -70,12 +79,17 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 				return (
 					<div className="space-y-2 rounded-lg border border-green-200 bg-green-50 p-3">
 						<p className="text-center text-green-900 text-sm">
-							<span className="font-semibold">RM {voucherDetails.voucherValue.toFixed(2)} discount</span> applied
+							<span className="font-semibold">
+								RM {voucherDetails.voucherValue.toFixed(2)} discount
+							</span>{" "}
+							applied
 						</p>
 						{originalPrice && (
 							<div className="border-green-200 border-t pt-2 text-center">
 								<p className="text-green-700 text-xs">Original Price</p>
-								<p className="font-semibold text-green-900 text-lg">RM {originalPrice.toFixed(2)}</p>
+								<p className="font-semibold text-green-900 text-lg">
+									RM {originalPrice.toFixed(2)}
+								</p>
 							</div>
 						)}
 					</div>
@@ -105,7 +119,9 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 				<div className="space-y-2">
 					<Label htmlFor="amount">Final Sale Price (After Discount)</Label>
 					<div className="relative">
-						<span className="-translate-y-1/2 absolute top-1/2 left-3 font-medium text-muted-foreground text-sm">RM</span>
+						<span className="-translate-y-1/2 absolute top-1/2 left-3 font-medium text-muted-foreground text-sm">
+							RM
+						</span>
 						<Input
 							id="amount"
 							type="number"
@@ -120,7 +136,8 @@ export function AmountForm({ onSubmit, isProcessing, voucherDetails }: AmountFor
 						/>
 					</div>
 					<p className="text-muted-foreground text-xs">
-						Enter what the customer actually pays after the voucher discount is applied
+						Enter what the customer actually pays after the voucher discount is
+						applied
 					</p>
 				</div>
 

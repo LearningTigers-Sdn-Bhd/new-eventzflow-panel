@@ -1,9 +1,9 @@
 "use client";
 
 import { Download } from "lucide-react";
+import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import type { Visitor } from "@/lib/api/visitor";
-import QRCode from "react-qr-code";
 
 interface VisitorQRModalProps {
 	visitor: Visitor;

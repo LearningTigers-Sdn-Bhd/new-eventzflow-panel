@@ -9,9 +9,12 @@
 import { Database, HardDrive, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { StatsCard } from "@/components/analytics-card";
+import {
+	type Indicator,
+	ProgressStatsCard,
+} from "@/components/admin-ui/analytic/stats-card";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { Button } from "@/components/ui/button";
-import { IconTitle } from "@/components/ui/icon-heading";
 import { getAllForOffline } from "@/lib/api/ticket";
 import { ERROR_MESSAGES, STORAGE_CONFIG, SUCCESS_MESSAGES } from "./constants";
 
@@ -152,10 +155,10 @@ export function StorageStatus() {
 	};
 
 	return (
-		<div>
+		<div className="flex h-full flex-col border md:border-0">
 			{/* Header */}
-			<div className="page-header mb-4 border-y border-dashed sm:mb-6 md:mb-8">
-				<div className="px-2 md:px-4">
+			<div className="flex flex-col gap-4 pb-4">
+				<div className="w-full">
 					<IconTitle
 						icon={HardDrive}
 						title="Scan Data Storage"
@@ -164,88 +167,51 @@ export function StorageStatus() {
 				</div>
 
 				{/* Quick Actions */}
-				<div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:px-4">
+				<div className="grid w-full grid-cols-2 gap-2">
 					<Button
 						onClick={handleClearData}
-						variant="outline"
+						variant="destructive"
 						size="sm"
 						disabled={isClearing || storageData.events === 0}
-						className="gap-2 rounded-none"
+						className="gap-2 rounded-none py-6 md:py-0"
 					>
-						<Trash2 className="h-4 w-4" />
+						<Trash2 className="mr-2.5 size-4" />
 						Clear Data
 					</Button>
 					<Button
 						onClick={handleSyncData}
 						size="sm"
 						disabled={isSyncing}
-						className="gap-2 rounded-none"
+						className="gap-2 rounded-none py-6 md:py-0"
 					>
 						<RefreshCw
-							className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+							className={`mr-2.5 size-4 ${isSyncing ? "animate-spin" : ""}`}
 						/>
 						Sync Data
 					</Button>
 				</div>
 			</div>
-			{/* <div className="page-header border-y border-dashed">
-				<div className="flex w-full flex-col items-start justify-between px-2 md:flex-row md:items-center md:px-4">
-					<IconTitle
-						icon={HardDrive}
-						title="Scan Data Storage"
-						description="Manage downloaded data for offline ticket scanning"
-					/>
-					<div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
-						<Button
-							onClick={handleClearData}
-							variant="outline"
-							size="sm"
-							disabled={isClearing || storageData.events === 0}
-							className="gap-2 rounded-none"
-						>
-							<Trash2 className="h-4 w-4" />
-							Clear Data
-						</Button>
-						<Button
-							onClick={handleSyncData}
-							size="sm"
-							disabled={isSyncing}
-							className="gap-2 rounded-none"
-						>
-							<RefreshCw
-								className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
-							/>
-							Sync Data
-						</Button>
-					</div>
-				</div>
-			</div> */}
-			<div className="grid h-full grid-cols-2 gap-2 border-b border-dashed">
-				<StatsCard
-					label="Downloaded Events"
-					value={storageData.events}
-					Icon={Database}
-					subtitle="Total events stored"
-				/>
-				<StatsCard
-					label="Downloaded Tickets"
-					value={storageData.tickets}
-					Icon={Database}
-					subtitle="Total tickets stored"
+			<div className="h-full border-b border-dashed">
+				<ProgressStatsCard
+					data={{
+						icon: Database,
+						title: "Downloaded Data",
+						subtitle: `Total events and tickets stored offline. ${storageData.lastSyncedAt ? `Last synced: ${storageData.lastSyncedAt?.toLocaleString()}` : ""}`,
+						indicators: [
+							{
+								label: "Events",
+								count: storageData.events,
+								color: "blue",
+							},
+							{
+								label: "Tickets",
+								count: storageData.tickets,
+								color: "green",
+							},
+						] satisfies Indicator[],
+					}}
 				/>
 			</div>
-
-			{/* Last Synced Info */}
-			{storageData.lastSyncedAt && (
-				<div className="border-b border-dashed p-4">
-					<p className="text-muted-foreground text-xs">
-						Last synced:{" "}
-						<span className="font-medium text-foreground">
-							{storageData.lastSyncedAt.toLocaleString()}
-						</span>
-					</p>
-				</div>
-			)}
 		</div>
 	);
 }

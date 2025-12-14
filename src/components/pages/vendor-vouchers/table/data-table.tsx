@@ -64,7 +64,6 @@ export function VendorVoucherDataTable<TData, TValue>({
 		},
 	});
 
-
 	return (
 		<div className="w-full">
 			{/* Control Panel */}

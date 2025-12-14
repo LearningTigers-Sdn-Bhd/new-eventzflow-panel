@@ -7,8 +7,8 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { cn } from "@/lib/utils";
 import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
+import { cn } from "@/lib/utils";
 
 const VisitorStampViewModal = ({
 	name,
@@ -262,11 +262,15 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 					{email && (
 						<div className="flex items-center gap-1.5 text-sm">
 							<Mail className="size-3 shrink-0 text-muted-foreground" />
-							<span className="max-w-[180px] truncate" title={email}>{email}</span>
+							<span className="max-w-[180px] truncate" title={email}>
+								{email}
+							</span>
 						</div>
 					)}
 					{!phone && !email && (
-						<span className="text-muted-foreground text-sm">No contact info</span>
+						<span className="text-muted-foreground text-sm">
+							No contact info
+						</span>
 					)}
 				</div>
 			);
@@ -296,9 +300,7 @@ export const columns: ColumnDef<VisitorStampWithDetails>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			return (
-				<div className="font-medium">{row.getValue("vendor_name")}</div>
-			);
+			return <div className="font-medium">{row.getValue("vendor_name")}</div>;
 		},
 	},
 	{

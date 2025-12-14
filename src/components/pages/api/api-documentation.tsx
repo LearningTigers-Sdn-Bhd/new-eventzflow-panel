@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Check, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,19 +38,19 @@ function CodeBlock({ code }: { code: string }) {
 
 	return (
 		<div className="relative">
-			<pre className="bg-muted border rounded-none p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm max-w-full">
-				<code className="text-foreground whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
+			<pre className="max-w-full overflow-x-auto rounded-none border bg-muted p-3 text-xs sm:p-4 sm:text-sm">
+				<code className="whitespace-pre-wrap break-all text-foreground sm:whitespace-pre sm:break-normal">
 					{code}
 				</code>
 			</pre>
 			<Button
 				variant="ghost"
 				size="icon"
-				className="absolute top-1 right-1 sm:top-2 sm:right-2 size-7 sm:size-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-muted/80"
+				className="absolute top-1 right-1 size-7 bg-muted/80 opacity-100 transition-opacity sm:top-2 sm:right-2 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100"
 				onClick={handleCopy}
 			>
 				{copied ? (
-					<Check className="size-3 sm:size-4 text-green-500" />
+					<Check className="size-3 text-green-500 sm:size-4" />
 				) : (
 					<Copy className="size-3 sm:size-4" />
 				)}
@@ -85,44 +85,44 @@ function ApiEndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 				<CollapsibleTrigger asChild>
 					<button
 						type="button"
-						className="w-full flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-3 sm:p-4 hover:bg-muted/50 transition-colors text-left"
+						className="flex w-full flex-wrap items-center gap-2 p-3 text-left transition-colors hover:bg-muted/50 sm:flex-nowrap sm:gap-3 sm:p-4"
 					>
 						{isOpen ? (
-							<ChevronDown className="size-4 text-muted-foreground shrink-0" />
+							<ChevronDown className="size-4 shrink-0 text-muted-foreground" />
 						) : (
-							<ChevronRight className="size-4 text-muted-foreground shrink-0" />
+							<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
 						)}
 						<Badge
 							variant={METHOD_VARIANTS[endpoint.method]}
-							className="rounded-none text-[10px] sm:text-xs px-1.5 sm:px-2"
+							className="rounded-none px-1.5 text-[10px] sm:px-2 sm:text-xs"
 						>
 							{endpoint.method}
 						</Badge>
 						<span className="font-medium text-sm sm:text-base">
 							{endpoint.title}
 						</span>
-						<span className="text-muted-foreground text-xs sm:text-sm truncate hidden md:block ml-auto font-mono">
+						<span className="ml-auto hidden truncate font-mono text-muted-foreground text-xs sm:text-sm md:block">
 							{endpoint.endpoint}
 						</span>
 					</button>
 				</CollapsibleTrigger>
 
 				<CollapsibleContent>
-					<div className="border-t border-dashed p-3 sm:p-4 space-y-4 sm:space-y-6 bg-card">
-						<p className="text-xs sm:text-sm text-muted-foreground">
+					<div className="space-y-4 border-t border-dashed bg-card p-3 sm:space-y-6 sm:p-4">
+						<p className="text-muted-foreground text-xs sm:text-sm">
 							{endpoint.description}
 						</p>
 
-						<div className="space-y-2 group">
-							<h4 className="text-xs sm:text-sm font-medium">Endpoint</h4>
+						<div className="group space-y-2">
+							<h4 className="font-medium text-xs sm:text-sm">Endpoint</h4>
 							<CodeBlock
 								code={`${endpoint.method} ${API_BASE_URL}${endpoint.endpoint}`}
 							/>
 						</div>
 
 						{endpoint.headers && (
-							<div className="space-y-2 group">
-								<h4 className="text-xs sm:text-sm font-medium">Headers</h4>
+							<div className="group space-y-2">
+								<h4 className="font-medium text-xs sm:text-sm">Headers</h4>
 								<CodeBlock
 									code={Object.entries(endpoint.headers)
 										.map(([key, value]) => `${key}: ${value}`)
@@ -132,22 +132,22 @@ function ApiEndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 						)}
 
 						{endpoint.requestBody && (
-							<div className="space-y-2 group">
-								<h4 className="text-xs sm:text-sm font-medium">Request Body</h4>
+							<div className="group space-y-2">
+								<h4 className="font-medium text-xs sm:text-sm">Request Body</h4>
 								<CodeBlock
 									code={JSON.stringify(endpoint.requestBody, null, 2)}
 								/>
 							</div>
 						)}
 
-						<div className="space-y-2 group">
-							<h4 className="text-xs sm:text-sm font-medium">cURL Example</h4>
+						<div className="group space-y-2">
+							<h4 className="font-medium text-xs sm:text-sm">cURL Example</h4>
 							<CodeBlock code={generateCurlExample(endpoint)} />
 						</div>
 
 						{endpoint.response && (
-							<div className="space-y-2 group">
-								<h4 className="text-xs sm:text-sm font-medium">Response</h4>
+							<div className="group space-y-2">
+								<h4 className="font-medium text-xs sm:text-sm">Response</h4>
 								<CodeBlock code={JSON.stringify(endpoint.response, null, 2)} />
 							</div>
 						)}
@@ -161,9 +161,9 @@ function ApiEndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 export function ApiDocumentation() {
 	return (
 		<div className="space-y-4 sm:space-y-6">
-			<p className="text-xs sm:text-base text-muted-foreground border-y border-dashed bg-accent p-2 text-center">
+			<p className="border-y border-dashed bg-accent p-2 text-center text-muted-foreground text-xs sm:text-base">
 				Use your API key in the{" "}
-				<code className="bg-background border px-1 sm:px-1.5 py-0.5 rounded-none text-[10px] sm:text-sm font-mono">
+				<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">
 					Authorization
 				</code>{" "}
 				header to authenticate requests.
@@ -175,7 +175,7 @@ export function ApiDocumentation() {
 				);
 				return (
 					<div key={category} className="space-y-2 px-2 sm:px-4">
-						<h3 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+						<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
 							{category}
 						</h3>
 						<div className="space-y-2">

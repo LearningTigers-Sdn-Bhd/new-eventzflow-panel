@@ -41,8 +41,11 @@ export function DataTable({ data, eventId }: DataTableProps) {
 	const isTablet = useIsTablet();
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
 
 	const table = useReactTable({
 		data,
@@ -76,7 +79,10 @@ export function DataTable({ data, eventId }: DataTableProps) {
 											>
 												{header.isPlaceholder
 													? null
-													: flexRender(header.column.columnDef.header, header.getContext())}
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext(),
+														)}
 											</TableHead>
 										))}
 									</TableRow>
@@ -85,23 +91,33 @@ export function DataTable({ data, eventId }: DataTableProps) {
 							<TableBody>
 								{table.getRowModel().rows?.length ? (
 									table.getRowModel().rows.map((row) => (
-										<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+										<TableRow
+											key={row.id}
+											data-state={row.getIsSelected() && "selected"}
+										>
 											{row.getVisibleCells().map((cell) => (
 												<TableCell
 													key={cell.id}
 													style={{ width: `${cell.column.getSize()}px` }}
 													className={cn(
-														table.getVisibleLeafColumns()[0]?.id === cell.column.id && "ps-4",
+														table.getVisibleLeafColumns()[0]?.id ===
+															cell.column.id && "ps-4",
 													)}
 												>
-													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
 												</TableCell>
 											))}
 										</TableRow>
 									))
 								) : (
 									<TableRow>
-										<TableCell colSpan={columns.length} className="h-24 text-center">
+										<TableCell
+											colSpan={columns.length}
+											className="h-24 text-center"
+										>
 											<EmptyState
 												title="No ticket types found"
 												description="Create your first ticket type to get started"
@@ -134,9 +150,11 @@ export function DataTable({ data, eventId }: DataTableProps) {
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TicketTypeItem key={row.id} ticketType={row.original} />
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<TicketTypeItem key={row.id} ticketType={row.original} />
+								))
 						) : (
 							<EmptyState
 								title="No ticket types found"

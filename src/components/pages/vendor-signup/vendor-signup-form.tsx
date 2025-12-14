@@ -59,7 +59,7 @@ export function VendorSignupForm({
 		onSuccess: (response) => {
 			// Auto-login: Save user and session credentials to store
 			const { user, access_token, refresh_token, expires_at } = response.data;
-			
+
 			setUser({
 				id: user.id,
 				email: user.email,
@@ -77,7 +77,8 @@ export function VendorSignupForm({
 
 			onSuccess(response.data.event_vendor.event_title);
 			toast.success("Registration successful!", {
-				description: "Your vendor account has been created and you're now logged in.",
+				description:
+					"Your vendor account has been created and you're now logged in.",
 			});
 		},
 		onError: (error: Error) => {
@@ -153,7 +154,10 @@ export function VendorSignupForm({
 				...(useExhibitorKit && {
 					exhibitor_kit: {
 						booth_number: value.booth_number || undefined,
-						booth_type: value.booth_type as "shell_scheme" | "raw_space" | undefined,
+						booth_type: value.booth_type as
+							| "shell_scheme"
+							| "raw_space"
+							| undefined,
 						name_on_fascia: value.name_on_fascia || undefined,
 						company_name: value.company_name || undefined,
 						company_address: value.company_address || undefined,
@@ -168,7 +172,12 @@ export function VendorSignupForm({
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
+			<VendorSignupEventSidebar
+				event={event}
+				group={group}
+				vendorType={vendorType}
+				useExhibitorKit={useExhibitorKit}
+			/>
 
 			<PatternedLayout centered={false}>
 				<div className="mx-auto w-full max-w-5xl py-6 lg:py-10">
@@ -201,7 +210,10 @@ export function VendorSignupForm({
 								validators={accountInfoValidators.fullName}
 							>
 								{(fullNameField) => (
-									<form.Field name="email" validators={accountInfoValidators.email}>
+									<form.Field
+										name="email"
+										validators={accountInfoValidators.email}
+									>
 										{(emailField) => (
 											<form.Field
 												name="phone"
@@ -255,8 +267,12 @@ export function VendorSignupForm({
 																		{(notesField) => (
 																			<BusinessDetailsSection
 																				categoryField={categoryField}
-																				customCategoryField={customCategoryField}
-																				personInChargeField={personInChargeField}
+																				customCategoryField={
+																					customCategoryField
+																				}
+																				personInChargeField={
+																					personInChargeField
+																				}
 																				descriptionField={descriptionField}
 																				addressField={addressField}
 																				notesField={notesField}
@@ -295,14 +311,30 @@ export function VendorSignupForm({
 																						<form.Field name="pic_email_address">
 																							{(picEmailAddressField) => (
 																								<ExhibitorKitSection
-																									boothNumberField={boothNumberField}
-																									boothTypeField={boothTypeField}
-																									nameOnFasciaField={nameOnFasciaField}
-																									companyNameField={companyNameField}
-																									companyAddressField={companyAddressField}
-																									picFullNameField={picFullNameField}
-																									picContactNumberField={picContactNumberField}
-																									picEmailAddressField={picEmailAddressField}
+																									boothNumberField={
+																										boothNumberField
+																									}
+																									boothTypeField={
+																										boothTypeField
+																									}
+																									nameOnFasciaField={
+																										nameOnFasciaField
+																									}
+																									companyNameField={
+																										companyNameField
+																									}
+																									companyAddressField={
+																										companyAddressField
+																									}
+																									picFullNameField={
+																										picFullNameField
+																									}
+																									picContactNumberField={
+																										picContactNumberField
+																									}
+																									picEmailAddressField={
+																										picEmailAddressField
+																									}
 																								/>
 																							)}
 																						</form.Field>

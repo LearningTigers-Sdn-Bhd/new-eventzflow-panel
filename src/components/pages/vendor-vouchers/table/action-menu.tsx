@@ -1,6 +1,7 @@
 "use client";
 
 import { Edit, MoreVertical, QrCode } from "lucide-react";
+import VoucherQRDialog from "@/components/pages/vouchers/voucher-qr-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -12,14 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import EditVendorVoucherForm from "../forms/edit-vendor-voucher-form";
-import VoucherQRDialog from "@/components/pages/vouchers/voucher-qr-dialog";
 import type { VendorVoucher } from "./columns";
 
 interface VendorVoucherActionsMenuProps {
 	voucher: VendorVoucher;
 }
 
-export function VendorVoucherActionsMenu({ voucher }: VendorVoucherActionsMenuProps) {
+export function VendorVoucherActionsMenu({
+	voucher,
+}: VendorVoucherActionsMenuProps) {
 	const { openDialog, closeDialog } = useDialog();
 
 	const handleEdit = () => {

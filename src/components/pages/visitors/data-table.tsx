@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import type { Visitor } from "@/lib/api/visitor";
+import { cn } from "@/lib/utils";
 import { generateColumns } from "./columns";
 import { DataControl } from "./data-control";
 import { VisitorItem } from "./visitor-item";
@@ -51,10 +51,7 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 			phone: false, // Hide phone column by default
 		});
 
-	const columns = React.useMemo(
-		() => generateColumns(),
-		[],
-	);
+	const columns = React.useMemo(() => generateColumns(), []);
 
 	const table = useReactTable({
 		data,
@@ -166,12 +163,11 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<VisitorItem
-									key={row.id}
-									visitor={row.original as Visitor}
-								/>
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<VisitorItem key={row.id} visitor={row.original as Visitor} />
+								))
 						) : (
 							<EmptyState
 								title="No visitors found"
