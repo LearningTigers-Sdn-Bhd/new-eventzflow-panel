@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	type CreateVisitorRequest,
 	createVisitor,
 	deleteVisitor,
 	getVisitor,
 	getVisitors,
-	updateVisitor,
-	type CreateVisitorRequest,
 	type UpdateVisitorRequest,
+	updateVisitor,
 } from "@/lib/api/visitor";
 
 /**
@@ -74,7 +74,12 @@ export const useUpdateVisitor = () => {
 				queryKey: ["events", variables.eventId, "visitors"],
 			});
 			queryClient.invalidateQueries({
-				queryKey: ["events", variables.eventId, "visitors", variables.visitorId],
+				queryKey: [
+					"events",
+					variables.eventId,
+					"visitors",
+					variables.visitorId,
+				],
 			});
 		},
 	});
@@ -87,8 +92,13 @@ export const useDeleteVisitor = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ eventId, visitorId }: { eventId: number; visitorId: number }) =>
-			deleteVisitor(eventId, visitorId),
+		mutationFn: ({
+			eventId,
+			visitorId,
+		}: {
+			eventId: number;
+			visitorId: number;
+		}) => deleteVisitor(eventId, visitorId),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: ["events", variables.eventId, "visitors"],

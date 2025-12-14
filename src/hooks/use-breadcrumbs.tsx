@@ -24,7 +24,7 @@ export function useBreadcrumbs(items: BreadcrumbItemType[]) {
 		const elements: React.ReactNode[] = [];
 		items.forEach((item, index) => {
 			const isLast = index === items.length - 1;
-			
+
 			elements.push(
 				<BreadcrumbItem key={`item-${index}`}>
 					{isLast || !item.href ? (
@@ -32,9 +32,9 @@ export function useBreadcrumbs(items: BreadcrumbItemType[]) {
 					) : (
 						<BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
 					)}
-				</BreadcrumbItem>
+				</BreadcrumbItem>,
 			);
-			
+
 			if (!isLast) {
 				elements.push(<BreadcrumbSeparator key={`sep-${index}`} />);
 			}
@@ -44,7 +44,7 @@ export function useBreadcrumbs(items: BreadcrumbItemType[]) {
 		root.render(
 			<Breadcrumb>
 				<BreadcrumbList>{elements}</BreadcrumbList>
-			</Breadcrumb>
+			</Breadcrumb>,
 		);
 
 		return () => {

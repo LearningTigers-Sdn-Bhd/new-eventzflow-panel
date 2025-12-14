@@ -65,7 +65,8 @@ export function useCreateGift(eventId: string, sessionId: number) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (data: CreateGiftRequest) => createGift(eventId, sessionId, data),
+		mutationFn: (data: CreateGiftRequest) =>
+			createGift(eventId, sessionId, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["lucky-draw", "gifts", eventId, sessionId],
@@ -214,11 +215,15 @@ export function useAddInvalidParticipant(eventId: string, sessionId: number) {
 /**
  * Mutation Hook: Remove Invalid Participant
  */
-export function useRemoveInvalidParticipant(eventId: string, sessionId: number) {
+export function useRemoveInvalidParticipant(
+	eventId: string,
+	sessionId: number,
+) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (id: number) => removeInvalidParticipant(eventId, sessionId, id),
+		mutationFn: (id: number) =>
+			removeInvalidParticipant(eventId, sessionId, id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["lucky-draw", "invalid-participants", eventId, sessionId],
@@ -233,7 +238,10 @@ export function useRemoveInvalidParticipant(eventId: string, sessionId: number) 
 /**
  * Mutation Hook: Clear Invalid Participants
  */
-export function useClearInvalidParticipants(eventId: string, sessionId: number) {
+export function useClearInvalidParticipants(
+	eventId: string,
+	sessionId: number,
+) {
 	const queryClient = useQueryClient();
 
 	return useMutation({

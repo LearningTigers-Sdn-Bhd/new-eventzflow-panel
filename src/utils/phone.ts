@@ -31,9 +31,9 @@ export function cleanPhoneNumber(phoneNumber: string): string {
  */
 export function formatPhoneNumber(phoneNumber: string): string {
 	if (!phoneNumber) return "";
-	
+
 	const cleaned = cleanPhoneNumber(phoneNumber);
-	
+
 	// If it has country code (+), format it
 	if (cleaned.startsWith("+")) {
 		// Extract country code (1-3 digits after +)
@@ -41,14 +41,14 @@ export function formatPhoneNumber(phoneNumber: string): string {
 		if (match) {
 			const countryCode = match[1];
 			const number = match[2];
-			
+
 			// Split number into groups for readability
 			// Common pattern: XX XXX XXXX or similar
 			const formatted = number.match(/.{1,4}/g)?.join(" ") || number;
 			return `${countryCode} ${formatted}`;
 		}
 	}
-	
+
 	// For local numbers without country code, just add spacing
 	const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
 	return formatted;
@@ -64,39 +64,39 @@ export function formatPhoneNumber(phoneNumber: string): string {
  */
 export function formatWithCountryStyle(phoneNumber: string): string {
 	if (!phoneNumber) return "";
-	
+
 	const cleaned = cleanPhoneNumber(phoneNumber);
-	
+
 	// Malaysian format: +60 XX-XXX XXXX
 	let match = cleaned.match(/^\+?60(\d{2})(\d{3,4})(\d{4})$/);
 	if (match) {
 		return `+60 ${match[1]}-${match[2]} ${match[3]}`;
 	}
-	
+
 	// US/Canada format: +1 (XXX) XXX-XXXX
 	match = cleaned.match(/^\+?1(\d{3})(\d{3})(\d{4})$/);
 	if (match) {
 		return `+1 (${match[1]}) ${match[2]}-${match[3]}`;
 	}
-	
+
 	// UK format: +44 XXXX XXXXXX
 	match = cleaned.match(/^\+?44(\d{4})(\d{6})$/);
 	if (match) {
 		return `+44 ${match[1]} ${match[2]}`;
 	}
-	
+
 	// Singapore format: +65 XXXX XXXX
 	match = cleaned.match(/^\+?65(\d{4})(\d{4})$/);
 	if (match) {
 		return `+65 ${match[1]} ${match[2]}`;
 	}
-	
+
 	// Australia format: +61 XXX XXX XXX
 	match = cleaned.match(/^\+?61(\d{3})(\d{3})(\d{3})$/);
 	if (match) {
 		return `+61 ${match[1]} ${match[2]} ${match[3]}`;
 	}
-	
+
 	// Default: use generic formatting
 	return formatPhoneNumber(phoneNumber);
 }
@@ -112,9 +112,9 @@ export function formatWithCountryStyle(phoneNumber: string): string {
  */
 export function isValidPhoneNumber(phoneNumber: string): boolean {
 	if (!phoneNumber) return false;
-	
+
 	const cleaned = cleanPhoneNumber(phoneNumber);
-	
+
 	// Valid phone: At least 7 digits, optionally with + at start
 	return /^\+?\d{7,15}$/.test(cleaned);
 }
@@ -130,11 +130,11 @@ export function isValidPhoneNumber(phoneNumber: string): boolean {
  */
 export function getPhoneVariations(phoneNumber: string): string[] {
 	if (!phoneNumber) return [];
-	
+
 	const cleaned = cleanPhoneNumber(phoneNumber);
 	const formatted = formatPhoneNumber(phoneNumber);
 	const countryStyled = formatWithCountryStyle(phoneNumber);
-	
+
 	// Return unique variations
 	const variations = [cleaned, formatted, countryStyled];
 	return [...new Set(variations)].filter(Boolean);

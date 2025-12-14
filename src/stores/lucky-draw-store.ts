@@ -38,25 +38,25 @@ export type DrawStyles = {
 interface LuckyDrawState {
 	// UI state only
 	eventId: string | null;
-    sessionId: number | null;
+	sessionId: number | null;
 	eventName: string | null;
 	isDrawing: boolean;
 
 	// Actions
 	setEventId: (eventId: string) => void;
-    setSessionId: (sessionId: number) => void;
+	setSessionId: (sessionId: number) => void;
 	setEventName: (eventName: string) => void;
 	setDrawingState: (isDrawing: boolean) => void;
 }
 
 const luckyDrawStoreSlice: StateCreator<LuckyDrawState> = (set) => ({
 	eventId: null,
-    sessionId: null,
+	sessionId: null,
 	eventName: null,
 	isDrawing: false,
 
 	setEventId: (eventId) => set({ eventId }),
-    setSessionId: (sessionId) => set({ sessionId }),
+	setSessionId: (sessionId) => set({ sessionId }),
 	setEventName: (eventName) => set({ eventName }),
 	setDrawingState: (isDrawing) => set({ isDrawing }),
 });

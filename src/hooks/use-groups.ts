@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	type CreateGroupRequest,
 	createGroup,
 	deleteGroup,
 	getGroup,
 	getGroups,
-	updateGroup,
-	type CreateGroupRequest,
 	type UpdateGroupRequest,
+	updateGroup,
 } from "@/lib/api/group";
 
 /**
