@@ -1,5 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	NavigationMenu,
 	NavigationMenuItem,
@@ -15,8 +17,6 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
@@ -72,14 +72,17 @@ export default function Header() {
 		<header className="sticky top-0 z-40 w-full border-b bg-background px-4 py-2">
 			<div className="flex w-full items-center justify-between lg:relative lg:justify-between">
 				{/* Logo - Desktop Left Corner */}
-				<button 
+				<button
 					onClick={scrollToTop}
 					className="hidden items-center space-x-3 transition-opacity hover:opacity-80 lg:flex"
 				>
-					<span className="font-bold text-2xl leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
-						<span style={{ color: '#23c460' }}>Event</span>
-						<span style={{ color: '#2766ec' }}>z</span>
-						<span style={{ color: '#23c460' }}>Flow</span>
+					<span
+						className="font-bold text-2xl leading-tight"
+						style={{ fontFamily: "Times New Roman, serif" }}
+					>
+						<span style={{ color: "#23c460" }}>Event</span>
+						<span style={{ color: "#2766ec" }}>z</span>
+						<span style={{ color: "#23c460" }}>Flow</span>
 					</span>
 				</button>
 
@@ -93,43 +96,49 @@ export default function Header() {
 									<span className="sr-only">Toggle menu</span>
 								</Button>
 							</SheetTrigger>
-							<SheetContent side="left" className="flex w-[300px] flex-col p-0 sm:w-[400px]">
-							<SheetHeader className="sticky top-0 z-10 border-b bg-background px-6 pt-6 pb-4">
-								{/* Logo in Mobile Sheet */}
-								<button 
-									onClick={() => {
-										scrollToTop();
-										setOpen(false);
-									}}
-									className="mb-4 flex w-fit items-center space-x-3 transition-opacity hover:opacity-80"
-								>
-									<span className="font-bold text-2xl leading-tight" style={{ fontFamily: 'Times New Roman, serif' }}>
-										<span style={{ color: '#23c460' }}>Event</span>
-										<span style={{ color: '#2766ec' }}>z</span>
-										<span style={{ color: '#23c460' }}>Flow</span>
-									</span>
-								</button>
-								<SheetTitle>Navigation</SheetTitle>
-								<SheetDescription>
-									Navigate to different sections of the page
-								</SheetDescription>
-							</SheetHeader>
-							<div className="flex-1 overflow-y-auto px-6 py-6">
-								<div className="flex flex-col gap-1.5">
-									{navigationLinks.map((link, index) => (
-										<button
-											key={index}
-											type="button"
-											onClick={() => scrollToSection(link.id)}
-											className="w-full rounded-lg px-4 py-2.5 text-left text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-foreground"
+							<SheetContent
+								side="left"
+								className="flex w-[300px] flex-col p-0 sm:w-[400px]"
+							>
+								<SheetHeader className="sticky top-0 z-10 border-b bg-background px-6 pt-6 pb-4">
+									{/* Logo in Mobile Sheet */}
+									<button
+										onClick={() => {
+											scrollToTop();
+											setOpen(false);
+										}}
+										className="mb-4 flex w-fit items-center space-x-3 transition-opacity hover:opacity-80"
+									>
+										<span
+											className="font-bold text-2xl leading-tight"
+											style={{ fontFamily: "Times New Roman, serif" }}
 										>
-											{link.label}
-										</button>
-									))}
+											<span style={{ color: "#23c460" }}>Event</span>
+											<span style={{ color: "#2766ec" }}>z</span>
+											<span style={{ color: "#23c460" }}>Flow</span>
+										</span>
+									</button>
+									<SheetTitle>Navigation</SheetTitle>
+									<SheetDescription>
+										Navigate to different sections of the page
+									</SheetDescription>
+								</SheetHeader>
+								<div className="flex-1 overflow-y-auto px-6 py-6">
+									<div className="flex flex-col gap-1.5">
+										{navigationLinks.map((link, index) => (
+											<button
+												key={index}
+												type="button"
+												onClick={() => scrollToSection(link.id)}
+												className="w-full rounded-lg px-4 py-2.5 text-left text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-foreground"
+											>
+												{link.label}
+											</button>
+										))}
+									</div>
 								</div>
-							</div>
-						</SheetContent>
-					</Sheet>
+							</SheetContent>
+						</Sheet>
 					)}
 				</div>
 
