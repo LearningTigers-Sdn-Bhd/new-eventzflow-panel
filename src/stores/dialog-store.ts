@@ -2,7 +2,16 @@
 
 import { create } from "zustand";
 
-export type DialogSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
+export type DialogSize =
+	| "sm"
+	| "md"
+	| "lg"
+	| "xl"
+	| "2xl"
+	| "3xl"
+	| "4xl"
+	| "5xl"
+	| "full";
 
 export interface DialogConfig {
 	title?: string;

@@ -129,9 +129,9 @@ export function useTicketValidation() {
 						: undefined,
 				};
 
-			toast.success(SUCCESS_MESSAGES.TICKET_VALID, {
-				description: `${checkedInTicket.name} • ${checkedInTicket.ticketTypeName}`,
-			});
+				toast.success(SUCCESS_MESSAGES.TICKET_VALID, {
+					description: `${checkedInTicket.name} • ${checkedInTicket.ticketTypeName}`,
+				});
 
 				playBeep(true);
 
