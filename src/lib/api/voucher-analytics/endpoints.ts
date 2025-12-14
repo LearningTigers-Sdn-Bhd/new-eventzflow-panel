@@ -40,8 +40,7 @@ export async function getVoucherAnalytics(
 			: baseUrl;
 
 		// Make API request
-		const response =
-			await restClient.get<BackendVoucherAnalyticsResponse>(url);
+		const response = await restClient.get<BackendVoucherAnalyticsResponse>(url);
 
 		// Transform backend response to frontend format
 		// Transform top_scanned_vouchers from hash to array
@@ -74,4 +73,3 @@ export async function getVoucherAnalytics(
 		throw new Error(error.message || "Failed to fetch voucher analytics");
 	}
 }
-

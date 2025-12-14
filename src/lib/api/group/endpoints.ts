@@ -1,11 +1,11 @@
 import { restClient } from "@/utils/rest-api";
-import type { Group, GroupWithMembers } from "./response";
 import {
 	type CreateGroupRequest,
-	type UpdateGroupRequest,
 	createGroupSchema,
+	type UpdateGroupRequest,
 	updateGroupSchema,
 } from "./request";
+import type { Group, GroupWithMembers } from "./response";
 
 /**
  * Get all groups (filtered by role)
@@ -66,6 +66,9 @@ export async function addGroupAffiliate(groupId: number, vendorId: number) {
 /**
  * Remove a vendor from a group
  */
-export async function removeGroupAffiliate(groupId: number, affiliateId: number): Promise<void> {
+export async function removeGroupAffiliate(
+	groupId: number,
+	affiliateId: number,
+): Promise<void> {
 	await restClient.delete(`v1/groups/${groupId}/affiliates/${affiliateId}`);
 }

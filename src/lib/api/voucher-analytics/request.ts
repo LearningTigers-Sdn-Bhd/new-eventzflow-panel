@@ -13,4 +13,3 @@ export const getVoucherAnalyticsSchema = z.object({
 export type GetVoucherAnalyticsRequest = z.infer<
 	typeof getVoucherAnalyticsSchema
 >;
-

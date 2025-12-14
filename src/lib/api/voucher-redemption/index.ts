@@ -10,6 +10,6 @@ export {
 // Response types
 export type {
 	BackendRedeemVoucherResponse,
-	VoucherRedemptionResponse,
 	VoucherRedemptionErrorResponse,
+	VoucherRedemptionResponse,
 } from "./response";

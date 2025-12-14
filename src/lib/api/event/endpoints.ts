@@ -1,4 +1,4 @@
-import { restClient, publicRestClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type CreateEventRequest,
 	createEventSchema,
@@ -140,10 +140,12 @@ export interface PublicEventInfo {
  * Get public event info by ID (PUBLIC - no authentication required)
  * Returns limited event information for public display
  */
-export async function getPublicEventById(eventId: string): Promise<PublicEventInfo> {
+export async function getPublicEventById(
+	eventId: string,
+): Promise<PublicEventInfo> {
 	try {
 		const response = await publicRestClient.get<{ data: PublicEventInfo }>(
-			`v1/public/events/${eventId}`
+			`v1/public/events/${eventId}`,
 		);
 		return response.data;
 	} catch (error: unknown) {

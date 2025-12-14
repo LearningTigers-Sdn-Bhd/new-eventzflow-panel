@@ -50,7 +50,11 @@ export const registerInvitedVendorSchema = z
 				company_address: z.string().optional(),
 				pic_full_name: z.string().min(1, "PIC name is required"),
 				pic_contact_number: z.string().min(1, "PIC contact is required"),
-				pic_email_address: z.string().email("Invalid email").optional().or(z.literal("")),
+				pic_email_address: z
+					.string()
+					.email("Invalid email")
+					.optional()
+					.or(z.literal("")),
 			})
 			.optional(),
 	})

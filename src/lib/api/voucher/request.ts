@@ -51,4 +51,3 @@ export const deleteVoucherSchema = z.object({
 export type CreateVoucherRequest = z.infer<typeof createVoucherSchema>;
 export type UpdateVoucherRequest = z.infer<typeof updateVoucherSchema>;
 export type DeleteVoucherRequest = z.infer<typeof deleteVoucherSchema>;
-

@@ -65,4 +65,3 @@ export type VoucherAnalyticsResponse = {
 	topScannedVouchers: TopScannedVoucher[];
 	latestRedemptionTransactions: LatestRedemptionTransaction[];
 };
-

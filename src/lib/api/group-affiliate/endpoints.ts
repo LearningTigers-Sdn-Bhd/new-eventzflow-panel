@@ -1,14 +1,13 @@
 import { restClient } from "@/utils/rest-api";
+import { type CreateAffiliateRequest, createAffiliateSchema } from "./request";
 import type { GroupAffiliate } from "./response";
-import {
-	type CreateAffiliateRequest,
-	createAffiliateSchema,
-} from "./request";
 
 /**
  * Get all affiliates for a group
  */
-export async function getGroupAffiliates(groupId: number): Promise<GroupAffiliate[]> {
+export async function getGroupAffiliates(
+	groupId: number,
+): Promise<GroupAffiliate[]> {
 	return restClient.get<GroupAffiliate[]>(`v1/groups/${groupId}/affiliates`);
 }
 
@@ -28,6 +27,11 @@ export async function createGroupAffiliate(
 /**
  * Remove a vendor from a group (org_owner only)
  */
-export async function deleteGroupAffiliate(groupId: number, affiliateId: number): Promise<void> {
-	await restClient.delete<void>(`v1/groups/${groupId}/affiliates/${affiliateId}`);
+export async function deleteGroupAffiliate(
+	groupId: number,
+	affiliateId: number,
+): Promise<void> {
+	await restClient.delete<void>(
+		`v1/groups/${groupId}/affiliates/${affiliateId}`,
+	);
 }
