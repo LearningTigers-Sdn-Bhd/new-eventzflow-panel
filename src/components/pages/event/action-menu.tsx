@@ -19,10 +19,10 @@ import {
 	Gift,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useMemo } from "react";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -43,8 +43,8 @@ import {
 	restoreEvent,
 } from "@/lib/api/event";
 import { cn } from "@/lib/utils";
-import EventSettingsDialog from "./settings/modal";
 import ConfirmDialog from "./settings/confirm-dialog";
+import EventSettingsDialog from "./settings/modal";
 
 interface EventActionsMenuProps {
 	eventId: number;
@@ -78,7 +78,10 @@ type CrudActionItem = {
 	showInMenu: boolean;
 };
 
-export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) {
+export function EventActionsMenu({
+	eventId,
+	deletedAt,
+}: EventActionsMenuProps) {
 	const _router = useRouter();
 	const { openDialog, closeDialog } = useDialog();
 	const { user } = useAuth();
@@ -166,7 +169,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				route: `/event/${eventId}/visitors`,
 				className: "",
 				featureKey: "visitors",
-				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVisitorsTab),
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.canViewVisitorsTab),
 			},
 
 			// === STAFF MANAGEMENT ===
@@ -177,7 +181,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				route: `/event/${eventId}/event-staff`,
 				className: "",
 				featureKey: "event-staff",
-				shouldDisplay: ({ permissions }) => Boolean(permissions.canManageEventStaff),
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.canManageEventStaff),
 			},
 
 			// === VENDOR & VOUCHER MANAGEMENT ===
@@ -214,7 +219,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				route: `/event/${eventId}/vouchers`,
 				className: "",
 				featureKey: "vouchers",
-				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVendorsTab),
+				shouldDisplay: ({ permissions }) =>
+					Boolean(permissions.canViewVendorsTab),
 			},
 			{
 				id: `voucher-redemption-id${eventId}`,
@@ -233,7 +239,10 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				className: "",
 				featureKey: "voucher-logs",
 				shouldDisplay: ({ permissions }) =>
-					Boolean(permissions.canManageEventVendors || permissions.canManageEventStaff),
+					Boolean(
+						permissions.canManageEventVendors ||
+							permissions.canManageEventStaff,
+					),
 			},
 			{
 				id: `visitor-stamps-id${eventId}`,
@@ -252,7 +261,11 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				className: "",
 				featureKey: "stamp-logs",
 				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
-					Boolean(isNonTicketEvent && (permissions.canManageEventVendors || permissions.canManageEventStaff)),
+					Boolean(
+						isNonTicketEvent &&
+							(permissions.canManageEventVendors ||
+								permissions.canManageEventStaff),
+					),
 			},
 
 			// === ANALYTICS & INSIGHTS ===
@@ -273,7 +286,9 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				className: "",
 				featureKey: "voucher-analytics",
 				shouldDisplay: ({ permissions }) =>
-					Boolean(permissions.isEventVendor || permissions.canManageEventVendors),
+					Boolean(
+						permissions.isEventVendor || permissions.canManageEventVendors,
+					),
 			},
 			{
 				id: `mall-live-feed-id${eventId}`,
@@ -319,7 +334,13 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		}
 
 		return filteredItems;
-	}, [currentEvent?.use_ticket, currentEvent?.use_exhibitor_kit, permissions, eventId, isVendor]);
+	}, [
+		currentEvent?.use_ticket,
+		currentEvent?.use_exhibitor_kit,
+		permissions,
+		eventId,
+		isVendor,
+	]);
 
 	const archiveEventMutation = useMutation({
 		mutationFn: archiveEvent,
@@ -361,7 +382,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: "Are you sure you want to archive this event? The event will be archived and hidden from the main list.",
+				message:
+					"Are you sure you want to archive this event? The event will be archived and hidden from the main list.",
 				confirmLabel: "Archive",
 				cancelLabel: "Cancel",
 				variant: "warning",
@@ -382,7 +404,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: "Are you sure you want to permanently delete this event? This action cannot be undone and all associated data will be permanently removed.",
+				message:
+					"Are you sure you want to permanently delete this event? This action cannot be undone and all associated data will be permanently removed.",
 				confirmLabel: "Delete",
 				cancelLabel: "Cancel",
 				variant: "destructive",
@@ -403,7 +426,8 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: "Are you sure you want to restore this event? The event will be unarchived and visible in the main list again.",
+				message:
+					"Are you sure you want to restore this event? The event will be unarchived and visible in the main list again.",
 				confirmLabel: "Restore",
 				cancelLabel: "Cancel",
 				variant: "success",

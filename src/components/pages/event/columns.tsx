@@ -211,7 +211,9 @@ const baseColumns: ColumnDef<Event>[] = [
 		header: "Actions",
 		cell: ({ row }) => {
 			const _event = row.original;
-			return <EventActionsMenu eventId={_event.id} deletedAt={_event.deleted_at} />;
+			return (
+				<EventActionsMenu eventId={_event.id} deletedAt={_event.deleted_at} />
+			);
 		},
 	},
 ];

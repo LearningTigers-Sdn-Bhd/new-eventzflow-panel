@@ -236,7 +236,7 @@ export function DataTable<TData, TValue>({
 						</Table>
 					</div>
 				) : isTablet && !_isMobile ? (
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-4 pb-6">
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
 								<div key={row.id} className="col-span-1">
@@ -254,7 +254,7 @@ export function DataTable<TData, TValue>({
 						)}
 					</div>
 				) : (
-					<div className="space-y-2">
+					<div className="space-y-2 pb-6">
 						{table.getRowModel().rows?.length ? (
 							table
 								.getRowModel()

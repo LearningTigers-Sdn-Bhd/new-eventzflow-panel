@@ -141,7 +141,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			// Use setTimeout to ensure form fields are ready before setting values
 			setTimeout(() => {
 				form.setFieldValue("title", event.title || "");
-				form.setFieldValue("status", event.status as "draft" | "published" | "cancelled" | "completed");
+				form.setFieldValue(
+					"status",
+					event.status as "draft" | "published" | "cancelled" | "completed",
+				);
 				form.setFieldValue("visibility", event.visibility ?? true);
 				form.setFieldValue("useTicket", event.use_ticket ?? true);
 				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
@@ -280,7 +283,11 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												value={String(field.state.value)}
 												onValueChange={(value) =>
 													field.handleChange(
-														value as "draft" | "published" | "cancelled" | "completed",
+														value as
+															| "draft"
+															| "published"
+															| "cancelled"
+															| "completed",
 													)
 												}
 												disabled={updateEventMutation.isPending}

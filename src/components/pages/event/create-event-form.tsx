@@ -171,7 +171,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	};
 
 	return (
-		<div className="w-full">
+		<div className="w-full p-4">
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldSeparator />
@@ -193,10 +193,10 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 						{/* Row 2: All Toggles in one row - dynamically adjust columns based on ticketing and exhibitor kit state */}
 						<div className={`grid grid-cols-1 gap-4 ${
-							!formData.use_ticket 
-								? 'md:grid-cols-2' 
-								: formData.use_exhibitor_kit 
-									? 'md:grid-cols-4' 
+							!formData.use_ticket
+								? 'md:grid-cols-2'
+								: formData.use_exhibitor_kit
+									? 'md:grid-cols-4'
 									: 'md:grid-cols-3'
 						}`}>
 							{/* Visibility */}
@@ -219,7 +219,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 							{/* Ticketing System */}
 							<Field orientation="vertical">
-								<FieldLabel htmlFor={useTicketId}>Use Ticketing System</FieldLabel>
+								<FieldLabel htmlFor={useTicketId}>
+									Use Ticketing System
+								</FieldLabel>
 								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 									<Switch
 										id={useTicketId}
@@ -427,16 +429,21 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 						<FieldSeparator />
 
 						{/* Buttons - Right Aligned */}
-						<div className="flex justify-end gap-2">
+						<div className="flex flex-col justify-end gap-2 lg:flex-row">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={onClose}
+								className="w-full rounded-none py-6 lg:w-auto lg:py-0"
 								disabled={createEventMutation.isPending}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createEventMutation.isPending}>
+							<Button
+								type="submit"
+								disabled={createEventMutation.isPending}
+								className="w-full rounded-none py-6 lg:w-auto lg:py-0"
+							>
 								{createEventMutation.isPending ? "Creating..." : "Create Event"}
 							</Button>
 						</div>

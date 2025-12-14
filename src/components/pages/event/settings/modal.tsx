@@ -26,8 +26,12 @@ export default function EventSettingsDialog({
 				onClose={onClose}
 			/>
 			<div className="flex flex-col gap-4">
-				{activeTab === "event-information" && <InfoForm eventId={eventId} onClose={onClose} />}
-				{activeTab === "custom-labels" && <CustomLabelForm eventId={eventId} onClose={onClose} />}
+				{activeTab === "event-information" && (
+					<InfoForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "custom-labels" && (
+					<CustomLabelForm eventId={eventId} onClose={onClose} />
+				)}
 			</div>
 		</div>
 	);

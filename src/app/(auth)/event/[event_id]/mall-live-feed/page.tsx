@@ -10,24 +10,30 @@ import {
 	Users,
 } from "lucide-react";
 import { use, useMemo } from "react";
-import { StatsCard } from "@/components/analytics-card";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { StatsCard } from "@/components/admin-ui/analytic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMallLiveFeed } from "@/lib/api/event/analytics";
-import {
-	Cell,
-	Legend,
-	Pie,
-	PieChart,
-	ResponsiveContainer,
-	Tooltip,
-} from "recharts";
 
 interface MallLiveFeedPageProps {
 	params: Promise<{
 		event_id: string;
 	}>;
 }
+
+// Generate dynamic colors for any number of locations using HSL color space
+// Ensures visually distinct colors by distributing hues across the color wheel
+const generateColor = (index: number, total: number): string => {
+	// Distribute hues evenly across the 360° color wheel
+	const hue = (index * 360) / Math.max(total, 1);
+
+	// Vary saturation and lightness slightly for better distinction
+	const saturation = 70 + (index % 3) * 5; // 70-80%
+	const lightness = 55 + (index % 2) * 5; // 55-60%
+
+	return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+};
 
 export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 	const { event_id } = use(params);
@@ -45,19 +51,6 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 			style: "currency",
 			currency: "MYR",
 		}).format(amount);
-	};
-
-	// Generate dynamic colors for any number of locations using HSL color space
-	// Ensures visually distinct colors by distributing hues across the color wheel
-	const generateColor = (index: number, total: number): string => {
-		// Distribute hues evenly across the 360° color wheel
-		const hue = (index * 360) / Math.max(total, 1);
-
-		// Vary saturation and lightness slightly for better distinction
-		const saturation = 70 + (index % 3) * 5; // 70-80%
-		const lightness = 55 + (index % 2) * 5; // 55-60%
-
-		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 	};
 
 	const locationTrafficData = useMemo(() => {
@@ -83,7 +76,6 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 			fill: generateColor(index, total),
 		}));
 	}, [data?.popular_halls]);
-
 	if (Number.isNaN(eventId)) {
 		return (
 			<div className="flex h-64 items-center justify-center">
@@ -200,8 +192,8 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 												dataKey="value"
 												paddingAngle={3}
 											>
-												{locationTrafficData.map((entry, index) => (
-													<Cell key={`cell-${index}`} fill={entry.fill} />
+												{locationTrafficData.map((entry) => (
+													<Cell key={entry.name} fill={entry.fill} />
 												))}
 											</Pie>
 											{locationTrafficData[0]?.name !== "No Data" && (
@@ -223,20 +215,21 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 											No location traffic data available yet
 										</p>
 										<p className="text-center text-muted-foreground text-xs">
-											Data will appear once vendors are assigned to locations and visitors get stamped
+											Data will appear once vendors are assigned to locations
+											and visitors get stamped
 										</p>
 									</div>
 								) : (
 									<div className="space-y-4">
 										{/* Legend - Capsule Design with Percentages */}
 										<div className="flex flex-wrap items-center justify-center gap-3">
-											{locationTrafficData.map((location, index) => (
+											{locationTrafficData.map((location) => (
 												<div
-													key={index}
+													key={location.name}
 													className="flex items-center gap-2 rounded-full px-3 py-1.5"
 													style={{
 														backgroundColor: `${location.fill}15`,
-														border: `1.5px solid ${location.fill}`
+														border: `1.5px solid ${location.fill}`,
 													}}
 												>
 													<div
@@ -271,49 +264,51 @@ export default function MallLiveFeedPage({ params }: MallLiveFeedPageProps) {
 					<CardHeader>
 						<CardTitle>Top 5 Merchants by Visits</CardTitle>
 					</CardHeader>
-				<CardContent>
-					{isLoading ? (
-						<div className="space-y-3">
-							{[1, 2, 3, 4, 5].map((i) => (
-								<Skeleton key={i} className="h-20 w-full" />
-							))}
-						</div>
-					) : data?.top_merchants && data.top_merchants.length > 0 ? (
-						<div className="space-y-3">
-							{data.top_merchants.map(
-								(
-									merchant: { name: string; count: number },
-									index: number,
-								) => (
-									<div
-										key={`${merchant.name}-${index}`}
-										className="flex items-center justify-between border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
-									>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-sm">
-												{index + 1}
+					<CardContent>
+						{isLoading ? (
+							<div className="space-y-3">
+								{[1, 2, 3, 4, 5].map((i) => (
+									<Skeleton key={i} className="h-20 w-full" />
+								))}
+							</div>
+						) : data?.top_merchants && data.top_merchants.length > 0 ? (
+							<div className="space-y-3">
+								{data.top_merchants.map(
+									(
+										merchant: { name: string; count: number },
+										index: number,
+									) => (
+										<div
+											key={merchant.name}
+											className="flex items-center justify-between border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
+										>
+											<div className="flex items-center gap-3">
+												<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-sm">
+													{index + 1}
+												</div>
+												<div className="min-w-0 flex-1">
+													<p className="truncate font-semibold">
+														{merchant.name}
+													</p>
+												</div>
 											</div>
-											<div className="min-w-0 flex-1">
-												<p className="truncate font-semibold">{merchant.name}</p>
+											<div className="ml-4 shrink-0 text-right">
+												<p className="font-bold text-2xl">
+													{merchant.count.toLocaleString()}
+												</p>
+												<p className="text-muted-foreground text-xs">visits</p>
 											</div>
 										</div>
-										<div className="ml-4 flex-shrink-0 text-right">
-											<p className="font-bold text-2xl">
-												{merchant.count.toLocaleString()}
-											</p>
-											<p className="text-muted-foreground text-xs">visits</p>
-										</div>
-									</div>
-								),
-							)}
-						</div>
-					) : (
-						<div className="flex h-64 items-center justify-center text-muted-foreground">
-							No merchant data available
-						</div>
-					)}
-				</CardContent>
-			</Card>
+									),
+								)}
+							</div>
+						) : (
+							<div className="flex h-64 items-center justify-center text-muted-foreground">
+								No merchant data available
+							</div>
+						)}
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);
