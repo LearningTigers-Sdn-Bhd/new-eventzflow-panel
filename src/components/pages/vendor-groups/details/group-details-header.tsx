@@ -1,9 +1,15 @@
 "use client";
 
-import type { GroupWithMembers } from "@/lib/api/group";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Building2 } from "lucide-react";
+import { Building2, Calendar } from "lucide-react";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { useGroupAffiliates } from "@/hooks/use-group-affiliates";
+import type { GroupWithMembers } from "@/lib/api/group";
 
 interface GroupDetailsHeaderProps {
 	group: GroupWithMembers;
@@ -34,8 +40,12 @@ export function GroupDetailsHeader({ group }: GroupDetailsHeaderProps) {
 								<Calendar className="h-5 w-5 text-muted-foreground" />
 							</div>
 							<div className="space-y-1">
-								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Created</p>
-								<p className="font-bold text-sm">{new Date(group.created_at).toLocaleDateString()}</p>
+								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+									Created
+								</p>
+								<p className="font-bold text-sm">
+									{new Date(group.created_at).toLocaleDateString()}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -47,7 +57,9 @@ export function GroupDetailsHeader({ group }: GroupDetailsHeaderProps) {
 								<Building2 className="h-5 w-5 text-muted-foreground" />
 							</div>
 							<div className="space-y-1">
-								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Vendors</p>
+								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+									Vendors
+								</p>
 								<p className="font-bold text-2xl">{vendorCount}</p>
 							</div>
 						</div>

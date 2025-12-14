@@ -21,7 +21,14 @@ interface TicketConfirmationProps {
 	newEmail?: string;
 }
 
-export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, newPhone, newEmail }: TicketConfirmationProps) {
+export function TicketConfirmation({
+	ticketData,
+	isLoading,
+	onConfirm,
+	onBack,
+	newPhone,
+	newEmail,
+}: TicketConfirmationProps) {
 	// Determine what to display (newly collected data takes priority)
 	const displayEmail = newEmail || ticketData.email;
 	const displayPhone = newPhone || ticketData.phone;
@@ -37,23 +44,31 @@ export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, n
 					</div>
 					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Email:</span>
-						<span className={`break-all text-left font-medium ${!displayEmail ? "text-muted-foreground italic" : ""}`}>
+						<span
+							className={`break-all text-left font-medium ${!displayEmail ? "text-muted-foreground italic" : ""}`}
+						>
 							{displayEmail || "Not provided"}
 						</span>
 					</div>
 					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Phone:</span>
-						<span className={`break-words font-medium ${!displayPhone ? "text-muted-foreground italic" : ""}`}>
+						<span
+							className={`break-words font-medium ${!displayPhone ? "text-muted-foreground italic" : ""}`}
+						>
 							{displayPhone || "Not provided"}
 						</span>
 					</div>
 					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Ticket Type:</span>
-						<span className="break-words font-medium">{ticketData.ticketType}</span>
+						<span className="break-words font-medium">
+							{ticketData.ticketType}
+						</span>
 					</div>
 					<div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
 						<span className="text-muted-foreground">Event:</span>
-						<span className="break-words font-medium">{ticketData.eventName}</span>
+						<span className="break-words font-medium">
+							{ticketData.eventName}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -73,7 +88,11 @@ export function TicketConfirmation({ ticketData, isLoading, onConfirm, onBack, n
 					<ArrowLeft className="h-4 w-4" />
 					Back
 				</Button>
-				<Button onClick={onConfirm} className="h-10 flex-1" disabled={isLoading}>
+				<Button
+					onClick={onConfirm}
+					className="h-10 flex-1"
+					disabled={isLoading}
+				>
 					{isLoading ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,19 +1,14 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-	Pencil,
-	Power,
-	PowerOff,
-	Trash2,
-} from "lucide-react";
+import { Pencil, Power, PowerOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { toggleVendorStatus, deleteVendor } from "@/lib/api/vendor";
 import type { Vendor } from "@/lib/api/vendor";
+import { deleteVendor, toggleVendorStatus } from "@/lib/api/vendor";
 import ConfirmDialog from "../dialogs/confirm-dialog";
 import EditVendorForm from "../dialogs/edit-vendor-form";
 
@@ -144,7 +139,9 @@ export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 						: "rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 				}
 				onClick={handleToggleStatusClick}
-				title={vendor.status === "active" ? "Deactivate Vendor" : "Activate Vendor"}
+				title={
+					vendor.status === "active" ? "Deactivate Vendor" : "Activate Vendor"
+				}
 			>
 				{vendor.status === "active" ? (
 					<PowerOff className="size-4" />

@@ -11,8 +11,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { Voucher as ApiVoucher } from "@/lib/api/voucher";
+import { cn } from "@/lib/utils";
 import { VoucherActionsMenu } from "./action-menu";
 
 // Re-export the API Voucher type for use in the table

@@ -148,7 +148,11 @@ export function DataTable<TData, TValue>({
 										>
 											<EmptyState
 												title="No locations found"
-												description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
+												description={
+													isVendor
+														? "You haven't been assigned to any locations yet"
+														: "Create your first location to get started"
+												}
 												icon={<Calendar />}
 												height="h-auto"
 												action={
@@ -177,7 +181,11 @@ export function DataTable<TData, TValue>({
 					) : (
 						<EmptyState
 							title="No locations found"
-							description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
+							description={
+								isVendor
+									? "You haven't been assigned to any locations yet"
+									: "Create your first location to get started"
+							}
 							icon={<Calendar />}
 							height="h-auto"
 							action={
@@ -201,12 +209,18 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No locations found"
-								description={isVendor ? "You haven't been assigned to any locations yet" : "Create your first location to get started"}
+								description={
+									isVendor
+										? "You haven't been assigned to any locations yet"
+										: "Create your first location to get started"
+								}
 								icon={<Calendar />}
 								height="h-auto"
 								action={
 									!isVendor ? (
-										<Button onClick={openLocationCreate}>Create Location</Button>
+										<Button onClick={openLocationCreate}>
+											Create Location
+										</Button>
 									) : undefined
 								}
 							/>

@@ -11,8 +11,8 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/api/vendor";
+import { cn } from "@/lib/utils";
 import { VendorActionsMenu } from "./action-menu";
 
 interface VendorItemProps {
@@ -28,7 +28,10 @@ export function VendorItem({ vendor }: VendorItemProps) {
 
 	const handleWhatsAppClick = () => {
 		if (vendor.phone) {
-			window.open(`https://wa.me/${vendor.phone.replace(/[^0-9]/g, "")}`, "_blank");
+			window.open(
+				`https://wa.me/${vendor.phone.replace(/[^0-9]/g, "")}`,
+				"_blank",
+			);
 		}
 	};
 
@@ -76,7 +79,9 @@ export function VendorItem({ vendor }: VendorItemProps) {
 							</Button>
 						</span>
 					)}
-					<span className="text-xs">Joined on {formatDate(vendor.createdAt)}</span>
+					<span className="text-xs">
+						Joined on {formatDate(vendor.createdAt)}
+					</span>
 				</div>
 			</ItemContent>
 			<ItemActions>

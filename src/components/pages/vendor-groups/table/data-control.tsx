@@ -67,10 +67,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 			) : (
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField
-						table={table}
-						placeholder="Search groups..."
-					/>
+					<QuerySearchField table={table} placeholder="Search groups..." />
 					<div className="grid grid-cols-2 gap-2">
 						<Button
 							variant="outline"

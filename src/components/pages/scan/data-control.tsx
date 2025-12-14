@@ -119,14 +119,15 @@ export function DataControl({
 
 	return (
 		<div className="flex flex-col gap-2 border-y border-dashed bg-accent px-0 py-0 md:flex-row md:gap-3 md:px-4 md:py-2">
-			<InputGroup className="rounded-none bg-background">
+			<InputGroup className="rounded-none bg-background py-6 md:py-0">
 				<InputGroupInput
 					placeholder="Search tickets, names, events..."
 					value={searchTerm}
 					onChange={(event) => handleSearchChange(event.target.value)}
+					className="placeholder:text-sm placeholder:tracking-tight"
 				/>
 				<InputGroupAddon>
-					<Search className="h-4 w-4" />
+					<Search className="mr-2.5 size-4" />
 				</InputGroupAddon>
 				{searchTerm && (
 					<InputGroupAddon align="inline-end">
@@ -138,17 +139,19 @@ export function DataControl({
 			</InputGroup>
 			<div className="grid grid-cols-2 gap-2 md:flex md:justify-end">
 				<Select value={filterType} onValueChange={handleFilterChange}>
-					<SelectTrigger className="h-9 w-full rounded-none bg-background text-xs sm:h-10 sm:text-sm md:w-[140px]">
-						<Filter className="mr-1.5 h-3.5 w-3.5 shrink-0 sm:mr-2 sm:h-4 sm:w-4" />
+					<SelectTrigger className="w-full rounded-none bg-background py-6 text-sm tracking-tight md:py-0">
+						<Filter className="mr-2.5 size-4 shrink-0" />
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent className="rounded-none">
-						<SelectItem value="all">All Events</SelectItem>
+						<SelectItem value="all" className="rounded-none py-3 md:py-2">
+							All Events
+						</SelectItem>
 						{uniqueEvents.map((event) => (
 							<SelectItem
 								key={event.id}
 								value={event.id}
-								className="rounded-none"
+								className="rounded-none py-3 md:py-2"
 							>
 								<span className="max-w-[200px] text-wrap">{event.name}</span>
 							</SelectItem>
@@ -156,18 +159,18 @@ export function DataControl({
 					</SelectContent>
 				</Select>
 				<Select value={sortType} onValueChange={handleSortChange}>
-					<SelectTrigger className="h-9 w-full rounded-none bg-background text-xs sm:h-10 sm:text-sm md:w-[140px]">
-						<Clock className="mr-1.5 h-3.5 w-3.5 shrink-0 sm:mr-2 sm:h-4 sm:w-4" />
+					<SelectTrigger className="w-full rounded-none bg-background py-6 text-sm tracking-tight md:py-0">
+						<Clock className="mr-2.5 size-4 shrink-0" />
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent className="rounded-none">
-						<SelectItem value="newest" className="rounded-none">
+						<SelectItem value="newest" className="rounded-none py-3 md:py-2">
 							Newest First
 						</SelectItem>
-						<SelectItem value="oldest" className="rounded-none">
+						<SelectItem value="oldest" className="rounded-none py-3 md:py-2">
 							Oldest First
 						</SelectItem>
-						<SelectItem value="status" className="rounded-none">
+						<SelectItem value="status" className="rounded-none py-3 md:py-2">
 							By Status
 						</SelectItem>
 					</SelectContent>

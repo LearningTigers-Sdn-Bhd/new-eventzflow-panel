@@ -35,7 +35,8 @@ export function DeleteContractorContent({
 	});
 
 	const companyName =
-		contractor.exhibition_contractor_profile?.company_name ?? contractor.full_name;
+		contractor.exhibition_contractor_profile?.company_name ??
+		contractor.full_name;
 
 	return (
 		<div className="space-y-4">

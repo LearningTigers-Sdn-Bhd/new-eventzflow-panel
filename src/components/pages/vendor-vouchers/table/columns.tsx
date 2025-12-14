@@ -11,8 +11,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { Voucher as ApiVoucher } from "@/lib/api/voucher";
+import { cn } from "@/lib/utils";
 import { VendorVoucherActionsMenu } from "./action-menu";
 
 // Extended voucher type with event name for vendor view
@@ -46,10 +46,11 @@ const eventColumn: ColumnDef<VendorVoucher> = {
 		);
 	},
 	cell: ({ row }) => (
-		<div className="font-medium text-sm">{row.original.eventName || `Event #${row.original.eventId}`}</div>
+		<div className="font-medium text-sm">
+			{row.original.eventName || `Event #${row.original.eventId}`}
+		</div>
 	),
 };
-
 
 // Base columns (without merchant since vendor is viewing their own vouchers)
 const baseColumns: ColumnDef<VendorVoucher>[] = [

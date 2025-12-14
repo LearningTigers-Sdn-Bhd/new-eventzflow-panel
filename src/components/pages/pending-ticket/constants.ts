@@ -9,9 +9,17 @@ export const PAYMENT_STATUS = {
 	REFUNDED_PAYMENT: 3,
 } as const;
 
-export type PaymentStatusValue = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
+export type PaymentStatusValue =
+	(typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
 
-export type PaymentStatusString = "pending" | "paid" | "completed" | "failed" | "refunded_payment" | "approval_pending" | "rejected";
+export type PaymentStatusString =
+	| "pending"
+	| "paid"
+	| "completed"
+	| "failed"
+	| "refunded_payment"
+	| "approval_pending"
+	| "rejected";
 
 /**
  * Maps string payment status to numeric value

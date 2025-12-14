@@ -1,12 +1,12 @@
 "use client";
 
 import {
+	Building2,
 	Calendar,
 	ExternalLink,
-	Mail,
-	Building2,
-	Link as LinkIcon,
 	Image as ImageIcon,
+	Link as LinkIcon,
+	Mail,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,10 +123,10 @@ export function EventVendorItem({ vendor }: EventVendorItemProps) {
 							</span>
 						</div>
 						<span className="px-2.5 pl-7 text-muted-foreground text-xs">
-							{new Date(vendor.created_at).toLocaleTimeString('en-US', {
-								hour: '2-digit',
-								minute: '2-digit',
-								hour12: true
+							{new Date(vendor.created_at).toLocaleTimeString("en-US", {
+								hour: "2-digit",
+								minute: "2-digit",
+								hour12: true,
 							})}
 						</span>
 					</div>

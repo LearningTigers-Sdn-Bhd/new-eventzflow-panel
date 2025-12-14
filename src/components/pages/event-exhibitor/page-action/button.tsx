@@ -24,7 +24,8 @@ export function ExhibitorPageButton() {
 			},
 			config: {
 				title: "Assign Exhibitor to Event",
-				description: "Assign exhibitors to this event individually or from a group.",
+				description:
+					"Assign exhibitors to this event individually or from a group.",
 				size: "full",
 			},
 		});

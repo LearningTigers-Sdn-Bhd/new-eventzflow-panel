@@ -8,9 +8,7 @@ interface VoucherQRDialogProps {
 	onClose: () => void;
 }
 
-export default function VoucherQRDialog({
-	voucher,
-}: VoucherQRDialogProps) {
+export default function VoucherQRDialog({ voucher }: VoucherQRDialogProps) {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col items-center gap-4 py-6">

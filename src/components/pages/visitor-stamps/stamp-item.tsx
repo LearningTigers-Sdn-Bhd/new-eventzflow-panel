@@ -21,7 +21,9 @@ export function VisitorStampItem({ stamp }: VisitorStampItemProps) {
 		<Item variant="outline" className="h-full w-full">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="w-full">
-					<h3 className="font-bold text-lg leading-tight">{stamp.visitor_name}</h3>
+					<h3 className="font-bold text-lg leading-tight">
+						{stamp.visitor_name}
+					</h3>
 				</ItemTitle>
 				{hasContact && (
 					<ItemDescription className="flex w-full flex-col gap-1">

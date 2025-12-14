@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { VisitorStampItem } from "./stamp-item";
 
@@ -75,11 +75,7 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
-			<DataControl
-				table={table}
-				eventId={eventId}
-				onRefetch={onRefetch}
-			/>
+			<DataControl table={table} eventId={eventId} onRefetch={onRefetch} />
 
 			<div className="min-h-[45vh]">
 				{/* Data Table */}
@@ -155,7 +151,9 @@ export function DataTable<TData, TValue>({
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
 								<div key={row.id} className="col-span-1">
-									<VisitorStampItem stamp={row.original as VisitorStampWithDetails} />
+									<VisitorStampItem
+										stamp={row.original as VisitorStampWithDetails}
+									/>
 								</div>
 							))
 						) : (

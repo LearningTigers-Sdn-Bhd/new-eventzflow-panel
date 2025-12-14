@@ -6,8 +6,8 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventActionsStore } from "@/stores/event-actions-store";
-import { VoucherRedemptionModal } from "./redemption-modal";
 import { RedemptionLogsTable } from "./redemption-logs-table";
+import { VoucherRedemptionModal } from "./redemption-modal";
 
 export default function VoucherRedemptionContent() {
 	const { openDialog } = useDialog();
@@ -42,7 +42,11 @@ export default function VoucherRedemptionContent() {
 	 */
 	useEffect(() => {
 		setActions(
-			<Button onClick={handleOpenRedemptionModal} size="default" className="gap-2">
+			<Button
+				onClick={handleOpenRedemptionModal}
+				size="default"
+				className="gap-2"
+			>
 				<QrCode className="h-4 w-4" />
 				Scan Voucher
 			</Button>,

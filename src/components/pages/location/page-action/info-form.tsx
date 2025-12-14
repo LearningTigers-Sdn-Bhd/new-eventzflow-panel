@@ -2,10 +2,10 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,9 +48,11 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 	const eventId = params.event_id as string;
 	const { closeDialog } = useDialog();
 	const queryClient = useQueryClient();
-	
+
 	// State for dynamic location details
-	const [customDetails, setCustomDetails] = useState<Array<{ key: string; value: string }>>([]);
+	const [customDetails, setCustomDetails] = useState<
+		Array<{ key: string; value: string }>
+	>([]);
 
 	// Create location mutation
 	const createLocationMutation = useMutation({
@@ -63,17 +65,17 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 		}) => {
 			// Build location details from custom details
 			const locationDetails: Record<string, string> = {};
-			customDetails.forEach(detail => {
+			customDetails.forEach((detail) => {
 				if (detail.key && detail.value) {
 					locationDetails[detail.key] = detail.value;
 				}
 			});
-			
+
 			// Add notes if provided
 			if (values.notes) {
 				locationDetails.notes = values.notes;
 			}
-			
+
 			return await createLocation({
 				eventId,
 				name: values.name,
@@ -172,92 +174,96 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 													<FieldError errors={field.state.meta.errors} />
 												)}
 											</Field>
-								);
-							}}
-						</form.Field>
+										);
+									}}
+								</form.Field>
 
-						<form.Field name="floor">
-							{(field) => (
-								<Field>
-									<FieldContent>
-										<FieldLabel htmlFor={field.name}>Floor (Optional)</FieldLabel>
-										<FieldDescription>
-											e.g., 1, 2, Ground, Basement
-										</FieldDescription>
-									</FieldContent>
-									<Input
-										id={field.name}
-										name={field.name}
-										value={field.state.value || ""}
-										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder="1"
-									/>
-								</Field>
-							)}
-						</form.Field>
-
-						<form.Field name="isUnlimited">
-							{(field) => (
-								<Field
-									orientation="horizontal"
-									className={cn(
-										"rounded-md border border-primary/30 bg-secondary p-2",
+								<form.Field name="floor">
+									{(field) => (
+										<Field>
+											<FieldContent>
+												<FieldLabel htmlFor={field.name}>
+													Floor (Optional)
+												</FieldLabel>
+												<FieldDescription>
+													e.g., 1, 2, Ground, Basement
+												</FieldDescription>
+											</FieldContent>
+											<Input
+												id={field.name}
+												name={field.name}
+												value={field.state.value || ""}
+												onChange={(e) => field.handleChange(e.target.value)}
+												placeholder="1"
+											/>
+										</Field>
 									)}
-								>
-									<FieldContent>
-										<FieldLabel htmlFor={field.name}>Unlimited</FieldLabel>
-										<FieldDescription>
-											No scan limit for this location
-										</FieldDescription>
-									</FieldContent>
-									<Switch
-										className="ring-offset-1 ring-offset-primary data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-										checked={!!field.state.value}
-										onCheckedChange={(checked) => {
-											const value = !!checked;
-											field.handleChange(value);
-											if (value) {
-												form.setFieldValue("scanLimit", 1);
-											}
-										}}
-									/>
-								</Field>
-							)}
-						</form.Field>
-						<form.Subscribe selector={(state) => state.values.isUnlimited}>
-							{(isUnlimited) =>
-								!isUnlimited && (
-									<form.Field name="scanLimit">
-										{(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-											return (
-												<Field data-invalid={isInvalid}>
-													<FieldContent>
-														<FieldLabel htmlFor={field.name}>
-															Scan Limit
-														</FieldLabel>
-														<FieldDescription>
-															Maximum number of scans allowed for this location
-														</FieldDescription>
-													</FieldContent>
-													<NumberInput
-														value={field.state.value ?? 0}
-														onChange={field.handleChange}
-														min={1}
-														max={9999}
-														step={1}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									</form.Field>
-								)
-							}
-						</form.Subscribe>
+								</form.Field>
+
+								<form.Field name="isUnlimited">
+									{(field) => (
+										<Field
+											orientation="horizontal"
+											className={cn(
+												"rounded-md border border-primary/30 bg-secondary p-2",
+											)}
+										>
+											<FieldContent>
+												<FieldLabel htmlFor={field.name}>Unlimited</FieldLabel>
+												<FieldDescription>
+													No scan limit for this location
+												</FieldDescription>
+											</FieldContent>
+											<Switch
+												className="ring-offset-1 ring-offset-primary data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+												checked={!!field.state.value}
+												onCheckedChange={(checked) => {
+													const value = !!checked;
+													field.handleChange(value);
+													if (value) {
+														form.setFieldValue("scanLimit", 1);
+													}
+												}}
+											/>
+										</Field>
+									)}
+								</form.Field>
+								<form.Subscribe selector={(state) => state.values.isUnlimited}>
+									{(isUnlimited) =>
+										!isUnlimited && (
+											<form.Field name="scanLimit">
+												{(field) => {
+													const isInvalid =
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid;
+													return (
+														<Field data-invalid={isInvalid}>
+															<FieldContent>
+																<FieldLabel htmlFor={field.name}>
+																	Scan Limit
+																</FieldLabel>
+																<FieldDescription>
+																	Maximum number of scans allowed for this
+																	location
+																</FieldDescription>
+															</FieldContent>
+															<NumberInput
+																value={field.state.value ?? 0}
+																onChange={field.handleChange}
+																min={1}
+																max={9999}
+																step={1}
+															/>
+															{isInvalid && (
+																<FieldError errors={field.state.meta.errors} />
+															)}
+														</Field>
+													);
+												}}
+											</form.Field>
+										)
+									}
+								</form.Subscribe>
 							</FieldGroup>
 						</div>
 
@@ -280,14 +286,21 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 									</FieldContent>
 									<Input
 										placeholder="e.g., A, North, East"
-										value={customDetails.find(d => d.key === "Wing")?.value || ""}
+										value={
+											customDetails.find((d) => d.key === "Wing")?.value || ""
+										}
 										onChange={(e) => {
 											const newDetails = [...customDetails];
-											const wingIndex = newDetails.findIndex(d => d.key === "Wing");
+											const wingIndex = newDetails.findIndex(
+												(d) => d.key === "Wing",
+											);
 											if (wingIndex >= 0) {
 												newDetails[wingIndex].value = e.target.value;
 											} else {
-												newDetails.unshift({ key: "Wing", value: e.target.value });
+												newDetails.unshift({
+													key: "Wing",
+													value: e.target.value,
+												});
 											}
 											setCustomDetails(newDetails);
 										}}
@@ -305,18 +318,30 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 									</FieldContent>
 									<Input
 										placeholder="e.g., Premium, General, VIP"
-										value={customDetails.find(d => d.key === "Zone")?.value || ""}
+										value={
+											customDetails.find((d) => d.key === "Zone")?.value || ""
+										}
 										onChange={(e) => {
 											const newDetails = [...customDetails];
-											const zoneIndex = newDetails.findIndex(d => d.key === "Zone");
+											const zoneIndex = newDetails.findIndex(
+												(d) => d.key === "Zone",
+											);
 											if (zoneIndex >= 0) {
 												newDetails[zoneIndex].value = e.target.value;
 											} else {
-												const wingExists = newDetails.findIndex(d => d.key === "Wing");
+												const wingExists = newDetails.findIndex(
+													(d) => d.key === "Wing",
+												);
 												if (wingExists >= 0) {
-													newDetails.splice(wingExists + 1, 0, { key: "Zone", value: e.target.value });
+													newDetails.splice(wingExists + 1, 0, {
+														key: "Zone",
+														value: e.target.value,
+													});
 												} else {
-													newDetails.unshift({ key: "Zone", value: e.target.value });
+													newDetails.unshift({
+														key: "Zone",
+														value: e.target.value,
+													});
 												}
 											}
 											setCustomDetails(newDetails);
@@ -326,14 +351,24 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 								</Field>
 
 								{/* Custom Details - excluding Wing and Zone */}
-								{customDetails.filter(d => d.key !== "Wing" && d.key !== "Zone").length > 0 && (
+								{customDetails.filter(
+									(d) => d.key !== "Wing" && d.key !== "Zone",
+								).length > 0 && (
 									<div className="space-y-3 pt-2">
-										<p className="font-medium text-muted-foreground text-xs">Custom Details</p>
+										<p className="font-medium text-muted-foreground text-xs">
+											Custom Details
+										</p>
 										{customDetails
 											.map((detail, index) => ({ detail, index }))
-											.filter(({ detail }) => detail.key !== "Wing" && detail.key !== "Zone")
+											.filter(
+												({ detail }) =>
+													detail.key !== "Wing" && detail.key !== "Zone",
+											)
 											.map(({ detail, index }) => (
-												<div key={index} className="space-y-2 border bg-muted p-2">
+												<div
+													key={index}
+													className="space-y-2 border bg-muted p-2"
+												>
 													<div className="flex items-center justify-between">
 														<div className="grid flex-1 grid-cols-2 gap-2">
 															<label className="font-medium text-xs">
@@ -343,7 +378,8 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 																Value
 															</label>
 														</div>
-														<div className="w-9" /> {/* Spacer for delete button */}
+														<div className="w-9" />{" "}
+														{/* Spacer for delete button */}
 													</div>
 													<div className="flex items-start gap-2">
 														<div className="grid flex-1 grid-cols-2 gap-2">
@@ -373,7 +409,9 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 															size="icon"
 															variant="ghost"
 															onClick={() => {
-																setCustomDetails(customDetails.filter((_, i) => i !== index));
+																setCustomDetails(
+																	customDetails.filter((_, i) => i !== index),
+																);
 															}}
 															className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-600"
 														>
@@ -384,12 +422,14 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 											))}
 									</div>
 								)}
-								
+
 								<Button
 									type="button"
 									size="sm"
 									variant="outline"
-									onClick={() => setCustomDetails([...customDetails, { key: "", value: "" }])}
+									onClick={() =>
+										setCustomDetails([...customDetails, { key: "", value: "" }])
+									}
 									className="mt-2 h-9 w-full text-xs"
 								>
 									<Plus className="mr-1 size-3" />
@@ -435,8 +475,8 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 						>
 							Cancel
 						</Button>
-						<Button 
-							type="submit" 
+						<Button
+							type="submit"
 							disabled={createLocationMutation.isPending}
 							className="w-full sm:w-auto"
 						>

@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, UserPlus } from "lucide-react";
+import { CheckCircle2, UserPlus, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResultData {
@@ -19,7 +19,11 @@ interface CheckInResultProps {
 	onRegisterClick?: () => void;
 }
 
-export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResultProps) {
+export function CheckInResult({
+	result,
+	onReset,
+	onRegisterClick,
+}: CheckInResultProps) {
 	return (
 		<div className="space-y-4">
 			<div
@@ -48,27 +52,32 @@ export function CheckInResult({ result, onReset, onRegisterClick }: CheckInResul
 						<div className="space-y-0.5 text-emerald-700 text-sm dark:text-emerald-300">
 							{result.details.name && (
 								<p>
-									<span className="font-medium">Name:</span> {result.details.name}
+									<span className="font-medium">Name:</span>{" "}
+									{result.details.name}
 								</p>
 							)}
 							{result.details.email && (
 								<p>
-									<span className="font-medium">Email:</span> {result.details.email}
+									<span className="font-medium">Email:</span>{" "}
+									{result.details.email}
 								</p>
 							)}
 							{result.details.phone && (
 								<p>
-									<span className="font-medium">Phone:</span> {result.details.phone}
+									<span className="font-medium">Phone:</span>{" "}
+									{result.details.phone}
 								</p>
 							)}
 							{result.details.ticketType && (
 								<p>
-									<span className="font-medium">Ticket:</span> {result.details.ticketType}
+									<span className="font-medium">Ticket:</span>{" "}
+									{result.details.ticketType}
 								</p>
 							)}
 							{result.details.eventName && (
 								<p>
-									<span className="font-medium">Event:</span> {result.details.eventName}
+									<span className="font-medium">Event:</span>{" "}
+									{result.details.eventName}
 								</p>
 							)}
 						</div>

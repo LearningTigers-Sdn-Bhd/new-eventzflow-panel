@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
-import { getEventVendors } from "@/lib/api/event-vendor/endpoints";
 import { getLocations, updateLocationMembers } from "@/lib/api/event/location";
+import { getEventVendors } from "@/lib/api/event-vendor/endpoints";
 import type { BaseLocation } from "../columns";
 
 interface AssignVendorDialogProps {
@@ -54,7 +54,8 @@ export default function AssignVendorDialog({
 			);
 			if (currentLocation) {
 				// Get IDs of vendors already assigned to this location
-				const assignedVendorIds = currentLocation.vendors?.map((v) => v.id) || [];
+				const assignedVendorIds =
+					currentLocation.vendors?.map((v) => v.id) || [];
 				setSelectedVendorIds(assignedVendorIds);
 			}
 		}
@@ -64,12 +65,14 @@ export default function AssignVendorDialog({
 	const updateLocationMutation = useMutation({
 		mutationFn: async (vendorIds: string[]) => {
 			// Get existing staff member IDs (not vendors)
-			const currentLocation = allLocations?.find((loc) => loc.id === location.id);
+			const currentLocation = allLocations?.find(
+				(loc) => loc.id === location.id,
+			);
 			const staffIds = currentLocation?.staffMembers?.map((m) => m.id) || [];
-			
+
 			// Combine staff and vendor IDs
 			const allMemberIds = [...staffIds, ...vendorIds];
-			
+
 			return await updateLocationMembers({
 				eventId,
 				locationId: location.id,
@@ -152,8 +155,12 @@ export default function AssignVendorDialog({
 	// Filter vendors by search term
 	const filteredVendors = availableVendors.filter(
 		(eventVendor) =>
-			eventVendor.vendor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			eventVendor.vendor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			eventVendor.vendor.full_name
+				.toLowerCase()
+				.includes(searchTerm.toLowerCase()) ||
+			eventVendor.vendor.email
+				.toLowerCase()
+				.includes(searchTerm.toLowerCase()) ||
 			eventVendor.type.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
@@ -180,9 +187,7 @@ export default function AssignVendorDialog({
 				</h3>
 				<p className="text-muted-foreground text-xs">
 					{selectedVendorIds.length === 0 ? (
-						<span className="text-amber-600">
-							No vendors selected
-						</span>
+						<span className="text-amber-600">No vendors selected</span>
 					) : (
 						<>
 							{selectedVendorIds.length} vendor

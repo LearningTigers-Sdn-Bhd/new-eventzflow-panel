@@ -3,8 +3,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { Visitor } from "@/lib/api/visitor";
+import { cn } from "@/lib/utils";
 import { VisitorActionsMenu } from "./action-menu";
 
 export function generateColumns(): ColumnDef<Visitor>[] {
@@ -32,7 +32,9 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 			),
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1">
-					<div className="truncate font-medium">{row.getValue("full_name")}</div>
+					<div className="truncate font-medium">
+						{row.getValue("full_name")}
+					</div>
 					<div className="truncate text-muted-foreground text-sm">
 						{row.original.phone || "No phone"}
 					</div>
@@ -117,18 +119,18 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 				const date = new Date(row.getValue("created_at"));
 
 				// Time with 'short' style (e.g., "9:55 AM")
-				const timePart = date.toLocaleString('en-US', { timeStyle: 'medium' }); 
-				
+				const timePart = date.toLocaleString("en-US", { timeStyle: "medium" });
+
 				// Date with 'medium' style (e.g., "Nov 24, 2025")
-				const datePart = date.toLocaleString('en-US', { dateStyle: 'medium' });
+				const datePart = date.toLocaleString("en-US", { dateStyle: "medium" });
 
 				return (
 					<div className="font-medium">
 						{/* Time: Use a stronger class like "font-bold" */}
-						<div className="font-semibold">{timePart}</div> 
-						
+						<div className="font-semibold">{timePart}</div>
+
 						{/* Date: Use a slightly less pronounced style or default */}
-						<div className="text-gray-500 text-sm">{datePart}</div> 
+						<div className="text-gray-500 text-sm">{datePart}</div>
 					</div>
 				);
 			},

@@ -198,7 +198,9 @@ export default function EditMemberForm({
 												onCheckedChange={(checked) =>
 													setFormData((prev) => ({
 														...prev,
-														emailVerifiedAt: checked ? new Date().toISOString() : null,
+														emailVerifiedAt: checked
+															? new Date().toISOString()
+															: null,
 													}))
 												}
 												disabled={updateMemberMutation.isPending}

@@ -34,7 +34,10 @@ interface ManualAddFormProps {
 	onClose?: () => void;
 }
 
-export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) {
+export default function ManualAddForm({
+	eventId,
+	onClose,
+}: ManualAddFormProps) {
 	const vendorIdField = useId();
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
@@ -225,7 +228,8 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 						Assign Individual Exhibitor
 					</FieldLegend>
 					<FieldDescription>
-						Select a vendor and configure their exhibitor details for this event.
+						Select a vendor and configure their exhibitor details for this
+						event.
 					</FieldDescription>
 					<FieldSeparator />
 					<FieldGroup>
@@ -252,21 +256,23 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 								</SelectTrigger>
 								<SelectContent>
 									{activeVendors.map((vendor) => {
-										const isAlreadyAdded = addedVendorIds.has(Number(vendor.id));
+										const isAlreadyAdded = addedVendorIds.has(
+											Number(vendor.id),
+										);
 										return (
 											<SelectItem
 												key={vendor.id}
 												value={vendor.id.toString()}
 												disabled={isAlreadyAdded}
 											>
-												<div className="flex items-center gap-2 w-full">
-													<Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-													<div className="flex items-center gap-2 flex-1 min-w-0">
-														<span className="font-medium truncate">
+												<div className="flex w-full items-center gap-2">
+													<Building2 className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+													<div className="flex min-w-0 flex-1 items-center gap-2">
+														<span className="truncate font-medium">
 															{vendor.full_name}
 														</span>
 														<span className="text-muted-foreground">•</span>
-														<span className="text-muted-foreground text-sm truncate">
+														<span className="truncate text-muted-foreground text-sm">
 															{vendor.email}
 														</span>
 													</div>
@@ -338,13 +344,15 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 
 						{/* PIC Information */}
 						<div className="rounded-none border border-dashed bg-muted/30 p-4">
-							<p className="text-sm font-medium mb-4">
+							<p className="mb-4 font-medium text-sm">
 								Person In Charge (PIC) Information
 							</p>
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-4">
+							<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 								<Field orientation="vertical">
-									<FieldLabel htmlFor={picFullNameField}>Full Name *</FieldLabel>
+									<FieldLabel htmlFor={picFullNameField}>
+										Full Name *
+									</FieldLabel>
 									{errors.picFullName && (
 										<FieldError>{errors.picFullName}</FieldError>
 									)}
@@ -421,7 +429,7 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 									onChange={(e) => setSpecialRequirements(e.target.value)}
 									placeholder="Enter any special requirements..."
 									disabled={createExhibitorMutation.isPending}
-									className="rounded-none min-h-[80px]"
+									className="min-h-[80px] rounded-none"
 								/>
 							</Field>
 						</div>
@@ -438,7 +446,10 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createExhibitorMutation.isPending}>
+							<Button
+								type="submit"
+								disabled={createExhibitorMutation.isPending}
+							>
 								{createExhibitorMutation.isPending
 									? "Assigning..."
 									: "Assign Exhibitor"}

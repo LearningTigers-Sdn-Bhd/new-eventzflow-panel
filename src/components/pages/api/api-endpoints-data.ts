@@ -22,8 +22,14 @@ export const API_CATEGORIES = [
 ];
 
 const DEFAULT_HEADERS = { Authorization: "YOUR_API_KEY" };
-const JSON_HEADERS = { Authorization: "YOUR_API_KEY", "Content-Type": "application/json" };
-const FORM_HEADERS = { Authorization: "YOUR_API_KEY", "Content-Type": "multipart/form-data" };
+const JSON_HEADERS = {
+	Authorization: "YOUR_API_KEY",
+	"Content-Type": "application/json",
+};
+const FORM_HEADERS = {
+	Authorization: "YOUR_API_KEY",
+	"Content-Type": "multipart/form-data",
+};
 
 // ============ EVENTS ============
 const EVENT_ENDPOINTS: ApiEndpoint[] = [
@@ -33,7 +39,8 @@ const EVENT_ENDPOINTS: ApiEndpoint[] = [
 		method: "GET",
 		endpoint: "/v1/events",
 		category: "Events",
-		description: "Lists all events managed or staffed by the authenticated user.",
+		description:
+			"Lists all events managed or staffed by the authenticated user.",
 		headers: DEFAULT_HEADERS,
 		response: [
 			{
@@ -127,7 +134,6 @@ const EVENT_ENDPOINTS: ApiEndpoint[] = [
 		headers: DEFAULT_HEADERS,
 	},
 ];
-
 
 // ============ TICKETS ============
 const TICKET_ENDPOINTS: ApiEndpoint[] = [
@@ -354,7 +360,6 @@ const VISITOR_ENDPOINTS: ApiEndpoint[] = [
 	},
 ];
 
-
 // ============ VOUCHERS ============
 const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 	{
@@ -363,7 +368,8 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 		method: "GET",
 		endpoint: "/v1/vouchers",
 		category: "Vouchers",
-		description: "Lists vouchers. Can filter by vendor_id or event_id query params.",
+		description:
+			"Lists vouchers. Can filter by vendor_id or event_id query params.",
 		headers: DEFAULT_HEADERS,
 		response: {
 			success: true,
@@ -412,7 +418,8 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 		method: "POST",
 		endpoint: "/v1/vouchers",
 		category: "Vouchers",
-		description: "Creates a new voucher. Use multipart/form-data for image upload.",
+		description:
+			"Creates a new voucher. Use multipart/form-data for image upload.",
 		headers: FORM_HEADERS,
 		requestBody: {
 			title: "Summer Sale",
@@ -470,7 +477,11 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 		response: {
 			success: true,
 			message: "Voucher redeemed successfully",
-			data: { net_amount: "75.0", discount_applied: "25.0", voucher_type: "fixed_amount" },
+			data: {
+				net_amount: "75.0",
+				discount_applied: "25.0",
+				voucher_type: "fixed_amount",
+			},
 		},
 	},
 ];
@@ -498,7 +509,11 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 					full_name: "Vendor Company",
 					role: "vendor",
 				},
-				exhibitor_kit: { id: 1, booth_number: "A101", booth_type: "shell_scheme" },
+				exhibitor_kit: {
+					id: 1,
+					booth_number: "A101",
+					booth_type: "shell_scheme",
+				},
 			},
 		],
 	},
@@ -508,7 +523,8 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		method: "POST",
 		endpoint: "/v1/events/{event_id}/vendors",
 		category: "Vendors",
-		description: "Creates a new vendor for an event. Only org_owner or organizer can create.",
+		description:
+			"Creates a new vendor for an event. Only org_owner or organizer can create.",
 		headers: JSON_HEADERS,
 		requestBody: {
 			vendor: {
@@ -569,7 +585,12 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 				password_confirmation: "securepassword",
 			},
 		},
-		response: { id: 10, email: "vendor@example.com", full_name: "John Doe", role: "vendor" },
+		response: {
+			id: 10,
+			email: "vendor@example.com",
+			full_name: "John Doe",
+			role: "vendor",
+		},
 	},
 ];
 

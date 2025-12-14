@@ -26,8 +26,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { Group } from "@/lib/api/group/response";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { GroupItem } from "./group-item";
 
@@ -155,10 +155,7 @@ export function DataTable<TData, TValue>({
 							table
 								.getRowModel()
 								.rows.map((row) => (
-									<GroupItem
-										key={row.id}
-										group={row.original as Group}
-									/>
+									<GroupItem key={row.id} group={row.original as Group} />
 								))
 						) : (
 							<EmptyState

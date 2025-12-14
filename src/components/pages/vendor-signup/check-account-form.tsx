@@ -1,8 +1,8 @@
 "use client";
 
 import { LogIn, UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PatternedLayout } from "@/components/patterned-layout";
+import { Button } from "@/components/ui/button";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -37,7 +37,12 @@ export function CheckAccountForm({
 }: CheckAccountFormProps) {
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
+			<VendorSignupEventSidebar
+				event={event}
+				group={group}
+				vendorType={vendorType}
+				useExhibitorKit={useExhibitorKit}
+			/>
 
 			<PatternedLayout>
 				<div className="w-full max-w-md space-y-4">

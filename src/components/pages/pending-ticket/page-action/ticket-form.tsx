@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useId, useState, useEffect } from "react";
+import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +25,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
-import { createPendingTicket } from "@/lib/api/event/pending";
 import { getEventById } from "@/lib/api/event";
+import { createPendingTicket } from "@/lib/api/event/pending";
 import type { TicketType } from "@/lib/api/ticket-type";
 import {
 	createTicketType,
@@ -108,12 +108,17 @@ export default function PendingTicketForm() {
 		isLoadingEventTicketTypes || isLoadingGlobalTicketTypes;
 
 	useEffect(() => {
-		if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
-			const fields = Object.entries(eventData.labels_data).map(([key, value]) => ({
-				labelKey: key,
-				labelName: value as string,
-				value: "",
-			}));
+		if (
+			eventData?.labels_data &&
+			Object.keys(eventData.labels_data).length > 0
+		) {
+			const fields = Object.entries(eventData.labels_data).map(
+				([key, value]) => ({
+					labelKey: key,
+					labelName: value as string,
+					value: "",
+				}),
+			);
 			setCustomFields(fields);
 		}
 	}, [eventData]);
@@ -167,7 +172,10 @@ export default function PendingTicketForm() {
 			newErrors.attendeeName = "Name must be at least 2 characters";
 		}
 
-		if (attendeeEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)) {
+		if (
+			attendeeEmail.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendeeEmail)
+		) {
 			newErrors.attendeeEmail = "Please enter a valid email address";
 		}
 

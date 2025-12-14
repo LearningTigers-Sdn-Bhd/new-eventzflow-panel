@@ -1,14 +1,23 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import type { GroupMember } from "@/lib/api/group";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Shield, User, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/use-auth";
-import { useUpdateGroupMember, useRemoveGroupMember } from "@/hooks/use-group-members";
+import { Plus, Shield, Trash2, User } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import {
+	useRemoveGroupMember,
+	useUpdateGroupMember,
+} from "@/hooks/use-group-members";
+import type { GroupMember } from "@/lib/api/group";
 import { AddMemberDialog } from "../dialogs/add-member-dialog";
 
 interface GroupMembersTableProps {
@@ -16,7 +25,10 @@ interface GroupMembersTableProps {
 	members: GroupMember[];
 }
 
-export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) {
+export function GroupMembersTable({
+	groupId,
+	members,
+}: GroupMembersTableProps) {
 	const { user } = useAuth();
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 	const updateMember = useUpdateGroupMember();
@@ -28,7 +40,7 @@ export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) 
 		if (user.role === "org_owner") return true;
 
 		// Check if user is a manager of this group
-		const userMembership = members.find(m => m.user_id === user.id);
+		const userMembership = members.find((m) => m.user_id === user.id);
 		return userMembership?.has_manager_access ?? false;
 	}, [user, members]);
 
@@ -61,7 +73,9 @@ export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) 
 					<div className="flex items-center justify-between">
 						<div>
 							<CardTitle>Members</CardTitle>
-							<CardDescription>Manage group members and their access</CardDescription>
+							<CardDescription>
+								Manage group members and their access
+							</CardDescription>
 						</div>
 						{canManageMembers && (
 							<Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
@@ -93,13 +107,18 @@ export function GroupMembersTable({ groupId, members }: GroupMembersTableProps) 
 											<User className="h-5 w-5 text-muted-foreground" />
 										</div>
 										<div className="min-w-0 flex-1">
-											<p className="truncate font-medium">{member.user.full_name}</p>
+											<p className="truncate font-medium">
+												{member.user.full_name}
+											</p>
 											<p className="truncate text-muted-foreground text-xs">
 												{member.user.email}
 											</p>
 										</div>
 										{member.has_manager_access && (
-											<Badge variant="secondary" className="flex-shrink-0 rounded-none">
+											<Badge
+												variant="secondary"
+												className="flex-shrink-0 rounded-none"
+											>
 												<Shield className="mr-1 h-3 w-3" />
 												Manager
 											</Badge>

@@ -3,7 +3,9 @@ import SpinWheelCartoon from "./cartoon";
 import SpinWheelColorful from "./colorful";
 import SpinWheelWireframe from "./wireframe";
 
-export default function SpinWheel(props: DrawProps & { theme?: "wireframe" | "colorful" | "cartoon" }) {
+export default function SpinWheel(
+	props: DrawProps & { theme?: "wireframe" | "colorful" | "cartoon" },
+) {
 	const { theme = "wireframe", ...rest } = props;
 
 	switch (theme) {

@@ -33,7 +33,10 @@ interface ManualAddFormProps {
 	onClose?: () => void;
 }
 
-export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) {
+export default function ManualAddForm({
+	eventId,
+	onClose,
+}: ManualAddFormProps) {
 	const vendorIdField = useId();
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
@@ -225,7 +228,9 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 								</SelectTrigger>
 								<SelectContent>
 									{activeVendors.map((vendor) => {
-										const isAlreadyAdded = addedVendorIds.has(Number(vendor.id));
+										const isAlreadyAdded = addedVendorIds.has(
+											Number(vendor.id),
+										);
 										return (
 											<SelectItem
 												key={vendor.id}
@@ -320,7 +325,9 @@ export default function ManualAddForm({ eventId, onClose }: ManualAddFormProps) 
 								Cancel
 							</Button>
 							<Button type="submit" disabled={createVendorMutation.isPending}>
-								{createVendorMutation.isPending ? "Assigning..." : "Assign Vendor"}
+								{createVendorMutation.isPending
+									? "Assigning..."
+									: "Assign Vendor"}
 							</Button>
 						</div>
 					</FieldGroup>

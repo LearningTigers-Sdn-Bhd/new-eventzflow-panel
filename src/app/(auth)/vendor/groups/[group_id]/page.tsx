@@ -1,10 +1,10 @@
 "use client";
 
-import { use } from "react";
 import { Users } from "lucide-react";
+import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { GroupDetailsHeader } from "@/components/pages/vendor-groups/details/group-details-header";
 import { GroupAffiliateCard } from "@/components/pages/vendor-groups/details/group-affiliate-card";
+import { GroupDetailsHeader } from "@/components/pages/vendor-groups/details/group-details-header";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useGroup } from "@/hooks/use-groups";
@@ -36,7 +36,10 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 				title="Failed to load group"
 				description="We couldn't load the group details. Please try again."
 				action={
-					<Button onClick={() => window.location.reload()} className="rounded-none">
+					<Button
+						onClick={() => window.location.reload()}
+						className="rounded-none"
+					>
 						Retry
 					</Button>
 				}
@@ -65,4 +68,3 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 		</div>
 	);
 }
-

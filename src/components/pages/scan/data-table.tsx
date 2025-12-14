@@ -147,7 +147,7 @@ export function DataTable({
 			/>
 
 			{/* Table */}
-			<div className="max-h-[400px] overflow-y-auto border-y border-dashed sm:max-h-[600px]">
+			<div className="max-h-[400px] overflow-y-auto border-y-0 border-dashed sm:max-h-[600px] md:border-y">
 				{isLoading ? (
 					<Table>
 						<TableHeader className="sticky top-0 z-10">
@@ -244,20 +244,22 @@ export function DataTable({
 					</Table>
 				) : isTablet && !_isMobile ? (
 					// Tablet: 2-column grid
-					<div className="grid grid-cols-2 gap-4 p-4">
+					<div className="grid grid-cols-2 gap-4 p-0">
 						{filteredRows.map((row) => {
 							const result = row.original;
 							const isRecent = recentScan === result;
 							return (
-								<div key={row.id} className="col-span-1">
-									<ScanItem scanResult={result} isRecent={isRecent} />
-								</div>
+								<ScanItem
+									key={row.id}
+									scanResult={result}
+									isRecent={isRecent}
+								/>
 							);
 						})}
 					</div>
 				) : (
 					// Mobile: Single column list
-					<div className="space-y-2 p-4">
+					<div className="space-y-2">
 						{filteredRows.map((row) => {
 							const result = row.original;
 							const isRecent = recentScan === result;

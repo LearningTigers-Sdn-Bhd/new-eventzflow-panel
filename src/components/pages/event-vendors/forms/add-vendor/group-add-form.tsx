@@ -1,11 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Users, CheckCircle2 } from "lucide-react";
-import React, { useId, useState, useMemo } from "react";
+import { Building2, CheckCircle2, Users } from "lucide-react";
+import React, { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Field,
 	FieldDescription,
@@ -23,8 +25,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
 import { getGroups } from "@/lib/api/group";
 import { getGroupAffiliates } from "@/lib/api/group-affiliate";
@@ -34,14 +34,13 @@ interface GroupAddFormProps {
 	onClose?: () => void;
 }
 
-export default function GroupAddForm({
-	eventId,
-	onClose,
-}: GroupAddFormProps) {
+export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 	const groupIdField = useId();
 
 	const [groupId, setGroupId] = useState<string>("");
-	const [selectedVendorIds, setSelectedVendorIds] = useState<Set<number>>(new Set());
+	const [selectedVendorIds, setSelectedVendorIds] = useState<Set<number>>(
+		new Set(),
+	);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch available groups
@@ -55,20 +54,14 @@ export default function GroupAddForm({
 	});
 
 	// Fetch group affiliates when a group is selected
-	const {
-		data: groupAffiliates,
-		isLoading: isLoadingAffiliates,
-	} = useQuery({
+	const { data: groupAffiliates, isLoading: isLoadingAffiliates } = useQuery({
 		queryKey: ["groups", groupId, "affiliates"],
 		queryFn: () => getGroupAffiliates(Number(groupId)),
 		enabled: !!groupId,
 	});
 
 	// Fetch existing event vendors to check which are already added
-	const {
-		data: eventVendors,
-		isLoading: isLoadingEventVendors,
-	} = useQuery({
+	const { data: eventVendors, isLoading: isLoadingEventVendors } = useQuery({
 		queryKey: ["event", eventId.toString(), "vendors"],
 		queryFn: () => getEventVendors(eventId),
 	});
@@ -76,15 +69,15 @@ export default function GroupAddForm({
 	// Create a set of already added vendor IDs for quick lookup
 	const addedVendorIds = useMemo(() => {
 		if (!eventVendors) return new Set<number>();
-		return new Set(eventVendors.map(ev => ev.vendor_id));
+		return new Set(eventVendors.map((ev) => ev.vendor_id));
 	}, [eventVendors]);
 
 	// Auto-select all vendors when group affiliates are loaded (excluding already added ones)
 	React.useEffect(() => {
 		if (groupAffiliates && groupAffiliates.length > 0) {
 			const availableVendorIds = groupAffiliates
-				.filter(affiliate => !addedVendorIds.has(affiliate.vendor_id))
-				.map(affiliate => affiliate.vendor_id);
+				.filter((affiliate) => !addedVendorIds.has(affiliate.vendor_id))
+				.map((affiliate) => affiliate.vendor_id);
 			setSelectedVendorIds(new Set(availableVendorIds));
 		}
 	}, [groupAffiliates, addedVendorIds]);
@@ -106,7 +99,9 @@ export default function GroupAddForm({
 		},
 		onSuccess: (_, vendorIds) => {
 			const count = vendorIds.length;
-			toast.success(`${count} vendor${count > 1 ? 's' : ''} added to event successfully!`);
+			toast.success(
+				`${count} vendor${count > 1 ? "s" : ""} added to event successfully!`,
+			);
 			// Invalidate and refetch event vendors query
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId.toString(), "vendors"],
@@ -137,8 +132,8 @@ export default function GroupAddForm({
 		if (!groupAffiliates) return;
 		// Only select vendors that are not already added
 		const availableVendorIds = groupAffiliates
-			.filter(affiliate => !addedVendorIds.has(affiliate.vendor_id))
-			.map(affiliate => affiliate.vendor_id);
+			.filter((affiliate) => !addedVendorIds.has(affiliate.vendor_id))
+			.map((affiliate) => affiliate.vendor_id);
 		setSelectedVendorIds(new Set(availableVendorIds));
 	};
 
@@ -217,7 +212,8 @@ export default function GroupAddForm({
 						Assign Vendors from Group
 					</FieldLegend>
 					<FieldDescription>
-						Select a group and choose which vendors to assign to this event in bulk.
+						Select a group and choose which vendors to assign to this event in
+						bulk.
 					</FieldDescription>
 					<FieldSeparator />
 					<FieldGroup>
@@ -305,7 +301,10 @@ export default function GroupAddForm({
 									<div className="rounded-none border border-dashed bg-muted/20 p-4">
 										{isLoadingAffiliates ? (
 											<div className="flex items-center justify-center py-4">
-												<LoadingState title="Loading vendors..." height="h-20" />
+												<LoadingState
+													title="Loading vendors..."
+													height="h-20"
+												/>
 											</div>
 										) : !groupAffiliates || groupAffiliates.length === 0 ? (
 											<p className="text-muted-foreground text-sm">
@@ -314,8 +313,12 @@ export default function GroupAddForm({
 										) : (
 											<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 												{groupAffiliates.map((affiliate) => {
-													const isSelected = selectedVendorIds.has(affiliate.vendor_id);
-													const isAlreadyAdded = addedVendorIds.has(affiliate.vendor_id);
+													const isSelected = selectedVendorIds.has(
+														affiliate.vendor_id,
+													);
+													const isAlreadyAdded = addedVendorIds.has(
+														affiliate.vendor_id,
+													);
 													return (
 														<div
 															key={affiliate.id}
@@ -328,13 +331,20 @@ export default function GroupAddForm({
 															<Checkbox
 																id={`vendor-${affiliate.vendor_id}`}
 																checked={isSelected}
-																onCheckedChange={() => handleToggleVendor(affiliate.vendor_id)}
-																disabled={createVendorMutation.isPending || isAlreadyAdded}
+																onCheckedChange={() =>
+																	handleToggleVendor(affiliate.vendor_id)
+																}
+																disabled={
+																	createVendorMutation.isPending ||
+																	isAlreadyAdded
+																}
 															/>
 															<label
 																htmlFor={`vendor-${affiliate.vendor_id}`}
 																className={`flex flex-1 items-center gap-2 ${
-																	isAlreadyAdded ? "cursor-not-allowed" : "cursor-pointer"
+																	isAlreadyAdded
+																		? "cursor-not-allowed"
+																		: "cursor-pointer"
 																}`}
 															>
 																<Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -349,7 +359,9 @@ export default function GroupAddForm({
 																{isAlreadyAdded ? (
 																	<div className="flex shrink-0 items-center gap-1 text-muted-foreground">
 																		<CheckCircle2 className="h-3.5 w-3.5" />
-																		<span className="whitespace-nowrap font-medium text-xs">Already Added</span>
+																		<span className="whitespace-nowrap font-medium text-xs">
+																			Already Added
+																		</span>
 																	</div>
 																) : isSelected ? (
 																	<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -365,7 +377,8 @@ export default function GroupAddForm({
 									{selectedVendorIds.size > 0 && (
 										<div className="flex items-center gap-2 rounded-none border border-dashed bg-primary/10 p-3">
 											<Badge variant="default">
-												{selectedVendorIds.size} vendor{selectedVendorIds.size > 1 ? 's' : ''} selected
+												{selectedVendorIds.size} vendor
+												{selectedVendorIds.size > 1 ? "s" : ""} selected
 											</Badge>
 										</div>
 									)}
@@ -385,11 +398,15 @@ export default function GroupAddForm({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createVendorMutation.isPending || selectedVendorIds.size === 0}>
-								{createVendorMutation.isPending
-									? `Assigning ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}...`
-									: `Assign ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? 's' : ''}`
+							<Button
+								type="submit"
+								disabled={
+									createVendorMutation.isPending || selectedVendorIds.size === 0
 								}
+							>
+								{createVendorMutation.isPending
+									? `Assigning ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? "s" : ""}...`
+									: `Assign ${selectedVendorIds.size} vendor${selectedVendorIds.size > 1 ? "s" : ""}`}
 							</Button>
 						</div>
 					</FieldGroup>

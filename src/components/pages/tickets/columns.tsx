@@ -161,18 +161,18 @@ export function generateColumns(
 				const date = new Date(row.getValue("createdAt"));
 
 				// Time with 'short' style (e.g., "9:55 AM")
-				const timePart = date.toLocaleString('en-US', { timeStyle: 'medium' }); 
-				
+				const timePart = date.toLocaleString("en-US", { timeStyle: "medium" });
+
 				// Date with 'medium' style (e.g., "Nov 24, 2025")
-				const datePart = date.toLocaleString('en-US', { dateStyle: 'medium' });
+				const datePart = date.toLocaleString("en-US", { dateStyle: "medium" });
 
 				return (
 					<div className="font-medium">
 						{/* Time: Use a stronger class like "font-bold" */}
-						<div className="font-semibold">{timePart}</div> 
-						
+						<div className="font-semibold">{timePart}</div>
+
 						{/* Date: Use a slightly less pronounced style or default */}
-						<div className="text-gray-500 text-sm">{datePart}</div> 
+						<div className="text-gray-500 text-sm">{datePart}</div>
 					</div>
 				);
 			},

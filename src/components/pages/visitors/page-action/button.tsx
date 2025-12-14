@@ -66,9 +66,18 @@ export function VisitorsPageButton({ eventId }: VisitorsPageButtonProps) {
 
 			// Calculate column widths based on data
 			const colWidths = [
-				{ wch: Math.max(20, ...visitors.map((v) => (v.full_name?.length || 0) + 2)) }, // Name
-				{ wch: Math.max(25, ...visitors.map((v) => (v.email?.length || 0) + 2)) }, // Email
-				{ wch: Math.max(15, ...visitors.map((v) => (v.phone?.length || 0) + 2)) }, // Phone
+				{
+					wch: Math.max(
+						20,
+						...visitors.map((v) => (v.full_name?.length || 0) + 2),
+					),
+				}, // Name
+				{
+					wch: Math.max(25, ...visitors.map((v) => (v.email?.length || 0) + 2)),
+				}, // Email
+				{
+					wch: Math.max(15, ...visitors.map((v) => (v.phone?.length || 0) + 2)),
+				}, // Phone
 				{ wch: 12 }, // Gender
 				{ wch: 8 }, // Age
 				{ wch: 22 }, // Created At

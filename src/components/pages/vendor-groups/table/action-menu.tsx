@@ -1,12 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-	Settings,
-	Pencil,
-	Trash2,
-	MoreHorizontal,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, Settings, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -104,19 +99,12 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button
-						size="icon-sm"
-						variant="outline"
-						className="rounded-none"
-					>
+					<Button size="icon-sm" variant="outline" className="rounded-none">
 						<MoreHorizontal className="size-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="rounded-none">
-					<DropdownMenuItem
-						onClick={handleEditClick}
-						className="rounded-none"
-					>
+					<DropdownMenuItem onClick={handleEditClick} className="rounded-none">
 						<Pencil className="mr-2 size-4" />
 						Edit
 					</DropdownMenuItem>

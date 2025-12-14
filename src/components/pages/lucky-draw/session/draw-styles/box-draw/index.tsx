@@ -3,7 +3,9 @@ import { BoxDraw as CartoonBoxDraw } from "./cartoon";
 import { BoxDraw as ColorfulBoxDraw } from "./colorful";
 import { BoxDraw as WireframeBoxDraw } from "./wireframe";
 
-export function BoxDraw(props: DrawProps & { theme?: "wireframe" | "colorful" | "cartoon" }) {
+export function BoxDraw(
+	props: DrawProps & { theme?: "wireframe" | "colorful" | "cartoon" },
+) {
 	const { theme = "wireframe", ...rest } = props;
 
 	switch (theme) {

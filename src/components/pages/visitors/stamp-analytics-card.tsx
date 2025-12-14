@@ -1,8 +1,14 @@
 "use client";
 
+import { Activity, BarChart3, TrendingUp, Users } from "lucide-react";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import type { StampAnalytics } from "@/lib/api/stamp-analytics";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Users, TrendingUp, Activity } from "lucide-react";
 
 interface StampAnalyticsCardProps {
 	analytics: StampAnalytics;
@@ -10,16 +16,19 @@ interface StampAnalyticsCardProps {
 
 export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 	// Calculate average stamps per visitor
-	const avgStampsPerVisitor = 
-		analytics.unique_visitors > 0 
+	const avgStampsPerVisitor =
+		analytics.unique_visitors > 0
 			? (analytics.stamp_count / analytics.unique_visitors).toFixed(2)
 			: 0;
 
 	// Calculate engagement rate (percentage of visitors who got stamped)
 	// This would require total visitor count from backend, but we can show what we have
-	const engagementRate = 
-		analytics.unique_visitors > 0 
-			? Math.min(100, (analytics.unique_visitors * 100) / (analytics.stamp_count || 1))
+	const engagementRate =
+		analytics.unique_visitors > 0
+			? Math.min(
+					100,
+					(analytics.unique_visitors * 100) / (analytics.stamp_count || 1),
+				)
 			: 0;
 
 	return (
@@ -37,7 +46,9 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 						{/* Total Stamps */}
 						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="font-medium text-muted-foreground text-sm">Total Stamps</p>
+								<p className="font-medium text-muted-foreground text-sm">
+									Total Stamps
+								</p>
 								<BarChart3 className="h-4 w-4 text-primary opacity-60" />
 							</div>
 							<p className="font-bold text-3xl">{analytics.stamp_count}</p>
@@ -49,7 +60,9 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 						{/* Unique Visitors */}
 						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="font-medium text-muted-foreground text-sm">Unique Visitors</p>
+								<p className="font-medium text-muted-foreground text-sm">
+									Unique Visitors
+								</p>
 								<Users className="h-4 w-4 text-blue-500 opacity-60" />
 							</div>
 							<p className="font-bold text-3xl">{analytics.unique_visitors}</p>
@@ -61,7 +74,9 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 						{/* Average per Visitor */}
 						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="font-medium text-muted-foreground text-sm">Avg per Visitor</p>
+								<p className="font-medium text-muted-foreground text-sm">
+									Avg per Visitor
+								</p>
 								<Activity className="h-4 w-4 text-green-500 opacity-60" />
 							</div>
 							<p className="font-bold text-3xl">{avgStampsPerVisitor}</p>
@@ -73,7 +88,9 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 						{/* Engagement Rate */}
 						<div className="space-y-2 rounded-lg border bg-card p-4">
 							<div className="flex items-center justify-between">
-								<p className="font-medium text-muted-foreground text-sm">Repeat Rate</p>
+								<p className="font-medium text-muted-foreground text-sm">
+									Repeat Rate
+								</p>
 								<TrendingUp className="h-4 w-4 text-orange-500 opacity-60" />
 							</div>
 							<p className="font-bold text-3xl">
@@ -92,20 +109,24 @@ export function StampAnalyticsCard({ analytics }: StampAnalyticsCardProps) {
 							{analytics.stamp_count > 0 && analytics.unique_visitors > 0 ? (
 								<>
 									<p>
-										This vendor has received <strong>{analytics.stamp_count}</strong> scans from{' '}
-										<strong>{analytics.unique_visitors}</strong> unique visitors.
+										This vendor has received{" "}
+										<strong>{analytics.stamp_count}</strong> scans from{" "}
+										<strong>{analytics.unique_visitors}</strong> unique
+										visitors.
 									</p>
 									<p>
-										On average, each visitor was scanned{' '}
+										On average, each visitor was scanned{" "}
 										<strong>{avgStampsPerVisitor} times</strong> by this vendor.
 									</p>
 									<p className="pt-2 font-medium text-foreground text-xs">
-										🎯 This indicates strong visitor engagement at this vendor's booth!
+										🎯 This indicates strong visitor engagement at this vendor's
+										booth!
 									</p>
 								</>
 							) : (
 								<p className="text-muted-foreground">
-									No stamp data available yet. Stamps will appear here when visitors are scanned.
+									No stamp data available yet. Stamps will appear here when
+									visitors are scanned.
 								</p>
 							)}
 						</div>

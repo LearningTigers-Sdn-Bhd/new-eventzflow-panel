@@ -94,7 +94,7 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 					{kit?.pic_full_name && (
 						<div className="flex items-center gap-2">
 							<MapPin className="size-4 shrink-0" />
-							<span className="text-sm font-medium">{kit.pic_full_name}</span>
+							<span className="font-medium text-sm">{kit.pic_full_name}</span>
 						</div>
 					)}
 
@@ -104,7 +104,7 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 							<Button
 								variant="ghost"
 								size="sm"
-								className="h-auto p-0 rounded-none hover:bg-transparent"
+								className="h-auto rounded-none p-0 hover:bg-transparent"
 								onClick={() =>
 									(window.location.href = `mailto:${kit.pic_email_address}`)
 								}

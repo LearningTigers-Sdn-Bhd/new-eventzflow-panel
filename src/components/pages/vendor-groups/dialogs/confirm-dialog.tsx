@@ -61,11 +61,7 @@ export function ConfirmDialog({
 			</div>
 
 			<div className="flex justify-end gap-3">
-				<Button
-					variant="outline"
-					onClick={onCancel}
-					className="rounded-none"
-				>
+				<Button variant="outline" onClick={onCancel} className="rounded-none">
 					{cancelLabel}
 				</Button>
 				<Button

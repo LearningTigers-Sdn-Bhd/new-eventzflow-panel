@@ -121,17 +121,33 @@ export const columns: ColumnDef<TicketType>[] = [
 							</div>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="bottom" className="rounded-none">
-						<DropdownMenuItem className="rounded-none" onClick={() => column.setFilterValue(undefined)}>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
 							All Status
 						</DropdownMenuItem>
-						<DropdownMenuItem className="rounded-none" onClick={() => column.setFilterValue("draft")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("draft")}
+						>
 							Draft
 						</DropdownMenuItem>
-						<DropdownMenuItem className="rounded-none" onClick={() => column.setFilterValue("published")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("published")}
+						>
 							Published
 						</DropdownMenuItem>
-						<DropdownMenuItem className="rounded-none" onClick={() => column.setFilterValue("archived")}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("archived")}
+						>
 							Archived
 						</DropdownMenuItem>
 					</DropdownMenuContent>
