@@ -36,12 +36,14 @@ export function EventItem({ event }: EventItemProps) {
 	return (
 		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
-				<ItemTitle className="min-h-12 w-full justify-between">
-					<h3 className="text-balance font-bold text-xl">{event.title}</h3>
+				<ItemTitle className="min-h-12 w-full justify-between gap-12">
+					<h3 className="text-balance font-bold text-lg tracking-tight">
+						{event.title}
+					</h3>
 					{isMobile && (
 						<Badge
 							className={cn(
-								"min-w-16 rounded-none font-bold capitalize",
+								"min-w-20 rounded-none font-bold capitalize",
 								event.status === "published" && "bg-green-500",
 								event.status === "draft" && "bg-yellow-500",
 								event.status === "cancelled" && "bg-red-500",
@@ -82,16 +84,16 @@ export function EventItem({ event }: EventItemProps) {
 				</ItemDescription>
 			</ItemHeader>
 			<ItemContent className="flex flex-col">
-				<span className="text-muted-foreground text-sm">
+				<span className="text-muted-foreground text-sm tracking-wide">
 					Created on {formatDate(event.created_at)}
 				</span>
 				{event.description && (
-					<span className="line-clamp-2 text-base text-secondary-foreground">
+					<span className="line-clamp-2 text-base text-secondary-foreground tracking-tighter">
 						{event.description}
 					</span>
 				)}
 			</ItemContent>
-			<ItemFooter className="flex justify-end">
+			<ItemFooter className="mt-6 flex justify-end">
 				<ItemActions>
 					<EventActionsMenu eventId={event.id} deletedAt={event.deleted_at} />
 				</ItemActions>

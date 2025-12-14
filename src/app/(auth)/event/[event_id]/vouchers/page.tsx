@@ -1,17 +1,17 @@
 "use client";
 
-import { use, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Ticket } from "lucide-react";
+import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
 import { getVoucherColumns } from "@/components/pages/vouchers/table/columns";
 import { DataTable } from "@/components/pages/vouchers/table/data-table";
-import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getVouchers } from "@/lib/api/voucher";
-import { Ticket } from "lucide-react";
 
 export default function VouchersPage({
 	params,
@@ -22,11 +22,12 @@ export default function VouchersPage({
 	const { user } = useAuth();
 
 	// Check permissions
-	const { canManageEventVendors, isEventVendor } = useEventPermissions(event_id);
+	const { canManageEventVendors, isEventVendor } =
+		useEventPermissions(event_id);
 
 	// Only show action button for event admins and vendors
 	useSetEventActions(
-		canManageEventVendors || isEventVendor ? <VouchersPageButton /> : null
+		canManageEventVendors || isEventVendor ? <VouchersPageButton /> : null,
 	);
 
 	// Fetch vouchers from API
@@ -43,12 +44,12 @@ export default function VouchersPage({
 	// Filter vouchers by vendor if user is a vendor
 	const filteredVouchers = useMemo(() => {
 		if (!vouchers) return [];
-		
+
 		// If user is a vendor (not admin), only show their vouchers
 		if (isEventVendor && !canManageEventVendors && user) {
 			return vouchers.filter((voucher) => voucher.vendorId === user.id);
 		}
-		
+
 		// Event admins see all vouchers
 		return vouchers;
 	}, [vouchers, isEventVendor, canManageEventVendors, user]);
@@ -67,9 +68,7 @@ export default function VouchersPage({
 				<ErrorState
 					title="Failed to load vouchers"
 					description="We couldn't load vouchers. Please try again."
-					action={
-						<Button onClick={() => refetch()}>Retry</Button>
-					}
+					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
 			) : (
 				<DataTable columns={columns} data={filteredVouchers || []} />

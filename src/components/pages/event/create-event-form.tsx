@@ -171,7 +171,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	};
 
 	return (
-		<div className="w-full">
+		<div className="w-full p-4">
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
 					<FieldSeparator />
@@ -213,7 +213,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 							{/* Ticketing System */}
 							<Field orientation="vertical">
-								<FieldLabel htmlFor={useTicketId}>Use Ticketing System</FieldLabel>
+								<FieldLabel htmlFor={useTicketId}>
+									Use Ticketing System
+								</FieldLabel>
 								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 									<Switch
 										id={useTicketId}
@@ -231,7 +233,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 							{/* Exhibitor Kit */}
 							<Field orientation="vertical">
-								<FieldLabel htmlFor={useExhibitorKitId}>Use Exhibitor Kit</FieldLabel>
+								<FieldLabel htmlFor={useExhibitorKitId}>
+									Use Exhibitor Kit
+								</FieldLabel>
 								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 									<Switch
 										id={useExhibitorKitId}
@@ -414,16 +418,21 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 						<FieldSeparator />
 
 						{/* Buttons - Right Aligned */}
-						<div className="flex justify-end gap-2">
+						<div className="flex flex-col justify-end gap-2 lg:flex-row">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={onClose}
+								className="w-full rounded-none py-6 lg:w-auto lg:py-0"
 								disabled={createEventMutation.isPending}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createEventMutation.isPending}>
+							<Button
+								type="submit"
+								disabled={createEventMutation.isPending}
+								className="w-full rounded-none py-6 lg:w-auto lg:py-0"
+							>
 								{createEventMutation.isPending ? "Creating..." : "Create Event"}
 							</Button>
 						</div>

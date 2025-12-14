@@ -43,9 +43,9 @@ export default function VisitorsPage({
 						<Button onClick={() => window.location.reload()}>Retry</Button>
 					}
 				/>
-		) : (
-			<VisitorsDataTable eventId={eventId} data={visitors || []} />
-		)}
+			) : (
+				<VisitorsDataTable eventId={eventId} data={visitors || []} />
+			)}
 		</div>
 	);
 }
