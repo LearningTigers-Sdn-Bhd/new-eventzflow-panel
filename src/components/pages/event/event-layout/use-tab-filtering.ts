@@ -31,7 +31,7 @@ export function useTabFiltering(
 			// For vendors, only show these specific tabs
 			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
 				// Exhibitor kit tabs only available when enabled
-				if (["my-items", "order-items", "custom-requests"].includes(tab.id)) {
+				if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
 					return currentEvent?.use_exhibitor_kit === true;
 				}
 				return [
@@ -56,7 +56,7 @@ export function useTabFiltering(
 			}
 
 			// Hide vendor-specific exhibitor kit tabs
-			if (["my-items", "order-items", "custom-requests"].includes(tab.id)) {
+			if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
 				return (
 					permissions.isEventVendor &&
 					!permissions.canManageEventVendors &&

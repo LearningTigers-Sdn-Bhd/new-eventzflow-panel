@@ -27,8 +27,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 	const customRequestsTotal = customRequests
 		.filter(req => req.status === "approved")
 		.reduce((sum, req) => sum + ((req.resolved_price || 0) * req.quantity), 0);
+	const teamMemberCharges = kit.extra_team_member_charges ? Number(kit.extra_team_member_charges) : 0;
 
-	const grandTotal = itemsTotal + printingsTotal + customRequestsTotal;
+	const grandTotal = itemsTotal + printingsTotal + customRequestsTotal + teamMemberCharges;
 
 	const pendingRequests = customRequests.filter(req => req.status === "pending").length;
 	const approvedRequests = customRequests.filter(req => req.status === "approved").length;
@@ -147,21 +148,66 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 
 				{/* Team Members */}
 				<div className="space-y-1.5 border p-3 bg-background">
-					<div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b">
-						<Users className="size-3.5 text-primary" />
-						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Team Members ({teamMembers.length})
-						</h4>
+					<div className="flex items-center justify-between mb-2 pb-1.5 border-b">
+						<div className="flex items-center gap-1.5">
+							<Users className="size-3.5 text-primary" />
+							<h4 className="font-semibold text-xs uppercase tracking-wide">
+								Team Members ({teamMembers.length})
+							</h4>
+						</div>
+						{kit.team_member_limit && (
+							<span className="text-xs text-muted-foreground">
+								Limit: {kit.team_member_limit}
+							</span>
+						)}
 					</div>
 					{teamMembers.length > 0 ? (
-						<div className="space-y-0.5">
-							{teamMembers.map((member, idx) => (
-								<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5">
-									<div className="size-1.5 rounded-full bg-primary shrink-0" />
-									<span className="text-xs">{member.full_name}</span>
+						kit.team_member_limit ? (
+							// Show breakdown when limit exists
+							<div className="space-y-2">
+								{/* Free Members */}
+								<div className="space-y-0.5">
+									<p className="text-xs font-medium text-green-600 dark:text-green-400">
+										Free ({Math.min(teamMembers.length, kit.team_member_limit)})
+									</p>
+									{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
+										<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5 bg-green-50 dark:bg-green-950/20 px-1.5 rounded-sm">
+											<div className="size-1.5 rounded-full bg-green-600 dark:bg-green-400 shrink-0" />
+											<span className="text-xs">{member.full_name}</span>
+										</div>
+									))}
 								</div>
-							))}
-						</div>
+								{/* Paid Members */}
+								{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
+									<div className="space-y-0.5">
+										<p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+											Paid ({kit.excess_team_member_count}) • RM {kit.extra_team_member_charges}
+										</p>
+										{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
+											<div key={member.id || idx} className="flex items-center justify-between gap-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/20 px-1.5 rounded-sm">
+												<div className="flex items-center gap-1.5 flex-1 min-w-0">
+													<div className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0" />
+													<span className="text-xs truncate">{member.full_name}</span>
+												</div>
+												<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+													+RM {kit.extra_team_member_fee}
+												</span>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						) : (
+							// Show simple list when no limit
+							<div className="space-y-0.5">
+								{teamMembers.map((member, idx) => (
+									<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5">
+										<div className="size-1.5 rounded-full bg-primary shrink-0" />
+										<span className="text-xs">{member.full_name}</span>
+									</div>
+								))}
+							</div>
+						)
 					) : (
 						<p className="text-muted-foreground text-xs">No team members</p>
 					)}
@@ -303,7 +349,19 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				{grandTotal > 0 && (
 					<div className="md:col-span-2 lg:col-span-3 border-2 border-primary/30 p-3 bg-primary/5">
 						<div className="flex justify-between items-center">
-							<h4 className="font-bold text-base">Grand Total:</h4>
+							<div>
+								<h4 className="font-bold text-base">Grand Total:</h4>
+								<div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-1">
+									{itemsTotal > 0 && <span>Items: RM {itemsTotal.toFixed(2)}</span>}
+									{printingsTotal > 0 && <span>• Services: RM {printingsTotal.toFixed(2)}</span>}
+									{customRequestsTotal > 0 && <span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>}
+									{teamMemberCharges > 0 && (
+										<span className="font-medium text-amber-600">
+											• Team: RM {teamMemberCharges.toFixed(2)}
+										</span>
+									)}
+								</div>
+							</div>
 							<span className="font-bold text-2xl text-primary">RM {grandTotal.toFixed(2)}</span>
 						</div>
 					</div>

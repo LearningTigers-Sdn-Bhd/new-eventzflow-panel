@@ -309,13 +309,17 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 	{
 		accessorKey: "exhibitor_kit.exhibitor_team_members",
 		id: "team_count",
-		size: 140,
-		header: () => <p className="font-medium">Team</p>,
+		size: 160,
+		header: () => <p className="font-medium">Team Members</p>,
 		cell: ({ row }) => {
 			const kit = row.original.exhibitor_kit;
 			const members = kit?.exhibitor_team_members || [];
+			const totalCount = members.length;
+			const limit = kit?.team_member_limit;
+			const excessCount = kit?.excess_team_member_count || 0;
+			const extraCharges = kit?.extra_team_member_charges;
 
-			if (members.length === 0) {
+			if (totalCount === 0) {
 				return (
 					<span className="text-muted-foreground text-sm text-center block">
 						-
@@ -334,27 +338,23 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 
 			const maxVisible = 3;
 			const visibleMembers = members.slice(0, maxVisible);
-			const remainingCount = members.length - maxVisible;
+			const remainingCount = totalCount - maxVisible;
 
 			return (
 				<Popover>
 					<PopoverTrigger asChild>
-						<div className="flex items-center cursor-pointer">
-							<div className="flex -space-x-2">
-								{visibleMembers.map((member, index) => (
-									<div
-										key={member.id || index}
-										className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium"
-									>
-										{getInitials(member.full_name)}
-									</div>
-								))}
-								{remainingCount > 0 && (
-									<div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-primary text-xs font-medium text-primary-foreground">
-										+{remainingCount}
-									</div>
+						<div className="flex flex-col gap-0.5 cursor-pointer items-center">
+							<div className="flex items-center gap-1">
+								<span className="text-sm font-medium">{totalCount}</span>
+								{limit && (
+									<span className="text-xs text-muted-foreground">/ {limit}</span>
 								)}
 							</div>
+							{excessCount > 0 && extraCharges && (
+								<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+									+{excessCount} (RM {extraCharges})
+								</span>
+							)}
 						</div>
 					</PopoverTrigger>
 					<PopoverContent
@@ -365,21 +365,47 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 						<div className="min-w-[200px]">
 							<div className="border-b px-3 py-2">
 								<p className="text-xs font-medium text-muted-foreground">
-									{members.length} Team Member{members.length !== 1 ? "s" : ""}
+									{totalCount} Team Member{totalCount !== 1 ? "s" : ""}
+									{limit && ` (Limit: ${limit})`}
 								</p>
+								{excessCount > 0 && extraCharges && (
+									<p className="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1">
+										{excessCount} excess • RM {extraCharges} extra charges
+									</p>
+								)}
 							</div>
 							<div className="max-h-[200px] overflow-y-auto p-1">
-								{members.map((member, index) => (
-									<div
-										key={member.id || index}
-										className="flex items-center gap-2 rounded-none px-2 py-1.5 hover:bg-muted/50"
-									>
-										<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-											{getInitials(member.full_name)}
+								{members.map((member, index) => {
+									const isPaid = limit && index >= limit;
+									return (
+										<div
+											key={member.id || index}
+											className={`flex items-center gap-2 rounded-none px-2 py-1.5 hover:bg-muted/50 ${
+												isPaid
+													? "bg-amber-50 dark:bg-amber-950/20"
+													: "bg-green-50 dark:bg-green-950/20"
+											}`}
+										>
+											<div
+												className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+													isPaid
+														? "bg-amber-100 dark:bg-amber-900"
+														: "bg-green-100 dark:bg-green-900"
+												}`}
+											>
+												{getInitials(member.full_name)}
+											</div>
+											<span className="text-sm truncate flex-1">
+												{member.full_name}
+											</span>
+											{isPaid && (
+												<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+													+RM {kit?.extra_team_member_fee}
+												</span>
+											)}
 										</div>
-										<span className="text-sm truncate">{member.full_name}</span>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						</div>
 					</PopoverContent>

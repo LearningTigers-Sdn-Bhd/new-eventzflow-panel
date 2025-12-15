@@ -111,6 +111,14 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "my-profile",
 	},
 	{
+		id: "my-team-members",
+		label: "My Team",
+		title: "My Team Members",
+		description: "Manage your team members for this event.",
+		icon: Users,
+		route: "my-exhibitor-kit/team-members",
+	},
+	{
 		id: "my-items",
 		label: "My Items",
 		title: "My Ordered Items",
@@ -283,6 +291,7 @@ export const ANALYTICS_TAB_IDS = [
 ];
 export const LOGS_TAB_IDS = ["voucher-logs", "stamp-logs", "export-logs"];
 export const EXHIBITOR_KIT_TAB_IDS = [
+	"my-team-members",
 	"my-items",
 	"order-items",
 	"custom-requests",

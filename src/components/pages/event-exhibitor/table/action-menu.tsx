@@ -124,7 +124,8 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 			},
 			config: {
 				title: "Manage Team Members",
-				size: "lg",
+				description: "Add, edit, or remove team members for this exhibitor",
+				size: "full",
 			},
 		});
 	};

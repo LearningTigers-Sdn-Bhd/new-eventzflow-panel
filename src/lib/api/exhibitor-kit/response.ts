@@ -4,6 +4,8 @@ export interface ExhibitorTeamMember {
 	id?: number;
 	exhibitor_kit_id?: number;
 	full_name: string;
+	created_at?: string;
+	updated_at?: string;
 	_destroy?: boolean;
 }
 
@@ -93,6 +95,12 @@ export interface ExhibitorKit {
 	exhibitor_kit_items?: ExhibitorKitItem[];
 	exhibitor_kit_printings?: ExhibitorKitPrinting[];
 	custom_requests?: CustomRequest[];
+	team_member_count?: number;
+	team_member_limit?: number | null;
+	excess_team_member_count?: number;
+	exceeds_team_member_limit?: boolean;
+	extra_team_member_fee?: string;
+	extra_team_member_charges?: string;
 	created_at?: string;
 	updated_at?: string;
 }
