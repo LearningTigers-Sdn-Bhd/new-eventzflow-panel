@@ -15,7 +15,7 @@ export default function ContractorExhibitorKitsPage({
 
 	// Only allow exhibition contractors to access this page
 	if (user?.role !== "exhibition_contractor") {
-		redirect(`/event/${event_id}`);
+		redirect(`/event/${event_id}` as any);
 	}
 
 	return <ContractorExhibitorKitsView eventId={event_id} />;
