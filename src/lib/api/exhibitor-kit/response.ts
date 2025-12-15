@@ -74,17 +74,9 @@ export interface ExhibitorKit {
 	pic_full_name: string;
 	pic_contact_number: string;
 	pic_email_address: string;
-	extra_crew_count: number;
 	special_requirements?: string;
 	digital_brochure_link?: string;
 	qr_code_url?: string;
-	contractor_company_name?: string;
-	contractor_pic_name?: string;
-	contractor_pic_contact?: string;
-	stand_design_file_url?: string;
-	furniture_requests?: Record<string, unknown>;
-	electrical_requests?: Record<string, unknown>;
-	printing_orders?: Record<string, unknown>;
 	indemnity_signed: boolean;
 	indemnity_document_url?: string;
 	payment_status: PaymentStatus;
