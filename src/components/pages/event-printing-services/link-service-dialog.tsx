@@ -73,7 +73,7 @@ export function LinkServiceDialog({
 										{service.description}
 									</p>
 								)}
-								<div className="flex items-center gap-4 text-xs text-muted-foreground">
+								<div className="flex items-center gap-4 text-muted-foreground text-xs">
 									<span>Unit: {service.unitOfMeasure}</span>
 									<span>Default Price: RM {Number(service.defaultPrice).toFixed(2)}</span>
 								</div>

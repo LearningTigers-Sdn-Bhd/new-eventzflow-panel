@@ -220,8 +220,7 @@ export function ReviewSubmitModal({
 						variant="outline"
 						onClick={() => onOpenChange(false)}
 						disabled={isSubmitting}
-						className="rounded-none
-">
+						className="rounded-none">
 						Cancel
 					</Button>
 					<Button

@@ -36,7 +36,7 @@ export function ContractorEventDashboard({ eventId }: ContractorEventDashboardPr
 	];
 
 	return (
-		<div className="space-y-6 p-4 border-t border-dashed">
+		<div className="space-y-6 border-t border-dashed p-4">
 			<div className="px-2 md:px-4">
 				<IconTitle
 					icon={HardHat}
