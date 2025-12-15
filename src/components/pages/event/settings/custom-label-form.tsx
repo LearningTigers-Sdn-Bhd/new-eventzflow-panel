@@ -4,17 +4,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
-	Field,
 	FieldDescription,
-	FieldLabel,
+	FieldGroup,
 	FieldLegend,
 	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import { queryClient } from "@/utils/rest-api";
 
@@ -74,7 +74,7 @@ export default function CustomLabelForm({
 	useEffect(() => {
 		if (event?.labels_data && Object.keys(event.labels_data).length > 0) {
 			const existingLabels = Object.entries(event.labels_data).map(
-				([key, value]: [string, string | unknown]) => ({
+				([_key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
 					value: typeof value === "string" ? value : "",
 				}),
@@ -144,7 +144,7 @@ export default function CustomLabelForm({
 		// Reset to existing labels from backend or empty
 		if (event?.labels_data && Object.keys(event.labels_data).length > 0) {
 			const existingLabels = Object.entries(event.labels_data).map(
-				([key, value]: [string, string | unknown]) => ({
+				([_key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
 					value: typeof value === "string" ? value : "",
 				}),
@@ -174,9 +174,9 @@ export default function CustomLabelForm({
 	}
 
 	return (
-		<section className="w-full">
-			<FieldSet>
-				<div className="flex items-start justify-between">
+		<section className="h-full w-full">
+			<FieldSet className="h-full w-full gap-1">
+				<div className="flex flex-col items-start justify-between gap-2 pb-2 md:flex-row">
 					<div className="flex-1">
 						<FieldLegend className="font-bold text-xl!">
 							Custom Labels
@@ -191,7 +191,7 @@ export default function CustomLabelForm({
 						variant="outline"
 						onClick={handleAddLabel}
 						disabled={updateEventMutation.isPending}
-						className="ml-4 shrink-0"
+						className="w-full rounded-none py-6 md:w-auto md:py-2"
 					>
 						<Plus className="mr-2 size-4" />
 						Add Another Label
@@ -200,49 +200,36 @@ export default function CustomLabelForm({
 				<FieldSeparator />
 
 				{/* Label Fields - Grid Layout: 2 columns on desktop, 1 on mobile */}
-				<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-					{labels.map((label, index) => (
-						<div key={label.id} className="flex items-end gap-2">
-							<div className="flex-1">
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={label.id} className="mb-2">
-										Label {index + 1}
-									</FieldLabel>
-									<Input
-										id={label.id}
-										value={label.value}
-										onChange={(e) =>
-											handleLabelChange(label.id, e.target.value)
-										}
-										placeholder={"e.g., Phone Number, T-shirt Size"}
-										disabled={updateEventMutation.isPending}
-									/>
-								</Field>
-							</div>
-							<Button
-								type="button"
-								variant="outline"
-								size="icon"
-								onClick={() => handleRemoveLabel(label.id)}
-								disabled={labels.length === 1 || updateEventMutation.isPending}
-								className="shrink-0"
-								title="Remove label"
-							>
-								<Trash2 className="size-4" />
-							</Button>
-						</div>
-					))}
-				</div>
-
-				<FieldSeparator className="mt-6" />
+				<ScrollArea className="h-[calc(100vh-31rem)] w-full p-2 md:h-[calc(100vh-10rem)]">
+					<div className="grid h-full grid-cols-1 gap-3 md:grid-cols-2">
+						{labels.map((label, index) => (
+							<InputActionLabel
+								key={label.id}
+								label={`Label ${index + 1}`}
+								htmlFor={label.id}
+								value={label.value}
+								onChange={(value) => handleLabelChange(label.id, value)}
+								placeholder="e.g., Phone Number, T-shirt Size"
+								disabled={updateEventMutation.isPending}
+								variant="no-rounded"
+								onAction={() => handleRemoveLabel(label.id)}
+								actionIcon={<Trash2 className="size-4" />}
+								actionLabel="Remove label"
+								actionVariant="destructive"
+								actionDisabled={labels.length === 1}
+							/>
+						))}
+					</div>
+				</ScrollArea>
 
 				{/* Action Buttons */}
-				<div className="flex justify-end gap-2">
+				<FieldGroup className="flex flex-col items-stretch justify-end gap-2 pt-4 md:flex-row md:items-end">
 					<Button
 						type="button"
 						variant="outline"
 						onClick={handleReset}
 						disabled={updateEventMutation.isPending}
+						className="w-full rounded-none py-6 md:w-auto md:py-2"
 					>
 						Reset
 					</Button>
@@ -250,10 +237,11 @@ export default function CustomLabelForm({
 						type="button"
 						onClick={handleSave}
 						disabled={updateEventMutation.isPending}
+						className="w-full rounded-none py-6 md:w-auto md:py-2"
 					>
 						{updateEventMutation.isPending ? "Saving..." : "Save Changes"}
 					</Button>
-				</div>
+				</FieldGroup>
 			</FieldSet>
 		</section>
 	);
