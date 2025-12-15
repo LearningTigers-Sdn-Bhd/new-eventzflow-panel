@@ -54,17 +54,29 @@ export function UniversalDialog() {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogContent
-				className={cn(sizeClass, isFullScreen && "rounded-none border-0 p-0", config.className)}
+				className={cn(
+					"gap-0 p-0",
+					sizeClass,
+					isFullScreen && "rounded-none border-0 p-0",
+					config.className,
+				)}
 				showCloseButton={config.showCloseButton}
 			>
-				<DialogHeader className={isFullScreen ? "p-6" : ""}>
+				<DialogHeader
+					className={cn(
+						"flex flex-col items-center gap-0 pt-4 pb-0 md:items-start",
+						isFullScreen ? "px-6" : "px-4",
+					)}
+				>
 					{config.title ? (
 						<DialogTitle>{config.title}</DialogTitle>
 					) : (
 						<DialogTitle className="sr-only">Dialog</DialogTitle>
 					)}
 					{config.description ? (
-						<DialogDescription>{config.description}</DialogDescription>
+						<DialogDescription className="text-sm">
+							{config.description}
+						</DialogDescription>
 					) : (
 						<DialogDescription className="sr-only">
 							Dialog content
