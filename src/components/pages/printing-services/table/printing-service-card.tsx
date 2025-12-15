@@ -33,7 +33,7 @@ export function PrintingServiceCard({ service }: PrintingServiceCardProps) {
 							</Badge>
 						</div>
 						{service.description && (
-							<p className="text-muted-foreground text-sm line-clamp-2">
+							<p className="line-clamp-2 text-muted-foreground text-sm">
 								{service.description}
 							</p>
 						)}

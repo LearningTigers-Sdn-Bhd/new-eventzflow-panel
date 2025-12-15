@@ -49,7 +49,7 @@ export function ManageKitsModal({
 	}
 
 	return (
-		<div className="relative flex flex-col gap-4 px-4 md:px-6 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6">
+		<div className="relative flex flex-col gap-4 px-4 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6 md:px-6">
 			<ManageKitsNavigation
 				activeTab={activeTab}
 				onTabChange={setActiveTab}
@@ -58,7 +58,7 @@ export function ManageKitsModal({
 				printingsCount={kit.exhibitor_kit_printings?.length || 0}
 				customRequestsCount={kit.custom_requests?.length || 0}
 			/>
-			<div className="flex flex-col gap-4 min-w-0">
+			<div className="flex min-w-0 flex-col gap-4">
 				{activeTab === "exhibitor-info" && (
 					<ManageKitsInfoForm vendor={vendor} onClose={onClose} />
 				)}

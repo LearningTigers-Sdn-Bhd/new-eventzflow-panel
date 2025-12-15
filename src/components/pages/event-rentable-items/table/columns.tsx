@@ -39,7 +39,7 @@ export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventRentab
 					<div>
 						<div className="font-medium">{item.rentableItem?.name || "-"}</div>
 						{item.rentableItem?.description && (
-							<div className="text-muted-foreground text-sm line-clamp-1">
+							<div className="line-clamp-1 text-muted-foreground text-sm">
 								{item.rentableItem.description}
 							</div>
 						)}

@@ -73,7 +73,7 @@ export function ManageKitsNavigation({
 	return (
 		<>
 			{/* Mobile: Dropdown */}
-			<div className="md:hidden w-full">
+			<div className="w-full md:hidden">
 				<Select value={activeTab} onValueChange={(value) => onTabChange(value as ManageKitsTab)}>
 					<SelectTrigger className="w-full rounded-none">
 						<SelectValue>

@@ -58,7 +58,7 @@ const PhoneWithDecoration: React.FC<PhoneWithDecorationProps> = ({
 						<span className="font-medium text-sm">{time}</span>
 
 						{/* Dynamic Island */}
-						<div className="-translate-x-1/2 absolute top-2 left-1/2 flex h-6 w-32 transform items-center justify-center rounded-full bg-black"></div>
+						<div className="-translate-x-1/2 absolute top-2 left-1/2 flex h-6 w-32 transform items-center justify-center rounded-full bg-black" />
 
 						{/* Signal Indicators */}
 						<div className="flex items-center gap-1">

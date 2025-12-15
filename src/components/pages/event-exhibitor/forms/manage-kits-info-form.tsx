@@ -145,8 +145,8 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 			<form onSubmit={handleSubmit}>
 				<FieldGroup className="gap-3 md:gap-4">
 					{/* Booth Information */}
-					<p className="text-xs md:text-sm font-medium">Booth Information</p>
-					<div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 items-start">
+					<p className="font-medium text-xs md:text-sm">Booth Information</p>
+					<div className="grid grid-cols-2 items-start gap-3 md:grid-cols-4 md:gap-4">
 						<Field orientation="vertical">
 							<FieldLabel htmlFor={boothNumberField} className="text-xs md:text-sm">Booth Number</FieldLabel>
 							<Input
@@ -187,7 +187,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 						</Field>
 						<Field orientation="vertical">
 							<FieldLabel className="text-xs md:text-sm">Side Walls</FieldLabel>
-							<div className="flex gap-3 md:gap-4 px-2 md:px-3 py-2 bg-accent rounded-none border border-dashed items-center h-9">
+							<div className="flex h-9 items-center gap-3 rounded-none border border-dashed bg-accent px-2 py-2 md:gap-4 md:px-3">
 								<div className="flex items-center gap-1.5">
 									<Switch
 										checked={sideWallLeftRequired}
@@ -211,8 +211,8 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 					<FieldSeparator />
 
 					{/* Fascia & Company Information */}
-					<p className="text-xs md:text-sm font-medium">Fascia & Company</p>
-					<div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 items-start">
+					<p className="font-medium text-xs md:text-sm">Fascia & Company</p>
+					<div className="grid grid-cols-2 items-start gap-3 md:grid-cols-4 md:gap-4">
 						<Field orientation="vertical">
 							<FieldLabel htmlFor={nameOnFasciaField} className="text-xs md:text-sm">Name on Fascia</FieldLabel>
 							<Input
@@ -252,7 +252,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 						</Field>
 						<Field orientation="vertical">
 							<FieldLabel className="text-xs md:text-sm">Fascia Upgrade</FieldLabel>
-							<div className="flex items-center gap-2 px-2 md:px-3 py-2 bg-accent rounded-none border border-dashed h-9">
+							<div className="flex h-9 items-center gap-2 rounded-none border border-dashed bg-accent px-2 py-2 md:px-3">
 								<Switch
 									checked={fasciaUpgradeRequired}
 									onCheckedChange={setFasciaUpgradeRequired}
@@ -266,7 +266,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 					<FieldSeparator />
 
 					{/* PIC Information */}
-					<p className="text-xs md:text-sm font-medium">Person In Charge (PIC)</p>
+					<p className="font-medium text-xs md:text-sm">Person In Charge (PIC)</p>
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
 						<Field orientation="vertical">
 							<FieldLabel htmlFor={picFullNameField} className="text-xs md:text-sm">Full Name</FieldLabel>
@@ -312,14 +312,14 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							onChange={(e) => setSpecialRequirements(e.target.value)}
 							placeholder="Any special requirements..."
 							disabled={updateKitMutation.isPending}
-							className="rounded-none min-h-[60px] md:min-h-[80px] text-sm"
+							className="min-h-[60px] rounded-none text-sm md:min-h-[80px]"
 						/>
 					</Field>
 
 					<FieldSeparator />
 
 					{/* Payment Information */}
-					<p className="text-xs md:text-sm font-medium">Payment</p>
+					<p className="font-medium text-xs md:text-sm">Payment</p>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
 						<Field orientation="vertical">
 							<FieldLabel htmlFor={paymentStatusField} className="text-xs md:text-sm">Status</FieldLabel>
@@ -359,7 +359,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 								onChange={(e) => setPaymentNote(e.target.value)}
 								placeholder="Payment notes..."
 								disabled={updateKitMutation.isPending}
-								className="rounded-none min-h-[60px] md:min-h-[80px] text-sm"
+								className="min-h-[60px] rounded-none text-sm md:min-h-[80px]"
 							/>
 						</Field>
 					</div>

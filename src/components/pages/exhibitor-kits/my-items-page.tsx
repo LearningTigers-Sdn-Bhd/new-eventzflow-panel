@@ -8,7 +8,7 @@ import { getEventVendors } from "@/lib/api/event-vendor";
 import type { ExhibitorKitItem, ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -87,14 +87,14 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 		() => ({
 			onEditNotes: handleEditItemNotes,
 		}),
-		[myKit?.id, eventId]
+		[myKit?.id, eventId, handleEditItemNotes]
 	);
 
 	const printingsTableMeta: PrintingsTableMeta = useMemo(
 		() => ({
 			onEditPrinting: handleEditPrinting,
 		}),
-		[myKit?.id, eventId]
+		[myKit?.id, eventId, handleEditPrinting]
 	);
 
 	// Set the "Add More Items" button in the header
@@ -164,7 +164,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 			<div className="grid gap-4 md:grid-cols-2">
 				<div className="border p-4">
 					<div className="mb-3">
-						<h3 className="text-sm font-medium">Total Items</h3>
+						<h3 className="font-medium text-sm">Total Items</h3>
 					</div>
 					<div className="font-bold text-2xl">{totalItems}</div>
 					<p className="text-muted-foreground text-xs">
@@ -174,7 +174,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 
 				<div className="border p-4">
 					<div className="mb-3">
-						<h3 className="text-sm font-medium">Total Cost</h3>
+						<h3 className="font-medium text-sm">Total Cost</h3>
 					</div>
 					<div className="font-bold text-2xl">
 						{new Intl.NumberFormat("en-MY", {

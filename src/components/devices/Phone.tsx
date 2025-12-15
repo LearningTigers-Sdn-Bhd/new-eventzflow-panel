@@ -15,7 +15,7 @@ const Phone: React.FC<PhoneProps> = ({ children }) => {
 					<span className="font-medium text-[10px]">9:41</span>
 
 					{/* Dynamic Island */}
-					<div className="-translate-x-1/2 absolute top-1.5 left-1/2 h-5 w-24 transform rounded-full bg-black"></div>
+					<div className="-translate-x-1/2 absolute top-1.5 left-1/2 h-5 w-24 transform rounded-full bg-black" />
 
 					{/* Signal Indicators */}
 					<div className="flex items-center gap-1">
