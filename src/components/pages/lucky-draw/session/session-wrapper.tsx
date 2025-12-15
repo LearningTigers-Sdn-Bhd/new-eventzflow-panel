@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -43,6 +43,7 @@ export function LuckyDrawWrapper({
 	const [giftSheetOpen, setGiftSheetOpen] = useState(false);
 	const [drawResetKey, setDrawResetKey] = useState(0);
 	const [shouldCelebrate, setShouldCelebrate] = useState(false);
+	const [isDisplayMode, setIsDisplayMode] = useState(false);
 	const winnerModalTimeoutRef = useRef<number | null>(null);
 	const prevIsOpen = useRef(false);
 
@@ -77,6 +78,10 @@ export function LuckyDrawWrapper({
 		if (canDraw && availableParticipants.length > 0) {
 			startDrawing();
 		}
+	};
+
+	const handleDisplayMode = () => {
+		setIsDisplayMode((prev) => !prev);
 	};
 
 	const handleDrawComplete = async (winner: Participant) => {
@@ -267,21 +272,44 @@ export function LuckyDrawWrapper({
 						</Button>
 					</div>
 					<div className="flex items-center gap-2">
-						<ParticipantsSheet
-							open={participantSheetOpen}
-							onOpenChange={setParticipantSheetOpen}
-							luckyDraw={luckyDraw}
-						/>
-						<ConfigSheet
-							open={configSheetOpen}
-							onOpenChange={setConfigSheetOpen}
-							luckyDraw={luckyDraw}
-						/>
-						<GiftInvalidListSheet
-							open={giftSheetOpen}
-							onOpenChange={setGiftSheetOpen}
-							luckyDraw={luckyDraw}
-						/>
+						{isDisplayMode ? (
+							<>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleDisplayMode}
+									className="gap-2 rounded-none"
+								>
+									<EyeOff className="h-4 w-4" />
+									<span className="text-sm">Hide Controls</span>
+								</Button>
+								<ParticipantsSheet
+									open={participantSheetOpen}
+									onOpenChange={setParticipantSheetOpen}
+									luckyDraw={luckyDraw}
+								/>
+								<ConfigSheet
+									open={configSheetOpen}
+									onOpenChange={setConfigSheetOpen}
+									luckyDraw={luckyDraw}
+								/>
+								<GiftInvalidListSheet
+									open={giftSheetOpen}
+									onOpenChange={setGiftSheetOpen}
+									luckyDraw={luckyDraw}
+								/>
+							</>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleDisplayMode}
+								className="gap-2 rounded-none"
+							>
+								<Eye className="h-4 w-4" />
+								<span className="text-sm">Show Controls</span>
+							</Button>
+						)}
 					</div>
 					<div className="flex items-center gap-2">
 						<Button
