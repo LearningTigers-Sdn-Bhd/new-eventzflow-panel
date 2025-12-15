@@ -22,8 +22,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEvents } from "@/lib/api/event";
-import { useEventActionsStore } from "@/stores/event-actions-store";
 import { cn } from "@/lib/utils";
+import { useEventActionsStore } from "@/stores/event-actions-store";
 
 interface EventDetailLayoutProps {
 	children: React.ReactNode;
@@ -174,56 +174,60 @@ function MobileEventHeader({
 	}, []);
 
 	return (
-		// When scrolling, the change div into absolute top-0, w-screen, -mt-4
-		<div
-			ref={headerRef}
-			className={cn(
-				"flex flex-col",
-				isSticky
-					? "-mt-4 fixed top-0 left-0 z-50 w-screen pt-4 shadow-sm"
-					: "relative w-full",
-			)}
-		>
+		<>
+			{/* Placeholder div to prevent layout jump when header becomes fixed */}
+			{isSticky && <div className="h-40" />}
+			{/* When scrolling, the change div into absolute top-0, w-screen, -mt-4 */}
 			<div
-				ref={detailsRef}
+				ref={headerRef}
 				className={cn(
-					"flex w-full flex-col items-start gap-2 rounded-none border bg-muted px-4 transition-all duration-300",
-					isSticky ? "pt-2 pb-2" : "pt-2 pb-8",
+					"flex flex-col",
+					isSticky
+						? "-mt-4 fixed top-0 left-0 z-50 w-screen pt-4 shadow-sm"
+						: "relative w-full",
 				)}
 			>
-				<div className="flex h-full items-center gap-4">
-					<AvatarIcon title={currentEvent.title} />
-					{/* When scrolling, the title should be truncated */}
-					<h3
-						className={cn(
-							"text-balance font-bold text-lg tracking-tight md:text-xl",
-							isSticky && "line-clamp-1",
-						)}
-					>
-						{currentEvent.title}
-					</h3>
-				</div>
-				{/* When scrolling, dont render this div */}
 				<div
-					ref={descriptionRef}
+					ref={detailsRef}
 					className={cn(
-						"flex w-full flex-col gap-2 overflow-hidden transition-all duration-300",
-						isSticky && "hidden",
+						"flex w-full flex-col items-start gap-2 rounded-none border bg-muted px-4 transition-all duration-300",
+						isSticky ? "pt-2 pb-2" : "pt-2 pb-8",
 					)}
 				>
-					<p className="text-muted-foreground text-sm md:text-base">
-						{`Manage current event details, team members and vendors, and ${currentEvent.use_ticket ? "tickets" : "visitors"}.`}
-					</p>
-					<div className="flex items-center gap-2">
-						<EventBadges
-							status={currentEvent.status}
-							use_ticket={currentEvent.use_ticket}
-						/>
+					<div className="flex h-full items-center gap-4">
+						<AvatarIcon title={currentEvent.title} />
+						{/* When scrolling, the title should be truncated */}
+						<h3
+							className={cn(
+								"text-balance font-bold text-lg tracking-tight md:text-xl",
+								isSticky && "line-clamp-1",
+							)}
+						>
+							{currentEvent.title}
+						</h3>
+					</div>
+					{/* When scrolling, dont render this div */}
+					<div
+						ref={descriptionRef}
+						className={cn(
+							"flex w-full flex-col gap-2 overflow-hidden transition-all duration-300",
+							isSticky && "hidden",
+						)}
+					>
+						<p className="text-muted-foreground text-sm md:text-base">
+							{`Manage current event details, team members and vendors, and ${currentEvent.use_ticket ? "tickets" : "visitors"}.`}
+						</p>
+						<div className="flex items-center gap-2">
+							<EventBadges
+								status={currentEvent.status}
+								use_ticket={currentEvent.use_ticket}
+							/>
+						</div>
 					</div>
 				</div>
+				<MobileNavigationMenu currentMenuLabel={currentMenuTitle} />
 			</div>
-			<MobileNavigationMenu currentMenuLabel={currentMenuTitle} />
-		</div>
+		</>
 	);
 }
 
@@ -294,7 +298,7 @@ export default function EventDetailLayout({
 	}
 
 	return (
-		<div className="flex flex-col gap-2 md:gap-4">
+		<div className="flex min-h-screen flex-col gap-2 md:gap-4">
 			{/* Event Header */}
 			<div className="rounded-none border-b-0 border-dashed px-0 pt-4 pb-0 md:border-b md:px-4 md:pb-4">
 				{isLoading ? (

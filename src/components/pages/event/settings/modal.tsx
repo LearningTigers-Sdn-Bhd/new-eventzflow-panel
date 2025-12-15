@@ -19,13 +19,13 @@ export default function EventSettingsDialog({
 	>("event-information");
 
 	return (
-		<div className="relative flex flex-col justify-start gap-4 px-6 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6">
+		<div className="relative flex flex-col gap-4 px-4 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6 md:px-6">
 			<SettingsNavigation
 				activeTab={activeTab}
 				onTabChange={setActiveTab}
 				onClose={onClose}
 			/>
-			<div className="flex flex-col gap-4">
+			<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto md:h-[calc(100vh-10rem)]">
 				{activeTab === "event-information" && (
 					<InfoForm eventId={eventId} onClose={onClose} />
 				)}
