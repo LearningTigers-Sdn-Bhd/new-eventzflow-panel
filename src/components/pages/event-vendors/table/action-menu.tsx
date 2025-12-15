@@ -12,10 +12,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { deleteEventVendor } from "@/lib/api/event-vendor";
-import ConfirmDialog from "../../event-staff/confirm-dialog";
 import QrCodeDialog from "../dialogs/qr-code-dialog";
 import EditEventVendorForm from "../forms/edit-vendor/edit-form";
 
@@ -30,6 +30,7 @@ export function EventVendorActionsMenu({
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 
 	const queryClient = useQueryClient();
 	const deleteVendorMutation = useMutation({
@@ -78,23 +79,18 @@ export function EventVendorActionsMenu({
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to remove ${vendor.vendor.full_name} from this event? They will no longer have access to this event's vendor functions.`,
-				confirmLabel: "Remove",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					deleteVendorMutation.mutate(vendor.id);
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Remove Vendor",
+			message: `Are you sure you want to remove ${vendor.vendor.full_name} from this event? They will no longer have access to this event's vendor functions.`,
+			confirmLabel: "Remove",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteVendorMutation.mutate(vendor.id);
 			},
-			config: {
-				title: "Remove Vendor",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

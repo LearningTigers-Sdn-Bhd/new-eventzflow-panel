@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock, Plus, Send, Trash2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import ConfirmDialog from "@/components/admin-ui/form/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useDialog } from "@/hooks/use-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { CustomRequestInput } from "@/lib/api/exhibitor-kit/request";
 import type { CustomRequest } from "@/lib/api/exhibitor-kit/response";
@@ -88,7 +87,7 @@ export function CustomRequestsForm({
 	existingRequests,
 }: CustomRequestsFormProps) {
 	const queryClient = useQueryClient();
-	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm, closeDialog } = useConfirmDialog();
 	const [newRequests, setNewRequests] = useState<NewRequest[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -160,24 +159,18 @@ export function CustomRequestsForm({
 	};
 
 	const handleDeleteRequest = (requestId: number, description: string) => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete this request? "${description.length > 50 ? `${description.slice(0, 50)}...` : description}"`,
-				confirmLabel: "Delete",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					setIsSubmitting(true);
-					submitMutation.mutate([{ id: requestId, _destroy: true }]);
-					closeDialog();
-				},
-				onCancel: closeDialog,
-			},
-			config: {
-				title: "Delete Request",
-				size: "sm",
+		openConfirm({
+			title: "Delete Request",
+			message: `Are you sure you want to delete this request? "${description.length > 50 ? `${description.slice(0, 50)}...` : description}"`,
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				setIsSubmitting(true);
+				submitMutation.mutate([{ id: requestId, _destroy: true }]);
+				closeDialog();
 			},
 		});
 	};

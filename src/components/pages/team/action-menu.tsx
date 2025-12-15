@@ -20,10 +20,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteMember, toggleMemberStatus } from "@/lib/api/team";
 import type { TeamMember } from "./columns";
-import ConfirmDialog from "./confirm-dialog";
 import EditMemberForm from "./edit-member-form";
 
 interface TeamMemberActionsMenuProps {
@@ -33,6 +33,7 @@ interface TeamMemberActionsMenuProps {
 export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 	const router = useRouter();
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 
 	const toggleStatusMutation = useMutation({
@@ -85,52 +86,42 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 		const newStatus = isActive ? "inactive" : "active";
 		const action = isActive ? "deactivate" : "activate";
 
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to ${action} ${member.full_name}? ${
-					isActive
-						? "They will no longer be able to access the system."
-						: "They will be able to access the system again."
-				}`,
-				confirmLabel: isActive ? "Deactivate" : "Activate",
-				variant: isActive ? "warning" : "success",
-				icon: isActive ? "alert" : "check",
-				onConfirm: () => {
-					toggleStatusMutation.mutate({
-						id: member.id,
-						status: newStatus,
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: `${isActive ? "Deactivate" : "Activate"} Team Member`,
+			message: `Are you sure you want to ${action} ${member.full_name}? ${
+				isActive
+					? "They will no longer be able to access the system."
+					: "They will be able to access the system again."
+			}`,
+			confirmLabel: isActive ? "Deactivate" : "Activate",
+			type: isActive ? "warning" : "success",
+			icon: isActive ? "alert" : "check",
+			size: "sm",
+			onConfirm: () => {
+				toggleStatusMutation.mutate({
+					id: member.id,
+					status: newStatus,
+				});
 			},
-			config: {
-				title: `${isActive ? "Deactivate" : "Activate"} Team Member`,
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete ${member.full_name}? This action cannot be undone and all associated data will be permanently removed.`,
-				confirmLabel: "Delete",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					deleteMemberMutation.mutate({
-						id: member.id,
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Team Member",
+			message: `Are you sure you want to delete ${member.full_name}? This action cannot be undone and all associated data will be permanently removed.`,
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteMemberMutation.mutate({
+					id: member.id,
+				});
 			},
-			config: {
-				title: "Delete Team Member",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
