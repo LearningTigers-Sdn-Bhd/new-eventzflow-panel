@@ -12,6 +12,7 @@
 
 import {
 	Building2,
+	Briefcase,
 	ChartBar,
 	Gift,
 	HardHat,
@@ -87,7 +88,7 @@ const visible = {
 	adminOnly: (p: Permissions) =>
 		(!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false)) ||
 		(p.canManageEventVendors ?? false),
-	
+
 	// Ticket access - exclude vendors, exhibitors, and contractors
 	canAccessTickets: (p: Permissions) =>
 		!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
@@ -107,6 +108,8 @@ const visible = {
 		visible.vendor(p) && visible.hasExhibitorKit(p, e),
 	contractorOnly: (p: Permissions, e?: Event) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
+	businessMatchingAccess: (p: Permissions, e?: Event) =>
+		p.isEventAdmin || p.isOrganizer || p.isEventStaff || e?.use_business_matching === true,
 };
 
 // ============================================================================
@@ -135,6 +138,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Manage your contractor profile and settings.",
 			icon: User,
 			visible: visible.contractorOnly,
+		},
+		{
+			route: "business-matching",
+			label: "Business Matching",
+			description: "View and manage business matching for this event.",
+			icon: Briefcase,
+			visible: visible.businessMatchingAccess,
 		},
 		{
 			route: "location",

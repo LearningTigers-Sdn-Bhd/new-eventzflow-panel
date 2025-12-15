@@ -34,6 +34,7 @@ const formSchema = z.object({
 	useTicket: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	allowPrintingServices: z.boolean(),
+	useBusinessMatching: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -117,6 +118,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_ticket: value.useTicket,
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
+					use_business_matching: value.useBusinessMatching,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					multiple_scans: value.multipleScans,
@@ -145,6 +147,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
 				);
+				form.setFieldValue("useBusinessMatching", event.use_business_matching ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
@@ -472,6 +475,21 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<SwitchCardInput
 											label="Multiple Scans"
 											description="Allow tickets or visitors to be scanned multiple times during the event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								{/* Business Matching */}
+								<form.Field name="useBusinessMatching">
+									{(field) => (
+										<SwitchCardInput
+											label="Business Matching"
+											description="Allow business matching for this event."
 											htmlFor={field.name}
 											variant="no-rounded"
 											border={true}
