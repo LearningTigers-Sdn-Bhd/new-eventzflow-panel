@@ -14,13 +14,19 @@ type ConfirmDialogIcon = "alert" | "check" | "delete" | "info";
 
 export interface ConfirmDialogOptions {
 	title?: string;
+	description?: string;
 	message: string;
 	confirmLabel?: string;
 	cancelLabel?: string;
 	type?: ConfirmDialogType;
+	/**
+	 * Backwards-compatible alias for `type`.
+	 */
+	variant?: ConfirmDialogType;
 	rounded?: "rounded" | "no-rounded";
 	icon?: ConfirmDialogIcon;
 	size?: DialogSize;
+	showCloseButton?: boolean;
 	onConfirm: () => void;
 	onCancel?: () => void;
 }
@@ -34,23 +40,28 @@ export function useConfirmDialog() {
 	const openConfirm = useCallback(
 		({
 			title,
+			description,
 			message,
 			confirmLabel,
 			cancelLabel,
-			type = "base",
+			type,
+			variant,
 			rounded = "rounded",
 			icon,
 			size = "sm",
+			showCloseButton,
 			onConfirm,
 			onCancel,
 		}: ConfirmDialogOptions) => {
+			const dialogType = type ?? variant ?? "base";
+
 			openDialog({
 				component: ConfirmDialog,
 				props: {
 					message,
 					confirmLabel,
 					cancelLabel,
-					type,
+					type: dialogType,
 					rounded,
 					icon,
 					onConfirm,
@@ -59,6 +70,8 @@ export function useConfirmDialog() {
 				config: {
 					title,
 					size,
+					description,
+					showCloseButton,
 				},
 			});
 		},

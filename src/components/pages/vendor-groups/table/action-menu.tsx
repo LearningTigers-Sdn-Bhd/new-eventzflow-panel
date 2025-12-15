@@ -13,10 +13,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteGroup } from "@/lib/api/group";
 import type { Group } from "@/lib/api/group/response";
-import { ConfirmDialog } from "../dialogs/confirm-dialog";
 import { EditGroupDialog } from "../dialogs/edit-group-dialog";
 
 interface GroupActionsMenuProps {
@@ -27,6 +27,7 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	const router = useRouter();
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 
 	// Only org_owner can delete groups
@@ -67,22 +68,17 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete "${group.name}"? This action cannot be undone and will remove all members from this group.`,
-				confirmLabel: "Delete",
-				variant: "destructive",
-				icon: "alert",
-				onConfirm: () => {
-					deleteGroupMutation.mutate(group.id);
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Group",
+			message: `Are you sure you want to delete "${group.name}"? This action cannot be undone and will remove all members from this group.`,
+			confirmLabel: "Delete",
+			type: "destructive",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				deleteGroupMutation.mutate(group.id);
 			},
-			config: {
-				title: "Delete Group",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

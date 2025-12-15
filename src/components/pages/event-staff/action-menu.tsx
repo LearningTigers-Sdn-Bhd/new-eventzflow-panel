@@ -6,10 +6,10 @@ import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { removeStaff } from "@/lib/api/event/event-staff";
 import type { EventStaffMember } from "./columns";
-import ConfirmDialog from "./confirm-dialog";
 import EditRoleForm from "./edit-role-form";
 
 interface EventStaffActionsMenuProps {
@@ -20,6 +20,7 @@ export function EventStaffActionsMenu({ member }: EventStaffActionsMenuProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 
 	const queryClient = useQueryClient();
 	const removeStaffMutation = useMutation({
@@ -54,26 +55,21 @@ export function EventStaffActionsMenu({ member }: EventStaffActionsMenuProps) {
 	};
 
 	const handleRemoveClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to remove ${member.full_name} from this event? They will no longer have access to this event's staff functions.`,
-				confirmLabel: "Remove",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					removeStaffMutation.mutate({
-						eventId,
-						userId: member.id,
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Remove Staff Member",
+			message: `Are you sure you want to remove ${member.full_name} from this event? They will no longer have access to this event's staff functions.`,
+			confirmLabel: "Remove",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				removeStaffMutation.mutate({
+					eventId,
+					userId: member.id,
+				});
 			},
-			config: {
-				title: "Remove Staff Member",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

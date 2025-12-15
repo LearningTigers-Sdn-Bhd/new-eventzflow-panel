@@ -23,6 +23,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	archiveTicket,
@@ -30,7 +31,6 @@ import {
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
-import ConfirmDialog from "../../admin-ui/form/confirm-dialog";
 import TicketEditModal from "./action-modals/edit-ticket-form";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
@@ -49,6 +49,7 @@ export function TicketActionsMenu({
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
 	const isArchived = !!deletedAt;
@@ -151,68 +152,53 @@ export function TicketActionsMenu({
 	});
 
 	const handleArchiveClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message:
-					"Are you sure you want to archive this ticket? The ticket will be archived and hidden from the main list.",
-				confirmLabel: "Archive",
-				cancelLabel: "Cancel",
-				variant: "warning",
-				icon: "alert",
-				onConfirm: () => {
-					archiveTicketMutation.mutate();
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Archive Ticket",
+			message:
+				"Are you sure you want to archive this ticket? The ticket will be archived and hidden from the main list.",
+			confirmLabel: "Archive",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				archiveTicketMutation.mutate();
 			},
-			config: {
-				title: "Archive Ticket",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message:
-					"Are you sure you want to permanently delete this ticket? This action cannot be undone and all associated data will be permanently removed.",
-				confirmLabel: "Delete",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					deleteTicketMutation.mutate();
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Ticket",
+			message:
+				"Are you sure you want to permanently delete this ticket? This action cannot be undone and all associated data will be permanently removed.",
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteTicketMutation.mutate();
 			},
-			config: {
-				title: "Delete Ticket",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
 	const handleRestoreClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message:
-					"Are you sure you want to restore this ticket? The ticket will be unarchived and visible in the main list again.",
-				confirmLabel: "Restore",
-				cancelLabel: "Cancel",
-				variant: "success",
-				icon: "check",
-				onConfirm: () => {
-					restoreTicketMutation.mutate();
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Restore Ticket",
+			message:
+				"Are you sure you want to restore this ticket? The ticket will be unarchived and visible in the main list again.",
+			confirmLabel: "Restore",
+			cancelLabel: "Cancel",
+			type: "success",
+			icon: "check",
+			size: "sm",
+			onConfirm: () => {
+				restoreTicketMutation.mutate();
 			},
-			config: {
-				title: "Restore Ticket",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

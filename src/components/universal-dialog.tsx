@@ -55,7 +55,7 @@ export function UniversalDialog() {
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogContent
 				className={cn(
-					"gap-0 p-0",
+					"gap-0 p-4",
 					sizeClass,
 					isFullScreen && "rounded-none border-0 p-0",
 					config.className,
