@@ -16,8 +16,8 @@ import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { EventActionsMenu } from "./action-menu";
-import type { Event } from "./columns";
+import { EventActionsMenu } from "./event-action-menu";
+import type { Event } from "./event-table-columns";
 
 interface EventItemProps {
 	event: Event;

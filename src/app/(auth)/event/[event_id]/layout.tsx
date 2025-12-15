@@ -294,7 +294,7 @@ export default function EventDetailLayout({
 	// Check if we're on the lucky-draw session route
 	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
 	if (isLuckyDrawSessionRoute) {
-		return <div className="mx-auto">{children}</div>;
+		return <div className="w-full">{children}</div>;
 	}
 
 	// Check if we're on the review-submit route (checkout-style page)

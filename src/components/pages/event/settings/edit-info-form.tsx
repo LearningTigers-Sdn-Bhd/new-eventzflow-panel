@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
+import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
 
 const formSchema = z.object({
@@ -281,8 +282,12 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							const useExhibitorKitValue = exhibitorKitField.state.value;
 
 							return (
-								<div className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2 md:gap-x-4 md:gap-y-8 md:[&>*:last-child]:col-span-2">
-									{/* Left Column: Visibility (if org_owner) and Event Types */}
+								<div
+									className={cn(
+										"grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2 md:gap-x-4 md:gap-y-8",
+										!isOrgOwner ? "md:[&>*:last-child]:col-span-2" : "",
+									)}
+								>
 									<div className="flex flex-col gap-6 md:gap-4">
 										{/* Only show visibility for org_owner */}
 										{isOrgOwner && (
@@ -322,7 +327,9 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												}}
 											</form.Field>
 										)}
-
+									</div>
+									{/* Left Column: Visibility (if org_owner) and Event Types */}
+									<div className="flex flex-col gap-6 md:gap-4">
 										<form.Field name="useTicket">
 											{(field) => {
 												const isInvalid =
