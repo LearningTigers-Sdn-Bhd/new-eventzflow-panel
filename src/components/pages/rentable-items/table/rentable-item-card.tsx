@@ -33,7 +33,7 @@ export function RentableItemCard({ item }: RentableItemCardProps) {
 							</Badge>
 						</div>
 						{item.description && (
-							<p className="text-muted-foreground text-sm line-clamp-2">
+							<p className="line-clamp-2 text-muted-foreground text-sm">
 								{item.description}
 							</p>
 						)}

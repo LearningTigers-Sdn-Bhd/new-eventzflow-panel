@@ -39,7 +39,7 @@ export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventPrinti
 					<div>
 						<div className="font-medium">{service.printingService?.name || "-"}</div>
 						{service.printingService?.description && (
-							<div className="text-muted-foreground text-sm line-clamp-1">
+							<div className="line-clamp-1 text-muted-foreground text-sm">
 								{service.printingService.description}
 							</div>
 						)}
