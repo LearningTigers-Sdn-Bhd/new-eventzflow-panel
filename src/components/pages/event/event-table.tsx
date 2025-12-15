@@ -30,10 +30,10 @@ import { useDialog } from "@/hooks/use-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
-import type { Event } from "./columns";
 import CreateEventForm from "./create-event-form";
-import { DataControl } from "./data-control";
 import { EventItem } from "./event-item";
+import type { Event } from "./event-table-columns";
+import { DataControl } from "./event-table-control";
 
 type EventFilter = "active" | "archived" | "all";
 

@@ -124,7 +124,11 @@ export default function AuthLayout({
 			return null;
 
 		case "no-sidebar":
-			return <div className="grid h-svh grid-rows-[auto_1fr]">{children}</div>;
+			return (
+				<div className="mx-auto flex h-svh w-full max-w-7xl flex-col">
+					{children}
+				</div>
+			);
 
 		case "sidebar":
 			return (
