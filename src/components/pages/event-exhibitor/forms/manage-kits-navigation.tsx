@@ -59,12 +59,13 @@ export function ManageKitsNavigation({
 					},
 				]
 			: []),
-		{
-			id: "custom-requests",
-			label: `Custom Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
-			shortLabel: `Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
-			icon: FileQuestion,
-		},
+		// HIDDEN: Custom Requests feature temporarily disabled
+		// {
+		// 	id: "custom-requests",
+		// 	label: `Custom Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
+		// 	shortLabel: `Requests${customRequestsCount > 0 ? ` (${customRequestsCount})` : ""}`,
+		// 	icon: FileQuestion,
+		// },
 	];
 
 	const activeItem = navigationItems.find((item) => item.id === activeTab);

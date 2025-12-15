@@ -122,7 +122,8 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			const kit = row.original;
 			const itemsCount = kit.exhibitor_kit_items?.length || 0;
 			const printingsCount = kit.exhibitor_kit_printings?.length || 0;
-			const customRequestsCount = kit.custom_requests?.length || 0;
+			// HIDDEN: Custom Requests feature temporarily disabled
+			// const customRequestsCount = kit.custom_requests?.length || 0;
 			
 			return (
 				<div className="space-y-1">
@@ -134,12 +135,13 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 						<Package className="h-3 w-3 text-muted-foreground" />
 						<span>{printingsCount} services</span>
 					</div>
-					{customRequestsCount > 0 && (
+					{/* HIDDEN: Custom Requests feature temporarily disabled */}
+					{/* {customRequestsCount > 0 && (
 						<div className="flex items-center gap-2 text-sm">
 							<Package className="h-3 w-3 text-muted-foreground" />
 							<span>{customRequestsCount} custom requests</span>
 						</div>
-					)}
+					)} */}
 				</div>
 			);
 		},

@@ -74,7 +74,8 @@ export function ManageKitsModal({
 						onClose={onClose}
 					/>
 				)}
-				{activeTab === "custom-requests" && (
+				{/* HIDDEN: Custom Requests feature temporarily disabled */}
+				{/* {activeTab === "custom-requests" && (
 					<ManageKitCustomRequestsForm
 						customRequests={kit.custom_requests || []}
 						vendorName={vendor.vendor.full_name}
@@ -83,7 +84,7 @@ export function ManageKitsModal({
 						exhibitorKitId={kit.id}
 						onClose={onClose}
 					/>
-				)}
+				)} */}
 			</div>
 		</div>
 	);

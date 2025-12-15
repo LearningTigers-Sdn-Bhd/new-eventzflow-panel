@@ -48,8 +48,9 @@ export function ExhibitorKitDetailsSection({
 		? Number(kit.extra_team_member_charges)
 		: 0;
 
+	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
 	const grandTotal =
-		itemsTotal + printingsTotal + customRequestsTotal + teamMemberCharges;
+		itemsTotal + printingsTotal + teamMemberCharges;
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -427,8 +428,8 @@ export function ExhibitorKitDetailsSection({
 					</div>
 				)}
 
-				{/* Custom Requests */}
-				{customRequests.length > 0 && (
+				{/* HIDDEN: Custom Requests feature temporarily disabled */}
+				{/* {customRequests.length > 0 && (
 					<div className="rounded-none border bg-background p-4">
 						<div className="mb-3 flex items-center justify-between border-b pb-3">
 							<div className="flex items-center gap-2">
@@ -510,7 +511,7 @@ export function ExhibitorKitDetailsSection({
 							))}
 						</div>
 					</div>
-				)}
+				)} */}
 
 				{/* Grand Total */}
 				{grandTotal > 0 && (
@@ -527,9 +528,10 @@ export function ExhibitorKitDetailsSection({
 								{printingsTotal > 0 && (
 									<span>• Services: RM {printingsTotal.toFixed(2)}</span>
 								)}
-								{customRequestsTotal > 0 && (
+								{/* HIDDEN: Custom Requests feature temporarily disabled */}
+								{/* {customRequestsTotal > 0 && (
 									<span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>
-								)}
+								)} */}
 								{teamMemberCharges > 0 && (
 									<span className="font-medium text-amber-600">
 										• Extra Team Members: RM {teamMemberCharges.toFixed(2)}

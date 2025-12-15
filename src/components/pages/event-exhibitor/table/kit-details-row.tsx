@@ -29,7 +29,8 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 		.reduce((sum, req) => sum + ((req.resolved_price || 0) * req.quantity), 0);
 	const teamMemberCharges = kit.extra_team_member_charges ? Number(kit.extra_team_member_charges) : 0;
 
-	const grandTotal = itemsTotal + printingsTotal + customRequestsTotal + teamMemberCharges;
+	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
+	const grandTotal = itemsTotal + printingsTotal + teamMemberCharges;
 
 	const pendingRequests = customRequests.filter(req => req.status === "pending").length;
 	const approvedRequests = customRequests.filter(req => req.status === "approved").length;
@@ -279,8 +280,8 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					)}
 				</div>
 
-				{/* Custom Requests - Full Width */}
-				{customRequests.length > 0 && (
+				{/* HIDDEN: Custom Requests feature temporarily disabled */}
+				{/* {customRequests.length > 0 && (
 					<div className="space-y-1.5 md:col-span-2 lg:col-span-3 border p-3 bg-background">
 						<div className="flex items-center gap-2 mb-2 pb-1.5 border-b">
 							<FileQuestion className="size-3.5 text-primary" />
@@ -343,7 +344,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							</div>
 						)}
 					</div>
-				)}
+				)} */}
 
 				{/* Grand Total - Full Width */}
 				{grandTotal > 0 && (
@@ -354,7 +355,8 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 								<div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-1">
 									{itemsTotal > 0 && <span>Items: RM {itemsTotal.toFixed(2)}</span>}
 									{printingsTotal > 0 && <span>• Services: RM {printingsTotal.toFixed(2)}</span>}
-									{customRequestsTotal > 0 && <span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>}
+									{/* HIDDEN: Custom Requests feature temporarily disabled */}
+									{/* {customRequestsTotal > 0 && <span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>} */}
 									{teamMemberCharges > 0 && (
 										<span className="font-medium text-amber-600">
 											• Team: RM {teamMemberCharges.toFixed(2)}

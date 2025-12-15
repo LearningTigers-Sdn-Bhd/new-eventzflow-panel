@@ -89,7 +89,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 			0,
 		);
 
-	const grandTotal = itemsTotal + printingsTotal + customRequestsTotal;
+	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
+	const grandTotal = itemsTotal + printingsTotal;
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -412,8 +413,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 						</div>
 					)}
 
-					{/* Custom Requests */}
-					{customRequests.length > 0 && (
+					{/* HIDDEN: Custom Requests feature temporarily disabled */}
+					{/* {customRequests.length > 0 && (
 						<div className="rounded-none border bg-background p-4">
 							<div className="mb-3 flex items-center justify-between border-b pb-3">
 								<div className="flex items-center gap-2">
@@ -495,7 +496,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								))}
 							</div>
 						</div>
-					)}
+					)} */}
 
 					{/* Grand Total */}
 					{grandTotal > 0 && (

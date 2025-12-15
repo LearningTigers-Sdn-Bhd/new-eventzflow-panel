@@ -41,7 +41,8 @@ const TAB_OPTIONS = [
 	{ value: "exhibitors", label: "Exhibitors", icon: Users },
 	{ value: "items", label: "Ordered Items", icon: Package },
 	{ value: "services", label: "Ordered Services", icon: Printer },
-	{ value: "custom-requests", label: "Custom Requests", icon: FileQuestion },
+	// HIDDEN: Custom Requests feature temporarily disabled
+	// { value: "custom-requests", label: "Custom Requests", icon: FileQuestion },
 ];
 
 export function ExhibitorListView({
@@ -142,13 +143,14 @@ export function ExhibitorListView({
 								<Printer className="size-4" />
 								Ordered Services
 							</TabsTrigger>
-							<TabsTrigger
+							{/* HIDDEN: Custom Requests feature temporarily disabled */}
+							{/* <TabsTrigger
 								value="custom-requests"
 								className="flex flex-1 items-center justify-center gap-2 rounded-none"
 							>
 								<FileQuestion className="size-4" />
 								Custom Requests
-							</TabsTrigger>
+							</TabsTrigger> */}
 						</TabsList>
 					</div>
 				)}
@@ -196,9 +198,10 @@ export function ExhibitorListView({
 						<OrderedServicesView eventId={eventId} />
 					</TabsContent>
 
-					<TabsContent value="custom-requests" className="mt-0">
+					{/* HIDDEN: Custom Requests feature temporarily disabled */}
+					{/* <TabsContent value="custom-requests" className="mt-0">
 						<CustomRequestsView eventId={eventId} />
-					</TabsContent>
+					</TabsContent> */}
 				</div>
 			</Tabs>
 		</div>

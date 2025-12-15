@@ -135,14 +135,15 @@ export const TAB_ITEMS: TabItem[] = [
 		icon: Package,
 		route: "my-exhibitor-kit/order-items",
 	},
-	{
-		id: "custom-requests",
-		label: "Custom Requests",
-		title: "Custom Requests",
-		description: "Submit custom requests for items not in the catalog.",
-		icon: Package,
-		route: "my-exhibitor-kit/custom-requests",
-	},
+	// HIDDEN: Custom Requests feature temporarily disabled
+	// {
+	// 	id: "custom-requests",
+	// 	label: "Custom Requests",
+	// 	title: "Custom Requests",
+	// 	description: "Submit custom requests for items not in the catalog.",
+	// 	icon: Package,
+	// 	route: "my-exhibitor-kit/custom-requests",
+	// },
 	{
 		id: "exhibitor",
 		label: "Exhibitor",
@@ -193,14 +194,15 @@ export const TAB_ITEMS: TabItem[] = [
 		icon: Building2,
 		route: "printing-services",
 	},
-	{
-		id: "contractor-custom-requests",
-		label: "Custom Requests",
-		title: "Custom Requests",
-		description: "Review and manage custom requests from exhibitors.",
-		icon: Package,
-		route: "contractor-custom-requests",
-	},
+	// HIDDEN: Custom Requests feature temporarily disabled
+	// {
+	// 	id: "contractor-custom-requests",
+	// 	label: "Custom Requests",
+	// 	title: "Custom Requests",
+	// 	description: "Review and manage custom requests from exhibitors.",
+	// 	icon: Package,
+	// 	route: "contractor-custom-requests",
+	// },
 	{
 		id: "vouchers",
 		label: "Vouchers",
@@ -294,7 +296,7 @@ export const EXHIBITOR_KIT_TAB_IDS = [
 	"my-team-members",
 	"my-items",
 	"order-items",
-	"custom-requests",
+	// "custom-requests", // HIDDEN: Custom Requests feature temporarily disabled
 ];
 export const USER_MANAGEMENT_TAB_IDS = [
 	"event-staff",
