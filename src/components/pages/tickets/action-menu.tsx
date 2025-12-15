@@ -30,7 +30,7 @@ import {
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
-import ConfirmDialog from "../event/settings/confirm-dialog";
+import ConfirmDialog from "../../admin-ui/form/confirm-dialog";
 import TicketEditModal from "./action-modals/edit-ticket-form";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";

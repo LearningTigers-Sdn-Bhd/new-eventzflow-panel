@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import CustomLabelForm from "./custom-label-form";
-import InfoForm from "./info-form";
+import CustomLabelForm from "./edit-custom-label-form";
+import InfoForm from "./edit-info-form";
 import SettingsNavigation from "./navigation";
 
 interface EventSettingsDialogProps {
