@@ -160,6 +160,14 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "exhibitor-contractor",
 	},
 	{
+		id: "contractor-exhibitor-kits",
+		label: "Exhibitor Kits",
+		title: "Exhibitor Kits",
+		description: "View and manage exhibitor kits for this event.",
+		icon: Package,
+		route: "contractor-exhibitor-kits",
+	},
+	{
 		id: "rentable-items",
 		label: "Rentable Items",
 		title: "Event Rentable Items",

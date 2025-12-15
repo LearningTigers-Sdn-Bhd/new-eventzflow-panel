@@ -33,8 +33,8 @@ const data = {
 			roleAllowed: ["org_owner", "organizer", "member", "vendor", "exhibition_contractor"],
 		},
 		{
-			name: "Exhibitor Kit",
-			url: "/exhibitor-kit" as Route,
+			name: "Exhibitor Kits",
+			url: "/exhibitor-kits" as Route,
 			icon: Package,
 			roleAllowed: ["exhibition_contractor"],
 		},

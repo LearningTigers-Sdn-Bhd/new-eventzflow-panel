@@ -24,6 +24,7 @@ export function useTabFiltering(
 					"rentable-items",
 					"printing-services",
 					"contractor-custom-requests",
+					"contractor-exhibitor-kits",
 				].includes(tab.id);
 			}
 
@@ -113,7 +114,7 @@ export function useTabFiltering(
 			if (tab.id === "exhibitor") {
 				return (
 					currentEvent?.use_exhibitor_kit === true &&
-					permissions.canViewVendorsTab
+					(permissions.canViewVendorsTab || permissions.isExhibitionContractor)
 				);
 			}
 
