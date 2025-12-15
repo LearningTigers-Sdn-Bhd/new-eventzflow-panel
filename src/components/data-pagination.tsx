@@ -50,7 +50,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent px-0 py-9 lg:flex-row lg:px-4">
+		<div className="-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9">
 			<div className="flex-1 text-muted-foreground text-sm">
 				{table.getFilteredRowModel().rows.length} row(s) total.
 			</div>
