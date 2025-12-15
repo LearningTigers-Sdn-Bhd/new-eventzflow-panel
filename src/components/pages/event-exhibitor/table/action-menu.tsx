@@ -20,15 +20,15 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { deleteEventVendor } from "@/lib/api/event-vendor";
-import ConfirmDialog from "../../event-staff/confirm-dialog";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
 import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
-import { getEventById } from "@/lib/api/event";
 
 interface ExhibitorActionsMenuProps {
 	exhibitor: EventVendor;
@@ -39,6 +39,7 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 
 	const queryClient = useQueryClient();
 
@@ -83,7 +84,8 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 			component: ManageKitsModal,
 			props: {
 				vendor: exhibitor,
-				showPrintingServices: event?.allow_contractor_printing_services ?? false,
+				showPrintingServices:
+					event?.allow_contractor_printing_services ?? false,
 				onClose: closeDialog,
 			},
 			config: {
@@ -131,23 +133,18 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to remove ${exhibitor.vendor.full_name} from this event? They will no longer have access to this event's exhibitor functions.`,
-				confirmLabel: "Remove",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					deleteExhibitorMutation.mutate(exhibitor.id);
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Remove Exhibitor",
+			message: `Are you sure you want to remove ${exhibitor.vendor.full_name} from this event? They will no longer have access to this event's exhibitor functions.`,
+			confirmLabel: "Remove",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteExhibitorMutation.mutate(exhibitor.id);
 			},
-			config: {
-				title: "Remove Exhibitor",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

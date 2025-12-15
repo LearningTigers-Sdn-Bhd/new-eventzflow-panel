@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Vendor } from "@/lib/api/vendor";
 import { deleteVendor, toggleVendorStatus } from "@/lib/api/vendor";
-import ConfirmDialog from "../dialogs/confirm-dialog";
 import EditVendorForm from "../dialogs/edit-vendor-form";
 
 interface VendorActionsMenuProps {
@@ -18,6 +18,7 @@ interface VendorActionsMenuProps {
 
 export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 	const { user } = useAuth();
 
@@ -71,51 +72,41 @@ export function VendorActionsMenu({ vendor }: VendorActionsMenuProps) {
 		const newStatus = isActive ? "inactive" : "active";
 		const action = isActive ? "deactivate" : "activate";
 
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to ${action} ${vendor.full_name}? ${
-					isActive
-						? "They will no longer be able to access the system."
-						: "They will be able to access the system again."
-				}`,
-				confirmLabel: isActive ? "Deactivate" : "Activate",
-				variant: isActive ? "warning" : "success",
-				icon: isActive ? "alert" : "check",
-				onConfirm: () => {
-					toggleStatusMutation.mutate({
-						id: vendor.id,
-						status: newStatus,
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: `${isActive ? "Deactivate" : "Activate"} Vendor`,
+			message: `Are you sure you want to ${action} ${vendor.full_name}? ${
+				isActive
+					? "They will no longer be able to access the system."
+					: "They will be able to access the system again."
+			}`,
+			confirmLabel: isActive ? "Deactivate" : "Activate",
+			type: isActive ? "warning" : "success",
+			icon: isActive ? "alert" : "check",
+			size: "sm",
+			onConfirm: () => {
+				toggleStatusMutation.mutate({
+					id: vendor.id,
+					status: newStatus,
+				});
 			},
-			config: {
-				title: `${isActive ? "Deactivate" : "Activate"} Vendor`,
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete ${vendor.full_name}? This action cannot be undone and will permanently remove the vendor from the system.`,
-				confirmLabel: "Delete",
-				variant: "destructive",
-				icon: "alert",
-				onConfirm: () => {
-					deleteMutation.mutate({
-						id: vendor.id,
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Vendor",
+			message: `Are you sure you want to delete ${vendor.full_name}? This action cannot be undone and will permanently remove the vendor from the system.`,
+			confirmLabel: "Delete",
+			type: "destructive",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				deleteMutation.mutate({
+					id: vendor.id,
+				});
 			},
-			config: {
-				title: "Delete Vendor",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 

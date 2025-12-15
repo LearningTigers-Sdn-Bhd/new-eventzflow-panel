@@ -2,12 +2,10 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Users, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2, Users } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useDialog } from "@/hooks/use-dialog";
-import ConfirmDialog from "@/components/pages/event/settings/confirm-dialog";
 import {
 	Dialog,
 	DialogContent,
@@ -26,11 +24,12 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
 	createExhibitorTeamMemberLimit,
+	deleteExhibitorTeamMemberLimit,
 	getExhibitorTeamMemberLimit,
 	updateExhibitorTeamMemberLimit,
-	deleteExhibitorTeamMemberLimit,
 } from "@/lib/api/exhibitor-team-member-limit";
 
 interface TeamLimitsDialogProps {
@@ -40,7 +39,7 @@ interface TeamLimitsDialogProps {
 
 export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 	const queryClient = useQueryClient();
-	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm, closeDialog } = useConfirmDialog();
 	const [isEditing, setIsEditing] = React.useState(false);
 
 	// Fetch existing settings (returns null if not configured)
@@ -132,24 +131,19 @@ export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 	});
 
 	const handleRemoveLimits = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message:
-					"Are you sure you want to remove team member limits? This will allow unlimited team members for all exhibitors.",
-				confirmLabel: "Remove Limits",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					deleteMutation.mutate();
-					closeDialog();
-				},
-				onCancel: closeDialog,
-			},
-			config: {
-				title: "Remove Team Member Limits",
-				description: "This action will remove all team member restrictions.",
+		openConfirm({
+			title: "Remove Team Member Limits",
+			description: "This action will remove all team member restrictions.",
+			message:
+				"Are you sure you want to remove team member limits? This will allow unlimited team members for all exhibitors.",
+			confirmLabel: "Remove Limits",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteMutation.mutate();
+				closeDialog();
 			},
 		});
 	};
@@ -168,8 +162,8 @@ export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 				<DialogHeader>
 					<DialogTitle>Configure Team Member Limits</DialogTitle>
 					<DialogDescription>
-						Set the maximum number of free team members per exhibitor and the fee
-						for additional members. To allow unlimited team members, click
+						Set the maximum number of free team members per exhibitor and the
+						fee for additional members. To allow unlimited team members, click
 						"Remove Limits" instead.
 					</DialogDescription>
 				</DialogHeader>
@@ -185,27 +179,27 @@ export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 							<div className="space-y-3">
 								<div className="flex items-start justify-between">
 									<div className="space-y-1">
-										<p className="text-sm font-medium">Team Member Limit</p>
-										<p className="text-2xl font-bold">
+										<p className="font-medium text-sm">Team Member Limit</p>
+										<p className="font-bold text-2xl">
 											{settings.team_member_limit}
 										</p>
-										<p className="text-xs text-muted-foreground">
+										<p className="text-muted-foreground text-xs">
 											Free team members per exhibitor
 										</p>
 									</div>
 									<div className="rounded-none bg-primary/10 px-3 py-1">
-										<p className="text-xs font-medium text-primary">
+										<p className="font-medium text-primary text-xs">
 											CONFIGURED
 										</p>
 									</div>
 								</div>
 
 								<div className="border-t border-dashed pt-3">
-									<p className="text-sm font-medium">Extra Member Fee</p>
-									<p className="text-2xl font-bold">
+									<p className="font-medium text-sm">Extra Member Fee</p>
+									<p className="font-bold text-2xl">
 										RM {settings.extra_team_member_fee}
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-muted-foreground text-xs">
 										Charged per additional team member
 									</p>
 								</div>
@@ -255,7 +249,8 @@ export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 										<Field data-invalid={isInvalid}>
 											<FieldContent>
 												<FieldLabel htmlFor={field.name}>
-													Team Member Limit <span className="text-red-500">*</span>
+													Team Member Limit{" "}
+													<span className="text-red-500">*</span>
 												</FieldLabel>
 												<FieldDescription>
 													Maximum number of free team members per exhibitor.
@@ -293,8 +288,8 @@ export function TeamLimitsDialog({ eventId, trigger }: TeamLimitsDialogProps) {
 													<span className="text-red-500">*</span>
 												</FieldLabel>
 												<FieldDescription>
-													Fee charged per team member exceeding the limit. Set to 0
-													for no charge.
+													Fee charged per team member exceeding the limit. Set
+													to 0 for no charge.
 												</FieldDescription>
 											</FieldContent>
 											<Input
