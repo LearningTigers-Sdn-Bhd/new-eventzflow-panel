@@ -106,40 +106,36 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 		<div className="space-y-6 p-0">
 			{/* Summary Cards */}
 			<div className="grid gap-4 md:grid-cols-2">
-				<Card className="rounded-none">
-					<CardHeader className="pb-3">
-						<CardTitle className="text-sm font-medium">Total Items</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="font-bold text-2xl">{totalItems}</div>
-						<p className="text-muted-foreground text-xs">
-							{items.length} items, {printings.length} printings
-						</p>
-					</CardContent>
-				</Card>
+				<div className="border p-4">
+					<div className="mb-3">
+						<h3 className="text-sm font-medium">Total Items</h3>
+					</div>
+					<div className="font-bold text-2xl">{totalItems}</div>
+					<p className="text-muted-foreground text-xs">
+						{items.length} items, {printings.length} printings
+					</p>
+				</div>
 
-				<Card className="rounded-none">
-					<CardHeader className="pb-3">
-						<CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="font-bold text-2xl">
-							{new Intl.NumberFormat("en-MY", {
-								style: "currency",
-								currency: "MYR",
-							}).format(grandTotal)}
-						</div>
-						<p className="text-muted-foreground text-xs">
-							Items: {new Intl.NumberFormat("en-MY", {
-								style: "currency",
-								currency: "MYR",
-							}).format(itemsTotal)} | Printings: {new Intl.NumberFormat("en-MY", {
-								style: "currency",
-								currency: "MYR",
-							}).format(printingsTotal)}
-						</p>
-					</CardContent>
-				</Card>
+				<div className="border p-4">
+					<div className="mb-3">
+						<h3 className="text-sm font-medium">Total Cost</h3>
+					</div>
+					<div className="font-bold text-2xl">
+						{new Intl.NumberFormat("en-MY", {
+							style: "currency",
+							currency: "MYR",
+						}).format(grandTotal)}
+					</div>
+					<p className="text-muted-foreground text-xs">
+						Items: {new Intl.NumberFormat("en-MY", {
+							style: "currency",
+							currency: "MYR",
+						}).format(itemsTotal)} | Printings: {new Intl.NumberFormat("en-MY", {
+							style: "currency",
+							currency: "MYR",
+						}).format(printingsTotal)}
+					</p>
+				</div>
 			</div>
 
 			{/* Items and Printings Tabs */}

@@ -22,7 +22,6 @@ const exhibitorKitAttributesSchema = z.object({
 	pic_contact_number: z.string().min(1, "PIC contact number is required"),
 	pic_email_address: z.string().email("Must be a valid email address").optional().or(z.literal("")),
 	// Optional extras
-	extra_crew_count: z.number().optional(),
 	special_requirements: z.string().optional(),
 	exhibitor_team_members_attributes: z.array(z.object({
 		full_name: z.string().min(1, "Full name is required"),

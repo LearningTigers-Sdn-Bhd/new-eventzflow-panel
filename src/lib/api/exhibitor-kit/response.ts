@@ -4,6 +4,8 @@ export interface ExhibitorTeamMember {
 	id?: number;
 	exhibitor_kit_id?: number;
 	full_name: string;
+	created_at?: string;
+	updated_at?: string;
 	_destroy?: boolean;
 }
 
@@ -72,17 +74,9 @@ export interface ExhibitorKit {
 	pic_full_name: string;
 	pic_contact_number: string;
 	pic_email_address: string;
-	extra_crew_count: number;
 	special_requirements?: string;
 	digital_brochure_link?: string;
 	qr_code_url?: string;
-	contractor_company_name?: string;
-	contractor_pic_name?: string;
-	contractor_pic_contact?: string;
-	stand_design_file_url?: string;
-	furniture_requests?: Record<string, unknown>;
-	electrical_requests?: Record<string, unknown>;
-	printing_orders?: Record<string, unknown>;
 	indemnity_signed: boolean;
 	indemnity_document_url?: string;
 	payment_status: PaymentStatus;
@@ -93,6 +87,12 @@ export interface ExhibitorKit {
 	exhibitor_kit_items?: ExhibitorKitItem[];
 	exhibitor_kit_printings?: ExhibitorKitPrinting[];
 	custom_requests?: CustomRequest[];
+	team_member_count?: number;
+	team_member_limit?: number | null;
+	excess_team_member_count?: number;
+	exceeds_team_member_limit?: boolean;
+	extra_team_member_fee?: string;
+	extra_team_member_charges?: string;
 	created_at?: string;
 	updated_at?: string;
 }

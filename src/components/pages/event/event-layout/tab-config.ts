@@ -111,6 +111,14 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "my-profile",
 	},
 	{
+		id: "my-team-members",
+		label: "My Team",
+		title: "My Team Members",
+		description: "Manage your team members for this event.",
+		icon: Users,
+		route: "my-exhibitor-kit/team-members",
+	},
+	{
 		id: "my-items",
 		label: "My Items",
 		title: "My Ordered Items",
@@ -127,14 +135,15 @@ export const TAB_ITEMS: TabItem[] = [
 		icon: Package,
 		route: "my-exhibitor-kit/order-items",
 	},
-	{
-		id: "custom-requests",
-		label: "Custom Requests",
-		title: "Custom Requests",
-		description: "Submit custom requests for items not in the catalog.",
-		icon: Package,
-		route: "my-exhibitor-kit/custom-requests",
-	},
+	// HIDDEN: Custom Requests feature temporarily disabled
+	// {
+	// 	id: "custom-requests",
+	// 	label: "Custom Requests",
+	// 	title: "Custom Requests",
+	// 	description: "Submit custom requests for items not in the catalog.",
+	// 	icon: Package,
+	// 	route: "my-exhibitor-kit/custom-requests",
+	// },
 	{
 		id: "exhibitor",
 		label: "Exhibitor",
@@ -160,6 +169,14 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "exhibitor-contractor",
 	},
 	{
+		id: "contractor-exhibitor-kits",
+		label: "Exhibitor Kits",
+		title: "Exhibitor Kits",
+		description: "View and manage exhibitor kits for this event.",
+		icon: Package,
+		route: "contractor-exhibitor-kits",
+	},
+	{
 		id: "rentable-items",
 		label: "Rentable Items",
 		title: "Event Rentable Items",
@@ -177,14 +194,15 @@ export const TAB_ITEMS: TabItem[] = [
 		icon: Building2,
 		route: "printing-services",
 	},
-	{
-		id: "contractor-custom-requests",
-		label: "Custom Requests",
-		title: "Custom Requests",
-		description: "Review and manage custom requests from exhibitors.",
-		icon: Package,
-		route: "contractor-custom-requests",
-	},
+	// HIDDEN: Custom Requests feature temporarily disabled
+	// {
+	// 	id: "contractor-custom-requests",
+	// 	label: "Custom Requests",
+	// 	title: "Custom Requests",
+	// 	description: "Review and manage custom requests from exhibitors.",
+	// 	icon: Package,
+	// 	route: "contractor-custom-requests",
+	// },
 	{
 		id: "vouchers",
 		label: "Vouchers",
@@ -275,9 +293,10 @@ export const ANALYTICS_TAB_IDS = [
 ];
 export const LOGS_TAB_IDS = ["voucher-logs", "stamp-logs", "export-logs"];
 export const EXHIBITOR_KIT_TAB_IDS = [
+	"my-team-members",
 	"my-items",
 	"order-items",
-	"custom-requests",
+	// "custom-requests", // HIDDEN: Custom Requests feature temporarily disabled
 ];
 export const USER_MANAGEMENT_TAB_IDS = [
 	"event-staff",

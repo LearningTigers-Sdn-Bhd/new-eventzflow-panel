@@ -7,6 +7,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
 import AddExhibitorModal from "../forms/add-exhibitor";
+import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
 
 export function ExhibitorPageButton() {
 	const params = useParams();
@@ -38,6 +39,7 @@ export function ExhibitorPageButton() {
 
 	return (
 		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
+			<TeamLimitsDialog eventId={Number(eventId)} />
 			{canInviteVendor && (
 				<InviteVendorDialog
 					eventId={Number(eventId)}

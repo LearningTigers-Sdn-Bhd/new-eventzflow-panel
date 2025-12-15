@@ -1,7 +1,14 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Users } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	Plus,
+	Trash2,
+	Users,
+	AlertCircle,
+	Info,
+	DollarSign,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 
 interface ManageTeamMembersFormProps {
 	vendor: EventVendor;
@@ -45,6 +53,13 @@ export function ManageTeamMembersForm({
 	const [newMemberName, setNewMemberName] = useState("");
 
 	const queryClient = useQueryClient();
+
+	// Fetch team member limit settings
+	const { data: limitSettings } = useQuery({
+		queryKey: ["exhibitor-team-member-limit", eventId],
+		queryFn: () => getExhibitorTeamMemberLimit(eventId),
+		retry: false,
+	});
 
 	const updateKitMutation = useMutation({
 		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) =>
@@ -117,44 +132,126 @@ export function ManageTeamMembersForm({
 	}
 
 	const visibleMembers = teamMembers.filter((m) => !m._destroy);
+	const currentCount = visibleMembers.length;
+
+	// Calculate limit status
+	const hasLimit = limitSettings && limitSettings.team_member_limit;
+	const limit = limitSettings?.team_member_limit || null;
+	const fee = limitSettings?.extra_team_member_fee
+		? Number.parseFloat(limitSettings.extra_team_member_fee)
+		: 0;
+
+	const freeSlots = hasLimit ? Math.max((limit || 0) - currentCount, 0) : null;
+	const excessCount = hasLimit
+		? Math.max(currentCount - (limit || 0), 0)
+		: 0;
+	const extraCharges = excessCount * fee;
+	const isOverLimit = hasLimit && currentCount > (limit || 0);
+	const isAtLimit = hasLimit && currentCount === limit;
+	const canAddMore = !hasLimit || currentCount < (limit || 0) || fee > 0;
 
 	return (
-		<section className="w-full">
+		<section className="w-full px-8">
 			<form onSubmit={handleSubmit}>
 				<FieldSet>
-					<FieldDescription>
-						Add or remove team members for {vendor.vendor.full_name}.
-					</FieldDescription>
+					{/* Limit Status Banner - Mobile Responsive */}
+					{hasLimit && (
+						<div className="border border-dashed bg-muted/50 p-3">
+							<div className="flex items-start gap-3">
+								<Info className="size-4 text-primary shrink-0 mt-0.5" />
+								<div className="flex-1 space-y-3">
+									{/* Limit and Current Info - Stacked on mobile, row on desktop */}
+									<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+										<div className="flex-1">
+											<p className="font-medium text-sm">
+												Team Member Limit: {limit}
+											</p>
+											<p className="text-xs text-muted-foreground">
+												{freeSlots !== null && freeSlots > 0
+													? `${freeSlots} free slot${freeSlots !== 1 ? "s" : ""} remaining`
+													: "No free slots remaining"}
+											</p>
+										</div>
+										<div className="flex-1 sm:border-l sm:pl-4">
+											<p className="font-medium text-sm">Current: {currentCount}</p>
+											{fee > 0 && (
+												<p className="text-xs text-muted-foreground">
+													Extra fee: RM {fee.toFixed(2)}/member
+												</p>
+											)}
+										</div>
+									</div>
+
+									{/* Warning/Error Badges */}
+									{isOverLimit && fee > 0 && (
+										<div className="flex items-center gap-2 rounded-none bg-amber-100 dark:bg-amber-950/40 px-3 py-2 border border-amber-200 dark:border-amber-800">
+											<DollarSign className="size-4 text-amber-600 dark:text-amber-300 shrink-0" />
+											<div className="flex-1 min-w-0">
+												<p className="text-xs font-semibold text-amber-900 dark:text-amber-100">
+													{excessCount} excess member{excessCount !== 1 ? "s" : ""}
+												</p>
+												<p className="text-xs text-amber-900 dark:text-amber-100">
+													Additional charge: RM {extraCharges.toFixed(2)}
+												</p>
+											</div>
+										</div>
+									)}
+
+									{isAtLimit && fee === 0 && (
+										<div className="flex items-center gap-2 rounded-none bg-red-100 dark:bg-red-950/40 px-3 py-2 border border-red-200 dark:border-red-800">
+											<AlertCircle className="size-4 text-red-600 dark:text-red-300 shrink-0" />
+											<p className="text-xs font-semibold text-red-900 dark:text-red-100">
+												Limit reached. Cannot add more team members.
+											</p>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					)}
+
 					<FieldSeparator />
 					<FieldGroup>
-						<div className="flex gap-2">
-							<Input
-								value={newMemberName}
-								onChange={(e) => setNewMemberName(e.target.value)}
-								placeholder="Enter team member name"
-								disabled={updateKitMutation.isPending}
-								className="rounded-none flex-1"
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										e.preventDefault();
-										handleAddMember();
-									}
-								}}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={handleAddMember}
-								disabled={updateKitMutation.isPending}
-								className="rounded-none"
-							>
-								<Plus className="size-4 mr-2" />
-								Add
-							</Button>
+						{/* Add Member Input */}
+						<div className="space-y-2">
+							<p className="text-sm font-medium">Add New Team Member</p>
+							<div className="flex gap-2">
+								<Input
+									value={newMemberName}
+									onChange={(e) => setNewMemberName(e.target.value)}
+									placeholder="Enter team member name"
+									disabled={updateKitMutation.isPending || !canAddMore}
+									className="rounded-none flex-1"
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											e.preventDefault();
+											handleAddMember();
+										}
+									}}
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={handleAddMember}
+									disabled={updateKitMutation.isPending || !canAddMore}
+									className="rounded-none"
+								>
+									<Plus className="size-4 mr-2" />
+									Add
+								</Button>
+							</div>
+							{!canAddMore && (
+								<p className="text-xs text-red-500 flex items-center gap-1">
+									<AlertCircle className="size-3" />
+									Cannot add more members. Limit reached and no extra fee
+									configured.
+								</p>
+							)}
 						</div>
 
 						<FieldSeparator />
 
+						{/* Team Members List */}
 						<div className="space-y-2">
 							<p className="text-sm font-medium flex items-center gap-2">
 								<Users className="size-4" />
@@ -165,8 +262,112 @@ export function ManageTeamMembersForm({
 								<div className="text-center py-8 text-muted-foreground border border-dashed rounded-none">
 									No team members added yet.
 								</div>
+							) : hasLimit ? (
+								// Show separated sections when limit exists
+								<div className="space-y-4">
+									{/* Free Team Members Section */}
+									<div className="space-y-2">
+										<div className="flex items-center justify-between">
+											<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+												Free Team Members
+											</p>
+											<span className="text-xs font-medium text-green-600 dark:text-green-400">
+												{Math.min(currentCount, limit || 0)} / {limit}
+											</span>
+										</div>
+										<div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+											{teamMembers.map((member, index) => {
+												if (member._destroy) return null;
+												const isFree = index < (limit || 0);
+												if (!isFree) return null;
+												return (
+													<div
+														key={member.id || `new-${index}`}
+														className="flex items-center gap-2 p-2 border rounded-none bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+													>
+														<span className="text-xs font-medium text-green-600 dark:text-green-400 shrink-0">
+															#{index + 1}
+														</span>
+														<Input
+															value={member.full_name}
+															onChange={(e) =>
+																handleUpdateMemberName(index, e.target.value)
+															}
+															disabled={updateKitMutation.isPending}
+															className="rounded-none flex-1 min-w-0"
+														/>
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon-sm"
+															onClick={() => handleRemoveMember(index)}
+															disabled={updateKitMutation.isPending}
+															className="rounded-none text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+														>
+															<Trash2 className="size-4" />
+														</Button>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+
+									{/* Paid Team Members Section */}
+									{excessCount > 0 && (
+										<div className="space-y-2">
+											<div className="flex items-center justify-between">
+												<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+													Additional Team Members (Paid)
+												</p>
+												<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+													{excessCount} × RM {fee.toFixed(2)} = RM{" "}
+													{extraCharges.toFixed(2)}
+												</span>
+											</div>
+											<div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+												{teamMembers.map((member, index) => {
+													if (member._destroy) return null;
+													const isPaid = index >= (limit || 0);
+													if (!isPaid) return null;
+													return (
+														<div
+															key={member.id || `new-${index}`}
+															className="flex items-center gap-2 p-2 border rounded-none bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+														>
+															<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+																#{index + 1}
+															</span>
+															<Input
+																value={member.full_name}
+																onChange={(e) =>
+																	handleUpdateMemberName(index, e.target.value)
+																}
+																disabled={updateKitMutation.isPending}
+																className="rounded-none flex-1 min-w-0"
+															/>
+															<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0 whitespace-nowrap">
+																+{fee.toFixed(0)}
+															</span>
+															<Button
+																type="button"
+																variant="ghost"
+																size="icon-sm"
+																onClick={() => handleRemoveMember(index)}
+																disabled={updateKitMutation.isPending}
+																className="rounded-none text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+															>
+																<Trash2 className="size-4" />
+															</Button>
+														</div>
+													);
+												})}
+											</div>
+										</div>
+									)}
+								</div>
 							) : (
-								<div className="space-y-2">
+								// Show simple grid when no limit
+								<div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
 									{teamMembers.map((member, index) => {
 										if (member._destroy) return null;
 										return (
@@ -174,13 +375,16 @@ export function ManageTeamMembersForm({
 												key={member.id || `new-${index}`}
 												className="flex items-center gap-2 p-2 border rounded-none bg-muted/30"
 											>
+												<span className="text-xs font-medium text-muted-foreground shrink-0">
+													#{index + 1}
+												</span>
 												<Input
 													value={member.full_name}
 													onChange={(e) =>
 														handleUpdateMemberName(index, e.target.value)
 													}
 													disabled={updateKitMutation.isPending}
-													className="rounded-none flex-1"
+													className="rounded-none flex-1 min-w-0"
 												/>
 												<Button
 													type="button"
@@ -188,7 +392,7 @@ export function ManageTeamMembersForm({
 													size="icon-sm"
 													onClick={() => handleRemoveMember(index)}
 													disabled={updateKitMutation.isPending}
-													className="rounded-none text-red-500 hover:text-red-600 hover:bg-red-50"
+													className="rounded-none text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
 												>
 													<Trash2 className="size-4" />
 												</Button>
