@@ -10,7 +10,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import type { ScannedLog } from "./columns";
+import type { ScannedLog } from "./ticket-scanned-log-columns";
 
 interface ScannedLogItemProps {
 	scannedLog: ScannedLog;
