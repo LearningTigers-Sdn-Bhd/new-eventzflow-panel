@@ -54,7 +54,7 @@ export function UniversalDialog() {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogContent
-				className={cn(sizeClass, isFullScreen && "rounded-none border-0 p-0")}
+				className={cn(sizeClass, isFullScreen && "rounded-none border-0 p-0", config.className)}
 				showCloseButton={config.showCloseButton}
 			>
 				<DialogHeader className={isFullScreen ? "p-6" : ""}>

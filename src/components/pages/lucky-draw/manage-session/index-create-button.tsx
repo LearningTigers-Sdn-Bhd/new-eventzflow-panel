@@ -10,7 +10,9 @@ export function LuckyDrawPageButton() {
 			component: CreateForm,
 			config: {
 				title: "Create Lucky Draw Session",
-				size: "lg", // Better for mobile - not too wide
+				description: "Set up a new lucky draw session with custom settings",
+				size: "full",
+				showCloseButton: true,
 			},
 		});
 	};

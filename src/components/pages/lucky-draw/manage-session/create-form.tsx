@@ -2,19 +2,29 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useParams } from "next/navigation";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { z } from "zod";
 import LogoUpload from "@/components/file-upload/logo-upload";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	Field,
 	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
+	FieldSeparator,
+	FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -25,6 +35,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import { createLuckyDrawSession } from "@/lib/api/lucky-draw";
+import { cn } from "@/lib/utils";
 
 type DrawStyle = "wheel" | "slot" | "box";
 
@@ -113,217 +124,306 @@ export default function CreateForm() {
 	});
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-			className="flex w-full flex-col items-center justify-center gap-4"
-		>
-			<FieldGroup>
-				<form.Field name="logo">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field
-								data-invalid={isInvalid}
-								className="flex flex-col items-center justify-center gap-2"
+		<div className="mx-auto w-full max-w-8xl px-8">
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<FieldSet>
+					<FieldSeparator />
+					<FieldGroup>
+						{/* Session Information Section */}
+						<div className="space-y-4">
+							<div>
+								<h3 className="font-semibold text-lg">Session Information</h3>
+								<p className="text-muted-foreground text-sm">
+									Basic details about your lucky draw session
+								</p>
+							</div>
+
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+								<form.Field name="logo">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field
+												data-invalid={isInvalid}
+												orientation="vertical"
+												className="flex flex-col items-center justify-start gap-2 border-r"
+											>
+												<div className="relative aspect-square w-full max-w-[200px]">
+													<LogoUpload
+														value={
+															field.state.value === null ||
+															field.state.value === undefined
+																? undefined
+																: (field.state.value as string | File)
+														}
+														onChange={(file) => {
+															field.handleChange(file ?? null);
+														}}
+														disabled={isPending}
+													/>
+												</div>
+												<div className="flex flex-col items-center gap-1 text-center">
+													<FieldLabel htmlFor={field.name}>
+														Session Logo
+													</FieldLabel>
+													<FieldDescription>
+														Upload a logo for this session
+													</FieldDescription>
+												</div>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
+
+								<form.Field name="title">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid} orientation="vertical">
+												<FieldLabel htmlFor={field.name}>
+													Session Title
+												</FieldLabel>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+												<Input
+													placeholder="e.g., Grand Prize Draw 2024"
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													disabled={isPending}
+													required
+												/>
+												<FieldDescription>
+													Give your session a memorable name
+												</FieldDescription>
+											</Field>
+										);
+									}}
+								</form.Field>
+
+								<form.Field name="draw_date">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid} orientation="vertical">
+												<FieldLabel htmlFor={field.name}>Draw Date</FieldLabel>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+												<Popover>
+													<PopoverTrigger asChild>
+														<Button
+															variant="outline"
+															className={cn(
+																"w-full justify-start text-left font-normal",
+																!field.state.value && "text-muted-foreground",
+															)}
+															disabled={isPending}
+														>
+															<CalendarIcon className="mr-2 h-4 w-4" />
+															{field.state.value ? (
+																format(field.state.value, "PPP")
+															) : (
+																<span>Pick a date</span>
+															)}
+														</Button>
+													</PopoverTrigger>
+													<PopoverContent className="w-auto p-0" align="start">
+														<Calendar
+															mode="single"
+															selected={field.state.value || undefined}
+															onSelect={(date) => field.handleChange(date || null)}
+															initialFocus
+															disabled={isPending}
+														/>
+													</PopoverContent>
+												</Popover>
+												<FieldDescription>
+													When will this draw take place?
+												</FieldDescription>
+											</Field>
+										);
+									}}
+								</form.Field>
+							</div>
+						</div>
+
+						<FieldSeparator />
+
+						{/* Draw Configuration Section */}
+						<div className="space-y-4">
+							<div>
+								<h3 className="font-semibold text-lg">Draw Configuration</h3>
+								<p className="text-muted-foreground text-sm">
+									Customize the appearance and behavior of your lucky draw
+								</p>
+							</div>
+
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+								<form.Field name="draw_style">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field
+												data-invalid={isInvalid}
+												className="flex flex-row items-center justify-between border p-4"
+											>
+												<div className="space-y-0.5">
+													<FieldLabel htmlFor={field.name}>
+														Draw Style
+													</FieldLabel>
+													<FieldDescription>
+														Choose how winners are selected
+													</FieldDescription>
+												</div>
+												<div className="flex items-center justify-end">
+													<Select
+														value={field.state.value}
+														onValueChange={(value) => {
+															field.handleChange(value as DrawStyle);
+														}}
+														disabled={isPending}
+													>
+														<SelectTrigger className="w-[180px]">
+															<SelectValue placeholder="Select style" />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="wheel">
+																🎡 Wheel
+															</SelectItem>
+															<SelectItem value="slot">
+																🎰 Slot Machine
+															</SelectItem>
+															<SelectItem value="box">📦 Box</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
+
+								<form.Field name="draw_theme">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field
+												data-invalid={isInvalid}
+												className="flex flex-row items-center justify-between border p-4"
+											>
+												<div className="space-y-0.5">
+													<FieldLabel htmlFor={field.name}>
+														Draw Theme
+													</FieldLabel>
+													<FieldDescription>
+														Visual style for the draw interface
+													</FieldDescription>
+												</div>
+												<div className="flex items-center justify-end">
+													<Select
+														value={field.state.value}
+														onValueChange={(value) => {
+															field.handleChange(
+																value as "wireframe" | "colorful" | "cartoon",
+															);
+														}}
+														disabled={isPending}
+													>
+														<SelectTrigger className="w-[180px]">
+															<SelectValue placeholder="Select theme" />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="wireframe">
+																Wireframe
+															</SelectItem>
+															<SelectItem value="colorful">
+																Colorful
+															</SelectItem>
+															<SelectItem value="cartoon">Cartoon</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
+
+								<form.Field name="use_gifts">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field
+												data-invalid={isInvalid}
+												className="flex flex-row items-center justify-between border p-4"
+											>
+												<div className="space-y-0.5">
+													<FieldLabel htmlFor={field.name} className="text-base">
+														Enable Gift System
+													</FieldLabel>
+													<FieldDescription>
+														Allow winners to receive gift items
+													</FieldDescription>
+												</div>
+												<div className="flex items-center justify-end">
+													<Switch
+														checked={field.state.value}
+														onCheckedChange={(checked) => {
+															field.handleChange(checked);
+														}}
+														disabled={isPending}
+													/>
+												</div>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
+							</div>
+						</div>
+
+						<FieldSeparator />
+
+						{/* Action Buttons */}
+						<div className="flex justify-end gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={closeDialog}
+								disabled={isPending}
 							>
-								<FieldLabel htmlFor={field.name}>Logo</FieldLabel>
-								<div className="aspect-square w-full max-w-[200px]">
-									<LogoUpload
-										value={
-											field.state.value === null ||
-											field.state.value === undefined
-												? undefined
-												: (field.state.value as string | File)
-										}
-										onChange={(file) => {
-											field.handleChange(file ?? null);
-										}}
-										disabled={isPending}
-									/>
-								</div>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-
-				<form.Field name="title">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={field.name}>Title</FieldLabel>
-								<Input
-									placeholder="Session title"
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-									disabled={isPending}
-								/>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-
-				<form.Field name="draw_date">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={field.name}>Draw Date</FieldLabel>
-								<Input
-									type="date"
-									value={
-										field.state.value
-											? new Date(field.state.value).toISOString().split("T")[0]
-											: ""
-									}
-									onBlur={field.handleBlur}
-									onChange={(e) =>
-										field.handleChange(
-											e.target.value ? new Date(e.target.value) : null,
-										)
-									}
-									disabled={isPending}
-								/>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-
-				<form.Field name="draw_style">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field
-								data-invalid={isInvalid}
-								className="flex flex-row items-center justify-between rounded-lg border p-4"
-							>
-								<div className="space-y-0.5">
-									<FieldLabel htmlFor={field.name}>Draw Style</FieldLabel>
-									<FieldDescription>
-										Select the style of the draw
-									</FieldDescription>
-								</div>
-								<div className="flex items-center justify-end">
-									<Select
-										value={field.state.value}
-										onValueChange={(value) => {
-											field.handleChange(value as DrawStyle);
-										}}
-										disabled={isPending}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select a style" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="wheel">Wheel</SelectItem>
-											<SelectItem value="slot">Slot</SelectItem>
-											<SelectItem value="box">Box</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-
-				<form.Field name="draw_theme">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field
-								data-invalid={isInvalid}
-								className="flex flex-row items-center justify-between rounded-lg border p-4"
-							>
-								<div className="space-y-0.5">
-									<FieldLabel htmlFor={field.name}>Draw Theme</FieldLabel>
-									<FieldDescription>
-										Select the theme for the draw style
-									</FieldDescription>
-								</div>
-								<div className="flex items-center justify-end">
-									<Select
-										value={field.state.value}
-										onValueChange={(value) => {
-											field.handleChange(value as "wireframe" | "colorful" | "cartoon");
-										}}
-										disabled={isPending}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select a theme" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="wireframe">Wireframe</SelectItem>
-											<SelectItem value="colorful">Colorful</SelectItem>
-											<SelectItem value="cartoon">Cartoon</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-
-				<form.Field name="use_gifts">
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field
-								data-invalid={isInvalid}
-								className="flex flex-row items-center justify-between rounded-lg border p-4"
-							>
-								<div className="space-y-0.5">
-									<FieldLabel htmlFor={field.name} className="text-base">
-										Use Gifts
-									</FieldLabel>
-									<FieldDescription>
-										Enable gift management for this session
-									</FieldDescription>
-								</div>
-								<div className="flex items-center justify-end">
-									<Switch
-										checked={field.state.value}
-										onCheckedChange={(checked) => {
-											field.handleChange(checked);
-										}}
-										disabled={isPending}
-									/>
-								</div>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-			</FieldGroup>
-
-			<div className="flex w-full items-center justify-end space-x-2">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={closeDialog}
-					disabled={isPending}
-				>
-					Cancel
-				</Button>
-				<Button type="submit" disabled={isPending}>
-					{isPending ? "Creating..." : "Create Session"}
-				</Button>
-			</div>
-		</form>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={isPending}>
+								{isPending ? "Creating Session..." : "Create Session"}
+							</Button>
+						</div>
+					</FieldGroup>
+				</FieldSet>
+			</form>
+		</div>
 	);
 }

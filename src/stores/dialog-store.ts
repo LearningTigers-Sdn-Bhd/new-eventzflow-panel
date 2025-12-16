@@ -9,6 +9,7 @@ export interface DialogConfig {
 	description?: string;
 	size?: DialogSize;
 	showCloseButton?: boolean;
+	className?: string; // Allow custom styling override
 }
 
 export interface DialogState {
