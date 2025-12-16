@@ -1,6 +1,8 @@
 import { CONTAINER_HEIGHT } from "@/hooks/draw-styles/use-slot";
 import { cn } from "@/lib/utils";
 import { DrawState } from "../../type";
+import { motion, useMotionValue, useSpring, animate } from "framer-motion";
+import { useEffect } from "react";
 
 interface ReelItem {
 	id: string;
@@ -27,6 +29,22 @@ export const SlotReel = ({
 	itemHeight,
 }: SlotReelProps) => {
 	const placeholderSlots = ["top", "center", "bottom"];
+	const y = useMotionValue(0);
+
+	// Create suspense animation with extreme slowdown before winner
+	useEffect(() => {
+		if (isTransitioning && offsetY > 0) {
+			const finalStop = -offsetY; // The real winner (negative for translateY)
+
+			// Animate: fast spin, then EXTREME slowdown at the very end
+			animate(y, finalStop, {
+				duration: spinDurationMs / 1000,
+				ease: [0.5, 0.01, 0.1, 1], // Fast start (50%), then crawls to finish (0.01 = almost stops)
+			});
+		} else {
+			y.set(-offsetY);
+		}
+	}, [offsetY, isTransitioning, spinDurationMs, y]);
 
 	return (
 		<div
@@ -46,12 +64,9 @@ export const SlotReel = ({
 			)}
 
 			{/* The Moving Reel */}
-			<div
+			<motion.div
 				style={{
-					transform: `translateY(-${offsetY}px)`,
-					transition: isTransitioning
-						? `transform ${spinDurationMs}ms cubic-bezier(0.15, 0.9, 0.35, 1)` // Custom bounce/elastic ease
-						: "none",
+					translateY: y,
 					// Use mask image to fade top and bottom slightly
 					maskImage:
 						"linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
@@ -88,7 +103,7 @@ export const SlotReel = ({
 								</span>
 							</div>
 						))}
-			</div>
+			</motion.div>
 		</div>
 	);
 };

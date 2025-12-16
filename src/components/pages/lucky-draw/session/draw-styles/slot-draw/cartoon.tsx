@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
 import { useSlot } from "@/hooks/draw-styles/use-slot";
 import type { DrawProps } from "../type";
-import { SlotMachineArt } from "./assets/slot-machine-art";
+import { CartoonSlotMachine } from "./assets/cartoon-slot-machine";
 import { SlotReel } from "./core/slot-reel";
 
 export const SlotDraw = ({
 	participants,
 	onDrawComplete,
 	isDrawing,
+	isCelebrating,
+	onDraw,
 }: DrawProps) => {
 	const {
 		state,
@@ -61,7 +63,11 @@ export const SlotDraw = ({
 					transformOrigin: "center center",
 				}}
 			>
-				<SlotMachineArt>
+				<CartoonSlotMachine
+					isDrawing={isDrawing}
+					isCelebrating={isCelebrating}
+					onSpin={onDraw}
+				>
 					<SlotReel
 						state={state}
 						reel={reel}
@@ -71,7 +77,7 @@ export const SlotDraw = ({
 						spinDurationMs={spinDurationMs}
 						itemHeight={itemHeight}
 					/>
-				</SlotMachineArt>
+				</CartoonSlotMachine>
 			</div>
 		</div>
 	);

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useSlot } from "@/hooks/draw-styles/use-slot";
 import type { DrawProps } from "../type";
-import { ColorfulFrame } from "./assets/colorful-frame";
+import { ColorfulSlotMachine } from "./assets/colorful-slot-machine";
 import { SlotReel } from "./core/slot-reel";
 
 export const SlotDraw = ({
@@ -9,6 +9,7 @@ export const SlotDraw = ({
 	onDrawComplete,
 	isDrawing,
 	isCelebrating,
+	onDraw,
 }: DrawProps) => {
 	const {
 		state,
@@ -62,7 +63,11 @@ export const SlotDraw = ({
 					transformOrigin: "center center",
 				}}
 			>
-				<ColorfulFrame isDrawing={isDrawing} isCelebrating={isCelebrating}>
+				<ColorfulSlotMachine
+					isDrawing={isDrawing}
+					isCelebrating={isCelebrating}
+					onSpin={onDraw}
+				>
 					<SlotReel
 						state={state}
 						reel={reel}
@@ -72,7 +77,7 @@ export const SlotDraw = ({
 						spinDurationMs={spinDurationMs}
 						itemHeight={itemHeight}
 					/>
-				</ColorfulFrame>
+				</ColorfulSlotMachine>
 			</div>
 		</div>
 	);

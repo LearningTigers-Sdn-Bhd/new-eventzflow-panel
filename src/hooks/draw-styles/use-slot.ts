@@ -13,7 +13,7 @@ export type ReelItem = {
 const ITEM_HEIGHT = 80; // height of each name item in pixels
 const VISIBLE_ITEMS = 3; // Show 3 items: Top, Center (Winner), Bottom
 export const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
-const SPIN_DURATION_MS = 2500; // slightly faster for snappiness
+const SPIN_DURATION_MS = 5500; // Even longer for maximum suspense
 const MIN_SPIN_CYCLES = 25;
 
 export interface UseSlotReturn {
