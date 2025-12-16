@@ -12,13 +12,13 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
-import { PendingTicketActionsMenu } from "./action-menu";
-import type { PendingTicket } from "./columns";
 import {
 	formatTicketPrice,
 	getPaymentStatusColor,
 	getPaymentStatusText,
 } from "./constants";
+import { PendingTicketActionsMenu } from "./pending-ticket-action-menu";
+import type { PendingTicket } from "./pending-ticket-table-columns";
 
 interface PendingTicketItemProps {
 	ticket: PendingTicket;
