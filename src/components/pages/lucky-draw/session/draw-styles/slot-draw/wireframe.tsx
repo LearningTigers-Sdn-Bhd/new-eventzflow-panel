@@ -10,6 +10,8 @@ export const SlotDraw = ({
 	onDrawComplete,
 	isDrawing,
 	onDraw,
+	useGifts,
+	hasAvailableGift,
 }: DrawProps) => {
 	const {
 		state,
@@ -35,6 +37,13 @@ export const SlotDraw = ({
 					itemHeight={itemHeight}
 				/>
 			</WireframeSlotMachine>
+			
+			{/* Gift System Warning */}
+			{useGifts && !hasAvailableGift && (
+				<div className="rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-2 text-center text-orange-800 text-sm">
+					⚠️ Please add gifts before drawing
+				</div>
+			)}
 		</div>
 	);
 };

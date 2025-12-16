@@ -10,6 +10,8 @@ export const SlotDraw = ({
 	isDrawing,
 	isCelebrating,
 	onDraw,
+	useGifts,
+	hasAvailableGift,
 }: DrawProps) => {
 	const {
 		state,
@@ -53,7 +55,7 @@ export const SlotDraw = ({
 	}, []);
 
 	return (
-		<div className="flex h-full w-full items-center justify-center">
+		<div className="flex h-full w-full flex-col items-center justify-center gap-4">
 			{/* Scaling Container - preserves aspect ratio and scales across viewports */}
 			<div
 				ref={scaleContainerRef}
@@ -79,6 +81,13 @@ export const SlotDraw = ({
 					/>
 				</ColorfulSlotMachine>
 			</div>
+			
+			{/* Gift System Warning */}
+			{useGifts && !hasAvailableGift && (
+				<div className="rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-2 text-center text-orange-800 text-sm">
+					⚠️ Please add gifts before drawing
+				</div>
+			)}
 		</div>
 	);
 };

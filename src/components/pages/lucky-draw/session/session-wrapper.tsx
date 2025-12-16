@@ -199,6 +199,8 @@ export function LuckyDrawWrapper({
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
 						onDraw={handleDraw}
+						useGifts={useGifts}
+						hasAvailableGift={!!nextAvailableGift}
 					/>
 				);
 			case "slot":
@@ -211,6 +213,8 @@ export function LuckyDrawWrapper({
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
 						onDraw={handleDraw}
+						useGifts={useGifts}
+						hasAvailableGift={!!nextAvailableGift}
 					/>
 				);
 			case "box":
@@ -223,6 +227,8 @@ export function LuckyDrawWrapper({
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
 						onDraw={handleDraw}
+						useGifts={useGifts}
+						hasAvailableGift={!!nextAvailableGift}
 					/>
 				);
 			default:

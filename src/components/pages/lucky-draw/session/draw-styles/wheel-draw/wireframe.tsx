@@ -11,6 +11,8 @@ const SpinWheel: React.FC<DrawProps> = ({
 	onDrawComplete,
 	isDrawing,
 	onDraw,
+	useGifts,
+	hasAvailableGift,
 }) => {
 	// Wireframe theme: Clean pastel colors
 	const baseColors = useMemo(() => {
@@ -178,14 +180,21 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 			{/* Spin Button */}
 			{onDraw && (
-				<button
-					type="button"
-					onClick={onDraw}
-					disabled={isDrawing || isEmpty}
-					className="mt-6 rounded-lg border-2 border-gray-800 bg-white px-8 py-3 font-bold text-lg uppercase tracking-wide text-gray-800 shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:translate-y-[2px] active:shadow-sm disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-200 disabled:text-gray-500"
-				>
-					{isDrawing ? "Spinning..." : "Spin"}
-				</button>
+				<div className="mt-6 flex flex-col items-center gap-3">
+					<button
+						type="button"
+						onClick={onDraw}
+						disabled={isDrawing || isEmpty}
+						className="rounded-lg border-2 border-gray-800 bg-white px-8 py-3 font-bold text-lg uppercase tracking-wide text-gray-800 shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:translate-y-[2px] active:shadow-sm disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-200 disabled:text-gray-500"
+					>
+						{isDrawing ? "Spinning..." : "Spin"}
+					</button>
+					{useGifts && !hasAvailableGift && (
+						<div className="rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-2 text-center text-orange-800 text-sm">
+							⚠️ Please add gifts before drawing
+						</div>
+					)}
+				</div>
 			)}
 		</div>
 	);

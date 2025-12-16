@@ -10,6 +10,8 @@ export function BoxDraw({
 	isDrawing,
 	isCelebrating,
 	onDraw,
+	useGifts,
+	hasAvailableGift,
 }: DrawProps) {
 	const { containerRef, isEmpty, isOpen, isAnimating } = useColorfulBox({
 		participants,
@@ -33,22 +35,29 @@ export function BoxDraw({
 		>
 			<ColorfulGiftBox isOpen={isOpen} isAnimating={isAnimating} />
 
-			<button
-				type="button"
-				onClick={onDraw}
-				disabled={isDrawing}
-				className="mt-12 px-12 py-4 text-xl font-bold tracking-wide text-white uppercase
-						   rounded-full bg-gradient-to-br from-red-500 to-red-600
-						   border-t border-red-400/50
-						   shadow-[0_8px_16px_-4px_rgba(220,38,38,0.5),0_4px_6px_-2px_rgba(220,38,38,0.3)]
-						   hover:shadow-[0_12px_20px_-4px_rgba(220,38,38,0.6),0_8px_10px_-4px_rgba(220,38,38,0.4)]
-						   hover:-translate-y-0.5
-						   active:translate-y-0.5 active:shadow-sm
-						   disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
-						   transition-all duration-300 ease-out"
-			>
-				{isDrawing ? "OPENING..." : "OPEN BOX"}
-			</button>
+			<div className="mt-12 flex flex-col items-center gap-3">
+				<button
+					type="button"
+					onClick={onDraw}
+					disabled={isDrawing}
+					className="px-12 py-4 text-xl font-bold tracking-wide text-white uppercase
+							   rounded-full bg-gradient-to-br from-red-500 to-red-600
+							   border-t border-red-400/50
+							   shadow-[0_8px_16px_-4px_rgba(220,38,38,0.5),0_4px_6px_-2px_rgba(220,38,38,0.3)]
+							   hover:shadow-[0_12px_20px_-4px_rgba(220,38,38,0.6),0_8px_10px_-4px_rgba(220,38,38,0.4)]
+							   hover:-translate-y-0.5
+							   active:translate-y-0.5 active:shadow-sm
+							   disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+							   transition-all duration-300 ease-out"
+				>
+					{isDrawing ? "OPENING..." : "OPEN BOX"}
+				</button>
+				{useGifts && !hasAvailableGift && (
+					<div className="rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-2 text-center text-orange-800 text-sm">
+						⚠️ Please add gifts before drawing
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

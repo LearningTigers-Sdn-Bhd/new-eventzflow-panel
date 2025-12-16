@@ -12,6 +12,8 @@ const SpinWheel: React.FC<DrawProps> = ({
 	onDrawComplete,
 	isDrawing,
 	onDraw,
+	useGifts,
+	hasAvailableGift,
 }) => {
 	// Colorful theme: Vibrant 10-color palette
 	const baseColors = useMemo(() => {
@@ -206,14 +208,21 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 			{/* Spin Button */}
 			{onDraw && (
-				<button
-					type="button"
-					onClick={onDraw}
-					disabled={isDrawing || isEmpty}
-					className="mt-4 rounded-xl border-4 border-orange-700 bg-gradient-to-b from-orange-400 to-orange-600 px-10 py-3 font-black text-xl uppercase tracking-wider text-white shadow-[0_6px_0_0_#c2410c] transition-all hover:from-orange-300 hover:to-orange-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#c2410c] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:border-gray-700 disabled:text-gray-300 disabled:shadow-[0_6px_0_0_#4b5563]"
-				>
-					{isDrawing ? "SPINNING..." : "SPIN!"}
-				</button>
+				<div className="mt-4 flex flex-col items-center gap-3">
+					<button
+						type="button"
+						onClick={onDraw}
+						disabled={isDrawing || isEmpty}
+						className="rounded-xl border-4 border-orange-700 bg-gradient-to-b from-orange-400 to-orange-600 px-10 py-3 font-black text-xl uppercase tracking-wider text-white shadow-[0_6px_0_0_#c2410c] transition-all hover:from-orange-300 hover:to-orange-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#c2410c] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:border-gray-700 disabled:text-gray-300 disabled:shadow-[0_6px_0_0_#4b5563]"
+					>
+						{isDrawing ? "SPINNING..." : "SPIN!"}
+					</button>
+					{useGifts && !hasAvailableGift && (
+						<div className="rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-2 text-center text-orange-800 text-sm">
+							⚠️ Please add gifts before drawing
+						</div>
+					)}
+				</div>
 			)}
 		</div>
 	);
