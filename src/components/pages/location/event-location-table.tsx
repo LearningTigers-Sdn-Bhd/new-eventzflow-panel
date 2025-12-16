@@ -30,10 +30,10 @@ import { useDialog } from "@/hooks/use-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
-import type { BaseLocation } from "./columns";
-import { DataControl } from "./data-control";
-import { LocationItem } from "./location-item";
-import InfoForm from "./page-action/info-form";
+import InfoForm from "./event-location-action-modal/create-event-location-form";
+import { LocationItem } from "./event-location-item";
+import type { BaseLocation } from "./event-location-table-columns";
+import { DataControl } from "./event-location-table-control";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -44,7 +44,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
-	const _isMobile = useIsMobile();
+	const isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const { openDialog } = useDialog();
 	const { user } = useAuth();
@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
 
 			{/* Data Table */}
 			<div className="min-h-[45vh]">
-				{!_isMobile && !isTablet ? (
+				{!isMobile && !isTablet ? (
 					<div className="overflow-x-auto rounded-none border">
 						<Table className="w-full table-fixed">
 							<TableHeader>
@@ -169,7 +169,7 @@ export function DataTable<TData, TValue>({
 							</TableBody>
 						</Table>
 					</div>
-				) : isTablet && !_isMobile ? (
+				) : isTablet && !isMobile ? (
 					table.getRowModel().rows?.length ? (
 						<div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
 							{table.getRowModel().rows.map((row) => (

@@ -1,6 +1,11 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -40,6 +45,7 @@ interface InputLabelProps
 	// Label props
 	label: string;
 	htmlFor?: string;
+	description?: string; // Optional description - renders as FieldDescription when valid
 
 	// Input type
 	type?: "input" | "textarea";
@@ -69,6 +75,7 @@ interface InputLabelProps
 export function InputLabel({
 	label,
 	htmlFor,
+	description,
 	type = "input",
 	variant = "no-rounded",
 	value,
@@ -132,7 +139,11 @@ export function InputLabel({
 					{...props}
 				/>
 			)}
-			{isInvalid && <FieldError errors={errors} />}
+			{isInvalid ? (
+				<FieldError errors={errors} />
+			) : (
+				description && <FieldDescription>{description}</FieldDescription>
+			)}
 		</Field>
 	);
 }

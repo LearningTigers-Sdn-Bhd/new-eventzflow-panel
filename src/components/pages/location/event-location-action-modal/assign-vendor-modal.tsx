@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
 import { getLocations, updateLocationMembers } from "@/lib/api/event/location";
 import { getEventVendors } from "@/lib/api/event-vendor/endpoints";
-import type { BaseLocation } from "../columns";
+import type { BaseLocation } from "../event-location-table-columns";
 
 interface AssignVendorDialogProps {
 	location: BaseLocation;
@@ -35,7 +35,7 @@ export default function AssignVendorDialog({
 	// Fetch event vendors
 	const { data: eventVendors, isLoading: isLoadingVendors } = useQuery({
 		queryKey: ["event-vendors", eventId],
-		queryFn: () => getEventVendors(Number.parseInt(eventId)),
+		queryFn: () => getEventVendors(Number.parseInt(eventId, 10)),
 	});
 
 	// Fetch all locations to check which vendors are already assigned
@@ -179,113 +179,117 @@ export default function AssignVendorDialog({
 	});
 
 	return (
-		<div className="flex flex-col gap-4">
-			{/* Current location info */}
-			<div className="rounded-md border bg-muted/50 p-3">
-				<h3 className="font-semibold text-sm">
-					{location.locationDisplayName || location.name}
-				</h3>
-				<p className="text-muted-foreground text-xs">
-					{selectedVendorIds.length === 0 ? (
-						<span className="text-amber-600">No vendors selected</span>
-					) : (
-						<>
-							{selectedVendorIds.length} vendor
-							{selectedVendorIds.length !== 1 ? "s" : ""} selected
-						</>
-					)}
-				</p>
-			</div>
+		<div className="flex h-full flex-col justify-between gap-4 px-4 md:pb-8">
+			<div className="flex flex-col gap-4">
+				{/* Current location info */}
+				<div className="rounded-none border bg-muted/50 p-3">
+					<h3 className="font-semibold text-sm">
+						{location.locationDisplayName || location.name}
+					</h3>
+					<p className="text-muted-foreground text-xs">
+						{selectedVendorIds.length === 0 ? (
+							<span className="text-amber-600">
+								No vendors selected (location will have no assigned vendors)
+							</span>
+						) : (
+							<>
+								{selectedVendorIds.length} vendor
+								{selectedVendorIds.length !== 1 ? "s" : ""} selected
+							</>
+						)}
+					</p>
+				</div>
 
-			{/* Search input */}
-			<div className="relative">
-				<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-				<Input
-					placeholder="Search vendors by name, email, or type..."
-					value={searchTerm}
-					onChange={(e) => setSearchTerm(e.target.value)}
-					className="pl-9"
-				/>
-				{searchTerm && (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="absolute top-0.5 right-0.5 size-8"
-						onClick={() => setSearchTerm("")}
-					>
-						<X className="size-4" />
-					</Button>
-				)}
-			</div>
-
-			{/* Vendors list */}
-			<ScrollArea className="h-[400px] rounded-md border">
-				<div className="space-y-1 p-2">
-					{sortedVendors.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-12 text-center">
-							<p className="text-muted-foreground text-sm">
-								{searchTerm
-									? "No vendors found matching your search"
-									: "No available event vendors"}
-							</p>
-							{!searchTerm && (
-								<p className="mt-2 max-w-xs text-muted-foreground text-xs">
-									{assignedVendorIds.size > 0
-										? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
-										: "Assign vendors to this event first from the Vendors page"}
-								</p>
-							)}
-						</div>
-					) : (
-						sortedVendors.map((eventVendor) => {
-							const vendorId = eventVendor.vendor.id.toString();
-							const isSelected = selectedVendorIds.includes(vendorId);
-							return (
-								<button
-									key={eventVendor.id}
-									type="button"
-									onClick={() => handleToggleVendor(vendorId)}
-									className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
-								>
-									<div
-										className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-											isSelected
-												? "border-primary bg-primary text-primary-foreground"
-												: "border-muted-foreground"
-										}`}
-									>
-										{isSelected && <Check className="size-3" />}
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex items-center gap-2">
-											<p className="truncate font-medium text-sm">
-												{eventVendor.vendor.full_name}
-											</p>
-											<Badge
-												variant="outline"
-												className="border-green-500 bg-green-50 text-green-700 text-xs"
-											>
-												{eventVendor.type}
-											</Badge>
-										</div>
-										<p className="truncate text-muted-foreground text-xs">
-											{eventVendor.vendor.email}
-										</p>
-										{eventVendor.vendor.phone && (
-											<p className="truncate text-muted-foreground text-xs">
-												{eventVendor.vendor.phone}
-											</p>
-										)}
-									</div>
-								</button>
-							);
-						})
+				{/* Search input */}
+				<div className="relative">
+					<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+					<Input
+						placeholder="Search vendors by name, email, or type..."
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						className="pl-9"
+					/>
+					{searchTerm && (
+						<Button
+							variant="ghost"
+							size="icon"
+							className="absolute top-0.5 right-0.5 size-8"
+							onClick={() => setSearchTerm("")}
+						>
+							<X className="size-4" />
+						</Button>
 					)}
 				</div>
-			</ScrollArea>
+
+				{/* Vendors list */}
+				<ScrollArea className="h-[400px] rounded-none border">
+					<div className="space-y-1 p-2">
+						{sortedVendors.length === 0 ? (
+							<div className="flex flex-col items-center justify-center py-12 text-center">
+								<p className="text-muted-foreground text-sm">
+									{searchTerm
+										? "No vendors found matching your search"
+										: "No available event vendors"}
+								</p>
+								{!searchTerm && (
+									<p className="mt-2 max-w-xs text-muted-foreground text-xs">
+										{assignedVendorIds.size > 0
+											? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
+											: "Assign vendors to this event first from the Vendors page"}
+									</p>
+								)}
+							</div>
+						) : (
+							sortedVendors.map((eventVendor) => {
+								const vendorId = eventVendor.vendor.id.toString();
+								const isSelected = selectedVendorIds.includes(vendorId);
+								return (
+									<button
+										key={eventVendor.id}
+										type="button"
+										onClick={() => handleToggleVendor(vendorId)}
+										className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
+									>
+										<div
+											className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+												isSelected
+													? "border-primary bg-primary text-primary-foreground"
+													: "border-muted-foreground"
+											}`}
+										>
+											{isSelected && <Check className="size-3" />}
+										</div>
+										<div className="min-w-0 flex-1">
+											<div className="flex items-center gap-2">
+												<p className="truncate font-medium text-sm">
+													{eventVendor.vendor.full_name}
+												</p>
+												<Badge
+													variant="outline"
+													className="border-green-500 bg-green-50 text-green-700 text-xs"
+												>
+													{eventVendor.type}
+												</Badge>
+											</div>
+											<p className="truncate text-muted-foreground text-xs">
+												{eventVendor.vendor.email}
+											</p>
+											{eventVendor.vendor.phone && (
+												<p className="truncate text-muted-foreground text-xs">
+													{eventVendor.vendor.phone}
+												</p>
+											)}
+										</div>
+									</button>
+								);
+							})
+						)}
+					</div>
+				</ScrollArea>
+			</div>
 
 			{/* Action buttons */}
-			<div className="flex justify-end gap-2">
+			<div className="flex flex-col gap-2 md:flex-row md:justify-end">
 				<Button
 					variant="outline"
 					onClick={() => {
@@ -293,12 +297,14 @@ export default function AssignVendorDialog({
 						if (onClose) onClose();
 					}}
 					disabled={updateLocationMutation.isPending}
+					className="rounded-none py-6 md:py-2"
 				>
 					Cancel
 				</Button>
 				<Button
 					onClick={handleSave}
 					disabled={updateLocationMutation.isPending}
+					className="rounded-none py-6 md:py-2"
 				>
 					{updateLocationMutation.isPending && (
 						<Loader2 className="mr-2 size-4 animate-spin" />
