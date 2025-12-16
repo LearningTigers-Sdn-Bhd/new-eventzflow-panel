@@ -4,9 +4,9 @@ import { Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useDialog } from "@/hooks/use-dialog";
-import PendingTicketEditModal from "./action-modals/edit-ticket-form";
-import PendingTicketViewModal from "./action-modals/view-modal";
-import type { PendingTicket } from "./columns";
+import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
+import PendingTicketViewModal from "./action-modals/pending-ticket-view-modal";
+import type { PendingTicket } from "./pending-ticket-table-columns";
 
 interface PendingTicketActionsMenuProps {
 	ticket: PendingTicket;
@@ -35,6 +35,7 @@ export function PendingTicketActionsMenu({
 			component: PendingTicketViewModal,
 			config: {
 				title: "View Pending Ticket",
+				description: "View the pending ticket information.",
 				size: "2xl",
 				showCloseButton: true,
 			},

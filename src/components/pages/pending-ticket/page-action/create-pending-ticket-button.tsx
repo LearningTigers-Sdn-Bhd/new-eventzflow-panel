@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import PendingTicketForm from "./ticket-form";
+import PendingTicketForm from "./create-pending-ticket-form";
 
 export function PendingTicketPageButton() {
 	const { openDialog } = useDialog();
@@ -22,7 +22,7 @@ export function PendingTicketPageButton() {
 			<Button
 				variant="outline"
 				onClick={openPendingTicketCreate}
-				className="w-full rounded-none lg:w-auto"
+				className="w-full rounded-none py-6 md:py-4 lg:w-auto"
 			>
 				<Plus className="h-4 w-4" />
 				Create Pending Ticket
