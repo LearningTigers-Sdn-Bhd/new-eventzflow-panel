@@ -1,0 +1,179 @@
+import {
+	Calendar,
+	Check,
+	DollarSign,
+	FileText,
+	Hash,
+	Info,
+	type LucideIcon,
+	Mail,
+	Phone,
+	User,
+} from "lucide-react";
+import { IconHeading } from "@/components/admin-ui/icon-heading";
+import { EmptyState } from "@/components/data-state";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "../../../../lib/utils";
+import type { BaseTicket } from "../event-ticket-table-columns";
+
+interface TicketViewModalProps {
+	ticket: BaseTicket;
+	onClose?: () => void;
+}
+
+const InfoLabel = ({
+	label,
+	value,
+	icon: Icon,
+	ticket,
+	capitalize = false,
+}: {
+	label: string;
+	value: string;
+	icon: LucideIcon;
+	ticket: BaseTicket;
+	capitalize?: boolean;
+}) => {
+	return (
+		<div className="flex items-center gap-2">
+			<Icon className="mr-2 size-5" />
+			<div>
+				<Label className="font-medium text-muted-foreground text-xs">
+					{label}
+				</Label>
+				{label === "Status" ? (
+					<Badge
+						variant={ticket.status === "scanned" ? "default" : "destructive"}
+						className={cn(
+							"rounded-none font-bold font-mono text-xs uppercase",
+							ticket.status === "scanned"
+								? "bg-green-500 text-white hover:bg-green-500"
+								: "bg-destructive text-white hover:bg-destructive",
+						)}
+					>
+						{ticket.status === "scanned" ? "Scanned" : "Not Scanned"}
+					</Badge>
+				) : (
+					<p className={cn("font-medium text-sm", capitalize && "capitalize")}>
+						{value}
+					</p>
+				)}
+			</div>
+		</div>
+	);
+};
+
+export default function TicketViewModal({ ticket }: TicketViewModalProps) {
+	const date = new Date(ticket.createdAt);
+
+	return (
+		<div className="flex h-full w-full flex-col gap-6 p-0 md:p-4">
+			<ScrollArea className="h-[80vh]">
+				<div className="grid grid-cols-1 gap-y-8">
+					{/* Basic Information */}
+					<div className="space-y-4">
+						<IconHeading
+							icon={FileText}
+							title="Ticket Details and Basic Information"
+							description="Ticket details and basic information about the buyer."
+						/>
+						<div className="flex flex-col gap-3 px-2">
+							<div className="grid grid-cols-2">
+								<InfoLabel
+									label="Ticket ID"
+									value={ticket.id}
+									icon={Hash}
+									ticket={ticket}
+								/>
+								<InfoLabel
+									label="Status"
+									value={ticket.status}
+									icon={Check}
+									ticket={ticket}
+								/>
+							</div>
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
+								<InfoLabel
+									label="Name"
+									value={ticket.name}
+									icon={User}
+									ticket={ticket}
+								/>
+								<InfoLabel
+									label="Email"
+									value={ticket.email ?? ""}
+									icon={Mail}
+									ticket={ticket}
+								/>
+							</div>
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
+								{ticket.phone && (
+									<InfoLabel
+										label="Phone Number"
+										value={ticket.phone}
+										icon={Phone}
+										ticket={ticket}
+									/>
+								)}
+								{ticket.ticketTypeName && (
+									<InfoLabel
+										label="Ticket Type"
+										value={ticket.ticketTypeName}
+										icon={FileText}
+										ticket={ticket}
+									/>
+								)}
+							</div>
+							<div className="grid grid-cols-2">
+								<InfoLabel
+									label="Ticket Price"
+									value={`RM${(typeof ticket.value === "number" ? ticket.value : Number.parseFloat(ticket.value as string) || 0).toFixed(2)}`}
+									icon={DollarSign}
+									ticket={ticket}
+								/>
+								<InfoLabel
+									label="Created At"
+									value={date.toLocaleDateString()}
+									icon={Calendar}
+									ticket={ticket}
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Additional Information - Custom Labels */}
+					<div className="space-y-4">
+						<IconHeading
+							icon={FileText}
+							title="Custom Labels"
+							description="Custom labels configured for this event."
+						/>
+						{ticket.customLabels && ticket.customLabels.length > 0 ? (
+							<div className="grid grid-cols-1 gap-x-4 gap-y-3 px-2 sm:grid-cols-2 md:gap-y-6 md:px-2">
+								{ticket.customLabels.map((label, index) => (
+									<InfoLabel
+										key={`${label.name}-${index}`}
+										label={label.name}
+										value={label.value}
+										icon={Info}
+										ticket={ticket}
+										capitalize={true}
+									/>
+								))}
+							</div>
+						) : (
+							<EmptyState
+								title="No custom labels"
+								description="No custom labels have been configured for this event"
+								icon={<Info className="size-8" />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				</div>
+			</ScrollArea>
+		</div>
+	);
+}

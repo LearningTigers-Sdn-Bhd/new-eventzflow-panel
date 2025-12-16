@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LocationActionsMenu } from "./action-menu";
+import { LocationActionsMenu } from "./event-location-action-menu";
 import type { BaseLocation } from "./event-location-table-columns";
 
 interface LocationItemProps {

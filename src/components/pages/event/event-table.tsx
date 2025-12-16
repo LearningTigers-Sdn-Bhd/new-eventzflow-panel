@@ -3,7 +3,6 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -14,22 +13,14 @@ import {
 } from "@tanstack/react-table";
 import { Calendar } from "lucide-react";
 import * as React from "react";
+import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import CreateEventForm from "./create-event-form";
 import { EventItem } from "./event-item";
 import type { Event } from "./event-table-columns";
@@ -136,105 +127,15 @@ export function DataTable<TData, TValue>({
 			<div className="min-h-[65vh]">
 				{/* Data Table */}
 				{!_isMobile && !isTablet ? (
-					<div className="overflow-x-auto rounded-none border">
-						<Table className="w-full">
-							<TableHeader>
-								{table.getHeaderGroups().map((headerGroup) => (
-									<TableRow key={headerGroup.id}>
-										{headerGroup.headers.map((header) => {
-											const columnId = header.column.id;
-											let widthClass = "";
-
-											// Set width classes based on column ID
-											if (columnId === "id") widthClass = "w-[140px]";
-											else if (columnId === "title")
-												widthClass = "w-auto min-w-[300px]";
-											else if (columnId === "status") widthClass = "w-[160px]";
-											else if (columnId === "created_at")
-												widthClass = "w-[140px]";
-											else if (columnId === "actions") widthClass = "w-[160px]";
-
-											return (
-												<TableHead
-													key={header.id}
-													className={cn(
-														widthClass,
-														header.index === 0 && "ps-3",
-													)}
-												>
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext(),
-															)}
-												</TableHead>
-											);
-										})}
-									</TableRow>
-								))}
-							</TableHeader>
-							<TableBody>
-								{table.getRowModel().rows?.length ? (
-									table.getRowModel().rows.map((row) => (
-										<TableRow
-											key={row.id}
-											data-state={row.getIsSelected() && "selected"}
-										>
-											{row.getVisibleCells().map((cell) => {
-												const columnId = cell.column.id;
-												let widthClass = "";
-
-												// Set width classes based on column ID
-												if (columnId === "id") widthClass = "w-[140px]";
-												else if (columnId === "title")
-													widthClass = "w-auto min-w-[300px]";
-												else if (columnId === "status")
-													widthClass = "w-[160px]";
-												else if (columnId === "visibility")
-													widthClass = "w-[120px]";
-												else if (columnId === "created_at")
-													widthClass = "w-[140px]";
-												else if (columnId === "actions")
-													widthClass = "w-[160px]";
-
-												return (
-													<TableCell
-														key={cell.id}
-														className={cn(
-															widthClass,
-															table.getVisibleLeafColumns()[0]?.id ===
-																cell.column.id && "ps-4",
-														)}
-													>
-														{flexRender(
-															cell.column.columnDef.cell,
-															cell.getContext(),
-														)}
-													</TableCell>
-												);
-											})}
-										</TableRow>
-									))
-								) : (
-									<TableRow>
-										<TableCell
-											colSpan={columns.length}
-											className="h-24 text-center"
-										>
-											<EmptyState
-												title={emptyStateProps.title}
-												description={emptyStateProps.description}
-												icon={<Calendar />}
-												height="h-auto"
-												action={emptyStateProps.action}
-											/>
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
-					</div>
+					<BaseTable
+						table={table}
+						emptyStateConfig={{
+							title: emptyStateProps.title,
+							desc: emptyStateProps.description,
+							icon: <Calendar />,
+							action: emptyStateProps.action,
+						}}
+					/>
 				) : isTablet && !_isMobile ? (
 					<div className="grid grid-cols-2 gap-4 pb-6">
 						{table.getRowModel().rows?.length ? (

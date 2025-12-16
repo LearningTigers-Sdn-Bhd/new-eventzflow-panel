@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getEvents } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
-import { type ExhibitorKitWithEventAndVendor } from "./columns";
+import type { ExhibitorKitWithEventAndVendor } from "./columns";
 import ExhibitorKitsClientWrapper from "./exhibitor-kits-client-wrapper";
 
 export function PublicExhibitorKitsView() {

@@ -130,7 +130,7 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			const printingsCount = kit.exhibitor_kit_printings?.length || 0;
 			// HIDDEN: Custom Requests feature temporarily disabled
 			// const customRequestsCount = kit.custom_requests?.length || 0;
-			
+
 			return (
 				<div className="space-y-1">
 					<div className="flex items-center gap-2 text-sm">

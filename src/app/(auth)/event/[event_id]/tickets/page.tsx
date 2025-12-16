@@ -3,8 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { DataTable } from "@/components/pages/tickets/data-table";
-import { TicketPageButton } from "@/components/pages/tickets/page-action/button";
+import { DataTable } from "@/components/pages/tickets/event-ticket-table";
+import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -20,12 +20,17 @@ export default function TicketsPage({
 	const { event_id } = use(params);
 	const [ticketFilter, setTicketFilter] = useState<TicketFilter>("active");
 
-	useSetEventActions(
-		<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-			<ImportTicketButton />
-			<TicketPageButton />
-		</div>,
+	const eventActions = useMemo(
+		() => (
+			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<ImportTicketButton />
+				<TicketPageButton />
+			</div>
+		),
+		[],
 	);
+
+	useSetEventActions(eventActions);
 
 	// Build query options based on filter
 	const queryOptions = useMemo(() => {

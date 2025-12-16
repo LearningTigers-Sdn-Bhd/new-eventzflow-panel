@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -16,25 +15,17 @@ import {
 import { Calendar } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
+import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getEventById } from "@/lib/api/event";
-import { cn } from "@/lib/utils";
-import type { BaseTicket } from "./columns";
-import { generateColumns } from "./columns";
-import { DataControl } from "./data-control";
-import { TicketItem } from "./ticket-item";
+import { TicketItem } from "./event-ticket-item";
+import type { BaseTicket } from "./event-ticket-table-columns";
+import { generateColumns } from "./event-ticket-table-columns";
+import { DataControl } from "./event-ticket-table-control";
 
 type TicketFilter = "active" | "archived" | "all";
 
@@ -49,7 +40,7 @@ export function DataTable<TData>({
 	ticketFilter = "active",
 	onTicketFilterChange,
 }: DataTableProps<TData>) {
-	const _isMobile = useIsMobile();
+	const isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -64,37 +55,35 @@ export function DataTable<TData>({
 		queryFn: () => getEventById(eventId),
 	});
 
-	// Generate initial visibility state for custom columns
+	// Initialize with default visibility (phone is always hidden)
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({
+			phone: false, // Hide phone column as it's only used for search
+		});
+
+	// Generate visibility state for custom columns when eventData is available
 	// Show first 3 labels by default, hide the rest if there are more than 3
-	const initialVisibility = React.useMemo(() => {
+	React.useEffect(() => {
+		if (!eventData?.labels_data) return;
+
 		const visibility: VisibilityState = {
 			phone: false, // Hide phone column as it's only used for search
 		};
 
-		if (eventData?.labels_data) {
-			const labelKeys = Object.keys(eventData.labels_data);
-			const totalLabels = labelKeys.length;
+		const labelKeys = Object.keys(eventData.labels_data);
+		const totalLabels = labelKeys.length;
 
-			labelKeys.forEach((key, index) => {
-				// Show first 3 labels, hide the rest if there are more than 3
-				if (totalLabels <= 3) {
-					visibility[`custom_${key}`] = true; // Show all if 3 or fewer
-				} else {
-					visibility[`custom_${key}`] = index < 3; // Show first 3, hide rest
-				}
-			});
-		}
+		labelKeys.forEach((key, index) => {
+			// Show first 3 labels, hide the rest if there are more than 3
+			if (totalLabels <= 3) {
+				visibility[`custom_${key}`] = true; // Show all if 3 or fewer
+			} else {
+				visibility[`custom_${key}`] = index < 3; // Show first 3, hide rest
+			}
+		});
 
-		return visibility;
+		setColumnVisibility(visibility);
 	}, [eventData?.labels_data]);
-
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>(initialVisibility);
-
-	// Update visibility when labels data changes
-	React.useEffect(() => {
-		setColumnVisibility(initialVisibility);
-	}, [initialVisibility]);
 
 	const columns = React.useMemo(
 		() => generateColumns(eventData?.labels_data) as ColumnDef<TData>[],
@@ -128,76 +117,18 @@ export function DataTable<TData>({
 			/>
 
 			{/* Data Table */}
-			<div className="min-h-[45vh]">
-				{!_isMobile && !isTablet ? (
-					<div className="overflow-x-auto rounded-none border">
-						<Table className="w-full">
-							<TableHeader>
-								{table.getHeaderGroups().map((headerGroup) => (
-									<TableRow key={headerGroup.id}>
-										{headerGroup.headers.map((header) => {
-											return (
-												<TableHead
-													key={header.id}
-													style={{ width: `${header.getSize()}px` }}
-													className={cn(header.index === 0 && "ps-3")}
-												>
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext(),
-															)}
-												</TableHead>
-											);
-										})}
-									</TableRow>
-								))}
-							</TableHeader>
-							<TableBody>
-								{table.getRowModel().rows?.length ? (
-									table.getRowModel().rows.map((row) => (
-										<TableRow
-											key={row.id}
-											data-state={row.getIsSelected() && "selected"}
-										>
-											{row.getVisibleCells().map((cell) => (
-												<TableCell
-													key={cell.id}
-													style={{ width: `${cell.column.getSize()}px` }}
-													className={cn(
-														table.getVisibleLeafColumns()[0]?.id ===
-															cell.column.id && "ps-4",
-													)}
-												>
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext(),
-													)}
-												</TableCell>
-											))}
-										</TableRow>
-									))
-								) : (
-									<TableRow>
-										<TableCell
-											colSpan={columns.length}
-											className="h-24 text-center"
-										>
-											<EmptyState
-												title="No tickets found"
-												description="Create your first ticket to get started"
-												icon={<Calendar />}
-												height="h-auto"
-												action={<Button>Create Ticket</Button>}
-											/>
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
-					</div>
-				) : isTablet && !_isMobile ? (
+			<div className="flex min-h-[calc(100vh-320px)] flex-col">
+				{!isMobile && !isTablet ? (
+					<BaseTable
+						table={table}
+						emptyStateConfig={{
+							title: "No tickets found",
+							desc: "Create your first ticket to get started",
+							icon: <Calendar />,
+							action: <Button>Create Ticket</Button>,
+						}}
+					/>
+				) : isTablet && !isMobile ? (
 					<div className="grid grid-cols-2 gap-4">
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (

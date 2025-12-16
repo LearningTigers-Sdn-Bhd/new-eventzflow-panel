@@ -134,7 +134,7 @@ export function ImportQuickButton({
 		<Button
 			variant="outline"
 			onClick={openImportDialog}
-			className="w-full rounded-none lg:w-auto"
+			className="w-full rounded-none py-6 md:py-4 lg:w-auto"
 		>
 			<FileSpreadsheet className="mr-2 h-4 w-4" />
 			Import {importType === "tickets" ? "Tickets" : importType}
