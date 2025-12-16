@@ -12,8 +12,8 @@ import {
     FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { createBooking } from "@/lib/api/business-matching";
+import { useDialog } from "@/hooks/use-dialog"; // Import useDialog
 
 interface CreateBookingFormProps {
     bmEventId: string;
@@ -30,11 +30,11 @@ export default function CreateBookingForm({
     initialTime,
     onClose,
 }: CreateBookingFormProps) {
+    const { closeDialog } = useDialog(); // Use the hook
     const queryClient = useQueryClient();
     const nameId = useId();
     const emailId = useId();
     const phoneId = useId();
-    const noteId = useId();
     const dateId = useId();
     const timeId = useId();
 
@@ -42,7 +42,6 @@ export default function CreateBookingForm({
         name: "",
         email: "",
         phone: "",
-        note: "",
         date: initialDate || "",
         time: initialTime || "",
     });
@@ -63,7 +62,8 @@ export default function CreateBookingForm({
              queryClient.invalidateQueries({
                 queryKey: ["business-matching-availability", bmEventId, eventId],
             });
-            onClose();
+            onClose(); // Resets the selected slot in AvailabilityDialog
+            closeDialog(); // Closes the main UniversalDialog
         },
         onError: (error: Error) => {
             toast.error(error.message || "Failed to create booking");
@@ -160,17 +160,6 @@ export default function CreateBookingForm({
                             />
                         </Field>
                     </div>
-
-                    <Field>
-                        <FieldLabel htmlFor={noteId}>Note</FieldLabel>
-                        <Textarea
-                            id={noteId}
-                            value={formData.note}
-                            onChange={(e) => handleChange("note", e.target.value)}
-                            placeholder="Add any notes..."
-                            rows={3}
-                        />
-                    </Field>
                 </FieldGroup>
                 
                 <div className="flex justify-end gap-2 mt-4">

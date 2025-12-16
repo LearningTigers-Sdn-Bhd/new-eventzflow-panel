@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
 import "react-day-picker/dist/style.css"; // Assuming basic styling is needed
 
-import { Loader2, Calendar as CalendarIcon, Box, ArrowLeft, RefreshCw } from "lucide-react"; // Aliased Calendar icon
+import { Loader2, Calendar as CalendarIcon, Box, ArrowLeft } from "lucide-react"; // Aliased Calendar icon
 import { ErrorState, EmptyState } from "@/components/data-state";
 import {
 	Empty,
@@ -12,14 +12,12 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
-import { useBusinessMatchingAvailability, useBusinessMatchingDetailedSlots, useForceRefreshAvailability, useForceRefreshDetailedSlots } from "@/hooks/use-business-matching";
+import { useBusinessMatchingAvailability, useBusinessMatchingDetailedSlots } from "@/hooks/use-business-matching";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import CreateBookingForm from "./create-booking-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 interface AvailabilityDialogProps {
 	bmEventId: string;
@@ -39,27 +37,14 @@ export default function AvailabilityDialog({
 	const [selectedFormattedDate, setSelectedFormattedDate] = useState<string | undefined>(undefined);
     const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null);
 
-	const { data, isLoading, error } = useBusinessMatchingAvailability(bmEventId, eventId);
-	const { data: detailedSlotsData, isLoading: isLoadingDetailedSlots } = useBusinessMatchingDetailedSlots(
+	const { data, isLoading, error, isFetching } = useBusinessMatchingAvailability(bmEventId, eventId);
+	const { data: detailedSlotsData, isLoading: isLoadingDetailedSlots, isFetching: isFetchingDetailedSlots } = useBusinessMatchingDetailedSlots(
 		bmEventId,
 		selectedFormattedDate,
 		eventId
 	);
 
-    const queryClient = useQueryClient();
-    const { mutate: forceRefreshAvailability, isPending: isRefreshingAvailability } = useForceRefreshAvailability(bmEventId, eventId);
-    const { mutate: forceRefreshDetailedSlots, isPending: isRefreshingDetailedSlots } = useForceRefreshDetailedSlots(bmEventId, selectedFormattedDate || "", eventId);
-
-    const handleRefresh = () => {
-        forceRefreshAvailability();
-        if (selectedFormattedDate) { // Only refresh detailed slots if a date is selected
-            forceRefreshDetailedSlots();
-        }
-        toast.info("Refreshing availability...");
-    };
-
-    const isRefreshing = isRefreshingAvailability || isRefreshingDetailedSlots || isLoading || isLoadingDetailedSlots;
-
+    const isRefreshing = isLoading || isFetching || isLoadingDetailedSlots || isFetchingDetailedSlots;
 
     if (selectedSlot) {
         return (
@@ -69,16 +54,6 @@ export default function AvailabilityDialog({
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <h3 className="font-semibold text-lg">Create Booking</h3>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                        className="ml-auto"
-                    >
-                        <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                        Refresh
-                    </Button>
                 </div>
                 <CreateBookingForm
                     bmEventId={bmEventId}
@@ -94,7 +69,7 @@ export default function AvailabilityDialog({
 	if (isRefreshing) {
 		return (
 			<div className="flex h-64 items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />				
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 				<span className="ml-2 text-muted-foreground">Checking availability...</span>
 			</div>
 		);
@@ -110,13 +85,15 @@ export default function AvailabilityDialog({
 		);
 	}
 
-	if (!data || data.dates.length === 0) {
+	const hasAvailableDates = data && data.dates && data.dates.length > 0; // Ensure data.dates exists
+
+	if (!hasAvailableDates) {
 		return (
 			<div className="flex w-full items-center justify-center py-2 mt-2 mx-auto">
 				<Empty className="p-0 border-0">
 					<EmptyHeader>
-						<EmptyTitle>No slots available</EmptyTitle>
-						<EmptyDescription>There are no available dates for this event.</EmptyDescription>
+						<EmptyTitle>No slots available yet</EmptyTitle>
+						<EmptyDescription>We are fetching the latest data. Please wait a moment...</EmptyDescription>
 					</EmptyHeader>
 				</Empty>
 			</div>
@@ -144,16 +121,6 @@ export default function AvailabilityDialog({
         <div className="flex flex-col items-center w-full overflow-hidden">
             <h3 className="mb-4 font-semibold text-lg flex items-center gap-2 self-start md:self-center">
                 <CalendarIcon className="h-5 w-5" /> Available Dates
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="ml-auto"
-                >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                    Refresh
-                </Button>
             </h3>
             <div className="w-full flex justify-center overflow-x-auto pb-2">
                 <Calendar
@@ -192,20 +159,11 @@ export default function AvailabilityDialog({
         );
     };
 
-    const renderSlots = () => (
+    const renderSlots = () => {
+        return (
         <div className="w-full">
             <h3 className="mb-4 font-semibold text-lg md:text-xl text-center">
                 {selectedDate ? `Select a slot:` : "Select a date to view slots"}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="ml-auto"
-                >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                    Refresh
-                </Button>
             </h3>
 
             {isLoadingDetailedSlots && (
@@ -240,14 +198,15 @@ export default function AvailabilityDialog({
                     <Empty className="p-0 border-0">
                         <EmptyHeader>
                             <EmptyMedia variant="icon"><Box /></EmptyMedia>
-                            <EmptyTitle>No slots</EmptyTitle>
-                            <EmptyDescription>No detailed slots available for the selected date.</EmptyDescription>
+                            <EmptyTitle>No slots yet</EmptyTitle>
+                            <EmptyDescription>We are fetching the latest data for this date. Please wait a moment...</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 </div>
             )}
         </div>
-    );
+        );
+    };
 
     if (isMobile) {
         return (

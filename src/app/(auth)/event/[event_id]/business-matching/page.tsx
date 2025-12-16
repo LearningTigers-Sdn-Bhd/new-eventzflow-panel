@@ -20,8 +20,22 @@ interface BusinessMatchingPageProps {
 export default function BusinessMatchingPage({ params }: BusinessMatchingPageProps) {
 	const { event_id } = use(params);
 	const { data, isLoading, error, isFetching } = useBusinessMatchingEvents(event_id);
-	const { mutate: forceRefresh, isPending: isRefreshing } = useForceRefreshBusinessMatching(event_id);
+	const { mutate: forceRefresh, mutateAsync: forceRefreshAsync, isPending: isRefreshing } = useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
+
+    useEffect(() => {
+        const lastRefreshKey = `last_bm_refresh_${event_id}`;
+        const lastRefreshStr = localStorage.getItem(lastRefreshKey);
+        const now = Date.now();
+        const fifteenMinutes = 15 * 60 * 1000;
+
+        if (!lastRefreshStr || (now - parseInt(lastRefreshStr) > fifteenMinutes)) {
+            console.log("Auto-refreshing Business Matching data (expired or new session)");
+            forceRefreshAsync().then(() => {
+                 localStorage.setItem(lastRefreshKey, now.toString());
+            }).catch(err => console.error("Auto-refresh failed", err));
+        }
+    }, [event_id, forceRefreshAsync]);
 
 	useEffect(() => {
 		const subscription = cable.subscriptions.create(
@@ -60,11 +74,25 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
 		};
 	}, [event_id, queryClient]);
 
-	const handleRefresh = () => {
-		toast.info("Refreshing events...", {
-			description: "Fetching the latest data from the source.",
+	const handleRefresh = async () => {
+		toast.info("Refreshing events and clearing cache...", {
+			description: "Fetching the latest data and reloading the page.",
 		});
-		forceRefresh();
+
+        // Clear frontend cache
+        queryClient.removeQueries({ queryKey: ["business-matching-events"] });
+        queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
+        queryClient.removeQueries({ queryKey: ["business-matching-availability"] });
+        queryClient.removeQueries({ queryKey: ["business-matching-detailed-slots"] });
+
+        try {
+		    await forceRefreshAsync();
+            localStorage.setItem(`last_bm_refresh_${event_id}`, Date.now().toString());
+            window.location.reload();
+        } catch (error) {
+            console.error("Manual refresh failed", error);
+            toast.error("Refresh failed. Please try again.");
+        }
 	};
 
 	if (isLoading || isFetching) {

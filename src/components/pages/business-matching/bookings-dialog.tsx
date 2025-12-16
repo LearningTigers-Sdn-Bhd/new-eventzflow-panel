@@ -2,7 +2,7 @@ import { Loader2, Calendar, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ErrorState } from "@/components/data-state";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
     Empty,
@@ -26,7 +26,7 @@ export default function BookingsDialog({
     bmEventId,
     eventId,
 }: BookingsDialogProps) {
-    const { data, isLoading, error, isFetching: isFetchingBookings } = useBusinessMatchingBookings(bmEventId, eventId);
+    const { data, isLoading, error, isFetching: isFetchingBookings, refetch } = useBusinessMatchingBookings(bmEventId, eventId);
     const [searchQuery, setSearchQuery] = useState("");
     const queryClient = useQueryClient();
     const { mutate: forceRefreshBookings, isPending: isRefreshingBookings } = useForceRefreshBookings(bmEventId, eventId);
@@ -65,8 +65,8 @@ export default function BookingsDialog({
             <div className="flex w-full items-center justify-center py-8">
                 <Empty className="p-0 border-0">
                     <EmptyHeader>
-                        <EmptyTitle>No bookings found</EmptyTitle>
-                        <EmptyDescription>There are no bookings for this event yet.</EmptyDescription>
+                        <EmptyTitle>No bookings found yet</EmptyTitle>
+                        <EmptyDescription>We are fetching the latest data. Please wait a moment or click Refresh.</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             </div>

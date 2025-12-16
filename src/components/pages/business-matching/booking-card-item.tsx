@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Clock, MapPin, Mail, Phone, CheckCircle, MoreVertical, MessageSquare, DollarSign, X, Save, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +22,7 @@ import { useUpdateBooking } from "@/hooks/use-business-matching";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/pages/event/settings/confirm-dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface BookingCardItemProps {
     booking: Booking;
@@ -33,33 +32,77 @@ interface BookingCardItemProps {
 
 export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItemProps) {
     const { mutate: updateBooking, isPending } = useUpdateBooking(bmEventId, eventId);
-    
+    const queryClient = useQueryClient();
+
+    const [displayBooking, setDisplayBooking] = useState(booking); // Local display state
+
+    // Sync local state with prop updates and localStorage overrides
+    useEffect(() => {
+        const stored = localStorage.getItem(`booking_override_${booking.id}`);
+        if (stored) {
+             try {
+                const overrides = JSON.parse(stored);
+                setDisplayBooking({ ...booking, ...overrides });
+             } catch (e) {
+                setDisplayBooking(booking);
+             }
+        } else {
+             setDisplayBooking(booking);
+        }
+    }, [booking]);
+
+    const saveOverride = (updates: Partial<Booking>) => {
+        const key = `booking_override_${booking.id}`;
+        const existing = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)!) : {};
+        const newOverrides = { ...existing, ...updates };
+        localStorage.setItem(key, JSON.stringify(newOverrides));
+    };
+
     const [isEditingComment, setIsEditingComment] = useState(false);
-    const [commentDraft, setCommentDraft] = useState(booking.host_comment || "");
+    const [commentDraft, setCommentDraft] = useState(displayBooking.host_comment || "");
 
     const [isEditingValue, setIsEditingValue] = useState(false);
-    const [valueDraft, setValueDraft] = useState(booking.potential_deal_value || "");
+    const [valueDraft, setValueDraft] = useState(displayBooking.potential_deal_value || "");
 
     const [showConfirm, setShowConfirm] = useState(false);
 
     const getCommonBookingData = () => ({
-        name: booking.name,
-        email: booking.email,
-        phone: booking.phone,
-        booking_date: booking.booking_date,
-        booking_time: booking.booking_time,
-        status: booking.status,
-        payment_status: booking.payment_status,
-        host_comment: booking.host_comment,
-        potential_deal_value: booking.potential_deal_value,
-        attendance: booking.attendance
+        name: displayBooking.name,
+        email: displayBooking.email,
+        phone: displayBooking.phone,
+        booking_date: displayBooking.booking_date,
+        booking_time: displayBooking.booking_time,
+        status: displayBooking.status,
+        payment_status: displayBooking.payment_status,
+        host_comment: displayBooking.host_comment,
+        potential_deal_value: displayBooking.potential_deal_value,
+        attendance: displayBooking.attendance
     });
+
+    const updateLocalCache = (updates: Partial<Booking>) => {
+        queryClient.setQueryData(
+            ["business-matching-bookings", bmEventId, eventId],
+            (oldData: any) => {
+                if (!oldData || !oldData.bookings) return oldData;
+                return {
+                    ...oldData,
+                    bookings: oldData.bookings.map((b: any) =>
+                        b.id === displayBooking.id ? { ...b, ...updates } : b
+                    ),
+                };
+            }
+        );
+    };
 
     const handleSaveComment = () => {
         updateBooking(
-            { bookingId: booking.id, data: { ...getCommonBookingData(), host_comment: commentDraft } },
+            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), host_comment: commentDraft } },
             {
                 onSuccess: () => {
+                    const updates = { host_comment: commentDraft };
+                    saveOverride(updates); // Persist override
+                    setDisplayBooking(prev => ({ ...prev, ...updates })); // Immediate visual update
+                    updateLocalCache(updates);
                     setIsEditingComment(false);
                     toast.success("Comment updated");
                 },
@@ -70,9 +113,13 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
 
     const handleSaveValue = () => {
         updateBooking(
-            { bookingId: booking.id, data: { ...getCommonBookingData(), potential_deal_value: valueDraft } },
+            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), potential_deal_value: valueDraft } },
             {
                 onSuccess: () => {
+                    const updates = { potential_deal_value: valueDraft };
+                    saveOverride(updates); // Persist override
+                    setDisplayBooking(prev => ({ ...prev, ...updates })); // Immediate visual update
+                    updateLocalCache(updates);
                     setIsEditingValue(false);
                     toast.success("Deal value updated");
                 },
@@ -81,23 +128,46 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
         );
     };
 
-    const handleMarkAttendance = () => {
+    const handleTogglePresent = () => {
         setShowConfirm(true);
     };
 
-    const confirmMarkAttendance = () => {
-        const isPresent = booking.attendance === "Present";
-        const newStatus = isPresent ? "" : "Present";
+    const confirmTogglePresent = () => {
+        const isCurrentlyPresent = displayBooking.attendance === "Present";
+        const newPresentStatus = isCurrentlyPresent ? "" : "Present";
         setShowConfirm(false);
         updateBooking(
-            { bookingId: booking.id, data: { ...getCommonBookingData(), attendance: newStatus } },
+            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), attendance: newPresentStatus } },
             {
-                onSuccess: () => toast.success(`Attendance ${newStatus ? "marked" : "unmarked"}`)
+                onSuccess: () => {
+                    const updates = { attendance: newPresentStatus };
+                    saveOverride(updates); // Persist override
+                    setDisplayBooking(prev => ({ ...prev, ...updates })); // Immediate visual update
+                    updateLocalCache(updates);
+                    toast.success(`Attendance ${newPresentStatus ? "marked as Present" : "cleared"}`);
+                },
+                onError: () => toast.error("Failed to update attendance")
             }
         );
     };
 
-    const isPresent = booking.attendance === "Present";
+    const handleSetAttendance = (status: "Present" | "Absent" | "") => {
+        updateBooking(
+            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), attendance: status } },
+            {
+                onSuccess: () => {
+                    const updates = { attendance: status };
+                    saveOverride(updates); // Persist override
+                    setDisplayBooking(prev => ({ ...prev, ...updates })); // Immediate visual update
+                    updateLocalCache(updates);
+                    toast.success(`Attendance set to ${status || "cleared"}`);
+                },
+                onError: () => toast.error("Failed to update attendance")
+            }
+        );
+    };
+
+    const isPresent = displayBooking.attendance === "Present";
 
     return (
         <>
@@ -105,76 +175,97 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                 <CardHeader className="bg-muted/30 p-1.5 space-y-0 shrink-0">
                     <div className="flex justify-between items-center gap-1.5">
                         <div className="min-w-0 flex-1 leading-tight">
-                            <CardTitle className="text-sm font-semibold truncate" title={booking.name}>{booking.name}</CardTitle>
-                            <p className="text-xs text-muted-foreground truncate" title={booking.event_title}>
-                                {booking.event_title}
+                            <CardTitle className="text-sm font-semibold truncate" title={displayBooking.name}>{displayBooking.name}</CardTitle>
+                            <p className="text-xs text-muted-foreground truncate" title={displayBooking.event_title}>
+                                {displayBooking.event_title}
                             </p>
                         </div>
                         <div className="flex items-center gap-1">
                             <Badge 
-                                variant={booking.status === 'Approved' ? 'default' : booking.status === 'Pending' ? 'secondary' : 'outline'}
-                                className={`text-[10px] h-4 px-1 shrink-0 ${booking.status === 'Approved' ? 'bg-green-600 hover:bg-green-700' : booking.status === 'Pending' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+                                variant={displayBooking.status === 'Approved' ? 'default' : displayBooking.status === 'Pending' ? 'secondary' : 'outline'}
+                                className={`text-[10px] h-4 px-1 shrink-0 ${displayBooking.status === 'Approved' ? 'bg-green-600 hover:bg-green-700' : displayBooking.status === 'Pending' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
                             >
-                                {booking.status}
+                                {displayBooking.status}
                             </Badge>
-                            {(booking.reschedule_link || booking.cancel_link) && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                            <MoreVertical className="h-4 w-4" />
-                                            <span className="sr-only">Open actions</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-[120px]">
-                                        {booking.reschedule_link && (
-                                            <DropdownMenuItem onClick={() => window.open(booking.reschedule_link, '_blank')}>
-                                                Reschedule
-                                            </DropdownMenuItem>
-                                        )}
-                                        {booking.cancel_link && (
-                                            <DropdownMenuItem onClick={() => window.open(booking.cancel_link, '_blank')} className="text-destructive focus:text-destructive">
-                                                Cancel
-                                            </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                            {(displayBooking.attendance === 'Present' || displayBooking.attendance === 'Absent') && (
+                                <Badge
+                                    variant={displayBooking.attendance === 'Present' ? 'default' : 'destructive'}
+                                    className={`text-[10px] h-4 px-1 shrink-0 ${displayBooking.attendance === 'Present' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-500 hover:bg-red-600'}`}
+                                >
+                                    {displayBooking.attendance}
+                                </Badge>
                             )}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                        <MoreVertical className="h-4 w-4" />
+                                        <span className="sr-only">Open actions</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-[180px]">
+                                    {displayBooking.reschedule_link && (
+                                        <DropdownMenuItem onClick={() => window.open(displayBooking.reschedule_link, '_blank')}>
+                                            Reschedule
+                                        </DropdownMenuItem>
+                                    )}
+                                    {displayBooking.cancel_link && (
+                                        <DropdownMenuItem onClick={() => window.open(displayBooking.cancel_link, '_blank')} className="text-destructive focus:text-destructive">
+                                            Cancel
+                                        </DropdownMenuItem>
+                                    )}
+                                    {displayBooking.attendance === "Present" && (
+                                        <DropdownMenuItem onClick={() => handleSetAttendance("Absent")} disabled={isPending}>
+                                            Mark Absent
+                                        </DropdownMenuItem>
+                                    )}
+                                    {displayBooking.attendance === "Absent" && (
+                                        <DropdownMenuItem onClick={() => handleSetAttendance("Present")} disabled={isPending}>
+                                            Mark Present
+                                        </DropdownMenuItem>
+                                    )}
+                                    {!displayBooking.attendance && (
+                                            <DropdownMenuItem onClick={() => handleSetAttendance("Absent")} disabled={isPending}>
+                                            Mark Absent
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-2 pt-2 grid gap-1.5 flex-1">
                     <div className="flex items-center gap-1.5">
                         <Calendar className="h-3 w-3 shrink-0" />
-                        <span className="text-foreground font-medium truncate text-sm">{booking.booking_date}</span>
+                        <span className="text-foreground font-medium truncate text-sm">{displayBooking.booking_date}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Clock className="h-3 w-3 shrink-0" />
-                        <span className="text-foreground truncate text-sm">{booking.booking_time} ({booking.duration})</span>
+                        <span className="text-foreground truncate text-sm">{displayBooking.booking_time} ({displayBooking.duration})</span>
                     </div>
-                    {booking.location && (
+                    {displayBooking.location && (
                         <div className="flex items-center gap-1.5">
                             <MapPin className="h-3 w-3 shrink-0" />
-                            <span className="truncate flex-1 text-sm" title={booking.location}>
-                                 {booking.location.startsWith('http') ? (
-                                    <a href={booking.location} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                            <span className="truncate flex-1 text-sm" title={displayBooking.location}>
+                                    {displayBooking.location.startsWith('http') ? (
+                                    <a href={displayBooking.location} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
                                         Online <ExternalLink className="h-2.5 w-2.5" />
                                     </a>
-                                ) : booking.location}
+                                ) : displayBooking.location}
                             </span>
                         </div>
                     )}
-                     {(booking.email || booking.phone) && (
+                        {(displayBooking.email || displayBooking.phone) && (
                         <div className="pt-1 border-t mt-1 grid gap-1.5">
-                            {booking.email && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground truncate" title={booking.email}>
+                            {displayBooking.email && (
+                                <div className="flex items-center gap-1.5 text-muted-foreground truncate" title={displayBooking.email}>
                                     <Mail className="h-3 w-3 shrink-0" />
-                                    <span className="truncate text-sm">{booking.email}</span>
+                                    <span className="truncate text-sm">{displayBooking.email}</span>
                                 </div>
                             )}
-                            {booking.phone && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground truncate" title={booking.phone}>
+                            {displayBooking.phone && (
+                                <div className="flex items-center gap-1.5 text-muted-foreground truncate" title={displayBooking.phone}>
                                     <Phone className="h-3 w-3 shrink-0" />
-                                    <span className="truncate text-sm">{booking.phone}</span>
+                                    <span className="truncate text-sm">{displayBooking.phone}</span>
                                 </div>
                             )}
                         </div>
@@ -193,12 +284,12 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                                     className="text-xs min-h-[60px] p-2"
                                     placeholder="Add a comment..."
                                 />
-                                <div className="flex justify-end gap-1">
-                                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setIsEditingComment(false); setCommentDraft(booking.host_comment || ""); }}>
-                                        <X className="h-3 w-3" />
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => { setIsEditingComment(false); setCommentDraft(displayBooking.host_comment || ""); }}>
+                                        Cancel
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-green-600" onClick={handleSaveComment} disabled={isPending}>
-                                        <Save className="h-3 w-3" />
+                                    <Button size="sm" onClick={handleSaveComment} disabled={isPending}>
+                                        Save
                                     </Button>
                                 </div>
                             </div>
@@ -207,11 +298,11 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                                 variant="outline" 
                                 size="sm" 
                                 className="h-auto py-1.5 w-full justify-start text-xs font-normal text-muted-foreground whitespace-normal text-left"
-                                onClick={() => { setIsEditingComment(true); setCommentDraft(booking.host_comment || ""); }}
+                                onClick={() => { setIsEditingComment(true); setCommentDraft(displayBooking.host_comment || ""); }}
                             >
                                 <MessageSquare className="mr-2 h-3 w-3 shrink-0" />
                                 <span className="line-clamp-2">
-                                    {booking.host_comment ? booking.host_comment : "Add Comment..."}
+                                    {displayBooking.host_comment ? displayBooking.host_comment : "Add Comment..."}
                                 </span>
                             </Button>
                         )}
@@ -220,21 +311,21 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                     <div className="pt-0">
                         {isEditingValue ? (
                             <div className="space-y-1 mt-1">
-                                 <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                    <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
                                     <DollarSign className="h-3 w-3" /> Deal Value
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                     <Input 
                                         value={valueDraft} 
                                         onChange={(e) => setValueDraft(e.target.value)} 
-                                        className="text-xs h-7 px-2"
+                                        className="text-xs h-7 px-2 flex-1"
                                         placeholder="Value..."
                                     />
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setIsEditingValue(false); setValueDraft(booking.potential_deal_value || ""); }}>
-                                        <X className="h-3 w-3" />
+                                    <Button variant="outline" size="sm" onClick={() => { setIsEditingValue(false); setValueDraft(displayBooking.potential_deal_value || ""); }}>
+                                        Cancel
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={handleSaveValue} disabled={isPending}>
-                                        <Save className="h-3 w-3" />
+                                    <Button size="sm" onClick={handleSaveValue} disabled={isPending}>
+                                        Save
                                     </Button>
                                 </div>
                             </div>
@@ -243,11 +334,11 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                                 variant="outline" 
                                 size="sm" 
                                 className="h-auto py-1.5 w-full justify-start text-xs font-normal text-muted-foreground mt-1"
-                                onClick={() => { setIsEditingValue(true); setValueDraft(booking.potential_deal_value || ""); }}
+                                onClick={() => { setIsEditingValue(true); setValueDraft(displayBooking.potential_deal_value || ""); }}
                             >
                                 <DollarSign className="mr-2 h-3 w-3 shrink-0" />
                                 <span className="truncate">
-                                    {booking.potential_deal_value ? `Deal: ${booking.potential_deal_value}` : "Set Deal Value..."}
+                                    {displayBooking.potential_deal_value ? `Deal: ${displayBooking.potential_deal_value}` : "Set Deal Value..."}
                                 </span>
                             </Button>
                         )}
@@ -255,26 +346,28 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
 
                 </CardContent>
                 <CardFooter className="bg-muted/10 p-2 pt-2 flex flex-col gap-2 border-t shrink-0">
-                     {booking.status !== 'Approved' && booking.meeting_approval_link && (
+                        {displayBooking.status !== 'Approved' && displayBooking.meeting_approval_link && (
                         <Button 
                             size="sm" 
                             className="h-6 text-sm w-full bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => window.open(booking.meeting_approval_link, '_blank')}
+                            onClick={() => window.open(displayBooking.meeting_approval_link, '_blank')}
                         >
                             <CheckCircle className="mr-1 h-3 w-3" /> Approve
                         </Button>
                     )}
                     
-                    <Button 
-                        variant={booking.attendance === "Present" ? "default" : "outline"}
-                        size="sm" 
-                        className={`h-6 text-sm w-full ${booking.attendance === "Present" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
-                        onClick={handleMarkAttendance}
-                        disabled={isPending}
-                    >
-                        <CheckCircle className="mr-1 h-3 w-3" /> 
-                        {booking.attendance === "Present" ? "Present" : "Mark Attendance"}
-                    </Button>
+                    {(!displayBooking.attendance || (displayBooking.attendance !== 'Present' && displayBooking.attendance !== 'Absent')) && (
+                        <Button 
+                            variant="outline"
+                            size="sm" 
+                            className="h-6 text-sm w-full"
+                            onClick={handleTogglePresent}
+                            disabled={isPending}
+                        >
+                            <CheckCircle className="mr-1 h-3 w-3" /> 
+                            Mark Attendance
+                        </Button>
+                    )}
                 </CardFooter>
             </Card>
 
@@ -282,11 +375,11 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogTitle className="sr-only">Confirm Attendance Change</DialogTitle>
                     <ConfirmDialog
-                        message={isPresent ? "Are you sure you want to unmark this attendee as Present?" : "Mark this attendee as Present?"}
-                        confirmLabel="Confirm"
-                        variant={isPresent ? "warning" : "success"}
-                        icon={isPresent ? "alert" : "check"}
-                        onConfirm={confirmMarkAttendance}
+                        message={displayBooking.attendance === "Present" ? "Are you sure you want to unmark this attendee as Present?" : "Mark this attendee as Present?"}
+                        confirmLabel={displayBooking.attendance === "Present" ? "Unmark" : "Mark"}
+                        variant={displayBooking.attendance === "Present" ? "warning" : "success"}
+                        icon={displayBooking.attendance === "Present" ? "alert" : "check"}
+                        onConfirm={confirmTogglePresent}
                         onCancel={() => setShowConfirm(false)}
                     />
                 </DialogContent>
