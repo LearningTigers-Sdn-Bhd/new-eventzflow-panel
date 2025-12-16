@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getLuckyDrawSessionLogoUrl } from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import { ActionMenu } from "./action-menu";
+import { cn } from "@/lib/utils";
 
 export const columns: ColumnDef<LuckyDrawSession>[] = [
 	{
@@ -41,26 +42,77 @@ export const columns: ColumnDef<LuckyDrawSession>[] = [
 		},
 	},
 	{
-		accessorKey: "draw_style",
+		accessorKey: "draw_styles",
 		header: "Style",
-		cell: ({ row }) => (
-			<Badge variant="outline" className="capitalize">
-				{row.getValue("draw_style")}
-			</Badge>
-		),
+		cell: ({ row }) => {
+			const drawStyles = row.getValue("draw_styles") as {
+				style: string;
+				theme: string;
+			} | null;
+
+			if (!drawStyles) {
+				return <span className="text-muted-foreground text-sm">No style</span>;
+			}
+
+			// Style colors with background
+			const styleColors: Record<string, string> = {
+				wheel: "bg-blue-500 text-white border-blue-600",
+				slot: "bg-purple-500 text-white border-purple-600",
+				box: "bg-orange-500 text-white border-orange-600",
+			};
+
+			// Theme colors with background
+			const themeColors: Record<string, string> = {
+				wireframe: "bg-gray-500 text-white border-gray-600",
+				colorful: "bg-pink-500 text-white border-pink-600",
+				cartoon: "bg-yellow-500 text-white border-yellow-600",
+			};
+
+			return (
+				<div className="flex items-center gap-2">
+					<Badge
+						className={cn(
+							"rounded-none font-bold capitalize",
+							styleColors[drawStyles.style] || "bg-gray-500 text-white",
+						)}
+					>
+						{drawStyles.style}
+					</Badge>
+					<Badge
+						className={cn(
+							"rounded-none font-bold capitalize text-xs",
+							themeColors[drawStyles.theme] || "bg-gray-500 text-white",
+						)}
+					>
+						{drawStyles.theme}
+					</Badge>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "use_gifts",
 		header: "Uses Gifts",
-		cell: ({ row }) =>
-			row.getValue("use_gifts") ? (
-				<Badge>Yes</Badge>
-			) : (
-				<Badge variant="secondary">No</Badge>
-			),
+		cell: ({ row }) => {
+			const useGifts = row.getValue("use_gifts") as boolean;
+			return (
+				<Badge
+					variant="outline"
+					className={cn(
+						"rounded-none font-bold capitalize",
+						useGifts
+							? "border-green-500 text-green-500"
+							: "border-red-500 text-red-500",
+					)}
+				>
+					{useGifts ? "Yes" : "No"}
+				</Badge>
+			);
+		},
 	},
 	{
 		id: "actions",
+		header: "Actions",
 		cell: ({ row }) => <ActionMenu session={row.original} />,
 	},
 ];

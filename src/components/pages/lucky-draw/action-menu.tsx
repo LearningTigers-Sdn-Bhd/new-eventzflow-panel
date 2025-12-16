@@ -34,14 +34,15 @@ export function ActionMenu({ session }: ActionMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 p-0">
-					<span className="sr-only">Open menu</span>
+				<Button variant="ghost" size="icon" className="rounded-none">
 					<MoreHorizontal className="h-4 w-4" />
+					<span className="sr-only">Open menu</span>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
-				<DropdownMenuLabel>Actions</DropdownMenuLabel>
-				<DropdownMenuItem onClick={openSession}>
+			<DropdownMenuContent align="end" className="rounded-none bg-background">
+				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
+				<DropdownMenuSeparator className="rounded-none" />
+				<DropdownMenuItem onClick={openSession} className="rounded-none">
 					<Eye className="mr-2 h-4 w-4" />
 					View / Open
 				</DropdownMenuItem>
@@ -51,17 +52,21 @@ export function ActionMenu({ session }: ActionMenuProps) {
 							component: EditForm,
 							props: { session },
 							config: {
-								title: "Edit Session",
+								title: "Edit Lucky Draw Session",
+								description: "Update your lucky draw session settings",
+								size: "full",
+								showCloseButton: true,
 							},
 						})
 					}
+					className="rounded-none"
 				>
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit
 				</DropdownMenuItem>
-				<DropdownMenuSeparator />
+				<DropdownMenuSeparator className="rounded-none" />
 				<DropdownMenuItem
-					className="text-destructive focus:text-destructive"
+					className="rounded-none text-destructive focus:text-destructive"
 					onClick={() =>
 						openDialog({
 							component: DeleteAlert,
