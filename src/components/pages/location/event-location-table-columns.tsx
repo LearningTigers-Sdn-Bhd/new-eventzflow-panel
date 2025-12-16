@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { CopyCell } from "@/components/admin-ui/table/cell/copy-cell";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
-import { LocationActionsMenu } from "./action-menu";
+import { LocationActionsMenu } from "./event-location-action-menu";
 
 export type LocationDetails = {
 	notes?: string;

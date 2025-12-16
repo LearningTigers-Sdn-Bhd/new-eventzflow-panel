@@ -45,7 +45,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 	});
 
 	// Find the exhibitor kit from the vendors data (same approach as admin)
-	const exhibitorKit = vendors?.find(vendor => 
+	const exhibitorKit = vendors?.find(vendor =>
 		vendor.exhibitor_kit?.id === Number(kitId)
 	)?.exhibitor_kit;
 
@@ -77,7 +77,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		);
 	}
 
-	const vendor = vendors?.find(vendor => 
+	const vendor = vendors?.find(vendor =>
 		vendor.exhibitor_kit?.id === Number(kitId)
 	);
 	const items = exhibitorKit.exhibitor_kit_items || [];
@@ -150,7 +150,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								"rounded-none font-bold capitalize",
 								exhibitorKit.payment_status === "paid" &&
 									"border-green-500 text-green-500",
-								exhibitorKit.payment_status === "unpaid" && 
+								exhibitorKit.payment_status === "unpaid" &&
 									"border-red-500 text-red-500",
 								exhibitorKit.payment_status === "waived" &&
 									"border-gray-500 text-gray-500",

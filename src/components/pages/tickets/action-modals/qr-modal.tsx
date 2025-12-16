@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { BaseTicket } from "../columns";
+import type { BaseTicket } from "../event-ticket-table-columns";
 
 interface TicketQRModalProps {
 	ticket: BaseTicket;
@@ -101,7 +101,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 		<div className="w-full space-y-3 md:space-y-4">
 			{/* Header - Hidden on mobile to save space */}
 			<div className="hidden text-center md:block">
-				<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-primary/10">
+				<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-none bg-primary/10">
 					<Ticket className="size-6 text-primary" />
 				</div>
 				<h2 className="font-bold text-2xl">Ticket QR Code</h2>
@@ -128,7 +128,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 							</p>
 							<Badge
 								variant="secondary"
-								className="max-w-full truncate font-mono text-xs"
+								className="max-w-full truncate rounded-none font-mono text-xs"
 							>
 								{qrValue}
 							</Badge>
@@ -138,7 +138,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 							variant="outline"
 							size="sm"
 							onClick={handleCopyQRValue}
-							className="w-full"
+							className="w-full rounded-none py-6 md:py-4"
 						>
 							{copied ? (
 								<>
@@ -229,7 +229,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 						<Badge
 							variant={ticket.status === "scanned" ? "default" : "secondary"}
 							className={cn(
-								"px-2 py-0.5 text-xs md:px-3 md:py-1",
+								"rounded-none px-2 py-0.5 text-xs md:px-3 md:py-1",
 								ticket.status === "scanned"
 									? "bg-green-500 text-white hover:bg-green-500"
 									: "bg-blue-500 text-white hover:bg-blue-500",
@@ -244,9 +244,8 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 					{/* Action Button */}
 					<Button
 						type="button"
-						variant="outline"
 						onClick={handleDownloadQR}
-						className="w-full"
+						className="w-full rounded-none py-6 md:py-4"
 						size="sm"
 					>
 						<Download className="mr-2 size-3.5 md:size-4" />

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { unscanTicket } from "@/lib/api/ticket";
-import type { BaseTicket } from "../columns";
+import type { BaseTicket } from "../event-ticket-table-columns";
 
 interface UnscanModalProps {
 	ticket: BaseTicket;
@@ -45,7 +45,7 @@ export default function UnscanModal({ ticket }: UnscanModalProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
-				<AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-500" />
+				<AlertTriangle className="size-5 shrink-0 text-amber-600 dark:text-amber-500" />
 				<div className="space-y-1">
 					<p className="font-medium text-amber-900 text-sm dark:text-amber-100">
 						Warning: This action will reset the ticket status

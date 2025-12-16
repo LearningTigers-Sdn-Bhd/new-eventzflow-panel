@@ -136,7 +136,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<div className="flex items-center gap-2 cursor-pointer">
+						<div className="flex cursor-pointer items-center gap-2">
 							<p className="font-medium">
 								Booth Type
 								{filterType && (
@@ -209,8 +209,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			if (!kit) return <span className="text-muted-foreground">-</span>;
 			return (
 				<div className="flex flex-col">
-					<span className="text-sm font-medium">{kit.pic_full_name}</span>
-					<span className="text-xs text-muted-foreground">
+					<span className="font-medium text-sm">{kit.pic_full_name}</span>
+					<span className="text-muted-foreground text-xs">
 						{kit.pic_email_address || kit.pic_contact_number}
 					</span>
 				</div>
@@ -229,7 +229,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<div className="flex items-center gap-2 cursor-pointer">
+						<div className="flex cursor-pointer items-center gap-2">
 							<p className="font-medium">
 								Payment
 								{filterStatus && (
@@ -321,7 +321,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 
 			if (totalCount === 0) {
 				return (
-					<span className="text-muted-foreground text-sm text-center block">
+					<span className="block text-center text-muted-foreground text-sm">
 						-
 					</span>
 				);
@@ -343,15 +343,15 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			return (
 				<Popover>
 					<PopoverTrigger asChild>
-						<div className="flex flex-col gap-0.5 cursor-pointer items-center">
+						<div className="flex cursor-pointer flex-col items-center gap-0.5">
 							<div className="flex items-center gap-1">
-								<span className="text-sm font-medium">{totalCount}</span>
+								<span className="font-medium text-sm">{totalCount}</span>
 								{limit && (
-									<span className="text-xs text-muted-foreground">/ {limit}</span>
+									<span className="text-muted-foreground text-xs">/ {limit}</span>
 								)}
 							</div>
 							{excessCount > 0 && extraCharges && (
-								<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+								<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
 									+{excessCount} (RM {extraCharges})
 								</span>
 							)}
@@ -360,16 +360,16 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 					<PopoverContent
 						side="top"
 						sideOffset={4}
-						className="w-auto p-0 rounded-none"
+						className="w-auto rounded-none p-0"
 					>
 						<div className="min-w-[200px]">
 							<div className="border-b px-3 py-2">
-								<p className="text-xs font-medium text-muted-foreground">
+								<p className="font-medium text-muted-foreground text-xs">
 									{totalCount} Team Member{totalCount !== 1 ? "s" : ""}
 									{limit && ` (Limit: ${limit})`}
 								</p>
 								{excessCount > 0 && extraCharges && (
-									<p className="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1">
+									<p className="mt-1 font-medium text-amber-600 text-xs dark:text-amber-400">
 										{excessCount} excess • RM {extraCharges} extra charges
 									</p>
 								)}
@@ -387,7 +387,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 											}`}
 										>
 											<div
-												className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+												className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-medium text-xs ${
 													isPaid
 														? "bg-amber-100 dark:bg-amber-900"
 														: "bg-green-100 dark:bg-green-900"
@@ -395,11 +395,11 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 											>
 												{getInitials(member.full_name)}
 											</div>
-											<span className="text-sm truncate flex-1">
+											<span className="flex-1 truncate text-sm">
 												{member.full_name}
 											</span>
 											{isPaid && (
-												<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+												<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
 													+RM {kit?.extra_team_member_fee}
 												</span>
 											)}
@@ -433,7 +433,7 @@ const actionsColumn: ColumnDef<ExhibitorMember> = {
 
 // Function to get columns based on permissions
 export const getColumns = (
-	canManageVendors: boolean = false,
+	canManageVendors = false,
 ): ColumnDef<ExhibitorMember>[] => {
 	if (canManageVendors) {
 		return [...baseColumns, actionsColumn];

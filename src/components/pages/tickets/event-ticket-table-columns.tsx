@@ -1,11 +1,11 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
+import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TicketActionsMenu } from "./action-menu";
+import { TicketActionsMenu } from "./event-ticket-action-menu";
 
 export type BaseTicket = {
 	id: string;
@@ -24,31 +24,33 @@ export type BaseTicket = {
 	deletedAt?: string | null;
 };
 
+// Status filter options
+const STATUS_OPTIONS = [
+	{ label: "Scanned", value: "scanned" },
+	{ label: "Not Scanned", value: "not_scanned" },
+];
+
+// Helper function to format date with time and date parts
+function formatDateTime(dateString: string): {
+	timePart: string;
+	datePart: string;
+} {
+	const date = new Date(dateString);
+	const timePart = date.toLocaleString("en-US", { timeStyle: "medium" });
+	const datePart = date.toLocaleString("en-US", { dateStyle: "medium" });
+	return { timePart, datePart };
+}
+
 export function generateColumns(
 	labelsData?: Record<string, string>,
 ): ColumnDef<BaseTicket>[] {
+	// Base columns that everyone sees
+	// Order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
 	const baseColumns: ColumnDef<BaseTicket>[] = [
 		{
 			accessorKey: "name",
 			size: 200,
-			header: ({ column }) => (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Name</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			),
+			header: ({ column }) => <SortableHeader column={column} label="Name" />,
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1">
 					<div className="truncate font-medium">{row.getValue("name")}</div>
@@ -67,28 +69,7 @@ export function generateColumns(
 		{
 			accessorKey: "email",
 			size: 220,
-			header: ({ column }) => {
-				return (
-					<div className="flex items-center gap-2">
-						<p className="font-medium">Email</p>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() =>
-								column.toggleSorting(column.getIsSorted() === "asc")
-							}
-							className="rounded-none"
-						>
-							<ArrowDown
-								className={cn(
-									"size-4 transition-transform",
-									column.getIsSorted() === "asc" && "-rotate-180",
-								)}
-							/>
-						</Button>
-					</div>
-				);
-			},
+			header: ({ column }) => <SortableHeader column={column} label="Email" />,
 			cell: ({ row }) => {
 				const email = row.getValue("email") as string | null;
 				return (
@@ -112,12 +93,31 @@ export function generateColumns(
 					{row.getValue("ticketTypeName") || "N/A"}
 				</div>
 			),
-			filterFn: (row, id, value) => value.includes(row.getValue(id)),
+			// Note: Ticket types are dynamic, so FilterableHeader cannot be used here
+			// Filtering is handled via filterFn for compatibility with existing filter logic
+			filterFn: (row, id, value) => {
+				if (value === undefined) return true;
+				if (Array.isArray(value)) {
+					return value.includes(row.getValue(id));
+				}
+				return row.getValue(id) === value;
+			},
 		},
 		{
 			accessorKey: "status",
 			size: 120,
-			header: "Status",
+			filterFn: (row, id, value) => {
+				if (value === undefined) return true;
+				return row.getValue(id) === value;
+			},
+			header: ({ column }) => (
+				<FilterableHeader
+					column={column}
+					label="Status"
+					options={STATUS_OPTIONS}
+					allOptionLabel="All Status"
+				/>
+			),
 			cell: ({ row }) => {
 				const status = row.getValue("status") as string;
 				return (
@@ -134,44 +134,20 @@ export function generateColumns(
 					</Badge>
 				);
 			},
-			filterFn: (row, id, value) => value.includes(row.getValue(id)),
 		},
 		{
 			accessorKey: "createdAt",
 			size: 140,
 			header: ({ column }) => (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Created At</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
+				<SortableHeader column={column} label="Created At" />
 			),
 			cell: ({ row }) => {
-				const date = new Date(row.getValue("createdAt"));
-
-				// Time with 'short' style (e.g., "9:55 AM")
-				const timePart = date.toLocaleString("en-US", { timeStyle: "medium" });
-
-				// Date with 'medium' style (e.g., "Nov 24, 2025")
-				const datePart = date.toLocaleString("en-US", { dateStyle: "medium" });
-
+				const { timePart, datePart } = formatDateTime(
+					row.getValue("createdAt"),
+				);
 				return (
 					<div className="font-medium">
-						{/* Time: Use a stronger class like "font-bold" */}
 						<div className="font-semibold">{timePart}</div>
-
-						{/* Date: Use a slightly less pronounced style or default */}
 						<div className="text-gray-500 text-sm">{datePart}</div>
 					</div>
 				);
@@ -181,19 +157,23 @@ export function generateColumns(
 			id: "actions",
 			size: 120,
 			enableHiding: false,
+			meta: {
+				sticky: "right",
+			},
 			header: () => <div className="text-center">Actions</div>,
 			cell: ({ row }) => {
-				const _ticket = row.original;
+				const ticket = row.original;
 				return (
 					<div className="flex justify-center">
-						<TicketActionsMenu ticket={_ticket} deletedAt={_ticket.deletedAt} />
+						<TicketActionsMenu ticket={ticket} deletedAt={ticket.deletedAt} />
 					</div>
 				);
 			},
 		},
 	];
 
-	// Generate dynamic columns for custom fields
+	// Generate dynamic columns for custom fields based on labelsData
+	// These columns will be inserted before the "Created At" column
 	const customColumns: ColumnDef<BaseTicket>[] = [];
 	if (labelsData && Object.keys(labelsData).length > 0) {
 		Object.entries(labelsData).forEach(([key, labelName]) => {
@@ -207,23 +187,7 @@ export function generateColumns(
 				},
 				size: 180,
 				header: ({ column }) => (
-					<div className="flex items-center gap-2">
-						<p className="font-medium">{labelName}</p>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() =>
-								column.toggleSorting(column.getIsSorted() === "asc")
-							}
-						>
-							<ArrowDown
-								className={cn(
-									"size-4 transition-transform",
-									column.getIsSorted() === "asc" && "-rotate-180",
-								)}
-							/>
-						</Button>
-					</div>
+					<SortableHeader column={column} label={labelName} />
 				),
 				cell: ({ row }) => {
 					const customLabel = row.original.customLabels?.find(
@@ -247,9 +211,8 @@ export function generateColumns(
 		});
 	}
 
-	// Insert custom columns before the "Created At" column
-	// Base columns order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
-	// We want: Name, Phone (hidden), Email, Ticket Type, Status, [Custom Labels], Created At, Actions
+	// Assemble final columns: insert custom columns before "Created At"
+	// Final order: Name, Phone (hidden), Email, Ticket Type, Status, [Custom Labels], Created At, Actions
 	const createdAtIndex = baseColumns.findIndex(
 		(col) => "accessorKey" in col && col.accessorKey === "createdAt",
 	);

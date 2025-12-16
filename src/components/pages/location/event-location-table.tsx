@@ -3,7 +3,6 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -14,22 +13,14 @@ import {
 } from "@tanstack/react-table";
 import { Calendar } from "lucide-react";
 import * as React from "react";
+import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import InfoForm from "./event-location-action-modal/create-event-location-form";
 import { LocationItem } from "./event-location-item";
 import type { BaseLocation } from "./event-location-table-columns";
@@ -92,83 +83,19 @@ export function DataTable<TData, TValue>({
 			{/* Data Table */}
 			<div className="min-h-[45vh]">
 				{!isMobile && !isTablet ? (
-					<div className="overflow-x-auto rounded-none border">
-						<Table className="w-full table-fixed">
-							<TableHeader>
-								{table.getHeaderGroups().map((headerGroup) => (
-									<TableRow key={headerGroup.id}>
-										{headerGroup.headers.map((header) => {
-											return (
-												<TableHead
-													key={header.id}
-													style={{ width: `${header.getSize()}px` }}
-													className={cn(header.index === 0 && "ps-3")}
-												>
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext(),
-															)}
-												</TableHead>
-											);
-										})}
-									</TableRow>
-								))}
-							</TableHeader>
-							<TableBody>
-								{table.getRowModel().rows?.length ? (
-									table.getRowModel().rows.map((row) => (
-										<TableRow
-											key={row.id}
-											data-state={row.getIsSelected() && "selected"}
-										>
-											{row.getVisibleCells().map((cell) => (
-												<TableCell
-													key={cell.id}
-													style={{ width: `${cell.column.getSize()}px` }}
-													className={cn(
-														table.getVisibleLeafColumns()[0]?.id ===
-															cell.column.id && "ps-4",
-													)}
-												>
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext(),
-													)}
-												</TableCell>
-											))}
-										</TableRow>
-									))
-								) : (
-									<TableRow>
-										<TableCell
-											colSpan={columns.length}
-											className="h-24 text-center"
-										>
-											<EmptyState
-												title="No locations found"
-												description={
-													isVendor
-														? "You haven't been assigned to any locations yet"
-														: "Create your first location to get started"
-												}
-												icon={<Calendar />}
-												height="h-auto"
-												action={
-													!isVendor ? (
-														<Button onClick={openLocationCreate}>
-															Create Location
-														</Button>
-													) : undefined
-												}
-											/>
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
-					</div>
+					<BaseTable
+						table={table}
+						emptyStateConfig={{
+							title: "No locations found",
+							desc: isVendor
+								? "You haven't been assigned to any locations yet"
+								: "Create your first location to get started",
+							icon: <Calendar />,
+							action: !isVendor ? (
+								<Button onClick={openLocationCreate}>Create Location</Button>
+							) : undefined,
+						}}
+					/>
 				) : isTablet && !isMobile ? (
 					table.getRowModel().rows?.length ? (
 						<div className="grid grid-cols-2 gap-4 lg:grid-cols-1">

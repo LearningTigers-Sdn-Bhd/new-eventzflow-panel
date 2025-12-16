@@ -2,7 +2,7 @@
 
 import type { Table } from "@tanstack/react-table";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
-import type { ControlConfig } from "@/components/admin-ui/table/control/mobile-table-control";
+import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import {
 	EVENT_FILTER_OPTIONS,
 	EVENT_FILTER_OPTIONS_MOBILE,
@@ -34,15 +34,22 @@ export function DataControl<TData>({
 		: null;
 
 	// Desktop control configuration
-	const desktopControlConfigs: ControlConfig[] = eventFilterControl
-		? [
-				{
-					...eventFilterControl,
-					type: "filter",
-					data: EVENT_FILTER_OPTIONS,
-				},
-			]
-		: [];
+	const desktopControlConfigs: ControlConfig[] = [
+		...(eventFilterControl
+			? [
+					{
+						...eventFilterControl,
+						type: "filter" as const,
+						data: EVENT_FILTER_OPTIONS,
+					},
+				]
+			: []),
+		{
+			label: "Columns",
+			columnId: "visibility",
+			type: "visibility",
+		},
+	];
 
 	// Mobile control configuration
 	const mobileControlConfigs: ControlConfig[] = [
@@ -82,14 +89,17 @@ export function DataControl<TData>({
 	return (
 		<BaseTableControl
 			table={table}
+			searchConfig={{
+				searchConfig: {
+					placeholder: "Search events...",
+					enableCustomSearch: false,
+					columns: ["title", "id"],
+				},
+			}}
 			desktopConfig={{
-				searchPlaceholder: "Search events...",
-				searchColumns: ["title", "id"],
 				controlConfigs: desktopControlConfigs,
 			}}
 			mobileConfig={{
-				searchPlaceholder: "Search events...",
-				searchColumns: ["title", "id"],
 				controlConfigs: mobileControlConfigs,
 			}}
 		/>

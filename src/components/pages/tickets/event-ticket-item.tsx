@@ -12,8 +12,8 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
-import { TicketActionsMenu } from "./action-menu";
-import type { BaseTicket } from "./columns";
+import { TicketActionsMenu } from "./event-ticket-action-menu";
+import type { BaseTicket } from "./event-ticket-table-columns";
 
 interface TicketItemProps {
 	ticket: BaseTicket;

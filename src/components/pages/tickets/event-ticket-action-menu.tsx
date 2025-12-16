@@ -31,11 +31,11 @@ import {
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
-import TicketEditModal from "./action-modals/edit-ticket-form";
+import TicketEditModal from "./action-modals/edit-event-ticket-form";
+import TicketViewModal from "./action-modals/event-ticket-view-modal";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
-import TicketViewModal from "./action-modals/view-modal";
-import type { BaseTicket } from "./columns";
+import type { BaseTicket } from "./event-ticket-table-columns";
 
 interface TicketActionsMenuProps {
 	ticket: BaseTicket;
@@ -72,6 +72,7 @@ export function TicketActionsMenu({
 			component: TicketViewModal,
 			config: {
 				title: "View Ticket",
+				description: "View the ticket information.",
 				size: "2xl",
 				showCloseButton: true,
 			},
