@@ -2,6 +2,7 @@
 
 import type * as d3 from "d3";
 import type React from "react";
+import { useMemo } from "react";
 import { useWheel } from "@/hooks/draw-styles/use-wheel";
 import type { DrawProps } from "../type";
 
@@ -9,8 +10,20 @@ const SpinWheel: React.FC<DrawProps> = ({
 	participants,
 	onDrawComplete,
 	isDrawing,
+	onDraw,
 }) => {
-	// Wireframe theme uses default colors from hook
+	// Wireframe theme: Clean pastel colors
+	const baseColors = useMemo(() => {
+		return [
+			"#FFB6C1", // Light Pink
+			"#E6E6FA", // Lavender
+			"#FFF4B1", // Light Yellow
+			"#B4E7CE", // Mint
+			"#C9D6FF", // Light Blue
+			"#FFD4E5", // Blush Pink
+		];
+	}, []);
+
 	const {
 		rotation,
 		internalParticipants,
@@ -20,20 +33,28 @@ const SpinWheel: React.FC<DrawProps> = ({
 		svgRef,
 		handleTransitionEnd,
 		isEmpty,
-		pointerPosition,
-		pointerIcon: PointerIcon,
+		decorativeDots,
 	} = useWheel(
 		{ participants, onDrawComplete, isDrawing },
-		{ pointerVariant: "pointy" },
+		{
+			baseColors,
+			pointerVariant: "pointy",
+			gapBetweenWheelAndOuter: 8,
+			enableDecorativeDots: true,
+			decorativeDotsCount: 12,
+			decorativeDotsRadius: 255,
+			decorativeDotsStartAngle: 0,
+		},
 	);
 
-	const radius = 250; // SVG coordinate system radius
+	const radius = 250;
 	const width = 500;
 	const height = 500;
+	const viewBoxPadding = 30;
 
 	if (isEmpty) {
 		return (
-			<div className="flex aspect-square w-full items-center justify-center rounded-full border-2 border-black border-dashed bg-gray-50 font-mono text-gray-400">
+			<div className="flex aspect-square w-full items-center justify-center rounded-full bg-gray-50 font-mono text-gray-400">
 				Add participants
 			</div>
 		);
@@ -41,46 +62,85 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	return (
 		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
-			{/* Pointer */}
-			<div {...pointerPosition}>
-				<PointerIcon
-					className="size-10 text-black"
+			{/* Static Pointer - pointing DOWN */}
+			<div 
+				className="pointer-events-none absolute -top-6 left-1/2 z-20"
+				style={{
+					left: "50%",
+					transform: `translate(-50%, 0)`,
+				}}
+			>
+				<svg
+					width="60"
+					height="80"
+					viewBox="0 0 60 80"
+					className="drop-shadow-md"
 					aria-label="Wheel pointer"
-				/>
+				>
+					{/* Simple arrow pointing down */}
+					<path
+						d="M 30 70 L 45 35 L 30 40 L 15 35 Z"
+						fill="#1a1a1a"
+						stroke="#1a1a1a"
+						strokeWidth="2"
+					/>
+				</svg>
 			</div>
 
 			{/* The Wheel */}
 			<div className="relative aspect-square w-full max-w-[500px]">
 				<svg
 					ref={svgRef}
-					viewBox={`0 0 ${width} ${height}`}
-					className="h-full w-full drop-shadow-xl"
+					viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${width + viewBoxPadding * 2} ${height + viewBoxPadding * 2}`}
+					className="h-full w-full drop-shadow-lg"
 					aria-label="Spin wheel"
 					style={{
 						transform: `rotate(${rotation}deg)`,
 						transition: isDrawing
-							? "transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)"
+							? "transform 6s cubic-bezier(0.15, 0.7, 0.1, 1)"
 							: "none",
 					}}
 					onTransitionEnd={handleTransitionEnd}
 				>
 					<title>Spin wheel</title>
+					<defs></defs>
 					<g transform={`translate(${width / 2}, ${height / 2})`}>
-						{/* Outer Rim */}
-						<circle r={radius - 5} fill="none" stroke="black" strokeWidth="4" />
+						{/* Outer shadow */}
+						<circle r={radius + 3} fill="rgba(0,0,0,0.1)" />
+						
+						{/* Outer rim - clean border */}
+						<circle r={radius} fill="none" stroke="#2a2a2a" strokeWidth="3" />
+						
+						{/* Decorative dots */}
+						{decorativeDots?.map((dot) => (
+							<g key={`dot-${dot.angle.toFixed(2)}`}>
+								<circle
+									cx={dot.x}
+									cy={dot.y}
+									r="6"
+									fill="#2a2a2a"
+								/>
+								<circle
+									cx={dot.x}
+									cy={dot.y}
+									r="3"
+									fill="#ffffff"
+								/>
+							</g>
+						))}
 
 						{/* Slices */}
 						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
-							// Find the participant for this arc to use as key
 							const participant = internalParticipants.find(
 								(p) => p.name === d.data,
 							);
 							return (
 								<g key={participant?.publicId || i}>
+									{/* Slice fill */}
 									<path
 										d={arcGenerator(d) || undefined}
 										fill={getSliceColor(i)}
-										stroke="black"
+										stroke="#2a2a2a"
 										strokeWidth="2"
 									/>
 									{/* Text Labels */}
@@ -88,15 +148,14 @@ const SpinWheel: React.FC<DrawProps> = ({
 										<g
 											transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
 										>
-											{/* Rotate text to align with wedge center angle, then adjust for readability */}
 											<text
-												transform={"rotate(-90)"} // Orient text outwards
+												transform={"rotate(-90)"}
 												textAnchor="middle"
 												dominantBaseline="middle"
-												className="select-none fill-black font-semibold text-xs"
+												className="select-none fill-gray-800 font-semibold text-xs"
 												style={{
 													fontSize:
-														internalParticipants.length > 12 ? "10px" : "14px",
+														internalParticipants.length > 12 ? "11px" : "15px",
 												}}
 											>
 												{d.data.length > 15
@@ -109,12 +168,25 @@ const SpinWheel: React.FC<DrawProps> = ({
 							);
 						})}
 
-						{/* Center Hub */}
-						<circle r="15" fill="black" />
-						<circle r="5" fill="white" />
+						{/* Center Hub - minimalist */}
+						<circle r="30" fill="#ffffff" stroke="#2a2a2a" strokeWidth="3" />
+						<circle r="18" fill="#2a2a2a" />
+						<circle r="8" fill="#ffffff" />
 					</g>
 				</svg>
 			</div>
+
+			{/* Spin Button */}
+			{onDraw && (
+				<button
+					type="button"
+					onClick={onDraw}
+					disabled={isDrawing || isEmpty}
+					className="mt-6 rounded-lg border-2 border-gray-800 bg-white px-8 py-3 font-bold text-lg uppercase tracking-wide text-gray-800 shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:translate-y-[2px] active:shadow-sm disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-200 disabled:text-gray-500"
+				>
+					{isDrawing ? "Spinning..." : "Spin"}
+				</button>
+			)}
 		</div>
 	);
 };

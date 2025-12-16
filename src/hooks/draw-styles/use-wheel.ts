@@ -212,24 +212,27 @@ export function useWheel(
 			(pointerAngleDeg - normalizedRotation + 360) % 360;
 		const effectiveRad = (effectiveAngleDeg * Math.PI) / 180;
 
-		const winningArc = arcs.find((d: d3.PieArcDatum<string>) => {
-			// Normalize start/end angles to 0-2PI
-			let startAngle = d.startAngle;
-			let endAngle = d.endAngle;
+		// Special case: if only one participant, they always win
+		const winningArc = arcs.length === 1 
+			? arcs[0] 
+			: arcs.find((d: d3.PieArcDatum<string>) => {
+				// Normalize start/end angles to 0-2PI
+				let startAngle = d.startAngle;
+				let endAngle = d.endAngle;
 
-			// Normalize to 0-2PI range
-			while (startAngle < 0) startAngle += 2 * Math.PI;
-			while (endAngle < 0) endAngle += 2 * Math.PI;
-			while (startAngle >= 2 * Math.PI) startAngle -= 2 * Math.PI;
-			while (endAngle >= 2 * Math.PI) endAngle -= 2 * Math.PI;
+				// Normalize to 0-2PI range
+				while (startAngle < 0) startAngle += 2 * Math.PI;
+				while (endAngle < 0) endAngle += 2 * Math.PI;
+				while (startAngle >= 2 * Math.PI) startAngle -= 2 * Math.PI;
+				while (endAngle >= 2 * Math.PI) endAngle -= 2 * Math.PI;
 
-			// Handle wrap-around case where endAngle < startAngle (shouldn't happen with d3.pie, but just in case)
-			if (endAngle < startAngle) {
-				return effectiveRad >= startAngle || effectiveRad < endAngle;
-			}
+				// Handle wrap-around case where endAngle < startAngle (shouldn't happen with d3.pie, but just in case)
+				if (endAngle < startAngle) {
+					return effectiveRad >= startAngle || effectiveRad < endAngle;
+				}
 
-			return effectiveRad >= startAngle && effectiveRad < endAngle;
-		});
+				return effectiveRad >= startAngle && effectiveRad < endAngle;
+			});
 
 		if (winningArc) {
 			// Find the participant that matches the winning name

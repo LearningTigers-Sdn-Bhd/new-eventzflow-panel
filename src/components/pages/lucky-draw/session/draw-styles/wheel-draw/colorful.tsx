@@ -11,6 +11,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 	participants,
 	onDrawComplete,
 	isDrawing,
+	onDraw,
 }) => {
 	// Colorful theme: Vibrant 10-color palette
 	const baseColors = useMemo(() => {
@@ -80,7 +81,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	if (isEmpty) {
 		return (
-			<div className="flex aspect-square w-full items-center justify-center rounded-full border-2 border-black border-dashed bg-gray-50 font-mono text-gray-400">
+			<div className="flex aspect-square w-full items-center justify-center rounded-full bg-gray-50 font-mono text-gray-400">
 				Add participants
 			</div>
 		);
@@ -202,6 +203,18 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 			{/* Stand */}
 			<WheelStand standColor="#FF7F50" baseColor="#ffac63" />
+
+			{/* Spin Button */}
+			{onDraw && (
+				<button
+					type="button"
+					onClick={onDraw}
+					disabled={isDrawing || isEmpty}
+					className="mt-4 rounded-xl border-4 border-orange-700 bg-gradient-to-b from-orange-400 to-orange-600 px-10 py-3 font-black text-xl uppercase tracking-wider text-white shadow-[0_6px_0_0_#c2410c] transition-all hover:from-orange-300 hover:to-orange-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#c2410c] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:border-gray-700 disabled:text-gray-300 disabled:shadow-[0_6px_0_0_#4b5563]"
+				>
+					{isDrawing ? "SPINNING..." : "SPIN!"}
+				</button>
+			)}
 		</div>
 	);
 };
