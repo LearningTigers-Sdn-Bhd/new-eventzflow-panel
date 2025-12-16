@@ -580,7 +580,7 @@ export function GiftInvalidListSheet({
 			<div className="flex flex-col gap-3">
 				{invalidParticipants.length === 0 ? (
 					<div className="text-balance rounded-none border border-dashed p-6 text-center text-muted-foreground text-sm">
-						No invalid participants. Winners will appear here when Use Gifts is
+						No winners yet. Winners will appear here when Use Gifts is
 						off.
 					</div>
 				) : (
@@ -627,7 +627,7 @@ export function GiftInvalidListSheet({
 						<CardContent className="grid grid-cols-3 gap-4 px-4 py-0">
 							<div className="col-span-2 flex flex-col justify-center">
 								<div className="text-balance font-medium text-sm">
-									Remove all
+									Clear Winner List
 								</div>
 								<p className="text-balance text-muted-foreground text-sm">
 									Allow everyone to participate again.
@@ -641,7 +641,7 @@ export function GiftInvalidListSheet({
 									onClick={() => clearInvalidParticipants()}
 								>
 									<Trash2 className="size-4" />
-									Clear list
+									Clear All
 								</Button>
 							</div>
 						</CardContent>
@@ -661,14 +661,14 @@ export function GiftInvalidListSheet({
 				>
 					<List className="size-4" />
 					<span className="hidden text-sm md:block">
-						{useGifts ? "Manage Gifts" : "Invalid List"}
+						{useGifts ? "Manage Gifts" : "Winner List"}
 					</span>
 				</Button>
 			</SheetTrigger>
 			<SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
 				<SheetHeader className="gap-0! border-b">
 					<SheetTitle>
-						{useGifts ? "List of Gifts" : "Invalid to Participate"}
+						{useGifts ? "List of Gifts" : "Winner List"}
 					</SheetTitle>
 					<SheetDescription>
 						{useGifts

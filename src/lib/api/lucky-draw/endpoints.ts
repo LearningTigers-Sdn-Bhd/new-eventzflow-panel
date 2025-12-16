@@ -518,7 +518,7 @@ export async function clearInvalidParticipants(
 ): Promise<void> {
 	try {
 		await restClient.delete(
-			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants`,
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants/destroy_all`,
 		);
 	} catch (error) {
 		const message = await extractErrorMessage(error);
