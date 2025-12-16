@@ -1,7 +1,7 @@
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import InfoForm from "./info-form";
+import InfoForm from "./create-event-location-form";
 
 export function LocationPageButton() {
 	const { openDialog } = useDialog();

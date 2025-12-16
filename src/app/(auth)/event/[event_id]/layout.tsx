@@ -341,8 +341,8 @@ export default function EventDetailLayout({
 			</div>
 
 			{/* Current Menu Header */}
-			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-7xl md:px-4">
-				<div className="flex flex-col gap-2 py-0 md:flex-row md:items-center md:justify-between">
+			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-7xl">
+				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
 					<IconHeading
 						icon={currentMenu.icon}
 						title={currentMenuTitle}

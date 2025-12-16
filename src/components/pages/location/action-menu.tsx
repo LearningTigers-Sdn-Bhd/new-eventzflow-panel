@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	Eye,
 	MoreVertical,
@@ -8,6 +9,8 @@ import {
 	Trash2,
 	UserPlus,
 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -17,21 +20,28 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import AssignMembersDialog from "./assign-members/modal";
-import AssignVendorDialog from "./assign-vendor/modal";
-import type { BaseLocation } from "./columns";
-import DeleteLocationDialog from "./delete/modal";
-import LocationSettingsDialog from "./edit/modal";
-import ViewDetailsDialog from "./view-details/modal";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { deleteLocation } from "@/lib/api/event/location";
+import AssignMembersDialog from "./event-location-action-modal/assign-member-modal";
+import AssignVendorDialog from "./event-location-action-modal/assign-vendor-modal";
+import LocationSettingsDialog from "./event-location-action-modal/edit-event-location-modal";
+import ViewDetailsDialog from "./event-location-action-modal/view-event-location-modal";
+import type { BaseLocation } from "./event-location-table-columns";
 
 interface LocationActionsMenuProps {
 	location: BaseLocation;
 }
 
 export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
+	const isTablet = useIsTablet();
 	const { openDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const { user } = useAuth();
+	const params = useParams();
+	const eventId = params.event_id as string;
+	const queryClient = useQueryClient();
 	const isVendor = user?.role === "vendor";
 
 	const openViewDetails = () => {
@@ -39,6 +49,7 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 			component: ViewDetailsDialog,
 			config: {
 				title: "Location Details",
+				description: "View the details of the location for this event.",
 				size: "lg",
 			},
 			props: { location },
@@ -50,7 +61,9 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 			component: LocationSettingsDialog,
 			config: {
 				title: "Location Settings",
-				size: "full", // Better for mobile - not too wide
+				description:
+					"Edit the information and configurations of the location for this event.",
+				size: "full",
 			},
 			props: { location },
 		});
@@ -61,7 +74,9 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 			component: AssignMembersDialog,
 			config: {
 				title: "Assign Members to Location",
-				description: "Select team members to assign to this location",
+				description:
+					"Select team members to assign to this location for this event.",
+				size: isTablet ? "full" : "lg",
 			},
 			props: { location },
 		});
@@ -73,18 +88,46 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 			config: {
 				title: "Assign Vendor to Location",
 				description: "Select a vendor to assign to this location",
+				size: isTablet ? "full" : "lg",
 			},
 			props: { location },
 		});
 	};
 
+	// Delete location mutation
+	const deleteLocationMutation = useMutation({
+		mutationFn: async () => {
+			return await deleteLocation({
+				eventId,
+				locationId: location.id,
+			});
+		},
+		onSuccess: () => {
+			toast.success("Location deleted successfully");
+			// Invalidate and refetch locations
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "locations"],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error(`Failed to delete location: ${error.message}`);
+		},
+	});
+
 	const openDeleteConfirmation = () => {
-		openDialog({
-			component: DeleteLocationDialog,
-			config: {
-				title: "Delete Location",
+		openConfirm({
+			title: "Delete Location",
+			message:
+				"This action cannot be undone. This will permanently delete the location and remove all associated data.",
+			description: `Are you sure you want to delete "${location.name}"?`,
+			type: "destructive",
+			icon: "delete",
+			confirmLabel: deleteLocationMutation.isPending
+				? "Deleting..."
+				: "Delete Location",
+			onConfirm: async () => {
+				await deleteLocationMutation.mutateAsync();
 			},
-			props: { location },
 		});
 	};
 

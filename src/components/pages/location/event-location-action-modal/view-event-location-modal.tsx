@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { BaseLocation } from "../columns";
+import type { BaseLocation } from "../event-location-table-columns";
 
 interface ViewDetailsDialogProps {
 	location: BaseLocation;
@@ -23,7 +23,7 @@ export default function ViewDetailsDialog({
 		: [];
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-6 p-4 md:pb-8">
 			{/* Basic Info */}
 			<div className="space-y-3">
 				<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">

@@ -14,7 +14,7 @@ import {
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LocationActionsMenu } from "./action-menu";
-import type { BaseLocation } from "./columns";
+import type { BaseLocation } from "./event-location-table-columns";
 
 interface LocationItemProps {
 	location: BaseLocation;
@@ -71,9 +71,7 @@ export function LocationItem({ location }: LocationItemProps) {
 					<Scan className="size-4 text-muted-foreground" />
 					<h4 className="text-muted-foreground text-sm">
 						Scan limit:{" "}
-						{"isUnlimited" in location && (location as any).isUnlimited
-							? "Unlimited"
-							: (location.scanLimit ?? "N/A")}
+						{location.isUnlimited ? "Unlimited" : (location.scanLimit ?? "N/A")}
 					</h4>
 				</div>
 			</ItemContent>
