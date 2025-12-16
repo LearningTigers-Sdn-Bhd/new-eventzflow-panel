@@ -2,8 +2,10 @@
 
 import { Label } from "@radix-ui/react-label";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Copy, Eye, Mail, Phone, User } from "lucide-react";
+import { Copy, Eye, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
+import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
@@ -122,30 +124,16 @@ const ScannedLogViewModal = ({
 export const getSearchableContent = (row: ScannedLog) =>
 	`${row.name} ${row.email} ${row.phone} ${row.locationName} ${row.scannedBy}`;
 
+const STATUS_OPTIONS = [
+	{ label: "Scanned", value: "scanned" },
+	{ label: "Not Scanned", value: "not_scanned" },
+];
+
 export const columns: ColumnDef<ScannedLog>[] = [
 	{
 		accessorKey: "name",
 		size: 250,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Ticket</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => <SortableHeader column={column} label="Ticket" />,
 		cell: ({ row }) => {
 			const scannedLog = row.original;
 			return (
@@ -199,26 +187,7 @@ export const columns: ColumnDef<ScannedLog>[] = [
 		id: "locationName",
 		accessorFn: (row) => row.locationName,
 		size: 200,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Location</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => <SortableHeader column={column} label="Location" />,
 		cell: ({ row }) => {
 			return <div className="font-medium">{row.getValue("locationName")}</div>;
 		},
@@ -226,26 +195,9 @@ export const columns: ColumnDef<ScannedLog>[] = [
 	{
 		accessorKey: "scannedBy",
 		size: 220,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Scanned By</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Scanned By" />
+		),
 		cell: ({ row }) => {
 			return <div className="font-medium">{row.getValue("scannedBy")}</div>;
 		},
@@ -253,7 +205,14 @@ export const columns: ColumnDef<ScannedLog>[] = [
 	{
 		accessorKey: "status",
 		size: 120,
-		header: "Status",
+		header: ({ column }) => (
+			<FilterableHeader
+				column={column}
+				label="Status"
+				options={STATUS_OPTIONS}
+				allOptionLabel="All Status"
+			/>
+		),
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
 			return (
@@ -271,32 +230,16 @@ export const columns: ColumnDef<ScannedLog>[] = [
 			);
 		},
 		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
+			if (value === undefined || value === "all") return true;
+			return row.getValue(id) === value;
 		},
 	},
 	{
 		accessorKey: "checkedInAt",
 		size: 200,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Check-In Time</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Check-In Time" />
+		),
 		cell: ({ row }) => {
 			const checkedInAt = row.getValue("checkedInAt") as string;
 			return (
