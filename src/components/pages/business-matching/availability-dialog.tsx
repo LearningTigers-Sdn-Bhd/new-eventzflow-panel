@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
 import "react-day-picker/dist/style.css"; // Assuming basic styling is needed
 
-import { Loader2, Calendar as CalendarIcon, Box } from "lucide-react"; // Aliased Calendar icon
+import { Loader2, Calendar as CalendarIcon, Box, ArrowLeft, RefreshCw } from "lucide-react"; // Aliased Calendar icon
 import { ErrorState, EmptyState } from "@/components/data-state";
 import {
 	Empty,
@@ -12,9 +12,14 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
-import { useBusinessMatchingAvailability, useBusinessMatchingDetailedSlots } from "@/hooks/use-business-matching";
+import { useBusinessMatchingAvailability, useBusinessMatchingDetailedSlots, useForceRefreshAvailability, useForceRefreshDetailedSlots } from "@/hooks/use-business-matching";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import CreateBookingForm from "./create-booking-form";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface AvailabilityDialogProps {
 	bmEventId: string;
@@ -28,21 +33,68 @@ export default function AvailabilityDialog({
 	eventId, // Changed from internalEventId
 	eventTitle,
 }: AvailabilityDialogProps) {
+    const isMobile = useIsMobile();
+    const [activeTab, setActiveTab] = useState("date");
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 	const [selectedFormattedDate, setSelectedFormattedDate] = useState<string | undefined>(undefined);
+    const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null);
 
 	const { data, isLoading, error } = useBusinessMatchingAvailability(bmEventId, eventId);
-
 	const { data: detailedSlotsData, isLoading: isLoadingDetailedSlots } = useBusinessMatchingDetailedSlots(
 		bmEventId,
 		selectedFormattedDate,
 		eventId
 	);
 
-	if (isLoading) {
+    const queryClient = useQueryClient();
+    const { mutate: forceRefreshAvailability, isPending: isRefreshingAvailability } = useForceRefreshAvailability(bmEventId, eventId);
+    const { mutate: forceRefreshDetailedSlots, isPending: isRefreshingDetailedSlots } = useForceRefreshDetailedSlots(bmEventId, selectedFormattedDate || "", eventId);
+
+    const handleRefresh = () => {
+        forceRefreshAvailability();
+        if (selectedFormattedDate) { // Only refresh detailed slots if a date is selected
+            forceRefreshDetailedSlots();
+        }
+        toast.info("Refreshing availability...");
+    };
+
+    const isRefreshing = isRefreshingAvailability || isRefreshingDetailedSlots || isLoading || isLoadingDetailedSlots;
+
+
+    if (selectedSlot) {
+        return (
+            <div className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedSlot(null)} className="h-8 w-8">
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h3 className="font-semibold text-lg">Create Booking</h3>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className="ml-auto"
+                    >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                        Refresh
+                    </Button>
+                </div>
+                <CreateBookingForm
+                    bmEventId={bmEventId}
+                    eventId={eventId}
+                    initialDate={selectedSlot.date}
+                    initialTime={selectedSlot.time}
+                    onClose={() => setSelectedSlot(null)}
+                />
+            </div>
+        );
+    }
+
+	if (isRefreshing) {
 		return (
 			<div className="flex h-64 items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />				
 				<span className="ml-2 text-muted-foreground">Checking availability...</span>
 			</div>
 		);
@@ -71,94 +123,162 @@ export default function AvailabilityDialog({
 		);
 	}
 
+    const renderCalendar = () => {
+        const calendarStyle = isMobile
+            ? ({ "--cell-size": "clamp(26px, 11vw, 32px)" } as React.CSSProperties)
+            : undefined;
+        const calendarClassNames = isMobile
+            ? {
+                root: "rdp w-full mx-auto flex justify-center",
+                months: "rdp-months flex flex-col items-center",
+                month: "rdp-month w-full flex flex-col items-center",
+                nav: "rdp-nav absolute inset-x-0 top-0 flex w-full max-w-[360px] items-center justify-between gap-1 px-1",
+                month_caption: "rdp-caption flex h-(--cell-size) w-full max-w-[360px] items-center justify-center px-4 text-sm",
+                weekdays: "flex w-full max-w-[360px] mx-auto justify-between",
+                week: "mt-2 flex w-full max-w-[360px] mx-auto justify-between",
+                table: "w-full max-w-[360px] mx-auto border-collapse",
+            }
+            : undefined;
+
+        return (
+        <div className="flex flex-col items-center w-full overflow-hidden">
+            <h3 className="mb-4 font-semibold text-lg flex items-center gap-2 self-start md:self-center">
+                <CalendarIcon className="h-5 w-5" /> Available Dates
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="ml-auto"
+                >
+                    <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                    Refresh
+                </Button>
+            </h3>
+            <div className="w-full flex justify-center overflow-x-auto pb-2">
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                        setSelectedDate(date);
+                        if (date) {
+                            setSelectedFormattedDate(format(date, "dd MMMM yyyy"));
+                            if (isMobile) setActiveTab("slots");
+                        } else {
+                            setSelectedFormattedDate(undefined);
+                        }
+                    }}
+                    disabled={(day) => {
+                        const formattedDay = format(day, "dd MMMM yyyy");
+                        return !data?.dates.some((item) => item.date === formattedDay);
+                    }}
+                    modifiers={{
+                        available: (day) => {
+                            const formattedDay = format(day, "dd MMMM yyyy");
+                            return data?.dates.some((item) => item.date === formattedDay) ?? false;
+                        },
+                    }}
+                    modifiersClassNames={{
+                        today: "bg-green-100 text-emerald-800 rounded-full",
+                        available: "bg-green-100 text-emerald-800 rounded-full",
+                        selected: "!bg-emerald-600 !text-white rounded-full",
+                    }}
+                    className={isMobile ? "w-full border rounded-md p-1 text-sm" : "w-fit border rounded-md p-2"}
+                    style={calendarStyle}
+                    classNames={calendarClassNames}
+                />
+            </div>
+        </div>
+        );
+    };
+
+    const renderSlots = () => (
+        <div className="w-full">
+            <h3 className="mb-4 font-semibold text-lg md:text-xl text-center">
+                {selectedDate ? `Select a slot:` : "Select a date to view slots"}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="ml-auto"
+                >
+                    <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                    Refresh
+                </Button>
+            </h3>
+
+            {isLoadingDetailedSlots && (
+                <div className="flex h-32 items-center justify-center p-4"> 
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground text-base">Loading slots...</span> 
+                </div>
+            )}
+
+            {!isLoadingDetailedSlots && detailedSlotsData?.slots.length > 0 && (
+                <ScrollArea className="h-[300px] overflow-y-auto"> 
+                    <div className="grid grid-cols-2 gap-4 p-1 pr-3"> 
+                        {detailedSlotsData.slots.map((item, index) => (
+                            <div
+                                key={`${item.slot}-${index}`}
+                                className="flex items-center justify-center rounded-lg border p-2 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-center"
+                                onClick={() => {
+                                    if (selectedFormattedDate) {
+                                        setSelectedSlot({ date: selectedFormattedDate, time: item.slot });
+                                    }
+                                }}
+                            >
+                                <p className="font-medium text-md">{item.slot}</p>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            )}
+
+            {!isLoadingDetailedSlots && selectedDate && (!detailedSlotsData || detailedSlotsData.slots.length === 0) && (
+                <div className="flex w-full items-center justify-center py-2 mt-2 mx-auto">
+                    <Empty className="p-0 border-0">
+                        <EmptyHeader>
+                            <EmptyMedia variant="icon"><Box /></EmptyMedia>
+                            <EmptyTitle>No slots</EmptyTitle>
+                            <EmptyDescription>No detailed slots available for the selected date.</EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
+                </div>
+            )}
+        </div>
+    );
+
+    if (isMobile) {
+        return (
+            <div className="p-4">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="date">Date</TabsTrigger>
+                        <TabsTrigger value="slots" disabled={!selectedDate}>Slots</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="date">
+                        {renderCalendar()}
+                    </TabsContent>
+                    
+                    <TabsContent value="slots">
+                        {renderSlots()}
+                    </TabsContent>
+                </Tabs>
+            </div>
+        );
+    }
+
 	return (
 		<div className="p-4">
 			<div className="flex flex-col md:flex-row gap-4 justify-center">
 				<div className="flex-1">
-					<h3 className="mb-4 font-semibold text-lg flex items-center gap-2">
-						<CalendarIcon className="h-5 w-5" /> Available Dates
-					</h3>
-	                <Calendar
-						mode="single"
-						selected={selectedDate}
-						onSelect={(date) => {
-							setSelectedDate(date);
-							if (date) {
-								// Format date to "DD Month YYYY" e.g., "12 December 2025"
-								setSelectedFormattedDate(format(date, "dd MMMM yyyy"));
-							} else {
-								setSelectedFormattedDate(undefined);
-							}
-						}}
-						disabled={(day) => {
-							// Disable dates that are not in the available dates list
-							const formattedDay = format(day, "dd MMMM yyyy");
-							return !data?.dates.some(
-								(item) => item.date === formattedDay,
-							);
-						}}
-						// Optionally, add modifiers to style available dates
-						modifiers={{
-							available: (day) => {
-								const formattedDay = format(day, "dd MMMM yyyy");
-								return (
-									data?.dates.some(
-										(item) => item.date === formattedDay,
-									)
-										?? false
-								);
-							},
-						}}
-						modifiersClassNames={{
-							today: "bg-green-100 text-emerald-800 rounded-full",
-							available: "bg-green-100 text-emerald-800 rounded-full",
-							selected: "!bg-emerald-600 !text-white rounded-full",
-						}}
-						className="w-full"
-					/>
+                    {renderCalendar()}
 				</div>
 				
 				<div className="flex-1 border-t-2 md:border-l-2 md:border-t-0 pt-4 md:pt-0 md:pl-4 border-gray-300 dark:border-gray-700">
-					<h3 className="mb-4 font-semibold text-lg md:text-xl text-center">
-						{selectedDate ? `Select a slot:` : "Select a date to view slots"}
-					</h3>
-	
-					{isLoadingDetailedSlots && (
-						<div className="flex h-32 items-center justify-center p-4"> 
-							<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-							<span className="ml-2 text-muted-foreground text-base">Loading slots...</span> 
-						</div>
-					)}
-	
-					{!isLoadingDetailedSlots && detailedSlotsData?.slots.length > 0 && (
-						<ScrollArea className="h-[300px] overflow-y-auto"> 
-							<div className="grid grid-cols-2 gap-4 p-1 pr-3"> 
-								{detailedSlotsData.slots.map((item, index) => (
-									<div
-										key={`${item.slot}-${index}`}
-										className="flex items-center justify-center rounded-lg border p-2 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-center"
-										onClick={() => {
-											console.log("Book slot clicked:", item.slot, "for date:", selectedFormattedDate);
-										}}
-									>
-										<p className="font-medium text-md">{item.slot}</p>
-									</div>
-								))}
-							</div>
-						</ScrollArea>
-					)}
-	
-					{!isLoadingDetailedSlots && selectedDate && (!detailedSlotsData || detailedSlotsData.slots.length === 0) && (
-						<div className="flex w-full items-center justify-center py-2 mt-2 mx-auto">
-							<Empty className="p-0 border-0">
-								<EmptyHeader>
-									<EmptyMedia variant="icon"><Box /></EmptyMedia>
-									<EmptyTitle>No slots</EmptyTitle>
-									<EmptyDescription>No detailed slots available for the selected date.</EmptyDescription>
-								</EmptyHeader>
-							</Empty>
-						</div>
-					)}
+                    {renderSlots()}
 				</div>
 			</div>
 		</div>

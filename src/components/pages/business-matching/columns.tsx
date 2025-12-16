@@ -26,7 +26,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	},
 	{
 		accessorKey: "admin_wa_number",
-		header: "Host WhatsApp",
+		header: "Host Phone",
 	},
 	{
 		id: "actions",

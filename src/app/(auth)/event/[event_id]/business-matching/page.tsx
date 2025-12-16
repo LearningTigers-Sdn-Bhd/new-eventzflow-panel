@@ -19,7 +19,7 @@ interface BusinessMatchingPageProps {
 
 export default function BusinessMatchingPage({ params }: BusinessMatchingPageProps) {
 	const { event_id } = use(params);
-	const { data, isLoading, error } = useBusinessMatchingEvents(event_id);
+	const { data, isLoading, error, isFetching } = useBusinessMatchingEvents(event_id);
 	const { mutate: forceRefresh, isPending: isRefreshing } = useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
 
@@ -67,7 +67,7 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
 		forceRefresh();
 	};
 
-	if (isLoading) {
+	if (isLoading || isFetching) {
 		return (
 			<LoadingState
 				title="Loading events..."

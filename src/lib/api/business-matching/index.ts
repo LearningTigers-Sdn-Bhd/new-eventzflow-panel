@@ -53,7 +53,7 @@ export async function getBusinessMatchingEvents(eventId: string, force = false):
  * Fetch availability for a specific business matching event
  */
 export async function getAvailability(bmEventId: string, eventId: string): Promise<AvailabilityResponse> {
-	return restClient.get<AvailabilityResponse>(`v1/business_matching/events/${bmEventId}/availability?event_id=${eventId}`);
+    return restClient.get<AvailabilityResponse>(`v1/business_matching/events/${bmEventId}/availability?event_id=${eventId}`);
 }
 
 /**
@@ -81,6 +81,7 @@ export interface Booking {
     created_at: string;
     host_comment?: string; // Maps to 'note'
     potential_deal_value?: string; // Maps to 'detail5'
+    attendance?: string; // Maps to 'detail1'
 }
 
 export interface BookingsResponse {
@@ -90,6 +91,39 @@ export interface BookingsResponse {
 /**
  * Fetch bookings for a specific business matching event
  */
-export async function getBookings(bmEventId: string, eventId: string): Promise<BookingsResponse> {
-    return restClient.get<BookingsResponse>(`v1/business_matching/events/${bmEventId}/bookings?event_id=${eventId}`);
+export async function getBookings(bmEventId: string, eventId: string, force = false): Promise<BookingsResponse> {
+    const url = force
+        ? `v1/business_matching/events/${bmEventId}/bookings?event_id=${eventId}&force_refresh=true`
+        : `v1/business_matching/events/${bmEventId}/bookings?event_id=${eventId}`;
+    return restClient.get<BookingsResponse>(url);
+}
+
+export interface CreateBookingRequest {
+    name: string;
+    email?: string;
+    phone?: string;
+    note?: string;
+    date: string;
+    time: string;
+}
+
+export async function createBooking(bmEventId: string, eventId: string, data: CreateBookingRequest): Promise<void> {
+    return restClient.post(`v1/business_matching/events/${bmEventId}/bookings?event_id=${eventId}`, data);
+}
+
+export interface UpdateBookingRequest {
+    host_comment?: string;
+    potential_deal_value?: string;
+    attendance?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    booking_date?: string;
+    booking_time?: string;
+    status?: string;
+    payment_status?: string;
+}
+
+export async function updateBooking(bmEventId: string, eventId: string, bookingId: string, data: UpdateBookingRequest): Promise<void> {
+    return restClient.put(`v1/business_matching/events/${bmEventId}/bookings/${bookingId}?event_id=${eventId}`, data);
 }

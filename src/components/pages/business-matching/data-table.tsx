@@ -26,6 +26,10 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { useIsTablet } from "@/hooks/use-tablet";
+import { BusinessMatchingItem } from "./business-matching-item";
+import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
@@ -35,6 +39,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
+	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -75,61 +80,81 @@ export function DataTable<TData, TValue>({
 			</div>
 
 			{/* Data Table */}
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => {
-									return (
-										<TableHead key={header.id}>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
-										</TableHead>
-									);
-								})}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
+			{!isTablet ? (
+				<div className="rounded-md border">
+					<Table>
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
+										return (
+											<TableHead key={header.id}>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext(),
+														)}
+											</TableHead>
+										);
+									})}
 								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-24 text-center"
-								>
-									<EmptyState
-										title="No events found"
-										description="Business matching events will appear here."
-										icon={<Briefcase />}
-										height="h-auto"
-									/>
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<TableRow
+										key={row.id}
+										data-state={row.getIsSelected() && "selected"}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+								))
+							) : (
+								<TableRow>
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center"
+									>
+										<EmptyState
+											title="No events found"
+											description="Business matching events will appear here."
+											icon={<Briefcase />}
+											height="h-auto"
+										/>
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
+				</div>
+			) : (
+				<div className="space-y-2">
+					{table.getRowModel().rows?.length ? (
+						table.getRowModel().rows.map((row) => (
+							<BusinessMatchingItem
+								key={row.id}
+								event={row.original as BusinessMatchingEvent}
+							/>
+						))
+					) : (
+						<EmptyState
+							title="No events found"
+							description="Business matching events will appear here."
+							icon={<Briefcase />}
+							height="h-auto"
+						/>
+					)}
+				</div>
+			)}
 			<DataPagination table={table} />
 		</div>
 	);
