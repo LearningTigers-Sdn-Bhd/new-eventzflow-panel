@@ -86,25 +86,28 @@ export function LuckyDrawWrapper({
 
 	const handleDrawComplete = async (winner: Participant) => {
 		let success = false;
+		let assignedGift: import("@/stores/lucky-draw-store").Gift | null = null;
+		
 		try {
 			if (useGifts) {
 				if (nextAvailableGift) {
+					assignedGift = nextAvailableGift;
 					// Check if this gift still needs more winners
 					const actualCount = nextAvailableGift.actual_winner_count ?? 0;
 					if (actualCount < nextAvailableGift.winner_counts) {
 						await assignWinner(nextAvailableGift.id, winner, useTicket);
 						success = true;
-					} else {
-						// Gift is already fulfilled
+					} else { // ... (unchanged)
+					    // Gift is already fulfilled
 						toast.error("This gift already has enough winners");
 						return;
 					}
-				} else {
+				} else { // ... (unchanged)
 					// No available gift
 					toast.error("No available gift to assign winner");
 					return;
 				}
-			} else {
+			} else { // ... (unchanged)
 				await addInvalidParticipant(winner, useTicket);
 				success = true;
 			}
@@ -129,11 +132,14 @@ export function LuckyDrawWrapper({
 					component: WinnerDialogContent,
 					props: {
 						winner,
+						gift: assignedGift,
 						onClose: closeDialog,
 						effectType: "side-cannons",
 					},
 					config: {
 						size: "lg",
+						// Force removal of default rounded corners and padding from shadcn DialogContent
+						className: "!rounded-none !p-0 !border-4 !border-primary overflow-hidden",
 					},
 				});
 
@@ -192,6 +198,7 @@ export function LuckyDrawWrapper({
 						isDrawing={isDrawing}
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
+						onDraw={handleDraw}
 					/>
 				);
 			case "slot":
@@ -203,6 +210,7 @@ export function LuckyDrawWrapper({
 						isDrawing={isDrawing}
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
+						onDraw={handleDraw}
 					/>
 				);
 			case "box":
@@ -214,6 +222,7 @@ export function LuckyDrawWrapper({
 						isDrawing={isDrawing}
 						isCelebrating={isCelebrating}
 						theme={drawTheme}
+						onDraw={handleDraw}
 					/>
 				);
 			default:
