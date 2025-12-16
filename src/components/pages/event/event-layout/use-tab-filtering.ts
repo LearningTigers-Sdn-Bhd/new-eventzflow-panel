@@ -50,6 +50,7 @@ export function useTabFiltering(
 					"rentable-items",
 					"printing-services",
 					"contractor-custom-requests",
+					"contractor-exhibitor-kits",
 				].includes(tab.id)
 			) {
 				return permissions.isExhibitionContractor;
