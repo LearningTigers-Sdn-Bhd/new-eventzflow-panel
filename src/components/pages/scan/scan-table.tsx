@@ -6,11 +6,15 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
+	getPaginationRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
+import { ScanLine } from "lucide-react";
 import * as React from "react";
+import { DataPagination } from "@/components/data-pagination";
+import { EmptyState } from "@/components/data-state";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -21,12 +25,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { cn } from "@/lib/utils";
-import { DataControl } from "./data-control";
-import { EmptyState } from "./empty-state";
 import { ScanItem } from "./scan-item";
+import { DataControl } from "./scan-table-control";
 import type { ScanResult } from "./types";
 
 interface DataTableProps {
@@ -78,8 +80,7 @@ export function DataTable({
 	onFilterChange,
 	onSortChange,
 }: DataTableProps) {
-	const _isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const [sorting, setSorting] = React.useState<SortingState>([
 		{
 			id: "timestamp",
@@ -102,6 +103,7 @@ export function DataTable({
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		state: {
@@ -179,10 +181,19 @@ export function DataTable({
 					</Table>
 				) : filteredRows.length === 0 ? (
 					<div className="flex items-center justify-center p-8 sm:p-12">
-						<EmptyState hasScans={data.length > 0} />
+						<EmptyState
+							title={data.length > 0 ? "No Results Found" : "No Scans Yet"}
+							description={
+								data.length > 0
+									? "Try adjusting your search or filters"
+									: "Scanned tickets will appear here in real-time"
+							}
+							icon={<ScanLine />}
+							height="h-auto"
+						/>
 					</div>
-				) : !_isMobile && !isTablet ? (
-					// Desktop: Table view
+				) : isDesktop ? (
+					// Desktop: Table view with recentScan highlighting
 					<Table>
 						<TableHeader className="sticky top-0 z-10 bg-background">
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -191,18 +202,13 @@ export function DataTable({
 										return (
 											<TableHead
 												key={header.id}
+												style={{ width: `${header.getSize()}px` }}
 												className={cn(
-													header.id === "index" && "w-12 text-center",
-													header.id === "attendeeName" && "text-xs sm:text-sm",
-													header.id === "eventName" &&
-														"hidden text-xs sm:text-sm md:table-cell",
-													header.id === "ticketType" &&
-														"hidden text-xs sm:table-cell sm:text-sm",
-													header.id === "ticketId" &&
-														"hidden text-xs sm:text-sm lg:table-cell",
-													header.id === "timestamp" &&
-														"whitespace-nowrap text-xs sm:text-sm",
-													header.id === "status" && "text-xs sm:text-sm",
+													header.index === 0 && "ps-3",
+													header.column.columnDef.meta?.sticky === "left" &&
+														"sticky left-0 z-10 bg-background",
+													header.column.columnDef.meta?.sticky === "right" &&
+														"sticky right-0 z-10 bg-background",
 												)}
 											>
 												{header.isPlaceholder
@@ -230,7 +236,18 @@ export function DataTable({
 										)}
 									>
 										{row.getVisibleCells().map((cell) => (
-											<TableCell key={cell.id}>
+											<TableCell
+												key={cell.id}
+												style={{ width: `${cell.column.getSize()}px` }}
+												className={cn(
+													table.getVisibleLeafColumns()[0]?.id ===
+														cell.column.id && "ps-4",
+													cell.column.columnDef.meta?.sticky === "left" &&
+														"sticky left-0 z-10 bg-background",
+													cell.column.columnDef.meta?.sticky === "right" &&
+														"sticky right-0 z-10 bg-background",
+												)}
+											>
 												{flexRender(
 													cell.column.columnDef.cell,
 													cell.getContext(),
@@ -242,22 +259,7 @@ export function DataTable({
 							})}
 						</TableBody>
 					</Table>
-				) : isTablet && !_isMobile ? (
-					// Tablet: 2-column grid
-					<div className="grid grid-cols-2 gap-4 p-0">
-						{filteredRows.map((row) => {
-							const result = row.original;
-							const isRecent = recentScan === result;
-							return (
-								<ScanItem
-									key={row.id}
-									scanResult={result}
-									isRecent={isRecent}
-								/>
-							);
-						})}
-					</div>
-				) : (
+				) : isMobile ? (
 					// Mobile: Single column list
 					<div className="space-y-2">
 						{filteredRows.map((row) => {
@@ -272,8 +274,27 @@ export function DataTable({
 							);
 						})}
 					</div>
+				) : (
+					// Tablet: 2-column grid
+					<div className="grid grid-cols-2 gap-4 p-0">
+						{filteredRows.map((row) => {
+							const result = row.original;
+							const isRecent = recentScan === result;
+							return (
+								<ScanItem
+									key={row.id}
+									scanResult={result}
+									isRecent={isRecent}
+								/>
+							);
+						})}
+					</div>
 				)}
 			</div>
+			{/* Pagination */}
+			{!isLoading && filteredRows.length > 0 && (
+				<DataPagination table={table} />
+			)}
 		</Card>
 	);
 }

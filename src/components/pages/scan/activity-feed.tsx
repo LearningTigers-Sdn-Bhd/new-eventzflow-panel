@@ -5,8 +5,8 @@
 
 import { ScanFace } from "lucide-react";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+import { generateColumns } from "./scan-table-columns";
+import { DataTable } from "./scan-table";
 import type { FilterType, ScanResult, SortType } from "./types";
 
 interface ActivityFeedProps {
@@ -44,7 +44,7 @@ export function ActivityFeed({
 				</div>
 			</div>
 			<DataTable
-				columns={columns}
+				columns={generateColumns()}
 				data={scanResults}
 				recentScan={recentScan}
 				filterType={filterType}
