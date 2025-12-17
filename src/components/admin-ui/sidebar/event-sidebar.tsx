@@ -91,7 +91,11 @@ export function EventSidebar({
 	// Show loading skeleton while waiting for event data
 	if (!currentEvent) {
 		return (
-			<Sidebar leftOffset={leftOffset} collapsible="icon">
+			<Sidebar
+				leftOffset={leftOffset}
+				collapsible="icon"
+				className="border-l-0"
+			>
 				<EventMenuHeader
 					eventId={eventId}
 					onEventsLoaded={handleEventsLoaded}
@@ -130,7 +134,7 @@ export function EventSidebar({
 				isActive={isActive}
 			/>
 			{!isTablet && (
-				<SidebarFooter>
+				<SidebarFooter className="border-t">
 					<SidebarMenuButton
 						tooltip="Open Event Navigation"
 						onClick={() => setEventSidebarOpen(!isEventSidebarOpen)}

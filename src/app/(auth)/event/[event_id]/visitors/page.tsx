@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { VisitorsDataTable } from "@/components/pages/visitors/data-table";
+import { VisitorsDataTable } from "@/components/pages/visitors/event-visitor-table";
 import { VisitorsPageButton } from "@/components/pages/visitors/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
