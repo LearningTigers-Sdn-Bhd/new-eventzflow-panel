@@ -19,7 +19,11 @@ export function FieldSectionLabel({
 	return (
 		<FieldContent className={cn("flex flex-none flex-col gap-1", className)}>
 			<FieldLabel>{label}</FieldLabel>
-			{description && <FieldDescription>{description}</FieldDescription>}
+			{description && (
+				<FieldDescription className="text-balance">
+					{description}
+				</FieldDescription>
+			)}
 		</FieldContent>
 	);
 }
