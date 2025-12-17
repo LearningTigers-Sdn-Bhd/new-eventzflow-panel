@@ -30,7 +30,7 @@ export function EditVendorProfileDialog({
 	onOpenChange,
 }: EditVendorProfileDialogProps) {
 	const [description, setDescription] = useState(profile.description || "");
-	const [imagePath, setImagePath] = useState(profile.image_path || "");
+	const [imageUrl, setImageUrl] = useState(profile.image_url || "");
 	const [image, setImage] = useState<File | null>(null);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [category, setCategory] = useState(profile.category || "");
@@ -42,7 +42,7 @@ export function EditVendorProfileDialog({
 	useEffect(() => {
 		if (open) {
 			setDescription(profile.description || "");
-			setImagePath(profile.image_path || "");
+			setImageUrl(profile.image_url || "");
 			setImage(null);
 			setRemoveImage(false);
 			setCategory(profile.category || "");
@@ -59,7 +59,7 @@ export function EditVendorProfileDialog({
 			await updateProfile.mutateAsync({
 				description: description || undefined,
 				image: image || undefined,
-				image_path: removeImage ? "" : undefined, // Explicitly set empty string to remove
+				remove_image: removeImage || undefined,
 				category: category || undefined,
 				person_in_charge: personInCharge || undefined,
 				address: address || undefined,
@@ -74,10 +74,10 @@ export function EditVendorProfileDialog({
 
 	const handleImageChange = (file: File | null) => {
 		setImage(file);
-		if (file === null && imagePath) {
+		if (file === null && imageUrl) {
 			// User removed the existing image
 			setRemoveImage(true);
-			setImagePath("");
+			setImageUrl("");
 		} else if (file !== null) {
 			// User uploaded a new image
 			setRemoveImage(false);
@@ -99,7 +99,7 @@ export function EditVendorProfileDialog({
 						<div className="space-y-2">
 							<Label>Vendor Image</Label>
 							<ImageUpload
-								value={image || imagePath}
+								value={image || imageUrl}
 								onChange={handleImageChange}
 								disabled={updateProfile.isPending}
 							/>

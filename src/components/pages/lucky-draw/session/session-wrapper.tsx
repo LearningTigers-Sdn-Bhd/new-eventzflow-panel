@@ -9,10 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDialog } from "@/hooks/use-dialog";
 import { useLuckyDraw } from "@/hooks/use-lucky-draw";
-import {
-	getLuckyDrawSessionBackgroundUrl,
-	getLuckyDrawSessionLogoUrl,
-} from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import type { Participant } from "@/stores/lucky-draw-store";
 import { WinnerDialogContent } from "../winner-dialog-content";
@@ -240,10 +236,9 @@ export function LuckyDrawWrapper({
 	const backgroundStyle = useMemo(() => {
 		if (!wrapperBackground) return {};
 		if (wrapperBackground.useImage && wrapperBackground.backgroundImgUrl) {
+			// backgroundImgUrl is now a full URL from Active Storage
 			return {
-				backgroundImage: `url(${getLuckyDrawSessionBackgroundUrl(
-					wrapperBackground.backgroundImgUrl,
-				)})`,
+				backgroundImage: `url(${wrapperBackground.backgroundImgUrl})`,
 				backgroundSize: "cover",
 				backgroundPosition: "center",
 				backgroundRepeat: "no-repeat",
@@ -346,10 +341,10 @@ export function LuckyDrawWrapper({
 				style={backgroundStyle}
 			>
 				<div className="flex items-start justify-center">
-					{session.logo && (
+					{session.logo_url && (
 						<div className="relative mb-1 h-16 w-full overflow-hidden">
 							<img
-								src={getLuckyDrawSessionLogoUrl(session.logo)}
+								src={session.logo_url}
 								alt={session.title}
 								className="h-full w-full object-cover"
 							/>

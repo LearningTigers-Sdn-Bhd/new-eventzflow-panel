@@ -87,7 +87,7 @@ export default function EditVendorForm({
 	});
 
 	const [image, setImage] = useState<File | null>(null);
-	const [imagePath, setImagePath] = useState(vendor.vendorProfile?.image_path || "");
+	const [imageUrl, setImageUrl] = useState(vendor.vendorProfile?.image_url || "");
 	const [removeImage, setRemoveImage] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -107,7 +107,7 @@ export default function EditVendorForm({
 			notes: vendor.vendorProfile?.notes || "",
 		});
 		setImage(null);
-		setImagePath(vendor.vendorProfile?.image_path || "");
+		setImageUrl(vendor.vendorProfile?.image_url || "");
 		setRemoveImage(false);
 		setErrors({});
 	}, [vendor]);
@@ -147,26 +147,31 @@ export default function EditVendorForm({
 
 		try {
 			// Determine final category value
-			const finalCategory = formData.category === "Others" 
-				? formData.customCategory.trim() 
+			const finalCategory = formData.category === "Others"
+				? formData.customCategory.trim()
 				: formData.category;
 
 			// Build profile attributes - send empty string to clear fields, undefined to keep unchanged
-			const profileAttributes: Record<string, string | File | undefined> = {};
-			
+			const profileAttributes: Record<string, string | number | File | boolean | undefined> = {};
+
+			// Include profile id for updates (prevents destroy/recreate)
+			if (vendor.vendorProfile?.id) {
+				profileAttributes.id = vendor.vendorProfile.id;
+			}
+
 			// For text fields: send the value (empty string clears, value updates)
 			profileAttributes.category = finalCategory;
 			profileAttributes.person_in_charge = formData.person_in_charge;
 			profileAttributes.description = formData.description;
 			profileAttributes.address = formData.address;
 			profileAttributes.notes = formData.notes;
-			
+
 			// Handle image
 			if (image) {
 				profileAttributes.image = image;
 			}
 			if (removeImage) {
-				profileAttributes.image_path = "";
+				profileAttributes.remove_image = true;
 			}
 
 			await updateVendorMutation.mutateAsync({
@@ -184,10 +189,10 @@ export default function EditVendorForm({
 
 	const handleImageChange = (file: File | null) => {
 		setImage(file);
-		if (file === null && imagePath) {
+		if (file === null && imageUrl) {
 			// User removed the existing image
 			setRemoveImage(true);
-			setImagePath("");
+			setImageUrl("");
 		} else if (file !== null) {
 			// User uploaded a new image
 			setRemoveImage(false);
@@ -345,7 +350,7 @@ export default function EditVendorForm({
 								<Field orientation="vertical">
 									<FieldLabel>Vendor Image</FieldLabel>
 									<ImageUpload
-										value={image || imagePath}
+										value={image || imageUrl}
 										onChange={handleImageChange}
 										disabled={updateVendorMutation.isPending}
 									/>

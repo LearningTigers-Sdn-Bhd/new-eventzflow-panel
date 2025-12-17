@@ -3,21 +3,20 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { getLuckyDrawSessionLogoUrl } from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import { ActionMenu } from "./action-menu";
 import { cn } from "@/lib/utils";
 
 export const columns: ColumnDef<LuckyDrawSession>[] = [
 	{
-		accessorKey: "logo",
+		accessorKey: "logo_url",
 		header: "Logo",
 		cell: ({ row }) => {
-			const logo = row.getValue("logo") as string;
-			return logo ? (
+			const logoUrl = row.getValue("logo_url") as string | null;
+			return logoUrl ? (
 				<div className="relative h-10 w-10 overflow-hidden rounded-md border">
 					<img
-						src={getLuckyDrawSessionLogoUrl(logo)}
+						src={logoUrl}
 						alt={row.original.title}
 						className="h-full w-full object-cover"
 					/>

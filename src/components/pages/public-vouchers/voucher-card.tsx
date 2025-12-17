@@ -136,11 +136,11 @@ export function PublicVoucherCard({ voucher }: PublicVoucherCardProps) {
 	return (
 		<article className="group flex h-full flex-col overflow-hidden rounded-none border border-border bg-background transition hover:border-primary/50">
 			<div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-				{voucher.imagePath ? (
+				{voucher.imageUrl ? (
 					<>
 						<div
 							className="absolute inset-0 bg-center bg-cover transition duration-500 group-hover:scale-105"
-							style={{ backgroundImage: `url(${voucher.imagePath})` }}
+							style={{ backgroundImage: `url(${voucher.imageUrl})` }}
 						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 					</>

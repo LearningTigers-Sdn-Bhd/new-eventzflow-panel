@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export const vendorProfileAttributesSchema = z.object({
+	id: z.number().optional(), // Required for updates to prevent destroy/recreate
 	image: z.any().optional(),
-	image_path: z.string().optional(),
+	remove_image: z.boolean().optional(),
 	description: z.string().optional(),
 	category: z.string().optional(),
 	person_in_charge: z.string().optional(),

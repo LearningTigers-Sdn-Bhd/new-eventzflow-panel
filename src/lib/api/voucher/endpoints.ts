@@ -1,4 +1,4 @@
-import { restClient, publicRestClient, API_BASE_URL } from "@/utils/rest-api";
+import { restClient, publicRestClient } from "@/utils/rest-api";
 import type {
 	BackendVoucher,
 	CreateVoucherResponse,
@@ -15,34 +15,8 @@ import {
 	deleteVoucherSchema,
 } from "./request";
 
-/**
- * Get the full URL for a voucher image
- * @param filename - The image filename (e.g., "voucher-20231119_143022-a1b2c3d4.jpg")
- * @returns Full URL to access the image
- */
-export function getVoucherImageUrl(filename: string): string {
-	return restClient.getImageUrl(`v1/voucher_images/${filename}`);
-}
-
 // Transform backend response to frontend format
 function transformVoucher(backendVoucher: BackendVoucher): Voucher {
-	// Rails enum automatically converts to string names in as_json
-	// Backend returns: "active" | "inactive" and "fixed_amount" | "percentage" | "free_item"
-	// Frontend uses the same format, so we can use them directly
-
-	// Transform image_path to full URL using the serve_image endpoint
-	// Backend returns path like "voucher_images/voucher-20231119_143022-a1b2c3d4.jpg"
-	// Extract filename and construct full URL
-	let imagePath: string | null = null;
-
-	if (backendVoucher.image_path) {
-		// Extract filename from the path (e.g., "voucher_images/filename.jpg" -> "filename.jpg")
-		const filename = backendVoucher.image_path.split('/').pop();
-		if (filename) {
-			imagePath = getVoucherImageUrl(filename);
-		}
-	}
-
 	return {
 		id: backendVoucher.id,
 		title: backendVoucher.title,
@@ -64,7 +38,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
 		voucherCategory: backendVoucher.voucher_category,
-		imagePath,
+		imageUrl: backendVoucher.image_url,
 		createdAt: backendVoucher.created_at,
 		updatedAt: backendVoucher.updated_at,
 		vendor: backendVoucher.vendor
@@ -373,61 +347,6 @@ export async function deleteVoucher(
 // ============================================================================
 
 /**
- * Get the full URL for a voucher image (public access)
- * @param filename - The image filename (e.g., "voucher-20231119_143022-a1b2c3d4.jpg")
- * @returns Full URL to access the image
- */
-export function getPublicVoucherImageUrl(filename: string): string {
-	return publicRestClient.getImageUrl(`v1/voucher_images/${filename}`);
-}
-
-// Transform backend response to frontend format (for public endpoints)
-function transformPublicVoucher(backendVoucher: BackendVoucher): Voucher {
-	let imagePath: string | null = null;
-
-	if (backendVoucher.image_path) {
-		const filename = backendVoucher.image_path.split('/').pop();
-		if (filename) {
-			imagePath = getPublicVoucherImageUrl(filename);
-		}
-	}
-
-	return {
-		id: backendVoucher.id,
-		title: backendVoucher.title,
-		voucherUuid: backendVoucher.voucher_uuid,
-		description: backendVoucher.description,
-		vendorId: backendVoucher.vendor_id,
-		eventId: backendVoucher.event_id,
-		voucherCode: backendVoucher.voucher_code,
-		status: backendVoucher.status as "active" | "inactive",
-		startDate: backendVoucher.start_date,
-		endDate: backendVoucher.end_date,
-		startTime: backendVoucher.start_time,
-		endTime: backendVoucher.end_time,
-		totalRedemptionAvailable: backendVoucher.total_redemption_available,
-		isUnlimited: backendVoucher.is_unlimited ?? false,
-		redeemedCount: backendVoucher.redeemed_count,
-		maxRedemptionsPerUser: backendVoucher.max_redemptions_per_user,
-		userRoleRestriction: backendVoucher.user_role_restriction,
-		voucherType: backendVoucher.voucher_type as "fixed_amount" | "percentage" | "free_item",
-		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
-		voucherCategory: backendVoucher.voucher_category,
-		imagePath,
-		createdAt: backendVoucher.created_at,
-		updatedAt: backendVoucher.updated_at,
-		vendor: backendVoucher.vendor
-			? {
-					id: backendVoucher.vendor.id,
-					fullName: backendVoucher.vendor.full_name,
-					email: backendVoucher.vendor.email,
-					phone: backendVoucher.vendor.phone,
-				}
-			: undefined,
-	};
-}
-
-/**
  * Get all vouchers for an event (PUBLIC - no authentication required)
  * Use this for public voucher showcase pages
  */
@@ -452,7 +371,7 @@ export async function getPublicVouchers(params: {
 			return [];
 		}
 
-		return vouchers.map(transformPublicVoucher);
+		return vouchers.map(transformVoucher);
 	} catch (error: unknown) {
 		console.error("Error fetching public vouchers:", error);
 		const errorMessage =
@@ -474,7 +393,7 @@ export async function getPublicVoucher(id: number | string): Promise<Voucher> {
 		// Handle both direct object and wrapped response
 		const voucher = "data" in response ? response.data : response;
 
-		return transformPublicVoucher(voucher);
+		return transformVoucher(voucher);
 	} catch (error: unknown) {
 		console.error("Error fetching public voucher:", error);
 		const errorMessage =

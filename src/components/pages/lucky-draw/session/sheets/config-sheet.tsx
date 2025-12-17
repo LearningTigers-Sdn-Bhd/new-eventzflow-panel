@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
-import { getLuckyDrawSessionBackgroundUrl } from "@/lib/api/lucky-draw";
 import type { DrawStyle } from "@/stores/lucky-draw-store";
 import { FieldGroup } from "@/components/ui/field";
 
@@ -108,29 +107,32 @@ export function ConfigSheet({
 				}
 
 				// Check if wrapperBackground changed
-				// For File objects, we compare by checking if a file was actually selected
-				// (File objects can't be meaningfully compared by reference)
 				const useImageChanged =
 					value.wrapperBackground.useImage !==
 					initialValuesRef.current.wrapperBackground.useImage;
-				const imageFileChanged =
-					!!value.wrapperBackground.backgroundImage !==
-					!!initialValuesRef.current.wrapperBackground.backgroundImage;
+				// If a new file is selected, always consider it a change
+				const hasNewImageFile = !!value.wrapperBackground.backgroundImage;
 				const backgroundColorChanged =
 					value.wrapperBackground.backgroundColor !==
 					initialValuesRef.current.wrapperBackground.backgroundColor;
 
 				const bgChanged =
-					useImageChanged || imageFileChanged || backgroundColorChanged;
+					useImageChanged || hasNewImageFile || backgroundColorChanged;
 
 				if (bgChanged) {
+					// When switching to color mode, ensure we have a valid backgroundColor
+					let bgColor = value.wrapperBackground.backgroundColor || undefined;
+					if (!value.wrapperBackground.useImage && !bgColor) {
+						// Default to white if switching to color mode with no color set
+						bgColor = "#ffffff";
+					}
+
 					promises.push(
 						setWrapperBackground({
 							useImage: value.wrapperBackground.useImage,
 							backgroundImage:
 								value.wrapperBackground.backgroundImage || undefined,
-							backgroundColor:
-								value.wrapperBackground.backgroundColor || undefined,
+							backgroundColor: bgColor,
 						}),
 					);
 				}
@@ -189,18 +191,16 @@ export function ConfigSheet({
 	// Check if form has changes - will be computed reactively in the render
 	const checkHasChanges = (currentValues: typeof form.state.values) => {
 		const initial = initialValuesRef.current;
-		// For File objects, we compare by checking if a file was actually selected
 		const useImageChanged =
 			currentValues.wrapperBackground.useImage !==
 			initial.wrapperBackground.useImage;
-		const imageFileChanged =
-			!!currentValues.wrapperBackground.backgroundImage !==
-			!!initial.wrapperBackground.backgroundImage;
+		// If a new file is selected, always consider it a change
+		const hasNewImageFile = !!currentValues.wrapperBackground.backgroundImage;
 		const backgroundColorChanged =
 			currentValues.wrapperBackground.backgroundColor !==
 			initial.wrapperBackground.backgroundColor;
 		const bgChanged =
-			useImageChanged || imageFileChanged || backgroundColorChanged;
+			useImageChanged || hasNewImageFile || backgroundColorChanged;
 
 		return (
 			currentValues.drawStyle !== initial.drawStyle ||
@@ -437,9 +437,7 @@ export function ConfigSheet({
 																		Current image:
 																	</p>
 																	<img
-																		src={getLuckyDrawSessionBackgroundUrl(
-																			wrapperBackground.backgroundImgUrl,
-																		)}
+																		src={wrapperBackground.backgroundImgUrl}
 																		alt="Current background"
 																		className="h-20 w-full rounded border object-cover"
 																	/>
@@ -470,6 +468,9 @@ export function ConfigSheet({
 																	Selected: {field.state.value.name}
 																</p>
 															)}
+															<p className="text-muted-foreground text-xs">
+																Max file size: 10MB. Supported formats: JPEG, PNG, GIF, WebP
+																</p>
 														</div>
 													)}
 												</form.Field>

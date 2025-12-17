@@ -8,7 +8,7 @@ export interface LuckyDrawSession {
 	event_id: number;
 	title: string;
 	draw_date: string | null;
-	logo: string | null;
+	logo_url: string | null;
 	draw_styles: {
 		style: "wheel" | "slot" | "box";
 		theme: "wireframe" | "colorful" | "cartoon";

@@ -1,36 +1,6 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor, VendorProfile } from "./response";
+import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor } from "./response";
 import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema, type DeleteVendorRequest, deleteVendorSchema } from "./request";
-
-/**
- * Get the full URL for a vendor image
- * @param filename - The image filename (e.g., "vendor-20231119_143022-a1b2c3d4.jpg")
- * @returns Full URL to access the image
- */
-export function getVendorImageUrl(filename: string): string {
-	return restClient.getImageUrl(`v1/vendor_images/${filename}`);
-}
-
-/**
- * Transform vendor profile image_path to full URL
- */
-function transformVendorProfile(profile: VendorProfile | null): VendorProfile | null {
-	if (!profile) return null;
-
-	let imagePath: string | null = null;
-	if (profile.image_path) {
-		// Extract filename from the path (e.g., "vendor_images/filename.jpg" -> "filename.jpg")
-		const filename = profile.image_path.split('/').pop();
-		if (filename) {
-			imagePath = getVendorImageUrl(filename);
-		}
-	}
-
-	return {
-		...profile,
-		image_path: imagePath,
-	};
-}
 
 // Transform backend response to frontend format
 function transformVendor(backendVendor: BackendVendor): Vendor {
@@ -43,7 +13,7 @@ function transformVendor(backendVendor: BackendVendor): Vendor {
 		status: backendVendor.status,
 		createdAt: backendVendor.created_at,
 		updatedAt: backendVendor.updated_at,
-		vendorProfile: transformVendorProfile(backendVendor.vendor_profile),
+		vendorProfile: backendVendor.vendor_profile,
 	};
 }
 
@@ -159,11 +129,13 @@ export async function updateVendor(
 	try {
 		const validated = updateVendorSchema.parse(data);
 
-		// Check if we have an image file to upload
+		// Check if we need FormData (image upload or image removal)
 		const hasImage =
 			validated.vendor_profile_attributes?.image instanceof File;
+		const hasRemoveImage = validated.vendor_profile_attributes?.remove_image === true;
 
-		if (hasImage) {
+		// Use FormData for file uploads OR image removal
+		if (hasImage || hasRemoveImage) {
 			const formData = new FormData();
 			formData.append("vendor[full_name]", validated.full_name);
 			formData.append("vendor[email]", validated.email);
@@ -177,14 +149,25 @@ export async function updateVendor(
 			}
 
 			if (validated.vendor_profile_attributes) {
-				const { image, ...rest } = validated.vendor_profile_attributes;
-				
+				const { image, remove_image, ...rest } = validated.vendor_profile_attributes;
+
+				// Include profile id for updates (prevents destroy/recreate)
+				if (rest.id) {
+					formData.append("vendor[vendor_profile_attributes][id]", String(rest.id));
+				}
+
+				// Attach new image if provided
 				if (image instanceof File) {
 					formData.append("vendor[vendor_profile_attributes][image]", image);
 				}
 
+				// Flag for image removal (only when no new image is uploaded)
+				if (remove_image && !(image instanceof File)) {
+					formData.append("vendor[vendor_profile_attributes][remove_image]", "true");
+				}
+
 				Object.entries(rest).forEach(([key, value]) => {
-					if (value !== undefined && value !== null) {
+					if (key !== "id" && value !== undefined && value !== null) {
 						formData.append(
 							`vendor[vendor_profile_attributes][${key}]`,
 							value as string,
@@ -204,6 +187,7 @@ export async function updateVendor(
 			};
 		}
 
+		// JSON request for text-only updates (no image changes)
 		const payload: Record<string, unknown> = {
 			vendor: {
 				full_name: validated.full_name,
@@ -220,13 +204,13 @@ export async function updateVendor(
 
 		// Include vendor_profile_attributes if provided
 		if (validated.vendor_profile_attributes) {
-			// Remove image field if it's not a File (e.g. if it's undefined or null or a URL string which we don't send)
-			const { image, ...rest } = validated.vendor_profile_attributes;
+			const { image, remove_image, ...rest } = validated.vendor_profile_attributes;
 			// Filter out undefined values but keep empty strings (to clear fields)
-			const filteredRest: Record<string, string> = {};
+			// Keep id as number for Rails nested attributes
+			const filteredRest: Record<string, string | number> = {};
 			Object.entries(rest).forEach(([key, value]) => {
 				if (value !== undefined) {
-					filteredRest[key] = value as string;
+					filteredRest[key] = key === "id" ? (value as number) : (value as string);
 				}
 			});
 			(payload.vendor as Record<string, unknown>).vendor_profile_attributes = filteredRest;
