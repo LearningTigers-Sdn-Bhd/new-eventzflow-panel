@@ -20,7 +20,7 @@ export type BackendVoucher = {
 	voucher_type: string; // Rails enum returns string: "fixed_amount" | "percentage" | "free_item"
 	voucher_value: string;
 	voucher_category: string | null;
-	image_path: string | null;
+	image_url: string | null; // Active Storage URL
 	created_at: string;
 	updated_at: string;
 	vendor?: {
@@ -53,7 +53,7 @@ export type Voucher = {
 	voucherType: "fixed_amount" | "percentage" | "free_item";
 	voucherValue: number;
 	voucherCategory: string | null;
-	imagePath: string | null;
+	imageUrl: string | null; // Active Storage URL
 	createdAt: string;
 	updatedAt: string;
 	vendor?: {

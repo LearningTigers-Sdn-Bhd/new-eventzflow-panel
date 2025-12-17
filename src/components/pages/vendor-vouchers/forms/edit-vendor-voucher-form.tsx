@@ -605,7 +605,7 @@ export default function EditVendorVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={imageRemoved ? undefined : (image || voucher.imagePath || undefined)}
+											value={imageRemoved ? undefined : (image || voucher.imageUrl || undefined)}
 											onChange={(file) => {
 												if (file) {
 													setImage(file);

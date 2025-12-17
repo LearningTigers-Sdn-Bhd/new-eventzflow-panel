@@ -2,7 +2,7 @@
 export type VendorProfile = {
 	id: number;
 	vendor_id: number;
-	image_path: string | null;
+	image_url: string | null;
 	description: string | null;
 	category: string | null;
 	person_in_charge: string | null;

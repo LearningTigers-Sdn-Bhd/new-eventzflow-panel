@@ -1,5 +1,5 @@
 import { extractErrorMessage } from "@/utils/error-handler";
-import { publicRestClient, restClient } from "@/utils/rest-api";
+import { restClient } from "@/utils/rest-api";
 import type {
 	AddInvalidParticipantRequest,
 	AssignWinnerRequest,
@@ -18,34 +18,6 @@ import type {
 	LuckyDrawSession,
 	Participant,
 } from "./response";
-
-/**
- * Get the full URL for a lucky draw session logo
- * @param path - The logo path from backend (e.g., "lucky_draw_session_logos/session-20240101_120000-abc123.jpg")
- * @returns Full URL to access the logo
- */
-export function getLuckyDrawSessionLogoUrl(path: string): string {
-	if (path.startsWith("http")) return path;
-	// Extract filename from path (e.g., "lucky_draw_session_logos/filename.jpg" -> "filename.jpg")
-	const filename = path.includes("/") ? (path.split("/").pop() ?? path) : path;
-	return publicRestClient.getImageUrl(
-		`v1/lucky_draw_session_logos/${filename}`,
-	);
-}
-
-/**
- * Get the full URL for a lucky draw session background image
- * @param path - The background path from backend (e.g., "lucky_draw_session_backgrounds/bg-20240101_120000-abc123.jpg")
- * @returns Full URL to access the background image
- */
-export function getLuckyDrawSessionBackgroundUrl(path: string): string {
-	if (path.startsWith("http")) return path;
-	// Extract filename from path (e.g., "lucky_draw_session_backgrounds/filename.jpg" -> "filename.jpg")
-	const filename = path.includes("/") ? (path.split("/").pop() ?? path) : path;
-	return publicRestClient.getImageUrl(
-		`v1/lucky_draw_session_backgrounds/${filename}`,
-	);
-}
 
 /**
  * Get Lucky Draw Sessions

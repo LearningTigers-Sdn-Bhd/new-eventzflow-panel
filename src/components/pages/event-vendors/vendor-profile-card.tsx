@@ -52,9 +52,9 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 			<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
 				<div className="space-y-4">
 					<div className="overflow-hidden border bg-muted/60">
-						{profile.image_path ? (
+						{profile.image_url ? (
 							<img
-								src={profile.image_path}
+								src={profile.image_url}
 								alt={profile.vendor.full_name}
 								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
 							/>

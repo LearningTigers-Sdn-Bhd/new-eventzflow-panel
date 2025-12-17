@@ -35,7 +35,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import {
-	getLuckyDrawSessionLogoUrl,
 	updateLuckyDrawSession,
 } from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
@@ -87,9 +86,7 @@ export default function EditForm({ session }: EditFormProps) {
 			draw_style: session.draw_styles?.style || "wheel",
 			draw_theme: session.draw_styles?.theme || "wireframe",
 			use_gifts: session.use_gifts,
-			logo: (session.logo
-				? getLuckyDrawSessionLogoUrl(session.logo)
-				: null) as FormValues["logo"],
+			logo: (session.logo_url || null) as FormValues["logo"],
 		} satisfies Partial<FormValues>,
 		validators: {
 			// @ts-expect-error - Zod schema type mismatch with TanStack Form, but works at runtime
@@ -110,7 +107,7 @@ export default function EditForm({ session }: EditFormProps) {
 				formValue.logo instanceof File
 			) {
 				logoFile = formValue.logo;
-			} else if (!formValue.logo && session.logo) {
+			} else if (!formValue.logo && session.logo_url) {
 				removeLogo = true;
 			}
 

@@ -2,7 +2,6 @@
 
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { getLuckyDrawSessionLogoUrl } from "@/lib/api/lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
 import { cn } from "@/lib/utils";
 import { ActionMenu } from "./action-menu";
@@ -31,9 +30,9 @@ export function SessionItem({ session }: SessionItemProps) {
 			<div className="flex items-start justify-between">
 				<div className="flex items-center gap-3">
 					<div className="relative h-12 w-12 overflow-hidden rounded-none border bg-muted">
-						{session.logo ? (
+						{session.logo_url ? (
 							<img
-								src={getLuckyDrawSessionLogoUrl(session.logo)}
+								src={session.logo_url}
 								alt={session.title}
 								className="h-full w-full object-cover"
 							/>

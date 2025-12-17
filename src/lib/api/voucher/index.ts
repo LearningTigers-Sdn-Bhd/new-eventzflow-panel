@@ -9,7 +9,6 @@ export {
 	// Public endpoints (no auth required)
 	getPublicVouchers,
 	getPublicVoucher,
-	getPublicVoucherImageUrl,
 } from "./endpoints";
 export {
 	type CreateVoucherRequest,

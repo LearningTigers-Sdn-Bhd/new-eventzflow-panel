@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
-import { getLuckyDrawSessionBackgroundUrl } from "@/lib/api/lucky-draw";
 import type { DrawStyle } from "@/stores/lucky-draw-store";
 import { FieldGroup } from "@/components/ui/field";
 
@@ -124,13 +123,19 @@ export function ConfigSheet({
 					useImageChanged || imageFileChanged || backgroundColorChanged;
 
 				if (bgChanged) {
+					// When switching to color mode, ensure we have a valid backgroundColor
+					let bgColor = value.wrapperBackground.backgroundColor || undefined;
+					if (!value.wrapperBackground.useImage && !bgColor) {
+						// Default to white if switching to color mode with no color set
+						bgColor = "#ffffff";
+					}
+
 					promises.push(
 						setWrapperBackground({
 							useImage: value.wrapperBackground.useImage,
 							backgroundImage:
 								value.wrapperBackground.backgroundImage || undefined,
-							backgroundColor:
-								value.wrapperBackground.backgroundColor || undefined,
+							backgroundColor: bgColor,
 						}),
 					);
 				}
@@ -437,9 +442,7 @@ export function ConfigSheet({
 																		Current image:
 																	</p>
 																	<img
-																		src={getLuckyDrawSessionBackgroundUrl(
-																			wrapperBackground.backgroundImgUrl,
-																		)}
+																		src={wrapperBackground.backgroundImgUrl}
 																		alt="Current background"
 																		className="h-20 w-full rounded border object-cover"
 																	/>
