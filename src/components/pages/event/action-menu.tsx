@@ -16,6 +16,7 @@ import {
 	TrendingUp,
 	UserCheck,
 	Users,
+	Gift,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -117,7 +118,17 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				className: "",
 				featureKey: "location",
 			},
-			
+
+			// === LUCKY DRAW ===
+			{
+				id: `lucky-draw-id${eventId}`,
+				name: "Lucky Draw",
+				icon: Gift,
+				route: `/event/${eventId}/lucky-draw`,
+				className: "",
+				featureKey: "lucky-draw",
+			},
+
 			// === TICKET MANAGEMENT (for ticket events) ===
 			{
 				id: `manage-tickets-id${eventId}`,
@@ -146,7 +157,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				featureKey: "scanned-logs",
 				shouldDisplay: ({ isTicketEvent }) => isTicketEvent,
 			},
-			
+
 			// === VISITOR MANAGEMENT (for non-ticket events) ===
 			{
 				id: `visitors-id${eventId}`,
@@ -157,7 +168,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				featureKey: "visitors",
 				shouldDisplay: ({ permissions }) => Boolean(permissions.canViewVisitorsTab),
 			},
-			
+
 			// === STAFF MANAGEMENT ===
 			{
 				id: `event-staff-id${eventId}`,
@@ -168,7 +179,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				featureKey: "event-staff",
 				shouldDisplay: ({ permissions }) => Boolean(permissions.canManageEventStaff),
 			},
-			
+
 			// === VENDOR & VOUCHER MANAGEMENT ===
 			// Show "Assign Exhibitor" when use_exhibitor_kit is true, otherwise "Assign Vendor"
 			...(currentEvent?.use_exhibitor_kit === true
@@ -243,7 +254,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
 					Boolean(isNonTicketEvent && (permissions.canManageEventVendors || permissions.canManageEventStaff)),
 			},
-			
+
 			// === ANALYTICS & INSIGHTS ===
 			{
 				id: `analytics-id${eventId}`,
@@ -274,7 +285,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				shouldDisplay: ({ isNonTicketEvent, permissions }) =>
 					Boolean(isNonTicketEvent && !permissions.isEventVendor),
 			},
-			
+
 			// === DATA EXPORT ===
 			{
 				id: `export-logs-id${eventId}`,
@@ -283,7 +294,7 @@ export function EventActionsMenu({ eventId, deletedAt }: EventActionsMenuProps) 
 				route: `/event/${eventId}/export-logs`,
 				className: "",
 				featureKey: "export-logs",
-				shouldDisplay: ({ isTicketEvent, permissions }) => 
+				shouldDisplay: ({ isTicketEvent, permissions }) =>
 					Boolean(isTicketEvent && !permissions.isEventVendor),
 			},
 		];
