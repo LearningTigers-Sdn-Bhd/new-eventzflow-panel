@@ -8,9 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ApiKey } from "@/lib/api/api-keys";
 import { ApiDocumentation } from "./api-documentation";
-import { columns } from "./columns";
+import { generateApiKeysColumns } from "./api-key-table-columns";
 import CreateApiKeyDialog from "./create-api-key-dialog";
-import { DataTable } from "./data-table";
+import { ApiKeyTable } from "./api-key-table";
 
 interface ApiKeysClientWrapperProps {
 	apiKeys: ApiKey[];
@@ -80,7 +80,7 @@ export default function ApiKeysClientWrapper({
 
 				<div className="mt-6">
 					<TabsContent value="keys" className="mt-0">
-						<DataTable columns={columns} data={apiKeys} />
+						<ApiKeyTable data={apiKeys} />
 					</TabsContent>
 
 					<TabsContent value="docs" className="mt-0">
