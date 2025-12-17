@@ -95,15 +95,6 @@ export function ConfigSheet({
 				// Save all changes
 				const promises: Promise<void>[] = [];
 
-				// When drawStyle changes, also update theme if needed
-				if (
-					value.drawStyle === "box" &&
-					(value.drawTheme === "colorful" || value.drawTheme === "cartoon")
-				) {
-					value.drawTheme = "wireframe";
-					form.setFieldValue("drawTheme", "wireframe");
-				}
-
 				if (value.drawStyle !== initialValuesRef.current.drawStyle) {
 					promises.push(setDrawStyle(value.drawStyle, value.drawTheme));
 				} else if (value.drawTheme !== initialValuesRef.current.drawTheme) {
@@ -270,11 +261,8 @@ export function ConfigSheet({
 														// Reset theme to wireframe when switching to box style if current theme is colorful or cartoon
 														const currentTheme = form.state.values.drawTheme;
 														if (
-															newStyle === "box" &&
-															(currentTheme === "colorful" ||
-																currentTheme === "cartoon")
-														) {
-															form.setFieldValue("drawTheme", "wireframe");
+															false) {
+															// Box now supports all themes - no reset needed
 														}
 													}}
 													disabled={isLoadingConfig}
@@ -310,11 +298,8 @@ export function ConfigSheet({
 								<form.Subscribe selector={(state) => state.values.drawStyle}>
 									{(drawStyleValue) => (
 										<form.Field name="drawTheme">
-											{(field) => {
-												const showColorfulAndCartoon = drawStyleValue !== "box";
-
-												return (
-													<div className="grid grid-cols-3 gap-4">
+											{(field) => (
+												<div className="grid grid-cols-3 gap-4">
 														<div className="col-span-2">
 															<p className="font-semibold">Draw Theme</p>
 															<p className="text-balance text-muted-foreground text-sm">
@@ -344,28 +329,23 @@ export function ConfigSheet({
 																	>
 																		Wireframe
 																	</SelectItem>
-																	{showColorfulAndCartoon && (
-																		<>
-																			<SelectItem
-																				value="colorful"
-																				className="rounded-none"
-																			>
-																				Colorful
-																			</SelectItem>
-																			<SelectItem
-																				value="cartoon"
-																				className="rounded-none"
-																			>
-																				Cartoon
-																			</SelectItem>
-																		</>
-																	)}
+																	<SelectItem
+																		value="colorful"
+																		className="rounded-none"
+																	>
+																		Colorful
+																	</SelectItem>
+																	<SelectItem
+																		value="cartoon"
+																		className="rounded-none"
+																	>
+																		Cartoon
+																	</SelectItem>
 																</SelectContent>
 															</Select>
 														</div>
-													</div>
-												);
-											}}
+												</div>
+											)}
 										</form.Field>
 									)}
 								</form.Subscribe>

@@ -56,23 +56,23 @@ export const columns: ColumnDef<LuckyDrawSession>[] = [
 
 			// Style colors with background
 			const styleColors: Record<string, string> = {
-				wheel: "bg-blue-500 text-white border-blue-600",
-				slot: "bg-purple-500 text-white border-purple-600",
-				box: "bg-orange-500 text-white border-orange-600",
+				wheel: "bg-blue-500 text-white",
+				slot: "bg-purple-500 text-white",
+				box: "bg-orange-500 text-white",
 			};
 
 			// Theme colors with background
 			const themeColors: Record<string, string> = {
-				wireframe: "bg-gray-500 text-white border-gray-600",
-				colorful: "bg-pink-500 text-white border-pink-600",
-				cartoon: "bg-yellow-500 text-white border-yellow-600",
+				wireframe: "bg-gray-500 text-white",
+				colorful: "bg-pink-500 text-white",
+				cartoon: "bg-yellow-500 text-white",
 			};
 
 			return (
-				<div className="flex items-center gap-2">
+				<div className="flex items-center">
 					<Badge
 						className={cn(
-							"rounded-none font-bold capitalize",
+							"rounded-l-md rounded-r-none font-bold capitalize px-3 border-0",
 							styleColors[drawStyles.style] || "bg-gray-500 text-white",
 						)}
 					>
@@ -80,7 +80,7 @@ export const columns: ColumnDef<LuckyDrawSession>[] = [
 					</Badge>
 					<Badge
 						className={cn(
-							"rounded-none font-bold capitalize text-xs",
+							"rounded-r-md rounded-l-none font-bold capitalize text-xs px-3 border-0",
 							themeColors[drawStyles.theme] || "bg-gray-500 text-white",
 						)}
 					>
