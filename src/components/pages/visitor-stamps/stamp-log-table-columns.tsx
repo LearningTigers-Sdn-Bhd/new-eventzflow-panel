@@ -2,13 +2,13 @@
 
 import { Label } from "@radix-ui/react-label";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Copy, Eye, Mail, Phone, User } from "lucide-react";
+import { Copy, Eye, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
-import { cn } from "@/lib/utils";
 
 const VisitorStampViewModal = ({
 	name,
@@ -162,177 +162,128 @@ const VisitorStampViewModal = ({
 export const getSearchableContent = (row: VisitorStampWithDetails) =>
 	`${row.visitor_name} ${row.visitor_email} ${row.visitor_phone} ${row.visitor_public_id} ${row.vendor_name}`;
 
-export const columns: ColumnDef<VisitorStampWithDetails>[] = [
-	{
-		accessorKey: "visitor_name",
-		size: 250,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Visitor</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
+export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
+	return [
+		{
+			accessorKey: "visitor_name",
+			size: 250,
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Visitor" />
+			),
+			cell: ({ row }) => {
+				const stamp = row.original;
+				return (
+					<div className="flex flex-col">
+						<h3 className="font-medium">{stamp.visitor_name}</h3>
+					</div>
+				);
+			},
 		},
-		cell: ({ row }) => {
-			const stamp = row.original;
-			return (
-				<div className="flex flex-col">
-					<h3 className="font-medium">{stamp.visitor_name}</h3>
-				</div>
-			);
+		{
+			id: "view",
+			size: 60,
+			enableHiding: false,
+			header: "",
+			cell: ({ row }) => {
+				const { openDialog } = useDialog();
+				const stamp = row.original;
+				const openViewModal = () => {
+					openDialog({
+						component: VisitorStampViewModal,
+						config: {
+							title: "Visitor Stamp Details",
+							description: "View the details of the stamp",
+							size: "2xl",
+							showCloseButton: true,
+						},
+						props: {
+							name: stamp.visitor_name,
+							email: stamp.visitor_email,
+							phone: stamp.visitor_phone,
+							publicId: stamp.visitor_public_id,
+							vendorName: stamp.vendor_name,
+						},
+					});
+				};
+				return (
+					<div className="flex justify-center">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={openViewModal}
+							title="View Details"
+							className="rounded-none hover:border hover:border-border"
+						>
+							<Eye className="size-4 text-muted-foreground" />
+						</Button>
+					</div>
+				);
+			},
 		},
-	},
-	{
-		id: "view",
-		size: 60,
-		enableHiding: false,
-		header: "",
-		cell: ({ row }) => {
-			const { openDialog } = useDialog();
-			const stamp = row.original;
-			const openViewModal = () => {
-				openDialog({
-					component: VisitorStampViewModal,
-					config: {
-						title: "Visitor Stamp Details",
-						description: "View the details of the stamp",
-						size: "2xl",
-						showCloseButton: true,
-					},
-					props: {
-						name: stamp.visitor_name,
-						email: stamp.visitor_email,
-						phone: stamp.visitor_phone,
-						publicId: stamp.visitor_public_id,
-						vendorName: stamp.vendor_name,
-					},
-				});
-			};
-			return (
-				<div className="flex justify-center">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={openViewModal}
-						title="View Details"
-						className="rounded-none hover:border hover:border-border"
-					>
-						<Eye className="size-4 text-muted-foreground" />
-					</Button>
-				</div>
-			);
-		},
-	},
-	{
-		id: "contact",
-		size: 220,
-		header: () => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Contact</p>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			const stamp = row.original;
-			const phone = stamp.visitor_phone;
-			const email = stamp.visitor_email;
+		{
+			id: "contact",
+			size: 220,
+			header: () => {
+				return (
+					<div className="flex items-center gap-2">
+						<p className="font-medium">Contact</p>
+					</div>
+				);
+			},
+			cell: ({ row }) => {
+				const stamp = row.original;
+				const phone = stamp.visitor_phone;
+				const email = stamp.visitor_email;
 
-			return (
-				<div className="flex min-w-0 flex-col gap-1">
-					{phone && (
-						<div className="flex items-center gap-1.5 text-sm">
-							<Phone className="size-3 shrink-0 text-muted-foreground" />
-							<span className="truncate">{phone}</span>
-						</div>
-					)}
-					{email && (
-						<div className="flex items-center gap-1.5 text-sm">
-							<Mail className="size-3 shrink-0 text-muted-foreground" />
-							<span className="max-w-[180px] truncate" title={email}>
-								{email}
+				return (
+					<div className="flex min-w-0 flex-col gap-1">
+						{phone && (
+							<div className="flex items-center gap-1.5 text-sm">
+								<Phone className="size-3 shrink-0 text-muted-foreground" />
+								<span className="truncate">{phone}</span>
+							</div>
+						)}
+						{email && (
+							<div className="flex items-center gap-1.5 text-sm">
+								<Mail className="size-3 shrink-0 text-muted-foreground" />
+								<span className="max-w-[180px] truncate" title={email}>
+									{email}
+								</span>
+							</div>
+						)}
+						{!phone && !email && (
+							<span className="text-muted-foreground text-sm">
+								No contact info
 							</span>
-						</div>
-					)}
-					{!phone && !email && (
-						<span className="text-muted-foreground text-sm">
-							No contact info
-						</span>
-					)}
-				</div>
-			);
+						)}
+					</div>
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "vendor_name",
-		size: 200,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Stamped By</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
+		{
+			accessorKey: "vendor_name",
+			size: 200,
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Stamped By" />
+			),
+			cell: ({ row }) => {
+				return <div className="font-medium">{row.getValue("vendor_name")}</div>;
+			},
 		},
-		cell: ({ row }) => {
-			return <div className="font-medium">{row.getValue("vendor_name")}</div>;
+		{
+			accessorKey: "created_at",
+			size: 200,
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Stamped At" />
+			),
+			cell: ({ row }) => {
+				const createdAt = row.getValue("created_at") as string;
+				return (
+					<div className="font-medium">
+						{new Date(createdAt).toLocaleString()}
+					</div>
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "created_at",
-		size: 200,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Stamped At</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
-		cell: ({ row }) => {
-			const createdAt = row.getValue("created_at") as string;
-			return (
-				<div className="font-medium">
-					{new Date(createdAt).toLocaleString()}
-				</div>
-			);
-		},
-	},
-];
+	];
+}

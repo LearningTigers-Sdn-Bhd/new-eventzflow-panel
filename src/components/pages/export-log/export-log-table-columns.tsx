@@ -2,8 +2,9 @@
 
 import { Label } from "@radix-ui/react-label";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { IconHeading } from "@/components/ui/icon-heading";
@@ -79,26 +80,9 @@ export const columns: ColumnDef<ExportLogs>[] = [
 	{
 		accessorKey: "id",
 		size: 150,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Export ID</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Export ID" />
+		),
 		cell: ({ row }) => {
 			return <div className="font-medium">#{row.getValue("id")}</div>;
 		},
@@ -106,26 +90,7 @@ export const columns: ColumnDef<ExportLogs>[] = [
 	{
 		accessorKey: "type",
 		size: 200,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Type</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => <SortableHeader column={column} label="Type" />,
 		cell: ({ row }) => {
 			const type = row.getValue("type") as string;
 			return (
@@ -149,26 +114,9 @@ export const columns: ColumnDef<ExportLogs>[] = [
 	{
 		accessorKey: "createdAt",
 		size: 180,
-		header: ({ column }) => {
-			return (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Created At</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			);
-		},
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Created At" />
+		),
 		cell: ({ row }) => {
 			const createdAt = row.getValue("createdAt") as string;
 			return (

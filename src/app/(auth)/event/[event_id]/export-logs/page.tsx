@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { use } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/export-log/columns";
-import { DataTable } from "@/components/pages/export-log/data-table";
+import { ExportLogTable } from "@/components/pages/export-log/export-log-table";
+import { columns } from "@/components/pages/export-log/export-log-table-columns";
 import { ExportLogPageButton } from "@/components/pages/export-log/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -75,7 +75,7 @@ export default function ExportLogsPage({
 					}
 				/>
 			) : (
-				<DataTable columns={columns} data={exportLogs || []} />
+				<ExportLogTable columns={columns} data={exportLogs || []} />
 			)}
 		</div>
 	);
