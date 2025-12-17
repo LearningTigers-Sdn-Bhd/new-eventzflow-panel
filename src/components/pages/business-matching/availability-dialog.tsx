@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
 import "react-day-picker/dist/style.css"; // Assuming basic styling is needed
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import CreateBookingForm from "./create-booking-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBusinessMatchingStore } from "@/stores/use-business-matching-store";
 
 interface AvailabilityDialogProps {
 	bmEventId: string;
@@ -31,6 +32,7 @@ export default function AvailabilityDialog({
 	eventId, // Changed from internalEventId
 	eventTitle,
 }: AvailabilityDialogProps) {
+    const { setSelectedBusinessMatchingDate } = useBusinessMatchingStore();
     const isMobile = useIsMobile();
     const [activeTab, setActiveTab] = useState("date");
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -40,11 +42,17 @@ export default function AvailabilityDialog({
 	const { data, isLoading, error, isFetching } = useBusinessMatchingAvailability(bmEventId, eventId);
 	const { data: detailedSlotsData, isLoading: isLoadingDetailedSlots, isFetching: isFetchingDetailedSlots } = useBusinessMatchingDetailedSlots(
 		bmEventId,
-		selectedFormattedDate,
+		selectedFormattedDate ?? null,
 		eventId
 	);
 
     const isRefreshing = isLoading || isFetching || isLoadingDetailedSlots || isFetchingDetailedSlots;
+
+    useEffect(() => {
+        return () => {
+            setSelectedBusinessMatchingDate(undefined);
+        };
+    }, []);
 
     if (selectedSlot) {
         return (
@@ -129,10 +137,13 @@ export default function AvailabilityDialog({
                     onSelect={(date) => {
                         setSelectedDate(date);
                         if (date) {
-                            setSelectedFormattedDate(format(date, "dd MMMM yyyy"));
+                            const formatted = format(date, "dd MMMM yyyy");
+                            setSelectedFormattedDate(formatted);
+                            setSelectedBusinessMatchingDate(formatted); // Update Zustand store
                             if (isMobile) setActiveTab("slots");
                         } else {
                             setSelectedFormattedDate(undefined);
+                            setSelectedBusinessMatchingDate(undefined); // Clear Zustand store
                         }
                     }}
                     disabled={(day) => {
@@ -163,7 +174,7 @@ export default function AvailabilityDialog({
         return (
         <div className="w-full">
             <h3 className="mb-4 font-semibold text-lg md:text-xl text-center">
-                {selectedDate ? `Select a slot:` : "Select a date to view slots"}
+                {selectedDate ? `Select a slot for ${selectedFormattedDate}:` : "Select a date to view slots"}
             </h3>
 
             {isLoadingDetailedSlots && (
@@ -173,7 +184,7 @@ export default function AvailabilityDialog({
                 </div>
             )}
 
-            {!isLoadingDetailedSlots && detailedSlotsData?.slots.length > 0 && (
+            {!isLoadingDetailedSlots && detailedSlotsData && detailedSlotsData.slots && detailedSlotsData.slots.length > 0 && (
                 <ScrollArea className="h-[300px] overflow-y-auto"> 
                     <div className="grid grid-cols-2 gap-4 p-1 pr-3"> 
                         {detailedSlotsData.slots.map((item, index) => (

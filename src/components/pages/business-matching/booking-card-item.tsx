@@ -62,7 +62,7 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
     const [commentDraft, setCommentDraft] = useState(displayBooking.host_comment || "");
 
     const [isEditingValue, setIsEditingValue] = useState(false);
-    const [valueDraft, setValueDraft] = useState(displayBooking.potential_deal_value || "");
+    const [valueDraft, setValueDraft] = useState<string>(displayBooking.potential_deal_value?.toString() || "");
 
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -75,7 +75,7 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
         status: displayBooking.status,
         payment_status: displayBooking.payment_status,
         host_comment: displayBooking.host_comment,
-        potential_deal_value: displayBooking.potential_deal_value,
+        potential_deal_value: displayBooking.potential_deal_value, // This is already a number from interface
         attendance: displayBooking.attendance
     });
 
@@ -112,11 +112,12 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
     };
 
     const handleSaveValue = () => {
+        const numericValue = valueDraft === "" ? null : parseFloat(valueDraft);
         updateBooking(
-            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), potential_deal_value: valueDraft } },
+            { bookingId: displayBooking.id, data: { ...getCommonBookingData(), potential_deal_value: numericValue } },
             {
                 onSuccess: () => {
-                    const updates = { potential_deal_value: valueDraft };
+                    const updates = { potential_deal_value: numericValue };
                     saveOverride(updates); // Persist override
                     setDisplayBooking(prev => ({ ...prev, ...updates })); // Immediate visual update
                     updateLocalCache(updates);
@@ -316,6 +317,7 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                                 </div>
                                 <div className="flex gap-2">
                                     <Input 
+                                        type="number"
                                         value={valueDraft} 
                                         onChange={(e) => setValueDraft(e.target.value)} 
                                         className="text-xs h-7 px-2 flex-1"
@@ -356,7 +358,7 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                         </Button>
                     )}
                     
-                    {(!displayBooking.attendance || (displayBooking.attendance !== 'Present' && displayBooking.attendance !== 'Absent')) && (
+                    {(displayBooking.status === 'Approved' && (!displayBooking.attendance || (displayBooking.attendance !== 'Present' && displayBooking.attendance !== 'Absent'))) && (
                         <Button 
                             variant="outline"
                             size="sm" 

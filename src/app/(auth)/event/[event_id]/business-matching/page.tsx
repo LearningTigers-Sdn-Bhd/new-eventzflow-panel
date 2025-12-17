@@ -1,13 +1,14 @@
 "use client";
 
 import { use, useEffect } from "react";
-import { Briefcase, RefreshCw } from "lucide-react";
+import { Briefcase, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingState, ErrorState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import { columns } from "@/components/pages/business-matching/columns";
 import { useBusinessMatchingEvents, useForceRefreshBusinessMatching } from "@/hooks/use-business-matching";
+import { downloadBookingsReport } from "@/lib/api/business-matching";
 import { cable } from "@/lib/cable";
 import { Button } from "@/components/ui/button";
 
@@ -95,6 +96,19 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
         }
 	};
 
+    const handleGenerateReport = async (format: 'pdf' | 'xlsx') => {
+        toast.info(`Generating ${format.toUpperCase()} report...`, {
+            description: "Please wait while we compile the data.",
+        });
+        try {
+            await downloadBookingsReport(event_id, format);
+            toast.success("Report downloaded successfully");
+        } catch (error) {
+            console.error("Report generation failed", error);
+            toast.error("Failed to generate report");
+        }
+    };
+
 	if (isLoading || isFetching) {
 		return (
 			<LoadingState
@@ -118,15 +132,24 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
 		<div className="space-y-6 p-4">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-bold tracking-tight">Business Matching</h1>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={handleRefresh}
-					disabled={isRefreshing}
-				>
-					<RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-					Refresh
-				</Button>
+                <div className="flex items-center gap-2">
+                    {data && data.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={() => handleGenerateReport('xlsx')}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Generate Report
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                    >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                        Refresh
+                    </Button>
+                </div>
 			</div>
 			<DataTable columns={columns} data={data || []} />
 		</div>

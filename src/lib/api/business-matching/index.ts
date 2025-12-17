@@ -127,7 +127,7 @@ export async function createBooking(bmEventId: string, eventId: string, data: Cr
 
 export interface UpdateBookingRequest {
     host_comment?: string;
-    potential_deal_value?: string;
+    potential_deal_value?: number; // Changed from string to number
     attendance?: string;
     name?: string;
     email?: string;
@@ -141,4 +141,22 @@ export interface UpdateBookingRequest {
 export async function updateBooking(bmEventId: string, eventId: string, bookingId: string, data: UpdateBookingRequest): Promise<void> {
     const url = `v1/business_matching/events/${bmEventId}/bookings/${bookingId}?event_id=${eventId}`;
     return restClient.put<void>(url, { booking: data }); // Wrap data in 'booking' key
+}
+
+/**
+ * Download business matching report
+ */
+export async function downloadBookingsReport(eventId: string, format: 'pdf' | 'xlsx'): Promise<void> {
+    const url = `v1/business_matching/events/${eventId}/report?format=${format}`;
+    const { blob } = await restClient.getBlob(url);
+    
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `business_matching_report_${eventId}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
 }

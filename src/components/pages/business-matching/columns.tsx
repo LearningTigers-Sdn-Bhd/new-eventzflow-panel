@@ -45,6 +45,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								props: {
 									bmEventId: row.original.id,
 									eventId: row.original.event_id,
+									eventTitle: row.original.title,
 								},
 								config: {
 									title: `${row.original.title}`,

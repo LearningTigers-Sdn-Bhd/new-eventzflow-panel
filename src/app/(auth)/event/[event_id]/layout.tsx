@@ -25,6 +25,7 @@ import { useIsTablet } from "@/hooks/use-tablet";
 import { getEvents } from "@/lib/api/event";
 import { cn } from "@/lib/utils";
 import { useEventActionsStore } from "@/stores/event-actions-store";
+import { useBusinessMatchingStore } from "@/stores/use-business-matching-store";
 
 interface EventDetailLayoutProps {
 	children: React.ReactNode;
