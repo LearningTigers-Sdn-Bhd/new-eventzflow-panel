@@ -2,6 +2,10 @@
 
 import type { Table } from "@tanstack/react-table";
 import { ArrowDown, Menu } from "lucide-react";
+import type {
+	ControlConfig,
+	SearchConfig,
+} from "@/components/admin-ui/table/control/type";
 import { QuerySearchField } from "@/components/query-search-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,35 +22,15 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-export type ControlConfig = {
-	label: string;
-	columnId: string;
-	type: "sort" | "filter";
-	data?: readonly { label: string; value: string }[];
-	topPriority?: boolean;
-	// For custom filters not tied to table columns
-	customFilter?: {
-		value: string;
-		onChange: (value: string) => void;
-	};
-};
-
 interface MobileTableControlProps<TData> {
 	table: Table<TData>;
-	searchPlaceholder?: string;
-	searchColumns?: string[];
+	searchConfig: SearchConfig;
 	controlConfigs: ControlConfig[];
-	topFilter?: {
-		value: string;
-		onChange: (value: string) => void;
-		options: { label: string; value: string }[];
-	};
 }
 
 export function MobileTableControl<TData>({
 	table,
-	searchPlaceholder = "Search...",
-	searchColumns,
+	searchConfig,
 	controlConfigs,
 }: MobileTableControlProps<TData>) {
 	// Separate configs into topPriority and regular items
@@ -86,7 +70,10 @@ export function MobileTableControl<TData>({
 					onValueChange={config.customFilter.onChange}
 				>
 					<SelectTrigger className="w-full rounded-none bg-background py-5 font-medium text-sm tracking-tight [&>svg]:opacity-100">
-						<SelectValue placeholder={`All ${config.label}`} />
+						<div className="flex items-center gap-1 truncate">
+							<span className="font-semibold">{config.label}:</span>
+							<SelectValue placeholder="All" className="truncate" />
+						</div>
 					</SelectTrigger>
 					<SelectContent className="rounded-none text-sm">
 						{options.map((option) => (
@@ -116,7 +103,10 @@ export function MobileTableControl<TData>({
 				}
 			>
 				<SelectTrigger className="w-full rounded-none bg-background py-5 font-medium text-sm tracking-tight [&>svg]:opacity-100">
-					<SelectValue placeholder={`All ${config.label}`} />
+					<div className="flex items-center gap-1 truncate">
+						<span className="font-semibold">{config.label}:</span>
+						<SelectValue placeholder="All" className="truncate" />
+					</div>
 				</SelectTrigger>
 				<SelectContent className="rounded-none text-sm">
 					{options.map((option) => (
@@ -153,8 +143,9 @@ export function MobileTableControl<TData>({
 		<div className="flex flex-col gap-2 lg:hidden">
 			<QuerySearchField
 				table={table}
-				columns={searchColumns}
-				placeholder={searchPlaceholder}
+				columns={searchConfig.columns}
+				placeholder={searchConfig.placeholder}
+				searchCustomFields={searchConfig.enableCustomSearch}
 			/>
 			<Collapsible>
 				<CollapsibleTrigger asChild>
@@ -166,8 +157,13 @@ export function MobileTableControl<TData>({
 						<Menu className="size-4" />
 					</Button>
 				</CollapsibleTrigger>
-				<CollapsibleContent className="flex flex-col gap-4 bg-foreground/10 p-4">
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+				<CollapsibleContent className="flex flex-col gap-4 bg-foreground/10 p-2">
+					<div
+						className={cn(
+							"grid grid-cols-2 gap-2 sm:grid-cols-4",
+							regularItems.length % 2 === 1 && "[&>*:last-child]:col-span-2",
+						)}
+					>
 						{/* Render topPriority items first */}
 						{topPriorityItems.map((config, index) =>
 							renderControl(config, index),

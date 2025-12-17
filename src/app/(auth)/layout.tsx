@@ -172,7 +172,7 @@ export default function AuthLayout({
 										<div
 											className={cn(
 												"min-h-[calc(100vh-48px)] w-full",
-												isTablet ? "pb-24" : "border-x border-dashed pb-12",
+												isTablet ? "pb-24" : "border-x border-dashed",
 											)}
 										>
 											<div className="w-full">{children}</div>

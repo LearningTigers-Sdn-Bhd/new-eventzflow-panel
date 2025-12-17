@@ -2,7 +2,10 @@
 
 import type { Table } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
-import type { ControlConfig } from "@/components/admin-ui/table/control/mobile-table-control";
+import type {
+	ControlConfig,
+	SearchConfig,
+} from "@/components/admin-ui/table/control/type";
 import { QuerySearchField } from "@/components/query-search-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,18 +21,21 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DesktopTableControlProps<TData> {
 	table: Table<TData>;
-	searchPlaceholder?: string;
-	searchColumns?: string[];
+	searchConfig: SearchConfig;
 	controlConfigs?: ControlConfig[];
 }
 
 export function DesktopTableControl<TData>({
 	table,
-	searchPlaceholder = "Search...",
-	searchColumns,
+	searchConfig,
 	controlConfigs = [],
 }: DesktopTableControlProps<TData>) {
 	const renderSortButton = (config: ControlConfig) => {
@@ -56,9 +62,19 @@ export function DesktopTableControl<TData>({
 					value={config.customFilter.value}
 					onValueChange={config.customFilter.onChange}
 				>
-					<SelectTrigger className="w-[140px] rounded-none bg-background font-medium">
-						<SelectValue placeholder={`All ${config.label}`} />
-					</SelectTrigger>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<SelectTrigger className="w-35 rounded-none bg-background font-medium">
+								<div className="flex items-center gap-1 truncate text-sm">
+									<span className="font-semibold">{config.label}:</span>
+									<SelectValue placeholder="All" className="truncate" />
+								</div>
+							</SelectTrigger>
+						</TooltipTrigger>
+						<TooltipContent className="rounded-none text-sm">
+							{config.label}
+						</TooltipContent>
+					</Tooltip>
 					<SelectContent className="rounded-none">
 						{options.map((option) => (
 							<SelectItem
@@ -86,9 +102,19 @@ export function DesktopTableControl<TData>({
 					column?.setFilterValue(value === "all" ? undefined : value)
 				}
 			>
-				<SelectTrigger className="w-[140px] rounded-none bg-background font-medium">
-					<SelectValue placeholder={`All ${config.label}`} />
-				</SelectTrigger>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<SelectTrigger className="w-35 rounded-none bg-background font-medium">
+							<div className="flex items-center gap-1 truncate text-sm">
+								<span className="font-semibold">{config.label}:</span>
+								<SelectValue placeholder="All" className="truncate" />
+							</div>
+						</SelectTrigger>
+					</TooltipTrigger>
+					<TooltipContent className="rounded-none text-sm">
+						{config.label}
+					</TooltipContent>
+				</Tooltip>
 				<SelectContent className="rounded-none">
 					{options.map((option) => (
 						<SelectItem
@@ -104,9 +130,58 @@ export function DesktopTableControl<TData>({
 		);
 	};
 
+	const renderVisibilityDropdown = (config: ControlConfig) => {
+		const columns = table
+			.getAllColumns()
+			.filter((column) => column.getCanHide())
+			.filter((column) => {
+				// Exclude columns specified in config
+				if (config.excludeColumns?.includes(column.id)) {
+					return false;
+				}
+				return true;
+			});
+
+		const visibleColumnCount = columns.filter((column) =>
+			column.getIsVisible(),
+		).length;
+
+		return (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" className="rounded-none">
+						{visibleColumnCount} columns
+						<ChevronDown className="ml-2 h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="rounded-none bg-background">
+					{columns.map((column) => {
+						const label = config.getColumnLabel
+							? config.getColumnLabel(column.id)
+							: column.id;
+						return (
+							<DropdownMenuCheckboxItem
+								key={column.id}
+								className="rounded-none capitalize"
+								checked={column.getIsVisible()}
+								onCheckedChange={(value) => column.toggleVisibility(!!value)}
+							>
+								{label}
+							</DropdownMenuCheckboxItem>
+						);
+					})}
+				</DropdownMenuContent>
+			</DropdownMenu>
+		);
+	};
+
 	const renderControl = (config: ControlConfig) => {
 		if (config.type === "sort") {
 			return renderSortButton(config);
+		}
+
+		if (config.type === "visibility") {
+			return renderVisibilityDropdown(config);
 		}
 
 		return renderFilterSelect(config);
@@ -116,40 +191,22 @@ export function DesktopTableControl<TData>({
 		<div className="hidden items-center gap-2 lg:flex">
 			<QuerySearchField
 				table={table}
-				columns={searchColumns}
-				placeholder={searchPlaceholder}
+				columns={searchConfig.columns}
+				placeholder={searchConfig.placeholder}
+				searchCustomFields={searchConfig.enableCustomSearch}
 			/>
-			{controlConfigs.map((config, index) => (
-				<div key={`${config.columnId}-${index}`}>{renderControl(config)}</div>
-			))}
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button variant="outline" className="ml-auto rounded-none">
-						{/* Number of columns visible */}
-						{table.getAllColumns().filter((column) => column.getIsVisible())
-							.length - 1}{" "}
-						columns
-						<ChevronDown className="ml-2 h-4 w-4" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="rounded-none bg-background">
-					{table
-						.getAllColumns()
-						.filter((column) => column.getCanHide())
-						.map((column) => {
-							return (
-								<DropdownMenuCheckboxItem
-									key={column.id}
-									className="rounded-none capitalize"
-									checked={column.getIsVisible()}
-									onCheckedChange={(value) => column.toggleVisibility(!!value)}
-								>
-									{column.id}
-								</DropdownMenuCheckboxItem>
-							);
-						})}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			{controlConfigs.map((config, index) => {
+				const isLast = index === controlConfigs.length - 1;
+				const isVisibility = config.type === "visibility";
+				return (
+					<div
+						key={`${config.columnId}-${index}`}
+						className={isLast && isVisibility ? "ml-auto" : ""}
+					>
+						{renderControl(config)}
+					</div>
+				);
+			})}
 		</div>
 	);
 }

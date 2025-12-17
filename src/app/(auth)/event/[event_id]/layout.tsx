@@ -313,7 +313,7 @@ export default function EventDetailLayout({
 						<Skeleton className="h-5 w-96" />
 					</>
 				) : !isMobile ? (
-					<div className="flex items-start gap-4">
+					<div className="mx-auto flex w-full items-start gap-4 md:max-w-5xl md:px-0 2xl:max-w-7xl">
 						<AvatarIcon title={currentEvent?.title || ""} />
 						<div className="flex flex-col gap-2">
 							<div className="flex flex-col items-start">
@@ -341,8 +341,8 @@ export default function EventDetailLayout({
 			</div>
 
 			{/* Current Menu Header */}
-			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-7xl">
-				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
+			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-5xl 2xl:max-w-7xl">
+				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between">
 					<IconHeading
 						icon={currentMenu.icon}
 						title={currentMenuTitle}
