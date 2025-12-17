@@ -19,8 +19,7 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { getEventById } from "@/lib/api/event";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -40,8 +39,7 @@ export function DataTable<TData>({
 	ticketFilter = "active",
 	onTicketFilterChange,
 }: DataTableProps<TData>) {
-	const isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const params = useParams();
 	const eventId = params.event_id as string;
 
@@ -118,7 +116,7 @@ export function DataTable<TData>({
 
 			{/* Data Table */}
 			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{!isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -128,28 +126,7 @@ export function DataTable<TData>({
 							action: <Button>Create Ticket</Button>,
 						}}
 					/>
-				) : isTablet && !isMobile ? (
-					<div className="grid grid-cols-2 gap-4">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<TicketItem
-										ticket={row.original as BaseTicket}
-										labelsData={eventData?.labels_data}
-									/>
-								</div>
-							))
-						) : (
-							<EmptyState
-								title="No tickets found"
-								description="Create your first ticket to get started"
-								icon={<Calendar />}
-								height="h-auto"
-								action={<Button>Create Ticket</Button>}
-							/>
-						)}
-					</div>
-				) : (
+				) : isMobile ? (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
 							table
@@ -161,6 +138,27 @@ export function DataTable<TData>({
 										labelsData={eventData?.labels_data}
 									/>
 								))
+						) : (
+							<EmptyState
+								title="No tickets found"
+								description="Create your first ticket to get started"
+								icon={<Calendar />}
+								height="h-auto"
+								action={<Button>Create Ticket</Button>}
+							/>
+						)}
+					</div>
+				) : (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<TicketItem
+										ticket={row.original as BaseTicket}
+										labelsData={eventData?.labels_data}
+									/>
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No tickets found"

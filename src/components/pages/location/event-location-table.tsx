@@ -19,8 +19,7 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import InfoForm from "./event-location-action-modal/create-event-location-form";
 import { LocationItem } from "./event-location-item";
 import type { BaseLocation } from "./event-location-table-columns";
@@ -35,8 +34,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
-	const isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const { openDialog } = useDialog();
 	const { user } = useAuth();
 	const isVendor = user?.role === "vendor";
@@ -82,7 +80,7 @@ export function DataTable<TData, TValue>({
 
 			{/* Data Table */}
 			<div className="min-h-[45vh]">
-				{!isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -96,33 +94,7 @@ export function DataTable<TData, TValue>({
 							) : undefined,
 						}}
 					/>
-				) : isTablet && !isMobile ? (
-					table.getRowModel().rows?.length ? (
-						<div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-							{table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<LocationItem location={row.original as BaseLocation} />
-								</div>
-							))}
-						</div>
-					) : (
-						<EmptyState
-							title="No locations found"
-							description={
-								isVendor
-									? "You haven't been assigned to any locations yet"
-									: "Create your first location to get started"
-							}
-							icon={<Calendar />}
-							height="h-auto"
-							action={
-								!isVendor ? (
-									<Button onClick={openLocationCreate}>Create Location</Button>
-								) : undefined
-							}
-						/>
-					)
-				) : (
+				) : isMobile ? (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
 							table
@@ -153,6 +125,32 @@ export function DataTable<TData, TValue>({
 							/>
 						)}
 					</div>
+				) : (
+					table.getRowModel().rows?.length ? (
+						<div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
+							{table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<LocationItem location={row.original as BaseLocation} />
+								</div>
+							))}
+						</div>
+					) : (
+						<EmptyState
+							title="No locations found"
+							description={
+								isVendor
+									? "You haven't been assigned to any locations yet"
+									: "Create your first location to get started"
+							}
+							icon={<Calendar />}
+							height="h-auto"
+							action={
+								!isVendor ? (
+									<Button onClick={openLocationCreate}>Create Location</Button>
+								) : undefined
+							}
+						/>
+					)
 				)}
 			</div>
 			<DataPagination table={table} />

@@ -20,8 +20,7 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { getEventById } from "@/lib/api/event";
 import PendingTicketForm from "./page-action/create-pending-ticket-form";
 import { PendingTicketItem } from "./pending-ticket-item";
@@ -34,8 +33,7 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({ data }: DataTableProps<TData>) {
-	const _isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const { openDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -122,7 +120,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
 			<div className="flex min-h-[calc(100vh-320px)] flex-col">
 				{/* Data Table */}
-				{!_isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -136,17 +134,18 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 							),
 						}}
 					/>
-				) : isTablet && !_isMobile ? (
-					<div className="grid grid-cols-2 gap-2">
+				) : isMobile ? (
+					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
+							table
+								.getRowModel()
+								.rows.map((row) => (
 									<PendingTicketItem
+										key={row.id}
 										ticket={row.original as PendingTicket}
 										labelsData={eventData?.labels_data}
 									/>
-								</div>
-							))
+								))
 						) : (
 							<EmptyState
 								title="No pending tickets found"
@@ -162,17 +161,16 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 						)}
 					</div>
 				) : (
-					<div className="space-y-2">
+					<div className="grid grid-cols-2 gap-2">
 						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
 									<PendingTicketItem
-										key={row.id}
 										ticket={row.original as PendingTicket}
 										labelsData={eventData?.labels_data}
 									/>
-								))
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No pending tickets found"

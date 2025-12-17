@@ -16,8 +16,7 @@ import * as React from "react";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import type { ScannedLog } from "./ticket-scanned-log-columns";
 import { ScannedLogItem } from "./ticket-scanned-log-item";
 import { DataControl } from "./ticket-scanned-log-table-control";
@@ -31,8 +30,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
-	const isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -64,7 +62,7 @@ export function DataTable<TData, TValue>({
 			<DataControl table={table} />
 
 			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{!isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -73,24 +71,7 @@ export function DataTable<TData, TValue>({
 							icon: <Calendar />,
 						}}
 					/>
-				) : isTablet && !isMobile ? (
-					<div className="grid grid-cols-2 gap-4">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<ScannedLogItem scannedLog={row.original as ScannedLog} />
-								</div>
-							))
-						) : (
-							<EmptyState
-								title="No scanned logs found"
-								description="No scan logs available for this event yet"
-								icon={<Calendar />}
-								height="h-auto"
-							/>
-						)}
-					</div>
-				) : (
+				) : isMobile ? (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
 							table
@@ -101,6 +82,23 @@ export function DataTable<TData, TValue>({
 										scannedLog={row.original as ScannedLog}
 									/>
 								))
+						) : (
+							<EmptyState
+								title="No scanned logs found"
+								description="No scan logs available for this event yet"
+								icon={<Calendar />}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				) : (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<ScannedLogItem scannedLog={row.original as ScannedLog} />
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No scanned logs found"

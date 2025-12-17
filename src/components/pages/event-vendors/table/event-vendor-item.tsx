@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/item";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
-import { EventVendorActionsMenu } from "./action-menu";
-import type { EventVendorMember } from "./columns";
+import { EventVendorActionsMenu } from "./event-vendor-action-menu";
+import type { EventVendorMember } from "./event-vendor-table-columns";
 
 interface EventVendorItemProps {
 	vendor: EventVendorMember;

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { getEventVendorColumns } from "@/components/pages/event-vendors/table/columns";
-import { DataTable } from "@/components/pages/event-vendors/table/data-table";
+import { DataTable } from "@/components/pages/event-vendors/table/event-vendor-table";
+import { getEventVendorColumns } from "@/components/pages/event-vendors/table/event-vendor-table-columns";
 import { Button } from "@/components/ui/button";
 import { getEventVendors } from "@/lib/api/event-vendor";
 
