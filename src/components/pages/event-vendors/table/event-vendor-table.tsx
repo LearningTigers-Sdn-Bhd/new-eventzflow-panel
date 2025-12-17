@@ -11,7 +11,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Users } from "lucide-react";
+import { Store } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
@@ -19,9 +19,9 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
-import { EventStaffItem } from "./event-staff-item";
-import type { EventStaffMember } from "./event-staff-table-columns";
-import { DataControl } from "./event-staff-table-control";
+import { EventVendorItem } from "./event-vendor-item";
+import type { EventVendorMember } from "./event-vendor-table-columns";
+import { DataControl } from "./event-vendor-table-control";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -32,7 +32,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
-	const { isDesktop } = useResponsiveDeterminer();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -59,7 +59,6 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="w-full">
-			{/* Control Panel */}
 			<DataControl table={table} />
 
 			{/* Data Table */}
@@ -68,36 +67,58 @@ export function DataTable<TData, TValue>({
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
-							title: "No staff members assigned",
-							desc: "Assign team members to this event. Need to add new team members first?",
-							icon: <Users />,
+							title: "No vendors assigned",
+							desc: "Assign existing vendors to this event. Need to create a new vendor first?",
+							icon: <Store />,
 							action: (
 								<Button variant="link" asChild className="h-auto p-0">
-									<Link href="/team">Go to Team page</Link>
+									<Link href="/vendor">Go to Vendors page</Link>
 								</Button>
 							),
 						}}
 					/>
-				) : (
+				) : isMobile ? (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
 							table
 								.getRowModel()
 								.rows.map((row) => (
-									<EventStaffItem
+									<EventVendorItem
 										key={row.id}
-										member={row.original as EventStaffMember}
+										vendor={row.original as EventVendorMember}
 									/>
 								))
 						) : (
 							<EmptyState
-								title="No staff members assigned"
-								description="Assign team members to this event. Need to add new team members first?"
-								icon={<Users />}
+								title="No vendors assigned"
+								description="Assign existing vendors to this event. Need to create a new vendor first?"
+								icon={<Store />}
 								height="h-auto"
 								action={
 									<Button variant="link" asChild className="h-auto p-0">
-										<Link href="/team">Go to Team page</Link>
+										<Link href="/vendor">Go to Vendors page</Link>
+									</Button>
+								}
+							/>
+						)}
+					</div>
+				) : (
+					<div className="grid grid-cols-2 gap-4">
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<EventVendorItem vendor={row.original as EventVendorMember} />
+								</div>
+							))
+						) : (
+							<EmptyState
+								title="No vendors assigned"
+								description="Assign existing vendors to this event. Need to create a new vendor first?"
+								icon={<Store />}
+								height="h-auto"
+								action={
+									<Button variant="link" asChild className="h-auto p-0">
+										<Link href="/vendor">Go to Vendors page</Link>
 									</Button>
 								}
 							/>
@@ -105,8 +126,6 @@ export function DataTable<TData, TValue>({
 					</div>
 				)}
 			</div>
-
-			{/* Pagination */}
 			<DataPagination table={table} />
 		</div>
 	);

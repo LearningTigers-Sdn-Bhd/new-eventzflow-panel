@@ -19,8 +19,7 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import CreateEventForm from "./create-event-form";
 import { EventItem } from "./event-item";
 import type { Event } from "./event-table-columns";
@@ -43,8 +42,7 @@ export function DataTable<TData, TValue>({
 	eventFilter = "active",
 	onEventFilterChange,
 }: DataTableProps<TData, TValue>) {
-	const _isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
 
@@ -126,7 +124,7 @@ export function DataTable<TData, TValue>({
 
 			<div className="min-h-[65vh]">
 				{/* Data Table */}
-				{!_isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -136,14 +134,14 @@ export function DataTable<TData, TValue>({
 							action: emptyStateProps.action,
 						}}
 					/>
-				) : isTablet && !_isMobile ? (
-					<div className="grid grid-cols-2 gap-4 pb-6">
+				) : isMobile ? (
+					<div className="space-y-2 pb-6">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<EventItem event={row.original as Event} />
-								</div>
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<EventItem key={row.id} event={row.original as Event} />
+								))
 						) : (
 							<EmptyState
 								title={emptyStateProps.title}
@@ -155,13 +153,13 @@ export function DataTable<TData, TValue>({
 						)}
 					</div>
 				) : (
-					<div className="space-y-2 pb-6">
+					<div className="grid grid-cols-2 gap-4 pb-6">
 						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<EventItem key={row.id} event={row.original as Event} />
-								))
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<EventItem event={row.original as Event} />
+								</div>
+							))
 						) : (
 							<EmptyState
 								title={emptyStateProps.title}

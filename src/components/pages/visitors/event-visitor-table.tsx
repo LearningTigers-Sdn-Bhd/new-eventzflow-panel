@@ -16,12 +16,11 @@ import * as React from "react";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import type { Visitor } from "@/lib/api/visitor";
+import { VisitorItem } from "./event-visitor-item";
 import { generateColumns } from "./event-visitor-table-columns";
 import { DataControl } from "./event-visitor-table-control";
-import { VisitorItem } from "./event-visitor-item";
 
 interface DataTableProps {
 	eventId: number;
@@ -29,8 +28,7 @@ interface DataTableProps {
 }
 
 export function VisitorsDataTable({ eventId, data }: DataTableProps) {
-	const isMobile = useIsMobile();
-	const isTablet = useIsTablet();
+	const { isMobile, isDesktop } = useResponsiveDeterminer();
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -66,7 +64,7 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 
 			{/* Data Table */}
 			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{!isMobile && !isTablet ? (
+				{isDesktop ? (
 					<BaseTable
 						table={table}
 						emptyStateConfig={{
@@ -75,14 +73,14 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 							icon: <Users />,
 						}}
 					/>
-				) : isTablet && !isMobile ? (
-					<div className="grid grid-cols-2 gap-4">
+				) : isMobile ? (
+					<div className="grid grid-cols-1 gap-4">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<VisitorItem visitor={row.original as Visitor} />
-								</div>
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<VisitorItem key={row.id} visitor={row.original as Visitor} />
+								))
 						) : (
 							<EmptyState
 								title="No visitors found"
@@ -93,13 +91,13 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 						)}
 					</div>
 				) : (
-					<div className="grid grid-cols-1 gap-4">
+					<div className="grid grid-cols-2 gap-4">
 						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<VisitorItem key={row.id} visitor={row.original as Visitor} />
-								))
+							table.getRowModel().rows.map((row) => (
+								<div key={row.id} className="col-span-1">
+									<VisitorItem visitor={row.original as Visitor} />
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No visitors found"
