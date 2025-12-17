@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { TeamMember } from "@/lib/api/team";
-import { columns } from "./columns";
 import CreateMemberForm from "./create-member-form";
-import { DataTable } from "./data-table";
+import { DataTable } from "./team-member-table";
+import { columns } from "./team-member-table-columns";
 
 interface TeamClientWrapperProps {
 	teamMembers: TeamMember[];
