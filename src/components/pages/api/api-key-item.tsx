@@ -2,12 +2,12 @@
 
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ApiKey } from "@/lib/api/api-keys";
+import type { BaseApiKey } from "./api-key-table-columns";
 import { cn } from "@/lib/utils";
-import { ApiKeyActionsMenu } from "./action-menu";
+import { ApiKeyActionsMenu } from "./api-key-action-menu";
 
 interface ApiKeyItemProps {
-	apiKey: ApiKey;
+	apiKey: BaseApiKey;
 }
 
 // Format date with time
