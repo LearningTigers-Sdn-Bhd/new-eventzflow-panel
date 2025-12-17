@@ -4,6 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { Save, Settings } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { FaGift } from "react-icons/fa";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { MdCasino } from "react-icons/md";
 import { RxColorWheel } from "react-icons/rx";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import { getLuckyDrawSessionBackgroundUrl } from "@/lib/api/lucky-draw";
 import type { DrawStyle } from "@/stores/lucky-draw-store";
+import { FieldGroup } from "@/components/ui/field";
 
 interface ConfigSheetProps {
 	open: boolean;
@@ -234,7 +236,8 @@ export function ConfigSheet({
 					}}
 					className="flex flex-1 flex-col"
 				>
-					<div className="flex flex-1 flex-col gap-6 px-4">
+					<ScrollArea className="px-4 h-[calc(100vh-180px)] pb-4">
+						<div className="flex flex-col gap-6">
 						<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
 							<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
 								<CardTitle className="text-base">Draw Configuration</CardTitle>
@@ -242,7 +245,7 @@ export function ConfigSheet({
 									Control how winners are selected.
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-6 bg-slate-50 py-4">
+							<CardContent className="space-y-6 bg-background py-4">
 								<form.Field name="drawStyle">
 									{(field) => (
 										<div className="grid grid-cols-3 gap-4">
@@ -380,7 +383,7 @@ export function ConfigSheet({
 									Configure the background for the draw wrapper.
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-6 bg-slate-50 py-4">
+							<CardContent className="space-y-6 bg-background py-4">
 								<form.Field name="wrapperBackground.useImage">
 									{(field) => (
 										<div className="grid grid-cols-3 gap-4">
@@ -530,7 +533,9 @@ export function ConfigSheet({
 								</form.Subscribe>
 							</CardContent>
 						</Card>
-					</div>
+						</div>
+					</ScrollArea>
+					<FieldGroup className="px-4 py-4">
 					<form.Subscribe selector={(state) => state.values}>
 						{(formValues) => {
 							const hasChanges = checkHasChanges(formValues);
@@ -553,6 +558,7 @@ export function ConfigSheet({
 							);
 						}}
 					</form.Subscribe>
+					</FieldGroup>
 				</form>
 			</SheetContent>
 		</Sheet>

@@ -36,6 +36,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 		handleTransitionEnd,
 		isEmpty,
 		decorativeDots,
+		pointerPosition,
 		// Virtual mode features
 		isVirtualMode,
 		flashingName,
@@ -45,6 +46,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 		{
 			baseColors,
 			pointerVariant: "pointy",
+			pointerAngle: 90,
 			gapBetweenWheelAndOuter: 8,
 			enableDecorativeDots: true,
 			decorativeDotsCount: 12,
@@ -69,13 +71,11 @@ const SpinWheel: React.FC<DrawProps> = ({
 	return (
 		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
 
+			{/* The Wheel */}
+			<div className="relative aspect-square w-full max-w-[500px]">
 			{/* Static Pointer - pointing DOWN */}
-			<div 
-				className="pointer-events-none absolute -top-6 left-1/2 z-20"
-				style={{
-					left: "50%",
-					transform: `translate(-50%, 0)`,
-				}}
+			<div
+				{...pointerPosition}
 			>
 				<svg
 					width="60"
@@ -83,6 +83,9 @@ const SpinWheel: React.FC<DrawProps> = ({
 					viewBox="0 0 60 80"
 					className="drop-shadow-md"
 					aria-label="Wheel pointer"
+					style={{
+						transform: `rotate(${-180}deg)`, // Counter-rotate to keep arrow pointing down
+					}}
 				>
 					{/* Simple arrow pointing down */}
 					<path
@@ -90,12 +93,10 @@ const SpinWheel: React.FC<DrawProps> = ({
 						fill="#1a1a1a"
 						stroke="#1a1a1a"
 						strokeWidth="2"
+						className="dark:fill-white dark:stroke-white"
 					/>
-				</svg>
-			</div>
-
-			{/* The Wheel */}
-			<div className="relative aspect-square w-full max-w-[500px]">
+					</svg>
+				</div>
 				<svg
 					ref={svgRef}
 					viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${width + viewBoxPadding * 2} ${height + viewBoxPadding * 2}`}
@@ -114,10 +115,10 @@ const SpinWheel: React.FC<DrawProps> = ({
 					<g transform={`translate(${width / 2}, ${height / 2})`}>
 						{/* Outer shadow */}
 						<circle r={radius + 3} fill="rgba(0,0,0,0.1)" />
-						
+
 						{/* Outer rim - clean border */}
 						<circle r={radius} fill="none" stroke="#2a2a2a" strokeWidth="3" />
-						
+
 						{/* Decorative dots */}
 						{decorativeDots?.map((dot) => (
 							<g key={`dot-${dot.angle.toFixed(2)}`}>
@@ -138,7 +139,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 						{/* Slices - In virtual mode, don't show names */}
 						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
-							const participant = !isVirtualMode 
+							const participant = !isVirtualMode
 								? internalParticipants.find((p) => p.name === d.data)
 								: null;
 							return (
@@ -183,7 +184,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r="8" fill="#ffffff" />
 					</g>
 				</svg>
-				
+
 				{/* Flashing Name Overlay - Only in virtual mode during spin */}
 				{isVirtualMode && flashingName && (
 					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -230,4 +231,3 @@ const SpinWheel: React.FC<DrawProps> = ({
 };
 
 export default SpinWheel;
-

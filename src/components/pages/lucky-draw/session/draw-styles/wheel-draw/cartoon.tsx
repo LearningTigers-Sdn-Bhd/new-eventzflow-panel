@@ -40,6 +40,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 		handleTransitionEnd,
 		isEmpty,
 		decorativeDots,
+		pointerPosition,
 		// Virtual mode features
 		isVirtualMode,
 		flashingName,
@@ -48,6 +49,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 		{ participants, onDrawComplete, isDrawing },
 		{
 			baseColors,
+			pointerAngle: 90,
 			pointerVariant: "rounded",
 			gapBetweenWheelAndOuter: 15,
 			enableDecorativeDots: true,
@@ -73,46 +75,47 @@ const SpinWheel: React.FC<DrawProps> = ({
 	return (
 		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
 
-			{/* Static Cartoon Pointer - No animation */}
-			<div 
-				className="pointer-events-none absolute -top-6 left-1/2 z-20"
-				style={{
-					left: "50%",
-					transform: `translate(-50%, 0)`,
-				}}
-			>
-				<svg
-					width="70"
-					height="90"
-					viewBox="0 0 70 90"
-					className="drop-shadow-lg"
-					aria-label="Wheel pointer"
+			{/* The Wheel */}
+			<div className="relative aspect-square w-full max-w-[500px]">
+				{/* Static Cartoon Pointer - No animation */}
+				<div
+					{...pointerPosition}
 				>
-					{/* Shorter Pole */}
-					<rect
-						x="30"
-						y="5"
-						width="10"
-						height="25"
-						fill="#8B4513"
-						stroke="#1a1a1a"
-						strokeWidth="3"
-					/>
-					{/* Pole shine */}
-					<rect
-						x="32"
-						y="5"
-						width="3"
-						height="25"
-						fill="rgba(255,255,255,0.3)"
-					/>
-					
-					{/* Arrow shadow - pointing DOWN */}
-					<path
-						d="M 35 80 L 55 30 L 35 35 L 15 30 Z"
-						fill="rgba(0,0,0,0.2)"
-						transform="translate(2, 2)"
-					/>
+					<svg
+						width="70"
+						height="90"
+						viewBox="0 0 70 90"
+						className="drop-shadow-lg"
+						aria-label="Wheel pointer"
+						style={{
+							transform: `rotate(${-180}deg)`, // Counter-rotate to keep arrow pointing down
+						}}
+					>
+						{/* Shorter Pole */}
+						<rect
+							x="30"
+							y="5"
+							width="10"
+							height="25"
+							fill="#8B4513"
+							stroke="#1a1a1a"
+							strokeWidth="3"
+						/>
+						{/* Pole shine */}
+						<rect
+							x="32"
+							y="5"
+							width="3"
+							height="25"
+							fill="rgba(255,255,255,0.3)"
+						/>
+
+						{/* Arrow shadow - pointing DOWN */}
+						<path
+							d="M 35 80 L 55 30 L 35 35 L 15 30 Z"
+							fill="rgba(0,0,0,0.2)"
+							transform="translate(2, 2)"
+						/>
 					{/* Arrow body - Red - pointing DOWN */}
 					<path
 						d="M 35 80 L 55 30 L 35 35 L 15 30 Z"
@@ -120,26 +123,24 @@ const SpinWheel: React.FC<DrawProps> = ({
 						stroke="#1a1a1a"
 						strokeWidth="4"
 						strokeLinejoin="round"
+						className="dark:stroke-yellow-400"
 					/>
-					{/* Arrow shine */}
-					<path
-						d="M 35 80 L 43 52 L 35 35 L 27 52 Z"
-						fill="rgba(255,255,255,0.5)"
-					/>
-					{/* Arrow outline detail */}
-					<path
-						d="M 35 80 L 55 30 L 35 35 L 15 30 Z"
-						fill="none"
-						stroke="#FFFFFF"
-						strokeWidth="2"
-						strokeLinejoin="round"
-						opacity="0.3"
-					/>
-				</svg>
-			</div>
-
-			{/* The Wheel */}
-			<div className="relative aspect-square w-full max-w-[500px]">
+						{/* Arrow shine */}
+						<path
+							d="M 35 80 L 43 52 L 35 35 L 27 52 Z"
+							fill="rgba(255,255,255,0.5)"
+						/>
+						{/* Arrow outline detail */}
+						<path
+							d="M 35 80 L 55 30 L 35 35 L 15 30 Z"
+							fill="none"
+							stroke="#FFFFFF"
+							strokeWidth="2"
+							strokeLinejoin="round"
+							opacity="0.3"
+						/>
+					</svg>
+				</div>
 				<svg
 					ref={svgRef}
 					viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${width + viewBoxPadding * 2} ${height + viewBoxPadding * 2}`}
@@ -164,11 +165,11 @@ const SpinWheel: React.FC<DrawProps> = ({
 					<g transform={`translate(${width / 2}, ${height / 2})`}>
 						{/* Outer shadow for depth */}
 						<circle r={radius + 12} fill="rgba(0,0,0,0.2)" />
-						
+
 						{/* Outer rim - thick border with gradient feel */}
 						<circle r={radius + 10} fill="#FFA500" stroke="#1a1a1a" strokeWidth="6" />
 						<circle r={radius + 5} fill="#FFD700" stroke="#1a1a1a" strokeWidth="3" />
-						
+
 						{/* Decorative studs around the rim - more playful */}
 						{decorativeDots?.map((dot, idx) => (
 							<g key={`stud-${dot.angle.toFixed(2)}`}>
@@ -275,7 +276,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r="15" fill="#1a1a1a" />
 					</g>
 				</svg>
-				
+
 				{/* Flashing Name Overlay - Only in virtual mode during spin */}
 				{isVirtualMode && flashingName && (
 					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -322,4 +323,3 @@ const SpinWheel: React.FC<DrawProps> = ({
 };
 
 export default SpinWheel;
-
