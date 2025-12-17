@@ -6,8 +6,8 @@ import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
 import { ContractorFormContent } from "./contractor-form-dialog";
-import { columns } from "./table/columns";
-import { DataTable } from "./table/data-table";
+import { DataTable } from "./table/exhibitor-contractor-table";
+import { columns } from "./table/exhibitor-contractor-table-columns";
 
 interface ContractorClientWrapperProps {
 	contractors: ExhibitionContractor[];
