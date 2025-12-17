@@ -7,13 +7,12 @@ import {
 	Item,
 	ItemActions,
 	ItemContent,
-	ItemDescription,
 	ItemTitle,
 } from "@/components/ui/item";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import { TeamMemberActionsMenu } from "./action-menu";
-import type { TeamMember } from "./columns";
+import type { TeamMember } from "./team-member-table-columns";
 
 interface TeamMemberItemProps {
 	member: TeamMember;

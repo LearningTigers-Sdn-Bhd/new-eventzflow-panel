@@ -23,8 +23,8 @@ import {
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteMember, toggleMemberStatus } from "@/lib/api/team";
-import type { TeamMember } from "./columns";
 import EditMemberForm from "./edit-member-form";
+import type { TeamMember } from "./team-member-table-columns";
 
 interface TeamMemberActionsMenuProps {
 	member: TeamMember;
