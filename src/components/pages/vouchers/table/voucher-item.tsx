@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import { VoucherActionsMenu } from "./action-menu";
-import type { Voucher } from "./columns";
+import type { Voucher } from "./event-voucher-table-columns";
 
 interface VoucherItemProps {
 	voucher: Voucher;
