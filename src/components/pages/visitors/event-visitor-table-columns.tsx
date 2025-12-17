@@ -1,35 +1,17 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import type { Visitor } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
-import { VisitorActionsMenu } from "./action-menu";
+import { VisitorActionsMenu } from "./event-visitor-action-menu";
 
 export function generateColumns(): ColumnDef<Visitor>[] {
 	return [
 		{
 			accessorKey: "full_name",
 			size: 200,
-			header: ({ column }) => (
-				<div className="flex items-center gap-2">
-					<p className="font-medium">Name</p>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="rounded-none"
-					>
-						<ArrowDown
-							className={cn(
-								"size-4 transition-transform",
-								column.getIsSorted() === "asc" && "-rotate-180",
-							)}
-						/>
-					</Button>
-				</div>
-			),
+			header: ({ column }) => <SortableHeader column={column} label="Name" />,
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1">
 					<div className="truncate font-medium">
@@ -54,28 +36,7 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 		{
 			accessorKey: "email",
 			size: 250,
-			header: ({ column }) => {
-				return (
-					<div className="flex items-center gap-2">
-						<p className="font-medium">Email</p>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() =>
-								column.toggleSorting(column.getIsSorted() === "asc")
-							}
-							className="rounded-none"
-						>
-							<ArrowDown
-								className={cn(
-									"size-4 transition-transform",
-									column.getIsSorted() === "asc" && "-rotate-180",
-								)}
-							/>
-						</Button>
-					</div>
-				);
-			},
+			header: ({ column }) => <SortableHeader column={column} label="Email" />,
 			cell: ({ row }) => {
 				const email = row.getValue("email") as string | undefined;
 				return (
@@ -93,28 +54,9 @@ export function generateColumns(): ColumnDef<Visitor>[] {
 		{
 			accessorKey: "created_at",
 			size: 180,
-			header: ({ column }) => {
-				return (
-					<div className="flex items-center gap-2">
-						<p className="font-medium">Created At</p>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() =>
-								column.toggleSorting(column.getIsSorted() === "asc")
-							}
-							className="rounded-none"
-						>
-							<ArrowDown
-								className={cn(
-									"size-4 transition-transform",
-									column.getIsSorted() === "asc" && "-rotate-180",
-								)}
-							/>
-						</Button>
-					</div>
-				);
-			},
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Created At" />
+			),
 			cell: ({ row }) => {
 				const date = new Date(row.getValue("created_at"));
 
