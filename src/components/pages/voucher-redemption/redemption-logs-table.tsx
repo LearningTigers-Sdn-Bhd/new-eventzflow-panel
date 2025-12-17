@@ -6,8 +6,7 @@ import { useParams } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
-import { columns } from "./table/columns";
-import { DataTable } from "./table/data-table";
+import { DataTable } from "./table/voucher-log-table";
 
 /**
  * Table component to display voucher redemption logs
@@ -75,5 +74,5 @@ export function RedemptionLogsTable() {
 	}
 
 	// Render data table
-	return <DataTable columns={columns} data={logs || []} />;
+	return <DataTable data={logs || []} />;
 }

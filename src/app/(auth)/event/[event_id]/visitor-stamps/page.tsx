@@ -2,8 +2,7 @@
 
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/visitor-stamps/columns";
-import { DataTable } from "@/components/pages/visitor-stamps/data-table";
+import { DataTable } from "@/components/pages/visitor-stamps/stamp-log-table";
 import { Button } from "@/components/ui/button";
 import { useEventStamps } from "@/hooks/use-visitor-stamps";
 
@@ -14,12 +13,7 @@ interface VisitorStampsPageProps {
 export default function VisitorStampsPage({ params }: VisitorStampsPageProps) {
 	const { event_id } = use(params);
 
-	const {
-		data: visitorStamps,
-		isLoading,
-		error,
-		refetch,
-	} = useEventStamps(event_id);
+	const { data: visitorStamps, isLoading, error } = useEventStamps(event_id);
 
 	return (
 		<div className="space-y-4">
@@ -37,12 +31,7 @@ export default function VisitorStampsPage({ params }: VisitorStampsPageProps) {
 					}
 				/>
 			) : (
-				<DataTable
-					columns={columns}
-					data={visitorStamps || []}
-					eventId={event_id}
-					onRefetch={refetch}
-				/>
+				<DataTable data={visitorStamps || []} />
 			)}
 		</div>
 	);

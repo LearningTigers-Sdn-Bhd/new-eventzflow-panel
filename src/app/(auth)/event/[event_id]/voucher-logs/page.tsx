@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Loader2, Receipt, RefreshCw } from "lucide-react";
 import { use } from "react";
 import { EmptyState } from "@/components/data-state";
-import { columns } from "@/components/pages/voucher-redemption/table/columns";
-import { DataTable } from "@/components/pages/voucher-redemption/table/data-table";
+import { DataTable } from "@/components/pages/voucher-redemption/table/voucher-log-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
@@ -89,7 +88,7 @@ export default function VoucherLogsPage({
 
 	return (
 		<div className="space-y-4">
-			<DataTable columns={columns} data={logs || []} />
+			<DataTable data={logs || []} />
 		</div>
 	);
 }

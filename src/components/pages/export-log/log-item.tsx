@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/item";
 import { downloadExportLog } from "@/lib/api/event/export-log";
 import { cn } from "@/lib/utils";
-import type { ExportLogs } from "./columns";
+import type { ExportLogs } from "./export-log-table-columns";
 
 interface ExportLogItemProps {
 	exportLog: ExportLogs;
