@@ -19,7 +19,7 @@ import {
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import { EventStaffActionsMenu } from "./action-menu";
-import type { EventStaffMember } from "./columns";
+import type { EventStaffMember } from "./event-staff-table-columns";
 
 interface EventStaffItemProps {
 	member: EventStaffMember;

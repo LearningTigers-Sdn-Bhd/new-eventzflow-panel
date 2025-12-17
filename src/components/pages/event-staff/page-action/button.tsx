@@ -34,10 +34,10 @@ export function EventStaffPageButton() {
 	}
 
 	return (
-		<div className="flex w-full items-center gap-2 lg:w-auto">
+		<div className="flex w-full flex-col items-center gap-2 md:w-auto md:flex-row">
 			<Button
 				onClick={handleAssignStaff}
-				className="w-full rounded-none lg:w-auto"
+				className="w-full rounded-none py-6 md:w-auto md:py-4"
 			>
 				<UserPlus className="mr-2 h-4 w-4" />
 				Assign Staff
