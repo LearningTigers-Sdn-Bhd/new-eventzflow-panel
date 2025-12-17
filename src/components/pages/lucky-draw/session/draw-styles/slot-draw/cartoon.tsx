@@ -55,7 +55,7 @@ export const SlotDraw = ({
 	}, []);
 
 	return (
-		<div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
+		<div className="flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden p-4">
 			{/* Scaling Container - preserves aspect ratio and scales across viewports */}
 			<div
 				ref={scaleContainerRef}

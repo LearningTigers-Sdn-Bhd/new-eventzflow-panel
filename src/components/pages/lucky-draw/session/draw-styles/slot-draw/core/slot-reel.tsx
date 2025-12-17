@@ -56,8 +56,8 @@ export const SlotReel = ({
 
 			{/* Winner Text Overlay - appears above gradient */}
 			{state === DrawState.WON && reel.length > 0 && (
-				<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-					<span className="max-w-[85%] truncate text-center font-black text-2xl text-black uppercase tracking-widest">
+				<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">
+					<span className="max-w-full truncate text-center font-black text-xl text-black uppercase tracking-widest">
 						{reel[reel.length - 2]?.label}
 					</span>
 				</div>
@@ -73,7 +73,7 @@ export const SlotReel = ({
 					WebkitMaskImage:
 						"linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
 				}}
-				className="flex w-full flex-col"
+				className="flex min-w-0 w-full flex-col"
 			>
 				{isEmpty
 					? // Empty State Placeholders
@@ -91,14 +91,14 @@ export const SlotReel = ({
 							<div
 								key={id}
 								className={cn(
-									"flex w-full shrink-0 items-center justify-center text-center font-bold uppercase tracking-widest transition-colors duration-300",
+									"flex w-full shrink-0 items-center justify-center px-2 text-center font-bold uppercase tracking-widest transition-colors duration-300",
 									state === DrawState.WON && index === reel.length - 2
 										? "text-black opacity-0"
 										: "text-gray-400",
 								)}
 								style={{ height: `${itemHeight}px` }}
 							>
-								<span className="max-w-[85%] truncate font-bold text-2xl">
+								<span className="max-w-full truncate px-2 font-bold text-xl">
 									{label}
 								</span>
 							</div>

@@ -40,6 +40,10 @@ const SpinWheel: React.FC<DrawProps> = ({
 		handleTransitionEnd,
 		isEmpty,
 		decorativeDots,
+		// Virtual mode features
+		isVirtualMode,
+		flashingName,
+		participantCount,
 	} = useWheel(
 		{ participants, onDrawComplete, isDrawing },
 		{
@@ -68,6 +72,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	return (
 		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
+
 			{/* Static Cartoon Pointer - No animation */}
 			<div 
 				className="pointer-events-none absolute -top-6 left-1/2 z-20"
@@ -197,13 +202,13 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r={radius - 13} fill="none" stroke="#1a1a1a" strokeWidth="5" />
 						<circle r={radius - 18} fill="none" stroke="#FFD700" strokeWidth="2" />
 
-						{/* Slices with thick black borders */}
+						{/* Slices with thick black borders - In virtual mode, don't show names */}
 						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
-							const participant = internalParticipants.find(
-								(p) => p.name === d.data,
-							);
+							const participant = !isVirtualMode
+								? internalParticipants.find((p) => p.name === d.data)
+								: null;
 							return (
-								<g key={participant?.publicId || i}>
+								<g key={isVirtualMode ? `segment-${i}` : (participant?.publicId || i)}>
 									{/* Slice fill - clean and simple */}
 									<path
 										d={arcGenerator(d) || undefined}
@@ -213,48 +218,50 @@ const SpinWheel: React.FC<DrawProps> = ({
 										strokeLinejoin="round"
 									/>
 
-									{/* Text Labels - Comic style with stroke */}
-									<g transform={`translate(${arcGenerator.centroid(d)})`}>
-										<g
-											transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
-										>
-											{/* Text outline (stroke) */}
-											<text
-												transform={"rotate(-90)"}
-												textAnchor="middle"
-												dominantBaseline="middle"
-												className="select-none font-black text-xs"
-												style={{
-													fontSize:
-														internalParticipants.length > 12 ? "11px" : "16px",
-													fill: "none",
-													stroke: "#1a1a1a",
-													strokeWidth: "4",
-													strokeLinejoin: "round",
-													paintOrder: "stroke",
-												}}
+									{/* Text Labels - Comic style with stroke - Only show in non-virtual mode */}
+									{!isVirtualMode && (
+										<g transform={`translate(${arcGenerator.centroid(d)})`}>
+											<g
+												transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
 											>
-												{d.data.length > 15
-													? `${d.data.substring(0, 12)}...`
-													: d.data}
-											</text>
-											{/* Text fill (white) */}
-											<text
-												transform={"rotate(-90)"}
-												textAnchor="middle"
-												dominantBaseline="middle"
-												className="select-none fill-white font-black text-xs"
-												style={{
-													fontSize:
-														internalParticipants.length > 12 ? "11px" : "16px",
-												}}
-											>
-												{d.data.length > 15
-													? `${d.data.substring(0, 12)}...`
-													: d.data}
-											</text>
+												{/* Text outline (stroke) */}
+												<text
+													transform={"rotate(-90)"}
+													textAnchor="middle"
+													dominantBaseline="middle"
+													className="select-none font-black text-xs"
+													style={{
+														fontSize:
+															internalParticipants.length > 12 ? "11px" : "16px",
+														fill: "none",
+														stroke: "#1a1a1a",
+														strokeWidth: "4",
+														strokeLinejoin: "round",
+														paintOrder: "stroke",
+													}}
+												>
+													{d.data.length > 15
+														? `${d.data.substring(0, 12)}...`
+														: d.data}
+												</text>
+												{/* Text fill (white) */}
+												<text
+													transform={"rotate(-90)"}
+													textAnchor="middle"
+													dominantBaseline="middle"
+													className="select-none fill-white font-black text-xs"
+													style={{
+														fontSize:
+															internalParticipants.length > 12 ? "11px" : "16px",
+													}}
+												>
+													{d.data.length > 15
+														? `${d.data.substring(0, 12)}...`
+														: d.data}
+												</text>
+											</g>
 										</g>
-									</g>
+									)}
 								</g>
 							);
 						})}
@@ -268,6 +275,17 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r="15" fill="#1a1a1a" />
 					</g>
 				</svg>
+				
+				{/* Flashing Name Overlay - Only in virtual mode during spin */}
+				{isVirtualMode && flashingName && (
+					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+						<div className="max-w-[70%] rounded-xl border-4 border-black bg-gradient-to-br from-yellow-400 to-orange-500 px-4 py-3 shadow-2xl">
+							<p className="animate-pulse text-center font-black text-lg text-white drop-shadow-[2px_2px_0px_#000]">
+								{flashingName}
+							</p>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Spin Button */}
@@ -288,8 +306,20 @@ const SpinWheel: React.FC<DrawProps> = ({
 					)}
 				</div>
 			)}
+
+			{/* Participant Count Badge - Only show in virtual mode, placed below button to avoid arrow overlap */}
+			{isVirtualMode && (
+				<div className="mt-4 flex items-center gap-2 rounded-full border-4 border-black bg-gradient-to-r from-yellow-300 to-orange-300 px-4 py-2 shadow-lg">
+					<span className="font-black text-gray-900 text-sm">Drawing from</span>
+					<span className="rounded-full bg-red-500 px-3 py-1 font-black text-white text-sm shadow-md">
+						{participantCount.toLocaleString()}
+					</span>
+					<span className="font-black text-gray-900 text-sm">participants</span>
+				</div>
+			)}
 		</div>
 	);
 };
 
 export default SpinWheel;
+

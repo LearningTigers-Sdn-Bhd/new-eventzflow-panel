@@ -342,7 +342,7 @@ export function LuckyDrawWrapper({
 
 			{/* Draw Area */}
 			<div
-				className="flex h-screen flex-1 flex-col items-center justify-center gap-10 rounded-none border bg-card p-0 md:p-6"
+				className="flex h-screen flex-1 flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-0 md:p-6"
 				style={backgroundStyle}
 			>
 				<div className="flex items-start justify-center">
@@ -356,7 +356,7 @@ export function LuckyDrawWrapper({
 						</div>
 					)}
 				</div>
-				<div className="z-10 flex h-[75%] w-full flex-col items-center justify-center pb-18">
+				<div className="z-10 flex h-[75%] w-full flex-col items-center justify-center overflow-hidden pb-18">
 					{renderDrawComponent()}
 				</div>
 			</div>

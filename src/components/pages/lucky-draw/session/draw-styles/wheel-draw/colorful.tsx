@@ -60,6 +60,10 @@ const SpinWheel: React.FC<DrawProps> = ({
 		decorativeDots,
 		pointerPosition,
 		pointerIcon: PointerIcon,
+		// Virtual mode features
+		isVirtualMode,
+		flashingName,
+		participantCount,
 	} = useWheel(
 		{ participants, onDrawComplete, isDrawing },
 		{
@@ -91,6 +95,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	return (
 		<div className="relative mx-auto flex w-full max-w-[450px] flex-col items-center justify-center">
+
 			{/* The Wheel */}
 			<div className="relative aspect-square w-full max-w-[600px]">
 				{/* Pointer - always rendered inside wheel container */}
@@ -151,14 +156,14 @@ const SpinWheel: React.FC<DrawProps> = ({
 							/>
 						))}
 
-						{/* Slices */}
+						{/* Slices - In virtual mode, don't show names */}
 						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
 							// Find the participant for this arc to use as key
-							const participant = internalParticipants.find(
-								(p) => p.name === d.data,
-							);
+							const participant = !isVirtualMode
+								? internalParticipants.find((p) => p.name === d.data)
+								: null;
 							return (
-								<g key={participant?.publicId || i}>
+								<g key={isVirtualMode ? `segment-${i}` : (participant?.publicId || i)}>
 									<path
 										d={arcGenerator(d) || undefined}
 										fill={getSliceColor(i)}
@@ -170,28 +175,30 @@ const SpinWheel: React.FC<DrawProps> = ({
 											fill="rgba(0, 0, 0, 0.15)"
 										/>
 									)}
-									{/* Text Labels */}
-									<g transform={`translate(${arcGenerator.centroid(d)})`}>
-										<g
-											transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
-										>
-											{/* Rotate text to align with wedge center angle, then adjust for readability */}
-											<text
-												transform={"rotate(-90)"} // Orient text outwards
-												textAnchor="middle"
-												dominantBaseline="middle"
-												className="select-none fill-black font-semibold text-xs"
-												style={{
-													fontSize:
-														internalParticipants.length > 12 ? "10px" : "14px",
-												}}
+									{/* Text Labels - Only show in non-virtual mode */}
+									{!isVirtualMode && (
+										<g transform={`translate(${arcGenerator.centroid(d)})`}>
+											<g
+												transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
 											>
-												{d.data.length > 15
-													? `${d.data.substring(0, 12)}...`
-													: d.data}
-											</text>
+												{/* Rotate text to align with wedge center angle, then adjust for readability */}
+												<text
+													transform={"rotate(-90)"} // Orient text outwards
+													textAnchor="middle"
+													dominantBaseline="middle"
+													className="select-none fill-black font-semibold text-xs"
+													style={{
+														fontSize:
+															internalParticipants.length > 12 ? "10px" : "14px",
+													}}
+												>
+													{d.data.length > 15
+														? `${d.data.substring(0, 12)}...`
+														: d.data}
+												</text>
+											</g>
 										</g>
-									</g>
+									)}
 								</g>
 							);
 						})}
@@ -201,10 +208,32 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r="40" fill="#ffac63" />
 					</g>
 				</svg>
+				
+				{/* Flashing Name Overlay - Only in virtual mode during spin */}
+				{isVirtualMode && flashingName && (
+					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+						<div className="max-w-[70%] rounded-xl bg-gradient-to-br from-orange-600 to-red-600 px-4 py-3 shadow-2xl">
+							<p className="animate-pulse text-center font-bold text-lg text-white drop-shadow-lg">
+								{flashingName}
+							</p>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Stand */}
 			<WheelStand standColor="#FF7F50" baseColor="#ffac63" />
+
+			{/* Participant Count Badge - Only show in virtual mode, placed below stand to avoid arrow overlap */}
+			{isVirtualMode && (
+				<div className="mt-2 flex items-center gap-2 rounded-full border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50 px-4 py-2 shadow-sm">
+					<span className="font-semibold text-orange-700 text-sm">Drawing from</span>
+					<span className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 font-bold text-white text-sm shadow-sm">
+						{participantCount.toLocaleString()}
+					</span>
+					<span className="font-semibold text-orange-700 text-sm">participants</span>
+				</div>
+			)}
 
 			{/* Spin Button */}
 			{onDraw && (
@@ -229,3 +258,4 @@ const SpinWheel: React.FC<DrawProps> = ({
 };
 
 export default SpinWheel;
+

@@ -156,7 +156,7 @@ export const ColorfulSlotMachine = ({
 								</div>
 
 								{/* Center Content Area */}
-								<div className="flex-1 bg-red-950 p-1">
+								<div className="min-w-0 flex-1 overflow-hidden bg-red-950 p-1">
 									<div className="relative overflow-hidden rounded-lg border-2 border-yellow-900 bg-gradient-to-b from-slate-100 via-white to-slate-50">
 										{/* Screen Reflection Overlay */}
 										<div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/20 via-transparent to-transparent" />

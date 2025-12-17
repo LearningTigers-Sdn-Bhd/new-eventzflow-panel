@@ -2,7 +2,7 @@
 
 import * as d3 from "d3";
 import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IoTriangleSharp } from "react-icons/io5";
 import { TbTriangleFilled } from "react-icons/tb";
 import {
@@ -27,6 +27,9 @@ export interface UseWheelOptions {
 	decorativeDotsCount?: number; // Number of decorative dots (default: 22)
 	decorativeDotsRadius?: number; // Radius for decorative dots
 	decorativeDotsStartAngle?: number; // Starting angle for dots (default: -90)
+	// Virtual wheel options (for large participant counts)
+	virtualThreshold?: number; // Participant count threshold to switch to virtual mode (default: 20)
+	virtualSegmentCount?: number; // Number of segments in virtual mode (default: 10)
 }
 
 export interface UseWheelReturn {
@@ -59,6 +62,10 @@ export interface UseWheelReturn {
 	>;
 	borderRingData?: { startAngle: number; endAngle: number };
 	decorativeDots?: Array<{ x: number; y: number; angle: number }>;
+	// Virtual wheel features (for large participant counts)
+	isVirtualMode: boolean; // Whether the wheel is in virtual mode
+	flashingName: string | null; // Currently flashing participant name during spin
+	participantCount: number; // Total number of participants
 }
 
 export function useWheel(
@@ -76,6 +83,11 @@ export function useWheel(
 	const [drawState, setDrawState] = useState<DrawState>(DrawState.IDLE);
 	const [internalParticipants, setInternalParticipants] =
 		useState<Participant[]>(participants);
+	
+	// Virtual mode state for flashing names
+	const [flashingName, setFlashingName] = useState<string | null>(null);
+	const flashingIntervalRef = useRef<number | null>(null);
+	const preSelectedWinnerRef = useRef<Participant | null>(null);
 
 	const pointerTimeoutRef = useRef<number | null>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -85,6 +97,14 @@ export function useWheel(
 	const rotationRef = useRef(0);
 
 	const radius = 250; // SVG coordinate system radius
+	
+	// Virtual mode configuration
+	const virtualThreshold = options?.virtualThreshold ?? 20;
+	const virtualSegmentCount = options?.virtualSegmentCount ?? 10;
+	
+	// Determine if we should use virtual mode (for large participant counts)
+	const isVirtualMode = participants.length > virtualThreshold;
+	const participantCount = participants.length;
 
 	// Sync participants when IDLE to handle manual updates (e.g. adding names)
 	// But do NOT sync when WON (to preserve winner on screen)
@@ -121,10 +141,18 @@ export function useWheel(
 		}
 	}, [drawState]);
 
-	// Extract participant names for display
+	// Generate virtual segment names (just numbered segments for display)
+	const virtualSegmentNames = useMemo(() => {
+		return Array.from({ length: virtualSegmentCount }, (_, i) => `Segment ${i + 1}`);
+	}, [virtualSegmentCount]);
+
+	// Extract participant names for display - use virtual segments in virtual mode
 	const participantNames = useMemo(() => {
+		if (isVirtualMode) {
+			return virtualSegmentNames;
+		}
 		return internalParticipants.map((p) => p.name);
-	}, [internalParticipants]);
+	}, [internalParticipants, isVirtualMode, virtualSegmentNames]);
 
 	// Generate pie slices
 	const arcs = useMemo(() => {
@@ -142,6 +170,13 @@ export function useWheel(
 		.arc<d3.PieArcDatum<string>>()
 		.innerRadius(20) // Small hole in center
 		.outerRadius(radius - gapBetweenWheelAndOuter); // Leave room for border
+	
+	// Helper function to get random participant name for flashing
+	const getRandomParticipantName = useCallback(() => {
+		if (participants.length === 0) return null;
+		const randomIndex = Math.floor(Math.random() * participants.length);
+		return participants[randomIndex].name;
+	}, [participants]);
 
 	// Trigger spin animation when isDrawing becomes true
 	useEffect(() => {
@@ -156,6 +191,18 @@ export function useWheel(
 			if (pointerTimeoutRef.current) {
 				clearTimeout(pointerTimeoutRef.current);
 				pointerTimeoutRef.current = null;
+			}
+			
+			// In virtual mode, pre-select the winner now
+			if (isVirtualMode) {
+				const randomIndex = Math.floor(Math.random() * participants.length);
+				preSelectedWinnerRef.current = participants[randomIndex];
+				
+				// Start flashing random names during spin
+				setFlashingName(getRandomParticipantName());
+				flashingIntervalRef.current = window.setInterval(() => {
+					setFlashingName(getRandomParticipantName());
+				}, 80); // Flash every 80ms for slot-machine effect
 			}
 
 			// Nudge pointer counter-clockwise (left) while spinning
@@ -178,6 +225,29 @@ export function useWheel(
 				setPointerTransition("transform 0.3s ease-out");
 				setPointerRotation(0);
 			}, returnDelay);
+			
+			// In virtual mode, slow down the name flashing near the end
+			if (isVirtualMode) {
+				// At 3 seconds, slow down to 150ms
+				window.setTimeout(() => {
+					if (flashingIntervalRef.current) {
+						clearInterval(flashingIntervalRef.current);
+						flashingIntervalRef.current = window.setInterval(() => {
+							setFlashingName(getRandomParticipantName());
+						}, 150);
+					}
+				}, 3000);
+				
+				// At 3.5 seconds, slow down more to 300ms
+				window.setTimeout(() => {
+					if (flashingIntervalRef.current) {
+						clearInterval(flashingIntervalRef.current);
+						flashingIntervalRef.current = window.setInterval(() => {
+							setFlashingName(getRandomParticipantName());
+						}, 300);
+					}
+				}, 3500);
+			}
 		}
 
 		prevIsDrawingRef.current = isDrawing;
@@ -185,12 +255,31 @@ export function useWheel(
 		return () => {
 			// Cleanup only on unmount, not on every effect run
 		};
-	}, [isDrawing, participants, drawState]);
+	}, [isDrawing, participants, drawState, isVirtualMode, getRandomParticipantName]);
 
 	const handleTransitionEnd = () => {
 		if (drawState !== DrawState.SPINNING) return;
+		
+		// Stop the flashing name animation
+		if (flashingIntervalRef.current) {
+			clearInterval(flashingIntervalRef.current);
+			flashingIntervalRef.current = null;
+		}
 
-		// Calculate winner
+		// In virtual mode, use the pre-selected winner
+		if (isVirtualMode && preSelectedWinnerRef.current) {
+			const winner = preSelectedWinnerRef.current;
+			setFlashingName(winner.name); // Show winner's name
+			setDrawState(DrawState.WON);
+			// Delay callback longer to allow winner name to be visible (2 seconds)
+			setTimeout(() => {
+				onDrawComplete(winner);
+				setFlashingName(null);
+			}, 2000);
+			return;
+		}
+
+		// Calculate winner (original logic for non-virtual mode)
 		// CSS transform: rotate() rotates counter-clockwise for positive values.
 		// The pointer position is configurable (default 0 = 12 o'clock, 90 = 3 o'clock).
 		// SVG/d3 coordinates: 0 = 12 o'clock, 90 = 3 o'clock, 180 = 6 o'clock, 270 = 9 o'clock
@@ -256,8 +345,13 @@ export function useWheel(
 				clearTimeout(pointerTimeoutRef.current);
 				pointerTimeoutRef.current = null;
 			}
+			if (flashingIntervalRef.current) {
+				clearInterval(flashingIntervalRef.current);
+				flashingIntervalRef.current = null;
+			}
 			setPointerTransition("none");
 			setPointerRotation(0);
+			// Don't clear flashingName here to allow winner name to show briefly
 		}
 	}, [isDrawing]);
 
@@ -392,5 +486,9 @@ export function useWheel(
 		decorativeDots,
 		pointerPosition,
 		pointerIcon,
+		// Virtual wheel features
+		isVirtualMode,
+		flashingName,
+		participantCount,
 	};
 }

@@ -19,7 +19,7 @@ export const CartoonSlotMachine = ({
 	return (
 		<div className="mx-auto flex w-full max-w-xl flex-row">
 			{/* The Machine Case */}
-			<div className="flex h-fit flex-col">
+			<div className="flex h-fit min-w-0 flex-1 flex-col">
 				{/* The Machine Case Bell */}
 				<div className="flex flex-col">
 					<div className="mx-auto h-2 w-10 border-[#530a1f] border-b-8" />
@@ -44,8 +44,8 @@ export const CartoonSlotMachine = ({
 							<div className="w-1/6 border-[#fe868e] border-t-8" />
 						</div>
 					</div>
-					<div className="flex-1 border-8 border-[#e9862d] bg-[#ffae07]">
-						<div className="flex h-full min-w-xs flex-col items-center justify-center border-2 border-[#e9862d] bg-[#ffae07] overflow-hidden">
+					<div className="min-w-0 flex-1 border-8 border-[#e9862d] bg-[#ffae07]">
+						<div className="flex h-full flex-col items-center justify-center overflow-hidden border-2 border-[#e9862d] bg-[#ffae07]">
 							<motion.span
 								key={isCelebrating ? "winner" : isDrawing ? "spinning" : "ready"}
 								initial={{ scale: 0.8, opacity: 0 }}
@@ -85,9 +85,9 @@ export const CartoonSlotMachine = ({
 					</div>
 				</div>
 				{/* The Machine Case Center */}
-				<div className="flex w-full flex-row border-[#530a1f] border-x-8 border-t-8 bg-[#d3181f]">
+				<div className="flex min-w-0 w-full flex-row border-[#530a1f] border-x-8 border-t-8 bg-[#d3181f]">
 					<div className="w-5 border-[#771f07] border-r-8 bg-[#e98628]" />
-					<div className="relative flex-1 border-[#fe868e] border-t-8 p-6">
+					<div className="relative min-w-0 flex-1 border-[#fe868e] border-t-8 p-6">
 						<div className="absolute inset-0 grid grid-cols-4 gap-x-4">
 							<div className="flex w-1/2 flex-col border-[#fe868e] border-t-8">
 								<div className="w-1/2 border-[#fe868e] border-t-8" />
@@ -97,7 +97,7 @@ export const CartoonSlotMachine = ({
 							<div className="w-1/3 border-[#fe868e] border-t-8" />
 							<div className="w-1/6 border-[#fe868e] border-t-8" />
 						</div>
-						<div className="z-20 border-8 border-[#2e323d]">
+						<div className="z-20 w-full overflow-hidden border-8 border-[#2e323d]">
 							{/* Slot for reel component */}
 							{children}
 						</div>

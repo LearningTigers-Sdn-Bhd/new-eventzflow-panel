@@ -36,6 +36,10 @@ const SpinWheel: React.FC<DrawProps> = ({
 		handleTransitionEnd,
 		isEmpty,
 		decorativeDots,
+		// Virtual mode features
+		isVirtualMode,
+		flashingName,
+		participantCount,
 	} = useWheel(
 		{ participants, onDrawComplete, isDrawing },
 		{
@@ -64,6 +68,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	return (
 		<div className="relative mx-auto flex w-full max-w-[500px] flex-col items-center justify-center">
+
 			{/* Static Pointer - pointing DOWN */}
 			<div 
 				className="pointer-events-none absolute -top-6 left-1/2 z-20"
@@ -131,13 +136,13 @@ const SpinWheel: React.FC<DrawProps> = ({
 							</g>
 						))}
 
-						{/* Slices */}
+						{/* Slices - In virtual mode, don't show names */}
 						{arcs.map((d: d3.PieArcDatum<string>, i: number) => {
-							const participant = internalParticipants.find(
-								(p) => p.name === d.data,
-							);
+							const participant = !isVirtualMode 
+								? internalParticipants.find((p) => p.name === d.data)
+								: null;
 							return (
-								<g key={participant?.publicId || i}>
+								<g key={isVirtualMode ? `segment-${i}` : (participant?.publicId || i)}>
 									{/* Slice fill */}
 									<path
 										d={arcGenerator(d) || undefined}
@@ -145,27 +150,29 @@ const SpinWheel: React.FC<DrawProps> = ({
 										stroke="#2a2a2a"
 										strokeWidth="2"
 									/>
-									{/* Text Labels */}
-									<g transform={`translate(${arcGenerator.centroid(d)})`}>
-										<g
-											transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
-										>
-											<text
-												transform={"rotate(-90)"}
-												textAnchor="middle"
-												dominantBaseline="middle"
-												className="select-none fill-gray-800 font-semibold text-xs"
-												style={{
-													fontSize:
-														internalParticipants.length > 12 ? "11px" : "15px",
-												}}
+									{/* Text Labels - Only show in non-virtual mode */}
+									{!isVirtualMode && (
+										<g transform={`translate(${arcGenerator.centroid(d)})`}>
+											<g
+												transform={`rotate(${(((d.startAngle + d.endAngle) / 2) * 180) / Math.PI})`}
 											>
-												{d.data.length > 15
-													? `${d.data.substring(0, 12)}...`
-													: d.data}
-											</text>
+												<text
+													transform={"rotate(-90)"}
+													textAnchor="middle"
+													dominantBaseline="middle"
+													className="select-none fill-gray-800 font-semibold text-xs"
+													style={{
+														fontSize:
+															internalParticipants.length > 12 ? "11px" : "15px",
+													}}
+												>
+													{d.data.length > 15
+														? `${d.data.substring(0, 12)}...`
+														: d.data}
+												</text>
+											</g>
 										</g>
-									</g>
+									)}
 								</g>
 							);
 						})}
@@ -176,6 +183,17 @@ const SpinWheel: React.FC<DrawProps> = ({
 						<circle r="8" fill="#ffffff" />
 					</g>
 				</svg>
+				
+				{/* Flashing Name Overlay - Only in virtual mode during spin */}
+				{isVirtualMode && flashingName && (
+					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+						<div className="max-w-[70%] rounded-lg bg-black/80 px-4 py-3 shadow-2xl backdrop-blur-sm">
+							<p className="animate-pulse text-center font-bold text-lg text-white">
+								{flashingName}
+							</p>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Spin Button */}
@@ -196,8 +214,20 @@ const SpinWheel: React.FC<DrawProps> = ({
 					)}
 				</div>
 			)}
+
+			{/* Participant Count Badge - Only show in virtual mode, placed below button to avoid arrow overlap */}
+			{isVirtualMode && (
+				<div className="mt-4 flex items-center gap-2 rounded-full border-2 border-gray-300 bg-white px-4 py-2 shadow-sm">
+					<span className="font-semibold text-gray-600 text-sm">Drawing from</span>
+					<span className="rounded-full bg-gray-800 px-3 py-1 font-bold text-white text-sm">
+						{participantCount.toLocaleString()}
+					</span>
+					<span className="font-semibold text-gray-600 text-sm">participants</span>
+				</div>
+			)}
 		</div>
 	);
 };
 
 export default SpinWheel;
+
