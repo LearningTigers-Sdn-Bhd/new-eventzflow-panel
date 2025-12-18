@@ -57,7 +57,7 @@ export const SlotReel = ({
 			{/* Winner Text Overlay - appears above gradient */}
 			{state === DrawState.WON && reel.length > 0 && (
 				<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">
-					<span className="max-w-full truncate text-center font-black text-xl text-black uppercase tracking-widest">
+					<span className="max-w-full truncate text-center font-black text-black text-xl uppercase tracking-widest">
 						{reel[reel.length - 2]?.label}
 					</span>
 				</div>
@@ -73,7 +73,7 @@ export const SlotReel = ({
 					WebkitMaskImage:
 						"linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
 				}}
-				className="flex min-w-0 w-full flex-col"
+				className="flex w-full min-w-0 flex-col"
 			>
 				{isEmpty
 					? // Empty State Placeholders

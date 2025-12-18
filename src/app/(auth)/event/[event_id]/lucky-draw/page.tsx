@@ -3,8 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/lucky-draw/columns";
-import { DataTable } from "@/components/pages/lucky-draw/data-table";
+import { DataTable } from "@/components/pages/lucky-draw/draw-session-table";
 import { LuckyDrawPageButton } from "@/components/pages/lucky-draw/manage-session/index-create-button";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -50,7 +49,7 @@ export default function LuckyDrawPage({ params }: LuckyDrawPageProps) {
 					}
 				/>
 			) : (
-				<DataTable columns={columns} data={sessions || []} />
+				<DataTable data={sessions || []} />
 			)}
 		</div>
 	);

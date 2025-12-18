@@ -68,7 +68,7 @@ export const CartoonSlotMachine = ({
 								className={cn(
 									"font-black font-mono text-5xl uppercase tracking-wider",
 									isCelebrating && "text-red-700",
-									isDrawing && "text-orange-600 animate-pulse",
+									isDrawing && "animate-pulse text-orange-600",
 									!isDrawing && !isCelebrating && "text-black"
 								)}
 							>
@@ -85,7 +85,7 @@ export const CartoonSlotMachine = ({
 					</div>
 				</div>
 				{/* The Machine Case Center */}
-				<div className="flex min-w-0 w-full flex-row border-[#530a1f] border-x-8 border-t-8 bg-[#d3181f]">
+				<div className="flex w-full min-w-0 flex-row border-[#530a1f] border-x-8 border-t-8 bg-[#d3181f]">
 					<div className="w-5 border-[#771f07] border-r-8 bg-[#e98628]" />
 					<div className="relative min-w-0 flex-1 border-[#fe868e] border-t-8 p-6">
 						<div className="absolute inset-0 grid grid-cols-4 gap-x-4">
@@ -126,7 +126,7 @@ export const CartoonSlotMachine = ({
 						
 						{/* Info Text + Spin Button */}
 						<div className="flex items-center gap-3">
-							<p className="text-xs font-bold text-yellow-200 whitespace-nowrap">
+							<p className="whitespace-nowrap font-bold text-xs text-yellow-200">
 								{isCelebrating
 									? "🎉 Winner!"
 									: isDrawing
@@ -140,9 +140,9 @@ export const CartoonSlotMachine = ({
 							whileHover={canSpin ? { scale: 1.05 } : undefined}
 							whileTap={canSpin ? { scale: 0.95 } : undefined}
 							className={cn(
-								"relative overflow-hidden rounded-lg border-4 px-6 py-2 text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap",
+								"relative overflow-hidden whitespace-nowrap rounded-lg border-4 px-6 py-2 font-black text-sm uppercase tracking-wider transition-all",
 								canSpin
-									? "border-yellow-600 bg-gradient-to-b from-yellow-400 to-yellow-600 text-red-900 shadow-[0_4px_0_0_#854d0e] hover:from-yellow-300 hover:to-yellow-500 active:shadow-[0_2px_0_0_#854d0e] active:translate-y-[2px]"
+									? "border-yellow-600 bg-gradient-to-b from-yellow-400 to-yellow-600 text-red-900 shadow-[0_4px_0_0_#854d0e] hover:from-yellow-300 hover:to-yellow-500 active:translate-y-[2px] active:shadow-[0_2px_0_0_#854d0e]"
 									: "cursor-not-allowed border-gray-600 bg-gray-700 text-gray-500"
 							)}
 							aria-disabled={!canSpin}

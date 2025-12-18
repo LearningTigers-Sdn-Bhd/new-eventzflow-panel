@@ -172,7 +172,7 @@ export default function EditForm({ session }: EditFormProps) {
 					<FieldSeparator />
 						<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 							{/* Left Column: Form Fields */}
-							<div className="lg:col-span-2 space-y-8">
+							<div className="space-y-8 lg:col-span-2">
 								{/* Session Information Section */}
 								<div className="space-y-4">
 									<div>
@@ -311,7 +311,7 @@ export default function EditForm({ session }: EditFormProps) {
 													return (
 														<Field
 															data-invalid={isInvalid}
-															className="flex flex-row items-center justify-between border p-4 rounded-md"
+															className="flex flex-row items-center justify-between rounded-md border p-4"
 														>
 															<div className="space-y-0.5">
 																<FieldLabel htmlFor={field.name} className="text-base">
@@ -346,7 +346,7 @@ export default function EditForm({ session }: EditFormProps) {
 								{/* Draw Configuration Section */}
 								<div className="space-y-4">
 									<div>
-										<h3 className="font-semibold text-lg mt-4">Draw Configuration</h3>
+										<h3 className="mt-4 font-semibold text-lg">Draw Configuration</h3>
 										<p className="text-muted-foreground text-sm">
 											Customize the appearance and behavior of your lucky draw
 										</p>

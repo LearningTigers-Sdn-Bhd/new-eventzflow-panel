@@ -115,7 +115,7 @@ export const ColorfulSlotMachine = ({
 						
 						{/* Top Display Panel */}
 						<div className="mb-2 flex items-center justify-center rounded-xl border-2 border-yellow-600 bg-gradient-to-b from-red-800 to-red-950 px-5 py-3 shadow-inner">
-							<h2 className="text-lg font-bold tracking-wide text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+							<h2 className="font-bold text-lg text-yellow-400 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
 								LUCKY DRAW
 							</h2>
 						</div>
@@ -189,7 +189,7 @@ export const ColorfulSlotMachine = ({
 										{/* Winner Selection Line - Center Highlight */}
 										<motion.div
 											className={cn(
-												"pointer-events-none absolute inset-x-0 top-1/2 z-30 h-[34%] -translate-y-1/2 border-y-2",
+												"-translate-y-1/2 pointer-events-none absolute inset-x-0 top-1/2 z-30 h-[34%] border-y-2",
 												isCelebrating
 													? "border-emerald-500 bg-emerald-500/15"
 													: "border-red-500/60 bg-red-500/5"
@@ -215,7 +215,7 @@ export const ColorfulSlotMachine = ({
 										>
 											{/* Left Arrow Indicator */}
 											<motion.div 
-												className="absolute -left-1 top-1/2 -translate-y-1/2"
+												className="-left-1 -translate-y-1/2 absolute top-1/2"
 												animate={
 													isDrawing && !isCelebrating
 														? { x: [-2, 0, -2] }
@@ -228,13 +228,13 @@ export const ColorfulSlotMachine = ({
 												}}
 											>
 												<div className={cn(
-													"h-0 w-0 border-y-[8px] border-l-[10px] border-y-transparent",
+													"h-0 w-0 border-y-[8px] border-y-transparent border-l-[10px]",
 													isCelebrating ? "border-l-emerald-500" : "border-l-red-500"
 												)} />
 											</motion.div>
 											{/* Right Arrow Indicator */}
 											<motion.div 
-												className="absolute -right-1 top-1/2 -translate-y-1/2"
+												className="-right-1 -translate-y-1/2 absolute top-1/2"
 												animate={
 													isDrawing && !isCelebrating
 														? { x: [2, 0, 2] }
@@ -247,7 +247,7 @@ export const ColorfulSlotMachine = ({
 												}}
 											>
 												<div className={cn(
-													"h-0 w-0 border-y-[8px] border-r-[10px] border-y-transparent",
+													"h-0 w-0 border-y-[8px] border-y-transparent border-r-[10px]",
 													isCelebrating ? "border-r-emerald-500" : "border-r-red-500"
 												)} />
 											</motion.div>
@@ -310,9 +310,9 @@ export const ColorfulSlotMachine = ({
 								whileHover={canSpin ? { scale: 1.05 } : undefined}
 								whileTap={canSpin ? { scale: 0.95 } : undefined}
 								className={cn(
-									"relative overflow-hidden rounded-xl border-2 px-8 py-3 text-sm font-bold uppercase tracking-wider transition-all",
+									"relative overflow-hidden rounded-xl border-2 px-8 py-3 font-bold text-sm uppercase tracking-wider transition-all",
 									canSpin
-										? "border-red-400 bg-gradient-to-b from-red-500 to-red-600 text-white shadow-[0_4px_0_0_#991b1b,0_6px_20px_rgba(239,68,68,0.4)] hover:from-red-400 hover:to-red-500 active:shadow-[0_2px_0_0_#991b1b] active:translate-y-[2px]"
+										? "border-red-400 bg-gradient-to-b from-red-500 to-red-600 text-white shadow-[0_4px_0_0_#991b1b,0_6px_20px_rgba(239,68,68,0.4)] hover:from-red-400 hover:to-red-500 active:translate-y-[2px] active:shadow-[0_2px_0_0_#991b1b]"
 										: "cursor-not-allowed border-slate-600 bg-slate-700 text-slate-500"
 								)}
 								aria-disabled={!canSpin}
@@ -330,10 +330,10 @@ export const ColorfulSlotMachine = ({
 					</div>
 
 					{/* Decorative Corner Bolts */}
-					<div className="absolute left-3 top-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
-					<div className="absolute right-3 top-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
+					<div className="absolute top-3 left-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
+					<div className="absolute top-3 right-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
 					<div className="absolute bottom-3 left-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
-					<div className="absolute bottom-3 right-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
+					<div className="absolute right-3 bottom-3 h-3 w-3 rounded-full border border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-700 shadow-md" />
 				</div>
 			</div>
 		</div>

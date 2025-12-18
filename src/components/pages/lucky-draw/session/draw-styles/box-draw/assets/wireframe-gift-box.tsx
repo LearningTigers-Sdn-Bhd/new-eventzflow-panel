@@ -47,7 +47,7 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 	const leftTop = { x: startX - w, y: startY - h - boxH };
 
 	return (
-		<div className="relative flex items-center justify-center w-[400px] h-[500px]">
+		<div className="relative flex h-[500px] w-[400px] items-center justify-center">
 			{/* Shake Animation Container */}
 			<motion.div
 				className="relative"
@@ -112,7 +112,7 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 						x="200"
 						textAnchor="middle" 
 						dominantBaseline="middle" 
-						className="text-8xl font-black fill-slate-600"
+						className="fill-slate-600 font-black text-8xl"
 						style={{ fontFamily: "monospace", pointerEvents: 'none' }}
 						initial={{ y: 230, scale: 1, rotate: 0 }}
 						animate={{ 

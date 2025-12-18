@@ -26,7 +26,7 @@ export function SessionItem({ session }: SessionItemProps) {
 	};
 
 	return (
-		<div className="flex flex-col rounded-none border bg-card p-4 space-y-4">
+		<div className="flex flex-col space-y-4 rounded-none border bg-card p-4">
 			<div className="flex items-start justify-between">
 				<div className="flex items-center gap-3">
 					<div className="relative h-12 w-12 overflow-hidden rounded-none border bg-muted">
@@ -43,7 +43,7 @@ export function SessionItem({ session }: SessionItemProps) {
 						)}
 					</div>
 					<div>
-						<h3 className="font-semibold text-base line-clamp-1">
+						<h3 className="line-clamp-1 font-semibold text-base">
 							{session.title}
 						</h3>
 						<p className="text-muted-foreground text-sm">
@@ -53,37 +53,39 @@ export function SessionItem({ session }: SessionItemProps) {
 						</p>
 					</div>
 				</div>
-                <ActionMenu session={session} />
+				<ActionMenu session={session} />
 			</div>
 
-            {/* Styles and Themes */}
-            <div className="flex flex-wrap gap-2">
-                {session.draw_styles ? (
-                    <>
-                         <Badge
-                            className={cn(
-                                "rounded-none font-bold capitalize",
-                                styleColors[session.draw_styles.style] || "bg-gray-500 text-white",
-                            )}
-                        >
-                            {session.draw_styles.style}
-                        </Badge>
-                        <Badge
-                            className={cn(
-                                "rounded-none font-bold capitalize",
-                                themeColors[session.draw_styles.theme] || "bg-gray-500 text-white",
-                            )}
-                        >
-                            {session.draw_styles.theme}
-                        </Badge>
-                    </>
-                ) : (
-                   <span className="text-muted-foreground text-sm">No style</span> 
-                )}
-            </div>
+			{/* Styles and Themes */}
+			<div className="flex flex-wrap gap-2">
+				{session.draw_styles ? (
+					<>
+						<Badge
+							className={cn(
+								"rounded-none font-bold capitalize",
+								styleColors[session.draw_styles.style] ||
+									"bg-gray-500 text-white",
+							)}
+						>
+							{session.draw_styles.style}
+						</Badge>
+						<Badge
+							className={cn(
+								"rounded-none font-bold capitalize",
+								themeColors[session.draw_styles.theme] ||
+									"bg-gray-500 text-white",
+							)}
+						>
+							{session.draw_styles.theme}
+						</Badge>
+					</>
+				) : (
+					<span className="text-muted-foreground text-sm">No style</span>
+				)}
+			</div>
 
 			<div className="flex items-center justify-between border-t pt-3">
-				<span className="text-sm font-medium text-muted-foreground">
+				<span className="font-medium text-muted-foreground text-sm">
 					Uses Gifts
 				</span>
 				<Badge

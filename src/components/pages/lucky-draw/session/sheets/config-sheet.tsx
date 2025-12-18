@@ -236,7 +236,7 @@ export function ConfigSheet({
 					}}
 					className="flex flex-1 flex-col"
 				>
-					<ScrollArea className="px-4 h-[calc(100vh-180px)] pb-4">
+					<ScrollArea className="h-[calc(100vh-180px)] px-4 pb-4">
 						<div className="flex flex-col gap-6">
 						<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
 							<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
