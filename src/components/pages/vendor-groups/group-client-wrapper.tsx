@@ -7,8 +7,7 @@ import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
 import type { Group } from "@/lib/api/group/response";
 import { CreateGroupDialog } from "./dialogs/create-group-dialog";
-import { columns } from "./table/columns";
-import { DataTable } from "./table/data-table";
+import { DataTable } from "./table/vendor-group-table";
 
 interface GroupClientWrapperProps {
 	groups: Group[];
@@ -59,7 +58,6 @@ export default function GroupClientWrapper({
 				</div>
 			)}
 			<DataTable
-				columns={columns}
 				data={sortedGroups}
 				onAddGroup={canCreateGroup ? handleAddGroup : undefined}
 			/>
