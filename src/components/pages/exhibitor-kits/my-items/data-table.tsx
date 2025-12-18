@@ -3,6 +3,7 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
+	type TableMeta,
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -51,7 +52,7 @@ interface DataTableProps<TData, TValue> {
 		placeholder: string;
 		options: FilterOption[];
 	};
-	meta?: Record<string, unknown>;
+	meta?: TableMeta<TData>;
 }
 
 export function DataTable<TData, TValue>({

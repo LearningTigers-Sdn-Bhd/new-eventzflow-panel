@@ -1,11 +1,20 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
+import type { ColumnDef, TableMeta } from "@tanstack/react-table";
+import { ArrowDown, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitItem } from "@/lib/api/exhibitor-kit";
+
+export interface ItemsTableMeta extends TableMeta<ExhibitorKitItem> {
+	onEditNotes?: (item: ExhibitorKitItem) => void;
+}
 
 export const itemsColumns: ColumnDef<ExhibitorKitItem>[] = [
 	{
@@ -133,10 +142,45 @@ export const itemsColumns: ColumnDef<ExhibitorKitItem>[] = [
 		accessorKey: "notes",
 		size: 200,
 		header: () => <p className="font-medium">Notes</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("notes") || "-"}
-			</div>
-		),
+		cell: ({ row }) => {
+			const notes = row.getValue("notes") as string | null;
+			if (!notes) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className="max-w-[200px] cursor-default truncate text-muted-foreground text-sm">
+							{notes}
+						</div>
+					</TooltipTrigger>
+					<TooltipContent className="max-w-[300px] break-all">
+						{notes}
+					</TooltipContent>
+				</Tooltip>
+			);
+		},
+	},
+	{
+		id: "actions",
+		size: 80,
+		header: () => <div className="text-center font-medium">Actions</div>,
+		cell: ({ row, table }) => {
+			const item = row.original;
+			const meta = table.options.meta as ItemsTableMeta | undefined;
+
+			return (
+				<div className="flex justify-center">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="rounded-none"
+						onClick={() => meta?.onEditNotes?.(item)}
+					>
+						<Pencil className="size-4" />
+					</Button>
+				</div>
+			);
+		},
 	},
 ];

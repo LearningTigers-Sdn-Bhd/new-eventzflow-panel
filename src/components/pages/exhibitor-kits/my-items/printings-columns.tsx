@@ -1,11 +1,20 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
+import type { ColumnDef, TableMeta } from "@tanstack/react-table";
+import { ArrowDown, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
+
+export interface PrintingsTableMeta extends TableMeta<ExhibitorKitPrinting> {
+	onEditPrinting?: (printing: ExhibitorKitPrinting) => void;
+}
 
 export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 	{
@@ -133,20 +142,68 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 		accessorKey: "file_reference",
 		size: 180,
 		header: () => <p className="font-medium">File Reference</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("file_reference") || "-"}
-			</div>
-		),
+		cell: ({ row }) => {
+			const fileRef = row.getValue("file_reference") as string | null;
+			if (!fileRef) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className="max-w-[180px] cursor-default truncate text-muted-foreground text-sm">
+							{fileRef}
+						</div>
+					</TooltipTrigger>
+					<TooltipContent className="max-w-[300px] break-all">
+						{fileRef}
+					</TooltipContent>
+				</Tooltip>
+			);
+		},
 	},
 	{
 		accessorKey: "notes",
 		size: 200,
 		header: () => <p className="font-medium">Notes</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("notes") || "-"}
-			</div>
-		),
+		cell: ({ row }) => {
+			const notes = row.getValue("notes") as string | null;
+			if (!notes) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className="max-w-[200px] cursor-default truncate text-muted-foreground text-sm">
+							{notes}
+						</div>
+					</TooltipTrigger>
+					<TooltipContent className="max-w-[300px] break-all">
+						{notes}
+					</TooltipContent>
+				</Tooltip>
+			);
+		},
+	},
+	{
+		id: "actions",
+		size: 80,
+		header: () => <div className="text-center font-medium">Actions</div>,
+		cell: ({ row, table }) => {
+			const printing = row.original;
+			const meta = table.options.meta as PrintingsTableMeta | undefined;
+
+			return (
+				<div className="flex justify-center">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="rounded-none"
+						onClick={() => meta?.onEditPrinting?.(printing)}
+					>
+						<Pencil className="size-4" />
+					</Button>
+				</div>
+			);
+		},
 	},
 ];

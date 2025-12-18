@@ -10,9 +10,9 @@ export const exhibitorTeamMemberSchema = z.object({
 // Exhibitor kit item schema for nested attributes
 export const exhibitorKitItemSchema = z.object({
 	id: z.number().optional(),
-	rentable_item_id: z.number(),
-	quantity: z.number().min(1, "Quantity must be at least 1"),
-	agreed_price: z.number().min(0, "Price must be positive"),
+	rentable_item_id: z.number().optional(),
+	quantity: z.number().min(1, "Quantity must be at least 1").optional(),
+	agreed_price: z.number().min(0, "Price must be positive").optional(),
 	notes: z.string().nullable().optional(),
 	_destroy: z.boolean().optional(),
 });
@@ -20,9 +20,9 @@ export const exhibitorKitItemSchema = z.object({
 // Exhibitor kit printing schema for nested attributes
 export const exhibitorKitPrintingSchema = z.object({
 	id: z.number().optional(),
-	printing_service_id: z.number(),
-	quantity: z.number().min(1, "Quantity must be at least 1"),
-	agreed_price: z.number().min(0, "Price must be positive"),
+	printing_service_id: z.number().optional(),
+	quantity: z.number().min(1, "Quantity must be at least 1").optional(),
+	agreed_price: z.number().min(0, "Price must be positive").optional(),
 	notes: z.string().nullable().optional(),
 	file_reference: z.string().nullable().optional(),
 	_destroy: z.boolean().optional(),
