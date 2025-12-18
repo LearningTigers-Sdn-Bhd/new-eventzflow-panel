@@ -3,6 +3,7 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
+	type TableMeta,
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -51,6 +52,7 @@ interface DataTableProps<TData, TValue> {
 		placeholder: string;
 		options: FilterOption[];
 	};
+	meta?: TableMeta<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -62,6 +64,7 @@ export function DataTable<TData, TValue>({
 	searchPlaceholder = "Search...",
 	searchColumns = ["name"],
 	statusFilter,
+	meta,
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -82,6 +85,7 @@ export function DataTable<TData, TValue>({
 			sorting,
 			columnFilters,
 		},
+		meta,
 	});
 
 	return (

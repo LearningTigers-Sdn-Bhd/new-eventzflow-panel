@@ -1,10 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Eye, Package, Users } from "lucide-react";
+import { ArrowDown, Eye, Package, Users, MoreHorizontal } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
 import type { EventVendor } from "@/lib/api/event-vendor/response";
@@ -148,13 +154,13 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 	},
 	{
 		accessorKey: "payment_status",
-		header: "Payment Status",
+		header: "Booth Rental",
 		cell: ({ row }) => {
 			const kit = row.original;
 			return (
-				<Badge 
+				<Badge
 					variant="outline"
-					className={cn("rounded-none font-bold capitalize", getPaymentStatusStyle(kit.payment_status))}
+					className={cn("rounded-none text-xs font-medium capitalize", getPaymentStatusStyle(kit.payment_status))}
 				>
 					{kit.payment_status}
 				</Badge>
@@ -167,17 +173,21 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 		header: () => <div className="text-center">Actions</div>,
 		cell: ({ row }) => {
 			const kit = row.original;
-			
+
 			return (
 				<div className="flex justify-center">
-					<ViewDetailsButton kitId={kit.id} />
+					<ActionsDropdown kitId={kit.id} />
 				</div>
 			);
 		},
 	},
 ];
 
-function ViewDetailsButton({ kitId }: { kitId: number }) {
+function ActionsDropdown({
+	kitId,
+}: {
+	kitId: number;
+}) {
 	const router = useRouter();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -187,14 +197,22 @@ function ViewDetailsButton({ kitId }: { kitId: number }) {
 	};
 
 	return (
-		<Button
-			variant="ghost"
-			size="sm"
-			onClick={handleViewDetails}
-			className="rounded-none border border-primary/20 h-8 px-3"
-		>
-			<Eye className="h-4 w-4 mr-2" />
-			View
-		</Button>
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button
+					variant="ghost"
+					size="sm"
+					className="h-8 px-2"
+				>
+					<MoreHorizontal className="h-4 w-4" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" className="rounded-none">
+				<DropdownMenuItem onClick={handleViewDetails} className="rounded-none cursor-pointer">
+					<Eye className="h-4 w-4 mr-2" />
+					View Details
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }

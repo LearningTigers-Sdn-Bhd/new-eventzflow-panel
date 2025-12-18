@@ -1,19 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, Printer } from "lucide-react";
-import { useState } from "react";
+import { Package, Printer, CreditCard } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import type { ExhibitorKitItem, ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
+import { useDialog } from "@/hooks/use-dialog";
 import { DataTable } from "./my-items/data-table";
 import { itemsColumns } from "./my-items/items-columns";
 import { printingsColumns } from "./my-items/printings-columns";
+import { ExhibitorPaymentList } from "./exhibitor-payment-list";
+import { EditItemNotesForm } from "./my-items/edit-item-notes-form";
+import { EditPrintingForm } from "./my-items/edit-printing-form";
+import type { ItemsTableMeta } from "./my-items/items-columns";
+import type { PrintingsTableMeta } from "./my-items/printings-columns";
 
 interface MyItemsPageProps {
 	eventId: number;
@@ -23,6 +30,7 @@ interface MyItemsPageProps {
 export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("items");
+	const { openDialog, closeDialog } = useDialog();
 
 	const {
 		data: eventVendors,
@@ -40,6 +48,54 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	const handleAddMoreItems = () => {
 		router.push(`/event/${eventId}/my-exhibitor-kit/order-items` as any);
 	};
+
+	const handleEditItemNotes = (item: ExhibitorKitItem) => {
+		if (!myKit) return;
+		openDialog({
+			component: EditItemNotesForm,
+			props: {
+				eventId,
+				kitId: myKit.id,
+				item,
+				onSuccess: closeDialog,
+			},
+			config: {
+				title: "Edit Item Notes",
+				size: "md",
+			},
+		});
+	};
+
+	const handleEditPrinting = (printing: ExhibitorKitPrinting) => {
+		if (!myKit) return;
+		openDialog({
+			component: EditPrintingForm,
+			props: {
+				eventId,
+				kitId: myKit.id,
+				printing,
+				onSuccess: closeDialog,
+			},
+			config: {
+				title: "Edit Printing Details",
+				size: "md",
+			},
+		});
+	};
+
+	const itemsTableMeta: ItemsTableMeta = useMemo(
+		() => ({
+			onEditNotes: handleEditItemNotes,
+		}),
+		[myKit?.id, eventId]
+	);
+
+	const printingsTableMeta: PrintingsTableMeta = useMemo(
+		() => ({
+			onEditPrinting: handleEditPrinting,
+		}),
+		[myKit?.id, eventId]
+	);
 
 	// Set the "Add More Items" button in the header
 	useSetEventActions(
@@ -138,16 +194,20 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 				</div>
 			</div>
 
-			{/* Items and Printings Tabs */}
+			{/* Items, Printings and Payments Tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
-				<TabsList className="grid w-full grid-cols-2 rounded-none">
+				<TabsList className="grid w-full grid-cols-3 rounded-none">
 					<TabsTrigger value="items" className="gap-2 rounded-none">
 						<Package className="h-4 w-4" />
-						Rentable Items ({items.length})
+						Items ({items.length})
 					</TabsTrigger>
 					<TabsTrigger value="printings" className="gap-2 rounded-none">
 						<Printer className="h-4 w-4" />
-						Printing Services ({printings.length})
+						Printings ({printings.length})
+					</TabsTrigger>
+					<TabsTrigger value="payments" className="gap-2 rounded-none">
+						<CreditCard className="h-4 w-4" />
+						Payments
 					</TabsTrigger>
 				</TabsList>
 
@@ -159,6 +219,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add items to your exhibitor kit"
 						emptyIcon={<Package />}
 						searchPlaceholder="Search items..."
+						meta={itemsTableMeta}
 					/>
 				</TabsContent>
 
@@ -170,6 +231,14 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add printing services to your exhibitor kit"
 						emptyIcon={<Printer />}
 						searchPlaceholder="Search services..."
+						meta={printingsTableMeta}
+					/>
+				</TabsContent>
+
+				<TabsContent value="payments" className="mt-6">
+					<ExhibitorPaymentList
+						eventId={eventId.toString()}
+						kitId={myKit.id.toString()}
 					/>
 				</TabsContent>
 			</Tabs>

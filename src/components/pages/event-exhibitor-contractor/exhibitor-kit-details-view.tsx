@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-	Building2, 
-	Users, 
-	Package, 
-	FileText, 
+import {
+	Building2,
+	Users,
+	Package,
+	FileText,
 	CreditCard,
-	Printer
+	Printer,
+	ExternalLink,
+	StickyNote
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -15,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
+import { PaymentList } from "./payment-list";
+import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
+import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
@@ -23,6 +29,11 @@ interface ExhibitorKitDetailsViewProps {
 
 export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsViewProps) {
 	const router = useRouter();
+
+	// Dialog states
+	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
+	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
 
 	const {
 		data: vendors,
@@ -82,15 +93,6 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		(sum, printing) => sum + Number(printing.agreed_price) * printing.quantity,
 		0,
 	);
-	const customRequestsTotal = customRequests
-		.filter((req) => req.status === "approved")
-		.reduce(
-			(sum, req) => sum + Number(req.resolved_price || 0) * req.quantity,
-			0,
-		);
-
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal = itemsTotal + printingsTotal;
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -101,6 +103,19 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 	const rejectedRequests = customRequests.filter(
 		(req) => req.status === "rejected",
 	).length;
+
+	// Payment dialog handlers
+	const handleVerifyPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("verify");
+		setVerifyRejectOpen(true);
+	};
+
+	const handleRejectPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("reject");
+		setVerifyRejectOpen(true);
+	};
 
 	return (
 		<div className="space-y-0">
@@ -150,8 +165,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 
 				{/* Content Grid */}
 				<div className="space-y-4 p-4">
-					{/* Basic Information Grid */}
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{/* Booth Info & Company/PIC Row */}
+					<div className="grid gap-6 md:grid-cols-2">
 						{/* Booth Information */}
 						<div className="space-y-3 rounded-none border bg-background p-4">
 							<div className="flex items-center gap-2 border-b pb-2">
@@ -237,61 +252,22 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								</div>
 							</div>
 						</div>
+					</div>
 
-						{/* Payment Information */}
-						<div className="space-y-3 rounded-none border bg-background p-4">
-							<div className="flex items-center gap-2 border-b pb-2">
-								<CreditCard className="size-4 text-primary" />
-								<h3 className="font-semibold text-sm uppercase tracking-wide">
-									Payment
-								</h3>
-							</div>
-							<div className="space-y-2 text-sm">
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Status:</span>
-									<Badge
-										variant="outline"
-										className={cn(
-											"rounded-none font-bold capitalize",
-											exhibitorKit.payment_status === "paid" &&
-												"border-green-500 text-green-500",
-											exhibitorKit.payment_status === "unpaid" &&
-												"border-red-500 text-red-500",
-											exhibitorKit.payment_status === "waived" &&
-												"border-gray-500 text-gray-500",
-											exhibitorKit.payment_status === "sponsored" &&
-												"border-blue-500 text-blue-500",
-										)}
-									>
-										{exhibitorKit.payment_status || "unpaid"}
-									</Badge>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">Amount Paid:</span>
-									<span className="font-medium">
-										{exhibitorKit.amount_paid
-											? `RM ${Number(exhibitorKit.amount_paid).toFixed(2)}`
-											: "-"}
-									</span>
-								</div>
-								{exhibitorKit.payment_note && (
-									<div className="border-t pt-2">
-										<span className="mb-1 block text-muted-foreground">
-											Note:
-										</span>
-										<p className="text-sm">{exhibitorKit.payment_note}</p>
-									</div>
-								)}
-								{exhibitorKit.special_requirements && (
-									<div className="border-t pt-2">
-										<span className="mb-1 block text-muted-foreground">
-											Special Requirements:
-										</span>
-										<p className="text-sm">{exhibitorKit.special_requirements}</p>
-									</div>
-								)}
-							</div>
+					{/* Payment Management Section - Full Width */}
+					<div className="rounded-none border bg-background p-4">
+						<div className="flex items-center gap-2 border-b pb-3 mb-4">
+							<CreditCard className="size-4 text-primary" />
+							<h3 className="font-semibold text-sm uppercase tracking-wide">
+								Payment Management
+							</h3>
 						</div>
+						<PaymentList
+							eventId={eventId}
+							kitId={kitId}
+							onVerifyPayment={handleVerifyPayment}
+							onRejectPayment={handleRejectPayment}
+						/>
 					</div>
 
 					{/* Team Members */}
@@ -331,32 +307,36 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {itemsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="space-y-1">
-								{items.map((item) => (
-									<div
-										key={item.id}
-										className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-									>
-										<div className="flex-1">
-											<p className="font-medium text-sm">
-												{item.rentable_item?.name ||
-													`Item #${item.rentable_item_id}`}
-											</p>
+							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+									{items.map((item) => (
+										<div
+											key={item.id}
+											className="border bg-muted/30 p-3 space-y-1"
+										>
+											<div className="flex justify-between text-sm">
+												<span className="truncate flex-1 font-medium">
+													{item.rentable_item?.name ||
+														`Item #${item.rentable_item_id}`}
+												</span>
+												<span className="font-semibold ml-2 shrink-0">
+													RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+												</span>
+											</div>
 											<p className="text-muted-foreground text-xs">
-												{item.quantity} x RM{" "}
-												{Number(item.agreed_price).toFixed(2)}
+												{item.quantity} x RM {Number(item.agreed_price).toFixed(2)}
 											</p>
 											{item.notes && (
-												<p className="text-muted-foreground text-xs mt-1">
-													Note: {item.notes}
-												</p>
+												<div className="flex items-start gap-1.5 pt-1.5 border-t border-dashed">
+													<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+													<p className="text-muted-foreground text-xs line-clamp-2">
+														{item.notes}
+													</p>
+												</div>
 											)}
 										</div>
-										<span className="font-semibold">
-											RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
-										</span>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
 						</div>
 					)}
@@ -375,40 +355,53 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {printingsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="space-y-1">
-								{printings.map((printing) => (
-									<div
-										key={printing.id}
-										className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-									>
-										<div className="flex-1">
-											<p className="font-medium text-sm">
-												{printing.printing_service?.name ||
-													`Service #${printing.printing_service_id}`}
-											</p>
+							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+									{printings.map((printing) => (
+										<div
+											key={printing.id}
+											className="border bg-muted/30 p-3 space-y-1"
+										>
+											<div className="flex justify-between text-sm">
+												<span className="truncate flex-1 font-medium">
+													{printing.printing_service?.name ||
+														`Service #${printing.printing_service_id}`}
+												</span>
+												<span className="font-semibold ml-2 shrink-0">
+													RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+												</span>
+											</div>
 											<p className="text-muted-foreground text-xs">
-												{printing.quantity} x RM{" "}
-												{Number(printing.agreed_price).toFixed(2)}
+												{printing.quantity} x RM {Number(printing.agreed_price).toFixed(2)}
 											</p>
-											{printing.file_reference && (
-												<p className="text-muted-foreground text-xs mt-1">
-													File: {printing.file_reference}
-												</p>
-											)}
-											{printing.notes && (
-												<p className="text-muted-foreground text-xs mt-1">
-													Note: {printing.notes}
-												</p>
+											{(printing.notes || printing.file_reference) && (
+												<div className="flex flex-col gap-1 pt-1.5 border-t border-dashed">
+													{printing.notes && (
+														<div className="flex items-start gap-1.5">
+															<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+															<p className="text-muted-foreground text-xs line-clamp-2">
+																{printing.notes}
+															</p>
+														</div>
+													)}
+													{printing.file_reference && (
+														<div className="flex items-center gap-1.5">
+															<ExternalLink className="size-3 text-primary shrink-0" />
+															<a
+																href={printing.file_reference}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-primary text-xs hover:underline truncate"
+															>
+																View File
+															</a>
+														</div>
+													)}
+												</div>
 											)}
 										</div>
-										<span className="font-semibold">
-											RM{" "}
-											{(
-												Number(printing.agreed_price) * printing.quantity
-											).toFixed(2)}
-										</span>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
 						</div>
 					)}
@@ -498,21 +491,18 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 						</div>
 					)} */}
 
-					{/* Grand Total */}
-					{grandTotal > 0 && (
-						<div className="rounded-none border-2 border-primary/30 bg-primary/5 p-4">
-							<div className="flex items-center justify-between">
-								<h3 className="font-bold text-lg">
-									Grand Total (Items + Services + Approved Requests):
-								</h3>
-								<span className="font-bold text-3xl text-primary">
-									RM {grandTotal.toFixed(2)}
-								</span>
-							</div>
-						</div>
-					)}
 				</div>
 			</section>
+
+			{/* Dialogs */}
+			<VerifyRejectPaymentDialog
+				open={verifyRejectOpen}
+				onOpenChange={setVerifyRejectOpen}
+				payment={selectedPayment}
+				eventId={eventId}
+				kitId={kitId}
+				action={dialogAction}
+			/>
 		</div>
 	);
 }

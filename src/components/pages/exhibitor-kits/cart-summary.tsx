@@ -1,15 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { ShoppingCart, Trash2, Package, Printer, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
-import { ReviewSubmitModal } from "./review-submit-modal";
-import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface CartSummaryProps {
 	eventId: number;
@@ -17,8 +15,7 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
-	const [showReviewModal, setShowReviewModal] = useState(false);
-	const { eventVendorId } = useCurrentUserEventVendorId(eventId);
+	const router = useRouter();
 	const {
 		items,
 		printings,
@@ -32,6 +29,10 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 
 	const totalAmount = getTotalAmount();
 	const itemsCount = getItemsCount();
+
+	const handleReviewSubmit = () => {
+		router.push(`/event/${eventId}/my-exhibitor-kit/review-submit`);
+	};
 
 	if (itemsCount === 0) {
 		return (
@@ -180,7 +181,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 					</Button>
 				) : (
 					<Button
-						onClick={() => setShowReviewModal(true)}
+						onClick={handleReviewSubmit}
 						className="w-full gap-2 rounded-none"
 					>
 						<CheckCircle2 className="h-4 w-4" />
@@ -188,16 +189,6 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 					</Button>
 				)}
 			</CardFooter>
-
-			{/* Review & Submit Modal */}
-			{eventVendorId && (
-				<ReviewSubmitModal
-					eventId={eventId}
-					eventVendorId={eventVendorId}
-					open={showReviewModal}
-					onOpenChange={setShowReviewModal}
-				/>
-			)}
 		</Card>
 	);
 }

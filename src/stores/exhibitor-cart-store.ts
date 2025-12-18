@@ -17,24 +17,28 @@ export interface CartPrinting {
 	agreedPrice: number;
 	quantity: number;
 	notes?: string;
+	fileReference?: string;
 }
 
 interface ExhibitorCartState {
 	items: CartItem[];
 	printings: CartPrinting[];
-	
+
 	// Items actions
 	addItem: (item: CartItem) => void;
 	updateItemQuantity: (rentableItemId: number, quantity: number) => void;
+	updateItemNotes: (rentableItemId: number, notes: string) => void;
 	removeItem: (rentableItemId: number) => void;
 	clearItems: () => void;
-	
+
 	// Printings actions
 	addPrinting: (printing: CartPrinting) => void;
 	updatePrintingQuantity: (printingServiceId: number, quantity: number) => void;
+	updatePrintingNotes: (printingServiceId: number, notes: string) => void;
+	updatePrintingFileReference: (printingServiceId: number, fileReference: string) => void;
 	removePrinting: (printingServiceId: number) => void;
 	clearPrintings: () => void;
-	
+
 	// General actions
 	clearCart: () => void;
 	getTotalAmount: () => number;
@@ -77,6 +81,15 @@ export const useExhibitorCart = create<ExhibitorCartState>()(
 					),
 				})),
 
+			updateItemNotes: (rentableItemId, notes) =>
+				set((state) => ({
+					items: state.items.map((item) =>
+						item.rentableItemId === rentableItemId
+							? { ...item, notes }
+							: item,
+					),
+				})),
+
 			removeItem: (rentableItemId) =>
 				set((state) => ({
 					items: state.items.filter(
@@ -113,6 +126,24 @@ export const useExhibitorCart = create<ExhibitorCartState>()(
 					printings: state.printings.map((printing) =>
 						printing.printingServiceId === printingServiceId
 							? { ...printing, quantity }
+							: printing,
+					),
+				})),
+
+			updatePrintingNotes: (printingServiceId, notes) =>
+				set((state) => ({
+					printings: state.printings.map((printing) =>
+						printing.printingServiceId === printingServiceId
+							? { ...printing, notes }
+							: printing,
+					),
+				})),
+
+			updatePrintingFileReference: (printingServiceId, fileReference) =>
+				set((state) => ({
+					printings: state.printings.map((printing) =>
+						printing.printingServiceId === printingServiceId
+							? { ...printing, fileReference }
 							: printing,
 					),
 				})),

@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { Package, ShoppingCart, Users, Building2, CheckCircle2 } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Package, Printer, CheckCircle2, Link as LinkIcon, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
-import { createExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { updateExhibitorKit, getExhibitorKits, submitExhibitorKitOrder } from "@/lib/api/exhibitor-kit";
 
 interface ReviewSubmitPageProps {
 	eventId: number;
@@ -18,38 +21,68 @@ interface ReviewSubmitPageProps {
 
 export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPageProps) {
 	const router = useRouter();
-	const { items, printings, getTotalAmount, clearCart } = useExhibitorCart();
+	const {
+		items,
+		printings,
+		getTotalAmount,
+		clearCart,
+		updateItemNotes,
+		updatePrintingNotes,
+		updatePrintingFileReference,
+	} = useExhibitorCart();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const totalAmount = getTotalAmount();
+	const itemsTotal = items.reduce((sum, item) => sum + item.quantity * item.agreedPrice, 0);
+	const printingsTotal = printings.reduce((sum, p) => sum + p.quantity * p.agreedPrice, 0);
+
+	// Fetch exhibitor kits to find the one for this vendor
+	const { data: exhibitorKits, isLoading: isLoadingKit } = useQuery({
+		queryKey: ["exhibitor-kits", eventId],
+		queryFn: () => getExhibitorKits(eventId),
+	});
+
+	const exhibitorKit = exhibitorKits?.find((kit) => kit.event_vendor_id === eventVendorId);
+	const exhibitorKitId = exhibitorKit?.id;
 
 	const submitMutation = useMutation({
 		mutationFn: async () => {
-			// Prepare nested attributes payload
+			if (!exhibitorKitId) {
+				throw new Error("Exhibitor kit not found. Please contact support.");
+			}
+
+			// Prepare nested attributes payload to UPDATE existing kit
 			const payload = {
-				event_vendor_id: eventVendorId,
 				exhibitor_kit_items_attributes: items.map((item) => ({
 					rentable_item_id: item.rentableItemId,
 					quantity: item.quantity,
 					agreed_price: item.agreedPrice,
+					notes: item.notes || null,
 				})),
 				exhibitor_kit_printings_attributes: printings.map((printing) => ({
 					printing_service_id: printing.printingServiceId,
 					quantity: printing.quantity,
 					agreed_price: printing.agreedPrice,
+					notes: printing.notes || null,
+					file_reference: printing.fileReference || null,
 				})),
 			};
 
-			return createExhibitorKit(eventId, payload);
+			// First, update the exhibitor kit with items/printings
+			await updateExhibitorKit(eventId, exhibitorKitId, payload);
+
+			// Then, submit the order to auto-create a payment record
+			return submitExhibitorKitOrder(eventId, exhibitorKitId);
 		},
-		onSuccess: (data) => {
-			toast.success("Exhibitor kit submitted successfully!");
+		onSuccess: () => {
+			toast.success("Order submitted successfully! A payment request has been created.");
 			clearCart();
-			// Redirect to kit details or vendor profile
-			router.push(`/event/${eventId}/vendors`);
+			// Redirect to my-items page to see the submitted order
+			router.push(`/event/${eventId}/my-exhibitor-kit/my-items`);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to submit exhibitor kit");
+			toast.error(error.message || "Failed to submit order");
+			setIsSubmitting(false);
 		},
 	});
 
@@ -63,129 +96,255 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 		submitMutation.mutate();
 	};
 
+	const handleBack = () => {
+		router.back();
+	};
+
+	// Loading state
+	if (isLoadingKit) {
+		return (
+			<div className="min-h-screen bg-muted/30 p-6">
+				<div className="mx-auto max-w-6xl">
+					<Skeleton className="h-8 w-32 mb-6" />
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+						<div className="lg:col-span-2 space-y-4">
+							<Skeleton className="h-[300px] w-full" />
+							<Skeleton className="h-[300px] w-full" />
+						</div>
+						<div>
+							<Skeleton className="h-[250px] w-full" />
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state - no kit found
+	if (!exhibitorKitId) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-muted/30">
+				<div className="w-full max-w-md rounded-none border bg-background p-8 text-center">
+					<p className="mb-4 text-muted-foreground">
+						Exhibitor kit not found. Please contact support.
+					</p>
+					<Button onClick={handleBack} variant="outline" className="rounded-none">
+						Go Back
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
+	// Empty cart state
+	if (items.length === 0 && printings.length === 0) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-muted/30">
+				<div className="w-full max-w-md rounded-none border bg-background p-8 text-center">
+					<ShoppingCart className="mx-auto mb-4 size-12 text-muted-foreground" />
+					<h2 className="mb-2 font-semibold text-lg">Your cart is empty</h2>
+					<p className="mb-6 text-muted-foreground text-sm">
+						Add items or printing services before reviewing your order.
+					</p>
+					<Button onClick={handleBack} variant="outline" className="rounded-none">
+						Go Back
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
 	return (
-		<div className="space-y-6 px-2 py-6 md:px-4">
-			<div className="space-y-2">
-				<h2 className="font-semibold text-2xl">Review & Submit Order</h2>
-				<p className="text-muted-foreground">
-					Review your order details before submitting
-				</p>
+		<div className="min-h-screen bg-muted/30">
+			{/* Header */}
+			<div className="border-b bg-background">
+				<div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h1 className="font-semibold text-xl sm:text-2xl">Review & Submit Order</h1>
+							<p className="text-muted-foreground text-xs sm:text-sm">
+								Review your order and add any notes before submitting
+							</p>
+						</div>
+						<Button
+							variant="default"
+							onClick={handleBack}
+							className="gap-2 rounded-none w-full sm:w-auto"
+						>
+							<ArrowLeft className="size-4" />
+							Back to Cart
+						</Button>
+					</div>
+				</div>
 			</div>
 
-			{/* Items Summary */}
-			{items.length > 0 && (
-				<Card className="rounded-none">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5" />
-							Rentable Items ({items.length})
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{items.map((item, index) => (
-								<div key={index} className="flex items-center justify-between">
-									<div className="flex-1">
-										<p className="font-medium">{item.name}</p>
-										<p className="text-muted-foreground text-sm">
-											{item.quantity} {item.unitOfMeasure} × RM {item.agreedPrice.toFixed(2)}
-										</p>
-									</div>
-									<p className="font-semibold">
-										RM {(item.quantity * item.agreedPrice).toFixed(2)}
-									</p>
+			{/* Main Content - Two Column Layout */}
+			<div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+				<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+					{/* Left Column - Items */}
+					<div className="lg:col-span-2 space-y-6">
+						{/* Rentable Items Section */}
+						{items.length > 0 && (
+							<div className="rounded-none border bg-background">
+								<div className="flex items-center gap-2 p-4 border-b">
+									<Package className="size-4 text-primary" />
+									<h2 className="font-medium text-sm uppercase tracking-wide">
+										Rentable Items ({items.length})
+									</h2>
 								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
 
-			{/* Printings Summary */}
-			{printings.length > 0 && (
-				<Card className="rounded-none">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<ShoppingCart className="h-5 w-5" />
-							Printing Services ({printings.length})
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{printings.map((printing, index) => (
-								<div key={index} className="flex items-center justify-between">
-									<div className="flex-1">
-										<p className="font-medium">{printing.name}</p>
-										<p className="text-muted-foreground text-sm">
-											{printing.quantity} {printing.unitOfMeasure} × RM {printing.agreedPrice.toFixed(2)}
-										</p>
-									</div>
-									<p className="font-semibold">
-										RM {(printing.quantity * printing.agreedPrice).toFixed(2)}
-									</p>
+								<div className="divide-y">
+									{items.map((item) => (
+										<div key={item.rentableItemId} className="p-4 space-y-3">
+											<div className="flex items-start justify-between">
+												<div>
+													<p className="font-medium">{item.name}</p>
+													<p className="text-muted-foreground text-sm">
+														{item.quantity} × RM {item.agreedPrice.toFixed(2)}
+													</p>
+												</div>
+												<p className="font-semibold">
+													RM {(item.quantity * item.agreedPrice).toFixed(2)}
+												</p>
+											</div>
+
+											<div className="space-y-1.5">
+												<Label htmlFor={`item-notes-${item.rentableItemId}`} className="text-xs text-muted-foreground">
+													Notes (optional)
+												</Label>
+												<Textarea
+													id={`item-notes-${item.rentableItemId}`}
+													placeholder="e.g., Place near entrance, specific color preference..."
+													value={item.notes || ""}
+													onChange={(e) => updateItemNotes(item.rentableItemId, e.target.value)}
+													className="rounded-none resize-none text-sm"
+													rows={2}
+												/>
+											</div>
+										</div>
+									))}
 								</div>
-							))}
+							</div>
+						)}
+
+						{/* Printing Services Section */}
+						{printings.length > 0 && (
+							<div className="rounded-none border bg-background">
+								<div className="flex items-center gap-2 p-4 border-b">
+									<Printer className="size-4 text-primary" />
+									<h2 className="font-medium text-sm uppercase tracking-wide">
+										Printing Services ({printings.length})
+									</h2>
+								</div>
+
+								<div className="divide-y">
+									{printings.map((printing) => (
+										<div key={printing.printingServiceId} className="p-4 space-y-3">
+											<div className="flex items-start justify-between">
+												<div>
+													<p className="font-medium">{printing.name}</p>
+													<p className="text-muted-foreground text-sm">
+														{printing.quantity} × RM {printing.agreedPrice.toFixed(2)}
+													</p>
+												</div>
+												<p className="font-semibold">
+													RM {(printing.quantity * printing.agreedPrice).toFixed(2)}
+												</p>
+											</div>
+
+											<div className="space-y-1.5">
+												<Label htmlFor={`printing-notes-${printing.printingServiceId}`} className="text-xs text-muted-foreground">
+													Notes (optional)
+												</Label>
+												<Textarea
+													id={`printing-notes-${printing.printingServiceId}`}
+													placeholder="e.g., Use matte finish, specific dimensions..."
+													value={printing.notes || ""}
+													onChange={(e) => updatePrintingNotes(printing.printingServiceId, e.target.value)}
+													className="rounded-none resize-none text-sm"
+													rows={2}
+												/>
+											</div>
+
+											<div className="space-y-1.5">
+												<Label htmlFor={`printing-file-${printing.printingServiceId}`} className="text-xs text-muted-foreground flex items-center gap-1">
+													<LinkIcon className="size-3" />
+													Design File URL
+												</Label>
+												<Input
+													id={`printing-file-${printing.printingServiceId}`}
+													type="url"
+													placeholder="https://drive.google.com/file/..."
+													value={printing.fileReference || ""}
+													onChange={(e) => updatePrintingFileReference(printing.printingServiceId, e.target.value)}
+													className="rounded-none text-sm"
+												/>
+												<p className="text-muted-foreground text-xs">
+													Upload your design to Google Drive, Dropbox, or any file hosting service and paste the link here.
+												</p>
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
+
+					{/* Right Column - Order Summary (Sticky) */}
+					<div className="lg:col-span-1">
+						<div className="rounded-none border bg-background sticky top-6">
+							<div className="p-4 border-b">
+								<h2 className="font-semibold">Order Summary</h2>
+							</div>
+
+							<div className="p-4 space-y-3">
+								{/* Items subtotal */}
+								{items.length > 0 && (
+									<div className="flex items-center justify-between text-sm">
+										<span className="text-muted-foreground">Rentable Items ({items.length})</span>
+										<span>RM {itemsTotal.toFixed(2)}</span>
+									</div>
+								)}
+
+								{/* Printing subtotal */}
+								{printings.length > 0 && (
+									<div className="flex items-center justify-between text-sm">
+										<span className="text-muted-foreground">Printing Services ({printings.length})</span>
+										<span>RM {printingsTotal.toFixed(2)}</span>
+									</div>
+								)}
+
+								<Separator />
+
+								{/* Total */}
+								<div className="flex items-center justify-between">
+									<span className="font-semibold">Total Amount</span>
+									<span className="font-bold text-xl">RM {totalAmount.toFixed(2)}</span>
+								</div>
+							</div>
+
+							<div className="p-4 border-t bg-muted/30">
+								<Button
+									onClick={handleSubmit}
+									disabled={isSubmitting}
+									className="w-full gap-2 rounded-none h-12 text-base"
+								>
+									{isSubmitting ? (
+										"Submitting..."
+									) : (
+										<>
+											<CheckCircle2 className="size-5" />
+											Submit Order
+										</>
+									)}
+								</Button>
+								<p className="text-muted-foreground text-xs text-center mt-3">
+									A payment request will be created after submission
+								</p>
+							</div>
 						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Empty State */}
-			{items.length === 0 && printings.length === 0 && (
-				<Card className="rounded-none">
-					<CardContent className="flex flex-col items-center justify-center py-12">
-						<ShoppingCart className="mb-4 h-12 w-12 text-muted-foreground" />
-						<p className="mb-2 font-medium">Your cart is empty</p>
-						<p className="mb-4 text-center text-muted-foreground text-sm">
-							Add items or printing services to your cart before submitting
-						</p>
-						<Button
-							onClick={() => router.push(`/event/${eventId}/my-exhibitor-kit/order-items` as any)}
-							variant="outline"
-							className="rounded-none"
-						>
-							Browse Items
-						</Button>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Total Amount */}
-			{(items.length > 0 || printings.length > 0) && (
-				<Card className="rounded-none border-primary">
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<p className="font-semibold text-lg">Total Amount</p>
-							<p className="font-bold text-2xl">RM {totalAmount.toFixed(2)}</p>
-						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Action Buttons */}
-			<div className="flex gap-3">
-				<Button
-					onClick={() => router.back()}
-					variant="outline"
-					className="flex-1 rounded-none"
-					disabled={isSubmitting}
-				>
-					Back
-				</Button>
-				<Button
-					onClick={handleSubmit}
-					className="flex-1 gap-2 rounded-none"
-					disabled={isSubmitting || (items.length === 0 && printings.length === 0)}
-				>
-					{isSubmitting ? (
-						"Submitting..."
-					) : (
-						<>
-							<CheckCircle2 className="h-4 w-4" />
-							Submit Order
-						</>
-					)}
-				</Button>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

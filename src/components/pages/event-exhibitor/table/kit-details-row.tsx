@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CreditCard, FileQuestion, Package, Printer, Users } from "lucide-react";
+import { Building2, CreditCard, ExternalLink, FileQuestion, Package, Printer, StickyNote, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { EventVendor } from "@/lib/api/event-vendor";
@@ -22,15 +22,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 	const teamMembers = kit.exhibitor_team_members || [];
 	const customRequests = kit.custom_requests || [];
 
-	const itemsTotal = items.reduce((sum, item) => sum + (item.agreed_price * item.quantity), 0);
-	const printingsTotal = printings.reduce((sum, printing) => sum + (printing.agreed_price * printing.quantity), 0);
-	const customRequestsTotal = customRequests
-		.filter(req => req.status === "approved")
-		.reduce((sum, req) => sum + ((req.resolved_price || 0) * req.quantity), 0);
-	const teamMemberCharges = kit.extra_team_member_charges ? Number(kit.extra_team_member_charges) : 0;
-
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal = itemsTotal + printingsTotal + teamMemberCharges;
+	// Calculate totals for display in section subtotals
+	const itemsTotal = items.reduce((sum, item) => sum + (Number(item.agreed_price) * item.quantity), 0);
+	const printingsTotal = printings.reduce((sum, printing) => sum + (Number(printing.agreed_price) * printing.quantity), 0);
 
 	const pendingRequests = customRequests.filter(req => req.status === "pending").length;
 	const approvedRequests = customRequests.filter(req => req.status === "approved").length;
@@ -109,7 +103,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					<div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b">
 						<CreditCard className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Payment
+							Booth Rental Payment
 						</h4>
 					</div>
 					<div className="flex justify-between items-center py-0.5">
@@ -163,52 +157,63 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						)}
 					</div>
 					{teamMembers.length > 0 ? (
-						kit.team_member_limit ? (
-							// Show breakdown when limit exists
-							<div className="space-y-2">
-								{/* Free Members */}
-								<div className="space-y-0.5">
-									<p className="text-xs font-medium text-green-600 dark:text-green-400">
-										Free ({Math.min(teamMembers.length, kit.team_member_limit)})
-									</p>
-									{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
-										<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5 bg-green-50 dark:bg-green-950/20 px-1.5 rounded-sm">
-											<div className="size-1.5 rounded-full bg-green-600 dark:bg-green-400 shrink-0" />
-											<span className="text-xs">{member.full_name}</span>
-										</div>
-									))}
-								</div>
-								{/* Paid Members */}
-								{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
-									<div className="space-y-0.5">
-										<p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-											Paid ({kit.excess_team_member_count}) • RM {kit.extra_team_member_charges}
-										</p>
-										{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
-											<div key={member.id || idx} className="flex items-center justify-between gap-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/20 px-1.5 rounded-sm">
-												<div className="flex items-center gap-1.5 flex-1 min-w-0">
-													<div className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0" />
-													<span className="text-xs truncate">{member.full_name}</span>
+						<>
+							<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+								{kit.team_member_limit ? (
+									// Show breakdown when limit exists
+									<div className="space-y-2">
+										{/* Free Members */}
+										<div className="space-y-0.5">
+											<p className="text-xs font-medium text-green-600 dark:text-green-400">
+												Free ({Math.min(teamMembers.length, kit.team_member_limit)})
+											</p>
+											{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
+												<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5 bg-green-50 dark:bg-green-950/20 px-1.5 rounded-sm">
+													<div className="size-1.5 rounded-full bg-green-600 dark:bg-green-400 shrink-0" />
+													<span className="text-xs">{member.full_name}</span>
 												</div>
-												<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
-													+RM {kit.extra_team_member_fee}
-												</span>
+											))}
+										</div>
+										{/* Paid Members */}
+										{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
+											<div className="space-y-0.5">
+												<p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+													Paid ({kit.excess_team_member_count}) • RM {kit.extra_team_member_charges}
+												</p>
+												{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
+													<div key={member.id || idx} className="flex items-center justify-between gap-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/20 px-1.5 rounded-sm">
+														<div className="flex items-center gap-1.5 flex-1 min-w-0">
+															<div className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0" />
+															<span className="text-xs truncate">{member.full_name}</span>
+														</div>
+														<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+															+RM {kit.extra_team_member_fee}
+														</span>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+								) : (
+									// Show simple list when no limit
+									<div className="space-y-0.5">
+										{teamMembers.map((member, idx) => (
+											<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5">
+												<div className="size-1.5 rounded-full bg-primary shrink-0" />
+												<span className="text-xs">{member.full_name}</span>
 											</div>
 										))}
 									</div>
 								)}
 							</div>
-						) : (
-							// Show simple list when no limit
-							<div className="space-y-0.5">
-								{teamMembers.map((member, idx) => (
-									<div key={member.id || idx} className="flex items-center gap-1.5 py-0.5">
-										<div className="size-1.5 rounded-full bg-primary shrink-0" />
-										<span className="text-xs">{member.full_name}</span>
-									</div>
-								))}
-							</div>
-						)
+							{/* Subtotal for extra team members */}
+							{kit.extra_team_member_charges && Number(kit.extra_team_member_charges) > 0 && (
+								<div className="flex justify-between pt-1.5 border-t font-semibold text-xs">
+									<span>Subtotal:</span>
+									<span>RM {Number(kit.extra_team_member_charges).toFixed(2)}</span>
+								</div>
+							)}
+						</>
 					) : (
 						<p className="text-muted-foreground text-xs">No team members</p>
 					)}
@@ -224,16 +229,26 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{items.length > 0 ? (
 						<>
-							<div className="space-y-0.5 max-h-28 overflow-y-auto">
+							<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
 								{items.map((item) => (
-									<div key={item.id} className="flex justify-between text-xs py-0.5 border-b border-dashed">
-										<span className="truncate flex-1">
-											{item.rentable_item?.name || `Item #${item.rentable_item_id}`}
-										</span>
-										<span className="text-muted-foreground ml-2">{item.quantity}x</span>
-										<span className="font-medium ml-2">
-											RM {(item.agreed_price * item.quantity).toFixed(2)}
-										</span>
+									<div key={item.id} className="border bg-muted/30 p-2 space-y-1">
+										<div className="flex justify-between text-xs">
+											<span className="truncate flex-1 font-medium">
+												{item.rentable_item?.name || `Item #${item.rentable_item_id}`}
+											</span>
+											<span className="text-muted-foreground ml-2">{item.quantity}x</span>
+											<span className="font-medium ml-2 shrink-0">
+												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+											</span>
+										</div>
+										{item.notes && (
+											<div className="flex items-start gap-1 pt-1 border-t border-dashed">
+												<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
+												<p className="text-muted-foreground text-xs line-clamp-2">
+													{item.notes}
+												</p>
+											</div>
+										)}
 									</div>
 								))}
 							</div>
@@ -257,16 +272,43 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{printings.length > 0 ? (
 						<>
-							<div className="space-y-0.5 max-h-28 overflow-y-auto">
+							<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
 								{printings.map((printing) => (
-									<div key={printing.id} className="flex justify-between text-xs py-0.5 border-b border-dashed">
-										<span className="truncate flex-1">
-											{printing.printing_service?.name || `Service #${printing.printing_service_id}`}
-										</span>
-										<span className="text-muted-foreground ml-2">{printing.quantity}x</span>
-										<span className="font-medium ml-2">
-											RM {(printing.agreed_price * printing.quantity).toFixed(2)}
-										</span>
+									<div key={printing.id} className="border bg-muted/30 p-2 space-y-1">
+										<div className="flex justify-between text-xs">
+											<span className="truncate flex-1 font-medium">
+												{printing.printing_service?.name || `Service #${printing.printing_service_id}`}
+											</span>
+											<span className="text-muted-foreground ml-2">{printing.quantity}x</span>
+											<span className="font-medium ml-2 shrink-0">
+												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+											</span>
+										</div>
+										{(printing.notes || printing.file_reference) && (
+											<div className="flex flex-col gap-1 pt-1 border-t border-dashed">
+												{printing.notes && (
+													<div className="flex items-start gap-1">
+														<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
+														<p className="text-muted-foreground text-xs line-clamp-2">
+															{printing.notes}
+														</p>
+													</div>
+												)}
+												{printing.file_reference && (
+													<div className="flex items-center gap-1">
+														<ExternalLink className="size-2.5 text-primary shrink-0" />
+														<a
+															href={printing.file_reference}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-primary text-xs hover:underline truncate"
+														>
+															View File
+														</a>
+													</div>
+												)}
+											</div>
+										)}
 									</div>
 								))}
 							</div>
@@ -345,29 +387,6 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						)}
 					</div>
 				)} */}
-
-				{/* Grand Total - Full Width */}
-				{grandTotal > 0 && (
-					<div className="md:col-span-2 lg:col-span-3 border-2 border-primary/30 p-3 bg-primary/5">
-						<div className="flex justify-between items-center">
-							<div>
-								<h4 className="font-bold text-base">Grand Total:</h4>
-								<div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-1">
-									{itemsTotal > 0 && <span>Items: RM {itemsTotal.toFixed(2)}</span>}
-									{printingsTotal > 0 && <span>• Services: RM {printingsTotal.toFixed(2)}</span>}
-									{/* HIDDEN: Custom Requests feature temporarily disabled */}
-									{/* {customRequestsTotal > 0 && <span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>} */}
-									{teamMemberCharges > 0 && (
-										<span className="font-medium text-amber-600">
-											• Team: RM {teamMemberCharges.toFixed(2)}
-										</span>
-									)}
-								</div>
-							</div>
-							<span className="font-bold text-2xl text-primary">RM {grandTotal.toFixed(2)}</span>
-						</div>
-					</div>
-				)}
 			</div>
 		</div>
 	);
