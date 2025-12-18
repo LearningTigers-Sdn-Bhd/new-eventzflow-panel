@@ -13,11 +13,16 @@ import {
 } from "@tanstack/react-table";
 import { Users } from "lucide-react";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { TeamMemberItem } from "./team-member-item";
 import type { TeamMember } from "./team-member-table-columns";
 import { DataControl } from "./team-member-table-control";
@@ -33,7 +38,6 @@ export function DataTable<TData, TValue>({
 	data,
 	onAddMember,
 }: DataTableProps<TData, TValue>) {
-	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -64,60 +68,70 @@ export function DataTable<TData, TValue>({
 			<DataControl table={table} />
 
 			{/* Data Table */}
-			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{isDesktop ? (
-					<BaseTable
-						table={table}
-						emptyStateConfig={{
-							title: "No team members found",
-							desc: "Add your first team member to get started",
-							icon: <Users />,
-							action: <Button onClick={onAddMember}>Add Team Member</Button>,
-						}}
-					/>
-				) : isMobile ? (
-					<div className="space-y-2">
-						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<TeamMemberItem
-										key={row.id}
-										member={row.original as TeamMember}
+			<div className="min-h-[calc(100vh-320px)]">
+				<ResponsiveLayout>
+					<DesktopView>
+						<BaseTable
+							table={table}
+							emptyStateConfig={{
+								title: "No team members found",
+								desc: "Add your first team member to get started",
+								icon: <Users />,
+								action: <Button onClick={onAddMember}>Add Team Member</Button>,
+							}}
+						/>
+					</DesktopView>
+					<MobileView>
+						<div className="space-y-2">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<TeamMemberItem
+											key={row.id}
+											member={row.original as TeamMember}
+										/>
+									))
+							) : (
+								<EmptyState
+									title="No team members found"
+									description="Add your first team member to get started"
+									icon={<Users />}
+									height="h-auto"
+									action={
+										<Button onClick={onAddMember}>Add Team Member</Button>
+									}
+								/>
+							)}
+						</div>
+					</MobileView>
+					<TabletView>
+						<div className="space-y-2">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<TeamMemberItem
+											key={row.id}
+											member={row.original as TeamMember}
+										/>
+									))
+							) : (
+								<div className="col-span-2">
+									<EmptyState
+										title="No team members found"
+										description="Add your first team member to get started"
+										icon={<Users />}
+										height="h-auto"
+										action={
+											<Button onClick={onAddMember}>Add Team Member</Button>
+										}
 									/>
-								))
-						) : (
-							<EmptyState
-								title="No team members found"
-								description="Add your first team member to get started"
-								icon={<Users />}
-								height="h-auto"
-								action={<Button onClick={onAddMember}>Add Team Member</Button>}
-							/>
-						)}
-					</div>
-				) : (
-					<div className="space-y-2">
-						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<TeamMemberItem
-										key={row.id}
-										member={row.original as TeamMember}
-									/>
-								))
-						) : (
-							<EmptyState
-								title="No team members found"
-								description="Add your first team member to get started"
-								icon={<Users />}
-								height="h-auto"
-								action={<Button onClick={onAddMember}>Add Team Member</Button>}
-							/>
-						)}
-					</div>
-				)}
+								</div>
+							)}
+						</div>
+					</TabletView>
+				</ResponsiveLayout>
 			</div>
 
 			{/* Pagination */}

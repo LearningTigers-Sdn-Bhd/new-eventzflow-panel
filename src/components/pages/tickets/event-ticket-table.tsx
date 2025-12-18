@@ -15,11 +15,16 @@ import {
 import { Calendar } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { getEventById } from "@/lib/api/event";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -39,7 +44,6 @@ export function DataTable<TData>({
 	ticketFilter = "active",
 	onTicketFilterChange,
 }: DataTableProps<TData>) {
-	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const params = useParams();
 	const eventId = params.event_id as string;
 
@@ -115,61 +119,67 @@ export function DataTable<TData>({
 			/>
 
 			{/* Data Table */}
-			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{isDesktop ? (
-					<BaseTable
-						table={table}
-						emptyStateConfig={{
-							title: "No tickets found",
-							desc: "Create your first ticket to get started",
-							icon: <Calendar />,
-							action: <Button>Create Ticket</Button>,
-						}}
-					/>
-				) : isMobile ? (
-					<div className="space-y-2">
-						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<TicketItem
-										key={row.id}
-										ticket={row.original as BaseTicket}
-										labelsData={eventData?.labels_data}
-									/>
+			<div className="min-h-[calc(100vh-320px)]">
+				<ResponsiveLayout>
+					<DesktopView>
+						<BaseTable
+							table={table}
+							emptyStateConfig={{
+								title: "No tickets found",
+								desc: "Create your first ticket to get started",
+								icon: <Calendar />,
+								action: <Button>Create Ticket</Button>,
+							}}
+						/>
+					</DesktopView>
+					<MobileView>
+						<div className="space-y-2">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<TicketItem
+											key={row.id}
+											ticket={row.original as BaseTicket}
+											labelsData={eventData?.labels_data}
+										/>
+									))
+							) : (
+								<EmptyState
+									title="No tickets found"
+									description="Create your first ticket to get started"
+									icon={<Calendar />}
+									height="h-auto"
+									action={<Button>Create Ticket</Button>}
+								/>
+							)}
+						</div>
+					</MobileView>
+					<TabletView>
+						<div className="grid grid-cols-2 gap-4">
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<div key={row.id} className="col-span-1">
+										<TicketItem
+											ticket={row.original as BaseTicket}
+											labelsData={eventData?.labels_data}
+										/>
+									</div>
 								))
-						) : (
-							<EmptyState
-								title="No tickets found"
-								description="Create your first ticket to get started"
-								icon={<Calendar />}
-								height="h-auto"
-								action={<Button>Create Ticket</Button>}
-							/>
-						)}
-					</div>
-				) : (
-					<div className="grid grid-cols-2 gap-4">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<TicketItem
-										ticket={row.original as BaseTicket}
-										labelsData={eventData?.labels_data}
+							) : (
+								<div className="col-span-2">
+									<EmptyState
+										title="No tickets found"
+										description="Create your first ticket to get started"
+										icon={<Calendar />}
+										height="h-auto"
+										action={<Button>Create Ticket</Button>}
 									/>
 								</div>
-							))
-						) : (
-							<EmptyState
-								title="No tickets found"
-								description="Create your first ticket to get started"
-								icon={<Calendar />}
-								height="h-auto"
-								action={<Button>Create Ticket</Button>}
-							/>
-						)}
-					</div>
-				)}
+							)}
+						</div>
+					</TabletView>
+				</ResponsiveLayout>
 			</div>
 			<DataPagination table={table} />
 		</div>

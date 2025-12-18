@@ -157,4 +157,25 @@ function MobileView({ children, className }: ResponsiveViewProps) {
 	) : null;
 }
 
-export { ResponsiveLayout, DesktopView, TabletView, MobileView, useResponsive };
+function MobileTabletView({ children, className }: ResponsiveViewProps) {
+	const { breakpoint, mounted } = useResponsive();
+
+	if (!mounted) {
+		return null; // Prevent hydration mismatch
+	}
+
+	return breakpoint === "mobile" || breakpoint === "tablet" ? (
+		<div data-slot="responsive-mobile-tablet" className={cn(className)}>
+			{children}
+		</div>
+	) : null;
+}
+
+export {
+	ResponsiveLayout,
+	DesktopView,
+	TabletView,
+	MobileView,
+	MobileTabletView,
+	useResponsive,
+};

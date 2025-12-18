@@ -2,9 +2,9 @@
 
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { BaseApiKey } from "./api-key-table-columns";
 import { cn } from "@/lib/utils";
 import { ApiKeyActionsMenu } from "./api-key-action-menu";
+import type { BaseApiKey } from "./api-key-table-columns";
 
 interface ApiKeyItemProps {
 	apiKey: BaseApiKey;

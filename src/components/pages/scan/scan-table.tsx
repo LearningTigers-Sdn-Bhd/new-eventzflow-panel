@@ -13,6 +13,12 @@ import {
 } from "@tanstack/react-table";
 import { ScanLine } from "lucide-react";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Card } from "@/components/ui/card";
@@ -25,7 +31,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { cn } from "@/lib/utils";
 import { ScanItem } from "./scan-item";
 import { DataControl } from "./scan-table-control";
@@ -70,6 +75,19 @@ function TableRowSkeleton() {
 	);
 }
 
+function ScanItemSkeleton() {
+	return (
+		<div className="flex flex-col gap-2 rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+			<div className="flex justify-between">
+				<Skeleton className="h-4 w-24" />
+				<Skeleton className="h-4 w-16" />
+			</div>
+			<Skeleton className="h-4 w-32" />
+			<Skeleton className="h-4 w-full" />
+		</div>
+	);
+}
+
 export function DataTable({
 	columns,
 	data,
@@ -80,7 +98,6 @@ export function DataTable({
 	onFilterChange,
 	onSortChange,
 }: DataTableProps) {
-	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const [sorting, setSorting] = React.useState<SortingState>([
 		{
 			id: "timestamp",
@@ -151,34 +168,54 @@ export function DataTable({
 			{/* Table */}
 			<div className="max-h-[400px] overflow-y-auto border-y-0 border-dashed sm:max-h-[600px] md:border-y">
 				{isLoading ? (
-					<Table>
-						<TableHeader className="sticky top-0 z-10">
-							<TableRow>
-								<TableHead className="w-12 text-center text-xs sm:text-sm">
-									No
-								</TableHead>
-								<TableHead className="text-xs sm:text-sm">Attendee</TableHead>
-								<TableHead className="hidden text-xs sm:text-sm md:table-cell">
-									Event
-								</TableHead>
-								<TableHead className="hidden text-xs sm:table-cell sm:text-sm">
-									Ticket Type
-								</TableHead>
-								<TableHead className="hidden text-xs sm:text-sm lg:table-cell">
-									Ticket ID
-								</TableHead>
-								<TableHead className="whitespace-nowrap text-xs sm:text-sm">
-									Check-In Time
-								</TableHead>
-								<TableHead className="text-xs sm:text-sm">Status</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{skeletonRows.map((row) => (
-								<TableRowSkeleton key={row.id} />
-							))}
-						</TableBody>
-					</Table>
+					<ResponsiveLayout>
+						<DesktopView>
+							<Table>
+								<TableHeader className="sticky top-0 z-10">
+									<TableRow>
+										<TableHead className="w-12 text-center text-xs sm:text-sm">
+											No
+										</TableHead>
+										<TableHead className="text-xs sm:text-sm">
+											Attendee
+										</TableHead>
+										<TableHead className="hidden text-xs sm:text-sm md:table-cell">
+											Event
+										</TableHead>
+										<TableHead className="hidden text-xs sm:table-cell sm:text-sm">
+											Ticket Type
+										</TableHead>
+										<TableHead className="hidden text-xs sm:text-sm lg:table-cell">
+											Ticket ID
+										</TableHead>
+										<TableHead className="whitespace-nowrap text-xs sm:text-sm">
+											Check-In Time
+										</TableHead>
+										<TableHead className="text-xs sm:text-sm">Status</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{skeletonRows.map((row) => (
+										<TableRowSkeleton key={row.id} />
+									))}
+								</TableBody>
+							</Table>
+						</DesktopView>
+						<MobileView>
+							<div className="space-y-2 p-4">
+								{skeletonRows.map((row) => (
+									<ScanItemSkeleton key={row.id} />
+								))}
+							</div>
+						</MobileView>
+						<TabletView>
+							<div className="grid grid-cols-2 gap-4 p-4">
+								{skeletonRows.map((row) => (
+									<ScanItemSkeleton key={row.id} />
+								))}
+							</div>
+						</TabletView>
+					</ResponsiveLayout>
 				) : filteredRows.length === 0 ? (
 					<div className="flex items-center justify-center p-8 sm:p-12">
 						<EmptyState
@@ -192,103 +229,109 @@ export function DataTable({
 							height="h-auto"
 						/>
 					</div>
-				) : isDesktop ? (
-					// Desktop: Table view with recentScan highlighting
-					<Table>
-						<TableHeader className="sticky top-0 z-10 bg-background">
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
+				) : (
+					<ResponsiveLayout>
+						<DesktopView>
+							{/* Desktop: Table view with recentScan highlighting */}
+							<Table>
+								<TableHeader className="sticky top-0 z-10 bg-background">
+									{table.getHeaderGroups().map((headerGroup) => (
+										<TableRow key={headerGroup.id}>
+											{headerGroup.headers.map((header) => {
+												return (
+													<TableHead
+														key={header.id}
+														style={{ width: `${header.getSize()}px` }}
+														className={cn(
+															header.index === 0 && "ps-3",
+															header.column.columnDef.meta?.sticky === "left" &&
+																"sticky left-0 z-10 bg-background",
+															header.column.columnDef.meta?.sticky ===
+																"right" && "sticky right-0 z-10 bg-background",
+														)}
+													>
+														{header.isPlaceholder
+															? null
+															: flexRender(
+																	header.column.columnDef.header,
+																	header.getContext(),
+																)}
+													</TableHead>
+												);
+											})}
+										</TableRow>
+									))}
+								</TableHeader>
+								<TableBody>
+									{filteredRows.map((row) => {
+										const result = row.original;
+										const isRecent = recentScan === result;
 										return (
-											<TableHead
-												key={header.id}
-												style={{ width: `${header.getSize()}px` }}
+											<TableRow
+												key={row.id}
 												className={cn(
-													header.index === 0 && "ps-3",
-													header.column.columnDef.meta?.sticky === "left" &&
-														"sticky left-0 z-10 bg-background",
-													header.column.columnDef.meta?.sticky === "right" &&
-														"sticky right-0 z-10 bg-background",
+													"transition-colors",
+													isRecent && "animate-pulse bg-primary/5",
 												)}
 											>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
+												{row.getVisibleCells().map((cell) => (
+													<TableCell
+														key={cell.id}
+														style={{ width: `${cell.column.getSize()}px` }}
+														className={cn(
+															table.getVisibleLeafColumns()[0]?.id ===
+																cell.column.id && "ps-4",
+															cell.column.columnDef.meta?.sticky === "left" &&
+																"sticky left-0 z-10 bg-background",
+															cell.column.columnDef.meta?.sticky === "right" &&
+																"sticky right-0 z-10 bg-background",
 														)}
-											</TableHead>
+													>
+														{flexRender(
+															cell.column.columnDef.cell,
+															cell.getContext(),
+														)}
+													</TableCell>
+												))}
+											</TableRow>
 										);
 									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{filteredRows.map((row) => {
-								const result = row.original;
-								const isRecent = recentScan === result;
-								return (
-									<TableRow
-										key={row.id}
-										className={cn(
-											"transition-colors",
-											isRecent && "animate-pulse bg-primary/5",
-										)}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell
-												key={cell.id}
-												style={{ width: `${cell.column.getSize()}px` }}
-												className={cn(
-													table.getVisibleLeafColumns()[0]?.id ===
-														cell.column.id && "ps-4",
-													cell.column.columnDef.meta?.sticky === "left" &&
-														"sticky left-0 z-10 bg-background",
-													cell.column.columnDef.meta?.sticky === "right" &&
-														"sticky right-0 z-10 bg-background",
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
-									</TableRow>
-								);
-							})}
-						</TableBody>
-					</Table>
-				) : isMobile ? (
-					// Mobile: Single column list
-					<div className="space-y-2">
-						{filteredRows.map((row) => {
-							const result = row.original;
-							const isRecent = recentScan === result;
-							return (
-								<ScanItem
-									key={row.id}
-									scanResult={result}
-									isRecent={isRecent}
-								/>
-							);
-						})}
-					</div>
-				) : (
-					// Tablet: 2-column grid
-					<div className="grid grid-cols-2 gap-4 p-0">
-						{filteredRows.map((row) => {
-							const result = row.original;
-							const isRecent = recentScan === result;
-							return (
-								<ScanItem
-									key={row.id}
-									scanResult={result}
-									isRecent={isRecent}
-								/>
-							);
-						})}
-					</div>
+								</TableBody>
+							</Table>
+						</DesktopView>
+						<MobileView>
+							{/* Mobile: Single column list */}
+							<div className="space-y-2">
+								{filteredRows.map((row) => {
+									const result = row.original;
+									const isRecent = recentScan === result;
+									return (
+										<ScanItem
+											key={row.id}
+											scanResult={result}
+											isRecent={isRecent}
+										/>
+									);
+								})}
+							</div>
+						</MobileView>
+						<TabletView>
+							{/* Tablet: 2-column grid */}
+							<div className="grid grid-cols-2 gap-4 p-0">
+								{filteredRows.map((row) => {
+									const result = row.original;
+									const isRecent = recentScan === result;
+									return (
+										<ScanItem
+											key={row.id}
+											scanResult={result}
+											isRecent={isRecent}
+										/>
+									);
+								})}
+							</div>
+						</TabletView>
+					</ResponsiveLayout>
 				)}
 			</div>
 			{/* Pagination */}
