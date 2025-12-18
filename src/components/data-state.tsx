@@ -99,11 +99,24 @@ export const EmptyState = ({
 		>
 			<Empty>
 				<EmptyHeader>
-					<EmptyMedia variant="icon">{icon}</EmptyMedia>
-					<EmptyTitle>{title}</EmptyTitle>
-					<EmptyDescription>{description}</EmptyDescription>
+					<EmptyMedia
+						variant="icon"
+						className="rounded-none border border-primary/20 p-5"
+					>
+						{icon}
+					</EmptyMedia>
+					<EmptyTitle className="font-semibold tracking-tight">
+						{title}
+					</EmptyTitle>
+					<EmptyDescription className="text-balance text-sm tracking-tight">
+						{description}
+					</EmptyDescription>
 				</EmptyHeader>
-				{action && <EmptyContent>{action}</EmptyContent>}
+				{action && (
+					<EmptyContent className="[&_button]:rounded-none [&_button]:py-6 md:[&_button]:py-4">
+						{action}
+					</EmptyContent>
+				)}
 			</Empty>
 		</div>
 	);
