@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { type DrawStyle, type DrawTheme } from "@/stores/lucky-draw-store";
+import type { DrawStyle, DrawTheme } from "@/stores/lucky-draw-store";
 import type { Participant } from "@/stores/lucky-draw-store";
 
 // Wheel Imports (Default Export)
@@ -73,8 +73,8 @@ export default function DrawStylePreview({ style, theme }: DrawStylePreviewProps
 	return (
 		<div className="flex w-full flex-col items-center justify-center rounded-lg border bg-muted/30 p-6">
 			<div className="mb-6 text-center">
-				<h4 className="text-sm font-medium text-foreground/80">Style Preview</h4>
-				<p className="text-xs capitalize text-muted-foreground">
+				<h4 className="font-medium text-foreground/80 text-sm">Style Preview</h4>
+				<p className="text-muted-foreground text-xs capitalize">
 					{style} - {theme}
 				</p>
 			</div>

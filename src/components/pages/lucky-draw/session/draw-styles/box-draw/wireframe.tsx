@@ -40,13 +40,7 @@ export function BoxDraw({
 					type="button"
 					onClick={onDraw}
 					disabled={isDrawing}
-					className="px-10 py-4 text-xl font-bold tracking-[0.2em] uppercase 
-							   bg-white border-2 border-slate-800 text-slate-800
-							   shadow-[8px_8px_0px_0px_rgba(30,41,59,1)]
-							   hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(30,41,59,1)]
-							   active:translate-y-1 active:shadow-[4px_4px_0px_0px_rgba(30,41,59,1)]
-							   disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
-							   transition-all duration-200"
+					className="hover:-translate-y-1 border-2 border-slate-800 bg-white px-10 py-4 font-bold text-slate-800 text-xl uppercase tracking-[0.2em] shadow-[8px_8px_0px_0px_rgba(30,41,59,1)] transition-all duration-200 hover:shadow-[10px_10px_0px_0px_rgba(30,41,59,1)] active:translate-y-1 active:shadow-[4px_4px_0px_0px_rgba(30,41,59,1)] disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
 				>
 					{isDrawing ? "OPENING..." : "OPEN BOX"}
 				</button>

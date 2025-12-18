@@ -92,7 +92,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
-						className="absolute rounded-full pointer-events-none"
+						className="pointer-events-none absolute rounded-full"
 						style={{ 
 							top: 120, 
 							left: "50%", 
@@ -112,7 +112,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 			{/* Confetti Layer */}
 			<AnimatePresence>
 				{isOpen && (
-					<div className="absolute pointer-events-none" style={{ top: 130, left: 160, zIndex: 50 }}>
+					<div className="pointer-events-none absolute" style={{ top: 130, left: 160, zIndex: 50 }}>
 						{confetti.map((piece) => (
 							<motion.div
 								key={piece.id}
@@ -139,25 +139,25 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 								}}
 							>
 								{piece.type === "star" && (
-									<svg viewBox="0 0 24 24" fill="#FFD700" className="w-full h-full drop-shadow-sm">
+									<svg viewBox="0 0 24 24" fill="#FFD700" className="h-full w-full drop-shadow-sm">
 										<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
 									</svg>
 								)}
 								{piece.type === "circle" && (
-									<div className="w-full h-full rounded-full bg-[#FFD700] shadow-sm" />
+									<div className="h-full w-full rounded-full bg-[#FFD700] shadow-sm" />
 								)}
 								{piece.type === "triangle" && (
-									<svg viewBox="0 0 24 24" fill="#FFD700" className="w-full h-full drop-shadow-sm">
+									<svg viewBox="0 0 24 24" fill="#FFD700" className="h-full w-full drop-shadow-sm">
 										<path d="M12 4L22 20H2L12 4z" />
 									</svg>
 								)}
 								{piece.type === "ribbon" && (
-									<svg viewBox="0 0 24 28" fill="#C41E3A" className="w-full h-full drop-shadow-sm">
+									<svg viewBox="0 0 24 28" fill="#C41E3A" className="h-full w-full drop-shadow-sm">
 										<path d="M4 0c0 5 3 8 3 14s-3 8-3 14c3-3 5-3 8 0 0-6 3-9 3-14s-3-9-3-14c-3 3-5 3-8 0z" />
 									</svg>
 								)}
 								{piece.type === "gift" && (
-									<svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-sm">
+									<svg viewBox="0 0 24 24" className="h-full w-full drop-shadow-sm">
 										<rect x="2" y="9" width="20" height="13" fill="white" />
 										<rect x="10" y="9" width="4" height="13" fill="#C41E3A" />
 										<rect x="1" y="6" width="22" height="5" fill="white" />
@@ -174,7 +174,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
-						className="absolute pointer-events-none"
+						className="pointer-events-none absolute"
 						style={{ top: 90, left: "50%", zIndex: 10 }}
 						initial={{ x: "-50%", y: 40, scale: 0, opacity: 0, rotate: -5 }}
 						animate={{ 
@@ -200,7 +200,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 						}}
 					>
 						<span 
-							className="text-4xl font-black tracking-wide whitespace-nowrap select-none"
+							className="select-none whitespace-nowrap font-black text-4xl tracking-wide"
 							style={{ 
 								color: "#FFD700",
 								textShadow: `
@@ -222,7 +222,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 			<AnimatePresence>
 				{isAnimating && !isOpen && (
 					<motion.div
-						className="absolute font-black select-none pointer-events-none"
+						className="pointer-events-none absolute select-none font-black"
 						style={{ 
 							top: 175, 
 							left: "50%", 
@@ -259,7 +259,7 @@ export function ColorfulGiftBox({ isOpen, isAnimating }: ColorfulGiftBoxProps) {
 				transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
 			>
 				{/* Bow */}
-				<svg width="320" height="80" viewBox="0 0 320 80" className="absolute -top-10 left-0">
+				<svg width="320" height="80" viewBox="0 0 320 80" className="-top-10 absolute left-0">
 					{/* Gold Bow */}
 					<ellipse cx="120" cy="40" rx="32" ry="34" fill="#FFC107" />
 					<ellipse cx="200" cy="40" rx="32" ry="34" fill="#FFC107" />
