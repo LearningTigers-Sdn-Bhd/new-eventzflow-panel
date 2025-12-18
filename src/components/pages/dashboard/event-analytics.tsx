@@ -614,9 +614,9 @@ export function EventAnalytics({
 				<Tabs defaultValue="key-metrics" className="rounded-none">
 					<div className="relative w-full">
 						{/* Left blur gradient */}
-						<div className="-left-1 pointer-events-none absolute top-0 z-10 h-[90%] w-16 bg-linear-to-r from-foreground/20 via-muted/50 to-transparent opacity-30 blur-in-3xl" />
+						<div className="pointer-events-none absolute top-0 -left-1 z-10 h-[90%] w-16 bg-linear-to-r from-foreground/20 via-muted/50 to-transparent opacity-30 blur-in-3xl" />
 						{/* Right blur gradient */}
-						<div className="-right-1 pointer-events-none absolute top-0 z-10 h-[90%] w-16 bg-linear-to-l from-foreground/20 via-muted/50 to-transparent opacity-30 blur-in-3xl" />
+						<div className="pointer-events-none absolute top-0 -right-1 z-10 h-[90%] w-16 bg-linear-to-l from-foreground/20 via-muted/50 to-transparent opacity-30 blur-in-3xl" />
 						<ScrollArea className="mx-auto w-full pb-2" scrollHideDelay={0}>
 							<div className="w-full">
 								<TabsList className="w-fit rounded-none border-2 px-1 py-6 *:px-8 *:py-5">
