@@ -5,11 +5,8 @@ import { Ticket } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { VendorVouchersPageButton } from "@/components/pages/vendor-vouchers/page-action/button";
-import {
-	type VendorVoucher,
-	vendorVoucherColumns,
-} from "@/components/pages/vendor-vouchers/table/columns";
-import { VendorVoucherDataTable } from "@/components/pages/vendor-vouchers/table/data-table";
+import type { VendorVoucher } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table-columns";
+import { VendorVoucherTable } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
@@ -96,10 +93,7 @@ export default function VendorVouchersPage() {
 					height="h-[400px]"
 				/>
 			) : (
-				<VendorVoucherDataTable
-					columns={vendorVoucherColumns}
-					data={vouchersWithEvent}
-				/>
+				<VendorVoucherTable data={vouchersWithEvent} />
 			)}
 		</div>
 	);

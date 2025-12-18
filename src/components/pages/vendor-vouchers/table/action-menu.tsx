@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import EditVendorVoucherForm from "../forms/edit-vendor-voucher-form";
-import type { VendorVoucher } from "./columns";
+import type { VendorVoucher } from "./vendor-voucher-table-columns";
 
 interface VendorVoucherActionsMenuProps {
 	voucher: VendorVoucher;
