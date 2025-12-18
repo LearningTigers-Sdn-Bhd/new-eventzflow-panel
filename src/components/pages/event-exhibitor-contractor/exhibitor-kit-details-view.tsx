@@ -8,7 +8,9 @@ import {
 	Package,
 	FileText,
 	CreditCard,
-	Printer
+	Printer,
+	ExternalLink,
+	StickyNote
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -91,15 +93,6 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		(sum, printing) => sum + Number(printing.agreed_price) * printing.quantity,
 		0,
 	);
-	const customRequestsTotal = customRequests
-		.filter((req) => req.status === "approved")
-		.reduce(
-			(sum, req) => sum + Number(req.resolved_price || 0) * req.quantity,
-			0,
-		);
-
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal = itemsTotal + printingsTotal;
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -314,32 +307,36 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {itemsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="space-y-1">
-								{items.map((item) => (
-									<div
-										key={item.id}
-										className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-									>
-										<div className="flex-1">
-											<p className="font-medium text-sm">
-												{item.rentable_item?.name ||
-													`Item #${item.rentable_item_id}`}
-											</p>
+							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+									{items.map((item) => (
+										<div
+											key={item.id}
+											className="border bg-muted/30 p-3 space-y-1"
+										>
+											<div className="flex justify-between text-sm">
+												<span className="truncate flex-1 font-medium">
+													{item.rentable_item?.name ||
+														`Item #${item.rentable_item_id}`}
+												</span>
+												<span className="font-semibold ml-2 shrink-0">
+													RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+												</span>
+											</div>
 											<p className="text-muted-foreground text-xs">
-												{item.quantity} x RM{" "}
-												{Number(item.agreed_price).toFixed(2)}
+												{item.quantity} x RM {Number(item.agreed_price).toFixed(2)}
 											</p>
 											{item.notes && (
-												<p className="text-muted-foreground text-xs mt-1">
-													Note: {item.notes}
-												</p>
+												<div className="flex items-start gap-1.5 pt-1.5 border-t border-dashed">
+													<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+													<p className="text-muted-foreground text-xs line-clamp-2">
+														{item.notes}
+													</p>
+												</div>
 											)}
 										</div>
-										<span className="font-semibold">
-											RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
-										</span>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
 						</div>
 					)}
@@ -358,40 +355,53 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {printingsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="space-y-1">
-								{printings.map((printing) => (
-									<div
-										key={printing.id}
-										className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-									>
-										<div className="flex-1">
-											<p className="font-medium text-sm">
-												{printing.printing_service?.name ||
-													`Service #${printing.printing_service_id}`}
-											</p>
+							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+									{printings.map((printing) => (
+										<div
+											key={printing.id}
+											className="border bg-muted/30 p-3 space-y-1"
+										>
+											<div className="flex justify-between text-sm">
+												<span className="truncate flex-1 font-medium">
+													{printing.printing_service?.name ||
+														`Service #${printing.printing_service_id}`}
+												</span>
+												<span className="font-semibold ml-2 shrink-0">
+													RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+												</span>
+											</div>
 											<p className="text-muted-foreground text-xs">
-												{printing.quantity} x RM{" "}
-												{Number(printing.agreed_price).toFixed(2)}
+												{printing.quantity} x RM {Number(printing.agreed_price).toFixed(2)}
 											</p>
-											{printing.file_reference && (
-												<p className="text-muted-foreground text-xs mt-1">
-													File: {printing.file_reference}
-												</p>
-											)}
-											{printing.notes && (
-												<p className="text-muted-foreground text-xs mt-1">
-													Note: {printing.notes}
-												</p>
+											{(printing.notes || printing.file_reference) && (
+												<div className="flex flex-col gap-1 pt-1.5 border-t border-dashed">
+													{printing.notes && (
+														<div className="flex items-start gap-1.5">
+															<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+															<p className="text-muted-foreground text-xs line-clamp-2">
+																{printing.notes}
+															</p>
+														</div>
+													)}
+													{printing.file_reference && (
+														<div className="flex items-center gap-1.5">
+															<ExternalLink className="size-3 text-primary shrink-0" />
+															<a
+																href={printing.file_reference}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-primary text-xs hover:underline truncate"
+															>
+																View File
+															</a>
+														</div>
+													)}
+												</div>
 											)}
 										</div>
-										<span className="font-semibold">
-											RM{" "}
-											{(
-												Number(printing.agreed_price) * printing.quantity
-											).toFixed(2)}
-										</span>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
 						</div>
 					)}
@@ -481,19 +491,6 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 						</div>
 					)} */}
 
-					{/* Grand Total */}
-					{grandTotal > 0 && (
-						<div className="rounded-none border-2 border-primary/30 bg-primary/5 p-4">
-							<div className="flex items-center justify-between">
-								<h3 className="font-bold text-lg">
-									Grand Total (Items + Services + Approved Requests):
-								</h3>
-								<span className="font-bold text-3xl text-primary">
-									RM {grandTotal.toFixed(2)}
-								</span>
-							</div>
-						</div>
-					)}
 				</div>
 			</section>
 

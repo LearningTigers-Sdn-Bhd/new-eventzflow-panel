@@ -3,9 +3,11 @@
 import {
 	Building2,
 	CreditCard,
+	ExternalLink,
 	FileQuestion,
 	Package,
 	Printer,
+	StickyNote,
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +32,7 @@ export function ExhibitorKitDetailsSection({
 	const teamMembers = kit.exhibitor_team_members || [];
 	const customRequests = kit.custom_requests || [];
 
+	// Calculate totals for display in section headers
 	const itemsTotal = items.reduce(
 		(sum, item) => sum + Number(item.agreed_price) * item.quantity,
 		0,
@@ -38,19 +41,6 @@ export function ExhibitorKitDetailsSection({
 		(sum, printing) => sum + Number(printing.agreed_price) * printing.quantity,
 		0,
 	);
-	const customRequestsTotal = customRequests
-		.filter((req) => req.status === "approved")
-		.reduce(
-			(sum, req) => sum + Number(req.resolved_price || 0) * req.quantity,
-			0,
-		);
-	const teamMemberCharges = kit.extra_team_member_charges
-		? Number(kit.extra_team_member_charges)
-		: 0;
-
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal =
-		itemsTotal + printingsTotal + teamMemberCharges;
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -201,7 +191,7 @@ export function ExhibitorKitDetailsSection({
 						<div className="flex items-center gap-2 border-b pb-2">
 							<CreditCard className="size-4 text-primary" />
 							<h3 className="font-semibold text-sm uppercase tracking-wide">
-								Payment
+								Booth Rental Payment
 							</h3>
 						</div>
 						<div className="space-y-2 text-sm">
@@ -361,27 +351,39 @@ export function ExhibitorKitDetailsSection({
 								RM {itemsTotal.toFixed(2)}
 							</span>
 						</div>
-						<div className="space-y-1">
-							{items.map((item) => (
-								<div
-									key={item.id}
-									className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-								>
-									<div className="flex-1">
-										<p className="font-medium text-sm">
-											{item.rentable_item?.name ||
-												`Item #${item.rentable_item_id}`}
-										</p>
-										<p className="text-muted-foreground text-xs">
-											{item.quantity} x RM{" "}
-											{Number(item.agreed_price).toFixed(2)}
-										</p>
+						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+								{items.map((item) => (
+									<div
+										key={item.id}
+										className="rounded-none border bg-muted/30 p-3 space-y-2"
+									>
+										<div className="flex items-start justify-between gap-2">
+											<div className="flex-1 min-w-0">
+												<p className="font-medium text-sm truncate">
+													{item.rentable_item?.name ||
+														`Item #${item.rentable_item_id}`}
+												</p>
+												<p className="text-muted-foreground text-xs">
+													{item.quantity} x RM{" "}
+													{Number(item.agreed_price).toFixed(2)}
+												</p>
+											</div>
+											<span className="font-semibold text-sm shrink-0">
+												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+											</span>
+										</div>
+										{item.notes && (
+											<div className="flex items-start gap-1.5 pt-1 border-t border-dashed">
+												<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+												<p className="text-muted-foreground text-xs line-clamp-2">
+													{item.notes}
+												</p>
+											</div>
+										)}
 									</div>
-									<span className="font-semibold">
-										RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
-									</span>
-								</div>
-							))}
+								))}
+							</div>
 						</div>
 					</div>
 				)}
@@ -400,30 +402,56 @@ export function ExhibitorKitDetailsSection({
 								RM {printingsTotal.toFixed(2)}
 							</span>
 						</div>
-						<div className="space-y-1">
-							{printings.map((printing) => (
-								<div
-									key={printing.id}
-									className="flex items-center justify-between border-b border-dashed py-2 last:border-0"
-								>
-									<div className="flex-1">
-										<p className="font-medium text-sm">
-											{printing.printing_service?.name ||
-												`Service #${printing.printing_service_id}`}
-										</p>
-										<p className="text-muted-foreground text-xs">
-											{printing.quantity} x RM{" "}
-											{Number(printing.agreed_price).toFixed(2)}
-										</p>
+						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+								{printings.map((printing) => (
+									<div
+										key={printing.id}
+										className="rounded-none border bg-muted/30 p-3 space-y-2"
+									>
+										<div className="flex items-start justify-between gap-2">
+											<div className="flex-1 min-w-0">
+												<p className="font-medium text-sm truncate">
+													{printing.printing_service?.name ||
+														`Service #${printing.printing_service_id}`}
+												</p>
+												<p className="text-muted-foreground text-xs">
+													{printing.quantity} x RM{" "}
+													{Number(printing.agreed_price).toFixed(2)}
+												</p>
+											</div>
+											<span className="font-semibold text-sm shrink-0">
+												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+											</span>
+										</div>
+										{(printing.notes || printing.file_reference) && (
+											<div className="flex flex-col gap-1.5 pt-1 border-t border-dashed">
+												{printing.notes && (
+													<div className="flex items-start gap-1.5">
+														<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+														<p className="text-muted-foreground text-xs line-clamp-2">
+															{printing.notes}
+														</p>
+													</div>
+												)}
+												{printing.file_reference && (
+													<div className="flex items-center gap-1.5">
+														<ExternalLink className="size-3 text-primary shrink-0" />
+														<a
+															href={printing.file_reference}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-primary text-xs hover:underline truncate"
+														>
+															View File Reference
+														</a>
+													</div>
+												)}
+											</div>
+										)}
 									</div>
-									<span className="font-semibold">
-										RM{" "}
-										{(
-											Number(printing.agreed_price) * printing.quantity
-										).toFixed(2)}
-									</span>
-								</div>
-							))}
+								))}
+							</div>
 						</div>
 					</div>
 				)}
@@ -512,35 +540,6 @@ export function ExhibitorKitDetailsSection({
 						</div>
 					</div>
 				)} */}
-
-				{/* Grand Total */}
-				{grandTotal > 0 && (
-					<div className="rounded-none border-2 border-primary/30 bg-primary/5 p-4">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<h3 className="font-bold text-lg">Grand Total:</h3>
-								<span className="font-bold text-3xl text-primary">
-									RM {grandTotal.toFixed(2)}
-								</span>
-							</div>
-							<div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-								{itemsTotal > 0 && <span>Items: RM {itemsTotal.toFixed(2)}</span>}
-								{printingsTotal > 0 && (
-									<span>• Services: RM {printingsTotal.toFixed(2)}</span>
-								)}
-								{/* HIDDEN: Custom Requests feature temporarily disabled */}
-								{/* {customRequestsTotal > 0 && (
-									<span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>
-								)} */}
-								{teamMemberCharges > 0 && (
-									<span className="font-medium text-amber-600">
-										• Extra Team Members: RM {teamMemberCharges.toFixed(2)}
-									</span>
-								)}
-							</div>
-						</div>
-					</div>
-				)}
 			</div>
 		</section>
 	);
