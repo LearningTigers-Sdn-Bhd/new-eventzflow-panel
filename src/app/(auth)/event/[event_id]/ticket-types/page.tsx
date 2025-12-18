@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { DataTable } from "@/components/pages/ticket-types/data-table";
+import { DataTable } from "@/components/pages/ticket-types/ticket-type-table";
 import { TicketTypePageButton } from "@/components/pages/ticket-types/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -48,7 +48,7 @@ export default function TicketTypesPage({
 					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
 			) : (
-				<DataTable data={ticketTypes || []} eventId={event_id} />
+				<DataTable data={ticketTypes || []} />
 			)}
 		</div>
 	);
