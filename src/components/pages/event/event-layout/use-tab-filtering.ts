@@ -3,6 +3,7 @@ import type { Event } from "@/lib/api/event";
 import { TAB_ITEMS } from "./tab-config";
 
 type EventPermissions = {
+	isVendor: boolean; // From user.role (synchronous)
 	isExhibitionContractor: boolean;
 	isEventVendor: boolean;
 	canManageEventVendors: boolean;
@@ -28,8 +29,9 @@ export function useTabFiltering(
 				].includes(tab.id);
 			}
 
-			// For vendors, only show these specific tabs
-			if (permissions.isEventVendor && !permissions.canManageEventVendors) {
+			// For vendors (by role), only show vendor-specific tabs
+			// Use isVendor (from user.role) for immediate check without async
+			if (permissions.isVendor) {
 				// Exhibitor kit tabs only available when enabled
 				if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
 					return currentEvent?.use_exhibitor_kit === true;
@@ -56,18 +58,14 @@ export function useTabFiltering(
 				return permissions.isExhibitionContractor;
 			}
 
-			// Hide vendor-specific exhibitor kit tabs
+			// Hide vendor-specific exhibitor kit tabs from non-vendors
 			if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
-				return (
-					permissions.isEventVendor &&
-					!permissions.canManageEventVendors &&
-					currentEvent?.use_exhibitor_kit === true
-				);
+				return false;
 			}
 
 			// Hide vendor-profile tab from non-vendors
 			if (tab.id === "vendor-profile") {
-				return permissions.isEventVendor && !permissions.canManageEventVendors;
+				return false;
 			}
 
 			// Always show these tabs
@@ -77,7 +75,7 @@ export function useTabFiltering(
 
 			// Export logs - hide for vendors and non-ticket events
 			if (tab.id === "export-logs") {
-				return currentEvent?.use_ticket !== false && !permissions.isEventVendor;
+				return currentEvent?.use_ticket !== false;
 			}
 
 			// Ticket-related tabs - only for ticket events
@@ -131,12 +129,12 @@ export function useTabFiltering(
 
 			// Voucher redemption - only for vendors
 			if (tab.id === "voucher-redemption") {
-				return permissions.isEventVendor;
+				return false; // Vendors handled above
 			}
 
-			// Voucher analytics - only for vendors and event admins
+			// Voucher analytics - only for event admins (vendors handled above)
 			if (tab.id === "voucher-analytics") {
-				return permissions.isEventVendor || permissions.canManageEventVendors;
+				return permissions.canManageEventVendors;
 			}
 
 			// Voucher logs - only for event admins and staff
@@ -160,9 +158,9 @@ export function useTabFiltering(
 				return permissions.canViewVisitorsTab;
 			}
 
-			// Stamp scanner - only for vendors
+			// Stamp scanner - only for vendors (handled above)
 			if (tab.id === "visitor-stamps") {
-				return permissions.isEventVendor;
+				return false;
 			}
 
 			return true;

@@ -2,9 +2,10 @@
 
 import { use } from "react";
 import { VendorProfileView } from "@/components/pages/event-vendors/vendor-profile-view";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { useAuth } from "@/hooks/use-auth";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyProfilePage({
 	params,
@@ -12,13 +13,20 @@ export default function MyProfilePage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const { user, isHydrated } = useAuth();
 
-	// Check permissions - only vendors can access this page
-	const { isEventVendor, canManageEventVendors } =
-		useEventPermissions(event_id);
+	// Show loading while auth is hydrating
+	if (!isHydrated) {
+		return (
+			<div className="space-y-6 p-6">
+				<Skeleton className="h-8 w-64" />
+				<Skeleton className="h-64 w-full" />
+			</div>
+		);
+	}
 
-	// If user is not a vendor or is an admin, show error
-	if (!isEventVendor || canManageEventVendors) {
+	// Only vendors can access this page
+	if (user?.role !== "vendor") {
 		return (
 			<ErrorState
 				title="Access Denied"
