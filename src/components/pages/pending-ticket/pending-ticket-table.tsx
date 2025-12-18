@@ -15,12 +15,17 @@ import {
 import { Calendar } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import { getEventById } from "@/lib/api/event";
 import PendingTicketForm from "./page-action/create-pending-ticket-form";
 import { PendingTicketItem } from "./pending-ticket-item";
@@ -33,7 +38,6 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({ data }: DataTableProps<TData>) {
-	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const { openDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -118,74 +122,80 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		<div className="w-full">
 			<DataControl table={table} labelsData={eventData?.labels_data} />
 
-			<div className="flex min-h-[calc(100vh-320px)] flex-col">
-				{/* Data Table */}
-				{isDesktop ? (
-					<BaseTable
-						table={table}
-						emptyStateConfig={{
-							title: "No pending tickets found",
-							desc: "Create your first pending ticket to get started",
-							icon: <Calendar />,
-							action: (
-								<Button onClick={openPendingTicketCreate}>
-									Create Pending Ticket
-								</Button>
-							),
-						}}
-					/>
-				) : isMobile ? (
-					<div className="space-y-2">
-						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<PendingTicketItem
-										key={row.id}
-										ticket={row.original as PendingTicket}
-										labelsData={eventData?.labels_data}
-									/>
-								))
-						) : (
-							<EmptyState
-								title="No pending tickets found"
-								description="Create your first pending ticket to get started"
-								icon={<Calendar />}
-								height="h-auto"
-								action={
+			<div className="min-h-[calc(100vh-320px)]">
+				<ResponsiveLayout>
+					{/* Data Table */}
+					<DesktopView>
+						<BaseTable
+							table={table}
+							emptyStateConfig={{
+								title: "No pending tickets found",
+								desc: "Create your first pending ticket to get started",
+								icon: <Calendar />,
+								action: (
 									<Button onClick={openPendingTicketCreate}>
 										Create Pending Ticket
 									</Button>
-								}
-							/>
-						)}
-					</div>
-				) : (
-					<div className="grid grid-cols-2 gap-2">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<PendingTicketItem
-										ticket={row.original as PendingTicket}
-										labelsData={eventData?.labels_data}
+								),
+							}}
+						/>
+					</DesktopView>
+					<MobileView>
+						<div className="space-y-2">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<PendingTicketItem
+											key={row.id}
+											ticket={row.original as PendingTicket}
+											labelsData={eventData?.labels_data}
+										/>
+									))
+							) : (
+								<EmptyState
+									title="No pending tickets found"
+									description="Create your first pending ticket to get started"
+									icon={<Calendar />}
+									height="h-auto"
+									action={
+										<Button onClick={openPendingTicketCreate}>
+											Create Pending Ticket
+										</Button>
+									}
+								/>
+							)}
+						</div>
+					</MobileView>
+					<TabletView>
+						<div className="grid grid-cols-2 gap-2">
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<div key={row.id} className="col-span-1">
+										<PendingTicketItem
+											ticket={row.original as PendingTicket}
+											labelsData={eventData?.labels_data}
+										/>
+									</div>
+								))
+							) : (
+								<div className="col-span-2">
+									<EmptyState
+										title="No pending tickets found"
+										description="Create your first pending ticket to get started"
+										icon={<Calendar />}
+										height="h-auto"
+										action={
+											<Button onClick={openPendingTicketCreate}>
+												Create Pending Ticket
+											</Button>
+										}
 									/>
 								</div>
-							))
-						) : (
-							<EmptyState
-								title="No pending tickets found"
-								description="Create your first pending ticket to get started"
-								icon={<Calendar />}
-								height="h-auto"
-								action={
-									<Button onClick={openPendingTicketCreate}>
-										Create Pending Ticket
-									</Button>
-								}
-							/>
-						)}
-					</div>
-				)}
+							)}
+						</div>
+					</TabletView>
+				</ResponsiveLayout>
 			</div>
 			<DataPagination table={table} />
 		</div>

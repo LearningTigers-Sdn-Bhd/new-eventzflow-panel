@@ -13,13 +13,18 @@ import {
 } from "@tanstack/react-table";
 import { Calendar } from "lucide-react";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useResponsiveDeterminer } from "@/hooks/use-responsive-determiner";
 import CreateEventForm from "./create-event-form";
 import { EventItem } from "./event-item";
 import type { Event } from "./event-table-columns";
@@ -42,7 +47,6 @@ export function DataTable<TData, TValue>({
 	eventFilter = "active",
 	onEventFilterChange,
 }: DataTableProps<TData, TValue>) {
-	const { isMobile, isDesktop } = useResponsiveDeterminer();
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
 
@@ -124,53 +128,59 @@ export function DataTable<TData, TValue>({
 
 			<div className="min-h-[65vh]">
 				{/* Data Table */}
-				{isDesktop ? (
-					<BaseTable
-						table={table}
-						emptyStateConfig={{
-							title: emptyStateProps.title,
-							desc: emptyStateProps.description,
-							icon: <Calendar />,
-							action: emptyStateProps.action,
-						}}
-					/>
-				) : isMobile ? (
-					<div className="space-y-2 pb-6">
-						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<EventItem key={row.id} event={row.original as Event} />
+				<ResponsiveLayout>
+					<DesktopView>
+						<BaseTable
+							table={table}
+							emptyStateConfig={{
+								title: emptyStateProps.title,
+								desc: emptyStateProps.description,
+								icon: <Calendar />,
+								action: emptyStateProps.action,
+							}}
+						/>
+					</DesktopView>
+					<MobileView>
+						<div className="space-y-2 pb-6">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<EventItem key={row.id} event={row.original as Event} />
+									))
+							) : (
+								<EmptyState
+									title={emptyStateProps.title}
+									description={emptyStateProps.description}
+									icon={<Calendar />}
+									height="h-auto"
+									action={emptyStateProps.action}
+								/>
+							)}
+						</div>
+					</MobileView>
+					<TabletView>
+						<div className="grid grid-cols-2 gap-4 pb-6">
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<div key={row.id} className="col-span-1">
+										<EventItem event={row.original as Event} />
+									</div>
 								))
-						) : (
-							<EmptyState
-								title={emptyStateProps.title}
-								description={emptyStateProps.description}
-								icon={<Calendar />}
-								height="h-auto"
-								action={emptyStateProps.action}
-							/>
-						)}
-					</div>
-				) : (
-					<div className="grid grid-cols-2 gap-4 pb-6">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div key={row.id} className="col-span-1">
-									<EventItem event={row.original as Event} />
+							) : (
+								<div className="col-span-2">
+									<EmptyState
+										title={emptyStateProps.title}
+										description={emptyStateProps.description}
+										icon={<Calendar />}
+										height="h-auto"
+										action={emptyStateProps.action}
+									/>
 								</div>
-							))
-						) : (
-							<EmptyState
-								title={emptyStateProps.title}
-								description={emptyStateProps.description}
-								icon={<Calendar />}
-								height="h-auto"
-								action={emptyStateProps.action}
-							/>
-						)}
-					</div>
-				)}
+							)}
+						</div>
+					</TabletView>
+				</ResponsiveLayout>
 			</div>
 			<DataPagination table={table} />
 		</div>

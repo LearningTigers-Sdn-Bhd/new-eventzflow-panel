@@ -21,6 +21,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/use-tablet";
 import { getEvents } from "@/lib/api/event";
 import { cn } from "@/lib/utils";
 import { useEventActionsStore } from "@/stores/event-actions-store";
@@ -89,10 +90,10 @@ function EventBadges({ status, use_ticket }: EventBadgesProps) {
 				variant="secondary"
 				className={cn(
 					"rounded-none font-bold capitalize",
-					status === "draft" && "bg-yellow-200 text-yellow-800",
-					status === "published" && "bg-green-200 text-green-800",
-					status === "cancelled" && "bg-red-200 text-red-800",
-					status === "completed" && "bg-blue-200 text-blue-800",
+					status === "draft" && "bg-yellow-500 text-white",
+					status === "published" && "bg-green-500 text-white",
+					status === "cancelled" && "bg-red-500 text-white",
+					status === "completed" && "bg-blue-500 text-white",
 				)}
 			>
 				{status}
@@ -101,12 +102,10 @@ function EventBadges({ status, use_ticket }: EventBadgesProps) {
 				variant="secondary"
 				className={cn(
 					"rounded-none font-bold capitalize",
-					use_ticket
-						? "bg-green-200 text-green-800"
-						: "bg-red-200 text-red-800",
+					use_ticket ? "bg-purple-500 text-white" : "bg-cyan-500 text-white",
 				)}
 			>
-				{use_ticket ? "Tickets Event" : "Visitors Event"}
+				{use_ticket ? "Ticket Event" : "Visitor Event"}
 			</Badge>
 		</>
 	);
@@ -183,7 +182,7 @@ function MobileEventHeader({
 				className={cn(
 					"flex flex-col",
 					isSticky
-						? "-mt-4 fixed top-0 left-0 z-50 w-screen pt-4 shadow-sm"
+						? "fixed top-0 left-0 z-50 -mt-4 w-screen pt-4 shadow-sm"
 						: "relative w-full",
 				)}
 			>
@@ -238,6 +237,8 @@ export default function EventDetailLayout({
 	const pathname = usePathname();
 	const { event_id } = use(params);
 	const isMobile = useIsMobile();
+	const isTablet = useIsTablet();
+	const { toggleSidebar } = useSidebar();
 
 	// Fetch event details
 	const { data: events, isLoading } = useQuery({
@@ -313,24 +314,39 @@ export default function EventDetailLayout({
 						<Skeleton className="h-5 w-96" />
 					</>
 				) : !isMobile ? (
-					<div className="mx-auto flex w-full items-start gap-4 md:max-w-5xl md:px-0 2xl:max-w-7xl">
-						<AvatarIcon title={currentEvent?.title || ""} />
-						<div className="flex flex-col gap-2">
-							<div className="flex flex-col items-start">
-								<h3 className="line-clamp-1 font-bold text-lg leading-none tracking-tight md:text-xl">
-									{currentEvent?.title}
-								</h3>
-								<p className="text-muted-foreground text-sm md:text-base">
-									{`Manage current event details, team members and vendors, and ${currentEvent?.use_ticket ? "tickets" : "visitors"}.`}
-								</p>
-							</div>
-							<div className="flex items-center gap-2">
-								<EventBadges
-									status={currentEvent?.status || "draft"}
-									use_ticket={currentEvent?.use_ticket || false}
-								/>
+					<div className="mx-auto flex w-full flex-row justify-between gap-4 3xl:px-4 md:max-w-5xl md:px-0 2xl:max-w-7xl">
+						<div className="flex w-full flex-row gap-4">
+							<AvatarIcon title={currentEvent?.title || ""} />
+							<div className="flex flex-col gap-2">
+								<div className="flex flex-col items-start">
+									<h3 className="line-clamp-1 font-bold text-lg leading-none tracking-tight md:text-xl">
+										{currentEvent?.title}
+									</h3>
+									<p className="text-muted-foreground text-sm md:text-base">
+										{`Manage current event details, team members and vendors, and ${currentEvent?.use_ticket ? "tickets" : "visitors"}.`}
+									</p>
+								</div>
+								<div className="flex items-center gap-2">
+									<EventBadges
+										status={currentEvent?.status || "draft"}
+										use_ticket={currentEvent?.use_ticket || false}
+									/>
+								</div>
 							</div>
 						</div>
+						{isTablet && (
+							<div className="flex items-center justify-end">
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={toggleSidebar}
+									className="size-8 rounded-none"
+								>
+									<Menu className="size-5" />
+									<span className="sr-only">Open Event Navigation</span>
+								</Button>
+							</div>
+						)}
 					</div>
 				) : currentEvent ? (
 					<MobileEventHeader
@@ -342,7 +358,7 @@ export default function EventDetailLayout({
 
 			{/* Current Menu Header */}
 			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-5xl 2xl:max-w-7xl">
-				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between">
+				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
 					<IconHeading
 						icon={currentMenu.icon}
 						title={currentMenuTitle}
@@ -356,7 +372,7 @@ export default function EventDetailLayout({
 				</div>
 
 				{/* Page Content */}
-				<div className="w-full pt-4">
+				<div className="w-full pt-4 md:px-4">
 					<div className="w-full">{children}</div>
 				</div>
 			</div>
