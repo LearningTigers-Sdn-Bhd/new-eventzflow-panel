@@ -78,6 +78,11 @@ export default function AuthLayout({
 		return <div className="mx-auto">{children}</div>;
 	}
 
+	// Render review-submit pages without sidebar (checkout-style)
+	if (pathname.includes("review-submit")) {
+		return <>{children}</>;
+	}
+
 	// Render sidebar layout for authenticated users
 	return (
 		<SidebarProvider>

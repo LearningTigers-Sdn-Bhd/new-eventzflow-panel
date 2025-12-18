@@ -84,6 +84,12 @@ export default function EventDetailLayout({
 		return <div className="mx-auto">{children}</div>;
 	}
 
+	// Check if we're on the review-submit route (checkout-style page)
+	const isReviewSubmitRoute = pathname.includes("review-submit");
+	if (isReviewSubmitRoute) {
+		return <>{children}</>;
+	}
+
 	// Show loading state while fetching event data
 	// This prevents showing wrong tabs to vendors/contractors during load
 	if (isLoading) {

@@ -58,3 +58,18 @@ export async function updateExhibitorKit(
 		},
 	);
 }
+
+/**
+ * Submit an exhibitor kit order
+ * This auto-creates a payment record for unpaid items and printings
+ * and links them to the payment for tracking
+ */
+export async function submitExhibitorKitOrder(
+	eventId: number,
+	kitId: number,
+): Promise<{ data: unknown; message: string }> {
+	return restClient.post<{ data: unknown; message: string }>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/submit_order`,
+		{},
+	);
+}

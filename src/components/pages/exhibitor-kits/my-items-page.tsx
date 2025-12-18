@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, Printer } from "lucide-react";
+import { Package, Printer, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getEventVendors } from "@/lib/api/event-vendor";
@@ -14,6 +14,7 @@ import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { DataTable } from "./my-items/data-table";
 import { itemsColumns } from "./my-items/items-columns";
 import { printingsColumns } from "./my-items/printings-columns";
+import { ExhibitorPaymentList } from "./exhibitor-payment-list";
 
 interface MyItemsPageProps {
 	eventId: number;
@@ -138,16 +139,20 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 				</div>
 			</div>
 
-			{/* Items and Printings Tabs */}
+			{/* Items, Printings and Payments Tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
-				<TabsList className="grid w-full grid-cols-2 rounded-none">
+				<TabsList className="grid w-full grid-cols-3 rounded-none">
 					<TabsTrigger value="items" className="gap-2 rounded-none">
 						<Package className="h-4 w-4" />
-						Rentable Items ({items.length})
+						Items ({items.length})
 					</TabsTrigger>
 					<TabsTrigger value="printings" className="gap-2 rounded-none">
 						<Printer className="h-4 w-4" />
-						Printing Services ({printings.length})
+						Printings ({printings.length})
+					</TabsTrigger>
+					<TabsTrigger value="payments" className="gap-2 rounded-none">
+						<CreditCard className="h-4 w-4" />
+						Payments
 					</TabsTrigger>
 				</TabsList>
 
@@ -170,6 +175,13 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add printing services to your exhibitor kit"
 						emptyIcon={<Printer />}
 						searchPlaceholder="Search services..."
+					/>
+				</TabsContent>
+
+				<TabsContent value="payments" className="mt-6">
+					<ExhibitorPaymentList
+						eventId={eventId.toString()}
+						kitId={myKit.id.toString()}
 					/>
 				</TabsContent>
 			</Tabs>

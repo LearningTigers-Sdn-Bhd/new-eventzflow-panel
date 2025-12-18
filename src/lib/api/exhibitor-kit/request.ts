@@ -13,6 +13,7 @@ export const exhibitorKitItemSchema = z.object({
 	rentable_item_id: z.number(),
 	quantity: z.number().min(1, "Quantity must be at least 1"),
 	agreed_price: z.number().min(0, "Price must be positive"),
+	notes: z.string().nullable().optional(),
 	_destroy: z.boolean().optional(),
 });
 
@@ -22,6 +23,8 @@ export const exhibitorKitPrintingSchema = z.object({
 	printing_service_id: z.number(),
 	quantity: z.number().min(1, "Quantity must be at least 1"),
 	agreed_price: z.number().min(0, "Price must be positive"),
+	notes: z.string().nullable().optional(),
+	file_reference: z.string().nullable().optional(),
 	_destroy: z.boolean().optional(),
 });
 

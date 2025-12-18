@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-	Building2, 
-	Users, 
-	Package, 
-	FileText, 
+import {
+	Building2,
+	Users,
+	Package,
+	FileText,
 	CreditCard,
 	Printer
 } from "lucide-react";
@@ -15,6 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
+import { PaymentList } from "./payment-list";
+import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
+import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
@@ -23,6 +27,11 @@ interface ExhibitorKitDetailsViewProps {
 
 export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsViewProps) {
 	const router = useRouter();
+
+	// Dialog states
+	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
+	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
 
 	const {
 		data: vendors,
@@ -102,6 +111,19 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		(req) => req.status === "rejected",
 	).length;
 
+	// Payment dialog handlers
+	const handleVerifyPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("verify");
+		setVerifyRejectOpen(true);
+	};
+
+	const handleRejectPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("reject");
+		setVerifyRejectOpen(true);
+	};
+
 	return (
 		<div className="space-y-0">
 			{/* Header Section */}
@@ -150,8 +172,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 
 				{/* Content Grid */}
 				<div className="space-y-4 p-4">
-					{/* Basic Information Grid */}
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{/* Booth Info & Company/PIC Row */}
+					<div className="grid gap-6 md:grid-cols-2">
 						{/* Booth Information */}
 						<div className="space-y-3 rounded-none border bg-background p-4">
 							<div className="flex items-center gap-2 border-b pb-2">
@@ -237,61 +259,22 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								</div>
 							</div>
 						</div>
+					</div>
 
-						{/* Payment Information */}
-						<div className="space-y-3 rounded-none border bg-background p-4">
-							<div className="flex items-center gap-2 border-b pb-2">
-								<CreditCard className="size-4 text-primary" />
-								<h3 className="font-semibold text-sm uppercase tracking-wide">
-									Payment
-								</h3>
-							</div>
-							<div className="space-y-2 text-sm">
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Status:</span>
-									<Badge
-										variant="outline"
-										className={cn(
-											"rounded-none font-bold capitalize",
-											exhibitorKit.payment_status === "paid" &&
-												"border-green-500 text-green-500",
-											exhibitorKit.payment_status === "unpaid" &&
-												"border-red-500 text-red-500",
-											exhibitorKit.payment_status === "waived" &&
-												"border-gray-500 text-gray-500",
-											exhibitorKit.payment_status === "sponsored" &&
-												"border-blue-500 text-blue-500",
-										)}
-									>
-										{exhibitorKit.payment_status || "unpaid"}
-									</Badge>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">Amount Paid:</span>
-									<span className="font-medium">
-										{exhibitorKit.amount_paid
-											? `RM ${Number(exhibitorKit.amount_paid).toFixed(2)}`
-											: "-"}
-									</span>
-								</div>
-								{exhibitorKit.payment_note && (
-									<div className="border-t pt-2">
-										<span className="mb-1 block text-muted-foreground">
-											Note:
-										</span>
-										<p className="text-sm">{exhibitorKit.payment_note}</p>
-									</div>
-								)}
-								{exhibitorKit.special_requirements && (
-									<div className="border-t pt-2">
-										<span className="mb-1 block text-muted-foreground">
-											Special Requirements:
-										</span>
-										<p className="text-sm">{exhibitorKit.special_requirements}</p>
-									</div>
-								)}
-							</div>
+					{/* Payment Management Section - Full Width */}
+					<div className="rounded-none border bg-background p-4">
+						<div className="flex items-center gap-2 border-b pb-3 mb-4">
+							<CreditCard className="size-4 text-primary" />
+							<h3 className="font-semibold text-sm uppercase tracking-wide">
+								Payment Management
+							</h3>
 						</div>
+						<PaymentList
+							eventId={eventId}
+							kitId={kitId}
+							onVerifyPayment={handleVerifyPayment}
+							onRejectPayment={handleRejectPayment}
+						/>
 					</div>
 
 					{/* Team Members */}
@@ -513,6 +496,16 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 					)}
 				</div>
 			</section>
+
+			{/* Dialogs */}
+			<VerifyRejectPaymentDialog
+				open={verifyRejectOpen}
+				onOpenChange={setVerifyRejectOpen}
+				payment={selectedPayment}
+				eventId={eventId}
+				kitId={kitId}
+				action={dialogAction}
+			/>
 		</div>
 	);
 }
