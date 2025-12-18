@@ -187,14 +187,16 @@ export const eventMenuConfig: EventMenuConfig = {
 					visible: (p, e) =>
 						visible.canViewVendors(p) && visible.hasExhibitorKit(p, e),
 				},
-				// Exhibitor Contractor - org owner only
+				// Exhibitor Contractor - org owner only, when using exhibitor kit
 				{
 					route: "exhibitor-contractor",
 					label: "Exhibitor Contractor",
 					description:
 						"Assign and manage exhibitor contractors for this event.",
 					icon: HardHat,
-					visible: visible.orgOwner,
+					visible: (p, e) => {
+						return visible.orgOwner(p) && visible.hasExhibitorKit(p, e);
+					},
 				},
 			],
 		},
