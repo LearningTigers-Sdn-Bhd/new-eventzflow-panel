@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ItemCategory } from "@/lib/api/item-category";
-import { columns } from "./table/columns";
-import { DataTable } from "./table/data-table";
 import { CategoryFormContent } from "./category-form-dialog";
+import { ItemCategoryTable } from "./table/item-category-table";
 
 interface CategoryClientWrapperProps {
 	categories: ItemCategory[];
@@ -80,8 +79,7 @@ export default function CategoryClientWrapper({
 					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 				</div>
 			) : (
-				<DataTable
-					columns={columns}
+				<ItemCategoryTable
 					data={sortedCategories}
 					onAddCategory={handleAddCategory}
 				/>

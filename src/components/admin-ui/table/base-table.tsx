@@ -97,8 +97,11 @@ export function BaseTable<TData>({
 								</TableRow>
 							))
 						) : (
-							<TableRow>
-								<TableCell colSpan={columnCount} className="h-24 text-center">
+							<TableRow className="hover:bg-transparent">
+								<TableCell
+									colSpan={columnCount}
+									className="h-[calc(100vh-380px)] text-center"
+								>
 									<EmptyState
 										title={emptyStateConfig.title}
 										description={emptyStateConfig.desc}
