@@ -55,7 +55,7 @@ export function EventMenuHeader({
 
 	// Handle event selection
 	const handleEventSelect = (selectedEventId: string) => {
-		router.push(`/event/${selectedEventId}/location`);
+		router.push(`/event/${selectedEventId}/details`);
 	};
 
 	// Loading state

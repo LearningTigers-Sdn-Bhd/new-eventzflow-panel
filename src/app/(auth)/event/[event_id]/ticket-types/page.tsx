@@ -3,8 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { DataTable } from "@/components/pages/ticket-types/ticket-type-table";
 import { TicketTypePageButton } from "@/components/pages/ticket-types/page-action/button";
+import { DataTable } from "@/components/pages/ticket-types/ticket-type-table";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";

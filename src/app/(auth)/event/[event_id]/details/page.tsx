@@ -3,9 +3,11 @@
 import { useQueries } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { EventDetailsPageContent } from "@/components/pages/event/details-page/client-wrapper";
+import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
 import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
+import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import { Button } from "@/components/ui/button";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -21,6 +23,10 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const isHydrated = useHydratedStore();
+	const { isVendor, isExhibitionContractor } = useEventPermissions(event_id);
+
+	const shouldFetchAnalytics =
+		isHydrated && !isVendor && !isExhibitionContractor;
 
 	const queries = useQueries({
 		queries: [
@@ -32,12 +38,12 @@ export default function EventDetailsPage({
 			{
 				queryKey: ["event-analytics", event_id],
 				queryFn: () => getEventAnalytics(event_id),
-				enabled: isHydrated,
+				enabled: shouldFetchAnalytics,
 			},
 			{
 				queryKey: ["event", event_id, "mall-live-feed"],
 				queryFn: () => getMallLiveFeed({ id: Number.parseInt(event_id, 10) }),
-				enabled: isHydrated,
+				enabled: shouldFetchAnalytics,
 			},
 			{
 				queryKey: ["voucher-analytics", event_id],
@@ -45,7 +51,7 @@ export default function EventDetailsPage({
 					getVoucherAnalytics({
 						event_id: Number.parseInt(event_id, 10),
 					}),
-				enabled: isHydrated,
+				enabled: shouldFetchAnalytics,
 			},
 		],
 	});
@@ -81,10 +87,16 @@ export default function EventDetailsPage({
 	}
 
 	const isTicketEvent = event.use_ticket !== false;
-	const isLoading = isTicketEvent
-		? analyticsLoading
-		: mallLoading || voucherLoading;
-	const error = isTicketEvent ? analyticsError : mallError;
+
+	// Only show loading/error for analytics if we are actually fetching them
+	const isLoading =
+		shouldFetchAnalytics &&
+		(isTicketEvent ? analyticsLoading : mallLoading || voucherLoading);
+	const error = shouldFetchAnalytics
+		? isTicketEvent
+			? analyticsError
+			: mallError
+		: null;
 
 	if (isLoading) {
 		return (
@@ -95,7 +107,7 @@ export default function EventDetailsPage({
 		);
 	}
 
-	if (error || (isTicketEvent && !analytics)) {
+	if (error || (shouldFetchAnalytics && isTicketEvent && !analytics)) {
 		return (
 			<ErrorState
 				title="Failed to load analytics"
@@ -106,11 +118,17 @@ export default function EventDetailsPage({
 	}
 
 	return (
-		<EventDetailsPageContent
-			event={event}
-			ticketAnalytics={analytics as EventAnalyticsType | undefined}
-			mallData={mallData}
-			voucherAnalytics={voucherAnalytics}
-		/>
+		<div className="space-y-6">
+			<EventDetailsView event={event} />
+
+			{shouldFetchAnalytics && (
+				<AnalyticsClientWrapper
+					event={event}
+					ticketAnalytics={analytics as EventAnalyticsType | undefined}
+					mallData={mallData}
+					voucherAnalytics={voucherAnalytics}
+				/>
+			)}
+		</div>
 	);
 }

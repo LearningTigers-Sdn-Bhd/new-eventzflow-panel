@@ -16,22 +16,21 @@ import type { VoucherAnalyticsResponse } from "@/lib/api/voucher-analytics/respo
 import { EventDetailsKeyMetrics } from "./event-details-key-metrics";
 import { EventDetailsQuickInfo } from "./event-details-quick-info";
 import { EventDetailsRecentScans } from "./event-details-recent-scans";
-import { EventDetailsView } from "./event-details-view";
 import { EventDetailsWeeklyStats } from "./event-details-weekly-stats";
 
-interface EventDetailsPageContentProps {
+interface AnalyticsClientWrapperProps {
 	event: Event;
 	ticketAnalytics?: EventAnalyticsType;
 	mallData?: MallLiveFeedResponse;
 	voucherAnalytics?: VoucherAnalyticsResponse;
 }
 
-export function EventDetailsPageContent({
+export function AnalyticsClientWrapper({
 	event,
 	ticketAnalytics,
 	mallData,
 	voucherAnalytics,
-}: EventDetailsPageContentProps) {
+}: AnalyticsClientWrapperProps) {
 	const { formatDate } = useFormatDate();
 	const isTicketEvent = event.use_ticket !== false;
 
@@ -56,9 +55,6 @@ export function EventDetailsPageContent({
 		<ResponsiveLayout>
 			<MobileTabletView>
 				<div className="space-y-6">
-					{/* Event Details */}
-					<EventDetailsView event={event} />
-
 					{/* Analytics Tabs */}
 					<Tabs defaultValue="key-metrics" className="rounded-none">
 						<div className="relative w-full">
@@ -135,9 +131,6 @@ export function EventDetailsPageContent({
 			</MobileTabletView>
 			<DesktopView>
 				<div className="space-y-6">
-					{/* Event Details */}
-					<EventDetailsView event={event} />
-
 					{/* Key Metrics */}
 					<EventDetailsKeyMetrics
 						isTicketEvent={isTicketEvent}

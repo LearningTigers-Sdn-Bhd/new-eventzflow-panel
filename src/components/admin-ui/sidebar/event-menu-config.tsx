@@ -21,6 +21,7 @@ import {
 	ScanQrCode,
 	Ticket,
 	TrendingUp,
+	User,
 	UserCheck,
 	Users,
 } from "lucide-react";
@@ -70,6 +71,7 @@ const visible = {
 	orgOwner: (p: Permissions) => p.canManageEventStaff ?? false,
 	eventAdmin: (p: Permissions) =>
 		(p.canManageEventVendors ?? false) || (p.canManageEventStaff ?? false),
+	eventAdminOnly: (p: Permissions) => p.canManageEventVendors ?? false,
 	vendor: (p: Permissions) => p.isEventVendor ?? false,
 	canViewVendors: (p: Permissions) => p.canViewVendorsTab ?? false,
 	canViewVisitors: (p: Permissions) => p.canViewVisitorsTab ?? false,
@@ -84,6 +86,13 @@ const visible = {
 	hasExhibitorKit: (_p: Permissions, e?: Event) =>
 		e?.use_exhibitor_kit === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
+
+	// Special access
+	luckyDrawAccess: (p: Permissions) =>
+		p.isEventAdmin || p.isOrganizer || p.isEventStaff,
+	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
+		(visible.orgOwner(p) || p.isExhibitionContractor) &&
+		visible.hasExhibitorKit(p, e),
 };
 
 // ============================================================================
@@ -104,12 +113,22 @@ export const eventMenuConfig: EventMenuConfig = {
 			label: "Location",
 			description: "View event location details and map.",
 			icon: MapPin,
+			visible: (p) =>
+				!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 		},
 		{
 			route: "lucky-draw",
 			label: "Lucky Draw",
 			description: "Manage lucky draw sessions, configurations, and prizes.",
 			icon: Gift,
+			visible: visible.luckyDrawAccess,
+		},
+		{
+			route: "my-profile",
+			label: "Vendor Profile",
+			description: "Manage your vendor profile and settings.",
+			icon: User,
+			visible: visible.vendor,
 		},
 	],
 
@@ -192,7 +211,9 @@ export const eventMenuConfig: EventMenuConfig = {
 						"View and manage exhibitors and their kits for this event.",
 					icon: Building2,
 					visible: (p, e) =>
-						visible.canViewVendors(p) && visible.hasExhibitorKit(p, e),
+						visible.canViewVendors(p) &&
+						visible.hasExhibitorKit(p, e) &&
+						!visible.vendor(p),
 				},
 				// Exhibitor Contractor - org owner only, when using exhibitor kit
 				{
@@ -201,9 +222,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					description:
 						"Assign and manage exhibitor contractors for this event.",
 					icon: HardHat,
-					visible: (p, e) => {
-						return visible.orgOwner(p) && visible.hasExhibitorKit(p, e);
-					},
+					visible: visible.exhibitorContractorAccess,
 				},
 			],
 		},
@@ -228,7 +247,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Voucher Analytics",
 					description: "View analytics and insights for vouchers.",
 					icon: ChartBar,
-					visible: visible.vendorOrAdmin,
+					visible: visible.eventAdminOnly,
 				},
 				{
 					route: "mall-live-feed",
@@ -236,7 +255,8 @@ export const eventMenuConfig: EventMenuConfig = {
 					description:
 						"Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
 					icon: TrendingUp,
-					visible: visible.mallEvent,
+					visible: (p, e) =>
+						e?.use_ticket === false && !(p.isEventVendor ?? false),
 				},
 			],
 		},
@@ -300,7 +320,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Visitor Stamp Scanner",
 					description: "Scan visitor QR codes to create stamps.",
 					icon: ScanQrCode,
-					visible: (p, e) => visible.mallEvent(p, e) && visible.vendor(p),
+					visible: visible.vendor,
 				},
 			],
 		},
