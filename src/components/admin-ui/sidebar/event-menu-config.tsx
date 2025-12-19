@@ -15,6 +15,7 @@ import {
 	ChartBar,
 	Gift,
 	HardHat,
+	Info,
 	Logs,
 	MapPin,
 	ScanQrCode,
@@ -92,6 +93,12 @@ const visible = {
 export const eventMenuConfig: EventMenuConfig = {
 	/** Tabs that are always visible to all users */
 	standalone: [
+		{
+			route: "details",
+			label: "Event Details",
+			description: "View and manage event details and information.",
+			icon: Info,
+		},
 		{
 			route: "location",
 			label: "Location",

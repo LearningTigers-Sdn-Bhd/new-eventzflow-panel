@@ -27,7 +27,7 @@ export function NavGroup({
 }) {
 	const pathname = usePathname();
 	return (
-		<SidebarGroup className="">
+		<SidebarGroup className="py-0">
 			<SidebarGroupLabel>{name}</SidebarGroupLabel>
 			<SidebarMenu>
 				{navGroup.map((item) => {
