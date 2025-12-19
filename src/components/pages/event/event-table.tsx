@@ -32,12 +32,19 @@ import { DataControl } from "./event-table-control";
 
 type EventFilter = "active" | "archived" | "all";
 
+interface ClickableRowConfig<TData> {
+	isEnabled: boolean;
+	onRowClick?: (row: TData) => void;
+	excludeRowClickColumns?: string[];
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	onCreateEvent?: () => void;
 	eventFilter?: EventFilter;
 	onEventFilterChange?: (filter: EventFilter) => void;
+	clickableRowConfig?: ClickableRowConfig<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +53,7 @@ export function DataTable<TData, TValue>({
 	onCreateEvent,
 	eventFilter = "active",
 	onEventFilterChange,
+	clickableRowConfig,
 }: DataTableProps<TData, TValue>) {
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
@@ -117,6 +125,18 @@ export function DataTable<TData, TValue>({
 		},
 	});
 
+	const clickableConfig = React.useMemo(() => {
+		if (!clickableRowConfig) return undefined;
+
+		return {
+			...clickableRowConfig,
+			excludeRowClickColumns: [
+				...(clickableRowConfig.excludeRowClickColumns || []),
+				"id",
+			],
+		};
+	}, [clickableRowConfig]);
+
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
@@ -138,6 +158,7 @@ export function DataTable<TData, TValue>({
 								icon: <Calendar />,
 								action: emptyStateProps.action,
 							}}
+							clickableRowConfig={clickableConfig}
 						/>
 					</DesktopView>
 					<MobileView>
@@ -146,7 +167,15 @@ export function DataTable<TData, TValue>({
 								table
 									.getRowModel()
 									.rows.map((row) => (
-										<EventItem key={row.id} event={row.original as Event} />
+										<EventItem
+											key={row.id}
+											event={row.original as Event}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
+										/>
 									))
 							) : (
 								<EmptyState
@@ -164,7 +193,14 @@ export function DataTable<TData, TValue>({
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => (
 									<div key={row.id} className="col-span-1">
-										<EventItem event={row.original as Event} />
+										<EventItem
+											event={row.original as Event}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
+										/>
 									</div>
 								))
 							) : (

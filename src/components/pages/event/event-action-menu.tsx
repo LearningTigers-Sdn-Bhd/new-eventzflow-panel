@@ -1,110 +1,31 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Cog, MoreHorizontal, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Eye, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 import { toast } from "sonner";
-import {
-	type MenuItem as ConfigMenuItem,
-	eventMenuConfig,
-} from "@/components/admin-ui/sidebar/event-menu-config";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import {
 	archiveEvent,
 	forceDeleteEvent,
 	getEvents,
 	restoreEvent,
 } from "@/lib/api/event";
-import type { Event } from "@/lib/api/event/response";
-import { cn } from "@/lib/utils";
 import EventSettingsDialog from "./settings/edit-modal";
 
 interface EventActionsMenuProps {
 	eventId: number;
 	deletedAt?: string | null;
-}
-
-type MenuContext = {
-	isTicketEvent: boolean;
-	isNonTicketEvent: boolean;
-	isVendorUser: boolean;
-	permissions: ReturnType<typeof useEventPermissions>;
-};
-
-type MenuItem = {
-	id: string;
-	name: string;
-	icon: React.ComponentType<{ className?: string }>;
-	route: string;
-	className: string;
-	featureKey: string;
-	shouldDisplay?: (context: MenuContext) => boolean;
-};
-
-type CrudActionItem = {
-	id: string;
-	name: string;
-	icon: React.ComponentType<{ className?: string }>;
-	onClick: () => void;
-	className: string;
-	roleAllowed: string[];
-	showInMenu: boolean;
-};
-
-/**
- * Transforms event menu config items to action menu format
- * @param eventId - Event ID for building full routes
- * @param event - Current event data
- */
-function transformConfigToMenuItems(
-	eventId: number,
-	event?: Event,
-): MenuItem[] {
-	// Routes to exclude from action menu (if needed)
-	const excludedRoutes = new Set<string>([]);
-
-	// Label overrides for action menu context
-	const labelOverrides: Record<string, string> = {
-		location: "View Location",
-		vendors: "Assign Vendor",
-		exhibitor: "Assign Exhibitor",
-		"visitor-stamps": "Stamp Scanner",
-	};
-
-	// Flatten all config items
-	const allItems: ConfigMenuItem[] = [
-		...eventMenuConfig.standalone,
-		...eventMenuConfig.groups.flatMap((group) => group.tabs),
-	];
-
-	return allItems
-		.filter((item) => !excludedRoutes.has(item.route))
-		.map((item) => ({
-			id: `${item.route}-id${eventId}`,
-			name: labelOverrides[item.route] || item.label,
-			icon: item.icon,
-			route: `/event/${eventId}/${item.route}`,
-			className: "",
-			featureKey: item.route,
-			shouldDisplay: item.visible
-				? (context: MenuContext) =>
-						item.visible?.(context.permissions, event) ?? true
-				: undefined,
-		}));
 }
 
 export function EventActionsMenu({
@@ -125,47 +46,9 @@ export function EventActionsMenu({
 	});
 	const currentEvent = events?.find((event) => event.id === eventId);
 
-	// Get event permissions for the current user
-	const permissions = useEventPermissions(eventId.toString(), currentEvent);
 	const isVendor = user?.role === "vendor";
 	const isExhibitionContractor = user?.role === "exhibition_contractor";
-
-	// Filter menu items based on event type and permissions
-	const routerItems = useMemo(() => {
-		const isTicketEvent = currentEvent?.use_ticket !== false;
-		const isNonTicketEvent = !isTicketEvent;
-		const menuContext: MenuContext = {
-			isTicketEvent,
-			isNonTicketEvent,
-			isVendorUser: isVendor,
-			permissions,
-		};
-
-		// Transform shared config to action menu format
-		const allRouterItems = transformConfigToMenuItems(eventId, currentEvent);
-
-		const filteredItems = allRouterItems.filter((item) =>
-			item.shouldDisplay ? item.shouldDisplay(menuContext) : true,
-		);
-
-		// Apply vendor-specific filtering
-		if (permissions.isEventVendor && !permissions.canManageEventVendors) {
-			const vendorVisibleFeatures = new Set([
-				"vendors",
-				"exhibitor",
-				"vouchers",
-				"voucher-redemption",
-				"voucher-analytics",
-				"visitor-stamps",
-			]);
-
-			return filteredItems.filter((item) =>
-				vendorVisibleFeatures.has(item.featureKey),
-			);
-		}
-
-		return filteredItems;
-	}, [currentEvent, permissions, eventId, isVendor]);
+	const userRole = user?.role || "member";
 
 	const archiveEventMutation = useMutation({
 		mutationFn: archiveEvent,
@@ -254,36 +137,6 @@ export function EventActionsMenu({
 		});
 	};
 
-	const crudActions: CrudActionItem[] = [
-		{
-			id: `archive-event-id${eventId}`,
-			name: "Archive Event",
-			icon: Archive,
-			onClick: handleArchiveClick,
-			className: "",
-			roleAllowed: ["org_owner", "organizer"],
-			showInMenu: !isArchived,
-		},
-		{
-			id: `delete-event-id${eventId}`,
-			name: "Delete Event",
-			icon: Trash2,
-			onClick: handleDeleteClick,
-			className: "text-red-600",
-			roleAllowed: ["org_owner"],
-			showInMenu: true,
-		},
-		{
-			id: `restore-event-id${eventId}`,
-			name: "Restore Event",
-			icon: RotateCcw,
-			onClick: handleRestoreClick,
-			className: "",
-			roleAllowed: ["org_owner", "organizer"],
-			showInMenu: isArchived,
-		},
-	];
-
 	const openEventSettings = () => {
 		openDialog({
 			component: EventSettingsDialog,
@@ -318,75 +171,71 @@ export function EventActionsMenu({
 	// Determine if user should see "View" button instead of "Manage"
 	const shouldShowViewButton = isVendor || isExhibitionContractor;
 
+	// Permission checks
+	const canArchiveRestore = ["org_owner", "organizer"].includes(userRole);
+	const canDelete = ["org_owner"].includes(userRole);
+
 	return (
-		<ButtonGroup>
-			<Button
-				variant="outline"
-				className="rounded-none"
-				onClick={handleMainButtonClick}
-			>
-				<Cog className="h-4 w-4" />
-				{shouldShowViewButton ? "View" : "Manage"}
-			</Button>
-			{!shouldShowViewButton && (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button className="rounded-none px-2" variant="outline">
-							<MoreHorizontal className="h-4 w-4" />
+		<TooltipProvider delayDuration={0}>
+			<ButtonGroup>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="rounded-none"
+							onClick={handleMainButtonClick}
+						>
+							{shouldShowViewButton ? (
+								<Eye className="h-4 w-4" />
+							) : (
+								<Pencil className="h-4 w-4" />
+							)}
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="center"
-						side="left"
-						className="rounded-none"
-					>
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						{routerItems.map((item) => {
-							const IconComponent = item.icon;
-							return (
-								<DropdownMenuItem
-									key={item.id}
-									className={cn(item.className, "rounded-none")}
-									onClick={() => {
-										router.push(
-											item.route as Parameters<typeof router.push>[0],
-										);
-									}}
-								>
-									<IconComponent className="mr-2 h-4 w-4" />
-									{item.name}
-								</DropdownMenuItem>
-							);
-						})}
-						{(() => {
-							const filteredActions = crudActions.filter(
-								(action) =>
-									action.roleAllowed.includes(user?.role || "member") &&
-									action.showInMenu,
-							);
-							return filteredActions.length > 0 ? (
-								<>
-									<DropdownMenuSeparator />
-									{filteredActions.map((action) => {
-										const IconComponent = action.icon;
-										return (
-											<DropdownMenuItem
-												key={action.id}
-												className={cn(action.className, "rounded-none")}
-												onClick={action.onClick}
-											>
-												<IconComponent className="mr-2 h-4 w-4" />
-												{action.name}
-											</DropdownMenuItem>
-										);
-									})}
-								</>
-							) : null;
-						})()}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			)}
-		</ButtonGroup>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">
+						{shouldShowViewButton ? "View" : "Manage"}
+					</TooltipContent>
+				</Tooltip>
+
+				{canArchiveRestore && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-none"
+								onClick={isArchived ? handleRestoreClick : handleArchiveClick}
+							>
+								{isArchived ? (
+									<RotateCcw className="h-4 w-4" />
+								) : (
+									<Archive className="h-4 w-4" />
+								)}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">
+							{isArchived ? "Restore" : "Archive"}
+						</TooltipContent>
+					</Tooltip>
+				)}
+
+				{canDelete && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-none text-red-600 hover:text-red-600"
+								onClick={handleDeleteClick}
+							>
+								<Trash2 className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">Delete</TooltipContent>
+					</Tooltip>
+				)}
+			</ButtonGroup>
+		</TooltipProvider>
 	);
 }

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { RiCalendarEventFill } from "react-icons/ri";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
@@ -9,6 +10,7 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import CreateEventForm from "@/components/pages/event/create-event-form";
 import { DataTable } from "@/components/pages/event/event-table";
 import { getColumns } from "@/components/pages/event/event-table-columns";
+import type { Event } from "@/components/pages/event/event-table-columns";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
@@ -18,6 +20,7 @@ type EventFilter = "active" | "archived" | "all";
 
 export default function EventPage() {
 	const { user } = useAuth();
+	const router = useRouter();
 	const [eventFilter, setEventFilter] = useState<EventFilter>("active");
 
 	// Build query options based on filter
@@ -102,6 +105,14 @@ export default function EventPage() {
 					onCreateEvent={handleCreateEvent}
 					eventFilter={eventFilter}
 					onEventFilterChange={setEventFilter}
+					clickableRowConfig={{
+						isEnabled: true,
+						onRowClick: (row) => {
+							const event = row as Event;
+							router.push(`/event/${event.id}/details`);
+						},
+						excludeRowClickColumns: ["actions"],
+					}}
 				/>
 			)}
 		</div>
