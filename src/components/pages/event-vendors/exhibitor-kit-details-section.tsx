@@ -10,25 +10,35 @@ import {
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
 
-function ExpandableText({ text, className }: { text: string; className?: string }) {
+function ExpandableText({
+	text,
+	className,
+}: {
+	text: string;
+	className?: string;
+}) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
 				<p
 					className={cn(
-						"text-muted-foreground text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-2",
-						className
+						"line-clamp-2 cursor-pointer text-muted-foreground text-xs transition-colors hover:text-foreground",
+						className,
 					)}
 					title="Click to view full text"
 				>
 					{text}
 				</p>
 			</PopoverTrigger>
-			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+			<PopoverContent className="max-h-80 w-72 overflow-y-auto p-3">
 				<p className="wrap-break-word text-xs">{text}</p>
 			</PopoverContent>
 		</Popover>
@@ -278,11 +288,15 @@ export function ExhibitorKitDetailsSection({
 									<span className="text-muted-foreground">
 										Limit: {kit.team_member_limit}
 									</span>
-									{kit.exceeds_team_member_limit && kit.extra_team_member_charges && (
-										<Badge variant="outline" className="rounded-none border-amber-500 text-amber-600">
-											+RM {kit.extra_team_member_charges}
-										</Badge>
-									)}
+									{kit.exceeds_team_member_limit &&
+										kit.extra_team_member_charges && (
+											<Badge
+												variant="outline"
+												className="rounded-none border-amber-500 text-amber-600"
+											>
+												+RM {kit.extra_team_member_charges}
+											</Badge>
+										)}
 								</div>
 							)}
 						</div>
@@ -297,49 +311,62 @@ export function ExhibitorKitDetailsSection({
 											Free Team Members
 										</p>
 										<span className="font-medium text-green-600 text-xs dark:text-green-400">
-											{Math.min(teamMembers.length, kit.team_member_limit)} / {kit.team_member_limit}
+											{Math.min(teamMembers.length, kit.team_member_limit)} /{" "}
+											{kit.team_member_limit}
 										</span>
 									</div>
 									<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-										{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
-											<div
-												key={member.id || idx}
-												className="flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
-											>
-												<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
-												<span className="text-sm">{member.full_name}</span>
-											</div>
-										))}
+										{teamMembers
+											.slice(0, kit.team_member_limit)
+											.map((member, idx) => (
+												<div
+													key={member.id || idx}
+													className="flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
+												>
+													<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
+													<span className="text-sm">{member.full_name}</span>
+												</div>
+											))}
 									</div>
 								</div>
 
 								{/* Paid Team Members */}
-								{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-												Additional Team Members (Paid)
-											</p>
-											<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
-												{kit.excess_team_member_count} × RM {kit.extra_team_member_fee} = RM {kit.extra_team_member_charges}
-											</span>
+								{kit.excess_team_member_count &&
+									kit.excess_team_member_count > 0 && (
+										<div className="space-y-2">
+											<div className="flex items-center justify-between">
+												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+													Additional Team Members (Paid)
+												</p>
+												<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
+													{kit.excess_team_member_count} × RM{" "}
+													{kit.extra_team_member_fee} = RM{" "}
+													{kit.extra_team_member_charges}
+												</span>
+											</div>
+											<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+												{teamMembers
+													.slice(kit.team_member_limit)
+													.map((member, idx) => (
+														<div
+															key={member.id || idx}
+															className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
+														>
+															<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
+															<span className="flex-1 text-sm">
+																{member.full_name}
+															</span>
+															<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
+																+RM{" "}
+																{Number(kit.extra_team_member_fee || 0).toFixed(
+																	2,
+																)}
+															</span>
+														</div>
+													))}
+											</div>
 										</div>
-										<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-											{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
-												<div
-													key={member.id || idx}
-													className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
-												>
-													<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-													<span className="flex-1 text-sm">{member.full_name}</span>
-													<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
-														+RM {Number(kit.extra_team_member_fee || 0).toFixed(2)}
-													</span>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
+									)}
 							</div>
 						) : (
 							// Show simple grid when no limit
@@ -391,12 +418,13 @@ export function ExhibitorKitDetailsSection({
 												</p>
 											</div>
 											<span className="shrink-0 font-semibold text-sm">
-												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+												RM{" "}
+												{(Number(item.agreed_price) * item.quantity).toFixed(2)}
 											</span>
 										</div>
 										{item.notes && (
-											<div className="flex items-start gap-1.5 pt-1 border-t border-dashed">
-												<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+											<div className="flex items-start gap-1.5 border-t border-dashed pt-1">
+												<StickyNote className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
 												<ExpandableText text={item.notes} />
 											</div>
 										)}
@@ -440,14 +468,17 @@ export function ExhibitorKitDetailsSection({
 												</p>
 											</div>
 											<span className="shrink-0 font-semibold text-sm">
-												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+												RM{" "}
+												{(
+													Number(printing.agreed_price) * printing.quantity
+												).toFixed(2)}
 											</span>
 										</div>
 										{(printing.notes || printing.file_reference) && (
 											<div className="flex flex-col gap-1.5 border-t border-dashed pt-1">
 												{printing.notes && (
 													<div className="flex items-start gap-1.5">
-														<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+														<StickyNote className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
 														<ExpandableText text={printing.notes} />
 													</div>
 												)}
