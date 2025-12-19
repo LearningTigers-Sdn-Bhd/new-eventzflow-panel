@@ -1,7 +1,30 @@
 "use client";
 
 import { Package } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import type { ExhibitorKitItem } from "@/lib/api/exhibitor-kit/response";
+
+function ExpandableText({ text, className }: { text: string; className?: string }) {
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<p
+					className={cn(
+						"text-muted-foreground text-[10px] md:text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-1",
+						className
+					)}
+					title="Click to view full text"
+				>
+					{text}
+				</p>
+			</PopoverTrigger>
+			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+				<p className="text-xs break-words">{text}</p>
+			</PopoverContent>
+		</Popover>
+	);
+}
 
 interface ManageKitItemsFormProps {
 	items: ExhibitorKitItem[];
@@ -47,9 +70,9 @@ export function ManageKitItemsForm({ items }: ManageKitItemsFormProps) {
 										{item.rentable_item?.name || `Item #${item.rentable_item_id}`}
 									</p>
 									{item.notes && (
-										<p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 line-clamp-1">
-											{item.notes}
-										</p>
+										<div className="mt-0.5 md:mt-1">
+											<ExpandableText text={item.notes} />
+										</div>
 									)}
 								</div>
 							</div>

@@ -1,7 +1,30 @@
 "use client";
 
-import { FileText, Printer } from "lucide-react";
+import { ExternalLink, Printer } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit/response";
+
+function ExpandableText({ text, className }: { text: string; className?: string }) {
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<p
+					className={cn(
+						"text-muted-foreground text-[10px] md:text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-1",
+						className
+					)}
+					title="Click to view full text"
+				>
+					{text}
+				</p>
+			</PopoverTrigger>
+			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+				<p className="text-xs break-words">{text}</p>
+			</PopoverContent>
+		</Popover>
+	);
+}
 
 interface ManageKitPrintingsFormProps {
 	printings: ExhibitorKitPrinting[];
@@ -48,9 +71,9 @@ export function ManageKitPrintingsForm({ printings }: ManageKitPrintingsFormProp
 											`Service #${printing.printing_service_id}`}
 									</p>
 									{printing.notes && (
-										<p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 line-clamp-1">
-											{printing.notes}
-										</p>
+										<div className="mt-0.5 md:mt-1">
+											<ExpandableText text={printing.notes} />
+										</div>
 									)}
 								</div>
 							</div>
@@ -72,10 +95,15 @@ export function ManageKitPrintingsForm({ printings }: ManageKitPrintingsFormProp
 							{/* File Reference */}
 							{printing.file_reference && (
 								<div className="border-t bg-muted/30 px-3 md:px-4 py-1.5 md:py-2 flex items-center gap-2">
-									<FileText className="h-3 w-3 md:h-3.5 md:w-3.5 text-muted-foreground shrink-0" />
-									<span className="text-[10px] md:text-xs text-muted-foreground truncate">
-										{printing.file_reference}
-									</span>
+									<ExternalLink className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary shrink-0" />
+									<a
+										href={printing.file_reference}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-[10px] md:text-xs text-primary hover:underline truncate"
+									>
+										View File
+									</a>
 								</div>
 							)}
 						</div>

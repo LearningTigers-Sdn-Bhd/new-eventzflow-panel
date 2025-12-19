@@ -2,8 +2,30 @@
 
 import { Building2, CreditCard, ExternalLink, FileQuestion, Package, Printer, StickyNote, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { EventVendor } from "@/lib/api/event-vendor";
+
+function ExpandableText({ text, className }: { text: string; className?: string }) {
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<p
+					className={cn(
+						"text-muted-foreground text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-2",
+						className
+					)}
+					title="Click to view full text"
+				>
+					{text}
+				</p>
+			</PopoverTrigger>
+			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+				<p className="text-xs break-words">{text}</p>
+			</PopoverContent>
+		</Popover>
+	);
+}
 
 interface KitDetailsRowProps {
 	vendor: EventVendor;
@@ -130,13 +152,13 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					{kit.payment_note && (
 						<div className="pt-1.5 border-t">
 							<span className="text-muted-foreground text-xs block mb-0.5">Note:</span>
-							<p className="text-xs">{kit.payment_note}</p>
+							<ExpandableText text={kit.payment_note} />
 						</div>
 					)}
 					{kit.special_requirements && (
 						<div className="pt-1.5 border-t">
 							<span className="text-muted-foreground text-xs block mb-0.5">Special Requirements:</span>
-							<p className="text-xs">{kit.special_requirements}</p>
+							<ExpandableText text={kit.special_requirements} />
 						</div>
 					)}
 				</div>
@@ -244,9 +266,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 										{item.notes && (
 											<div className="flex items-start gap-1 pt-1 border-t border-dashed">
 												<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-												<p className="text-muted-foreground text-xs line-clamp-2">
-													{item.notes}
-												</p>
+												<ExpandableText text={item.notes} />
 											</div>
 										)}
 									</div>
@@ -289,9 +309,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 												{printing.notes && (
 													<div className="flex items-start gap-1">
 														<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-														<p className="text-muted-foreground text-xs line-clamp-2">
-															{printing.notes}
-														</p>
+														<ExpandableText text={printing.notes} />
 													</div>
 												)}
 												{printing.file_reference && (

@@ -44,7 +44,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="py-8 text-center">
+					<div className="py-8 text-center border border-dashed p-4">
 						<ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
 						<p className="mt-2 text-muted-foreground text-sm">
 							Your cart is empty
@@ -78,7 +78,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 						{items.map((item) => (
 							<div
 								key={item.rentableItemId}
-								className="flex items-start gap-3 rounded-lg border p-3"
+								className="flex items-start gap-3 border p-3"
 							>
 								<div className="flex-1 space-y-1">
 									<p className="font-medium text-sm">{item.name}</p>
@@ -126,7 +126,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 						{printings.map((printing) => (
 							<div
 								key={printing.printingServiceId}
-								className="flex items-start gap-3 rounded-lg border p-3"
+								className="flex items-start gap-3 border p-3"
 							>
 								<div className="flex-1 space-y-1">
 									<p className="font-medium text-sm">{printing.name}</p>

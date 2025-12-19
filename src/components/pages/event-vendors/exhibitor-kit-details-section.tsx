@@ -11,8 +11,30 @@ import {
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
+
+function ExpandableText({ text, className }: { text: string; className?: string }) {
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<p
+					className={cn(
+						"text-muted-foreground text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-2",
+						className
+					)}
+					title="Click to view full text"
+				>
+					{text}
+				</p>
+			</PopoverTrigger>
+			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+				<p className="text-xs break-words">{text}</p>
+			</PopoverContent>
+		</Popover>
+	);
+}
 
 interface ExhibitorKitDetailsSectionProps {
 	eventVendor: EventVendor;
@@ -227,7 +249,7 @@ export function ExhibitorKitDetailsSection({
 									<span className="mb-1 block text-muted-foreground">
 										Note:
 									</span>
-									<p className="text-sm">{kit.payment_note}</p>
+									<ExpandableText text={kit.payment_note} />
 								</div>
 							)}
 							{kit.special_requirements && (
@@ -235,7 +257,7 @@ export function ExhibitorKitDetailsSection({
 									<span className="mb-1 block text-muted-foreground">
 										Special Requirements:
 									</span>
-									<p className="text-sm">{kit.special_requirements}</p>
+									<ExpandableText text={kit.special_requirements} />
 								</div>
 							)}
 						</div>
@@ -376,9 +398,7 @@ export function ExhibitorKitDetailsSection({
 										{item.notes && (
 											<div className="flex items-start gap-1.5 pt-1 border-t border-dashed">
 												<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-												<p className="text-muted-foreground text-xs line-clamp-2">
-													{item.notes}
-												</p>
+												<ExpandableText text={item.notes} />
 											</div>
 										)}
 									</div>
@@ -429,9 +449,7 @@ export function ExhibitorKitDetailsSection({
 												{printing.notes && (
 													<div className="flex items-start gap-1.5">
 														<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-														<p className="text-muted-foreground text-xs line-clamp-2">
-															{printing.notes}
-														</p>
+														<ExpandableText text={printing.notes} />
 													</div>
 												)}
 												{printing.file_reference && (

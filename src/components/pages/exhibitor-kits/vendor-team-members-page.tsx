@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Users, AlertCircle, Info } from "lucide-react";
+import { Plus, Users, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Dialog,
@@ -25,6 +24,12 @@ import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { useDialog } from "@/hooks/use-dialog";
 import ConfirmDialog from "@/components/pages/event/settings/confirm-dialog";
+import { DataTable } from "./team-members/data-table";
+import {
+	teamMembersColumns,
+	type TeamMemberRow,
+	type TeamMembersTableMeta,
+} from "./team-members/team-members-columns";
 
 interface VendorTeamMembersPageProps {
 	eventId: number;
@@ -135,21 +140,22 @@ export function VendorTeamMembersPage({
 		}
 	};
 
-	const handleRemoveMember = (index: number, memberName: string) => {
+	const handleRemoveMember = (member: TeamMemberRow) => {
 		openDialog({
 			component: ConfirmDialog,
 			props: {
-				message: `Are you sure you want to remove "${memberName}" from your team?`,
+				message: `Are you sure you want to remove "${member.full_name}" from your team?`,
 				confirmLabel: "Remove",
 				cancelLabel: "Cancel",
 				variant: "destructive",
 				icon: "delete",
 				onConfirm: () => {
-					const member = teamMembers[index];
-					if (member.id) {
+					const actualIndex = teamMembers.findIndex((m) => m.id === member.id);
+					const memberData = teamMembers[actualIndex];
+					if (memberData?.id) {
 						// Mark existing member for deletion and save immediately
 						const updatedMembers = teamMembers.map((m, i) =>
-							i === index ? { ...m, _destroy: true } : m
+							i === actualIndex ? { ...m, _destroy: true } : m
 						);
 						setTeamMembers(updatedMembers);
 
@@ -165,7 +171,7 @@ export function VendorTeamMembersPage({
 						});
 					} else {
 						// Remove new member from list (not yet saved)
-						setTeamMembers(teamMembers.filter((_, i) => i !== index));
+						setTeamMembers(teamMembers.filter((_, i) => i !== actualIndex));
 						toast.success("Team member removed");
 					}
 					closeDialog();
@@ -192,6 +198,23 @@ export function VendorTeamMembersPage({
 	const totalCharges = excessCount * fee;
 
 	const canAddMore = !limit || fee > 0 || currentCount < limit;
+
+	// Transform active members to table rows
+	const tableData: TeamMemberRow[] = useMemo(() => {
+		return activeMembers.map((member, index) => ({
+			id: member.id,
+			full_name: member.full_name,
+			created_at: member.created_at,
+			_destroy: member._destroy,
+			isFree: limit ? index < limit : true,
+			fee: fee,
+			index: index,
+		}));
+	}, [activeMembers, limit, fee]);
+
+	const tableMeta: TeamMembersTableMeta = {
+		onRemoveMember: handleRemoveMember,
+	};
 
 	// Set the "Add Member" button in the header - MUST be before any returns
 	useSetEventActions(
@@ -227,22 +250,6 @@ export function VendorTeamMembersPage({
 		);
 	}
 
-	const freeMembers = limit ? activeMembers.slice(0, limit) : activeMembers;
-	const chargedMembers = limit ? activeMembers.slice(limit) : [];
-
-	// Format date helper
-	const formatDate = (dateString?: string) => {
-		if (!dateString) return "-";
-		const date = new Date(dateString);
-		return new Intl.DateTimeFormat("en-MY", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		}).format(date);
-	};
-
 	return (
 		<div className="space-y-6 p-0">
 			{/* Summary Cards - Only show when there's a limit */}
@@ -264,7 +271,7 @@ export function VendorTeamMembersPage({
 							{freeSlots !== null ? freeSlots : "N/A"}
 						</div>
 						<p className="text-muted-foreground text-xs">
-							{freeMembers.length} / {limit} used
+							{Math.min(currentCount, limit)} / {limit} used
 						</p>
 					</div>
 
@@ -284,7 +291,7 @@ export function VendorTeamMembersPage({
 
 			{/* Warning for exceeded limit */}
 			{limit && currentCount > limit && fee > 0 && (
-				<Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+				<Alert className="border-amber-500 rounded-none bg-amber-50 dark:bg-amber-950/20">
 					<AlertCircle className="h-4 w-4 text-amber-600" />
 					<AlertDescription className="text-amber-600">
 						You have {excessCount} team member{excessCount !== 1 ? "s" : ""} exceeding
@@ -305,212 +312,17 @@ export function VendorTeamMembersPage({
 				</Alert>
 			)}
 
-			{/* Empty State */}
-			{activeMembers.length === 0 && (
-				<div className="border p-12 text-center">
-					<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-					<h3 className="mb-2 font-semibold text-lg">No Team Members Yet</h3>
-					<p className="mb-4 text-muted-foreground text-sm">
-						Add team members who will be attending the event
-					</p>
-				</div>
-			)}
-
-			{/* Team Members Table - Unified when no limit, separated when limit exists */}
-			{!limit && activeMembers.length > 0 ? (
-				// Unlimited - Single table without color
-				<div className="border">
-					<div className="border-b p-4">
-						<h3 className="flex items-center gap-2 font-semibold text-lg">
-							<Users className="h-5 w-5" />
-							Team Members ({currentCount})
-						</h3>
-					</div>
-					<div className="p-4">
-						<div className="overflow-x-auto">
-							<table className="w-full">
-								<thead>
-									<tr className="border-b">
-										<th className="pb-3 text-left font-medium text-sm">No.</th>
-										<th className="pb-3 text-left font-medium text-sm">Full Name</th>
-										<th className="pb-3 text-left font-medium text-sm">Created At</th>
-										<th className="pb-3 text-right font-medium text-sm">Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									{activeMembers.map((member, index) => (
-										<tr key={member.id || `member-${index}`} className="border-b last:border-0">
-											<td className="py-3 text-sm">{index + 1}</td>
-											<td className="py-3 text-sm font-medium">{member.full_name}</td>
-											<td className="py-3 text-muted-foreground text-sm">
-												{formatDate(member.created_at)}
-											</td>
-											<td className="py-3 text-right">
-												<Button
-													onClick={() => {
-														const actualIndex = teamMembers.findIndex(
-															(m) => m.id === member.id
-														);
-														handleRemoveMember(actualIndex, member.full_name);
-													}}
-													size="sm"
-													variant="ghost"
-													className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
-			) : (
-				// With limit - Separate tables for free and charged
-				<>
-					{/* Free Members Table */}
-					{freeMembers.length > 0 && (
-						<div className="border">
-							<div className="border-b p-4">
-								<h3 className="flex items-center gap-2 font-semibold text-lg">
-									<Users className="h-5 w-5 text-green-600" />
-									<span className="text-green-600">Free Members ({freeMembers.length})</span>
-									{limit && (
-										<span className="text-sm font-normal text-muted-foreground">
-											/ {limit} allocated
-										</span>
-									)}
-								</h3>
-							</div>
-							<div className="p-4">
-								<div className="overflow-x-auto">
-									<table className="w-full">
-										<thead>
-											<tr className="border-b">
-												<th className="pb-3 text-left font-medium text-sm">No.</th>
-												<th className="pb-3 text-left font-medium text-sm">Full Name</th>
-												<th className="pb-3 text-left font-medium text-sm">Status</th>
-												<th className="pb-3 text-left font-medium text-sm">Created At</th>
-												<th className="pb-3 text-right font-medium text-sm">Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											{freeMembers.map((member, index) => (
-												<tr
-													key={member.id || `free-${index}`}
-													className="border-b last:border-0"
-												>
-													<td className="py-3 text-sm">{index + 1}</td>
-													<td className="py-3 text-sm font-medium">{member.full_name}</td>
-													<td className="py-3">
-														<Badge
-															variant="outline"
-															className="rounded-none border-green-500 text-green-600 text-xs"
-														>
-															Free
-														</Badge>
-													</td>
-													<td className="py-3 text-muted-foreground text-sm">
-														{formatDate(member.created_at)}
-													</td>
-													<td className="py-3 text-right">
-														<Button
-															onClick={() => {
-																const actualIndex = teamMembers.findIndex(
-																	(m) => m.id === member.id
-																);
-																handleRemoveMember(actualIndex, member.full_name);
-															}}
-															size="sm"
-															variant="ghost"
-															className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-														>
-															<Trash2 className="h-4 w-4" />
-														</Button>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					)}
-
-					{/* Charged Members Table */}
-					{chargedMembers.length > 0 && (
-						<div className="border">
-							<div className="border-b p-4">
-								<div className="flex items-center justify-between">
-									<h3 className="flex items-center gap-2 font-semibold text-lg">
-										<Users className="h-5 w-5 text-amber-600" />
-										<span className="text-amber-600">
-											Charged Members ({chargedMembers.length})
-										</span>
-									</h3>
-									<span className="font-bold text-lg">RM {totalCharges.toFixed(2)}</span>
-								</div>
-							</div>
-							<div className="p-4">
-								<div className="overflow-x-auto">
-									<table className="w-full">
-										<thead>
-											<tr className="border-b">
-												<th className="pb-3 text-left font-medium text-sm">No.</th>
-												<th className="pb-3 text-left font-medium text-sm">Full Name</th>
-												<th className="pb-3 text-left font-medium text-sm">Fee</th>
-												<th className="pb-3 text-left font-medium text-sm">Created At</th>
-												<th className="pb-3 text-right font-medium text-sm">Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											{chargedMembers.map((member, index) => (
-												<tr
-													key={member.id || `charged-${index}`}
-													className="border-b last:border-0"
-												>
-													<td className="py-3 text-sm">
-														{limit ? limit + index + 1 : index + 1}
-													</td>
-													<td className="py-3 text-sm font-medium">{member.full_name}</td>
-													<td className="py-3">
-														<Badge
-															variant="outline"
-															className="rounded-none border-amber-500 text-amber-600 text-xs"
-														>
-															+RM {fee.toFixed(2)}
-														</Badge>
-													</td>
-													<td className="py-3 text-muted-foreground text-sm">
-														{formatDate(member.created_at)}
-													</td>
-													<td className="py-3 text-right">
-														<Button
-															onClick={() => {
-																const actualIndex = teamMembers.findIndex(
-																	(m) => m.id === member.id
-																);
-																handleRemoveMember(actualIndex, member.full_name);
-															}}
-															size="sm"
-															variant="ghost"
-															className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-														>
-															<Trash2 className="h-4 w-4" />
-														</Button>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					)}
-				</>
-			)}
+			{/* Team Members Table */}
+			<DataTable
+				columns={teamMembersColumns}
+				data={tableData}
+				emptyTitle="No Team Members Yet"
+				emptyDescription="Add team members who will be attending the event"
+				emptyIcon={<Users className="h-12 w-12" />}
+				searchPlaceholder="Search team members..."
+				searchColumns={["name"]}
+				meta={tableMeta}
+			/>
 
 			{/* Add Member Dialog */}
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

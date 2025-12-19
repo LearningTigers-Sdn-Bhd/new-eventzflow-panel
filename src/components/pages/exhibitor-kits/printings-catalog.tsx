@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Printer, Plus, Search } from "lucide-react";
+import { Minus, Plus, Printer, Search, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/data-state";
 import { getEventPrintingServices } from "@/lib/api/event-printing-service";
@@ -44,7 +42,15 @@ export function PrintingsCatalog({ eventId }: PrintingsCatalogProps) {
 			.includes(searchQuery.toLowerCase()),
 	);
 
-	const handleAddToCart = (eventService: typeof eventServices[0]) => {
+	const handleQuantityChange = (id: number, delta: number) => {
+		setQuantities((prev) => {
+			const current = prev[id] || 1;
+			const newValue = Math.max(1, current + delta);
+			return { ...prev, [id]: newValue };
+		});
+	};
+
+	const handleAddToCart = (eventService: (typeof eventServices)[0]) => {
 		if (!eventService.printingService) return;
 
 		const quantity = quantities[eventService.id] || 1;
@@ -111,7 +117,7 @@ export function PrintingsCatalog({ eventId }: PrintingsCatalogProps) {
 					icon={<Printer />}
 				/>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-4 sm:grid-cols-2">
 					{filteredServices.map((eventService) => {
 						if (!eventService.printingService) return null;
 
@@ -122,79 +128,108 @@ export function PrintingsCatalog({ eventId }: PrintingsCatalogProps) {
 						const priceTierLabel = getCurrentPriceTierLabel(
 							eventService.eventPrintingServicePriceTiers,
 						);
+						const quantity = quantities[eventService.id] || 1;
 
 						return (
-							<Card key={eventService.id} className="flex flex-col rounded-none">
-								<CardHeader className="pb-3">
-									<div className="flex items-start justify-between gap-2">
-										<div className="flex-1">
-											<h3 className="font-semibold">
-												{eventService.printingService.name}
-											</h3>
+							<div
+								key={eventService.id}
+								className="group relative overflow-hidden border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-md"
+							>
+								{/* Top Accent Bar */}
+								<div className="h-1 w-full bg-primary" />
+
+								<div className="p-4">
+									{/* Header: Icon + Info */}
+									<div className="flex gap-4">
+										{/* Icon Container */}
+										<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-primary/10 transition-colors group-hover:bg-primary/20">
+											<Printer className="h-7 w-7 text-primary" />
+										</div>
+
+										{/* Info */}
+										<div className="min-w-0 flex-1">
+											<div className="flex items-start justify-between gap-2">
+												<h3 className="font-semibold text-sm leading-tight line-clamp-2">
+													{eventService.printingService.name}
+												</h3>
+												{priceTierLabel && (
+													<Badge
+														variant="secondary"
+														className="shrink-0 rounded-none text-[10px] px-1.5 py-0"
+													>
+														{priceTierLabel}
+													</Badge>
+												)}
+											</div>
 											{eventService.printingService.description && (
-												<p className="mt-1 text-muted-foreground text-sm">
+												<p className="mt-1 text-muted-foreground text-xs line-clamp-2">
 													{eventService.printingService.description}
 												</p>
 											)}
+											{eventService.printingService.itemCategory && (
+												<p className="mt-1.5 text-muted-foreground/70 text-[10px] uppercase tracking-wide">
+													{eventService.printingService.itemCategory.name}
+												</p>
+											)}
 										</div>
-										{priceTierLabel && (
-											<Badge variant="secondary" className="shrink-0">
-												{priceTierLabel}
-											</Badge>
-										)}
 									</div>
-								</CardHeader>
 
-								<CardContent className="flex-1 pb-3">
-									<div className="space-y-2">
-										<div className="flex items-baseline justify-between">
-											<span className="text-muted-foreground text-sm">
-												Price per {eventService.printingService.unitOfMeasure}
-											</span>
-											<span className="font-semibold text-lg">
+									{/* Divider */}
+									<div className="my-4 border-t border-dashed" />
+
+									{/* Footer: Price + Actions */}
+									<div className="flex items-center justify-between gap-3">
+										{/* Price Section */}
+										<div className="min-w-0">
+											<p className="text-muted-foreground text-[10px] uppercase tracking-wide">
+												{eventService.printingService.unitOfMeasure}
+											</p>
+											<p className="font-bold text-xl text-primary">
 												RM {currentPrice.toFixed(2)}
-											</span>
+											</p>
 										</div>
 
-										{eventService.printingService.itemCategory && (
-											<div className="text-muted-foreground text-xs">
-												Category:{" "}
-												{eventService.printingService.itemCategory.name}
+										{/* Actions */}
+										<div className="flex items-center gap-2">
+											{/* Quantity Controls */}
+											<div className="flex items-center border">
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 rounded-none"
+													onClick={() => handleQuantityChange(eventService.id, -1)}
+													disabled={quantity <= 1}
+												>
+													<Minus className="h-3 w-3" />
+												</Button>
+												<span className="w-8 text-center text-sm font-medium">
+													{quantity}
+												</span>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 rounded-none"
+													onClick={() => handleQuantityChange(eventService.id, 1)}
+												>
+													<Plus className="h-3 w-3" />
+												</Button>
 											</div>
-										)}
-									</div>
-								</CardContent>
 
-								<CardFooter className="flex gap-2 pt-3">
-									<div className="flex-1">
-										<Label htmlFor={`qty-${eventService.id}`} className="sr-only">
-											Quantity
-										</Label>
-										<Input
-											id={`qty-${eventService.id}`}
-											type="number"
-											min="1"
-											value={quantities[eventService.id] || 1}
-											onChange={(e) =>
-												setQuantities((prev) => ({
-													...prev,
-													[eventService.id]:
-														Number.parseInt(e.target.value) || 1,
-												}))
-											}
-											className="h-9 rounded-none"
-										/>
+											{/* Add to Cart */}
+											<Button
+												onClick={() => handleAddToCart(eventService)}
+												size="sm"
+												className="gap-1.5 rounded-none px-3"
+											>
+												<ShoppingCart className="h-3.5 w-3.5" />
+												Add
+											</Button>
+										</div>
 									</div>
-									<Button
-										onClick={() => handleAddToCart(eventService)}
-										size="sm"
-										className="gap-2 rounded-none"
-									>
-										<Plus className="h-4 w-4" />
-										Add
-									</Button>
-								</CardFooter>
-							</Card>
+								</div>
+							</div>
 						);
 					})}
 				</div>

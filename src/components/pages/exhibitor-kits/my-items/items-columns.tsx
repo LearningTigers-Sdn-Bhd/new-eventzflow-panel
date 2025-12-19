@@ -5,10 +5,10 @@ import { ArrowDown, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitItem } from "@/lib/api/exhibitor-kit";
 
@@ -148,16 +148,19 @@ export const itemsColumns: ColumnDef<ExhibitorKitItem>[] = [
 				return <div className="text-muted-foreground text-sm">-</div>;
 			}
 			return (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className="max-w-[200px] cursor-default truncate text-muted-foreground text-sm">
+				<Popover>
+					<PopoverTrigger asChild>
+						<p
+							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm hover:text-foreground transition-colors"
+							title="Click to view full text"
+						>
 							{notes}
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="max-w-[300px] break-all">
-						{notes}
-					</TooltipContent>
-				</Tooltip>
+						</p>
+					</PopoverTrigger>
+					<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+						<p className="text-sm break-words">{notes}</p>
+					</PopoverContent>
+				</Popover>
 			);
 		},
 	},

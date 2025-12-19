@@ -1,14 +1,14 @@
 "use client";
 
 import type { ColumnDef, TableMeta } from "@tanstack/react-table";
-import { ArrowDown, Pencil } from "lucide-react";
+import { ArrowDown, ExternalLink, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
 
@@ -148,16 +148,15 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 				return <div className="text-muted-foreground text-sm">-</div>;
 			}
 			return (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className="max-w-[180px] cursor-default truncate text-muted-foreground text-sm">
-							{fileRef}
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="max-w-[300px] break-all">
-						{fileRef}
-					</TooltipContent>
-				</Tooltip>
+				<a
+					href={fileRef}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-1.5 max-w-[180px] text-primary text-sm hover:underline"
+				>
+					<ExternalLink className="size-3.5 shrink-0" />
+					<span className="truncate">View File</span>
+				</a>
 			);
 		},
 	},
@@ -171,16 +170,19 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 				return <div className="text-muted-foreground text-sm">-</div>;
 			}
 			return (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className="max-w-[200px] cursor-default truncate text-muted-foreground text-sm">
+				<Popover>
+					<PopoverTrigger asChild>
+						<p
+							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm hover:text-foreground transition-colors"
+							title="Click to view full text"
+						>
 							{notes}
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="max-w-[300px] break-all">
-						{notes}
-					</TooltipContent>
-				</Tooltip>
+						</p>
+					</PopoverTrigger>
+					<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+						<p className="text-sm break-words">{notes}</p>
+					</PopoverContent>
+				</Popover>
 			);
 		},
 	},
