@@ -14,7 +14,7 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import EditVoucherForm from "../forms/edit-voucher-form";
 import VoucherQRDialog from "../voucher-qr-dialog";
-import type { Voucher } from "./columns";
+import type { Voucher } from "./event-voucher-table-columns";
 
 interface VoucherActionsMenuProps {
 	voucher: Voucher;

@@ -62,30 +62,30 @@ export const navigationData = {
 				"exhibition_contractor",
 			],
 		},
-	{
-		name: "Exhibitor Kits",
-		url: "/exhibitor-kits" as Route,
-		icon: Package,
-		roleAllowed: ["exhibition_contractor"],
-	},
-	{
-		name: "Rentable Items",
-		url: "/rentable-items" as Route,
-		icon: Package,
-		roleAllowed: ["exhibition_contractor"],
-	},
-	{
-		name: "Printing Services",
-		url: "/printing-services" as Route,
-		icon: Printer,
-		roleAllowed: ["exhibition_contractor"],
-	},
-	{
-		name: "My Vouchers",
-		url: "/voucher" as Route,
-		icon: Ticket,
-		roleAllowed: ["vendor"],
-	},
+		{
+			name: "Exhibitor Kits",
+			url: "/exhibitor-kits" as Route,
+			icon: Package,
+			roleAllowed: ["exhibition_contractor"],
+		},
+		{
+			name: "Rentable Items",
+			url: "/rentable-items" as Route,
+			icon: Package,
+			roleAllowed: ["exhibition_contractor"],
+		},
+		{
+			name: "Printing Services",
+			url: "/printing-services" as Route,
+			icon: Printer,
+			roleAllowed: ["exhibition_contractor"],
+		},
+		{
+			name: "My Vouchers",
+			url: "/voucher" as Route,
+			icon: Ticket,
+			roleAllowed: ["vendor"],
+		},
 		{
 			name: "Scans",
 			url: "/scan" as Route,
@@ -154,7 +154,7 @@ function BottomNavigation() {
 	);
 
 	return (
-		<nav className="fixed right-0 bottom-0 left-0 z-40 flex h-18 items-center justify-around border-stone-300 border-t bg-stone-200 pb-[env(safe-area-inset-bottom)] md:h-20">
+		<nav className="fixed right-0 bottom-0 left-0 z-40 flex h-18 items-center justify-around border-accent border-t bg-background pb-[env(safe-area-inset-bottom)] md:h-20">
 			{filteredMainMenu.map((item) => {
 				const isActive =
 					pathname === item.url || pathname.startsWith(`${item.url}/`);
@@ -169,7 +169,7 @@ function BottomNavigation() {
 							className={cn(
 								"group h-full w-full rounded-none border-none bg-transparent shadow-none hover:bg-transparent",
 								isActive &&
-									"bg-stone-900 text-stone-50 group-hover:text-stone-50",
+									"bg-accent text-accent-foreground group-hover:text-accent-foreground",
 							)}
 							asChild
 						>

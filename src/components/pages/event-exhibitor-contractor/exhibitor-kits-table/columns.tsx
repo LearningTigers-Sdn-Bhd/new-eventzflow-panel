@@ -1,8 +1,8 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Eye, Package, Users, MoreHorizontal } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { ArrowDown, Eye, MoreHorizontal, Package, Users } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +11,9 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
 import type { EventVendor } from "@/lib/api/event-vendor/response";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
+import { cn } from "@/lib/utils";
 
 export interface ExhibitorKitWithVendor extends ExhibitorKit {
 	vendor?: EventVendor;
@@ -57,7 +57,7 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.company_name}</div>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-muted-foreground text-sm">
 						{kit.vendor?.vendor?.full_name || "Unknown Vendor"}
 					</div>
 				</div>
@@ -86,8 +86,8 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.booth_number}</div>
-					<div className="text-sm text-muted-foreground capitalize">
-						{kit.booth_type.replace('_', ' ')}
+					<div className="text-muted-foreground text-sm capitalize">
+						{kit.booth_type.replace("_", " ")}
 					</div>
 				</div>
 			);
@@ -101,8 +101,12 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.pic_full_name}</div>
-					<div className="text-sm text-muted-foreground">{kit.pic_email_address}</div>
-					<div className="text-sm text-muted-foreground">{kit.pic_contact_number}</div>
+					<div className="text-muted-foreground text-sm">
+						{kit.pic_email_address}
+					</div>
+					<div className="text-muted-foreground text-sm">
+						{kit.pic_contact_number}
+					</div>
 				</div>
 			);
 		},
@@ -116,7 +120,9 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			return (
 				<div className="flex items-center gap-2">
 					<Users className="h-4 w-4 text-muted-foreground" />
-					<span>{teamSize} member{teamSize !== 1 ? 's' : ''}</span>
+					<span>
+						{teamSize} member{teamSize !== 1 ? "s" : ""}
+					</span>
 				</div>
 			);
 		},
@@ -160,7 +166,10 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 			return (
 				<Badge
 					variant="outline"
-					className={cn("rounded-none text-xs font-medium capitalize", getPaymentStatusStyle(kit.payment_status))}
+					className={cn(
+						"rounded-none font-medium text-xs capitalize",
+						getPaymentStatusStyle(kit.payment_status),
+					)}
 				>
 					{kit.payment_status}
 				</Badge>
@@ -183,33 +192,28 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 	},
 ];
 
-function ActionsDropdown({
-	kitId,
-}: {
-	kitId: number;
-}) {
+function ActionsDropdown({ kitId }: { kitId: number }) {
 	const router = useRouter();
 	const params = useParams();
 	const eventId = params.event_id as string;
 
 	const handleViewDetails = () => {
-		router.push(`/event/${eventId}/contractor-exhibitor-kits/${kitId}` as any);
+		router.push(`/event/${eventId}/contractor-exhibitor-kits/${kitId}`);
 	};
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button
-					variant="ghost"
-					size="sm"
-					className="h-8 px-2"
-				>
+				<Button variant="ghost" size="sm" className="h-8 px-2">
 					<MoreHorizontal className="h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="rounded-none">
-				<DropdownMenuItem onClick={handleViewDetails} className="rounded-none cursor-pointer">
-					<Eye className="h-4 w-4 mr-2" />
+				<DropdownMenuItem
+					onClick={handleViewDetails}
+					className="cursor-pointer rounded-none"
+				>
+					<Eye className="mr-2 h-4 w-4" />
 					View Details
 				</DropdownMenuItem>
 			</DropdownMenuContent>
