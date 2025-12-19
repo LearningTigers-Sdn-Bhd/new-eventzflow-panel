@@ -21,14 +21,22 @@ interface EmptyStateConfig {
 	action?: React.ReactNode;
 }
 
+interface ClickableRowConfig<TData> {
+	isEnabled: boolean;
+	onRowClick?: (row: TData) => void;
+	excludeRowClickColumns?: string[];
+}
+
 interface BaseTableProps<TData> {
 	table: TanStackTable<TData>;
 	emptyStateConfig: EmptyStateConfig;
+	clickableRowConfig?: ClickableRowConfig<TData>;
 }
 
 export function BaseTable<TData>({
 	table,
 	emptyStateConfig,
+	clickableRowConfig,
 }: BaseTableProps<TData>) {
 	const columnCount = table.getAllColumns().length;
 
@@ -74,6 +82,16 @@ export function BaseTable<TData>({
 								<TableRow
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
+									onClick={
+										clickableRowConfig?.isEnabled
+											? () => clickableRowConfig.onRowClick?.(row.original)
+											: undefined
+									}
+									className={
+										clickableRowConfig?.isEnabled
+											? "group cursor-pointer"
+											: undefined
+									}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell
@@ -87,6 +105,15 @@ export function BaseTable<TData>({
 												cell.column.columnDef.meta?.sticky === "right" &&
 													"sticky right-0 z-10 bg-background",
 											)}
+											onClick={(e) => {
+												if (
+													clickableRowConfig?.excludeRowClickColumns?.includes(
+														cell.column.id,
+													)
+												) {
+													e.stopPropagation();
+												}
+											}}
 										>
 											{flexRender(
 												cell.column.columnDef.cell,

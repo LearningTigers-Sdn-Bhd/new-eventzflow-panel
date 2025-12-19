@@ -51,7 +51,9 @@ const baseColumns: ColumnDef<Event>[] = [
 		size: 400,
 		header: ({ column }) => <SortableHeader column={column} label="Title" />,
 		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("title")}</div>
+			<div className="font-medium group-hover:underline">
+				{row.getValue("title")}
+			</div>
 		),
 	},
 	{
@@ -101,8 +103,7 @@ const baseColumns: ColumnDef<Event>[] = [
 		cell: ({ row }) => {
 			const event = row.original;
 			return (
-				<EventActionsMenu eventId={event.id} deletedAt={event.deleted_at} />
-			);
+									<EventActionsMenu eventId={event.id} deletedAt={event.deleted_at} />			);
 		},
 	},
 ];

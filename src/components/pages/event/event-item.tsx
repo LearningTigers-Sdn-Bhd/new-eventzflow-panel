@@ -21,20 +21,29 @@ import type { Event } from "./event-table-columns";
 
 interface EventItemProps {
 	event: Event;
+	onClick?: () => void;
 }
 
-export function EventItem({ event }: EventItemProps) {
+export function EventItem({ event, onClick }: EventItemProps) {
 	const { copyToClipboard } = useCopyToClipboard({
 		successMessage: "Event ID copied to clipboard",
 	});
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
-	const handleCopyId = () => {
+	const handleCopyId = (e: React.MouseEvent) => {
+		e.stopPropagation();
 		copyToClipboard(event.id.toString());
 	};
 
 	return (
-		<Item variant="outline" className="h-full w-full rounded-none">
+		<Item
+			variant="outline"
+			className={cn(
+				"h-full w-full rounded-none",
+				onClick && "cursor-pointer transition-colors hover:bg-accent/50",
+			)}
+			onClick={onClick}
+		>
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between gap-12">
 					<h3 className="text-balance font-bold text-lg tracking-tight">
@@ -68,7 +77,10 @@ export function EventItem({ event }: EventItemProps) {
 							{event.status}
 						</Badge>
 					)}
-					<div className="flex items-center gap-2">
+					<div
+						className="flex items-center gap-2"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<span className="bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
 							ID: {event.id}
 						</span>
@@ -94,7 +106,7 @@ export function EventItem({ event }: EventItemProps) {
 				)}
 			</ItemContent>
 			<ItemFooter className="mt-6 flex justify-end">
-				<ItemActions>
+				<ItemActions onClick={(e) => e.stopPropagation()}>
 					<EventActionsMenu eventId={event.id} deletedAt={event.deleted_at} />
 				</ItemActions>
 			</ItemFooter>
