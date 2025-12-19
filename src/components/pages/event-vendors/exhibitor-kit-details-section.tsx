@@ -1,28 +1,14 @@
 "use client";
 
-<<<<<<< ours
 import {
 	Building2,
 	CreditCard,
 	ExternalLink,
-	FileQuestion,
 	Package,
 	Printer,
 	StickyNote,
 	Users,
 } from "lucide-react";
-||||||| ancestor
-import {
-	Building2,
-	CreditCard,
-	FileQuestion,
-	Package,
-	Printer,
-	Users,
-} from "lucide-react";
-=======
-import { Building2, CreditCard, Package, Printer, Users } from "lucide-react";
->>>>>>> theirs
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
@@ -43,7 +29,7 @@ function ExpandableText({ text, className }: { text: string; className?: string 
 				</p>
 			</PopoverTrigger>
 			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
-				<p className="text-xs break-words">{text}</p>
+				<p className="wrap-break-word text-xs">{text}</p>
 			</PopoverContent>
 		</Popover>
 	);
@@ -65,7 +51,7 @@ export function ExhibitorKitDetailsSection({
 	const items = kit.exhibitor_kit_items || [];
 	const printings = kit.exhibitor_kit_printings || [];
 	const teamMembers = kit.exhibitor_team_members || [];
-	const _customRequests = kit.custom_requests || [];
+	const customRequests = kit.custom_requests || [];
 
 	// Calculate totals for display in section headers
 	const itemsTotal = items.reduce(
@@ -76,49 +62,20 @@ export function ExhibitorKitDetailsSection({
 		(sum, printing) => sum + Number(printing.agreed_price) * printing.quantity,
 		0,
 	);
-<<<<<<< ours
-||||||| ancestor
-	const customRequestsTotal = customRequests
-		.filter((req) => req.status === "approved")
-		.reduce(
-			(sum, req) => sum + Number(req.resolved_price || 0) * req.quantity,
-			0,
-		);
-	const teamMemberCharges = kit.extra_team_member_charges
-		? Number(kit.extra_team_member_charges)
-		: 0;
 
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal =
-		itemsTotal + printingsTotal + teamMemberCharges;
-=======
-	const _customRequestsTotal = _customRequests
-		.filter((req) => req.status === "approved")
-		.reduce(
-			(sum, req) => sum + Number(req.resolved_price || 0) * req.quantity,
-			0,
-		);
-	const teamMemberCharges = kit.extra_team_member_charges
-		? Number(kit.extra_team_member_charges)
-		: 0;
-
-	// HIDDEN: Custom Requests feature temporarily disabled - removed customRequestsTotal from calculation
-	const grandTotal = itemsTotal + printingsTotal + teamMemberCharges;
->>>>>>> theirs
-
-	const _pendingRequests = _customRequests.filter(
+	const _pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
 	).length;
-	const _approvedRequests = _customRequests.filter(
+	const _approvedRequests = customRequests.filter(
 		(req) => req.status === "approved",
 	).length;
-	const _pendingRequeststs = _customRequests.filter(
+	const _rejectedRequests = customRequests.filter(
 		(req) => req.status === "rejected",
 	).length;
-	_approvedRequests;
+
 	return (
 		<section className="space-y-2 border-t border-dashed">
-			{/* _rejectedRequests
+			{/* Header */}
 			<div className="flex flex-col gap-3 border-b border-dashed p-4 sm:flex-row sm:items-start sm:justify-between">
 				<div className="space-y-1">
 					<p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
@@ -321,15 +278,11 @@ export function ExhibitorKitDetailsSection({
 									<span className="text-muted-foreground">
 										Limit: {kit.team_member_limit}
 									</span>
-									{kit.exceeds_team_member_limit &&
-										kit.extra_team_member_charges && (
-											<Badge
-												variant="outline"
-												className="rounded-none border-amber-500 text-amber-600"
-											>
-												+RM {kit.extra_team_member_charges}
-											</Badge>
-										)}
+									{kit.exceeds_team_member_limit && kit.extra_team_member_charges && (
+										<Badge variant="outline" className="rounded-none border-amber-500 text-amber-600">
+											+RM {kit.extra_team_member_charges}
+										</Badge>
+									)}
 								</div>
 							)}
 						</div>
@@ -340,50 +293,14 @@ export function ExhibitorKitDetailsSection({
 								{/* Free Team Members */}
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
-										<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+										<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 											Free Team Members
 										</p>
-<<<<<<< ours
-										<span className="text-xs font-medium text-green-600 dark:text-green-400">
-											{Math.min(teamMembers.length, kit.team_member_limit)} / {kit.team_member_limit}
-||||||| ancestor
 										<span className="font-medium text-green-600 text-xs dark:text-green-400">
 											{Math.min(teamMembers.length, kit.team_member_limit)} / {kit.team_member_limit}
-=======
-										<span className="font-medium text-green-600 text-xs dark:text-green-400">
-											{Math.min(teamMembers.length, kit.team_member_limit)} /{" "}
-											{kit.team_member_limit}
->>>>>>> theirs
 										</span>
 									</div>
 									<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-<<<<<<< ours
-										{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
-											<div
-												key={member.id || idx}
-												className="flex items-center gap-2 rounded-none border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20 p-2"
-											>
-												<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
-												<span className="text-sm">{member.full_name}</span>
-											</div>
-										))}
-									</div>
-								</div>
-
-								{/* Paid Team Members */}
-								{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-												Additional Team Members (Paid)
-											</p>
-											<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-												{kit.excess_team_member_count} × RM {kit.extra_team_member_fee} = RM {kit.extra_team_member_charges}
-											</span>
-										</div>
-										<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-											{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
-||||||| ancestor
 										{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
 											<div
 												key={member.id || idx}
@@ -409,79 +326,20 @@ export function ExhibitorKitDetailsSection({
 										</div>
 										<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 											{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
-=======
-										{teamMembers
-											.slice(0, kit.team_member_limit)
-											.map((member, idx) => (
->>>>>>> theirs
 												<div
 													key={member.id || idx}
-<<<<<<< ours
-													className="flex items-center gap-2 rounded-none border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-2"
-||||||| ancestor
 													className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
-=======
-													className="flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
->>>>>>> theirs
 												>
-<<<<<<< ours
-													<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-													<span className="flex-1 text-sm">{member.full_name}</span>
-													<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
-														+RM {Number(kit.extra_team_member_fee || 0).toFixed(2)}
-													</span>
-||||||| ancestor
 													<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
 													<span className="flex-1 text-sm">{member.full_name}</span>
 													<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
 														+RM {Number(kit.extra_team_member_fee || 0).toFixed(2)}
 													</span>
-=======
-													<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
-													<span className="text-sm">{member.full_name}</span>
->>>>>>> theirs
 												</div>
 											))}
-									</div>
-								</div>
-
-								{/* Paid Team Members */}
-								{kit.excess_team_member_count &&
-									kit.excess_team_member_count > 0 && (
-										<div className="space-y-2">
-											<div className="flex items-center justify-between">
-												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-													Additional Team Members (Paid)
-												</p>
-												<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
-													{kit.excess_team_member_count} × RM{" "}
-													{kit.extra_team_member_fee} = RM{" "}
-													{kit.extra_team_member_charges}
-												</span>
-											</div>
-											<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-												{teamMembers
-													.slice(kit.team_member_limit)
-													.map((member, idx) => (
-														<div
-															key={member.id || idx}
-															className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
-														>
-															<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-															<span className="flex-1 text-sm">
-																{member.full_name}
-															</span>
-															<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
-																+RM{" "}
-																{Number(kit.extra_team_member_fee || 0).toFixed(
-																	2,
-																)}
-															</span>
-														</div>
-													))}
-											</div>
 										</div>
-									)}
+									</div>
+								)}
 							</div>
 						) : (
 							// Show simple grid when no limit
@@ -514,16 +372,16 @@ export function ExhibitorKitDetailsSection({
 								RM {itemsTotal.toFixed(2)}
 							</span>
 						</div>
-						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
 							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 								{items.map((item) => (
 									<div
 										key={item.id}
-										className="rounded-none border bg-muted/30 p-3 space-y-2"
+										className="space-y-2 rounded-none border bg-muted/30 p-3"
 									>
 										<div className="flex items-start justify-between gap-2">
-											<div className="flex-1 min-w-0">
-												<p className="font-medium text-sm truncate">
+											<div className="min-w-0 flex-1">
+												<p className="truncate font-medium text-sm">
 													{item.rentable_item?.name ||
 														`Item #${item.rentable_item_id}`}
 												</p>
@@ -532,7 +390,7 @@ export function ExhibitorKitDetailsSection({
 													{Number(item.agreed_price).toFixed(2)}
 												</p>
 											</div>
-											<span className="font-semibold text-sm shrink-0">
+											<span className="shrink-0 font-semibold text-sm">
 												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
 											</span>
 										</div>
@@ -563,16 +421,16 @@ export function ExhibitorKitDetailsSection({
 								RM {printingsTotal.toFixed(2)}
 							</span>
 						</div>
-						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
 							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 								{printings.map((printing) => (
 									<div
 										key={printing.id}
-										className="rounded-none border bg-muted/30 p-3 space-y-2"
+										className="space-y-2 rounded-none border bg-muted/30 p-3"
 									>
 										<div className="flex items-start justify-between gap-2">
-											<div className="flex-1 min-w-0">
-												<p className="font-medium text-sm truncate">
+											<div className="min-w-0 flex-1">
+												<p className="truncate font-medium text-sm">
 													{printing.printing_service?.name ||
 														`Service #${printing.printing_service_id}`}
 												</p>
@@ -581,12 +439,12 @@ export function ExhibitorKitDetailsSection({
 													{Number(printing.agreed_price).toFixed(2)}
 												</p>
 											</div>
-											<span className="font-semibold text-sm shrink-0">
+											<span className="shrink-0 font-semibold text-sm">
 												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
 											</span>
 										</div>
 										{(printing.notes || printing.file_reference) && (
-											<div className="flex flex-col gap-1.5 pt-1 border-t border-dashed">
+											<div className="flex flex-col gap-1.5 border-t border-dashed pt-1">
 												{printing.notes && (
 													<div className="flex items-start gap-1.5">
 														<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
@@ -595,12 +453,12 @@ export function ExhibitorKitDetailsSection({
 												)}
 												{printing.file_reference && (
 													<div className="flex items-center gap-1.5">
-														<ExternalLink className="size-3 text-primary shrink-0" />
+														<ExternalLink className="size-3 shrink-0 text-primary" />
 														<a
 															href={printing.file_reference}
 															target="_blank"
 															rel="noopener noreferrer"
-															className="text-primary text-xs hover:underline truncate"
+															className="truncate text-primary text-xs hover:underline"
 														>
 															View File Reference
 														</a>
@@ -699,70 +557,6 @@ export function ExhibitorKitDetailsSection({
 						</div>
 					</div>
 				)} */}
-<<<<<<< ours
-||||||| ancestor
-
-				{/* Grand Total */}
-				{grandTotal > 0 && (
-					<div className="rounded-none border-2 border-primary/30 bg-primary/5 p-4">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<h3 className="font-bold text-lg">Grand Total:</h3>
-								<span className="font-bold text-3xl text-primary">
-									RM {grandTotal.toFixed(2)}
-								</span>
-							</div>
-							<div className="flex flex-wrap gap-2 text-muted-foreground text-xs">
-								{itemsTotal > 0 && <span>Items: RM {itemsTotal.toFixed(2)}</span>}
-								{printingsTotal > 0 && (
-									<span>• Services: RM {printingsTotal.toFixed(2)}</span>
-								)}
-								{/* HIDDEN: Custom Requests feature temporarily disabled */}
-								{/* {customRequestsTotal > 0 && (
-									<span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>
-								)} */}
-								{teamMemberCharges > 0 && (
-									<span className="font-medium text-amber-600">
-										• Extra Team Members: RM {teamMemberCharges.toFixed(2)}
-									</span>
-								)}
-							</div>
-						</div>
-					</div>
-				)}
-=======
-
-				{/* Grand Total */}
-				{grandTotal > 0 && (
-					<div className="rounded-none border-2 border-primary/30 bg-primary/5 p-4">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<h3 className="font-bold text-lg">Grand Total:</h3>
-								<span className="font-bold text-3xl text-primary">
-									RM {grandTotal.toFixed(2)}
-								</span>
-							</div>
-							<div className="flex flex-wrap gap-2 text-muted-foreground text-xs">
-								{itemsTotal > 0 && (
-									<span>Items: RM {itemsTotal.toFixed(2)}</span>
-								)}
-								{printingsTotal > 0 && (
-									<span>• Services: RM {printingsTotal.toFixed(2)}</span>
-								)}
-								{/* HIDDEN: Custom Requests feature temporarily disabled */}
-								{/* {customRequestsTotal > 0 && (
-									<span>• Requests: RM {customRequestsTotal.toFixed(2)}</span>
-								)} */}
-								{teamMemberCharges > 0 && (
-									<span className="font-medium text-amber-600">
-										• Extra Team Members: RM {teamMemberCharges.toFixed(2)}
-									</span>
-								)}
-							</div>
-						</div>
-					</div>
-				)}
->>>>>>> theirs
 			</div>
 		</section>
 	);

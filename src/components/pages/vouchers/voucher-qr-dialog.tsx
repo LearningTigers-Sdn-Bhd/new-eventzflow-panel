@@ -1,7 +1,7 @@
 "use client";
 
 import QRCode from "react-qr-code";
-import type { Voucher } from "./table/columns";
+import type { Voucher } from "./table/event-voucher-table-columns";
 
 interface VoucherQRDialogProps {
 	voucher: Voucher;

@@ -4,19 +4,30 @@ import {
 	BadgeCheck,
 	Bell,
 	CreditCard,
+	FolderOpen,
 	HardHat,
 	Import,
 	Key,
 	LogOut,
+	Monitor,
+	Moon,
 	Store,
+	Sun,
 	Users,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import type * as React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
@@ -62,6 +73,12 @@ const navigationGroups = {
 			icon: Import,
 			roleAllowed: ["org_owner"],
 		},
+		{
+			name: "Item Categories",
+			url: "/item-categories" as Route,
+			icon: FolderOpen,
+			roleAllowed: ["org_owner", "organizer"],
+		},
 	],
 };
 
@@ -72,6 +89,7 @@ interface UserSheetProps {
 export function UserSheet({ trigger }: UserSheetProps) {
 	const router = useRouter();
 	const { user, logout } = useAuth();
+	const { theme, setTheme } = useTheme();
 
 	const handleLogout = async () => {
 		await logout();
@@ -111,6 +129,56 @@ export function UserSheet({ trigger }: UserSheetProps) {
 								<p className="text-muted-foreground text-xs">{user?.email}</p>
 							</div>
 						</div>
+					</div>
+					<Separator />
+
+					{/* Theme Toggle Section */}
+					<div className="flex flex-col gap-2 px-2">
+						<h4 className="font-medium text-muted-foreground text-xs uppercase">
+							Appearance
+						</h4>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									size="lg"
+									className="w-full justify-start rounded-none"
+								>
+									{theme === "light" && <Sun className="mr-2 size-4" />}
+									{theme === "dark" && <Moon className="mr-2 size-4" />}
+									{theme === "system" && <Monitor className="mr-2 size-4" />}
+									{theme === "light" && "Light Theme"}
+									{theme === "dark" && "Dark Theme"}
+									{theme === "system" && "System Theme"}
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="start"
+								className="w-(--radix-dropdown-menu-trigger-width) rounded-none"
+							>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => setTheme("light")}
+								>
+									<Sun className="mr-2 size-4" />
+									Light
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => setTheme("dark")}
+								>
+									<Moon className="mr-2 size-4" />
+									Dark
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => setTheme("system")}
+								>
+									<Monitor className="mr-2 size-4" />
+									System
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 
 					<Separator />
