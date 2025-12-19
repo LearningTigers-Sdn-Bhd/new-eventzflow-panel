@@ -49,9 +49,10 @@ export function EventMenuItem({
 	};
 
 	return (
-		<SidebarContent>
+		<SidebarContent className="gap-0">
 			{standalone.length > 0 && (
-				<SidebarGroup>
+				<SidebarGroup className="py-0">
+					<SidebarGroupLabel>Generic Actions</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{standalone.map((item) => {
@@ -80,10 +81,7 @@ export function EventMenuItem({
 				return (
 					<Collapsible key={group.id} defaultOpen className="group/collapsible">
 						<SidebarGroup>
-							<SidebarGroupLabel
-								asChild
-								className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-							>
+							<SidebarGroupLabel asChild className="group/label rounded-none">
 								<CollapsibleTrigger>
 									{group.label}
 									<ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />

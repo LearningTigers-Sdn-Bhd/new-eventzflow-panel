@@ -50,18 +50,17 @@ function MobileNavigationMenu({
 	const { toggleSidebar } = useSidebar();
 
 	return (
-		<div className="flex items-center justify-between gap-4 rounded-none border bg-muted px-4 py-2">
+		<button
+			type="button"
+			onClick={toggleSidebar}
+			className="flex items-center justify-between gap-4 rounded-none border bg-muted px-4 py-2"
+		>
 			<span className="font-semibold text-sm">{currentMenuLabel}</span>
-			<Button
-				variant="ghost"
-				size="icon"
-				onClick={toggleSidebar}
-				className="size-8"
-			>
+			<div className="py-2">
 				<Menu className="size-5" />
 				<span className="sr-only">Open Event Navigation</span>
-			</Button>
-		</div>
+			</div>
+		</button>
 	);
 }
 

@@ -4,18 +4,11 @@ import {
 	BadgeCheck,
 	Bell,
 	CreditCard,
-	FolderOpen,
-	HardHat,
-	Import,
-	Key,
 	LogOut,
 	Monitor,
 	Moon,
-	Store,
 	Sun,
-	Users,
 } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -37,50 +30,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-
-// Navigation data for menu groups
-const navigationGroups = {
-	memberManagement: [
-		{
-			name: "Team Members",
-			url: "/team" as Route,
-			icon: Users,
-			roleAllowed: ["org_owner", "organizer"],
-		},
-		{
-			name: "Exhibitor Contractors",
-			url: "/exhibitor-contractor" as Route,
-			icon: HardHat,
-			roleAllowed: ["org_owner", "organizer"],
-		},
-		{
-			name: "Vendors",
-			url: "/vendor" as Route,
-			icon: Store,
-			roleAllowed: ["org_owner", "organizer"],
-		},
-	],
-	miscellaneous: [
-		{
-			name: "API Keys",
-			url: "/api" as Route,
-			icon: Key,
-			roleAllowed: ["org_owner", "organizer"],
-		},
-		{
-			name: "Import Tickets",
-			url: "/import" as Route,
-			icon: Import,
-			roleAllowed: ["org_owner"],
-		},
-		{
-			name: "Item Categories",
-			url: "/item-categories" as Route,
-			icon: FolderOpen,
-			roleAllowed: ["org_owner", "organizer"],
-		},
-	],
-};
+import { getFilteredNavigation, type UserRole } from "./app-menu-config";
 
 interface UserSheetProps {
 	trigger: React.ReactNode;
@@ -96,13 +46,8 @@ export function UserSheet({ trigger }: UserSheetProps) {
 		router.push("/");
 	};
 
-	// Filter navigation items by user role
-	const filteredMemberManagement = navigationGroups.memberManagement.filter(
-		(item) => item.roleAllowed.includes(user?.role || "member"),
-	);
-	const filteredMiscellaneous = navigationGroups.miscellaneous.filter((item) =>
-		item.roleAllowed.includes(user?.role || "member"),
-	);
+	// Get filtered navigation by user role
+	const filteredNav = getFilteredNavigation(user?.role as UserRole);
 
 	return (
 		<Sheet>
@@ -185,13 +130,13 @@ export function UserSheet({ trigger }: UserSheetProps) {
 
 					{/* Menu Section - Other Navigation Groups */}
 					<div className="flex flex-col gap-4 px-2">
-						{filteredMemberManagement.length > 0 && (
+						{filteredNav.memberManagement.length > 0 && (
 							<div className="flex flex-col gap-2">
 								<h4 className="font-medium text-muted-foreground text-xs uppercase">
 									Member Management
 								</h4>
 								<div className="flex flex-col gap-2">
-									{filteredMemberManagement.map((item) => (
+									{filteredNav.memberManagement.map((item) => (
 										<Button
 											key={item.name}
 											variant="ghost"
@@ -209,13 +154,13 @@ export function UserSheet({ trigger }: UserSheetProps) {
 							</div>
 						)}
 
-						{filteredMiscellaneous.length > 0 && (
+						{filteredNav.miscellaneous.length > 0 && (
 							<div className="flex flex-col gap-2">
 								<h4 className="font-medium text-muted-foreground text-xs uppercase">
 									Miscellaneous
 								</h4>
 								<div className="flex flex-col gap-2">
-									{filteredMiscellaneous.map((item) => (
+									{filteredNav.miscellaneous.map((item) => (
 										<Button
 											key={item.name}
 											variant="ghost"
