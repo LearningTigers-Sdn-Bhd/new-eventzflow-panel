@@ -42,7 +42,7 @@ export function TabNavigationMobile({
 		if (currentTab === "analytics-group") return "analytics";
 		if (currentTab === "logs-group") return "voucher-logs";
 		if (currentTab === "exhibitor-kit-group") {
-			return exhibitorKitTabs[0]?.route || "my-exhibitor-kit/my-items";
+			return exhibitorKitTabs[0]?.route || "my-items";
 		}
 		if (currentTab === "user-management-group") {
 			return userManagementTabs[0]?.route || "event-staff";

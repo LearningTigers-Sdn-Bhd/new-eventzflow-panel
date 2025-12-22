@@ -18,12 +18,17 @@ import {
 	Info,
 	Logs,
 	MapPin,
+	Package,
+	Printer,
 	ScanQrCode,
+	ShoppingCart,
 	Ticket,
 	TrendingUp,
 	User,
 	UserCheck,
 	Users,
+	UsersRound,
+	Warehouse,
 } from "lucide-react";
 import type { IconType } from "react-icons";
 import { HiTicket } from "react-icons/hi2";
@@ -80,7 +85,12 @@ const visible = {
 	vendorOrAdmin: (p: Permissions) =>
 		(p.isEventVendor ?? false) || (p.canManageEventVendors ?? false),
 	adminOnly: (p: Permissions) =>
-		!(p.isEventVendor ?? false) || (p.canManageEventVendors ?? false),
+		(!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false)) ||
+		(p.canManageEventVendors ?? false),
+	
+	// Ticket access - exclude vendors, exhibitors, and contractors
+	canAccessTickets: (p: Permissions) =>
+		!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 
 	// Feature flags
 	hasExhibitorKit: (_p: Permissions, e?: Event) =>
@@ -93,6 +103,10 @@ const visible = {
 	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
+	vendorExhibitorKitAccess: (p: Permissions, e?: Event) =>
+		visible.vendor(p) && visible.hasExhibitorKit(p, e),
+	contractorOnly: (p: Permissions, e?: Event) =>
+		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
 };
 
 // ============================================================================
@@ -109,6 +123,20 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Info,
 		},
 		{
+			route: "vendor-profile",
+			label: "Vendor Profile",
+			description: "Manage your vendor profile and settings.",
+			icon: User,
+			visible: visible.vendor,
+		},
+		{
+			route: "contractor-profile",
+			label: "Contractor Profile",
+			description: "Manage your contractor profile and settings.",
+			icon: User,
+			visible: visible.contractorOnly,
+		},
+		{
 			route: "location",
 			label: "Location",
 			description: "View event location details and map.",
@@ -123,13 +151,6 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Gift,
 			visible: visible.luckyDrawAccess,
 		},
-		{
-			route: "my-profile",
-			label: "Vendor Profile",
-			description: "Manage your vendor profile and settings.",
-			icon: User,
-			visible: visible.vendor,
-		},
 	],
 
 	/** Grouped tabs with conditional visibility */
@@ -141,7 +162,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "tickets",
 			label: "Tickets",
 			icon: HiTicket,
-			visible: visible.ticketEvent,
+			visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 			tabs: [
 				{
 					route: "tickets",
@@ -171,12 +192,13 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// PEOPLE GROUP - Staff, visitors, vendors
+		// PEOPLE GROUP - Staff, visitors, vendors (hidden from contractors)
 		// ------------------------------------------------------------------------
 		{
 			id: "people",
 			label: "People",
 			icon: Users,
+			visible: (p) => !(p.isExhibitionContractor ?? false),
 			tabs: [
 				// Visitors - mall events only, with view permission
 				{
@@ -202,7 +224,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "View and manage vendors for this event.",
 					icon: Building2,
 					visible: (p, e) =>
-						visible.canViewVendors(p) && visible.hasVendors(p, e),
+						visible.eventAdminOnly(p) && visible.hasVendors(p, e),
 				},
 				{
 					route: "exhibitor",
@@ -228,6 +250,98 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
+		// EXHIBITOR KITS GROUP - Contractor kit management
+		// ------------------------------------------------------------------------
+		{
+			id: "exhibitor-kits",
+			label: "Exhibitor Kits",
+			icon: Package,
+			visible: visible.contractorOnly,
+			tabs: [
+				{
+					route: "contractor-exhibitor-kits",
+					label: "Exhibitor Kits",
+					description: "View and manage exhibitor kits for this event.",
+					icon: Package,
+				},
+				{
+					route: "rentable-items",
+					label: "Event Item",
+					description: "View and manage rentable items for this event.",
+					icon: Warehouse,
+				},
+				{
+					route: "printing-services",
+					label: "Event Printing",
+					description: "View and manage printing services for this event.",
+					icon: Printer,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// VOUCHERS GROUP - Voucher management and scanning
+		// ------------------------------------------------------------------------
+		{
+			id: "vouchers",
+			label: "Vouchers",
+			icon: Ticket,
+			tabs: [
+				{
+					route: "voucher-redemption",
+					label: "Scan Voucher",
+					description: "Scan and redeem vouchers.",
+					icon: ScanQrCode,
+					visible: visible.vendor,
+				},
+				{
+					route: "visitor-stamps",
+					label: "Visitor Stamp Scanner",
+					description: "Scan visitor QR codes to create stamps.",
+					icon: ScanQrCode,
+					visible: visible.vendor,
+				},
+				{
+					route: "vouchers",
+					label: "Vouchers",
+					description: "View and manage vouchers for vendors.",
+					icon: Ticket,
+					visible: visible.vendorOrAdmin,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// MY EXHIBITOR KIT GROUP - Vendor exhibitor kit management
+		// ------------------------------------------------------------------------
+		{
+			id: "my-exhibitor-kit",
+			label: "My Exhibitor Kit",
+			icon: Package,
+			visible: visible.vendorExhibitorKitAccess,
+			tabs: [
+				{
+					route: "order-items",
+					label: "Order Kits",
+					description: "Browse and order exhibitor kit items.",
+					icon: ShoppingCart,
+				},
+				{
+					route: "my-items",
+					label: "My Kits",
+					description: "View and manage your ordered kit items.",
+					icon: Package,
+				},
+				{
+					route: "team-members",
+					label: "My Team",
+					description: "Manage your team members for this event.",
+					icon: UsersRound,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
 		// ANALYTICS GROUP - Insights and metrics
 		// ------------------------------------------------------------------------
 		{
@@ -236,18 +350,18 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: ChartBar,
 			tabs: [
 				{
-					route: "analytics",
-					label: "Ticket Analytics",
-					description: "View event analytics, charts, and insights.",
-					icon: ChartBar,
-					visible: visible.ticketEvent,
-				},
-				{
 					route: "voucher-analytics",
 					label: "Voucher Analytics",
 					description: "View analytics and insights for vouchers.",
 					icon: ChartBar,
-					visible: visible.eventAdminOnly,
+					visible: visible.vendorOrAdmin,
+				},
+				{
+					route: "analytics",
+					label: "Ticket Analytics",
+					description: "View event analytics, charts, and insights.",
+					icon: ChartBar,
+					visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},
 				{
 					route: "mall-live-feed",
@@ -262,7 +376,7 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// LOGS GROUP - Activity history
+		// LOGS GROUP - Activity history (Admin only)
 		// ------------------------------------------------------------------------
 		{
 			id: "logs",
@@ -289,38 +403,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "Export event logs and data.",
 					icon: Logs,
 					visible: (p, e) => visible.ticketEvent(p, e) && visible.adminOnly(p),
-				},
-			],
-		},
-
-		// ------------------------------------------------------------------------
-		// VOUCHERS GROUP - Voucher management and scanning
-		// ------------------------------------------------------------------------
-		{
-			id: "vouchers",
-			label: "Vouchers",
-			icon: Ticket,
-			tabs: [
-				{
-					route: "vouchers",
-					label: "Vouchers",
-					description: "View and manage vouchers for vendors.",
-					icon: Ticket,
-					visible: visible.vendorOrAdmin,
-				},
-				{
-					route: "voucher-redemption",
-					label: "Scan Voucher",
-					description: "Scan and redeem vouchers.",
-					icon: ScanQrCode,
-					visible: visible.vendor,
-				},
-				{
-					route: "visitor-stamps",
-					label: "Visitor Stamp Scanner",
-					description: "Scan visitor QR codes to create stamps.",
-					icon: ScanQrCode,
-					visible: visible.vendor,
 				},
 			],
 		},

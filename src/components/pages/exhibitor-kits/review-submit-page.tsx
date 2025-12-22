@@ -78,7 +78,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 			toast.success("Order submitted successfully! A payment request has been created.");
 			clearCart();
 			// Redirect to my-items page to see the submitted order
-			router.push(`/event/${eventId}/my-exhibitor-kit/my-items`);
+			router.push(`/event/${eventId}/my-items`);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to submit order");

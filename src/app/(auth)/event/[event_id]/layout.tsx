@@ -235,6 +235,38 @@ export default function EventDetailLayout({
 }: EventDetailLayoutProps) {
 	const pathname = usePathname();
 	const { event_id } = use(params);
+
+	// Check if we're on special routes that don't need sidebar - check FIRST before any sidebar hooks
+	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
+	const isReviewSubmitRoute = pathname.includes("review-submit");
+
+	// Early return for special routes that don't use sidebar
+	if (isLuckyDrawSessionRoute) {
+		return <div className="w-full">{children}</div>;
+	}
+
+	if (isReviewSubmitRoute) {
+		return <div className="mx-auto">{children}</div>;
+	}
+
+	// Render the full layout with sidebar integration
+	return (
+		<EventDetailLayoutContent eventId={event_id} pathname={pathname}>
+			{children}
+		</EventDetailLayoutContent>
+	);
+}
+
+// Separate component that uses useSidebar - only rendered when SidebarProvider exists
+function EventDetailLayoutContent({
+	children,
+	eventId,
+	pathname,
+}: {
+	children: React.ReactNode;
+	eventId: string;
+	pathname: string;
+}) {
 	const isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const { toggleSidebar } = useSidebar();
@@ -245,11 +277,11 @@ export default function EventDetailLayout({
 		queryFn: () => getEvents(),
 	});
 	const currentEvent = events?.find(
-		(event) => event.id.toString() === event_id,
+		(event) => event.id.toString() === eventId,
 	);
 
 	// Get event permissions for the current user
-	const permissions = useEventPermissions(event_id, currentEvent);
+	const permissions = useEventPermissions(eventId, currentEvent);
 
 	// Determine current menu from pathname
 	const currentMenu = useMemo(() => {
@@ -290,18 +322,6 @@ export default function EventDetailLayout({
 
 		return currentMenu.title;
 	}, [pathname, currentMenu.title, permissions]);
-
-	// Check if we're on the lucky-draw session route
-	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
-	if (isLuckyDrawSessionRoute) {
-		return <div className="w-full">{children}</div>;
-	}
-
-	// Check if we're on the review-submit route (checkout-style page)
-	const isReviewSubmitRoute = pathname.includes("review-submit");
-	if (isReviewSubmitRoute) {
-		return <div className="mx-auto">{children}</div>;
-	}
 
 	return (
 		<div className="flex min-h-screen flex-col gap-2 md:gap-4">

@@ -31,7 +31,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 	const itemsCount = getItemsCount();
 
 	const handleReviewSubmit = () => {
-		router.push(`/event/${eventId}/my-exhibitor-kit/review-submit`);
+		router.push(`/event/${eventId}/review-submit`);
 	};
 
 	if (itemsCount === 0) {

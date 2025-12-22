@@ -77,7 +77,7 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 				title: "Exhibitor Kit",
 				description: "View your items and order more for your booth",
 				icon: Package,
-				route: exhibitorKitTabs[0]?.route || "my-exhibitor-kit/my-items",
+				route: exhibitorKitTabs[0]?.route || "my-items",
 			});
 			insertIndex = exhibitorKitInsertIndex + 1;
 		}

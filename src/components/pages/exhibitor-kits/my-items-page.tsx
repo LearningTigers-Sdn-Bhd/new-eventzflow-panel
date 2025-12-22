@@ -39,7 +39,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	const myKit = currentVendor?.exhibitor_kit;
 
 	const handleAddMoreItems = () => {
-		router.push(`/event/${eventId}/my-exhibitor-kit/order-items`);
+		router.push(`/event/${eventId}/order-items`);
 	};
 
 	// Set the "Add More Items" button in the header

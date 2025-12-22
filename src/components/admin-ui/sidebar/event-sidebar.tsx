@@ -88,8 +88,8 @@ export function EventSidebar({
 		[pathname, eventId],
 	);
 
-	// Show loading skeleton while waiting for event data
-	if (!currentEvent) {
+	// Show loading skeleton while waiting for event data or permissions
+	if (!currentEvent || permissions.isLoading) {
 		return (
 			<Sidebar
 				leftOffset={leftOffset}

@@ -116,7 +116,7 @@ export const TAB_ITEMS: TabItem[] = [
 		title: "My Team Members",
 		description: "Manage your team members for this event.",
 		icon: Users,
-		route: "my-exhibitor-kit/team-members",
+		route: "team-members",
 	},
 	{
 		id: "my-items",
@@ -124,7 +124,7 @@ export const TAB_ITEMS: TabItem[] = [
 		title: "My Ordered Items",
 		description: "View your ordered items and printing services.",
 		icon: ShoppingBag,
-		route: "my-exhibitor-kit/my-items",
+		route: "my-items",
 	},
 	{
 		id: "order-items",
@@ -133,7 +133,7 @@ export const TAB_ITEMS: TabItem[] = [
 		description:
 			"Browse and order rentable items and printing services for your booth.",
 		icon: Package,
-		route: "my-exhibitor-kit/order-items",
+		route: "order-items",
 	},
 	// HIDDEN: Custom Requests feature temporarily disabled
 	// {
@@ -142,7 +142,7 @@ export const TAB_ITEMS: TabItem[] = [
 	// 	title: "Custom Requests",
 	// 	description: "Submit custom requests for items not in the catalog.",
 	// 	icon: Package,
-	// 	route: "my-exhibitor-kit/custom-requests",
+	// 	route: "custom-requests",
 	// },
 	{
 		id: "exhibitor",

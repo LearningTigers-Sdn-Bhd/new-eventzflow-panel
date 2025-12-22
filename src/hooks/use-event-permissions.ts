@@ -6,6 +6,9 @@ import { getEventVendors } from "@/lib/api/event-vendor";
 import { useAuth } from "./use-auth";
 
 export type EventPermissions = {
+	// Loading state
+	isLoading: boolean;
+
 	// Global permissions
 	isOrgOwner: boolean;
 	isOrganizer: boolean;
@@ -50,25 +53,32 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 	// Check if user is an exhibition contractor
 	const isExhibitionContractor = user?.role === "exhibition_contractor";
 
+	// Determine which queries should run based on user role
+	const shouldFetchStaff = !!user && !!eventId && user.role !== "vendor" && !isExhibitionContractor && !!event;
+	const shouldFetchVendors = !!user && !!eventId && !isExhibitionContractor && !!event;
+
 	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
-	const { data: eventStaff } = useQuery({
+	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({
 		queryKey: ["event", eventIdStr, "staff"],
 		queryFn: () => getEventStaff({ eventId: eventIdStr }),
-		enabled: !!user && !!eventId && user.role !== "vendor" && !isExhibitionContractor && !!event,
+		enabled: shouldFetchStaff,
 		retry: false,
 	});
 
 	// Fetch event vendors to check if user is a vendor (not for exhibition contractors)
-	const { data: eventVendors } = useQuery({
+	const { data: eventVendors, isLoading: isLoadingVendors } = useQuery({
 		queryKey: ["events", Number(eventId), "vendors"],
 		queryFn: () => getEventVendors(Number(eventId)),
-		enabled: !!user && !!eventId && !isExhibitionContractor && !!event,
+		enabled: shouldFetchVendors,
 		retry: false,
 	});
 
 	const permissions = useMemo(() => {
 		if (!user) {
 			return {
+				// Loading state
+				isLoading: false,
+
 				// Global permissions
 				isOrgOwner: false,
 				isOrganizer: false,
@@ -107,6 +117,54 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 		const isMember = user.role === "member";
 		const isVendor = user.role === "vendor";
 
+		// For vendors and exhibition contractors, we can determine permissions immediately from global role
+		// No need to wait for async queries
+		if (isVendor || isExhibitionContractor) {
+			// Determine if event uses tickets
+			const useTicket = event?.use_ticket ?? true;
+
+			return {
+				// Loading state - no loading needed for vendors/contractors
+				isLoading: false,
+
+				// Global permissions
+				isOrgOwner: false,
+				isOrganizer: false,
+				isMember: false,
+				isVendor,
+				isExhibitionContractor,
+
+				// Event-specific roles
+				isEventAdmin: false,
+				isEventTeamMember: false,
+				isEventStaff: false,
+				isEventVendor: isVendor, // Vendor role means they're an event vendor
+
+				// Specific permissions
+				canManageEvent: false,
+				canManageEventStaff: false,
+				canManageEventVendors: false,
+				canViewAnalytics: false,
+				canManageTickets: false,
+				canScanTickets: false,
+				canViewVisitors: false,
+				canScanVisitorStamps: isVendor, // Vendors can scan stamps
+				canEditVendorProfile: isVendor,
+				canViewStampAnalytics: isVendor,
+
+				// Tab visibility
+				canViewVendorsTab: isVendor,
+				canViewVisitorsTab: false,
+				canViewStampScannerTab: !useTicket && isVendor,
+			};
+		}
+
+		// For other roles (org_owner, organizer, member), we need to check event staff assignments
+		// Determine if we're still loading critical data
+		const isLoading = 
+			(shouldFetchStaff && isLoadingStaff) || 
+			(shouldFetchVendors && isLoadingVendors);
+
 		// Find user's event staff assignment
 		const userStaffAssignment = eventStaff?.find(
 			(staff) => String(staff.id) === String(user.id),
@@ -144,6 +202,9 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 		const canViewStampScannerTab = !useTicket && (canScanVisitorStamps ?? false);
 
 		return {
+			// Loading state
+			isLoading,
+
 			// Global permissions
 			isOrgOwner,
 			isOrganizer,
@@ -174,7 +235,18 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 			canViewVisitorsTab,
 			canViewStampScannerTab,
 		};
-	}, [user, eventStaff, eventVendors, event?.use_ticket, isExhibitionContractor]);
+	}, [
+		user, 
+		eventStaff, 
+		eventVendors, 
+		event?.use_ticket, 
+		isExhibitionContractor, 
+		isLoadingStaff, 
+		isLoadingVendors, 
+		shouldFetchStaff,
+		shouldFetchVendors,
+		event,
+	]);
 
 	return permissions;
 }
