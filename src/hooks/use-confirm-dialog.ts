@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 
-import ConfirmDialog from "@/components/admin-ui/form/confirm-dialog";
-import { useDialog } from "@/hooks/use-dialog";
+import { useConfirmDialogStore } from "@/stores/confirm-dialog-store";
 import type { DialogSize } from "@/stores/dialog-store";
 
 type ConfirmDialogType =
@@ -35,7 +34,7 @@ export interface ConfirmDialogOptions {
  * Shared helper for opening the reusable confirmation dialog.
  */
 export function useConfirmDialog() {
-	const { openDialog, closeDialog } = useDialog();
+	const { openDialog, closeDialog } = useConfirmDialogStore();
 
 	const openConfirm = useCallback(
 		({
@@ -48,7 +47,7 @@ export function useConfirmDialog() {
 			variant,
 			rounded = "rounded",
 			icon,
-			size = "sm",
+			size, // Ignored as per requirements (always md)
 			showCloseButton,
 			onConfirm,
 			onCancel,
@@ -56,7 +55,6 @@ export function useConfirmDialog() {
 			const dialogType = type ?? variant ?? "base";
 
 			openDialog({
-				component: ConfirmDialog,
 				props: {
 					message,
 					confirmLabel,
@@ -69,9 +67,9 @@ export function useConfirmDialog() {
 				},
 				config: {
 					title,
-					size,
 					description,
 					showCloseButton,
+					// Force md size in store config or component, currently passed but component will ignore
 				},
 			});
 		},

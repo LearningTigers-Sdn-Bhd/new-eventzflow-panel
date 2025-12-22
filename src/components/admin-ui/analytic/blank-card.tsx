@@ -8,6 +8,7 @@ interface BlankCardProps {
 	title?: string;
 	icon?: React.ReactNode;
 	className?: string;
+	contentClassName?: string;
 }
 
 export function BlankCard({
@@ -15,6 +16,7 @@ export function BlankCard({
 	title,
 	icon,
 	className,
+	contentClassName,
 }: BlankCardProps) {
 	return (
 		<Card
@@ -24,18 +26,24 @@ export function BlankCard({
 			)}
 		>
 			{(title || icon) && (
-				<CardHeader className="p-0">
-					<div className="flex items-center gap-4">
-						{icon && <div className="border-r border-dashed p-4">{icon}</div>}
+				<CardHeader className="flex h-21 items-center p-0">
+					<div className="flex h-full items-center gap-4">
+						{icon && (
+							<div className="flex h-full items-center border-r border-dashed p-4">
+								{icon}
+							</div>
+						)}
 						{title && (
-							<div className="flex flex-col gap-1 px-2 py-3">
+							<div className="flex h-full items-center gap-1 px-2">
 								<CardTitle className="text-sm">{title}</CardTitle>
 							</div>
 						)}
 					</div>
 				</CardHeader>
 			)}
-			<CardContent className="h-full bg-accent p-4">{children}</CardContent>
+			<CardContent className={cn("h-full bg-accent p-4", contentClassName)}>
+				{children}
+			</CardContent>
 		</Card>
 	);
 }

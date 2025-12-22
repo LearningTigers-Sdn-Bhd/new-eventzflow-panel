@@ -12,6 +12,7 @@ interface BlankCardWithButtonProps {
 	onButtonClick?: () => void;
 	buttonIcon?: React.ReactNode;
 	className?: string;
+	contentClassName?: string;
 }
 
 export function BlankCardWithButton({
@@ -22,6 +23,7 @@ export function BlankCardWithButton({
 	onButtonClick,
 	buttonIcon,
 	className,
+	contentClassName,
 }: BlankCardWithButtonProps) {
 	return (
 		<Card
@@ -30,18 +32,22 @@ export function BlankCardWithButton({
 				className,
 			)}
 		>
-			<CardHeader className="p-0">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						{icon && <div className="border-r border-dashed p-4">{icon}</div>}
+			<CardHeader className="flex h-16 w-full items-center p-0">
+				<div className="flex h-full w-full items-center justify-between">
+					<div className="flex h-full items-center gap-4">
+						{icon && (
+							<div className="flex h-full items-center border-r border-dashed p-4">
+								{icon}
+							</div>
+						)}
 						{title && (
-							<div className="flex flex-col gap-1 px-2 py-3">
-								<CardTitle className="text-sm">{title}</CardTitle>
+							<div className="flex h-full items-center gap-1 px-2">
+								<CardTitle className="line-clamp-1 text-sm">{title}</CardTitle>
 							</div>
 						)}
 					</div>
 					{buttonLabel && (
-						<div className="flex items-center gap-2 px-2">
+						<div className="flex h-full items-center gap-2 px-2">
 							<Button
 								className="rounded-none border bg-accent"
 								variant="outline"
@@ -49,13 +55,15 @@ export function BlankCardWithButton({
 								onClick={onButtonClick}
 							>
 								{buttonIcon && <span className="mr-2">{buttonIcon}</span>}
-								{buttonLabel}
+								<span className="line-clamp-1 truncate">{buttonLabel}</span>
 							</Button>
 						</div>
 					)}
 				</div>
 			</CardHeader>
-			<CardContent className="bg-accent p-0">{children}</CardContent>
+			<CardContent className={cn("bg-accent p-0", contentClassName)}>
+				{children}
+			</CardContent>
 		</Card>
 	);
 }

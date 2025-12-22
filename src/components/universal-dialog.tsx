@@ -10,6 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog-store";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+} from "./admin-ui/layout/responsive-layout";
 
 const sizeClassMap: Record<string, string> = {
 	sm: "sm:max-w-sm",
@@ -53,46 +58,89 @@ export function UniversalDialog() {
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogContent
-				className={cn(
-					"gap-0 p-4",
-					sizeClass,
-					isFullScreen && "rounded-none border-0 p-0",
-					config.className,
-				)}
-				showCloseButton={config.showCloseButton}
-			>
-				<DialogHeader
-					className={cn(
-						"flex flex-col items-center gap-0 pt-4 pb-0 md:items-start",
-						isFullScreen ? "px-6" : "px-4",
-					)}
-				>
-					{config.title ? (
-						<DialogTitle>{config.title}</DialogTitle>
-					) : (
-						<DialogTitle className="sr-only">Dialog</DialogTitle>
-					)}
-					{config.description ? (
-						<DialogDescription className="text-sm">
-							{config.description}
-						</DialogDescription>
-					) : (
-						<DialogDescription className="sr-only">
-							Dialog content
-						</DialogDescription>
-					)}
-				</DialogHeader>
+			<ResponsiveLayout>
+				<MobileView>
+					<DialogContent
+						className={cn(
+							"gap-0 rounded-none border-0 p-0",
+							"h-screen! w-screen max-w-none!",
+						)}
+						showCloseButton={config.showCloseButton}
+					>
+						<DialogHeader
+							className={cn(
+								"flex flex-col items-center gap-0 px-4 pt-4 pb-0 md:items-start",
+							)}
+						>
+							{config.title ? (
+								<DialogTitle>{config.title}</DialogTitle>
+							) : (
+								<DialogTitle className="sr-only">Dialog</DialogTitle>
+							)}
+							{config.description ? (
+								<DialogDescription className="text-sm">
+									{config.description}
+								</DialogDescription>
+							) : (
+								<DialogDescription className="sr-only">
+									Dialog content
+								</DialogDescription>
+							)}
+						</DialogHeader>
 
-				<div
-					className={cn(
-						"flex-1 justify-start",
-						isFullScreen && "h-[calc(100vh-8rem)] flex-1 overflow-auto",
-					)}
-				>
-					<ContentComponent {...props} />
-				</div>
-			</DialogContent>
+						<div
+							className={cn(
+								"h-[calc(100vh-8rem)] flex-1 justify-start overflow-auto",
+								!isFullScreen && "px-4",
+							)}
+						>
+							<ContentComponent {...props} />
+						</div>
+					</DialogContent>
+				</MobileView>
+				<DesktopView>
+					<DialogContent
+						className={cn(
+							"gap-0 p-4",
+							sizeClass,
+							isFullScreen && "rounded-none border-0 p-0",
+							config.className,
+						)}
+						showCloseButton={config.showCloseButton}
+					>
+						<DialogHeader
+							className={cn(
+								"flex flex-col items-center gap-0 pt-4 pb-0 md:items-start",
+								isFullScreen ? "px-6" : "px-4",
+							)}
+						>
+							{config.title ? (
+								<DialogTitle>{config.title}</DialogTitle>
+							) : (
+								<DialogTitle className="sr-only">Dialog</DialogTitle>
+							)}
+							{config.description ? (
+								<DialogDescription className="text-sm">
+									{config.description}
+								</DialogDescription>
+							) : (
+								<DialogDescription className="sr-only">
+									Dialog content
+								</DialogDescription>
+							)}
+						</DialogHeader>
+
+						<div
+							className={cn(
+								"flex-1 justify-start",
+								isFullScreen && "h-[calc(100vh-8rem)] flex-1 overflow-auto",
+							)}
+						>
+							<ContentComponent {...props} />
+						</div>
+					</DialogContent>
+				</DesktopView>
+			</ResponsiveLayout>
 		</Dialog>
 	);
 }
