@@ -28,16 +28,18 @@ import {
 
 import { useIsTablet } from "@/hooks/use-tablet";
 import { BusinessMatchingItem } from "./business-matching-item";
-import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import type { BusinessMatchingEvent, BusinessHost } from "@/lib/api/business-matching";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+    actions?: React.ReactNode; // Add actions prop
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+    actions,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -68,15 +70,16 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full space-y-4">
 			{/* Simple Control Panel */}
-			<div className="flex items-center justify-between">
+			<div className="flex items-center justify-between gap-4">
 				<Input
 					placeholder="Filter events..."
 					value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
 					onChange={(event) =>
 						table.getColumn("title")?.setFilterValue(event.target.value)
 					}
-					className="max-w-sm"
+					className="max-w-sm h-8 md:h-9"
 				/>
+                {actions && <div className="shrink-0">{actions}</div>}
 			</div>
 
 			{/* Data Table */}

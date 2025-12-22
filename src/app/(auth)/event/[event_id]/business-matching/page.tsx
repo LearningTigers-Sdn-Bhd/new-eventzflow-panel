@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useEffect } from "react";
-import { Briefcase, RefreshCw, Download } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { useParams } from "next/navigation";
+import { Briefcase, RefreshCw, Download, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingState, ErrorState } from "@/components/data-state";
@@ -11,18 +12,25 @@ import { useBusinessMatchingEvents, useForceRefreshBusinessMatching } from "@/ho
 import { downloadBookingsReport } from "@/lib/api/business-matching";
 import { cable } from "@/lib/cable";
 import { Button } from "@/components/ui/button";
+import { useEventPermissions } from "@/hooks/use-event-permissions"; // Import the hook
 
-interface BusinessMatchingPageProps {
-	params: Promise<{
-		event_id: string;
-	}>;
-}
-
-export default function BusinessMatchingPage({ params }: BusinessMatchingPageProps) {
-	const { event_id } = use(params);
+export default function BusinessMatchingPage() {
+	const params = useParams();
+	const event_id = Array.isArray(params.event_id) ? params.event_id[0] : params.event_id;
+	console.log("Current event_id:", event_id); // Add this log
 	const { data, isLoading, error, isFetching } = useBusinessMatchingEvents(event_id);
 	const { mutate: forceRefresh, mutateAsync: forceRefreshAsync, isPending: isRefreshing } = useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
+    const { isBusinessHost, canManageEvent } = useEventPermissions(event_id);
+
+    // Filter columns for business hosts
+    const filteredColumns = useMemo(() => {
+        if (isBusinessHost && !canManageEvent) {
+            // Remove the 'host' column for business hosts
+            return columns.filter(col => (col as any).accessorKey !== "host");
+        }
+        return columns;
+    }, [isBusinessHost, canManageEvent]);
 
     useEffect(() => {
         const lastRefreshKey = `last_bm_refresh_${event_id}`;
@@ -43,10 +51,6 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
 			{ channel: "BusinessMatchingChannel", event_id },
 			{
 				received(data: any) {
-					console.log("Received Business Matching update:", data);
-					toast.info("Business Matching updated", {
-						description: "New data has been received from the backend.",
-					});
 					// Invalidate queries to refetch data
 					queryClient.invalidateQueries({
 						queryKey: ["business-matching-events", event_id],
@@ -101,13 +105,26 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
             description: "Please wait while we compile the data.",
         });
         try {
-            await downloadBookingsReport(event_id, format);
+            // Get the IDs of the currently displayed events
+            const bmEventIds = data?.map(event => event.id) || [];
+            await downloadBookingsReport(event_id, format, bmEventIds);
             toast.success("Report downloaded successfully");
         } catch (error) {
             console.error("Report generation failed", error);
             toast.error("Failed to generate report");
         }
     };
+
+    const handleCopyPublicLink = () => {
+        const publicLink = `${window.location.origin}/events/${event_id}/book-meeting`;
+        navigator.clipboard.writeText(publicLink)
+          .then(() => {
+            toast.success("Public booking link copied to clipboard!");
+          })
+          .catch((err) => {
+            toast.error("Failed to copy link.", { description: err.message });
+          });
+      };
 
 	if (isLoading || isFetching) {
 		return (
@@ -128,30 +145,45 @@ export default function BusinessMatchingPage({ params }: BusinessMatchingPagePro
 		);
 	}
 
-	return (
-		<div className="space-y-6 p-4">
-			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold tracking-tight">Business Matching</h1>
-                <div className="flex items-center gap-2">
-                    {data && data.length > 0 && (
-                        <Button variant="outline" size="sm" onClick={() => handleGenerateReport('xlsx')}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Generate Report
+	const actionButtons = (
+		<div className="flex items-center gap-2">
+			{data && data.length > 0 && (
+				<>
+					<Button variant="outline" size="sm" onClick={() => handleGenerateReport('xlsx')} className="h-8 md:h-9">
+						<Download className="md:mr-2 h-4 w-4" />
+						<span className="hidden lg:inline">Generate Report</span>
+						<span className="lg:hidden hidden md:inline">Report</span>
+					</Button>
+                    {!isBusinessHost && (
+                        <Button variant="outline" size="sm" onClick={handleCopyPublicLink} className="h-8 md:h-9">
+                            <LinkIcon className="md:mr-2 h-4 w-4" />
+                            <span className="hidden lg:inline">Copy Invite Link</span>
+                            <span className="lg:hidden hidden md:inline">Invite Link</span>
                         </Button>
                     )}
+				</>
+			)}
 
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                    >
-                        <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                        Refresh
-                    </Button>
-                </div>
-			</div>
-			<DataTable columns={columns} data={data || []} />
+			<Button
+				variant="outline"
+				size="sm"
+				onClick={handleRefresh}
+				disabled={isRefreshing}
+				className="h-8 md:h-9"
+			>
+				<RefreshCw className={`md:mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+				<span className="hidden md:inline">Refresh</span>
+			</Button>
+		</div>
+	);
+
+	return (
+		<div className="space-y-6 p-4">
+			<DataTable 
+				columns={filteredColumns} 
+				data={data || []} 
+				actions={actionButtons} 
+			/>
 		</div>
 	);
 }

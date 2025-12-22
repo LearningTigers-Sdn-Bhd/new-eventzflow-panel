@@ -39,7 +39,7 @@ export default function BookingsDialog({
         toast.info("Refreshing bookings...");
     };
 
-    const isRefreshing = isRefreshingBookings || isLoading || isFetchingBookings;
+    const isRefreshing = isRefreshingBookings || isLoading;
 
     if (isRefreshing) { // Use isRefreshing
         return (
@@ -66,7 +66,7 @@ export default function BookingsDialog({
                 <Empty className="p-0 border-0">
                     <EmptyHeader>
                         <EmptyTitle>No bookings found yet</EmptyTitle>
-                        <EmptyDescription>We are fetching the latest data. Please wait a moment or click Refresh.</EmptyDescription>
+                        <EmptyDescription>No new bookings at the moment. Please wait a moment...</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             </div>
@@ -75,21 +75,47 @@ export default function BookingsDialog({
 
     const bookings = data.bookings;
 
-    const filteredBookings = bookings.filter((booking) => {
-        const query = searchQuery.toLowerCase();
-        return (
-            booking.name.toLowerCase().includes(query) ||
-            (booking.email && booking.email.toLowerCase().includes(query)) ||
-            (booking.phone && booking.phone.toLowerCase().includes(query)) ||
-            (booking.location && booking.location.toLowerCase().includes(query)) ||
-            (booking.host_comment && booking.host_comment.toLowerCase().includes(query)) ||
-            (booking.potential_deal_value && booking.potential_deal_value.toLowerCase().includes(query)) ||
-            booking.booking_date.toLowerCase().includes(query) ||
-            booking.booking_time.toLowerCase().includes(query)
-        );
-    });
+    // Helper function to create a sortable Date object from booking details
+    const getSortableDate = (booking: typeof bookings[0]) => {
+        // e.g., "03 November" and "10:00 AM" -> "03 November 2024 10:00"
+        const year = new Date().getFullYear();
+        const dateTimeString = `${booking.booking_date} ${year} ${booking.booking_time}`;
+        // Adjust for AM/PM if present, otherwise assume 24h
+        const parsableString = dateTimeString.replace(/ (AM|PM)$/, "M");
+        return new Date(parsableString);
+    };
 
-    const todayBookings = filteredBookings.filter(b => b.booking_date && b.booking_date.includes(todayString));
+    const filteredBookings = bookings
+        .filter((booking) => {
+            const query = searchQuery.toLowerCase();
+            return (
+                booking.name.toLowerCase().includes(query) ||
+                (booking.email && booking.email.toLowerCase().includes(query)) ||
+                (booking.phone && booking.phone.toLowerCase().includes(query)) ||
+                (booking.location && booking.location.toLowerCase().includes(query)) ||
+                (booking.host_comment && booking.host_comment.toLowerCase().includes(query)) ||
+                (booking.potential_deal_value && booking.potential_deal_value.toLowerCase().includes(query)) ||
+                booking.booking_date.toLowerCase().includes(query) ||
+                booking.booking_time.toLowerCase().includes(query)
+            );
+        })
+        .sort((a, b) => getSortableDate(a).getTime() - getSortableDate(b).getTime());
+
+
+    const todayBookings = filteredBookings
+        .filter(b => b.booking_date && b.booking_date.includes(todayString))
+        .sort((a, b) => {
+            const now = new Date();
+            const dateA = getSortableDate(a);
+            const dateB = getSortableDate(b);
+
+            // If a booking is in the past, push it to the bottom
+            if (dateA < now && dateB >= now) return 1;
+            if (dateB < now && dateA >= now) return -1;
+            
+            // Otherwise, sort by time
+            return dateA.getTime() - dateB.getTime();
+        });
 
     return (
         <div className="flex flex-col h-[70vh] w-full max-w-4xl mx-auto p-1">

@@ -177,9 +177,6 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                     <div className="flex justify-between items-center gap-1.5">
                         <div className="min-w-0 flex-1 leading-tight">
                             <CardTitle className="text-sm font-semibold truncate" title={displayBooking.name}>{displayBooking.name}</CardTitle>
-                            <p className="text-xs text-muted-foreground truncate" title={displayBooking.event_title}>
-                                {displayBooking.event_title}
-                            </p>
                         </div>
                         <div className="flex items-center gap-1">
                             <Badge 
@@ -340,7 +337,7 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                             >
                                 <DollarSign className="mr-2 h-3 w-3 shrink-0" />
                                 <span className="truncate">
-                                    {displayBooking.potential_deal_value ? `Deal: ${displayBooking.potential_deal_value}` : "Set Deal Value..."}
+                                    {displayBooking.potential_deal_value ? `Deal: ${displayBooking.potential_deal_value}` : "Set Potential Deal Value..."}
                                 </span>
                             </Button>
                         )}

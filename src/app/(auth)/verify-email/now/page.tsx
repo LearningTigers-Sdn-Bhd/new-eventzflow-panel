@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
 import { useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
@@ -29,9 +29,12 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";
 import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
+import type { Route } from "next"; // Import Route
 
 export default function VerifyEmailPage() {
 	const router = useRouter();
+    const searchParams = useSearchParams(); // Get search params
+    const redirectPath = searchParams.get("redirect"); // Get redirect path
 	const { user } = useAuth();
 	const [isResending, setIsResending] = useState(false);
 	const [cooldown, setCooldown] = useState(0);
@@ -49,7 +52,7 @@ export default function VerifyEmailPage() {
 			try {
 				await verifyEmail(value.code);
 				toast.success("Email verified successfully!");
-				router.push("/dashboard");
+				router.push((redirectPath as Route) || "/dashboard"); // Use redirectPath
 			} catch (error) {
 				toast.error(
 					error instanceof Error ? error.message : "Verification failed",

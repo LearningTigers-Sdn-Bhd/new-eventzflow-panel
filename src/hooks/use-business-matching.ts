@@ -9,7 +9,44 @@ import {
     updateBooking, // Added
     type UpdateBookingRequest, // Added
 	BusinessMatchingEvent,
+    createAndAssignHost, // Added
+    type CreateHostRequest, // Added
+    removeHost, // Added
 } from "@/lib/api/business-matching";
+
+export const useRemoveHost = (eventId: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (bmEventId: string) => removeHost(eventId, bmEventId),
+        onSuccess: () => {
+            queryClient.refetchQueries({
+                queryKey: ["business-matching-events", eventId],
+            });
+            // Also refetch the hosts list to update the table
+            queryClient.refetchQueries({
+                queryKey: ["business-matching-hosts", eventId],
+            });
+        },
+    });
+};
+
+export const useCreateAndAssignHost = (eventId: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bmEventId, data }: { bmEventId: string; data: CreateHostRequest }) =>
+            createAndAssignHost(eventId, bmEventId, data),
+        onSuccess: () => {
+            // Refetch the main events query to show the new host immediately
+            queryClient.refetchQueries({
+                queryKey: ["business-matching-events", eventId],
+            });
+            // Also refetch the hosts list
+            queryClient.refetchQueries({
+                queryKey: ["business-matching-hosts", eventId],
+            });
+        },
+    });
+};
 
 export const useBusinessMatchingEvents = (eventId: string) => {
 	const queryResult = useQuery({
@@ -18,12 +55,7 @@ export const useBusinessMatchingEvents = (eventId: string) => {
 		enabled: !!eventId,
 		staleTime: 1000 * 60 * 30, // 30 minutes
 		refetchOnWindowFocus: false,
-        refetchInterval: (query) => {
-            const data = query.state.data;
-            // Poll if data is empty array (likely pending async)
-            if (Array.isArray(data) && data.length === 0) return 3000;
-            return false;
-        },
+        retry: 1,
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -57,25 +89,14 @@ export const useBusinessMatchingAvailability = (
 	bmEventId: string | null,
 	eventId: string | null // Changed from internalEventId
 ) => {
-    const isFirstRun = useRef(true);
 	const queryResult = useQuery({
 		queryKey: ["business-matching-availability", bmEventId, eventId], // Update queryKey
-		queryFn: () => {
-            const force = isFirstRun.current;
-            if (force) {
-                isFirstRun.current = false;
-            }
-            return getAvailability(bmEventId!, eventId!, force);
-        }, // Pass eventId
+		queryFn: () => getAvailability(bmEventId!, eventId!), // Pass eventId
 		enabled: !!bmEventId && !!eventId, // Enable only if both are present
         staleTime: 0,
         gcTime: 0,
         refetchOnMount: "always",
-        refetchInterval: (query) => {
-            const data = query.state.data;
-            if (data && Array.isArray(data.dates) && data.dates.length === 0) return 3000;
-            return false;
-        },
+        retry: 1,
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -88,25 +109,14 @@ export const useBusinessMatchingDetailedSlots = (
 	date: string | null, // Date in "DD Month YYYY" format
 	eventId: string | null // Changed from internalEventId
 ) => {
-    const isFirstRun = useRef(true);
 	const queryResult = useQuery({
 		queryKey: ["business-matching-detailed-slots", bmEventId, date, eventId], // Update queryKey
-		queryFn: () => {
-            const force = isFirstRun.current;
-            if (force) {
-                isFirstRun.current = false;
-            }
-            return getDetailedSlots(bmEventId!, date!, eventId!, force);
-        }, // Pass eventId
+		queryFn: () => getDetailedSlots(bmEventId!, date!, eventId!), // Pass eventId
 		enabled: !!bmEventId && !!date && !!eventId,
         staleTime: 0,
         gcTime: 0,
         refetchOnMount: "always",
-        refetchInterval: (query) => {
-            const data = query.state.data;
-            if (data && Array.isArray(data.slots) && data.slots.length === 0) return 3000;
-            return false;
-        },
+        retry: 1,
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -118,27 +128,17 @@ export const useBusinessMatchingBookings = (
     bmEventId: string | null,
     eventId: string | null
 ) => {
-    const isFirstRun = useRef(true);
-
     const queryResult = useQuery({
-        queryKey: ["business-matching-bookings", bmEventId, eventId], // Add forceRefresh to queryKey
+        queryKey: ["business-matching-bookings", bmEventId, eventId],
         queryFn: () => {
-            const force = isFirstRun.current;
-            if (force) {
-                isFirstRun.current = false;
-            }
-            console.log("Fetching bookings for BM Event:", bmEventId, "Event:", eventId, "Force:", force);
-            return getBookings(bmEventId!, eventId!, force);
+            console.log("Fetching bookings for BM Event:", bmEventId, "Event:", eventId);
+            return getBookings(bmEventId!, eventId!);
         },
         enabled: !!bmEventId && !!eventId,
         staleTime: 0,
         gcTime: 0, // Ensure data is not cached/persisted
         refetchOnMount: "always",
-        refetchInterval: (query) => {
-            const data = query.state.data;
-            if (data && Array.isArray(data.bookings) && data.bookings.length === 0) return 3000;
-            return false;
-        },
+        retry: 1,
     });
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;

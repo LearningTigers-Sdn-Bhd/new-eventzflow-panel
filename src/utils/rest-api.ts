@@ -42,6 +42,14 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
+            // Suppress global error toasts for business matching queries
+            // as they are handled locally with specific UI states or ignored to prevent spam
+            const queryKey = query.queryKey;
+            const suppressedKeys = ['business-matching', 'event-details'];
+            if (Array.isArray(queryKey) && queryKey.some(k => typeof k === 'string' && suppressedKeys.some(sk => k.includes(sk)))) {
+                return;
+            }
+
 			// onError is called after all retries are exhausted
 			// Show error toast with retry option
 			toast.error(error.message, {
@@ -58,7 +66,7 @@ export const queryClient = new QueryClient({
 
 export const kyClient = ky.create({
 	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-	timeout: 30000,
+	timeout: 90000,
 	headers: {
 		"Content-Type": "application/json",
 	},
@@ -256,6 +264,31 @@ export const restClient = {
 		logger.debug("  - Headers:", headers);
 		logger.debug("  - Data:", data);
 		return kyClient.post(url, { json: data, headers }).json<T>();
+	},
+
+	/**
+	 * Make a POST request that returns a blob (for file downloads)
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to an object with blob and response headers
+	 */
+	postBlob: async (
+		url: string,
+		data?: unknown,
+		token?: string,
+	): Promise<{ blob: Blob; headers: Headers }> => {
+		const headers: Record<string, string> = token
+			? { Authorization: `Bearer ${token}` }
+			: {};
+		logger.debug("🔍 HTTP Client Debug (POST BLOB):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Token:", token);
+		logger.debug("  - Data:", data);
+		logger.debug("  - Headers:", headers);
+		const response = await kyClient.post(url, { json: data, headers });
+		const blob = await response.blob();
+		return { blob, headers: response.headers };
 	},
 
 	/**

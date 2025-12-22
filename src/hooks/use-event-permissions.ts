@@ -174,6 +174,7 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 		const isEventAdmin = userStaffAssignment?.eventRole === "event_admin";
 		const isEventTeamMember =
 			userStaffAssignment?.eventRole === "event_team_member";
+        const isBusinessHost = userStaffAssignment?.eventRole === "business_host";
 		const isEventStaff = !!userStaffAssignment;
 
 		// Check if user is a vendor for this event
@@ -213,11 +214,11 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 			isExhibitionContractor,
 
 			// Event-specific roles
-			isEventAdmin,
-			isEventTeamMember,
-			isEventStaff,
-			isEventVendor,
-
+							isEventAdmin,
+							isEventTeamMember,
+			                isBusinessHost,
+							isEventStaff,
+							isEventVendor,
 			// Specific permissions
 			canManageEvent,
 			canManageEventStaff,
