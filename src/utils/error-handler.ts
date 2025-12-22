@@ -39,9 +39,11 @@ export async function extractErrorMessage(error: unknown): Promise<string> {
 			// Extract user-friendly error message from backend response
 			if (errorData.error) {
 				return errorData.error;
-			}if (errorData.errors && errorData.errors.length > 0) {
+			}
+			if (errorData.errors && errorData.errors.length > 0) {
 				return errorData.errors.map((e) => e.message).join(", ");
-			}if (errorData.message) {
+			}
+			if (errorData.message) {
 				return errorData.message;
 			}
 		} catch {

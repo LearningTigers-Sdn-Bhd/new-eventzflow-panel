@@ -17,12 +17,16 @@ interface TicketSelectionProps {
 	onBack: () => void;
 }
 
-export function TicketSelection({ tickets, onSelectTicket, onBack }: TicketSelectionProps) {
+export function TicketSelection({
+	tickets,
+	onSelectTicket,
+	onBack,
+}: TicketSelectionProps) {
 	return (
 		<div className="space-y-4">
 			<p className="text-center text-muted-foreground text-sm">
-				We found {tickets.length} ticket{tickets.length > 1 ? "s" : ""} matching your search. Please
-				select yours:
+				We found {tickets.length} ticket{tickets.length > 1 ? "s" : ""} matching
+				your search. Please select yours:
 			</p>
 
 			<div className="max-h-[400px] space-y-3 overflow-y-auto">
@@ -41,8 +45,14 @@ export function TicketSelection({ tickets, onSelectTicket, onBack }: TicketSelec
 							<div className="flex items-start justify-between gap-2">
 								<div className="flex-1">
 									<p className="font-semibold text-base">{ticket.name}</p>
-									<p className="text-muted-foreground text-sm">{ticket.email}</p>
-									{ticket.phone && <p className="text-muted-foreground text-sm">{ticket.phone}</p>}
+									<p className="text-muted-foreground text-sm">
+										{ticket.email}
+									</p>
+									{ticket.phone && (
+										<p className="text-muted-foreground text-sm">
+											{ticket.phone}
+										</p>
+									)}
 								</div>
 								{ticket.checkedIn && (
 									<span className="rounded bg-red-50 px-2 py-1 font-medium text-red-600 text-xs dark:bg-red-950 dark:text-red-400">
@@ -51,7 +61,9 @@ export function TicketSelection({ tickets, onSelectTicket, onBack }: TicketSelec
 								)}
 							</div>
 							<div className="flex flex-wrap gap-2 text-xs">
-								<span className="rounded bg-primary/10 px-2 py-1 text-primary">{ticket.ticketType}</span>
+								<span className="rounded bg-primary/10 px-2 py-1 text-primary">
+									{ticket.ticketType}
+								</span>
 								<span className="rounded bg-secondary px-2 py-1 text-secondary-foreground">
 									{ticket.eventName}
 								</span>
@@ -61,7 +73,12 @@ export function TicketSelection({ tickets, onSelectTicket, onBack }: TicketSelec
 				))}
 			</div>
 
-			<Button type="button" variant="outline" onClick={onBack} className="h-10 w-full gap-2">
+			<Button
+				type="button"
+				variant="outline"
+				onClick={onBack}
+				className="h-10 w-full gap-2"
+			>
 				<ArrowLeft className="h-4 w-4" />
 				Back to Search
 			</Button>

@@ -59,10 +59,14 @@ export function ScanResultCard({
 							#{index}
 						</span>
 					</div>
-					<p className={cn(
-						"truncate text-xs",
-						result.attendeeEmail ? "text-muted-foreground" : "text-muted-foreground/60 italic"
-					)}>
+					<p
+						className={cn(
+							"truncate text-xs",
+							result.attendeeEmail
+								? "text-muted-foreground"
+								: "text-muted-foreground/60 italic",
+						)}
+					>
 						{result.attendeeEmail || "No email provided"}
 					</p>
 					{result.ticketType && (

@@ -93,19 +93,21 @@ export function RedemptionScanner({
 							)}
 						>
 							{getStepIcon(step) || (
-								<span className={cn(
-									"font-semibold",
-									(step === "voucher" && scannedData.voucherUuid) || 
-									(step === "visitor" && scannedData.visitorId)
-										? "text-white"
-										: ""
-								)}>{idx + 1}</span>
+								<span
+									className={cn(
+										"font-semibold",
+										(step === "voucher" && scannedData.voucherUuid) ||
+											(step === "visitor" && scannedData.visitorId)
+											? "text-white"
+											: "",
+									)}
+								>
+									{idx + 1}
+								</span>
 							)}
 							<span className="hidden sm:inline">{STEP_LABELS[step]}</span>
 						</div>
-						{idx < 2 && (
-							<div className="h-px w-4 bg-border sm:w-8" />
-						)}
+						{idx < 2 && <div className="h-px w-4 bg-border sm:w-8" />}
 					</div>
 				))}
 			</div>
@@ -163,7 +165,9 @@ export function RedemptionScanner({
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
 								</span>
 								<span className="font-medium text-primary-foreground text-xs">
-									{currentStep === "voucher" ? "Scan Voucher QR" : "Scan Visitor QR"}
+									{currentStep === "voucher"
+										? "Scan Voucher QR"
+										: "Scan Visitor QR"}
 								</span>
 							</div>
 						</div>

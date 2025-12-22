@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
 	return {
 		name: "EventzFlow Panel",
 		short_name: "EventzFlow",
-		description: "EventzFlow - Manage events, scan tickets, and track attendance",
+		description:
+			"EventzFlow - Manage events, scan tickets, and track attendance",
 		start_url: "/",
 		display: "standalone",
 		background_color: "#ffffff",

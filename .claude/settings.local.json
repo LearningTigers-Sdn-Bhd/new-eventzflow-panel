@@ -1,13 +1,9 @@
 {
-  "permissions": {
-    "allow": [
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
-    ]
-  },
-  "enabledMcpjsonServers": [
-    "context7",
-    "shadcn",
-    "next-devtools"
-  ]
+	"permissions": {
+		"allow": [
+			"mcp__context7__resolve-library-id",
+			"mcp__context7__get-library-docs"
+		]
+	},
+	"enabledMcpjsonServers": ["context7", "shadcn", "next-devtools"]
 }

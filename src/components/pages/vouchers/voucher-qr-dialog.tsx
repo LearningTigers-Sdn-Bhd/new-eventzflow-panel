@@ -1,16 +1,14 @@
 "use client";
 
 import QRCode from "react-qr-code";
-import type { Voucher } from "./table/columns";
+import type { Voucher } from "./table/event-voucher-table-columns";
 
 interface VoucherQRDialogProps {
 	voucher: Voucher;
 	onClose: () => void;
 }
 
-export default function VoucherQRDialog({
-	voucher,
-}: VoucherQRDialogProps) {
+export default function VoucherQRDialog({ voucher }: VoucherQRDialogProps) {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col items-center gap-4 py-6">

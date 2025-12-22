@@ -1,9 +1,9 @@
 import { restClient } from "@/utils/rest-api";
-import type { EventExhibitionContractor } from "./response";
 import {
 	type AssignContractorRequest,
 	assignContractorSchema,
 } from "./request";
+import type { EventExhibitionContractor } from "./response";
 
 /**
  * Get the assigned exhibition contractor for an event

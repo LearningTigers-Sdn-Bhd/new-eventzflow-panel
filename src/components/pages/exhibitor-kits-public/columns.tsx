@@ -78,7 +78,7 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.company_name}</div>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-muted-foreground text-sm">
 						{kit.vendor?.vendor?.full_name || "Unknown Vendor"}
 					</div>
 				</div>
@@ -107,7 +107,7 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.booth_number}</div>
-					<div className="text-sm text-muted-foreground capitalize">
+					<div className="text-muted-foreground text-sm capitalize">
 						{kit.booth_type.replace('_', ' ')}
 					</div>
 				</div>
@@ -122,8 +122,8 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.pic_full_name}</div>
-					<div className="text-sm text-muted-foreground">{kit.pic_email_address}</div>
-					<div className="text-sm text-muted-foreground">{kit.pic_contact_number}</div>
+					<div className="text-muted-foreground text-sm">{kit.pic_email_address}</div>
+					<div className="text-muted-foreground text-sm">{kit.pic_contact_number}</div>
 				</div>
 			);
 		},
@@ -218,9 +218,9 @@ function PublicViewDetailsButton({ kitId, eventId }: { kitId: number; eventId?: 
 			size="sm"
 			onClick={handleViewDetails}
 			disabled={!eventId}
-			className="rounded-none border border-primary/20 h-8 px-3 w-full lg:w-auto"
+			className="h-8 w-full rounded-none border border-primary/20 px-3 lg:w-auto"
 		>
-			<Eye className="h-4 w-4 mr-2" />
+			<Eye className="mr-2 h-4 w-4" />
 			View
 		</Button>
 	);

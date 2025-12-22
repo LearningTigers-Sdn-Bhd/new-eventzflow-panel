@@ -5,8 +5,8 @@ import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { getEventStaffColumns } from "@/components/pages/event-staff/columns";
-import { DataTable } from "@/components/pages/event-staff/data-table";
+import { DataTable } from "@/components/pages/event-staff/event-staff-table";
+import { getEventStaffColumns } from "@/components/pages/event-staff/event-staff-table-columns";
 import { EventStaffPageButton } from "@/components/pages/event-staff/page-action/button";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -44,11 +44,16 @@ export default function EventStaffPage({
 					<div className="space-y-1">
 						<p className="font-medium text-sm">Assign staff to this event</p>
 						<p className="text-muted-foreground text-sm">
-							This page shows staff assigned to this event. To add new team members, go to the Team page.
+							This page shows staff assigned to this event. To add new team
+							members, go to the Team page.
 						</p>
 					</div>
 				</div>
-				<Button variant="outline" asChild className="w-full rounded-none sm:w-auto sm:shrink-0">
+				<Button
+					variant="outline"
+					asChild
+					className="w-full rounded-none sm:w-auto sm:shrink-0"
+				>
 					<Link href="/team">
 						Go to Team
 						<ArrowRight className="ml-2 h-4 w-4" />

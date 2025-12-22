@@ -1,10 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,6 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface DateTimePickerProps {
 	date?: Date;
@@ -36,7 +35,7 @@ export function DateTimePicker({
 	const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
 		date,
 	);
-	
+
 	// Convert 24h to 12h format for display
 	const get12Hour = (date?: Date) => {
 		if (!date) return "12";
@@ -84,20 +83,24 @@ export function DateTimePicker({
 		} else if (period === "AM" && hour24 === 12) {
 			hour24 = 0;
 		}
-		
+
 		newDate.setHours(hour24, Number.parseInt(minutes), 0, 0);
 		setSelectedDate(newDate);
 		onDateChange(newDate);
 	};
 
-	const handleTimeChange = (newHours: string, newMinutes: string, newPeriod: "AM" | "PM") => {
+	const handleTimeChange = (
+		newHours: string,
+		newMinutes: string,
+		newPeriod: "AM" | "PM",
+	) => {
 		setHours(newHours);
 		setMinutes(newMinutes);
 		setPeriod(newPeriod);
 
 		if (selectedDate) {
 			const newDate = new Date(selectedDate);
-			
+
 			// Convert 12h to 24h format
 			let hour24 = Number.parseInt(newHours);
 			if (newPeriod === "PM" && hour24 !== 12) {
@@ -105,7 +108,7 @@ export function DateTimePicker({
 			} else if (newPeriod === "AM" && hour24 === 12) {
 				hour24 = 0;
 			}
-			
+
 			newDate.setHours(hour24, Number.parseInt(newMinutes), 0, 0);
 			setSelectedDate(newDate);
 			onDateChange(newDate);
@@ -113,9 +116,7 @@ export function DateTimePicker({
 	};
 
 	// Generate hours (1-12 for 12h format)
-	const hourOptions = Array.from({ length: 12 }, (_, i) =>
-		(i + 1).toString(),
-	);
+	const hourOptions = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
 
 	// Generate minutes (00-59)
 	const minuteOptions = Array.from({ length: 60 }, (_, i) =>
@@ -136,11 +137,7 @@ export function DateTimePicker({
 					>
 						<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
 						<span className="truncate">
-							{selectedDate ? (
-								format(selectedDate, "PPP")
-							) : (
-								placeholder
-							)}
+							{selectedDate ? format(selectedDate, "PPP") : placeholder}
 						</span>
 					</Button>
 				</PopoverTrigger>
@@ -178,7 +175,9 @@ export function DateTimePicker({
 							</label>
 							<Select
 								value={hours}
-								onValueChange={(value) => handleTimeChange(value, minutes, period)}
+								onValueChange={(value) =>
+									handleTimeChange(value, minutes, period)
+								}
 								disabled={disabled}
 							>
 								<SelectTrigger className="w-[70px]">
@@ -200,7 +199,9 @@ export function DateTimePicker({
 							</label>
 							<Select
 								value={minutes}
-								onValueChange={(value) => handleTimeChange(hours, value, period)}
+								onValueChange={(value) =>
+									handleTimeChange(hours, value, period)
+								}
 								disabled={disabled}
 							>
 								<SelectTrigger className="w-[70px]">
@@ -221,7 +222,9 @@ export function DateTimePicker({
 							</label>
 							<Select
 								value={period}
-								onValueChange={(value: "AM" | "PM") => handleTimeChange(hours, minutes, value)}
+								onValueChange={(value: "AM" | "PM") =>
+									handleTimeChange(hours, minutes, value)
+								}
 								disabled={disabled}
 							>
 								<SelectTrigger className="w-[70px]">
@@ -239,4 +242,3 @@ export function DateTimePicker({
 		</div>
 	);
 }
-

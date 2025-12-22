@@ -23,7 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { updateTeamMember } from "@/lib/api/team";
-import type { TeamMember } from "./columns";
+import type { TeamMember } from "./team-member-table-columns";
 
 interface EditMemberFormProps {
 	member: TeamMember;
@@ -198,7 +198,9 @@ export default function EditMemberForm({
 												onCheckedChange={(checked) =>
 													setFormData((prev) => ({
 														...prev,
-														emailVerifiedAt: checked ? new Date().toISOString() : null,
+														emailVerifiedAt: checked
+															? new Date().toISOString()
+															: null,
 													}))
 												}
 												disabled={updateMemberMutation.isPending}

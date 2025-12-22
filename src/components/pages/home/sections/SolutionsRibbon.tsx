@@ -1,8 +1,8 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import { Box } from "lucide-react";
+import type React from "react";
 
 const SolutionsRibbon: React.FC = () => {
 	return (
@@ -27,8 +27,9 @@ const SolutionsRibbon: React.FC = () => {
 						Flawless Events at Scale
 					</h2>
 					<p className="mx-auto max-w-2xl px-2 text-primary-foreground/90 text-sm sm:text-base lg:text-lg">
-						From registration to retargeting, EventzFlow delivers enterprise-grade technology
-						that transforms complex event operations into seamless, data-driven experiences.
+						From registration to retargeting, EventzFlow delivers
+						enterprise-grade technology that transforms complex event operations
+						into seamless, data-driven experiences.
 					</p>
 				</motion.div>
 			</div>

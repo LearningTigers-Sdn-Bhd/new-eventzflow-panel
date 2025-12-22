@@ -27,7 +27,9 @@ export function GroupItem({ group }: GroupItemProps) {
 					{group.description && (
 						<span className="text-xs">{group.description}</span>
 					)}
-					<span className="text-xs">Created on {formatDate(group.created_at)}</span>
+					<span className="text-xs">
+						Created on {formatDate(group.created_at)}
+					</span>
 				</div>
 			</ItemContent>
 			<ItemActions>

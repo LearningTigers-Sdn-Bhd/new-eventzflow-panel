@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PatternedLayout } from "@/components/patterned-layout";
 import { Button } from "@/components/ui/button";
 import {
 	InputGroup,
@@ -15,7 +16,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { login } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
-import { PatternedLayout } from "@/components/patterned-layout";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -84,7 +84,12 @@ export function VendorSignInForm({
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
+			<VendorSignupEventSidebar
+				event={event}
+				group={group}
+				vendorType={vendorType}
+				useExhibitorKit={useExhibitorKit}
+			/>
 
 			<PatternedLayout>
 				<div className="w-full max-w-md space-y-4">
@@ -105,9 +110,7 @@ export function VendorSignInForm({
 						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
 							Sign In
 						</p>
-						<h1 className="font-bold text-2xl tracking-tight">
-							Welcome back!
-						</h1>
+						<h1 className="font-bold text-2xl tracking-tight">Welcome back!</h1>
 						<p className="mt-2 text-muted-foreground text-sm">
 							Sign in to join {event?.title} as a vendor
 						</p>

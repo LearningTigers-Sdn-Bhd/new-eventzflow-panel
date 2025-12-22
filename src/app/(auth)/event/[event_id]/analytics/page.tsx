@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
 import { use } from "react";
-import { StatsCard } from "@/components/analytics-card";
+import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getEventAnalytics } from "@/lib/api/dashboard";

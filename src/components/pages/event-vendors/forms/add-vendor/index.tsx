@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import ManualAddForm from "./manual-add-form";
 import GroupAddForm from "./group-add-form";
+import ManualAddForm from "./manual-add-form";
 import AddVendorNavigation from "./navigation";
 
 interface AddVendorModalProps {

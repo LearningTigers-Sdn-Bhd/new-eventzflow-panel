@@ -228,7 +228,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 			{isVirtualMode && (
 				<div className="mt-2 flex items-center gap-2 rounded-full border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50 px-4 py-2 shadow-sm">
 					<span className="font-semibold text-orange-700 text-sm">Drawing from</span>
-					<span className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 font-bold text-white text-sm shadow-sm">
+					<span className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 font-bold text-sm text-white shadow-sm">
 						{participantCount.toLocaleString()}
 					</span>
 					<span className="font-semibold text-orange-700 text-sm">participants</span>
@@ -242,7 +242,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 						type="button"
 						onClick={onDraw}
 						disabled={isDrawing || isEmpty}
-						className="rounded-xl border-4 border-orange-700 bg-gradient-to-b from-orange-400 to-orange-600 px-10 py-3 font-black text-xl uppercase tracking-wider text-white shadow-[0_6px_0_0_#c2410c] transition-all hover:from-orange-300 hover:to-orange-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#c2410c] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:border-gray-700 disabled:text-gray-300 disabled:shadow-[0_6px_0_0_#4b5563]"
+						className="rounded-xl border-4 border-orange-700 bg-gradient-to-b from-orange-400 to-orange-600 px-10 py-3 font-black text-white text-xl uppercase tracking-wider shadow-[0_6px_0_0_#c2410c] transition-all hover:from-orange-300 hover:to-orange-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#c2410c] disabled:cursor-not-allowed disabled:border-gray-700 disabled:from-gray-400 disabled:to-gray-600 disabled:text-gray-300 disabled:shadow-[0_6px_0_0_#4b5563]"
 					>
 						{isDrawing ? "SPINNING..." : "SPIN!"}
 					</button>

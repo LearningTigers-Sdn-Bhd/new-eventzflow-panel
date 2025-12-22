@@ -1,13 +1,13 @@
 "use client";
 
-import { Clock, Calendar } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ApiKey } from "@/lib/api/api-keys";
 import { cn } from "@/lib/utils";
-import { ApiKeyActionsMenu } from "./action-menu";
+import { ApiKeyActionsMenu } from "./api-key-action-menu";
+import type { BaseApiKey } from "./api-key-table-columns";
 
 interface ApiKeyItemProps {
-	apiKey: ApiKey;
+	apiKey: BaseApiKey;
 }
 
 // Format date with time
@@ -40,7 +40,10 @@ function formatRelativeTime(date: string | Date): string {
 	if (diffMins < 60) return `${diffMins}m ago`;
 	if (diffHours < 24) return `${diffHours}h ago`;
 	if (diffDays < 7) return `${diffDays}d ago`;
-	return dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+	return dateObj.toLocaleDateString(undefined, {
+		month: "short",
+		day: "numeric",
+	});
 }
 
 export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
@@ -53,7 +56,7 @@ export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
 					<Badge
 						variant="outline"
 						className={cn(
-							"shrink-0 rounded-none px-1.5 py-0 text-[10px] font-semibold",
+							"shrink-0 rounded-none px-1.5 py-0 font-semibold text-[10px]",
 							apiKey.isActive
 								? "border-green-500/30 text-green-600"
 								: "border-red-500/30 text-red-500",
@@ -63,10 +66,12 @@ export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
 					</Badge>
 				</div>
 
-				<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+				<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 					<span className="flex items-center gap-1">
 						<Clock className="size-3" />
-						{apiKey.lastUsedAt ? formatRelativeTime(apiKey.lastUsedAt) : "Never used"}
+						{apiKey.lastUsedAt
+							? formatRelativeTime(apiKey.lastUsedAt)
+							: "Never used"}
 					</span>
 					<span className="flex items-center gap-1">
 						<Calendar className="size-3" />

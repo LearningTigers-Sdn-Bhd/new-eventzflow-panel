@@ -1,9 +1,9 @@
 "use client";
 
-import { CheckCircle2, ArrowRight, Store } from "lucide-react";
+import { ArrowRight, CheckCircle2, Store } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { PatternedLayout } from "@/components/patterned-layout";
+import { Button } from "@/components/ui/button";
 
 interface VendorSignupSuccessCardProps {
 	eventTitle: string;

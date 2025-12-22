@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
-import type { VendorVoucher } from "./columns";
 import { VendorVoucherActionsMenu } from "./action-menu";
+import type { VendorVoucher } from "./vendor-voucher-table-columns";
 
 interface VendorVoucherItemProps {
 	voucher: VendorVoucher;
@@ -14,7 +14,9 @@ interface VendorVoucherItemProps {
 export function VendorVoucherItem({ voucher }: VendorVoucherItemProps) {
 	const { formatDate } = useFormatDate();
 	const isUnlimited = voucher.isUnlimited;
-	const remaining = isUnlimited ? null : (voucher.totalRedemptionAvailable ?? 0) - voucher.redeemedCount;
+	const remaining = isUnlimited
+		? null
+		: (voucher.totalRedemptionAvailable ?? 0) - voucher.redeemedCount;
 
 	return (
 		<Card className="rounded-none border-dashed">
@@ -84,7 +86,10 @@ export function VendorVoucherItem({ voucher }: VendorVoucherItemProps) {
 										{isUnlimited ? "Unlimited" : `${remaining} left`}
 									</span>
 									<span className="text-muted-foreground text-xs">
-										{voucher.redeemedCount} {isUnlimited ? "redeemed" : `/ ${voucher.totalRedemptionAvailable} redeemed`}
+										{voucher.redeemedCount}{" "}
+										{isUnlimited
+											? "redeemed"
+											: `/ ${voucher.totalRedemptionAvailable} redeemed`}
 									</span>
 								</div>
 							</div>

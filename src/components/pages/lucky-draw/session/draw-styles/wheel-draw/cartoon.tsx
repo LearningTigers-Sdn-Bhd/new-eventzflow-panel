@@ -296,7 +296,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 						type="button"
 						onClick={onDraw}
 						disabled={isDrawing || isEmpty}
-						className="rounded-lg border-4 border-black bg-gradient-to-b from-yellow-400 to-yellow-600 px-8 py-3 font-black text-xl uppercase tracking-wider text-red-900 shadow-[0_6px_0_0_#854d0e] transition-all hover:from-yellow-300 hover:to-yellow-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#854d0e] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:text-gray-700 disabled:shadow-[0_6px_0_0_#4b5563]"
+						className="rounded-lg border-4 border-black bg-gradient-to-b from-yellow-400 to-yellow-600 px-8 py-3 font-black text-red-900 text-xl uppercase tracking-wider shadow-[0_6px_0_0_#854d0e] transition-all hover:from-yellow-300 hover:to-yellow-500 active:translate-y-[4px] active:shadow-[0_2px_0_0_#854d0e] disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-600 disabled:text-gray-700 disabled:shadow-[0_6px_0_0_#4b5563]"
 					>
 						{isDrawing ? "SPINNING..." : "SPIN!"}
 					</button>
@@ -312,7 +312,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 			{isVirtualMode && (
 				<div className="mt-4 flex items-center gap-2 rounded-full border-4 border-black bg-gradient-to-r from-yellow-300 to-orange-300 px-4 py-2 shadow-lg">
 					<span className="font-black text-gray-900 text-sm">Drawing from</span>
-					<span className="rounded-full bg-red-500 px-3 py-1 font-black text-white text-sm shadow-md">
+					<span className="rounded-full bg-red-500 px-3 py-1 font-black text-sm text-white shadow-md">
 						{participantCount.toLocaleString()}
 					</span>
 					<span className="font-black text-gray-900 text-sm">participants</span>

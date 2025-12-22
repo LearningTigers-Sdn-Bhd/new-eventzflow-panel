@@ -7,13 +7,12 @@ import {
 	Item,
 	ItemActions,
 	ItemContent,
-	ItemDescription,
 	ItemTitle,
 } from "@/components/ui/item";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import { TeamMemberActionsMenu } from "./action-menu";
-import type { TeamMember } from "./columns";
+import type { TeamMember } from "./team-member-table-columns";
 
 interface TeamMemberItemProps {
 	member: TeamMember;
@@ -28,11 +27,21 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 
 	const handleWhatsAppClick = () => {
 		if (member.phone) {
-			window.open(`https://wa.me/${member.phone.replace(/[^0-9]/g, "")}`, "_blank");
+			window.open(
+				`https://wa.me/${member.phone.replace(/[^0-9]/g, "")}`,
+				"_blank",
+			);
 		}
 	};
 
-	const roleLabel = member.role === "org_owner" ? "Owner" : member.role === "organizer" ? "Organizer" : member.role === "vendor" ? "Vendor" : "Member";
+	const roleLabel =
+		member.role === "org_owner"
+			? "Owner"
+			: member.role === "organizer"
+				? "Organizer"
+				: member.role === "vendor"
+					? "Vendor"
+					: "Member";
 
 	return (
 		<Item variant="outline" className="w-full">
@@ -44,7 +53,8 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 							variant="outline"
 							className={cn(
 								"min-w-16 font-bold capitalize",
-								member.role === "org_owner" && "border-purple-500 text-purple-500",
+								member.role === "org_owner" &&
+									"border-purple-500 text-purple-500",
 								member.role === "organizer" && "border-blue-500 text-blue-500",
 								member.role === "vendor" && "border-orange-500 text-orange-500",
 								member.role === "member" && "border-gray-500 text-gray-500",
@@ -90,7 +100,9 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 							</Button>
 						</span>
 					)}
-					<span className="text-xs">Joined on {formatDate(member.createdAt)}</span>
+					<span className="text-xs">
+						Joined on {formatDate(member.createdAt)}
+					</span>
 				</div>
 			</ItemContent>
 			<ItemActions>

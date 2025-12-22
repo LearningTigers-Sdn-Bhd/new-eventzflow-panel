@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2, Power, CalendarPlus } from "lucide-react";
+import {
+	CalendarPlus,
+	MoreHorizontal,
+	Pencil,
+	Power,
+	Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +21,9 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
 import { toggleContractorStatus } from "@/lib/api/contractor";
+import { AssignToEventDialog } from "../assign-to-event-dialog";
 import { ContractorEditContent } from "../contractor-edit-dialog";
 import { DeleteContractorContent } from "../delete-contractor-dialog";
-import { AssignToEventDialog } from "../assign-to-event-dialog";
 
 interface ContractorActionsMenuProps {
 	contractor: ExhibitionContractor;
@@ -97,7 +103,10 @@ export function ContractorActionsMenu({
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit Contractor
 				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-none" onClick={handleAssignToEventClick}>
+				<DropdownMenuItem
+					className="rounded-none"
+					onClick={handleAssignToEventClick}
+				>
 					<CalendarPlus className="mr-2 h-4 w-4" />
 					Assign to Event
 				</DropdownMenuItem>

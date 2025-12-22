@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.0/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -80,11 +80,11 @@
 	},
 	"overrides": [
 		{
-			"include": [
-				"src/components/pages/lucky-draw/session/sheets/config-sheet.tsx",
-				"src/components/pages/lucky-draw/columns.tsx",
-				"src/components/pages/lucky-draw/manage-session/edit-form.tsx",
-				"src/components/pages/lucky-draw/session/session-wrapper.tsx"
+			"includes": [
+				"**/src/components/pages/lucky-draw/session/sheets/config-sheet.tsx",
+				"**/src/components/pages/lucky-draw/columns.tsx",
+				"**/src/components/pages/lucky-draw/manage-session/edit-form.tsx",
+				"**/src/components/pages/lucky-draw/session/session-wrapper.tsx"
 			],
 			"linter": {
 				"rules": {

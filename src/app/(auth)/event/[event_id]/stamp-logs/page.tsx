@@ -1,12 +1,13 @@
 "use client";
 
-import { use } from "react";
 import { Stamp } from "lucide-react";
-import { ErrorState, LoadingState, EmptyState } from "@/components/data-state";
-import { columns } from "@/components/pages/visitor-stamps/columns";
-import { DataTable } from "@/components/pages/visitor-stamps/data-table";
+import { use, useMemo } from "react";
+import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { ScanStampButton } from "@/components/pages/visitor-stamps/page-action/scan-stamp-button";
+import { DataTable } from "@/components/pages/visitor-stamps/stamp-log-table";
 import { Button } from "@/components/ui/button";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { useEventStamps } from "@/hooks/use-visitor-stamps";
 
 interface StampLogsPageProps {
@@ -19,12 +20,18 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 	// Check permissions - only org_owner, organizer, event_admin can view
 	const permissions = useEventPermissions(event_id);
 
-	const {
-		data: stamps,
-		isLoading,
-		error,
-		refetch,
-	} = useEventStamps(event_id);
+	const { data: stamps, isLoading, error, refetch } = useEventStamps(event_id);
+
+	const eventActions = useMemo(
+		() => (
+			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<ScanStampButton eventId={event_id} onRefetch={refetch} />
+			</div>
+		),
+		[event_id, refetch],
+	);
+
+	useSetEventActions(eventActions);
 
 	// Permission check - vendors should not see this page
 	if (permissions.isEventVendor && !permissions.canManageEventVendors) {
@@ -59,12 +66,7 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 
 	return (
 		<div className="space-y-4">
-			<DataTable
-				columns={columns}
-				data={stamps || []}
-				eventId={event_id}
-				onRefetch={refetch}
-			/>
+			<DataTable data={stamps || []} />
 		</div>
 	);
 }

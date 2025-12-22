@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Store, Users, BadgeCheck } from "lucide-react";
+import { BadgeCheck, Calendar, Store, Users } from "lucide-react";
 
 interface EventInfo {
 	title?: string;
@@ -27,7 +27,10 @@ export function VendorSignupEventSidebar({
 	vendorType,
 	useExhibitorKit,
 }: VendorSignupEventSidebarProps) {
-	const formatEventDate = (startDate: string | null | undefined, endDate: string | null | undefined) => {
+	const formatEventDate = (
+		startDate: string | null | undefined,
+		endDate: string | null | undefined,
+	) => {
 		if (!startDate) return null;
 		const start = new Date(startDate).toLocaleDateString("en-US", {
 			weekday: "short",
@@ -57,7 +60,9 @@ export function VendorSignupEventSidebar({
 			<div className="relative z-10">
 				{/* Brand */}
 				<div className="mb-10">
-					<p className="font-medium text-primary-foreground/70 text-sm">EventzFlow</p>
+					<p className="font-medium text-primary-foreground/70 text-sm">
+						EventzFlow
+					</p>
 					<h1 className="mt-1 font-bold text-2xl tracking-tight">
 						Vendor Registration
 					</h1>
@@ -122,12 +127,12 @@ export function VendorSignupEventSidebar({
 										<BadgeCheck className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-xs font-medium text-primary-foreground/60">
+										<p className="font-medium text-primary-foreground/60 text-xs">
 											Joining as
 										</p>
 										<p className="font-semibold">{vendorType}</p>
 										{useExhibitorKit && (
-											<p className="text-xs text-primary-foreground/70 mt-1">
+											<p className="mt-1 text-primary-foreground/70 text-xs">
 												You'll need to fill in exhibitor kit details
 											</p>
 										)}
@@ -142,7 +147,7 @@ export function VendorSignupEventSidebar({
 										<Users className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-xs font-medium text-primary-foreground/60">
+										<p className="font-medium text-primary-foreground/60 text-xs">
 											Assigned to group
 										</p>
 										<p className="font-semibold">{group.name}</p>
@@ -156,7 +161,8 @@ export function VendorSignupEventSidebar({
 				{/* Highlight box */}
 				<div className="mt-6 rounded-none border border-primary-foreground/20 bg-primary-foreground/10 p-4">
 					<p className="text-primary-foreground/90 text-sm leading-relaxed">
-						Complete your registration to access the vendor dashboard and start managing your booth.
+						Complete your registration to access the vendor dashboard and start
+						managing your booth.
 					</p>
 				</div>
 			</div>

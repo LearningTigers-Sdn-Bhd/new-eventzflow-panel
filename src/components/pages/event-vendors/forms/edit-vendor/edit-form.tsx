@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useState, useId } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +16,19 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useDialog } from "@/hooks/use-dialog";
+import type {
+	EventVendor,
+	UpdateEventVendorRequest,
+} from "@/lib/api/event-vendor";
 import { updateEventVendor } from "@/lib/api/event-vendor";
-import type { EventVendor, UpdateEventVendorRequest } from "@/lib/api/event-vendor";
 
 interface EditEventVendorFormProps {
 	vendor: EventVendor;
 }
 
-export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps) {
+export default function EditEventVendorForm({
+	vendor,
+}: EditEventVendorFormProps) {
 	const { closeDialog } = useDialog();
 	const params = useParams();
 	const eventId = Number(params.event_id);
@@ -70,17 +75,20 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 
 		// Validate redirect URL if provided
 		if (redirectUrl.trim() && !/^https?:\/\/.+/.test(redirectUrl.trim())) {
-			newErrors.redirectUrl = "Please enter a valid URL (must start with http:// or https://)";
+			newErrors.redirectUrl =
+				"Please enter a valid URL (must start with http:// or https://)";
 		}
 
 		// Validate poster URL if provided
 		if (posterUrl.trim() && !/^https?:\/\/.+/.test(posterUrl.trim())) {
-			newErrors.posterUrl = "Please enter a valid URL (must start with http:// or https://)";
+			newErrors.posterUrl =
+				"Please enter a valid URL (must start with http:// or https://)";
 		}
 
 		// Validate QR URL if provided
 		if (qrUrl.trim() && !/^https?:\/\/.+/.test(qrUrl.trim())) {
-			newErrors.qrUrl = "Please enter a valid URL (must start with http:// or https://)";
+			newErrors.qrUrl =
+				"Please enter a valid URL (must start with http:// or https://)";
 		}
 
 		if (Object.keys(newErrors).length > 0) {
@@ -156,11 +164,14 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 										type="url"
 										placeholder="https://example.com"
 										value={redirectUrl}
-										onChange={(e) => handleChange("redirectUrl", e.target.value)}
+										onChange={(e) =>
+											handleChange("redirectUrl", e.target.value)
+										}
 										disabled={updateVendorMutation.isPending}
 									/>
 									<FieldDescription>
-										Optional URL to redirect users when they interact with this vendor
+										Optional URL to redirect users when they interact with this
+										vendor
 									</FieldDescription>
 								</Field>
 
@@ -186,9 +197,7 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 								{/* QR URL */}
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={qrUrlId}>QR Code URL</FieldLabel>
-									{errors.qrUrl && (
-										<FieldError>{errors.qrUrl}</FieldError>
-									)}
+									{errors.qrUrl && <FieldError>{errors.qrUrl}</FieldError>}
 									<Input
 										id={qrUrlId}
 										type="url"
@@ -198,7 +207,8 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 										disabled={updateVendorMutation.isPending}
 									/>
 									<FieldDescription>
-										URL to be encoded in the QR code (e.g., vendor website, social media link)
+										URL to be encoded in the QR code (e.g., vendor website,
+										social media link)
 									</FieldDescription>
 								</Field>
 							</div>
@@ -216,10 +226,7 @@ export default function EditEventVendorForm({ vendor }: EditEventVendorFormProps
 							>
 								Cancel
 							</Button>
-							<Button
-								type="submit"
-								disabled={updateVendorMutation.isPending}
-							>
+							<Button type="submit" disabled={updateVendorMutation.isPending}>
 								{updateVendorMutation.isPending
 									? "Updating..."
 									: "Update Vendor"}

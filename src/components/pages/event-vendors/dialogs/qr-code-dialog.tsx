@@ -1,8 +1,8 @@
 "use client";
 
+import { Check, Copy, Download } from "lucide-react";
 import { useRef, useState } from "react";
 import QRCode from "react-qr-code";
-import { Check, Copy, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { EventVendor } from "@/lib/api/event-vendor";
@@ -92,7 +92,10 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 						{vendor.vendor.full_name}
 					</h3>
 					<p className="text-muted-foreground text-xs">{vendor.vendor.email}</p>
-					<Badge variant="outline" className="mt-1 px-2 py-0.5 text-[10px] uppercase">
+					<Badge
+						variant="outline"
+						className="mt-1 px-2 py-0.5 text-[10px] uppercase"
+					>
 						{vendor.type}
 					</Badge>
 				</div>
@@ -164,4 +167,3 @@ export default function QrCodeDialog({ vendor }: QrCodeDialogProps) {
 		</div>
 	);
 }
-

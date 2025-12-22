@@ -22,7 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { updateTeamMember } from "@/lib/api/team";
-import type { EventStaffMember } from "./columns";
+import type { EventStaffMember } from "./event-staff-table-columns";
 
 interface EditMemberFormProps {
 	member: EventStaffMember;

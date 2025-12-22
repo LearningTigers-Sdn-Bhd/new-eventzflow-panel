@@ -22,8 +22,7 @@ function transformVendor(backendVendor: BackendVendor): Vendor {
  */
 export async function getVendors(): Promise<Vendor[]> {
 	try {
-		const response =
-			await restClient.get<BackendVendor[]>("v1/vendors");
+		const response = await restClient.get<BackendVendor[]>("v1/vendors");
 		return response.map(transformVendor);
 	} catch (error: unknown) {
 		console.error("Error fetching vendors:", error);
@@ -43,8 +42,7 @@ export async function createVendor(
 		const validated = createVendorSchema.parse(data);
 
 		// Check if we have an image file to upload
-		const hasImage =
-			validated.vendor_profile_attributes?.image instanceof File;
+		const hasImage = validated.vendor_profile_attributes?.image instanceof File;
 
 		if (hasImage) {
 			const formData = new FormData();
@@ -101,11 +99,15 @@ export async function createVendor(
 				(v) => v !== undefined && v !== null && v !== "",
 			);
 			if (hasProfileData) {
-				(payload.vendor as Record<string, unknown>).vendor_profile_attributes = rest;
+				(payload.vendor as Record<string, unknown>).vendor_profile_attributes =
+					rest;
 			}
 		}
 
-		const response = await restClient.post<BackendVendor>("v1/vendors", payload);
+		const response = await restClient.post<BackendVendor>(
+			"v1/vendors",
+			payload,
+		);
 
 		return {
 			success: true,
@@ -118,7 +120,6 @@ export async function createVendor(
 		throw new Error(errorMessage);
 	}
 }
-
 
 /**
  * Update an existing vendor
@@ -198,8 +199,10 @@ export async function updateVendor(
 
 		// Only include password if provided
 		if (validated.newPassword) {
-			(payload.vendor as Record<string, unknown>).password = validated.newPassword;
-			(payload.vendor as Record<string, unknown>).password_confirmation = validated.newPassword;
+			(payload.vendor as Record<string, unknown>).password =
+				validated.newPassword;
+			(payload.vendor as Record<string, unknown>).password_confirmation =
+				validated.newPassword;
 		}
 
 		// Include vendor_profile_attributes if provided
@@ -213,7 +216,8 @@ export async function updateVendor(
 					filteredRest[key] = key === "id" ? (value as number) : (value as string);
 				}
 			});
-			(payload.vendor as Record<string, unknown>).vendor_profile_attributes = filteredRest;
+			(payload.vendor as Record<string, unknown>).vendor_profile_attributes =
+				filteredRest;
 		}
 
 		const response = await restClient.patch<BackendVendor>(

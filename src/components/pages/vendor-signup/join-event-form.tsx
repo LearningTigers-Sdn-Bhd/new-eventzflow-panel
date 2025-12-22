@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { ExternalLink, Image, Globe } from "lucide-react";
+import { ExternalLink, Globe, Image } from "lucide-react";
 import { toast } from "sonner";
 import { PatternedLayout } from "@/components/patterned-layout";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,13 @@ export function JoinEventForm({
 		mutationFn: (data: {
 			eventVendor: { redirect_url?: string; poster_url?: string };
 			exhibitorKit?: ExhibitorKitData;
-		}) => joinEventAsVendor(token, accessToken, data.eventVendor, data.exhibitorKit),
+		}) =>
+			joinEventAsVendor(
+				token,
+				accessToken,
+				data.eventVendor,
+				data.exhibitorKit,
+			),
 		onSuccess: () => {
 			toast.success("Successfully joined!", {
 				description: `You are now a vendor for ${event?.title}.`,
@@ -157,7 +163,12 @@ export function JoinEventForm({
 
 	return (
 		<div className="flex min-h-screen flex-col lg:flex-row">
-			<VendorSignupEventSidebar event={event} group={group} vendorType={vendorType} useExhibitorKit={useExhibitorKit} />
+			<VendorSignupEventSidebar
+				event={event}
+				group={group}
+				vendorType={vendorType}
+				useExhibitorKit={useExhibitorKit}
+			/>
 
 			<PatternedLayout>
 				<div className="w-full max-w-5xl space-y-4">
@@ -185,7 +196,9 @@ export function JoinEventForm({
 							<div className="mb-4 flex items-center gap-2 border-b pb-2">
 								<Globe className="h-5 w-5 text-primary" />
 								<h3 className="font-semibold text-lg">Event Settings</h3>
-								<span className="text-muted-foreground text-sm">(Optional)</span>
+								<span className="text-muted-foreground text-sm">
+									(Optional)
+								</span>
 							</div>
 
 							<p className="mb-4 text-muted-foreground text-xs">
@@ -210,8 +223,8 @@ export function JoinEventForm({
 												/>
 											</InputGroup>
 											<p className="text-muted-foreground text-xs">
-												Where visitors will be redirected after scanning your
-												QR code
+												Where visitors will be redirected after scanning your QR
+												code
 											</p>
 										</div>
 									)}
@@ -262,14 +275,30 @@ export function JoinEventForm({
 																						<form.Field name="pic_email_address">
 																							{(picEmailAddressField) => (
 																								<ExhibitorKitSection
-																									boothNumberField={boothNumberField}
-																									boothTypeField={boothTypeField}
-																									nameOnFasciaField={nameOnFasciaField}
-																									companyNameField={companyNameField}
-																									companyAddressField={companyAddressField}
-																									picFullNameField={picFullNameField}
-																									picContactNumberField={picContactNumberField}
-																									picEmailAddressField={picEmailAddressField}
+																									boothNumberField={
+																										boothNumberField
+																									}
+																									boothTypeField={
+																										boothTypeField
+																									}
+																									nameOnFasciaField={
+																										nameOnFasciaField
+																									}
+																									companyNameField={
+																										companyNameField
+																									}
+																									companyAddressField={
+																										companyAddressField
+																									}
+																									picFullNameField={
+																										picFullNameField
+																									}
+																									picContactNumberField={
+																										picContactNumberField
+																									}
+																									picEmailAddressField={
+																										picEmailAddressField
+																									}
 																								/>
 																							)}
 																						</form.Field>

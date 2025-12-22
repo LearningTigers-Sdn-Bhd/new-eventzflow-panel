@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { TeamMember } from "@/lib/api/team";
-import { columns } from "./columns";
 import CreateMemberForm from "./create-member-form";
-import { DataTable } from "./data-table";
+import { DataTable } from "./team-member-table";
+import { columns } from "./team-member-table-columns";
 
 interface TeamClientWrapperProps {
 	teamMembers: TeamMember[];
@@ -20,10 +20,9 @@ export default function TeamClientWrapper({
 
 	// Sort by createdAt in descending order (latest first)
 	// No filtering needed - backend already returns the correct users based on role
-	const filteredTeamMembers = teamMembers
-		.sort((a, b) => {
-			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-		});
+	const filteredTeamMembers = teamMembers.sort((a, b) => {
+		return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+	});
 
 	const handleAddMember = () => {
 		openDialog({
@@ -58,7 +57,11 @@ export default function TeamClientWrapper({
 					</Button>
 				</div>
 			</div>
-			<DataTable columns={columns} data={filteredTeamMembers} onAddMember={handleAddMember} />
+			<DataTable
+				columns={columns}
+				data={filteredTeamMembers}
+				onAddMember={handleAddMember}
+			/>
 		</div>
 	);
 }

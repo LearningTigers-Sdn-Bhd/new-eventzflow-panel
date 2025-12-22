@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, AlertCircle, Info } from "lucide-react";
+import { AlertCircle, Info, Plus, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -17,18 +14,20 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
-import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
-import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { useDialog } from "@/hooks/use-dialog";
-import ConfirmDialog from "@/components/pages/event/settings/confirm-dialog";
+import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 import { DataTable } from "./team-members/data-table";
 import {
-	teamMembersColumns,
 	type TeamMemberRow,
 	type TeamMembersTableMeta,
+	teamMembersColumns,
 } from "./team-members/team-members-columns";
 
 interface VendorTeamMembersPageProps {
@@ -48,7 +47,7 @@ export function VendorTeamMembersPage({
 	eventVendorId,
 }: VendorTeamMembersPageProps) {
 	const queryClient = useQueryClient();
-	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm, closeDialog } = useConfirmDialog();
 
 	// Fetch vendor data
 	const { data: vendors, isLoading: isLoadingVendor } = useQuery({
@@ -77,19 +76,23 @@ export function VendorTeamMembersPage({
 					full_name: m.full_name,
 					created_at: m.created_at,
 					_destroy: false,
-				}))
+				})),
 			);
 		}
 	}, [kit?.exhibitor_team_members]);
 
 	const updateKitMutation = useMutation({
-		mutationFn: async (data: { exhibitor_team_members_attributes: TeamMemberInput[] }) => {
+		mutationFn: async (data: {
+			exhibitor_team_members_attributes: TeamMemberInput[];
+		}) => {
 			if (!kit) throw new Error("Exhibitor kit not found");
 			return updateExhibitorKit(eventId, kit.id, data);
 		},
-		onSuccess: (data, variables) => {
+		onSuccess: (_data, variables) => {
 			// Check if it's a deletion or addition
-			const hasDestroy = variables.exhibitor_team_members_attributes.some((m) => m._destroy);
+			const hasDestroy = variables.exhibitor_team_members_attributes.some(
+				(m) => m._destroy,
+			);
 			if (hasDestroy) {
 				toast.success("Team member removed successfully!");
 			} else {
@@ -118,7 +121,10 @@ export function VendorTeamMembersPage({
 			return;
 		}
 
-		const updatedMembers = [...teamMembers, { full_name: newMemberName.trim(), _destroy: false }];
+		const updatedMembers = [
+			...teamMembers,
+			{ full_name: newMemberName.trim(), _destroy: false },
+		];
 		setTeamMembers(updatedMembers);
 		setIsAddDialogOpen(false);
 		setNewMemberName("");
@@ -134,54 +140,49 @@ export function VendorTeamMembersPage({
 						_destroy: m._destroy,
 					})),
 			});
-		} catch (error) {
+		} catch (_error) {
 			// Revert on error
 			setTeamMembers(teamMembers);
 		}
 	};
 
 	const handleRemoveMember = (member: TeamMemberRow) => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to remove "${member.full_name}" from your team?`,
-				confirmLabel: "Remove",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				icon: "delete",
-				onConfirm: () => {
-					const actualIndex = teamMembers.findIndex((m) => m.id === member.id);
-					const memberData = teamMembers[actualIndex];
-					if (memberData?.id) {
-						// Mark existing member for deletion and save immediately
-						const updatedMembers = teamMembers.map((m, i) =>
-							i === actualIndex ? { ...m, _destroy: true } : m
-						);
-						setTeamMembers(updatedMembers);
+		openConfirm({
+			title: "Remove Team Member",
+			description: "This action cannot be undone.",
+			message: `Are you sure you want to remove "${member.full_name}" from your team?`,
+			confirmLabel: "Remove",
+			cancelLabel: "Cancel",
+			variant: "destructive",
+			icon: "delete",
+			onConfirm: () => {
+				const actualIndex = teamMembers.findIndex((m) => m.id === member.id);
+				const memberData = teamMembers[actualIndex];
+				if (memberData?.id) {
+					// Mark existing member for deletion and save immediately
+					const updatedMembers = teamMembers.map((m, i) =>
+						i === actualIndex ? { ...m, _destroy: true } : m,
+					);
+					setTeamMembers(updatedMembers);
 
-						// Auto-save the deletion
-						updateKitMutation.mutate({
-							exhibitor_team_members_attributes: updatedMembers
-								.filter((m) => m.id || !m._destroy)
-								.map((m) => ({
-									id: m.id,
-									full_name: m.full_name.trim(),
-									_destroy: m._destroy,
-								})),
-						});
-					} else {
-						// Remove new member from list (not yet saved)
-						setTeamMembers(teamMembers.filter((_, i) => i !== actualIndex));
-						toast.success("Team member removed");
-					}
-					closeDialog();
-				},
-				onCancel: closeDialog,
+					// Auto-save the deletion
+					updateKitMutation.mutate({
+						exhibitor_team_members_attributes: updatedMembers
+							.filter((m) => m.id || !m._destroy)
+							.map((m) => ({
+								id: m.id,
+								full_name: m.full_name.trim(),
+								_destroy: m._destroy,
+							})),
+					});
+				} else {
+					// Remove new member from list (not yet saved)
+					setTeamMembers(teamMembers.filter((_, i) => i !== actualIndex));
+					toast.success("Team member removed");
+				}
+				closeDialog();
 			},
-			config: {
-				title: "Remove Team Member",
-				description: "This action cannot be undone.",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
@@ -223,7 +224,7 @@ export function VendorTeamMembersPage({
 				<Plus className="mr-2 h-4 w-4" />
 				Add Member
 			</Button>
-		) : null
+		) : null,
 	);
 
 	// Early returns for loading and no kit
@@ -243,7 +244,8 @@ export function VendorTeamMembersPage({
 					<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
 					<h3 className="mb-2 font-semibold text-lg">No Exhibitor Kit</h3>
 					<p className="mb-4 text-muted-foreground text-sm">
-						You need to create an exhibitor kit first before adding team members.
+						You need to create an exhibitor kit first before adding team
+						members.
 					</p>
 				</div>
 			</div>
@@ -257,7 +259,7 @@ export function VendorTeamMembersPage({
 				<div className="grid gap-4 md:grid-cols-3">
 					<div className="border p-4">
 						<div className="mb-3">
-							<h3 className="text-sm font-medium">Total Members</h3>
+							<h3 className="font-medium text-sm">Total Members</h3>
 						</div>
 						<div className="font-bold text-2xl">{currentCount}</div>
 						<p className="text-muted-foreground text-xs">Limit: {limit}</p>
@@ -265,7 +267,7 @@ export function VendorTeamMembersPage({
 
 					<div className="border p-4">
 						<div className="mb-3">
-							<h3 className="text-sm font-medium">Free Slots</h3>
+							<h3 className="font-medium text-sm">Free Slots</h3>
 						</div>
 						<div className="font-bold text-2xl">
 							{freeSlots !== null ? freeSlots : "N/A"}
@@ -278,9 +280,11 @@ export function VendorTeamMembersPage({
 					{fee > 0 && (
 						<div className="border p-4">
 							<div className="mb-3">
-								<h3 className="text-sm font-medium">Extra Charges</h3>
+								<h3 className="font-medium text-sm">Extra Charges</h3>
 							</div>
-							<div className="font-bold text-2xl">RM {totalCharges.toFixed(2)}</div>
+							<div className="font-bold text-2xl">
+								RM {totalCharges.toFixed(2)}
+							</div>
 							<p className="text-muted-foreground text-xs">
 								{excessCount} × RM {fee.toFixed(2)}
 							</p>
@@ -291,12 +295,12 @@ export function VendorTeamMembersPage({
 
 			{/* Warning for exceeded limit */}
 			{limit && currentCount > limit && fee > 0 && (
-				<Alert className="border-amber-500 rounded-none bg-amber-50 dark:bg-amber-950/20">
+				<Alert className="rounded-none border-amber-500 bg-amber-50 dark:bg-amber-950/20">
 					<AlertCircle className="h-4 w-4 text-amber-600" />
 					<AlertDescription className="text-amber-600">
-						You have {excessCount} team member{excessCount !== 1 ? "s" : ""} exceeding
-						the free limit. Additional charges of RM {totalCharges.toFixed(2)} will
-						apply.
+						You have {excessCount} team member{excessCount !== 1 ? "s" : ""}{" "}
+						exceeding the free limit. Additional charges of RM{" "}
+						{totalCharges.toFixed(2)} will apply.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -306,8 +310,8 @@ export function VendorTeamMembersPage({
 				<Alert>
 					<Info className="h-4 w-4" />
 					<AlertDescription>
-						You have reached the maximum team member limit ({limit}). No additional
-						members can be added.
+						You have reached the maximum team member limit ({limit}). No
+						additional members can be added.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -332,7 +336,8 @@ export function VendorTeamMembersPage({
 						<DialogDescription>
 							{limit && freeSlots !== null && freeSlots > 0 ? (
 								<span>
-									You have {freeSlots} free slot{freeSlots !== 1 ? "s" : ""} remaining.
+									You have {freeSlots} free slot{freeSlots !== 1 ? "s" : ""}{" "}
+									remaining.
 								</span>
 							) : limit && fee > 0 ? (
 								<span className="text-amber-600">
@@ -361,7 +366,8 @@ export function VendorTeamMembersPage({
 							<Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
 								<AlertCircle className="h-4 w-4 text-amber-600" />
 								<AlertDescription className="text-amber-600 text-sm">
-									Adding this member will incur an additional charge of RM {fee.toFixed(2)}.
+									Adding this member will incur an additional charge of RM{" "}
+									{fee.toFixed(2)}.
 								</AlertDescription>
 							</Alert>
 						)}

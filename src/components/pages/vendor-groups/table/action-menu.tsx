@@ -1,12 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-	Settings,
-	Pencil,
-	Trash2,
-	MoreHorizontal,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, Settings, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,10 +13,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteGroup } from "@/lib/api/group";
 import type { Group } from "@/lib/api/group/response";
-import { ConfirmDialog } from "../dialogs/confirm-dialog";
 import { EditGroupDialog } from "../dialogs/edit-group-dialog";
 
 interface GroupActionsMenuProps {
@@ -32,6 +27,7 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	const router = useRouter();
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 
 	// Only org_owner can delete groups
@@ -72,22 +68,17 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete "${group.name}"? This action cannot be undone and will remove all members from this group.`,
-				confirmLabel: "Delete",
-				variant: "destructive",
-				icon: "alert",
-				onConfirm: () => {
-					deleteGroupMutation.mutate(group.id);
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Group",
+			message: `Are you sure you want to delete "${group.name}"? This action cannot be undone and will remove all members from this group.`,
+			confirmLabel: "Delete",
+			type: "destructive",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				deleteGroupMutation.mutate(group.id);
 			},
-			config: {
-				title: "Delete Group",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
@@ -104,19 +95,12 @@ export function GroupActionsMenu({ group }: GroupActionsMenuProps) {
 			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button
-						size="icon-sm"
-						variant="outline"
-						className="rounded-none"
-					>
+					<Button size="icon-sm" variant="outline" className="rounded-none">
 						<MoreHorizontal className="size-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="rounded-none">
-					<DropdownMenuItem
-						onClick={handleEditClick}
-						className="rounded-none"
-					>
+					<DropdownMenuItem onClick={handleEditClick} className="rounded-none">
 						<Pencil className="mr-2 size-4" />
 						Edit
 					</DropdownMenuItem>

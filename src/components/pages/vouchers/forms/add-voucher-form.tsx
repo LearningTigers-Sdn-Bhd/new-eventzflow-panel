@@ -1,11 +1,11 @@
 "use client";
 
-import ImageUpload from "@/components/file-upload/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
@@ -27,9 +27,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { createVoucher } from "@/lib/api/voucher";
-import { useAuth } from "@/hooks/use-auth";
 
 interface AddVoucherFormProps {
 	eventId: number;
@@ -76,7 +76,9 @@ export default function AddVoucherForm({
 
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [merchantId, setMerchantId] = useState(isVendor && user?.id ? user.id.toString() : "");
+	const [merchantId, setMerchantId] = useState(
+		isVendor && user?.id ? user.id.toString() : "",
+	);
 	const [voucherType, setVoucherType] = useState<VoucherType | "">("");
 	const [voucherValue, setVoucherValue] = useState("");
 	const [voucherCode, setVoucherCode] = useState("");
@@ -106,7 +108,9 @@ export default function AddVoucherForm({
 		mutationFn: createVoucher,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["vouchers"] });
-			queryClient.invalidateQueries({ queryKey: ["event", eventId.toString(), "vouchers"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId.toString(), "vouchers"],
+			});
 			toast.success("Voucher created successfully!");
 			onClose?.();
 		},
@@ -196,9 +200,10 @@ export default function AddVoucherForm({
 			max_redemptions_per_user: Number(maxPerUser),
 			voucher_type: voucherType as "fixed_amount" | "percentage" | "free_item",
 			voucher_value: voucherType === "free_item" ? 0 : Number(voucherValue),
-			voucher_category: voucherCategory === "Others" 
-				? customCategory.trim() || undefined 
-				: voucherCategory.trim() || undefined,
+			voucher_category:
+				voucherCategory === "Others"
+					? customCategory.trim() || undefined
+					: voucherCategory.trim() || undefined,
 			image: image || undefined,
 		});
 	};
@@ -254,19 +259,26 @@ export default function AddVoucherForm({
 								</p>
 							</div>
 
-							<div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
-								isVendor 
-									? (voucherCategory === "Others" ? "lg:grid-cols-3" : "lg:grid-cols-2")
-									: (voucherCategory === "Others" ? "lg:grid-cols-5" : "lg:grid-cols-4")
-							}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${
+									isVendor
+										? voucherCategory === "Others"
+											? "lg:grid-cols-3"
+											: "lg:grid-cols-2"
+										: voucherCategory === "Others"
+											? "lg:grid-cols-5"
+											: "lg:grid-cols-4"
+								}`}
+							>
 								{/* Voucher Title */}
-								<Field orientation="vertical" className={isVendor ? "" : "lg:col-span-2"}>
+								<Field
+									orientation="vertical"
+									className={isVendor ? "" : "lg:col-span-2"}
+								>
 									<FieldLabel htmlFor={voucherTitleField}>
 										Voucher Title *
 									</FieldLabel>
-									{errors.title && (
-										<FieldError>{errors.title}</FieldError>
-									)}
+									{errors.title && <FieldError>{errors.title}</FieldError>}
 									<Input
 										id={voucherTitleField}
 										value={title}
@@ -444,7 +456,9 @@ export default function AddVoucherForm({
 													<SelectItem value="percentage">
 														Percentage Discount
 													</SelectItem>
-													<SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+													<SelectItem value="fixed_amount">
+														Fixed Amount
+													</SelectItem>
 													<SelectItem value="free_item">Free Item</SelectItem>
 												</SelectContent>
 											</Select>
@@ -614,9 +628,7 @@ export default function AddVoucherForm({
 									<FieldLabel htmlFor={endDateField}>
 										End Date & Time *
 									</FieldLabel>
-									{errors.endDate && (
-										<FieldError>{errors.endDate}</FieldError>
-									)}
+									{errors.endDate && <FieldError>{errors.endDate}</FieldError>}
 									<DateTimePicker
 										date={endDate}
 										onDateChange={(date: Date | undefined) => {
@@ -632,14 +644,14 @@ export default function AddVoucherForm({
 										disabled={createMutation.isPending}
 										placeholder="Select end date and time"
 									/>
-									<FieldDescription>
-										When the voucher expires.
-									</FieldDescription>
+									<FieldDescription>When the voucher expires.</FieldDescription>
 								</Field>
 							</div>
 
 							{/* Row 2: Usage Limits */}
-							<div className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+							<div
+								className={`grid grid-cols-1 gap-4 ${isUnlimited ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+							>
 								{/* Unlimited Toggle */}
 								<Field orientation="vertical">
 									<FieldLabel>Unlimited Redemptions</FieldLabel>

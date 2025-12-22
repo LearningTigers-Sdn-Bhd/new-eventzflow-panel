@@ -62,9 +62,9 @@ export type UpdateTicketResponse = Ticket;
 // Import tickets response
 export type ImportTicketsResponse = {
 	created: number;
-    updated?: number;
+	updated?: number;
 	skipped: number;
-    duplicates_in_file?: number;
+	duplicates_in_file?: number;
 	errors: string[];
 };
 
@@ -74,9 +74,9 @@ export type BackendImportTicketsResponse = {
 	message: string;
 	data: {
 		created: number;
-        updated?: number;
+		updated?: number;
 		skipped: number;
-        duplicates_in_file?: number;
+		duplicates_in_file?: number;
 		errors: string[];
 	};
 };

@@ -1,28 +1,29 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import {
 	BarChart3,
-	MapPin,
-	QrCode,
 	CheckCircle2,
-	TrendingUp,
-	Users,
 	Clock,
-	Target,
 	Handshake,
 	LayoutDashboard,
-	Zap,
+	MapPin,
+	QrCode,
 	Sparkles,
+	Target,
+	TrendingUp,
+	Users,
+	Zap,
 } from "lucide-react";
+import type React from "react";
 
 const features = [
 	{
 		icon: QrCode,
 		badge: "Lightning-Fast Check-In",
 		title: "Event Ticketing & Registration",
-		subtitle: "From online registration to instant badge printing in under 3 seconds",
+		subtitle:
+			"From online registration to instant badge printing in under 3 seconds",
 		description:
 			"Branded registration pages with WhatsApp automation, instant payments, and automatic QR code delivery.",
 		benefits: [
@@ -110,7 +111,8 @@ const features = [
 		icon: Users,
 		badge: "Engagement Amplifier",
 		title: "Interactive Crowd Engagement",
-		subtitle: "Boost participation with gamification and real-time interactions",
+		subtitle:
+			"Boost participation with gamification and real-time interactions",
 		description:
 			"Live polls, gamification, and personalized notifications keep attendees engaged throughout your event.",
 		benefits: [
@@ -197,7 +199,10 @@ const features = [
 
 const FeatureShowcaseSection: React.FC = () => {
 	return (
-		<section id="features" className="bg-background px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+		<section
+			id="features"
+			className="bg-background px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16"
+		>
 			<div className="mx-auto max-w-7xl">
 				{/* Section Header */}
 				<div className="mb-8 text-center sm:mb-12 lg:mb-16">
@@ -209,7 +214,9 @@ const FeatureShowcaseSection: React.FC = () => {
 						transition={{ duration: 0.5 }}
 					>
 						<Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-						<span className="whitespace-nowrap">Powerful Features That Drive Results</span>
+						<span className="whitespace-nowrap">
+							Powerful Features That Drive Results
+						</span>
 					</motion.span>
 					<motion.h2
 						className="font-semibold text-2xl text-foreground sm:text-3xl lg:text-4xl"
@@ -229,9 +236,11 @@ const FeatureShowcaseSection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.6, delay: 0.08 }}
 					>
-						From Fortune 500 conferences to government summits, EventzFlow empowers the world's leading organizations 
-						to deliver flawless events with intelligent automation, real-time analytics, and AI-powered insights 
-						that turn attendees into lasting business relationships.
+						From Fortune 500 conferences to government summits, EventzFlow
+						empowers the world's leading organizations to deliver flawless
+						events with intelligent automation, real-time analytics, and
+						AI-powered insights that turn attendees into lasting business
+						relationships.
 					</motion.p>
 				</div>
 
@@ -263,48 +272,51 @@ const FeatureShowcaseSection: React.FC = () => {
 										/>
 										{/* Badge on Image */}
 										<div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/95 px-2 py-1 backdrop-blur-sm sm:top-3 sm:left-3 sm:gap-2 sm:px-2.5 sm:py-1.5">
-											<Icon className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" strokeWidth={2} />
+											<Icon
+												className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4"
+												strokeWidth={2}
+											/>
 											<span className="font-semibold text-[10px] text-primary sm:text-xs">
 												{feature.badge}
 											</span>
 										</div>
 									</div>
 
-								{/* Content */}
-								<div className="flex flex-1 flex-col p-4 sm:p-5">
-									{/* Title */}
-									<h3 className="mb-1.5 font-bold text-base text-foreground transition-colors group-hover:text-primary sm:mb-2 sm:text-lg">
-										{feature.title}
-									</h3>
+									{/* Content */}
+									<div className="flex flex-1 flex-col p-4 sm:p-5">
+										{/* Title */}
+										<h3 className="mb-1.5 font-bold text-base text-foreground transition-colors group-hover:text-primary sm:mb-2 sm:text-lg">
+											{feature.title}
+										</h3>
 
-									{/* Subtitle */}
-									<p className="mb-2 font-medium text-muted-foreground text-xs sm:mb-3 sm:text-sm">
-										{feature.subtitle}
-									</p>
+										{/* Subtitle */}
+										<p className="mb-2 font-medium text-muted-foreground text-xs sm:mb-3 sm:text-sm">
+											{feature.subtitle}
+										</p>
 
-								{/* Description */}
-								<p className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-foreground/80 text-xs leading-relaxed sm:mb-4 sm:text-sm">
-									{feature.description}
-								</p>
+										{/* Description */}
+										<p className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-foreground/80 text-xs leading-relaxed sm:mb-4 sm:text-sm">
+											{feature.description}
+										</p>
 
-									{/* Benefits - Push to bottom */}
-									<ul className="mt-auto space-y-2 sm:space-y-2.5">
-										{feature.benefits.map((benefit, idx) => {
-											const BenefitIcon = benefit.icon;
-											return (
-												<li
-													key={idx}
-													className="flex items-start gap-2 text-xs sm:gap-2.5 sm:text-sm"
-												>
-													<BenefitIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary sm:h-4 sm:w-4" />
-													<span className="text-muted-foreground leading-relaxed">
-														{benefit.text}
-													</span>
-												</li>
-											);
-										})}
-									</ul>
-								</div>
+										{/* Benefits - Push to bottom */}
+										<ul className="mt-auto space-y-2 sm:space-y-2.5">
+											{feature.benefits.map((benefit, idx) => {
+												const BenefitIcon = benefit.icon;
+												return (
+													<li
+														key={idx}
+														className="flex items-start gap-2 text-xs sm:gap-2.5 sm:text-sm"
+													>
+														<BenefitIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary sm:h-4 sm:w-4" />
+														<span className="text-muted-foreground leading-relaxed">
+															{benefit.text}
+														</span>
+													</li>
+												);
+											})}
+										</ul>
+									</div>
 								</div>
 							</motion.div>
 						);
@@ -316,4 +328,3 @@ const FeatureShowcaseSection: React.FC = () => {
 };
 
 export default FeatureShowcaseSection;
-

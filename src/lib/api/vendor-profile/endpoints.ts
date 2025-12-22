@@ -1,9 +1,9 @@
 import { restClient } from "@/utils/rest-api";
-import type { VendorProfile } from "./response";
 import {
 	type UpdateVendorProfileRequest,
 	updateVendorProfileSchema,
 } from "./request";
+import type { VendorProfile } from "./response";
 
 /**
  * Get vendor profile for the current authenticated vendor user

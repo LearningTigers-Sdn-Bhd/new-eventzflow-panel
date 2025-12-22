@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, XCircle, RotateCcw, PartyPopper } from "lucide-react";
+import { CheckCircle2, PartyPopper, RotateCcw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { RedemptionResult } from "./types";
@@ -46,14 +46,14 @@ export function RedemptionResultCard({
 							isSuccess ? "text-green-600" : "text-red-600"
 						}`}
 					>
-						{isSuccess 
-							? isFreeItem 
-								? "Free Item Redeemed!" 
+						{isSuccess
+							? isFreeItem
+								? "Free Item Redeemed!"
 								: "Redemption Successful!"
 							: "Redemption Failed"}
 					</h3>
 					<p className="text-muted-foreground text-sm">
-						{isFreeItem && isSuccess 
+						{isFreeItem && isSuccess
 							? "The free item voucher has been successfully redeemed"
 							: result.message}
 					</p>
@@ -91,9 +91,9 @@ export function RedemptionResultCard({
 				{isSuccess && (
 					<div className="rounded-lg border border-muted bg-muted/50 px-4 py-3">
 						<p className="text-muted-foreground text-sm italic">
-							{isFreeItem 
-								? "\"Every great experience starts with a special moment. Thank you for being here!\"" 
-								: "\"Great savings make great memories. Enjoy your visit!\""}
+							{isFreeItem
+								? '"Every great experience starts with a special moment. Thank you for being here!"'
+								: '"Great savings make great memories. Enjoy your visit!"'}
 						</p>
 					</div>
 				)}

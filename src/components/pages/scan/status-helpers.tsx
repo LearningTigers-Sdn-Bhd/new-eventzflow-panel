@@ -5,6 +5,11 @@
 
 import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { STATUS_VARIANTS } from "./constants";
 import type { ScanStatus } from "./types";
@@ -51,39 +56,37 @@ export function getStatusVariant(status: ScanStatus) {
 interface StatusBadgeProps {
 	status: ScanStatus;
 	message: string;
-	showFullMessage?: boolean;
 	className?: string;
 }
 
-export function StatusBadge({
-	status,
-	message,
-	showFullMessage = true,
-	className,
-}: StatusBadgeProps) {
+export function StatusBadge({ status, message, className }: StatusBadgeProps) {
 	const variant = getStatusVariant(status);
 	const label = variant.label;
 
+	// Extract the part after " - " from the message for the tooltip
+	// If message is "Valid ticket - Checked in successfully", tooltip shows "Checked in successfully"
+	const tooltipMessage = message.includes(" - ")
+		? message.split(" - ").slice(1).join(" - ")
+		: message;
+
 	return (
-		<Badge
-			variant="outline"
-			className={cn(
-				"gap-1 px-1.5 py-0.5 text-[10px] sm:gap-1.5 sm:px-2 sm:py-1 sm:text-xs",
-				variant.badgeBg,
-				className,
-			)}
-		>
-			{getStatusIcon(status)}
-			{showFullMessage ? (
-				<>
-					<span className="hidden sm:inline">{message}</span>
-					<span className="inline max-w-[80px] truncate sm:hidden">
-						{label}
-					</span>
-				</>
-			) : (
-				<span>{label}</span>
-			)}
-		</Badge>
+		<Tooltip delayDuration={0}>
+			<TooltipTrigger asChild>
+				<Badge
+					variant="outline"
+					className={cn(
+						"gap-1 px-1.5 py-0.5 text-[10px] sm:gap-1.5 sm:px-2 sm:py-1 sm:text-xs",
+						variant.badgeBg,
+						className,
+					)}
+				>
+					{getStatusIcon(status)}
+					<span>{label}</span>
+				</Badge>
+			</TooltipTrigger>
+			<TooltipContent>
+				<p>{tooltipMessage}</p>
+			</TooltipContent>
+		</Tooltip>
 	);
 }

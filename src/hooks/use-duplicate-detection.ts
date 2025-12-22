@@ -3,16 +3,18 @@
  * Manages duplicate ticket detection with debouncing
  */
 
-import { useRef, useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { SCANNER_CONFIG } from "@/components/pages/scan/constants";
 
 interface UseDuplicateDetectionOptions {
 	debounceTimeMs?: number;
 }
 
-export function useDuplicateDetection(options: UseDuplicateDetectionOptions = {}) {
+export function useDuplicateDetection(
+	options: UseDuplicateDetectionOptions = {},
+) {
 	const { debounceTimeMs = SCANNER_CONFIG.DEBOUNCE_TIME_MS } = options;
-	
+
 	const lastScannedCodeRef = useRef<string>("");
 	const lastScannedTimeRef = useRef<number>(0);
 
@@ -28,7 +30,7 @@ export function useDuplicateDetection(options: UseDuplicateDetectionOptions = {}
 
 			return isSameCodeRecently;
 		},
-		[debounceTimeMs]
+		[debounceTimeMs],
 	);
 
 	/**
@@ -50,7 +52,7 @@ export function useDuplicateDetection(options: UseDuplicateDetectionOptions = {}
 			markAsScanned(ticketId);
 			return false;
 		},
-		[isDuplicateScan, markAsScanned]
+		[isDuplicateScan, markAsScanned],
 	);
 
 	return {

@@ -1,14 +1,14 @@
 "use client";
 
-import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import OrganizerMembersContent from "@/components/pages/team/organizer-members-content";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { getTeamMembers } from "@/lib/api/team";
-import OrganizerMembersContent from "@/components/pages/team/organizer-members-content";
 
 export default function OrganizerMembersPage({
 	params,
@@ -44,9 +44,7 @@ export default function OrganizerMembersPage({
 			<ErrorState
 				title="Failed to load organizer"
 				description="We couldn't load the organizer information. Please try again."
-				action={
-					<Button onClick={() => window.location.reload()}>Retry</Button>
-				}
+				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
 	}
@@ -80,4 +78,3 @@ export default function OrganizerMembersPage({
 		</div>
 	);
 }
-

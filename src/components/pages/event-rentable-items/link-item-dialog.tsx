@@ -98,11 +98,11 @@ export function LinkItemDialog({
 											)}
 										</div>
 										{item.description && (
-											<p className="text-muted-foreground text-xs line-clamp-2">
+											<p className="line-clamp-2 text-muted-foreground text-xs">
 												{item.description}
 											</p>
 										)}
-										<div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+										<div className="flex flex-col gap-0.5 text-muted-foreground text-xs">
 											<span>Unit: {item.unitOfMeasure}</span>
 											<span className="font-medium text-foreground">
 												RM {Number(item.defaultPrice).toFixed(2)}

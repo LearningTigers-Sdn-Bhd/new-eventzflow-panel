@@ -127,7 +127,7 @@ export function WinnerDialogContent({
 				<div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center">
 					{/* Trophy Section - Cleaner, no generic sparkles */}
 						<div className="relative">
-						<div className="flex h-24 w-24 items-center justify-center bg-background border-4 border-primary shadow-[8px_8px_0px_0px_var(--primary)]">
+						<div className="flex h-24 w-24 items-center justify-center border-4 border-primary bg-background shadow-[8px_8px_0px_0px_var(--primary)]">
 							<Trophy className="h-12 w-12 text-primary" />
 						</div>
 						</div>
@@ -135,15 +135,15 @@ export function WinnerDialogContent({
 					{/* Text Section */}
 					<div className="space-y-4">
 						<div className="space-y-1">
-							<h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+							<h2 className="font-bold text-muted-foreground text-sm uppercase tracking-widest">
 								We have a
 							</h2>
-							<h1 className="text-5xl font-black uppercase tracking-tighter text-foreground sm:text-6xl">
+							<h1 className="font-black text-5xl text-foreground uppercase tracking-tighter sm:text-6xl">
 								Winner!
 							</h1>
 							{gift && (
 								<div className="mt-2 inline-block border-2 border-primary bg-primary px-6 py-2">
-									<p className="text-xl font-bold uppercase tracking-tight text-primary-foreground">
+									<p className="font-bold text-primary-foreground text-xl uppercase tracking-tight">
 										Prize: {gift.name}
 									</p>
 								</div>
@@ -151,16 +151,16 @@ export function WinnerDialogContent({
 						</div>
 
 						{/* Participant Card */}
-						<div className="group relative w-full overflow-hidden border-2 border-primary bg-card p-6 border-b-4 transition-colors">
+						<div className="group relative w-full overflow-hidden border-2 border-primary border-b-4 bg-card p-6 transition-colors">
 							<div className="flex flex-col items-center gap-4">
 								<div className="relative">
 									<Avatar className="h-20 w-20 rounded-none border-2 border-primary ring-2 ring-background ring-offset-2 ring-offset-primary">
-										<AvatarFallback className="rounded-none bg-primary text-xl font-bold text-primary-foreground">
+										<AvatarFallback className="rounded-none bg-primary font-bold text-primary-foreground text-xl">
 											{getInitials(winner.name)}
 										</AvatarFallback>
 									</Avatar>
 									{/* Replaced Crown with Medal */}
-									<div className="absolute -bottom-2 -right-2 border-2 border-primary bg-background p-1 text-primary shadow-[2px_2px_0px_0px_var(--primary)]">
+									<div className="-bottom-2 -right-2 absolute border-2 border-primary bg-background p-1 text-primary shadow-[2px_2px_0px_0px_var(--primary)]">
 										<Medal className="size-4" />
 									</div>
 								</div>
@@ -170,7 +170,7 @@ export function WinnerDialogContent({
 										initial={{ scale: 0.5, opacity: 0, filter: "blur(10px)" }}
 										animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
 										transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-										className="line-clamp-1 text-2xl font-bold uppercase tracking-tight"
+										className="line-clamp-1 font-bold text-2xl uppercase tracking-tight"
 									>
 										{winner.name}
 									</motion.h3>
@@ -184,7 +184,7 @@ export function WinnerDialogContent({
 						<Button
 							size="lg"
 							onClick={onClose}
-							className="h-14 w-full rounded-none border-2 border-primary bg-primary text-lg font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90"
+							className="h-14 w-full rounded-none border-2 border-primary bg-primary font-bold text-lg text-primary-foreground uppercase tracking-widest hover:bg-primary/90"
 						>
 							Congratulations
 						</Button>

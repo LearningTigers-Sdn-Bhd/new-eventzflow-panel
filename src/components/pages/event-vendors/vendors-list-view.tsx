@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { getEventVendorColumns } from "@/components/pages/event-vendors/table/columns";
-import { DataTable } from "@/components/pages/event-vendors/table/data-table";
+import { DataTable } from "@/components/pages/event-vendors/table/event-vendor-table";
+import { getEventVendorColumns } from "@/components/pages/event-vendors/table/event-vendor-table-columns";
 import { Button } from "@/components/ui/button";
 import { getEventVendors } from "@/lib/api/event-vendor";
 
@@ -17,7 +17,10 @@ interface VendorsListViewProps {
 /**
  * Component for admins to view and manage event vendors list
  */
-export function VendorsListView({ eventId, canManageVendors }: VendorsListViewProps) {
+export function VendorsListView({
+	eventId,
+	canManageVendors,
+}: VendorsListViewProps) {
 	const {
 		data: vendors,
 		isLoading,
@@ -56,11 +59,16 @@ export function VendorsListView({ eventId, canManageVendors }: VendorsListViewPr
 					<div className="space-y-1">
 						<p className="font-medium text-sm">Assign vendors to this event</p>
 						<p className="text-muted-foreground text-sm">
-							This page shows vendors assigned to this event. To create new vendors, go to the Vendors page.
+							This page shows vendors assigned to this event. To create new
+							vendors, go to the Vendors page.
 						</p>
 					</div>
 				</div>
-				<Button variant="outline" asChild className="w-full rounded-none sm:w-auto sm:shrink-0">
+				<Button
+					variant="outline"
+					asChild
+					className="w-full rounded-none sm:w-auto sm:shrink-0"
+				>
 					<Link href="/vendor">
 						Go to Vendors
 						<ArrowRight className="ml-2 h-4 w-4" />

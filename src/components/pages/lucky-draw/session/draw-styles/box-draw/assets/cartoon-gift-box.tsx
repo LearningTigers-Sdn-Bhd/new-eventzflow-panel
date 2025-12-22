@@ -21,7 +21,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 	}, [isOpen]);
 
 	return (
-		<div className="relative flex items-center justify-center w-[400px] h-[550px]">
+		<div className="relative flex h-[550px] w-[400px] items-center justify-center">
 			{/* Shared SVG Defs for Comic Patterns */}
 			<svg width="0" height="0" className="absolute">
 				<defs>
@@ -57,7 +57,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 			>
 				{/* Lid Layer - Rectangular & Boxy */}
 				<motion.div
-					className="absolute left-0 w-full z-20 origin-center"
+					className="absolute left-0 z-20 w-full origin-center"
 					style={{ top: -35, left: 0 }}
 					animate={{
 						y: isOpen ? -180 : 0,
@@ -88,7 +88,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 				</motion.div>
 
 				{/* Box Body Layer - Straight Rectangle */}
-				<div className="relative z-10 top-[20px] left-[15px]">
+				<div className="relative top-[20px] left-[15px] z-10">
 					<svg width="370" height="260" viewBox="0 0 370 260" className="overflow-visible">
 						{/* Main Body - Masked for dots */}
 						<mask id="body-mask">
@@ -118,7 +118,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 					<AnimatePresence>
 						{isOpen && (
 							<motion.div
-								className="absolute top-[100px] left-[185px] -translate-x-1/2 z-0"
+								className="-translate-x-1/2 absolute top-[100px] left-[185px] z-0"
 								style={{ rotate: -5 }}
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ 
@@ -133,7 +133,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 								}}
 							>
 								{/* Jagged Burst Background */}
-								<svg width="280" height="220" viewBox="0 0 200 200" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+								<svg width="280" height="220" viewBox="0 0 200 200" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2">
 									<path 
 										d="M100 10 L120 60 L170 50 L140 90 L190 120 L140 140 L160 190 L110 160 L90 200 L70 150 L20 180 L50 130 L10 100 L60 80 L30 30 L80 50 Z" 
 										fill="#FFFFFF" 
@@ -142,7 +142,7 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 									/>
 								</svg>
 								<div 
-									className="relative text-5xl font-black text-[#D50000] italic text-center min-w-[200px] leading-tight"
+									className="relative min-w-[200px] text-center font-black text-5xl text-[#D50000] italic leading-tight"
 									style={{ 
 										fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif",
 										textShadow: "2px 2px 0px #000",
@@ -160,11 +160,11 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 			{/* Explosion Effects behind */}
 			<AnimatePresence>
 				{isOpen && (
-					<motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+					<motion.div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
 						{/* Comic Burst Background */}
 						<motion.svg
 							viewBox="0 0 500 500"
-							className="absolute w-[700px] h-[700px]"
+							className="absolute h-[700px] w-[700px]"
 							initial={{ scale: 0, opacity: 0, rotate: -45 }}
 							animate={{ scale: 1, opacity: 1, rotate: 0 }}
 							exit={{ opacity: 0 }}

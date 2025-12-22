@@ -1,8 +1,8 @@
 "use client";
 
-import type React from "react";
 import { motion } from "framer-motion";
 import { Image } from "lucide-react";
+import type React from "react";
 
 const galleryImages = [
 	{
@@ -57,10 +57,13 @@ const galleryImages = [
 
 const SolutionsGallerySection: React.FC = () => {
 	return (
-		<section id="solutions" className="relative overflow-hidden bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+		<section
+			id="solutions"
+			className="relative overflow-hidden bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+		>
 			{/* Professional background elements */}
 			<div className="-translate-x-1/2 pointer-events-none absolute top-0 left-1/2 h-[400px] w-[400px] rounded-full bg-emerald-500/5 blur-3xl" />
-			
+
 			<div className="relative mx-auto max-w-6xl">
 				{/* Header */}
 				<div className="mb-8 flex flex-col items-center gap-3 text-center sm:mb-12 sm:gap-4">
@@ -92,9 +95,10 @@ const SolutionsGallerySection: React.FC = () => {
 						viewport={{ once: true }}
 						transition={{ duration: 0.5, delay: 0.08 }}
 					>
-						From large-scale conferences to exclusive executive summits, our platform delivers 
-						exceptional experiences. Discover how EventzFlow transforms ordinary events into 
-						memorable, data-driven success stories.
+						From large-scale conferences to exclusive executive summits, our
+						platform delivers exceptional experiences. Discover how EventzFlow
+						transforms ordinary events into memorable, data-driven success
+						stories.
 					</motion.p>
 				</div>
 
@@ -128,4 +132,3 @@ const SolutionsGallerySection: React.FC = () => {
 };
 
 export default SolutionsGallerySection;
-

@@ -80,4 +80,3 @@ export type DeleteVoucherResponse = {
 };
 
 export type GetVouchersResponse = Voucher[];
-

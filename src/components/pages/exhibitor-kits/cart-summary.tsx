@@ -71,7 +71,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 				{/* Rentable Items */}
 				{items.length > 0 && (
 					<div className="space-y-3">
-						<div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+						<div className="flex items-center gap-2 font-medium text-muted-foreground text-sm">
 							<Package className="h-4 w-4" />
 							Rentable Items
 						</div>
@@ -119,7 +119,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 				{/* Printing Services */}
 				{printings.length > 0 && (
 					<div className="space-y-3">
-						<div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+						<div className="flex items-center gap-2 font-medium text-muted-foreground text-sm">
 							<Printer className="h-4 w-4" />
 							Printing Services
 						</div>

@@ -13,26 +13,31 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteTicketType, type TicketType } from "@/lib/api/ticket-type";
-import { ConfirmDialog } from "./confirm-dialog";
 import { EditTicketTypeForm } from "./edit-ticket-type-form";
 
 interface TicketTypeActionsMenuProps {
 	ticketType: TicketType;
 }
 
-export function TicketTypeActionsMenu({ ticketType }: TicketTypeActionsMenuProps) {
+export function TicketTypeActionsMenu({
+	ticketType,
+}: TicketTypeActionsMenuProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 
 	const deleteMutation = useMutation({
 		mutationFn: deleteTicketType,
 		onSuccess: () => {
 			toast.success("Ticket type deleted successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "ticket-types"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "ticket-types"],
+			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
@@ -57,25 +62,20 @@ export function TicketTypeActionsMenu({ ticketType }: TicketTypeActionsMenuProps
 	};
 
 	const handleDeleteClick = () => {
-		openDialog({
-			component: ConfirmDialog,
-			props: {
-				message: `Are you sure you want to delete "${ticketType.name}"? This action cannot be undone.`,
-				confirmLabel: "Delete",
-				cancelLabel: "Cancel",
-				variant: "destructive",
-				onConfirm: () => {
-					deleteMutation.mutate({
-						eventId,
-						ticketTypeId: ticketType.id.toString(),
-					});
-				},
-				onCancel: closeDialog,
+		openConfirm({
+			title: "Delete Ticket Type",
+			message: `Are you sure you want to delete "${ticketType.name}"? This action cannot be undone.`,
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			size: "sm",
+			onConfirm: () => {
+				deleteMutation.mutate({
+					eventId,
+					ticketTypeId: ticketType.id.toString(),
+				});
 			},
-			config: {
-				title: "Delete Ticket Type",
-				size: "sm",
-			},
+			onCancel: closeDialog,
 		});
 	};
 
@@ -95,7 +95,10 @@ export function TicketTypeActionsMenu({ ticketType }: TicketTypeActionsMenuProps
 					Edit
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleDeleteClick} className="rounded-none text-red-600">
+				<DropdownMenuItem
+					onClick={handleDeleteClick}
+					className="rounded-none text-red-600"
+				>
 					<Trash2 className="mr-2 h-4 w-4" />
 					Delete
 				</DropdownMenuItem>

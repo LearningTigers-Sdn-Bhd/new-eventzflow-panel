@@ -27,7 +27,10 @@ interface CreateTicketTypeFormProps {
 	onClose: () => void;
 }
 
-export function CreateTicketTypeForm({ eventId, onClose }: CreateTicketTypeFormProps) {
+export function CreateTicketTypeForm({
+	eventId,
+	onClose,
+}: CreateTicketTypeFormProps) {
 	const nameId = useId();
 	const priceId = useId();
 	const quantityId = useId();
@@ -49,7 +52,9 @@ export function CreateTicketTypeForm({ eventId, onClose }: CreateTicketTypeFormP
 		mutationFn: createTicketType,
 		onSuccess: () => {
 			toast.success("Ticket type created successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "ticket-types"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "ticket-types"],
+			});
 			onClose();
 		},
 		onError: (error: Error) => {
@@ -167,14 +172,18 @@ export function CreateTicketTypeForm({ eventId, onClose }: CreateTicketTypeFormP
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={maxPerOrderId}>Max Per Order</FieldLabel>
-								{errors.max_per_order && <FieldError>{errors.max_per_order}</FieldError>}
+								{errors.max_per_order && (
+									<FieldError>{errors.max_per_order}</FieldError>
+								)}
 								<Input
 									id={maxPerOrderId}
 									type="number"
 									min="1"
 									placeholder="10"
 									value={formData.max_per_order}
-									onChange={(e) => handleChange("max_per_order", e.target.value)}
+									onChange={(e) =>
+										handleChange("max_per_order", e.target.value)
+									}
 									required
 									disabled={createMutation.isPending}
 								/>
@@ -211,7 +220,9 @@ export function CreateTicketTypeForm({ eventId, onClose }: CreateTicketTypeFormP
 								Cancel
 							</Button>
 							<Button type="submit" disabled={createMutation.isPending}>
-								{createMutation.isPending ? "Creating..." : "Create Ticket Type"}
+								{createMutation.isPending
+									? "Creating..."
+									: "Create Ticket Type"}
 							</Button>
 						</div>
 					</FieldGroup>

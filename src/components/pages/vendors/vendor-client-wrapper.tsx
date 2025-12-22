@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Vendor } from "@/lib/api/vendor";
-import { columns } from "./table/columns";
 import CreateVendorForm from "./dialogs/create-vendor-form";
-import { DataTable } from "./table/data-table";
+import { DataTable } from "./table/vendors-table";
 
 interface VendorClientWrapperProps {
 	vendors: Vendor[];
@@ -61,7 +60,7 @@ export default function VendorClientWrapper({
 					</div>
 				</div>
 			)}
-			<DataTable columns={columns} data={sortedVendors} onAddVendor={handleAddVendor} />
+			<DataTable data={sortedVendors} onAddVendor={handleAddVendor} />
 		</div>
 	);
 }

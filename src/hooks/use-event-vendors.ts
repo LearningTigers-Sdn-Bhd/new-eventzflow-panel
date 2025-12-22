@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	type CreateEventVendorRequest,
 	createEventVendor,
 	deleteEventVendor,
 	getEventVendors,
-	type CreateEventVendorRequest,
 } from "@/lib/api/event-vendor";
 import { useAuth } from "./use-auth";
 
@@ -47,8 +47,13 @@ export const useDeleteEventVendor = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ eventId, vendorId }: { eventId: number; vendorId: number }) =>
-			deleteEventVendor(eventId, vendorId),
+		mutationFn: ({
+			eventId,
+			vendorId,
+		}: {
+			eventId: number;
+			vendorId: number;
+		}) => deleteEventVendor(eventId, vendorId),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: ["events", variables.eventId, "vendors"],
@@ -67,7 +72,7 @@ export const useCurrentUserEventVendorId = (eventId: number) => {
 
 	// Find the event vendor record where vendor_id matches current user's id
 	const currentUserEventVendor = eventVendors?.find(
-		(ev) => ev.vendor_id === user?.id
+		(ev) => ev.vendor_id === user?.id,
 	);
 
 	return {

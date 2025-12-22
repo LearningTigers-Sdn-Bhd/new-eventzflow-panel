@@ -1,9 +1,9 @@
 "use client";
 
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { PatternedLayout } from "@/components/patterned-layout";
+import { Button } from "@/components/ui/button";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -44,7 +44,8 @@ export function AlreadyAssignedCard({ event }: AlreadyAssignedCardProps) {
 					{/* Info Message */}
 					<div className="space-y-3 rounded-none border border-blue-200 bg-blue-50 p-5">
 						<p className="text-blue-800 text-sm">
-							You can manage your vendor settings and view event details from your dashboard.
+							You can manage your vendor settings and view event details from
+							your dashboard.
 						</p>
 						<ul className="space-y-2 text-blue-700 text-sm">
 							<li className="flex items-start gap-2">

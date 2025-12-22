@@ -20,23 +20,23 @@ export default function HomeSection() {
 			{/* 1. HOOK - Capture Attention */}
 			<HeroSection />
 			<BenefitsSection />
-			
+
 			{/* 2. CREDIBILITY - Build Trust Early */}
 			<TargetAudienceSection />
 			<TestimonialsSection />
-			
+
 			{/* 3. VALUE PROPOSITION - Why Choose Us */}
 			<JourneySection />
-			
+
 			{/* 4. FEATURES - Deep Dive (Grouped by Journey) */}
 			<FeatureShowcaseSection />
 			<MobileCheckInSection />
 			<KioskCheckInSection />
-			
+
 			{/* 5. VISUAL PROOF - Show Don't Tell */}
 			<OnsiteSupportSection />
 			<SolutionsGallerySection />
-			
+
 			{/* 6. CONVERSION FUNNEL - Push to Action */}
 			<SolutionsRibbon />
 			<FAQSection />

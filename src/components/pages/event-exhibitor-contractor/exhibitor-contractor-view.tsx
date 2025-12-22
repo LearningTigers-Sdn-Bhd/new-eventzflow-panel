@@ -1,21 +1,29 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { HardHat, Plus, Phone, Mail, User } from "lucide-react";
-import { ErrorState, LoadingState, EmptyState } from "@/components/data-state";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { HardHat, Mail, Phone, Plus, User } from "lucide-react";
+import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { useDialog } from "@/hooks/use-dialog";
-import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { getContractors } from "@/lib/api/contractor";
+import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { AssignContractorDialog } from "./assign-contractor-dialog";
 
 interface ExhibitorContractorViewProps {
 	eventId: string;
 }
 
-export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProps) {
+export function ExhibitorContractorView({
+	eventId,
+}: ExhibitorContractorViewProps) {
 	const { openDialog, closeDialog } = useDialog();
 
 	// Fetch the assigned contractor for this event
@@ -29,17 +37,16 @@ export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProp
 	});
 
 	// Fetch all contractors to get the details
-	const {
-		data: allContractors,
-		isLoading: isLoadingContractors,
-	} = useQuery({
+	const { data: allContractors, isLoading: isLoadingContractors } = useQuery({
 		queryKey: ["contractors"],
 		queryFn: () => getContractors(),
 	});
 
 	// Find the assigned contractor details
 	const assignedContractor = allContractors?.find(
-		(c) => c.exhibition_contractor_profile?.id === eventContractor?.exhibition_contractor_profile_id
+		(c) =>
+			c.exhibition_contractor_profile?.id ===
+			eventContractor?.exhibition_contractor_profile_id,
 	);
 
 	const isLoading = isLoadingEventContractor || isLoadingContractors;
@@ -81,7 +88,7 @@ export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProp
 	// No contractor assigned
 	if (!eventContractor || !assignedContractor) {
 		return (
-			<div className="p-4 border-t border-dashed">
+			<div className="border-t border-dashed p-4">
 				<EmptyState
 					icon={<HardHat className="h-12 w-12" />}
 					title="No Exhibitor Contractor Assigned"
@@ -100,7 +107,7 @@ export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProp
 	const profile = assignedContractor.exhibition_contractor_profile;
 
 	return (
-		<div className="space-y-6 p-4 border-t border-dashed">
+		<div className="space-y-6 border-t border-dashed p-4">
 			{/* Contractor Card */}
 			<Card className="rounded-none border-dashed">
 				<CardHeader className="pb-4">
@@ -113,16 +120,14 @@ export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProp
 								<CardTitle className="text-lg">
 									{profile?.company_name || assignedContractor.full_name}
 								</CardTitle>
-								<CardDescription>
-									Exhibitor Contractor
-								</CardDescription>
+								<CardDescription>Exhibitor Contractor</CardDescription>
 							</div>
 						</div>
-						<Badge 
-							variant="outline" 
+						<Badge
+							variant="outline"
 							className={`rounded-none ${
-								assignedContractor.status === "active" 
-									? "border-green-500 text-green-500" 
+								assignedContractor.status === "active"
+									? "border-green-500 text-green-500"
 									: "border-gray-500 text-gray-500"
 							}`}
 						>
@@ -137,32 +142,38 @@ export function ExhibitorContractorView({ eventId }: ExhibitorContractorViewProp
 							<div className="flex items-center gap-3 rounded-none border border-dashed p-3">
 								<User className="h-4 w-4 text-muted-foreground" />
 								<div>
-									<p className="text-xs text-muted-foreground">Contact Person</p>
-									<p className="text-sm font-medium">{profile.contact_person}</p>
+									<p className="text-muted-foreground text-xs">
+										Contact Person
+									</p>
+									<p className="font-medium text-sm">
+										{profile.contact_person}
+									</p>
 								</div>
 							</div>
 						)}
-						
+
 						<div className="flex items-center gap-3 rounded-none border border-dashed p-3">
 							<Mail className="h-4 w-4 text-muted-foreground" />
 							<div>
-								<p className="text-xs text-muted-foreground">Email</p>
-								<p className="text-sm font-medium">{profile?.contact_email || assignedContractor.email}</p>
+								<p className="text-muted-foreground text-xs">Email</p>
+								<p className="font-medium text-sm">
+									{profile?.contact_email || assignedContractor.email}
+								</p>
 							</div>
 						</div>
 
 						<div className="flex items-center gap-3 rounded-none border border-dashed p-3">
 							<Phone className="h-4 w-4 text-muted-foreground" />
 							<div>
-								<p className="text-xs text-muted-foreground">Phone</p>
-								<p className="text-sm font-medium">{profile?.contact_phone || assignedContractor.phone || "-"}</p>
+								<p className="text-muted-foreground text-xs">Phone</p>
+								<p className="font-medium text-sm">
+									{profile?.contact_phone || assignedContractor.phone || "-"}
+								</p>
 							</div>
 						</div>
 					</div>
-
 				</CardContent>
 			</Card>
 		</div>
 	);
 }
-

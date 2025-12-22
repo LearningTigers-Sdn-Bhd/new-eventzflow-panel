@@ -40,14 +40,20 @@ export default function PublicLayout({
 	const isCheckinPage = pathname.startsWith("/check-in");
 	const isPublicVoucherPage = pathname.startsWith("/event");
 	const isVendorSignupPage = pathname.startsWith("/vendor-signup");
-	const isNavHidden = isLoginPage || isForgotPasswordPage || isCheckinPage || isPublicVoucherPage || isVendorSignupPage;
+	const isNavHidden =
+		isLoginPage ||
+		isForgotPasswordPage ||
+		isCheckinPage ||
+		isPublicVoucherPage ||
+		isVendorSignupPage;
 
 	// Check if we're on pages where footer should be shown
 	const isHomePage = pathname === "/";
 	const isAboutPage = pathname.startsWith("/about");
 	const isPrivacyPolicyPage = pathname === "/privacy-policy";
 	const isTermsPage = pathname === "/terms-and-conditions";
-	const isFooterVisible = isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage;
+	const isFooterVisible =
+		isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage;
 
 	// Render layout with floating nav for public routes
 	return (

@@ -38,7 +38,7 @@ export function ConfirmDialog({
 						<AlertTriangle className="h-5 w-5" />
 					)}
 				</div>
-				<p className="text-sm text-muted-foreground">{message}</p>
+				<p className="text-muted-foreground text-sm">{message}</p>
 			</div>
 			<div className="flex justify-end gap-2">
 				<Button variant="outline" onClick={onCancel} className="rounded-none">

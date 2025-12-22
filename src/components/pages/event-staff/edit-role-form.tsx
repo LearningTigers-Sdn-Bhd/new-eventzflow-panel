@@ -20,7 +20,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { updateStaffRole } from "@/lib/api/event/event-staff";
-import type { EventStaffMember } from "./columns";
+import type { EventStaffMember } from "./event-staff-table-columns";
 
 interface EditRoleFormProps {
 	member: EventStaffMember;

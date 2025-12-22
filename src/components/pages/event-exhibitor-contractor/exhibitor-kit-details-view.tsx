@@ -1,39 +1,44 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
 	Building2,
-	Users,
-	Package,
-	FileText,
 	CreditCard,
-	Printer,
 	ExternalLink,
-	StickyNote
+	Package,
+	Printer,
+	StickyNote,
+	Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
-import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
 	kitId: string;
 }
 
-export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsViewProps) {
-	const router = useRouter();
+export function ExhibitorKitDetailsView({
+	eventId,
+	kitId,
+}: ExhibitorKitDetailsViewProps) {
+	const _router = useRouter();
 
 	// Dialog states
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
-	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
-	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
+	const [selectedPayment, setSelectedPayment] =
+		useState<ExhibitorKitPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">(
+		"verify",
+	);
 
 	const {
 		data: vendors,
@@ -45,8 +50,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 	});
 
 	// Find the exhibitor kit from the vendors data (same approach as admin)
-	const exhibitorKit = vendors?.find(vendor => 
-		vendor.exhibitor_kit?.id === Number(kitId)
+	const exhibitorKit = vendors?.find(
+		(vendor) => vendor.exhibitor_kit?.id === Number(kitId),
 	)?.exhibitor_kit;
 
 	if (isLoading) {
@@ -77,8 +82,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		);
 	}
 
-	const vendor = vendors?.find(vendor => 
-		vendor.exhibitor_kit?.id === Number(kitId)
+	const vendor = vendors?.find(
+		(vendor) => vendor.exhibitor_kit?.id === Number(kitId),
 	);
 	const items = exhibitorKit.exhibitor_kit_items || [];
 	const printings = exhibitorKit.exhibitor_kit_printings || [];
@@ -94,13 +99,13 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 		0,
 	);
 
-	const pendingRequests = customRequests.filter(
+	const _pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
 	).length;
-	const approvedRequests = customRequests.filter(
+	const _approvedRequests = customRequests.filter(
 		(req) => req.status === "approved",
 	).length;
-	const rejectedRequests = customRequests.filter(
+	const _rejectedRequests = customRequests.filter(
 		(req) => req.status === "rejected",
 	).length;
 
@@ -130,7 +135,8 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 							{exhibitorKit.company_name}
 						</h2>
 						<p className="text-muted-foreground text-sm">
-							Booth {exhibitorKit.booth_number} • {vendor?.vendor?.full_name || "Unknown Vendor"}
+							Booth {exhibitorKit.booth_number} •{" "}
+							{vendor?.vendor?.full_name || "Unknown Vendor"}
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -150,7 +156,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								"rounded-none font-bold capitalize",
 								exhibitorKit.payment_status === "paid" &&
 									"border-green-500 text-green-500",
-								exhibitorKit.payment_status === "unpaid" && 
+								exhibitorKit.payment_status === "unpaid" &&
 									"border-red-500 text-red-500",
 								exhibitorKit.payment_status === "waived" &&
 									"border-gray-500 text-gray-500",
@@ -178,7 +184,9 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 							<div className="space-y-2 text-sm">
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Booth Number:</span>
-									<span className="font-medium">{exhibitorKit.booth_number || "-"}</span>
+									<span className="font-medium">
+										{exhibitorKit.booth_number || "-"}
+									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Type:</span>
@@ -204,7 +212,9 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 								</div>
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Fascia:</span>
-									<span className="font-medium">{exhibitorKit.name_on_fascia || "-"}</span>
+									<span className="font-medium">
+										{exhibitorKit.name_on_fascia || "-"}
+									</span>
 								</div>
 								{exhibitorKit.fascia_upgrade_required && (
 									<Badge
@@ -230,19 +240,25 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									<span className="mb-1 block text-muted-foreground">
 										Company:
 									</span>
-									<span className="font-medium">{exhibitorKit.company_name || "-"}</span>
+									<span className="font-medium">
+										{exhibitorKit.company_name || "-"}
+									</span>
 								</div>
 								<div>
 									<span className="mb-1 block text-muted-foreground">
 										Address:
 									</span>
-									<span className="text-sm">{exhibitorKit.company_address || "-"}</span>
+									<span className="text-sm">
+										{exhibitorKit.company_address || "-"}
+									</span>
 								</div>
 								<div className="border-t pt-2">
 									<span className="mb-1 block text-muted-foreground">
 										Person In Charge:
 									</span>
-									<p className="font-medium">{exhibitorKit.pic_full_name || "-"}</p>
+									<p className="font-medium">
+										{exhibitorKit.pic_full_name || "-"}
+									</p>
 									<p className="text-muted-foreground text-sm">
 										{exhibitorKit.pic_contact_number || "-"}
 									</p>
@@ -256,7 +272,7 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 
 					{/* Payment Management Section - Full Width */}
 					<div className="rounded-none border bg-background p-4">
-						<div className="flex items-center gap-2 border-b pb-3 mb-4">
+						<div className="mb-4 flex items-center gap-2 border-b pb-3">
 							<CreditCard className="size-4 text-primary" />
 							<h3 className="font-semibold text-sm uppercase tracking-wide">
 								Payment Management
@@ -307,29 +323,33 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {itemsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+							<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto pr-2">
 								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 									{items.map((item) => (
 										<div
 											key={item.id}
-											className="border bg-muted/30 p-3 space-y-1"
+											className="space-y-1 border bg-muted/30 p-3"
 										>
 											<div className="flex justify-between text-sm">
-												<span className="truncate flex-1 font-medium">
+												<span className="flex-1 truncate font-medium">
 													{item.rentable_item?.name ||
 														`Item #${item.rentable_item_id}`}
 												</span>
-												<span className="font-semibold ml-2 shrink-0">
-													RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
+												<span className="ml-2 shrink-0 font-semibold">
+													RM{" "}
+													{(Number(item.agreed_price) * item.quantity).toFixed(
+														2,
+													)}
 												</span>
 											</div>
 											<p className="text-muted-foreground text-xs">
-												{item.quantity} x RM {Number(item.agreed_price).toFixed(2)}
+												{item.quantity} x RM{" "}
+												{Number(item.agreed_price).toFixed(2)}
 											</p>
 											{item.notes && (
-												<div className="flex items-start gap-1.5 pt-1.5 border-t border-dashed">
-													<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-													<p className="text-muted-foreground text-xs line-clamp-2">
+												<div className="flex items-start gap-1.5 border-t border-dashed pt-1.5">
+													<StickyNote className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
+													<p className="line-clamp-2 text-muted-foreground text-xs">
 														{item.notes}
 													</p>
 												</div>
@@ -355,43 +375,47 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 									RM {printingsTotal.toFixed(2)}
 								</span>
 							</div>
-							<div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent">
+							<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto pr-2">
 								<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 									{printings.map((printing) => (
 										<div
 											key={printing.id}
-											className="border bg-muted/30 p-3 space-y-1"
+											className="space-y-1 border bg-muted/30 p-3"
 										>
 											<div className="flex justify-between text-sm">
-												<span className="truncate flex-1 font-medium">
+												<span className="flex-1 truncate font-medium">
 													{printing.printing_service?.name ||
 														`Service #${printing.printing_service_id}`}
 												</span>
-												<span className="font-semibold ml-2 shrink-0">
-													RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
+												<span className="ml-2 shrink-0 font-semibold">
+													RM{" "}
+													{(
+														Number(printing.agreed_price) * printing.quantity
+													).toFixed(2)}
 												</span>
 											</div>
 											<p className="text-muted-foreground text-xs">
-												{printing.quantity} x RM {Number(printing.agreed_price).toFixed(2)}
+												{printing.quantity} x RM{" "}
+												{Number(printing.agreed_price).toFixed(2)}
 											</p>
 											{(printing.notes || printing.file_reference) && (
-												<div className="flex flex-col gap-1 pt-1.5 border-t border-dashed">
+												<div className="flex flex-col gap-1 border-t border-dashed pt-1.5">
 													{printing.notes && (
 														<div className="flex items-start gap-1.5">
-															<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-															<p className="text-muted-foreground text-xs line-clamp-2">
+															<StickyNote className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
+															<p className="line-clamp-2 text-muted-foreground text-xs">
 																{printing.notes}
 															</p>
 														</div>
 													)}
 													{printing.file_reference && (
 														<div className="flex items-center gap-1.5">
-															<ExternalLink className="size-3 text-primary shrink-0" />
+															<ExternalLink className="size-3 shrink-0 text-primary" />
 															<a
 																href={printing.file_reference}
 																target="_blank"
 																rel="noopener noreferrer"
-																className="text-primary text-xs hover:underline truncate"
+																className="truncate text-primary text-xs hover:underline"
 															>
 																View File
 															</a>
@@ -490,7 +514,6 @@ export function ExhibitorKitDetailsView({ eventId, kitId }: ExhibitorKitDetailsV
 							</div>
 						</div>
 					)} */}
-
 				</div>
 			</section>
 

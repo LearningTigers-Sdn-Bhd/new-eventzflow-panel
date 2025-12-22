@@ -1,4 +1,4 @@
-import { Mail, Phone, ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +49,10 @@ export function CheckInForm({
 		<form onSubmit={onSubmit} className="space-y-4">
 			{checkInMethod === "email" && (
 				<div className="space-y-2">
-					<Label htmlFor="email" className="flex items-center gap-2 font-medium text-sm">
+					<Label
+						htmlFor="email"
+						className="flex items-center gap-2 font-medium text-sm"
+					>
 						<Mail className="h-4 w-4" />
 						Email Address
 					</Label>
@@ -72,7 +75,10 @@ export function CheckInForm({
 
 			{checkInMethod === "phone" && (
 				<div className="space-y-2">
-					<Label htmlFor="phone" className="flex items-center gap-2 font-medium text-sm">
+					<Label
+						htmlFor="phone"
+						className="flex items-center gap-2 font-medium text-sm"
+					>
 						<Phone className="h-4 w-4" />
 						Phone Number
 					</Label>

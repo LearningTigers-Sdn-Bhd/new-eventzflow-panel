@@ -1,11 +1,11 @@
 import { restClient } from "@/utils/rest-api";
-import type { EventVendor } from "./response";
 import {
 	type CreateEventVendorRequest,
 	createEventVendorSchema,
 	type UpdateEventVendorRequest,
 	updateEventVendorSchema,
 } from "./request";
+import type { EventVendor } from "./response";
 
 /**
  * Get all vendors for an event

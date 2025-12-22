@@ -175,11 +175,14 @@ function Sidebar({
 	collapsible = "offcanvas",
 	className,
 	children,
+	leftOffset = 0,
 	...props
 }: React.ComponentProps<"div"> & {
 	side?: "left" | "right";
 	variant?: "sidebar" | "floating" | "inset";
 	collapsible?: "offcanvas" | "icon" | "none";
+	bottomNav?: boolean;
+	leftOffset?: number | string;
 }) {
 	const { isTablet, state, openTablet, setOpenTablet } = useSidebar();
 
@@ -255,8 +258,21 @@ function Sidebar({
 					variant === "floating" || variant === "inset"
 						? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
 						: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+					// Add left border and higher z-index when sidebar has leftOffset (stacked sidebar scenario)
+					leftOffset && side === "left" && "z-20 border-l",
 					className,
 				)}
+				style={
+					leftOffset && side === "left"
+						? ({
+								"--sidebar-left-offset":
+									typeof leftOffset === "number"
+										? `${leftOffset}px`
+										: leftOffset,
+								left: "var(--sidebar-left-offset, 0)",
+							} as React.CSSProperties)
+						: undefined
+				}
 				{...props}
 			>
 				<div

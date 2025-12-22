@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Camera, CameraOff, QrCode } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -8,14 +12,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Camera, CameraOff, QrCode } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useScanner } from "@/hooks/use-scanner";
 import { useDuplicateDetection } from "@/hooks/use-duplicate-detection";
+import { useScanner } from "@/hooks/use-scanner";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
-import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ScanModalProps {
 	open: boolean;
@@ -24,7 +24,12 @@ interface ScanModalProps {
 	onRefetch?: () => void;
 }
 
-export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalProps) {
+export function ScanModal({
+	open,
+	onOpenChange,
+	eventId,
+	onRefetch,
+}: ScanModalProps) {
 	const [isScanning, setIsScanning] = useState(false);
 	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [scannedTicketIds] = useState<Set<string>>(new Set());
@@ -54,7 +59,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 			toast.success("Ticket validated!", {
 				description: `${result.attendeeName} - ${result.ticketType}`,
 			});
-			
+
 			// Immediately refetch the scanned logs table after successful scan
 			if (onRefetch) {
 				onRefetch();
@@ -140,7 +145,7 @@ export function ScanModal({ open, onOpenChange, eventId, onRefetch }: ScanModalP
 							<div
 								id="modal-qr-reader"
 								className={cn(
-									"aspect-square w-full max-w-sm rounded-lg transition-all duration-500"
+									"aspect-square w-full max-w-sm rounded-lg transition-all duration-500",
 								)}
 								style={{
 									position: "relative",

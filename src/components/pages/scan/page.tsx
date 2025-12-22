@@ -1,9 +1,20 @@
 "use client";
 
-import { Download, ScanQrCode } from "lucide-react";
+import { ChevronDown, Download, ScanLine, ScanQrCode } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { Button } from "@/components/ui/button";
-import { IconTitle } from "@/components/ui/icon-heading";
+import {
+	Carousel,
+	CarouselContent,
+	CarouselItem,
+} from "@/components/ui/carousel";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useScanHistory } from "@/hooks/use-scan-history";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
 import { ActivityFeed } from "./activity-feed";
@@ -15,6 +26,7 @@ import type { FilterType, ScanResult, SortType } from "./types";
 import { exportToCSV } from "./utils";
 
 export default function ScanContent() {
+	const isMobile = useIsMobile();
 	const [isScanning, setIsScanning] = useState(false);
 	const { scanResults, isLoading, addScanResult } = useScanHistory();
 	// Ticket validation hook is used by scanner-card component
@@ -76,7 +88,7 @@ export default function ScanContent() {
 		<div className="p-0">
 			{/* Header */}
 			<div className="page-header mb-4 border-b border-dashed sm:mb-6 md:mb-8">
-				<div className="px-2 md:px-4">
+				<div className="w-full px-0 md:w-auto md:px-4">
 					<IconTitle
 						icon={ScanQrCode}
 						title="Ticket Scanner"
@@ -86,15 +98,15 @@ export default function ScanContent() {
 
 				{/* Quick Actions */}
 				{scanResults.length > 0 && (
-					<div className="w-full px-0 md:w-auto md:px-4">
+					<div className="flex w-full flex-col items-center justify-center px-0 md:w-auto md:px-4">
 						<Button
 							onClick={handleExport}
 							variant="outline"
 							size="sm"
-							className="w-full gap-2 rounded-none"
+							className="w-full gap-2 rounded-none bg-sky-500 py-6 text-white hover:bg-sky-500/90 md:py-0 md:text-sm md:tracking-tight"
 						>
-							<Download className="h-4 w-4" />
-							<span>Export</span>
+							<Download className="mr-2.5 size-4" />
+							<span>Export {isMobile ? "Logs" : ""}</span>
 						</Button>
 					</div>
 				)}
@@ -112,14 +124,68 @@ export default function ScanContent() {
 			</div>
 
 			{/* Storage Status Section */}
-			<div className="mt-4 mb-4 sm:mt-8 sm:mb-6">
-				<StorageStatus />
-			</div>
+			{isMobile ? (
+				<Collapsible className="mb-4 w-full">
+					<CollapsibleTrigger asChild>
+						<Button
+							variant="outline"
+							className="mt-8 mb-4 w-full rounded-none border-foreground/50 py-6"
+						>
+							Show Scan Statistics
+							<ChevronDown className="mr-2.5 size-4" />
+						</Button>
+					</CollapsibleTrigger>
+					<CollapsibleContent className="border border-foreground/50 bg-background py-4 ps-4 pe-1">
+						<Carousel className="w-full pb-4">
+							<CarouselContent>
+								<CarouselItem className="basis-[80%]">
+									<div className="h-full">
+										<StorageStatus />
+									</div>
+								</CarouselItem>
+								<CarouselItem className="basis-3/4">
+									{scanResults.length > 0 ? (
+										<div className="h-full">
+											<StatsGrid scanResults={scanResults} />
+										</div>
+									) : (
+										<div className="flex flex-col items-center justify-center">
+											<div className="border bg-muted p-2">
+												<ScanLine className="size-16 text-muted-foreground/30" />
+											</div>
+											<h3 className="mb-2 font-bold text-lg">No Scans Yet</h3>
+											<p className="max-w-xs text-muted-foreground text-sm">
+												Scanned tickets will appear here in real-time
+											</p>
+										</div>
+									)}
+								</CarouselItem>
+							</CarouselContent>
+						</Carousel>
+					</CollapsibleContent>
+				</Collapsible>
+			) : (
+				<div className="grid grid-cols-2 gap-8 pb-4 md:pb-8">
+					<div className="h-full">
+						<StorageStatus />
+					</div>
 
-			{/* Statistics Bar */}
-			{scanResults.length > 0 && (
-				<div className="mb-4 sm:mb-6">
-					<StatsGrid scanResults={scanResults} />
+					{/* Statistics Bar */}
+					{scanResults.length > 0 ? (
+						<div className="h-full">
+							<StatsGrid scanResults={scanResults} />
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center">
+							<div className="border bg-muted p-2">
+								<ScanLine className="size-16 text-muted-foreground/30" />
+							</div>
+							<h3 className="mb-2 font-bold text-lg">No Scans Yet</h3>
+							<p className="max-w-xs text-muted-foreground text-sm">
+								Scanned tickets will appear here in real-time
+							</p>
+						</div>
+					)}
 				</div>
 			)}
 

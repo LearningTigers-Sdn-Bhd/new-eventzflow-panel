@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
-import { columns } from "./table/columns";
-import { DataTable } from "./table/data-table";
 import { ContractorFormContent } from "./contractor-form-dialog";
+import { DataTable } from "./table/exhibitor-contractor-table";
+import { columns } from "./table/exhibitor-contractor-table-columns";
 
 interface ContractorClientWrapperProps {
 	contractors: ExhibitionContractor[];
@@ -46,7 +46,9 @@ export default function ContractorClientWrapper({
 		return (
 			<div className="flex h-[50vh] flex-col items-center justify-center text-center">
 				<HardHat className="mb-4 h-12 w-12 text-muted-foreground" />
-				<h3 className="mb-2 font-semibold text-lg">Failed to load contractors</h3>
+				<h3 className="mb-2 font-semibold text-lg">
+					Failed to load contractors
+				</h3>
 				<p className="text-muted-foreground text-sm">{error.message}</p>
 			</div>
 		);

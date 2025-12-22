@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useId } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,8 +28,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { createVisitor } from "@/lib/api/visitor";
 import type { CreateVisitorRequest } from "@/lib/api/visitor";
+import { createVisitor } from "@/lib/api/visitor";
 
 interface AddVisitorDialogProps {
 	eventId: number;
@@ -91,10 +91,7 @@ export function AddVisitorDialog({
 			newErrors.fullName = "Name must be at least 2 characters";
 		}
 
-		if (
-			email.trim() &&
-			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-		) {
+		if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			newErrors.email = "Please enter a valid email address";
 		}
 
@@ -184,9 +181,7 @@ export function AddVisitorDialog({
 											id={nameId}
 											placeholder="John Doe"
 											value={fullName}
-											onChange={(e) =>
-												handleChange("fullName", e.target.value)
-											}
+											onChange={(e) => handleChange("fullName", e.target.value)}
 											required
 											disabled={createVisitorMutation.isPending}
 										/>
@@ -195,17 +190,13 @@ export function AddVisitorDialog({
 									{/* Email */}
 									<Field orientation="vertical">
 										<FieldLabel htmlFor={emailId}>Email Address</FieldLabel>
-										{errors.email && (
-											<FieldError>{errors.email}</FieldError>
-										)}
+										{errors.email && <FieldError>{errors.email}</FieldError>}
 										<Input
 											id={emailId}
 											type="email"
 											placeholder="john.doe@example.com"
 											value={email}
-											onChange={(e) =>
-												handleChange("email", e.target.value)
-											}
+											onChange={(e) => handleChange("email", e.target.value)}
 											disabled={createVisitorMutation.isPending}
 										/>
 										<FieldDescription>
@@ -221,14 +212,10 @@ export function AddVisitorDialog({
 											type="tel"
 											placeholder="+1 234 567 8900"
 											value={phone}
-											onChange={(e) =>
-												handleChange("phone", e.target.value)
-											}
+											onChange={(e) => handleChange("phone", e.target.value)}
 											disabled={createVisitorMutation.isPending}
 										/>
-										<FieldDescription>
-											Optional phone number
-										</FieldDescription>
+										<FieldDescription>Optional phone number</FieldDescription>
 									</Field>
 
 									{/* Gender */}
@@ -236,9 +223,7 @@ export function AddVisitorDialog({
 										<FieldLabel htmlFor={genderId}>Gender</FieldLabel>
 										<Select
 											value={gender}
-											onValueChange={(value) =>
-												handleChange("gender", value)
-											}
+											onValueChange={(value) => handleChange("gender", value)}
 											disabled={createVisitorMutation.isPending}
 										>
 											<SelectTrigger id={genderId}>
@@ -268,9 +253,7 @@ export function AddVisitorDialog({
 											max="150"
 											placeholder="25"
 											value={age}
-											onChange={(e) =>
-												handleChange("age", e.target.value)
-											}
+											onChange={(e) => handleChange("age", e.target.value)}
 											disabled={createVisitorMutation.isPending}
 										/>
 										<FieldDescription>

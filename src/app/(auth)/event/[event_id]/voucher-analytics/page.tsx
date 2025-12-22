@@ -1,15 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-	DollarSign,
-	Percent,
-	Receipt,
-	Ticket,
-	TrendingUp,
-} from "lucide-react";
+import { DollarSign, Percent, Receipt, Ticket, TrendingUp } from "lucide-react";
 import { use, useMemo } from "react";
-import { StatsCard } from "@/components/analytics-card";
+import {
+	Area,
+	AreaChart,
+	CartesianGrid,
+	Legend,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
+import { StatsCard } from "@/components/admin-ui/analytic";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -19,21 +24,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	AreaChart,
-	Area,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	ResponsiveContainer,
-	Legend,
-} from "recharts";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useAuth } from "@/hooks/use-auth";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 
 interface VoucherAnalyticsPageProps {
 	params: Promise<{
@@ -71,7 +65,9 @@ export default function VoucherAnalyticsPage({
 				event_id: eventId,
 				vendor_id: currentUserVendorId,
 			}),
-		enabled: !Number.isNaN(eventId) && (!permissions.isEventVendor || !!currentUserVendorId),
+		enabled:
+			!Number.isNaN(eventId) &&
+			(!permissions.isEventVendor || !!currentUserVendorId),
 	});
 
 	const formatCurrency = (amount?: number) => {
@@ -173,16 +169,27 @@ export default function VoucherAnalyticsPage({
 					<CardContent>
 						{isLoading ? (
 							<Skeleton className="h-64 w-full" />
-						) : data?.dailyRedemptionTrend && data.dailyRedemptionTrend.length > 0 ? (
+						) : data?.dailyRedemptionTrend &&
+							data.dailyRedemptionTrend.length > 0 ? (
 							<ResponsiveContainer width="100%" height={350}>
 								<AreaChart
 									data={data.dailyRedemptionTrend}
 									margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
 								>
 									<defs>
-										<linearGradient id="colorRedemptions" x1="0" y1="0" x2="0" y2="1">
+										<linearGradient
+											id="colorRedemptions"
+											x1="0"
+											y1="0"
+											x2="0"
+											y2="1"
+										>
 											<stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-											<stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
+											<stop
+												offset="95%"
+												stopColor="#8884d8"
+												stopOpacity={0.1}
+											/>
 										</linearGradient>
 									</defs>
 									<CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
@@ -239,26 +246,32 @@ export default function VoucherAnalyticsPage({
 					<CardContent>
 						{isLoading ? (
 							<Skeleton className="h-64 w-full" />
-						) : data?.topScannedVouchers && data.topScannedVouchers.length > 0 ? (
+						) : data?.topScannedVouchers &&
+							data.topScannedVouchers.length > 0 ? (
 							<div className="space-y-3">
 								{data.topScannedVouchers.map((voucher, index) => (
 									<div
 										key={voucher.voucher_id}
 										className="flex items-center gap-3 border border-border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
 									>
-										<div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-xs">
+										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground text-xs">
 											{index + 1}
 										</div>
 										<div className="min-w-0 flex-1 overflow-hidden">
-											<p className="truncate font-semibold text-sm" title={voucher.voucher_title}>
+											<p
+												className="truncate font-semibold text-sm"
+												title={voucher.voucher_title}
+											>
 												{voucher.voucher_title}
 											</p>
 											<p className="truncate text-muted-foreground text-xs">
 												{voucher.vendor_name || "Unknown Vendor"}
 											</p>
 										</div>
-										<div className="flex-shrink-0 text-right">
-											<p className="font-bold text-lg">{voucher.redemption_count}</p>
+										<div className="shrink-0 text-right">
+											<p className="font-bold text-lg">
+												{voucher.redemption_count}
+											</p>
 											<p className="text-muted-foreground text-xs">scans</p>
 										</div>
 									</div>
@@ -303,7 +316,9 @@ export default function VoucherAnalyticsPage({
 											<TableCell>{transaction.vendor_name || "N/A"}</TableCell>
 											<TableCell className="text-right">
 												{formatCurrency(
-													Number.parseFloat(transaction.transaction_gross_amount),
+													Number.parseFloat(
+														transaction.transaction_gross_amount,
+													),
 												)}
 											</TableCell>
 											<TableCell className="text-right">
@@ -334,4 +349,3 @@ export default function VoucherAnalyticsPage({
 		</div>
 	);
 }
-

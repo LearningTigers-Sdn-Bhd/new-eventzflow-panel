@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	type AddMemberRequest,
 	addGroupMember,
 	getGroupMembers,
 	removeGroupMember,
-	updateGroupMember,
-	type AddMemberRequest,
 	type UpdateMemberRequest,
+	updateGroupMember,
 } from "@/lib/api/group-member";
 
 /**
@@ -26,8 +26,13 @@ export const useAddGroupMember = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ groupId, data }: { groupId: number; data: AddMemberRequest }) =>
-			addGroupMember(groupId, data),
+		mutationFn: ({
+			groupId,
+			data,
+		}: {
+			groupId: number;
+			data: AddMemberRequest;
+		}) => addGroupMember(groupId, data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: ["groups", variables.groupId, "members"],
@@ -73,8 +78,13 @@ export const useRemoveGroupMember = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ groupId, memberId }: { groupId: number; memberId: number }) =>
-			removeGroupMember(groupId, memberId),
+		mutationFn: ({
+			groupId,
+			memberId,
+		}: {
+			groupId: number;
+			memberId: number;
+		}) => removeGroupMember(groupId, memberId),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: ["groups", variables.groupId, "members"],

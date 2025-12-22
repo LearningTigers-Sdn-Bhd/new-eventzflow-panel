@@ -1,10 +1,19 @@
 "use client";
 
-import { CheckCircle2, Gift, Loader2, Percent, Ticket, User, Wallet, X } from "lucide-react";
+import {
+	CheckCircle2,
+	Gift,
+	Loader2,
+	Percent,
+	Ticket,
+	User,
+	Wallet,
+	X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { VoucherDetails, VisitorDetails } from "./types";
+import type { VisitorDetails, VoucherDetails } from "./types";
 
 interface ScannedInfoCardProps {
 	voucherUuid: string | null;
@@ -31,7 +40,7 @@ export function ScannedInfoCard({
 
 	const getVoucherIcon = () => {
 		if (!voucherDetails) return <Ticket className="h-4 w-4 text-green-500" />;
-		
+
 		switch (voucherDetails.voucherType) {
 			case "free_item":
 				return <Gift className="h-4 w-4 text-green-500" />;
@@ -46,14 +55,26 @@ export function ScannedInfoCard({
 
 	const getVoucherValueDisplay = () => {
 		if (!voucherDetails) return null;
-		
+
 		switch (voucherDetails.voucherType) {
 			case "free_item":
-				return <span className="font-semibold text-green-600 text-xs">FREE ITEM</span>;
+				return (
+					<span className="font-semibold text-green-600 text-xs">
+						FREE ITEM
+					</span>
+				);
 			case "percentage":
-				return <span className="font-semibold text-green-600 text-xs">{voucherDetails.voucherValue}% OFF</span>;
+				return (
+					<span className="font-semibold text-green-600 text-xs">
+						{voucherDetails.voucherValue}% OFF
+					</span>
+				);
 			case "fixed_amount":
-				return <span className="font-semibold text-green-600 text-xs">RM {voucherDetails.voucherValue.toFixed(2)} OFF</span>;
+				return (
+					<span className="font-semibold text-green-600 text-xs">
+						RM {voucherDetails.voucherValue.toFixed(2)} OFF
+					</span>
+				);
 			default:
 				return null;
 		}
@@ -61,7 +82,9 @@ export function ScannedInfoCard({
 
 	return (
 		<Card className="overflow-hidden rounded-lg border-primary/20 bg-white p-3 shadow-sm">
-			<h3 className="mb-2 font-semibold text-muted-foreground text-xs">Scanned Information</h3>
+			<h3 className="mb-2 font-semibold text-muted-foreground text-xs">
+				Scanned Information
+			</h3>
 			<div className="flex flex-wrap gap-2">
 				{voucherUuid && (
 					<div className="flex min-w-[200px] flex-1 items-center justify-between rounded-lg border bg-green-50 px-3 py-2">
@@ -76,11 +99,15 @@ export function ScannedInfoCard({
 									<Skeleton className="h-4 w-24" />
 								) : voucherDetails ? (
 									<>
-										<span className="truncate font-medium text-sm">{voucherDetails.title}</span>
+										<span className="truncate font-medium text-sm">
+											{voucherDetails.title}
+										</span>
 										{getVoucherValueDisplay()}
 									</>
 								) : (
-									<span className="truncate font-mono text-xs">{voucherUuid}</span>
+									<span className="truncate font-mono text-xs">
+										{voucherUuid}
+									</span>
 								)}
 							</div>
 						</div>
@@ -110,11 +137,17 @@ export function ScannedInfoCard({
 									<Skeleton className="h-4 w-24" />
 								) : visitorDetails ? (
 									<>
-										<span className="truncate font-medium text-sm">{visitorDetails.fullName}</span>
-										<span className="truncate text-muted-foreground text-xs">({visitorDetails.email || visitorDetails.phone})</span>
+										<span className="truncate font-medium text-sm">
+											{visitorDetails.fullName}
+										</span>
+										<span className="truncate text-muted-foreground text-xs">
+											({visitorDetails.email || visitorDetails.phone})
+										</span>
 									</>
 								) : (
-									<span className="truncate font-mono text-xs">{visitorId}</span>
+									<span className="truncate font-mono text-xs">
+										{visitorId}
+									</span>
 								)}
 							</div>
 						</div>

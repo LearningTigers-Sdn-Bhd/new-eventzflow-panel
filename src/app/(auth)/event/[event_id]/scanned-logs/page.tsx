@@ -3,10 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/scanned-log/columns";
-import { DataTable } from "@/components/pages/scanned-log/data-table";
+import { TicketScanButton } from "@/components/pages/scanned-log/ticket-scan-button";
+import { columns } from "@/components/pages/scanned-log/ticket-scanned-log-columns";
+import { DataTable } from "@/components/pages/scanned-log/ticket-scanned-log-table";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 import { getScanLogs } from "@/lib/api/event/scan-log";
 
@@ -51,6 +53,21 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 		);
 	}, [currentUser, eventStaff]);
 
+	const eventActions = useMemo(
+		() => (
+			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<TicketScanButton
+					eventId={event_id}
+					canScanTickets={canScanTickets}
+					onRefetch={refetch}
+				/>
+			</div>
+		),
+		[canScanTickets, event_id, refetch],
+	);
+
+	useSetEventActions(eventActions);
+
 	return (
 		<div className="space-y-4">
 			{isLoading ? (
@@ -67,13 +84,7 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 					}
 				/>
 			) : (
-				<DataTable
-					columns={columns}
-					data={scannedLogs || []}
-					eventId={event_id}
-					onRefetch={refetch}
-					canScanTickets={canScanTickets}
-				/>
+				<DataTable columns={columns} data={scannedLogs || []} />
 			)}
 		</div>
 	);

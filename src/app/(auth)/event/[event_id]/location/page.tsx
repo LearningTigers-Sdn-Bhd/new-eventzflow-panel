@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { columns } from "@/components/pages/location/columns";
-import { DataTable } from "@/components/pages/location/data-table";
-import { LocationPageButton } from "@/components/pages/location/page-action/button";
+import { LocationPageButton } from "@/components/pages/location/event-location-action-modal/create-event-location-button";
+import { DataTable } from "@/components/pages/location/event-location-table";
+import { columns } from "@/components/pages/location/event-location-table-columns";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";

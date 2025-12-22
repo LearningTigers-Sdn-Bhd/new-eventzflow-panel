@@ -1,28 +1,22 @@
 "use client";
 
+import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useId, useState } from "react";
+import { useId } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+import DateTimePickerField from "@/components/admin-ui/form/date-time-picker";
+import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { RadioGroupCard } from "@/components/admin-ui/form/radio-group-card";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
-	Field,
-	FieldError,
+	FieldContent,
+	FieldDescription,
 	FieldGroup,
 	FieldLabel,
-	FieldSeparator,
-	FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { createEvent } from "@/lib/api/event";
 import { getTeamMembers } from "@/lib/api/team";
@@ -32,11 +26,44 @@ interface CreateEventFormProps {
 	onClose: () => void;
 }
 
+// Form schema for validation (using camelCase for form state)
+const formSchema = z
+	.object({
+		title: z.string().min(3, "Event name must be at least 3 characters"),
+		visibility: z.boolean(),
+		useTicket: z.boolean(),
+		useExhibitorKit: z.boolean(),
+		allowPrintingServices: z.boolean(),
+		status: z.enum(["draft", "published", "cancelled"]),
+		eventAdminId: z.union([z.string(), z.undefined()]),
+		description: z.string(),
+		startDate: z
+			.union([z.date(), z.undefined()])
+			.refine((val) => val instanceof Date, {
+				message: "Start date is required",
+			}),
+		endDate: z
+			.union([z.date(), z.undefined()])
+			.refine((val) => val instanceof Date, {
+				message: "End date is required",
+			}),
+	})
+	.refine(
+		(data) => {
+			if (!data.startDate || !data.endDate) return true; // Required validation handled above
+			return data.endDate >= data.startDate;
+		},
+		{
+			message: "End date must be after start date",
+			path: ["endDate"],
+		},
+	);
+
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const { user } = useAuth();
 	const titleId = useId();
-	const visibilityId = useId();
-	const useTicketId = useId();
+	const _visibilityId = useId();
+	const _useTicketId = useId();
 	const useExhibitorKitId = useId();
 	const allowPrintingServicesId = useId();
 	const statusId = useId();
@@ -44,20 +71,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const descriptionId = useId();
 	const startDateId = useId();
 	const endDateId = useId();
-
-	const [formData, setFormData] = useState({
-		title: "",
-		visibility: true,
-		use_ticket: true,
-		use_exhibitor_kit: false,
-		allow_contractor_printing_services: false,
-		status: "draft" as "draft" | "published" | "cancelled",
-		event_admin_id: undefined as string | undefined,
-		description: "",
-		start_date: undefined as Date | undefined,
-		end_date: undefined as Date | undefined,
-	});
-	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Only org_owner can assign event admin
 	const canAssignEventAdmin = user?.role === "org_owner";
@@ -90,358 +103,433 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 		},
 	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		const newErrors: Record<string, string> = {};
-
-		// Validation
-		if (!formData.title || formData.title.trim().length < 3) {
-			newErrors.title = "Event name must be at least 3 characters";
-		}
-
-		if (!formData.start_date) {
-			newErrors.start_date = "Start date is required";
-		}
-
-		if (!formData.end_date) {
-			newErrors.end_date = "End date is required";
-		}
-
-		if (formData.start_date && formData.end_date) {
-			if (formData.end_date < formData.start_date) {
-				newErrors.end_date = "End date must be after start date";
-			}
-		}
-
-		if (Object.keys(newErrors).length > 0) {
-			setErrors(newErrors);
-			return;
-		}
-
-		try {
-			const payload: {
-				title: string;
-				visibility: boolean;
-				use_ticket: boolean;
-				use_exhibitor_kit: boolean;
-				allow_contractor_printing_services: boolean;
-				status: "draft" | "published" | "cancelled";
-				event_admin_id?: number;
-				description?: string;
-				start_date: string;
-				end_date: string;
-				multiple_scans: boolean;
-			} = {
-				title: formData.title.trim(),
-				visibility: formData.visibility ?? true,
-				use_ticket: formData.use_ticket ?? true,
-				use_exhibitor_kit: formData.use_exhibitor_kit ?? false,
-				allow_contractor_printing_services: formData.allow_contractor_printing_services ?? false,
-				status: formData.status ?? "draft",
-				description: formData.description.trim() || undefined,
-				start_date: formData.start_date?.toISOString() || "",
-				end_date: formData.end_date?.toISOString() || "",
+	const form = useForm({
+		defaultValues: {
+			title: "",
+			visibility: true,
+			useTicket: true,
+			useExhibitorKit: false,
+			allowPrintingServices: false,
+			status: "draft" as "draft" | "published" | "cancelled",
+			eventAdminId: undefined as string | undefined,
+			description: "",
+			startDate: undefined as Date | undefined,
+			endDate: undefined as Date | undefined,
+		},
+		validators: {
+			onSubmit: formSchema,
+		},
+		onSubmit: async ({ value }) => {
+			const payload = {
+				title: value.title.trim(),
+				visibility: value.visibility ?? true,
+				use_ticket: value.useTicket ?? true,
+				use_exhibitor_kit: value.useExhibitorKit ?? false,
+				allow_contractor_printing_services:
+					value.allowPrintingServices ?? false,
+				status: value.status ?? "draft",
+				description: value.description.trim() || undefined,
+				start_date: value.startDate?.toISOString() || "",
+				end_date: value.endDate?.toISOString() || "",
 				multiple_scans: false,
+				...(value.eventAdminId && {
+					event_admin_id: Number(value.eventAdminId),
+				}),
 			};
 
-			if (formData.event_admin_id) {
-				// Convert string ID to number for backend API
-				payload.event_admin_id = Number(formData.event_admin_id);
-			}
-
 			await createEventMutation.mutateAsync(payload);
-		} catch (_error) {
-			// Error is handled by onError callback
-		}
-	};
-
-	const handleChange = (
-		field: keyof typeof formData,
-		value: string | Date | number | boolean | undefined,
-	) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
-		// Clear error when user starts typing
-		if (errors[field]) {
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors[field];
-				return newErrors;
-			});
-		}
-	};
+		},
+	});
 
 	return (
-		<div className="w-full">
-			<form onSubmit={handleSubmit}>
-				<FieldSet>
-					<FieldSeparator />
-					<FieldGroup>
-						{/* Row 1: Event Title (Full Width) */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={titleId}>Event Title *</FieldLabel>
-							{errors.title && <FieldError>{errors.title}</FieldError>}
-							<Input
-								id={titleId}
-								placeholder="Enter event title"
-								value={formData.title}
-								onChange={(e) => handleChange("title", e.target.value)}
-								required
-								disabled={createEventMutation.isPending}
-								autoFocus
-							/>
-						</Field>
+		<div className="h-full w-full px-2 pb-8 md:px-6">
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+				className="flex min-h-full w-full flex-col justify-between gap-4"
+			>
+				<FieldGroup className="flex-1 gap-6 px-2 md:gap-4 md:px-2">
+					{/* Row 1: Event Title (Full Width) */}
+					<form.Field name="title">
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
+							return (
+								<InputLabel
+									label="Event Title"
+									htmlFor={titleId}
+									value={field.state.value}
+									onChange={field.handleChange}
+									onBlur={field.handleBlur}
+									errors={field.state.meta.errors}
+									isInvalid={isInvalid}
+									placeholder="Enter event title"
+									disabled={createEventMutation.isPending}
+									autoFocus
+									required
+								/>
+							);
+						}}
+					</form.Field>
 
-						{/* Row 2: All Toggles in one row - dynamically adjust columns based on ticketing and exhibitor kit state */}
-						<div className={`grid grid-cols-1 gap-4 ${
-							!formData.use_ticket 
-								? 'md:grid-cols-2' 
-								: formData.use_exhibitor_kit 
-									? 'md:grid-cols-4' 
-									: 'md:grid-cols-3'
-						}`}>
-							{/* Visibility */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={visibilityId}>Visibility</FieldLabel>
-								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-									<Switch
-										id={visibilityId}
-										checked={formData.visibility}
-										onCheckedChange={(checked) =>
-											handleChange("visibility", checked)
-										}
-										disabled={createEventMutation.isPending}
-									/>
-									<span className="ml-2 text-muted-foreground text-sm">
-										{formData.visibility ? "Visible" : "Hidden"}
-									</span>
-								</div>
-							</Field>
-
-							{/* Ticketing System */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={useTicketId}>Use Ticketing System</FieldLabel>
-								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-									<Switch
-										id={useTicketId}
-										checked={formData.use_ticket}
-										onCheckedChange={(checked) => {
-											handleChange("use_ticket", checked);
-											// Reset exhibitor kit and printing services when ticketing is disabled
-											if (!checked) {
-												handleChange("use_exhibitor_kit", false);
-												handleChange("allow_contractor_printing_services", false);
-											}
+					{/* Row 2: Visibility, EventTypes, and ExhibitorKit/Printing row */}
+					<form.Field name="useExhibitorKit" mode="array">
+						{(exhibitorKitField) => {
+							const useExhibitorKitValue = exhibitorKitField.state.value;
+							return (
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-4">
+									{/* Visibility */}
+									<form.Field name="visibility">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<RadioGroupCard
+													label="Event Visibility"
+													description="Select if you want to make your event visible to the public."
+													options={[
+														{
+															value: "yes",
+															label: "Visible",
+															description:
+																"The event will be visible to the public.",
+														},
+														{
+															value: "no",
+															label: "Hidden",
+															description:
+																"The event will not be visible to the public.",
+														},
+													]}
+													value={field.state.value ? "yes" : "no"}
+													onChange={(value) =>
+														field.handleChange(value === "yes")
+													}
+													onBlur={field.handleBlur}
+													errors={field.state.meta.errors}
+													isInvalid={isInvalid}
+													disabled={createEventMutation.isPending}
+												/>
+											);
 										}}
-										disabled={createEventMutation.isPending}
-									/>
-									<span className="ml-2 text-muted-foreground text-sm">
-										{formData.use_ticket ? "Enabled" : "Disabled"}
-									</span>
-								</div>
-							</Field>
+									</form.Field>
 
-							{/* Exhibitor Kit - only show when ticketing system is enabled */}
-							{formData.use_ticket && (
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={useExhibitorKitId}>Use Exhibitor Kit</FieldLabel>
-									<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-										<Switch
-											id={useExhibitorKitId}
-											checked={formData.use_exhibitor_kit}
+									{/* Ticketing System */}
+									<form.Field name="useTicket">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<RadioGroupCard
+													label="Select Event Types"
+													description="Select the event types you want to use for your event."
+													options={[
+														{
+															value: "yes",
+															label: "Ticket System",
+															description:
+																"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
+														},
+														{
+															value: "no",
+															label: "Visitor System",
+															description:
+																"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
+														},
+													]}
+													value={field.state.value ? "yes" : "no"}
+													onChange={(value) =>
+														field.handleChange(value === "yes")
+													}
+													onBlur={field.handleBlur}
+													errors={field.state.meta.errors}
+													isInvalid={isInvalid}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
+
+									{/* ExhibitorKit and Printing Services Column */}
+									<div className="flex flex-col gap-4">
+										<FieldContent className="flex flex-none flex-col gap-1">
+											<FieldLabel>Exhibitor Kit</FieldLabel>
+											<FieldDescription>
+												Event Exhibitor Kit options.
+											</FieldDescription>
+										</FieldContent>
+										{/* Exhibitor Kit */}
+										<SwitchCardInput
+											label="Enable Exhibitor Kit"
+											description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
+											htmlFor={useExhibitorKitId}
+											variant="no-rounded"
+											border={true}
+											checked={exhibitorKitField.state.value}
 											onCheckedChange={(checked) => {
-												handleChange("use_exhibitor_kit", checked);
+												exhibitorKitField.handleChange(checked);
 												// Reset printing services when exhibitor kit is disabled
 												if (!checked) {
-													handleChange("allow_contractor_printing_services", false);
+													form.setFieldValue("allowPrintingServices", false);
 												}
 											}}
 											disabled={createEventMutation.isPending}
 										/>
-										<span className="ml-2 text-muted-foreground text-sm">
-											{formData.use_exhibitor_kit ? "Enabled" : "Disabled"}
-										</span>
-									</div>
-								</Field>
-							)}
 
-							{/* Use Printing Services - only show when exhibitor kit is enabled */}
-							{formData.use_exhibitor_kit && (
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={allowPrintingServicesId}>
-										Use Printing Services
-									</FieldLabel>
-									<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-										<Switch
-											id={allowPrintingServicesId}
-											checked={formData.allow_contractor_printing_services}
-											onCheckedChange={(checked) =>
-												handleChange("allow_contractor_printing_services", checked)
+										{/* Use Printing Services - only show when exhibitor kit is enabled */}
+										{useExhibitorKitValue && (
+											<form.Field name="allowPrintingServices">
+												{(field) => (
+													<SwitchCardInput
+														label="Allow Printing Services"
+														description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+														htmlFor={allowPrintingServicesId}
+														variant="no-rounded"
+														border={true}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														disabled={createEventMutation.isPending}
+													/>
+												)}
+											</form.Field>
+										)}
+									</div>
+								</div>
+							);
+						}}
+					</form.Field>
+
+					{/* Row 3: Event Status and Event Admin */}
+					{canAssignEventAdmin ? (
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							{/* Event Status */}
+							<form.Field name="status">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<SelectLabel
+											label="Event Status"
+											htmlFor={statusId}
+											value={field.state.value}
+											onChange={(value) =>
+												field.handleChange(
+													value as "draft" | "published" | "cancelled",
+												)
 											}
+											onBlur={field.handleBlur}
+											options={[
+												{ value: "draft", label: "Draft" },
+												{ value: "published", label: "Published" },
+												{ value: "cancelled", label: "Cancelled" },
+											]}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Select event status"
 											disabled={createEventMutation.isPending}
+											required
 										/>
-										<span className="ml-2 text-muted-foreground text-sm">
-											{formData.allow_contractor_printing_services ? "Enabled" : "Disabled"}
-										</span>
-									</div>
-								</Field>
-							)}
-						</div>
+									);
+								}}
+							</form.Field>
 
-						{/* Row 3: Event Status and Event Admin */}
-						{canAssignEventAdmin ? (
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-								{/* Event Status */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={statusId}>Event Status *</FieldLabel>
-									{errors.status && <FieldError>{errors.status}</FieldError>}
-									<Select
-										value={formData.status}
-										onValueChange={(value) =>
-											handleChange(
-												"status",
+							{/* Event Admin - Only visible to org_owner */}
+							<form.Field name="eventAdminId">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<SelectLabel
+											label="Event Admin"
+											htmlFor={eventAdminId}
+											value={field.state.value || ""}
+											onChange={(value) =>
+												field.handleChange(value || undefined)
+											}
+											onBlur={field.handleBlur}
+											options={memberUsers.map((user) => ({
+												value: user.id.toString(),
+												label: `${user.full_name} (${user.email})`,
+											}))}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder={
+												isLoadingUsers
+													? "Loading users..."
+													: "Select event admin (optional)"
+											}
+											disabled={createEventMutation.isPending || isLoadingUsers}
+											emptyMessage={
+												isLoadingUsers
+													? "Loading members..."
+													: "No active members available"
+											}
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+					) : (
+						/* Event Status - Full width for organizers */
+						<form.Field name="status">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<SelectLabel
+										label="Event Status"
+										htmlFor={statusId}
+										description="Select the status of your event."
+										value={field.state.value}
+										onChange={(value) =>
+											field.handleChange(
 												value as "draft" | "published" | "cancelled",
 											)
 										}
+										onBlur={field.handleBlur}
+										options={[
+											{ value: "draft", label: "Draft" },
+											{ value: "published", label: "Published" },
+											{ value: "cancelled", label: "Cancelled" },
+										]}
+										errors={field.state.meta.errors.map((error) => ({
+											message:
+												typeof error === "string" ? error : String(error),
+										}))}
+										isInvalid={isInvalid}
+										placeholder="Select event status"
 										disabled={createEventMutation.isPending}
-									>
-										<SelectTrigger id={statusId} className="w-full">
-											<SelectValue placeholder="Select event status" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="draft">Draft</SelectItem>
-											<SelectItem value="published">Published</SelectItem>
-											<SelectItem value="cancelled">Cancelled</SelectItem>
-										</SelectContent>
-									</Select>
-								</Field>
+										required
+									/>
+								);
+							}}
+						</form.Field>
+					)}
 
-								{/* Event Admin - Only visible to org_owner */}
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={eventAdminId}>Event Admin</FieldLabel>
-									{errors.event_admin_id && (
-										<FieldError>{errors.event_admin_id}</FieldError>
-									)}
-									<Select
-										value={formData.event_admin_id || ""}
-										onValueChange={(value) =>
-											handleChange("event_admin_id", value || undefined)
-										}
-										disabled={createEventMutation.isPending || isLoadingUsers}
-									>
-										<SelectTrigger id={eventAdminId} className="w-full">
-											<SelectValue
-												placeholder={
-													isLoadingUsers
-														? "Loading users..."
-														: "Select event admin (optional)"
-												}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											{memberUsers.length === 0 ? (
-												<div className="px-2 py-1.5 text-muted-foreground text-sm">
-													{isLoadingUsers
-														? "Loading members..."
-														: "No active members available"}
-												</div>
-											) : (
-												memberUsers.map((user) => (
-													<SelectItem key={user.id} value={user.id}>
-														{user.full_name} ({user.email})
-													</SelectItem>
-												))
-											)}
-										</SelectContent>
-									</Select>
-								</Field>
-							</div>
-						) : (
-							/* Event Status - Full width for organizers */
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={statusId}>Event Status *</FieldLabel>
-								{errors.status && <FieldError>{errors.status}</FieldError>}
-								<Select
-									value={formData.status}
-									onValueChange={(value) =>
-										handleChange(
-											"status",
-											value as "draft" | "published" | "cancelled",
-										)
+					{/* Row 4: Start and End Date */}
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						{/* Start Date */}
+						<form.Field
+							name="startDate"
+							validators={{
+								onBlur: ({ value }) => {
+									if (!value) {
+										return "Start date is required";
 									}
-									disabled={createEventMutation.isPending}
-								>
-									<SelectTrigger id={statusId} className="w-full">
-										<SelectValue placeholder="Select event status" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="draft">Draft</SelectItem>
-										<SelectItem value="published">Published</SelectItem>
-										<SelectItem value="cancelled">Cancelled</SelectItem>
-									</SelectContent>
-								</Select>
-							</Field>
-						)}
+									return undefined;
+								},
+							}}
+						>
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<DateTimePickerField
+										label="Start Date"
+										htmlFor={startDateId}
+										value={field.state.value}
+										onChange={(date) => field.handleChange(date || undefined)}
+										errors={field.state.meta.errors.map((error) => ({
+											message:
+												typeof error === "string" ? error : String(error),
+										}))}
+										isInvalid={isInvalid}
+										placeholder="Pick start date and time"
+										disabled={createEventMutation.isPending}
+										required
+									/>
+								);
+							}}
+						</form.Field>
 
-						{/* Row 4: Start and End Date */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-							{/* Start Date */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={startDateId}>Start Date *</FieldLabel>
-								{errors.start_date && (
-									<FieldError>{errors.start_date}</FieldError>
-								)}
-								<DateTimePicker
-									date={formData.start_date}
-									onDateChange={(date) => handleChange("start_date", date)}
+						{/* End Date */}
+						<form.Field
+							name="endDate"
+							validators={{
+								onBlur: ({ value }) => {
+									if (!value) {
+										return "End date is required";
+									}
+									return undefined;
+								},
+							}}
+						>
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<DateTimePickerField
+										label="End Date"
+										htmlFor={endDateId}
+										value={field.state.value}
+										onChange={(date) => field.handleChange(date || undefined)}
+										errors={field.state.meta.errors.map((error) => ({
+											message:
+												typeof error === "string" ? error : String(error),
+										}))}
+										isInvalid={isInvalid}
+										placeholder="Pick end date and time"
+										disabled={createEventMutation.isPending}
+										required
+									/>
+								);
+							}}
+						</form.Field>
+					</div>
+
+					{/* Event Description */}
+					<form.Field name="description">
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
+							return (
+								<InputLabel
+									label="Description"
+									htmlFor={descriptionId}
+									type="textarea"
+									value={field.state.value}
+									onChange={field.handleChange}
+									onBlur={field.handleBlur}
+									errors={field.state.meta.errors}
+									isInvalid={isInvalid}
+									className="min-h-[120px]"
+									placeholder="Enter event description (optional)"
 									disabled={createEventMutation.isPending}
-									placeholder="Pick start date and time"
+									rows={4}
 								/>
-							</Field>
-
-							{/* End Date */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={endDateId}>End Date *</FieldLabel>
-								{errors.end_date && <FieldError>{errors.end_date}</FieldError>}
-								<DateTimePicker
-									date={formData.end_date}
-									onDateChange={(date) => handleChange("end_date", date)}
-									disabled={createEventMutation.isPending}
-									placeholder="Pick end date and time"
-								/>
-							</Field>
-						</div>
-
-						{/* Event Description */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={descriptionId}>Description</FieldLabel>
-							<Textarea
-								id={descriptionId}
-								placeholder="Enter event description (optional)"
-								value={formData.description}
-								onChange={(e) => handleChange("description", e.target.value)}
-								disabled={createEventMutation.isPending}
-								rows={3}
-							/>
-						</Field>
-
-						<FieldSeparator />
-
-						{/* Buttons - Right Aligned */}
-						<div className="flex justify-end gap-2">
+							);
+						}}
+					</form.Field>
+				</FieldGroup>
+				<FieldGroup className="flex flex-col justify-end gap-2 lg:flex-row">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						className="w-full rounded-none py-6 lg:w-auto lg:py-0"
+						disabled={createEventMutation.isPending}
+					>
+						Cancel
+					</Button>
+					<form.Subscribe
+						selector={(state) => [state.canSubmit, state.isSubmitting]}
+					>
+						{([canSubmit, isSubmitting]) => (
 							<Button
-								type="button"
-								variant="outline"
-								onClick={onClose}
-								disabled={createEventMutation.isPending}
+								type="submit"
+								disabled={!canSubmit || createEventMutation.isPending}
+								className="w-full rounded-none py-6 lg:w-auto lg:py-0"
 							>
-								Cancel
+								{createEventMutation.isPending || isSubmitting
+									? "Creating..."
+									: "Create Event"}
 							</Button>
-							<Button type="submit" disabled={createEventMutation.isPending}>
-								{createEventMutation.isPending ? "Creating..." : "Create Event"}
-							</Button>
-						</div>
-					</FieldGroup>
-				</FieldSet>
+						)}
+					</form.Subscribe>
+				</FieldGroup>
 			</form>
 		</div>
 	);

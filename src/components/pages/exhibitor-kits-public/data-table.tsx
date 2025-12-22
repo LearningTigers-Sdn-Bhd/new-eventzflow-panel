@@ -157,7 +157,7 @@ export function DataTable<TData, TValue>({
 											// Handle actions column specially for mobile
 											if (cell.column.id === "actions") {
 												return (
-													<div key={cell.id} className="mt-4 pt-2 border-t border-dashed">
+													<div key={cell.id} className="mt-4 border-t border-dashed pt-2">
 														<div className="w-full">
 															{flexRender(
 																cell.column.columnDef.cell,

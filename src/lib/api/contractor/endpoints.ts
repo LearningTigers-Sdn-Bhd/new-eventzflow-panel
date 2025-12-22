@@ -1,13 +1,17 @@
 import { restClient } from "@/utils/rest-api";
-import type { ExhibitionContractor, ExhibitionContractorProfile, ContractorAssignedEvent } from "./response";
 import {
 	type CreateContractorRequest,
 	createContractorSchema,
-	type UpdateContractorRequest,
-	updateContractorSchema,
 	type ToggleStatusRequest,
 	toggleStatusSchema,
+	type UpdateContractorRequest,
+	updateContractorSchema,
 } from "./request";
+import type {
+	ContractorAssignedEvent,
+	ExhibitionContractor,
+	ExhibitionContractorProfile,
+} from "./response";
 
 /**
  * Get all exhibition contractors (users with exhibition_contractor role)
@@ -20,7 +24,9 @@ export async function getContractors(): Promise<ExhibitionContractor[]> {
  * Get a single exhibition contractor by id
  */
 export async function getContractor(id: number): Promise<ExhibitionContractor> {
-	return restClient.get<ExhibitionContractor>(`v1/exhibition_contractors/${id}`);
+	return restClient.get<ExhibitionContractor>(
+		`v1/exhibition_contractors/${id}`,
+	);
 }
 
 /**
@@ -68,8 +74,12 @@ export async function toggleContractorStatus(
 /**
  * Delete an exhibition contractor
  */
-export async function deleteContractor(id: number): Promise<ExhibitionContractor> {
-	return restClient.delete<ExhibitionContractor>(`v1/exhibition_contractors/${id}`);
+export async function deleteContractor(
+	id: number,
+): Promise<ExhibitionContractor> {
+	return restClient.delete<ExhibitionContractor>(
+		`v1/exhibition_contractors/${id}`,
+	);
 }
 
 // ============================================
@@ -93,7 +103,12 @@ export async function getContractorProfile(
  */
 export async function updateContractorProfile(
 	id: number,
-	data: Partial<Omit<ExhibitionContractorProfile, "id" | "user_id" | "created_at" | "updated_at">>,
+	data: Partial<
+		Omit<
+			ExhibitionContractorProfile,
+			"id" | "user_id" | "created_at" | "updated_at"
+		>
+	>,
 ): Promise<ExhibitionContractorProfile> {
 	return restClient.patch<ExhibitionContractorProfile>(
 		`v1/exhibition_contractor_profiles/${id}`,
@@ -113,5 +128,3 @@ export async function getContractorAssignedEvents(
 		`v1/exhibition_contractors/${contractorId}/assigned_events`,
 	);
 }
-
-

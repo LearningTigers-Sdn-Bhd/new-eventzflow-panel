@@ -97,16 +97,16 @@ export function QuerySearchField<TData, TValue>(
 			// Set up custom global filter function for selective search
 			table.options.globalFilterFn = (row, _columnId, filterValue) => {
 				const searchTerm = filterValue?.toLowerCase() || "";
-				
+
 				// Get all column IDs to safely check if a column exists
 				const allColumnIds = new Set(
-					table.getAllColumns().map((col) => col.id)
+					table.getAllColumns().map((col) => col.id),
 				);
 
 				// Check if the search term matches any of the specified columns
 				const columnMatch = columns.some((colId) => {
 					let cellValue: unknown;
-					
+
 					// Check if column exists in the table
 					if (allColumnIds.has(colId)) {
 						// Column exists, try to get value from it
@@ -120,7 +120,7 @@ export function QuerySearchField<TData, TValue>(
 						// Column doesn't exist in table, access directly from original data
 						cellValue = (row.original as Record<string, unknown>)[colId];
 					}
-					
+
 					const cellString = cellValue ? String(cellValue).toLowerCase() : "";
 
 					// For phone columns, remove common formatting characters for flexible matching
@@ -169,14 +169,15 @@ export function QuerySearchField<TData, TValue>(
 		const placeholder = props.placeholder || "Search...";
 
 		return (
-			<InputGroup className="rounded-none bg-background">
+			<InputGroup className="rounded-none bg-background py-6 lg:py-0">
 				<InputGroupInput
 					placeholder={placeholder}
 					value={globalFilter}
 					onChange={(event) => setGlobalFilter(event.target.value)}
+					className="placeholder:text-sm placeholder:tracking-tight md:placeholder:text-base md:placeholder:tracking-tight"
 				/>
 				<InputGroupAddon>
-					<Search className="h-4 w-4" />
+					<Search className="mr-2.5 size-4" />
 				</InputGroupAddon>
 				{globalFilter && (
 					<InputGroupAddon align="inline-end">
