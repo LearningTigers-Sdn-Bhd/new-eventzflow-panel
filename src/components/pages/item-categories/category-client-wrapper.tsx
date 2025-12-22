@@ -36,7 +36,7 @@ export default function CategoryClientWrapper({
 			config: {
 				title: "Add Category",
 				description: "Create a new item category.",
-				size: "sm",
+				size: "md",
 			},
 		});
 	};

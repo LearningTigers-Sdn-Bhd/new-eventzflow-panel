@@ -1,13 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Tag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ItemCategory } from "@/lib/api/item-category";
 import { updateItemCategory } from "@/lib/api/item-category";
@@ -65,48 +65,59 @@ export function CategoryEditContent({ category }: CategoryEditContentProps) {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
-			<div className="space-y-2">
-				<Label htmlFor="name">
-					Name <span className="text-destructive">*</span>
-				</Label>
-				<Input
-					id="name"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					placeholder="Enter category name"
-					disabled={isPending}
-				/>
-				{errors.name && (
-					<p className="text-destructive text-sm">{errors.name}</p>
-				)}
+		<form
+			onSubmit={handleSubmit}
+			className="flex h-full flex-col justify-between gap-4 p-0 md:p-4"
+		>
+			<div className="space-y-4">
+				<FormGroupContainer
+					title={{
+						icon: Tag,
+						label: "Edit Category Information",
+						description: "Update the details for the category.",
+					}}
+				>
+					<div className="flex flex-col gap-4">
+						<InputLabel
+							label="Name"
+							description="Enter the name of the category"
+							value={name}
+							onChange={setName}
+							placeholder="Enter category name"
+							disabled={isPending}
+							required
+							isInvalid={!!errors.name}
+							errors={errors.name ? [{ message: errors.name }] : undefined}
+						/>
+						<SwitchCardInput
+							label="Active"
+							description="Toggle for active/inactive categories. Inactive categories will not be available for selection"
+							checked={active}
+							onCheckedChange={setActive}
+							disabled={isPending}
+							variant="no-rounded"
+							border={true}
+							className="px-0"
+						/>
+					</div>
+				</FormGroupContainer>
 			</div>
 
-			<div className="flex items-center justify-between">
-				<div className="space-y-0.5">
-					<Label htmlFor="active">Active</Label>
-					<p className="text-muted-foreground text-sm">
-						Inactive categories won't be available for selection
-					</p>
-				</div>
-				<Switch
-					id="active"
-					checked={active}
-					onCheckedChange={setActive}
-					disabled={isPending}
-				/>
-			</div>
-
-			<div className="flex justify-end gap-2 border-t pt-4">
+			<div className="flex flex-col gap-2 md:flex-row md:justify-end">
 				<Button
 					type="button"
 					variant="outline"
 					onClick={closeDialog}
 					disabled={isPending}
+					className="w-full rounded-none py-6 md:w-auto md:py-2"
 				>
 					Cancel
 				</Button>
-				<Button type="submit" disabled={isPending}>
+				<Button
+					type="submit"
+					disabled={isPending}
+					className="w-full rounded-none py-6 md:w-auto md:py-2"
+				>
 					{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 					Save Changes
 				</Button>
