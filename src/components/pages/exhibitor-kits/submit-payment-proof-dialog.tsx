@@ -15,13 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { updateExhibitorKitPayment, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 
 interface SubmitPaymentProofDialogProps {
@@ -41,7 +34,6 @@ export function SubmitPaymentProofDialog({
 }: SubmitPaymentProofDialogProps) {
 	const queryClient = useQueryClient();
 
-	const [paymentSource, setPaymentSource] = useState<"manual_bank_in" | "payment_gateway">("manual_bank_in");
 	const [paymentProofUrl, setPaymentProofUrl] = useState("");
 	const [externalRef, setExternalRef] = useState("");
 
@@ -52,7 +44,6 @@ export function SubmitPaymentProofDialog({
 	// Pre-fill form with existing payment data when dialog opens
 	useEffect(() => {
 		if (open && payment) {
-			setPaymentSource(payment.paymentSource || "manual_bank_in");
 			setPaymentProofUrl(payment.paymentProofUrl || "");
 			setExternalRef(payment.externalRef || "");
 		}
@@ -66,7 +57,7 @@ export function SubmitPaymentProofDialog({
 				eventId,
 				exhibitorKitId: kitId,
 				paymentId: payment.id.toString(),
-				payment_source: paymentSource,
+				payment_source: "manual_bank_in",
 				payment_proof_url: paymentProofUrl,
 				external_ref: externalRef || undefined,
 			});
@@ -150,24 +141,6 @@ export function SubmitPaymentProofDialog({
 						<div className="rounded-none border bg-muted/30 p-4 text-center">
 							<p className="text-muted-foreground text-sm">Amount to Pay</p>
 							<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="paymentSource">Payment Method</Label>
-							<Select
-								value={paymentSource}
-								onValueChange={(value: "manual_bank_in" | "payment_gateway") =>
-									setPaymentSource(value)
-								}
-							>
-								<SelectTrigger className="rounded-none">
-									<SelectValue placeholder="Select payment method" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="manual_bank_in">Bank Transfer</SelectItem>
-									<SelectItem value="payment_gateway">Payment Gateway</SelectItem>
-								</SelectContent>
-							</Select>
 						</div>
 
 						<div className="space-y-2">

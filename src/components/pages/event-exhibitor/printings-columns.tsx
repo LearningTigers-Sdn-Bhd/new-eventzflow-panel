@@ -1,9 +1,14 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
 
@@ -168,22 +173,50 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrintingWithVendor>[] = [
 	},
 	{
 		accessorKey: "file_reference",
-		size: 150,
-		header: () => <p className="font-medium">File</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("file_reference") || "-"}
-			</div>
-		),
+		size: 180,
+		header: () => <p className="font-medium">File Reference</p>,
+		cell: ({ row }) => {
+			const fileRef = row.getValue("file_reference") as string | null;
+			if (!fileRef) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<a
+					href={fileRef}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-1.5 max-w-[180px] text-primary text-sm hover:underline"
+				>
+					<ExternalLink className="size-3.5 shrink-0" />
+					<span className="truncate">View File</span>
+				</a>
+			);
+		},
 	},
 	{
 		accessorKey: "notes",
-		size: 180,
+		size: 200,
 		header: () => <p className="font-medium">Notes</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("notes") || "-"}
-			</div>
-		),
+		cell: ({ row }) => {
+			const notes = row.getValue("notes") as string | null;
+			if (!notes) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<Popover>
+					<PopoverTrigger asChild>
+						<p
+							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm hover:text-foreground transition-colors"
+							title="Click to view full text"
+						>
+							{notes}
+						</p>
+					</PopoverTrigger>
+					<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+						<p className="text-sm break-words">{notes}</p>
+					</PopoverContent>
+				</Popover>
+			);
+		},
 	},
 ];

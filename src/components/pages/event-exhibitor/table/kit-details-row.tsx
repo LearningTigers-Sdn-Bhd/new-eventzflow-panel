@@ -1,9 +1,10 @@
 "use client";
 
-import { Building2, CreditCard, ExternalLink, FileQuestion, Package, Printer, StickyNote, Users } from "lucide-react";
+import { Building2, CreditCard, Package, Printer, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 import type { EventVendor } from "@/lib/api/event-vendor";
 
 function ExpandableText({ text, className }: { text: string; className?: string }) {
@@ -44,9 +45,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 	const teamMembers = kit.exhibitor_team_members || [];
 	const customRequests = kit.custom_requests || [];
 
-	// Calculate totals for display in section subtotals
-	const itemsTotal = items.reduce((sum, item) => sum + (Number(item.agreed_price) * item.quantity), 0);
-	const printingsTotal = printings.reduce((sum, printing) => sum + (Number(printing.agreed_price) * printing.quantity), 0);
+	// Merge items and printings with same IDs
+	const mergedItems = mergeKitItems(items);
+	const mergedPrintings = mergeKitPrintings(printings);
 
 	const pendingRequests = customRequests.filter(req => req.status === "pending").length;
 	const approvedRequests = customRequests.filter(req => req.status === "approved").length;
@@ -246,37 +247,25 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					<div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b">
 						<Package className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Ordered Items ({items.length})
+							Ordered Items ({mergedItems.length})
 						</h4>
 					</div>
-					{items.length > 0 ? (
-						<>
-							<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
-								{items.map((item) => (
-									<div key={item.id} className="border bg-muted/30 p-2 space-y-1">
-										<div className="flex justify-between text-xs">
-											<span className="truncate flex-1 font-medium">
-												{item.rentable_item?.name || `Item #${item.rentable_item_id}`}
-											</span>
-											<span className="text-muted-foreground ml-2">{item.quantity}x</span>
-											<span className="font-medium ml-2 shrink-0">
-												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
-											</span>
-										</div>
-										{item.notes && (
-											<div className="flex items-start gap-1 pt-1 border-t border-dashed">
-												<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-												<ExpandableText text={item.notes} />
-											</div>
-										)}
-									</div>
-								))}
-							</div>
-							<div className="flex justify-between pt-1.5 border-t font-semibold text-xs">
-								<span>Subtotal:</span>
-								<span>RM {itemsTotal.toFixed(2)}</span>
-							</div>
-						</>
+					{mergedItems.length > 0 ? (
+						<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
+							{mergedItems.map((item) => (
+								<div
+									key={item.rentable_item_id}
+									className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
+								>
+									<span className="truncate text-xs font-medium">
+										{item.rentable_item?.name || `Item #${item.rentable_item_id}`}
+									</span>
+									<Badge variant="secondary" className="rounded-none shrink-0 h-5 text-xs">
+										x{item.quantity}
+									</Badge>
+								</div>
+							))}
+						</div>
 					) : (
 						<p className="text-muted-foreground text-xs">No items ordered</p>
 					)}
@@ -287,54 +276,25 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					<div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b">
 						<Printer className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Printing Services ({printings.length})
+							Printing Services ({mergedPrintings.length})
 						</h4>
 					</div>
-					{printings.length > 0 ? (
-						<>
-							<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
-								{printings.map((printing) => (
-									<div key={printing.id} className="border bg-muted/30 p-2 space-y-1">
-										<div className="flex justify-between text-xs">
-											<span className="truncate flex-1 font-medium">
-												{printing.printing_service?.name || `Service #${printing.printing_service_id}`}
-											</span>
-											<span className="text-muted-foreground ml-2">{printing.quantity}x</span>
-											<span className="font-medium ml-2 shrink-0">
-												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
-											</span>
-										</div>
-										{(printing.notes || printing.file_reference) && (
-											<div className="flex flex-col gap-1 pt-1 border-t border-dashed">
-												{printing.notes && (
-													<div className="flex items-start gap-1">
-														<StickyNote className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-														<ExpandableText text={printing.notes} />
-													</div>
-												)}
-												{printing.file_reference && (
-													<div className="flex items-center gap-1">
-														<ExternalLink className="size-2.5 text-primary shrink-0" />
-														<a
-															href={printing.file_reference}
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-primary text-xs hover:underline truncate"
-														>
-															View File
-														</a>
-													</div>
-												)}
-											</div>
-										)}
-									</div>
-								))}
-							</div>
-							<div className="flex justify-between pt-1.5 border-t font-semibold text-xs">
-								<span>Subtotal:</span>
-								<span>RM {printingsTotal.toFixed(2)}</span>
-							</div>
-						</>
+					{mergedPrintings.length > 0 ? (
+						<div className="max-h-32 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent space-y-1">
+							{mergedPrintings.map((printing) => (
+								<div
+									key={printing.printing_service_id}
+									className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
+								>
+									<span className="truncate text-xs font-medium">
+										{printing.printing_service?.name || `Service #${printing.printing_service_id}`}
+									</span>
+									<Badge variant="secondary" className="rounded-none shrink-0 h-5 text-xs">
+										x{printing.quantity}
+									</Badge>
+								</div>
+							))}
+						</div>
 					) : (
 						<p className="text-muted-foreground text-xs">No services ordered</p>
 					)}

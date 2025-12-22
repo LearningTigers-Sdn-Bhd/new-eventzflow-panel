@@ -1,19 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import {
 	Building2,
 	CreditCard,
-	ExternalLink,
-	FileQuestion,
 	Package,
+	Edit,
 	Printer,
-	StickyNote,
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
+import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
+import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
 
 function ExpandableText({ text, className }: { text: string; className?: string }) {
 	return (
@@ -44,6 +46,7 @@ export function ExhibitorKitDetailsSection({
 	eventVendor,
 }: ExhibitorKitDetailsSectionProps) {
 	const kit = eventVendor.exhibitor_kit;
+	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
 	if (!kit) {
 		return null;
@@ -54,15 +57,9 @@ export function ExhibitorKitDetailsSection({
 	const teamMembers = kit.exhibitor_team_members || [];
 	const customRequests = kit.custom_requests || [];
 
-	// Calculate totals for display in section headers
-	const itemsTotal = items.reduce(
-		(sum, item) => sum + Number(item.agreed_price) * item.quantity,
-		0,
-	);
-	const printingsTotal = printings.reduce(
-		(sum, printing) => sum + Number(printing.agreed_price) * printing.quantity,
-		0,
-	);
+	// Merge items and printings with same IDs
+	const mergedItems = mergeKitItems(items);
+	const mergedPrintings = mergeKitPrintings(printings);
 
 	const pendingRequests = customRequests.filter(
 		(req) => req.status === "pending",
@@ -100,21 +97,14 @@ export function ExhibitorKitDetailsSection({
 							{kit.booth_type.replace("_", " ")}
 						</Badge>
 					)}
-					<Badge
-						variant="outline"
-						className={cn(
-							"rounded-none font-bold capitalize",
-							kit.payment_status === "paid" &&
-								"border-green-500 text-green-500",
-							kit.payment_status === "unpaid" && "border-red-500 text-red-500",
-							kit.payment_status === "waived" &&
-								"border-blue-500 text-blue-500",
-							kit.payment_status === "sponsored" &&
-								"border-purple-500 text-purple-500",
-						)}
+					<Button
+						size="sm"
+						className="rounded-none"
+						onClick={() => setIsEditDialogOpen(true)}
 					>
-						{kit.payment_status || "unpaid"}
-					</Badge>
+						<Edit className="size-3.5" />
+						Edit
+					</Button>
 				</div>
 			</div>
 
@@ -360,47 +350,28 @@ export function ExhibitorKitDetailsSection({
 				)}
 
 				{/* Ordered Items */}
-				{items.length > 0 && (
+				{mergedItems.length > 0 && (
 					<div className="rounded-none border bg-background p-4">
-						<div className="mb-3 flex items-center justify-between border-b pb-3">
-							<div className="flex items-center gap-2">
-								<Package className="size-4 text-primary" />
-								<h3 className="font-semibold text-sm uppercase tracking-wide">
-									Ordered Items ({items.length})
-								</h3>
-							</div>
-							<span className="font-semibold text-sm">
-								RM {itemsTotal.toFixed(2)}
-							</span>
+						<div className="mb-3 flex items-center gap-2 border-b pb-3">
+							<Package className="size-4 text-primary" />
+							<h3 className="font-semibold text-sm uppercase tracking-wide">
+								Ordered Items ({mergedItems.length})
+							</h3>
 						</div>
 						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-								{items.map((item) => (
+							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+								{mergedItems.map((item) => (
 									<div
-										key={item.id}
-										className="rounded-none border bg-muted/30 p-3 space-y-2"
+										key={item.rentable_item_id}
+										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
 									>
-										<div className="flex items-start justify-between gap-2">
-											<div className="flex-1 min-w-0">
-												<p className="font-medium text-sm truncate">
-													{item.rentable_item?.name ||
-														`Item #${item.rentable_item_id}`}
-												</p>
-												<p className="text-muted-foreground text-xs">
-													{item.quantity} x RM{" "}
-													{Number(item.agreed_price).toFixed(2)}
-												</p>
-											</div>
-											<span className="font-semibold text-sm shrink-0">
-												RM {(Number(item.agreed_price) * item.quantity).toFixed(2)}
-											</span>
-										</div>
-										{item.notes && (
-											<div className="flex items-start gap-1.5 pt-1 border-t border-dashed">
-												<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-												<ExpandableText text={item.notes} />
-											</div>
-										)}
+										<p className="font-medium text-sm truncate">
+											{item.rentable_item?.name ||
+												`Item #${item.rentable_item_id}`}
+										</p>
+										<Badge variant="secondary" className="rounded-none shrink-0">
+											x{item.quantity}
+										</Badge>
 									</div>
 								))}
 							</div>
@@ -409,64 +380,28 @@ export function ExhibitorKitDetailsSection({
 				)}
 
 				{/* Printing Services */}
-				{printings.length > 0 && (
+				{mergedPrintings.length > 0 && (
 					<div className="rounded-none border bg-background p-4">
-						<div className="mb-3 flex items-center justify-between border-b pb-3">
-							<div className="flex items-center gap-2">
-								<Printer className="size-4 text-primary" />
-								<h3 className="font-semibold text-sm uppercase tracking-wide">
-									Printing Services ({printings.length})
-								</h3>
-							</div>
-							<span className="font-semibold text-sm">
-								RM {printingsTotal.toFixed(2)}
-							</span>
+						<div className="mb-3 flex items-center gap-2 border-b pb-3">
+							<Printer className="size-4 text-primary" />
+							<h3 className="font-semibold text-sm uppercase tracking-wide">
+								Printing Services ({mergedPrintings.length})
+							</h3>
 						</div>
 						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-								{printings.map((printing) => (
+							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+								{mergedPrintings.map((printing) => (
 									<div
-										key={printing.id}
-										className="rounded-none border bg-muted/30 p-3 space-y-2"
+										key={printing.printing_service_id}
+										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
 									>
-										<div className="flex items-start justify-between gap-2">
-											<div className="flex-1 min-w-0">
-												<p className="font-medium text-sm truncate">
-													{printing.printing_service?.name ||
-														`Service #${printing.printing_service_id}`}
-												</p>
-												<p className="text-muted-foreground text-xs">
-													{printing.quantity} x RM{" "}
-													{Number(printing.agreed_price).toFixed(2)}
-												</p>
-											</div>
-											<span className="font-semibold text-sm shrink-0">
-												RM {(Number(printing.agreed_price) * printing.quantity).toFixed(2)}
-											</span>
-										</div>
-										{(printing.notes || printing.file_reference) && (
-											<div className="flex flex-col gap-1.5 pt-1 border-t border-dashed">
-												{printing.notes && (
-													<div className="flex items-start gap-1.5">
-														<StickyNote className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-														<ExpandableText text={printing.notes} />
-													</div>
-												)}
-												{printing.file_reference && (
-													<div className="flex items-center gap-1.5">
-														<ExternalLink className="size-3 text-primary shrink-0" />
-														<a
-															href={printing.file_reference}
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-primary text-xs hover:underline truncate"
-														>
-															View File Reference
-														</a>
-													</div>
-												)}
-											</div>
-										)}
+										<p className="font-medium text-sm truncate">
+											{printing.printing_service?.name ||
+												`Service #${printing.printing_service_id}`}
+										</p>
+										<Badge variant="secondary" className="rounded-none shrink-0">
+											x{printing.quantity}
+										</Badge>
 									</div>
 								))}
 							</div>
@@ -559,6 +494,14 @@ export function ExhibitorKitDetailsSection({
 					</div>
 				)} */}
 			</div>
+
+			{/* Edit Exhibitor Kit Dialog */}
+			<EditExhibitorKitDialog
+				eventId={eventVendor.event_id}
+				kit={kit}
+				open={isEditDialogOpen}
+				onOpenChange={setIsEditDialogOpen}
+			/>
 		</section>
 	);
 }

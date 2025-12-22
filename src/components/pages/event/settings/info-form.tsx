@@ -304,143 +304,166 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							</form.Field>
 						</div>
 
-						{/* Row 2: All Toggles in one row - dynamically adjust columns based on exhibitor kit state */}
-						<form.Field name="useExhibitorKit" mode="array">
-							{(exhibitorKitField) => {
-								const useExhibitorKitValue = exhibitorKitField.state.value;
-								const gridCols = useExhibitorKitValue ? "md:grid-cols-5" : "md:grid-cols-4";
+						{/* Row 2: All Toggles in one row - dynamically adjust columns based on ticketing and exhibitor kit state */}
+						<form.Field name="useTicket" mode="array">
+							{(useTicketField) => {
+								const useTicketValue = useTicketField.state.value;
 								
 								return (
-									<div className={`grid grid-cols-1 gap-4 ${gridCols}`}>
-										<form.Field name="multipleScans">
-											{(field) => {
-												return (
-													<Field orientation="vertical">
-														<FieldLabel htmlFor={field.name}>
-															Multiple Scans
-														</FieldLabel>
-														<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-															<Switch
-																id={field.name}
-																checked={field.state.value}
-																onCheckedChange={(checked) =>
-																	field.handleChange(checked)
-																}
-																disabled={updateEventMutation.isPending}
-															/>
-															<span className="ml-2 text-muted-foreground text-sm">
-																{field.state.value ? "Enabled" : "Disabled"}
-															</span>
-														</div>
-													</Field>
-												);
-											}}
-										</form.Field>
+									<form.Field name="useExhibitorKit" mode="array">
+										{(exhibitorKitField) => {
+											const useExhibitorKitValue = exhibitorKitField.state.value;
+											
+											// Calculate grid columns based on visibility of toggles
+											const getGridCols = () => {
+												if (!useTicketValue) {
+													// Ticketing disabled: Multiple Scans, Visibility (if org_owner), Ticketing
+													return isOrgOwner ? "md:grid-cols-3" : "md:grid-cols-2";
+												}
+												if (useExhibitorKitValue) {
+													// All toggles visible
+													return isOrgOwner ? "md:grid-cols-5" : "md:grid-cols-4";
+												}
+												// Ticketing enabled but exhibitor kit disabled
+												return isOrgOwner ? "md:grid-cols-4" : "md:grid-cols-3";
+											};
+											
+											return (
+												<div className={`grid grid-cols-1 gap-4 ${getGridCols()}`}>
+													<form.Field name="multipleScans">
+														{(field) => {
+															return (
+																<Field orientation="vertical">
+																	<FieldLabel htmlFor={field.name}>
+																		Multiple Scans
+																	</FieldLabel>
+																	<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+																		<Switch
+																			id={field.name}
+																			checked={field.state.value}
+																			onCheckedChange={(checked) =>
+																				field.handleChange(checked)
+																			}
+																			disabled={updateEventMutation.isPending}
+																		/>
+																		<span className="ml-2 text-muted-foreground text-sm">
+																			{field.state.value ? "Enabled" : "Disabled"}
+																		</span>
+																	</div>
+																</Field>
+															);
+														}}
+													</form.Field>
 
-										{/* Only show visibility for org_owner */}
-										{isOrgOwner && (
-											<form.Field name="visibility">
-												{(field) => {
-													return (
-														<Field orientation="vertical">
-															<FieldLabel htmlFor={field.name}>
-																Event Visibility
-															</FieldLabel>
-															<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-																<Switch
-																	id={field.name}
-																	checked={field.state.value}
-																	onCheckedChange={(checked) =>
-																		field.handleChange(checked)
-																	}
-																	disabled={updateEventMutation.isPending}
-																/>
-																<span className="ml-2 text-muted-foreground text-sm">
-																	{field.state.value ? "Visible" : "Hidden"}
-																</span>
-															</div>
-														</Field>
-													);
-												}}
-											</form.Field>
-										)}
+													{/* Only show visibility for org_owner */}
+													{isOrgOwner && (
+														<form.Field name="visibility">
+															{(field) => {
+																return (
+																	<Field orientation="vertical">
+																		<FieldLabel htmlFor={field.name}>
+																			Event Visibility
+																		</FieldLabel>
+																		<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+																			<Switch
+																				id={field.name}
+																				checked={field.state.value}
+																				onCheckedChange={(checked) =>
+																					field.handleChange(checked)
+																				}
+																				disabled={updateEventMutation.isPending}
+																			/>
+																			<span className="ml-2 text-muted-foreground text-sm">
+																				{field.state.value ? "Visible" : "Hidden"}
+																			</span>
+																		</div>
+																	</Field>
+																);
+															}}
+														</form.Field>
+													)}
 
-										<form.Field name="useTicket">
-											{(field) => {
-												return (
 													<Field orientation="vertical">
-														<FieldLabel htmlFor={field.name}>
+														<FieldLabel htmlFor={useTicketField.name}>
 															Use Ticketing System
 														</FieldLabel>
 														<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 															<Switch
-																id={field.name}
-																checked={field.state.value}
-																onCheckedChange={(checked) =>
-																	field.handleChange(checked)
-																}
+																id={useTicketField.name}
+																checked={useTicketField.state.value}
+																onCheckedChange={(checked) => {
+																	useTicketField.handleChange(checked);
+																	// Reset exhibitor kit and printing services when ticketing is disabled
+																	if (!checked) {
+																		form.setFieldValue("useExhibitorKit", false);
+																		form.setFieldValue("allowPrintingServices", false);
+																	}
+																}}
 																disabled={updateEventMutation.isPending}
 															/>
 															<span className="ml-2 text-muted-foreground text-sm">
-																{field.state.value ? "Enabled" : "Disabled"}
+																{useTicketField.state.value ? "Enabled" : "Disabled"}
 															</span>
 														</div>
 													</Field>
-												);
-											}}
-										</form.Field>
 
-										<Field orientation="vertical">
-											<FieldLabel htmlFor={exhibitorKitField.name}>
-												Use Exhibitor Kit
-											</FieldLabel>
-											<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-												<Switch
-													id={exhibitorKitField.name}
-													checked={exhibitorKitField.state.value}
-													onCheckedChange={(checked) => {
-														exhibitorKitField.handleChange(checked);
-														// Reset printing services when exhibitor kit is disabled
-														if (!checked) {
-															form.setFieldValue("allowPrintingServices", false);
-														}
-													}}
-													disabled={updateEventMutation.isPending}
-												/>
-												<span className="ml-2 text-muted-foreground text-sm">
-													{exhibitorKitField.state.value ? "Enabled" : "Disabled"}
-												</span>
-											</div>
-										</Field>
-
-										{/* Only show printing services when exhibitor kit is enabled */}
-										{useExhibitorKitValue && (
-											<form.Field name="allowPrintingServices">
-												{(field) => {
-													return (
+													{/* Only show exhibitor kit when ticketing is enabled */}
+													{useTicketValue && (
 														<Field orientation="vertical">
-															<FieldLabel htmlFor={field.name}>
-																Use Printing Services
+															<FieldLabel htmlFor={exhibitorKitField.name}>
+																Use Exhibitor Kit
 															</FieldLabel>
 															<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
 																<Switch
-																	id={field.name}
-																	checked={field.state.value}
-																	onCheckedChange={(checked) =>
-																		field.handleChange(checked)
-																	}
+																	id={exhibitorKitField.name}
+																	checked={exhibitorKitField.state.value}
+																	onCheckedChange={(checked) => {
+																		exhibitorKitField.handleChange(checked);
+																		// Reset printing services when exhibitor kit is disabled
+																		if (!checked) {
+																			form.setFieldValue("allowPrintingServices", false);
+																		}
+																	}}
 																	disabled={updateEventMutation.isPending}
 																/>
 																<span className="ml-2 text-muted-foreground text-sm">
-																	{field.state.value ? "Enabled" : "Disabled"}
+																	{exhibitorKitField.state.value ? "Enabled" : "Disabled"}
 																</span>
 															</div>
 														</Field>
-													);
-												}}
-											</form.Field>
-										)}
-									</div>
+													)}
+
+													{/* Only show printing services when exhibitor kit is enabled */}
+													{useExhibitorKitValue && (
+														<form.Field name="allowPrintingServices">
+															{(field) => {
+																return (
+																	<Field orientation="vertical">
+																		<FieldLabel htmlFor={field.name}>
+																			Use Printing Services
+																		</FieldLabel>
+																		<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+																			<Switch
+																				id={field.name}
+																				checked={field.state.value}
+																				onCheckedChange={(checked) =>
+																					field.handleChange(checked)
+																				}
+																				disabled={updateEventMutation.isPending}
+																			/>
+																			<span className="ml-2 text-muted-foreground text-sm">
+																				{field.state.value ? "Enabled" : "Disabled"}
+																			</span>
+																		</div>
+																	</Field>
+																);
+															}}
+														</form.Field>
+													)}
+												</div>
+											);
+										}}
+									</form.Field>
 								);
 							}}
 						</form.Field>

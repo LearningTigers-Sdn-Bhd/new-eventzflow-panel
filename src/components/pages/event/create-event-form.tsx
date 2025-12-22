@@ -191,8 +191,14 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 							/>
 						</Field>
 
-						{/* Row 2: All Toggles in one row - dynamically adjust columns based on exhibitor kit state */}
-						<div className={`grid grid-cols-1 gap-4 ${formData.use_exhibitor_kit ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+						{/* Row 2: All Toggles in one row - dynamically adjust columns based on ticketing and exhibitor kit state */}
+						<div className={`grid grid-cols-1 gap-4 ${
+							!formData.use_ticket 
+								? 'md:grid-cols-2' 
+								: formData.use_exhibitor_kit 
+									? 'md:grid-cols-4' 
+									: 'md:grid-cols-3'
+						}`}>
 							{/* Visibility */}
 							<Field orientation="vertical">
 								<FieldLabel htmlFor={visibilityId}>Visibility</FieldLabel>
@@ -218,9 +224,14 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									<Switch
 										id={useTicketId}
 										checked={formData.use_ticket}
-										onCheckedChange={(checked) =>
-											handleChange("use_ticket", checked)
-										}
+										onCheckedChange={(checked) => {
+											handleChange("use_ticket", checked);
+											// Reset exhibitor kit and printing services when ticketing is disabled
+											if (!checked) {
+												handleChange("use_exhibitor_kit", false);
+												handleChange("allow_contractor_printing_services", false);
+											}
+										}}
 										disabled={createEventMutation.isPending}
 									/>
 									<span className="ml-2 text-muted-foreground text-sm">
@@ -229,27 +240,29 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 								</div>
 							</Field>
 
-							{/* Exhibitor Kit */}
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={useExhibitorKitId}>Use Exhibitor Kit</FieldLabel>
-								<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
-									<Switch
-										id={useExhibitorKitId}
-										checked={formData.use_exhibitor_kit}
-										onCheckedChange={(checked) => {
-											handleChange("use_exhibitor_kit", checked);
-											// Reset printing services when exhibitor kit is disabled
-											if (!checked) {
-												handleChange("allow_contractor_printing_services", false);
-											}
-										}}
-										disabled={createEventMutation.isPending}
-									/>
-									<span className="ml-2 text-muted-foreground text-sm">
-										{formData.use_exhibitor_kit ? "Enabled" : "Disabled"}
-									</span>
-								</div>
-							</Field>
+							{/* Exhibitor Kit - only show when ticketing system is enabled */}
+							{formData.use_ticket && (
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={useExhibitorKitId}>Use Exhibitor Kit</FieldLabel>
+									<div className="flex h-9 items-center rounded-lg border border-primary/50 p-4">
+										<Switch
+											id={useExhibitorKitId}
+											checked={formData.use_exhibitor_kit}
+											onCheckedChange={(checked) => {
+												handleChange("use_exhibitor_kit", checked);
+												// Reset printing services when exhibitor kit is disabled
+												if (!checked) {
+													handleChange("allow_contractor_printing_services", false);
+												}
+											}}
+											disabled={createEventMutation.isPending}
+										/>
+										<span className="ml-2 text-muted-foreground text-sm">
+											{formData.use_exhibitor_kit ? "Enabled" : "Disabled"}
+										</span>
+									</div>
+								</Field>
+							)}
 
 							{/* Use Printing Services - only show when exhibitor kit is enabled */}
 							{formData.use_exhibitor_kit && (

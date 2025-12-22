@@ -4,6 +4,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitItem } from "@/lib/api/exhibitor-kit";
 
@@ -168,12 +173,28 @@ export const itemsColumns: ColumnDef<ExhibitorKitItemWithVendor>[] = [
 	},
 	{
 		accessorKey: "notes",
-		size: 180,
+		size: 200,
 		header: () => <p className="font-medium">Notes</p>,
-		cell: ({ row }) => (
-			<div className="text-muted-foreground text-sm">
-				{row.getValue("notes") || "-"}
-			</div>
-		),
+		cell: ({ row }) => {
+			const notes = row.getValue("notes") as string | null;
+			if (!notes) {
+				return <div className="text-muted-foreground text-sm">-</div>;
+			}
+			return (
+				<Popover>
+					<PopoverTrigger asChild>
+						<p
+							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm hover:text-foreground transition-colors"
+							title="Click to view full text"
+						>
+							{notes}
+						</p>
+					</PopoverTrigger>
+					<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+						<p className="text-sm break-words">{notes}</p>
+					</PopoverContent>
+				</Popover>
+			);
+		},
 	},
 ];

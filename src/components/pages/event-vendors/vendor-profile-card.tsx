@@ -41,7 +41,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 							</Badge>
 						)}
 						{canEditProfile && (
-							<Button size="sm" onClick={() => setIsEditDialogOpen(true)}>
+							<Button className="rounded-none" size="sm" onClick={() => setIsEditDialogOpen(true)}>
 								<Edit className="mr-2 h-4 w-4" />
 								Edit
 							</Button>
