@@ -1,26 +1,16 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
+import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-	FieldSeparator,
-	FieldSet,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { useAuth } from "@/hooks/use-auth";
 import { updateTeamMember } from "@/lib/api/team";
 import type { TeamMember } from "./team-member-table-columns";
@@ -40,6 +30,7 @@ export default function EditMemberForm({
 	const phoneId = useId();
 	const passwordId = useId();
 	const roleId = useId();
+	const verifyId = useId();
 
 	const [formData, setFormData] = useState({
 		full_name: member.full_name,
@@ -50,9 +41,10 @@ export default function EditMemberForm({
 		emailVerifiedAt: member.emailVerifiedAt,
 	});
 
-	const isEmailVerified = !!formData.emailVerifiedAt;
-
+	const [showPassword, setShowPassword] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+
+	const isEmailVerified = !!formData.emailVerifiedAt;
 
 	const queryClient = useQueryClient();
 	const updateMemberMutation = useMutation({
@@ -117,137 +109,162 @@ export default function EditMemberForm({
 	};
 
 	return (
-		<div className="w-full">
-			<form onSubmit={handleSubmit}>
-				<FieldSet>
-					<FieldSeparator />
-					<FieldGroup>
-						{/* Name - Full Width */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={nameId}>Name</FieldLabel>
-							{errors.full_name && <FieldError>{errors.full_name}</FieldError>}
-							<Input
-								id={nameId}
+		<div className="h-full w-full px-4 pt-0 md:px-6">
+			<form
+				onSubmit={handleSubmit}
+				className="flex h-full flex-col justify-between gap-4 md:gap-8 md:pb-4"
+			>
+				<FieldSet className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div className="flex flex-col gap-4">
+						<FormGroupContainer
+							title={{
+								icon: User,
+								label: "Account Information",
+								description: "Update the member's personal details",
+							}}
+						>
+							{/* Name - Full Width */}
+							<InputLabel
+								htmlFor={nameId}
+								label="Name"
+								description="Enter the full name of the member"
 								placeholder="John Doe"
 								value={formData.full_name}
-								onChange={(e) => handleChange("full_name", e.target.value)}
+								onChange={(value) => handleChange("full_name", value)}
 								required
 								disabled={updateMemberMutation.isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.full_name}
+								errors={
+									errors.full_name ? [{ message: errors.full_name }] : undefined
+								}
 							/>
-						</Field>
 
-						<FieldSeparator />
-
-						{/* Email and Phone - Two Columns */}
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={emailId}>Email</FieldLabel>
-								{errors.email && <FieldError>{errors.email}</FieldError>}
-								<Input
-									id={emailId}
-									type="email"
+							{/* Email and Phone - Two Columns */}
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<InputLabel
+									htmlFor={emailId}
+									label="Email"
+									description="Email address for login"
+									type="input"
 									placeholder="john.doe@example.com"
 									value={formData.email}
-									onChange={(e) => handleChange("email", e.target.value)}
+									onChange={(value) => handleChange("email", value)}
 									required
 									disabled={updateMemberMutation.isPending}
+									variant="no-rounded"
+									isInvalid={!!errors.email}
+									errors={
+										errors.email ? [{ message: errors.email }] : undefined
+									}
 								/>
-							</Field>
 
-							<Field orientation="vertical">
-								<FieldLabel htmlFor={phoneId}>Phone (Optional)</FieldLabel>
-								<Input
-									id={phoneId}
-									type="tel"
+								<InputLabel
+									htmlFor={phoneId}
+									label="Phone (Optional)"
+									description="Contact number"
+									type="input"
 									placeholder="+1234567890"
 									value={formData.phone}
-									onChange={(e) => handleChange("phone", e.target.value)}
+									onChange={(value) => handleChange("phone", value)}
 									disabled={updateMemberMutation.isPending}
+									variant="no-rounded"
 								/>
-							</Field>
-						</div>
+							</div>
+						</FormGroupContainer>
 
-						<FieldSeparator />
-
-						{/* Role and Verified - Two Columns (org_owner only) */}
+						{/* Role and Verification - Only visible for org_owner */}
 						{user?.role === "org_owner" && member.role !== "org_owner" && (
-							<>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-									<Field orientation="vertical">
-										<FieldLabel htmlFor={roleId}>Role</FieldLabel>
-										<Select
-											value={formData.role}
-											onValueChange={(value) => handleChange("role", value)}
-											disabled={updateMemberMutation.isPending}
-										>
-											<SelectTrigger id={roleId}>
-												<SelectValue placeholder="Select role" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="member">Member</SelectItem>
-												<SelectItem value="organizer">Organizer</SelectItem>
-											</SelectContent>
-										</Select>
-									</Field>
-
-									<Field orientation="vertical">
-										<FieldLabel>Verify Email</FieldLabel>
-										<div className="flex h-9 items-center gap-3 rounded-lg border bg-accent p-2">
-											<Switch
-												checked={isEmailVerified}
-												onCheckedChange={(checked) =>
-													setFormData((prev) => ({
-														...prev,
-														emailVerifiedAt: checked
-															? new Date().toISOString()
-															: null,
-													}))
-												}
-												disabled={updateMemberMutation.isPending}
-											/>
-											<span className="text-sm">
-												{isEmailVerified ? "Verified" : "Not Verified"}
-											</span>
-										</div>
-									</Field>
-								</div>
-								<FieldSeparator />
-							</>
-						)}
-
-						{/* New Password - Full Width */}
-						<Field orientation="vertical">
-							<FieldLabel htmlFor={passwordId}>
-								New Password (Optional)
-							</FieldLabel>
-							<Input
-								id={passwordId}
-								type="password"
-								placeholder="Leave blank to keep current password"
-								value={formData.newPassword}
-								onChange={(e) => handleChange("newPassword", e.target.value)}
-								disabled={updateMemberMutation.isPending}
-							/>
-						</Field>
-
-						<FieldSeparator />
-
-						{/* Buttons - Right Aligned */}
-						<div className="flex justify-end gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={onClose}
-								disabled={updateMemberMutation.isPending}
+							<FormGroupContainer
+								title={{
+									icon: Shield,
+									label: "Member's Role",
+									description:
+										"Assign the role to the member for your organization.",
+								}}
 							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={updateMemberMutation.isPending}>
-								{updateMemberMutation.isPending ? "Saving..." : "Save Changes"}
-							</Button>
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<SelectLabel
+										htmlFor={roleId}
+										label="Role"
+										value={formData.role}
+										onChange={(value) => handleChange("role", value)}
+										options={[
+											{ value: "member", label: "Member" },
+											{ value: "organizer", label: "Organizer" },
+										]}
+										disabled={updateMemberMutation.isPending}
+										variant="no-rounded"
+									/>
+								</div>
+							</FormGroupContainer>
+						)}
+					</div>
+					<FormGroupContainer
+						title={{
+							icon: Lock,
+							label: "Security & Verification",
+							description: "Manage password settings and email verification",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4">
+							<InputActionLabel
+								htmlFor={passwordId}
+								label="New Password"
+								description="Leave blank to keep current"
+								type={showPassword ? "text" : "password"}
+								placeholder="Enter new password"
+								value={formData.newPassword}
+								onChange={(value) => handleChange("newPassword", value)}
+								disabled={updateMemberMutation.isPending}
+								variant="no-rounded"
+								onAction={() => setShowPassword(!showPassword)}
+								actionIcon={showPassword ? <EyeOff /> : <Eye />}
+								actionLabel={showPassword ? "Hide password" : "Show password"}
+							/>
+							<div className="flex flex-col gap-4">
+								<SwitchCardInput
+									htmlFor={verifyId}
+									label="Email Verification"
+									description={isEmailVerified ? "Verified" : "Not Verified"}
+									checked={isEmailVerified}
+									onCheckedChange={(checked) =>
+										setFormData((prev) => ({
+											...prev,
+											emailVerifiedAt: checked
+												? new Date().toISOString()
+												: null,
+										}))
+									}
+									disabled={updateMemberMutation.isPending}
+									variant="no-rounded"
+									border={true}
+									className="bg-background"
+								/>
+							</div>
 						</div>
-					</FieldGroup>
+					</FormGroupContainer>
 				</FieldSet>
+
+				{/* Buttons - Right Aligned */}
+				<FieldGroup className="flex flex-col gap-2 md:flex-row md:justify-end">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						disabled={updateMemberMutation.isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						disabled={updateMemberMutation.isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						{updateMemberMutation.isPending ? "Saving..." : "Save Changes"}
+					</Button>
+				</FieldGroup>
 			</form>
 		</div>
 	);

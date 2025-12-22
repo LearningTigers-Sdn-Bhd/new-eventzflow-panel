@@ -76,7 +76,7 @@ export function TeamMemberActionsMenu({ member }: TeamMemberActionsMenuProps) {
 			config: {
 				title: "Edit Team Member",
 				description: "Update team member information and credentials",
-				size: "2xl",
+				size: "full",
 			},
 		});
 	};

@@ -2,7 +2,6 @@
 
 import { Mail, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
 	Item,
 	ItemActions,
@@ -44,15 +43,17 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 					: "Member";
 
 	return (
-		<Item variant="outline" className="w-full">
+		<Item variant="outline" className="w-full gap-2 rounded-none">
 			<ItemContent className="flex-1">
 				<ItemTitle className="flex items-center justify-between">
-					<span className="flex items-center gap-2">
-						<span className="font-medium">{member.full_name}</span>
+					<span className="font-semibold text-base">{member.full_name}</span>
+				</ItemTitle>
+				<div className="flex flex-col gap-3 text-muted-foreground text-sm">
+					<div className="flex flex-row gap-1">
 						<Badge
 							variant="outline"
 							className={cn(
-								"min-w-16 font-bold capitalize",
+								"w-full max-w-18 rounded-none font-medium capitalize",
 								member.role === "org_owner" &&
 									"border-purple-500 text-purple-500",
 								member.role === "organizer" && "border-blue-500 text-blue-500",
@@ -64,42 +65,34 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
 						</Badge>
 						<Badge
 							className={cn(
-								"min-w-16 font-bold capitalize",
+								"w-full max-w-18 rounded-none font-medium capitalize",
 								member.status === "active" && "bg-green-500",
 								member.status === "inactive" && "bg-red-500",
 							)}
 						>
 							{member.status}
 						</Badge>
-					</span>
-				</ItemTitle>
-				<div className="flex flex-col gap-1 text-muted-foreground text-sm">
-					<span className="flex items-center gap-2">
-						<Mail className="h-3 w-3" />
-						<span className="text-xs">{member.email}</span>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-5 w-5"
-							onClick={handleEmailClick}
-						>
-							<Mail className="size-3" />
-						</Button>
-					</span>
-					{member.phone && (
-						<span className="flex items-center gap-2">
-							<MessageSquare className="h-3 w-3" />
-							<span className="text-xs">{member.phone}</span>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-5 w-5"
+					</div>
+					<div className="flex flex-col gap-2">
+						<div className="flex items-center">
+							<button
+								type="button"
+								className="flex items-center gap-2"
+								onClick={handleEmailClick}
+							>
+								<Mail className="size-4" /> {member.email}
+							</button>
+						</div>
+						{member.phone && (
+							<button
+								type="button"
+								className="flex items-center gap-2"
 								onClick={handleWhatsAppClick}
 							>
-								<MessageSquare className="size-3" />
-							</Button>
-						</span>
-					)}
+								<MessageSquare className="size-4" /> {member.phone}
+							</button>
+						)}
+					</div>
 					<span className="text-xs">
 						Joined on {formatDate(member.createdAt)}
 					</span>
