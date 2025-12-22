@@ -1,10 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Search, X } from "lucide-react";
+import { Check, Loader2, Search, Store, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -179,113 +180,107 @@ export default function AssignVendorDialog({
 	});
 
 	return (
-		<div className="flex h-full flex-col justify-between gap-4 px-4 md:pb-8">
+		<div className="flex h-full flex-col justify-between gap-4 px-4 pt-0 md:pt-4 md:pb-8">
 			<div className="flex flex-col gap-4">
-				{/* Current location info */}
-				<div className="rounded-none border bg-muted/50 p-3">
-					<h3 className="font-semibold text-sm">
-						{location.locationDisplayName || location.name}
-					</h3>
-					<p className="text-muted-foreground text-xs">
-						{selectedVendorIds.length === 0 ? (
-							<span className="text-amber-600">
-								No vendors selected (location will have no assigned vendors)
-							</span>
-						) : (
-							<>
-								{selectedVendorIds.length} vendor
-								{selectedVendorIds.length !== 1 ? "s" : ""} selected
-							</>
-						)}
-					</p>
-				</div>
-
-				{/* Search input */}
-				<div className="relative">
-					<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-					<Input
-						placeholder="Search vendors by name, email, or type..."
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9"
-					/>
-					{searchTerm && (
-						<Button
-							variant="ghost"
-							size="icon"
-							className="absolute top-0.5 right-0.5 size-8"
-							onClick={() => setSearchTerm("")}
-						>
-							<X className="size-4" />
-						</Button>
-					)}
-				</div>
-
-				{/* Vendors list */}
-				<ScrollArea className="h-[400px] rounded-none border">
-					<div className="space-y-1 p-2">
-						{sortedVendors.length === 0 ? (
-							<div className="flex flex-col items-center justify-center py-12 text-center">
-								<p className="text-muted-foreground text-sm">
-									{searchTerm
-										? "No vendors found matching your search"
-										: "No available event vendors"}
-								</p>
-								{!searchTerm && (
-									<p className="mt-2 max-w-xs text-muted-foreground text-xs">
-										{assignedVendorIds.size > 0
-											? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
-											: "Assign vendors to this event first from the Vendors page"}
-									</p>
-								)}
-							</div>
-						) : (
-							sortedVendors.map((eventVendor) => {
-								const vendorId = eventVendor.vendor.id.toString();
-								const isSelected = selectedVendorIds.includes(vendorId);
-								return (
-									<button
-										key={eventVendor.id}
-										type="button"
-										onClick={() => handleToggleVendor(vendorId)}
-										className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
-									>
-										<div
-											className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-												isSelected
-													? "border-primary bg-primary text-primary-foreground"
-													: "border-muted-foreground"
-											}`}
-										>
-											{isSelected && <Check className="size-3" />}
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="flex items-center gap-2">
-												<p className="truncate font-medium text-sm">
-													{eventVendor.vendor.full_name}
-												</p>
-												<Badge
-													variant="outline"
-													className="border-green-500 bg-green-50 text-green-700 text-xs"
-												>
-													{eventVendor.type}
-												</Badge>
-											</div>
-											<p className="truncate text-muted-foreground text-xs">
-												{eventVendor.vendor.email}
-											</p>
-											{eventVendor.vendor.phone && (
-												<p className="truncate text-muted-foreground text-xs">
-													{eventVendor.vendor.phone}
-												</p>
-											)}
-										</div>
-									</button>
-								);
-							})
+				<FormGroupContainer
+					title={{
+						icon: Store,
+						label: location.locationDisplayName || location.name,
+						description:
+							selectedVendorIds.length === 0
+								? "No vendors selected (location will have no assigned vendors)"
+								: `${selectedVendorIds.length} vendor${
+										selectedVendorIds.length !== 1 ? "s" : ""
+									} selected`,
+					}}
+				>
+					{/* Search input */}
+					<div className="relative w-full">
+						<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+						<Input
+							placeholder="Search vendors by name, email, or type..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className="pl-9"
+						/>
+						{searchTerm && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="absolute top-0.5 right-0.5 size-8"
+								onClick={() => setSearchTerm("")}
+							>
+								<X className="size-4" />
+							</Button>
 						)}
 					</div>
-				</ScrollArea>
+
+					{/* Vendors list */}
+					<ScrollArea className="h-[400px] w-full rounded-none border">
+						<div className="space-y-1 p-2">
+							{sortedVendors.length === 0 ? (
+								<div className="flex flex-col items-center justify-center py-12 text-center">
+									<p className="text-muted-foreground text-sm">
+										{searchTerm
+											? "No vendors found matching your search"
+											: "No available event vendors"}
+									</p>
+									{!searchTerm && (
+										<p className="mt-2 max-w-xs text-muted-foreground text-xs">
+											{assignedVendorIds.size > 0
+												? "All vendors are already assigned to other locations. Each vendor can only be assigned to one location."
+												: "Assign vendors to this event first from the Vendors page"}
+										</p>
+									)}
+								</div>
+							) : (
+								sortedVendors.map((eventVendor) => {
+									const vendorId = eventVendor.vendor.id.toString();
+									const isSelected = selectedVendorIds.includes(vendorId);
+									return (
+										<button
+											key={eventVendor.id}
+											type="button"
+											onClick={() => handleToggleVendor(vendorId)}
+											className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
+										>
+											<div
+												className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+													isSelected
+														? "border-primary bg-primary text-primary-foreground"
+														: "border-muted-foreground"
+												}`}
+											>
+												{isSelected && <Check className="size-3" />}
+											</div>
+											<div className="min-w-0 flex-1">
+												<div className="flex items-center gap-2">
+													<p className="truncate font-medium text-sm">
+														{eventVendor.vendor.full_name}
+													</p>
+													<Badge
+														variant="outline"
+														className="border-green-500 bg-green-50 text-green-700 text-xs"
+													>
+														{eventVendor.type}
+													</Badge>
+												</div>
+												<p className="truncate text-muted-foreground text-xs">
+													{eventVendor.vendor.email}
+												</p>
+												{eventVendor.vendor.phone && (
+													<p className="truncate text-muted-foreground text-xs">
+														{eventVendor.vendor.phone}
+													</p>
+												)}
+											</div>
+										</button>
+									);
+								})
+							)}
+						</div>
+					</ScrollArea>
+				</FormGroupContainer>
 			</div>
 
 			{/* Action buttons */}

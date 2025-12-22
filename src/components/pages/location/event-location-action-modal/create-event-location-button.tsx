@@ -9,7 +9,9 @@ export function LocationPageButton() {
 		openDialog({
 			component: InfoForm,
 			config: {
-				title: "Create Location",
+				title: "Create New Location",
+				description:
+					"Fill in required fields to create a new location for your event.",
 				size: "full", // Better for mobile - not too wide
 			},
 		});

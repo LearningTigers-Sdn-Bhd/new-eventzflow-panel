@@ -134,12 +134,12 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="size-8">
+				<Button variant="ghost" size="icon" className="size-8 rounded-none">
 					<MoreVertical className="size-4" />
 					<span className="sr-only">Open menu</span>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-48">
+			<DropdownMenuContent align="end" className="w-48 rounded-none">
 				<DropdownMenuItem onClick={openViewDetails}>
 					<Eye className="mr-2 size-4" />
 					View Details
@@ -148,26 +148,35 @@ export function LocationActionsMenu({ location }: LocationActionsMenuProps) {
 				{/* Only show edit/assign/delete for non-vendors */}
 				{!isVendor && (
 					<>
-						<DropdownMenuItem onClick={openLocationSettings}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={openLocationSettings}
+						>
 							<Pencil className="mr-2 size-4" />
 							Edit Location
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={openAssignMembers}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={openAssignMembers}
+						>
 							<UserPlus className="mr-2 size-4" />
 							Assign Members
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={openAssignVendor}>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={openAssignVendor}
+						>
 							<Store className="mr-2 size-4" />
 							Assign Vendors
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={openDeleteConfirmation}
-							className="text-red-600"
+							className="rounded-none hover:bg-background/50"
 						>
-							<Trash2 className="mr-2 size-4" />
-							Delete Location
+							<Trash2 className="mr-2 size-4 text-red-600" />
+							<span className="text-red-600">Delete Location</span>
 						</DropdownMenuItem>
 					</>
 				)}
