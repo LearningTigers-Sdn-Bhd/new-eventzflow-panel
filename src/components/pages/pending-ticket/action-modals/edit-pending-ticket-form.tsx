@@ -5,11 +5,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
-import { FieldSectionLabel } from "@/components/admin-ui/form/field-section-label";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { User, CreditCard, FileText } from "lucide-react";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { updatePendingTicket } from "@/lib/api/event/pending";
@@ -149,156 +150,125 @@ export default function PendingTicketEditModal({
 				}}
 				className="space-y-8 md:space-y-16"
 			>
-				<FieldSet className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 md:gap-y-8 md:[&>*:last-child]:col-span-2">
-					<FieldGroup className="space-y-0">
+				<FieldSet className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 md:gap-y-8">
+					<FormGroupContainer
+						title={{
+							icon: User,
+							label: "Attendee Information",
+							description: "Update the details of the ticket holder",
+						}}
+					>
 						{/* Attendee Information Section */}
-						<div className="space-y-4">
-							<FieldSectionLabel
-								label="Attendee Information"
-								description="Update the details of the ticket holder"
-								className="border-border border-b pb-2"
-							/>
-
-							<div className="grid grid-cols-1 gap-4">
-								<form.Field
-									name="attendee_name"
-									validators={{
-										onChange: ({ value }) => {
-											if (!value.trim() || value.length < 2) {
-												return "Name must be at least 2 characters";
-											}
-											return undefined;
-										},
-									}}
-								>
-									{(field) => {
-										const errors = field.state.meta.errors;
-										return (
-											<InputLabel
-												label="Full Name"
-												htmlFor={nameId}
-												placeholder="John Doe"
-												value={field.state.value}
-												onChange={(value) => field.handleChange(value)}
-												onBlur={field.handleBlur}
-												required
-												disabled={updateMutation.isPending}
-												errors={errors.map((error) =>
-													error ? { message: String(error) } : undefined,
-												)}
-												isInvalid={errors.some(Boolean)}
-											/>
-										);
-									}}
-								</form.Field>
-
-								<form.Field
-									name="attendee_email"
-									validators={{
-										onChange: ({ value }) => {
-											if (
-												value.trim() &&
-												!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-											) {
-												return "Please enter a valid email address";
-											}
-											return undefined;
-										},
-									}}
-								>
-									{(field) => {
-										const errors = field.state.meta.errors;
-										return (
-											<InputLabel
-												label="Email Address"
-												htmlFor={emailId}
-												placeholder="john.doe@example.com"
-												value={field.state.value}
-												onChange={(value) => field.handleChange(value)}
-												onBlur={field.handleBlur}
-												disabled={updateMutation.isPending}
-												errors={errors.map((error) =>
-													error ? { message: String(error) } : undefined,
-												)}
-												isInvalid={errors.some(Boolean)}
-											/>
-										);
-									}}
-								</form.Field>
-
-								<form.Field name="attendee_phone">
-									{(field) => (
-										<InputLabel
-											label="Phone Number"
-											htmlFor={phoneId}
-											placeholder="+1 234 567 8900"
-											value={field.state.value}
-											onChange={(value) => field.handleChange(value)}
-											onBlur={field.handleBlur}
-											disabled={updateMutation.isPending}
-										/>
-									)}
-								</form.Field>
-							</div>
-						</div>
-					</FieldGroup>
-
-					{/* Ticket Type Section */}
-					<FieldGroup className="space-y-0">
-						<div className="space-y-4">
-							<FieldSectionLabel
-								label="Ticket Type"
-								description="Select an existing ticket type or create a new one"
-								className="border-border border-b pb-2"
-							/>
-
+						<div className="grid grid-cols-1 gap-4">
 							<form.Field
-								name="ticket_type_id"
+								name="attendee_name"
 								validators={{
 									onChange: ({ value }) => {
-										if (!value || value <= 0) {
-											return "Please select a ticket type";
+										if (!value.trim() || value.length < 2) {
+											return "Name must be at least 2 characters";
 										}
 										return undefined;
 									},
 								}}
 							>
 								{(field) => {
-									const adaptedField = {
-										state: {
-											value: field.state.value as number | null,
-											meta: {
-												errors: field.state.meta.errors as (
-													| string
-													| undefined
-												)[],
-											},
-										},
-										handleChange: (value: number) =>
-											(field.handleChange as (val: number) => void)(value),
-									};
-
+									const errors = field.state.meta.errors;
 									return (
-										<TicketTypeFieldSection
-											field={adaptedField}
-											eventId={eventId}
+										<InputLabel
+											label="Full Name"
+											htmlFor={nameId}
+											placeholder="John Doe"
+											value={field.state.value}
+											onChange={(value) => field.handleChange(value)}
+											onBlur={field.handleBlur}
+											required
 											disabled={updateMutation.isPending}
+											errors={errors.map((error) =>
+												error ? { message: String(error) } : undefined,
+											)}
+											isInvalid={errors.some(Boolean)}
 										/>
 									);
 								}}
 							</form.Field>
+
+							<form.Field
+								name="attendee_email"
+								validators={{
+									onChange: ({ value }) => {
+										if (
+											value.trim() &&
+											!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+										) {
+											return "Please enter a valid email address";
+										}
+										return undefined;
+									},
+								}}
+							>
+								{(field) => {
+									const errors = field.state.meta.errors;
+									return (
+										<InputLabel
+											label="Email Address"
+											htmlFor={emailId}
+											placeholder="john.doe@example.com"
+											value={field.state.value}
+											onChange={(value) => field.handleChange(value)}
+											onBlur={field.handleBlur}
+											disabled={updateMutation.isPending}
+											errors={errors.map((error) =>
+												error ? { message: String(error) } : undefined,
+											)}
+											isInvalid={errors.some(Boolean)}
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="attendee_phone">
+								{(field) => (
+									<InputLabel
+										label="Phone Number"
+										htmlFor={phoneId}
+										placeholder="+1 234 567 8900"
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										onBlur={field.handleBlur}
+										disabled={updateMutation.isPending}
+									/>
+								)}
+							</form.Field>
 						</div>
-					</FieldGroup>
+						<form.Field
+							name="ticket_type_id"
+							validators={{
+								onChange: ({ value }) => {
+									if (!value || value <= 0) {
+										return "Please select a ticket type";
+									}
+									return undefined;
+								},
+							}}
+						>
+							{(field) => (
+								<TicketTypeFieldSection
+									field={field}
+									eventId={eventId}
+									disabled={updateMutation.isPending}
+								/>
+							)}
+						</form.Field>
+					</FormGroupContainer>
 
-					{/* Payment Information Section */}
-					<FieldGroup className="space-y-0 md:col-span-2">
-						<div className="space-y-4">
-							<FieldSectionLabel
-								label="Payment Information"
-								description="Payment details for pending ticket verification"
-								className="border-border border-b pb-2"
-							/>
-
+					<div className="flex flex-col gap-4">
+						<FormGroupContainer
+							title={{
+								icon: CreditCard,
+								label: "Payment Information",
+								description: "Payment details for pending ticket verification",
+							}}
+						>
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<form.Field name="payment_status">
 									{(field) => (
@@ -380,26 +350,18 @@ export default function PendingTicketEditModal({
 									)}
 								</form.Field>
 							</div>
-						</div>
-					</FieldGroup>
+						</FormGroupContainer>
 
-					{/* Custom Fields Section */}
-					<FieldGroup className="space-y-0 md:col-span-2">
-						<div className="space-y-4">
-							<FieldSectionLabel
-								label="Custom Labels"
-								description={
-									isLoadingEvent
-										? "Loading custom labels..."
-										: customFields.length > 0
-											? "Update the custom labels configured for this event"
-											: "No custom labels configured for this event"
-								}
-								className="border-border border-b pb-2"
-							/>
-
+						<FormGroupContainer
+							title={{
+								icon: FileText,
+								label: "Additional Information",
+								description:
+									"Fill in the additional information set by the event organizer for the ticket holder",
+							}}
+						>
 							{customFields.length > 0 && (
-								<div className="grid gap-4 md:grid-cols-2">
+								<div className="grid gap-4 md:grid-cols-3 2xl:grid-cols-5">
 									{customFields.map((field) => (
 										<InputLabel
 											key={field.labelKey}
@@ -414,8 +376,8 @@ export default function PendingTicketEditModal({
 									))}
 								</div>
 							)}
-						</div>
-					</FieldGroup>
+						</FormGroupContainer>
+					</div>
 				</FieldSet>
 				<FieldGroup className="mt-6 flex flex-col justify-end gap-2 md:mt-0 md:flex-row">
 					<Button
