@@ -20,8 +20,7 @@ import {
 import type { Booking } from "@/lib/api/business-matching";
 import { useUpdateBooking } from "@/hooks/use-business-matching";
 import { toast } from "sonner";
-import ConfirmDialog from "@/components/pages/event/settings/confirm-dialog";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface BookingCardItemProps {
@@ -33,6 +32,7 @@ interface BookingCardItemProps {
 export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItemProps) {
     const { mutate: updateBooking, isPending } = useUpdateBooking(bmEventId, eventId);
     const queryClient = useQueryClient();
+    const { openConfirm } = useConfirmDialog();
 
     const [displayBooking, setDisplayBooking] = useState(booking); // Local display state
 
@@ -63,8 +63,6 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
 
     const [isEditingValue, setIsEditingValue] = useState(false);
     const [valueDraft, setValueDraft] = useState<string>(displayBooking.potential_deal_value?.toString() || "");
-
-    const [showConfirm, setShowConfirm] = useState(false);
 
     const getCommonBookingData = () => ({
         name: displayBooking.name,
@@ -130,13 +128,19 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
     };
 
     const handleTogglePresent = () => {
-        setShowConfirm(true);
+        openConfirm({
+            message: displayBooking.attendance === "Present" ? "Are you sure you want to unmark this attendee as Present?" : "Mark this attendee as Present?",
+            confirmLabel: displayBooking.attendance === "Present" ? "Unmark" : "Mark",
+            variant: displayBooking.attendance === "Present" ? "warning" : "success",
+            icon: displayBooking.attendance === "Present" ? "alert" : "check",
+            onConfirm: confirmTogglePresent,
+        });
     };
 
     const confirmTogglePresent = () => {
         const isCurrentlyPresent = displayBooking.attendance === "Present";
         const newPresentStatus = isCurrentlyPresent ? "" : "Present";
-        setShowConfirm(false);
+        // setShowConfirm(false); // No longer needed
         updateBooking(
             { bookingId: displayBooking.id, data: { ...getCommonBookingData(), attendance: newPresentStatus } },
             {
@@ -369,20 +373,6 @@ export function BookingCardItem({ booking, bmEventId, eventId }: BookingCardItem
                     )}
                 </CardFooter>
             </Card>
-
-            <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogTitle className="sr-only">Confirm Attendance Change</DialogTitle>
-                    <ConfirmDialog
-                        message={displayBooking.attendance === "Present" ? "Are you sure you want to unmark this attendee as Present?" : "Mark this attendee as Present?"}
-                        confirmLabel={displayBooking.attendance === "Present" ? "Unmark" : "Mark"}
-                        variant={displayBooking.attendance === "Present" ? "warning" : "success"}
-                        icon={displayBooking.attendance === "Present" ? "alert" : "check"}
-                        onConfirm={confirmTogglePresent}
-                        onCancel={() => setShowConfirm(false)}
-                    />
-                </DialogContent>
-            </Dialog>
         </>
     );
 }

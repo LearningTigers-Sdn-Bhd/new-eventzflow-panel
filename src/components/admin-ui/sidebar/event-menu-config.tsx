@@ -11,8 +11,8 @@
  */
 
 import {
-	Building2,
 	Briefcase,
+	Building2,
 	ChartBar,
 	Gift,
 	HardHat,
@@ -109,7 +109,10 @@ const visible = {
 	contractorOnly: (p: Permissions, e?: Event) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
 	businessMatchingAccess: (p: Permissions, e?: Event) =>
-		p.isEventAdmin || p.isOrganizer || p.isEventStaff || e?.use_business_matching === true,
+		p.isEventAdmin ||
+		p.isOrganizer ||
+		p.isEventStaff ||
+		e?.use_business_matching === true,
 };
 
 // ============================================================================
@@ -172,7 +175,8 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "tickets",
 			label: "Tickets",
 			icon: HiTicket,
-			visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+			visible: (p, e) =>
+				visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 			tabs: [
 				{
 					route: "tickets",
@@ -371,7 +375,8 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Ticket Analytics",
 					description: "View event analytics, charts, and insights.",
 					icon: ChartBar,
-					visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+					visible: (p, e) =>
+						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},
 				{
 					route: "mall-live-feed",
