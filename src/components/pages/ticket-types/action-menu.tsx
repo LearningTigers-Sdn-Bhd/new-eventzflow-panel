@@ -1,18 +1,17 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { deleteTicketType, type TicketType } from "@/lib/api/ticket-type";
@@ -80,29 +79,35 @@ export function TicketTypeActionsMenu({
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 rounded-none p-0">
-					<span className="sr-only">Open menu</span>
-					<MoreHorizontal className="h-4 w-4" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="center" side="left" className="rounded-none">
-				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem className="rounded-none" onClick={handleEditClick}>
-					<Pencil className="mr-2 h-4 w-4" />
-					Edit
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					onClick={handleDeleteClick}
-					className="rounded-none text-red-600"
-				>
-					<Trash2 className="mr-2 h-4 w-4" />
-					Delete
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<TooltipProvider delayDuration={0}>
+			<ButtonGroup>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="rounded-none"
+							onClick={handleEditClick}
+						>
+							<Pencil className="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">Edit</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="rounded-none text-red-600 hover:text-red-600"
+							onClick={handleDeleteClick}
+						>
+							<Trash2 className="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">Delete</TooltipContent>
+				</Tooltip>
+			</ButtonGroup>
+		</TooltipProvider>
 	);
 }

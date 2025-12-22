@@ -2,6 +2,7 @@
 
 import { InfoIcon, TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface NavigationItem {
 	id: "event-information" | "custom-labels";
@@ -41,7 +42,10 @@ export default function SettingsNavigation({
 				return (
 					<Button
 						key={item.id}
-						className="w-full justify-start"
+						className={cn(
+							"w-full justify-start rounded-none",
+							isActive && "border",
+						)}
 						variant={isActive ? "secondary" : "ghost"}
 						data-active={isActive}
 						onClick={() => onTabChange(item.id)}

@@ -17,7 +17,7 @@ export function FieldSectionLabel({
 	className,
 }: FieldSectionLabelProps) {
 	return (
-		<FieldContent className={cn("flex flex-none flex-col gap-1", className)}>
+		<FieldContent className={cn("grid grid-cols-1 gap-1", className)}>
 			<FieldLabel>{label}</FieldLabel>
 			{description && (
 				<FieldDescription className="text-balance">

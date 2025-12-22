@@ -8,9 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ApiKey } from "@/lib/api/api-keys";
 import { ApiDocumentation } from "./api-documentation";
-import { generateApiKeysColumns } from "./api-key-table-columns";
-import CreateApiKeyDialog from "./create-api-key-dialog";
 import { ApiKeyTable } from "./api-key-table";
+import CreateApiKeyDialog from "./create-api-key-dialog";
 
 interface ApiKeysClientWrapperProps {
 	apiKeys: ApiKey[];

@@ -83,7 +83,7 @@ export function SwitchCardInput({
 			htmlFor={switchId}
 			className={cn(
 				switchCardVariants({ variant, border }),
-				"block",
+				"block h-full",
 				!disabled && "cursor-pointer",
 				disabled && "cursor-not-allowed opacity-50",
 			)}
@@ -93,7 +93,7 @@ export function SwitchCardInput({
 				orientation={orientation}
 				className={cn(className || fieldClassName)}
 			>
-				<FieldContent>
+				<FieldContent className="h-full">
 					<FieldLabel asChild>
 						<span>
 							{cleanLabel}

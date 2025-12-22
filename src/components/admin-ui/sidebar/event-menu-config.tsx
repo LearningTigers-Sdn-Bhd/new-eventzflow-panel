@@ -15,7 +15,6 @@ import {
 	ChartBar,
 	Gift,
 	HardHat,
-	Info,
 	Logs,
 	MapPin,
 	Package,
@@ -31,6 +30,7 @@ import {
 	Warehouse,
 } from "lucide-react";
 import type { IconType } from "react-icons";
+import { BiInfoSquare } from "react-icons/bi";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
 import type { useEventPermissions } from "@/hooks/use-event-permissions";
@@ -118,9 +118,9 @@ export const eventMenuConfig: EventMenuConfig = {
 	standalone: [
 		{
 			route: "details",
-			label: "Event Details",
-			description: "View and manage event details and information.",
-			icon: Info,
+			label: "Event Information",
+			description: "View and manage event information.",
+			icon: BiInfoSquare,
 		},
 		{
 			route: "vendor-profile",

@@ -1,6 +1,11 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "@/components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -29,6 +34,7 @@ interface InputActionLabelProps
 	// Label props
 	label: string;
 	htmlFor?: string;
+	description?: string;
 
 	// Styling variant
 	variant?: VariantProps<typeof inputVariants>["variant"];
@@ -65,6 +71,7 @@ interface InputActionLabelProps
 export function InputActionLabel({
 	label,
 	htmlFor,
+	description,
 	variant = "no-rounded",
 	value,
 	onChange,
@@ -140,7 +147,11 @@ export function InputActionLabel({
 					</InputGroupAddon>
 				)}
 			</InputGroup>
-			{isInvalid && <FieldError errors={errors} />}
+			{isInvalid ? (
+				<FieldError errors={errors} />
+			) : (
+				description && <FieldDescription>{description}</FieldDescription>
+			)}
 		</Field>
 	);
 }

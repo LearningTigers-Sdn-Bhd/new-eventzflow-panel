@@ -2,15 +2,17 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Box, Cog, InfoIcon } from "lucide-react";
 import * as React from "react";
 import { useId } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 import DateTimePickerField from "@/components/admin-ui/form/date-time-picker";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
-import { RadioGroupCard } from "@/components/admin-ui/form/radio-group-card";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
+import { SwitchStateCardInput } from "@/components/admin-ui/form/switch-state-card-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -198,208 +200,312 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			>
 				<FieldGroup className="flex-1 gap-6 md:gap-8">
 					{/* Row 1: Event Title, Webhook URL, and Event Status */}
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-						<form.Field name="title">
+					<FormGroupContainer
+						title={{
+							icon: InfoIcon,
+							label: "Event Information",
+							description:
+								"Fill in required fields to update the event information.",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<form.Field name="title">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Event Title"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Summer Festival 2024"
+											disabled={updateEventMutation.isPending}
+											required
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="webhookUrl">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Webhook URL"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="https://example.com/webhook"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="status">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<SelectLabel
+											label="Event Status"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={(value) =>
+												field.handleChange(
+													value as
+														| "draft"
+														| "published"
+														| "cancelled"
+														| "completed",
+												)
+											}
+											onBlur={field.handleBlur}
+											options={[
+												{ value: "draft", label: "Draft" },
+												{ value: "published", label: "Published" },
+												{ value: "cancelled", label: "Cancelled" },
+												{ value: "completed", label: "Completed" },
+											]}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Select status"
+											disabled={updateEventMutation.isPending}
+											required
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<form.Field name="startDate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<DateTimePickerField
+											label="Start Date"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={(date) =>
+												field.handleChange(date || new Date())
+											}
+											errors={field.state.meta.errors.map((error) => ({
+												message:
+													typeof error === "string" ? error : String(error),
+											}))}
+											isInvalid={isInvalid}
+											placeholder="Pick start date and time"
+											disabled={updateEventMutation.isPending}
+											required
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="endDate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<DateTimePickerField
+											label="End Date"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={(date) =>
+												field.handleChange(date || new Date())
+											}
+											errors={field.state.meta.errors.map((error) => ({
+												message:
+													typeof error === "string" ? error : String(error),
+											}))}
+											isInvalid={isInvalid}
+											placeholder="Pick end date and time"
+											disabled={updateEventMutation.isPending}
+											required
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+
+						<form.Field name="description">
 							{(field) => {
 								const isInvalid =
 									field.state.meta.isTouched && !field.state.meta.isValid;
 								return (
 									<InputLabel
-										label="Event Title"
+										label="Description"
 										htmlFor={field.name}
+										type="textarea"
 										value={field.state.value}
 										onChange={field.handleChange}
 										onBlur={field.handleBlur}
 										errors={field.state.meta.errors}
 										isInvalid={isInvalid}
-										placeholder="Summer Festival 2024"
+										placeholder="Enter event description..."
+										className="min-h-[120px]"
 										disabled={updateEventMutation.isPending}
-										required
+										rows={4}
 									/>
 								);
 							}}
 						</form.Field>
+					</FormGroupContainer>
 
-						<form.Field name="webhookUrl">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<InputLabel
-										label="Webhook URL"
-										htmlFor={field.name}
-										value={field.state.value}
-										onChange={field.handleChange}
-										onBlur={field.handleBlur}
-										errors={field.state.meta.errors}
-										isInvalid={isInvalid}
-										placeholder="https://example.com/webhook"
-										disabled={updateEventMutation.isPending}
-									/>
-								);
-							}}
-						</form.Field>
-
-						<form.Field name="status">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<SelectLabel
-										label="Event Status"
-										htmlFor={field.name}
-										value={field.state.value}
-										onChange={(value) =>
-											field.handleChange(
-												value as
-													| "draft"
-													| "published"
-													| "cancelled"
-													| "completed",
-											)
-										}
-										onBlur={field.handleBlur}
-										options={[
-											{ value: "draft", label: "Draft" },
-											{ value: "published", label: "Published" },
-											{ value: "cancelled", label: "Cancelled" },
-											{ value: "completed", label: "Completed" },
-										]}
-										errors={field.state.meta.errors}
-										isInvalid={isInvalid}
-										placeholder="Select status"
-										disabled={updateEventMutation.isPending}
-										required
-									/>
-								);
-							}}
-						</form.Field>
-					</div>
-
-					{/* Row 2: Visibility, Event Types, Multiple Scans, and Exhibitor Kit Options */}
-					<form.Field name="useExhibitorKit" mode="array">
-						{(exhibitorKitField) => {
-							const useExhibitorKitValue = exhibitorKitField.state.value;
-
-							return (
-								<div
-									className={cn(
-										"grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2 md:gap-x-4 md:gap-y-8",
-										!isOrgOwner ? "md:[&>*:last-child]:col-span-2" : "",
-									)}
-								>
-									<div className="flex flex-col gap-6 md:gap-4">
-										{/* Only show visibility for org_owner */}
-										{isOrgOwner && (
-											<form.Field name="visibility">
-												{(field) => {
-													const isInvalid =
-														field.state.meta.isTouched &&
-														!field.state.meta.isValid;
-													return (
-														<RadioGroupCard
-															label="Event Visibility"
-															description="Select if you want to make your event visible to the public."
-															options={[
-																{
-																	value: "yes",
-																	label: "Visible",
-																	description:
-																		"The event will be visible to the public.",
-																},
-																{
-																	value: "no",
-																	label: "Hidden",
-																	description:
-																		"The event will not be visible to the public.",
-																},
-															]}
-															value={field.state.value ? "yes" : "no"}
-															onChange={(value) =>
-																field.handleChange(value === "yes")
-															}
-															onBlur={field.handleBlur}
-															errors={field.state.meta.errors}
-															isInvalid={isInvalid}
-															disabled={updateEventMutation.isPending}
-														/>
-													);
-												}}
-											</form.Field>
-										)}
-									</div>
-									{/* Left Column: Visibility (if org_owner) and Event Types */}
-									<div className="flex flex-col gap-6 md:gap-4">
-										<form.Field name="useTicket">
-											{(field) => {
-												const isInvalid =
-													field.state.meta.isTouched &&
-													!field.state.meta.isValid;
-												return (
-													<RadioGroupCard
-														label="Select Event Types"
-														description="Select the event types you want to use for your event."
-														options={[
-															{
-																value: "yes",
-																label: "Ticket System",
-																description:
-																	"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
-															},
-															{
-																value: "no",
-																label: "Visitor System",
-																description:
-																	"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
-															},
-														]}
-														value={field.state.value ? "yes" : "no"}
-														onChange={(value) =>
-															field.handleChange(value === "yes")
-														}
-														onBlur={field.handleBlur}
-														errors={field.state.meta.errors}
-														isInvalid={isInvalid}
-														disabled={updateEventMutation.isPending}
-													/>
-												);
-											}}
-										</form.Field>
-									</div>
-									<div className="flex flex-col gap-4">
-										{/* Exhibitor Kit Section */}
-										<FieldContent className="flex flex-none flex-col gap-1">
-											<FieldLabel>Option Flags</FieldLabel>
-											<FieldDescription>
-												Enable or disable specific features for your event.
-											</FieldDescription>
-										</FieldContent>
-										{/* Multiple Scans */}
-										<form.Field name="multipleScans">
-											{(field) => (
-												<SwitchCardInput
-													label="Multiple Scans"
-													description="Allow tickets or visitors to be scanned multiple times during the event."
-													htmlFor={field.name}
-													variant="no-rounded"
-													border={true}
+					<FormGroupContainer
+						title={{
+							icon: Cog,
+							label: "Event Configuration",
+							description: "Configure the event settings and options.",
+						}}
+					>
+						<div
+							className={cn(
+								"grid grid-cols-1 gap-4",
+								!isOrgOwner ? "xl:grid-cols-2" : "xl:grid-cols-3",
+							)}
+						>
+							{/* Only show visibility for org_owner */}
+							{isOrgOwner && (
+								<div className="flex flex-col gap-6 md:gap-4">
+									{/* Visibility Section */}
+									<FieldContent className="flex w-full flex-none flex-col gap-1">
+										<FieldLabel>Event Visibility</FieldLabel>
+										<FieldDescription className="text-balance">
+											Select the visibility of your event.
+										</FieldDescription>
+									</FieldContent>
+									<form.Field name="visibility">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<SwitchStateCardInput
+													states={{
+														checked: {
+															label: "Visible",
+															description:
+																"The event will be visible to the public.",
+															color: "green",
+														},
+														unchecked: {
+															label: "Hidden",
+															description:
+																"The event will not be visible to the public.",
+															color: "red",
+														},
+													}}
 													checked={field.state.value}
 													onCheckedChange={field.handleChange}
+													onBlur={field.handleBlur}
+													errors={field.state.meta.errors}
+													isInvalid={isInvalid}
 													disabled={updateEventMutation.isPending}
+													variant="no-rounded"
 												/>
-											)}
-										</form.Field>
-									</div>
+											);
+										}}
+									</form.Field>
+								</div>
+							)}
+							{/* Left Column: Visibility (if org_owner) and Event Types */}
+							<div className="flex flex-col gap-6 md:gap-4">
+								{/* Exhibitor Kit Section */}
+								<FieldContent className="flex w-full flex-none flex-col gap-1">
+									<FieldLabel>Event Types</FieldLabel>
+									<FieldDescription className="text-balance">
+										Select the type of event to be held.
+									</FieldDescription>
+								</FieldContent>
+								<form.Field name="useTicket">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<SwitchStateCardInput
+												states={{
+													checked: {
+														label: "Ticket System",
+														description:
+															"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
+														color: "cyan",
+													},
+													unchecked: {
+														label: "Visitor System",
+														description:
+															"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
+														color: "amber",
+													},
+												}}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												onBlur={field.handleBlur}
+												errors={field.state.meta.errors}
+												isInvalid={isInvalid}
+												disabled={updateEventMutation.isPending}
+												variant="no-rounded"
+											/>
+										);
+									}}
+								</form.Field>
+							</div>
+							<div className="flex flex-col gap-4">
+								{/* Exhibitor Kit Section */}
+								<FieldContent className="flex w-full flex-none flex-col gap-1">
+									<FieldLabel>Option Flags</FieldLabel>
+									<FieldDescription className="text-balance">
+										Select the options for your event.
+									</FieldDescription>
+								</FieldContent>
+								{/* Multiple Scans */}
+								<form.Field name="multipleScans">
+									{(field) => (
+										<SwitchCardInput
+											label="Multiple Scans"
+											description="Allow tickets or visitors to be scanned multiple times during the event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+							</div>
+						</div>
+					</FormGroupContainer>
 
-									{/* Right Column: Multiple Scans and Exhibitor Kit Options */}
-									<div className="flex flex-col gap-4">
-										{/* Exhibitor Kit Section */}
-										<FieldContent className="flex flex-none flex-col gap-1">
-											<FieldLabel>Exhibitor Kit</FieldLabel>
-											<FieldDescription>
-												Event Exhibitor Kit options.
-											</FieldDescription>
-										</FieldContent>
+					{/* Row 2: Visibility, Event Types, Multiple Scans, and Exhibitor Kit Options */}
+					<FormGroupContainer
+						title={{
+							icon: Box,
+							label: "Exhibitor Kit",
+							description:
+								"Configure the event with full exhibitor kit features.",
+						}}
+					>
+						{/* Exhibitor Kit Section */}
+						<FieldContent className="flex flex-none flex-col gap-1">
+							<FieldLabel>Exhibitor Kit</FieldLabel>
+							<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
+						</FieldContent>
+						<form.Field name="useExhibitorKit">
+							{(exhibitorKitField) => {
+								const useExhibitorKitValue = exhibitorKitField.state.value;
+
+								return (
+									<div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2")}>
+										{/* Right Column: Multiple Scans and Exhibitor Kit Options */}
 
 										{/* Enable Exhibitor Kit */}
 										<SwitchCardInput
@@ -437,85 +543,12 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											</form.Field>
 										)}
 									</div>
-								</div>
-							);
-						}}
-					</form.Field>
-
-					{/* Row 4: Start Date and End Date */}
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<form.Field name="startDate">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<DateTimePickerField
-										label="Start Date"
-										htmlFor={field.name}
-										value={field.state.value}
-										onChange={(date) => field.handleChange(date || new Date())}
-										errors={field.state.meta.errors.map((error) => ({
-											message:
-												typeof error === "string" ? error : String(error),
-										}))}
-										isInvalid={isInvalid}
-										placeholder="Pick start date and time"
-										disabled={updateEventMutation.isPending}
-										required
-									/>
 								);
 							}}
 						</form.Field>
-
-						<form.Field name="endDate">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								return (
-									<DateTimePickerField
-										label="End Date"
-										htmlFor={field.name}
-										value={field.state.value}
-										onChange={(date) => field.handleChange(date || new Date())}
-										errors={field.state.meta.errors.map((error) => ({
-											message:
-												typeof error === "string" ? error : String(error),
-										}))}
-										isInvalid={isInvalid}
-										placeholder="Pick end date and time"
-										disabled={updateEventMutation.isPending}
-										required
-									/>
-								);
-							}}
-						</form.Field>
-					</div>
-
-					{/* Row 4: Description (Full Width) */}
-					<form.Field name="description">
-						{(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							return (
-								<InputLabel
-									label="Description"
-									htmlFor={field.name}
-									type="textarea"
-									value={field.state.value}
-									onChange={field.handleChange}
-									onBlur={field.handleBlur}
-									errors={field.state.meta.errors}
-									isInvalid={isInvalid}
-									placeholder="Enter event description..."
-									className="min-h-[120px]"
-									disabled={updateEventMutation.isPending}
-									rows={4}
-								/>
-							);
-						}}
-					</form.Field>
+					</FormGroupContainer>
 				</FieldGroup>
-				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 lg:flex-row">
+				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}
 					>

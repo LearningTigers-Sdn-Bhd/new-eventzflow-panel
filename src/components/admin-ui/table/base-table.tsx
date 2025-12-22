@@ -76,7 +76,7 @@ export function BaseTable<TData>({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
+					<TableBody className="border-b">
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow
@@ -87,11 +87,12 @@ export function BaseTable<TData>({
 											? () => clickableRowConfig.onRowClick?.(row.original)
 											: undefined
 									}
-									className={
+									className={cn(
 										clickableRowConfig?.isEnabled
 											? "group cursor-pointer"
-											: undefined
-									}
+											: undefined,
+										"hover:bg-muted/50",
+									)}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell

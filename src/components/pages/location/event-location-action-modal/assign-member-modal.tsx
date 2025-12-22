@@ -1,10 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Search, X } from "lucide-react";
+import { Check, Loader2, Search, Users, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -168,117 +169,111 @@ export default function AssignMembersDialog({
 
 	return (
 		<div className="flex h-full flex-col justify-between gap-4 px-4 md:pb-8">
-			<div className="flex flex-col gap-4">
-				{/* Current location info */}
-				<div className="rounded-none border bg-muted/50 p-3">
-					<h3 className="font-semibold text-sm">
-						{location.locationDisplayName || location.name}
-					</h3>
-					<p className="text-muted-foreground text-xs">
-						{selectedMemberIds.length === 0 ? (
-							<span className="text-amber-600">
-								No members selected (location will have no assigned staff)
-							</span>
-						) : (
-							<>
-								{selectedMemberIds.length} member
-								{selectedMemberIds.length !== 1 ? "s" : ""} selected
-							</>
-						)}
-					</p>
-				</div>
-
-				{/* Search input */}
-				<div className="relative">
-					<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-					<Input
-						placeholder="Search members by name or email..."
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9"
-					/>
-					{searchTerm && (
-						<Button
-							variant="ghost"
-							size="icon"
-							className="absolute top-0.5 right-0.5 size-8"
-							onClick={() => setSearchTerm("")}
-						>
-							<X className="size-4" />
-						</Button>
-					)}
-				</div>
-
-				{/* Members list */}
-				<ScrollArea className="h-[400px] rounded-none border">
-					<div className="space-y-1 p-2">
-						{activeMembers.length === 0 ? (
-							<div className="flex flex-col items-center justify-center py-12 text-center">
-								<p className="text-muted-foreground text-sm">
-									{searchTerm
-										? "No staff members found matching your search"
-										: "No available event staff"}
-								</p>
-								{!searchTerm && (
-									<p className="mt-2 max-w-xs text-muted-foreground text-xs">
-										{assignedMemberIds.size > 0
-											? "All staff are already assigned to other locations. Each staff member can only be assigned to one location."
-											: "Assign staff to this event first from the Team page"}
-									</p>
-								)}
-							</div>
-						) : (
-							activeMembers.map((member) => {
-								const isSelected = selectedMemberIds.includes(member.id);
-								return (
-									<button
-										key={member.id}
-										type="button"
-										onClick={() => handleToggleMember(member.id)}
-										className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
-									>
-										<div
-											className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-												isSelected
-													? "border-primary bg-primary text-primary-foreground"
-													: "border-muted-foreground"
-											}`}
-										>
-											{isSelected && <Check className="size-3" />}
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="flex items-center gap-2">
-												<p className="truncate font-medium text-sm">
-													{member.full_name}
-												</p>
-												<Badge
-													variant="outline"
-													className={`text-xs ${
-														member.eventRole === "event_admin"
-															? "border-blue-500 bg-blue-50 text-blue-700"
-															: "border-gray-500 bg-gray-50 text-gray-700"
-													}`}
-												>
-													{member.eventRole === "event_admin"
-														? "Admin"
-														: "Team Member"}
-												</Badge>
-											</div>
-											<p className="truncate text-muted-foreground text-xs">
-												{member.email}
-											</p>
-											{member.phone && (
-												<p className="truncate text-muted-foreground text-xs">
-													{member.phone}
-												</p>
-											)}
-										</div>
-									</button>
-								);
-							})
+			<div className="flex flex-col gap-4 pt-0 md:pt-4">
+				<FormGroupContainer
+					title={{
+						icon: Users,
+						label: location.locationDisplayName || location.name,
+						description:
+							selectedMemberIds.length === 0
+								? "No members selected (location will have no assigned staff)"
+								: `${selectedMemberIds.length} member${
+										selectedMemberIds.length !== 1 ? "s" : ""
+									} selected`,
+					}}
+				>
+					{/* Search input */}
+					<div className="relative w-full">
+						<Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+						<Input
+							placeholder="Search members by name or email..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className="rounded-none pl-9"
+						/>
+						{searchTerm && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="absolute top-0.5 right-0.5 size-8"
+								onClick={() => setSearchTerm("")}
+							>
+								<X className="size-4" />
+							</Button>
 						)}
 					</div>
-				</ScrollArea>
+
+					{/* Members list */}
+					<ScrollArea className="h-[400px] w-full rounded-none border">
+						<div className="space-y-1 p-2">
+							{activeMembers.length === 0 ? (
+								<div className="flex flex-col items-center justify-center py-12 text-center">
+									<p className="text-muted-foreground text-sm">
+										{searchTerm
+											? "No staff members found matching your search"
+											: "No available event staff"}
+									</p>
+									{!searchTerm && (
+										<p className="mt-2 max-w-xs text-muted-foreground text-xs">
+											{assignedMemberIds.size > 0
+												? "All staff are already assigned to other locations. Each staff member can only be assigned to one location."
+												: "Assign staff to this event first from the Team page"}
+										</p>
+									)}
+								</div>
+							) : (
+								activeMembers.map((member) => {
+									const isSelected = selectedMemberIds.includes(member.id);
+									return (
+										<button
+											key={member.id}
+											type="button"
+											onClick={() => handleToggleMember(member.id)}
+											className="flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted"
+										>
+											<div
+												className={`flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+													isSelected
+														? "border-primary bg-primary text-primary-foreground"
+														: "border-muted-foreground"
+												}`}
+											>
+												{isSelected && <Check className="size-3" />}
+											</div>
+											<div className="min-w-0 flex-1">
+												<div className="flex items-center gap-2">
+													<p className="truncate font-medium text-sm">
+														{member.full_name}
+													</p>
+													<Badge
+														variant="outline"
+														className={`text-xs ${
+															member.eventRole === "event_admin"
+																? "border-blue-500 bg-blue-50 text-blue-700"
+																: "border-gray-500 bg-gray-50 text-gray-700"
+														}`}
+													>
+														{member.eventRole === "event_admin"
+															? "Admin"
+															: "Team Member"}
+													</Badge>
+												</div>
+												<p className="truncate text-muted-foreground text-xs">
+													{member.email}
+												</p>
+												{member.phone && (
+													<p className="truncate text-muted-foreground text-xs">
+														{member.phone}
+													</p>
+												)}
+											</div>
+										</button>
+									);
+								})
+							)}
+						</div>
+					</ScrollArea>
+				</FormGroupContainer>
 			</div>
 
 			{/* Action buttons */}

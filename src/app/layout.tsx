@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "../index.css";
 import Providers from "@/components/providers";
+import { UniversalConfirmDialog } from "@/components/universal-confirm-dialog";
 import { UniversalDialog } from "@/components/universal-dialog";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default function RootLayout({
 					<Providers>
 						{children}
 						<UniversalDialog />
+						<UniversalConfirmDialog />
 					</Providers>
 				</NuqsAdapter>
 			</body>

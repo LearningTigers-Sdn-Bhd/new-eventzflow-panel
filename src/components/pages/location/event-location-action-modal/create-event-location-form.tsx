@@ -2,17 +2,18 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, X } from "lucide-react";
+import { Box, MapPin, Plus, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 import { FieldSectionLabel } from "@/components/admin-ui/form/field-section-label";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
-import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useDialog } from "@/hooks/use-dialog";
 import { createLocation } from "@/lib/api/event/location";
@@ -163,244 +164,233 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 				<FieldSet>
 					{/* Two Column Layout - Stack on mobile, side-by-side on desktop */}
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-						{/* LEFT COLUMN - Location Info */}
-						<div className="space-y-3 md:space-y-4">
-							<div className="border-b pb-1.5 md:pb-2">
-								<FieldSectionLabel
-									label="Location Info"
-									description="Fill in required fields to create the location information."
-								/>
-							</div>
-
-							<FieldGroup>
-								<form.Field name="name">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-										return (
-											<InputLabel
-												label="Name"
-												htmlFor={field.name}
-												description="Provide the location name"
-												value={field.state.value}
-												onChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												placeholder="Main Entrance"
-												autoComplete="name"
-												disabled={createLocationMutation.isPending}
-												required
-											/>
-										);
-									}}
-								</form.Field>
-
-								<form.Field name="floor">
-									{(field) => (
+						<FormGroupContainer
+							title={{
+								icon: MapPin,
+								label: "Location Info",
+								description:
+									"Fill in required fields to create the location information.",
+							}}
+						>
+							<form.Field name="name">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
 										<InputLabel
-											label="Floor (Optional)"
+											label="Name"
 											htmlFor={field.name}
-											description="e.g., 1, 2, Ground, Basement"
-											value={field.state.value || ""}
+											description="Provide the location name"
+											value={field.state.value}
 											onChange={field.handleChange}
-											placeholder="1"
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Main Entrance"
+											autoComplete="name"
 											disabled={createLocationMutation.isPending}
+											required
 										/>
-									)}
-								</form.Field>
+									);
+								}}
+							</form.Field>
 
-								<form.Field name="isUnlimited">
-									{(field) => (
-										<SwitchCardInput
-											label="Unlimited"
-											description="No scan limit for this location"
-											htmlFor={field.name}
-											checked={!!field.state.value}
-											onCheckedChange={(checked) => {
-												const value = !!checked;
-												field.handleChange(value);
-												if (value) {
-													form.setFieldValue("scanLimit", 1);
-												}
+							<form.Field name="floor">
+								{(field) => (
+									<InputLabel
+										label="Floor (Optional)"
+										htmlFor={field.name}
+										description="e.g., 1, 2, Ground, Basement"
+										value={field.state.value || ""}
+										onChange={field.handleChange}
+										placeholder="1"
+										disabled={createLocationMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="isUnlimited">
+								{(field) => (
+									<SwitchCardInput
+										label="Unlimited"
+										description="No scan limit for this location"
+										htmlFor={field.name}
+										checked={!!field.state.value}
+										onCheckedChange={(checked) => {
+											const value = !!checked;
+											field.handleChange(value);
+											if (value) {
+												form.setFieldValue("scanLimit", 1);
+											}
+										}}
+										disabled={createLocationMutation.isPending}
+										variant="no-rounded"
+									/>
+								)}
+							</form.Field>
+							<form.Subscribe selector={(state) => state.values.isUnlimited}>
+								{(isUnlimited) =>
+									!isUnlimited && (
+										<form.Field name="scanLimit">
+											{(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+												return (
+													<NumberInputLabel
+														label="Scan Limit"
+														htmlFor={field.name}
+														description="Maximum number of scans allowed for this location"
+														value={field.state.value ?? 0}
+														onChange={field.handleChange}
+														errors={field.state.meta.errors}
+														isInvalid={isInvalid}
+														min={1}
+														max={9999}
+														step={1}
+														disabled={createLocationMutation.isPending}
+														required
+													/>
+												);
 											}}
-											disabled={createLocationMutation.isPending}
-											variant="no-rounded"
-										/>
-									)}
-								</form.Field>
-								<form.Subscribe selector={(state) => state.values.isUnlimited}>
-									{(isUnlimited) =>
-										!isUnlimited && (
-											<form.Field name="scanLimit">
-												{(field) => {
-													const isInvalid =
-														field.state.meta.isTouched &&
-														!field.state.meta.isValid;
-													return (
-														<NumberInputLabel
-															label="Scan Limit"
-															htmlFor={field.name}
-															description="Maximum number of scans allowed for this location"
-															value={field.state.value ?? 0}
-															onChange={field.handleChange}
-															errors={field.state.meta.errors}
-															isInvalid={isInvalid}
-															min={1}
-															max={9999}
-															step={1}
-															disabled={createLocationMutation.isPending}
-															required
-														/>
-													);
-												}}
-											</form.Field>
-										)
-									}
-								</form.Subscribe>
-							</FieldGroup>
-						</div>
+										</form.Field>
+									)
+								}
+							</form.Subscribe>
+
+							<form.Field name="notes">
+								{(field) => (
+									<InputLabel
+										label="Notes"
+										htmlFor={field.name}
+										description="Additional location information or instructions"
+										type="textarea"
+										value={field.state.value || ""}
+										onChange={field.handleChange}
+										placeholder="Near main entrance, accessible via elevator"
+										disabled={createLocationMutation.isPending}
+									/>
+								)}
+							</form.Field>
+						</FormGroupContainer>
 
 						{/* RIGHT COLUMN - Additional Details */}
-						<div className="space-y-3 md:space-y-4">
-							<div className="border-b pb-1.5 md:pb-2">
+						<FormGroupContainer
+							title={{
+								icon: Box,
+								label: "Additional Details",
+								description:
+									"Fill in optional fields to create the location additional details.",
+							}}
+						>
+							{/* Default Wing Field */}
+							<InputLabel
+								label="Wing (Optional)"
+								description="Location wing or section identifier"
+								value={getCustomDetailValue("Wing")}
+								onChange={(value) => updateCustomDetail("Wing", value)}
+								placeholder="e.g., A, North, East"
+								disabled={createLocationMutation.isPending}
+							/>
+
+							{/* Default Zone Field */}
+							<InputLabel
+								label="Zone (Optional)"
+								description="Location zone or area designation"
+								value={getCustomDetailValue("Zone")}
+								onChange={(value) => updateCustomDetail("Zone", value)}
+								placeholder="e.g., Premium, General, VIP"
+								disabled={createLocationMutation.isPending}
+							/>
+
+							<div className="flex flex-col gap-2">
 								<FieldSectionLabel
-									label="Additional Details"
-									description="Fill in optional fields to create the location additional details."
+									label="Custom Details"
+									description="Fill in optional fields to create the location custom details."
 								/>
-							</div>
-
-							<FieldGroup>
-								{/* Default Wing Field */}
-								<InputLabel
-									label="Wing (Optional)"
-									description="Location wing or section identifier"
-									value={getCustomDetailValue("Wing")}
-									onChange={(value) => updateCustomDetail("Wing", value)}
-									placeholder="e.g., A, North, East"
-									disabled={createLocationMutation.isPending}
-								/>
-
-								{/* Default Zone Field */}
-								<InputLabel
-									label="Zone (Optional)"
-									description="Location zone or area designation"
-									value={getCustomDetailValue("Zone")}
-									onChange={(value) => updateCustomDetail("Zone", value)}
-									placeholder="e.g., Premium, General, VIP"
-									disabled={createLocationMutation.isPending}
-								/>
-
-								<div className="flex flex-col gap-2">
-									<FieldSectionLabel
-										label="Custom Details"
-										description="Fill in optional fields to create the location custom details."
-									/>
-									{/* Custom Details - excluding Wing and Zone */}
-									{customDetails.filter(
-										(d) => d.key !== "Wing" && d.key !== "Zone",
-									).length > 0 && (
-										<div className="space-y-2">
-											{customDetails
-												.map((detail, index) => ({ detail, index }))
-												.filter(
-													({ detail }) =>
-														detail.key !== "Wing" && detail.key !== "Zone",
-												)
-												.map(({ detail, index }) => (
-													<div
-														key={index}
-														className="space-y-2 border bg-muted p-2"
-													>
-														<div className="flex items-center justify-between">
-															<div className="grid flex-1 grid-cols-2 gap-2">
-																<div className="font-medium text-xs">Title</div>
-																<div className="font-medium text-xs">Value</div>
-															</div>
-															<div className="w-9" />{" "}
-															{/* Spacer for delete button */}
+								{/* Custom Details - excluding Wing and Zone */}
+								{customDetails.filter(
+									(d) => d.key !== "Wing" && d.key !== "Zone",
+								).length > 0 && (
+									<div className="space-y-2">
+										{customDetails
+											.map((detail, index) => ({ detail, index }))
+											.filter(
+												({ detail }) =>
+													detail.key !== "Wing" && detail.key !== "Zone",
+											)
+											.map(({ detail, index }) => (
+												<div
+													key={index}
+													className="space-y-2 border bg-muted p-2"
+												>
+													<div className="flex items-center justify-between">
+														<div className="grid flex-1 grid-cols-2 gap-2">
+															<div className="font-medium text-xs">Title</div>
+															<div className="font-medium text-xs">Value</div>
 														</div>
-														<div className="flex items-start gap-2">
-															<div className="grid flex-1 grid-cols-2 gap-2">
-																<Input
-																	placeholder="e.g., Section"
-																	value={detail.key}
-																	onChange={(e) => {
-																		const newDetails = [...customDetails];
-																		newDetails[index].key = e.target.value;
-																		setCustomDetails(newDetails);
-																	}}
-																	className="bg-white text-sm"
-																/>
-																<Input
-																	placeholder="e.g., B"
-																	value={detail.value}
-																	onChange={(e) => {
-																		const newDetails = [...customDetails];
-																		newDetails[index].value = e.target.value;
-																		setCustomDetails(newDetails);
-																	}}
-																	className="bg-white text-sm"
-																/>
-															</div>
-															<Button
-																type="button"
-																size="icon"
-																variant="ghost"
-																onClick={() => {
-																	setCustomDetails(
-																		customDetails.filter((_, i) => i !== index),
-																	);
-																}}
-																className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-600"
-															>
-																<X className="size-4" />
-															</Button>
-														</div>
+														<div className="w-9" />{" "}
+														{/* Spacer for delete button */}
 													</div>
-												))}
-										</div>
-									)}
+													<div className="flex items-center gap-2">
+														<div className="grid flex-1 grid-cols-2 gap-2">
+															<Input
+																placeholder="e.g., Section"
+																value={detail.key}
+																onChange={(e) => {
+																	const newDetails = [...customDetails];
+																	newDetails[index].key = e.target.value;
+																	setCustomDetails(newDetails);
+																}}
+																className="rounded-none bg-white py-5 text-sm"
+															/>
+															<Input
+																placeholder="e.g., B"
+																value={detail.value}
+																onChange={(e) => {
+																	const newDetails = [...customDetails];
+																	newDetails[index].value = e.target.value;
+																	setCustomDetails(newDetails);
+																}}
+																className="rounded-none bg-white py-5 text-sm"
+															/>
+														</div>
+														<Button
+															type="button"
+															size="icon"
+															variant="destructive"
+															onClick={() => {
+																setCustomDetails(
+																	customDetails.filter((_, i) => i !== index),
+																);
+															}}
+															className="rounded-none"
+														>
+															<X className="size-3" />
+														</Button>
+													</div>
+												</div>
+											))}
+									</div>
+								)}
 
-									<Button
-										type="button"
-										size="sm"
-										variant="outline"
-										onClick={() =>
-											setCustomDetails([
-												...customDetails,
-												{ key: "", value: "" },
-											])
-										}
-										className="mt-2 h-9 w-full text-xs"
-									>
-										<Plus className="mr-1 size-3" />
-										Add Custom Detail
-									</Button>
-								</div>
-							</FieldGroup>
-						</div>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									onClick={() =>
+										setCustomDetails([...customDetails, { key: "", value: "" }])
+									}
+									className="mt-2 w-full rounded-none py-6 text-xs md:py-2"
+								>
+									<Plus className="mr-1 size-3" />
+									Add Custom Detail
+								</Button>
+							</div>
+						</FormGroupContainer>
 					</div>
 
-					{/* Notes - Full Width Below */}
-					<div className="mt-4 md:mt-6">
-						<form.Field name="notes">
-							{(field) => (
-								<InputLabel
-									label="Notes"
-									htmlFor={field.name}
-									description="Additional location information or instructions"
-									type="textarea"
-									value={field.state.value || ""}
-									onChange={field.handleChange}
-									placeholder="Near main entrance, accessible via elevator"
-									disabled={createLocationMutation.isPending}
-								/>
-							)}
-						</form.Field>
-					</div>
-
-					<div className="mt-4 flex flex-col-reverse justify-end gap-2 sm:flex-row md:mt-6">
+					<div className="mt-6 flex flex-col-reverse justify-end gap-2 sm:flex-row">
 						<Button
 							type="button"
 							variant="outline"
@@ -409,14 +399,14 @@ export default function InfoForm({ onClose }: InfoFormProps) {
 								if (onClose) onClose();
 							}}
 							disabled={createLocationMutation.isPending}
-							className="w-full sm:w-auto"
+							className="w-full rounded-none py-6 sm:w-auto md:py-4"
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
 							disabled={createLocationMutation.isPending}
-							className="w-full sm:w-auto"
+							className="w-full rounded-none py-6 sm:w-auto md:py-4"
 						>
 							{createLocationMutation.isPending
 								? "Creating..."
