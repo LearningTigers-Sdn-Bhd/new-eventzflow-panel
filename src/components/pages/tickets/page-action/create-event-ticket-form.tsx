@@ -2,10 +2,11 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, User } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
-import { FieldSectionLabel } from "@/components/admin-ui/form/field-section-label";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
@@ -114,21 +115,28 @@ export default function TicketForm() {
 	};
 
 	return (
-		<div className="px-4 md:px-6">
+		<div className="h-full px-4 md:px-6">
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
 					form.handleSubmit();
 				}}
-				className="flex flex-col gap-8 md:gap-16"
+				className="flex h-full flex-col justify-between gap-8"
 			>
-				<FieldSet className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 md:gap-y-8 md:[&>*:last-child]:col-span-2">
-					<FieldGroup className="space-y-0">
+				<FieldSet className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 md:gap-y-8">
+					{/* <FieldGroup className="space-y-0">
 						<FieldSectionLabel
 							label="Attendee Information"
 							description="Enter the details of the ticket holder"
 							className="border-border border-b pb-2"
-						/>
+						/> */}
+					<FormGroupContainer
+						title={{
+							icon: User,
+							label: "Attendee Information",
+							description: "Enter the details of the ticket holder",
+						}}
+					>
 						{/* Attendee Information Section */}
 						<div className="grid grid-cols-1 gap-4">
 							<form.Field
@@ -213,14 +221,6 @@ export default function TicketForm() {
 								)}
 							</form.Field>
 						</div>
-					</FieldGroup>
-					{/* Ticket Type Section */}
-					<FieldGroup>
-						<FieldSectionLabel
-							label="Ticket Type"
-							description="Select the ticket type for this ticket"
-							className="border-border border-b pb-2"
-						/>
 						<form.Field
 							name="ticket_type_id"
 							validators={{
@@ -240,21 +240,16 @@ export default function TicketForm() {
 								/>
 							)}
 						</form.Field>
-					</FieldGroup>
-					<FieldGroup className="space-y-0">
-						{/* Custom Fields Section */}
-						<FieldSectionLabel
-							label="Custom Labels"
-							description={
-								isLoadingEvent
-									? "Loading custom labels..."
-									: customFields.length > 0
-										? "Fill in the custom labels configured for this event"
-										: "No custom labels configured for this event"
-							}
-							className="border-border border-b pb-2"
-						/>
+					</FormGroupContainer>
 
+					<FormGroupContainer
+						title={{
+							icon: FileText,
+							label: "Additional Information",
+							description:
+								"Fill in the additional information set by the event organizer for the ticket holder",
+						}}
+					>
 						{customFields.length > 0 && (
 							<div className="grid gap-4 md:grid-cols-3 2xl:grid-cols-5">
 								{customFields.map((field) => (
@@ -273,7 +268,7 @@ export default function TicketForm() {
 						)}
 
 						{/* Submit Buttons - Right Aligned */}
-					</FieldGroup>
+					</FormGroupContainer>
 				</FieldSet>
 				<FieldGroup className="flex flex-col justify-end gap-2 md:flex-row">
 					<Button
