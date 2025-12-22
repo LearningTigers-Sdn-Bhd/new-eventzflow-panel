@@ -25,7 +25,7 @@ export default function EventSettingsDialog({
 				onTabChange={setActiveTab}
 				onClose={onClose}
 			/>
-			<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto md:h-[calc(100vh-10rem)]">
+			<div className="flex min-h-0 w-full flex-1 flex-col gap-4">
 				{activeTab === "event-information" && (
 					<InfoForm eventId={eventId} onClose={onClose} />
 				)}
