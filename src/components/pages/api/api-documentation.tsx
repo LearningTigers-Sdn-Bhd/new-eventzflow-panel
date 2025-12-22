@@ -1,5 +1,6 @@
 "use client";
 
+import { cva } from "class-variance-authority";
 import { Check, ChevronDown, ChevronRight, Copy } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import {
 	API_BASE_URL,
 	API_CATEGORIES,
@@ -16,16 +18,20 @@ import {
 	type ApiEndpoint,
 } from "./api-endpoints-data";
 
-const METHOD_VARIANTS: Record<
-	string,
-	"default" | "secondary" | "destructive" | "outline"
-> = {
-	GET: "default",
-	POST: "secondary",
-	PUT: "secondary",
-	PATCH: "outline",
-	DELETE: "destructive",
-};
+const methodVariants = cva("rounded-none text-white", {
+	variants: {
+		method: {
+			GET: "bg-sky-500",
+			POST: "bg-emerald-500",
+			PUT: "bg-amber-500",
+			PATCH: "bg-orange-500",
+			DELETE: "bg-red-500",
+		},
+	},
+	defaultVariants: {
+		method: "GET",
+	},
+});
 
 function CodeBlock({ code }: { code: string }) {
 	const [copied, setCopied] = useState(false);
@@ -93,8 +99,10 @@ function ApiEndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 							<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
 						)}
 						<Badge
-							variant={METHOD_VARIANTS[endpoint.method]}
-							className="rounded-none px-1.5 text-[10px] sm:px-2 sm:text-xs"
+							className={cn(
+								methodVariants({ method: endpoint.method as any }),
+								"w-full max-w-18 px-1.5 text-[10px] sm:px-2 sm:text-xs",
+							)}
 						>
 							{endpoint.method}
 						</Badge>
