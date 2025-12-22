@@ -1,7 +1,7 @@
 "use client";
 
-import type { ColumnDef, TableMeta } from "@tanstack/react-table";
-import { ArrowDown, ExternalLink, Pencil } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowDown, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
-
-export interface PrintingsTableMeta extends TableMeta<ExhibitorKitPrinting> {
-	onEditPrinting?: (printing: ExhibitorKitPrinting) => void;
-}
 
 export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 	{
@@ -183,28 +179,6 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrinting>[] = [
 						<p className="text-sm break-words">{notes}</p>
 					</PopoverContent>
 				</Popover>
-			);
-		},
-	},
-	{
-		id: "actions",
-		size: 80,
-		header: () => <div className="text-center font-medium">Actions</div>,
-		cell: ({ row, table }) => {
-			const printing = row.original;
-			const meta = table.options.meta as PrintingsTableMeta | undefined;
-
-			return (
-				<div className="flex justify-center">
-					<Button
-						variant="ghost"
-						size="icon"
-						className="rounded-none"
-						onClick={() => meta?.onEditPrinting?.(printing)}
-					>
-						<Pencil className="size-4" />
-					</Button>
-				</div>
 			);
 		},
 	},

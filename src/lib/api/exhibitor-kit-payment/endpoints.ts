@@ -147,3 +147,39 @@ export async function updateExhibitorKitPayment(
     throw new Error(error.message || "Failed to update payment");
   }
 }
+
+/**
+ * Submit payment proof with file upload (Active Storage)
+ */
+export async function submitPaymentProof(data: {
+  eventId: string;
+  exhibitorKitId: string;
+  paymentId: string;
+  paymentProof: File;
+  externalRef?: string;
+  note?: string;
+}): Promise<UpdateExhibitorKitPaymentResponse> {
+  try {
+    const { eventId, exhibitorKitId, paymentId, paymentProof, externalRef, note } = data;
+
+    const formData = new FormData();
+    formData.append("exhibitor_kit_payment[payment_proof]", paymentProof);
+    formData.append("exhibitor_kit_payment[payment_source]", "manual_bank_in");
+    if (externalRef) {
+      formData.append("exhibitor_kit_payment[external_ref]", externalRef);
+    }
+    if (note) {
+      formData.append("exhibitor_kit_payment[note]", note);
+    }
+
+    const response = await restClient.patchFormData<BackendExhibitorKitPayment>(
+      `v1/events/${eventId}/exhibitor_kits/${exhibitorKitId}/exhibitor_kit_payments/${paymentId}`,
+      formData
+    );
+
+    return transformPayment(response);
+  } catch (error: any) {
+    console.error("Error submitting payment proof:", error);
+    throw new Error(error.message || "Failed to submit payment proof");
+  }
+}

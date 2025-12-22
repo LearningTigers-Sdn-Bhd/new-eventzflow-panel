@@ -3,6 +3,7 @@ export {
   getExhibitorKitPayments,
   getExhibitorKitPayment,
   updateExhibitorKitPayment,
+  submitPaymentProof,
 } from "./endpoints";
 
 // Request types and schemas

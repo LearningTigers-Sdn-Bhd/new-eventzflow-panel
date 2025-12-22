@@ -3,26 +3,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Package, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDialog } from "@/hooks/use-dialog";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventVendors } from "@/lib/api/event-vendor";
-import type {
-	ExhibitorKitItem,
-	ExhibitorKitPrinting,
-} from "@/lib/api/exhibitor-kit";
 import { ExhibitorPaymentList } from "./exhibitor-payment-list";
 import { DataTable } from "./my-items/data-table";
-import { EditItemNotesForm } from "./my-items/edit-item-notes-form";
-import { EditPrintingForm } from "./my-items/edit-printing-form";
-import type { ItemsTableMeta } from "./my-items/items-columns";
 import { itemsColumns } from "./my-items/items-columns";
-import type { PrintingsTableMeta } from "./my-items/printings-columns";
 import { printingsColumns } from "./my-items/printings-columns";
 
 interface MyItemsPageProps {
@@ -33,7 +24,6 @@ interface MyItemsPageProps {
 export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("items");
-	const { openDialog, closeDialog } = useDialog();
 
 	const {
 		data: eventVendors,
@@ -51,60 +41,6 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	const handleAddMoreItems = () => {
 		router.push(`/event/${eventId}/my-exhibitor-kit/order-items`);
 	};
-
-	const handleEditItemNotes = useCallback(
-		(item: ExhibitorKitItem) => {
-			if (!myKit) return;
-			openDialog({
-				component: EditItemNotesForm,
-				props: {
-					eventId,
-					kitId: myKit.id,
-					item,
-					onSuccess: closeDialog,
-				},
-				config: {
-					title: "Edit Item Notes",
-					size: "md",
-				},
-			});
-		},
-		[myKit, eventId, openDialog, closeDialog],
-	);
-
-	const handleEditPrinting = useCallback(
-		(printing: ExhibitorKitPrinting) => {
-			if (!myKit) return;
-			openDialog({
-				component: EditPrintingForm,
-				props: {
-					eventId,
-					kitId: myKit.id,
-					printing,
-					onSuccess: closeDialog,
-				},
-				config: {
-					title: "Edit Printing Details",
-					size: "md",
-				},
-			});
-		},
-		[myKit, eventId, openDialog, closeDialog],
-	);
-
-	const itemsTableMeta: ItemsTableMeta = useMemo(
-		() => ({
-			onEditNotes: handleEditItemNotes,
-		}),
-		[handleEditItemNotes],
-	);
-
-	const printingsTableMeta: PrintingsTableMeta = useMemo(
-		() => ({
-			onEditPrinting: handleEditPrinting,
-		}),
-		[handleEditPrinting],
-	);
 
 	// Set the "Add More Items" button in the header
 	useSetEventActions(
@@ -233,7 +169,6 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add items to your exhibitor kit"
 						emptyIcon={<Package />}
 						searchPlaceholder="Search items..."
-						meta={itemsTableMeta}
 					/>
 				</TabsContent>
 
@@ -245,7 +180,6 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add printing services to your exhibitor kit"
 						emptyIcon={<Printer />}
 						searchPlaceholder="Search services..."
-						meta={printingsTableMeta}
 					/>
 				</TabsContent>
 

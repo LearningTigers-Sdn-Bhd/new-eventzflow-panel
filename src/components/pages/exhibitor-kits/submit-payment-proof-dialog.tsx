@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateExhibitorKitPayment, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
+import { submitPaymentProof, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
+import PaymentReceiptUpload from "./payment-receipt-upload";
 
 interface SubmitPaymentProofDialogProps {
 	open: boolean;
@@ -34,7 +35,7 @@ export function SubmitPaymentProofDialog({
 }: SubmitPaymentProofDialogProps) {
 	const queryClient = useQueryClient();
 
-	const [paymentProofUrl, setPaymentProofUrl] = useState("");
+	const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
 	const [externalRef, setExternalRef] = useState("");
 
 	// Determine if this is an edit (has existing data) or new submission
@@ -44,22 +45,22 @@ export function SubmitPaymentProofDialog({
 	// Pre-fill form with existing payment data when dialog opens
 	useEffect(() => {
 		if (open && payment) {
-			setPaymentProofUrl(payment.paymentProofUrl || "");
 			setExternalRef(payment.externalRef || "");
+			setPaymentProofFile(null); // Reset file on open
 		}
 	}, [open, payment]);
 
-	const updateMutation = useMutation({
+	const submitMutation = useMutation({
 		mutationFn: () => {
 			if (!payment) throw new Error("No payment selected");
+			if (!paymentProofFile) throw new Error("Please upload a payment proof");
 
-			return updateExhibitorKitPayment({
+			return submitPaymentProof({
 				eventId,
 				exhibitorKitId: kitId,
 				paymentId: payment.id.toString(),
-				payment_source: "manual_bank_in",
-				payment_proof_url: paymentProofUrl,
-				external_ref: externalRef || undefined,
+				paymentProof: paymentProofFile,
+				externalRef: externalRef || undefined,
 			});
 		},
 		onSuccess: () => {
@@ -80,20 +81,12 @@ export function SubmitPaymentProofDialog({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!paymentProofUrl.trim()) {
-			toast.error("Please provide a payment proof URL");
+		if (!paymentProofFile) {
+			toast.error("Please upload a payment proof");
 			return;
 		}
 
-		// Basic URL validation
-		try {
-			new URL(paymentProofUrl);
-		} catch {
-			toast.error("Please enter a valid URL for the payment proof");
-			return;
-		}
-
-		updateMutation.mutate();
+		submitMutation.mutate();
 	};
 
 	// Get dialog title and description based on mode
@@ -102,14 +95,14 @@ export function SubmitPaymentProofDialog({
 			return {
 				icon: Pencil,
 				title: "Edit Payment Proof",
-				description: "Update your payment proof details. The contractor will review your updated submission.",
+				description: "Update your payment proof. The contractor will review your updated submission.",
 			};
 		}
 		if (isResubmit) {
 			return {
 				icon: Upload,
 				title: "Resubmit Payment Proof",
-				description: "Your previous submission was rejected. Please update and resubmit your payment proof.",
+				description: "Your previous submission was rejected. Please upload a new payment proof.",
 			};
 		}
 		return {
@@ -143,22 +136,17 @@ export function SubmitPaymentProofDialog({
 							<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
 						</div>
 
+						{/* Payment Proof Upload */}
 						<div className="space-y-2">
-							<Label htmlFor="paymentProofUrl">Payment Proof URL *</Label>
-							<Input
-								id="paymentProofUrl"
-								type="url"
-								placeholder="https://drive.google.com/..."
-								value={paymentProofUrl}
-								onChange={(e) => setPaymentProofUrl(e.target.value)}
-								className="rounded-none"
-								required
+							<Label>Payment Proof *</Label>
+							<PaymentReceiptUpload
+								value={paymentProofFile || payment.paymentProofUrl || undefined}
+								onChange={setPaymentProofFile}
+								disabled={submitMutation.isPending}
 							/>
-							<p className="text-muted-foreground text-xs">
-								Upload your payment receipt to Google Drive, Dropbox, or any file hosting service and paste the link here.
-							</p>
 						</div>
 
+						{/* Reference Number */}
 						<div className="space-y-2">
 							<Label htmlFor="externalRef">Reference Number (Optional)</Label>
 							<Input
@@ -182,10 +170,10 @@ export function SubmitPaymentProofDialog({
 							</Button>
 							<Button
 								type="submit"
-								disabled={updateMutation.isPending}
+								disabled={submitMutation.isPending || !paymentProofFile}
 								className="rounded-none"
 							>
-								{updateMutation.isPending
+								{submitMutation.isPending
 									? "Submitting..."
 									: isEdit
 										? "Update Proof"
