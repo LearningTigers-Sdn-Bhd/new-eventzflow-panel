@@ -8,6 +8,7 @@ export const createRentableItemSchema = z.object({
 	default_price: z.number().min(0, "Price must be 0 or greater"),
 	status: z.enum(["active", "inactive"]).default("active"),
 	item_category_id: z.number().min(1, "Category is required"),
+	image: z.instanceof(File).optional(),
 });
 
 // Validation schema for updating a rentable item
@@ -19,6 +20,8 @@ export const updateRentableItemSchema = z.object({
 	default_price: z.number().min(0, "Price must be 0 or greater"),
 	status: z.enum(["active", "inactive"]),
 	item_category_id: z.number().min(1, "Category is required"),
+	image: z.instanceof(File).optional(),
+	remove_image: z.boolean().optional(),
 });
 
 // Validation schema for deleting a rentable item

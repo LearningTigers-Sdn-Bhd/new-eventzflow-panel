@@ -57,6 +57,7 @@ function transformEventRentableItem(
 							}
 						: undefined,
 					userId: backend.rentable_item.user_id,
+					imageUrl: backend.rentable_item.image_url,
 					createdAt: backend.rentable_item.created_at,
 					updatedAt: backend.rentable_item.updated_at,
 				}

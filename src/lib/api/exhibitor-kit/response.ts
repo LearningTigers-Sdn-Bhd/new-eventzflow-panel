@@ -14,6 +14,7 @@ export interface RentableItemInfo {
 	name: string;
 	unit_of_measure: string;
 	default_price: number;
+	image_url?: string | null;
 }
 
 export interface PrintingServiceInfo {
@@ -21,6 +22,7 @@ export interface PrintingServiceInfo {
 	name: string;
 	unit_of_measure: string;
 	default_price: number;
+	image_url?: string | null;
 }
 
 export interface ExhibitorKitItem {

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ export function PrintingServiceFormContent() {
 	const [defaultPrice, setDefaultPrice] = useState("");
 	const [status, setStatus] = useState<"active" | "inactive">("active");
 	const [categoryId, setCategoryId] = useState("");
+	const [image, setImage] = useState<File | null>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -88,6 +90,7 @@ export function PrintingServiceFormContent() {
 			default_price: Number(defaultPrice),
 			status,
 			item_category_id: Number(categoryId),
+			image: image ?? undefined,
 		});
 	};
 
@@ -149,6 +152,16 @@ export function PrintingServiceFormContent() {
 					placeholder="Enter service description (optional)"
 					disabled={isPending}
 					rows={3}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label>Image</Label>
+				<ImageUpload
+					value={image ?? undefined}
+					onChange={setImage}
+					disabled={isPending}
+					maxSize={5 * 1024 * 1024}
 				/>
 			</div>
 

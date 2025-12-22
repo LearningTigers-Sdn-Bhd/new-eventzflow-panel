@@ -57,6 +57,7 @@ function transformEventPrintingService(
 							}
 						: undefined,
 					userId: backend.printing_service.user_id,
+					imageUrl: backend.printing_service.image_url,
 					createdAt: backend.printing_service.created_at,
 					updatedAt: backend.printing_service.updated_at,
 				}

@@ -1,0 +1,120 @@
+"use client";
+
+import { ExternalLink, ImageIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import type { ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
+
+interface PrintingCardProps {
+	printing: ExhibitorKitPrinting;
+}
+
+export function PrintingCard({ printing }: PrintingCardProps) {
+	const subtotal = printing.quantity * printing.agreed_price;
+
+	return (
+		<div className="group relative overflow-hidden border bg-card transition-all duration-200">
+			{/* Top Accent Bar */}
+			<div className="h-1 w-full bg-primary" />
+
+			<div className="p-4">
+				{/* Header: Image/Icon + Info */}
+				<div className="flex flex-col gap-3">
+					{/* Image/Icon Container */}
+					<div className="flex h-32 w-full items-center justify-center overflow-hidden bg-primary/10">
+						{printing.printing_service?.image_url ? (
+							<img
+								src={printing.printing_service.image_url}
+								alt={printing.printing_service.name || "Service"}
+								className="h-full w-full object-cover"
+							/>
+						) : (
+							<ImageIcon className="h-10 w-10 text-primary" />
+						)}
+					</div>
+
+					{/* Info */}
+					<div className="space-y-2">
+						<div className="flex items-start justify-between gap-2">
+							<h3 className="font-semibold text-base leading-tight">
+								{printing.printing_service?.name || "Unknown Service"}
+							</h3>
+							<Badge variant="outline" className="shrink-0 rounded-none text-xs">
+								{printing.printing_service?.unit_of_measure || "-"}
+							</Badge>
+						</div>
+
+						{/* Quantity & Price */}
+						<div className="grid grid-cols-2 gap-3 text-sm">
+							<div>
+								<p className="text-muted-foreground text-xs">Quantity</p>
+								<p className="font-medium">{printing.quantity}</p>
+							</div>
+							<div>
+								<p className="text-muted-foreground text-xs">Unit Price</p>
+								<p className="font-medium">
+									{new Intl.NumberFormat("en-MY", {
+										style: "currency",
+										currency: "MYR",
+									}).format(printing.agreed_price)}
+								</p>
+							</div>
+						</div>
+
+						{/* Subtotal */}
+						<div className="border-t pt-2">
+							<div className="flex items-center justify-between">
+								<p className="text-muted-foreground text-sm">Subtotal</p>
+								<p className="font-bold text-lg text-primary">
+									{new Intl.NumberFormat("en-MY", {
+										style: "currency",
+										currency: "MYR",
+									}).format(subtotal)}
+								</p>
+							</div>
+						</div>
+
+						{/* File Reference */}
+						{printing.file_reference && (
+							<div className="border-t pt-2">
+								<p className="text-muted-foreground text-xs mb-1">File Reference</p>
+								<a
+									href={printing.file_reference}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center gap-1.5 text-primary text-sm hover:underline"
+								>
+									<ExternalLink className="size-3.5 shrink-0" />
+									<span>View File</span>
+								</a>
+							</div>
+						)}
+
+						{/* Notes */}
+						{printing.notes && (
+							<div className="border-t pt-2">
+								<Popover>
+									<PopoverTrigger asChild>
+										<div className="cursor-pointer">
+											<p className="text-muted-foreground text-xs">Notes</p>
+											<p className="text-sm line-clamp-2 hover:text-primary transition-colors">
+												{printing.notes}
+											</p>
+										</div>
+									</PopoverTrigger>
+									<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
+										<p className="text-sm break-words">{printing.notes}</p>
+									</PopoverContent>
+								</Popover>
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}

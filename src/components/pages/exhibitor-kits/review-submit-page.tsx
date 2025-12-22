@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Package, Printer, CheckCircle2, Link as LinkIcon, ShoppingCart } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Link as LinkIcon, Package, Printer, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 import { updateExhibitorKit, getExhibitorKits, submitExhibitorKitOrder } from "@/lib/api/exhibitor-kit";
+import { OrderItemCard } from "./order-item-card";
 
 interface ReviewSubmitPageProps {
 	eventId: number;
@@ -103,8 +104,8 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 	// Loading state
 	if (isLoadingKit) {
 		return (
-			<div className="min-h-screen bg-muted/30 p-6">
-				<div className="mx-auto max-w-6xl">
+			<div className="min-h-screen p-6">
+				<div className="mx-auto max-w-7xl">
 					<Skeleton className="h-8 w-32 mb-6" />
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 						<div className="lg:col-span-2 space-y-4">
@@ -123,7 +124,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 	// Error state - no kit found
 	if (!exhibitorKitId) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-muted/30">
+			<div className="flex min-h-screen items-center justify-center">
 				<div className="w-full max-w-md rounded-none border bg-background p-8 text-center">
 					<p className="mb-4 text-muted-foreground">
 						Exhibitor kit not found. Please contact support.
@@ -139,7 +140,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 	// Empty cart state
 	if (items.length === 0 && printings.length === 0) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-muted/30">
+			<div className="flex min-h-screen items-center justify-center">
 				<div className="w-full max-w-md rounded-none border bg-background p-8 text-center">
 					<ShoppingCart className="mx-auto mb-4 size-12 text-muted-foreground" />
 					<h2 className="mb-2 font-semibold text-lg">Your cart is empty</h2>
@@ -155,10 +156,10 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 	}
 
 	return (
-		<div className="min-h-screen bg-muted/30">
+		<div className="min-h-screen">
 			{/* Header */}
-			<div className="border-b bg-background">
-				<div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+			<div className="border-b">
+				<div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<h1 className="font-semibold text-xl sm:text-2xl">Review & Submit Order</h1>
@@ -179,7 +180,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 			</div>
 
 			{/* Main Content - Two Column Layout */}
-			<div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+			<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 					{/* Left Column - Items */}
 					<div className="lg:col-span-2 space-y-6">
@@ -195,19 +196,13 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 
 								<div className="divide-y">
 									{items.map((item) => (
-										<div key={item.rentableItemId} className="p-4 space-y-3">
-											<div className="flex items-start justify-between">
-												<div>
-													<p className="font-medium">{item.name}</p>
-													<p className="text-muted-foreground text-sm">
-														{item.quantity} × RM {item.agreedPrice.toFixed(2)}
-													</p>
-												</div>
-												<p className="font-semibold">
-													RM {(item.quantity * item.agreedPrice).toFixed(2)}
-												</p>
-											</div>
-
+										<OrderItemCard
+											key={item.rentableItemId}
+											name={item.name}
+											quantity={item.quantity}
+											price={item.agreedPrice}
+											imageUrl={item.imageUrl}
+										>
 											<div className="space-y-1.5">
 												<Label htmlFor={`item-notes-${item.rentableItemId}`} className="text-xs text-muted-foreground">
 													Notes (optional)
@@ -221,7 +216,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 													rows={2}
 												/>
 											</div>
-										</div>
+										</OrderItemCard>
 									))}
 								</div>
 							</div>
@@ -239,19 +234,13 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 
 								<div className="divide-y">
 									{printings.map((printing) => (
-										<div key={printing.printingServiceId} className="p-4 space-y-3">
-											<div className="flex items-start justify-between">
-												<div>
-													<p className="font-medium">{printing.name}</p>
-													<p className="text-muted-foreground text-sm">
-														{printing.quantity} × RM {printing.agreedPrice.toFixed(2)}
-													</p>
-												</div>
-												<p className="font-semibold">
-													RM {(printing.quantity * printing.agreedPrice).toFixed(2)}
-												</p>
-											</div>
-
+										<OrderItemCard
+											key={printing.printingServiceId}
+											name={printing.name}
+											quantity={printing.quantity}
+											price={printing.agreedPrice}
+											imageUrl={printing.imageUrl}
+										>
 											<div className="space-y-1.5">
 												<Label htmlFor={`printing-notes-${printing.printingServiceId}`} className="text-xs text-muted-foreground">
 													Notes (optional)
@@ -283,7 +272,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 													Upload your design to Google Drive, Dropbox, or any file hosting service and paste the link here.
 												</p>
 											</div>
-										</div>
+										</OrderItemCard>
 									))}
 								</div>
 							</div>

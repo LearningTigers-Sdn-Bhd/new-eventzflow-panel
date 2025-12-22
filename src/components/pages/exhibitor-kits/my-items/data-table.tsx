@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import type { ExhibitorKitItem, ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
+import { ItemCard } from "./item-card";
+import { PrintingCard } from "./printing-card";
 
 interface FilterOption {
 	label: string;
@@ -53,6 +56,7 @@ interface DataTableProps<TData, TValue> {
 		options: FilterOption[];
 	};
 	meta?: TableMeta<TData>;
+	cardType?: "item" | "printing";
 }
 
 export function DataTable<TData, TValue>({
@@ -65,6 +69,7 @@ export function DataTable<TData, TValue>({
 	searchColumns = ["name"],
 	statusFilter,
 	meta,
+	cardType,
 }: DataTableProps<TData, TValue>) {
 	const _isMobile = useIsMobile();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -206,21 +211,30 @@ export function DataTable<TData, TValue>({
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<div
-									key={row.id}
-									className="rounded-none border border-primary/20 bg-card p-4 shadow-sm"
-								>
-									{row.getVisibleCells().map((cell) => (
-										<div key={cell.id} className="mb-2">
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</div>
-									))}
-								</div>
-							))
+							table.getRowModel().rows.map((row) => {
+								if (cardType === "item") {
+									return <ItemCard key={row.id} item={row.original as ExhibitorKitItem} />;
+								}
+								if (cardType === "printing") {
+									return <PrintingCard key={row.id} printing={row.original as ExhibitorKitPrinting} />;
+								}
+								// Fallback to default card layout
+								return (
+									<div
+										key={row.id}
+										className="rounded-none border border-primary/20 bg-card p-4 shadow-sm"
+									>
+										{row.getVisibleCells().map((cell) => (
+											<div key={cell.id} className="mb-2">
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</div>
+										))}
+									</div>
+								);
+							})
 						) : (
 							<EmptyState
 								title={emptyTitle}

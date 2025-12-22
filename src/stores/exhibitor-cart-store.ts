@@ -8,6 +8,7 @@ export interface CartItem {
 	agreedPrice: number;
 	quantity: number;
 	notes?: string;
+	imageUrl?: string | null;
 }
 
 export interface CartPrinting {
@@ -18,6 +19,7 @@ export interface CartPrinting {
 	quantity: number;
 	notes?: string;
 	fileReference?: string;
+	imageUrl?: string | null;
 }
 
 interface ExhibitorCartState {

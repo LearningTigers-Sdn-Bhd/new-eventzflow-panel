@@ -1,5 +1,6 @@
 "use client";
 
+import { ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
@@ -21,8 +22,19 @@ export function PrintingServiceCard({ service }: PrintingServiceCardProps) {
 	return (
 		<Card className="rounded-none border-primary/20 shadow-none">
 			<CardContent className="p-4">
-				<div className="flex items-start justify-between">
-					<div className="space-y-2">
+				<div className="flex items-start gap-4">
+					<div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
+						{service.imageUrl ? (
+							<img
+								src={service.imageUrl}
+								alt={service.name}
+								className="h-full w-full object-cover"
+							/>
+						) : (
+							<ImageIcon className="h-6 w-6 text-muted-foreground" />
+						)}
+					</div>
+					<div className="min-w-0 flex-1 space-y-2">
 						<div className="flex items-center gap-2">
 							<h3 className="font-semibold">{service.name}</h3>
 							<Badge

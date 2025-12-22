@@ -35,6 +35,7 @@ function transformRentableItem(backend: BackendRentableItem): RentableItem {
 				}
 			: undefined,
 		userId: backend.user_id,
+		imageUrl: backend.image_url,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};
@@ -79,14 +80,23 @@ export async function createRentableItem(
 	try {
 		const validated = createRentableItemSchema.parse(data);
 
-		const response = await restClient.post<BackendRentableItem>("v1/rentable_items", {
-			name: validated.name,
-			description: validated.description,
-			unit_of_measure: validated.unit_of_measure,
-			default_price: validated.default_price,
-			status: validated.status,
-			item_category_id: validated.item_category_id,
-		});
+		const formData = new FormData();
+		formData.append("rentable_item[name]", validated.name);
+		if (validated.description) {
+			formData.append("rentable_item[description]", validated.description);
+		}
+		formData.append("rentable_item[unit_of_measure]", validated.unit_of_measure);
+		formData.append("rentable_item[default_price]", String(validated.default_price));
+		formData.append("rentable_item[status]", validated.status);
+		formData.append("rentable_item[item_category_id]", String(validated.item_category_id));
+		if (validated.image) {
+			formData.append("rentable_item[image]", validated.image);
+		}
+
+		const response = await restClient.postFormData<BackendRentableItem>(
+			"v1/rentable_items",
+			formData,
+		);
 
 		return {
 			success: true,
@@ -109,16 +119,25 @@ export async function updateRentableItem(
 	try {
 		const validated = updateRentableItemSchema.parse(data);
 
-		const response = await restClient.patch<BackendRentableItem>(
+		const formData = new FormData();
+		formData.append("rentable_item[name]", validated.name);
+		if (validated.description) {
+			formData.append("rentable_item[description]", validated.description);
+		}
+		formData.append("rentable_item[unit_of_measure]", validated.unit_of_measure);
+		formData.append("rentable_item[default_price]", String(validated.default_price));
+		formData.append("rentable_item[status]", validated.status);
+		formData.append("rentable_item[item_category_id]", String(validated.item_category_id));
+		if (validated.image) {
+			formData.append("rentable_item[image]", validated.image);
+		}
+		if (validated.remove_image) {
+			formData.append("remove_image", "true");
+		}
+
+		const response = await restClient.patchFormData<BackendRentableItem>(
 			`v1/rentable_items/${validated.id}`,
-			{
-				name: validated.name,
-				description: validated.description,
-				unit_of_measure: validated.unit_of_measure,
-				default_price: validated.default_price,
-				status: validated.status,
-				item_category_id: validated.item_category_id,
-			},
+			formData,
 		);
 
 		return {

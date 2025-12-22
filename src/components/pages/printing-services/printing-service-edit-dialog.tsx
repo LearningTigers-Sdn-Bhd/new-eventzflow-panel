@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,10 @@ export function PrintingServiceEditContent({ service }: PrintingServiceEditConte
 	const [defaultPrice, setDefaultPrice] = useState(String(service.defaultPrice));
 	const [status, setStatus] = useState<"active" | "inactive">(service.status);
 	const [categoryId, setCategoryId] = useState(String(service.itemCategoryId));
+	const [image, setImage] = useState<File | null>(null);
+	const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(
+		service.imageUrl ?? undefined,
+	);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -86,6 +91,8 @@ export function PrintingServiceEditContent({ service }: PrintingServiceEditConte
 		e.preventDefault();
 		if (!validate()) return;
 
+		const removeImage = !image && !currentImageUrl && !!service.imageUrl;
+
 		updateMutation.mutate({
 			id: service.id,
 			name: name.trim(),
@@ -94,6 +101,8 @@ export function PrintingServiceEditContent({ service }: PrintingServiceEditConte
 			default_price: Number(defaultPrice),
 			status,
 			item_category_id: Number(categoryId),
+			image: image ?? undefined,
+			remove_image: removeImage,
 		});
 	};
 
@@ -155,6 +164,21 @@ export function PrintingServiceEditContent({ service }: PrintingServiceEditConte
 					placeholder="Enter service description (optional)"
 					disabled={isPending}
 					rows={3}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label>Image</Label>
+				<ImageUpload
+					value={image ?? currentImageUrl}
+					onChange={(file) => {
+						setImage(file);
+						if (file === null) {
+							setCurrentImageUrl(undefined);
+						}
+					}}
+					disabled={isPending}
+					maxSize={5 * 1024 * 1024}
 				/>
 			</div>
 

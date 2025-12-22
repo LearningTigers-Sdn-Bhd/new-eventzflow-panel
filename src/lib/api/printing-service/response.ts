@@ -11,6 +11,7 @@ export type BackendPrintingService = {
 	item_category_id: number;
 	item_category?: BackendItemCategory;
 	user_id?: number;
+	image_url?: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -26,6 +27,7 @@ export type PrintingService = {
 	itemCategoryId: number;
 	itemCategory?: ItemCategory;
 	userId?: number;
+	imageUrl?: string | null;
 	createdAt: string;
 	updatedAt: string;
 };

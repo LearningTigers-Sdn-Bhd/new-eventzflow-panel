@@ -35,6 +35,7 @@ function transformPrintingService(backend: BackendPrintingService): PrintingServ
 				}
 			: undefined,
 		userId: backend.user_id,
+		imageUrl: backend.image_url,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};
@@ -79,14 +80,23 @@ export async function createPrintingService(
 	try {
 		const validated = createPrintingServiceSchema.parse(data);
 
-		const response = await restClient.post<BackendPrintingService>("v1/printing_services", {
-			name: validated.name,
-			description: validated.description,
-			unit_of_measure: validated.unit_of_measure,
-			default_price: validated.default_price,
-			status: validated.status,
-			item_category_id: validated.item_category_id,
-		});
+		const formData = new FormData();
+		formData.append("printing_service[name]", validated.name);
+		if (validated.description) {
+			formData.append("printing_service[description]", validated.description);
+		}
+		formData.append("printing_service[unit_of_measure]", validated.unit_of_measure);
+		formData.append("printing_service[default_price]", String(validated.default_price));
+		formData.append("printing_service[status]", validated.status);
+		formData.append("printing_service[item_category_id]", String(validated.item_category_id));
+		if (validated.image) {
+			formData.append("printing_service[image]", validated.image);
+		}
+
+		const response = await restClient.postFormData<BackendPrintingService>(
+			"v1/printing_services",
+			formData,
+		);
 
 		return {
 			success: true,
@@ -109,16 +119,25 @@ export async function updatePrintingService(
 	try {
 		const validated = updatePrintingServiceSchema.parse(data);
 
-		const response = await restClient.patch<BackendPrintingService>(
+		const formData = new FormData();
+		formData.append("printing_service[name]", validated.name);
+		if (validated.description) {
+			formData.append("printing_service[description]", validated.description);
+		}
+		formData.append("printing_service[unit_of_measure]", validated.unit_of_measure);
+		formData.append("printing_service[default_price]", String(validated.default_price));
+		formData.append("printing_service[status]", validated.status);
+		formData.append("printing_service[item_category_id]", String(validated.item_category_id));
+		if (validated.image) {
+			formData.append("printing_service[image]", validated.image);
+		}
+		if (validated.remove_image) {
+			formData.append("remove_image", "true");
+		}
+
+		const response = await restClient.patchFormData<BackendPrintingService>(
 			`v1/printing_services/${validated.id}`,
-			{
-				name: validated.name,
-				description: validated.description,
-				unit_of_measure: validated.unit_of_measure,
-				default_price: validated.default_price,
-				status: validated.status,
-				item_category_id: validated.item_category_id,
-			},
+			formData,
 		);
 
 		return {

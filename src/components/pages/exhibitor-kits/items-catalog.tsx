@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Minus, Package, Plus, Search, ShoppingCart } from "lucide-react";
+import { ImageIcon, Minus, Package, Plus, Search, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +64,7 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 			unitOfMeasure: eventItem.rentableItem.unitOfMeasure,
 			agreedPrice: currentPrice,
 			quantity,
+			imageUrl: eventItem.rentableItem.imageUrl,
 		});
 
 		toast.success(`Added ${quantity} ${eventItem.rentableItem.name} to cart`);
@@ -134,38 +135,51 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 								<div className="h-1 w-full bg-primary" />
 
 								<div className="p-4">
-									{/* Header: Icon + Info */}
-									<div className="flex gap-4">
-										{/* Icon Container */}
-										<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-primary/10 transition-colors group-hover:bg-primary/20">
-											<Package className="h-7 w-7 text-primary" />
+									{/* Header: Image/Icon + Info */}
+									<div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+										{/* Image/Icon Container */}
+										<div className="flex h-40 w-full items-center justify-center overflow-hidden bg-primary/10 transition-colors group-hover:bg-primary/20 sm:h-20 sm:w-20 sm:shrink-0">
+											{eventItem.rentableItem.imageUrl ? (
+												<img
+													src={eventItem.rentableItem.imageUrl}
+													alt={eventItem.rentableItem.name}
+													className="h-full w-full object-cover"
+												/>
+											) : (
+												<ImageIcon className="h-12 w-12 text-primary sm:h-8 sm:w-8" />
+											)}
 										</div>
 
 										{/* Info */}
-										<div className="min-w-0 flex-1">
+										<div className="min-w-0 flex-1 space-y-2">
 											<div className="flex items-start justify-between gap-2">
-												<h3 className="font-semibold text-sm leading-tight line-clamp-2">
+												<h3 className="font-semibold text-base leading-tight sm:text-sm line-clamp-2">
 													{eventItem.rentableItem.name}
 												</h3>
 												{priceTierLabel && (
 													<Badge
 														variant="secondary"
-														className="shrink-0 rounded-none text-[10px] px-1.5 py-0"
+														className="shrink-0 rounded-none text-[10px] px-1.5 py-0.5"
 													>
 														{priceTierLabel}
 													</Badge>
 												)}
 											</div>
 											{eventItem.rentableItem.description && (
-												<p className="mt-1 text-muted-foreground text-xs line-clamp-2">
+												<p className="text-muted-foreground text-sm sm:text-xs line-clamp-2">
 													{eventItem.rentableItem.description}
 												</p>
 											)}
-											{eventItem.rentableItem.itemCategory && (
-												<p className="mt-1.5 text-muted-foreground/70 text-[10px] uppercase tracking-wide">
-													{eventItem.rentableItem.itemCategory.name}
+											<div className="flex items-center justify-between gap-2">
+												{eventItem.rentableItem.itemCategory && (
+													<p className="text-muted-foreground/70 text-[10px] uppercase tracking-wide">
+														{eventItem.rentableItem.itemCategory.name}
+													</p>
+												)}
+												<p className="text-muted-foreground text-xs sm:hidden">
+													{eventItem.rentableItem.unitOfMeasure}
 												</p>
-											)}
+											</div>
 										</div>
 									</div>
 
@@ -173,42 +187,52 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 									<div className="my-4 border-t border-dashed" />
 
 									{/* Footer: Price + Actions */}
-									<div className="flex items-center justify-between gap-3">
+									<div className="space-y-3">
 										{/* Price Section */}
-										<div className="min-w-0">
-											<p className="text-muted-foreground text-[10px] uppercase tracking-wide">
-												{eventItem.rentableItem.unitOfMeasure}
-											</p>
-											<p className="font-bold text-xl text-primary">
-												RM {currentPrice.toFixed(2)}
-											</p>
+										<div className="flex items-baseline justify-between">
+											<div>
+												<p className="text-muted-foreground text-[10px] uppercase tracking-wide">
+													{eventItem.rentableItem.unitOfMeasure}
+												</p>
+												<p className="font-bold text-2xl text-primary sm:text-xl">
+													RM {currentPrice.toFixed(2)}
+												</p>
+											</div>
+											{priceTierLabel && (
+												<Badge
+													variant="secondary"
+													className="sm:hidden shrink-0 rounded-none text-[10px] px-1.5 py-0.5"
+												>
+													{priceTierLabel}
+												</Badge>
+											)}
 										</div>
 
 										{/* Actions */}
 										<div className="flex items-center gap-2">
 											{/* Quantity Controls */}
-											<div className="flex items-center border">
+											<div className="flex flex-1 items-center border sm:flex-initial">
 												<Button
 													type="button"
 													variant="ghost"
 													size="icon"
-													className="h-8 w-8 rounded-none"
+													className="h-10 w-10 rounded-none sm:h-9 sm:w-9 shrink-0"
 													onClick={() => handleQuantityChange(eventItem.id, -1)}
 													disabled={quantity <= 1}
 												>
-													<Minus className="h-3 w-3" />
+													<Minus className="h-4 w-4" />
 												</Button>
-												<span className="w-8 text-center text-sm font-medium">
+												<span className="w-12 text-center text-base font-medium sm:w-10 sm:text-sm">
 													{quantity}
 												</span>
 												<Button
 													type="button"
 													variant="ghost"
 													size="icon"
-													className="h-8 w-8 rounded-none"
+													className="h-10 w-10 rounded-none sm:h-9 sm:w-9 shrink-0"
 													onClick={() => handleQuantityChange(eventItem.id, 1)}
 												>
-													<Plus className="h-3 w-3" />
+													<Plus className="h-4 w-4" />
 												</Button>
 											</div>
 
@@ -216,10 +240,10 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 											<Button
 												onClick={() => handleAddToCart(eventItem)}
 												size="sm"
-												className="gap-1.5 rounded-none px-3"
+												className="h-10 flex-1 gap-2 rounded-none px-4 sm:h-9"
 											>
-												<ShoppingCart className="h-3.5 w-3.5" />
-												Add
+												<ShoppingCart className="h-4 w-4" />
+												<span>Add to Cart</span>
 											</Button>
 										</div>
 									</div>

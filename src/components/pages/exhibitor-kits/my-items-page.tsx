@@ -169,6 +169,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add items to your exhibitor kit"
 						emptyIcon={<Package />}
 						searchPlaceholder="Search items..."
+						cardType="item"
 					/>
 				</TabsContent>
 
@@ -180,6 +181,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 						emptyDescription="Browse the catalog to add printing services to your exhibitor kit"
 						emptyIcon={<Printer />}
 						searchPlaceholder="Search services..."
+						cardType="printing"
 					/>
 				</TabsContent>
 
