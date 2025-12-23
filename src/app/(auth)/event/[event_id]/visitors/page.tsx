@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { VisitorsDataTable } from "@/components/pages/visitors/event-visitor-table";
-import { VisitorsPageButton } from "@/components/pages/visitors/page-action/button";
+import { CreateEventVisitorButton } from "@/components/pages/visitors/page-action/create-event-visitor-button";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getVisitors } from "@/lib/api/visitor";
@@ -17,7 +17,7 @@ export default function VisitorsPage({
 	const { event_id } = use(params);
 	const eventId = Number(event_id);
 
-	useSetEventActions(<VisitorsPageButton eventId={eventId} />);
+	useSetEventActions(<CreateEventVisitorButton eventId={eventId} />);
 
 	const {
 		data: visitors,

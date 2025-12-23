@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Visitor } from "@/lib/api/visitor";
-import EditVisitorForm from "./action-modals/edit-form";
+import EditEventVisitorForm from "./action-modals/edit-event-visitor-form";
 import VisitorQRModal from "./action-modals/qr-modal";
-import VisitorViewModal from "./action-modals/view-modal";
+import ViewEventVisitorModal from "./action-modals/view-event-visitor-modal";
 
 interface VisitorActionsMenuProps {
 	visitor: Visitor;
@@ -18,7 +18,7 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 
 	const openViewModal = () => {
 		openDialog({
-			component: VisitorViewModal,
+			component: ViewEventVisitorModal,
 			config: {
 				title: "View Visitor",
 				size: "2xl",
@@ -30,11 +30,11 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 
 	const openEditModal = () => {
 		openDialog({
-			component: EditVisitorForm,
+			component: EditEventVisitorForm,
 			config: {
 				title: "Edit Visitor",
 				description: "Update the visitor information",
-				size: "2xl",
+				size: "full",
 				showCloseButton: true,
 			},
 			props: { visitor },
