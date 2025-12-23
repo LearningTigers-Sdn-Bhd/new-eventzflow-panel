@@ -61,6 +61,25 @@ export interface CustomRequest {
 	updated_at?: string;
 }
 
+export type TeamMemberPaymentStatus = "pending" | "submitted" | "verified" | "rejected";
+
+export interface ExhibitorTeamMemberPaymentInKit {
+	id: number;
+	exhibitor_kit_id: number;
+	payee_id: number | null;
+	extra_member_count: number;
+	fee_per_member: string;
+	amount: string;
+	status: TeamMemberPaymentStatus;
+	payment_source: "manual_bank_in" | "payment_gateway" | null;
+	payment_proof_url: string | null;
+	external_ref: string | null;
+	note: string | null;
+	paid_at: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface ExhibitorKit {
 	id: number;
 	event_vendor_id: number;
@@ -89,10 +108,13 @@ export interface ExhibitorKit {
 	exhibitor_kit_items?: ExhibitorKitItem[];
 	exhibitor_kit_printings?: ExhibitorKitPrinting[];
 	custom_requests?: CustomRequest[];
+	exhibitor_team_member_payments?: ExhibitorTeamMemberPaymentInKit[];
 	team_member_count?: number;
 	team_member_limit?: number | null;
 	excess_team_member_count?: number;
-	exceeds_team_member_limit?: boolean;
+	paid_extra_member_count?: number;
+	unpaid_excess_team_member_count?: number;
+	has_unpaid_excess_team_members?: boolean;
 	extra_team_member_fee?: string;
 	extra_team_member_charges?: string;
 	created_at?: string;

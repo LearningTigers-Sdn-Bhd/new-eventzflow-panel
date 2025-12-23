@@ -1,0 +1,192 @@
+"use client";
+
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { updateExhibitorTeamMemberPayment } from "@/lib/api/exhibitor-team-member-payment";
+import type { TeamMemberPaymentWithVendor } from "./extra-team-member-payments-columns";
+
+interface VerifyRejectTeamMemberPaymentDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	payment: TeamMemberPaymentWithVendor | null;
+	eventId: string;
+	action: "verify" | "reject";
+}
+
+export function VerifyRejectTeamMemberPaymentDialog({
+	open,
+	onOpenChange,
+	payment,
+	eventId,
+	action,
+}: VerifyRejectTeamMemberPaymentDialogProps) {
+	const queryClient = useQueryClient();
+	const [note, setNote] = useState("");
+
+	const updateMutation = useMutation({
+		mutationFn: () => {
+			if (!payment) throw new Error("No payment selected");
+
+			return updateExhibitorTeamMemberPayment({
+				eventId,
+				exhibitorKitId: payment.exhibitor_kit_id.toString(),
+				paymentId: payment.id.toString(),
+				status: action === "verify" ? "verified" : "rejected",
+				note: note || undefined,
+				paid_at: action === "verify" ? new Date().toISOString() : undefined,
+			});
+		},
+		onSuccess: () => {
+			toast.success(
+				action === "verify"
+					? "Payment verified successfully"
+					: "Payment rejected"
+			);
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
+			});
+			onOpenChange(false);
+			setNote("");
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || `Failed to ${action} payment`);
+		},
+	});
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		updateMutation.mutate();
+	};
+
+	const isVerify = action === "verify";
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="rounded-none sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						{isVerify ? (
+							<CheckCircle2 className="size-5 text-green-600" />
+						) : (
+							<XCircle className="size-5 text-red-600" />
+						)}
+						{isVerify ? "Verify Payment" : "Reject Payment"}
+					</DialogTitle>
+					<DialogDescription>
+						{isVerify
+							? "Confirm that you have received this payment for extra team members."
+							: "Reject this payment submission. The exhibitor will be able to resubmit with a new proof."}
+					</DialogDescription>
+				</DialogHeader>
+
+				{payment && (
+					<form onSubmit={handleSubmit} className="space-y-4">
+						{/* Payment Summary */}
+						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+							<div className="flex justify-between">
+								<span className="text-muted-foreground text-sm">Exhibitor:</span>
+								<span className="font-medium">{payment.vendor_name}</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-muted-foreground text-sm">Amount:</span>
+								<span className="font-bold">RM {Number(payment.amount).toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-muted-foreground text-sm">Extra Members:</span>
+								<span className="text-sm">
+									{payment.extra_member_count} × RM {Number(payment.fee_per_member).toFixed(2)}
+								</span>
+							</div>
+							{payment.payment_source && (
+								<div className="flex justify-between">
+									<span className="text-muted-foreground text-sm">Method:</span>
+									<span className="text-sm">
+										{payment.payment_source === "manual_bank_in"
+											? "Bank Transfer"
+											: "Payment Gateway"}
+									</span>
+								</div>
+							)}
+							{payment.payment_proof_url && (
+								<div className="pt-2 border-t">
+									<a
+										href={payment.payment_proof_url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-primary text-sm underline"
+									>
+										View Payment Proof
+									</a>
+								</div>
+							)}
+							{payment.external_ref && (
+								<div className="flex justify-between">
+									<span className="text-muted-foreground text-sm">Reference:</span>
+									<span className="text-sm">{payment.external_ref}</span>
+								</div>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="note">
+								{isVerify ? "Note (Optional)" : "Rejection Reason (Optional)"}
+							</Label>
+							<Textarea
+								id="note"
+								placeholder={
+									isVerify
+										? "Add any notes..."
+										: "Explain why this payment is being rejected..."
+								}
+								value={note}
+								onChange={(e) => setNote(e.target.value)}
+								className="min-h-[80px] rounded-none"
+							/>
+						</div>
+
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => onOpenChange(false)}
+								className="rounded-none"
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								disabled={updateMutation.isPending}
+								className={`rounded-none ${
+									isVerify
+										? "bg-green-600 hover:bg-green-700"
+										: "bg-red-600 hover:bg-red-700"
+								}`}
+							>
+								{updateMutation.isPending
+									? isVerify
+										? "Verifying..."
+										: "Rejecting..."
+									: isVerify
+										? "Verify Payment"
+										: "Reject Payment"}
+							</Button>
+						</DialogFooter>
+					</form>
+				)}
+			</DialogContent>
+		</Dialog>
+	);
+}

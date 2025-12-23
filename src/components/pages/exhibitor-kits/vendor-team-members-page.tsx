@@ -29,6 +29,7 @@ import {
 	type TeamMembersTableMeta,
 	teamMembersColumns,
 } from "./team-members/team-members-columns";
+import { TeamMemberPaymentSection } from "./team-member-payment-section";
 
 interface VendorTeamMembersPageProps {
 	eventId: number;
@@ -195,8 +196,16 @@ export function VendorTeamMembersPage({
 		: 0;
 
 	const freeSlots = limit ? Math.max(limit - currentCount, 0) : null;
-	const excessCount = limit && currentCount > limit ? currentCount - limit : 0;
-	const totalCharges = excessCount * fee;
+
+	// Use backend values for unpaid excess (accounts for already verified payments)
+	const unpaidExcessCount = kit?.unpaid_excess_team_member_count ?? 0;
+	const unpaidCharges = kit?.extra_team_member_charges
+		? Number(kit.extra_team_member_charges)
+		: 0;
+
+	// Total excess for display purposes (regardless of payment status)
+	const totalExcessCount = limit && currentCount > limit ? currentCount - limit : 0;
+	const totalCharges = totalExcessCount * fee;
 
 	const canAddMore = !limit || fee > 0 || currentCount < limit;
 
@@ -286,7 +295,7 @@ export function VendorTeamMembersPage({
 								RM {totalCharges.toFixed(2)}
 							</div>
 							<p className="text-muted-foreground text-xs">
-								{excessCount} × RM {fee.toFixed(2)}
+								{totalExcessCount} × RM {fee.toFixed(2)}
 							</p>
 						</div>
 					)}
@@ -298,12 +307,21 @@ export function VendorTeamMembersPage({
 				<Alert className="rounded-none border-amber-500 bg-amber-50 dark:bg-amber-950/20">
 					<AlertCircle className="h-4 w-4 text-amber-600" />
 					<AlertDescription className="text-amber-600">
-						You have {excessCount} team member{excessCount !== 1 ? "s" : ""}{" "}
+						You have {totalExcessCount} team member{totalExcessCount !== 1 ? "s" : ""}{" "}
 						exceeding the free limit. Additional charges of RM{" "}
 						{totalCharges.toFixed(2)} will apply.
 					</AlertDescription>
 				</Alert>
 			)}
+
+			{/* Extra Team Member Payment Section - Uses unpaid excess from backend */}
+			<TeamMemberPaymentSection
+				eventId={eventId.toString()}
+				kitId={kit.id.toString()}
+				excessCount={unpaidExcessCount}
+				feePerMember={fee}
+				totalCharges={unpaidCharges}
+			/>
 
 			{/* Info about limit */}
 			{limit && fee === 0 && currentCount >= limit && (

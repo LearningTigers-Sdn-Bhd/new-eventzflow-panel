@@ -269,7 +269,7 @@ export function ExhibitorKitDetailsSection({
 									<span className="text-muted-foreground">
 										Limit: {kit.team_member_limit}
 									</span>
-									{kit.exceeds_team_member_limit && kit.extra_team_member_charges && (
+									{kit.has_unpaid_excess_team_members && kit.extra_team_member_charges && (
 										<Badge variant="outline" className="rounded-none border-amber-500 text-amber-600">
 											+RM {kit.extra_team_member_charges}
 										</Badge>

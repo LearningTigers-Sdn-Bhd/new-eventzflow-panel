@@ -24,7 +24,9 @@ export interface ExhibitorKitTeamMemberInfo {
 	team_member_count: number;
 	team_member_limit: number | null;
 	excess_team_member_count: number;
-	exceeds_team_member_limit: boolean;
+	paid_extra_member_count: number;
+	unpaid_excess_team_member_count: number;
+	has_unpaid_excess_team_members: boolean;
 	extra_team_member_fee: string;
 	extra_team_member_charges: string;
 }

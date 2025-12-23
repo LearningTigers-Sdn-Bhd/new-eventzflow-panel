@@ -8,6 +8,7 @@ import {
 	Package,
 	Printer,
 	Users,
+	CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -24,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { CustomRequestsView } from "./custom-requests-view";
+import { ExtraTeamMemberPaymentsView } from "./extra-team-member-payments-view";
 import { OrderedItemsView } from "./ordered-items-view";
 import { OrderedServicesView } from "./ordered-services-view";
 import { columns } from "./table/columns";
@@ -41,6 +43,7 @@ const TAB_OPTIONS = [
 	{ value: "exhibitors", label: "Exhibitors", icon: Users },
 	{ value: "items", label: "Ordered Items", icon: Package },
 	{ value: "services", label: "Ordered Services", icon: Printer },
+	{ value: "extra-payments", label: "Extra Member Payments", icon: CreditCard },
 	// HIDDEN: Custom Requests feature temporarily disabled
 	// { value: "custom-requests", label: "Custom Requests", icon: FileQuestion },
 ];
@@ -143,6 +146,13 @@ export function ExhibitorListView({
 								<Printer className="size-4" />
 								Ordered Services
 							</TabsTrigger>
+							<TabsTrigger
+								value="extra-payments"
+								className="flex flex-1 items-center justify-center gap-2 rounded-none"
+							>
+								<CreditCard className="size-4" />
+								Extra Payments
+							</TabsTrigger>
 							{/* HIDDEN: Custom Requests feature temporarily disabled */}
 							{/* <TabsTrigger
 								value="custom-requests"
@@ -196,6 +206,10 @@ export function ExhibitorListView({
 
 					<TabsContent value="services" className="mt-0">
 						<OrderedServicesView eventId={eventId} />
+					</TabsContent>
+
+					<TabsContent value="extra-payments" className="mt-0">
+						<ExtraTeamMemberPaymentsView eventId={eventId} />
 					</TabsContent>
 
 					{/* HIDDEN: Custom Requests feature temporarily disabled */}
