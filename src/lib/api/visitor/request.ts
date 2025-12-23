@@ -7,6 +7,7 @@ export const createVisitorSchema = z.object({
 	phone: z.string().optional(),
 	gender: z.string().optional(),
 	age: z.number().optional(),
+	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
 export const updateVisitorSchema = z.object({
@@ -15,6 +16,7 @@ export const updateVisitorSchema = z.object({
 	phone: z.string().optional(),
 	gender: z.string().optional(),
 	age: z.number().optional(),
+	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
 // Export types for form data

@@ -3,16 +3,17 @@
 import { Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
 import { useVisitors } from "@/hooks/use-visitors";
 import { getEventById } from "@/lib/api/event";
-import { AddVisitorDialog } from "../add-visitor-dialog";
+import CreateEventVisitorForm from "./create-event-visitor-form";
 
-interface VisitorsPageButtonProps {
+interface CreateEventVisitorButtonProps {
 	eventId: number;
 }
 
-export function VisitorsPageButton({ eventId }: VisitorsPageButtonProps) {
-	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonProps) {
+	const { openDialog } = useDialog();
 	const [isExporting, setIsExporting] = useState(false);
 	const [eventName, setEventName] = useState<string>("");
 	const { data: visitors } = useVisitors(eventId);
@@ -28,6 +29,18 @@ export function VisitorsPageButton({ eventId }: VisitorsPageButtonProps) {
 		};
 		fetchEventName();
 	}, [eventId]);
+
+	const openCreateVisitorDialog = () => {
+		openDialog({
+			component: CreateEventVisitorForm,
+			config: {
+				size: "full",
+				showCloseButton: true,
+				title: "Create New Visitor",
+				description: "Add a new visitor for this event",
+			},
+		});
+	};
 
 	const handleExport = async () => {
 		if (!visitors?.length) return;
@@ -104,31 +117,23 @@ export function VisitorsPageButton({ eventId }: VisitorsPageButtonProps) {
 	};
 
 	return (
-		<>
-			<div className="flex w-full flex-col items-center gap-2 md:w-auto md:flex-row">
-				<Button
-					variant="outline"
-					onClick={handleExport}
-					disabled={isExporting || !visitors?.length}
-					className="w-full rounded-none py-6 md:w-auto md:py-4"
-				>
-					<Download className="mr-2 h-4 w-4" />
-					{isExporting ? "Exporting..." : "Export Visitors"}
-				</Button>
-				<Button
-					onClick={() => setIsAddDialogOpen(true)}
-					className="w-full rounded-none py-6 md:w-auto md:py-4"
-				>
-					<Plus className="mr-2 h-4 w-4" />
-					Add Visitor
-				</Button>
-			</div>
-
-			<AddVisitorDialog
-				eventId={eventId}
-				open={isAddDialogOpen}
-				onOpenChange={setIsAddDialogOpen}
-			/>
-		</>
+		<div className="flex w-full flex-col items-center gap-2 md:w-auto md:flex-row">
+			<Button
+				variant="outline"
+				onClick={handleExport}
+				disabled={isExporting || !visitors?.length}
+				className="w-full rounded-none py-6 md:w-auto md:py-4"
+			>
+				<Download className="mr-2 h-4 w-4" />
+				{isExporting ? "Exporting..." : "Export Visitors"}
+			</Button>
+			<Button
+				onClick={openCreateVisitorDialog}
+				className="w-full rounded-none py-6 md:w-auto md:py-4"
+			>
+				<Plus className="mr-2 h-4 w-4" />
+				Add Visitor
+			</Button>
+		</div>
 	);
 }
