@@ -1,6 +1,6 @@
 // new-eventzflow-panel/src/hooks/use-business-matching-public.ts
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { 
     getBusinessHosts, 
     getHostAvailability, 
@@ -15,7 +15,8 @@ import {
     PublicCreateBookingRequest,
     BusinessMatchingEvent, 
     joinBusinessHost, // Added import
-    getPublicBookingById // Added import
+    getPublicBookingById, // Added import
+    Booking
 } from '@/lib/api/business-matching';
 
 /**
@@ -32,7 +33,7 @@ export const usePublicBookingDetails = (bookingId: string, bmEventId: string, ev
         },
         enabled: !!bookingId && !!bmEventId && !!eventId && (options?.enabled ?? true),
         staleTime: 0,
-        cacheTime: 0,
+        gcTime: 0,
         retry: false,
     });
 };

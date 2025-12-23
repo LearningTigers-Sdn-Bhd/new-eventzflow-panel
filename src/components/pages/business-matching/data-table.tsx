@@ -27,19 +27,19 @@ import {
 } from "@/components/ui/table";
 
 import { useIsTablet } from "@/hooks/use-tablet";
+import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import { BusinessMatchingItem } from "./business-matching-item";
-import type { BusinessMatchingEvent, BusinessHost } from "@/lib/api/business-matching";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-    actions?: React.ReactNode; // Add actions prop
+	actions?: React.ReactNode; // Add actions prop
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-    actions,
+	actions,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -77,9 +77,9 @@ export function DataTable<TData, TValue>({
 					onChange={(event) =>
 						table.getColumn("title")?.setFilterValue(event.target.value)
 					}
-					className="max-w-sm h-8 md:h-9"
+					className="h-8 max-w-sm md:h-9"
 				/>
-                {actions && <div className="shrink-0">{actions}</div>}
+				{actions && <div className="shrink-0">{actions}</div>}
 			</div>
 
 			{/* Data Table */}
@@ -142,12 +142,14 @@ export function DataTable<TData, TValue>({
 			) : (
 				<div className="space-y-2">
 					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<BusinessMatchingItem
-								key={row.id}
-								event={row.original as BusinessMatchingEvent}
-							/>
-						))
+						table
+							.getRowModel()
+							.rows.map((row) => (
+								<BusinessMatchingItem
+									key={row.id}
+									event={row.original as BusinessMatchingEvent}
+								/>
+							))
 					) : (
 						<EmptyState
 							title="No events found"

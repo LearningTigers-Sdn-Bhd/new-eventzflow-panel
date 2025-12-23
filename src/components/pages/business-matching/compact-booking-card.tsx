@@ -1,49 +1,76 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import type * as React from "react";
+import { cn } from "@/lib/utils";
 
-function CompactCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-none flex flex-col overflow-hidden h-full",
-        className
-      )}
-      {...props}
-    />
-  )
+function CompactCard({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			className={cn(
+				"flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-none",
+				className,
+			)}
+			{...props}
+		/>
+	);
 }
 
-function CompactCardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex flex-col space-y-1 p-2 bg-muted/20 shrink-0", className)}
-      {...props}
-    />
-  )
+function CompactCardHeader({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			className={cn(
+				"flex shrink-0 flex-col space-y-1 bg-muted/20 p-2",
+				className,
+			)}
+			{...props}
+		/>
+	);
 }
 
-function CompactCardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return (
-    <h3
-      className={cn("font-semibold leading-none tracking-tight text-sm", className)}
-      {...props}
-    />
-  )
+function CompactCardTitle({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+	return (
+		<h3
+			className={cn(
+				"font-semibold text-sm leading-none tracking-tight",
+				className,
+			)}
+			{...props}
+		/>
+	);
 }
 
-function CompactCardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("p-2 pt-0 flex-1 grid gap-1", className)} {...props} />
-  )
+function CompactCardContent({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div className={cn("grid flex-1 gap-1 p-2 pt-0", className)} {...props} />
+	);
 }
 
-function CompactCardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex items-center p-2 pt-0 shrink-0", className)}
-      {...props}
-    />
-  )
+function CompactCardFooter({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			className={cn("flex shrink-0 items-center p-2 pt-0", className)}
+			{...props}
+		/>
+	);
 }
 
-export { CompactCard, CompactCardHeader, CompactCardFooter, CompactCardTitle, CompactCardContent }
+export {
+	CompactCard,
+	CompactCardHeader,
+	CompactCardFooter,
+	CompactCardTitle,
+	CompactCardContent,
+};

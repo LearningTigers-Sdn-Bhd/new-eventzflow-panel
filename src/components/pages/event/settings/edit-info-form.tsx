@@ -99,6 +99,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useTicket: true,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
+			useBusinessMatching: false,
 			description: "",
 			webhookUrl: "",
 			multipleScans: false,

@@ -20,7 +20,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { updateStaffRole } from "@/lib/api/event/event-staff";
-import type { EventStaffMember } from "./event-staff-table-columns";
+import type { EventStaffMember } from "@/lib/api/event/event-staff";
 
 interface EditRoleFormProps {
 	member: EventStaffMember;
@@ -34,8 +34,10 @@ export default function EditRoleForm({
 	onClose,
 }: EditRoleFormProps) {
 	const roleId = useId();
-	const [role, setRole] = useState<"event_admin" | "event_team_member">(
-		member.eventRole as "event_admin" | "event_team_member",
+	const [role, setRole] = useState<
+		"event_admin" | "event_team_member" | "business_host"
+	>(
+		member.eventRole as "event_admin" | "event_team_member" | "business_host",
 	);
 
 	const queryClient = useQueryClient();
@@ -90,7 +92,9 @@ export default function EditRoleForm({
 							<Select
 								value={role}
 								onValueChange={(value) =>
-									setRole(value as "event_admin" | "event_team_member")
+									setRole(
+										value as "event_admin" | "event_team_member" | "business_host",
+									)
 								}
 								disabled={updateRoleMutation.isPending}
 							>
@@ -100,11 +104,12 @@ export default function EditRoleForm({
 								<SelectContent>
 									<SelectItem value="event_admin">Event Admin</SelectItem>
 									<SelectItem value="event_team_member">Team Member</SelectItem>
+									<SelectItem value="business_host">Business Host</SelectItem>
 								</SelectContent>
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								have limited access.
+								and Business Hosts have limited access.
 							</FieldDescription>
 						</Field>
 
