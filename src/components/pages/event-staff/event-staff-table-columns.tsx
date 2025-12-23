@@ -5,26 +5,15 @@ import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import { useFormatDate } from "@/hooks/use-format-date";
+import type { EventStaffMember } from "@/lib/api/event/event-staff";
 import { cn } from "@/lib/utils";
 import { EventStaffActionsMenu } from "./action-menu";
-
-export type EventStaffMember = {
-	id: string;
-	full_name: string;
-	email: string;
-	phone?: string;
-	globalRole: "org_owner" | "organizer" | "member";
-	eventRole: "event_admin" | "event_team_member";
-	status: "active" | "inactive";
-	assignmentId: number;
-	createdAt: string;
-	updatedAt: string;
-};
 
 // Filter options
 const EVENT_ROLE_OPTIONS = [
 	{ label: "Admin", value: "event_admin" },
 	{ label: "Team Member", value: "event_team_member" },
+	{ label: "Business Host", value: "business_host" },
 ];
 
 const STATUS_OPTIONS = [
@@ -78,7 +67,12 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 		),
 		cell: ({ row }) => {
 			const role = row.getValue("eventRole") as string;
-			const roleLabel = role === "event_admin" ? "Admin" : "Team Member";
+			const roleLabel =
+				role === "event_admin"
+					? "Admin"
+					: role === "business_host"
+						? "Business Host"
+						: "Team Member";
 			return (
 				<Badge
 					variant="outline"
@@ -86,6 +80,7 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						"w-full min-w-20 max-w-24 rounded-none font-bold capitalize",
 						role === "event_admin" && "border-purple-500 text-purple-500",
 						role === "event_team_member" && "border-blue-500 text-blue-500",
+						role === "business_host" && "border-orange-500 text-orange-500",
 					)}
 				>
 					{roleLabel}

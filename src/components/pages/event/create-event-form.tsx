@@ -37,6 +37,7 @@ const formSchema = z
 		useTicket: z.boolean(),
 		useExhibitorKit: z.boolean(),
 		allowPrintingServices: z.boolean(),
+		useBusinessMatching: z.boolean(),
 		status: z.enum(["draft", "published", "cancelled"]),
 		eventAdminId: z.union([z.string(), z.undefined()]),
 		description: z.string(),
@@ -66,16 +67,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 	const formId = useId();
 	const sectionId = useId();
 	const { user } = useAuth();
-	const titleId = useId();
-	const _visibilityId = useId();
-	const _useTicketId = useId();
-	const useExhibitorKitId = useId();
-	const allowPrintingServicesId = useId();
-	const statusId = useId();
-	const eventAdminId = useId();
-	const descriptionId = useId();
-	const startDateId = useId();
-	const endDateId = useId();
 
 	// Only org_owner can assign event admin
 	const canAssignEventAdmin = user?.role === "org_owner";
@@ -115,6 +106,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			useTicket: true,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
+			useBusinessMatching: false,
 			status: "draft" as "draft" | "published" | "cancelled",
 			eventAdminId: undefined as string | undefined,
 			description: "",
@@ -132,6 +124,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				use_exhibitor_kit: value.useExhibitorKit ?? false,
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
+				use_business_matching: value.useBusinessMatching ?? false,
 				status: value.status ?? "draft",
 				description: value.description.trim() || undefined,
 				start_date: value.startDate?.toISOString() || "",
@@ -479,6 +472,24 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 										);
 									}}
 								</form.Field>
+								<div className="flex flex-col gap-4">
+									<form.Field name="useBusinessMatching">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Business Matching"
+													description="Allow business matching for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
+								</div>
 							</div>
 						</div>
 					</FormGroupContainer>

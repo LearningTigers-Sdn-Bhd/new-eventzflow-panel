@@ -25,7 +25,7 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { EventStaffItem } from "./event-staff-item";
-import type { EventStaffMember } from "./event-staff-table-columns";
+import type { EventStaffMember } from "@/lib/api/event/event-staff";
 import { DataControl } from "./event-staff-table-control";
 
 interface DataTableProps<TData, TValue> {

@@ -102,6 +102,10 @@ export async function refreshToken(): Promise<string> {
 
 			return access_token;
 		} catch (error) {
+			// If refresh fails, the session is unrecoverable.
+			// Log the user out to force re-authentication.
+			logout();
+
 			if (error instanceof Error && error.name === "ZodError") {
 				throw new Error("Invalid refresh token data");
 			}

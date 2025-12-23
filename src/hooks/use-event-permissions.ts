@@ -21,6 +21,7 @@ export type EventPermissions = {
 	isEventTeamMember: boolean;
 	isEventStaff: boolean;
 	isEventVendor: boolean;
+	isBusinessHost: boolean;
 
 	// Specific permissions
 	canManageEvent: boolean;
@@ -46,7 +47,10 @@ export type EventPermissions = {
  * This hook determines what actions a user can perform on a specific event
  * based on their global role, event staff assignment, and vendor assignment.
  */
-export function useEventPermissions(eventId: string | number, event?: Event): EventPermissions {
+export function useEventPermissions(
+	eventId: string | number,
+	event?: Event,
+): EventPermissions {
 	const { user } = useAuth();
 	const eventIdStr = String(eventId);
 
@@ -54,8 +58,14 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 	const isExhibitionContractor = user?.role === "exhibition_contractor";
 
 	// Determine which queries should run based on user role
-	const shouldFetchStaff = !!user && !!eventId && user.role !== "vendor" && !isExhibitionContractor && !!event;
-	const shouldFetchVendors = !!user && !!eventId && !isExhibitionContractor && !!event;
+	const shouldFetchStaff =
+		!!user &&
+		!!eventId &&
+		user.role !== "vendor" &&
+		!isExhibitionContractor &&
+		!!event;
+	const shouldFetchVendors =
+		!!user && !!eventId && !isExhibitionContractor && !!event;
 
 	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
 	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({
@@ -91,6 +101,7 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 				isEventTeamMember: false,
 				isEventStaff: false,
 				isEventVendor: false,
+				isBusinessHost: false,
 
 				// Specific permissions
 				canManageEvent: false,
@@ -139,6 +150,7 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 				isEventTeamMember: false,
 				isEventStaff: false,
 				isEventVendor: isVendor, // Vendor role means they're an event vendor
+				isBusinessHost: false,
 
 				// Specific permissions
 				canManageEvent: false,
@@ -161,8 +173,8 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 
 		// For other roles (org_owner, organizer, member), we need to check event staff assignments
 		// Determine if we're still loading critical data
-		const isLoading = 
-			(shouldFetchStaff && isLoadingStaff) || 
+		const isLoading =
+			(shouldFetchStaff && isLoadingStaff) ||
 			(shouldFetchVendors && isLoadingVendors);
 
 		// Find user's event staff assignment
@@ -174,12 +186,12 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 		const isEventAdmin = userStaffAssignment?.eventRole === "event_admin";
 		const isEventTeamMember =
 			userStaffAssignment?.eventRole === "event_team_member";
+		const isBusinessHost = userStaffAssignment?.eventRole === "business_host";
 		const isEventStaff = !!userStaffAssignment;
 
 		// Check if user is a vendor for this event
-		const isEventVendor = eventVendors?.some(
-			(vendor) => vendor.vendor_id === user.id,
-		) ?? false;
+		const isEventVendor =
+			eventVendors?.some((vendor) => vendor.vendor_id === user.id) ?? false;
 
 		// Determine if event uses tickets
 		const useTicket = event?.use_ticket ?? true;
@@ -199,7 +211,8 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
 		const canViewVisitorsTab = !useTicket && canViewVisitors;
-		const canViewStampScannerTab = !useTicket && (canScanVisitorStamps ?? false);
+		const canViewStampScannerTab =
+			!useTicket && (canScanVisitorStamps ?? false);
 
 		return {
 			// Loading state
@@ -215,9 +228,9 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 			// Event-specific roles
 			isEventAdmin,
 			isEventTeamMember,
+			isBusinessHost,
 			isEventStaff,
 			isEventVendor,
-
 			// Specific permissions
 			canManageEvent,
 			canManageEventStaff,
@@ -236,13 +249,13 @@ export function useEventPermissions(eventId: string | number, event?: Event): Ev
 			canViewStampScannerTab,
 		};
 	}, [
-		user, 
-		eventStaff, 
-		eventVendors, 
-		event?.use_ticket, 
-		isExhibitionContractor, 
-		isLoadingStaff, 
-		isLoadingVendors, 
+		user,
+		eventStaff,
+		eventVendors,
+		event?.use_ticket,
+		isExhibitionContractor,
+		isLoadingStaff,
+		isLoadingVendors,
 		shouldFetchStaff,
 		shouldFetchVendors,
 		event,

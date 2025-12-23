@@ -1,0 +1,207 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Calendar, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ErrorState } from "@/components/data-state";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyTitle,
+} from "@/components/ui/empty";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	useBusinessMatchingBookings,
+	useForceRefreshBookings,
+} from "@/hooks/use-business-matching";
+import { BookingCardItem } from "./booking-card-item";
+
+interface BookingsDialogProps {
+	bmEventId: string;
+	eventId: string;
+}
+
+export default function BookingsDialog({
+	bmEventId,
+	eventId,
+}: BookingsDialogProps) {
+	const {
+		data,
+		isLoading,
+		error,
+		isFetching: _isFetchingBookings,
+		refetch: _refetch,
+	} = useBusinessMatchingBookings(bmEventId, eventId);
+	const [searchQuery, setSearchQuery] = useState("");
+	const _queryClient = useQueryClient();
+	const { mutate: forceRefreshBookings, isPending: isRefreshingBookings } =
+		useForceRefreshBookings(bmEventId, eventId);
+
+	// Format today's date to match the "dd MMMM" format (e.g., "03 November")
+	const todayString = format(new Date(), "dd MMMM");
+
+	const _handleRefreshBookings = () => {
+		forceRefreshBookings();
+		toast.info("Refreshing bookings...");
+	};
+
+	const isRefreshing = isRefreshingBookings || isLoading;
+
+	if (isRefreshing) {
+		// Use isRefreshing
+		return (
+			<div className="flex h-64 items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+				<span className="ml-2 text-muted-foreground">Loading bookings...</span>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<ErrorState
+				title="Failed to load bookings"
+				description="Could not fetch bookings. Please try again."
+				height="h-64"
+			/>
+		);
+	}
+
+	if (!data || data.bookings.length === 0) {
+		return (
+			<div className="flex w-full items-center justify-center py-8">
+				<Empty className="border-0 p-0">
+					<EmptyHeader>
+						<EmptyTitle>No bookings found yet</EmptyTitle>
+						<EmptyDescription>
+							No new bookings at the moment. Please wait a moment...
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
+			</div>
+		);
+	}
+
+	const bookings = data.bookings;
+
+	// Helper function to create a sortable Date object from booking details
+	const getSortableDate = (booking: (typeof bookings)[0]) => {
+		// e.g., "03 November" and "10:00 AM" -> "03 November 2024 10:00"
+		const year = new Date().getFullYear();
+		const dateTimeString = `${booking.booking_date} ${year} ${booking.booking_time}`;
+		// Adjust for AM/PM if present, otherwise assume 24h
+		const parsableString = dateTimeString.replace(/ (AM|PM)$/, "M");
+		return new Date(parsableString);
+	};
+
+	const filteredBookings = bookings
+		.filter((booking) => {
+			const query = searchQuery.toLowerCase();
+			return (
+				booking.name.toLowerCase().includes(query) ||
+				booking.email?.toLowerCase().includes(query) ||
+				booking.phone?.toLowerCase().includes(query) ||
+				booking.location?.toLowerCase().includes(query) ||
+				booking.host_comment?.toLowerCase().includes(query) ||
+				booking.potential_deal_value
+					?.toString()
+					.toLowerCase()
+					.includes(query) ||
+				booking.booking_date.toLowerCase().includes(query) ||
+				booking.booking_time.toLowerCase().includes(query)
+			);
+		})
+		.sort(
+			(a, b) => getSortableDate(a).getTime() - getSortableDate(b).getTime(),
+		);
+
+	const todayBookings = filteredBookings
+		.filter((b) => b.booking_date?.includes(todayString))
+		.sort((a, b) => {
+			const now = new Date();
+			const dateA = getSortableDate(a);
+			const dateB = getSortableDate(b);
+
+			// If a booking is in the past, push it to the bottom
+			if (dateA < now && dateB >= now) return 1;
+			if (dateB < now && dateA >= now) return -1;
+
+			// Otherwise, sort by time
+			return dateA.getTime() - dateB.getTime();
+		});
+
+	return (
+		<div className="mx-auto flex h-[70vh] w-full max-w-4xl flex-col p-1">
+			<div className="mb-2 px-1">
+				<Input
+					placeholder="Search bookings..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="h-8 text-sm"
+				/>
+			</div>
+			<Tabs
+				defaultValue={todayBookings.length > 0 ? "today" : "all"}
+				className="flex w-full flex-1 flex-col overflow-hidden"
+			>
+				<div className="mb-2 shrink-0 px-1">
+					<TabsList className="grid w-full grid-cols-2">
+						<TabsTrigger value="today">
+							Today ({todayBookings.length})
+						</TabsTrigger>
+						<TabsTrigger value="all">
+							All ({filteredBookings.length})
+						</TabsTrigger>
+					</TabsList>
+				</div>
+
+				<TabsContent value="today" className="mt-0 flex-1 overflow-hidden">
+					<ScrollArea className="h-full">
+						{todayBookings.length > 0 ? (
+							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
+								{todayBookings.map((booking) => (
+									<BookingCardItem
+										key={booking.id}
+										booking={booking}
+										bmEventId={bmEventId}
+										eventId={eventId}
+									/>
+								))}
+							</div>
+						) : (
+							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+								<Calendar className="mb-2 h-10 w-10 opacity-20" />
+								<p>No bookings found for today.</p>
+							</div>
+						)}
+					</ScrollArea>
+				</TabsContent>
+
+				<TabsContent value="all" className="mt-0 flex-1 overflow-hidden">
+					<ScrollArea className="h-full">
+						{filteredBookings.length > 0 ? (
+							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
+								{filteredBookings.map((booking) => (
+									<BookingCardItem
+										key={booking.id}
+										booking={booking}
+										bmEventId={bmEventId}
+										eventId={eventId}
+									/>
+								))}
+							</div>
+						) : (
+							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+								<Calendar className="mb-2 h-10 w-10 opacity-20" />
+								<p>No bookings found.</p>
+							</div>
+						)}
+					</ScrollArea>
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
+}

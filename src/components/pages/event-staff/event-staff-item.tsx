@@ -19,7 +19,7 @@ import {
 import { useFormatDate } from "@/hooks/use-format-date";
 import { cn } from "@/lib/utils";
 import { EventStaffActionsMenu } from "./action-menu";
-import type { EventStaffMember } from "./event-staff-table-columns";
+import type { EventStaffMember } from "@/lib/api/event/event-staff";
 
 interface EventStaffItemProps {
 	member: EventStaffMember;
@@ -42,7 +42,11 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 	};
 
 	const eventRoleLabel =
-		member.eventRole === "event_admin" ? "Admin" : "Team Member";
+		member.eventRole === "event_admin"
+			? "Admin"
+			: member.eventRole === "business_host"
+				? "Business Host"
+				: "Team Member";
 
 	return (
 		<Item variant="outline" className="w-full rounded-none">
@@ -59,10 +63,14 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 								"border-purple-500 text-purple-500",
 							member.eventRole === "event_team_member" &&
 								"border-blue-500 text-blue-500",
+							member.eventRole === "business_host" &&
+								"border-orange-500 text-orange-500",
 						)}
 					>
 						{member.eventRole === "event_admin" ? (
 							<Shield className="mr-1 h-3 w-3" />
+						) : member.eventRole === "business_host" ? (
+							<UsersIcon className="mr-1 h-3 w-3" />
 						) : (
 							<UsersIcon className="mr-1 h-3 w-3" />
 						)}

@@ -11,6 +11,7 @@
  */
 
 import {
+	Briefcase,
 	Building2,
 	ChartBar,
 	Gift,
@@ -87,7 +88,7 @@ const visible = {
 	adminOnly: (p: Permissions) =>
 		(!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false)) ||
 		(p.canManageEventVendors ?? false),
-	
+
 	// Ticket access - exclude vendors, exhibitors, and contractors
 	canAccessTickets: (p: Permissions) =>
 		!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
@@ -107,6 +108,11 @@ const visible = {
 		visible.vendor(p) && visible.hasExhibitorKit(p, e),
 	contractorOnly: (p: Permissions, e?: Event) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
+	businessMatchingAccess: (p: Permissions, e?: Event) =>
+		p.isEventAdmin ||
+		p.isOrganizer ||
+		p.isEventStaff ||
+		e?.use_business_matching === true,
 };
 
 // ============================================================================
@@ -137,6 +143,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			visible: visible.contractorOnly,
 		},
 		{
+			route: "business-matching",
+			label: "Business Matching",
+			description: "View and manage business matching for this event.",
+			icon: Briefcase,
+			visible: visible.businessMatchingAccess,
+		},
+		{
 			route: "location",
 			label: "Location",
 			description: "View event location details and map.",
@@ -162,7 +175,8 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "tickets",
 			label: "Tickets",
 			icon: HiTicket,
-			visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+			visible: (p, e) =>
+				visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 			tabs: [
 				{
 					route: "tickets",
@@ -361,7 +375,8 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Ticket Analytics",
 					description: "View event analytics, charts, and insights.",
 					icon: ChartBar,
-					visible: (p, e) => visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+					visible: (p, e) =>
+						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},
 				{
 					route: "mall-live-feed",
