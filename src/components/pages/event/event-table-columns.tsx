@@ -85,14 +85,25 @@ const baseColumns: ColumnDef<Event>[] = [
 		},
 	},
 	{
-		accessorKey: "created_at",
-		size: 140,
+		accessorKey: "start_date",
+		size: 180,
 		header: ({ column }) => (
-			<SortableHeader column={column} label="Created At" />
+			<SortableHeader column={column} label="Event Duration" />
 		),
 		cell: ({ row }) => {
 			const { formatDate } = useFormatDate();
-			return <div>{formatDate(row.getValue("created_at"))}</div>;
+			return (
+				<div className="flex flex-col gap-0.5 text-sm">
+					<span>
+						<span className="font-semibold text-muted-foreground">Start:</span>{" "}
+						{formatDate(row.original.start_date)}
+					</span>
+					<span>
+						<span className="font-semibold text-muted-foreground">End:</span>{" "}
+						{formatDate(row.original.end_date)}
+					</span>
+				</div>
+			);
 		},
 	},
 	{

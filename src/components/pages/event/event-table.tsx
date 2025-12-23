@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
 
 	const [sorting, setSorting] = React.useState<SortingState>([
 		{
-			id: "created_at",
+			id: "start_date",
 			desc: true, // Sort by newest first (descending)
 		},
 	]);

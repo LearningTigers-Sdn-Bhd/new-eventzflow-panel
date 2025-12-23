@@ -155,11 +155,11 @@ export function EventActionsMenu({
 	const handleMainButtonClick = () => {
 		if (isVendor) {
 			router.push(
-				`/event/${eventId}/my-profile` as Parameters<typeof router.push>[0],
+				`/event/${eventId}/vendor-profile` as Parameters<typeof router.push>[0],
 			);
 		} else if (isExhibitionContractor) {
 			router.push(
-				`/event/${eventId}/exhibitor-contractor` as Parameters<
+				`/event/${eventId}/contractor-profile` as Parameters<
 					typeof router.push
 				>[0],
 			);

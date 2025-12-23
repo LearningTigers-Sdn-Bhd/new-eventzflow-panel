@@ -96,9 +96,16 @@ export function EventItem({ event, onClick }: EventItemProps) {
 				</ItemDescription>
 			</ItemHeader>
 			<ItemContent className="flex flex-col">
-				<span className="text-muted-foreground text-sm tracking-wide">
-					Created on {formatDate(event.created_at)}
-				</span>
+				<div className="flex flex-col gap-0.5 text-sm">
+					<span className="text-muted-foreground">
+						<span className="font-semibold">Start:</span>{" "}
+						{formatDate(event.start_date)}
+					</span>
+					<span className="text-muted-foreground">
+						<span className="font-semibold">End:</span>{" "}
+						{formatDate(event.end_date)}
+					</span>
+				</div>
 				{event.description && (
 					<span className="line-clamp-2 text-base text-secondary-foreground tracking-tighter">
 						{event.description}

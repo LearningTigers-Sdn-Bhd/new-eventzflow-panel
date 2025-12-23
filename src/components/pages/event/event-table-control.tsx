@@ -74,8 +74,8 @@ export function DataControl<TData>({
 			type: "sort",
 		},
 		{
-			label: "Created At",
-			columnId: "created_at",
+			label: "Start Date",
+			columnId: "start_date",
 			type: "sort",
 		},
 		{
