@@ -8,13 +8,13 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
 import { useImportForm } from "@/hooks/use-import-form";
-import type { ImportTicketsResponse } from "@/lib/api/imports";
+import type { ImportResponse } from "@/lib/api/imports/response";
 import type { ImportType } from "@/lib/api/imports/types";
 
 type ImportQuickFormProps = {
 	importType?: ImportType;
 	dryRun?: boolean;
-	onResult?: (data: ImportTicketsResponse) => void;
+	onResult?: (data: ImportResponse) => void;
 };
 
 function ImportQuickFormContent({
@@ -114,8 +114,18 @@ export function ImportQuickButton({
 }) {
 	const { openDialog } = useDialog();
 
+	const getTypeLabel = () => {
+		switch (importType) {
+			case "visitors":
+				return "Visitors";
+			case "tickets":
+			default:
+				return "Tickets";
+		}
+	};
+
 	const openImportDialog = () => {
-		const typeLabel = importType === "tickets" ? "Tickets" : importType;
+		const typeLabel = getTypeLabel();
 		openDialog({
 			component: ImportQuickFormContent,
 			props: {
@@ -137,7 +147,7 @@ export function ImportQuickButton({
 			className="w-full rounded-none py-6 md:py-4 lg:w-auto"
 		>
 			<FileSpreadsheet className="mr-2 h-4 w-4" />
-			Import {importType === "tickets" ? "Tickets" : importType}
+			Import {getTypeLabel()}
 		</Button>
 	);
 }

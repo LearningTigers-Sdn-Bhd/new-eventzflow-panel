@@ -148,7 +148,7 @@ export const navigationData = {
 			allowBottomNavigation: false,
 		},
 		{
-			name: "Import Tickets",
+			name: "Import Data",
 			url: "/import" as Route,
 			icon: Import,
 			roleAllowed: [USER_ROLES.ORG_OWNER],

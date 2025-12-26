@@ -1,6 +1,6 @@
 // Import type definitions for extensible import functionality
 
-export type ImportType = "tickets" | "events" | "users";
+export type ImportType = "tickets" | "visitors" | "events" | "users";
 
 export interface ImportTypeConfig {
 	value: ImportType;
@@ -14,6 +14,11 @@ export const IMPORT_TYPES: ImportTypeConfig[] = [
 		value: "tickets",
 		label: "Tickets",
 		endpoint: "v1/imports/tickets",
+	},
+	{
+		value: "visitors",
+		label: "Visitors",
+		endpoint: "v1/imports/visitors",
 	},
 	// Future import types can be added here:
 	// {

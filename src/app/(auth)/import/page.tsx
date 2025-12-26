@@ -1,6 +1,6 @@
 "use client";
 
-import { Import, Info, Upload } from "lucide-react";
+import { AlertCircle, Import, Info, Ticket, Upload, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/data-state";
 import { ImportFullForm } from "@/components/pages/import/import-full-form";
@@ -16,11 +16,26 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { type FilterType, useImportResults } from "@/hooks/use-import-results";
-import { IMPORT_TYPES, type ImportType } from "@/lib/api/imports/types";
+import type { ImportType } from "@/lib/api/imports/types";
+
+const IMPORT_OPTIONS = [
+	{
+		value: "tickets" as ImportType,
+		label: "Tickets",
+		description: "Import ticket holders and attendees",
+		icon: Ticket,
+	},
+	{
+		value: "visitors" as ImportType,
+		label: "Visitors",
+		description: "Import event visitors and guests",
+		icon: Users,
+	},
+];
 
 export default function ImportPage() {
 	const [selectedImportType, setSelectedImportType] =
-		useState<ImportType>("tickets");
+		useState<ImportType | null>(null);
 	const [currentPage, setCurrentPage] = useState(0);
 	const [itemsPerPage] = useState(10);
 	const {
@@ -31,9 +46,9 @@ export default function ImportPage() {
 		filteredItems,
 	} = useImportResults();
 
-	const selectedTypeConfig = IMPORT_TYPES.find(
-		(type) => type.value === selectedImportType,
-	);
+	const selectedOption = selectedImportType
+		? IMPORT_OPTIONS.find((opt) => opt.value === selectedImportType)
+		: null;
 
 	// Handle filter change and reset page
 	const handleFilterChange = (value: FilterType) => {
@@ -54,30 +69,81 @@ export default function ImportPage() {
 		return Array.from({ length: totalPages }, (_, i) => i + 1);
 	}, [totalPages]);
 
+	// Show selection screen if no type selected
+	if (!selectedImportType) {
+		return (
+			<div className="p-0">
+				<div className="page-header">
+					<div className="px-2 md:px-4">
+						<IconTitle
+							icon={Import}
+							title="Import Data"
+							description="Select the type of data you want to import."
+						/>
+					</div>
+				</div>
+
+				<Banner
+					title="Import Guide"
+					description="Choose an import type below, then upload your XLSX or CSV file to import data."
+					leadingIcon={<Info />}
+					onCloser={true}
+				/>
+
+				<div className="flex min-h-[60vh] items-center justify-center border-t border-dashed p-4 md:p-8">
+					<div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+						{IMPORT_OPTIONS.map((option) => {
+							const Icon = option.icon;
+							return (
+								<button
+									key={option.value}
+									type="button"
+									onClick={() => setSelectedImportType(option.value)}
+									className="group flex flex-col items-center gap-4 rounded-none border-2 border-dashed border-muted-foreground/30 bg-background p-8 transition-all hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+								>
+									<div className="rounded-full border-2 border-muted-foreground/30 p-4 transition-colors group-hover:border-primary group-hover:bg-primary/10">
+										<Icon className="h-10 w-10 text-muted-foreground transition-colors group-hover:text-primary" />
+									</div>
+									<div className="space-y-1 text-center">
+										<h3 className="font-semibold text-lg transition-colors group-hover:text-primary">
+											{option.label}
+										</h3>
+										<p className="text-muted-foreground text-sm">
+											{option.description}
+										</p>
+									</div>
+								</button>
+							);
+						})}
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Show import layout after selection
 	return (
 		<div className="p-0">
 			<div className="page-header">
 				<div className="px-2 md:px-4">
 					<IconTitle
-						icon={Import}
-						title="Import"
-						description={`Import ${selectedTypeConfig?.label.toLowerCase() || "data"} from a XLSX or CSV file.`}
+						icon={selectedOption?.icon || Import}
+						title={`Import ${selectedOption?.label} Data`}
+						description={`Import ${selectedOption?.label.toLowerCase()} from a XLSX or CSV file.`}
 					/>
 				</div>
 				<div className="w-full px-0 md:w-auto md:px-4">
 					<Select
 						value={selectedImportType}
-						onValueChange={(value) =>
-							setSelectedImportType(value as ImportType)
-						}
+						onValueChange={(value) => setSelectedImportType(value as ImportType)}
 					>
 						<SelectTrigger className="w-full rounded-none border md:w-auto">
 							<SelectValue placeholder="Select import type" />
 						</SelectTrigger>
 						<SelectContent>
-							{IMPORT_TYPES.map((type) => (
-								<SelectItem key={type.value} value={type.value}>
-									{type.label}
+							{IMPORT_OPTIONS.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.label}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -92,13 +158,23 @@ export default function ImportPage() {
 				onCloser={true}
 			/>
 
+			{selectedImportType === "visitors" && (
+				<Banner
+					title="Duplicate Detection"
+					description="Visitors are matched by: 1) Email (if provided), 2) Phone (if provided), 3) Name (as fallback). Two visitors with the same name but different emails are treated as different people."
+					leadingIcon={<AlertCircle />}
+					onCloser={true}
+					className="border-amber-500/20 bg-amber-500/5 [&_div:first-child]:border-amber-500/30 [&_div:first-child]:bg-amber-500/10"
+				/>
+			)}
+
 			<div className="grid min-h-[65vh] grid-cols-1 gap-8 divide-x-0 divide-dashed border-t border-dashed pt-6 lg:grid-cols-2 lg:gap-0 lg:divide-x">
 				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
 					<div className="p-2 md:p-4">
 						<IconTitle
 							icon={Upload}
-							title="Upload Here"
-							description="Upload your data from a XLSX or CSV file here."
+							title={`Upload ${selectedOption?.label} File`}
+							description={`Upload your ${selectedOption?.label.toLowerCase()} data from a XLSX or CSV file.`}
 						/>
 					</div>
 					<ImportFullForm

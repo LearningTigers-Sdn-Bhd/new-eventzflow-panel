@@ -49,17 +49,33 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 		try {
 			const xlsx = await import("xlsx-js-style");
 
-			const exportData = visitors.map((visitor) => ({
-				Name: visitor.full_name,
-				Email: visitor.email || "",
-				Phone: visitor.phone || "",
-				Gender: visitor.gender || "",
-				Age: visitor.age || "",
-				"Created At": new Date(visitor.created_at).toLocaleString("en-US", {
-					dateStyle: "medium",
-					timeStyle: "short",
-				}),
-			}));
+			// Get custom label keys from the first visitor (if any)
+			const customLabelKeys: string[] = [];
+			const firstVisitorWithCustomFields = visitors.find(
+				(v) => v.custom_fields_data && Object.keys(v.custom_fields_data).length > 0,
+			);
+			if (firstVisitorWithCustomFields?.custom_fields_data) {
+				customLabelKeys.push(...Object.keys(firstVisitorWithCustomFields.custom_fields_data));
+			}
+
+			// Export data matching import format: Name, Email, Phone, Gender, Age, Event Title, [Custom Labels...]
+			const exportData = visitors.map((visitor) => {
+				const baseData: Record<string, string | number> = {
+					"Full Name": visitor.full_name,
+					Email: visitor.email || "",
+					Phone: visitor.phone || "",
+					Gender: visitor.gender || "",
+					Age: visitor.age || "",
+					"Event Title": eventName || "",
+				};
+
+				// Add custom label columns
+				for (const key of customLabelKeys) {
+					baseData[key] = visitor.custom_fields_data?.[key] || "";
+				}
+
+				return baseData;
+			});
 
 			const worksheet = xlsx.utils.json_to_sheet(exportData);
 
@@ -70,8 +86,12 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 				alignment: { horizontal: "center", vertical: "center" },
 			};
 
-			const headers = ["A1", "B1", "C1", "D1", "E1", "F1"];
-			for (const cell of headers) {
+			// Calculate total columns (6 fixed + custom labels)
+			const totalColumns = 6 + customLabelKeys.length;
+			const headerCells = Array.from({ length: totalColumns }, (_, i) =>
+				String.fromCharCode(65 + i) + "1",
+			);
+			for (const cell of headerCells) {
 				if (worksheet[cell]) {
 					worksheet[cell].s = headerStyle;
 				}
@@ -84,7 +104,7 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 						20,
 						...visitors.map((v) => (v.full_name?.length || 0) + 2),
 					),
-				}, // Name
+				}, // Full Name
 				{
 					wch: Math.max(25, ...visitors.map((v) => (v.email?.length || 0) + 2)),
 				}, // Email
@@ -93,7 +113,15 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 				}, // Phone
 				{ wch: 12 }, // Gender
 				{ wch: 8 }, // Age
-				{ wch: 22 }, // Created At
+				{ wch: Math.max(20, (eventName?.length || 0) + 2) }, // Event Title
+				// Custom label columns
+				...customLabelKeys.map((key) => ({
+					wch: Math.max(
+						15,
+						key.length + 2,
+						...visitors.map((v) => (v.custom_fields_data?.[key]?.length || 0) + 2),
+					),
+				})),
 			];
 			worksheet["!cols"] = colWidths;
 

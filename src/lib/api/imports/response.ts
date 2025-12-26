@@ -1,7 +1,7 @@
 // Pure TypeScript types for API responses
 
-// Frontend types (transformed from backend)
-export type ImportTicketsResponse = {
+// Base import response structure (shared between tickets and visitors)
+export type BaseImportResponse = {
 	total: number;
 	created: {
 		count: number;
@@ -30,6 +30,13 @@ export type ImportTicketsResponse = {
 		data: string[];
 	};
 };
+
+// Frontend types (transformed from backend)
+export type ImportTicketsResponse = BaseImportResponse;
+export type ImportVisitorsResponse = BaseImportResponse;
+
+// Generic import response type for use in hooks
+export type ImportResponse = BaseImportResponse;
 
 // Backend import response (raw API response)
 export type BackendImportTicketsResponse = {
@@ -65,3 +72,6 @@ export type BackendImportTicketsResponse = {
 		};
 	};
 };
+
+// Backend visitor import response (same structure)
+export type BackendImportVisitorsResponse = BackendImportTicketsResponse;

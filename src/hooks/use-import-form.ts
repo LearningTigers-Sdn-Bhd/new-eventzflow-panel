@@ -5,8 +5,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useDialog } from "@/hooks/use-dialog";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { ImportTicketsResponse } from "@/lib/api/imports";
-import { importTickets, importTicketsDryRun } from "@/lib/api/imports";
+import type { ImportResponse } from "@/lib/api/imports/response";
+import {
+	importTickets,
+	importTicketsDryRun,
+	importVisitors,
+	importVisitorsDryRun,
+} from "@/lib/api/imports";
 import type { ImportType } from "@/lib/api/imports/types";
 
 export interface UseImportFormOptions {
@@ -14,7 +19,7 @@ export interface UseImportFormOptions {
 	importType?: ImportType;
 	full?: boolean;
 	noLabel?: boolean;
-	onResult?: (data: ImportTicketsResponse) => void;
+	onResult?: (data: ImportResponse) => void;
 }
 
 export function useImportForm({
@@ -29,12 +34,24 @@ export function useImportForm({
 	const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
 	const [resetKey, setResetKey] = useState(0);
 
+	// Get the appropriate import function based on import type
+	const getImportFunction = () => {
+		switch (importType) {
+			case "visitors":
+				return dryRun
+					? (file: File) => importVisitorsDryRun(file, { full, noLabel })
+					: (file: File) => importVisitors(file, { full, noLabel });
+			case "tickets":
+			default:
+				return dryRun
+					? (file: File) => importTicketsDryRun(file, { full, noLabel })
+					: (file: File) => importTickets(file, { full, noLabel });
+		}
+	};
+
 	// Import mutation
 	const importMutation = useMutation({
-		mutationFn: async (file: File) =>
-			dryRun
-				? importTicketsDryRun(file, { full, noLabel })
-				: importTickets(file, { full, noLabel }),
+		mutationFn: async (file: File) => getImportFunction()(file),
 		onSuccess: (data) => {
 			const {
 				total,
@@ -45,6 +62,7 @@ export function useImportForm({
 				errors: importErrors,
 			} = data;
 
+			const typeLabel = getImportButtonLabel();
 			const message = `Import completed: ${total} total processed (${created.count} created${
 				updated ? `, ${updated.count} updated` : ""
 			}, ${skipped.count} skipped)`;
@@ -92,10 +110,19 @@ export function useImportForm({
 
 			onResult?.(data);
 
-			// Invalidate all event tickets queries to refresh the list
-			queryClient.invalidateQueries({
-				queryKey: ["event"],
-			});
+			// Invalidate queries based on import type
+			if (importType === "visitors") {
+				queryClient.invalidateQueries({
+					queryKey: ["visitors"],
+				});
+				queryClient.invalidateQueries({
+					queryKey: ["event"],
+				});
+			} else {
+				queryClient.invalidateQueries({
+					queryKey: ["event"],
+				});
+			}
 
 			// Reset form - clear selected files and reset TableUpload component
 			setSelectedFiles([]);
@@ -134,7 +161,13 @@ export function useImportForm({
 	};
 
 	const getImportButtonLabel = () => {
-		return importType === "tickets" ? "Tickets" : importType;
+		switch (importType) {
+			case "visitors":
+				return "Visitors";
+			case "tickets":
+			default:
+				return "Tickets";
+		}
 	};
 
 	return {
