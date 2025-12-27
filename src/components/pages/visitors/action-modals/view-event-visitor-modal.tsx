@@ -3,19 +3,19 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
-	FileText,
+	Clock,
 	Hash,
 	Info,
-	type LucideIcon,
 	Mail,
 	Phone,
+	Tag,
 	User,
 	Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { IconHeading } from "@/components/admin-ui/icon-heading";
+import QRCode from "react-qr-code";
 import { EmptyState } from "@/components/data-state";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getEventById } from "@/lib/api/event";
 import type { Visitor } from "@/lib/api/visitor";
@@ -24,32 +24,6 @@ import { cn } from "@/lib/utils";
 interface VisitorViewModalProps {
 	visitor: Visitor;
 }
-
-const InfoLabel = ({
-	label,
-	value,
-	icon: Icon,
-	capitalize = false,
-}: {
-	label: string;
-	value: string | number;
-	icon: LucideIcon;
-	capitalize?: boolean;
-}) => {
-	return (
-		<div className="flex items-center gap-2">
-			<Icon className="mr-2 size-5" />
-			<div>
-				<Label className="font-medium text-muted-foreground text-xs">
-					{label}
-				</Label>
-				<p className={cn("font-medium text-sm", capitalize && "capitalize")}>
-					{value || "Not provided"}
-				</p>
-			</div>
-		</div>
-	);
-};
 
 const formatGender = (gender?: string) => {
 	if (!gender) return "Not provided";
@@ -79,107 +53,181 @@ export default function ViewEventVisitorModal({
 
 	// Prepare custom labels
 	const customLabels =
-		eventData?.labels_data && visitor.custom_fields_data
+		eventData?.labels_data && Object.keys(eventData.labels_data).length > 0
 			? Object.entries(eventData.labels_data).map(([key, labelName]) => ({
 					name: labelName as string,
-					value: visitor.custom_fields_data?.[key] || "Not provided",
+					value: visitor.custom_fields_data?.[key] || "",
 				}))
 			: [];
 
 	return (
-		<div className="flex h-full w-full flex-col gap-6 p-0 md:p-4">
-			<ScrollArea className="h-[80vh]">
-				<div className="grid grid-cols-1 gap-y-8">
-					{/* Basic Information */}
-					<div className="space-y-4">
-						<IconHeading
-							icon={FileText}
-							title="Visitor Details and Basic Information"
-							description="Personal details and basic information about the visitor."
-						/>
-						<div className="flex flex-col gap-3 px-2">
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
-								<InfoLabel
-									label="Full Name"
-									value={visitor.full_name}
-									icon={User}
-								/>
-								<InfoLabel
-									label="Public ID"
-									value={visitor.public_id}
-									icon={Hash}
-								/>
-							</div>
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
-								<InfoLabel
-									label="Email"
-									value={visitor.email || ""}
-									icon={Mail}
-								/>
-								<InfoLabel
-									label="Phone Number"
-									value={visitor.phone || ""}
-									icon={Phone}
-								/>
-							</div>
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
-								<InfoLabel
-									label="Gender"
-									value={formatGender(visitor.gender)}
-									icon={Users}
-									capitalize
-								/>
-								<InfoLabel
-									label="Age"
-									value={visitor.age ? `${visitor.age} years old` : ""}
-									icon={Users}
-								/>
-							</div>
-							<div className="grid grid-cols-2">
-								<InfoLabel
-									label="Created At"
-									value={`${createdDate.toLocaleDateString()} at ${createdDate.toLocaleTimeString()}`}
-									icon={Calendar}
-								/>
-								<InfoLabel
-									label="Last Updated"
-									value={`${updatedDate.toLocaleDateString()} at ${updatedDate.toLocaleTimeString()}`}
-									icon={Calendar}
-								/>
-							</div>
-						</div>
+		<ScrollArea className="h-[80vh]">
+			<div className="flex flex-col gap-0">
+				{/* Header Section with QR Code */}
+				<div className="flex flex-col items-center gap-4 border-b border-dashed p-6 md:flex-row md:items-start">
+					{/* QR Code */}
+					<div className="flex-shrink-0 border bg-white p-3">
+						<QRCode value={visitor.public_id} size={120} />
 					</div>
 
-					{/* Additional Information - Custom Labels */}
-					<div className="space-y-4">
-						<IconHeading
-							icon={Info}
-							title="Custom Labels"
-							description="Custom labels configured for this event."
-						/>
-						{customLabels.length > 0 ? (
-							<div className="grid grid-cols-1 gap-x-4 gap-y-3 px-2 sm:grid-cols-2 md:gap-y-6 md:px-2">
-								{customLabels.map((label, index) => (
-									<InfoLabel
-										key={`${label.name}-${index}`}
-										label={label.name}
-										value={label.value}
-										icon={Info}
-										capitalize={true}
-									/>
-								))}
+					{/* Basic Info */}
+					<div className="flex flex-1 flex-col items-center gap-2 md:items-start">
+						<div className="space-y-1 text-center md:text-left">
+							<p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+								Visitor
+							</p>
+							<h2 className="font-bold text-2xl tracking-tight">
+								{visitor.full_name}
+							</h2>
+						</div>
+						<Badge
+							variant="outline"
+							className="rounded-none font-mono text-xs"
+						>
+							<Hash className="mr-1 h-3 w-3" />
+							{visitor.public_id}
+						</Badge>
+						{(visitor.gender || visitor.age) && (
+							<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<Users className="h-4 w-4" />
+								<span>
+									{formatGender(visitor.gender)}
+									{visitor.age && ` - ${visitor.age} years old`}
+								</span>
 							</div>
-						) : (
-							<EmptyState
-								title="No custom labels"
-								description="No custom labels have been configured for this event or no data provided."
-								icon={<Info className="size-8" />}
-								height="h-auto"
-							/>
 						)}
 					</div>
 				</div>
-			</ScrollArea>
-		</div>
+
+				{/* Contact Information */}
+				<div className="border-b border-dashed p-6">
+					<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+						Contact Information
+					</p>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div className="flex items-start gap-3">
+							<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
+							<div className="min-w-0 flex-1">
+								<p className="font-medium text-muted-foreground text-xs uppercase">
+									Email
+								</p>
+								<p
+									className={cn(
+										"truncate text-sm",
+										!visitor.email && "text-muted-foreground/60 italic",
+									)}
+								>
+									{visitor.email || "Not provided"}
+								</p>
+							</div>
+						</div>
+						<div className="flex items-start gap-3">
+							<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+							<div className="min-w-0 flex-1">
+								<p className="font-medium text-muted-foreground text-xs uppercase">
+									Phone
+								</p>
+								<p
+									className={cn(
+										"truncate text-sm",
+										!visitor.phone && "text-muted-foreground/60 italic",
+									)}
+								>
+									{visitor.phone || "Not provided"}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Custom Labels Section */}
+				{customLabels.length > 0 && (
+					<div className="border-b border-dashed p-6">
+						<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+							Additional Information
+						</p>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							{customLabels.map((label, index) => (
+								<div key={`${label.name}-${index}`} className="flex items-start gap-3">
+									<Tag className="mt-0.5 h-4 w-4 text-muted-foreground" />
+									<div className="min-w-0 flex-1">
+										<p className="font-medium text-muted-foreground text-xs uppercase">
+											{label.name}
+										</p>
+										<p
+											className={cn(
+												"text-sm",
+												!label.value && "text-muted-foreground/60 italic",
+											)}
+										>
+											{label.value || "Not provided"}
+										</p>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+
+				{customLabels.length === 0 && eventData?.labels_data && Object.keys(eventData.labels_data).length === 0 && (
+					<div className="border-b border-dashed p-6">
+						<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+							Additional Information
+						</p>
+						<EmptyState
+							title="No custom labels"
+							description="No custom labels have been configured for this event."
+							icon={<Info className="size-8" />}
+							height="h-auto"
+						/>
+					</div>
+				)}
+
+				{/* Timestamps */}
+				<div className="bg-muted/30 p-6">
+					<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+						Record Information
+					</p>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div className="flex items-start gap-3">
+							<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
+							<div>
+								<p className="font-medium text-muted-foreground text-xs uppercase">
+									Created At
+								</p>
+								<p className="text-sm">
+									{createdDate.toLocaleDateString("en-US", {
+										dateStyle: "medium",
+									})}
+								</p>
+								<p className="text-muted-foreground text-xs">
+									{createdDate.toLocaleTimeString("en-US", {
+										timeStyle: "short",
+									})}
+								</p>
+							</div>
+						</div>
+						<div className="flex items-start gap-3">
+							<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+							<div>
+								<p className="font-medium text-muted-foreground text-xs uppercase">
+									Last Updated
+								</p>
+								<p className="text-sm">
+									{updatedDate.toLocaleDateString("en-US", {
+										dateStyle: "medium",
+									})}
+								</p>
+								<p className="text-muted-foreground text-xs">
+									{updatedDate.toLocaleTimeString("en-US", {
+										timeStyle: "short",
+									})}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</ScrollArea>
 	);
 }

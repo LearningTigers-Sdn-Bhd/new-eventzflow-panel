@@ -8,9 +8,13 @@ import type { Visitor } from "@/lib/api/visitor";
 interface DataControlProps {
 	table: Table<Visitor>;
 	eventId: number;
+	labelsData?: Record<string, string>;
 }
 
-function getColumnLabel(columnId: string): string {
+function getColumnLabel(
+	columnId: string,
+	labelsData?: Record<string, string>,
+): string {
 	const standardLabels: Record<string, string> = {
 		full_name: "Name",
 		email: "Email",
@@ -18,16 +22,26 @@ function getColumnLabel(columnId: string): string {
 		created_at: "Created At",
 	};
 
+	// Check if it's a custom column
+	if (columnId.startsWith("custom_") && labelsData) {
+		const key = columnId.replace("custom_", "");
+		return labelsData[key] || columnId;
+	}
+
 	return standardLabels[columnId] || columnId;
 }
 
-export function DataControl({ table, eventId: _eventId }: DataControlProps) {
+export function DataControl({
+	table,
+	eventId: _eventId,
+	labelsData,
+}: DataControlProps) {
 	const desktopControlConfigs: ControlConfig[] = [
 		{
 			label: "Columns",
 			columnId: "visibility",
 			type: "visibility",
-			getColumnLabel: (columnId) => getColumnLabel(columnId),
+			getColumnLabel: (columnId) => getColumnLabel(columnId, labelsData),
 			excludeColumns: ["phone"],
 		},
 	];
