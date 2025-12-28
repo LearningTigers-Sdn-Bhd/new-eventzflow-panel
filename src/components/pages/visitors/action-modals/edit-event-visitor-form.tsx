@@ -9,9 +9,10 @@ import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
+import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
-import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import {
@@ -247,7 +248,10 @@ export default function EditEventVisitorForm({
 												{ value: "male", label: "Male" },
 												{ value: "female", label: "Female" },
 												{ value: "other", label: "Other" },
-												{ value: "prefer_not_to_say", label: "Prefer not to say" },
+												{
+													value: "prefer_not_to_say",
+													label: "Prefer not to say",
+												},
 											]}
 										/>
 									)}
@@ -278,7 +282,7 @@ export default function EditEventVisitorForm({
 								"Fill in the additional information set by the event organizer for the visitor",
 						}}
 					>
-						{customFields.length > 0 && (
+						{customFields.length > 0 ? (
 							<div className="grid gap-4 md:grid-cols-3 2xl:grid-cols-5">
 								{customFields.map((field) => (
 									<InputLabel
@@ -293,6 +297,13 @@ export default function EditEventVisitorForm({
 									/>
 								))}
 							</div>
+						) : (
+							<EmptyState
+								title="No custom labels"
+								description="No custom labels have been configured for this event."
+								icon={<FileText />}
+								height="h-auto"
+							/>
 						)}
 					</FormGroupContainer>
 				</FieldSet>

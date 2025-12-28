@@ -9,7 +9,6 @@ import {
 	Mail,
 	Phone,
 	Tag,
-	User,
 	Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -66,7 +65,7 @@ export default function ViewEventVisitorModal({
 				{/* Header Section with QR Code */}
 				<div className="flex flex-col items-center gap-4 border-b border-dashed p-6 md:flex-row md:items-start">
 					{/* QR Code */}
-					<div className="flex-shrink-0 border bg-white p-3">
+					<div className="shrink-0 border bg-white p-3">
 						<QRCode value={visitor.public_id} size={120} />
 					</div>
 
@@ -80,10 +79,7 @@ export default function ViewEventVisitorModal({
 								{visitor.full_name}
 							</h2>
 						</div>
-						<Badge
-							variant="outline"
-							className="rounded-none font-mono text-xs"
-						>
+						<Badge variant="outline" className="rounded-none font-mono text-xs">
 							<Hash className="mr-1 h-3 w-3" />
 							{visitor.public_id}
 						</Badge>
@@ -148,7 +144,10 @@ export default function ViewEventVisitorModal({
 						</p>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							{customLabels.map((label, index) => (
-								<div key={`${label.name}-${index}`} className="flex items-start gap-3">
+								<div
+									key={`${label.name}-${index}`}
+									className="flex items-start gap-3"
+								>
 									<Tag className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div className="min-w-0 flex-1">
 										<p className="font-medium text-muted-foreground text-xs uppercase">
@@ -169,19 +168,21 @@ export default function ViewEventVisitorModal({
 					</div>
 				)}
 
-				{customLabels.length === 0 && eventData?.labels_data && Object.keys(eventData.labels_data).length === 0 && (
-					<div className="border-b border-dashed p-6">
-						<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-							Additional Information
-						</p>
-						<EmptyState
-							title="No custom labels"
-							description="No custom labels have been configured for this event."
-							icon={<Info className="size-8" />}
-							height="h-auto"
-						/>
-					</div>
-				)}
+				{customLabels.length === 0 &&
+					eventData?.labels_data &&
+					Object.keys(eventData.labels_data).length === 0 && (
+						<div className="border-b border-dashed p-6">
+							<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+								Additional Information
+							</p>
+							<EmptyState
+								title="No custom labels"
+								description="No custom labels have been configured for this event."
+								icon={<Info className="size-8" />}
+								height="h-auto"
+							/>
+						</div>
+					)}
 
 				{/* Timestamps */}
 				<div className="bg-muted/30 p-6">

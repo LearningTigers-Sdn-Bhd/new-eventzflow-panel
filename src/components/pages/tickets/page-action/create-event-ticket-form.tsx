@@ -8,6 +8,7 @@ import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { useDialog } from "@/hooks/use-dialog";
@@ -32,7 +33,7 @@ export default function TicketForm() {
 	>([]);
 
 	// Fetch event details to get labels_data
-	const { data: eventData, isLoading: isLoadingEvent } = useQuery({
+	const { data: eventData, isLoading: _isLoadingEvent } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
 	});
@@ -250,7 +251,7 @@ export default function TicketForm() {
 								"Fill in the additional information set by the event organizer for the ticket holder",
 						}}
 					>
-						{customFields.length > 0 && (
+						{customFields.length > 0 ? (
 							<div className="grid gap-4 md:grid-cols-3 2xl:grid-cols-5">
 								{customFields.map((field) => (
 									<InputLabel
@@ -265,6 +266,13 @@ export default function TicketForm() {
 									/>
 								))}
 							</div>
+						) : (
+							<EmptyState
+								title="No custom labels"
+								description="No custom labels have been configured for this event."
+								icon={<FileText />}
+								height="h-auto"
+							/>
 						)}
 
 						{/* Submit Buttons - Right Aligned */}
