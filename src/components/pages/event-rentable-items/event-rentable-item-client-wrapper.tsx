@@ -6,6 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	getEventRentableItems,
@@ -22,8 +23,10 @@ interface EventRentableItemClientWrapperProps {
 export default function EventRentableItemClientWrapper({
 	eventId,
 }: EventRentableItemClientWrapperProps) {
+	const { user } = useAuth();
 	const queryClient = useQueryClient();
 	const { openDialog, closeDialog } = useDialog();
+	const isContractor = user?.role === "exhibition_contractor";
 
 	// Fetch linked items
 	const {
@@ -90,29 +93,31 @@ export default function EventRentableItemClientWrapper({
 		);
 	}
 
-	const columns = getColumns({ onUnlink: handleUnlink });
+	const columns = getColumns({ onUnlink: handleUnlink, isContractor });
 
 	return (
 		<div className="space-y-4">
-			<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex items-start gap-3">
-					<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-					<div className="space-y-1">
-						<p className="font-medium text-sm">Rentable items for this event</p>
-						<p className="text-muted-foreground text-sm">
-							Items are automatically linked when the contractor is assigned. Manage your catalog to add new items.
-						</p>
+			{isContractor && (
+				<div className="flex flex-col gap-3 rounded-none border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+					<div className="flex items-start gap-3">
+						<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+						<div className="space-y-1">
+							<p className="font-medium text-sm">Rentable items for this event</p>
+							<p className="text-muted-foreground text-sm">
+								Items are automatically linked when the contractor is assigned. Manage your catalog to add new items.
+							</p>
+						</div>
+					</div>
+					<div className="flex flex-col gap-2 sm:shrink-0 sm:flex-row">
+						<Button variant="outline" asChild className="w-full rounded-none sm:w-auto">
+							<Link href={"/rentable-items" as any}>
+								Go to Catalog
+								<ArrowRight className="ml-2 h-4 w-4" />
+							</Link>
+						</Button>
 					</div>
 				</div>
-				<div className="flex flex-col gap-2 sm:shrink-0 sm:flex-row">
-					<Button variant="outline" asChild className="w-full rounded-none sm:w-auto">
-						<Link href={"/rentable-items" as any}>
-							Go to Catalog
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Link>
-					</Button>
-				</div>
-			</div>
+			)}
 			<DataTable columns={columns} data={linkedItems} />
 		</div>
 	);

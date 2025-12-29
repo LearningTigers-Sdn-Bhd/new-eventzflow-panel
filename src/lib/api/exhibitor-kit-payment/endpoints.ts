@@ -72,6 +72,7 @@ function transformPayment(
     id: backendPayment.id,
     exhibitorKitId: backendPayment.exhibitor_kit_id,
     payeeId: backendPayment.payee_id,
+    payeeName: backendPayment.payee_name,
     amount: Number.parseFloat(backendPayment.amount),
     status: backendPayment.status,
     paymentSource: backendPayment.payment_source,

@@ -162,6 +162,9 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 									{config.label}
 								</Badge>
 								<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
+								<p className="text-muted-foreground text-sm">
+									Pay to: <span className="font-medium text-foreground">{payment.payeeName}</span>
+								</p>
 							</div>
 
 							{/* Action Buttons - Top Right */}

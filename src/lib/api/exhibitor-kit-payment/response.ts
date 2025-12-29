@@ -3,6 +3,7 @@ export interface BackendExhibitorKitPayment {
   id: number;
   exhibitor_kit_id: number;
   payee_id: number;
+  payee_name: string;
   amount: string; // Decimal comes as string from Rails
   status: "pending" | "submitted" | "verified" | "rejected";
   payment_source: "manual_bank_in" | "payment_gateway" | null;
@@ -58,6 +59,7 @@ export interface ExhibitorKitPayment {
   id: number;
   exhibitorKitId: number;
   payeeId: number;
+  payeeName: string;
   amount: number;
   status: "pending" | "submitted" | "verified" | "rejected";
   paymentSource: "manual_bank_in" | "payment_gateway" | null;

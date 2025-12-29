@@ -2,11 +2,14 @@
 export {
 	getEventPrintingServices,
 	getEventPrintingService,
+	createEventPrintingService,
 	deleteEventPrintingService,
 } from "./endpoints";
 
 // Request types and schemas
 export {
+	type CreateEventPrintingServiceRequest,
+	createEventPrintingServiceSchema,
 	type DeleteEventPrintingServiceRequest,
 	deleteEventPrintingServiceSchema,
 } from "./request";

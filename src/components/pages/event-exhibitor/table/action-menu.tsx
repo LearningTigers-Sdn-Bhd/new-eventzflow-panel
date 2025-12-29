@@ -84,8 +84,7 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 			component: ManageKitsModal,
 			props: {
 				vendor: exhibitor,
-				showPrintingServices:
-					event?.allow_contractor_printing_services ?? false,
+				showPrintingServices: true, // org_owner always sees printing services
 				onClose: closeDialog,
 			},
 			config: {

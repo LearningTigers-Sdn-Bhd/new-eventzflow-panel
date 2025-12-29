@@ -108,6 +108,10 @@ const visible = {
 		visible.vendor(p) && visible.hasExhibitorKit(p, e),
 	contractorOnly: (p: Permissions, e?: Event) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
+	// Org staff or contractor can access event items/printing services
+	orgStaffOrContractor: (p: Permissions, e?: Event) =>
+		(visible.orgOwner(p) || p.isExhibitionContractor) &&
+		visible.hasExhibitorKit(p, e),
 	businessMatchingAccess: (p: Permissions, e?: Event) =>
 		p.isEventAdmin ||
 		p.isOrganizer ||
@@ -264,7 +268,7 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// EXHIBITOR KITS GROUP - Contractor kit management
+		// EXHIBITOR KITS GROUP - Contractor kit management (contractor only)
 		// ------------------------------------------------------------------------
 		{
 			id: "exhibitor-kits",
@@ -288,6 +292,34 @@ export const eventMenuConfig: EventMenuConfig = {
 					route: "printing-services",
 					label: "Event Printing",
 					description: "View and manage printing services for this event.",
+					icon: Printer,
+					visible: (p, e) => e?.allow_contractor_printing_services === true,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// EVENT CATALOG GROUP - Org owner item/printing management
+		// ------------------------------------------------------------------------
+		{
+			id: "event-catalog",
+			label: "Event Catalog",
+			icon: Package,
+			visible: (p, e) =>
+				visible.orgOwner(p) &&
+				visible.hasExhibitorKit(p, e) &&
+				!p.isExhibitionContractor,
+			tabs: [
+				{
+					route: "rentable-items",
+					label: "Event Items",
+					description: "View rentable items linked to this event.",
+					icon: Warehouse,
+				},
+				{
+					route: "printing-services",
+					label: "Event Printing",
+					description: "View printing services linked to this event.",
 					icon: Printer,
 				},
 			],

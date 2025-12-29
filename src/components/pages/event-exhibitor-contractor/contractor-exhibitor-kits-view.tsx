@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
-import { columns, type ExhibitorKitWithVendor } from "./exhibitor-kits-table/columns";
+import { getColumns, type ExhibitorKitWithVendor } from "./exhibitor-kits-table/columns";
 
 interface ContractorExhibitorKitsViewProps {
 	eventId: string;
@@ -22,7 +23,16 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 		queryFn: () => getEventVendors(Number(eventId)),
 	});
 
-	if (isLoading) {
+	// Fetch event details to check allow_contractor_printing_services flag
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+
+	// Check if contractor printing is enabled
+	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+
+	if (isLoading || isLoadingEvent) {
 		return (
 			<LoadingState
 				title="Loading exhibitor kits..."
@@ -48,6 +58,9 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 			...vendor.exhibitor_kit!,
 			vendor: vendor,
 		}));
+
+	// Get columns with contractor printing flag
+	const columns = getColumns({ allowContractorPrinting });
 
 	return (
 		<div className="space-y-4">

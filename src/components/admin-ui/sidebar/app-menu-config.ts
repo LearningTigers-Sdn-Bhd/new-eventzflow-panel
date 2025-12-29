@@ -84,7 +84,7 @@ export const navigationData = {
 			name: "Printing Services",
 			url: "/printing-services" as Route,
 			icon: Printer,
-			roleAllowed: [USER_ROLES.EXHIBITION_CONTRACTOR],
+			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.EXHIBITION_CONTRACTOR],
 			allowBottomNavigation: false,
 		},
 		{

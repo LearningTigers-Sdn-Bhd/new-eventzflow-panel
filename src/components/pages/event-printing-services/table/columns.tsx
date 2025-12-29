@@ -16,10 +16,12 @@ import { PriceTierDialog } from "../price-tier-dialog";
 
 interface GetColumnsProps {
 	onUnlink: (eventPrintingServiceId: number, serviceName: string) => void;
+	isContractor?: boolean;
+	currentUserId?: number;
 }
 
-export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventPrintingService>[] {
-	return [
+export function getColumns({ onUnlink, isContractor = false, currentUserId }: GetColumnsProps): ColumnDef<EventPrintingService>[] {
+	const baseColumns: ColumnDef<EventPrintingService>[] = [
 		{
 			id: "name",
 			accessorFn: (row) => row.printingService?.name ?? "",
@@ -84,25 +86,64 @@ export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventPrinti
 			),
 			size: 120,
 		},
-		{
-			id: "priceTiers",
-			header: "Pricing",
-			cell: ({ row }) => {
-				const service = row.original;
-				return <PriceTiersCell service={service} />;
-			},
-			size: 120,
-		},
-		{
-			id: "actions",
-			header: "Actions",
-			cell: ({ row }) => {
-				const service = row.original;
-				return <ActionsCell service={service} onUnlink={onUnlink} />;
-			},
-			size: 70,
-		},
 	];
+
+	// Only show Pricing and Actions columns for contractors
+	// OR for org_owner viewing their own services
+	if (isContractor) {
+		baseColumns.push(
+			{
+				id: "priceTiers",
+				header: "Pricing",
+				cell: ({ row }) => {
+					const service = row.original;
+					return <PriceTiersCell service={service} />;
+				},
+				size: 120,
+			},
+			{
+				id: "actions",
+				header: "Actions",
+				cell: ({ row }) => {
+					const service = row.original;
+					return <ActionsCell service={service} onUnlink={onUnlink} />;
+				},
+				size: 70,
+			},
+		);
+	} else if (currentUserId) {
+		// For org_owner: show Pricing and Actions only for their own services
+		baseColumns.push(
+			{
+				id: "priceTiers",
+				header: "Pricing",
+				cell: ({ row }) => {
+					const service = row.original;
+					// Only show manage button if service belongs to current user
+					if (service.printingService?.userId !== currentUserId) {
+						return <span className="text-muted-foreground">-</span>;
+					}
+					return <PriceTiersCell service={service} />;
+				},
+				size: 120,
+			},
+			{
+				id: "actions",
+				header: "Actions",
+				cell: ({ row }) => {
+					const service = row.original;
+					// Only show actions if service belongs to current user
+					if (service.printingService?.userId !== currentUserId) {
+						return <span className="text-muted-foreground">-</span>;
+					}
+					return <ActionsCell service={service} onUnlink={onUnlink} />;
+				},
+				size: 70,
+			},
+		);
+	}
+
+	return baseColumns;
 }
 
 function PriceTiersCell({ service }: { service: EventPrintingService }) {

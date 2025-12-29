@@ -72,11 +72,16 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 			// First, update the exhibitor kit with items/printings
 			await updateExhibitorKit(eventId, exhibitorKitId, payload);
 
-			// Then, submit the order to auto-create a payment record
+			// Then, submit the order to auto-create payment record(s)
 			return submitExhibitorKitOrder(eventId, exhibitorKitId);
 		},
-		onSuccess: () => {
-			toast.success("Order submitted successfully! A payment request has been created.");
+		onSuccess: (response) => {
+			const paymentCount = response.data?.length ?? 1;
+			if (paymentCount > 1) {
+				toast.success(`Order submitted successfully! ${paymentCount} payment requests have been created.`);
+			} else {
+				toast.success("Order submitted successfully! A payment request has been created.");
+			}
 			clearCart();
 			// Redirect to my-items page to see the submitted order
 			router.push(`/event/${eventId}/my-items`);
@@ -328,7 +333,7 @@ export function ReviewSubmitPage({ eventId, eventVendorId }: ReviewSubmitPagePro
 									)}
 								</Button>
 								<p className="text-muted-foreground text-xs text-center mt-3">
-									A payment request will be created after submission
+									Payment request(s) will be created after submission
 								</p>
 							</div>
 						</div>

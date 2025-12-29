@@ -15,11 +15,13 @@ import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
@@ -31,6 +33,7 @@ export function ExhibitorKitDetailsView({
 	kitId,
 }: ExhibitorKitDetailsViewProps) {
 	const _router = useRouter();
+	const { user } = useAuth();
 
 	// Dialog states
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
@@ -49,12 +52,21 @@ export function ExhibitorKitDetailsView({
 		queryFn: () => getEventVendors(Number(eventId)),
 	});
 
+	// Fetch event details to check allow_contractor_printing_services flag
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+
+	// Check if contractor printing is enabled
+	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+
 	// Find the exhibitor kit from the vendors data (same approach as admin)
 	const exhibitorKit = vendors?.find(
 		(vendor) => vendor.exhibitor_kit?.id === Number(kitId),
 	)?.exhibitor_kit;
 
-	if (isLoading) {
+	if (isLoading || isLoadingEvent) {
 		return (
 			<LoadingState
 				title="Loading exhibitor kit details..."
@@ -281,6 +293,7 @@ export function ExhibitorKitDetailsView({
 						<PaymentList
 							eventId={eventId}
 							kitId={kitId}
+							currentUserId={user?.id}
 							onVerifyPayment={handleVerifyPayment}
 							onRejectPayment={handleRejectPayment}
 						/>
@@ -361,8 +374,8 @@ export function ExhibitorKitDetailsView({
 						</div>
 					)}
 
-					{/* Printing Services */}
-					{printings.length > 0 && (
+					{/* Printing Services - only shown when contractor printing is enabled */}
+					{allowContractorPrinting && printings.length > 0 && (
 						<div className="rounded-none border bg-background p-4">
 							<div className="mb-3 flex items-center justify-between border-b pb-3">
 								<div className="flex items-center gap-2">

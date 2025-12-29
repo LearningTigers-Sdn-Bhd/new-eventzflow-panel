@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface PaymentListProps {
 	eventId: string;
 	kitId: string;
+	currentUserId?: number;
 	onVerifyPayment?: (payment: ExhibitorKitPayment) => void;
 	onRejectPayment?: (payment: ExhibitorKitPayment) => void;
 }
@@ -44,6 +45,7 @@ const getStatusStyle = (status: ExhibitorKitPayment["status"]) => {
 export function PaymentList({
 	eventId,
 	kitId,
+	currentUserId,
 	onVerifyPayment,
 	onRejectPayment,
 }: PaymentListProps) {
@@ -102,14 +104,19 @@ export function PaymentList({
 			{/* Payment List */}
 			{payments && payments.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					{payments.map((payment) => (
+					{payments.map((payment) => {
+						const isOwnPayment = currentUserId && payment.payeeId === currentUserId;
+						return (
 						<div
 							key={payment.id}
-							className="rounded-none border bg-background p-4"
+							className={cn(
+								"rounded-none border bg-background p-4",
+								isOwnPayment && ""
+							)}
 						>
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex-1 space-y-2">
-									<div className="flex items-center gap-2">
+									<div className="flex items-center gap-2 flex-wrap">
 										<Badge
 											variant="outline"
 											className={cn(
@@ -128,6 +135,11 @@ export function PaymentList({
 									</div>
 									<p className="font-bold text-xl">
 										RM {payment.amount.toFixed(2)}
+									</p>
+									{/* Payee info */}
+									<p className="text-muted-foreground text-xs">
+										<span className="font-semibold">Payee:</span> <span className={cn("font-medium", isOwnPayment && "text-primary")}>{payment.payeeName || "Unknown"}</span>
+										{isOwnPayment && <span className="ml-1 text-primary font-bold">(You)</span>}
 									</p>
 									{payment.note && (
 										<p className="text-muted-foreground text-sm">
@@ -150,12 +162,12 @@ export function PaymentList({
 										</p>
 									)}
 									<p className="text-muted-foreground text-xs">
-										Created: {new Date(payment.createdAt).toLocaleDateString()}
+										<span className="font-semibold">Created:</span> {new Date(payment.createdAt).toLocaleDateString()}
 									</p>
 								</div>
 
 								{/* Action Buttons for submitted payments */}
-								{payment.status === "submitted" && (
+								{payment.status === "submitted" && (!currentUserId || payment.payeeId === currentUserId) && (
 									<div className="flex flex-col gap-2">
 										{onVerifyPayment && (
 											<Button
@@ -186,7 +198,7 @@ export function PaymentList({
 							{/* Linked Items/Printings */}
 							{((payment.items && payment.items.length > 0) || (payment.printings && payment.printings.length > 0)) && (
 								<div className="mt-3 border-t pt-3">
-									<p className="mb-2 text-muted-foreground text-xs uppercase">Linked Items</p>
+									<p className="mb-2 text-muted-foreground text-xs uppercase font-semibold">Linked Items</p>
 									<div className="flex flex-wrap gap-2">
 										{payment.items?.map((item) => (
 											<Badge key={item.id} variant="secondary" className="rounded-none text-xs">
@@ -202,7 +214,8 @@ export function PaymentList({
 								</div>
 							)}
 						</div>
-					))}
+					);
+					})}
 				</div>
 			) : (
 				<div className="rounded-none border border-dashed p-8 text-center">

@@ -13,10 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
 import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
+import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 function ExpandableText({ text, className }: { text: string; className?: string }) {
 	return (
@@ -49,9 +52,29 @@ export function ExhibitorKitDetailsSection({
 	const kit = eventVendor.exhibitor_kit;
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+	// Auth and payment verification state (org_owner only)
+	const { user } = useAuth();
+	const isOrgOwner = user?.role === "org_owner";
+	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
+	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
+
 	if (!kit) {
 		return null;
 	}
+
+	// Payment dialog handlers (org_owner only)
+	const handleVerifyPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("verify");
+		setVerifyRejectOpen(true);
+	};
+
+	const handleRejectPayment = (payment: ExhibitorKitPayment) => {
+		setSelectedPayment(payment);
+		setDialogAction("reject");
+		setVerifyRejectOpen(true);
+	};
 
 	const items = kit.exhibitor_kit_items || [];
 	const printings = kit.exhibitor_kit_printings || [];
@@ -362,6 +385,9 @@ export function ExhibitorKitDetailsSection({
 					<PaymentList
 						eventId={String(eventVendor.event_id)}
 						kitId={String(kit.id)}
+						currentUserId={isOrgOwner ? user?.id : undefined}
+						onVerifyPayment={isOrgOwner ? handleVerifyPayment : undefined}
+						onRejectPayment={isOrgOwner ? handleRejectPayment : undefined}
 					/>
 				</div>
 
@@ -518,6 +544,18 @@ export function ExhibitorKitDetailsSection({
 				open={isEditDialogOpen}
 				onOpenChange={setIsEditDialogOpen}
 			/>
+
+			{/* Verify/Reject Payment Dialog (org_owner only) */}
+			{isOrgOwner && (
+				<VerifyRejectPaymentDialog
+					open={verifyRejectOpen}
+					onOpenChange={setVerifyRejectOpen}
+					payment={selectedPayment}
+					eventId={String(eventVendor.event_id)}
+					kitId={String(kit.id)}
+					action={dialogAction}
+				/>
+			)}
 		</section>
 	);
 }

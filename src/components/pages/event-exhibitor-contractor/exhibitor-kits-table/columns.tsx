@@ -13,6 +13,10 @@ export interface ExhibitorKitWithVendor extends ExhibitorKit {
 	vendor?: EventVendor;
 }
 
+interface GetColumnsProps {
+	allowContractorPrinting?: boolean;
+}
+
 const getPaymentStatusStyle = (status: string) => {
 	switch (status) {
 		case "paid":
@@ -28,163 +32,160 @@ const getPaymentStatusStyle = (status: string) => {
 	}
 };
 
-export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
-	{
-		accessorKey: "company_name",
-		header: ({ column }) => (
-			<Button
-				variant="ghost"
-				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-				className="h-auto p-0 font-semibold hover:bg-transparent"
-			>
-				Company
-				<ArrowDown
-					className={cn(
-						"ml-2 h-4 w-4 transition-transform",
-						column.getIsSorted() === "asc" && "rotate-180",
-					)}
-				/>
-			</Button>
-		),
-		cell: ({ row }) => {
-			const kit = row.original;
-			return (
-				<div>
-					<div className="font-medium">{kit.company_name}</div>
-					<div className="text-muted-foreground text-sm">
-						{kit.vendor?.vendor?.full_name || "Unknown Vendor"}
+export function getColumns({
+	allowContractorPrinting = true,
+}: GetColumnsProps = {}): ColumnDef<ExhibitorKitWithVendor>[] {
+	return [
+		{
+			accessorKey: "company_name",
+			header: ({ column }) => (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					className="h-auto p-0 font-semibold hover:bg-transparent"
+				>
+					Company
+					<ArrowDown
+						className={cn(
+							"ml-2 h-4 w-4 transition-transform",
+							column.getIsSorted() === "asc" && "rotate-180",
+						)}
+					/>
+				</Button>
+			),
+			cell: ({ row }) => {
+				const kit = row.original;
+				return (
+					<div>
+						<div className="font-medium">{kit.company_name}</div>
+						<div className="text-muted-foreground text-sm">
+							{kit.vendor?.vendor?.full_name || "Unknown Vendor"}
+						</div>
 					</div>
-				</div>
-			);
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "booth_number",
-		header: ({ column }) => (
-			<Button
-				variant="ghost"
-				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-				className="h-auto p-0 font-semibold hover:bg-transparent"
-			>
-				Booth
-				<ArrowDown
-					className={cn(
-						"ml-2 h-4 w-4 transition-transform",
-						column.getIsSorted() === "asc" && "rotate-180",
-					)}
-				/>
-			</Button>
-		),
-		cell: ({ row }) => {
-			const kit = row.original;
-			return (
-				<div>
-					<div className="font-medium">{kit.booth_number}</div>
-					<div className="text-muted-foreground text-sm capitalize">
-						{kit.booth_type.replace("_", " ")}
+		{
+			accessorKey: "booth_number",
+			header: ({ column }) => (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					className="h-auto p-0 font-semibold hover:bg-transparent"
+				>
+					Booth
+					<ArrowDown
+						className={cn(
+							"ml-2 h-4 w-4 transition-transform",
+							column.getIsSorted() === "asc" && "rotate-180",
+						)}
+					/>
+				</Button>
+			),
+			cell: ({ row }) => {
+				const kit = row.original;
+				return (
+					<div>
+						<div className="font-medium">{kit.booth_number}</div>
+						<div className="text-muted-foreground text-sm capitalize">
+							{kit.booth_type?.replace("_", " ") ?? "-"}
+						</div>
 					</div>
-				</div>
-			);
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "pic_full_name",
-		header: "Primary Contact",
-		cell: ({ row }) => {
-			const kit = row.original;
-			return (
-				<div>
-					<div className="font-medium">{kit.pic_full_name}</div>
-					<div className="text-muted-foreground text-sm">
-						{kit.pic_email_address}
+		{
+			accessorKey: "pic_full_name",
+			header: "Primary Contact",
+			cell: ({ row }) => {
+				const kit = row.original;
+				return (
+					<div>
+						<div className="font-medium">{kit.pic_full_name}</div>
+						<div className="text-muted-foreground text-sm">
+							{kit.pic_email_address}
+						</div>
+						<div className="text-muted-foreground text-sm">
+							{kit.pic_contact_number}
+						</div>
 					</div>
-					<div className="text-muted-foreground text-sm">
-						{kit.pic_contact_number}
+				);
+			},
+		},
+		{
+			accessorKey: "exhibitor_team_members",
+			header: "Team Size",
+			cell: ({ row }) => {
+				const kit = row.original;
+				const teamSize = kit.exhibitor_team_members?.length || 0;
+				return (
+					<div className="flex items-center gap-2">
+						<Users className="h-4 w-4 text-muted-foreground" />
+						<span>
+							{teamSize} member{teamSize !== 1 ? "s" : ""}
+						</span>
 					</div>
-				</div>
-			);
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "exhibitor_team_members",
-		header: "Team Size",
-		cell: ({ row }) => {
-			const kit = row.original;
-			const teamSize = kit.exhibitor_team_members?.length || 0;
-			return (
-				<div className="flex items-center gap-2">
-					<Users className="h-4 w-4 text-muted-foreground" />
-					<span>
-						{teamSize} member{teamSize !== 1 ? "s" : ""}
-					</span>
-				</div>
-			);
-		},
-	},
-	{
-		accessorKey: "items_count",
-		header: "Items & Services",
-		cell: ({ row }) => {
-			const kit = row.original;
-			const itemsCount = kit.exhibitor_kit_items?.length || 0;
-			const printingsCount = kit.exhibitor_kit_printings?.length || 0;
-			// HIDDEN: Custom Requests feature temporarily disabled
-			// const customRequestsCount = kit.custom_requests?.length || 0;
+		{
+			accessorKey: "items_count",
+			header: allowContractorPrinting ? "Items & Services" : "Items",
+			cell: ({ row }) => {
+				const kit = row.original;
+				const itemsCount = kit.exhibitor_kit_items?.length || 0;
+				const printingsCount = kit.exhibitor_kit_printings?.length || 0;
 
-			return (
-				<div className="space-y-1">
-					<div className="flex items-center gap-2 text-sm">
-						<Package className="h-3 w-3 text-muted-foreground" />
-						<span>{itemsCount} items</span>
-					</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Package className="h-3 w-3 text-muted-foreground" />
-						<span>{printingsCount} services</span>
-					</div>
-					{/* HIDDEN: Custom Requests feature temporarily disabled */}
-					{/* {customRequestsCount > 0 && (
+				return (
+					<div className="space-y-1">
 						<div className="flex items-center gap-2 text-sm">
 							<Package className="h-3 w-3 text-muted-foreground" />
-							<span>{customRequestsCount} custom requests</span>
+							<span>{itemsCount} items</span>
 						</div>
-					)} */}
-				</div>
-			);
+						{allowContractorPrinting && (
+							<div className="flex items-center gap-2 text-sm">
+								<Package className="h-3 w-3 text-muted-foreground" />
+								<span>{printingsCount} services</span>
+							</div>
+						)}
+					</div>
+				);
+			},
 		},
-	},
-	{
-		accessorKey: "payment_status",
-		header: "Booth Rental",
-		cell: ({ row }) => {
-			const kit = row.original;
-			return (
-				<Badge
-					variant="outline"
-					className={cn(
-						"rounded-none font-medium text-xs capitalize",
-						getPaymentStatusStyle(kit.payment_status),
-					)}
-				>
-					{kit.payment_status}
-				</Badge>
-			);
+		{
+			accessorKey: "payment_status",
+			header: "Booth Rental",
+			cell: ({ row }) => {
+				const kit = row.original;
+				return (
+					<Badge
+						variant="outline"
+						className={cn(
+							"rounded-none font-medium text-xs capitalize",
+							getPaymentStatusStyle(kit.payment_status),
+						)}
+					>
+						{kit.payment_status}
+					</Badge>
+				);
+			},
 		},
-	},
 
-	{
-		id: "actions",
-		header: () => <div className="text-center">Actions</div>,
-		cell: ({ row }) => {
-			const kit = row.original;
+		{
+			id: "actions",
+			header: () => <div className="text-center">Actions</div>,
+			cell: ({ row }) => {
+				const kit = row.original;
 
-			return (
-				<div className="flex justify-center">
-					<ViewDetailsButton kitId={kit.id} />
-				</div>
-			);
+				return (
+					<div className="flex justify-center">
+						<ViewDetailsButton kitId={kit.id} />
+					</div>
+				);
+			},
 		},
-	},
-];
+	];
+}
 
 function ViewDetailsButton({ kitId }: { kitId: number }) {
 	const router = useRouter();

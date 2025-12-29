@@ -1,5 +1,7 @@
 import { restClient } from "@/utils/rest-api";
 import {
+	type CreateEventPrintingServiceRequest,
+	createEventPrintingServiceSchema,
 	type DeleteEventPrintingServiceRequest,
 	deleteEventPrintingServiceSchema,
 } from "./request";
@@ -106,6 +108,31 @@ export async function getEventPrintingService(
 			error instanceof Error
 				? error.message
 				: "Failed to fetch event printing service";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Link a printing service to an event
+ */
+export async function createEventPrintingService(
+	data: CreateEventPrintingServiceRequest,
+): Promise<EventPrintingService> {
+	try {
+		const validated = createEventPrintingServiceSchema.parse(data);
+
+		const response = await restClient.post<BackendEventPrintingService>(
+			`v1/events/${validated.event_id}/event_printing_services`,
+			{ event_printing_service: { printing_service_id: validated.printing_service_id } },
+		);
+
+		return transformEventPrintingService(response);
+	} catch (error: unknown) {
+		console.error("Error linking printing service to event:", error);
+		const errorMessage =
+			error instanceof Error
+				? error.message
+				: "Failed to link printing service to event";
 		throw new Error(errorMessage);
 	}
 }

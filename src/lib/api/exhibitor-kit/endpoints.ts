@@ -1,5 +1,6 @@
 import { restClient } from "@/utils/rest-api";
 import type { ExhibitorKit } from "./response";
+import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment/response";
 import {
 	type CreateExhibitorKitRequest,
 	type UpdateExhibitorKitRequest,
@@ -61,14 +62,15 @@ export async function updateExhibitorKit(
 
 /**
  * Submit an exhibitor kit order
- * This auto-creates a payment record for unpaid items and printings
- * and links them to the payment for tracking
+ * This auto-creates payment records for unpaid items and printings,
+ * grouped by payee (item/service owner), and links them to the payments for tracking.
+ * Returns an array of payments - one per unique payee.
  */
 export async function submitExhibitorKitOrder(
 	eventId: number,
 	kitId: number,
-): Promise<{ data: unknown; message: string }> {
-	return restClient.post<{ data: unknown; message: string }>(
+): Promise<{ data: ExhibitorKitPayment[]; message: string }> {
+	return restClient.post<{ data: ExhibitorKitPayment[]; message: string }>(
 		`v1/events/${eventId}/exhibitor_kits/${kitId}/submit_order`,
 		{},
 	);

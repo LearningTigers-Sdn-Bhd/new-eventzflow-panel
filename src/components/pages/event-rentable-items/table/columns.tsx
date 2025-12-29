@@ -16,10 +16,11 @@ import { PriceTierDialog } from "../price-tier-dialog";
 
 interface GetColumnsProps {
 	onUnlink: (eventRentableItemId: number, itemName: string) => void;
+	isContractor?: boolean;
 }
 
-export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventRentableItem>[] {
-	return [
+export function getColumns({ onUnlink, isContractor = false }: GetColumnsProps): ColumnDef<EventRentableItem>[] {
+	const baseColumns: ColumnDef<EventRentableItem>[] = [
 		{
 			id: "name",
 			accessorFn: (row) => row.rentableItem?.name ?? "",
@@ -84,25 +85,33 @@ export function getColumns({ onUnlink }: GetColumnsProps): ColumnDef<EventRentab
 			),
 			size: 120,
 		},
-		{
-			id: "priceTiers",
-			header: "Pricing",
-			cell: ({ row }) => {
-				const item = row.original;
-				return <PriceTiersCell item={item} />;
-			},
-			size: 120,
-		},
-		{
-			id: "actions",
-			header: "Actions",
-			cell: ({ row }) => {
-				const item = row.original;
-				return <ActionsCell item={item} onUnlink={onUnlink} />;
-			},
-			size: 70,
-		},
 	];
+
+	// Only show Pricing and Actions columns for contractors
+	if (isContractor) {
+		baseColumns.push(
+			{
+				id: "priceTiers",
+				header: "Pricing",
+				cell: ({ row }) => {
+					const item = row.original;
+					return <PriceTiersCell item={item} />;
+				},
+				size: 120,
+			},
+			{
+				id: "actions",
+				header: "Actions",
+				cell: ({ row }) => {
+					const item = row.original;
+					return <ActionsCell item={item} onUnlink={onUnlink} />;
+				},
+				size: 70,
+			},
+		);
+	}
+
+	return baseColumns;
 }
 
 function PriceTiersCell({ item }: { item: EventRentableItem }) {
