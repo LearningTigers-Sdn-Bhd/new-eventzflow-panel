@@ -1,5 +1,6 @@
 "use client";
 import { redirect, usePathname } from "next/navigation";
+import Script from "next/script";
 import FloatingNav from "@/components/floating-nav";
 import Footer from "@/components/footer";
 import { Spinner } from "@/components/ui/spinner";
@@ -61,6 +62,12 @@ export default function PublicLayout({
 			{!isNavHidden && <FloatingNav />}
 			<main className="h-full w-full">{children}</main>
 			{isFooterVisible && <Footer />}
+			{process.env.NODE_ENV === "production" && (
+				<Script
+					src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
+					strategy="afterInteractive"
+				/>
+			)}
 		</div>
 	);
 }
