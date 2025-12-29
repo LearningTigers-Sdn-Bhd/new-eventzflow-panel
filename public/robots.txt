@@ -1,0 +1,27 @@
+# Block all crawlers for all (auth) directories
+User-agent: *
+Disallow: /api
+Disallow: /credits
+Disallow: /dashboard
+Disallow: /debug-api
+Disallow: /event
+Disallow: /exhibitor-contractor
+Disallow: /exhibitor-kits
+Disallow: /import
+Disallow: /item-categories
+Disallow: /printing-services
+Disallow: /rentable-items
+Disallow: /scan
+Disallow: /settings
+Disallow: /team
+Disallow: /vendor
+Disallow: /verify-email
+Disallow: /voucher
+
+# Allow public exceptions
+Allow: /vendor-signup
+Allow: /events
+Allow: /event/*/voucher-showcase
+
+# Allow all other routes
+Allow: /
