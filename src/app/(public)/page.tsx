@@ -1,17 +1,14 @@
-"use client";
-import Head from "next/head";
+import type { Metadata } from "next";
 import HomeSection from "@/components/pages/home/home-section";
+
+export const metadata: Metadata = {
+	title: "EventzFlow",
+	description: "EventzFlow is a platform for event management",
+};
 
 export default function Home() {
 	return (
 		<div className="w-full">
-			<Head>
-				<title>EventzFlow</title>
-				<meta
-					name="description"
-					content="EventzFlow is a platform for event management"
-				/>
-			</Head>
 			<HomeSection />
 		</div>
 	);
