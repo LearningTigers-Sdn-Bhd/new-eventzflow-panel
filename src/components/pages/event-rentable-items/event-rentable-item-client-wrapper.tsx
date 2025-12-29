@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Package, Plus, Info, ArrowRight } from "lucide-react";
+import { Info, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -9,11 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	getEventRentableItems,
-	createEventRentableItem,
 	deleteEventRentableItem,
 } from "@/lib/api/event-rentable-item";
-import { getRentableItems } from "@/lib/api/rentable-item";
-import { LinkItemDialog } from "./link-item-dialog";
 import { UnlinkItemDialog } from "./unlink-item-dialog";
 import { DataTable } from "./table/data-table";
 import { getColumns } from "./table/columns";
@@ -38,31 +35,6 @@ export default function EventRentableItemClientWrapper({
 		queryFn: () => getEventRentableItems(eventId),
 	});
 
-	// Fetch available items (contractor's catalog)
-	const {
-		data: allItems = [],
-		isLoading: isLoadingAll,
-		error: allError,
-	} = useQuery({
-		queryKey: ["rentable-items"],
-		queryFn: () => getRentableItems(),
-	});
-
-	// Link item mutation
-	const linkMutation = useMutation({
-		mutationFn: createEventRentableItem,
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["event-rentable-items", eventId],
-			});
-			toast.success("Item linked to event successfully");
-			closeDialog();
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to link item to event");
-		},
-	});
-
 	// Unlink item mutation
 	const unlinkMutation = useMutation({
 		mutationFn: deleteEventRentableItem,
@@ -77,32 +49,6 @@ export default function EventRentableItemClientWrapper({
 			toast.error(error.message || "Failed to unlink item from event");
 		},
 	});
-
-	// Filter out already linked items
-	const linkedItemIds = new Set(linkedItems.map((item) => item.rentableItemId));
-	const availableItems = allItems.filter(
-		(item) => !linkedItemIds.has(item.id) && item.status === "active",
-	);
-
-	const handleLinkItem = () => {
-		openDialog({
-			component: LinkItemDialog,
-			props: {
-				availableItems,
-				onLink: (rentableItemId: number) => {
-					linkMutation.mutate({
-						event_id: eventId,
-						rentable_item_id: rentableItemId,
-					});
-				},
-			},
-			config: {
-				title: "Link Item to Event",
-				description: "Select an item from your catalog to link to this event.",
-				size: "lg",
-			},
-		});
-	};
 
 	const handleUnlink = (eventRentableItemId: number, itemName: string) => {
 		openDialog({
@@ -125,9 +71,7 @@ export default function EventRentableItemClientWrapper({
 		});
 	};
 
-	const isLoading = isLoadingLinked || isLoadingAll;
-
-	if (isLoading) {
+	if (isLoadingLinked) {
 		return (
 			<LoadingState
 				title="Loading event rentable items..."
@@ -136,11 +80,11 @@ export default function EventRentableItemClientWrapper({
 		);
 	}
 
-	if (linkedError || allError) {
+	if (linkedError) {
 		return (
 			<ErrorState
 				title="Failed to load items"
-				description={(linkedError as Error)?.message || (allError as Error)?.message || "An error occurred"}
+				description={(linkedError as Error)?.message || "An error occurred"}
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
@@ -154,9 +98,9 @@ export default function EventRentableItemClientWrapper({
 				<div className="flex items-start gap-3">
 					<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 					<div className="space-y-1">
-						<p className="font-medium text-sm">Link rentable items to this event</p>
+						<p className="font-medium text-sm">Rentable items for this event</p>
 						<p className="text-muted-foreground text-sm">
-							Link items from your catalog and configure pricing tiers. Need to create new items first?
+							Items are automatically linked when the contractor is assigned. Manage your catalog to add new items.
 						</p>
 					</div>
 				</div>
@@ -167,17 +111,9 @@ export default function EventRentableItemClientWrapper({
 							<ArrowRight className="ml-2 h-4 w-4" />
 						</Link>
 					</Button>
-					<Button
-						onClick={handleLinkItem}
-						className="w-full rounded-none sm:w-auto"
-						disabled={availableItems.length === 0}
-					>
-						<Plus className="mr-2 h-4 w-4" />
-						Link Item
-					</Button>
 				</div>
 			</div>
-			<DataTable columns={columns} data={linkedItems} onLinkItem={handleLinkItem} availableItemsCount={availableItems.length} />
+			<DataTable columns={columns} data={linkedItems} />
 		</div>
 	);
 }

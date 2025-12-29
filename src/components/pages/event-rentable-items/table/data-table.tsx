@@ -12,11 +12,10 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Package, Plus } from "lucide-react";
+import { Package } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -34,15 +33,11 @@ import { EventRentableItemCard } from "./event-rentable-item-card";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	onLinkItem: () => void;
-	availableItemsCount: number;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	onLinkItem,
-	availableItemsCount,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -121,19 +116,9 @@ export function DataTable<TData, TValue>({
 										<TableCell colSpan={columns.length} className="h-24 text-center">
 											<EmptyState
 												title="No items linked"
-												description="Link items from your catalog to make them available for this event."
+												description="Items are automatically linked when the contractor is assigned to this event."
 												icon={<Package />}
 												height="h-auto"
-												action={
-													<Button
-														onClick={onLinkItem}
-														disabled={availableItemsCount === 0}
-														className="rounded-none"
-													>
-														<Plus className="mr-2 h-4 w-4" />
-														Link Item
-													</Button>
-												}
 											/>
 										</TableCell>
 									</TableRow>
@@ -153,19 +138,9 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No items linked"
-								description="Link items from your catalog to make them available for this event."
+								description="Items are automatically linked when the contractor is assigned to this event."
 								icon={<Package />}
 								height="h-auto"
-								action={
-									<Button
-										onClick={onLinkItem}
-										disabled={availableItemsCount === 0}
-										className="rounded-none"
-									>
-										<Plus className="mr-2 h-4 w-4" />
-										Link Item
-									</Button>
-								}
 							/>
 						)}
 					</div>

@@ -45,11 +45,6 @@ export type EventRentableItem = {
 };
 
 // Response types for operations
-export type CreateEventRentableItemResponse = {
-	success: boolean;
-	item: EventRentableItem;
-};
-
 export type DeleteEventRentableItemResponse = {
 	success: boolean;
 	item: EventRentableItem;

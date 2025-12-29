@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Info, ArrowRight } from "lucide-react";
+import { Info, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -9,14 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	getEventPrintingServices,
-	createEventPrintingService,
 	deleteEventPrintingService,
-	type EventPrintingService,
-	type CreateEventPrintingServiceRequest,
-	type DeleteEventPrintingServiceRequest,
 } from "@/lib/api/event-printing-service";
-import { getPrintingServices } from "@/lib/api/printing-service";
-import { LinkServiceDialog } from "./link-service-dialog";
 import { UnlinkServiceDialog } from "./unlink-service-dialog";
 import { DataTable } from "./table/data-table";
 import { getColumns } from "./table/columns";
@@ -41,31 +35,6 @@ export default function EventPrintingServiceClientWrapper({
 		queryFn: () => getEventPrintingServices(eventId),
 	});
 
-	// Fetch available services (contractor's catalog)
-	const {
-		data: allServices = [],
-		isLoading: isLoadingAll,
-		error: allError,
-	} = useQuery({
-		queryKey: ["printing-services"],
-		queryFn: () => getPrintingServices(),
-	});
-
-	// Link service mutation
-	const linkMutation = useMutation({
-		mutationFn: createEventPrintingService,
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["event-printing-services", eventId],
-			});
-			toast.success("Service linked to event successfully");
-			closeDialog();
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to link service to event");
-		},
-	});
-
 	// Unlink service mutation
 	const unlinkMutation = useMutation({
 		mutationFn: deleteEventPrintingService,
@@ -80,32 +49,6 @@ export default function EventPrintingServiceClientWrapper({
 			toast.error(error.message || "Failed to unlink service from event");
 		},
 	});
-
-	// Filter out already linked services
-	const linkedServiceIds = new Set(linkedServices.map((s) => s.printingServiceId));
-	const availableServices = allServices.filter(
-		(service) => !linkedServiceIds.has(service.id) && service.status === "active",
-	);
-
-	const handleLinkService = () => {
-		openDialog({
-			component: LinkServiceDialog,
-			props: {
-				availableServices,
-				onLink: (printingServiceId: number) => {
-					linkMutation.mutate({
-						event_id: eventId,
-						printing_service_id: printingServiceId,
-					});
-				},
-			},
-			config: {
-				title: "Link Service to Event",
-				description: "Select a printing service from your catalog to link to this event.",
-				size: "lg",
-			},
-		});
-	};
 
 	const handleUnlink = (eventPrintingServiceId: number, serviceName: string) => {
 		openDialog({
@@ -128,9 +71,7 @@ export default function EventPrintingServiceClientWrapper({
 		});
 	};
 
-	const isLoading = isLoadingLinked || isLoadingAll;
-
-	if (isLoading) {
+	if (isLoadingLinked) {
 		return (
 			<LoadingState
 				title="Loading event printing services..."
@@ -139,11 +80,11 @@ export default function EventPrintingServiceClientWrapper({
 		);
 	}
 
-	if (linkedError || allError) {
+	if (linkedError) {
 		return (
 			<ErrorState
 				title="Failed to load services"
-				description={(linkedError as Error)?.message || (allError as Error)?.message || "An error occurred"}
+				description={(linkedError as Error)?.message || "An error occurred"}
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
@@ -157,9 +98,9 @@ export default function EventPrintingServiceClientWrapper({
 				<div className="flex items-start gap-3">
 					<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 					<div className="space-y-1">
-						<p className="font-medium text-sm">Link printing services to this event</p>
+						<p className="font-medium text-sm">Printing services for this event</p>
 						<p className="text-muted-foreground text-sm">
-							Link services from your catalog and configure pricing tiers. Need to create new services first?
+							Services are automatically linked when the contractor is assigned. Manage your catalog to add new services.
 						</p>
 					</div>
 				</div>
@@ -170,17 +111,9 @@ export default function EventPrintingServiceClientWrapper({
 							<ArrowRight className="ml-2 h-4 w-4" />
 						</Link>
 					</Button>
-					<Button
-						onClick={handleLinkService}
-						className="w-full rounded-none sm:w-auto"
-						disabled={availableServices.length === 0}
-					>
-						<Plus className="mr-2 h-4 w-4" />
-						Link Service
-					</Button>
 				</div>
 			</div>
-			<DataTable columns={columns} data={linkedServices} onLinkService={handleLinkService} availableServicesCount={availableServices.length} />
+			<DataTable columns={columns} data={linkedServices} />
 		</div>
 	);
 }

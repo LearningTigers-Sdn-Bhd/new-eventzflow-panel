@@ -12,11 +12,10 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Printer, Plus } from "lucide-react";
+import { Printer } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -34,15 +33,11 @@ import { EventPrintingServiceCard } from "./event-printing-service-card";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	onLinkService: () => void;
-	availableServicesCount: number;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	onLinkService,
-	availableServicesCount,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -110,15 +105,9 @@ export function DataTable<TData, TValue>({
 										<TableCell colSpan={columns.length} className="h-24 text-center">
 											<EmptyState
 												title="No services linked"
-												description="Link services from your catalog to make them available for this event."
+												description="Services are automatically linked when the contractor is assigned to this event."
 												icon={<Printer />}
 												height="h-auto"
-												action={
-													<Button onClick={onLinkService} disabled={availableServicesCount === 0} className="rounded-none">
-														<Plus className="mr-2 h-4 w-4" />
-														Link Service
-													</Button>
-												}
 											/>
 										</TableCell>
 									</TableRow>
@@ -135,15 +124,9 @@ export function DataTable<TData, TValue>({
 						) : (
 							<EmptyState
 								title="No services linked"
-								description="Link services from your catalog to make them available for this event."
+								description="Services are automatically linked when the contractor is assigned to this event."
 								icon={<Printer />}
 								height="h-auto"
-								action={
-									<Button onClick={onLinkService} disabled={availableServicesCount === 0} className="rounded-none">
-										<Plus className="mr-2 h-4 w-4" />
-										Link Service
-									</Button>
-								}
 							/>
 						)}
 					</div>

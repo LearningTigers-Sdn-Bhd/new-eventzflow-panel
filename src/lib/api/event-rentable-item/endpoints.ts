@@ -1,7 +1,5 @@
 import { restClient } from "@/utils/rest-api";
 import {
-	type CreateEventRentableItemRequest,
-	createEventRentableItemSchema,
 	type DeleteEventRentableItemRequest,
 	deleteEventRentableItemSchema,
 } from "./request";
@@ -10,7 +8,6 @@ import type {
 	BackendEventRentableItemPriceTier,
 	EventRentableItem,
 	EventRentableItemPriceTier,
-	CreateEventRentableItemResponse,
 	DeleteEventRentableItemResponse,
 } from "./response";
 
@@ -109,36 +106,6 @@ export async function getEventRentableItem(
 			error instanceof Error
 				? error.message
 				: "Failed to fetch event rentable item";
-		throw new Error(errorMessage);
-	}
-}
-
-/**
- * Link a rentable item to an event
- */
-export async function createEventRentableItem(
-	data: CreateEventRentableItemRequest,
-): Promise<CreateEventRentableItemResponse> {
-	try {
-		const validated = createEventRentableItemSchema.parse(data);
-
-		const response = await restClient.post<BackendEventRentableItem>(
-			`v1/events/${validated.event_id}/event_rentable_items`,
-			{
-				rentable_item_id: validated.rentable_item_id,
-			},
-		);
-
-		return {
-			success: true,
-			item: transformEventRentableItem(response),
-		};
-	} catch (error: unknown) {
-		console.error("Error linking rentable item to event:", error);
-		const errorMessage =
-			error instanceof Error
-				? error.message
-				: "Failed to link rentable item to event";
 		throw new Error(errorMessage);
 	}
 }

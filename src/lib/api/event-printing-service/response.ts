@@ -45,11 +45,6 @@ export type EventPrintingService = {
 };
 
 // Response types for operations
-export type CreateEventPrintingServiceResponse = {
-	success: boolean;
-	item: EventPrintingService;
-};
-
 export type DeleteEventPrintingServiceResponse = {
 	success: boolean;
 	item: EventPrintingService;
