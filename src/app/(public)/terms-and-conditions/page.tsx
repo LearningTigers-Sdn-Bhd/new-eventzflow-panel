@@ -2,10 +2,7 @@
 
 import {
 	AlertTriangle,
-	CheckCircle,
-	Clock,
 	CreditCard,
-	FileCheck,
 	FileText,
 	Globe,
 	type LucideIcon,
@@ -16,6 +13,7 @@ import {
 	Users,
 	XCircle,
 } from "lucide-react";
+import Head from "next/head";
 import type { ReactNode } from "react";
 
 interface PolicySectionProps {
@@ -71,6 +69,13 @@ function PolicySection({
 export default function TermsAndConditionsPage() {
 	return (
 		<div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/30">
+			<Head>
+				<title>EventzFlow - Terms and Conditions</title>
+				<meta
+					name="description"
+					content="Terms and Conditions for EventzFlow"
+				/>
+			</Head>
 			<div className="container mx-auto max-w-7xl px-4 py-26 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-12 text-center">
