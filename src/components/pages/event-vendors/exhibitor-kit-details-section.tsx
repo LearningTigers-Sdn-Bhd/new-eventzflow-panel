@@ -16,6 +16,7 @@ import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
+import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
 
 function ExpandableText({ text, className }: { text: string; className?: string }) {
 	return (
@@ -122,24 +123,24 @@ export function ExhibitorKitDetailsSection({
 						</div>
 						<div className="space-y-2 text-sm">
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Booth Number:</span>
-								<span className="font-medium">{kit.booth_number || "-"}</span>
+								<span className="font-medium">Booth Number</span>
+								<span className="text-muted-foreground">{kit.booth_number || "-"}</span>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Type:</span>
+								<span className="font-medium">Type</span>
 								<Badge variant="outline" className="rounded-none capitalize">
 									{kit.booth_type?.replace("_", " ") || "-"}
 								</Badge>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Dimensions:</span>
-								<span className="font-medium">
+								<span className="font-medium">Dimensions</span>
+								<span className="text-muted-foreground">
 									{kit.booth_dimensions || "-"}
 								</span>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Side Walls:</span>
-								<span className="font-medium text-xs">
+								<span className="font-medium">Side Walls</span>
+								<span className="text-muted-foreground text-xs">
 									{kit.side_wall_left_required && "Left "}
 									{kit.side_wall_right_required && "Right"}
 									{!kit.side_wall_left_required &&
@@ -148,8 +149,8 @@ export function ExhibitorKitDetailsSection({
 								</span>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Fascia:</span>
-								<span className="font-medium">{kit.name_on_fascia || "-"}</span>
+								<span className="font-medium">Fascia</span>
+								<span className="text-muted-foreground">{kit.name_on_fascia || "-"}</span>
 							</div>
 							{kit.fascia_upgrade_required && (
 								<Badge
@@ -172,22 +173,22 @@ export function ExhibitorKitDetailsSection({
 						</div>
 						<div className="space-y-2 text-sm">
 							<div>
-								<span className="mb-1 block text-muted-foreground">
-									Company:
+								<span className="mb-1 block font-medium">
+									Company
 								</span>
-								<span className="font-medium">{kit.company_name || "-"}</span>
+								<span className="text-muted-foreground">{kit.company_name || "-"}</span>
 							</div>
 							<div>
-								<span className="mb-1 block text-muted-foreground">
-									Address:
+								<span className="mb-1 block font-medium">
+									Address
 								</span>
-								<span className="text-sm">{kit.company_address || "-"}</span>
+								<span className="text-muted-foreground text-sm">{kit.company_address || "-"}</span>
 							</div>
 							<div className="border-t pt-2">
-								<span className="mb-1 block text-muted-foreground">
-									Person In Charge:
+								<span className="mb-1 block font-medium">
+									Person In Charge
 								</span>
-								<p className="font-medium">{kit.pic_full_name || "-"}</p>
+								<p className="text-muted-foreground">{kit.pic_full_name || "-"}</p>
 								<p className="text-muted-foreground text-sm">
 									{kit.pic_contact_number || "-"}
 								</p>
@@ -208,7 +209,7 @@ export function ExhibitorKitDetailsSection({
 						</div>
 						<div className="space-y-2 text-sm">
 							<div className="flex items-center justify-between">
-								<span className="text-muted-foreground">Status:</span>
+								<span className="font-medium">Status</span>
 								<Badge
 									variant="outline"
 									className={cn(
@@ -227,8 +228,8 @@ export function ExhibitorKitDetailsSection({
 								</Badge>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground">Amount Paid:</span>
-								<span className="font-medium">
+								<span className="font-medium">Amount Paid</span>
+								<span className="text-muted-foreground">
 									{kit.amount_paid
 										? `RM ${Number(kit.amount_paid).toFixed(2)}`
 										: "-"}
@@ -236,16 +237,16 @@ export function ExhibitorKitDetailsSection({
 							</div>
 							{kit.payment_note && (
 								<div className="border-t pt-2">
-									<span className="mb-1 block text-muted-foreground">
-										Note:
+									<span className="mb-1 block font-medium">
+										Note
 									</span>
 									<ExpandableText text={kit.payment_note} />
 								</div>
 							)}
 							{kit.special_requirements && (
 								<div className="border-t pt-2">
-									<span className="mb-1 block text-muted-foreground">
-										Special Requirements:
+									<span className="mb-1 block font-medium">
+										Special Requirements
 									</span>
 									<ExpandableText text={kit.special_requirements} />
 								</div>
@@ -266,8 +267,9 @@ export function ExhibitorKitDetailsSection({
 							</div>
 							{kit.team_member_limit && (
 								<div className="flex items-center gap-2 text-xs">
-									<span className="text-muted-foreground">
-										Limit: {kit.team_member_limit}
+									<span>
+										<span className="font-medium">Limit</span>{" "}
+										<span className="text-muted-foreground">{kit.team_member_limit}</span>
 									</span>
 									{kit.has_unpaid_excess_team_members && kit.extra_team_member_charges && (
 										<Badge variant="outline" className="rounded-none border-amber-500 text-amber-600">
@@ -348,6 +350,20 @@ export function ExhibitorKitDetailsSection({
 						)}
 					</div>
 				)}
+
+				{/* Order Payments */}
+				<div className="rounded-none border bg-background p-4">
+					<div className="mb-3 flex items-center gap-2 border-b pb-3">
+						<CreditCard className="size-4 text-primary" />
+						<h3 className="font-semibold text-sm uppercase tracking-wide">
+							Order Payments
+						</h3>
+					</div>
+					<PaymentList
+						eventId={String(eventVendor.event_id)}
+						kitId={String(kit.id)}
+					/>
+				</div>
 
 				{/* Ordered Items */}
 				{mergedItems.length > 0 && (

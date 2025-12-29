@@ -175,7 +175,7 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 	},
 	{
 		accessorKey: "payment_status",
-		header: "Payment Status",
+		header: "Booth Rental",
 		cell: ({ row }) => {
 			const kit = row.original;
 			return (

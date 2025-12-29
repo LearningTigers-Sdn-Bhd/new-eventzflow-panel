@@ -1,16 +1,10 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, Eye, MoreHorizontal, Package, Users } from "lucide-react";
+import { ArrowDown, Eye, Package, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { EventVendor } from "@/lib/api/event-vendor/response";
 import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
 import { cn } from "@/lib/utils";
@@ -185,14 +179,14 @@ export const columns: ColumnDef<ExhibitorKitWithVendor>[] = [
 
 			return (
 				<div className="flex justify-center">
-					<ActionsDropdown kitId={kit.id} />
+					<ViewDetailsButton kitId={kit.id} />
 				</div>
 			);
 		},
 	},
 ];
 
-function ActionsDropdown({ kitId }: { kitId: number }) {
+function ViewDetailsButton({ kitId }: { kitId: number }) {
 	const router = useRouter();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -202,21 +196,14 @@ function ActionsDropdown({ kitId }: { kitId: number }) {
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="sm" className="h-8 px-2">
-					<MoreHorizontal className="h-4 w-4" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="rounded-none">
-				<DropdownMenuItem
-					onClick={handleViewDetails}
-					className="cursor-pointer rounded-none"
-				>
-					<Eye className="mr-2 h-4 w-4" />
-					View Details
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<Button
+			variant="ghost"
+			size="sm"
+			onClick={handleViewDetails}
+			className="h-8 w-full rounded-none border border-primary/20 px-3 lg:w-auto"
+		>
+			<Eye className="mr-2 h-4 w-4" />
+			View
+		</Button>
 	);
 }

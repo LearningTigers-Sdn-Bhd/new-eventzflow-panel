@@ -81,11 +81,11 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</h4>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Booth Number:</span>
-						<span className="font-medium">{kit.booth_number || "-"}</span>
+						<span className="font-medium text-xs">Booth Number</span>
+						<span className="text-muted-foreground">{kit.booth_number || "-"}</span>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Type:</span>
+						<span className="font-medium text-xs">Type</span>
 						<Badge
 							variant="outline"
 							className="h-5 rounded-none text-xs capitalize"
@@ -94,12 +94,12 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</Badge>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Dimensions:</span>
-						<span className="font-medium">{kit.booth_dimensions || "-"}</span>
+						<span className="font-medium text-xs">Dimensions</span>
+						<span className="text-muted-foreground">{kit.booth_dimensions || "-"}</span>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Side Walls:</span>
-						<span className="font-medium text-xs">
+						<span className="font-medium text-xs">Side Walls</span>
+						<span className="text-muted-foreground text-xs">
 							{kit.side_wall_left_required && "Left "}
 							{kit.side_wall_right_required && "Right"}
 							{!kit.side_wall_left_required &&
@@ -108,8 +108,8 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</span>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Fascia:</span>
-						<span className="font-medium">{kit.name_on_fascia || "-"}</span>
+						<span className="font-medium text-xs">Fascia</span>
+						<span className="text-muted-foreground">{kit.name_on_fascia || "-"}</span>
 					</div>
 					{kit.fascia_upgrade_required && (
 						<Badge
@@ -130,22 +130,22 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</h4>
 					</div>
 					<div className="py-0.5">
-						<span className="mb-0.5 block text-muted-foreground text-xs">
-							Company:
+						<span className="mb-0.5 block font-medium text-xs">
+							Company
 						</span>
-						<span className="font-medium">{kit.company_name || "-"}</span>
+						<span className="text-muted-foreground text-xs">{kit.company_name || "-"}</span>
 					</div>
 					<div className="py-0.5">
-						<span className="mb-0.5 block text-muted-foreground text-xs">
-							Address:
+						<span className="mb-0.5 block font-medium text-xs">
+							Address
 						</span>
-						<span className="text-xs">{kit.company_address || "-"}</span>
+						<span className="text-muted-foreground text-xs">{kit.company_address || "-"}</span>
 					</div>
 					<div className="border-t pt-1.5">
-						<span className="mb-0.5 block text-muted-foreground text-xs">
-							Person In Charge:
+						<span className="mb-0.5 block font-medium text-xs">
+							Person In Charge
 						</span>
-						<p className="font-medium">{kit.pic_full_name || "-"}</p>
+						<p className="text-muted-foreground text-xs">{kit.pic_full_name || "-"}</p>
 						<p className="text-muted-foreground text-xs">
 							{kit.pic_contact_number || "-"}
 						</p>
@@ -164,7 +164,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</h4>
 					</div>
 					<div className="flex items-center justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Status:</span>
+						<span className="font-medium text-xs">Status</span>
 						<Badge
 							variant="outline"
 							className={cn(
@@ -183,8 +183,8 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</Badge>
 					</div>
 					<div className="flex justify-between py-0.5">
-						<span className="text-muted-foreground text-xs">Amount Paid:</span>
-						<span className="font-medium">
+						<span className="font-medium text-xs">Amount Paid</span>
+						<span className="text-muted-foreground text-xs">
 							{kit.amount_paid
 								? `RM ${Number(kit.amount_paid).toFixed(2)}`
 								: "-"}
@@ -192,16 +192,16 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.payment_note && (
 						<div className="border-t pt-1.5">
-							<span className="mb-0.5 block text-muted-foreground text-xs">
-								Note:
+							<span className="mb-0.5 block font-medium text-xs">
+								Note
 							</span>
 							<ExpandableText text={kit.payment_note} />
 						</div>
 					)}
 					{kit.special_requirements && (
 						<div className="border-t pt-1.5">
-							<span className="mb-0.5 block text-muted-foreground text-xs">
-								Special Requirements:
+							<span className="mb-0.5 block font-medium text-xs">
+								Special Requirements
 							</span>
 							<ExpandableText text={kit.special_requirements} />
 						</div>
@@ -218,8 +218,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							</h4>
 						</div>
 						{kit.team_member_limit && (
-							<span className="text-muted-foreground text-xs">
-								Limit: {kit.team_member_limit}
+							<span className="text-xs">
+								<span className="font-medium">Limit</span>{" "}
+								<span className="text-muted-foreground">{kit.team_member_limit}</span>
 							</span>
 						)}
 					</div>
@@ -294,9 +295,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							{/* Subtotal for extra team members */}
 							{kit.extra_team_member_charges &&
 								Number(kit.extra_team_member_charges) > 0 && (
-									<div className="flex justify-between border-t pt-1.5 font-semibold text-xs">
-										<span>Subtotal:</span>
-										<span>
+									<div className="flex justify-between border-t pt-1.5 text-xs">
+										<span className="font-medium">Subtotal</span>
+										<span className="text-muted-foreground">
 											RM {Number(kit.extra_team_member_charges).toFixed(2)}
 										</span>
 									</div>
