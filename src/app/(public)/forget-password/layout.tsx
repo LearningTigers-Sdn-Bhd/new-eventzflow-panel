@@ -1,8 +1,17 @@
 import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default function VerifyEmailLayout({
+export const metadata: Metadata = {
+	title: "EventzFlow - Forget Password",
+	description:
+		"Reset your password by providing your email address in order to regain access to your account.",
+	applicationName: "EventzFlow",
+	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
+};
+
+export default function ForgetPasswordLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;

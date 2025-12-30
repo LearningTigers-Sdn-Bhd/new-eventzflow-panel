@@ -1,6 +1,14 @@
 import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+	title: "EventzFlow - Check-in",
+	description: "Check-in to your event with EventzFlow.",
+	applicationName: "EventzFlow",
+	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
+};
 
 export default function CheckinLayout({
 	children,
@@ -41,20 +49,20 @@ export default function CheckinLayout({
 
 			{/* Floating gradient orbs with improved animation */}
 			<div
-				className="-top-24 -right-24 absolute h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-emerald-400/20 to-teal-400/20 blur-3xl"
+				className="absolute -top-24 -right-24 h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-emerald-400/20 to-teal-400/20 blur-3xl"
 				style={{ animationDuration: "8s" }}
 			/>
 			<div
-				className="-left-32 absolute top-1/3 h-80 w-80 animate-pulse rounded-full bg-gradient-to-tr from-blue-400/10 to-emerald-400/10 blur-3xl"
+				className="absolute top-1/3 -left-32 h-80 w-80 animate-pulse rounded-full bg-gradient-to-tr from-blue-400/10 to-emerald-400/10 blur-3xl"
 				style={{ animationDuration: "10s", animationDelay: "2s" }}
 			/>
 			<div
-				className="-bottom-32 absolute right-1/4 h-72 w-72 animate-pulse rounded-full bg-gradient-to-tl from-emerald-300/15 to-cyan-300/15 blur-3xl"
+				className="absolute right-1/4 -bottom-32 h-72 w-72 animate-pulse rounded-full bg-gradient-to-tl from-emerald-300/15 to-cyan-300/15 blur-3xl"
 				style={{ animationDuration: "12s", animationDelay: "4s" }}
 			/>
 
 			{/* Subtle spotlight effect at center */}
-			<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-[600px] w-[600px] rounded-full bg-gradient-radial from-emerald-100/30 via-transparent to-transparent blur-2xl dark:from-emerald-900/20" />
+			<div className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-emerald-100/30 via-transparent to-transparent blur-2xl dark:from-emerald-900/20" />
 
 			<div className="absolute top-4 left-4 z-20">
 				<Button

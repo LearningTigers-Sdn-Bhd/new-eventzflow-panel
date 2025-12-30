@@ -28,8 +28,6 @@ const getBaseUrl = () => {
 
 export const metadata: Metadata = {
 	metadataBase: new URL(getBaseUrl()),
-	title: "EventzFlow Event Admin",
-	description: "EventzFlow Event Admin Panel",
 };
 
 export default function RootLayout({
