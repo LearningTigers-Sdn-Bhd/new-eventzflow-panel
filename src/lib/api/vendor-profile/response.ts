@@ -16,6 +16,7 @@ export interface VendorProfile {
 	person_in_charge: string | null;
 	address: string | null;
 	notes: string | null;
+	company_profile: string | null;
 	created_at: string;
 	updated_at: string;
 	vendor: VendorUser;

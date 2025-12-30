@@ -45,7 +45,7 @@ export async function updateVendorProfile(
 			formData.append("remove_image", "true");
 		}
 
-		// Append profile fields
+		// Append profile fields (include empty strings to allow clearing)
 		Object.entries(profileFields).forEach(([key, value]) => {
 			if (value !== undefined && value !== null) {
 				formData.append(`vendor_profile[${key}]`, value as string);
@@ -56,6 +56,7 @@ export async function updateVendorProfile(
 	}
 
 	// JSON request for text-only updates (no image changes)
+	// Include all fields, even empty strings, to allow clearing values
 	const payload: Record<string, unknown> = {};
 	Object.entries(profileFields).forEach(([key, value]) => {
 		if (value !== undefined) {

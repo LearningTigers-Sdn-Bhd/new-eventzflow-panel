@@ -85,6 +85,21 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 							)}
 						</div>
 
+						<div className="space-y-1 border-t pt-4 text-sm">
+							<p className="font-medium text-muted-foreground text-xs uppercase">
+								Company Profile
+							</p>
+							{profile.company_profile ? (
+								<p className="whitespace-pre-line leading-relaxed">
+									{profile.company_profile}
+								</p>
+							) : (
+								<p className="text-muted-foreground/60 text-sm italic">
+									No company profile provided yet.
+								</p>
+							)}
+						</div>
+
 						<div className="space-y-3 border-t pt-4">
 							<p className="font-medium text-muted-foreground text-xs uppercase">
 								Contact

@@ -169,6 +169,8 @@ function VendorSignupContent() {
 	const vendorType = verifyData?.data?.vendor_type;
 	const useExhibitorKit = verifyData?.data?.use_exhibitor_kit ?? false;
 	const guidelinesPdfUrl = verifyData?.data?.guidelines_pdf_url ?? null;
+	const teamMemberLimit = verifyData?.data?.team_member_limit ?? null;
+	const extraTeamMemberFee = verifyData?.data?.extra_team_member_fee ?? null;
 
 	const handleSignIn = () => {
 		setPageState("sign_in");
@@ -294,6 +296,9 @@ function VendorSignupContent() {
 					group={group}
 					vendorType={vendorType}
 					useExhibitorKit={useExhibitorKit}
+					guidelinesPdfUrl={guidelinesPdfUrl}
+					teamMemberLimit={teamMemberLimit}
+					extraTeamMemberFee={extraTeamMemberFee}
 					token={token}
 					accessToken={accessToken}
 					onSuccess={handleJoinSuccess}
@@ -309,6 +314,8 @@ function VendorSignupContent() {
 					vendorType={vendorType}
 					useExhibitorKit={useExhibitorKit}
 					guidelinesPdfUrl={guidelinesPdfUrl}
+					teamMemberLimit={teamMemberLimit}
+					extraTeamMemberFee={extraTeamMemberFee}
 					onSuccess={handleRegistrationSuccess}
 					onBack={handleBackToOptions}
 				/>

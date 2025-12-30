@@ -3,6 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { PatternedLayout } from "@/components/patterned-layout";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,10 @@ import {
 	accountInfoValidators,
 } from "./account-info-section";
 import { BusinessDetailsSection } from "./business-details-section";
+import { BusinessInformationSection } from "./business-information-section";
 import { EventSettingsSection } from "./event-settings-section";
 import { ExhibitorKitSection } from "./exhibitor-kit-section";
+import { TeamMembersSection } from "./team-members-section";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -37,6 +40,8 @@ interface VendorSignupFormProps {
 	vendorType?: "Exhibitor" | "Merchant";
 	useExhibitorKit?: boolean;
 	guidelinesPdfUrl?: string | null;
+	teamMemberLimit?: number | null;
+	extraTeamMemberFee?: number | null;
 	onSuccess: (eventTitle: string) => void;
 	onBack: () => void;
 }
@@ -48,6 +53,8 @@ export function VendorSignupForm({
 	vendorType,
 	useExhibitorKit = false,
 	guidelinesPdfUrl,
+	teamMemberLimit,
+	extraTeamMemberFee,
 	onSuccess,
 	onBack,
 }: VendorSignupFormProps) {
@@ -55,6 +62,9 @@ export function VendorSignupForm({
 	const setSessionCredentials = useUserSessionStore(
 		(state) => state.setSessionCredentials,
 	);
+
+	// Team members state for exhibitor kit
+	const [teamMembers, setTeamMembers] = useState<{ full_name: string }[]>([]);
 
 	const registerMutation = useMutation({
 		mutationFn: registerInvitedVendor,
@@ -103,6 +113,7 @@ export function VendorSignupForm({
 			person_in_charge: "",
 			vendor_address: "",
 			vendor_notes: "",
+			company_profile: "",
 			redirect_url: "",
 			poster_url: "",
 			// Exhibitor kit fields
@@ -147,6 +158,7 @@ export function VendorSignupForm({
 					person_in_charge: value.person_in_charge || undefined,
 					address: value.vendor_address || undefined,
 					notes: value.vendor_notes || undefined,
+					company_profile: value.company_profile || undefined,
 				},
 				event_vendor: {
 					redirect_url: value.redirect_url || undefined,
@@ -166,6 +178,8 @@ export function VendorSignupForm({
 						pic_full_name: value.pic_full_name,
 						pic_contact_number: value.pic_contact_number,
 						pic_email_address: value.pic_email_address || undefined,
+						exhibitor_team_members_attributes:
+							teamMembers.length > 0 ? teamMembers : undefined,
 					},
 				}),
 			});
@@ -253,7 +267,39 @@ export function VendorSignupForm({
 							</form.Field>
 						</div>
 
-						{/* Business Details Section */}
+
+						{/* Business Details Section - Show different sections based on exhibitor kit */}
+						{useExhibitorKit ? (
+							<div className="rounded-none border bg-background p-5">
+							<form.Field name="vendor_category">
+								{(categoryField) => (
+									<form.Field name="custom_category">
+										{(customCategoryField) => (
+											<form.Field name="vendor_description">
+												{(descriptionField) => (
+													<form.Field name="company_profile">
+														{(companyProfileField) => (
+															<form.Field name="vendor_notes">
+																{(notesField) => (
+																	<BusinessInformationSection
+																		categoryField={categoryField}
+																		customCategoryField={customCategoryField}
+																		descriptionField={descriptionField}
+																		companyProfileField={companyProfileField}
+																		notesField={notesField}
+																	/>
+																)}
+															</form.Field>
+														)}
+													</form.Field>
+												)}
+											</form.Field>
+										)}
+									</form.Field>
+								)}
+							</form.Field>
+						</div>
+						) : (
 						<div className="rounded-none border bg-background p-5">
 							<form.Field name="vendor_category">
 								{(categoryField) => (
@@ -263,22 +309,23 @@ export function VendorSignupForm({
 												{(personInChargeField) => (
 													<form.Field name="vendor_description">
 														{(descriptionField) => (
-															<form.Field name="vendor_address">
-																{(addressField) => (
-																	<form.Field name="vendor_notes">
-																		{(notesField) => (
-																			<BusinessDetailsSection
-																				categoryField={categoryField}
-																				customCategoryField={
-																					customCategoryField
-																				}
-																				personInChargeField={
-																					personInChargeField
-																				}
-																				descriptionField={descriptionField}
-																				addressField={addressField}
-																				notesField={notesField}
-																			/>
+															<form.Field name="company_profile">
+																{(companyProfileField) => (
+																	<form.Field name="vendor_address">
+																		{(addressField) => (
+																			<form.Field name="vendor_notes">
+																				{(notesField) => (
+																					<BusinessDetailsSection
+																						categoryField={categoryField}
+																						customCategoryField={customCategoryField}
+																						personInChargeField={personInChargeField}
+																						descriptionField={descriptionField}
+																						companyProfileField={companyProfileField}
+																						addressField={addressField}
+																						notesField={notesField}
+																					/>
+																				)}
+																			</form.Field>
 																		)}
 																	</form.Field>
 																)}
@@ -292,7 +339,7 @@ export function VendorSignupForm({
 								)}
 							</form.Field>
 						</div>
-
+						)}
 						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
 						{useExhibitorKit && (
 							<div className="rounded-none border bg-background p-5">
@@ -356,6 +403,18 @@ export function VendorSignupForm({
 										</form.Field>
 									)}
 								</form.Field>
+							</div>
+						)}
+
+						{/* Team Members Section - Only when event uses exhibitor kit */}
+						{useExhibitorKit && (
+							<div className="rounded-none border bg-background p-5">
+								<TeamMembersSection
+									teamMembers={teamMembers}
+									onTeamMembersChange={setTeamMembers}
+									teamMemberLimit={teamMemberLimit}
+									extraTeamMemberFee={extraTeamMemberFee}
+								/>
 							</div>
 						)}
 

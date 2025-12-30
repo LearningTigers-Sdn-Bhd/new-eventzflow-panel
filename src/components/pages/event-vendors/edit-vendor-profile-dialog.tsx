@@ -39,6 +39,9 @@ export function EditVendorProfileDialog({
 	);
 	const [address, setAddress] = useState(profile.address || "");
 	const [notes, setNotes] = useState(profile.notes || "");
+	const [companyProfile, setCompanyProfile] = useState(
+		profile.company_profile || "",
+	);
 	const updateProfile = useUpdateVendorProfile();
 
 	useEffect(() => {
@@ -51,6 +54,7 @@ export function EditVendorProfileDialog({
 			setPersonInCharge(profile.person_in_charge || "");
 			setAddress(profile.address || "");
 			setNotes(profile.notes || "");
+			setCompanyProfile(profile.company_profile || "");
 		}
 	}, [profile, open]);
 
@@ -59,13 +63,14 @@ export function EditVendorProfileDialog({
 
 		try {
 			await updateProfile.mutateAsync({
-				description: description || undefined,
+				description,
 				image: image || undefined,
 				remove_image: removeImage || undefined,
-				category: category || undefined,
-				person_in_charge: personInCharge || undefined,
-				address: address || undefined,
-				notes: notes || undefined,
+				category,
+				person_in_charge: personInCharge,
+				address,
+				notes,
+				company_profile: companyProfile,
 			});
 			toast.success("Profile updated successfully");
 			onOpenChange(false);
@@ -140,6 +145,17 @@ export function EditVendorProfileDialog({
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Enter vendor description"
 								rows={4}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="companyProfile">Company Profile</Label>
+							<Textarea
+								id="companyProfile"
+								value={companyProfile}
+								onChange={(e) => setCompanyProfile(e.target.value)}
+								placeholder="Describe your company background, achievements, and expertise..."
+								rows={3}
 							/>
 						</div>
 

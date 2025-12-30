@@ -62,7 +62,7 @@ export function ExhibitorKitSection({
 						type="button"
 						variant="outline"
 						size="sm"
-						className="w-full sm:w-auto"
+						className="w-full rounded-none sm:w-auto"
 						asChild
 					>
 						<a

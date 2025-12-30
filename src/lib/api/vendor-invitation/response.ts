@@ -23,6 +23,8 @@ export interface VerifyInviteTokenResponse {
 		vendor_type: "Exhibitor" | "Merchant";
 		use_exhibitor_kit: boolean;
 		guidelines_pdf_url: string | null;
+		team_member_limit: number | null;
+		extra_team_member_fee: number | null;
 		event: {
 			id: number;
 			title: string;

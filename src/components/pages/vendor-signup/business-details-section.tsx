@@ -48,6 +48,7 @@ interface BusinessDetailsSectionProps {
 	customCategoryField: FieldApi;
 	personInChargeField: FieldApi;
 	descriptionField: FieldApi;
+	companyProfileField: FieldApi;
 	addressField: FieldApi;
 	notesField: FieldApi;
 }
@@ -57,6 +58,7 @@ export function BusinessDetailsSection({
 	customCategoryField,
 	personInChargeField,
 	descriptionField,
+	companyProfileField,
 	addressField,
 	notesField,
 }: BusinessDetailsSectionProps) {
@@ -203,6 +205,19 @@ export function BusinessDetailsSection({
 							/>
 						</div>
 					</div>
+				</div>
+
+				{/* Company Profile */}
+				<div className="space-y-2">
+					<Label htmlFor={companyProfileField.name}>Company Profile</Label>
+					<Textarea
+						id={companyProfileField.name}
+						placeholder="Describe your company background, achievements, and expertise..."
+						className="min-h-[100px] resize-none transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+						value={companyProfileField.state.value}
+						onBlur={companyProfileField.handleBlur}
+						onChange={(e) => companyProfileField.handleChange(e.target.value)}
+					/>
 				</div>
 
 				{/* Notes */}

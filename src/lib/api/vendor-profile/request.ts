@@ -9,6 +9,7 @@ export const updateVendorProfileSchema = z.object({
 	person_in_charge: z.string().optional(),
 	address: z.string().optional(),
 	notes: z.string().optional(),
+	company_profile: z.string().optional(),
 });
 
 // Export types for form data

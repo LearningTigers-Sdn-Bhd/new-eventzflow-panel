@@ -18,6 +18,7 @@ export const registerInvitedVendorSchema = z
 				person_in_charge: z.string().optional(),
 				address: z.string().optional(),
 				notes: z.string().optional(),
+				company_profile: z.string().optional(),
 			})
 			.optional(),
 		// Event vendor fields
@@ -55,6 +56,9 @@ export const registerInvitedVendorSchema = z
 					.email("Invalid email")
 					.optional()
 					.or(z.literal("")),
+				exhibitor_team_members_attributes: z
+					.array(z.object({ full_name: z.string() }))
+					.optional(),
 			})
 			.optional(),
 	})

@@ -3,6 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { ExternalLink, Globe, Image } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { PatternedLayout } from "@/components/patterned-layout";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { ExhibitorKitSection } from "./exhibitor-kit-section";
+import { TeamMembersSection } from "./team-members-section";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
 
 interface EventInfo {
@@ -33,6 +35,9 @@ interface JoinEventFormProps {
 	group?: GroupInfo | null;
 	vendorType?: "Exhibitor" | "Merchant";
 	useExhibitorKit?: boolean;
+	guidelinesPdfUrl?: string | null;
+	teamMemberLimit?: number | null;
+	extraTeamMemberFee?: number | null;
 	token: string;
 	accessToken: string;
 	onSuccess: () => void;
@@ -47,6 +52,7 @@ interface ExhibitorKitData {
 	pic_full_name: string;
 	pic_contact_number: string;
 	pic_email_address?: string;
+	exhibitor_team_members_attributes?: { full_name: string }[];
 }
 
 async function joinEventAsVendor(
@@ -89,10 +95,16 @@ export function JoinEventForm({
 	group,
 	vendorType,
 	useExhibitorKit,
+	guidelinesPdfUrl,
+	teamMemberLimit,
+	extraTeamMemberFee,
 	token,
 	accessToken,
 	onSuccess,
 }: JoinEventFormProps) {
+	// Team members state for exhibitor kit
+	const [teamMembers, setTeamMembers] = useState<{ full_name: string }[]>([]);
+
 	const joinMutation = useMutation({
 		mutationFn: (data: {
 			eventVendor: { redirect_url?: string; poster_url?: string };
@@ -155,6 +167,8 @@ export function JoinEventForm({
 						pic_full_name: value.pic_full_name,
 						pic_contact_number: value.pic_contact_number,
 						pic_email_address: value.pic_email_address || undefined,
+						exhibitor_team_members_attributes:
+							teamMembers.length > 0 ? teamMembers : undefined,
 					},
 				}),
 			});
@@ -299,6 +313,7 @@ export function JoinEventForm({
 																									picEmailAddressField={
 																										picEmailAddressField
 																									}
+																									guidelinesPdfUrl={guidelinesPdfUrl}
 																								/>
 																							)}
 																						</form.Field>
@@ -316,6 +331,18 @@ export function JoinEventForm({
 										</form.Field>
 									)}
 								</form.Field>
+							</div>
+						)}
+
+						{/* Team Members Section - Only when event uses exhibitor kit */}
+						{useExhibitorKit && (
+							<div className="rounded-none border bg-background p-5">
+								<TeamMembersSection
+									teamMembers={teamMembers}
+									onTeamMembersChange={setTeamMembers}
+									teamMemberLimit={teamMemberLimit}
+									extraTeamMemberFee={extraTeamMemberFee}
+								/>
 							</div>
 						)}
 
