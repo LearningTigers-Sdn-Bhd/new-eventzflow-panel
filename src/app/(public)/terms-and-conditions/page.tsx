@@ -16,7 +16,36 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
 	title: "EventzFlow - Terms and Conditions",
-	description: "Terms and Conditions for EventzFlow",
+	description:
+		"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
+	applicationName: "EventzFlow",
+	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
+	openGraph: {
+		title: "EventzFlow - Terms and Conditions",
+		description:
+			"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
+		url: "https://eventzflow.com",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+		images: [
+			{
+				url: "/api/og?title=Terms and Conditions&subtitle=Please read our terms and conditions",
+				width: 1200,
+				height: 630,
+				alt: "EventzFlow",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "EventzFlow - Terms and Conditions",
+		description:
+			"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
+		images: [
+			"/api/og?title=Terms and Conditions&subtitle=Please read our terms and conditions",
+		],
+	},
 };
 
 interface PolicySectionProps {

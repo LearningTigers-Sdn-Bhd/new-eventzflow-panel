@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 		"event check-in",
 		"event business matching",
 		"event lucky draw",
+		"exhibition kits event management",
 	],
 	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
 	openGraph: {
@@ -36,7 +37,9 @@ export const metadata: Metadata = {
 		title: "EventzFlow",
 		description:
 			"Streamline your event management with ticketing, check-in, business matching, lucky draw, and more.",
-		images: ["/images/homepage/Conference.png"],
+		images: [
+			"/api/og?title=EventzFlow&subtitle=All in One Event Management Platform",
+		],
 	},
 };
 
