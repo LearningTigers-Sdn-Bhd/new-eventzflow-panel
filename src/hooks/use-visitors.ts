@@ -101,7 +101,7 @@ export const useDeleteVisitor = () => {
 		}) => deleteVisitor(eventId, visitorId),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
-				queryKey: ["events", variables.eventId, "visitors"],
+				queryKey: ["event", variables.eventId, "visitors"],
 			});
 		},
 	});

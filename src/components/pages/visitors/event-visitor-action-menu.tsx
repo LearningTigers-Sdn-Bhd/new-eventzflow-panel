@@ -1,10 +1,14 @@
 "use client";
 
-import { Eye, Pencil, QrCode } from "lucide-react";
+import { Eye, Pencil, QrCode, Trash2 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Visitor } from "@/lib/api/visitor";
+import { DeleteVisitorDialog } from "./action-modals/delete-visitor-dialog";
 import EditEventVisitorForm from "./action-modals/edit-event-visitor-form";
 import VisitorQRModal from "./action-modals/qr-modal";
 import ViewEventVisitorModal from "./action-modals/view-event-visitor-modal";
@@ -15,6 +19,16 @@ interface VisitorActionsMenuProps {
 
 export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 	const { openDialog } = useDialog();
+	const { user } = useAuth();
+	const params = useParams();
+	const eventId = params.event_id as string;
+	const { isEventAdmin } = useEventPermissions(eventId);
+
+	// Only org_owner, organizer, and event_admin can edit/delete
+	const canEditDelete =
+		user?.role === "org_owner" ||
+		user?.role === "organizer" ||
+		isEventAdmin;
 
 	const openViewModal = () => {
 		openDialog({
@@ -53,17 +67,31 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 		});
 	};
 
+	const openDeleteModal = () => {
+		openDialog({
+			component: DeleteVisitorDialog,
+			config: {
+				title: "Delete Visitor",
+				size: "md",
+				showCloseButton: true,
+			},
+			props: { visitor },
+		});
+	};
+
 	return (
 		<ButtonGroup>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
-				onClick={openEditModal}
-				title="Edit Visitor"
-			>
-				<Pencil className="size-4" />
-			</Button>
+			{canEditDelete && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+					onClick={openEditModal}
+					title="Edit Visitor"
+				>
+					<Pencil className="size-4" />
+				</Button>
+			)}
 			<Button
 				size="icon-sm"
 				variant="outline"
@@ -82,6 +110,17 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 			>
 				<QrCode className="size-4" />
 			</Button>
+			{canEditDelete && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
+					onClick={openDeleteModal}
+					title="Delete Visitor"
+				>
+					<Trash2 className="size-4" />
+				</Button>
+			)}
 		</ButtonGroup>
 	);
 }
