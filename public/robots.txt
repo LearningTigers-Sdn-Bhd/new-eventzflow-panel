@@ -25,3 +25,6 @@ Allow: /event/*/voucher-showcase
 
 # Allow all other routes
 Allow: /
+
+# Sitemap Location
+Sitemap: https://eventzflow.com/sitemap.xml
