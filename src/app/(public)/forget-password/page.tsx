@@ -64,7 +64,7 @@ export default function RequestPasswordResetPage() {
 	// Navigate when countdown ends (avoid side effects inside state updater)
 	useEffect(() => {
 		if (isSuccess && countdown === 0) {
-			router.push("/auth?mode=login" as Route);
+			router.push("/auth?login" as Route);
 		}
 	}, [isSuccess, countdown, router]);
 

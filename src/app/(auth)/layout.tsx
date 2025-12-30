@@ -70,7 +70,7 @@ export default function AuthLayout({
 
 		// Redirect unauthenticated users to login
 		if (!user) {
-			router.push("/auth?mode=login" as Route);
+			router.push("/auth?login" as Route);
 			return;
 		}
 

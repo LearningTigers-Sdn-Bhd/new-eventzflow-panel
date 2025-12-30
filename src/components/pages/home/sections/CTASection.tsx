@@ -48,7 +48,7 @@ const CTASection: React.FC = () => {
 					viewport={{ once: true }}
 					transition={{ duration: 0.5, delay: 0.15 }}
 				>
-					<Link href={"/auth?mode=login" as Route} className="w-full sm:w-auto">
+					<Link href={"/auth?login" as Route} className="w-full sm:w-auto">
 						<Button
 							size="lg"
 							className="group h-11 w-full rounded-lg bg-background font-semibold text-foreground text-sm shadow-lg transition-all hover:bg-background/90 sm:h-12 sm:min-w-[220px] sm:text-base"
