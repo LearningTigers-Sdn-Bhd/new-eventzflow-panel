@@ -119,7 +119,8 @@ export function generateColumns(
 					<SortableHeader column={column} label={labelName} />
 				),
 				cell: ({ row }) => {
-					const value = row.original.custom_fields_data?.[key] || "";
+					const rawValue = row.original.custom_fields_data?.[key];
+					const value = typeof rawValue === "string" ? rawValue : "";
 					return (
 						<div
 							className={cn(
