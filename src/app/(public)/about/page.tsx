@@ -8,7 +8,36 @@ import { ValuesSection } from "@/components/pages/about/ValuesSection";
 
 export const metadata: Metadata = {
 	title: "EventzFlow - About",
-	description: "About EventzFlow",
+	description:
+		"Learn more about EventzFlow and our mission to help event organizers succeed.",
+	applicationName: "EventzFlow",
+	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
+	openGraph: {
+		title: "EventzFlow - About",
+		description:
+			"Learn more about EventzFlow and our mission to help event organizers succeed.",
+		url: "https://eventzflow.com",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+		images: [
+			{
+				url: "/api/og?title=About EventzFlow&subtitle=Learn more about EventzFlow and our mission to help event organizers succeed.",
+				width: 1200,
+				height: 630,
+				alt: "EventzFlow",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "EventzFlow - About",
+		description:
+			"Learn more about EventzFlow and our mission to help event organizers succeed.",
+		images: [
+			"/api/og?title=About EventzFlow&subtitle=Learn more about EventzFlow and our mission to help event organizers succeed.",
+		],
+	},
 };
 
 const AboutPage: React.FC = () => {

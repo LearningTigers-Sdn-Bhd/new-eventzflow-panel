@@ -192,7 +192,7 @@ const HeroSection: React.FC = () => {
 							transition={{ duration: 0.6, delay: 0.4 }}
 						>
 							<Link
-								href={"/auth?mode=login" as Route}
+								href={"/auth?login" as Route}
 								className="w-full sm:w-auto"
 							>
 								<Button

@@ -489,6 +489,7 @@ export default function PublicCheckinPage() {
 						{["1", "2", "3"].map((stationNum) => (
 							<button
 								key={stationNum}
+								type="button"
 								onClick={() => handleStationSelect(stationNum)}
 								className="group relative overflow-hidden rounded-lg border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 text-center transition-all hover:scale-105 hover:border-emerald-400 hover:shadow-lg active:scale-95 dark:border-emerald-800 dark:from-emerald-950 dark:to-teal-950 dark:hover:border-emerald-600"
 							>
@@ -539,6 +540,7 @@ export default function PublicCheckinPage() {
 							Station {station}
 						</div>
 						<button
+							type="button"
 							onClick={handleChangeStation}
 							className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 font-semibold text-muted text-sm transition-all hover:bg-primary/50 hover:shadow-sm active:scale-95"
 						>

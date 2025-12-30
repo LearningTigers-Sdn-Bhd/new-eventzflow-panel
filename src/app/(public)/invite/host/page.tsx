@@ -35,10 +35,10 @@ export default function InviteHostPage() {
                         <CardDescription>Please login to accept the invitation.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
-                        <Link href={`/auth?mode=login&redirect=${redirectPath}`} passHref>
+                        <Link href={`/auth?login&redirect=${redirectPath}`} passHref>
                             <Button className="w-full">Login</Button>
                         </Link>
-                        <Link href={`/auth?mode=signup&redirect=${redirectPath}`} passHref>
+                        <Link href={`/auth?register&redirect=${redirectPath}`} passHref>
                             <Button variant="outline" className="w-full">Create Account</Button>
                         </Link>
                     </CardContent>
