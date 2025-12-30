@@ -19,7 +19,6 @@ interface ContractorItemProps {
 
 export function ContractorItem({ contractor }: ContractorItemProps) {
 	const { formatDate } = useFormatDate();
-	const profile = contractor.exhibition_contractor_profile;
 
 	const handleEmailClick = () => {
 		window.location.href = `mailto:${contractor.email}`;
@@ -41,9 +40,6 @@ export function ContractorItem({ contractor }: ContractorItemProps) {
 					<span className="flex items-center gap-2">
 						<div className="flex flex-col">
 							<span className="font-medium">{contractor.full_name}</span>
-							<span className="font-normal text-muted-foreground text-xs">
-								{profile?.company_name ?? "No company"}
-							</span>
 						</div>
 						<Badge
 							variant={contractor.status === "active" ? "default" : "secondary"}

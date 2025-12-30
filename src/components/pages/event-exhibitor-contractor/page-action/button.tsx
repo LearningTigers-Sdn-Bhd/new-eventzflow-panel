@@ -54,10 +54,7 @@ export function ExhibitorContractorPageButton() {
 			component: RemoveContractorDialog,
 			props: {
 				eventId: Number(eventId),
-				contractorName:
-					assignedContractor?.exhibition_contractor_profile?.company_name ||
-					assignedContractor?.full_name ||
-					"this contractor",
+				contractorName: assignedContractor?.full_name || "this contractor",
 				onClose: closeDialog,
 			},
 			config: {

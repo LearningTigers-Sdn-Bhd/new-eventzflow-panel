@@ -7,16 +7,20 @@ export const createContractorSchema = z
 	.object({
 		full_name: z.string().min(1, "Full name is required"),
 		email: z.string().email("Must be a valid email address"),
-		phone: z.string().min(1, "Phone is required"),
+		phone: z.string().optional(),
 		password: z.string().min(6, "Password must be at least 6 characters"),
 		password_confirmation: z
 			.string()
 			.min(1, "Password confirmation is required"),
 		exhibition_contractor_profile_attributes: z.object({
-			company_name: z.string().min(1, "Company name is required"),
-			contact_person: z.string().min(1, "Contact person is required"),
-			contact_email: z.string().email("Must be a valid email address"),
-			contact_phone: z.string().min(1, "Contact phone is required"),
+			company_name: z.string().optional(),
+			contact_person: z.string().optional(),
+			contact_email: z
+				.string()
+				.email("Must be a valid email address")
+				.optional()
+				.or(z.literal("")),
+			contact_phone: z.string().optional(),
 		}),
 	})
 	.refine((data) => data.password === data.password_confirmation, {
@@ -36,15 +40,13 @@ export const updateContractorSchema = z.object({
 	password_confirmation: z.string().optional(),
 	exhibition_contractor_profile_attributes: z
 		.object({
-			company_name: z.string().min(1, "Company name is required").optional(),
-			contact_person: z
-				.string()
-				.min(1, "Contact person is required")
-				.optional(),
+			company_name: z.string().optional(),
+			contact_person: z.string().optional(),
 			contact_email: z
 				.string()
 				.email("Must be a valid email address")
-				.optional(),
+				.optional()
+				.or(z.literal("")),
 			contact_phone: z.string().optional(),
 		})
 		.optional(),

@@ -24,15 +24,12 @@ export function ContractorEditContent({
 	const queryClient = useQueryClient();
 
 	// User fields
-	const [fullName, setFullName] = useState(contractor.full_name);
-	const [email, setEmail] = useState(contractor.email);
-	const [phone, setPhone] = useState(contractor.phone);
+	const [fullName, setFullName] = useState(contractor.full_name ?? "");
+	const [email, setEmail] = useState(contractor.email ?? "");
+	const [phone, setPhone] = useState(contractor.phone ?? "");
 	const [newPassword, setNewPassword] = useState("");
 
 	// Profile fields
-	const [companyName, setCompanyName] = useState(
-		contractor.exhibition_contractor_profile?.company_name ?? "",
-	);
 	const [contactPerson, setContactPerson] = useState(
 		contractor.exhibition_contractor_profile?.contact_person ?? "",
 	);
@@ -73,26 +70,13 @@ export function ContractorEditContent({
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			newErrors.email = "Must be a valid email address";
 		}
-		if (!phone.trim()) {
-			newErrors.phone = "Phone is required";
-		}
 		// Password validation (optional for edit)
 		if (newPassword && newPassword.length < 6) {
 			newErrors.password = "Password must be at least 6 characters";
 		}
-		if (!companyName.trim()) {
-			newErrors.company_name = "Company name is required";
-		}
-		if (!contactPerson.trim()) {
-			newErrors.contact_person = "Contact person is required";
-		}
-		if (!contactEmail.trim()) {
-			newErrors.contact_email = "Contact email is required";
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+		// Optional field validations (only validate format if provided)
+		if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
 			newErrors.contact_email = "Must be a valid email address";
-		}
-		if (!contactPhone.trim()) {
-			newErrors.contact_phone = "Contact phone is required";
 		}
 
 		setErrors(newErrors);
@@ -108,7 +92,6 @@ export function ContractorEditContent({
 			email: email.trim(),
 			phone: phone.trim(),
 			exhibition_contractor_profile_attributes: {
-				company_name: companyName.trim(),
 				contact_person: contactPerson.trim(),
 				contact_email: contactEmail.trim(),
 				contact_phone: contactPhone.trim(),
@@ -192,32 +175,14 @@ export function ContractorEditContent({
 					</div>
 				</div>
 
-				{/* Right Column - Company Profile */}
+				{/* Right Column - Contact Details */}
 				<div className="space-y-4">
 					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
-						Company Profile
+						Contact Details
 					</h4>
 
 					<div className="space-y-2">
-						<Label htmlFor="company_name">
-							Company Name <span className="text-destructive">*</span>
-						</Label>
-						<Input
-							id="company_name"
-							value={companyName}
-							onChange={(e) => setCompanyName(e.target.value)}
-							placeholder="Enter company name"
-							disabled={isPending}
-						/>
-						{errors.company_name && (
-							<p className="text-destructive text-sm">{errors.company_name}</p>
-						)}
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="contact_person">
-							Contact Person <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_person">Contact Person</Label>
 						<Input
 							id="contact_person"
 							value={contactPerson}
@@ -233,9 +198,7 @@ export function ContractorEditContent({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="contact_email">
-							Contact Email <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_email">Contact Email</Label>
 						<Input
 							id="contact_email"
 							type="email"
@@ -250,9 +213,7 @@ export function ContractorEditContent({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="contact_phone">
-							Contact Phone <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_phone">Contact Phone</Label>
 						<Input
 							id="contact_phone"
 							value={contactPhone}

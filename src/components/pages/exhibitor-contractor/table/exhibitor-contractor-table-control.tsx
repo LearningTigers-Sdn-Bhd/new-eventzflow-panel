@@ -11,7 +11,6 @@ interface DataControlProps<TData> {
 function getColumnLabel(columnId: string): string {
 	const standardLabels: Record<string, string> = {
 		full_name: "Full Name",
-		company_name: "Company Name",
 		email: "Email",
 		phone: "Phone",
 		status: "Status",
@@ -61,7 +60,6 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const mobileControlConfigs: ControlConfig[] = [
 		{ ...statusFilterControl, topPriority: true },
 		{ label: "Name", columnId: "full_name", type: "sort" },
-		{ label: "Company", columnId: "company_name", type: "sort" },
 		{ label: "Email", columnId: "email", type: "sort" },
 		{ label: "Status", columnId: "status", type: "sort" },
 		{ label: "Created", columnId: "created_at", type: "sort" },
@@ -74,7 +72,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				searchConfig: {
 					placeholder: "Search contractors...",
 					enableCustomSearch: true,
-					columns: ["full_name", "company_name", "email"],
+					columns: ["full_name", "email"],
 				},
 			}}
 			desktopConfig={{

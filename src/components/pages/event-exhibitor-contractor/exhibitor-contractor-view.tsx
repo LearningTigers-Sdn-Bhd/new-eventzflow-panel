@@ -118,7 +118,7 @@ export function ExhibitorContractorView({
 							</div>
 							<div>
 								<CardTitle className="text-lg">
-									{profile?.company_name || assignedContractor.full_name}
+									{assignedContractor.full_name}
 								</CardTitle>
 								<CardDescription>Exhibitor Contractor</CardDescription>
 							</div>

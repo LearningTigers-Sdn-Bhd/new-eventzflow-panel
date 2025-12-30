@@ -18,23 +18,12 @@ const STATUS_OPTIONS = [
 export const columns: ColumnDef<ExhibitionContractor>[] = [
 	{
 		accessorKey: "full_name",
-		size: 150,
+		size: 200,
 		header: ({ column }) => (
 			<SortableHeader column={column} label="Full Name" />
 		),
 		cell: ({ row }) => (
 			<div className="font-medium">{row.getValue("full_name")}</div>
-		),
-	},
-	{
-		id: "company_name",
-		accessorFn: (row) => row.exhibition_contractor_profile?.company_name ?? "-",
-		size: 200,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Company Name" />
-		),
-		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("company_name")}</div>
 		),
 	},
 	{

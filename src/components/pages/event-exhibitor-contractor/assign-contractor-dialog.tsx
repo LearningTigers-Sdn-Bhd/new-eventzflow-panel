@@ -120,7 +120,7 @@ export function AssignContractorDialog({
 										</div>
 										<div className="space-y-1">
 											<p className="font-medium">
-												{profile?.company_name || contractor.full_name}
+												{contractor.full_name}
 											</p>
 											{profile?.contact_person && (
 												<p className="text-muted-foreground text-sm">

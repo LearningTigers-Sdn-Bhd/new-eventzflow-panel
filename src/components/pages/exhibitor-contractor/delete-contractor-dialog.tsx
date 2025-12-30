@@ -34,10 +34,6 @@ export function DeleteContractorContent({
 		},
 	});
 
-	const companyName =
-		contractor.exhibition_contractor_profile?.company_name ??
-		contractor.full_name;
-
 	return (
 		<div className="space-y-4">
 			<div className="flex items-start gap-4">
@@ -47,7 +43,7 @@ export function DeleteContractorContent({
 				<div className="space-y-2">
 					<p className="text-sm">
 						Are you sure you want to delete{" "}
-						<span className="font-semibold">{companyName}</span>?
+						<span className="font-semibold">{contractor.full_name}</span>?
 					</p>
 					<p className="text-muted-foreground text-sm">
 						This action cannot be undone. This will permanently delete the

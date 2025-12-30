@@ -22,7 +22,6 @@ export function ContractorFormContent() {
 	const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
 	// Profile fields
-	const [companyName, setCompanyName] = useState("");
 	const [contactPerson, setContactPerson] = useState("");
 	const [contactEmail, setContactEmail] = useState("");
 	const [contactPhone, setContactPhone] = useState("");
@@ -56,9 +55,6 @@ export function ContractorFormContent() {
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			newErrors.email = "Must be a valid email address";
 		}
-		if (!phone.trim()) {
-			newErrors.phone = "Phone is required";
-		}
 		if (!password) {
 			newErrors.password = "Password is required";
 		} else if (password.length < 6) {
@@ -69,19 +65,9 @@ export function ContractorFormContent() {
 		} else if (password !== passwordConfirmation) {
 			newErrors.password_confirmation = "Passwords don't match";
 		}
-		if (!companyName.trim()) {
-			newErrors.company_name = "Company name is required";
-		}
-		if (!contactPerson.trim()) {
-			newErrors.contact_person = "Contact person is required";
-		}
-		if (!contactEmail.trim()) {
-			newErrors.contact_email = "Contact email is required";
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+		// Optional field validations (only validate format if provided)
+		if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
 			newErrors.contact_email = "Must be a valid email address";
-		}
-		if (!contactPhone.trim()) {
-			newErrors.contact_phone = "Contact phone is required";
 		}
 
 		setErrors(newErrors);
@@ -99,7 +85,6 @@ export function ContractorFormContent() {
 			password,
 			password_confirmation: passwordConfirmation,
 			exhibition_contractor_profile_attributes: {
-				company_name: companyName.trim(),
 				contact_person: contactPerson.trim(),
 				contact_email: contactEmail.trim(),
 				contact_phone: contactPhone.trim(),
@@ -194,32 +179,14 @@ export function ContractorFormContent() {
 					</div>
 				</div>
 
-				{/* Right Column - Company Profile */}
+				{/* Right Column - Contact Details */}
 				<div className="space-y-4">
 					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
-						Company Profile
+						Contact Details
 					</h4>
 
 					<div className="space-y-2">
-						<Label htmlFor="company_name">
-							Company Name <span className="text-destructive">*</span>
-						</Label>
-						<Input
-							id="company_name"
-							value={companyName}
-							onChange={(e) => setCompanyName(e.target.value)}
-							placeholder="Enter company name"
-							disabled={isPending}
-						/>
-						{errors.company_name && (
-							<p className="text-destructive text-sm">{errors.company_name}</p>
-						)}
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="contact_person">
-							Contact Person <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_person">Contact Person</Label>
 						<Input
 							id="contact_person"
 							value={contactPerson}
@@ -235,9 +202,7 @@ export function ContractorFormContent() {
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="contact_email">
-							Contact Email <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_email">Contact Email</Label>
 						<Input
 							id="contact_email"
 							type="email"
@@ -252,9 +217,7 @@ export function ContractorFormContent() {
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="contact_phone">
-							Contact Phone <span className="text-destructive">*</span>
-						</Label>
+						<Label htmlFor="contact_phone">Contact Phone</Label>
 						<Input
 							id="contact_phone"
 							value={contactPhone}
