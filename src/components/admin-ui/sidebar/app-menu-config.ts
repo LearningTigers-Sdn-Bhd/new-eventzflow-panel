@@ -35,6 +35,7 @@ export interface NavigationItem {
 	icon: LucideIcon | IconType;
 	roleAllowed: UserRole[];
 	allowBottomNavigation: boolean; // Controls visibility in mobile bottom nav
+	requiresPermission?: string; // Optional permission key for dynamic visibility
 }
 
 // Navigation configuration data
@@ -86,6 +87,7 @@ export const navigationData = {
 			icon: Printer,
 			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.EXHIBITION_CONTRACTOR],
 			allowBottomNavigation: false,
+			requiresPermission: "allow_printing_services",
 		},
 		{
 			name: "My Vouchers",
@@ -164,37 +166,52 @@ export const navigationData = {
 	],
 };
 
-export function getFilteredNavigation(userRole?: UserRole) {
+export interface UserPermissions {
+	allow_printing_services?: boolean;
+}
+
+function filterByRoleAndPermissions(
+	items: NavigationItem[],
+	role: UserRole,
+	permissions?: UserPermissions,
+): NavigationItem[] {
+	return items.filter((item) => {
+		// First check role
+		if (!item.roleAllowed.some((r) => r === role)) {
+			return false;
+		}
+		// Then check permission if required
+		if (item.requiresPermission && permissions) {
+			const permKey = item.requiresPermission as keyof UserPermissions;
+			// For org_owner, always allow (they control the permission)
+			if (role === USER_ROLES.ORG_OWNER) {
+				return true;
+			}
+			// For other roles, check the permission value
+			if (permissions[permKey] === false) {
+				return false;
+			}
+		}
+		return true;
+	});
+}
+
+export function getFilteredNavigation(userRole?: UserRole, permissions?: UserPermissions) {
 	const role = userRole || USER_ROLES.MEMBER;
 	return {
-		mainMenu: navigationData.mainMenu.filter((item) =>
-			item.roleAllowed.some((r) => r === role),
-		),
-		memberManagement: navigationData.memberManagement.filter((item) =>
-			item.roleAllowed.some((r) => r === role),
-		),
-		miscellaneous: navigationData.miscellaneous.filter((item) =>
-			item.roleAllowed.some((r) => r === role),
-		),
+		mainMenu: filterByRoleAndPermissions(navigationData.mainMenu, role, permissions),
+		memberManagement: filterByRoleAndPermissions(navigationData.memberManagement, role, permissions),
+		miscellaneous: filterByRoleAndPermissions(navigationData.miscellaneous, role, permissions),
 	};
 }
 
-export function getMobileNavigation(userRole?: UserRole) {
+export function getMobileNavigation(userRole?: UserRole, permissions?: UserPermissions) {
 	const role = userRole || USER_ROLES.MEMBER;
+	const filtered = filterByRoleAndPermissions(navigationData.mainMenu, role, permissions);
 	return {
-		bottomNavItems: navigationData.mainMenu.filter(
-			(item) =>
-				item.allowBottomNavigation && item.roleAllowed.some((r) => r === role),
-		),
-		mainMenuNotInBottomNav: navigationData.mainMenu.filter(
-			(item) =>
-				!item.allowBottomNavigation && item.roleAllowed.some((r) => r === role),
-		),
-		memberManagement: navigationData.memberManagement.filter((item) =>
-			item.roleAllowed.some((r) => r === role),
-		),
-		miscellaneous: navigationData.miscellaneous.filter((item) =>
-			item.roleAllowed.some((r) => r === role),
-		),
+		bottomNavItems: filtered.filter((item) => item.allowBottomNavigation),
+		mainMenuNotInBottomNav: filtered.filter((item) => !item.allowBottomNavigation),
+		memberManagement: filterByRoleAndPermissions(navigationData.memberManagement, role, permissions),
+		miscellaneous: filterByRoleAndPermissions(navigationData.miscellaneous, role, permissions),
 	};
 }

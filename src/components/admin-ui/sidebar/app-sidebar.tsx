@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import type * as React from "react";
 import {
 	DesktopView,
@@ -19,13 +20,27 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { getFilteredNavigation, type UserRole } from "./app-menu-config";
+import { getContractor } from "@/lib/api/contractor";
+import { getFilteredNavigation, type UserRole, type UserPermissions } from "./app-menu-config";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { user } = useAuth();
 
-	// Get filtered navigation based on user role
-	const filteredNav = getFilteredNavigation(user?.role as UserRole);
+	// Fetch contractor profile for exhibition_contractor users
+	const isContractor = user?.role === "exhibition_contractor";
+	const { data: contractor } = useQuery({
+		queryKey: ["contractor", user?.id],
+		queryFn: () => getContractor(user!.id),
+		enabled: !!user?.id && isContractor,
+	});
+
+	// Build permissions object from contractor profile
+	const permissions: UserPermissions | undefined = isContractor && contractor
+		? { allow_printing_services: contractor.exhibition_contractor_profile?.allow_printing_services }
+		: undefined;
+
+	// Get filtered navigation based on user role and permissions
+	const filteredNav = getFilteredNavigation(user?.role as UserRole, permissions);
 
 	return (
 		<ResponsiveLayout>

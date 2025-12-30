@@ -7,6 +7,7 @@ export interface ExhibitionContractorProfile {
 	contact_person: string;
 	contact_email: string;
 	contact_phone: string;
+	allow_printing_services: boolean;
 	guidelines_pdf_url: string | null;
 	guidelines_pdf_filename: string | null;
 	created_at: string;
@@ -24,6 +25,7 @@ export interface ExhibitionContractor {
 	status: ContractorStatus;
 	created_at: string;
 	updated_at: string;
+	created_by_id: number | null;
 	exhibition_contractor_profile: ExhibitionContractorProfile | null;
 }
 

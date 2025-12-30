@@ -1,32 +1,75 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, HardHat, Phone, Settings, User } from "lucide-react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
+import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { createContractor } from "@/lib/api/contractor";
+import { getTeamMembers } from "@/lib/api/team";
 
 export function ContractorFormContent() {
 	const { closeDialog } = useDialog();
 	const queryClient = useQueryClient();
+	const { user } = useAuth();
+	const isOrgOwner = user?.role === "org_owner";
 
-	// User fields
-	const [fullName, setFullName] = useState("");
-	const [email, setEmail] = useState("");
-	const [phone, setPhone] = useState("");
-	const [password, setPassword] = useState("");
-	const [passwordConfirmation, setPasswordConfirmation] = useState("");
+	// Form IDs
+	const fullNameId = useId();
+	const emailId = useId();
+	const phoneId = useId();
+	const passwordId = useId();
+	const confirmPasswordId = useId();
+	const contactPersonId = useId();
+	const contactEmailId = useId();
+	const contactPhoneId = useId();
+	const createdById = useId();
 
-	// Profile fields
-	const [contactPerson, setContactPerson] = useState("");
-	const [contactEmail, setContactEmail] = useState("");
-	const [contactPhone, setContactPhone] = useState("");
+	// Form state
+	const [formData, setFormData] = useState({
+		full_name: "",
+		email: "",
+		phone: "",
+		password: "",
+		password_confirmation: "",
+		contact_person: "",
+		contact_email: "",
+		contact_phone: "",
+		allow_printing_services: true,
+		created_by_id: user?.id?.toString() ?? "",
+	});
 
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+
+	// Fetch team members for org_owner
+	const { data: teamMembers = [] } = useQuery({
+		queryKey: ["team-members"],
+		queryFn: getTeamMembers,
+		enabled: isOrgOwner,
+	});
+
+	// Filter to only show org_owner and organizer roles
+	const organizerOptions = [
+		...(user && !teamMembers.some((m) => m.id === user.id?.toString())
+			? [{ value: user.id?.toString() ?? "", label: `${user.full_name} (${user.role})` }]
+			: []),
+		...teamMembers
+			.filter((member) => member.role === "org_owner" || member.role === "organizer")
+			.map((member) => ({
+				value: member.id,
+				label: `${member.full_name} (${member.role})`,
+			})),
+	];
 
 	const createMutation = useMutation({
 		mutationFn: createContractor,
@@ -44,29 +87,39 @@ export function ContractorFormContent() {
 
 	const isPending = createMutation.isPending;
 
+	const handleChange = (field: string, value: string | boolean) => {
+		setFormData((prev) => ({ ...prev, [field]: value }));
+		if (errors[field]) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors[field];
+				return newErrors;
+			});
+		}
+	};
+
 	const validate = () => {
 		const newErrors: Record<string, string> = {};
 
-		if (!fullName.trim()) {
+		if (!formData.full_name.trim()) {
 			newErrors.full_name = "Full name is required";
 		}
-		if (!email.trim()) {
+		if (!formData.email.trim()) {
 			newErrors.email = "Email is required";
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
 			newErrors.email = "Must be a valid email address";
 		}
-		if (!password) {
+		if (!formData.password) {
 			newErrors.password = "Password is required";
-		} else if (password.length < 6) {
+		} else if (formData.password.length < 6) {
 			newErrors.password = "Password must be at least 6 characters";
 		}
-		if (!passwordConfirmation) {
+		if (!formData.password_confirmation) {
 			newErrors.password_confirmation = "Password confirmation is required";
-		} else if (password !== passwordConfirmation) {
+		} else if (formData.password !== formData.password_confirmation) {
 			newErrors.password_confirmation = "Passwords don't match";
 		}
-		// Optional field validations (only validate format if provided)
-		if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+		if (formData.contact_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
 			newErrors.contact_email = "Must be a valid email address";
 		}
 
@@ -79,173 +132,210 @@ export function ContractorFormContent() {
 		if (!validate()) return;
 
 		createMutation.mutate({
-			full_name: fullName.trim(),
-			email: email.trim(),
-			phone: phone.trim(),
-			password,
-			password_confirmation: passwordConfirmation,
+			full_name: formData.full_name.trim(),
+			email: formData.email.trim(),
+			phone: formData.phone.trim(),
+			password: formData.password,
+			password_confirmation: formData.password_confirmation,
+			...(isOrgOwner && formData.created_by_id
+				? { created_by_id: Number.parseInt(formData.created_by_id, 10) }
+				: {}),
 			exhibition_contractor_profile_attributes: {
-				contact_person: contactPerson.trim(),
-				contact_email: contactEmail.trim(),
-				contact_phone: contactPhone.trim(),
+				contact_person: formData.contact_person.trim(),
+				contact_email: formData.contact_email.trim(),
+				contact_phone: formData.contact_phone.trim(),
+				allow_printing_services: formData.allow_printing_services,
 			},
 		});
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-				{/* Left Column - Account Details */}
-				<div className="space-y-4">
-					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
-						Account Details
-					</h4>
+		<div className="w-full px-0 pt-0 md:px-4 md:pt-4">
+			<form
+				onSubmit={handleSubmit}
+				className="flex flex-col justify-between gap-4 md:gap-8 md:pb-4"
+			>
+				<FieldSet>
+					{/* Account Information */}
+					<FormGroupContainer
+						title={{
+							icon: User,
+							label: "Account Information",
+							description: "Login credentials for the contractor",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<InputLabel
+								htmlFor={fullNameId}
+								label="Full Name"
+								placeholder="Enter contractor's full name"
+								value={formData.full_name}
+								onChange={(value) => handleChange("full_name", value)}
+								required
+								disabled={isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.full_name}
+								errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+							/>
+							<InputLabel
+								htmlFor={emailId}
+								label="Email"
+								placeholder="contractor@example.com"
+								value={formData.email}
+								onChange={(value) => handleChange("email", value)}
+								required
+								disabled={isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.email}
+								errors={errors.email ? [{ message: errors.email }] : undefined}
+							/>
+							<InputLabel
+								htmlFor={phoneId}
+								label="Phone (Optional)"
+								placeholder="+60123456789"
+								value={formData.phone}
+								onChange={(value) => handleChange("phone", value)}
+								disabled={isPending}
+								variant="no-rounded"
+							/>
+						</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="full_name">Full Name</Label>
-						<Input
-							id="full_name"
-							value={fullName}
-							onChange={(e) => setFullName(e.target.value)}
-							placeholder="Enter full name"
-							disabled={isPending}
-						/>
-						{errors.full_name && (
-							<p className="text-destructive text-sm">{errors.full_name}</p>
-						)}
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="email">Email</Label>
-						<Input
-							id="email"
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="Enter email address"
-							disabled={isPending}
-						/>
-						{errors.email && (
-							<p className="text-destructive text-sm">{errors.email}</p>
-						)}
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="phone">Phone</Label>
-						<Input
-							id="phone"
-							value={phone}
-							onChange={(e) => setPhone(e.target.value)}
-							placeholder="Enter phone number"
-							disabled={isPending}
-						/>
-						{errors.phone && (
-							<p className="text-destructive text-sm">{errors.phone}</p>
-						)}
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="password">Password</Label>
-							<Input
-								id="password"
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<InputActionLabel
+								htmlFor={passwordId}
+								label="Password"
+								description="At least 6 characters"
+								type={showPassword ? "text" : "password"}
 								placeholder="Enter password"
+								value={formData.password}
+								onChange={(value) => handleChange("password", value)}
+								required
 								disabled={isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.password}
+								errors={errors.password ? [{ message: errors.password }] : undefined}
+								onAction={() => setShowPassword(!showPassword)}
+								actionIcon={showPassword ? <EyeOff /> : <Eye />}
+								actionLabel={showPassword ? "Hide password" : "Show password"}
 							/>
-							{errors.password && (
-								<p className="text-destructive text-sm">{errors.password}</p>
-							)}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="password_confirmation">Confirm Password</Label>
-							<Input
-								id="password_confirmation"
-								type="password"
-								value={passwordConfirmation}
-								onChange={(e) => setPasswordConfirmation(e.target.value)}
+							<InputActionLabel
+								htmlFor={confirmPasswordId}
+								label="Confirm Password"
+								description="Re-enter the password"
+								type={showConfirmPassword ? "text" : "password"}
 								placeholder="Confirm password"
+								value={formData.password_confirmation}
+								onChange={(value) => handleChange("password_confirmation", value)}
+								required
 								disabled={isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.password_confirmation}
+								errors={errors.password_confirmation ? [{ message: errors.password_confirmation }] : undefined}
+								onAction={() => setShowConfirmPassword(!showConfirmPassword)}
+								actionIcon={showConfirmPassword ? <EyeOff /> : <Eye />}
+								actionLabel={showConfirmPassword ? "Hide password" : "Show password"}
 							/>
-							{errors.password_confirmation && (
-								<p className="text-destructive text-sm">
-									{errors.password_confirmation}
-								</p>
-							)}
 						</div>
-					</div>
-				</div>
+					</FormGroupContainer>
 
-				{/* Right Column - Contact Details */}
-				<div className="space-y-4">
-					<h4 className="border-b pb-2 font-medium text-muted-foreground text-sm">
-						Contact Details
-					</h4>
+					{/* Contact Information */}
+					<FormGroupContainer
+						title={{
+							icon: Phone,
+							label: "Contact Information",
+							description: "Business contact details for the contractor",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<InputLabel
+								htmlFor={contactPersonId}
+								label="Contact Person (Optional)"
+								placeholder="Enter contact person name"
+								value={formData.contact_person}
+								onChange={(value) => handleChange("contact_person", value)}
+								disabled={isPending}
+								variant="no-rounded"
+							/>
+							<InputLabel
+								htmlFor={contactEmailId}
+								label="Contact Email (Optional)"
+								placeholder="contact@example.com"
+								value={formData.contact_email}
+								onChange={(value) => handleChange("contact_email", value)}
+								disabled={isPending}
+								variant="no-rounded"
+								isInvalid={!!errors.contact_email}
+								errors={errors.contact_email ? [{ message: errors.contact_email }] : undefined}
+							/>
+							<InputLabel
+								htmlFor={contactPhoneId}
+								label="Contact Phone (Optional)"
+								placeholder="+60123456789"
+								value={formData.contact_phone}
+								onChange={(value) => handleChange("contact_phone", value)}
+								disabled={isPending}
+								variant="no-rounded"
+							/>
+						</div>
+					</FormGroupContainer>
 
-					<div className="space-y-2">
-						<Label htmlFor="contact_person">Contact Person</Label>
-						<Input
-							id="contact_person"
-							value={contactPerson}
-							onChange={(e) => setContactPerson(e.target.value)}
-							placeholder="Enter contact person name"
-							disabled={isPending}
-						/>
-						{errors.contact_person && (
-							<p className="text-destructive text-sm">
-								{errors.contact_person}
-							</p>
-						)}
-					</div>
+					{/* Settings - Org Owner Only */}
+					{isOrgOwner && (
+						<FormGroupContainer
+							title={{
+								icon: Settings,
+								label: "Settings",
+								description: "Permissions and assignment options",
+							}}
+						>
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<SwitchCardInput
+									label="Printing Services"
+									description="Allow contractor to access printing services"
+									checked={formData.allow_printing_services}
+									onCheckedChange={(checked) => handleChange("allow_printing_services", checked)}
+									disabled={isPending}
+									variant="no-rounded"
+								/>
 
-					<div className="space-y-2">
-						<Label htmlFor="contact_email">Contact Email</Label>
-						<Input
-							id="contact_email"
-							type="email"
-							value={contactEmail}
-							onChange={(e) => setContactEmail(e.target.value)}
-							placeholder="Enter contact email"
-							disabled={isPending}
-						/>
-						{errors.contact_email && (
-							<p className="text-destructive text-sm">{errors.contact_email}</p>
-						)}
-					</div>
+								<div className="flex h-full flex-col justify-between rounded-none border p-4">
+									<SelectLabel
+										htmlFor={createdById}
+										label="Assigned To"
+										description="Assign this contractor to an organizer"
+										placeholder="Select organizer"
+										value={formData.created_by_id}
+										onChange={(value) => handleChange("created_by_id", value)}
+										options={organizerOptions}
+										disabled={isPending}
+										variant="no-rounded"
+									/>
+								</div>
+							</div>
+						</FormGroupContainer>
+					)}
+				</FieldSet>
 
-					<div className="space-y-2">
-						<Label htmlFor="contact_phone">Contact Phone</Label>
-						<Input
-							id="contact_phone"
-							value={contactPhone}
-							onChange={(e) => setContactPhone(e.target.value)}
-							placeholder="Enter contact phone"
-							disabled={isPending}
-						/>
-						{errors.contact_phone && (
-							<p className="text-destructive text-sm">{errors.contact_phone}</p>
-						)}
-					</div>
-				</div>
-			</div>
-
-			<div className="flex justify-end gap-2 border-t pt-4">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={closeDialog}
-					disabled={isPending}
-				>
-					Cancel
-				</Button>
-				<Button type="submit" disabled={isPending}>
-					{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-					Create
-				</Button>
-			</div>
-		</form>
+				{/* Action Buttons */}
+				<FieldGroup className="flex flex-col gap-2 md:flex-row md:justify-end">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={closeDialog}
+						disabled={isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						disabled={isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						{isPending ? "Creating..." : "Create Contractor"}
+					</Button>
+				</FieldGroup>
+			</form>
+		</div>
 	);
 }

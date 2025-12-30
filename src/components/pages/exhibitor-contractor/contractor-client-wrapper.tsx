@@ -1,13 +1,15 @@
 "use client";
 
 import { HardHat, Loader2 } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
+import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import type { ExhibitionContractor } from "@/lib/api/contractor";
 import { ContractorFormContent } from "./contractor-form-dialog";
 import { DataTable } from "./table/exhibitor-contractor-table";
-import { columns } from "./table/exhibitor-contractor-table-columns";
+import { getColumns } from "./table/exhibitor-contractor-table-columns";
 
 interface ContractorClientWrapperProps {
 	contractors: ExhibitionContractor[];
@@ -23,6 +25,10 @@ export default function ContractorClientWrapper({
 	showHeader = true,
 }: ContractorClientWrapperProps) {
 	const { openDialog } = useDialog();
+	const { user } = useAuth();
+
+	const isOrgOwner = user?.role === "org_owner";
+	const columns = useMemo(() => getColumns(isOrgOwner), [isOrgOwner]);
 
 	// Sort by created_at in descending order (latest first)
 	const sortedContractors = [...contractors].sort((a, b) => {
@@ -37,7 +43,8 @@ export default function ContractorClientWrapper({
 			config: {
 				title: "Add Contractor",
 				description: "Create a new exhibition contractor account.",
-				size: "2xl",
+				size: "full",
+				showCloseButton: true,
 			},
 		});
 	};

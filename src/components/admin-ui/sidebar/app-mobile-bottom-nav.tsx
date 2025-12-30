@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
 	BadgeCheck,
 	Bell,
@@ -30,8 +31,9 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { getContractor } from "@/lib/api/contractor";
 import { cn } from "@/lib/utils";
-import { getMobileNavigation, type UserRole } from "./app-menu-config";
+import { getMobileNavigation, type UserRole, type UserPermissions } from "./app-menu-config";
 
 export function AppMobileBottomNav() {
 	const pathname = usePathname();
@@ -39,12 +41,25 @@ export function AppMobileBottomNav() {
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
 
+	// Fetch contractor profile for exhibition_contractor users
+	const isContractor = user?.role === "exhibition_contractor";
+	const { data: contractor } = useQuery({
+		queryKey: ["contractor", user?.id],
+		queryFn: () => getContractor(user!.id),
+		enabled: !!user?.id && isContractor,
+	});
+
+	// Build permissions object from contractor profile
+	const permissions: UserPermissions | undefined = isContractor && contractor
+		? { allow_printing_services: contractor.exhibition_contractor_profile?.allow_printing_services }
+		: undefined;
+
 	const handleLogout = async () => {
 		await logout();
 		router.push("/");
 	};
 
-	const mobileNav = getMobileNavigation(user?.role as UserRole);
+	const mobileNav = getMobileNavigation(user?.role as UserRole, permissions);
 
 	return (
 		<nav className="fixed right-0 bottom-0 left-0 z-40 flex h-18 items-center justify-around border-accent border-t bg-background pb-[env(safe-area-inset-bottom)] md:h-20">

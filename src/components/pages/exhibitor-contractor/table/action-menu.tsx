@@ -60,7 +60,8 @@ export function ContractorActionsMenu({
 			config: {
 				title: "Edit Contractor",
 				description: "Update exhibition contractor details.",
-				size: "2xl",
+				size: "full",
+				showCloseButton: true,
 			},
 		});
 	};

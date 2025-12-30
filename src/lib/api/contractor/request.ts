@@ -12,6 +12,7 @@ export const createContractorSchema = z
 		password_confirmation: z
 			.string()
 			.min(1, "Password confirmation is required"),
+		created_by_id: z.number().optional(),
 		exhibition_contractor_profile_attributes: z.object({
 			company_name: z.string().optional(),
 			contact_person: z.string().optional(),
@@ -21,6 +22,7 @@ export const createContractorSchema = z
 				.optional()
 				.or(z.literal("")),
 			contact_phone: z.string().optional(),
+			allow_printing_services: z.boolean().optional(),
 		}),
 	})
 	.refine((data) => data.password === data.password_confirmation, {
@@ -38,6 +40,7 @@ export const updateContractorSchema = z.object({
 		.min(6, "Password must be at least 6 characters")
 		.optional(),
 	password_confirmation: z.string().optional(),
+	created_by_id: z.number().optional(),
 	exhibition_contractor_profile_attributes: z
 		.object({
 			company_name: z.string().optional(),
@@ -48,6 +51,7 @@ export const updateContractorSchema = z.object({
 				.optional()
 				.or(z.literal("")),
 			contact_phone: z.string().optional(),
+			allow_printing_services: z.boolean().optional(),
 		})
 		.optional(),
 });

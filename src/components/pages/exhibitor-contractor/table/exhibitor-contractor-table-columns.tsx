@@ -15,7 +15,8 @@ const STATUS_OPTIONS = [
 	{ label: "Inactive", value: "inactive" },
 ];
 
-export const columns: ColumnDef<ExhibitionContractor>[] = [
+// Base columns (visible to all)
+const baseColumns: ColumnDef<ExhibitionContractor>[] = [
 	{
 		accessorKey: "full_name",
 		size: 200,
@@ -78,6 +79,35 @@ export const columns: ColumnDef<ExhibitionContractor>[] = [
 			);
 		},
 	},
+];
+
+// Allow printing column (org_owner only)
+const allowPrintingColumn: ColumnDef<ExhibitionContractor> = {
+	id: "allow_printing",
+	size: 120,
+	header: () => <div className="text-center">Allow Printing</div>,
+	cell: ({ row }) => {
+		const allowPrinting = row.original.exhibition_contractor_profile?.allow_printing_services ?? true;
+		return (
+			<div className="flex justify-center">
+				<Badge
+					variant="outline"
+					className={cn(
+						"rounded-none",
+						allowPrinting
+							? "border-green-500 text-green-600"
+							: "border-red-500 text-red-600",
+					)}
+				>
+					{allowPrinting ? "Yes" : "No"}
+				</Badge>
+			</div>
+		);
+	},
+};
+
+// Common columns (created_at and actions)
+const commonColumns: ColumnDef<ExhibitionContractor>[] = [
 	{
 		accessorKey: "created_at",
 		size: 130,
@@ -107,3 +137,14 @@ export const columns: ColumnDef<ExhibitionContractor>[] = [
 		},
 	},
 ];
+
+// Function to get columns based on user role
+export function getColumns(isOrgOwner: boolean): ColumnDef<ExhibitionContractor>[] {
+	if (isOrgOwner) {
+		return [...baseColumns, allowPrintingColumn, ...commonColumns];
+	}
+	return [...baseColumns, ...commonColumns];
+}
+
+// Default export for backwards compatibility
+export const columns = getColumns(true);
