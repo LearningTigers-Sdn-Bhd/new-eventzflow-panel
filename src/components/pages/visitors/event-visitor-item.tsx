@@ -84,7 +84,8 @@ export function VisitorItem({ visitor, labelsData }: VisitorItemProps) {
 						</h4>
 						<div className="grid grid-cols-1 gap-2">
 							{Object.entries(labelsData).map(([key, labelName]) => {
-								const value = visitor.custom_fields_data?.[key] || "";
+								const rawValue = visitor.custom_fields_data?.[key];
+								const value = typeof rawValue === "string" ? rawValue : "";
 								return (
 									<div key={key} className="space-y-0.5">
 										<p className="font-medium text-muted-foreground text-xs">

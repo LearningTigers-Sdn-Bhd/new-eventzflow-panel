@@ -53,10 +53,13 @@ export default function ViewEventVisitorModal({
 	// Prepare custom labels
 	const customLabels =
 		eventData?.labels_data && Object.keys(eventData.labels_data).length > 0
-			? Object.entries(eventData.labels_data).map(([key, labelName]) => ({
-					name: labelName as string,
-					value: visitor.custom_fields_data?.[key] || "",
-				}))
+			? Object.entries(eventData.labels_data).map(([key, labelName]) => {
+					const rawValue = visitor.custom_fields_data?.[key];
+					return {
+						name: labelName as string,
+						value: typeof rawValue === "string" ? rawValue : "",
+					};
+				})
 			: [];
 
 	return (
