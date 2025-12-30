@@ -1,6 +1,7 @@
 "use client";
 
-import { Building2, Hash, Mail, Phone, Tag, User } from "lucide-react";
+import { Building2, ExternalLink, FileText, Hash, Mail, Phone, Tag, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -35,6 +36,7 @@ interface ExhibitorKitSectionProps {
 	picFullNameField: FieldApi;
 	picContactNumberField: FieldApi;
 	picEmailAddressField: FieldApi;
+	guidelinesPdfUrl?: string | null;
 }
 
 export function ExhibitorKitSection({
@@ -46,17 +48,47 @@ export function ExhibitorKitSection({
 	picFullNameField,
 	picContactNumberField,
 	picEmailAddressField,
+	guidelinesPdfUrl,
 }: ExhibitorKitSectionProps) {
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-2 border-b pb-2">
-				<Building2 className="h-5 w-5 text-primary" />
-				<h3 className="font-semibold text-lg">Exhibitor Kit Details</h3>
+			<div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between sm:pb-2">
+				<div className="flex items-center gap-2">
+					<Building2 className="h-5 w-5 text-primary" />
+					<h3 className="font-semibold text-lg">Exhibitor Details</h3>
+				</div>
+				{guidelinesPdfUrl && (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						className="w-full sm:w-auto"
+						asChild
+					>
+						<a
+							href={guidelinesPdfUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<FileText className="mr-2 h-4 w-4" />
+							View Guidelines
+							<ExternalLink className="ml-2 h-3 w-3" />
+						</a>
+					</Button>
+				)}
 			</div>
 
 			<p className="text-muted-foreground text-sm">
 				Please provide your booth and company information for the exhibition.
 			</p>
+
+			{guidelinesPdfUrl && (
+				<div className="bg-muted/50 border border-dashed p-3">
+					<p className="text-muted-foreground text-sm">
+						Make sure to review the exhibitor guidelines before submitting your registration.
+					</p>
+				</div>
+			)}
 
 			{/* Booth Information */}
 			<div className="space-y-4">

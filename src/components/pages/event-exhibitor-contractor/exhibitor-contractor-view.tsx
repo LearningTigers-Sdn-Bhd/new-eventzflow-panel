@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { HardHat, Mail, Phone, Plus, User } from "lucide-react";
+import { ExternalLink, FileText, HardHat, Mail, Phone, Plus, User } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -172,6 +172,37 @@ export function ExhibitorContractorView({
 							</div>
 						</div>
 					</div>
+
+					{/* Exhibitor Guidelines */}
+					{profile?.guidelines_pdf_url && (
+						<div className="border-t border-dashed pt-4">
+							<p className="mb-3 font-semibold text-sm">
+								Exhibitor Guidelines
+							</p>
+							<div className="flex items-center gap-4 border border-dashed p-4">
+								<div className="flex h-12 w-12 shrink-0 items-center justify-center bg-muted">
+									<FileText className="h-6 w-6 text-muted-foreground" />
+								</div>
+								<div className="flex-1 min-w-0">
+									<p className="font-medium text-sm truncate">
+										{profile.guidelines_pdf_filename || "Guidelines Document"}
+									</p>
+									<p className="text-muted-foreground text-xs">
+										Exhibitor rules, terms & conditions
+									</p>
+								</div>
+								<a
+									href={profile.guidelines_pdf_url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
+								>
+									<ExternalLink className="h-4 w-4" />
+									View PDF
+								</a>
+							</div>
+						</div>
+					)}
 				</CardContent>
 			</Card>
 		</div>

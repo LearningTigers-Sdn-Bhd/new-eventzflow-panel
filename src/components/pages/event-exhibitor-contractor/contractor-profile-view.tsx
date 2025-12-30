@@ -1,14 +1,20 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Mail, Pencil, Phone, User2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, Loader2, Mail, Pencil, Phone, Upload, User2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { getContractor } from "@/lib/api/contractor";
+import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { getContractor, uploadContractorGuidelinesPdf } from "@/lib/api/contractor";
+import { cn } from "@/lib/utils";
 import { ContractorEditProfileContent } from "./contractor-edit-profile-dialog";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface ContractorProfileViewProps {
 	eventId: string;
@@ -16,7 +22,9 @@ interface ContractorProfileViewProps {
 
 export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 	const { user } = useAuth();
-	const { openDialog, closeDialog } = useDialog();
+	const { openDialog } = useDialog();
+	const queryClient = useQueryClient();
+	const [isUploading, setIsUploading] = useState(false);
 
 	const {
 		data: contractor,
@@ -26,6 +34,50 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 		queryKey: ["contractor", user?.id],
 		queryFn: () => getContractor(user!.id),
 		enabled: !!user?.id,
+	});
+
+	const uploadPdfMutation = useMutation({
+		mutationFn: (file: File) =>
+			uploadContractorGuidelinesPdf(contractor!.exhibition_contractor_profile!.id, file),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["contractor", user?.id] });
+			toast.success("Guidelines PDF uploaded successfully");
+			setIsUploading(false);
+			clearFiles();
+		},
+		onError: (error: Error) => {
+			toast.error("Failed to upload PDF", {
+				description: error.message,
+			});
+			setIsUploading(false);
+		},
+	});
+
+	const [
+		{ files, isDragging, errors: fileErrors },
+		{
+			handleDragEnter,
+			handleDragLeave,
+			handleDragOver,
+			handleDrop,
+			openFileDialog,
+			getInputProps,
+			clearFiles,
+		},
+	] = useFileUpload({
+		maxFiles: 1,
+		maxSize: MAX_FILE_SIZE,
+		accept: ".pdf,application/pdf",
+		multiple: false,
+		onFilesAdded: (addedFiles) => {
+			if (addedFiles.length > 0 && addedFiles[0].file instanceof File) {
+				setIsUploading(true);
+				uploadPdfMutation.mutate(addedFiles[0].file as File);
+			}
+		},
+		onError: (errors) => {
+			toast.error(errors[0]);
+		},
 	});
 
 	if (isLoading) {
@@ -179,6 +231,118 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									</div>
 								</div>
 							</div>
+						)}
+					</div>
+
+					{/* Guidelines PDF Section */}
+					<div className="mt-6 border-t pt-4">
+						<p className="mb-2 font-medium text-muted-foreground text-xs uppercase">
+							Guidelines & Rules Document
+						</p>
+						<p className="mb-3 text-muted-foreground text-xs">
+							Upload a PDF containing rules, terms & conditions, and guidelines for exhibitors. This document will be visible to all exhibitors assigned to your events.
+						</p>
+
+						{profile?.guidelines_pdf_url ? (
+							<div className="space-y-3">
+								{/* Current PDF Display */}
+								<div className="flex items-center gap-4 rounded-lg border bg-muted/30 p-4">
+									<div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted">
+										<FileText className="h-8 w-8 text-muted-foreground" />
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="font-medium text-sm truncate">
+											{profile.guidelines_pdf_filename || "Guidelines PDF"}
+										</p>
+										<p className="text-muted-foreground text-xs">
+											Exhibitor rules, terms & conditions
+										</p>
+									</div>
+									<a
+										href={profile.guidelines_pdf_url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
+									>
+										View PDF
+									</a>
+								</div>
+
+								{/* Replace Upload Zone */}
+								<div
+									onClick={!isUploading ? openFileDialog : undefined}
+									onDragEnter={handleDragEnter}
+									onDragLeave={handleDragLeave}
+									onDragOver={handleDragOver}
+									onDrop={handleDrop}
+									className={cn(
+										"relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-all",
+										isDragging
+											? "border-primary bg-primary/5"
+											: "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+										isUploading && "pointer-events-none opacity-60",
+									)}
+								>
+									<input {...getInputProps()} disabled={isUploading} className="sr-only" />
+									<div className="flex items-center justify-center gap-3">
+										{isUploading ? (
+											<Loader2 className="h-5 w-5 animate-spin text-primary" />
+										) : (
+											<Upload className="h-5 w-5 text-muted-foreground" />
+										)}
+										<p className="text-muted-foreground text-sm">
+											{isUploading ? "Uploading..." : "Drag & drop or click to replace PDF"}
+										</p>
+									</div>
+								</div>
+							</div>
+						) : (
+							/* Empty State - Upload Zone */
+							<div
+								onClick={!isUploading ? openFileDialog : undefined}
+								onDragEnter={handleDragEnter}
+								onDragLeave={handleDragLeave}
+								onDragOver={handleDragOver}
+								onDrop={handleDrop}
+								className={cn(
+									"relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all",
+									isDragging
+										? "border-primary bg-primary/5"
+										: "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+									isUploading && "pointer-events-none opacity-60",
+								)}
+							>
+								<input {...getInputProps()} disabled={isUploading} className="sr-only" />
+								<div className="flex flex-col items-center gap-3">
+									<div
+										className={cn(
+											"flex h-14 w-14 items-center justify-center rounded-full transition-colors",
+											isDragging ? "bg-primary/10" : "bg-muted",
+										)}
+									>
+										{isUploading ? (
+											<Loader2 className="h-7 w-7 animate-spin text-primary" />
+										) : (
+											<Upload className="h-7 w-7 text-muted-foreground" />
+										)}
+									</div>
+									<div className="space-y-1">
+										<p className="font-medium text-sm">
+											{isUploading ? "Uploading..." : "Drag & drop your PDF here"}
+										</p>
+										<p className="text-muted-foreground text-xs">
+											or click to browse
+										</p>
+									</div>
+									<p className="text-muted-foreground/60 text-xs">
+										PDF only, max {formatBytes(MAX_FILE_SIZE)}
+									</p>
+								</div>
+							</div>
+						)}
+
+						{fileErrors.length > 0 && (
+							<p className="mt-2 text-destructive text-xs">{fileErrors[0]}</p>
 						)}
 					</div>
 				</div>

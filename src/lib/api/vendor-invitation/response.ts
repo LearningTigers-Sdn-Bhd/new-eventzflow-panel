@@ -22,6 +22,7 @@ export interface VerifyInviteTokenResponse {
 		is_assigned: boolean;
 		vendor_type: "Exhibitor" | "Merchant";
 		use_exhibitor_kit: boolean;
+		guidelines_pdf_url: string | null;
 		event: {
 			id: number;
 			title: string;

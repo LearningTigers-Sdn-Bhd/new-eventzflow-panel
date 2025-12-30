@@ -168,6 +168,7 @@ function VendorSignupContent() {
 	const group = verifyData?.data?.group;
 	const vendorType = verifyData?.data?.vendor_type;
 	const useExhibitorKit = verifyData?.data?.use_exhibitor_kit ?? false;
+	const guidelinesPdfUrl = verifyData?.data?.guidelines_pdf_url ?? null;
 
 	const handleSignIn = () => {
 		setPageState("sign_in");
@@ -307,6 +308,7 @@ function VendorSignupContent() {
 					group={group}
 					vendorType={vendorType}
 					useExhibitorKit={useExhibitorKit}
+					guidelinesPdfUrl={guidelinesPdfUrl}
 					onSuccess={handleRegistrationSuccess}
 					onBack={handleBackToOptions}
 				/>

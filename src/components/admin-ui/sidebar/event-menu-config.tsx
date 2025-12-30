@@ -14,6 +14,7 @@ import {
 	Briefcase,
 	Building2,
 	ChartBar,
+	FileText,
 	Gift,
 	HardHat,
 	Logs,
@@ -272,14 +273,14 @@ export const eventMenuConfig: EventMenuConfig = {
 		// ------------------------------------------------------------------------
 		{
 			id: "exhibitor-kits",
-			label: "Exhibitor Kits",
+			label: "Exhibitors",
 			icon: Package,
 			visible: visible.contractorOnly,
 			tabs: [
 				{
 					route: "contractor-exhibitor-kits",
-					label: "Exhibitor Kits",
-					description: "View and manage exhibitor kits for this event.",
+					label: "Exhibitor List",
+					description: "View exhibitor list for this event.",
 					icon: Package,
 				},
 				{
@@ -366,6 +367,12 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Package,
 			visible: visible.vendorExhibitorKitAccess,
 			tabs: [
+				{
+					route: "contractor-guidelines",
+					label: "Exhibitor Guidelines",
+					description: "View exhibitor rules, terms & conditions.",
+					icon: FileText,
+				},
 				{
 					route: "order-items",
 					label: "Order Kits",

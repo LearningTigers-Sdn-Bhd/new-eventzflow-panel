@@ -36,6 +36,7 @@ interface VendorSignupFormProps {
 	group?: GroupInfo | null;
 	vendorType?: "Exhibitor" | "Merchant";
 	useExhibitorKit?: boolean;
+	guidelinesPdfUrl?: string | null;
 	onSuccess: (eventTitle: string) => void;
 	onBack: () => void;
 }
@@ -46,6 +47,7 @@ export function VendorSignupForm({
 	group,
 	vendorType,
 	useExhibitorKit = false,
+	guidelinesPdfUrl,
 	onSuccess,
 	onBack,
 }: VendorSignupFormProps) {
@@ -335,6 +337,8 @@ export function VendorSignupForm({
 																									picEmailAddressField={
 																										picEmailAddressField
 																									}
+																								
+																									guidelinesPdfUrl={guidelinesPdfUrl}
 																								/>
 																							)}
 																						</form.Field>

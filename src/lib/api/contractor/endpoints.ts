@@ -106,7 +106,7 @@ export async function updateContractorProfile(
 	data: Partial<
 		Omit<
 			ExhibitionContractorProfile,
-			"id" | "user_id" | "created_at" | "updated_at"
+			"id" | "user_id" | "created_at" | "updated_at" | "guidelines_pdf_url" | "guidelines_pdf_filename"
 		>
 	>,
 ): Promise<ExhibitionContractorProfile> {
@@ -115,6 +115,22 @@ export async function updateContractorProfile(
 		{
 			exhibition_contractor_profile: data,
 		},
+	);
+}
+
+/**
+ * Upload guidelines PDF for an exhibition contractor profile
+ */
+export async function uploadContractorGuidelinesPdf(
+	profileId: number,
+	file: File,
+): Promise<ExhibitionContractorProfile> {
+	const formData = new FormData();
+	formData.append("exhibition_contractor_profile[guidelines_pdf]", file);
+
+	return restClient.patchFormData<ExhibitionContractorProfile>(
+		`v1/exhibition_contractor_profiles/${profileId}`,
+		formData,
 	);
 }
 
