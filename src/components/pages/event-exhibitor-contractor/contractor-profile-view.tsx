@@ -1,16 +1,18 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Mail, Pencil, Phone, Upload, User2 } from "lucide-react";
+import { FileText, Loader2, Mail, Pencil, Phone, Save, Upload, User2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
-import { getContractor, uploadContractorGuidelinesPdf } from "@/lib/api/contractor";
+import { getContractor, updateContractorProfile, uploadContractorGuidelinesPdf } from "@/lib/api/contractor";
 import { cn } from "@/lib/utils";
 import { ContractorEditProfileContent } from "./contractor-edit-profile-dialog";
 
@@ -25,6 +27,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 	const { openDialog } = useDialog();
 	const queryClient = useQueryClient();
 	const [isUploading, setIsUploading] = useState(false);
+	const [standardPackageInfo, setStandardPackageInfo] = useState<string>("");
+	const [isStandardPackageInitialized, setIsStandardPackageInitialized] = useState(false);
+	const [isEditingStandardPackage, setIsEditingStandardPackage] = useState(false);
 
 	const {
 		data: contractor,
@@ -52,6 +57,29 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 			setIsUploading(false);
 		},
 	});
+
+	const updateStandardPackageMutation = useMutation({
+		mutationFn: (standardPackageInfo: string) =>
+			updateContractorProfile(contractor!.exhibition_contractor_profile!.id, {
+				standard_package_info: standardPackageInfo,
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["contractor", user?.id] });
+			toast.success("Standard package information saved successfully");
+			setIsEditingStandardPackage(false);
+		},
+		onError: (error: Error) => {
+			toast.error("Failed to save standard package information", {
+				description: error.message,
+			});
+		},
+	});
+
+	// Initialize standard package info when contractor data loads
+	if (contractor?.exhibition_contractor_profile?.standard_package_info && !isStandardPackageInitialized) {
+		setStandardPackageInfo(contractor.exhibition_contractor_profile.standard_package_info);
+		setIsStandardPackageInitialized(true);
+	}
 
 	const [
 		{ files, isDragging, errors: fileErrors },
@@ -165,10 +193,10 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 				<div className="border bg-background/60 p-4">
 					<div className="grid gap-8 md:grid-cols-2">
 						<div className="space-y-3">
-							<p className="font-medium text-muted-foreground text-xs uppercase">
+							<p className="font-medium text-muted-foreground uppercase">
 								Account Information
 							</p>
-							<div className="space-y-3 text-sm">
+							<div className="space-y-3">
 								<div className="flex items-start gap-3">
 									<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
@@ -187,7 +215,7 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 										{contractor.phone ? (
 											<p>{contractor.phone}</p>
 										) : (
-											<p className="text-muted-foreground/60 text-sm italic">
+											<p className="text-muted-foreground/60 italic">
 												Not provided
 											</p>
 										)}
@@ -198,10 +226,10 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 
 						{profile && (
 							<div className="space-y-3 border-t pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-								<p className="font-medium text-muted-foreground text-xs uppercase">
+								<p className="font-medium text-muted-foreground uppercase">
 									Contact Details
 								</p>
-								<div className="space-y-3 text-sm">
+								<div className="space-y-3">
 									<div className="flex items-start gap-3">
 										<User2 className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div>
@@ -236,18 +264,18 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 
 					{/* Guidelines PDF Section */}
 					<div className="mt-6 border-t pt-4">
-						<p className="mb-2 font-medium text-muted-foreground text-xs uppercase">
+						<p className="mb-2 font-medium text-muted-foreground uppercase">
 							Guidelines & Rules Document
 						</p>
-						<p className="mb-3 text-muted-foreground text-xs">
+						<p className="mb-3 text-muted-foreground">
 							Upload a PDF containing rules, terms & conditions, and guidelines for exhibitors. This document will be visible to all exhibitors assigned to your events.
 						</p>
 
 						{profile?.guidelines_pdf_url ? (
 							<div className="space-y-3">
 								{/* Current PDF Display */}
-								<div className="flex items-center gap-4 rounded-lg border bg-muted/30 p-4">
-									<div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted">
+								<div className="flex items-center gap-4 border bg-muted/30 p-4">
+									<div className="flex h-14 w-14 items-center justify-center bg-muted">
 										<FileText className="h-8 w-8 text-muted-foreground" />
 									</div>
 									<div className="flex-1 min-w-0">
@@ -262,7 +290,7 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 										href={profile.guidelines_pdf_url}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
+										className="inline-flex items-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
 									>
 										View PDF
 									</a>
@@ -276,7 +304,7 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									onDragOver={handleDragOver}
 									onDrop={handleDrop}
 									className={cn(
-										"relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-all",
+										"relative cursor-pointer border-2 border-dashed p-4 text-center transition-all",
 										isDragging
 											? "border-primary bg-primary/5"
 											: "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
@@ -305,7 +333,7 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 								onDragOver={handleDragOver}
 								onDrop={handleDrop}
 								className={cn(
-									"relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all",
+									"relative cursor-pointer border-2 border-dashed p-8 text-center transition-all",
 									isDragging
 										? "border-primary bg-primary/5"
 										: "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
@@ -316,7 +344,7 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 								<div className="flex flex-col items-center gap-3">
 									<div
 										className={cn(
-											"flex h-14 w-14 items-center justify-center rounded-full transition-colors",
+											"flex h-14 w-14 items-center justify-center transition-colors",
 											isDragging ? "bg-primary/10" : "bg-muted",
 										)}
 									>
@@ -343,6 +371,93 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 
 						{fileErrors.length > 0 && (
 							<p className="mt-2 text-destructive text-xs">{fileErrors[0]}</p>
+						)}
+					</div>
+
+					{/* Standard Package Section */}
+					<div className="mt-6 border-t pt-4">
+						<div className="mb-3 flex items-center justify-between">
+							<div>
+								<p className="font-medium text-muted-foreground uppercase">
+									Standard Package Information
+								</p>
+								<p className="text-muted-foreground">
+									Define the standard fittings included with each booth.
+								</p>
+							</div>
+							{!isEditingStandardPackage && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setIsEditingStandardPackage(true)}
+									className="rounded-none"
+								>
+									<Pencil className="mr-2 h-4 w-4" />
+									Edit
+								</Button>
+							)}
+						</div>
+
+						{isEditingStandardPackage ? (
+							<div className="space-y-3">
+								<div className="space-y-2">
+									<Label htmlFor="standard_package_info" className="text-sm">
+										Standard Package Items
+									</Label>
+									<Textarea
+										id="standard_package_info"
+										value={standardPackageInfo}
+										onChange={(e) => setStandardPackageInfo(e.target.value)}
+										rows={8}
+										className="resize-none"
+									/>
+								</div>
+
+								<div className="flex justify-end gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										className="rounded-none"
+										onClick={() => {
+											setIsEditingStandardPackage(false);
+											// Reset to original value
+											if (contractor?.exhibition_contractor_profile?.standard_package_info) {
+												setStandardPackageInfo(contractor.exhibition_contractor_profile.standard_package_info);
+											} else {
+												setStandardPackageInfo("");
+											}
+										}}
+										disabled={updateStandardPackageMutation.isPending}
+									>
+										Cancel
+									</Button>
+									<Button
+										size="sm"
+										className="rounded-none"
+										onClick={() => updateStandardPackageMutation.mutate(standardPackageInfo)}
+										disabled={updateStandardPackageMutation.isPending}
+									>
+										{updateStandardPackageMutation.isPending ? (
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										) : (
+											<Save className="mr-2 h-4 w-4" />
+										)}
+										Save
+									</Button>
+								</div>
+							</div>
+						) : (
+							<div className="max-h-150 overflow-y-auto border bg-muted/30 p-4">
+								{profile?.standard_package_info ? (
+									<pre className="whitespace-pre-wrap font-sans text-sm">
+										{profile.standard_package_info}
+									</pre>
+								) : (
+									<p className="text-muted-foreground text-base italic">
+										No standard package information defined yet. Click Edit to add.
+									</p>
+								)}
+							</div>
 						)}
 					</div>
 				</div>

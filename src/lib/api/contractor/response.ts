@@ -8,6 +8,7 @@ export interface ExhibitionContractorProfile {
 	contact_email: string;
 	contact_phone: string;
 	allow_printing_services: boolean;
+	standard_package_info: string | null;
 	guidelines_pdf_url: string | null;
 	guidelines_pdf_filename: string | null;
 	created_at: string;

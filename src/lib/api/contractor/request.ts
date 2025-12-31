@@ -23,6 +23,7 @@ export const createContractorSchema = z
 				.or(z.literal("")),
 			contact_phone: z.string().optional(),
 			allow_printing_services: z.boolean().optional(),
+			standard_package_info: z.string().optional(),
 		}),
 	})
 	.refine((data) => data.password === data.password_confirmation, {
@@ -52,6 +53,7 @@ export const updateContractorSchema = z.object({
 				.or(z.literal("")),
 			contact_phone: z.string().optional(),
 			allow_printing_services: z.boolean().optional(),
+			standard_package_info: z.string().optional(),
 		})
 		.optional(),
 });

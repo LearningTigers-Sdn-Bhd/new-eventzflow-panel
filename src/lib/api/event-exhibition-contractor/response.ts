@@ -6,6 +6,7 @@ export interface EventExhibitionContractorProfile {
 	contact_person: string | null;
 	contact_email: string | null;
 	contact_phone: string | null;
+	standard_package_info: string | null;
 	guidelines_pdf_url: string | null;
 	guidelines_pdf_filename: string | null;
 	created_at: string;
