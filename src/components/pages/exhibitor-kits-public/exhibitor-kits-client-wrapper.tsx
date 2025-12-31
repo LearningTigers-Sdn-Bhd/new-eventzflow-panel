@@ -33,7 +33,7 @@ export default function ExhibitorKitsClientWrapper({
 			<div className="flex h-[50vh] flex-col items-center justify-center text-center">
 				<Package className="mb-4 h-12 w-12 text-muted-foreground" />
 				<h3 className="mb-2 font-semibold text-lg">
-					Failed to load exhibitor kits
+					Failed to load exhibitor list
 				</h3>
 				<p className="text-muted-foreground text-sm">{error.message}</p>
 			</div>
@@ -47,8 +47,8 @@ export default function ExhibitorKitsClientWrapper({
 					<div className="px-2 md:px-4">
 						<IconTitle
 							icon={Package}
-							title="Exhibitor Kits"
-							description="View and manage exhibitor kits across all events."
+							title="Exhibitor List"
+							description="View exhibitor across all events."
 						/>
 					</div>
 				</div>
