@@ -13,6 +13,7 @@ import {
 	InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { API_BASE_URL } from "@/utils/rest-api";
 import { ExhibitorKitSection } from "./exhibitor-kit-section";
 import { TeamMembersSection } from "./team-members-section";
 import { VendorSignupEventSidebar } from "./vendor-signup-event-sidebar";
@@ -71,7 +72,7 @@ async function joinEventAsVendor(
 	}
 
 	const response = await fetch(
-		`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/join_event_as_vendor`,
+		`${API_BASE_URL}/v1/auth/join_event_as_vendor`,
 		{
 			method: "POST",
 			headers: {
