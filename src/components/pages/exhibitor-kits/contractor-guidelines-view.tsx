@@ -54,7 +54,7 @@ export function ContractorGuidelinesView({
 	const profile = contractor.exhibition_contractor_profile;
 	const contractorUser = contractor.contractor;
 
-	if (!profile?.guidelines_pdf_url) {
+	if (!profile?.guidelines_pdf_url && !profile?.standard_package_info) {
 		return (
 			<EmptyState
 				title="No guidelines available"
@@ -64,8 +64,8 @@ export function ContractorGuidelinesView({
 	}
 
 	return (
-		<div className="space-y-6 p-4">
-			<div className="space-y-2">
+		<div className="space-y-4 border-t border-dashed">
+			<div className="space-y-2 p-4">
 				<h2 className="font-semibold text-xl">Exhibitor Guidelines</h2>
 				<p className="text-muted-foreground text-sm">
 					Please review the following guidelines, rules, and terms & conditions
@@ -73,7 +73,8 @@ export function ContractorGuidelinesView({
 				</p>
 			</div>
 
-			<div className="border bg-background/60 p-6">
+			{profile?.guidelines_pdf_url && (
+				<div className="border bg-background/60 p-6">
 				<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
 					<div className="flex items-start gap-4">
 						<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-muted">
@@ -105,6 +106,15 @@ export function ContractorGuidelinesView({
 					</a>
 				</div>
 			</div>
+			)}
+
+			{profile?.standard_package_info && (
+				<div className="max-h-180 overflow-y-auto border bg-background/60 p-6">
+					<pre className="whitespace-pre-wrap font-sans text-base font-medium text-muted-foreground">
+						{profile.standard_package_info}
+					</pre>
+				</div>
+			)}
 		</div>
 	);
 }
