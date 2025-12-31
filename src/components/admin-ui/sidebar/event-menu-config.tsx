@@ -14,6 +14,7 @@ import {
 	Briefcase,
 	Building2,
 	ChartBar,
+	ClipboardList,
 	FileText,
 	Gift,
 	HardHat,
@@ -274,14 +275,14 @@ export const eventMenuConfig: EventMenuConfig = {
 		{
 			id: "exhibitor-kits",
 			label: "Exhibitors",
-			icon: Package,
+			icon: ClipboardList,
 			visible: visible.contractorOnly,
 			tabs: [
 				{
 					route: "contractor-exhibitor-kits",
 					label: "Exhibitor List",
 					description: "View exhibitor list for this event.",
-					icon: Package,
+					icon: ClipboardList,
 				},
 				{
 					route: "rentable-items",

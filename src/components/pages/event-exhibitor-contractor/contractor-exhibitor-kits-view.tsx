@@ -35,8 +35,8 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 	if (isLoading || isLoadingEvent) {
 		return (
 			<LoadingState
-				title="Loading exhibitor kits..."
-				description="Please wait while we fetch exhibitor kits..."
+				title="Loading exhibitor list..."
+				description="Please wait while we fetch exhibitor list..."
 			/>
 		);
 	}
@@ -44,8 +44,8 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 	if (error) {
 		return (
 			<ErrorState
-				title="Failed to load exhibitor kits"
-				description="We couldn't load exhibitor kits. Please try again."
+				title="Failed to load exhibitor list"
+				description="We couldn't load exhibitor list. Please try again."
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
@@ -67,8 +67,8 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 			<DataTable
 				columns={columns}
 				data={kitsWithVendors}
-				emptyTitle="No exhibitor kits found"
-				emptyDescription="No exhibitor kits have been created for this event yet"
+				emptyTitle="No exhibitors found"
+				emptyDescription="No exhibitors have been added for this event yet"
 				emptyIcon={<Package />}
 				searchPlaceholder="Search by company name or booth..."
 				searchColumns={["company_name", "booth_number", "pic_full_name"]}

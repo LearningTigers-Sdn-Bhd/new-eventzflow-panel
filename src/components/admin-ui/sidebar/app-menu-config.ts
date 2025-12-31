@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+	ClipboardList,
 	FolderOpen,
 	HardHat,
 	Import,
@@ -68,9 +69,9 @@ export const navigationData = {
 			allowBottomNavigation: true,
 		},
 		{
-			name: "Exhibitor Kits",
-			url: "/exhibitor-kits" as Route,
-			icon: Package,
+			name: "Exhibitor List",
+			url: "/exhibitor-list" as Route,
+			icon: ClipboardList,
 			roleAllowed: [USER_ROLES.EXHIBITION_CONTRACTOR],
 			allowBottomNavigation: false,
 		},
