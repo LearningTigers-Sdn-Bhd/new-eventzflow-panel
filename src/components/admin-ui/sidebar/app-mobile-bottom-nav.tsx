@@ -61,6 +61,10 @@ export function AppMobileBottomNav() {
 
 	const mobileNav = getMobileNavigation(user?.role as UserRole, permissions);
 
+	const canManagePaymentDetails =
+		user?.role &&
+		["org_owner", "organizer", "exhibition_contractor"].includes(user.role);
+
 	return (
 		<nav className="fixed right-0 bottom-0 left-0 z-40 flex h-18 items-center justify-around border-accent border-t bg-background pb-[env(safe-area-inset-bottom)] md:h-20">
 			{mobileNav.bottomNavItems.map((item) => {
@@ -273,17 +277,19 @@ export function AppMobileBottomNav() {
 									Account Settings
 								</Link>
 							</Button>
-							<Button
-								variant="ghost"
-								size="lg"
-								className="justify-start rounded-none"
-								asChild
-							>
-								<Link href="/settings">
-									<CreditCard className="mr-2 size-4" />
-									Billing Settings
-								</Link>
-							</Button>
+							{canManagePaymentDetails && (
+								<Button
+									variant="ghost"
+									size="lg"
+									className="justify-start rounded-none"
+									asChild
+								>
+									<Link href="/settings#payment-details">
+										<CreditCard className="mr-2 size-4" />
+										Payment Details
+									</Link>
+								</Button>
+							)}
 							<Button
 								variant="ghost"
 								size="lg"

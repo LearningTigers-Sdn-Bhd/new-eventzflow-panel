@@ -106,15 +106,13 @@ export function TeamMemberPaymentSection({
 		);
 	}
 
-	// Check if there's a payment that's not yet verified (pending, submitted, or rejected awaiting resubmit)
-	const hasUnresolvedPayment = payments?.some(
-		(p) => p.status === "pending" || p.status === "submitted" || p.status === "rejected",
-	);
+	// Check if there's a rejected payment awaiting resubmit
+	// Only rejected payments should block new payments (to prevent duplicate payments for same members)
+	// Pending/submitted payments don't block - new members added after those payments are independent
+	const hasRejectedPayment = payments?.some((p) => p.status === "rejected");
 
-	// Only show "Pay Now" if:
-	// 1. There are unpaid excess members
-	// 2. No unresolved payment exists (rejected should be resubmitted, not duplicated)
-	const canPayNow = excessCount > 0 && !hasUnresolvedPayment;
+	// Show "Pay Now" if there are unpaid excess members and no rejected payment awaiting resubmit
+	const canPayNow = excessCount > 0 && !hasRejectedPayment;
 
 	// If no excess and no payments, don't render anything
 	if (excessCount === 0 && (!payments || payments.length === 0)) {

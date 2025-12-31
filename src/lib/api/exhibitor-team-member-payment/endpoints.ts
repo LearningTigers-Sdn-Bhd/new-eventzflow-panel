@@ -36,6 +36,13 @@ function transformPayment(
 		createdAt: backendPayment.created_at,
 		updatedAt: backendPayment.updated_at,
 		eventId: backendPayment.event_id,
+		payeePaymentDetail: backendPayment.payee_payment_detail
+			? {
+					bankName: backendPayment.payee_payment_detail.bank_name,
+					accountNumber: backendPayment.payee_payment_detail.account_number,
+					accountName: backendPayment.payee_payment_detail.account_name,
+				}
+			: null,
 		payee: backendPayment.payee
 			? {
 					id: backendPayment.payee.id,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, Users, ExternalLink, AlertCircle } from "lucide-react";
+import { Upload, Users, Building2, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getOrganizerPaymentDetail } from "@/lib/api/event";
 import {
 	createExhibitorTeamMemberPayment,
 	resubmitTeamMemberPaymentProof,
@@ -51,6 +52,13 @@ export function SubmitTeamMemberPaymentDialog({
 	const [externalRef, setExternalRef] = useState("");
 
 	const isResubmit = existingPayment?.status === "rejected";
+
+	// Fetch organizer payment details for bank transfer info
+	const { data: organizerPaymentDetail } = useQuery({
+		queryKey: ["organizer-payment-detail", eventId],
+		queryFn: () => getOrganizerPaymentDetail(eventId),
+		enabled: open,
+	});
 
 	// Create new payment mutation
 	const createMutation = useMutation({
@@ -158,6 +166,31 @@ export function SubmitTeamMemberPaymentDialog({
 							{displayFee.toFixed(2)}
 						</div>
 					</div>
+
+					{/* Organizer Bank Details */}
+					{organizerPaymentDetail ? (
+						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+							<p className="text-muted-foreground text-sm font-medium">Transfer to:</p>
+							<div className="space-y-1.5">
+								<div className="flex items-center gap-2 text-sm">
+									<Building2 className="size-4 text-muted-foreground" />
+									<span>{organizerPaymentDetail.bank_name}</span>
+								</div>
+								<div className="flex items-center gap-2 text-sm">
+									<CreditCard className="size-4 text-muted-foreground" />
+									<span className="font-mono">{organizerPaymentDetail.account_number}</span>
+								</div>
+								<div className="flex items-center gap-2 text-sm">
+									<User className="size-4 text-muted-foreground" />
+									<span>{organizerPaymentDetail.account_name}</span>
+								</div>
+							</div>
+						</div>
+					) : (
+						<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
+							<p>Payment details are not yet available. Please contact the organizer for bank transfer information.</p>
+						</div>
+					)}
 
 					{/* Payment Proof Upload */}
 					<div className="space-y-2">

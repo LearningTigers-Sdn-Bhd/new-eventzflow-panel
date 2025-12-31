@@ -1,3 +1,10 @@
+// Payee payment detail (for bank transfer info)
+export interface PayeePaymentDetail {
+	bank_name: string;
+	account_number: string;
+	account_name: string;
+}
+
 // Backend exhibitor team member payment response
 export interface BackendExhibitorTeamMemberPayment {
 	id: number;
@@ -15,12 +22,20 @@ export interface BackendExhibitorTeamMemberPayment {
 	created_at: string;
 	updated_at: string;
 	event_id: number;
+	payee_payment_detail: PayeePaymentDetail | null;
 	payee?: {
 		id: number;
 		email: string;
 		first_name: string | null;
 		last_name: string | null;
 	} | null;
+}
+
+// Frontend payee payment detail
+export interface FrontendPayeePaymentDetail {
+	bankName: string;
+	accountNumber: string;
+	accountName: string;
 }
 
 // Frontend exhibitor team member payment format
@@ -40,6 +55,7 @@ export interface ExhibitorTeamMemberPayment {
 	createdAt: string;
 	updatedAt: string;
 	eventId: number;
+	payeePaymentDetail: FrontendPayeePaymentDetail | null;
 	payee?: {
 		id: number;
 		email: string;

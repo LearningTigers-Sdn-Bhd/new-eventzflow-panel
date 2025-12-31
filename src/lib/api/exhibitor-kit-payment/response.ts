@@ -1,9 +1,17 @@
+// Payee payment detail (for bank transfer info)
+export interface PayeePaymentDetail {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+}
+
 // Backend exhibitor kit payment response
 export interface BackendExhibitorKitPayment {
   id: number;
   exhibitor_kit_id: number;
   payee_id: number;
   payee_name: string;
+  payee_payment_detail: PayeePaymentDetail | null;
   amount: string; // Decimal comes as string from Rails
   status: "pending" | "submitted" | "verified" | "rejected";
   payment_source: "manual_bank_in" | "payment_gateway" | null;
@@ -54,12 +62,20 @@ export interface BackendExhibitorKitPrinting {
   };
 }
 
+// Frontend payee payment detail
+export interface FrontendPayeePaymentDetail {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
 // Frontend exhibitor kit payment format
 export interface ExhibitorKitPayment {
   id: number;
   exhibitorKitId: number;
   payeeId: number;
   payeeName: string;
+  payeePaymentDetail: FrontendPayeePaymentDetail | null;
   amount: number;
   status: "pending" | "submitted" | "verified" | "rejected";
   paymentSource: "manual_bank_in" | "payment_gateway" | null;

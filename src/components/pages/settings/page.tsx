@@ -1,6 +1,7 @@
 "use client";
 
-import { Cog, Lock, Sun, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Cog, CreditCard, Lock, Sun, User } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -9,11 +10,24 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { IconTitle } from "@/components/ui/icon-heading";
+import { getCurrentUser } from "@/lib/api/profile";
 import { AccountInfoForm } from "./account-info-form";
 import { PasswordForm } from "./password-form";
+import { PaymentDetailForm } from "./payment-detail-form";
 import { ThemeSettings } from "./theme-settings";
 
+const PAYMENT_DETAIL_ROLES = ["org_owner", "organizer", "exhibition_contractor"];
+
 export function SettingsPage() {
+	const { data: profile } = useQuery({
+		queryKey: ["current-user"],
+		queryFn: getCurrentUser,
+	});
+
+	const canManagePaymentDetails = profile?.role
+		? PAYMENT_DETAIL_ROLES.includes(profile.role)
+		: false;
+
 	return (
 		<div className="space-y-4">
 			{/* Header */}
@@ -63,8 +77,34 @@ export function SettingsPage() {
 						<PasswordForm />
 					</CardContent>
 				</Card>
+
+				{/* Payment Details - Only for eligible roles */}
+				{canManagePaymentDetails && (
+					<Card
+						id="payment-details"
+						className="rounded-none border-primary/20 px-0 shadow-none"
+					>
+						<CardHeader className="flex items-center gap-4 px-2 md:px-4">
+							<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
+								<CreditCard className="size-5" />
+							</div>
+							<div className="flex flex-col gap-2">
+								<CardTitle>Payment Details</CardTitle>
+								<CardDescription>
+									Your bank account for receiving payments.
+								</CardDescription>
+							</div>
+						</CardHeader>
+						<CardContent className="px-2 md:px-4">
+							<PaymentDetailForm />
+						</CardContent>
+					</Card>
+				)}
+
 				{/* Theme Settings */}
-				<Card className="rounded-none border-primary/20 px-0 shadow-none md:col-span-2">
+				<Card
+					className={`rounded-none border-primary/20 px-0 shadow-none ${canManagePaymentDetails ? "" : "md:col-span-2"}`}
+				>
 					<CardHeader className="flex items-center gap-4 px-2 md:px-4">
 						<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
 							<Sun className="size-5" />

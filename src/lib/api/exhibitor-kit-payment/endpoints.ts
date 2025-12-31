@@ -73,6 +73,13 @@ function transformPayment(
     exhibitorKitId: backendPayment.exhibitor_kit_id,
     payeeId: backendPayment.payee_id,
     payeeName: backendPayment.payee_name,
+    payeePaymentDetail: backendPayment.payee_payment_detail
+      ? {
+          bankName: backendPayment.payee_payment_detail.bank_name,
+          accountNumber: backendPayment.payee_payment_detail.account_number,
+          accountName: backendPayment.payee_payment_detail.account_name,
+        }
+      : null,
     amount: Number.parseFloat(backendPayment.amount),
     status: backendPayment.status,
     paymentSource: backendPayment.payment_source,

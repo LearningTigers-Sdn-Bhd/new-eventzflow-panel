@@ -155,3 +155,30 @@ export async function getPublicEventById(
 		throw new Error(errorMessage);
 	}
 }
+
+/**
+ * Organizer payment detail response
+ */
+export interface OrganizerPaymentDetail {
+	bank_name: string;
+	account_number: string;
+	account_name: string;
+}
+
+/**
+ * Get organizer's payment details for an event
+ * Used for showing bank transfer info when paying team member fees
+ */
+export async function getOrganizerPaymentDetail(
+	eventId: string,
+): Promise<OrganizerPaymentDetail | null> {
+	try {
+		const response = await restClient.get<OrganizerPaymentDetail | null>(
+			`v1/events/${eventId}/organizer_payment_detail`,
+		);
+		return response;
+	} catch (error: unknown) {
+		console.error("Error fetching organizer payment detail:", error);
+		return null;
+	}
+}

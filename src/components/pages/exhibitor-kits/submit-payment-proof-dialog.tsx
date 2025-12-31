@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, Pencil } from "lucide-react";
+import { Upload, Pencil, Building2, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -135,6 +135,31 @@ export function SubmitPaymentProofDialog({
 							<p className="text-muted-foreground text-sm">Amount to Pay</p>
 							<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
 						</div>
+
+						{/* Payee Bank Details */}
+						{payment.payeePaymentDetail ? (
+							<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+								<p className="text-muted-foreground text-sm font-medium">Transfer to:</p>
+								<div className="space-y-1.5">
+									<div className="flex items-center gap-2 text-sm">
+										<Building2 className="size-4 text-muted-foreground" />
+										<span>{payment.payeePaymentDetail.bankName}</span>
+									</div>
+									<div className="flex items-center gap-2 text-sm">
+										<CreditCard className="size-4 text-muted-foreground" />
+										<span className="font-mono">{payment.payeePaymentDetail.accountNumber}</span>
+									</div>
+									<div className="flex items-center gap-2 text-sm">
+										<User className="size-4 text-muted-foreground" />
+										<span>{payment.payeePaymentDetail.accountName}</span>
+									</div>
+								</div>
+							</div>
+						) : (
+							<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
+								<p>Payment details are not yet available. Please contact {payment.payeeName} for bank transfer information.</p>
+							</div>
+						)}
 
 						{/* Payment Proof Upload */}
 						<div className="space-y-2">
