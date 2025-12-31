@@ -101,7 +101,7 @@ const visible = {
 
 	// Special access
 	luckyDrawAccess: (p: Permissions) =>
-		p.isEventAdmin || p.isOrganizer || p.isEventStaff,
+		p.isOrgOwner || p.isEventAdmin || p.isOrganizer || p.isEventStaff,
 	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
