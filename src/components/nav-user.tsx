@@ -39,6 +39,10 @@ export function NavUser() {
 		return null;
 	}
 
+	const canManagePaymentDetails = ["org_owner", "organizer", "exhibition_contractor"].includes(
+		user.role,
+	);
+
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -94,10 +98,15 @@ export function NavUser() {
 								<BadgeCheck />
 								Account Settings
 							</DropdownMenuItem>
-							<DropdownMenuItem className="rounded-none">
-								<CreditCard />
-								Billing Settings
-							</DropdownMenuItem>
+							{canManagePaymentDetails && (
+								<DropdownMenuItem
+									className="cursor-pointer rounded-none"
+									onClick={() => router.push("/settings#payment-details" as Route)}
+								>
+									<CreditCard />
+									Payment Details
+								</DropdownMenuItem>
+							)}
 							<DropdownMenuItem className="rounded-none">
 								<Bell />
 								Notifications

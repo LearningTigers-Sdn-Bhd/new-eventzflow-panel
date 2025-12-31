@@ -49,6 +49,10 @@ export function UserSheet({ trigger }: UserSheetProps) {
 	// Get filtered navigation by user role
 	const filteredNav = getFilteredNavigation(user?.role as UserRole);
 
+	const canManagePaymentDetails =
+		user?.role &&
+		["org_owner", "organizer", "exhibition_contractor"].includes(user.role);
+
 	return (
 		<Sheet>
 			<SheetTrigger asChild>{trigger}</SheetTrigger>
@@ -197,17 +201,19 @@ export function UserSheet({ trigger }: UserSheetProps) {
 								Account Settings
 							</Link>
 						</Button>
-						<Button
-							variant="ghost"
-							size="lg"
-							className="justify-start rounded-none"
-							asChild
-						>
-							<Link href="/settings">
-								<CreditCard className="mr-2 size-4" />
-								Billing Settings
-							</Link>
-						</Button>
+						{canManagePaymentDetails && (
+							<Button
+								variant="ghost"
+								size="lg"
+								className="justify-start rounded-none"
+								asChild
+							>
+								<Link href="/settings#payment-details">
+									<CreditCard className="mr-2 size-4" />
+									Payment Details
+								</Link>
+							</Button>
+						)}
 						<Button
 							variant="ghost"
 							size="lg"
