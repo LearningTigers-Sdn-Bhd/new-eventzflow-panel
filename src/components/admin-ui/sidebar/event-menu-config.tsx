@@ -425,7 +425,7 @@ export const eventMenuConfig: EventMenuConfig = {
 						"Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
 					icon: TrendingUp,
 					visible: (p, e) =>
-						e?.use_ticket === false && !(p.isEventVendor ?? false),
+						e?.use_ticket === false && visible.eventAdmin(p),
 				},
 			],
 		},
