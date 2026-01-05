@@ -41,6 +41,11 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	businessMatchingWebhookUrl: z
+		.string()
+		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
+			message: "Please enter a valid URL",
+		}),
 	multipleScans: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -102,6 +107,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useBusinessMatching: false,
 			description: "",
 			webhookUrl: "",
+			businessMatchingWebhookUrl: "",
 			multipleScans: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -122,6 +128,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_business_matching: value.useBusinessMatching,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
+					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -151,6 +158,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useBusinessMatching", event.use_business_matching ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
+				form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
 					"startDate",
@@ -488,16 +496,40 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								{/* Business Matching */}
 								<form.Field name="useBusinessMatching">
 									{(field) => (
-										<SwitchCardInput
-											label="Business Matching"
-											description="Allow business matching for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
+										<div className="flex flex-col gap-4">
+											<SwitchCardInput
+												label="Business Matching"
+												description="Allow business matching for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+											{field.state.value && (
+												<form.Field name="businessMatchingWebhookUrl">
+													{(urlField) => {
+														const isInvalid =
+															urlField.state.meta.isTouched &&
+															!urlField.state.meta.isValid;
+														return (
+															<InputLabel
+																label="Business Matching Webhook URL"
+																htmlFor={urlField.name}
+																value={urlField.state.value}
+																onChange={urlField.handleChange}
+																onBlur={urlField.handleBlur}
+																errors={urlField.state.meta.errors}
+																isInvalid={isInvalid}
+																placeholder="https://webhook.example.com/bm"
+																disabled={updateEventMutation.isPending}
+															/>
+														);
+													}}
+												</form.Field>
+											)}
+										</div>
 									)}
 								</form.Field>
 							</div>

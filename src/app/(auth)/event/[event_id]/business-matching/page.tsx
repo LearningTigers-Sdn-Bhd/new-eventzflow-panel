@@ -1,20 +1,24 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Download, LinkIcon, RefreshCw } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Briefcase, Download, LinkIcon, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
 	useBusinessMatchingEvents,
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
-import { useEventPermissions } from "@/hooks/use-event-permissions"; // Import the hook
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { downloadBookingsReport } from "@/lib/api/business-matching";
+import { getEventById, updateEvent } from "@/lib/api/event";
 import { cable } from "@/lib/cable";
 
 export default function BusinessMatchingPage() {
@@ -31,7 +35,47 @@ export default function BusinessMatchingPage() {
 		isPending: isRefreshing,
 	} = useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
-	const { isBusinessHost, canManageEvent } = useEventPermissions(event_id);
+
+	// Fetch event details to check for webhook URL
+	const { data: event } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+		enabled: !!event_id,
+	});
+
+	// State for webhook URL input
+	const [webhookUrlInput, setWebhookUrlInput] = useState("");
+
+	// Update event mutation
+	const updateEventMutation = useMutation({
+		mutationFn: async (url: string) => {
+			return await updateEvent(event_id, {
+				business_matching_webhook_url: url,
+			});
+		},
+		onSuccess: () => {
+			toast.success("Webhook URL updated successfully!");
+			queryClient.invalidateQueries({ queryKey: ["event", event_id] });
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update webhook URL");
+		},
+	});
+
+	const handleSaveWebhook = () => {
+		if (!webhookUrlInput) {
+			toast.error("Please enter a valid URL");
+			return;
+		}
+		try {
+			new URL(webhookUrlInput); // Basic validation
+			updateEventMutation.mutate(webhookUrlInput);
+		} catch {
+			toast.error("Invalid URL format");
+		}
+	};
+
+	const { isBusinessHost, canManageEvent } = useEventPermissions(event_id, event);
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
@@ -103,14 +147,6 @@ export default function BusinessMatchingPage() {
 			description: "Fetching the latest data and reloading the page.",
 		});
 
-		// Clear frontend cache
-		queryClient.removeQueries({ queryKey: ["business-matching-events"] });
-		queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
-		queryClient.removeQueries({ queryKey: ["business-matching-availability"] });
-		queryClient.removeQueries({
-			queryKey: ["business-matching-detailed-slots"],
-		});
-
 		try {
 			await forceRefreshAsync();
 			localStorage.setItem(
@@ -121,6 +157,15 @@ export default function BusinessMatchingPage() {
 		} catch (error) {
 			console.error("Manual refresh failed", error);
 			toast.error("Refresh failed. Please try again.");
+
+			// If refresh fails (e.g. invalid webhook), clear the cache so the UI shows the error state
+			// instead of stale data.
+			queryClient.removeQueries({ queryKey: ["business-matching-events"] });
+			queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
+			queryClient.removeQueries({ queryKey: ["business-matching-availability"] });
+			queryClient.removeQueries({
+				queryKey: ["business-matching-detailed-slots"],
+			});
 		}
 	};
 
@@ -140,7 +185,7 @@ export default function BusinessMatchingPage() {
 	};
 
 	const handleCopyPublicLink = () => {
-		const publicLink = `${window.location.origin}/events/${event_id}/book-meeting`;
+		const publicLink = `${window.location.origin}/event/${event_id}/book-meeting`;
 		navigator.clipboard
 			.writeText(publicLink)
 			.then(() => {
@@ -216,6 +261,38 @@ export default function BusinessMatchingPage() {
 
 	return (
 		<div className="space-y-6 p-4">
+			{canManageEvent && event && !event.business_matching_webhook_url && (
+				<Card className="border-l-4 border-l-amber-500">
+					<CardHeader className="pb-3">
+						<CardTitle className="text-lg font-medium flex items-center gap-2">
+							<AlertTriangle className="h-5 w-5 text-amber-500" />
+							Setup Business Matching
+						</CardTitle>
+						<CardDescription>
+							To enable real-time data synchronization for Business Matching, please provide the Webhook URL. 
+							(Contact your administrator if you don&apos;t have this URL).
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className="flex w-full max-w-sm items-center space-x-2">
+							<Input 
+								type="url" 
+								placeholder="https://webhook.example.com/bm" 
+								value={webhookUrlInput}
+								onChange={(e) => setWebhookUrlInput(e.target.value)}
+								disabled={updateEventMutation.isPending}
+							/>
+							<Button 
+								type="button" 
+								onClick={handleSaveWebhook}
+								disabled={updateEventMutation.isPending}
+							>
+								{updateEventMutation.isPending ? "Saving..." : "Save URL"}
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+			)}
 			<DataTable
 				columns={filteredColumns}
 				data={data || []}

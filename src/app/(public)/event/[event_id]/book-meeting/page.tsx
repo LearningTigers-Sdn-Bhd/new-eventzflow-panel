@@ -164,7 +164,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 					toast.success("Meeting booked successfully!");
 					// Redirect to confirmation page with booking ID as query param
 					router.push(
-						`/events/${event_id}/booking-confirmation?bookingId=${booking.id}&bmEventId=${selectedBmEvent?.id}`,
+						`/event/${event_id}/booking-confirmation?bookingId=${booking.id}&bmEventId=${selectedBmEvent?.id}`,
 					);
 				},
 				onError: (error) => {
