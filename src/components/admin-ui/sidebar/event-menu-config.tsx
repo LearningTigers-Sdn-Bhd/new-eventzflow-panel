@@ -18,6 +18,7 @@ import {
 	FileText,
 	Gift,
 	HardHat,
+	Import,
 	Logs,
 	MapPin,
 	Package,
@@ -119,6 +120,8 @@ const visible = {
 		p.isOrganizer ||
 		p.isEventStaff ||
 		e?.use_business_matching === true,
+	// Organizer or org_owner only (for import visitors in mall events)
+	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
 };
 
 // ============================================================================
@@ -169,6 +172,15 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Manage lucky draw sessions, configurations, and prizes.",
 			icon: Gift,
 			visible: visible.luckyDrawAccess,
+		},
+		// Import Visitors - mall events only, organizer/org_owner only
+		{
+			route: "import-visitors",
+			label: "Import Visitors",
+			description: "Import visitors from Excel or CSV files.",
+			icon: Import,
+			visible: (p, e) =>
+				visible.mallEvent(p, e) && visible.organizerOrOwner(p),
 		},
 	],
 
