@@ -17,6 +17,7 @@ export const createEventSchema = z.object({
 	end_date: z.string(), // ISO date string
 	multiple_scans: z.boolean().optional().default(false),
 	webhook_url: z.string().url().optional().or(z.literal("")),
+	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	event_admin_id: z.number().optional(),
 });
@@ -37,6 +38,7 @@ export const updateEventSchema = z.object({
 	end_date: z.string().optional(),
 	multiple_scans: z.boolean().optional(),
 	webhook_url: z.string().url().optional().or(z.literal("")),
+	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 });
 

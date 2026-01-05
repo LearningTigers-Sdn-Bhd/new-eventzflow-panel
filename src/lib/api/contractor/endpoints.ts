@@ -21,6 +21,14 @@ export async function getContractors(): Promise<ExhibitionContractor[]> {
 }
 
 /**
+ * Get all available exhibition contractors for assignment to events
+ * (bypasses created_by scope - returns all active contractors)
+ */
+export async function getAvailableContractors(): Promise<ExhibitionContractor[]> {
+	return restClient.get<ExhibitionContractor[]>("v1/exhibition_contractors/available");
+}
+
+/**
  * Get a single exhibition contractor by id
  */
 export async function getContractor(id: number): Promise<ExhibitionContractor> {

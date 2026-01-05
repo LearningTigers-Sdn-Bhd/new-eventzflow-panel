@@ -41,6 +41,11 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	businessMatchingWebhookUrl: z
+		.string()
+		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
+			message: "Please enter a valid URL",
+		}),
 	multipleScans: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -102,6 +107,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useBusinessMatching: false,
 			description: "",
 			webhookUrl: "",
+			businessMatchingWebhookUrl: "",
 			multipleScans: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -122,6 +128,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_business_matching: value.useBusinessMatching,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
+					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -151,6 +158,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useBusinessMatching", event.use_business_matching ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
+				form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
 					"startDate",
@@ -488,91 +496,105 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								{/* Business Matching */}
 								<form.Field name="useBusinessMatching">
 									{(field) => (
-										<SwitchCardInput
-											label="Business Matching"
-											description="Allow business matching for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
+										<div className="flex flex-col gap-4">
+											<SwitchCardInput
+												label="Business Matching"
+												description="Allow business matching for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+											{field.state.value && (
+												<form.Field name="businessMatchingWebhookUrl">
+													{(urlField) => {
+														const isInvalid =
+															urlField.state.meta.isTouched &&
+															!urlField.state.meta.isValid;
+														return (
+															<InputLabel
+																label="Business Matching Webhook URL"
+																htmlFor={urlField.name}
+																value={urlField.state.value}
+																onChange={urlField.handleChange}
+																onBlur={urlField.handleBlur}
+																errors={urlField.state.meta.errors}
+																isInvalid={isInvalid}
+																placeholder="https://webhook.example.com/bm"
+																disabled={updateEventMutation.isPending}
+															/>
+														);
+													}}
+												</form.Field>
+											)}
+										</div>
 									)}
 								</form.Field>
 							</div>
 						</div>
 					</FormGroupContainer>
 
-					{/* Row 2: Visibility, Event Types, Multiple Scans, and Exhibitor Kit Options */}
-					{/* Only show Exhibitor Kit section when using Ticket System (useTicket is true) */}
-					<form.Subscribe selector={(state) => state.values.useTicket}>
-						{(useTicket) =>
-							useTicket && (
-								<FormGroupContainer
-									title={{
-										icon: Box,
-										label: "Exhibitor Kit",
-										description:
-											"Configure the event with full exhibitor kit features.",
-									}}
-								>
-									{/* Exhibitor Kit Section */}
-									<FieldContent className="flex flex-none flex-col gap-1">
-										<FieldLabel>Exhibitor Kit</FieldLabel>
-										<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
-									</FieldContent>
-									<form.Field name="useExhibitorKit">
-										{(exhibitorKitField) => {
-											const useExhibitorKitValue = exhibitorKitField.state.value;
+					{/* Exhibitor Kit */}
+					<FormGroupContainer
+						title={{
+							icon: Box,
+							label: "Exhibitor Kit",
+							description:
+								"Configure the event with full exhibitor kit features.",
+						}}
+					>
+						<FieldContent className="flex flex-none flex-col gap-1">
+							<FieldLabel>Exhibitor Kit</FieldLabel>
+							<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
+						</FieldContent>
+						<form.Field name="useExhibitorKit">
+							{(exhibitorKitField) => {
+								const useExhibitorKitValue = exhibitorKitField.state.value;
 
-											return (
-												<div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2")}>
-													{/* Right Column: Multiple Scans and Exhibitor Kit Options */}
+								return (
+									<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+										{/* Enable Exhibitor Kit */}
+										<SwitchCardInput
+											label="Enable Exhibitor Kit"
+											description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
+											htmlFor={exhibitorKitField.name}
+											variant="no-rounded"
+											border={true}
+											checked={exhibitorKitField.state.value}
+											onCheckedChange={(checked) => {
+												exhibitorKitField.handleChange(checked);
+												// Reset printing services when exhibitor kit is disabled
+												if (!checked) {
+													form.setFieldValue("allowPrintingServices", false);
+												}
+											}}
+											disabled={updateEventMutation.isPending}
+										/>
 
-													{/* Enable Exhibitor Kit */}
+										{/* Allow Printing Services - only show when exhibitor kit is enabled */}
+										{useExhibitorKitValue && (
+											<form.Field name="allowPrintingServices">
+												{(field) => (
 													<SwitchCardInput
-														label="Enable Exhibitor Kit"
-														description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
-														htmlFor={exhibitorKitField.name}
+														label="Allow Printing Services"
+														description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+														htmlFor={field.name}
 														variant="no-rounded"
 														border={true}
-														checked={exhibitorKitField.state.value}
-														onCheckedChange={(checked) => {
-															exhibitorKitField.handleChange(checked);
-															// Reset printing services when exhibitor kit is disabled
-															if (!checked) {
-																form.setFieldValue("allowPrintingServices", false);
-															}
-														}}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
 														disabled={updateEventMutation.isPending}
 													/>
-
-													{/* Allow Printing Services - only show when exhibitor kit is enabled */}
-													{useExhibitorKitValue && (
-														<form.Field name="allowPrintingServices">
-															{(field) => (
-																<SwitchCardInput
-																	label="Allow Printing Services"
-																	description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-																	htmlFor={field.name}
-																	variant="no-rounded"
-																	border={true}
-																	checked={field.state.value}
-																	onCheckedChange={field.handleChange}
-																	disabled={updateEventMutation.isPending}
-																/>
-															)}
-														</form.Field>
-													)}
-												</div>
-											);
-										}}
-									</form.Field>
-								</FormGroupContainer>
-							)
-						}
-					</form.Subscribe>
+												)}
+											</form.Field>
+										)}
+									</div>
+								);
+							}}
+						</form.Field>
+					</FormGroupContainer>
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe

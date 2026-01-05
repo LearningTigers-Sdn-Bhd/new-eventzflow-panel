@@ -61,7 +61,7 @@ export default function BookingConfirmationPage({
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex justify-center">
-						<Link href={`/events/${event_id}/book-meeting`}>
+						<Link href={`/event/${event_id}/book-meeting`}>
 							<Button>Go to Booking Page</Button>
 						</Link>
 					</CardContent>
@@ -129,7 +129,7 @@ export default function BookingConfirmationPage({
 						</Button>
 					</Link>
 					<Link
-						href={`/events/${event_id}/book-meeting`}
+						href={`/event/${event_id}/book-meeting`}
 						className="w-full md:w-auto"
 					>
 						<Button className="w-full md:w-auto">Book Another Meeting</Button>

@@ -494,71 +494,65 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 						</div>
 					</FormGroupContainer>
 
-					{/* Exhibitor Kit - Only show when using Ticket System (useTicket is true) */}
-					<form.Subscribe selector={(state) => state.values.useTicket}>
-						{(useTicket) =>
-							useTicket && (
-								<FormGroupContainer
-									title={{
-										icon: Box,
-										label: "Exhibitor Kit",
-										description:
-											"Configure the event with full exhibitor kit features.",
-									}}
-								>
-									<FieldContent className="flex flex-none flex-col gap-1">
-										<FieldLabel>Exhibitor Kit</FieldLabel>
-										<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
-									</FieldContent>
-									<form.Field name="useExhibitorKit">
-										{(exhibitorKitField) => {
-											const useExhibitorKitValue = exhibitorKitField.state.value;
+					{/* Exhibitor Kit */}
+					<FormGroupContainer
+						title={{
+							icon: Box,
+							label: "Exhibitor Kit",
+							description:
+								"Configure the event with full exhibitor kit features.",
+						}}
+					>
+						<FieldContent className="flex flex-none flex-col gap-1">
+							<FieldLabel>Exhibitor Kit</FieldLabel>
+							<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
+						</FieldContent>
+						<form.Field name="useExhibitorKit">
+							{(exhibitorKitField) => {
+								const useExhibitorKitValue = exhibitorKitField.state.value;
 
-											return (
-												<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-													{/* Enable Exhibitor Kit */}
+								return (
+									<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+										{/* Enable Exhibitor Kit */}
+										<SwitchCardInput
+											label="Enable Exhibitor Kit"
+											description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
+											htmlFor={exhibitorKitField.name}
+											variant="no-rounded"
+											border={true}
+											checked={exhibitorKitField.state.value}
+											onCheckedChange={(checked) => {
+												exhibitorKitField.handleChange(checked);
+												// Reset printing services when exhibitor kit is disabled
+												if (!checked) {
+													form.setFieldValue("allowPrintingServices", false);
+												}
+											}}
+											disabled={createEventMutation.isPending}
+										/>
+
+										{/* Allow Printing Services - only show when exhibitor kit is enabled */}
+										{useExhibitorKitValue && (
+											<form.Field name="allowPrintingServices">
+												{(field) => (
 													<SwitchCardInput
-														label="Enable Exhibitor Kit"
-														description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
-														htmlFor={exhibitorKitField.name}
+														label="Allow Printing Services"
+														description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+														htmlFor={field.name}
 														variant="no-rounded"
 														border={true}
-														checked={exhibitorKitField.state.value}
-														onCheckedChange={(checked) => {
-															exhibitorKitField.handleChange(checked);
-															// Reset printing services when exhibitor kit is disabled
-															if (!checked) {
-																form.setFieldValue("allowPrintingServices", false);
-															}
-														}}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
 														disabled={createEventMutation.isPending}
 													/>
-
-													{/* Allow Printing Services - only show when exhibitor kit is enabled */}
-													{useExhibitorKitValue && (
-														<form.Field name="allowPrintingServices">
-															{(field) => (
-																<SwitchCardInput
-																	label="Allow Printing Services"
-																	description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-																	htmlFor={field.name}
-																	variant="no-rounded"
-																	border={true}
-																	checked={field.state.value}
-																	onCheckedChange={field.handleChange}
-																	disabled={createEventMutation.isPending}
-																/>
-															)}
-														</form.Field>
-													)}
-												</div>
-											);
-										}}
-									</form.Field>
-								</FormGroupContainer>
-							)
-						}
-					</form.Subscribe>
+												)}
+											</form.Field>
+										)}
+									</div>
+								);
+							}}
+						</form.Field>
+					</FormGroupContainer>
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<Button
