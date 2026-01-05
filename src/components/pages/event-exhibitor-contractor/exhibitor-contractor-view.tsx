@@ -13,7 +13,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useDialog } from "@/hooks/use-dialog";
-import { getContractors } from "@/lib/api/contractor";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { AssignContractorDialog } from "./assign-contractor-dialog";
 
@@ -29,27 +28,12 @@ export function ExhibitorContractorView({
 	// Fetch the assigned contractor for this event
 	const {
 		data: eventContractor,
-		isLoading: isLoadingEventContractor,
+		isLoading,
 		error: eventContractorError,
 	} = useQuery({
 		queryKey: ["event", eventId, "exhibition-contractor"],
 		queryFn: () => getEventExhibitionContractor(Number(eventId)),
 	});
-
-	// Fetch all contractors to get the details
-	const { data: allContractors, isLoading: isLoadingContractors } = useQuery({
-		queryKey: ["contractors"],
-		queryFn: () => getContractors(),
-	});
-
-	// Find the assigned contractor details
-	const assignedContractor = allContractors?.find(
-		(c) =>
-			c.exhibition_contractor_profile?.id ===
-			eventContractor?.exhibition_contractor_profile_id,
-	);
-
-	const isLoading = isLoadingEventContractor || isLoadingContractors;
 
 	const handleAssignContractor = () => {
 		openDialog({
@@ -86,7 +70,7 @@ export function ExhibitorContractorView({
 	}
 
 	// No contractor assigned
-	if (!eventContractor || !assignedContractor) {
+	if (!eventContractor || !eventContractor.contractor) {
 		return (
 			<div className="border-t border-dashed p-4">
 				<EmptyState
@@ -104,7 +88,8 @@ export function ExhibitorContractorView({
 		);
 	}
 
-	const profile = assignedContractor.exhibition_contractor_profile;
+	const contractor = eventContractor.contractor;
+	const profile = eventContractor.exhibition_contractor_profile;
 
 	return (
 		<div className="space-y-6 border-t border-dashed p-4">
@@ -118,20 +103,16 @@ export function ExhibitorContractorView({
 							</div>
 							<div>
 								<CardTitle className="text-lg">
-									{assignedContractor.full_name}
+									{contractor.full_name}
 								</CardTitle>
 								<CardDescription>Exhibitor Contractor</CardDescription>
 							</div>
 						</div>
 						<Badge
 							variant="outline"
-							className={`rounded-none ${
-								assignedContractor.status === "active"
-									? "border-green-500 text-green-500"
-									: "border-gray-500 text-gray-500"
-							}`}
+							className="rounded-none border-green-500 text-green-500"
 						>
-							{assignedContractor.status}
+							active
 						</Badge>
 					</div>
 				</CardHeader>
@@ -157,7 +138,7 @@ export function ExhibitorContractorView({
 							<div>
 								<p className="text-muted-foreground text-xs">Email</p>
 								<p className="font-medium text-sm">
-									{profile?.contact_email || assignedContractor.email}
+									{profile?.contact_email || contractor.email}
 								</p>
 							</div>
 						</div>
@@ -167,7 +148,7 @@ export function ExhibitorContractorView({
 							<div>
 								<p className="text-muted-foreground text-xs">Phone</p>
 								<p className="font-medium text-sm">
-									{profile?.contact_phone || assignedContractor.phone || "-"}
+									{profile?.contact_phone || contractor.phone || "-"}
 								</p>
 							</div>
 						</div>

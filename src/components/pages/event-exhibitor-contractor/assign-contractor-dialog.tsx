@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getContractors } from "@/lib/api/contractor";
+import { getAvailableContractors } from "@/lib/api/contractor";
 import { assignEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { cn } from "@/lib/utils";
 
@@ -24,10 +24,10 @@ export function AssignContractorDialog({
 		number | null
 	>(null);
 
-	// Fetch all contractors
+	// Fetch all available contractors for assignment
 	const { data: contractors, isLoading } = useQuery({
-		queryKey: ["contractors"],
-		queryFn: () => getContractors(),
+		queryKey: ["contractors", "available"],
+		queryFn: () => getAvailableContractors(),
 	});
 
 	// Filter only active contractors

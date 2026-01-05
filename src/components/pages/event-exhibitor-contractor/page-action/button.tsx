@@ -5,7 +5,6 @@ import { Plus, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { getContractors } from "@/lib/api/contractor";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
 import { AssignContractorDialog } from "../assign-contractor-dialog";
 import { RemoveContractorDialog } from "../remove-contractor-dialog";
@@ -20,19 +19,6 @@ export function ExhibitorContractorPageButton() {
 		queryKey: ["event", eventId, "exhibition-contractor"],
 		queryFn: () => getEventExhibitionContractor(Number(eventId)),
 	});
-
-	// Fetch all contractors to get the details
-	const { data: allContractors } = useQuery({
-		queryKey: ["contractors"],
-		queryFn: () => getContractors(),
-	});
-
-	// Find the assigned contractor details
-	const assignedContractor = allContractors?.find(
-		(c) =>
-			c.exhibition_contractor_profile?.id ===
-			eventContractor?.exhibition_contractor_profile_id,
-	);
 
 	const handleAssignContractor = () => {
 		openDialog({
@@ -54,7 +40,7 @@ export function ExhibitorContractorPageButton() {
 			component: RemoveContractorDialog,
 			props: {
 				eventId: Number(eventId),
-				contractorName: assignedContractor?.full_name || "this contractor",
+				contractorName: eventContractor?.contractor?.full_name || "this contractor",
 				onClose: closeDialog,
 			},
 			config: {
@@ -65,7 +51,7 @@ export function ExhibitorContractorPageButton() {
 	};
 
 	// Show remove button if contractor is assigned, otherwise show assign button
-	if (eventContractor && assignedContractor) {
+	if (eventContractor && eventContractor.contractor) {
 		return (
 			<Button
 				variant="destructive"
