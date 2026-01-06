@@ -154,9 +154,9 @@ export const TAB_ITEMS: TabItem[] = [
 	},
 	{
 		id: "exhibitor-contractor",
-		label: "Exhibitor Contractor",
-		title: "Exhibitor Contractor",
-		description: "Assign and manage exhibitor contractors for this event.",
+		label: "Main Contractor",
+		title: "Main Contractor",
+		description: "Assign and manage the main contractor for this event.",
 		icon: HardHat,
 		route: "exhibitor-contractor",
 	},

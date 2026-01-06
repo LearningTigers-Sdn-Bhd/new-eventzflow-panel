@@ -18,15 +18,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { ExhibitorTeamMemberPaymentInKit } from "@/lib/api/exhibitor-kit/response";
+import type { ReceivedPayment } from "@/lib/api/received-payment";
 
-export interface TeamMemberPaymentWithVendor extends ExhibitorTeamMemberPaymentInKit {
-	vendor_name: string;
-	vendor_email: string;
-	event_vendor_id: number;
-}
-
-const getStatusConfig = (status: TeamMemberPaymentWithVendor["status"]) => {
+const getStatusConfig = (status: ReceivedPayment["status"]) => {
 	switch (status) {
 		case "pending":
 			return {
@@ -55,31 +49,30 @@ const getStatusConfig = (status: TeamMemberPaymentWithVendor["status"]) => {
 	}
 };
 
-export interface PaymentsTableMeta {
-	onVerify: (payment: TeamMemberPaymentWithVendor) => void;
-	onReject: (payment: TeamMemberPaymentWithVendor) => void;
+export interface ReceivedPaymentsTableMeta {
+	onVerify: (payment: ReceivedPayment) => void;
+	onReject: (payment: ReceivedPayment) => void;
 }
 
-export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
+export const receivedPaymentsColumns: ColumnDef<ReceivedPayment>[] = [
 	{
-		accessorKey: "vendor_name",
+		accessorKey: "exhibitorInfo",
 		header: "Exhibitor",
 		cell: ({ row }) => (
 			<div>
-				<p className="font-medium">{row.original.vendor_name}</p>
-				<p className="text-muted-foreground text-xs">{row.original.vendor_email}</p>
-			</div>
-		),
-	},
-	{
-		accessorKey: "extra_member_count",
-		header: "Extra Members",
-		cell: ({ row }) => (
-			<div className="text-center">
-				<span className="font-medium">{row.original.extra_member_count}</span>
-				<p className="text-muted-foreground text-xs">
-					× RM {Number(row.original.fee_per_member).toFixed(2)}
+				<p className="font-medium">
+					{row.original.exhibitorInfo.companyName ||
+						row.original.exhibitorInfo.vendorName ||
+						"-"}
 				</p>
+				<p className="text-muted-foreground text-xs">
+					{row.original.exhibitorInfo.vendorEmail}
+				</p>
+				{row.original.exhibitorInfo.boothNumber && (
+					<p className="text-muted-foreground text-xs">
+						Booth: {row.original.exhibitorInfo.boothNumber}
+					</p>
+				)}
 			</div>
 		),
 	},
@@ -88,9 +81,33 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 		header: "Amount",
 		cell: ({ row }) => (
 			<span className="font-bold">
-				RM {Number(row.original.amount).toFixed(2)}
+				RM {row.original.amount.toFixed(2)}
 			</span>
 		),
+	},
+	{
+		id: "items",
+		header: "Items",
+		cell: ({ row }) => {
+			const items = row.original.items || [];
+			const printings = row.original.printings || [];
+			const totalItems = items.length + printings.length;
+
+			if (totalItems === 0) {
+				return <span className="text-muted-foreground text-sm">-</span>;
+			}
+
+			return (
+				<div className="text-sm">
+					{items.length > 0 && (
+						<p>{items.length} rentable item(s)</p>
+					)}
+					{printings.length > 0 && (
+						<p>{printings.length} printing service(s)</p>
+					)}
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "status",
@@ -185,11 +202,11 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 		},
 	},
 	{
-		accessorKey: "external_ref",
+		accessorKey: "externalRef",
 		header: "Reference",
 		cell: ({ row }) => (
 			<span className="text-muted-foreground text-sm">
-				{row.original.external_ref || "-"}
+				{row.original.externalRef || "-"}
 			</span>
 		),
 	},
@@ -197,7 +214,7 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 		id: "proof",
 		header: "Proof",
 		cell: ({ row }) => {
-			if (!row.original.payment_proof_url) {
+			if (!row.original.paymentProofUrl) {
 				return <span className="text-muted-foreground text-sm">-</span>;
 			}
 			return (
@@ -208,7 +225,7 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 					asChild
 				>
 					<a
-						href={row.original.payment_proof_url}
+						href={row.original.paymentProofUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -220,10 +237,19 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 		},
 	},
 	{
+		accessorKey: "createdAt",
+		header: "Date",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground text-sm">
+				{new Date(row.original.createdAt).toLocaleDateString()}
+			</span>
+		),
+	},
+	{
 		id: "actions",
 		header: "Actions",
 		cell: ({ row, table }) => {
-			const meta = table.options.meta as PaymentsTableMeta | undefined;
+			const meta = table.options.meta as ReceivedPaymentsTableMeta | undefined;
 			const payment = row.original;
 
 			if (payment.status === "verified") {
@@ -267,7 +293,12 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 				);
 			}
 
-			return <span className="text-muted-foreground text-sm">-</span>;
+			// pending status - exhibitor hasn't submitted payment yet
+			return (
+				<span className="text-muted-foreground text-sm">
+					Awaiting payment
+				</span>
+			);
 		},
 	},
 ];

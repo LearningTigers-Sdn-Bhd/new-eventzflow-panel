@@ -5,14 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
 import {
@@ -26,12 +18,9 @@ interface ExtraTeamMemberPaymentsViewProps {
 	eventId: string;
 }
 
-type StatusFilter = "all" | "submitted" | "verified" | "rejected" | "pending";
-
 export function ExtraTeamMemberPaymentsView({
 	eventId,
 }: ExtraTeamMemberPaymentsViewProps) {
-	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<TeamMemberPaymentWithVendor | null>(null);
@@ -92,17 +81,6 @@ export function ExtraTeamMemberPaymentsView({
 		}
 	});
 
-	// Filter payments by status
-	const filteredPayments =
-		statusFilter === "all"
-			? allPayments
-			: allPayments.filter((p) => p.status === statusFilter);
-
-	// Count by status for badges
-	const submittedCount = allPayments.filter((p) => p.status === "submitted").length;
-	const verifiedCount = allPayments.filter((p) => p.status === "verified").length;
-	const rejectedCount = allPayments.filter((p) => p.status === "rejected").length;
-
 	const tableMeta: PaymentsTableMeta = {
 		onVerify: handleVerify,
 		onReject: handleReject,
@@ -110,37 +88,10 @@ export function ExtraTeamMemberPaymentsView({
 
 	return (
 		<div className="space-y-4">
-			{/* Status Filter */}
-			<div className="flex items-center gap-2">
-				<Label className="text-sm text-muted-foreground">Filter:</Label>
-				<Select
-					value={statusFilter}
-					onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-				>
-					<SelectTrigger className="w-48 rounded-none">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent className="rounded-none">
-						<SelectItem value="all" className="rounded-none">
-							All ({allPayments.length})
-						</SelectItem>
-						<SelectItem value="submitted" className="rounded-none">
-							Under Review ({submittedCount})
-						</SelectItem>
-						<SelectItem value="verified" className="rounded-none">
-							Verified ({verifiedCount})
-						</SelectItem>
-						<SelectItem value="rejected" className="rounded-none">
-							Rejected ({rejectedCount})
-						</SelectItem>
-					</SelectContent>
-				</Select>
-			</div>
-
 			{/* Payments Table */}
 			<DataTable
 				columns={paymentsColumns}
-				data={filteredPayments}
+				data={allPayments}
 				emptyTitle="No extra team member payments"
 				emptyDescription="No exhibitors have submitted payments for extra team members yet"
 				emptyIcon={<CreditCard />}

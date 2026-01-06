@@ -1,7 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, FileText, HardHat, Mail, Phone, Plus, User } from "lucide-react";
+import {
+	ExternalLink,
+	FileText,
+	HardHat,
+	Mail,
+	Phone,
+	Plus,
+	User,
+} from "lucide-react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,8 +51,8 @@ export function ExhibitorContractorView({
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Assign Exhibitor Contractor",
-				description: "Select an exhibitor contractor to assign to this event.",
+				title: "Assign Main Contractor",
+				description: "Select a main contractor to assign to this event.",
 				size: "lg",
 			},
 		});
@@ -53,7 +61,7 @@ export function ExhibitorContractorView({
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading exhibitor contractor..."
+				title="Loading main contractor..."
 				description="Please wait while we fetch the assigned contractor..."
 			/>
 		);
@@ -62,8 +70,8 @@ export function ExhibitorContractorView({
 	if (eventContractorError) {
 		return (
 			<ErrorState
-				title="Failed to load exhibitor contractor"
-				description="We couldn't load the exhibitor contractor information. Please try again."
+				title="Failed to load main contractor"
+				description="We couldn't load the main contractor information. Please try again."
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
@@ -75,8 +83,8 @@ export function ExhibitorContractorView({
 			<div className="border-t border-dashed p-4">
 				<EmptyState
 					icon={<HardHat className="h-12 w-12" />}
-					title="No Exhibitor Contractor Assigned"
-					description="Assign an exhibitor contractor to manage booth setups and exhibitor services for this event."
+					title="No Main Contractor Assigned"
+					description="Assign a main contractor to manage booth setups and exhibitor services for this event."
 					action={
 						<Button onClick={handleAssignContractor} className="rounded-none">
 							<Plus className="mr-2 h-4 w-4" />
@@ -105,7 +113,7 @@ export function ExhibitorContractorView({
 								<CardTitle className="text-lg">
 									{contractor.full_name}
 								</CardTitle>
-								<CardDescription>Exhibitor Contractor</CardDescription>
+								<CardDescription>Main Contractor</CardDescription>
 							</div>
 						</div>
 						<Badge
@@ -157,9 +165,7 @@ export function ExhibitorContractorView({
 					{/* Exhibitor Guidelines */}
 					{profile?.guidelines_pdf_url && (
 						<div className="border-t border-dashed pt-4">
-							<p className="mb-3 font-semibold text-sm">
-								Exhibitor Guidelines
-							</p>
+							<p className="mb-3 font-semibold text-sm">Exhibitor Guidelines</p>
 							<div className="flex items-center gap-4 border border-dashed p-4">
 								<div className="flex h-12 w-12 shrink-0 items-center justify-center bg-muted">
 									<FileText className="h-6 w-6 text-muted-foreground" />

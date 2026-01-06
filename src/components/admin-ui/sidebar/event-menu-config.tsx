@@ -15,6 +15,7 @@ import {
 	Building2,
 	ChartBar,
 	ClipboardList,
+	CreditCard,
 	FileText,
 	Gift,
 	HardHat,
@@ -179,8 +180,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			label: "Import Visitors",
 			description: "Import visitors from Excel or CSV files.",
 			icon: Import,
-			visible: (p, e) =>
-				visible.mallEvent(p, e) && visible.organizerOrOwner(p),
+			visible: (p, e) => visible.mallEvent(p, e) && visible.organizerOrOwner(p),
 		},
 	],
 
@@ -269,12 +269,11 @@ export const eventMenuConfig: EventMenuConfig = {
 						visible.hasExhibitorKit(p, e) &&
 						!visible.vendor(p),
 				},
-				// Exhibitor Contractor - org owner only, when using exhibitor kit
+				// Main Contractor - org owner only, when using exhibitor kit
 				{
 					route: "exhibitor-contractor",
-					label: "Exhibitor Contractor",
-					description:
-						"Assign and manage exhibitor contractors for this event.",
+					label: "Main Contractor",
+					description: "Assign and manage the main contractor for this event.",
 					icon: HardHat,
 					visible: visible.exhibitorContractorAccess,
 				},
@@ -295,6 +294,12 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Exhibitor List",
 					description: "View exhibitor list for this event.",
 					icon: ClipboardList,
+				},
+				{
+					route: "contractor-received-payments",
+					label: "Received Payments",
+					description: "View all payments received from exhibitors.",
+					icon: CreditCard,
 				},
 				{
 					route: "rentable-items",
@@ -436,8 +441,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					description:
 						"Real-time mall analytics including shoppers, sales, vouchers, and top merchants.",
 					icon: TrendingUp,
-					visible: (p, e) =>
-						e?.use_ticket === false && visible.eventAdmin(p),
+					visible: (p, e) => e?.use_ticket === false && visible.eventAdmin(p),
 				},
 			],
 		},
