@@ -157,17 +157,18 @@ export default function PublicLayout({
 	const isAboutPage = pathname.startsWith("/about");
 	const isPrivacyPolicyPage = pathname === "/privacy-policy";
 	const isTermsPage = pathname === "/terms-and-conditions";
+	const isServicePage = pathname.startsWith("/services");
 	const isFooterVisible =
-		isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage;
+		isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage || isServicePage;
 
 	// Render layout with floating nav for public routes
 	return (
 		<div className="min-h-screen w-full">
-			{!isNavHidden && isHomePage && <FloatingNavNew />}
-			{!isNavHidden && !isHomePage && <FloatingNav />}
+			{!isNavHidden && (isHomePage || isServicePage) && <FloatingNavNew />}
+			{!isNavHidden && !isHomePage && !isServicePage && <FloatingNav />}
 			<main className="h-full w-full">{children}</main>
-			{isHomePage && <FooterNew />}
-			{isFooterVisible && !isHomePage && <Footer />}
+			{(isHomePage || isServicePage) && <FooterNew />}
+			{isFooterVisible && !isHomePage && !isServicePage && <Footer />}
 			{process.env.NODE_ENV === "production" && (
 				<Script
 					src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
