@@ -4,6 +4,7 @@ import BenefitsSection from "./sections/BenefitsSection";
 import CapabilitiesSection from "./sections/CapabilitiesSection";
 import CTASection from "./sections/CTASection";
 import FAQSection from "./sections/FAQSection";
+import GallerySection from "./sections/GallerySection";
 import HeroSection from "./sections/HeroSection";
 import SectorsSection from "./sections/SectorsSection";
 import TestimonialSection from "./sections/TestimonialSection";
@@ -17,6 +18,7 @@ export default function HomeSection() {
 			<WhyChooseSection />
 			<SectorsSection />
 			<CapabilitiesSection />
+			<GallerySection />
 			<TestimonialSection />
 			<FAQSection />
 			<CTASection />

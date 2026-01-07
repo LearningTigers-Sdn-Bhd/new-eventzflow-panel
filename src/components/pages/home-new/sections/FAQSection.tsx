@@ -58,7 +58,7 @@ const FAQSection: React.FC = () => {
 	};
 
 	return (
-		<section className="bg-black px-6 py-30 md:px-12">
+		<section id="faq" className="bg-black px-6 py-30 md:px-12">
 			<div className="mx-auto max-w-7xl">
 				<div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-8">
 					{/* Left Side - Title */}

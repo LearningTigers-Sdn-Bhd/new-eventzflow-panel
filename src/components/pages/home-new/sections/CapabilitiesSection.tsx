@@ -53,21 +53,21 @@ const capabilities = [
 
 const CapabilitiesSection: React.FC = () => {
 	return (
-		<section className="bg-black px-6 py-30 md:px-12">
+		<section className="bg-white px-6 py-30 md:px-12">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-20 flex items-end justify-between">
 					<div className="max-w-2xl">
-						<h2 className="mb-6 font-black text-6xl tracking-tighter text-white md:text-8xl">
+						<h2 className="mb-6 font-black text-6xl tracking-tighter text-black md:text-8xl">
 							OUR
 							<br />
 							CAPABILITIES
 						</h2>
-						<p className="text-xl text-white/60">
+						<p className="text-xl text-black/60">
 							Everything you need to run seamless events, all in one platform.
 						</p>
 					</div>
-					<div className="hidden border-b border-white/40 pb-2 font-bold text-xs tracking-widest text-white/40 md:block">
+					<div className="hidden border-b border-black/40 pb-2 font-bold text-xs tracking-widest text-black/40 md:block">
 						01 — 09 / FEATURES
 					</div>
 				</div>
@@ -75,7 +75,7 @@ const CapabilitiesSection: React.FC = () => {
 				{/* Capabilities Grid */}
 				<div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
 					{capabilities.map((capability, i) => {
-						const isWhiteCard = i % 2 === 1;
+						const isBlackCard = i % 2 === 1;
 						return (
 							<motion.div
 								key={i}
@@ -92,22 +92,22 @@ const CapabilitiesSection: React.FC = () => {
 									ease: [0.16, 1, 0.3, 1],
 								}}
 								className={`group relative flex min-h-[280px] flex-col justify-between border p-10 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl ${
-									isWhiteCard
-										? "border-black/20 bg-white hover:border-black"
-										: "border-white/20 bg-black hover:border-white"
+									isBlackCard
+										? "border-white/20 bg-black hover:border-white"
+										: "border-black/20 bg-white hover:border-black"
 								}`}
 							>
 								<div className="relative z-10">
 									<span
 										className={`font-bold text-xs tracking-widest ${
-											isWhiteCard ? "text-black/40" : "text-white/40"
+											isBlackCard ? "text-white/40" : "text-black/40"
 										}`}
 									>
 										0{i + 1}
 									</span>
 									<h3
 										className={`mt-6 font-black text-2xl leading-tight tracking-tight ${
-											isWhiteCard ? "text-black" : "text-white"
+											isBlackCard ? "text-white" : "text-black"
 										}`}
 									>
 										{capability.title}
@@ -115,7 +115,7 @@ const CapabilitiesSection: React.FC = () => {
 								</div>
 								<p
 									className={`relative z-10 text-sm leading-relaxed ${
-										isWhiteCard ? "text-black/60" : "text-white/60"
+										isBlackCard ? "text-white/60" : "text-black/60"
 									}`}
 								>
 									{capability.description}
