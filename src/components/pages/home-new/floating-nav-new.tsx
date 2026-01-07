@@ -155,8 +155,8 @@ export default function FloatingNavNew() {
   };
 
   const resources = [
-    { icon: HelpCircle, label: "FAQs", href: "/faqs" },
-    { icon: BookOpen, label: "Blogs", href: "/blogs" },
+    { icon: HelpCircle, label: "FAQs", href: "/#faq", isScrollLink: true },
+    { icon: BookOpen, label: "Blog", href: "/blog" },
   ];
 
   return (
@@ -432,30 +432,33 @@ export default function FloatingNavNew() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0 }}
                   >
-                    <Link
-                      href="/faqs"
-                      onClick={() => setIsOpen(false)}
-                      className="group flex items-center justify-between border-b border-white/10 py-4 text-left"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        scrollToSection("faq");
+                        setIsOpen(false);
+                      }}
+                      className="group flex w-full items-center justify-between border-b border-white/10 py-4 text-left"
                     >
                       <span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
                         FAQS
                       </span>
-                    </Link>
+                    </button>
                   </motion.div>
 
-                  {/* Resources - Blogs */}
+                  {/* Resources - Blog */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.05 }}
                   >
                     <Link
-                      href="/blogs"
+                      href="/blog"
                       onClick={() => setIsOpen(false)}
                       className="group flex items-center justify-between border-b border-white/10 py-4 text-left"
                     >
                       <span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
-                        BLOGS
+                        BLOG
                       </span>
                     </Link>
                   </motion.div>

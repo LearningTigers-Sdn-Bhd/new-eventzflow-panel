@@ -50,7 +50,7 @@ const FooterNew: React.FC = () => {
 			href: "https://wa.me/60177268130",
 			label: "WhatsApp",
 		},
-		{ icon: Mail, href: "mailto:info@saleschatalyst.com", label: "Email" },
+		{ icon: Mail, href: "mailto:info@eventzflow.com", label: "Email" },
 	];
 
 	const scrollToSection = (sectionId: string) => {
