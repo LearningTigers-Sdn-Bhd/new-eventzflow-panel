@@ -1,0 +1,141 @@
+"use client";
+
+import { motion } from "framer-motion";
+import type { Route } from "next";
+import Link from "next/link";
+import type React from "react";
+
+// Organic easing
+const smoothEase = [0.25, 0.46, 0.45, 0.94];
+
+const HeroSection: React.FC = () => {
+	return (
+		<section className="relative min-h-screen overflow-hidden bg-black">
+			{/* Full-screen background image */}
+			<div className="absolute inset-0">
+				<img
+					src="/images/homepage/HeroSection.png"
+					alt="Event management platform"
+					className="h-full w-full object-cover opacity-60"
+				/>
+				{/* Dark overlay for text readability */}
+				<div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+				<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+			</div>
+
+			{/* Left vertical accent line */}
+			<motion.div
+				initial={{ scaleY: 0 }}
+				animate={{ scaleY: 1 }}
+				transition={{ duration: 1.5, ease: smoothEase }}
+				className="absolute left-12 top-0 h-[70%] w-[3px] origin-top bg-white lg:left-16"
+			/>
+
+			{/* Main content */}
+			<div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-6 py-32 lg:px-16">
+				<div className="grid grid-cols-12 gap-4">
+					{/* Left content */}
+					<div className="col-span-12 lg:col-span-7">
+						{/* Eyebrow */}
+						<motion.p
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 1, ease: smoothEase }}
+							className="mb-8 pl-2 text-xs font-medium uppercase tracking-[0.4em] text-white/70"
+						>
+							All-in-One Event Solution
+						</motion.p>
+
+						{/* Main headlines */}
+						<div className="space-y-0">
+							<motion.h1
+								initial={{ opacity: 0, y: 40 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 1, delay: 0.2, ease: smoothEase }}
+								className="font-bold text-[clamp(2.5rem,8vw,6rem)] leading-[0.95] tracking-[-0.02em] text-white"
+								style={{ textShadow: "0 4px 30px rgba(0,0,0,0.5)" }}
+							>
+								END-TO-END,
+								<br />
+								<span
+									className="text-transparent"
+									style={{ WebkitTextStroke: "1px white" }}
+								>
+									AI-POWERED
+								</span>
+								<br />
+								EVENT INTELLIGENCE
+							</motion.h1>
+						</div>
+					</div>
+
+					{/* Right content - Description */}
+					<div className="col-span-12 mt-16 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end">
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 1, delay: 0.7, ease: smoothEase }}
+						>
+							{/* Horizontal line */}
+							<div className="mb-6 h-px w-full bg-white/30" />
+
+							{/* Description text */}
+							<p className="text-right text-sm leading-relaxed text-white/70 lg:text-base">
+								From visitor booth tracking and QR check-in with instant badge
+								printing, to AI audience profiling and retargeting — EventzFlow
+								connects every part of the event journey.
+							</p>
+
+							{/* CTA */}
+							<div className="mt-8 flex items-center justify-end gap-6">
+								<Link href={"/auth?login" as Route}>
+									<motion.button
+										type="button"
+										className="bg-white px-10 py-5 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-white/90"
+										whileHover={{ scale: 1.03 }}
+										transition={{ type: "spring", stiffness: 300, damping: 20 }}
+									>
+										Get Started
+									</motion.button>
+								</Link>
+								<div className="h-px w-16 bg-white/50" />
+							</div>
+						</motion.div>
+					</div>
+				</div>
+			</div>
+
+			{/* Bottom right accent line */}
+			<motion.div
+				initial={{ scaleY: 0 }}
+				animate={{ scaleY: 1 }}
+				transition={{ duration: 1.5, delay: 0.3, ease: smoothEase }}
+				className="absolute bottom-0 right-[15%] hidden h-[40%] w-px origin-bottom bg-white/20 lg:block"
+			/>
+
+			{/* Scroll indicator */}
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ delay: 1.5 }}
+				className="absolute bottom-12 left-1/2 -translate-x-1/2"
+			>
+				<motion.div
+					animate={{ y: [0, 8, 0] }}
+					transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+					className="flex flex-col items-center gap-4"
+				>
+					<div className="flex h-10 w-6 items-start justify-center rounded-full border border-white/30 p-2">
+						<motion.div
+							animate={{ y: [0, 8, 0], opacity: [1, 0.3, 1] }}
+							transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+							className="h-2 w-1 rounded-full bg-white"
+						/>
+					</div>
+				</motion.div>
+			</motion.div>
+		</section>
+	);
+};
+
+export default HeroSection;

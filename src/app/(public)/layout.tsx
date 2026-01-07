@@ -2,8 +2,9 @@
 import { redirect, usePathname } from "next/navigation";
 import Script from "next/script";
 import FloatingNav from "@/components/floating-nav";
+import FloatingNavNew from "@/components/pages/home-new/floating-nav-new";
 import Footer from "@/components/footer";
-import { Spinner } from "@/components/ui/spinner";
+import FooterNew from "@/components/pages/home-new/footer-new";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 
@@ -16,11 +17,114 @@ export default function PublicLayout({
 	const { user } = useAuth();
 	const pathname = usePathname();
 
-	// Show loading spinner during hydration
+	// Show loading screen during hydration
 	if (!isHydrated) {
+		const letters = [
+			{ char: "E", color: "#23c460" },
+			{ char: "v", color: "#23c460" },
+			{ char: "e", color: "#23c460" },
+			{ char: "n", color: "#23c460" },
+			{ char: "t", color: "#23c460" },
+			{ char: "z", color: "#2766ec" },
+			{ char: "F", color: "#23c460" },
+			{ char: "l", color: "#23c460" },
+			{ char: "o", color: "#23c460" },
+			{ char: "w", color: "#23c460" },
+		];
+
 		return (
-			<div className="flex h-screen w-full items-center justify-center">
-				<Spinner className="size-16 text-emerald-500" />
+			<div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden">
+				<style>
+					{`
+						@keyframes slide-up {
+							0% {
+								opacity: 0;
+								transform: translateY(40px);
+							}
+							100% {
+								opacity: 1;
+								transform: translateY(0);
+							}
+						}
+						@keyframes draw-line {
+							0% {
+								width: 0;
+							}
+							100% {
+								width: 100%;
+							}
+						}
+						@keyframes pulse-glow {
+							0%, 100% {
+								text-shadow: 0 0 10px currentColor;
+							}
+							50% {
+								text-shadow: 0 0 25px currentColor, 0 0 40px currentColor;
+							}
+						}
+						@keyframes fade-in {
+							0% {
+								opacity: 0;
+							}
+							100% {
+								opacity: 1;
+							}
+						}
+						@keyframes line-glow {
+							0%, 100% {
+								box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+							}
+							50% {
+								box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), 0 0 25px rgba(255, 255, 255, 0.3);
+							}
+						}
+					`}
+				</style>
+
+				{/* Logo */}
+				<div className="relative">
+					<h1
+						className="text-5xl font-bold md:text-6xl lg:text-7xl flex"
+						style={{ fontFamily: "Times New Roman, serif" }}
+					>
+						{letters.map((letter, index) => (
+							<span
+								key={index}
+								className="inline-block"
+								style={{
+									color: letter.color,
+									opacity: 0,
+									animation: `slide-up 0.5s ease-out forwards, pulse-glow 2s ease-in-out infinite`,
+									animationDelay: `${index * 0.05}s, ${0.8 + index * 0.05}s`,
+								}}
+							>
+								{letter.char}
+							</span>
+						))}
+					</h1>
+
+					{/* Animated underline */}
+					<div className="relative h-[4px] mt-4 bg-white/10 overflow-hidden rounded-full">
+						<div
+							className="absolute left-0 top-0 h-full bg-white rounded-full"
+							style={{
+								width: 0,
+								animation: 'draw-line 0.8s ease-out 0.6s forwards, line-glow 2s ease-in-out 1.4s infinite',
+							}}
+						/>
+					</div>
+				</div>
+
+				{/* Tagline */}
+				<p
+					className="mt-6 text-xs tracking-[0.3em] text-white/40 uppercase"
+					style={{
+						opacity: 0,
+						animation: 'fade-in 0.5s ease-out 1s forwards',
+					}}
+				>
+					Event Management Platform
+				</p>
 			</div>
 		);
 	}
@@ -59,9 +163,11 @@ export default function PublicLayout({
 	// Render layout with floating nav for public routes
 	return (
 		<div className="min-h-screen w-full">
-			{!isNavHidden && <FloatingNav />}
+			{!isNavHidden && isHomePage && <FloatingNavNew />}
+			{!isNavHidden && !isHomePage && <FloatingNav />}
 			<main className="h-full w-full">{children}</main>
-			{isFooterVisible && <Footer />}
+			{isHomePage && <FooterNew />}
+			{isFooterVisible && !isHomePage && <Footer />}
 			{process.env.NODE_ENV === "production" && (
 				<Script
 					src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
