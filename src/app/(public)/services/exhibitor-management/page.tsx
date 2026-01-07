@@ -14,6 +14,7 @@ export default function ExhibitorManagementPage() {
 				titleOutline="Management"
 				tagline="Booth Portal & Team Management"
 				description="Give exhibitors their own portal to manage booth details, add team members, and track visitor engagement at your event."
+				heroImage="/images/services/hero/ExhibitorManagement.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

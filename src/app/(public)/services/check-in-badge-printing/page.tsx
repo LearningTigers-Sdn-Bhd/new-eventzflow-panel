@@ -14,6 +14,7 @@ export default function CheckInBadgePrintingPage() {
 				titleOutline="& Badges"
 				tagline="On-site Kiosk & Instant Printing"
 				description="Fast, contactless entry with real-time attendance tracking. Print professional badges on-demand as attendees check in at your event."
+				heroImage="/images/services/hero/CheckInBadgePrinting.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

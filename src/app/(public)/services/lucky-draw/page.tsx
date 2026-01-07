@@ -14,6 +14,7 @@ export default function LuckyDrawPage() {
 				titleOutline="Draw"
 				tagline="Interactive Giveaways & Prizes"
 				description="Engage your audience with exciting lucky draws and giveaways. Run multiple sessions, track winners, and create memorable moments at your event."
+				heroImage="/images/services/hero/LuckyDraw.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

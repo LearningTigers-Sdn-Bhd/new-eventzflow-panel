@@ -14,6 +14,7 @@ export default function ApplessWebPortalPage() {
 				titleOutline="Portal"
 				tagline="No App Download Needed"
 				description="EventzFlow works directly in your browser as a Progressive Web App. Access all features instantly - no app store, no downloads, no waiting."
+				heroImage="/images/services/hero/ApplessWebPortal.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

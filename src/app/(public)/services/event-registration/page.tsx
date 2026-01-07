@@ -14,6 +14,7 @@ export default function EventRegistrationPage() {
 				titleOutline="Registration"
 				tagline="RSVP, Ticketing & WhatsApp"
 				description="Seamless registration experience with multiple channels including web forms, WhatsApp automation, and QR code scanning. Collect attendee information effortlessly."
+				heroImage="/images/services/hero/EventRegistration.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

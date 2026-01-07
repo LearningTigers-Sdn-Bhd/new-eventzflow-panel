@@ -14,6 +14,7 @@ export default function AttendeeManagementPage() {
 				titleOutline="Management"
 				tagline="Complete Visitor & Guest Control"
 				description="Manage your event attendees with ease. Register guests, import from spreadsheets, and access complete profiles with custom fields and unique QR codes."
+				heroImage="/images/services/hero/AttendeeManagement.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

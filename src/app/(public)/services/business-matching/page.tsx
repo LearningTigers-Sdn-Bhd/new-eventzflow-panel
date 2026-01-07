@@ -14,6 +14,7 @@ export default function BusinessMatchingPage() {
 				titleOutline="Matching"
 				tagline="Meeting Scheduling & Networking"
 				description="Connect the right people at your event. Facilitate meaningful connections between attendees, exhibitors, and sponsors with easy meeting bookings."
+				heroImage="/images/services/hero/BusinessMatching.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />

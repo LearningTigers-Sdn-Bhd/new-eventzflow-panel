@@ -14,6 +14,7 @@ export default function EventAnalyticsPage() {
 				titleOutline="Analytics"
 				tagline="Real-time Insights & Reporting"
 				description="See real-time data on attendance, engagement, and conversions. Make data-driven decisions with comprehensive analytics and exportable reports."
+				heroImage="/images/services/hero/EventAnalytics.png"
 			/>
 			<FeaturesSection />
 			<HowItWorksSection />
