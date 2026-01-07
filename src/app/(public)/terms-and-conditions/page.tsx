@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import {
 	AlertTriangle,
 	CreditCard,
@@ -11,42 +14,10 @@ import {
 	Users,
 	XCircle,
 } from "lucide-react";
-import type { Metadata } from "next";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-	title: "EventzFlow - Terms and Conditions",
-	description:
-		"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
-	applicationName: "EventzFlow",
-	authors: [{ name: "Jesselton Pixel Sdn. Bhd." }],
-	openGraph: {
-		title: "EventzFlow - Terms and Conditions",
-		description:
-			"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
-		url: "https://eventzflow.com",
-		siteName: "EventzFlow",
-		locale: "en_US",
-		type: "website",
-		images: [
-			{
-				url: "/api/og?title=Terms and Conditions&subtitle=Please read our terms and conditions",
-				width: 1200,
-				height: 630,
-				alt: "EventzFlow",
-			},
-		],
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "EventzFlow - Terms and Conditions",
-		description:
-			"Read our terms and conditions to understand the rules and guidelines for using our services. Learn about user responsibilities, account terms, liability limitations, and dispute resolution.",
-		images: [
-			"/api/og?title=Terms and Conditions&subtitle=Please read our terms and conditions",
-		],
-	},
-};
+const smoothEase = [0.25, 0.46, 0.45, 0.94];
 
 interface PolicySectionProps {
 	id: string;
@@ -54,7 +25,7 @@ interface PolicySectionProps {
 	title: string;
 	icon: LucideIcon;
 	children: ReactNode;
-	highlight?: boolean;
+	isBlack?: boolean;
 }
 
 function PolicySection({
@@ -63,82 +34,81 @@ function PolicySection({
 	title,
 	icon: Icon,
 	children,
-	highlight = false,
+	isBlack = false,
 }: PolicySectionProps) {
 	return (
-		<section
+		<motion.section
 			id={id}
-			className={`scroll-mt-24 rounded-xl border p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8 ${
-				highlight
-					? "border-2 border-primary/30 bg-gradient-to-br from-card to-primary/5 shadow-md"
-					: "bg-card"
+			initial={{ opacity: 0, y: 40 }}
+			whileInView={{ opacity: 1, y: 0 }}
+			viewport={{ once: true }}
+			transition={{ duration: 0.6, ease: smoothEase }}
+			className={`scroll-mt-24 border p-8 md:p-10 ${
+				isBlack
+					? "border-white/20 bg-black"
+					: "border-black/10 bg-white"
 			}`}
 		>
-			<div className="mb-6 flex items-start gap-4 border-primary/20 border-b pb-4">
+			<div className={`mb-6 flex items-start gap-4 border-b pb-6 ${
+				isBlack ? "border-white/10" : "border-black/10"
+			}`}>
 				<div
-					className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border-2 ${
-						highlight
-							? "border-primary/30 bg-primary/10"
-							: "border-primary/20 bg-primary/5"
+					className={`flex h-12 w-12 flex-shrink-0 items-center justify-center border ${
+						isBlack
+							? "border-white/30 text-white"
+							: "border-black/30 text-black"
 					}`}
 				>
-					<Icon className="h-6 w-6 text-primary" />
+					<Icon className="h-5 w-5" />
 				</div>
 				<div className="flex-1 pt-1">
-					<p className="mb-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+					<p className={`mb-1 text-xs font-bold uppercase tracking-[0.2em] ${
+						isBlack ? "text-white/40" : "text-black/40"
+					}`}>
 						Section {sectionNumber}
 					</p>
-					<h2 className="font-semibold text-foreground text-xl sm:text-2xl">
+					<h2 className={`font-bold text-xl md:text-2xl ${
+						isBlack ? "text-white" : "text-black"
+					}`}>
 						{title}
 					</h2>
 				</div>
 			</div>
 			<div className="space-y-4">{children}</div>
-		</section>
+		</motion.section>
 	);
 }
 
 export default function TermsAndConditionsPage() {
 	return (
-		<div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/30">
-			<div className="container mx-auto max-w-7xl px-4 py-26 sm:px-6 lg:px-8">
-				{/* Header */}
-				<div className="mb-12 text-center">
-					<div className="mb-6 inline-flex items-center justify-center rounded-2xl bg-primary/10 p-4">
-						<FileText className="h-8 w-8 text-primary sm:h-12 sm:w-12" />
-					</div>
-					<h1 className="mb-6 font-bold text-3xl text-foreground tracking-tight sm:text-4xl lg:text-5xl">
-						Terms and Conditions
+		<main>
+			{/* Hero Section */}
+			<section className="relative flex min-h-[50vh] flex-col items-center justify-center overflow-hidden bg-black px-6 py-24">
+				{/* Left vertical accent line */}
+				<motion.div
+					initial={{ scaleY: 0 }}
+					animate={{ scaleY: 1 }}
+					transition={{ duration: 1.5, ease: smoothEase }}
+					className="absolute left-6 top-0 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+				/>
+
+				{/* Content */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8, ease: smoothEase }}
+					className="text-center max-w-4xl"
+				>
+					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+						Legal
+					</p>
+					<h1 className="font-black text-5xl uppercase tracking-tighter text-white md:text-6xl lg:text-7xl">
+						Terms & Conditions
 					</h1>
-
-					{/* Introduction */}
-					<div className="mx-auto mb-6 max-w-4xl space-y-4 text-muted-foreground text-sm sm:text-base">
-						<p className="leading-relaxed">
-							These Terms and Conditions ("Terms", "Agreement") constitute a
-							legally binding agreement between you ("User", "you", or "your")
-							and <strong className="text-foreground">EventzFlow</strong>{" "}
-							("Company", "we", "us", or "our") governing your access to and use
-							of our event management platform, website, mobile applications,
-							and related services (collectively, the "Services").
-						</p>
-						<p className="leading-relaxed">
-							By accessing or using our Services, you acknowledge that you have
-							read, understood, and agree to be bound by these Terms and our
-							Privacy Policy. If you do not agree with any part of these Terms,
-							you must not access or use our Services.
-						</p>
-						<div className="mx-auto flex max-w-5xl gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-left">
-							<AlertTriangle className="h-5 w-5 flex-shrink-0 text-primary" />
-							<p className="text-sm leading-relaxed">
-								We reserve the right to modify these Terms at any time. Any
-								changes will be effective immediately upon posting on our
-								website. Your continued use of the Services following any
-								modifications constitutes your acceptance of the revised Terms.
-							</p>
-						</div>
-					</div>
-
-					<p className="text-muted-foreground text-sm">
+					<p className="mt-6 text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
+						Please read these terms and conditions carefully before using our services. By accessing or using EventzFlow, you agree to be bound by these terms.
+					</p>
+					<p className="mt-6 text-sm text-white/40">
 						Last Updated:{" "}
 						{new Date().toLocaleDateString("en-US", {
 							year: "numeric",
@@ -146,829 +116,645 @@ export default function TermsAndConditionsPage() {
 							day: "numeric",
 						})}
 					</p>
-				</div>
+				</motion.div>
+			</section>
 
-				{/* Content */}
+			{/* Introduction Section */}
+			<section className="bg-white px-6 py-16 md:py-24">
 				<div className="mx-auto max-w-5xl">
-					<div className="space-y-8">
-						{/* Section 1: Eligibility and Account Registration */}
-						<PolicySection
-							id="eligibility"
-							sectionNumber={1}
-							title="Eligibility and Account Registration"
-							icon={UserCheck}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										1.1 Eligibility
-									</h3>
-									<p className="leading-relaxed">
-										You must be at least 18 years of age and have the legal
-										capacity to enter into binding contracts to use our
-										Services. By using the Services, you represent and warrant
-										that you meet these eligibility requirements. If you are
-										using the Services on behalf of an organization, you
-										represent and warrant that you have the authority to bind
-										that organization to these Terms.
-									</p>
-								</div>
+					<motion.div
+						initial={{ opacity: 0, y: 30 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.8, ease: smoothEase }}
+						className="text-center"
+					>
+						<p className="text-base leading-relaxed text-black/60 md:text-lg max-w-3xl mx-auto">
+							These Terms and Conditions constitute a legally binding agreement between you and{" "}
+							<strong className="text-black">EventzFlow</strong> governing your access to and use of our event management platform, website, mobile applications, and related services.
+						</p>
+						<div className="mt-8 inline-flex items-center gap-3 border border-black/20 bg-black/5 px-6 py-4 text-left">
+							<AlertTriangle className="h-5 w-5 flex-shrink-0 text-black" />
+							<p className="text-sm text-black/60">
+								We reserve the right to modify these Terms at any time. Your continued use of the Services following any modifications constitutes your acceptance of the revised Terms.
+							</p>
+						</div>
+					</motion.div>
+				</div>
+			</section>
 
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										1.2 Account Registration
-									</h3>
-									<p className="mb-4 leading-relaxed">
-										To access certain features of the Services, you must create
-										an account. When registering, you agree to:
-									</p>
-									<ul className="space-y-3">
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Provide accurate, current, and complete information
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Maintain and promptly update your account information
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Maintain the security and confidentiality of your
-												password
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Accept responsibility for all activities that occur
-												under your account
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Immediately notify us of any unauthorized use of your
-												account
-											</span>
-										</li>
-									</ul>
-									<p className="mt-4 leading-relaxed">
-										We reserve the right to suspend or terminate accounts that
-										contain false or misleading information or that violate
-										these Terms.
-									</p>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 2: Services Description */}
-						<PolicySection
-							id="services"
-							sectionNumber={2}
-							title="Services Description"
-							icon={Globe}
-						>
-							<div className="space-y-4 text-muted-foreground text-sm sm:text-base">
+			{/* Terms Sections */}
+			<section className="bg-white px-6 pb-24">
+				<div className="mx-auto max-w-5xl space-y-6">
+					{/* Section 1: Eligibility and Account Registration */}
+					<PolicySection
+						id="eligibility"
+						sectionNumber={1}
+						title="Eligibility and Account Registration"
+						icon={UserCheck}
+					>
+						<div className="space-y-6 text-black/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									1.1 Eligibility
+								</h3>
 								<p className="leading-relaxed">
-									EventzFlow provides an event management platform that enables
-									users to:
-								</p>
-								<ul className="space-y-3">
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Create, manage, and organize events</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Issue and manage tickets and registrations</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Process check-ins and attendee tracking</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Generate analytics and reports</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Manage event staff and team members</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Access API integrations and developer tools</span>
-									</li>
-								</ul>
-								<p className="leading-relaxed">
-									We reserve the right to modify, suspend, or discontinue any
-									aspect of the Services at any time without prior notice. We
-									shall not be liable to you or any third party for any
-									modification, suspension, or discontinuation of the Services.
+									You must be at least 18 years of age and have the legal capacity to enter into binding contracts to use our Services. If you are using the Services on behalf of an organization, you represent that you have the authority to bind that organization to these Terms.
 								</p>
 							</div>
-						</PolicySection>
 
-						{/* Section 3: User Obligations and Prohibited Conduct */}
-						<PolicySection
-							id="obligations"
-							sectionNumber={3}
-							title="User Obligations and Prohibited Conduct"
-							icon={Shield}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										3.1 Acceptable Use
-									</h3>
-									<p className="mb-4 leading-relaxed">
-										You agree to use the Services only for lawful purposes and
-										in accordance with these Terms. You agree NOT to:
-									</p>
-									<ul className="space-y-3">
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Use the Services in any way that violates applicable
-												laws or regulations
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Impersonate any person or entity or falsely state or
-												misrepresent your affiliation
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Engage in any conduct that restricts or inhibits
-												anyone's use of the Services
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Upload or transmit viruses, malware, or any other
-												malicious code
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Attempt to gain unauthorized access to any portion of
-												the Services
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Interfere with or disrupt the Services or servers
-												connected to the Services
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Use automated systems (bots, scrapers) without our
-												express written permission
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Engage in any fraudulent, deceptive, or manipulative
-												practices
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Sell, resell, or commercially exploit the Services
-												without authorization
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Remove, alter, or obscure any copyright, trademark, or
-												proprietary notices
-											</span>
-										</li>
-									</ul>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										3.2 Content Standards
-									</h3>
-									<p className="mb-4 leading-relaxed">
-										Any content you upload or submit through the Services must
-										not:
-									</p>
-									<ul className="space-y-3">
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Contain material that is defamatory, obscene, offensive,
-												or hateful
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Infringe any intellectual property rights or privacy
-												rights of third parties
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Contain unsolicited promotions, spam, or commercial
-												content
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Promote discrimination, violence, or illegal activities
-											</span>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 4: Intellectual Property Rights */}
-						<PolicySection
-							id="intellectual-property"
-							sectionNumber={4}
-							title="Intellectual Property Rights"
-							icon={FileText}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										4.1 Our Intellectual Property
-									</h3>
-									<p className="leading-relaxed">
-										The Services, including all content, features,
-										functionality, software, code, design, graphics, logos, and
-										trademarks, are owned by EventzFlow or its licensors and are
-										protected by international copyright, trademark, patent,
-										trade secret, and other intellectual property laws. You are
-										granted a limited, non-exclusive, non-transferable,
-										revocable license to access and use the Services for your
-										personal or internal business purposes.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										4.2 User Content
-									</h3>
-									<p className="leading-relaxed">
-										You retain ownership of any content you submit, upload, or
-										create through the Services ("User Content"). By submitting
-										User Content, you grant EventzFlow a worldwide,
-										non-exclusive, royalty-free, transferable, sublicensable
-										license to use, reproduce, modify, adapt, publish,
-										translate, create derivative works from, distribute, and
-										display such User Content solely for the purpose of
-										providing and improving the Services.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										4.3 Feedback
-									</h3>
-									<p className="leading-relaxed">
-										If you provide us with any feedback, suggestions, or
-										recommendations regarding the Services, you grant us the
-										right to use such feedback without any obligation to you.
-									</p>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 5: Payment Terms and Billing */}
-						<PolicySection
-							id="payment"
-							sectionNumber={5}
-							title="Payment Terms and Billing"
-							icon={CreditCard}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										5.1 Fees and Charges
-									</h3>
-									<p className="leading-relaxed">
-										Certain features of the Services may require payment of
-										fees. You agree to pay all applicable fees as described in
-										your selected pricing plan. All fees are non-refundable
-										unless otherwise stated in our refund policy or required by
-										law.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										5.2 Subscription and Billing
-									</h3>
-									<p className="leading-relaxed">
-										If you subscribe to a paid plan, you authorize us to charge
-										your payment method on a recurring basis according to your
-										billing cycle. Subscriptions automatically renew unless
-										cancelled before the renewal date. We reserve the right to
-										modify pricing with 30 days' notice.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										5.3 Taxes
-									</h3>
-									<p className="leading-relaxed">
-										All fees are exclusive of applicable taxes, duties, or
-										similar governmental charges. You are responsible for paying
-										all such taxes or charges.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										5.4 Payment Disputes
-									</h3>
-									<p className="leading-relaxed">
-										If you believe you have been incorrectly charged, you must
-										contact us within 30 days of the charge date. Failure to
-										notify us within this period constitutes acceptance of the
-										charges.
-									</p>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 6: Cancellation and Termination */}
-						<PolicySection
-							id="termination"
-							sectionNumber={6}
-							title="Cancellation and Termination"
-							icon={XCircle}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										6.1 Cancellation by User
-									</h3>
-									<p className="leading-relaxed">
-										You may cancel your subscription or close your account at
-										any time through your account settings. Cancellation will
-										take effect at the end of your current billing period. You
-										will retain access to paid features until the end of the
-										paid period.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										6.2 Termination by EventzFlow
-									</h3>
-									<p className="mb-4 leading-relaxed">
-										We reserve the right to suspend or terminate your access to
-										the Services immediately, without prior notice or liability,
-										for any reason, including but not limited to:
-									</p>
-									<ul className="space-y-3">
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>Violation of these Terms</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>Fraudulent or illegal activity</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>Non-payment of fees</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Actions that may cause harm to the Services or other
-												users
-											</span>
-										</li>
-										<li className="flex gap-3">
-											<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-											<span>
-												Request by law enforcement or government agencies
-											</span>
-										</li>
-									</ul>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										6.3 Effect of Termination
-									</h3>
-									<p className="leading-relaxed">
-										Upon termination, your right to access the Services will
-										immediately cease. We may delete your account and all
-										associated data. We are not obligated to retain or provide
-										you with copies of your User Content after termination,
-										except as required by law.
-									</p>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 7: Disclaimers and Warranties */}
-						<PolicySection
-							id="disclaimers"
-							sectionNumber={7}
-							title="Disclaimers and Warranties"
-							icon={AlertTriangle}
-						>
-							<div className="space-y-4 text-muted-foreground text-sm sm:text-base">
-								<p className="leading-relaxed">
-									THE SERVICES ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE"
-									BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
-									IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
-									MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-									NON-INFRINGEMENT, OR COURSE OF PERFORMANCE.
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									1.2 Account Registration
+								</h3>
+								<p className="mb-4 leading-relaxed">
+									When registering, you agree to:
 								</p>
-								<p className="leading-relaxed">
-									EventzFlow does not warrant that:
-								</p>
-								<ul className="space-y-3">
+								<ul className="space-y-2">
 									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>
-											The Services will function uninterrupted, timely, secure,
-											or error-free
-										</span>
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Provide accurate, current, and complete information</span>
 									</li>
 									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>
-											The results obtained from using the Services will be
-											accurate or reliable
-										</span>
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Maintain and promptly update your account information</span>
 									</li>
 									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>
-											The quality of any services, information, or materials
-											obtained through the Services will meet your expectations
-										</span>
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Maintain the security and confidentiality of your password</span>
 									</li>
 									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Any errors in the Services will be corrected</span>
-									</li>
-								</ul>
-								<p className="leading-relaxed">
-									Your use of the Services is at your sole risk. You are solely
-									responsible for any damage to your computer system or loss of
-									data resulting from the use of the Services.
-								</p>
-							</div>
-						</PolicySection>
-
-						{/* Section 8: Limitation of Liability */}
-						<PolicySection
-							id="liability"
-							sectionNumber={8}
-							title="Limitation of Liability"
-							icon={Shield}
-						>
-							<div className="space-y-4 text-muted-foreground text-sm sm:text-base">
-								<p className="leading-relaxed">
-									TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT
-									SHALL EVENTZFLOW, ITS AFFILIATES, OFFICERS, DIRECTORS,
-									EMPLOYEES, AGENTS, OR LICENSORS BE LIABLE FOR ANY INDIRECT,
-									INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES,
-									INCLUDING BUT NOT LIMITED TO:
-								</p>
-								<ul className="space-y-3">
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Loss of profits, revenue, data, or use</span>
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Accept responsibility for all activities under your account</span>
 									</li>
 									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Business interruption</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Loss of goodwill or reputation</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Cost of procurement of substitute services</span>
-									</li>
-								</ul>
-								<p className="leading-relaxed">
-									WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING
-									NEGLIGENCE), PRODUCT LIABILITY, OR ANY OTHER LEGAL THEORY,
-									ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF THE SERVICES,
-									EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-								</p>
-								<p className="leading-relaxed">
-									OUR TOTAL LIABILITY TO YOU FOR ALL CLAIMS ARISING OUT OF OR
-									RELATING TO THESE TERMS OR THE SERVICES SHALL NOT EXCEED THE
-									AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE
-									CLAIM, OR ONE HUNDRED DOLLARS ($100), WHICHEVER IS GREATER.
-								</p>
-							</div>
-						</PolicySection>
-
-						{/* Section 9: Indemnification */}
-						<PolicySection
-							id="indemnification"
-							sectionNumber={9}
-							title="Indemnification"
-							icon={Shield}
-						>
-							<div className="space-y-4 text-muted-foreground text-sm sm:text-base">
-								<p className="leading-relaxed">
-									You agree to defend, indemnify, and hold harmless EventzFlow,
-									its affiliates, licensors, and service providers, and their
-									respective officers, directors, employees, contractors,
-									agents, and representatives from and against any claims,
-									liabilities, damages, judgments, awards, losses, costs,
-									expenses, or fees (including reasonable attorneys' fees)
-									arising out of or relating to:
-								</p>
-								<ul className="space-y-3">
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Your violation of these Terms</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Your use or misuse of the Services</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Your User Content</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>Your violation of any rights of another party</span>
-									</li>
-									<li className="flex gap-3">
-										<span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-										<span>
-											Your violation of any applicable laws or regulations
-										</span>
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Immediately notify us of any unauthorized use</span>
 									</li>
 								</ul>
 							</div>
-						</PolicySection>
+						</div>
+					</PolicySection>
 
-						{/* Section 10: Dispute Resolution and Governing Law */}
-						<PolicySection
-							id="dispute-resolution"
-							sectionNumber={10}
-							title="Dispute Resolution and Governing Law"
-							icon={Scale}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										10.1 Governing Law
-									</h3>
-									<p className="leading-relaxed">
-										These Terms shall be governed by and construed in accordance
-										with the laws of [Your Jurisdiction], without regard to its
-										conflict of law provisions.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										10.2 Dispute Resolution
-									</h3>
-									<p className="leading-relaxed">
-										In the event of any dispute, controversy, or claim arising
-										out of or relating to these Terms or the Services, the
-										parties agree to first attempt to resolve the matter through
-										good-faith negotiations. If the dispute cannot be resolved
-										through negotiation within 30 days, either party may
-										initiate mediation or arbitration proceedings.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										10.3 Jurisdiction
-									</h3>
-									<p className="leading-relaxed">
-										You agree to submit to the personal and exclusive
-										jurisdiction of the courts located in [Your Jurisdiction]
-										for the resolution of any disputes arising from these Terms
-										or your use of the Services.
-									</p>
-								</div>
-							</div>
-						</PolicySection>
-
-						{/* Section 11: Data Protection and Privacy */}
-						<PolicySection
-							id="data-protection"
-							sectionNumber={11}
-							title="Data Protection and Privacy"
-							icon={Shield}
-						>
-							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Your use of the Services is also governed by our Privacy Policy,
-								which is incorporated into these Terms by reference. We are
-								committed to complying with applicable data protection laws,
-								including the General Data Protection Regulation (GDPR) and
-								Personal Data Protection Act (PDPA). Please review our Privacy
-								Policy to understand how we collect, use, and protect your
-								personal data.
+					{/* Section 2: Services Description */}
+					<PolicySection
+						id="services"
+						sectionNumber={2}
+						title="Services Description"
+						icon={Globe}
+						isBlack
+					>
+						<div className="text-white/60 text-sm md:text-base">
+							<p className="mb-4 leading-relaxed">
+								EventzFlow provides an event management platform that enables users to:
 							</p>
-						</PolicySection>
+							<ul className="space-y-2">
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Create, manage, and organize events</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Issue and manage tickets and registrations</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Process check-ins and attendee tracking</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Generate analytics and reports</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Manage event staff and team members</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Access API integrations and developer tools</span>
+								</li>
+							</ul>
+							<p className="mt-4 leading-relaxed">
+								We reserve the right to modify, suspend, or discontinue any aspect of the Services at any time without prior notice.
+							</p>
+						</div>
+					</PolicySection>
 
-						{/* Section 12: Third-Party Services and Links */}
-						<PolicySection
-							id="third-party"
-							sectionNumber={12}
-							title="Third-Party Services and Links"
-							icon={Globe}
-						>
-							<div className="space-y-4 text-muted-foreground text-sm sm:text-base">
-								<p className="leading-relaxed">
-									The Services may contain links to third-party websites,
-									services, or integrations that are not owned or controlled by
-									EventzFlow. We have no control over and assume no
-									responsibility for the content, privacy policies, or practices
-									of any third-party services.
+					{/* Section 3: User Obligations */}
+					<PolicySection
+						id="obligations"
+						sectionNumber={3}
+						title="User Obligations and Prohibited Conduct"
+						icon={Shield}
+					>
+						<div className="space-y-6 text-black/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									3.1 Acceptable Use
+								</h3>
+								<p className="mb-4 leading-relaxed">
+									You agree to use the Services only for lawful purposes. You agree NOT to:
 								</p>
+								<ul className="space-y-2">
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Use the Services in any way that violates applicable laws</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Impersonate any person or entity</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Upload or transmit viruses, malware, or malicious code</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Attempt to gain unauthorized access to the Services</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Use automated systems without our express permission</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Engage in fraudulent or deceptive practices</span>
+									</li>
+								</ul>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									3.2 Content Standards
+								</h3>
+								<p className="mb-4 leading-relaxed">
+									Any content you upload must not:
+								</p>
+								<ul className="space-y-2">
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Contain defamatory, obscene, or offensive material</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Infringe intellectual property or privacy rights</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Contain unsolicited promotions or spam</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+										<span>Promote discrimination, violence, or illegal activities</span>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</PolicySection>
+
+					{/* Section 4: Intellectual Property */}
+					<PolicySection
+						id="intellectual-property"
+						sectionNumber={4}
+						title="Intellectual Property Rights"
+						icon={FileText}
+						isBlack
+					>
+						<div className="space-y-6 text-white/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									4.1 Our Intellectual Property
+								</h3>
 								<p className="leading-relaxed">
-									You acknowledge and agree that EventzFlow shall not be
-									responsible or liable for any damage or loss caused by your
-									use of any third-party services. We strongly advise you to
-									read the terms and conditions and privacy policies of any
-									third-party services you access.
+									The Services, including all content, features, functionality, software, code, design, graphics, logos, and trademarks, are owned by EventzFlow or its licensors and are protected by international copyright, trademark, patent, and other intellectual property laws. You are granted a limited, non-exclusive, non-transferable, revocable license to access and use the Services.
 								</p>
 							</div>
-						</PolicySection>
 
-						{/* Section 13: Force Majeure */}
-						<PolicySection
-							id="force-majeure"
-							sectionNumber={13}
-							title="Force Majeure"
-							icon={AlertTriangle}
-						>
-							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								EventzFlow shall not be liable for any failure or delay in
-								performance due to circumstances beyond its reasonable control,
-								including but not limited to acts of God, natural disasters,
-								war, terrorism, riots, embargoes, acts of civil or military
-								authorities, fire, floods, accidents, pandemics, strikes, or
-								shortages of transportation, facilities, fuel, energy, labor, or
-								materials.
-							</p>
-						</PolicySection>
-
-						{/* Section 14: Severability and Waiver */}
-						<PolicySection
-							id="severability"
-							sectionNumber={14}
-							title="Severability and Waiver"
-							icon={Scale}
-						>
-							<div className="space-y-6 text-muted-foreground text-sm sm:text-base">
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										14.1 Severability
-									</h3>
-									<p className="leading-relaxed">
-										If any provision of these Terms is found to be unlawful,
-										void, or unenforceable, that provision shall be deemed
-										severable from these Terms and shall not affect the validity
-										and enforceability of the remaining provisions.
-									</p>
-								</div>
-
-								<div>
-									<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-										14.2 Waiver
-									</h3>
-									<p className="leading-relaxed">
-										No waiver by EventzFlow of any term or condition set forth
-										in these Terms shall be deemed a further or continuing
-										waiver of such term or condition or a waiver of any other
-										term or condition.
-									</p>
-								</div>
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									4.2 User Content
+								</h3>
+								<p className="leading-relaxed">
+									You retain ownership of any content you submit through the Services. By submitting content, you grant EventzFlow a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and display such content solely for providing and improving the Services.
+								</p>
 							</div>
-						</PolicySection>
+						</div>
+					</PolicySection>
 
-						{/* Section 15: Entire Agreement */}
-						<PolicySection
-							id="entire-agreement"
-							sectionNumber={15}
-							title="Entire Agreement"
-							icon={FileText}
-						>
-							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								These Terms, together with our Privacy Policy and any other
-								legal notices or agreements published by us on the Services,
-								constitute the entire agreement between you and EventzFlow
-								concerning your use of the Services and supersede all prior or
-								contemporaneous communications and proposals, whether oral or
-								written, between you and EventzFlow.
-							</p>
-						</PolicySection>
+					{/* Section 5: Payment Terms */}
+					<PolicySection
+						id="payment"
+						sectionNumber={5}
+						title="Payment Terms and Billing"
+						icon={CreditCard}
+					>
+						<div className="space-y-6 text-black/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									5.1 Fees and Charges
+								</h3>
+								<p className="leading-relaxed">
+									Certain features of the Services may require payment of fees. You agree to pay all applicable fees as described in your selected pricing plan. All fees are non-refundable unless otherwise stated.
+								</p>
+							</div>
 
-						{/* Section 16: Assignment */}
-						<PolicySection
-							id="assignment"
-							sectionNumber={16}
-							title="Assignment"
-							icon={Users}
-						>
-							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								You may not assign or transfer these Terms or your rights
-								hereunder, in whole or in part, without our prior written
-								consent. EventzFlow may assign these Terms or any rights
-								hereunder without your consent. Any attempted assignment in
-								violation of this section shall be void.
-							</p>
-						</PolicySection>
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									5.2 Subscription and Billing
+								</h3>
+								<p className="leading-relaxed">
+									If you subscribe to a paid plan, you authorize us to charge your payment method on a recurring basis. Subscriptions automatically renew unless cancelled before the renewal date. We reserve the right to modify pricing with 30 days' notice.
+								</p>
+							</div>
 
-						{/* Section 17: Contact Information */}
-						<PolicySection
-							id="contact"
-							sectionNumber={17}
-							title="Contact Information"
-							icon={Phone}
-							highlight
-						>
-							<p className="mb-6 text-muted-foreground text-sm leading-relaxed sm:text-base">
-								If you have any questions, concerns, or complaints regarding
-								these Terms, please contact us:
+							<div>
+								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
+									5.3 Taxes
+								</h3>
+								<p className="leading-relaxed">
+									All fees are exclusive of applicable taxes, duties, or similar governmental charges. You are responsible for paying all such taxes or charges.
+								</p>
+							</div>
+						</div>
+					</PolicySection>
+
+					{/* Section 6: Cancellation and Termination */}
+					<PolicySection
+						id="termination"
+						sectionNumber={6}
+						title="Cancellation and Termination"
+						icon={XCircle}
+						isBlack
+					>
+						<div className="space-y-6 text-white/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									6.1 Cancellation by User
+								</h3>
+								<p className="leading-relaxed">
+									You may cancel your subscription or close your account at any time through your account settings. Cancellation will take effect at the end of your current billing period.
+								</p>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									6.2 Termination by EventzFlow
+								</h3>
+								<p className="mb-4 leading-relaxed">
+									We reserve the right to suspend or terminate your access to the Services immediately for:
+								</p>
+								<ul className="space-y-2">
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+										<span>Violation of these Terms</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+										<span>Fraudulent or illegal activity</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+										<span>Non-payment of fees</span>
+									</li>
+									<li className="flex gap-3">
+										<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+										<span>Actions that may cause harm to the Services or other users</span>
+									</li>
+								</ul>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									6.3 Effect of Termination
+								</h3>
+								<p className="leading-relaxed">
+									Upon termination, your right to access the Services will immediately cease. We may delete your account and all associated data.
+								</p>
+							</div>
+						</div>
+					</PolicySection>
+
+					{/* Section 7: Disclaimers */}
+					<PolicySection
+						id="disclaimers"
+						sectionNumber={7}
+						title="Disclaimers and Warranties"
+						icon={AlertTriangle}
+					>
+						<div className="text-black/60 text-sm md:text-base">
+							<p className="mb-4 leading-relaxed uppercase font-bold text-black">
+								THE SERVICES ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS WITHOUT WARRANTIES OF ANY KIND.
 							</p>
-							<div className="rounded-lg border-2 border-primary/20 bg-background/80 p-6">
-								<p className="mb-3 font-semibold text-base text-foreground sm:text-lg">
+							<p className="mb-4 leading-relaxed">
+								EventzFlow does not warrant that:
+							</p>
+							<ul className="space-y-2">
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>The Services will function uninterrupted, timely, secure, or error-free</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>The results obtained from using the Services will be accurate or reliable</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Any errors in the Services will be corrected</span>
+								</li>
+							</ul>
+							<p className="mt-4 leading-relaxed">
+								Your use of the Services is at your sole risk.
+							</p>
+						</div>
+					</PolicySection>
+
+					{/* Section 8: Limitation of Liability */}
+					<PolicySection
+						id="liability"
+						sectionNumber={8}
+						title="Limitation of Liability"
+						icon={Shield}
+						isBlack
+					>
+						<div className="text-white/60 text-sm md:text-base">
+							<p className="mb-4 leading-relaxed">
+								TO THE MAXIMUM EXTENT PERMITTED BY LAW, EVENTZFLOW SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING:
+							</p>
+							<ul className="space-y-2">
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Loss of profits, revenue, data, or use</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Business interruption</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Loss of goodwill or reputation</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-white" />
+									<span>Cost of procurement of substitute services</span>
+								</li>
+							</ul>
+							<p className="mt-4 leading-relaxed">
+								Our total liability shall not exceed the amount you paid to us in the twelve (12) months preceding the claim, or one hundred dollars ($100), whichever is greater.
+							</p>
+						</div>
+					</PolicySection>
+
+					{/* Section 9: Indemnification */}
+					<PolicySection
+						id="indemnification"
+						sectionNumber={9}
+						title="Indemnification"
+						icon={Shield}
+					>
+						<div className="text-black/60 text-sm md:text-base">
+							<p className="mb-4 leading-relaxed">
+								You agree to defend, indemnify, and hold harmless EventzFlow from and against any claims, liabilities, damages, losses, costs, or expenses arising out of:
+							</p>
+							<ul className="space-y-2">
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Your violation of these Terms</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Your use or misuse of the Services</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Your User Content</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Your violation of any rights of another party</span>
+								</li>
+								<li className="flex gap-3">
+									<span className="mt-2 h-1 w-1 flex-shrink-0 bg-black" />
+									<span>Your violation of any applicable laws or regulations</span>
+								</li>
+							</ul>
+						</div>
+					</PolicySection>
+
+					{/* Section 10: Dispute Resolution */}
+					<PolicySection
+						id="dispute-resolution"
+						sectionNumber={10}
+						title="Dispute Resolution and Governing Law"
+						icon={Scale}
+						isBlack
+					>
+						<div className="space-y-6 text-white/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									10.1 Governing Law
+								</h3>
+								<p className="leading-relaxed">
+									These Terms shall be governed by and construed in accordance with the laws of Malaysia.
+								</p>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									10.2 Dispute Resolution
+								</h3>
+								<p className="leading-relaxed">
+									In the event of any dispute, the parties agree to first attempt to resolve the matter through good-faith negotiations. If the dispute cannot be resolved within 30 days, either party may initiate mediation or arbitration proceedings.
+								</p>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									10.3 Jurisdiction
+								</h3>
+								<p className="leading-relaxed">
+									You agree to submit to the personal and exclusive jurisdiction of the courts located in Malaysia for the resolution of any disputes.
+								</p>
+							</div>
+						</div>
+					</PolicySection>
+
+					{/* Section 11: Data Protection */}
+					<PolicySection
+						id="data-protection"
+						sectionNumber={11}
+						title="Data Protection and Privacy"
+						icon={Shield}
+					>
+						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+							Your use of the Services is also governed by our Privacy Policy, which is incorporated into these Terms by reference. We are committed to complying with applicable data protection laws, including the General Data Protection Regulation (GDPR) and Personal Data Protection Act (PDPA). Please review our{" "}
+							<Link href="/privacy-policy" className="text-black underline hover:no-underline">
+								Privacy Policy
+							</Link>{" "}
+							to understand how we collect, use, and protect your personal data.
+						</p>
+					</PolicySection>
+
+					{/* Section 12: Third-Party Services */}
+					<PolicySection
+						id="third-party"
+						sectionNumber={12}
+						title="Third-Party Services and Links"
+						icon={Globe}
+						isBlack
+					>
+						<div className="text-white/60 text-sm md:text-base">
+							<p className="mb-4 leading-relaxed">
+								The Services may contain links to third-party websites, services, or integrations that are not owned or controlled by EventzFlow. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party services.
+							</p>
+							<p className="leading-relaxed">
+								You acknowledge that EventzFlow shall not be responsible for any damage or loss caused by your use of any third-party services.
+							</p>
+						</div>
+					</PolicySection>
+
+					{/* Section 13: Force Majeure */}
+					<PolicySection
+						id="force-majeure"
+						sectionNumber={13}
+						title="Force Majeure"
+						icon={AlertTriangle}
+					>
+						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+							EventzFlow shall not be liable for any failure or delay in performance due to circumstances beyond its reasonable control, including but not limited to acts of God, natural disasters, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, pandemics, strikes, or shortages of transportation, facilities, fuel, energy, labor, or materials.
+						</p>
+					</PolicySection>
+
+					{/* Section 14: Severability and Waiver */}
+					<PolicySection
+						id="severability"
+						sectionNumber={14}
+						title="Severability and Waiver"
+						icon={Scale}
+						isBlack
+					>
+						<div className="space-y-6 text-white/60 text-sm md:text-base">
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									14.1 Severability
+								</h3>
+								<p className="leading-relaxed">
+									If any provision of these Terms is found to be unlawful, void, or unenforceable, that provision shall be deemed severable and shall not affect the validity of the remaining provisions.
+								</p>
+							</div>
+
+							<div>
+								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
+									14.2 Waiver
+								</h3>
+								<p className="leading-relaxed">
+									No waiver by EventzFlow of any term or condition set forth in these Terms shall be deemed a further or continuing waiver of such term or any other term.
+								</p>
+							</div>
+						</div>
+					</PolicySection>
+
+					{/* Section 15: Entire Agreement */}
+					<PolicySection
+						id="entire-agreement"
+						sectionNumber={15}
+						title="Entire Agreement"
+						icon={FileText}
+					>
+						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+							These Terms, together with our Privacy Policy and any other legal notices or agreements published by us on the Services, constitute the entire agreement between you and EventzFlow concerning your use of the Services and supersede all prior or contemporaneous communications and proposals.
+						</p>
+					</PolicySection>
+
+					{/* Section 16: Assignment */}
+					<PolicySection
+						id="assignment"
+						sectionNumber={16}
+						title="Assignment"
+						icon={Users}
+						isBlack
+					>
+						<p className="text-white/60 text-sm md:text-base leading-relaxed">
+							You may not assign or transfer these Terms or your rights hereunder, in whole or in part, without our prior written consent. EventzFlow may assign these Terms or any rights hereunder without your consent. Any attempted assignment in violation of this section shall be void.
+						</p>
+					</PolicySection>
+
+					{/* Section 17: Contact Information */}
+					<PolicySection
+						id="contact"
+						sectionNumber={17}
+						title="Contact Information"
+						icon={Phone}
+					>
+						<div className="text-black/60 text-sm md:text-base">
+							<p className="mb-6 leading-relaxed">
+								If you have any questions, concerns, or complaints regarding these Terms, please contact us:
+							</p>
+							<div className="border border-black/20 bg-black/5 p-6">
+								<p className="mb-3 font-bold text-base text-black md:text-lg">
 									EventzFlow Legal Department
 								</p>
-								<div className="space-y-2 text-muted-foreground text-sm sm:text-base">
+								<div className="space-y-2">
 									<p>
-										<span className="font-medium text-foreground">Email:</span>{" "}
+										<span className="font-bold text-black">Email:</span>{" "}
 										<a
 											href="mailto:info@eventzflow.com"
-											className="text-primary hover:underline"
+											className="text-black underline hover:no-underline"
 										>
 											info@eventzflow.com
 										</a>
 									</p>
 									<p>
-										<span className="font-medium text-foreground">
-											Company Name:
-										</span>{" "}
+										<span className="font-bold text-black">Company:</span>{" "}
 										Jesselton Pixel Sdn. Bhd.
 									</p>
 									<p>
-										<span className="font-medium text-foreground">Phone:</span>{" "}
+										<span className="font-bold text-black">Phone:</span>{" "}
 										<a
 											href="https://wa.me/60177268130"
 											target="_blank"
 											rel="noopener noreferrer"
-											className="text-primary hover:underline"
+											className="text-black underline hover:no-underline"
 										>
 											+6017-7268130
 										</a>
 									</p>
 								</div>
 							</div>
-						</PolicySection>
-					</div>
+						</div>
+					</PolicySection>
 				</div>
+			</section>
 
-				{/* Footer Note */}
-				<div className="mt-12 rounded-2xl border-2 bg-gradient-to-r from-muted/50 to-muted/30 p-8 text-center backdrop-blur-sm">
-					<p className="text-muted-foreground text-sm">
-						These Terms and Conditions are effective as of the date stated above
-						and apply to all users of our Services.
+			{/* Footer Note */}
+			<section className="bg-black px-6 py-16 md:py-24">
+				<div className="mx-auto max-w-4xl text-center">
+					<motion.p
+						initial={{ opacity: 0, y: 30 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.8, ease: smoothEase }}
+						className="text-white/50 text-sm"
+					>
+						These Terms and Conditions are effective as of the date stated above and apply to all users of our Services.
 						<br />
 						Please print or save a copy of these Terms for your records.
-					</p>
+					</motion.p>
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.6, delay: 0.2, ease: smoothEase }}
+						className="mt-8"
+					>
+						<Link
+							href="/privacy-policy"
+							className="border border-white px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black"
+						>
+							VIEW PRIVACY POLICY
+						</Link>
+					</motion.div>
 				</div>
-			</div>
-		</div>
+			</section>
+		</main>
 	);
 }
