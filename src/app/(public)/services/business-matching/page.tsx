@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import BusinessMatchingPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/business-matching/CTASection";
-import FeaturesSection from "@/components/pages/services/business-matching/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/business-matching/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/business-matching/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Business Matching - EventzFlow",
+	description:
+		"Meeting scheduling & networking. Connect the right people at your event. Facilitate meaningful connections between attendees, exhibitors, and sponsors with easy meeting bookings.",
+	openGraph: {
+		title: "Business Matching - EventzFlow",
+		description:
+			"Meeting scheduling & networking. Connect the right people at your event. Facilitate meaningful connections with easy meeting bookings.",
+		url: "https://eventzflow.com/services/business-matching",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function BusinessMatchingPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Business"
-				titleOutline="Matching"
-				tagline="Meeting Scheduling & Networking"
-				description="Connect the right people at your event. Facilitate meaningful connections between attendees, exhibitors, and sponsors with easy meeting bookings."
-				heroImage="/images/services/hero/BusinessMatching.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <BusinessMatchingPageClient />;
 }

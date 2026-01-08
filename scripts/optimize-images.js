@@ -2,7 +2,6 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-const IMAGES_DIR = path.join(__dirname, "../public/images/homepage");
 const MAX_WIDTH = 1920;
 const QUALITY = 90;
 
@@ -31,14 +30,24 @@ function printHeader() {
   console.log();
 }
 
-async function optimizeImages() {
-  printHeader();
+async function optimizeDirectory(dirPath, displayName) {
+  if (!fs.existsSync(dirPath)) {
+    console.log(c.red + "  ✕ Directory not found: " + displayName + c.reset);
+    console.log();
+    return { success: 0, total: 0, saved: 0 };
+  }
 
-  const files = fs.readdirSync(IMAGES_DIR);
+  const files = fs.readdirSync(dirPath);
   const imageFiles = files.filter((file) => /\.(jpg|jpeg|png)$/i.test(file));
 
+  if (imageFiles.length === 0) {
+    console.log(c.dim + "  No images to optimize in " + displayName + c.reset);
+    console.log();
+    return { success: 0, total: 0, saved: 0 };
+  }
+
   console.log(c.gray + "  ──────────────────────────────────────────────────────" + c.reset);
-  console.log(c.dim + "  Target" + c.reset + "     " + c.white + "public/images/homepage/" + c.reset);
+  console.log(c.dim + "  Target" + c.reset + "     " + c.white + displayName + c.reset);
   console.log(c.dim + "  Images" + c.reset + "     " + c.white + `${imageFiles.length} files` + c.reset);
   console.log(c.dim + "  Settings" + c.reset + "   " + c.white + `${MAX_WIDTH}px max · ${QUALITY}% quality` + c.reset);
   console.log(c.gray + "  ──────────────────────────────────────────────────────" + c.reset);
@@ -48,9 +57,9 @@ async function optimizeImages() {
   let successCount = 0;
 
   for (const file of imageFiles) {
-    const inputPath = path.join(IMAGES_DIR, file);
+    const inputPath = path.join(dirPath, file);
     const outputName = file.replace(/\.(jpg|jpeg|png)$/i, ".webp");
-    const outputPath = path.join(IMAGES_DIR, outputName);
+    const outputPath = path.join(dirPath, outputName);
 
     const inputStats = fs.statSync(inputPath);
     const inputSizeMB = (inputStats.size / 1024 / 1024).toFixed(2);
@@ -73,7 +82,7 @@ async function optimizeImages() {
 
       console.log(
         c.green + "  ● " + c.reset +
-        c.white + file.padEnd(24) + c.reset +
+        c.white + file.padEnd(30) + c.reset +
         c.dim + `${inputSizeMB} MB` + c.reset +
         c.gray + " → " + c.reset +
         c.yellow + `${outputSizeKB} KB` + c.reset +
@@ -82,19 +91,103 @@ async function optimizeImages() {
     } catch (error) {
       console.log(
         c.red + "  ✕ " + c.reset +
-        c.white + file.padEnd(24) + c.reset +
+        c.white + file.padEnd(30) + c.reset +
         c.dim + error.message + c.reset
       );
     }
   }
 
-  const totalSavedMB = (totalSaved / 1024 / 1024).toFixed(1);
-
   console.log();
+  return { success: successCount, total: imageFiles.length, saved: totalSaved };
+}
+
+async function optimizeImagesRecursive(basePath, displayBase) {
+  const entries = fs.readdirSync(basePath, { withFileTypes: true });
+  let totalSuccess = 0;
+  let totalFiles = 0;
+  let totalSaved = 0;
+
+  // First, optimize images in current directory
+  const result = await optimizeDirectory(basePath, displayBase);
+  totalSuccess += result.success;
+  totalFiles += result.total;
+  totalSaved += result.saved;
+
+  // Then recursively process subdirectories
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const subPath = path.join(basePath, entry.name);
+      const subDisplay = `${displayBase}/${entry.name}`;
+      const subResult = await optimizeImagesRecursive(subPath, subDisplay);
+      totalSuccess += subResult.success;
+      totalFiles += subResult.total;
+      totalSaved += subResult.saved;
+    }
+  }
+
+  return { success: totalSuccess, total: totalFiles, saved: totalSaved };
+}
+
+async function main() {
+  printHeader();
+
+  // Get target directory from command line argument
+  const targetArg = process.argv[2];
+  
+  let directories = [];
+  
+  if (targetArg === 'services') {
+    directories = [
+      {
+        path: path.join(__dirname, "../public/images/services"),
+        name: "public/images/services"
+      }
+    ];
+  } else if (targetArg === 'homepage') {
+    directories = [
+      {
+        path: path.join(__dirname, "../public/images/homepage"),
+        name: "public/images/homepage"
+      }
+    ];
+  } else if (targetArg === 'all') {
+    directories = [
+      {
+        path: path.join(__dirname, "../public/images/homepage"),
+        name: "public/images/homepage"
+      },
+      {
+        path: path.join(__dirname, "../public/images/services"),
+        name: "public/images/services"
+      }
+    ];
+  } else {
+    // Default: optimize all images
+    directories = [
+      {
+        path: path.join(__dirname, "../public/images"),
+        name: "public/images"
+      }
+    ];
+  }
+
+  let grandTotalSuccess = 0;
+  let grandTotalFiles = 0;
+  let grandTotalSaved = 0;
+
+  for (const dir of directories) {
+    const result = await optimizeImagesRecursive(dir.path, dir.name);
+    grandTotalSuccess += result.success;
+    grandTotalFiles += result.total;
+    grandTotalSaved += result.saved;
+  }
+
+  const totalSavedMB = (grandTotalSaved / 1024 / 1024).toFixed(1);
+
   console.log(c.gray + "  ──────────────────────────────────────────────────────" + c.reset);
   console.log(
     c.dim + "  Completed" + c.reset + "  " +
-    c.green + `${successCount}/${imageFiles.length} images` + c.reset +
+    c.green + `${grandTotalSuccess}/${grandTotalFiles} images` + c.reset +
     c.gray + "   " + c.reset +
     c.dim + "Saved" + c.reset + "  " +
     c.yellow + `${totalSavedMB} MB` + c.reset
@@ -102,4 +195,4 @@ async function optimizeImages() {
   console.log();
 }
 
-optimizeImages();
+main();

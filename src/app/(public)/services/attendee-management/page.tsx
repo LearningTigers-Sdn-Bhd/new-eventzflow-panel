@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import AttendeeManagementPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/attendee-management/CTASection";
-import FeaturesSection from "@/components/pages/services/attendee-management/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/attendee-management/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/attendee-management/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Attendee Management - EventzFlow",
+	description:
+		"Complete visitor & guest control. Manage your event attendees with ease. Register guests, import from spreadsheets, and access complete profiles with custom fields and unique QR codes.",
+	openGraph: {
+		title: "Attendee Management - EventzFlow",
+		description:
+			"Complete visitor & guest control. Manage your event attendees with ease. Register guests, import from spreadsheets, and access complete profiles.",
+		url: "https://eventzflow.com/services/attendee-management",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function AttendeeManagementPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Attendee"
-				titleOutline="Management"
-				tagline="Complete Visitor & Guest Control"
-				description="Manage your event attendees with ease. Register guests, import from spreadsheets, and access complete profiles with custom fields and unique QR codes."
-				heroImage="/images/services/hero/AttendeeManagement.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <AttendeeManagementPageClient />;
 }

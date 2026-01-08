@@ -11,19 +11,19 @@ const drawStyles = [
     id: "wheel",
     name: "Spinning Wheel",
     description: "Classic prize wheel",
-    image: "/images/services/lucky-draw/wheel.png",
+    image: "/images/services/lucky-draw/wheel.webp",
   },
   {
     id: "slot",
     name: "Slot Machine",
     description: "Vegas-style slots",
-    image: "/images/services/lucky-draw/slot.png",
+    image: "/images/services/lucky-draw/slot.webp",
   },
   {
     id: "box",
     name: "Mystery Box",
     description: "Surprise reveal",
-    image: "/images/services/lucky-draw/box.png",
+    image: "/images/services/lucky-draw/box.webp",
   },
 ];
 

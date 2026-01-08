@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import EventRegistrationPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/event-registration/CTASection";
-import FeaturesSection from "@/components/pages/services/event-registration/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/event-registration/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/event-registration/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Event Registration - EventzFlow",
+	description:
+		"RSVP, ticketing & WhatsApp. Seamless registration experience with multiple channels including web forms, WhatsApp automation, and QR code scanning. Collect attendee information effortlessly.",
+	openGraph: {
+		title: "Event Registration - EventzFlow",
+		description:
+			"RSVP, ticketing & WhatsApp. Seamless registration with web forms, WhatsApp automation, and QR code scanning. Collect attendee information effortlessly.",
+		url: "https://eventzflow.com/services/event-registration",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function EventRegistrationPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Event"
-				titleOutline="Registration"
-				tagline="RSVP, Ticketing & WhatsApp"
-				description="Seamless registration experience with multiple channels including web forms, WhatsApp automation, and QR code scanning. Collect attendee information effortlessly."
-				heroImage="/images/services/hero/EventRegistration.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <EventRegistrationPageClient />;
 }

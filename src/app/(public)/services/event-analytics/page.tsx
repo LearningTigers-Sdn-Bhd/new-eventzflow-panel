@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import EventAnalyticsPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/event-analytics/CTASection";
-import FeaturesSection from "@/components/pages/services/event-analytics/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/event-analytics/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/event-analytics/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Event Analytics - EventzFlow",
+	description:
+		"Real-time insights & reporting. See real-time data on attendance, engagement, and conversions. Make data-driven decisions with comprehensive analytics and exportable reports.",
+	openGraph: {
+		title: "Event Analytics - EventzFlow",
+		description:
+			"Real-time insights & reporting. See real-time data on attendance, engagement, and conversions. Make data-driven decisions with comprehensive analytics.",
+		url: "https://eventzflow.com/services/event-analytics",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function EventAnalyticsPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Event"
-				titleOutline="Analytics"
-				tagline="Real-time Insights & Reporting"
-				description="See real-time data on attendance, engagement, and conversions. Make data-driven decisions with comprehensive analytics and exportable reports."
-				heroImage="/images/services/hero/EventAnalytics.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <EventAnalyticsPageClient />;
 }

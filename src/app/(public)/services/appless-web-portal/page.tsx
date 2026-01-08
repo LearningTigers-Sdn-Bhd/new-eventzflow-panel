@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import ApplessWebPortalPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/appless-web-portal/CTASection";
-import FeaturesSection from "@/components/pages/services/appless-web-portal/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/appless-web-portal/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/appless-web-portal/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Appless Web Portal - EventzFlow",
+	description:
+		"No app download needed. EventzFlow works directly in your browser as a Progressive Web App. Access all features instantly - no app store, no downloads, no waiting.",
+	openGraph: {
+		title: "Appless Web Portal - EventzFlow",
+		description:
+			"No app download needed. EventzFlow works directly in your browser as a Progressive Web App. Access all features instantly.",
+		url: "https://eventzflow.com/services/appless-web-portal",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function ApplessWebPortalPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Appless"
-				titleOutline="Portal"
-				tagline="No App Download Needed"
-				description="EventzFlow works directly in your browser as a Progressive Web App. Access all features instantly - no app store, no downloads, no waiting."
-				heroImage="/images/services/hero/ApplessWebPortal.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <ApplessWebPortalPageClient />;
 }

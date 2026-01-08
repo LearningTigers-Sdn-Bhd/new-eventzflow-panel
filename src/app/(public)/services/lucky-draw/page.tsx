@@ -1,25 +1,21 @@
-"use client";
+import { Metadata } from "next";
+import LuckyDrawPageClient from "./page-client";
 
-import ServiceHero from "@/components/pages/services/ServiceHero";
-import CTASection from "@/components/pages/services/lucky-draw/CTASection";
-import FeaturesSection from "@/components/pages/services/lucky-draw/FeaturesSection";
-import HowItWorksSection from "@/components/pages/services/lucky-draw/HowItWorksSection";
-import ShowcaseSection from "@/components/pages/services/lucky-draw/ShowcaseSection";
+export const metadata: Metadata = {
+	title: "Lucky Draw - EventzFlow",
+	description:
+		"Interactive giveaways & prizes. Engage your audience with exciting lucky draws and giveaways. Run multiple sessions, track winners, and create memorable moments at your event.",
+	openGraph: {
+		title: "Lucky Draw - EventzFlow",
+		description:
+			"Interactive giveaways & prizes. Engage your audience with exciting lucky draws. Run multiple sessions, track winners, and create memorable moments.",
+		url: "https://eventzflow.com/services/lucky-draw",
+		siteName: "EventzFlow",
+		locale: "en_US",
+		type: "website",
+	},
+};
 
 export default function LuckyDrawPage() {
-	return (
-		<main>
-			<ServiceHero
-				title="Lucky"
-				titleOutline="Draw"
-				tagline="Interactive Giveaways & Prizes"
-				description="Engage your audience with exciting lucky draws and giveaways. Run multiple sessions, track winners, and create memorable moments at your event."
-				heroImage="/images/services/hero/LuckyDraw.png"
-			/>
-			<FeaturesSection />
-			<HowItWorksSection />
-			<ShowcaseSection />
-			<CTASection />
-		</main>
-	);
+	return <LuckyDrawPageClient />;
 }
