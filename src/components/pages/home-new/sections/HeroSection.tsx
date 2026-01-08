@@ -44,7 +44,7 @@ const HeroSection: React.FC = () => {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 1, ease: SMOOTH_EASE }}
-							className="mb-8 pl-2 text-xs font-medium uppercase tracking-[0.4em] text-white/70"
+							className="mb-8 pl-2 text-xs font-medium uppercase tracking-[0.4em] text-white/70 sm:text-sm"
 						>
 							All-in-One Event Solution
 						</motion.p>
@@ -83,7 +83,7 @@ const HeroSection: React.FC = () => {
 							<div className="mb-6 h-px w-full bg-white/30" />
 
 							{/* Description text */}
-							<p className="text-left text-sm leading-relaxed text-white/70 md:text-right lg:text-base">
+							<p className="text-left text-base leading-relaxed text-white/80 md:text-right lg:text-lg">
 								From visitor booth tracking and QR check-in with instant badge
 								printing, to AI audience profiling and retargeting — EventzFlow
 								connects every part of the event journey.
@@ -91,12 +91,12 @@ const HeroSection: React.FC = () => {
 
 							{/* CTA */}
 							<div className="mt-8 flex items-center justify-start gap-6 md:justify-end">
-															<Link
-								href={"/auth?login" as Route}
-								className="inline-block bg-white px-10 py-5 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-white/90 hover:scale-[1.03]"
-							>
-								Get Started
-							</Link>
+								<Link
+									href={"/auth?login" as Route}
+									className="inline-block bg-white px-10 py-5 text-base font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-[#23c460] hover:text-white hover:scale-[1.03]"
+								>
+									Get Started
+								</Link>
 								<div className="h-px w-16 bg-white/50" />
 							</div>
 						</motion.div>
@@ -127,7 +127,11 @@ const HeroSection: React.FC = () => {
 					<div className="flex h-10 w-6 items-start justify-center rounded-full border border-white/30 p-2">
 						<motion.div
 							animate={{ y: [0, 8, 0], opacity: [1, 0.3, 1] }}
-							transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+							transition={{
+								duration: 1.5,
+								repeat: Infinity,
+								ease: "easeInOut",
+							}}
 							className="h-2 w-1 rounded-full bg-white"
 						/>
 					</div>

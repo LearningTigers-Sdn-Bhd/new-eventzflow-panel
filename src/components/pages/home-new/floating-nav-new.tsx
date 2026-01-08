@@ -231,7 +231,7 @@ export default function FloatingNavNew() {
 								aria-controls="services-menu"
 								aria-haspopup="true"
 								onClick={() => setServicesOpen((prev) => !prev)}
-								className="flex items-center gap-1 px-5 py-2 text-xs font-medium tracking-widest text-white/60 transition-all duration-300 hover:text-white"
+								className="flex items-center gap-1 px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
 							>
 								SERVICES
 								<ChevronDown
@@ -269,7 +269,7 @@ export default function FloatingNavNew() {
 																<p className="text-sm font-medium text-white/80 transition-colors duration-200 group-hover:text-black">
 																	{service.label}
 																</p>
-																<p className="text-xs text-white/40 transition-colors duration-200 group-hover:text-black/60">
+																<p className="text-sm text-white/60 transition-colors duration-200 group-hover:text-black/70">
 																	{service.description}
 																</p>
 															</div>
@@ -308,7 +308,7 @@ export default function FloatingNavNew() {
 								aria-controls="resources-menu"
 								aria-haspopup="true"
 								onClick={() => setResourcesOpen((prev) => !prev)}
-								className="flex items-center gap-1 px-5 py-2 text-xs font-medium tracking-widest text-white/60 transition-all duration-300 hover:text-white"
+								className="flex items-center gap-1 px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
 							>
 								RESOURCES
 								<ChevronDown
@@ -355,7 +355,7 @@ export default function FloatingNavNew() {
 						{/* About Us */}
 						<Link
 							href="/about"
-							className="relative px-5 py-2 text-xs font-medium tracking-widest text-white/60 transition-all duration-300 hover:text-white"
+							className="relative px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
 						>
 							ABOUT US
 						</Link>
@@ -363,7 +363,7 @@ export default function FloatingNavNew() {
 						{/* Contact Us */}
 						<Link
 							href="/contact"
-							className="relative px-5 py-2 text-xs font-medium tracking-widest text-white/60 transition-all duration-300 hover:text-white"
+							className="relative px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
 						>
 							CONTACT US
 						</Link>
@@ -429,7 +429,7 @@ export default function FloatingNavNew() {
 							/* CTA Button - Desktop (only when not logged in) */
 							<button
 								onClick={() => router.push("/auth?login")}
-								className="hidden border border-white px-6 py-2.5 text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black lg:block"
+								className="hidden border border-white px-6 py-2.5 text-sm font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] lg:block"
 							>
 								GET STARTED
 							</button>
@@ -528,7 +528,7 @@ export default function FloatingNavNew() {
 																		<p className="text-sm font-medium text-white/70 transition-colors duration-200 group-hover:text-white">
 																			{service.label}
 																		</p>
-																		<p className="text-xs text-white/40">
+																		<p className="text-sm text-white/60">
 																			{service.description}
 																		</p>
 																	</div>
@@ -621,7 +621,7 @@ export default function FloatingNavNew() {
 									<Link
 										href="/dashboard"
 										onClick={() => setIsOpen(false)}
-										className="mt-8 block w-full border border-white bg-white py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
+										className="mt-8 block w-full border border-white bg-white py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
 									>
 										GO TO DASHBOARD
 									</Link>
@@ -634,7 +634,7 @@ export default function FloatingNavNew() {
 											router.push("/auth?login");
 											setIsOpen(false);
 										}}
-										className="mt-8 w-full border border-white bg-white py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
+										className="mt-8 w-full border border-white bg-white py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
 									>
 										GET STARTED
 									</motion.button>

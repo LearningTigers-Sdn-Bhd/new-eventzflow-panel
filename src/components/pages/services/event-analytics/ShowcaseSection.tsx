@@ -189,7 +189,7 @@ export default function ShowcaseSection() {
                   <span className="font-bold text-xs tracking-widest text-black/40">
                     {item.number}
                   </span>
-                  <span className="text-sm font-medium text-black">
+                  <span className="text-base font-medium text-black">
                     {item.text}
                   </span>
                 </motion.div>

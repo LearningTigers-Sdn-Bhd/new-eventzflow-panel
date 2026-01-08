@@ -169,7 +169,7 @@ export default function AboutPageClient() {
             <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
               Why we created EventzFlow
             </h2>
-            <p className="text-base leading-relaxed text-black/60 md:text-lg">
+            <p className="text-lg leading-relaxed text-black/70 md:text-xl">
               We built EventzFlow to solve a problem we saw happening
               everywhere: talented event organizers wasting hours on manual
               tasks, juggling disconnected tools, and unable to deliver the
@@ -200,7 +200,7 @@ export default function AboutPageClient() {
                   <h3 className="mb-3 font-bold text-lg text-white">
                     {pillar.title}
                   </h3>
-                  <p className="text-sm text-white/60">{pillar.description}</p>
+                  <p className="text-base text-white/70 md:text-lg">{pillar.description}</p>
                 </motion.div>
               );
             })}
@@ -237,12 +237,12 @@ export default function AboutPageClient() {
                   <h4 className="mt-2 mb-3 font-bold text-lg text-black">
                     {milestone.title}
                   </h4>
-                  <p className="mb-4 text-sm text-black/50 leading-relaxed">
+                  <p className="mb-4 text-base text-black/70 leading-relaxed md:text-lg">
                     {milestone.description}
                   </p>
                   <div className="flex items-start gap-2 border-t border-black/10 pt-4">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-black/40" />
-                    <span className="text-xs text-black/40">
+                    <span className="text-sm text-black/50 md:text-base">
                       {milestone.impact}
                     </span>
                   </div>
@@ -273,7 +273,7 @@ export default function AboutPageClient() {
               <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl">
                 What we stand for
               </h2>
-              <p className="text-base leading-relaxed text-white/50">
+              <p className="text-lg leading-relaxed text-white/70 md:text-xl">
                 These aren't just words on a wall. They guide every decision we
                 make, every feature we ship, and every conversation we have with
                 our customers.
@@ -303,7 +303,7 @@ export default function AboutPageClient() {
                     <h3 className="mb-3 font-bold text-lg text-black">
                       {value.title}
                     </h3>
-                    <p className="text-sm text-black/60">{value.description}</p>
+                    <p className="text-base text-black/70 md:text-lg">{value.description}</p>
                   </motion.div>
                 );
               })}
@@ -333,7 +333,7 @@ export default function AboutPageClient() {
             <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
               Our approach to building great products
             </h2>
-            <p className="text-base leading-relaxed text-black/60 md:text-lg">
+            <p className="text-lg leading-relaxed text-black/70 md:text-xl">
               We believe the best solutions come from listening, iterating, and
               staying close to the people who use what we build every day.
             </p>
@@ -363,7 +363,7 @@ export default function AboutPageClient() {
                   <h3 className="mb-3 font-bold text-lg text-black">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-black/60">{item.description}</p>
+                  <p className="text-base text-black/70 md:text-lg">{item.description}</p>
                 </motion.div>
               );
             })}
@@ -401,7 +401,7 @@ export default function AboutPageClient() {
             <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl">
               Want to learn more?
             </h2>
-            <p className="mb-10 text-lg text-black/50 max-w-2xl mx-auto leading-relaxed">
+            <p className="mb-10 text-lg text-black/70 max-w-2xl mx-auto leading-relaxed md:text-xl">
               Whether you're planning your first event or managing many, we'd
               love to hear from you. No pressure, no sales pitch—just real
               conversation.
@@ -412,19 +412,19 @@ export default function AboutPageClient() {
                 href="https://wa.me/60177268130"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto border border-black bg-white px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-black hover:text-white"
+                className="w-full sm:w-auto border border-black bg-white px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] hover:text-white"
               >
                 CHAT ON WHATSAPP
               </a>
               <Link
                 href="/contact"
-                className="w-full sm:w-auto border border-black bg-black px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black"
+                className="w-full sm:w-auto border border-black bg-black px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#2766ec] hover:border-[#2766ec]"
               >
                 CONTACT US
               </Link>
             </div>
 
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-black/40 md:gap-8">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-base text-black/60 md:gap-8">
               <span className="flex items-center gap-2">
                 <span className="text-black">✓</span> Real humans respond
               </span>

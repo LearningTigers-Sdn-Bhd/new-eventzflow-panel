@@ -36,7 +36,7 @@ const TestimonialSection: React.FC = () => {
 					<div className="max-w-2xl">
 						<div className="mb-4 flex items-center gap-4 md:mb-6">
 							<div className="h-[2px] w-8 bg-black" />
-							<span className="text-xs tracking-[0.4em] text-black/60">
+							<span className="text-xs tracking-[0.4em] text-black/70 sm:text-sm">
 								WHAT OUR CLIENTS SAY
 							</span>
 						</div>
@@ -109,8 +109,8 @@ const TestimonialSection: React.FC = () => {
 										{testimonial.name}
 									</p>
 									<p
-										className={`mt-1 text-xs tracking-wide ${
-											isBlackCard ? "text-white/50" : "text-black/50"
+										className={`mt-1 text-sm tracking-wide ${
+											isBlackCard ? "text-white/60" : "text-black/60"
 										}`}
 									>
 										{testimonial.role}

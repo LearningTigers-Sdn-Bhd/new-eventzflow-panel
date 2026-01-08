@@ -64,11 +64,11 @@ const CapabilitiesSection: React.FC = () => {
 							<br />
 							CAPABILITIES
 						</h2>
-						<p className="text-base text-black/60 md:text-xl">
+						<p className="text-lg leading-relaxed text-black/70 md:text-xl">
 							Everything you need to run seamless events, all in one platform.
 						</p>
 					</div>
-					<div className="hidden border-b border-black/40 pb-2 font-bold text-xs tracking-widest text-black/40 md:block">
+					<div className="hidden border-b border-black/40 pb-2 font-bold text-sm tracking-widest text-black/40 md:block">
 						01 — 09 / FEATURES
 					</div>
 				</div>
@@ -115,8 +115,8 @@ const CapabilitiesSection: React.FC = () => {
 									</h3>
 								</div>
 								<p
-									className={`relative z-10 text-sm leading-relaxed ${
-										isBlackCard ? "text-white/60" : "text-black/60"
+									className={`relative z-10 text-base leading-relaxed md:text-lg ${
+										isBlackCard ? "text-white/70" : "text-black/70"
 									}`}
 								>
 									{capability.description}

@@ -101,7 +101,7 @@ export default function PrivacyPolicyPageClient() {
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center max-w-4xl"
 				>
-					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+					<p className="mb-4 text-base font-medium uppercase tracking-[0.3em] text-white/60">
 						Legal
 					</p>
 					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl">
@@ -136,7 +136,7 @@ export default function PrivacyPolicyPageClient() {
 						</p>
 						<div className="mt-8 inline-flex items-center gap-3 border border-black/20 bg-black/5 px-6 py-4 text-left">
 							<Info className="h-5 w-5 flex-shrink-0 text-black" />
-							<p className="text-sm text-black/60">
+							<p className="text-base text-black/70">
 								We comply with <strong className="text-black">GDPR</strong> and{" "}
 								<strong className="text-black">PDPA</strong> regulations. By using our Services, you consent to the practices described here.
 							</p>
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Information We Collect"
 						icon={Database}
 					>
-						<div className="space-y-6 text-black/60 text-sm md:text-base">
+						<div className="space-y-6 text-black/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
 									1.1 Personal Data You Provide
@@ -216,7 +216,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={UserCheck}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								We process your personal data for the following purposes:
 							</p>
@@ -256,7 +256,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Legal Basis for Processing (GDPR)"
 						icon={FileText}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								Under GDPR, we process your personal data based on:
 							</p>
@@ -289,7 +289,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={Globe}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								We may share your personal information in the following circumstances:
 							</p>
@@ -325,7 +325,7 @@ export default function PrivacyPolicyPageClient() {
 						title="International Data Transfers"
 						icon={Globe}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							Your information may be transferred to and processed in countries other than your country of residence. These countries may have different data protection laws. When we transfer personal data internationally, we implement appropriate safeguards such as Standard Contractual Clauses (SCCs) approved by the European Commission to ensure your data receives adequate protection.
 						</p>
 					</PolicySection>
@@ -338,7 +338,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={Lock}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								We implement industry-standard security measures to protect your personal data:
 							</p>
@@ -374,7 +374,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Data Retention"
 						icon={Clock}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							We retain your personal data only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, comply with legal obligations, resolve disputes, and enforce our agreements. When personal data is no longer required, we will securely delete or anonymize it. Specific retention periods vary based on data type and legal requirements, typically ranging from 3 to 7 years for transactional and financial records.
 						</p>
 					</PolicySection>
@@ -387,7 +387,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={Shield}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								Under GDPR and PDPA, you have the following rights:
 							</p>
@@ -434,7 +434,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Cookies and Tracking Technologies"
 						icon={Cookie}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								We use cookies and similar technologies to enhance your experience:
 							</p>
@@ -470,7 +470,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={Baby}
 						isBlack
 					>
-						<p className="text-white/60 text-sm md:text-base leading-relaxed">
+						<p className="text-white/70 text-base md:text-lg leading-relaxed">
 							Our Services are not intended for individuals under the age of 16. We do not knowingly collect personal data from children under 16. If you believe we have inadvertently collected information from a child under 16, please contact us immediately, and we will take steps to delete such information.
 						</p>
 					</PolicySection>
@@ -482,7 +482,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Third-Party Websites and Services"
 						icon={ExternalLink}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							Our Services may contain links to third-party websites or services that are not operated by us. We are not responsible for the privacy practices of these third parties. We encourage you to review the privacy policies of any third-party sites you visit.
 						</p>
 					</PolicySection>
@@ -495,7 +495,7 @@ export default function PrivacyPolicyPageClient() {
 						icon={FileText}
 						isBlack
 					>
-						<p className="text-white/60 text-sm md:text-base leading-relaxed">
+						<p className="text-white/70 text-base md:text-lg leading-relaxed">
 							We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors. We will notify you of material changes by posting the updated policy on our website and updating the "Last Updated" date. Your continued use of the Services after such modifications constitutes your acceptance of the updated Privacy Policy.
 						</p>
 					</PolicySection>
@@ -507,7 +507,7 @@ export default function PrivacyPolicyPageClient() {
 						title="Contact Us"
 						icon={Mail}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-6 leading-relaxed">
 								If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
 							</p>
@@ -565,7 +565,7 @@ export default function PrivacyPolicyPageClient() {
 					>
 						<Link
 							href="/terms-and-conditions"
-							className="border border-white px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black"
+							className="border border-white px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460]"
 						>
 							VIEW TERMS & CONDITIONS
 						</Link>

@@ -104,8 +104,8 @@ export default function FeaturesSection() {
                   </h3>
                 </div>
                 <p
-                  className={`relative z-10 text-sm leading-relaxed ${
-                    isBlackCard ? "text-white/60" : "text-black/60"
+                  className={`relative z-10 text-base leading-relaxed md:text-lg ${
+                    isBlackCard ? "text-white/70" : "text-black/70"
                   }`}
                 >
                   {feature.description}

@@ -98,10 +98,10 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 				transition={{ delay: 1, duration: 0.8 }}
 				className="absolute bottom-12 left-6 max-w-md md:bottom-16 md:left-12 lg:left-16"
 			>
-				<p className="mb-3 font-bold text-[10px] uppercase tracking-[0.3em] text-white/50">
+				<p className="mb-3 font-bold text-xs uppercase tracking-[0.3em] text-white/50">
 					{tagline}
 				</p>
-				<p className="text-sm leading-relaxed text-white/60 md:text-base">
+				<p className="text-base leading-relaxed text-white/60 md:text-lg">
 					{description}
 				</p>
 			</motion.div>

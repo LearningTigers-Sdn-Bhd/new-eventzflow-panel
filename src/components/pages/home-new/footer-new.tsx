@@ -84,31 +84,24 @@ const FooterNew: React.FC = () => {
 
 			{/* Main Footer Content */}
 			<div className="relative mx-auto max-w-7xl px-6 pt-20 pb-16 md:px-12">
-				{/* Giant Brand Section */}
-				<div className="mb-16 text-center">
-					<div className="flex items-center justify-center gap-4 mb-6">
-						<div className="h-px w-12 bg-white/30" />
-						<span className="text-xs tracking-[0.3em] text-white/40 uppercase">
-							Event Management Platform
-						</span>
-						<div className="h-px w-12 bg-white/30" />
-					</div>
-
-					{/* Logo */}
-					<div
-						className="text-6xl font-bold leading-none md:text-8xl lg:text-9xl"
-						style={{ fontFamily: "Times New Roman, serif" }}
-					>
-						<span style={{ color: "#23c460" }}>Event</span>
-						<span style={{ color: "#2766ec" }}>z</span>
-						<span style={{ color: "#23c460" }}>Flow</span>
-					</div>
-				</div>
-
 				{/* Content Grid */}
-				<div className="grid grid-cols-1 gap-12 lg:grid-cols-12 border-t border-white/10 pt-12">
-					{/* Left - Social & Contact */}
+				<div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+					{/* Left - Logo & Social */}
 					<div className="lg:col-span-4">
+						{/* Logo */}
+						<div
+							className="text-3xl font-bold leading-none mb-2 md:text-4xl"
+							style={{ fontFamily: "Times New Roman, serif" }}
+						>
+							<span style={{ color: "#23c460" }}>Event</span>
+							<span style={{ color: "#2766ec" }}>z</span>
+							<span style={{ color: "#23c460" }}>Flow</span>
+						</div>
+						<p className="text-xs tracking-wide text-white/40 mb-6">
+							by Sales Chatalyst
+						</p>
+						<div className="h-px w-50 bg-white/20 mb-6" />
+
 						<h4 className="text-xs font-bold tracking-[0.2em] text-white/50 mb-6 uppercase">
 							Connect With Us
 						</h4>
@@ -122,7 +115,7 @@ const FooterNew: React.FC = () => {
 										target="_blank"
 										rel="noopener noreferrer"
 										aria-label={social.label}
-										className="group flex h-12 w-12 items-center justify-center border border-white/20 text-white/50 transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
+										className="group flex h-12 w-12 items-center justify-center border border-white/20 text-white/50 transition-all duration-300 hover:border-[#23c460] hover:bg-[#23c460] hover:text-white"
 									>
 										<IconComponent className="h-5 w-5" />
 									</a>
@@ -146,19 +139,19 @@ const FooterNew: React.FC = () => {
 													<button
 														type="button"
 														onClick={() => link.id && scrollToSection(link.id)}
-														className="text-sm text-white/40 transition-colors duration-200 hover:text-white"
+														className="text-sm text-white/60 transition-colors duration-200 hover:text-white"
 													>
 														{link.label}
 													</button>
 												) : link.href ? (
 													<Link
 														href={link.href as Route}
-														className="text-sm text-white/40 transition-colors duration-200 hover:text-white"
+														className="text-sm text-white/60 transition-colors duration-200 hover:text-white"
 													>
 														{link.label}
 													</Link>
 												) : (
-													<span className="text-sm text-white/40">
+													<span className="text-sm text-white/60">
 														{link.label}
 													</span>
 												)}
@@ -177,11 +170,11 @@ const FooterNew: React.FC = () => {
 				<div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-8 md:flex-row md:px-12">
 					{/* Left - Copyright & By line */}
 					<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-						<p className="text-xs tracking-wide text-white/30">
+						<p className="text-sm tracking-wide text-white/40">
 							© {new Date().getFullYear()} EVENTZFLOW
 						</p>
 						<div className="hidden sm:block h-4 w-px bg-white/20" />
-						<p className="text-xs tracking-wide text-white/30">
+						<p className="text-sm tracking-wide text-white/40">
 							BY SALES CHATALYST
 						</p>
 					</div>
@@ -190,13 +183,13 @@ const FooterNew: React.FC = () => {
 					<div className="flex items-center gap-6">
 						<Link
 							href="/privacy-policy"
-							className="text-xs tracking-wide text-white/30 transition-colors duration-200 hover:text-white"
+							className="text-sm tracking-wide text-white/40 transition-colors duration-200 hover:text-white"
 						>
 							Privacy Policy
 						</Link>
 						<Link
 							href="/terms-and-conditions"
-							className="text-xs tracking-wide text-white/30 transition-colors duration-200 hover:text-white"
+							className="text-sm tracking-wide text-white/40 transition-colors duration-200 hover:text-white"
 						>
 							Terms & Conditions
 						</Link>

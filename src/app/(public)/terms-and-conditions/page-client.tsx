@@ -99,7 +99,7 @@ export default function TermsAndConditionsPageClient() {
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center max-w-4xl"
 				>
-					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+					<p className="mb-4 text-base font-medium uppercase tracking-[0.3em] text-white/60">
 						Legal
 					</p>
 					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl">
@@ -135,7 +135,7 @@ export default function TermsAndConditionsPageClient() {
 						</p>
 						<div className="mt-8 inline-flex items-center gap-3 border border-black/20 bg-black/5 px-6 py-4 text-left">
 							<AlertTriangle className="h-5 w-5 flex-shrink-0 text-black" />
-							<p className="text-sm text-black/60">
+							<p className="text-base text-black/70">
 								We reserve the right to modify these Terms at any time. Your continued use of the Services following any modifications constitutes your acceptance of the revised Terms.
 							</p>
 						</div>
@@ -153,7 +153,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Eligibility and Account Registration"
 						icon={UserCheck}
 					>
-						<div className="space-y-6 text-black/60 text-sm md:text-base">
+						<div className="space-y-6 text-black/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
 									1.1 Eligibility
@@ -204,7 +204,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Globe}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								EventzFlow provides an event management platform that enables users to:
 							</p>
@@ -247,7 +247,7 @@ export default function TermsAndConditionsPageClient() {
 						title="User Obligations and Prohibited Conduct"
 						icon={Shield}
 					>
-						<div className="space-y-6 text-black/60 text-sm md:text-base">
+						<div className="space-y-6 text-black/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
 									3.1 Acceptable Use
@@ -320,7 +320,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={FileText}
 						isBlack
 					>
-						<div className="space-y-6 text-white/60 text-sm md:text-base">
+						<div className="space-y-6 text-white/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
 									4.1 Our Intellectual Property
@@ -348,7 +348,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Payment Terms and Billing"
 						icon={CreditCard}
 					>
-						<div className="space-y-6 text-black/60 text-sm md:text-base">
+						<div className="space-y-6 text-black/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-black md:text-lg">
 									5.1 Fees and Charges
@@ -386,7 +386,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={XCircle}
 						isBlack
 					>
-						<div className="space-y-6 text-white/60 text-sm md:text-base">
+						<div className="space-y-6 text-white/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
 									6.1 Cancellation by User
@@ -441,7 +441,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Disclaimers and Warranties"
 						icon={AlertTriangle}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed uppercase font-bold text-black">
 								THE SERVICES ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS WITHOUT WARRANTIES OF ANY KIND.
 							</p>
@@ -476,7 +476,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Shield}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								TO THE MAXIMUM EXTENT PERMITTED BY LAW, EVENTZFLOW SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING:
 							</p>
@@ -511,7 +511,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Indemnification"
 						icon={Shield}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								You agree to defend, indemnify, and hold harmless EventzFlow from and against any claims, liabilities, damages, losses, costs, or expenses arising out of:
 							</p>
@@ -548,7 +548,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Scale}
 						isBlack
 					>
-						<div className="space-y-6 text-white/60 text-sm md:text-base">
+						<div className="space-y-6 text-white/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
 									10.1 Governing Law
@@ -585,7 +585,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Data Protection and Privacy"
 						icon={Shield}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							Your use of the Services is also governed by our Privacy Policy, which is incorporated into these Terms by reference. We are committed to complying with applicable data protection laws, including the General Data Protection Regulation (GDPR) and Personal Data Protection Act (PDPA). Please review our{" "}
 							<Link href="/privacy-policy" className="text-black underline hover:no-underline">
 								Privacy Policy
@@ -602,7 +602,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Globe}
 						isBlack
 					>
-						<div className="text-white/60 text-sm md:text-base">
+						<div className="text-white/70 text-base md:text-lg">
 							<p className="mb-4 leading-relaxed">
 								The Services may contain links to third-party websites, services, or integrations that are not owned or controlled by EventzFlow. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party services.
 							</p>
@@ -619,7 +619,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Force Majeure"
 						icon={AlertTriangle}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							EventzFlow shall not be liable for any failure or delay in performance due to circumstances beyond its reasonable control, including but not limited to acts of God, natural disasters, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, pandemics, strikes, or shortages of transportation, facilities, fuel, energy, labor, or materials.
 						</p>
 					</PolicySection>
@@ -632,7 +632,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Scale}
 						isBlack
 					>
-						<div className="space-y-6 text-white/60 text-sm md:text-base">
+						<div className="space-y-6 text-white/70 text-base md:text-lg">
 							<div>
 								<h3 className="mb-3 font-bold text-base text-white md:text-lg">
 									14.1 Severability
@@ -660,7 +660,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Entire Agreement"
 						icon={FileText}
 					>
-						<p className="text-black/60 text-sm md:text-base leading-relaxed">
+						<p className="text-black/70 text-base md:text-lg leading-relaxed">
 							These Terms, together with our Privacy Policy and any other legal notices or agreements published by us on the Services, constitute the entire agreement between you and EventzFlow concerning your use of the Services and supersede all prior or contemporaneous communications and proposals.
 						</p>
 					</PolicySection>
@@ -673,7 +673,7 @@ export default function TermsAndConditionsPageClient() {
 						icon={Users}
 						isBlack
 					>
-						<p className="text-white/60 text-sm md:text-base leading-relaxed">
+						<p className="text-white/70 text-base md:text-lg leading-relaxed">
 							You may not assign or transfer these Terms or your rights hereunder, in whole or in part, without our prior written consent. EventzFlow may assign these Terms or any rights hereunder without your consent. Any attempted assignment in violation of this section shall be void.
 						</p>
 					</PolicySection>
@@ -685,7 +685,7 @@ export default function TermsAndConditionsPageClient() {
 						title="Contact Information"
 						icon={Phone}
 					>
-						<div className="text-black/60 text-sm md:text-base">
+						<div className="text-black/70 text-base md:text-lg">
 							<p className="mb-6 leading-relaxed">
 								If you have any questions, concerns, or complaints regarding these Terms, please contact us:
 							</p>
@@ -748,7 +748,7 @@ export default function TermsAndConditionsPageClient() {
 					>
 						<Link
 							href="/privacy-policy"
-							className="border border-white px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black"
+							className="border border-white px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460]"
 						>
 							VIEW PRIVACY POLICY
 						</Link>

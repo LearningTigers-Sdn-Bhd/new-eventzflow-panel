@@ -70,7 +70,7 @@ const FAQSection: React.FC = () => {
 								QUESTIONS.
 							</h2>
 							<div className="my-4 h-1 w-12 bg-white/20 md:my-6" />
-							<p className="text-sm leading-relaxed text-white/50">
+							<p className="text-lg leading-relaxed text-white/70 md:text-xl">
 								Everything you need to know about EventzFlow. Can't find your
 								answer? Reach out to our team.
 							</p>
@@ -100,10 +100,13 @@ const FAQSection: React.FC = () => {
 									className="group flex w-full items-start justify-between gap-8 px-6 py-8 text-left transition-colors hover:bg-white/5"
 								>
 									<div className="flex items-start gap-6">
-										<span className="font-bold text-sm text-white/30">
+										<span className="font-bold text-sm text-white/40">
 											0{i + 1}
 										</span>
-										<h3 id={`faq-question-${i}`} className="font-bold text-lg leading-tight tracking-tight text-white md:text-xl">
+										<h3
+											id={`faq-question-${i}`}
+											className="font-bold text-lg leading-tight tracking-tight text-white md:text-xl"
+										>
 											{faq.question}
 										</h3>
 									</div>
@@ -128,7 +131,7 @@ const FAQSection: React.FC = () => {
 											className="overflow-hidden"
 										>
 											<div className="bg-white px-6 py-6">
-												<p className="text-justify text-black/70">
+												<p className="text-left text-base leading-relaxed text-black/70 md:text-lg">
 													{faq.answer}
 												</p>
 											</div>

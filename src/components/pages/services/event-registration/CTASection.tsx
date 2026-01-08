@@ -29,7 +29,7 @@ export default function CTASection() {
 					<div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
 						<Link href={"/auth?login" as Route}>
 							<motion.button
-								className="w-full border border-white bg-white px-10 py-4 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-transparent hover:text-white sm:w-auto"
+								className="w-full border border-white bg-white px-10 py-4 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-[#23c460] hover:border-[#23c460] hover:text-white sm:w-auto"
 								whileHover={{ scale: 1.02 }}
 								transition={{ type: "spring", stiffness: 300, damping: 20 }}
 							>
@@ -38,7 +38,7 @@ export default function CTASection() {
 						</Link>
 						<Link href={"/contact" as Route}>
 							<motion.button
-								className="w-full border border-white/30 bg-transparent px-10 py-4 text-sm font-bold uppercase tracking-[0.15em] text-white transition-all hover:border-white hover:bg-white hover:text-black sm:w-auto"
+								className="w-full border border-white/30 bg-transparent px-10 py-4 text-sm font-bold uppercase tracking-[0.15em] text-white transition-all hover:border-[#2766ec] hover:bg-[#2766ec] sm:w-auto"
 								whileHover={{ scale: 1.02 }}
 								transition={{ type: "spring", stiffness: 300, damping: 20 }}
 							>

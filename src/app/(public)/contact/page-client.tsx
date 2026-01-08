@@ -63,7 +63,7 @@ export default function ContactPageClient() {
           transition={{ duration: 0.8, ease: SMOOTH_EASE }}
           className="text-center"
         >
-          <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+          <p className="mb-4 text-base font-medium uppercase tracking-[0.3em] text-white/60">
             Get In Touch
           </p>
           <h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
@@ -153,8 +153,8 @@ export default function ContactPageClient() {
                       {method.label}
                     </p>
                     <p
-                      className={`mt-2 text-sm ${
-                        isBlackCard ? "text-white/60" : "text-black/60"
+                      className={`mt-2 text-base ${
+                        isBlackCard ? "text-white/70" : "text-black/70"
                       }`}
                     >
                       {method.description}
@@ -178,7 +178,7 @@ export default function ContactPageClient() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4, ease: SMOOTH_EASE }}
-            className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-black/50 md:gap-8"
+            className="mt-16 flex flex-wrap items-center justify-center gap-6 text-base text-black/50 md:gap-8"
           >
             <span className="flex items-center gap-2">
               <span className="text-black">✓</span> Real humans respond
@@ -214,7 +214,7 @@ export default function ContactPageClient() {
             <h2 className="font-black text-3xl uppercase tracking-tighter text-white md:text-4xl">
               Our Location
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-white/60 max-w-xl">
+            <p className="mt-4 text-base leading-relaxed text-white/70 md:text-lg max-w-xl">
               Lot 9, 1st Floor, Blok B, Damai Plaza Phase 4, Jalan Pokok Kayu
               Manis 2, 88200 Kota Kinabalu, Sabah (Above Aroma Italy Restaurant)
             </p>

@@ -82,7 +82,7 @@ const SectorItem: React.FC<{ sector: (typeof sectors)[0]; index: number }> = ({
 			{/* Dark overlay for text readability */}
 			<div
 				className={`pointer-events-none absolute inset-0 z-[1] transition-opacity duration-500 ${
-					isInView ? "bg-black/10" : "bg-black/20"
+					isInView ? "bg-black/25" : "bg-black/35"
 				}`}
 			/>
 
@@ -90,9 +90,13 @@ const SectorItem: React.FC<{ sector: (typeof sectors)[0]; index: number }> = ({
 				className="pointer-events-none relative z-10 whitespace-nowrap font-black text-4xl tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
 				style={{
 					x,
-					color: "rgba(255,255,255,0.3)",
-					WebkitTextStroke: "2px black",
-					textShadow: "4px 4px 0px rgba(0,0,0,0.2)",
+					color: isInView ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.35)",
+					WebkitTextStroke: isInView
+						? "2px rgba(0,0,0,0.9)"
+						: "2px rgba(0,0,0,0.75)",
+					textShadow: isInView
+						? "0 14px 40px rgba(0,0,0,0.65), 4px 4px 0 rgba(0,0,0,0.3)"
+						: "0 10px 30px rgba(0,0,0,0.55), 3px 3px 0 rgba(0,0,0,0.25)",
 				}}
 			>
 				{sector.title}
@@ -115,7 +119,7 @@ const SectorsSection: React.FC = () => {
 					{/* Decorative lines with text */}
 					<div className="mb-4 flex items-center justify-center gap-4 md:mb-6 md:gap-6">
 						<div className="h-px w-8 bg-black/30 md:w-16" />
-						<span className="text-[10px] tracking-[0.2em] text-black/50 sm:text-xs sm:tracking-[0.3em]">
+						<span className="text-xs tracking-[0.2em] text-black/60 sm:text-sm sm:tracking-[0.3em]">
 							BUILT FOR EVERY SECTOR
 						</span>
 						<div className="h-px w-8 bg-black/30 md:w-16" />

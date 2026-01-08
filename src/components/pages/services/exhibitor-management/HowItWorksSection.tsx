@@ -78,7 +78,7 @@ export default function HowItWorksSection() {
                 <h3 className="mb-3 font-bold text-xl text-white md:text-2xl">
                   {step.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-white/60 md:text-base">
+                <p className="text-base leading-relaxed text-white/60 md:text-lg">
                   {step.description}
                 </p>
               </div>

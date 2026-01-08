@@ -24,7 +24,7 @@ export default function BlogPageClient() {
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center"
 				>
-					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+					<p className="mb-4 text-base font-medium uppercase tracking-[0.3em] text-white/60">
 						Insights & Updates
 					</p>
 					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
