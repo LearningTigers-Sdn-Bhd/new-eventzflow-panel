@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type React from "react";
 
 const marqueeItems = [
@@ -17,22 +17,27 @@ const marqueeItems = [
 const BenefitsSection: React.FC = () => {
 	// Triple the items for smoother infinite loop
 	const tripleItems = [...marqueeItems, ...marqueeItems, ...marqueeItems];
+	const shouldReduceMotion = useReducedMotion();
 
 	return (
-		<section className="relative overflow-hidden">
+		<section id="benefits" className="relative overflow-hidden">
 			{/* Marquee content */}
 			<div className="relative overflow-hidden bg-white py-6">
 				<div className="flex">
 					<motion.div
 						className="flex shrink-0 whitespace-nowrap"
 						initial={{ x: 0 }}
-						animate={{ x: "-33.333%" }}
-						transition={{
-							repeat: Infinity,
-							repeatType: "loop",
-							duration: 40,
-							ease: "linear",
-						}}
+						animate={{ x: shouldReduceMotion ? 0 : "-33.333%" }}
+						transition={
+							shouldReduceMotion
+								? undefined
+								: {
+										repeat: Infinity,
+										repeatType: "loop",
+										duration: 40,
+										ease: "linear",
+									}
+						}
 					>
 						{tripleItems.map((item, index) => (
 							<span

@@ -11,13 +11,11 @@ const capabilities = [
 	},
 	{
 		title: "QR CODE CHECK-IN",
-		description:
-			"Fast, contactless entry with real-time attendance tracking.",
+		description: "Fast, contactless entry with real-time attendance tracking.",
 	},
 	{
 		title: "INSTANT BADGE PRINTING",
-		description:
-			"Print professional badges on-demand as attendees check in.",
+		description: "Print professional badges on-demand as attendees check in.",
 	},
 	{
 		title: "BUSINESS MATCHING",
@@ -53,7 +51,10 @@ const capabilities = [
 
 const CapabilitiesSection: React.FC = () => {
 	return (
-		<section className="bg-white px-6 py-16 md:py-30 md:px-12">
+		<section
+			id="capabilities"
+			className="bg-white px-6 py-16 md:py-30 md:px-12"
+		>
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-12 flex flex-col gap-6 md:mb-20 md:flex-row md:items-end md:justify-between">

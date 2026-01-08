@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import type React from "react";
 
 const CTASection: React.FC = () => {
@@ -57,19 +59,19 @@ const CTASection: React.FC = () => {
 						transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
 						className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4 md:mt-12"
 					>
-						<button
-							type="button"
+						<Link
+							href={"/auth?login" as Route}
 							className="group flex items-center justify-center gap-3 bg-black px-8 py-4 font-bold text-sm tracking-wide text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:px-12 sm:py-5"
 						>
 							GET STARTED
 							<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-						</button>
-						<button
-							type="button"
+						</Link>
+						<Link
+							href={"/contact" as Route}
 							className="flex items-center justify-center border border-black/20 px-8 py-4 font-bold text-sm tracking-wide text-black/70 transition-all duration-300 hover:-translate-y-1 hover:border-black hover:text-black sm:px-12 sm:py-5"
 						>
 							TALK TO SALES
-						</button>
+						</Link>
 					</motion.div>
 
 					{/* Trust Element */}

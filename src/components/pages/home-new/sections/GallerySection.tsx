@@ -7,15 +7,15 @@ import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const galleryImages = [
   {
-    src: "/images/homepage/Gallery1.jpg",
+    src: "/images/homepage/Gallery1.webp",
     alt: "EventzFlow in action - Event check-in",
   },
   {
-    src: "/images/homepage/Gallery2.jpg",
+    src: "/images/homepage/Gallery2.webp",
     alt: "EventzFlow in action - Conference networking",
   },
   {
-    src: "/images/homepage/Gallery3.jpg",
+    src: "/images/homepage/Gallery3.webp",
     alt: "EventzFlow in action - Exhibition booth",
   },
 ];
@@ -69,6 +69,7 @@ const GallerySection: React.FC = () => {
                 src={image.src}
                 alt={image.alt}
                 fill
+                priority={index === 0}
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 33vw"
               />

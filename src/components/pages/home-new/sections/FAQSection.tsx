@@ -95,13 +95,15 @@ const FAQSection: React.FC = () => {
 								<button
 									type="button"
 									onClick={() => toggleFAQ(i)}
+									aria-expanded={openIndex === i}
+									aria-controls={`faq-answer-${i}`}
 									className="group flex w-full items-start justify-between gap-8 px-6 py-8 text-left transition-colors hover:bg-white/5"
 								>
 									<div className="flex items-start gap-6">
 										<span className="font-bold text-sm text-white/30">
 											0{i + 1}
 										</span>
-										<h3 className="font-bold text-lg leading-tight tracking-tight text-white md:text-xl">
+										<h3 id={`faq-question-${i}`} className="font-bold text-lg leading-tight tracking-tight text-white md:text-xl">
 											{faq.question}
 										</h3>
 									</div>
@@ -116,6 +118,9 @@ const FAQSection: React.FC = () => {
 								<AnimatePresence>
 									{openIndex === i && (
 										<motion.div
+											id={`faq-answer-${i}`}
+											role="region"
+											aria-labelledby={`faq-question-${i}`}
 											initial={{ height: 0, opacity: 0 }}
 											animate={{ height: "auto", opacity: 1 }}
 											exit={{ height: 0, opacity: 0 }}

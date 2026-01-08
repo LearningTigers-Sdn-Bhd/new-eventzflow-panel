@@ -25,22 +25,25 @@ const FooterNew: React.FC = () => {
 		{
 			title: "PLATFORM",
 			links: [
+				{ label: "Benefits", id: "benefits" },
 				{ label: "Industries", id: "industries" },
-				{ label: "Features", id: "features" },
+				{ label: "Capabilities", id: "capabilities" },
 				{ label: "Testimonials", id: "testimonials" },
-				{ label: "FAQ", id: "faq" },
 			],
 		},
 		{
 			title: "RESOURCES",
 			links: [
-				{ label: "Why Choose Us", id: "why-choose" },
-				{ label: "Our Capabilities", id: "capabilities" },
+				{ label: "FAQ", id: "faq" },
+				{ label: "Blog", href: "/blog" },
 			],
 		},
 		{
 			title: "COMPANY",
-			links: [{ label: "About", href: "/about" }],
+			links: [
+				{ label: "About Us", href: "/about" },
+				{ label: "Contact Us", href: "/contact" },
+			],
 		},
 	];
 
@@ -92,14 +95,14 @@ const FooterNew: React.FC = () => {
 					</div>
 
 					{/* Logo */}
-					<h2
+					<div
 						className="text-6xl font-bold leading-none md:text-8xl lg:text-9xl"
 						style={{ fontFamily: "Times New Roman, serif" }}
 					>
 						<span style={{ color: "#23c460" }}>Event</span>
 						<span style={{ color: "#2766ec" }}>z</span>
 						<span style={{ color: "#23c460" }}>Flow</span>
-					</h2>
+					</div>
 				</div>
 
 				{/* Content Grid */}
@@ -116,6 +119,8 @@ const FooterNew: React.FC = () => {
 									<a
 										key={index}
 										href={social.href}
+										target="_blank"
+										rel="noopener noreferrer"
 										aria-label={social.label}
 										className="group flex h-12 w-12 items-center justify-center border border-white/20 text-white/50 transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
 									>

@@ -10,27 +10,27 @@ import { SMOOTH_EASE } from "@/lib/constants/animation";
 const sectors = [
 	{
 		title: "TRADE SHOWS & EXHIBITIONS",
-		img: "/images/homepage/TradeShow.png",
+		img: "/images/homepage/TradeShow.webp",
 	},
 	{
 		title: "CORPORATE EVENTS",
-		img: "/images/homepage/Corporate.png",
+		img: "/images/homepage/Corporate.webp",
 	},
 	{
 		title: "GOVERNMENT",
-		img: "/images/homepage/Goverment.png",
+		img: "/images/homepage/Goverment.webp",
 	},
 	{
 		title: "EDUCATION",
-		img: "/images/homepage/Education.png",
+		img: "/images/homepage/Education.webp",
 	},
 	{
 		title: "NON-PROFITS",
-		img: "/images/homepage/NonProfits.png",
+		img: "/images/homepage/NonProfits.webp",
 	},
 	{
 		title: "EVENT AGENCIES",
-		img: "/images/homepage/EventAgencies.png",
+		img: "/images/homepage/EventAgencies.webp",
 	},
 ];
 
@@ -88,7 +88,12 @@ const SectorItem: React.FC<{ sector: (typeof sectors)[0]; index: number }> = ({
 
 			<motion.h3
 				className="pointer-events-none relative z-10 whitespace-nowrap font-black text-4xl tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
-				style={{ x, color: "rgba(255,255,255,0.3)", WebkitTextStroke: "2px black", textShadow: "4px 4px 0px rgba(0,0,0,0.2)" }}
+				style={{
+					x,
+					color: "rgba(255,255,255,0.3)",
+					WebkitTextStroke: "2px black",
+					textShadow: "4px 4px 0px rgba(0,0,0,0.2)",
+				}}
 			>
 				{sector.title}
 			</motion.h3>
@@ -98,7 +103,7 @@ const SectorItem: React.FC<{ sector: (typeof sectors)[0]; index: number }> = ({
 
 const SectorsSection: React.FC = () => {
 	return (
-		<section className="relative bg-white">
+		<section id="industries" className="relative bg-white">
 			{/* Header */}
 			<div className="mx-auto max-w-7xl px-6 py-12 text-center md:py-20 lg:px-16">
 				<motion.div

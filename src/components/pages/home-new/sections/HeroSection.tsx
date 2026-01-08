@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import type React from "react";
 
@@ -12,10 +13,13 @@ const HeroSection: React.FC = () => {
 		<section className="relative min-h-screen overflow-hidden bg-black">
 			{/* Full-screen background image */}
 			<div className="absolute inset-0">
-				<img
-					src="/images/homepage/HeroSection.png"
+				<Image
+					src="/images/homepage/HeroSection.webp"
 					alt="Event management platform"
-					className="h-full w-full object-cover opacity-60"
+					fill
+					priority
+					sizes="100vw"
+					className="object-cover opacity-60"
 				/>
 				{/* Dark overlay for text readability */}
 				<div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
@@ -87,16 +91,12 @@ const HeroSection: React.FC = () => {
 
 							{/* CTA */}
 							<div className="mt-8 flex items-center justify-start gap-6 md:justify-end">
-								<Link href={"/auth?login" as Route}>
-									<motion.button
-										type="button"
-										className="bg-white px-10 py-5 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-white/90"
-										whileHover={{ scale: 1.03 }}
-										transition={{ type: "spring", stiffness: 300, damping: 20 }}
-									>
-										Get Started
-									</motion.button>
-								</Link>
+															<Link
+								href={"/auth?login" as Route}
+								className="inline-block bg-white px-10 py-5 text-sm font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-white/90 hover:scale-[1.03]"
+							>
+								Get Started
+							</Link>
 								<div className="h-px w-16 bg-white/50" />
 							</div>
 						</motion.div>

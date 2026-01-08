@@ -26,7 +26,10 @@ const testimonials = [
 
 const TestimonialSection: React.FC = () => {
 	return (
-		<section className="bg-white px-6 py-16 md:py-32 md:px-12">
+		<section
+			id="testimonials"
+			className="bg-white px-6 py-16 md:py-32 md:px-12"
+		>
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-12 md:mb-20">
@@ -72,6 +75,7 @@ const TestimonialSection: React.FC = () => {
 								<div>
 									<div className="mb-6">
 										<svg
+											aria-hidden="true"
 											className={`h-10 w-10 ${
 												isBlackCard ? "text-white/20" : "text-black/10"
 											}`}
