@@ -128,7 +128,7 @@ export const kyPublicClient = ky.create({
 	},
 	retry: {
 		limit: 3,
-		methods: ["get"],
+		methods: ["get", "post"],
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
@@ -455,6 +455,19 @@ export const publicRestClient = {
 		logger.debug("🔍 Public HTTP Client Debug (GET):");
 		logger.debug("  - URL:", url);
 		return kyPublicClient.get(url).json<T>();
+	},
+
+	/**
+	 * Make a POST request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	post: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (POST):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.post(url, { json: data }).json<T>();
 	},
 
 	/**

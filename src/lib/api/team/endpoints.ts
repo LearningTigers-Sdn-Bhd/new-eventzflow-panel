@@ -37,10 +37,18 @@ function transformTeamMember(backendMember: BackendTeamMember): TeamMember {
 /**
  * Get all team members
  */
-export async function getTeamMembers(): Promise<TeamMember[]> {
+export async function getTeamMembers(filters?: {
+	excludeResourcePermissions?: boolean;
+}): Promise<TeamMember[]> {
 	try {
-		const response =
-			await restClient.get<BackendTeamMember[]>("v1/team_members");
+		const searchParams = new URLSearchParams();
+		if (filters?.excludeResourcePermissions) {
+			searchParams.append("exclude_resource_permissions", "true");
+		}
+
+		const response = await restClient.get<BackendTeamMember[]>(
+			`v1/team_members?${searchParams.toString()}`,
+		);
 		return response.map(transformTeamMember);
 	} catch (error: unknown) {
 		console.error("Error fetching team members:", error);

@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
 	ClipboardList,
+	FileText,
 	FolderOpen,
 	Handshake,
 	HardHat,
@@ -38,6 +39,7 @@ export interface NavigationItem {
 	roleAllowed: UserRole[];
 	allowBottomNavigation: boolean; // Controls visibility in mobile bottom nav
 	requiresPermission?: string; // Optional permission key for dynamic visibility
+	isActive?: (pathname: string) => boolean;
 }
 
 // Navigation configuration data
@@ -152,6 +154,19 @@ export const navigationData = {
 	],
 	miscellaneous: [
 		{
+			name: "Manage Post Content",
+			url: "/resources/posts/" as Route,
+			icon: FileText,
+			roleAllowed: [
+				USER_ROLES.ORG_OWNER,
+				USER_ROLES.ORGANIZER,
+				USER_ROLES.MEMBER,
+			],
+			allowBottomNavigation: false,
+			requiresPermission: "has_writer_permission",
+			isActive: (pathname: string) => pathname.startsWith("/resources/"),
+		},
+		{
 			name: "API Keys",
 			url: "/api" as Route,
 			icon: Key,
@@ -177,6 +192,7 @@ export const navigationData = {
 
 export interface UserPermissions {
 	allow_printing_services?: boolean;
+	has_writer_permission?: boolean;
 }
 
 function filterByRoleAndPermissions(
@@ -192,10 +208,17 @@ function filterByRoleAndPermissions(
 		// Then check permission if required
 		if (item.requiresPermission && permissions) {
 			const permKey = item.requiresPermission as keyof UserPermissions;
-			// For org_owner, always allow (they control the permission)
+
+			// Special case: has_writer_permission must be strictly followed as per backend
+			if (item.requiresPermission === "has_writer_permission") {
+				return permissions[permKey] === true;
+			}
+
+			// For org_owner, always allow other permissions (they control them)
 			if (role === USER_ROLES.ORG_OWNER) {
 				return true;
 			}
+
 			// For other roles, check the permission value
 			if (permissions[permKey] === false) {
 				return false;
@@ -205,22 +228,54 @@ function filterByRoleAndPermissions(
 	});
 }
 
-export function getFilteredNavigation(userRole?: UserRole, permissions?: UserPermissions) {
+export function getFilteredNavigation(
+	userRole?: UserRole,
+	permissions?: UserPermissions,
+) {
 	const role = userRole || USER_ROLES.MEMBER;
 	return {
-		mainMenu: filterByRoleAndPermissions(navigationData.mainMenu, role, permissions),
-		memberManagement: filterByRoleAndPermissions(navigationData.memberManagement, role, permissions),
-		miscellaneous: filterByRoleAndPermissions(navigationData.miscellaneous, role, permissions),
+		mainMenu: filterByRoleAndPermissions(
+			navigationData.mainMenu,
+			role,
+			permissions,
+		),
+		memberManagement: filterByRoleAndPermissions(
+			navigationData.memberManagement,
+			role,
+			permissions,
+		),
+		miscellaneous: filterByRoleAndPermissions(
+			navigationData.miscellaneous,
+			role,
+			permissions,
+		),
 	};
 }
 
-export function getMobileNavigation(userRole?: UserRole, permissions?: UserPermissions) {
+export function getMobileNavigation(
+	userRole?: UserRole,
+	permissions?: UserPermissions,
+) {
 	const role = userRole || USER_ROLES.MEMBER;
-	const filtered = filterByRoleAndPermissions(navigationData.mainMenu, role, permissions);
+	const filtered = filterByRoleAndPermissions(
+		navigationData.mainMenu,
+		role,
+		permissions,
+	);
 	return {
 		bottomNavItems: filtered.filter((item) => item.allowBottomNavigation),
-		mainMenuNotInBottomNav: filtered.filter((item) => !item.allowBottomNavigation),
-		memberManagement: filterByRoleAndPermissions(navigationData.memberManagement, role, permissions),
-		miscellaneous: filterByRoleAndPermissions(navigationData.miscellaneous, role, permissions),
+		mainMenuNotInBottomNav: filtered.filter(
+			(item) => !item.allowBottomNavigation,
+		),
+		memberManagement: filterByRoleAndPermissions(
+			navigationData.memberManagement,
+			role,
+			permissions,
+		),
+		miscellaneous: filterByRoleAndPermissions(
+			navigationData.miscellaneous,
+			role,
+			permissions,
+		),
 	};
 }

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog-store";
 import {
 	DesktopView,
-	MobileView,
+	MobileTabletView,
 	ResponsiveLayout,
 } from "./admin-ui/layout/responsive-layout";
 
@@ -59,7 +59,7 @@ export function UniversalDialog() {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<ResponsiveLayout>
-				<MobileView>
+				<MobileTabletView>
 					<DialogContent
 						className={cn(
 							"gap-0 rounded-none border-0 p-0",
@@ -97,7 +97,7 @@ export function UniversalDialog() {
 							<ContentComponent {...props} />
 						</div>
 					</DialogContent>
-				</MobileView>
+				</MobileTabletView>
 				<DesktopView>
 					<DialogContent
 						className={cn(
