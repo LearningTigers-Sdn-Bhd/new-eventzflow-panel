@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 export default function BlogPage() {
 	return (
@@ -13,21 +13,21 @@ export default function BlogPage() {
 				<motion.div
 					initial={{ scaleY: 0 }}
 					animate={{ scaleY: 1 }}
-					transition={{ duration: 1.5, ease: smoothEase }}
-					className="absolute left-6 top-0 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+					transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+					className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 				/>
 
 				{/* Content */}
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, ease: smoothEase }}
+					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center"
 				>
 					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
 						Insights & Updates
 					</p>
-					<h1 className="font-black text-6xl uppercase tracking-tighter text-white md:text-7xl lg:text-8xl">
+					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
 						Blog
 					</h1>
 				</motion.div>
@@ -40,7 +40,7 @@ export default function BlogPage() {
 						initial={{ opacity: 0, y: 40 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						transition={{ duration: 0.8, ease: smoothEase }}
+						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					>
 						{/* Decorative line */}
 						<div className="mx-auto mb-8 h-[2px] w-16 bg-black/20" />
@@ -48,7 +48,7 @@ export default function BlogPage() {
 						<p className="mb-4 text-xs font-bold uppercase tracking-[0.4em] text-black/40">
 							Coming Soon
 						</p>
-						<h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-black md:text-5xl">
+						<h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
 							We're working on it
 						</h2>
 						<p className="mx-auto max-w-xl text-base leading-relaxed text-black/60 md:text-lg">

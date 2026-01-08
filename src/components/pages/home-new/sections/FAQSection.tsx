@@ -58,18 +58,18 @@ const FAQSection: React.FC = () => {
 	};
 
 	return (
-		<section id="faq" className="bg-black px-6 py-30 md:px-12">
+		<section id="faq" className="bg-black px-6 py-16 md:py-30 md:px-12">
 			<div className="mx-auto max-w-7xl">
-				<div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-8">
+				<div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
 					{/* Left Side - Title */}
 					<div className="lg:col-span-4">
 						<div className="lg:sticky lg:top-40">
-							<h2 className="font-black text-5xl tracking-tighter text-white md:text-7xl">
+							<h2 className="font-black text-4xl tracking-tighter text-white sm:text-5xl md:text-7xl">
 								COMMON
 								<br />
 								QUESTIONS.
 							</h2>
-							<div className="my-6 h-1 w-12 bg-white/20" />
+							<div className="my-4 h-1 w-12 bg-white/20 md:my-6" />
 							<p className="text-sm leading-relaxed text-white/50">
 								Everything you need to know about EventzFlow. Can't find your
 								answer? Reach out to our team.

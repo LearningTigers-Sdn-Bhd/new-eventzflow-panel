@@ -18,7 +18,9 @@ import {
   Store,
   Users,
   X,
+  type LucideIcon,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -33,7 +35,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 
-const services = [
+interface NavService {
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  href: Route;
+}
+
+interface NavResource {
+  icon: LucideIcon;
+  label: string;
+  href: Route;
+  isScrollLink?: boolean;
+}
+
+const services: NavService[] = [
   // Core features - high SEO value
   {
     icon: CreditCard,
@@ -93,6 +109,7 @@ export default function FloatingNavNew() {
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -154,13 +171,13 @@ export default function FloatingNavNew() {
     setIsOpen(false);
   };
 
-  const resources = [
+  const resources: NavResource[] = [
     { icon: HelpCircle, label: "FAQs", href: "/#faq", isScrollLink: true },
     { icon: BookOpen, label: "Blog", href: "/blog" },
   ];
 
   return (
-    <>
+    <div className="relative">
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -408,20 +425,67 @@ export default function FloatingNavNew() {
           >
             <div className="border-t border-white/10">
               <div className="mx-auto max-w-7xl px-6 py-8">
-                {/* Mobile Services Section */}
-                <div className="mb-6">
+                {/* Mobile Services Section - Expandable */}
+                <div className="mb-2">
                   <button
-                    onClick={() => {
-                      scrollToSection("capabilities");
-                      setIsOpen(false);
-                    }}
+                    onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
                     className="group flex items-center justify-between border-b border-white/10 py-4 text-left w-full"
                   >
                     <span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
                       SERVICES
                     </span>
-                    <span className="text-xs text-white/20">8 features</span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-white/40 transition-transform duration-300 ${mobileServicesOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
+
+                  {/* Mobile Services Dropdown */}
+                  <AnimatePresence>
+                    {mobileServicesOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="py-2 pl-4">
+                          {services.map((service, index) => {
+                            const IconComponent = service.icon;
+                            return (
+                              <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.03 }}
+                              >
+                                <Link
+                                  href={service.href}
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    setMobileServicesOpen(false);
+                                  }}
+                                  className="group flex items-center gap-3 py-3 border-b border-white/5"
+                                >
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-white/20 text-white/50 transition-all duration-200 group-hover:border-white group-hover:text-white">
+                                    <IconComponent className="h-4 w-4" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-white/70 transition-colors duration-200 group-hover:text-white">
+                                      {service.label}
+                                    </p>
+                                    <p className="text-xs text-white/40">
+                                      {service.description}
+                                    </p>
+                                  </div>
+                                </Link>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Mobile Navigation Links */}
@@ -526,6 +590,6 @@ export default function FloatingNavNew() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }

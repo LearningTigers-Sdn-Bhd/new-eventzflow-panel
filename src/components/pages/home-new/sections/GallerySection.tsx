@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const galleryImages = [
   {
@@ -22,22 +22,22 @@ const galleryImages = [
 
 const GallerySection: React.FC = () => {
   return (
-    <section className="bg-black px-6 py-24 md:py-32 lg:px-16">
+    <section className="bg-black px-6 py-16 md:py-24 lg:py-32 lg:px-16">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: smoothEase }}
-          className="mb-16"
+          transition={{ duration: 0.8, ease: SMOOTH_EASE }}
+          className="mb-10 md:mb-16"
         >
-          <h2 className="font-black text-5xl uppercase tracking-tighter text-white md:text-6xl lg:text-7xl">
+          <h2 className="font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
             See EventzFlow
             <br />
             In Action
           </h2>
-          <p className="mt-4 text-sm text-white/50 md:text-base">
+          <p className="mt-3 text-sm text-white/50 md:mt-4 md:text-base">
             Real events, real results. Here&apos;s a glimpse of what we do.
           </p>
         </motion.div>
@@ -53,11 +53,11 @@ const GallerySection: React.FC = () => {
               transition={{
                 duration: 0.8,
                 delay: index * 0.15,
-                ease: smoothEase,
+                ease: SMOOTH_EASE,
               }}
               className={`group relative overflow-hidden ${
                 index === 1 ? "md:mt-24 md:h-[500px]" : "md:h-[400px]"
-              } h-[300px]`}
+              } h-[250px] sm:h-[300px]`}
             >
               {/* Image number badge */}
               <div className="absolute left-4 top-4 z-10 text-xs font-medium text-white/60">

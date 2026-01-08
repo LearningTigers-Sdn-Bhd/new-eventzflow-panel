@@ -3,6 +3,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 
+import { SMOOTH_EASE } from "@/lib/constants/animation";
+
 interface ServiceHeroProps {
 	title: string;
 	titleOutline: string;
@@ -10,8 +12,6 @@ interface ServiceHeroProps {
 	description: string;
 	heroImage?: string;
 }
-
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
 
 const ServiceHero: React.FC<ServiceHeroProps> = ({
 	title,
@@ -46,12 +46,12 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 				</motion.div>
 			)}
 
-			{/* Left vertical accent line */}
+			{/* Left vertical accent line - hidden on mobile */}
 			<motion.div
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
-				transition={{ duration: 1.5, ease: smoothEase }}
-				className="absolute left-6 top-0 z-10 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+				className="absolute left-6 top-0 z-10 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 			/>
 
 			{/* Main Title */}
@@ -65,7 +65,7 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 						animate={{ y: 0 }}
 						transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
 						style={{ y: y1 }}
-						className="mb-2 font-black text-[15vw] uppercase leading-[0.85] tracking-tighter text-white md:text-[12vw]"
+						className="mb-2 font-black text-[12vw] uppercase leading-[0.85] tracking-tighter text-white sm:text-[15vw] md:text-[12vw]"
 					>
 						{title}
 					</motion.h1>
@@ -84,7 +84,7 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 							color: "transparent",
 							y: y2,
 						}}
-						className="font-black text-[15vw] uppercase leading-[0.85] tracking-tighter md:text-[12vw]"
+						className="font-black text-[12vw] uppercase leading-[0.85] tracking-tighter sm:text-[15vw] md:text-[12vw]"
 					>
 						{titleOutline}
 					</motion.h1>

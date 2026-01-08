@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 
+import { SMOOTH_EASE } from "@/lib/constants/animation";
+
 const features = [
   {
     title: "NO APP STORE",
@@ -35,8 +37,6 @@ const features = [
   },
 ];
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
-
 export default function FeaturesSection() {
   return (
     <section className="bg-white px-6 py-24 md:py-32">
@@ -47,7 +47,7 @@ export default function FeaturesSection() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="max-w-6xl"
           >
             <div className="mb-6 flex items-center gap-4">
@@ -56,7 +56,7 @@ export default function FeaturesSection() {
                 Capabilities
               </p>
             </div>
-            <h2 className="font-black text-5xl uppercase tracking-tighter text-black md:text-6xl lg:text-7xl">
+            <h2 className="font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
               App experience without the app
             </h2>
           </motion.div>
@@ -81,7 +81,7 @@ export default function FeaturesSection() {
                   delay: index * 0.05,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className={`group relative flex min-h-[280px] flex-col justify-between border p-10 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl ${
+                className={`group relative flex min-h-[220px] flex-col justify-between border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[280px] md:p-10 ${
                   isBlackCard
                     ? "border-white/20 bg-black hover:border-white"
                     : "border-black/20 bg-white hover:border-black"

@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 interface PolicySectionProps {
 	id: string;
@@ -42,7 +42,7 @@ function PolicySection({
 			initial={{ opacity: 0, y: 40 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			viewport={{ once: true }}
-			transition={{ duration: 0.6, ease: smoothEase }}
+			transition={{ duration: 0.6, ease: SMOOTH_EASE }}
 			className={`scroll-mt-24 border p-8 md:p-10 ${
 				isBlack
 					? "border-white/20 bg-black"
@@ -88,21 +88,21 @@ export default function TermsAndConditionsPage() {
 				<motion.div
 					initial={{ scaleY: 0 }}
 					animate={{ scaleY: 1 }}
-					transition={{ duration: 1.5, ease: smoothEase }}
-					className="absolute left-6 top-0 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+					transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+					className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 				/>
 
 				{/* Content */}
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, ease: smoothEase }}
+					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center max-w-4xl"
 				>
 					<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
 						Legal
 					</p>
-					<h1 className="font-black text-5xl uppercase tracking-tighter text-white md:text-6xl lg:text-7xl">
+					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl">
 						Terms & Conditions
 					</h1>
 					<p className="mt-6 text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
@@ -126,7 +126,7 @@ export default function TermsAndConditionsPage() {
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						transition={{ duration: 0.8, ease: smoothEase }}
+						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 						className="text-center"
 					>
 						<p className="text-base leading-relaxed text-black/60 md:text-lg max-w-3xl mx-auto">
@@ -732,7 +732,7 @@ export default function TermsAndConditionsPage() {
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						transition={{ duration: 0.8, ease: smoothEase }}
+						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 						className="text-white/50 text-sm"
 					>
 						These Terms and Conditions are effective as of the date stated above and apply to all users of our Services.
@@ -743,7 +743,7 @@ export default function TermsAndConditionsPage() {
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						transition={{ duration: 0.6, delay: 0.2, ease: smoothEase }}
+						transition={{ duration: 0.6, delay: 0.2, ease: SMOOTH_EASE }}
 						className="mt-8"
 					>
 						<Link

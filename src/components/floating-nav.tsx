@@ -86,7 +86,7 @@ export default function FloatingNav() {
 	];
 
 	return (
-		<>
+		<div className="relative">
 			<motion.nav
 				initial={{ y: -100 }}
 				animate={{ y: 0 }}
@@ -172,6 +172,6 @@ export default function FloatingNav() {
 					</motion.div>
 				)}
 			</AnimatePresence>
-		</>
+		</div>
 	);
 }

@@ -168,7 +168,7 @@ export default function PublicLayout({
 
 	// Render layout with floating nav for public routes
 	return (
-		<div className="min-h-screen w-full">
+		<div className="relative min-h-screen w-full">
 			{!isNavHidden && useNewDesign && <FloatingNavNew />}
 			{!isNavHidden && !useNewDesign && <FloatingNav />}
 			<main className="h-full w-full">{children}</main>

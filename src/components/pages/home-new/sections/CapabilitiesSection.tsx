@@ -53,17 +53,17 @@ const capabilities = [
 
 const CapabilitiesSection: React.FC = () => {
 	return (
-		<section className="bg-white px-6 py-30 md:px-12">
+		<section className="bg-white px-6 py-16 md:py-30 md:px-12">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
-				<div className="mb-20 flex items-end justify-between">
+				<div className="mb-12 flex flex-col gap-6 md:mb-20 md:flex-row md:items-end md:justify-between">
 					<div className="max-w-2xl">
-						<h2 className="mb-6 font-black text-6xl tracking-tighter text-black md:text-8xl">
+						<h2 className="mb-4 font-black text-4xl tracking-tighter text-black sm:text-5xl md:mb-6 md:text-6xl lg:text-8xl">
 							OUR
 							<br />
 							CAPABILITIES
 						</h2>
-						<p className="text-xl text-black/60">
+						<p className="text-base text-black/60 md:text-xl">
 							Everything you need to run seamless events, all in one platform.
 						</p>
 					</div>
@@ -73,7 +73,7 @@ const CapabilitiesSection: React.FC = () => {
 				</div>
 
 				{/* Capabilities Grid */}
-				<div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 					{capabilities.map((capability, i) => {
 						const isBlackCard = i % 2 === 1;
 						return (
@@ -91,7 +91,7 @@ const CapabilitiesSection: React.FC = () => {
 									delay: i * 0.05,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`group relative flex min-h-[280px] flex-col justify-between border p-10 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl ${
+								className={`group relative flex min-h-[220px] flex-col justify-between border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[280px] md:p-10 ${
 									isBlackCard
 										? "border-white/20 bg-black hover:border-white"
 										: "border-black/20 bg-white hover:border-black"

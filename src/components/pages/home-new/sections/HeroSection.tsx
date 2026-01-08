@@ -5,8 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type React from "react";
 
-// Organic easing
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const HeroSection: React.FC = () => {
 	return (
@@ -27,8 +26,8 @@ const HeroSection: React.FC = () => {
 			<motion.div
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
-				transition={{ duration: 1.5, ease: smoothEase }}
-				className="absolute left-12 top-0 h-[70%] w-[3px] origin-top bg-white lg:left-16"
+				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+				className="absolute left-6 top-0 hidden h-[70%] w-[3px] origin-top bg-white md:block md:left-12 lg:left-16"
 			/>
 
 			{/* Main content */}
@@ -40,7 +39,7 @@ const HeroSection: React.FC = () => {
 						<motion.p
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 1, ease: smoothEase }}
+							transition={{ duration: 1, ease: SMOOTH_EASE }}
 							className="mb-8 pl-2 text-xs font-medium uppercase tracking-[0.4em] text-white/70"
 						>
 							All-in-One Event Solution
@@ -51,7 +50,7 @@ const HeroSection: React.FC = () => {
 							<motion.h1
 								initial={{ opacity: 0, y: 40 }}
 								animate={{ opacity: 1, y: 0 }}
-								transition={{ duration: 1, delay: 0.2, ease: smoothEase }}
+								transition={{ duration: 1, delay: 0.2, ease: SMOOTH_EASE }}
 								className="font-bold text-[clamp(2.5rem,8vw,6rem)] leading-[0.95] tracking-[-0.02em] text-white"
 								style={{ textShadow: "0 4px 30px rgba(0,0,0,0.5)" }}
 							>
@@ -74,20 +73,20 @@ const HeroSection: React.FC = () => {
 						<motion.div
 							initial={{ opacity: 0, y: 30 }}
 							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 1, delay: 0.7, ease: smoothEase }}
+							transition={{ duration: 1, delay: 0.7, ease: SMOOTH_EASE }}
 						>
 							{/* Horizontal line */}
 							<div className="mb-6 h-px w-full bg-white/30" />
 
 							{/* Description text */}
-							<p className="text-right text-sm leading-relaxed text-white/70 lg:text-base">
+							<p className="text-left text-sm leading-relaxed text-white/70 md:text-right lg:text-base">
 								From visitor booth tracking and QR check-in with instant badge
 								printing, to AI audience profiling and retargeting — EventzFlow
 								connects every part of the event journey.
 							</p>
 
 							{/* CTA */}
-							<div className="mt-8 flex items-center justify-end gap-6">
+							<div className="mt-8 flex items-center justify-start gap-6 md:justify-end">
 								<Link href={"/auth?login" as Route}>
 									<motion.button
 										type="button"
@@ -109,7 +108,7 @@ const HeroSection: React.FC = () => {
 			<motion.div
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
-				transition={{ duration: 1.5, delay: 0.3, ease: smoothEase }}
+				transition={{ duration: 1.5, delay: 0.3, ease: SMOOTH_EASE }}
 				className="absolute bottom-0 right-[15%] hidden h-[40%] w-px origin-bottom bg-white/20 lg:block"
 			/>
 

@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import type { Route } from "next";
 import Link from "next/link";
-
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 export default function CTASection() {
 	return (
@@ -14,7 +13,7 @@ export default function CTASection() {
 					initial={{ opacity: 0, y: 30 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
-					transition={{ duration: 0.8, ease: smoothEase }}
+					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 				>
 					{/* Decorative line */}
 					<div className="mx-auto mb-8 h-px w-16 bg-white/30" />

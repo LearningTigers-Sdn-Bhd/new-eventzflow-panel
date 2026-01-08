@@ -37,7 +37,7 @@ const BenefitsSection: React.FC = () => {
 						{tripleItems.map((item, index) => (
 							<span
 								key={index}
-								className="flex shrink-0 items-center font-black text-3xl tracking-tight text-black md:text-4xl lg:text-5xl"
+								className="flex shrink-0 items-center font-black text-xl tracking-tight text-black sm:text-2xl md:text-4xl lg:text-5xl"
 							>
 								<span className="mx-6">{item}</span>
 								<span className="mx-6 text-black/30">•</span>

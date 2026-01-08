@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const missionPillars = [
   {
@@ -124,21 +124,21 @@ export default function AboutPage() {
         <motion.div
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
-          transition={{ duration: 1.5, ease: smoothEase }}
-          className="absolute left-6 top-0 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+          transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+          className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
         />
 
         {/* Content */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: smoothEase }}
+          transition={{ duration: 0.8, ease: SMOOTH_EASE }}
           className="text-center max-w-4xl"
         >
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
             About Us
           </p>
-          <h1 className="font-black text-5xl uppercase tracking-tighter text-white md:text-6xl lg:text-7xl">
+          <h1 className="font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
             The Future of Event Management
           </h1>
           <p className="mt-6 text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
@@ -157,7 +157,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="mb-16 max-w-3xl"
           >
             <div className="mb-6 flex items-center gap-4">
@@ -166,19 +166,19 @@ export default function AboutPage() {
                 Our Story
               </p>
             </div>
-            <h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-black md:text-5xl">
+            <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
               Why we created EventzFlow
             </h2>
             <p className="text-base leading-relaxed text-black/60 md:text-lg">
-              We built EventzFlow to solve a problem we saw happening everywhere:
-              talented event organizers wasting hours on manual tasks, juggling
-              disconnected tools, and unable to deliver the seamless experiences
-              they envisioned.
+              We built EventzFlow to solve a problem we saw happening
+              everywhere: talented event organizers wasting hours on manual
+              tasks, juggling disconnected tools, and unable to deliver the
+              seamless experiences they envisioned.
             </p>
           </motion.div>
 
           {/* Mission Pillars */}
-          <div className="grid gap-4 md:grid-cols-3 mb-16">
+          <div className="grid md:grid-cols-3 mb-16">
             {missionPillars.map((pillar, index) => {
               const IconComponent = pillar.icon;
               return (
@@ -190,9 +190,9 @@ export default function AboutPage() {
                   transition={{
                     duration: 0.6,
                     delay: index * 0.1,
-                    ease: smoothEase,
+                    ease: SMOOTH_EASE,
                   }}
-                  className="group border border-black bg-black p-8 transition-all duration-300 hover:bg-black/90"
+                  className="group border border-white/20 bg-black p-8 transition-all duration-300 hover:bg-black/90"
                 >
                   <div className="mb-4 flex h-12 w-12 items-center justify-center border border-white/30 text-white">
                     <IconComponent className="h-5 w-5" />
@@ -200,9 +200,7 @@ export default function AboutPage() {
                   <h3 className="mb-3 font-bold text-lg text-white">
                     {pillar.title}
                   </h3>
-                  <p className="text-sm text-white/60">
-                    {pillar.description}
-                  </p>
+                  <p className="text-sm text-white/60">{pillar.description}</p>
                 </motion.div>
               );
             })}
@@ -213,7 +211,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="bg-black p-8 md:p-12"
           >
             <h3 className="mb-8 font-bold text-2xl text-white uppercase tracking-tight">
@@ -229,7 +227,7 @@ export default function AboutPage() {
                   transition={{
                     duration: 0.5,
                     delay: index * 0.1,
-                    ease: smoothEase,
+                    ease: SMOOTH_EASE,
                   }}
                   className="border border-black/10 bg-white p-6"
                 >
@@ -264,7 +262,7 @@ export default function AboutPage() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: smoothEase }}
+              transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             >
               <div className="mb-6 flex items-center gap-4">
                 <div className="h-[2px] w-10 bg-white" />
@@ -272,7 +270,7 @@ export default function AboutPage() {
                   Our Values
                 </p>
               </div>
-              <h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-white md:text-5xl">
+              <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl">
                 What we stand for
               </h2>
               <p className="text-base leading-relaxed text-white/50">
@@ -283,7 +281,7 @@ export default function AboutPage() {
             </motion.div>
 
             {/* Right - Values Grid */}
-            <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2">
+            <div className="lg:col-span-2 grid sm:grid-cols-2">
               {values.map((value, index) => {
                 const IconComponent = value.icon;
                 return (
@@ -295,9 +293,9 @@ export default function AboutPage() {
                     transition={{
                       duration: 0.6,
                       delay: index * 0.1,
-                      ease: smoothEase,
+                      ease: SMOOTH_EASE,
                     }}
-                    className="p-8 border border-white/10 bg-white transition-all duration-300 hover:bg-white/90"
+                    className="p-8 border border-black/20 bg-white transition-all duration-300 hover:bg-white/90"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center border border-black/30 text-black">
                       <IconComponent className="h-5 w-5" />
@@ -305,9 +303,7 @@ export default function AboutPage() {
                     <h3 className="mb-3 font-bold text-lg text-black">
                       {value.title}
                     </h3>
-                    <p className="text-sm text-black/60">
-                      {value.description}
-                    </p>
+                    <p className="text-sm text-black/60">{value.description}</p>
                   </motion.div>
                 );
               })}
@@ -324,7 +320,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="mb-16 text-center max-w-3xl mx-auto"
           >
             <div className="mb-6 flex items-center justify-center gap-4">
@@ -334,7 +330,7 @@ export default function AboutPage() {
               </p>
               <div className="h-[2px] w-10 bg-black" />
             </div>
-            <h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-black md:text-5xl">
+            <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
               Our approach to building great products
             </h2>
             <p className="text-base leading-relaxed text-black/60 md:text-lg">
@@ -344,7 +340,7 @@ export default function AboutPage() {
           </motion.div>
 
           {/* Approach Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4">
             {approach.map((item, index) => {
               const IconComponent = item.icon;
               return (
@@ -356,7 +352,7 @@ export default function AboutPage() {
                   transition={{
                     duration: 0.6,
                     delay: index * 0.1,
-                    ease: smoothEase,
+                    ease: SMOOTH_EASE,
                   }}
                   whileHover={{ y: -8 }}
                   className="group border border-black/10 p-8 transition-all duration-300 hover:border-black hover:shadow-2xl"
@@ -382,7 +378,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="font-black text-3xl italic uppercase tracking-tight text-white md:text-4xl lg:text-5xl"
           >
             "Technology is best when it brings people together."
@@ -397,12 +393,12 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
           >
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.4em] text-black/40">
               Let's Connect
             </p>
-            <h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-black md:text-5xl lg:text-6xl">
+            <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl">
               Want to learn more?
             </h2>
             <p className="mb-10 text-lg text-black/50 max-w-2xl mx-auto leading-relaxed">

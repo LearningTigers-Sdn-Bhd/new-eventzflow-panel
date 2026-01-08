@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { ChatMessage } from "@/components/devices/apps/WhatsApp";
 import WhatsApp from "@/components/devices/apps/WhatsApp";
 
+import { SMOOTH_EASE } from "@/lib/constants/animation";
+
 const registrationMessages: ChatMessage[] = [
   {
     type: "customer",
@@ -75,8 +77,6 @@ const highlights = [
   { number: "04", text: "Works 24/7 automatically" },
 ];
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
-
 export default function ShowcaseSection() {
   const [chatKey, setChatKey] = useState(0);
 
@@ -137,7 +137,7 @@ export default function ShowcaseSection() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="max-w-6xl"
           >
             <div className="mb-6 flex items-center gap-4">
@@ -146,7 +146,7 @@ export default function ShowcaseSection() {
                 Live Demo
               </p>
             </div>
-            <h2 className="font-black text-5xl uppercase tracking-tighter text-black md:text-6xl lg:text-7xl">
+            <h2 className="font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
               Registration via WhatsApp
             </h2>
           </motion.div>
@@ -159,10 +159,10 @@ export default function ShowcaseSection() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="flex justify-center lg:justify-start"
           >
-            <div className="relative ml-40 max-w-[280px]">
+            <div className="relative max-w-[280px] lg:ml-40">
               {/* Decorative elements */}
               <div className="absolute -left-32 top-1/4 hidden lg:block">
                 <div className="mb-4 h-px w-20 bg-black/20" />
@@ -198,7 +198,7 @@ export default function ShowcaseSection() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: smoothEase }}
+            transition={{ duration: 0.8, delay: 0.2, ease: SMOOTH_EASE }}
           >
             <p className="mb-8 text-base leading-relaxed text-black/60 md:text-lg">
               Let attendees register directly through WhatsApp. Our bot handles
@@ -217,9 +217,9 @@ export default function ShowcaseSection() {
                   transition={{
                     duration: 0.6,
                     delay: 0.3 + index * 0.1,
-                    ease: smoothEase,
+                    ease: SMOOTH_EASE,
                   }}
-                  className="group flex items-center gap-4 border border-black/10 bg-black/[0.02] p-5 transition-colors hover:border-black/20 hover:bg-black/[0.05]"
+                  className="group flex items-center gap-4 border border-black/10 bg-black/[0.02] p-4 transition-colors hover:border-black/20 hover:bg-black/[0.05] md:p-5"
                 >
                   <span className="font-bold text-xs tracking-widest text-black/40">
                     {item.number}

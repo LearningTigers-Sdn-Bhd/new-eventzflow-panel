@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 
+import { SMOOTH_EASE } from "@/lib/constants/animation";
+
 const steps = [
   {
     number: "01",
@@ -23,8 +25,6 @@ const steps = [
   },
 ];
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
-
 export default function HowItWorksSection() {
   return (
     <section className="bg-black px-6 py-24 md:py-32">
@@ -35,12 +35,12 @@ export default function HowItWorksSection() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
           >
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-white/40">
               How It Works
             </p>
-            <h2 className="font-bold text-4xl tracking-tight text-white md:text-5xl lg:text-6xl">
+            <h2 className="font-bold text-3xl tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
               Three simple steps
             </h2>
           </motion.div>
@@ -57,7 +57,7 @@ export default function HowItWorksSection() {
               transition={{
                 duration: 0.8,
                 delay: index * 0.2,
-                ease: smoothEase,
+                ease: SMOOTH_EASE,
               }}
               className="relative"
             >

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-const smoothEase = [0.25, 0.46, 0.45, 0.94];
+import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const contactMethods = [
   {
@@ -52,21 +52,21 @@ export default function ContactPage() {
         <motion.div
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
-          transition={{ duration: 1.5, ease: smoothEase }}
-          className="absolute left-6 top-0 h-[70%] w-[2px] origin-top bg-white md:left-12 lg:left-16"
+          transition={{ duration: 1.5, ease: SMOOTH_EASE }}
+          className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
         />
 
         {/* Content */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: smoothEase }}
+          transition={{ duration: 0.8, ease: SMOOTH_EASE }}
           className="text-center"
         >
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
             Get In Touch
           </p>
-          <h1 className="font-black text-6xl uppercase tracking-tighter text-white md:text-7xl lg:text-8xl">
+          <h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
             Contact
           </h1>
         </motion.div>
@@ -80,7 +80,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="mb-16 max-w-2xl"
           >
             <div className="mb-6 flex items-center gap-4">
@@ -89,7 +89,7 @@ export default function ContactPage() {
                 Reach Out
               </p>
             </div>
-            <h2 className="mb-6 font-black text-4xl uppercase tracking-tighter text-black md:text-5xl">
+            <h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
               Let's talk about your event
             </h2>
             <p className="text-base leading-relaxed text-black/60 md:text-lg">
@@ -100,7 +100,7 @@ export default function ContactPage() {
           </motion.div>
 
           {/* Contact Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5">
             {contactMethods.map((method, index) => {
               const IconComponent = method.icon;
               const isBlackCard = index % 2 === 0;
@@ -126,7 +126,7 @@ export default function ContactPage() {
                   transition={{
                     duration: 0.6,
                     delay: index * 0.1,
-                    ease: smoothEase,
+                    ease: SMOOTH_EASE,
                   }}
                   whileHover={{ y: -8 }}
                   className={`group flex min-h-[240px] flex-col justify-between border p-8 transition-all duration-300 hover:shadow-2xl ${
@@ -177,7 +177,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4, ease: smoothEase }}
+            transition={{ duration: 0.6, delay: 0.4, ease: SMOOTH_EASE }}
             className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-black/50 md:gap-8"
           >
             <span className="flex items-center gap-2">
@@ -202,7 +202,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: smoothEase }}
+            transition={{ duration: 0.8, ease: SMOOTH_EASE }}
             className="mb-8"
           >
             <div className="mb-4 flex items-center gap-4">
@@ -224,7 +224,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2, ease: smoothEase }}
+            transition={{ duration: 0.6, delay: 0.2, ease: SMOOTH_EASE }}
             className="relative aspect-[4/3] w-full overflow-hidden border border-white/20 md:aspect-[21/9] md:min-h-[500px]"
           >
             <iframe

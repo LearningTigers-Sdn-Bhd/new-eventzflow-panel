@@ -26,25 +26,25 @@ const testimonials = [
 
 const TestimonialSection: React.FC = () => {
 	return (
-		<section className="bg-white px-6 py-32 md:px-12">
+		<section className="bg-white px-6 py-16 md:py-32 md:px-12">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
-				<div className="mb-20">
+				<div className="mb-12 md:mb-20">
 					<div className="max-w-2xl">
-						<div className="mb-6 flex items-center gap-4">
+						<div className="mb-4 flex items-center gap-4 md:mb-6">
 							<div className="h-[2px] w-8 bg-black" />
 							<span className="text-xs tracking-[0.4em] text-black/60">
 								WHAT OUR CLIENTS SAY
 							</span>
 						</div>
-						<h2 className="font-black text-6xl tracking-tighter text-black md:text-8xl">
+						<h2 className="font-black text-4xl tracking-tighter text-black sm:text-5xl md:text-6xl lg:text-8xl">
 							TESTIMONIALS
 						</h2>
 					</div>
 				</div>
 
 				{/* Testimonials Grid */}
-				<div className="grid grid-cols-1 gap-1 md:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 md:gap-1 md:grid-cols-3">
 					{testimonials.map((testimonial, i) => {
 						const isBlackCard = i % 2 === 1;
 						return (
@@ -62,7 +62,7 @@ const TestimonialSection: React.FC = () => {
 									delay: i * 0.1,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`group relative flex min-h-[380px] flex-col justify-between border p-10 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl ${
+								className={`group relative flex min-h-[300px] flex-col justify-between border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[380px] md:p-10 ${
 									isBlackCard
 										? "border-white/20 bg-black hover:border-white"
 										: "border-black/20 bg-white hover:border-black"

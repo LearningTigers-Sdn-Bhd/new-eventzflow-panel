@@ -28,16 +28,16 @@ const benefits = [
 
 const WhyChooseSection: React.FC = () => {
 	return (
-		<section className="bg-black px-6 py-30 md:px-12">
+		<section className="bg-black px-6 py-16 md:py-30 md:px-12">
 			<div className="mx-auto max-w-7xl">
-				<div className="mb-24 flex items-end justify-between">
+				<div className="mb-12 flex flex-col gap-6 md:mb-24 md:flex-row md:items-end md:justify-between">
 					<div className="max-w-2xl">
-						<h2 className="mb-8 font-black text-6xl tracking-tighter text-white md:text-8xl">
+						<h2 className="mb-4 font-black text-4xl tracking-tighter text-white sm:text-5xl md:mb-8 md:text-6xl lg:text-8xl">
 							WHY
 							<br />
 							CHOOSE US ?
 						</h2>
-						<p className="text-xl text-white/60">
+						<p className="text-base text-white/60 md:text-xl">
 							Less manual work. Lower costs. Happier attendees. EventzFlow
 							automates the tedious tasks so you can focus on creating
 							exceptional experiences.
@@ -48,7 +48,7 @@ const WhyChooseSection: React.FC = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-1 lg:grid-cols-4">
 					{benefits.map((benefit, i) => {
 						const isWhiteCard = i % 2 === 1;
 						return (
@@ -67,7 +67,7 @@ const WhyChooseSection: React.FC = () => {
 									delay: i * 0.1,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`group relative flex h-[450px] flex-col justify-between overflow-hidden border p-10 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl ${
+								className={`group relative flex min-h-[300px] flex-col justify-between overflow-hidden border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[450px] md:p-10 ${
 									isWhiteCard
 										? "border-black/20 bg-white hover:border-black"
 										: "border-white/20 bg-black hover:border-white"
