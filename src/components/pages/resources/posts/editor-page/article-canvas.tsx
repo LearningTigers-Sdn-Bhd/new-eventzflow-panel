@@ -13,6 +13,7 @@ import { updateResource } from "@/lib/api/resource";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
 import { useResourceEditorStore } from "@/stores/resource-editor-store";
+import { PostHeader } from "./post-header";
 
 interface ArticleCanvasProps {
 	initialPost?: Resource;
@@ -96,12 +97,19 @@ export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 							}
 						/>
 					)}
+
+					{initialPost && (
+						<div className="mx-auto max-w-4xl px-4 md:px-8">
+							<PostHeader resource={initialPost} />
+						</div>
+					)}
+
 					<RichEditor
 						editor={editor}
 						value={initialPost?.article || ""}
 						onChange={() => {}} // Uncontrolled: we don't need to sync back to local state
 						hideToolbar
-						className="rounded-none border-none bg-transparent shadow-none"
+						className="mx-auto max-w-4xl rounded-none border-none bg-transparent shadow-none"
 					/>
 				</div>
 			</div>

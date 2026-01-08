@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createResourceSchema = z.object({
-	title: z.string().min(3, "Title must be at least 3 characters"),
+	title: z.string().min(1, "Title is required"),
 	summary: z.string().optional(),
 	metaDescription: z.string().optional(),
 	article: z.string().optional(), // HTML content
@@ -17,11 +17,12 @@ export const createResourceSchema = z.object({
 
 	cover_image: z.any().optional(),
 	coverImageUrl: z.string().url().optional().or(z.literal("")),
+	headerImg: z.any().optional(),
 });
 
 export const updateResourceSchema = z.object({
 	id: z.string().min(1, "ID is required"),
-	title: z.string().min(3).optional(),
+	title: z.string().min(1).optional(),
 	summary: z.string().optional(),
 	metaDescription: z.string().optional(),
 	article: z.string().optional(),
@@ -35,6 +36,7 @@ export const updateResourceSchema = z.object({
 	isGated: z.boolean().optional(),
 
 	coverImageUrl: z.string().url().optional().or(z.literal("")),
+	headerImg: z.any().optional(),
 });
 
 export const approvalResourceSchema = z.object({

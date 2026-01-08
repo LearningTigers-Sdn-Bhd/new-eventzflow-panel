@@ -81,6 +81,7 @@ function transformResource(backend: BackendResource): Resource {
 		rejectionReason: backend.rejection_reason ?? null,
 		publishedAt: backend.published_at,
 		coverImageUrl: backend.cover_image_url,
+		headerImgUrl: backend.header_img_url,
 
 		topic: backend.topic ? transformTopic(backend.topic) : undefined,
 		category: backend.category
@@ -203,6 +204,18 @@ export async function getApprovalResources(options?: {
 	return { data: [] };
 }
 
+// Get single resource (Public view)
+export async function getPublicResource(id: string): Promise<Resource> {
+	const response = await publicRestClient.get<
+		BackendResource | { data: BackendResource }
+	>(`v1/resources/${id}/public`);
+
+	const resource =
+		"data" in response ? response.data : (response as BackendResource);
+
+	return transformResource(resource);
+}
+
 // Get single resource (Admin/Dashboard view)
 export async function getResource(id: string): Promise<Resource> {
 	const response = await restClient.get<
@@ -233,66 +246,110 @@ export async function getResourceBySlug(slug: string): Promise<Resource> {
 export async function createResource(
 	data: CreateResourceRequest,
 ): Promise<Resource> {
-	const validated = createResourceSchema.parse(data);
-	const payload = {
-		title: validated.title,
-		summary: validated.summary,
-		meta_description: validated.metaDescription,
-		article: validated.article,
-		status: validated.status,
-		resource_topic_id: validated.topicId,
-		resource_category_id: validated.categoryId,
-		resource_media_type_id: validated.mediaTypeId,
-		is_gated: validated.isGated,
-		is_official: validated.isOfficial,
-		cover_image_url: validated.coverImageUrl,
-	};
+	try {
+		const validated = createResourceSchema.parse(data);
 
-	const response = await restClient.post<
-		BackendResource | { data: BackendResource }
-	>("v1/resources", {
-		resource: payload,
-	});
+		const payload = {
+			title: validated.title,
+			summary: validated.summary,
+			meta_description: validated.metaDescription,
+			article: validated.article,
+			status: validated.status,
+			resource_topic_id: validated.topicId,
+			resource_category_id: validated.categoryId,
+			resource_media_type_id: validated.mediaTypeId,
+			is_gated: validated.isGated,
+			is_official: validated.isOfficial,
+		};
 
-	const resource =
-		"data" in response ? response.data : (response as BackendResource);
+		if (validated.headerImg) {
+			const formData = new FormData();
+			Object.entries(payload).forEach(([key, value]) => {
+				if (value !== undefined && value !== null) {
+					formData.append(`resource[${key}]`, value.toString());
+				}
+			});
+			formData.append("resource[header_img]", validated.headerImg);
 
-	return transformResource(resource);
+			const response = await restClient.postFormData<
+				BackendResource | { data: BackendResource }
+			>("v1/resources", formData);
+			const resource =
+				"data" in response ? response.data : (response as BackendResource);
+			return transformResource(resource);
+		}
+
+		const response = await restClient.post<
+			BackendResource | { data: BackendResource }
+		>("v1/resources", {
+			resource: payload,
+		});
+
+		const resource =
+			"data" in response ? response.data : (response as BackendResource);
+
+		return transformResource(resource);
+	} catch (error) {
+		console.error("Error creating resource:", error);
+		throw error;
+	}
 }
 
 export async function updateResource(
 	data: UpdateResourceRequest,
 ): Promise<Resource> {
-	const validated = updateResourceSchema.parse(data);
-	const { id } = validated;
+	try {
+		const validated = updateResourceSchema.parse(data);
+		const { id } = validated;
 
-	const payload: Record<string, unknown> = {};
-	if (validated.title !== undefined) payload.title = validated.title;
-	if (validated.summary !== undefined) payload.summary = validated.summary;
-	if (validated.metaDescription !== undefined)
-		payload.meta_description = validated.metaDescription;
-	if (validated.article !== undefined) payload.article = validated.article;
-	if (validated.status !== undefined) payload.status = validated.status;
-	if (validated.topicId !== undefined)
-		payload.resource_topic_id = validated.topicId;
-	if (validated.categoryId !== undefined)
-		payload.resource_category_id = validated.categoryId;
-	if (validated.mediaTypeId !== undefined)
-		payload.resource_media_type_id = validated.mediaTypeId;
-	if (validated.isGated !== undefined) payload.is_gated = validated.isGated;
-	if (validated.coverImageUrl !== undefined)
-		payload.cover_image_url = validated.coverImageUrl;
+		const payload: Record<string, any> = {};
+		if (validated.title !== undefined) payload.title = validated.title;
+		if (validated.summary !== undefined) payload.summary = validated.summary;
+		if (validated.metaDescription !== undefined)
+			payload.meta_description = validated.metaDescription;
+		if (validated.article !== undefined) payload.article = validated.article;
+		if (validated.status !== undefined) payload.status = validated.status;
+		if (validated.topicId !== undefined)
+			payload.resource_topic_id = validated.topicId;
+		if (validated.categoryId !== undefined)
+			payload.resource_category_id = validated.categoryId;
+		if (validated.mediaTypeId !== undefined)
+			payload.resource_media_type_id = validated.mediaTypeId;
+		if (validated.isGated !== undefined) payload.is_gated = validated.isGated;
 
-	const response = await restClient.put<
-		BackendResource | { data: BackendResource }
-	>(`v1/resources/${id}`, {
-		resource: payload,
-	});
+		if (validated.headerImg) {
+			const formData = new FormData();
+			Object.entries(payload).forEach(([key, value]) => {
+				if (value !== undefined && value !== null) {
+					formData.append(`resource[${key}]`, value.toString());
+				}
+			});
+			formData.append("resource[header_img]", validated.headerImg);
 
-	const resource =
-		"data" in response ? response.data : (response as BackendResource);
+			// Rails handles multipart PATCH via POST with _method=PATCH or directly if configured
+			// We'll use PATCH first as many modern setups handle it.
+			const response = await restClient.patchFormData<
+				BackendResource | { data: BackendResource }
+			>(`v1/resources/${id}`, formData);
+			const resource =
+				"data" in response ? response.data : (response as BackendResource);
+			return transformResource(resource);
+		}
 
-	return transformResource(resource);
+		const response = await restClient.patch<
+			BackendResource | { data: BackendResource }
+		>(`v1/resources/${id}`, {
+			resource: payload,
+		});
+
+		const resource =
+			"data" in response ? response.data : (response as BackendResource);
+
+		return transformResource(resource);
+	} catch (error) {
+		console.error("Error updating resource:", error);
+		throw error;
+	}
 }
 
 export async function deleteResource(id: string): Promise<void> {

@@ -47,6 +47,7 @@ export type BackendResource = {
 	rejection_reason: string | null;
 	published_at: string | null;
 	cover_image_url: string | null;
+	header_img_url: string | null;
 
 	topic?: BackendResourceTopic;
 	category?: BackendResourceCategory;
@@ -72,6 +73,7 @@ export type Resource = {
 	rejectionReason: string | null;
 	publishedAt: string | null;
 	coverImageUrl: string | null;
+	headerImgUrl: string | null;
 
 	topic?: ResourceTopic;
 	category?: ResourceCategory;

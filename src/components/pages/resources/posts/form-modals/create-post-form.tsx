@@ -2,13 +2,14 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Layers, Loader2, Settings2 } from "lucide-react";
+import { FileText, Image as ImageIcon, Layers, Loader2, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { useUserPermissions } from "@/hooks/use-user-permissions";
@@ -25,6 +26,7 @@ const createPostSchema = z.object({
 	mediaTypeId: z.string().min(1, "Media type is required"),
 	isGated: z.boolean().default(false),
 	isOfficial: z.boolean().default(false),
+	headerImg: z.any().optional(),
 });
 
 export function CreatePostForm() {
@@ -81,6 +83,7 @@ export function CreatePostForm() {
 			mediaTypeId: "",
 			isGated: false,
 			isOfficial: false,
+			headerImg: null as File | null,
 		},
 		onSubmit: async ({ value }) => {
 			createMutation.mutate({
@@ -92,6 +95,7 @@ export function CreatePostForm() {
 				isGated: value.isGated,
 				isOfficial: canSetOfficial ? value.isOfficial : false,
 				status: "draft",
+				headerImg: value.headerImg,
 			});
 		},
 	});
@@ -114,58 +118,78 @@ export function CreatePostForm() {
 		>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				{/* Group (Post) */}
-				<FormGroupContainer
-					title={{
-						icon: FileText,
-						label: "Post Content",
-						description: "Main identifying information for the post.",
-					}}
-				>
-					<div className="flex flex-col gap-4">
-						<form.Field
-							name="title"
-							validators={{
-								onChange: ({ value }) => {
-									const result = createPostSchema.shape.title.safeParse(value);
-									if (!result.success) return result.error.issues[0].message;
-									return undefined;
-								},
-							}}
-						>
-							{(field) => (
-								<InputLabel
-									label="Title"
-									description="The title of your post"
-									value={field.state.value}
-									onChange={(value) => field.handleChange(value)}
-									placeholder="e.g. My First Post"
-									disabled={isPending || isLoading}
-									required
-									isInvalid={field.state.meta.errors.length > 0}
-									errors={
-										field.state.meta.errors.length > 0
-											? [{ message: String(field.state.meta.errors[0]) }]
-											: undefined
-									}
-								/>
-							)}
-						</form.Field>
+				<div className="flex flex-col gap-4">
+					<FormGroupContainer
+						title={{
+							icon: FileText,
+							label: "Post Content",
+							description: "Main identifying information for the post.",
+						}}
+					>
+						<div className="flex flex-col gap-4">
+							<form.Field
+								name="title"
+								validators={{
+									onChange: ({ value }) => {
+										const result = createPostSchema.shape.title.safeParse(value);
+										if (!result.success) return result.error.issues[0].message;
+										return undefined;
+									},
+								}}
+							>
+								{(field) => (
+									<InputLabel
+										label="Title"
+										description="The title of your post"
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										placeholder="e.g. My First Post"
+										disabled={isPending || isLoading}
+										required
+										isInvalid={field.state.meta.errors.length > 0}
+										errors={
+											field.state.meta.errors.length > 0
+												? [{ message: String(field.state.meta.errors[0]) }]
+												: undefined
+										}
+									/>
+								)}
+							</form.Field>
 
-						<form.Field name="metaDescription">
+							<form.Field name="metaDescription">
+								{(field) => (
+									<InputLabel
+										label="Description (Meta Description)"
+										description="A brief description for SEO and previews"
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										placeholder="e.g. This post covers the basics of..."
+										disabled={isPending || isLoading}
+										type="textarea"
+									/>
+								)}
+							</form.Field>
+						</div>
+					</FormGroupContainer>
+
+					<FormGroupContainer
+						title={{
+							icon: ImageIcon,
+							label: "Header Image",
+							description: "The main image shown at the top of your post.",
+						}}
+					>
+						<form.Field name="headerImg">
 							{(field) => (
-								<InputLabel
-									label="Description (Meta Description)"
-									description="A brief description for SEO and previews"
-									value={field.state.value}
-									onChange={(value) => field.handleChange(value)}
-									placeholder="e.g. This post covers the basics of..."
+								<ImageUpload
+									value={field.state.value || ""}
+									onChange={(file) => field.handleChange(file)}
 									disabled={isPending || isLoading}
-									type="textarea"
 								/>
 							)}
 						</form.Field>
-					</div>
-				</FormGroupContainer>
+					</FormGroupContainer>
+				</div>
 
 				{/* Group (Details) */}
 				<div className="flex flex-col gap-4">
