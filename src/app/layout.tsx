@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "../index.css";
+import { Clarity } from "@/components/clarity";
 import Providers from "@/components/providers";
 import { UniversalConfirmDialog } from "@/components/universal-confirm-dialog";
 import { UniversalDialog } from "@/components/universal-dialog";
@@ -41,6 +42,7 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 				suppressHydrationWarning
 			>
+				<Clarity />
 				<NuqsAdapter>
 					<Providers>
 						{children}
