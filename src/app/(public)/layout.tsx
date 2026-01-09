@@ -51,13 +51,13 @@ export default function PublicLayout({
 	const [isExiting, setIsExiting] = useState(false);
 	const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
-	// Minimum display time for loading screen (500ms)
+	// Minimum display time for loading screen (800ms)
 	useEffect(() => {
 		if (!isLandingPage) return;
 
 		const minTimer = setTimeout(() => {
 			setMinTimeElapsed(true);
-		}, 500);
+		}, 800);
 
 		return () => clearTimeout(minTimer);
 	}, [isLandingPage]);
