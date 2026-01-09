@@ -31,6 +31,9 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 			{/* Background Image */}
 			{heroImage && (
 				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 0.5, duration: 0.8, ease: SMOOTH_EASE }}
 					style={{ scale: imageScale }}
 					className="absolute inset-0 z-0"
 				>

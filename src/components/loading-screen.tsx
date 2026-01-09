@@ -13,15 +13,15 @@ const LOGO_LETTERS = [
 ] as const;
 
 const ANIMATION_TIMING = {
-	letterStagger: 0.05, // seconds between each letter animation
-	letterSlideUp: 0.5, // duration of slide-up animation
-	glowStart: 0.8, // when glow animation starts
+	letterStagger: 0.04, // seconds between each letter animation
+	letterSlideUp: 0.4, // duration of slide-up animation
+	glowStart: 0.5, // when glow animation starts
 	glowDuration: 2, // duration of glow pulse
-	lineDrawDelay: 0.6, // delay before line starts drawing
-	lineDrawDuration: 0.8, // duration of line draw
-	lineGlowStart: 1.4, // when line glow starts
-	taglineFadeDelay: 1, // delay before tagline fades in
-	taglineFadeDuration: 0.5, // duration of tagline fade
+	lineDrawDelay: 0.3, // delay before line starts drawing
+	lineDrawDuration: 0.5, // duration of line draw
+	lineGlowStart: 0.8, // when line glow starts
+	taglineFadeDelay: 0.5, // delay before tagline fades in
+	taglineFadeDuration: 0.4, // duration of tagline fade
 	exitDuration: 0.6, // duration of exit animation in seconds
 } as const;
 

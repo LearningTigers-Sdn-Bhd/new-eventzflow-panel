@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Mail, MessageCircle, MessageSquare, Zap } from "lucide-react";
+import { Mail, MessageCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,32 +17,33 @@ type FooterSection = {
 	links: FooterLink[];
 };
 
-const Footer: React.FC = () => {
+const FooterNew: React.FC = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 
 	const footerSections: FooterSection[] = [
 		{
-			title: "Platform",
+			title: "PLATFORM",
 			links: [
+				{ label: "Benefits", id: "benefits" },
 				{ label: "Industries", id: "industries" },
+				{ label: "Capabilities", id: "capabilities" },
 				{ label: "Testimonials", id: "testimonials" },
-				{ label: "Features", id: "features" },
-				{ label: "Solutions", id: "solutions" },
-				{ label: "FAQ", id: "faq" },
 			],
 		},
 		{
-			title: "Resources",
+			title: "RESOURCES",
 			links: [
-				{ label: "Why Us?", id: "pain-points" },
-				{ label: "WhatsApp Registration", href: "/whatsapp-registration" },
-				{ label: "On-site Check-in", href: "/check-in" },
+				{ label: "FAQ", id: "faq" },
+				{ label: "Blog", href: "/blog" },
 			],
 		},
 		{
-			title: "Company",
-			links: [{ label: "About EventzFlow", href: "/about" }],
+			title: "COMPANY",
+			links: [
+				{ label: "About Us", href: "/about" },
+				{ label: "Contact Us", href: "/contact" },
+			],
 		},
 	];
 
@@ -52,27 +53,20 @@ const Footer: React.FC = () => {
 			href: "https://wa.me/60177268130",
 			label: "WhatsApp",
 		},
-		{ icon: Mail, href: "mailto:info@saleschatalyst.com", label: "Email" },
+		{ icon: Mail, href: "mailto:info@eventzflow.com", label: "Email" },
 	];
 
-	const scrollToTop = () => {
-		window.scrollTo({ top: 0, behavior: "smooth" });
-	};
-
 	const scrollToSection = (sectionId: string) => {
-		// Check if we're on the home page
 		const isHomePage = pathname === "/";
 
 		if (!isHomePage) {
-			// If not on home page, navigate to home page with hash
 			router.push(`/#${sectionId}`);
 			return;
 		}
 
-		// If on home page, scroll to section
 		const element = document.getElementById(sectionId);
 		if (element) {
-			const headerHeight = 80; // Account for fixed header
+			const headerHeight = 80;
 			const elementPosition = element.offsetTop - headerHeight;
 
 			window.scrollTo({
@@ -83,129 +77,122 @@ const Footer: React.FC = () => {
 	};
 
 	return (
-		<footer className="overflow-x-hidden bg-muted">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				{/* Main Footer Content */}
-				<div className="grid grid-cols-1 gap-6 py-12 sm:gap-8 sm:py-16 md:grid-cols-2 lg:grid-cols-5">
-					{/* Logo and Description */}
-					<div className="lg:col-span-2">
-						<div className="mb-4 flex items-center space-x-3 border-border border-b pb-4 sm:mb-6">
-							<div className="flex flex-col">
-								<span
-									className="font-bold text-2xl leading-tight sm:text-3xl"
-									style={{ fontFamily: "Times New Roman, serif" }}
-								>
-									<span style={{ color: "#23c460" }}>Event</span>
-									<span style={{ color: "#2766ec" }}>z</span>
-									<span style={{ color: "#23c460" }}>Flow</span>
-								</span>
-								<span className="-mt-1 font-medium text-muted-foreground text-xs">
-									by Sales Chatalyst
-								</span>
-							</div>
-						</div>
+		<footer className="relative bg-black text-white overflow-hidden">
+			{/* Decorative Elements */}
+			<div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+			<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
 
-						<p className="mb-4 max-w-md text-muted-foreground text-sm leading-relaxed sm:mb-6 sm:text-base">
-							Complete event ticketing and management platform with integrated
-							Sales Chatalyst for automated attendee engagement and
-							communications.
+			{/* Main Footer Content */}
+			<div className="relative mx-auto max-w-7xl px-6 pt-20 pb-16 md:px-12">
+				{/* Content Grid */}
+				<div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+					{/* Left - Logo & Social */}
+					<div className="lg:col-span-4">
+						{/* Logo */}
+						<div
+							className="text-3xl font-bold leading-none mb-2 md:text-4xl"
+							style={{ fontFamily: "Times New Roman, serif" }}
+						>
+							<span style={{ color: "#23c460" }}>Event</span>
+							<span style={{ color: "#2766ec" }}>z</span>
+							<span style={{ color: "#23c460" }}>Flow</span>
+						</div>
+						<p className="text-xs tracking-wide text-white/40 mb-6">
+							by Sales Chatalyst
 						</p>
+						<div className="h-px w-50 bg-white/20 mb-6" />
 
-						{/* Newsletter */}
-						<div className="mb-4 sm:mb-6">
-							<h4 className="mb-2 font-semibold text-foreground text-sm sm:mb-3 sm:text-base">
-								Event Management Tips
-							</h4>
-							<div className="flex gap-2">
-								<input
-									type="email"
-									placeholder="Enter your email"
-									className="flex-1 rounded-md border border-primary bg-input px-3 py-2 text-foreground text-sm transition-colors placeholder:text-muted-foreground focus:border-primary focus:outline-none sm:rounded-lg sm:px-4 sm:py-2 sm:text-base"
-								/>
-								<button className="rounded-md bg-primary px-3 py-2 text-primary-foreground transition-all duration-200 hover:shadow-lg sm:rounded-lg sm:px-4 sm:py-2">
-									<MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-								</button>
-							</div>
-						</div>
-
-						{/* Social Links */}
-						<div className="flex items-center space-x-3 sm:space-x-4">
+						<h4 className="text-xs font-bold tracking-[0.2em] text-white/50 mb-6 uppercase">
+							Connect With Us
+						</h4>
+						<div className="flex items-center gap-3">
 							{socialLinks.map((social, index) => {
 								const IconComponent = social.icon;
 								return (
 									<a
 										key={index}
 										href={social.href}
+										target="_blank"
+										rel="noopener noreferrer"
 										aria-label={social.label}
-										className="flex h-8 w-8 items-center justify-center rounded-md border bg-card text-muted-foreground transition-colors duration-200 hover:border-primary hover:text-foreground sm:h-10 sm:w-10 sm:rounded-lg"
+										className="group flex h-12 w-12 items-center justify-center border border-white/20 text-white/50 transition-all duration-300 hover:border-[#23c460] hover:bg-[#23c460] hover:text-white"
 									>
-										<IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
+										<IconComponent className="h-5 w-5" />
 									</a>
 								);
 							})}
 						</div>
 					</div>
 
-					{/* Footer Links */}
-					{footerSections.map((section, index) => (
-						<div key={index}>
-							<h4 className="mb-3 font-semibold text-foreground text-sm sm:mb-4 sm:text-base">
-								{section.title}
-							</h4>
-							<ul className="space-y-1.5 sm:space-y-2">
-								{section.links.map((link, linkIndex) => (
-									<li key={linkIndex}>
-										{link.id ? (
-											<button
-												type="button"
-												onClick={() => link.id && scrollToSection(link.id)}
-												className="cursor-pointer text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
-											>
-												{link.label}
-											</button>
-										) : link.href ? (
-											<Link
-												href={link.href as Route}
-												className="text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
-											>
-												{link.label}
-											</Link>
-										) : (
-											<a
-												href="#"
-												className="text-muted-foreground text-xs leading-relaxed transition-colors duration-200 hover:text-foreground sm:text-sm"
-											>
-												{link.label}
-											</a>
-										)}
-									</li>
-								))}
-							</ul>
+					{/* Right - Links */}
+					<div className="lg:col-span-8">
+						<div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+							{footerSections.map((section, index) => (
+								<div key={index}>
+									<h4 className="mb-5 text-xs font-bold tracking-[0.2em] text-white/50 uppercase">
+										{section.title}
+									</h4>
+									<ul className="space-y-3">
+										{section.links.map((link, linkIndex) => (
+											<li key={linkIndex}>
+												{link.id ? (
+													<button
+														type="button"
+														onClick={() => link.id && scrollToSection(link.id)}
+														className="text-sm text-white/60 transition-colors duration-200 hover:text-white"
+													>
+														{link.label}
+													</button>
+												) : link.href ? (
+													<Link
+														href={link.href as Route}
+														className="text-sm text-white/60 transition-colors duration-200 hover:text-white"
+													>
+														{link.label}
+													</Link>
+												) : (
+													<span className="text-sm text-white/60">
+														{link.label}
+													</span>
+												)}
+											</li>
+										))}
+									</ul>
+								</div>
+							))}
 						</div>
-					))}
+					</div>
 				</div>
+			</div>
 
-				{/* Bottom Bar */}
-				<div className="flex flex-col items-center justify-between gap-3 border-t py-6 sm:gap-4 sm:py-8 md:flex-row">
-					{/* Copyright */}
-					<div className="text-center text-muted-foreground text-xs sm:text-sm md:text-left">
-						© 2025 EventzFlow by Sales Chatalyst. All rights reserved.
+			{/* Bottom Bar */}
+			<div className="border-t border-white/10">
+				<div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-8 md:flex-row md:px-12">
+					{/* Left - Copyright & By line */}
+					<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+						<p className="text-sm tracking-wide text-white/40">
+							© {new Date().getFullYear()} EVENTZFLOW
+						</p>
+						<div className="hidden sm:block h-4 w-px bg-white/20" />
+						<p className="text-sm tracking-wide text-white/40">
+							BY SALES CHATALYST
+						</p>
 					</div>
 
-					{/* Legal Links */}
-					<div className="flex items-center space-x-4 text-xs sm:space-x-6 sm:text-sm">
-						<a
+					{/* Right - Legal Links */}
+					<div className="flex items-center gap-6">
+						<Link
 							href="/privacy-policy"
-							className="text-muted-foreground transition-colors duration-200 hover:text-foreground"
+							className="text-sm tracking-wide text-white/40 transition-colors duration-200 hover:text-white"
 						>
 							Privacy Policy
-						</a>
-						<a
+						</Link>
+						<Link
 							href="/terms-and-conditions"
-							className="text-muted-foreground transition-colors duration-200 hover:text-foreground"
+							className="text-sm tracking-wide text-white/40 transition-colors duration-200 hover:text-white"
 						>
 							Terms & Conditions
-						</a>
+						</Link>
 					</div>
 				</div>
 			</div>
@@ -213,4 +200,4 @@ const Footer: React.FC = () => {
 	);
 };
 
-export default Footer;
+export default FooterNew;

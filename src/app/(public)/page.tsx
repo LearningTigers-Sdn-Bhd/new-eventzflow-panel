@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeSection from "@/components/pages/home-new/home-section";
+import HomeSection from "@/components/pages/home/home-section";
 
 export const metadata: Metadata = {
 	title: "EventzFlow - All in One Event Management Platform",
