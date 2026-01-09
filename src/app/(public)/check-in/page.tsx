@@ -3,7 +3,7 @@
 import { Edit2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	CheckInForm,
@@ -31,7 +31,7 @@ import {
 	findTicketByContact,
 } from "@/lib/api/ticket/endpoints";
 
-export default function PublicCheckinPage() {
+function CheckInPageContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
@@ -631,5 +631,43 @@ export default function PublicCheckinPage() {
 				)}
 			</CardContent>
 		</Card>
+	);
+}
+
+function CheckInLoadingFallback() {
+	return (
+		<Card className="w-full max-w-md shadow-xl">
+			<CardHeader className="space-y-2 pb-4 text-center">
+				<div className="-mt-2 flex justify-center">
+					<Image
+						src="/logo/EzFlow_Logo.png"
+						alt="EzFlow Logo"
+						width={400}
+						height={80}
+						className="rounded-lg object-contain"
+						priority
+					/>
+				</div>
+				<div className="space-y-2">
+					<CardTitle className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text font-bold text-transparent text-xl tracking-tight sm:text-2xl dark:from-white dark:via-gray-100 dark:to-white">
+						Loading...
+					</CardTitle>
+					<div className="mx-auto h-0.5 w-16 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 shadow-sm" />
+				</div>
+			</CardHeader>
+			<CardContent className="px-4 pb-6 sm:px-6">
+				<div className="flex items-center justify-center py-8">
+					<div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+export default function PublicCheckinPage() {
+	return (
+		<Suspense fallback={<CheckInLoadingFallback />}>
+			<CheckInPageContent />
+		</Suspense>
 	);
 }

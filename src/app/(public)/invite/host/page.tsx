@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,12 @@ import { useJoinBusinessHost } from "@/hooks/use-business-matching-public";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default function InviteHostPage() {
+function InviteHostContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const eventId = searchParams.get("event_id");
     const bmEventId = searchParams.get("bm_event_id");
-    
+
     const { user, isAuthenticated, isHydrated } = useAuth();
     const { mutate: joinHost, isPending } = useJoinBusinessHost();
     const [isSuccess, setIsSuccess] = useState(false);
@@ -113,5 +113,21 @@ export default function InviteHostPage() {
                 </CardFooter>
             </Card>
         </div>
+    );
+}
+
+function InviteHostLoadingFallback() {
+    return (
+        <div className="flex justify-center items-center min-h-screen">
+            <Loader2 className="animate-spin" />
+        </div>
+    );
+}
+
+export default function InviteHostPage() {
+    return (
+        <Suspense fallback={<InviteHostLoadingFallback />}>
+            <InviteHostContent />
+        </Suspense>
     );
 }

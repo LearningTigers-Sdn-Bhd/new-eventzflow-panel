@@ -1,9 +1,13 @@
 "use client";
+
 import { redirect, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Script from "next/script";
 import FloatingNav from "@/components/floating-nav";
 import Footer from "@/components/footer";
-import { Spinner } from "@/components/ui/spinner";
+import LoadingScreen, {
+	EXIT_ANIMATION_DURATION_MS,
+} from "@/components/loading-screen";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 
@@ -16,58 +20,78 @@ export default function PublicLayout({
 	const { user } = useAuth();
 	const pathname = usePathname();
 
-	// Show loading spinner during hydration
-	if (!isHydrated) {
-		return (
-			<div className="flex h-screen w-full items-center justify-center">
-				<Spinner className="size-16 text-emerald-500" />
-			</div>
-		);
-	}
+	// Landing/marketing pages - show loading screen, nav, and footer
+	const isLandingPage =
+		pathname === "/" ||
+		pathname.startsWith("/about") ||
+		pathname.startsWith("/services") ||
+		pathname.startsWith("/blog") ||
+		pathname.startsWith("/contact") ||
+		pathname === "/privacy-policy" ||
+		pathname === "/terms-and-conditions";
 
-	// Redirect authenticated users away from login to dashboard
+	// Pages where nav should be hidden
+	const isNavHidden =
+		pathname.startsWith("/auth") ||
+		pathname.startsWith("/forget-password") ||
+		pathname.startsWith("/check-in") ||
+		pathname.startsWith("/event") ||
+		pathname.startsWith("/vendor-signup");
+
+	// Redirect authenticated users away from auth pages
 	if (user && pathname.startsWith("/auth")) {
 		redirect("/dashboard");
 	}
-
-	// Redirect authenticated users away from forget-password routes
 	if (user && pathname.startsWith("/forget-password")) {
 		redirect("/dashboard");
 	}
 
-	// Check if we're on pages where floating nav should be hidden
-	const isLoginPage = pathname.startsWith("/auth");
-	const isForgotPasswordPage = pathname.startsWith("/forget-password");
-	const isCheckinPage = pathname.startsWith("/check-in");
-	const isPublicVoucherPage = pathname.startsWith("/event");
-	const isVendorSignupPage = pathname.startsWith("/vendor-signup");
-	const isNavHidden =
-		isLoginPage ||
-		isForgotPasswordPage ||
-		isCheckinPage ||
-		isPublicVoucherPage ||
-		isVendorSignupPage;
+	// Loading screen state - only for landing pages
+	const [showLoading, setShowLoading] = useState(isLandingPage);
+	const [isExiting, setIsExiting] = useState(false);
+	const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
-	// Check if we're on pages where footer should be shown
-	const isHomePage = pathname === "/";
-	const isAboutPage = pathname.startsWith("/about");
-	const isPrivacyPolicyPage = pathname === "/privacy-policy";
-	const isTermsPage = pathname === "/terms-and-conditions";
-	const isFooterVisible =
-		isHomePage || isAboutPage || isPrivacyPolicyPage || isTermsPage;
+	// Minimum display time for loading screen (500ms)
+	useEffect(() => {
+		if (!isLandingPage) return;
 
-	// Render layout with floating nav for public routes
+		const minTimer = setTimeout(() => {
+			setMinTimeElapsed(true);
+		}, 500);
+
+		return () => clearTimeout(minTimer);
+	}, [isLandingPage]);
+
+	// Handle loading screen exit animation
+	useEffect(() => {
+		if (!isLandingPage) return;
+
+		if (isHydrated && minTimeElapsed && showLoading) {
+			setIsExiting(true);
+
+			const timer = setTimeout(() => {
+				setShowLoading(false);
+			}, EXIT_ANIMATION_DURATION_MS);
+
+			return () => clearTimeout(timer);
+		}
+	}, [isHydrated, minTimeElapsed, showLoading, isLandingPage]);
+
 	return (
-		<div className="min-h-screen w-full">
-			{!isNavHidden && <FloatingNav />}
-			<main className="h-full w-full">{children}</main>
-			{isFooterVisible && <Footer />}
-			{process.env.NODE_ENV === "production" && (
-				<Script
-					src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
-					strategy="afterInteractive"
-				/>
-			)}
-		</div>
+		<>
+			{showLoading && <LoadingScreen isExiting={isExiting} />}
+
+			<div className="relative min-h-screen w-full">
+				{!isNavHidden && <FloatingNav />}
+				<main className="h-full w-full">{children}</main>
+				{isLandingPage && <Footer />}
+				{process.env.NODE_ENV === "production" && (
+					<Script
+						src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
+						strategy="afterInteractive"
+					/>
+				)}
+			</div>
+		</>
 	);
 }
