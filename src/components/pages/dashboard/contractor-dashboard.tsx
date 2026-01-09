@@ -2,11 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import {
+	Banknote,
 	Calendar,
 	ChevronRight,
-	ShoppingBag,
-	Stamp,
-	Ticket,
+	Clock,
+	Users,
+	CheckCircle2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MdSpaceDashboard } from "react-icons/md";
@@ -19,30 +20,29 @@ import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
-import { getVendorDashboard } from "@/lib/api/vendor-dashboard";
-import type { VendorEventData } from "@/lib/api/vendor-dashboard/response";
+import { getContractorDashboard } from "@/lib/api/contractor-dashboard";
+import type { ContractorEventData } from "@/lib/api/contractor-dashboard/response";
 import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 
-export function VendorDashboard() {
+export function ContractorDashboard() {
 	const isHydrated = useHydratedStore();
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
 	const user = useUserSessionStore((state) => state.user);
 
-	// Single optimized API call for all vendor dashboard data
 	const {
 		data: dashboardData,
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ["vendor-dashboard"],
-		queryFn: getVendorDashboard,
+		queryKey: ["contractor-dashboard"],
+		queryFn: getContractorDashboard,
 		enabled: isHydrated,
 	});
 
 	if (!isHydrated || isLoading) {
-		return <VendorDashboardSkeleton />;
+		return <ContractorDashboardSkeleton />;
 	}
 
 	if (error) {
@@ -64,15 +64,15 @@ export function VendorDashboard() {
 				<div className="px-3 sm:px-4">
 					<IconTitle
 						icon={MdSpaceDashboard}
-						title="Vendor Dashboard"
-						description={`Welcome back, ${user?.full_name || "Vendor"}`}
+						title="Contractor Dashboard"
+						description={`Welcome back, ${user?.full_name || "Contractor"}`}
 					/>
 				</div>
 			</div>
 
-			{/* Summary Stats - responsive grid */}
+			{/* Summary Stats */}
 			{summary && (
-				<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-4">
+				<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-3">
 					<StatsCard
 						label="Assigned Events"
 						value={summary.total_events}
@@ -80,22 +80,28 @@ export function VendorDashboard() {
 						Icon={Calendar}
 					/>
 					<StatsCard
-						label="Total Stamps"
-						value={summary.total_stamps.toLocaleString()}
+						label="Exhibitors"
+						value={summary.total_exhibitors}
 						subtitle="Across all events"
-						Icon={Stamp}
+						Icon={Users}
 					/>
 					<StatsCard
-						label="Total Vouchers"
-						value={summary.total_vouchers.toLocaleString()}
-						subtitle="Across all events"
-						Icon={Ticket}
+						label="Total Received"
+						value={`RM ${summary.total_received_amount.toLocaleString()}`}
+						subtitle="Verified payments"
+						Icon={Banknote}
 					/>
 					<StatsCard
-						label="Vouchers Redeemed"
-						value={summary.total_redeemed.toLocaleString()}
-						subtitle="Across all events"
-						Icon={ShoppingBag}
+						label="Pending Payments"
+						value={summary.pending_payments_count}
+						subtitle="Awaiting verification"
+						Icon={Clock}
+					/>
+					<StatsCard
+						label="Verified Payments"
+						value={summary.verified_payments_count}
+						subtitle="Completed"
+						Icon={CheckCircle2}
 					/>
 				</div>
 			)}
@@ -106,7 +112,7 @@ export function VendorDashboard() {
 					<IconTitle
 						icon={Calendar}
 						title="Your Events"
-						description="Events you are assigned to as a vendor"
+						description="Events you are assigned to as a contractor"
 					/>
 				</div>
 
@@ -125,12 +131,12 @@ export function VendorDashboard() {
 				) : (
 					<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
 						{events.map((event) => (
-							<VendorEventCard
+							<ContractorEventCard
 								key={event.id}
 								event={event}
 								formatDate={formatDate}
 								onViewDetails={() =>
-									router.push(`/event/${event.id}/vendor-profile` as any)
+									router.push(`/event/${event.id}/contractor-profile` as any)
 								}
 							/>
 						))}
@@ -141,20 +147,17 @@ export function VendorDashboard() {
 	);
 }
 
-// Vendor Event Card - displays pre-fetched analytics
-interface VendorEventCardProps {
-	event: VendorEventData;
+interface ContractorEventCardProps {
+	event: ContractorEventData;
 	formatDate: (date: string) => string;
 	onViewDetails: () => void;
 }
 
-function VendorEventCard({
+function ContractorEventCard({
 	event,
 	formatDate,
 	onViewDetails,
-}: VendorEventCardProps) {
-	const isTicketEvent = event.use_ticket !== false;
-
+}: ContractorEventCardProps) {
 	return (
 		<Card className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md">
 			<CardHeader className="space-y-3 p-3 sm:p-4">
@@ -190,70 +193,70 @@ function VendorEventCard({
 				</div>
 			</CardHeader>
 			<CardContent className="border-t p-0">
-				{/* Vendor Stats - optimized for mobile */}
-				<div
-					className={cn(
-						"grid gap-2 p-3 sm:gap-3 sm:p-4",
-						isTicketEvent ? "grid-cols-2" : "grid-cols-3",
-					)}
-				>
-					{/* Stamp count - only for non-ticket events */}
-					{!isTicketEvent && (
-						<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-							<Stamp className="size-4 text-muted-foreground sm:size-5" />
-							<div>
-								<p className="text-[10px] text-muted-foreground sm:text-xs">
-									Your Stamps
-								</p>
-								<p className="font-bold text-base sm:text-lg">
-									{event.stamp_count}
-								</p>
-							</div>
-						</div>
-					)}
-
-					{/* Voucher stats */}
+				{/* Contractor Stats */}
+				<div className="grid grid-cols-3 gap-2 p-3 sm:gap-3 sm:p-4">
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-						<Ticket className="size-4 text-muted-foreground sm:size-5" />
+						<Users className="size-4 text-muted-foreground sm:size-5" />
 						<div>
 							<p className="text-[10px] text-muted-foreground sm:text-xs">
-								Vouchers
+								Exhibitors
 							</p>
 							<p className="font-bold text-base sm:text-lg">
-								{event.total_vouchers}
+								{event.exhibitors_count}
 							</p>
 						</div>
 					</div>
 
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-						<ShoppingBag className="size-4 text-muted-foreground sm:size-5" />
+						<Banknote className="size-4 text-muted-foreground sm:size-5" />
 						<div>
 							<p className="text-[10px] text-muted-foreground sm:text-xs">
-								Redeemed
+								Received
 							</p>
 							<p className="font-bold text-base text-green-600 sm:text-lg dark:text-green-400">
-								{event.total_redeemed}
+								RM {event.total_received_amount.toLocaleString()}
+							</p>
+						</div>
+					</div>
+
+					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
+						<Clock className="size-4 text-muted-foreground sm:size-5" />
+						<div>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">
+								Pending
+							</p>
+							<p className="font-bold text-base sm:text-lg">
+								{event.pending_payments_count}
 							</p>
 						</div>
 					</div>
 				</div>
 
-				{/* Redemption Rate Progress Bar */}
+				{/* Payment Progress Bar */}
 				<div className="border-t p-3 sm:p-4">
 					<div className="flex items-center justify-between text-xs">
-						<span className="text-muted-foreground">Redemption Rate</span>
+						<span className="text-muted-foreground">Payment Status</span>
 						<span className="font-medium font-mono">
-							{event.redemption_rate.toFixed(1)}%
+							{event.verified_payments_count} verified
 						</span>
 					</div>
 					<div className="mt-2 h-1.5 overflow-hidden rounded-none bg-secondary">
 						<div
 							className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all"
-							style={{ width: `${Math.min(event.redemption_rate, 100)}%` }}
+							style={{
+								width: `${
+									event.verified_payments_count + event.pending_payments_count > 0
+										? (event.verified_payments_count /
+												(event.verified_payments_count + event.pending_payments_count)) *
+											100
+										: 0
+								}%`,
+							}}
 						/>
 					</div>
 					<p className="mt-1 text-right text-muted-foreground text-xs">
-						{event.total_redeemed} / {event.total_vouchers} vouchers
+						{event.verified_payments_count} /{" "}
+						{event.verified_payments_count + event.pending_payments_count} payments
 					</p>
 				</div>
 			</CardContent>
@@ -261,7 +264,7 @@ function VendorEventCard({
 	);
 }
 
-function VendorDashboardSkeleton() {
+function ContractorDashboardSkeleton() {
 	return (
 		<div className="space-y-0">
 			<div className="page-header border-b border-dashed">
@@ -270,8 +273,8 @@ function VendorDashboardSkeleton() {
 					<Skeleton className="mt-2 h-4 w-52 sm:w-64" />
 				</div>
 			</div>
-			<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-4">
-				{[1, 2, 3, 4].map((i) => (
+			<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-3">
+				{[1, 2, 3, 4, 5].map((i) => (
 					<div key={i} className="border p-3 sm:p-4">
 						<Skeleton className="h-3 w-20 sm:h-4 sm:w-24" />
 						<Skeleton className="mt-2 h-6 w-12 sm:h-8 sm:w-16" />
