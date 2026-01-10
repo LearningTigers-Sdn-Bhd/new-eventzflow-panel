@@ -13,8 +13,6 @@ import {
 
 export interface RichTextEditorContextValue {
 	editor: Editor | null;
-	editMode: boolean;
-	setEditMode: (value: boolean) => void;
 	disabledExtensions: string[];
 	disabledGroups: string[];
 	hasOutline: boolean;
@@ -45,8 +43,6 @@ export function useOptionalRichTextEditorContext() {
 interface RichTextEditorProviderProps {
 	children: ReactNode;
 	editor: Editor | null;
-	editMode: boolean;
-	setEditMode: (value: boolean) => void;
 	disabledExtensions?: string[];
 	disabledGroups?: string[];
 	outlineVisible?: boolean;
@@ -56,8 +52,6 @@ interface RichTextEditorProviderProps {
 export function RichTextEditorProvider({
 	children,
 	editor,
-	editMode,
-	setEditMode,
 	disabledExtensions = [],
 	disabledGroups = [],
 	outlineVisible: initialOutlineVisible = true,
@@ -86,8 +80,6 @@ export function RichTextEditorProvider({
 	const contextValue = useMemo(
 		() => ({
 			editor,
-			editMode,
-			setEditMode,
 			disabledExtensions,
 			disabledGroups,
 			hasOutline,
@@ -98,8 +90,6 @@ export function RichTextEditorProvider({
 		}),
 		[
 			editor,
-			editMode,
-			setEditMode,
 			disabledExtensions,
 			disabledGroups,
 			hasOutline,

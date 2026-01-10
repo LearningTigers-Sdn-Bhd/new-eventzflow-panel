@@ -2,7 +2,6 @@
 
 import { Eye, EyeOff, Pencil, Send, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useResourceEditorStore } from "@/stores/resource-editor-store";
 import { useDialog } from "@/hooks/use-dialog";
 import { EditPostForm } from "@/components/pages/resources/posts/form-modals/edit-post-form";
 import type { Resource } from "@/lib/api/resource/response";
@@ -12,12 +11,15 @@ import { toast } from "sonner";
 
 interface ResourceEditorActionButtonsProps {
 	resource: Resource;
+	isPreviewMode: boolean;
+	onTogglePreviewMode: () => void;
 }
 
 export function ResourceEditorActionButtons({
 	resource,
+	isPreviewMode,
+	onTogglePreviewMode,
 }: ResourceEditorActionButtonsProps) {
-	const { isPreviewMode, togglePreviewMode } = useResourceEditorStore();
 	const { openDialog } = useDialog();
 	const queryClient = useQueryClient();
 
@@ -90,7 +92,7 @@ export function ResourceEditorActionButtons({
 				<Button
 					className="rounded-none border py-6 md:py-4"
 					variant="secondary"
-					onClick={togglePreviewMode}
+					onClick={onTogglePreviewMode}
 				>
 					{isPreviewMode ? (
 						<>

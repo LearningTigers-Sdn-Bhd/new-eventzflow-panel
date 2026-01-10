@@ -26,7 +26,6 @@ import { useRichEditor } from "./use-rich-editor";
 export interface RichTextEditorProps {
 	value: string;
 	onChange: (value: string) => void;
-	editMode?: boolean;
 	placeholder?: string;
 	minHeight?: string;
 	disabledExtensions?: string[];
@@ -37,6 +36,7 @@ export interface RichTextEditorProps {
 }
 
 interface CollectedChildren {
+// ... (omitting for brevity as requested by instruction, but tool needs exact literal)
 	toolbar: ReactNode;
 	outline: ReactNode;
 	contentArea: ReactNode;
@@ -241,16 +241,12 @@ function RichTextEditorLayout({
 // 1. New Component: Presentation Layer
 function RichTextEditorPresentation({
 	editor,
-	editMode,
-	setEditMode,
 	disabledExtensions,
 	disabledGroups,
 	children,
 	className,
 }: {
 	editor: Editor | null;
-	editMode: boolean;
-	setEditMode: (value: boolean) => void;
 	disabledExtensions: string[];
 	disabledGroups: string[];
 	children: ReactNode;
@@ -258,26 +254,16 @@ function RichTextEditorPresentation({
 }) {
 	const [outlineVisible, setOutlineVisible] = useState(true);
 
-	useEffect(() => {
-		if (editor && editor.isEditable !== editMode) {
-			setTimeout(() => {
-				if (!editor.isDestroyed) {
-					editor.setEditable(editMode);
-				}
-			}, 0);
-		}
-	}, [editor, editMode]);
-
-	// Note: We intentionally do NOT use useEffect to sync `value` -> `editor` here
-	// because that logic belongs to the "Managed" wrapper or the parent component.
-	// This component assumes the `editor` prop is the source of truth for the instance.
-
 	const [, forceUpdate] = useState({});
 
 	useEffect(() => {
 		if (!editor) return;
 
-		const handleUpdate = () => forceUpdate({});
+		const handleUpdate = () => {
+			queueMicrotask(() => {
+				forceUpdate({});
+			});
+		};
 
 		editor.on("transaction", handleUpdate);
 		editor.on("selectionUpdate", handleUpdate);
@@ -295,8 +281,6 @@ function RichTextEditorPresentation({
 	return (
 		<RichTextEditorProvider
 			editor={editor}
-			editMode={editMode}
-			setEditMode={setEditMode}
 			disabledExtensions={disabledExtensions}
 			disabledGroups={disabledGroups}
 			outlineVisible={outlineVisible}
@@ -313,7 +297,6 @@ function RichTextEditorPresentation({
 function RichTextEditorManaged({
 	value,
 	onChange,
-	editMode = true,
 	placeholder,
 	minHeight = "200px",
 	disabledExtensions = [],
@@ -339,16 +322,10 @@ function RichTextEditorManaged({
 		onChange,
 		placeholder,
 		minHeight,
-		editable: editMode,
+		editable: true,
 		disabledExtensions: stableDisabledExtensions,
 		disabledGroups: stableDisabledGroups,
 	});
-
-	const [localEditMode, setLocalEditMode] = useState(editMode);
-
-	useEffect(() => {
-		setLocalEditMode(editMode);
-	}, [editMode]);
 
 	const lastSyncedValueRef = useRef(value);
 
@@ -357,12 +334,12 @@ function RichTextEditorManaged({
 		if (!editor || value === lastSyncedValueRef.current) return;
 
 		if (!editor.isFocused && value !== editor.getHTML()) {
-			// Delay content update to avoid flushSync issues during React lifecycle
-			setTimeout(() => {
+			// Defer content update to avoid flushSync issues during React lifecycle
+			queueMicrotask(() => {
 				if (!editor.isDestroyed) {
 					editor.commands.setContent(value, { emitUpdate: false });
 				}
-			}, 0);
+			});
 		}
 
 		lastSyncedValueRef.current = value;
@@ -371,8 +348,6 @@ function RichTextEditorManaged({
 	return (
 		<RichTextEditorPresentation
 			editor={editor}
-			editMode={localEditMode}
-			setEditMode={setLocalEditMode}
 			disabledExtensions={stableDisabledExtensions}
 			disabledGroups={stableDisabledGroups}
 			className={className}
@@ -385,26 +360,17 @@ function RichTextEditorManaged({
 // 3. New Component: Controlled Editor (Uses passed editor)
 function RichTextEditorControlled({
 	editor,
-	editMode = true,
 	disabledExtensions = [],
 	disabledGroups = [],
 	className,
 	children,
 }: RichTextEditorProps & { editor: Editor }) { // Ensure editor is present
-	const [localEditMode, setLocalEditMode] = useState(editMode);
-
-	useEffect(() => {
-		setLocalEditMode(editMode);
-	}, [editMode]);
-
 	// In controlled mode, we assume the parent handles `useRichEditor` and its content syncing.
 	// We just pass everything down.
 
 	return (
 		<RichTextEditorPresentation
 			editor={editor}
-			editMode={localEditMode}
-			setEditMode={setLocalEditMode}
 			disabledExtensions={disabledExtensions || []}
 			disabledGroups={disabledGroups || []}
 			className={className}

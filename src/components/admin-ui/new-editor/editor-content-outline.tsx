@@ -88,7 +88,9 @@ export function EditorContentOutline({
 			}
 		}
 
-		setActivePos(currentHeadingPos);
+		queueMicrotask(() => {
+			setActivePos(currentHeadingPos);
+		});
 	}, [editor, headings]);
 
 	const debouncedUpdateHeadings = useMemo(

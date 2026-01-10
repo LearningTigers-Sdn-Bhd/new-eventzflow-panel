@@ -37,7 +37,6 @@ interface UseRichEditorOptions {
 	onChange: (value: string) => void;
 	placeholder?: string;
 	minHeight?: string;
-	editable?: boolean;
 	uploadTarget?: string;
 	disabledExtensions?: string[];
 	disabledGroups?: string[];
@@ -48,7 +47,6 @@ export const useRichEditor = ({
 	onChange,
 	placeholder = "Write something...",
 	minHeight = "200px",
-	editable = true,
 	uploadTarget = "general",
 	disabledExtensions = [],
 	disabledGroups = [],
@@ -286,12 +284,14 @@ export const useRichEditor = ({
 		{
 			extensions,
 			content: value,
-			editable,
+			editable: true,
 			immediatelyRender: false,
 			shouldRerenderOnTransaction: false,
 			editorProps,
 			onUpdate: ({ editor }) => {
-				onChange?.(editor.getHTML());
+				queueMicrotask(() => {
+					onChange?.(editor.getHTML());
+				});
 			},
 		},
 		[extensions, editorProps],

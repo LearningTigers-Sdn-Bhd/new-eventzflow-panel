@@ -2,29 +2,37 @@
 
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useResource } from "@/app/(auth)/resources/layout";
 import { LoadingState } from "@/components/data-state";
 import { ArticleCanvas } from "@/components/pages/resources/posts/editor-page/article-canvas";
 import { ResourceEditorActionButtons } from "@/components/pages/resources/posts/editor-page/page-action/action-buttons";
 import { useSetResourceActions } from "@/hooks/use-set-resource-actions";
-import { useResourceEditorStore } from "@/stores/resource-editor-store";
 
 export default function PostManagePage() {
 	const router = useRouter();
 	const post = useResource();
 	const isLoading = !post;
-	const { setPreviewMode } = useResourceEditorStore();
+	const [isPreviewMode, setPreviewMode] = useState(false);
 
 	useEffect(() => {
 		if (post?.status === "published") {
 			setPreviewMode(true);
+		} else {
+			setPreviewMode(false);
 		}
-	}, [post?.status, setPreviewMode]);
+	}, [post?.id, post?.status]);
 
 	const actions = useMemo(
-		() => (post ? <ResourceEditorActionButtons resource={post} /> : null),
-		[post],
+		() =>
+			post ? (
+				<ResourceEditorActionButtons
+					resource={post}
+					isPreviewMode={isPreviewMode}
+					onTogglePreviewMode={() => setPreviewMode((prev) => !prev)}
+				/>
+			) : null,
+		[post, isPreviewMode],
 	);
 	useSetResourceActions(actions);
 
@@ -41,5 +49,11 @@ export default function PostManagePage() {
 
 	if (!post) return null;
 
-	return <ArticleCanvas initialPost={post} />;
+	return (
+		<ArticleCanvas
+			key={post.id}
+			initialPost={post}
+			isPreviewMode={isPreviewMode}
+		/>
+	);
 }
