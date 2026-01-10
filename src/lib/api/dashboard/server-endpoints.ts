@@ -14,13 +14,19 @@ import type {
 	BackendScannedTicketsResponse,
 	BackendTicket,
 	BackendUnscannedTicketsResponse,
-	BackendWeeklyRegisteredResponse,
-	BackendWeeklySalesResponse,
-	BackendWeeklyScannedResponse,
 	EventAnalytics,
 	EventOverview,
 	RecentScan,
 } from "./response";
+
+// Time series response type
+type TimeSeriesResponse = {
+	metric: string;
+	group_by: string;
+	start_date: string;
+	end_date: string;
+	data: Array<{ period: string; value: number }>;
+};
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -119,15 +125,15 @@ export async function getEventAnalyticsServer(
 		status: string;
 	}>(`v1/events/${eventIdNum}`, token);
 
-	// Fetch all analytics data in parallel
+	// Fetch all analytics data in parallel (using new time_series endpoint)
 	const [
 		totalTickets,
 		scannedTickets,
 		unscannedTickets,
 		totalRevenue,
-		weeklyRegistered,
-		weeklyScanned,
-		weeklySales,
+		ticketsTimeSeries,
+		scansTimeSeries,
+		revenueTimeSeries,
 	] = await Promise.all([
 		serverFetch<BackendAnalyticsResponse>(
 			`v1/events/${eventIdNum}/metrics/total_tickets`,
@@ -145,16 +151,16 @@ export async function getEventAnalyticsServer(
 			`v1/events/${eventIdNum}/metrics/total_amount_price`,
 			token,
 		),
-		serverFetch<BackendWeeklyRegisteredResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_registered`,
+		serverFetch<TimeSeriesResponse>(
+			`v1/events/${eventIdNum}/metrics/time_series?metric=tickets&group_by=day`,
 			token,
 		),
-		serverFetch<BackendWeeklyScannedResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_scanned`,
+		serverFetch<TimeSeriesResponse>(
+			`v1/events/${eventIdNum}/metrics/time_series?metric=scans&group_by=day`,
 			token,
 		),
-		serverFetch<BackendWeeklySalesResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_sales_amount`,
+		serverFetch<TimeSeriesResponse>(
+			`v1/events/${eventIdNum}/metrics/time_series?metric=revenue&group_by=day`,
 			token,
 		),
 	]);
@@ -229,17 +235,17 @@ export async function getEventAnalyticsServer(
 		pendingTickets: unscannedTickets.totalUnscannedTickets,
 		locations: locations.length,
 		recentScans,
-		registrationData: weeklyRegistered.weeklyRegisteredTickets.map((d) => ({
-			date: d.date,
-			value: d.count,
+		registrationData: ticketsTimeSeries.data.map((d) => ({
+			date: d.period,
+			value: d.value,
 		})),
-		scanData: weeklyScanned.weeklyScannedTickets.map((d) => ({
-			date: d.date,
-			value: d.count,
+		scanData: scansTimeSeries.data.map((d) => ({
+			date: d.period,
+			value: d.value,
 		})),
-		revenueData: weeklySales.weeklySalesAmount.map((d) => ({
-			date: d.date,
-			value: centsToDollars(d.count),
+		revenueData: revenueTimeSeries.data.map((d) => ({
+			date: d.period,
+			value: centsToDollars(d.value),
 		})),
 	};
 }

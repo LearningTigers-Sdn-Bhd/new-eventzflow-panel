@@ -6,11 +6,6 @@ export type GlobalAnalytics = {
 	totalAmountPrice: number; // in cents
 };
 
-export type WeeklyDataPoint = {
-	date: string;
-	count: number;
-};
-
 export type EventAnalytics = {
 	totalTickets: number;
 	totalScannedTickets: number;
@@ -33,16 +28,4 @@ export type BackendTotalUnscannedTicketsResponse = {
 
 export type BackendTotalAmountPriceResponse = {
 	totalAmountPrice: number;
-};
-
-export type BackendWeeklyRegisteredTicketsResponse = {
-	weeklyRegisteredTickets: WeeklyDataPoint[];
-};
-
-export type BackendWeeklyScannedTicketsResponse = {
-	weeklyScannedTickets: WeeklyDataPoint[];
-};
-
-export type BackendWeeklySalesAmountResponse = {
-	weeklySalesAmount: WeeklyDataPoint[];
 };
