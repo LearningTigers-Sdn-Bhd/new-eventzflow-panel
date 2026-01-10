@@ -1,19 +1,56 @@
 import { restClient } from "@/utils/rest-api";
 import {
 	type GetEventAnalyticsRequest,
+	type GetTimeSeriesRequest,
 	getEventAnalyticsSchema,
+	getTimeSeriesSchema,
 } from "./request";
 import type {
 	AllEventAnalyticsResponse,
+	DateCountColumn,
 	MallLiveFeedResponse,
+	TimeSeriesResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
 	TotalTicketsResponse,
 	TotalUnscannedTicketsResponse,
-	WeeklyRegisteredTicketsResponse,
-	WeeklySalesAmountResponse,
-	WeeklyScannedTicketsResponse,
 } from "./response";
+
+/**
+ * Convert time series response to legacy DateCountColumn format
+ */
+function toDateCountFormat(data: TimeSeriesResponse["data"]): DateCountColumn[] {
+	return data.map((d) => ({
+		date: d.period,
+		count: d.value,
+	}));
+}
+
+/**
+ * Get time series data for an event
+ */
+export async function getTimeSeries(
+	data: GetTimeSeriesRequest,
+): Promise<TimeSeriesResponse> {
+	try {
+		const validated = getTimeSeriesSchema.parse(data);
+		const params = new URLSearchParams();
+		params.set("metric", validated.metric);
+		if (validated.groupBy) params.set("group_by", validated.groupBy);
+		if (validated.startDate) params.set("start_date", validated.startDate);
+		if (validated.endDate) params.set("end_date", validated.endDate);
+
+		return await restClient.get<TimeSeriesResponse>(
+			`v1/events/${validated.eventId}/metrics/time_series?${params.toString()}`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get time series for event ${data.eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch time series data");
+	}
+}
 
 /**
  * Aggregate all analytics in a single server-side call to reduce client requests
@@ -25,25 +62,29 @@ export async function getAllEventAnalytics(
 		const validated = getEventAnalyticsSchema.parse(data);
 		const eventId = validated.id;
 
-		console.log(`🔄 Starting analytics fetch for event ${eventId}`);
+		// Build query params for time series
+		const buildTimeSeriesUrl = (metric: string) => {
+			const params = new URLSearchParams();
+			params.set("metric", metric);
+			if (validated.groupBy) params.set("group_by", validated.groupBy);
+			if (validated.startDate) params.set("start_date", validated.startDate);
+			if (validated.endDate) params.set("end_date", validated.endDate);
+			return `v1/events/${eventId}/metrics/time_series?${params.toString()}`;
+		};
 
-		// Execute first endpoint separately
-		console.log("📊 Fetching first endpoint - total tickets...");
-		const totalTickets = await restClient.get<TotalTicketsResponse>(
-			`v1/events/${eventId}/metrics/total_tickets`,
-		);
-		console.log(`✅ Total tickets fetched: ${totalTickets.totalTickets}`);
-
-		// Execute remaining 6 endpoints in parallel
-		console.log("📊 Fetching remaining 6 analytics endpoints in parallel...");
+		// Execute totals and time series in parallel
 		const [
+			totalTickets,
 			totalScannedTickets,
 			totalUnscannedTickets,
 			totalAmountPrice,
-			weeklyRegisteredTickets,
-			weeklyScannedTickets,
-			weeklySalesAmount,
+			ticketsTimeSeries,
+			scansTimeSeries,
+			revenueTimeSeries,
 		] = await Promise.all([
+			restClient.get<TotalTicketsResponse>(
+				`v1/events/${eventId}/metrics/total_tickets`,
+			),
 			restClient.get<TotalScannedTicketsResponse>(
 				`v1/events/${eventId}/metrics/total_scanned_tickets`,
 			),
@@ -53,29 +94,20 @@ export async function getAllEventAnalytics(
 			restClient.get<TotalAmountPriceResponse>(
 				`v1/events/${eventId}/metrics/total_amount_price`,
 			),
-			restClient.get<WeeklyRegisteredTicketsResponse>(
-				`v1/events/${eventId}/metrics/weekly_registered`,
-			),
-			restClient.get<WeeklyScannedTicketsResponse>(
-				`v1/events/${eventId}/metrics/weekly_scanned`,
-			),
-			restClient.get<WeeklySalesAmountResponse>(
-				`v1/events/${eventId}/metrics/weekly_sales_amount`,
-			),
+			restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("tickets")),
+			restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("scans")),
+			restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("revenue")),
 		]);
-
-		console.log("✅ Remaining 6 endpoints completed successfully");
-		console.log(`🎉 All analytics fetched successfully for event ${eventId}`);
 
 		return {
 			totalTickets: totalTickets.totalTickets,
 			totalScannedTickets: totalScannedTickets.totalScannedTickets,
 			totalUnscannedTickets: totalUnscannedTickets.totalUnscannedTickets,
 			totalAmountPrice: totalAmountPrice.totalAmountPrice,
-			weeklyRegisteredTickets: weeklyRegisteredTickets.weeklyRegisteredTickets,
-			weeklyScannedTickets: weeklyScannedTickets.weeklyScannedTickets,
-			weeklySalesAmount: weeklySalesAmount.weeklySalesAmount,
-		} as const;
+			registrationData: toDateCountFormat(ticketsTimeSeries.data ?? []),
+			scanData: toDateCountFormat(scansTimeSeries.data ?? []),
+			revenueData: toDateCountFormat(revenueTimeSeries.data ?? []),
+		};
 	} catch (error: any) {
 		console.error(`❌ Failed to get analytics for event ${data.id}:`, error);
 		throw new Error(error.message || "Failed to fetch event analytics");
@@ -163,71 +195,6 @@ export async function getTotalAmountPrice(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch total amount price");
-	}
-}
-
-/**
- * Get weekly registered tickets for an event
- */
-export async function getWeeklyRegisteredTickets(
-	data: GetEventAnalyticsRequest,
-): Promise<WeeklyRegisteredTicketsResponse> {
-	try {
-		const validated = getEventAnalyticsSchema.parse(data);
-
-		return await restClient.get<WeeklyRegisteredTicketsResponse>(
-			`v1/events/${validated.id}/metrics/weekly_registered`,
-		);
-	} catch (error: any) {
-		console.error(
-			`❌ Failed to get weekly registered tickets for event ${data.id}:`,
-			error,
-		);
-		throw new Error(
-			error.message || "Failed to fetch weekly registered tickets",
-		);
-	}
-}
-
-/**
- * Get weekly scanned tickets for an event
- */
-export async function getWeeklyScannedTickets(
-	data: GetEventAnalyticsRequest,
-): Promise<WeeklyScannedTicketsResponse> {
-	try {
-		const validated = getEventAnalyticsSchema.parse(data);
-
-		return await restClient.get<WeeklyScannedTicketsResponse>(
-			`v1/events/${validated.id}/metrics/weekly_scanned`,
-		);
-	} catch (error: any) {
-		console.error(
-			`❌ Failed to get weekly scanned tickets for event ${data.id}:`,
-			error,
-		);
-		throw new Error(error.message || "Failed to fetch weekly scanned tickets");
-	}
-}
-
-/**
- * Get weekly sales amount for an event
- */
-export async function getWeeklySalesAmount(
-	data: GetEventAnalyticsRequest,
-): Promise<WeeklySalesAmountResponse> {
-	try {
-		const validated = getEventAnalyticsSchema.parse(data);
-
-		return await restClient.get<WeeklySalesAmountResponse>(
-			`v1/events/${validated.id}/metrics/weekly_sales_amount`,
-		);
-	} catch (error: any) {
-		console.error(
-			`❌ Failed to get weekly sales amount for event ${data.id}:`,
-			error,
-		);
-		throw new Error(error.message || "Failed to fetch weekly sales amount");
 	}
 }
 

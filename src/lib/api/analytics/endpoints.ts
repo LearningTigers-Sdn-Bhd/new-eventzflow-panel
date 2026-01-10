@@ -4,9 +4,6 @@ import type {
 	BackendTotalScannedTicketsResponse,
 	BackendTotalTicketsResponse,
 	BackendTotalUnscannedTicketsResponse,
-	BackendWeeklyRegisteredTicketsResponse,
-	BackendWeeklySalesAmountResponse,
-	BackendWeeklyScannedTicketsResponse,
 } from "./response";
 
 /**
@@ -68,59 +65,5 @@ export async function getGlobalTotalRevenue(): Promise<number> {
 	} catch (error: any) {
 		console.error("Error fetching global total revenue:", error);
 		throw new Error(error.message || "Failed to fetch global total revenue");
-	}
-}
-
-/**
- * Get weekly registered tickets data
- */
-export async function getWeeklyRegisteredTickets(): Promise<
-	{ date: string; count: number }[]
-> {
-	try {
-		const response =
-			await restClient.get<BackendWeeklyRegisteredTicketsResponse>(
-				"v1/metrics/weekly_registered",
-			);
-		return response.weeklyRegisteredTickets;
-	} catch (error: any) {
-		console.error("Error fetching weekly registered tickets:", error);
-		throw new Error(
-			error.message || "Failed to fetch weekly registered tickets",
-		);
-	}
-}
-
-/**
- * Get weekly scanned tickets data
- */
-export async function getWeeklyScannedTickets(): Promise<
-	{ date: string; count: number }[]
-> {
-	try {
-		const response = await restClient.get<BackendWeeklyScannedTicketsResponse>(
-			"v1/metrics/weekly_scanned",
-		);
-		return response.weeklyScannedTickets;
-	} catch (error: any) {
-		console.error("Error fetching weekly scanned tickets:", error);
-		throw new Error(error.message || "Failed to fetch weekly scanned tickets");
-	}
-}
-
-/**
- * Get weekly sales amount data
- */
-export async function getWeeklySalesAmount(): Promise<
-	{ date: string; count: number }[]
-> {
-	try {
-		const response = await restClient.get<BackendWeeklySalesAmountResponse>(
-			"v1/metrics/weekly_sales_amount",
-		);
-		return response.weeklySalesAmount;
-	} catch (error: any) {
-		console.error("Error fetching weekly sales amount:", error);
-		throw new Error(error.message || "Failed to fetch weekly sales amount");
 	}
 }

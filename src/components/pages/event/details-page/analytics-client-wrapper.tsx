@@ -16,7 +16,7 @@ import type { VoucherAnalyticsResponse } from "@/lib/api/voucher-analytics/respo
 import { EventDetailsKeyMetrics } from "./event-details-key-metrics";
 import { EventDetailsQuickInfo } from "./event-details-quick-info";
 import { EventDetailsRecentScans } from "./event-details-recent-scans";
-import { EventDetailsWeeklyStats } from "./event-details-weekly-stats";
+import { EventDetailsTimeSeriesStats } from "./event-details-time-series-stats";
 
 interface AnalyticsClientWrapperProps {
 	event: Event;
@@ -70,10 +70,10 @@ export function AnalyticsClientWrapper({
 										</TabsTrigger>
 										{isTicketEvent && (
 											<TabsTrigger
-												value="weekly-stats"
+												value="time-series-stats"
 												className="rounded-none"
 											>
-												Weekly Stats
+												Analytics
 											</TabsTrigger>
 										)}
 										<TabsTrigger value="quick-info" className="rounded-none">
@@ -98,10 +98,10 @@ export function AnalyticsClientWrapper({
 						</TabsContent>
 
 						{isTicketEvent && (
-							<TabsContent value="weekly-stats" className="mt-2">
-								<EventDetailsWeeklyStats
+							<TabsContent value="time-series-stats" className="mt-2">
+								<EventDetailsTimeSeriesStats
 									isTicketEvent={isTicketEvent}
-									ticketAnalytics={ticketAnalytics}
+									eventId={event.id.toString()}
 								/>
 							</TabsContent>
 						)}
@@ -139,10 +139,10 @@ export function AnalyticsClientWrapper({
 						formatCurrency={formatCurrency}
 					/>
 
-					{/* Weekly Stats */}
-					<EventDetailsWeeklyStats
+					{/* Analytics */}
+					<EventDetailsTimeSeriesStats
 						isTicketEvent={isTicketEvent}
-						ticketAnalytics={ticketAnalytics}
+						eventId={event.id.toString()}
 					/>
 
 					{/* Quick Info */}

@@ -1,41 +1,41 @@
 import { DollarSign, QrCode, Ticket } from "lucide-react";
-import { WeeklyChart } from "@/components/admin-ui/analytic";
+import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 
 interface AnalyticsGraphProps {
-	weeklyRegisteredTickets?: { date: string; count: number }[];
-	weeklyScannedTickets?: { date: string; count: number }[];
-	weeklySalesAmount?: { date: string; count: number }[];
+	registrationData?: { date: string; value: number }[];
+	scanData?: { date: string; value: number }[];
+	revenueData?: { date: string; value: number }[];
 	isLoading?: boolean;
 }
 
 export function AnalyticsGraph({
-	weeklyRegisteredTickets,
-	weeklyScannedTickets,
-	weeklySalesAmount,
+	registrationData,
+	scanData,
+	revenueData,
 	isLoading = false,
 }: AnalyticsGraphProps) {
 	return (
 		<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-			<WeeklyChart
-				title="Weekly Registered Tickets"
-				description="Ticket registrations over the last 7 days"
-				data={weeklyRegisteredTickets}
+			<TimeSeriesChart
+				title="Ticket Registrations"
+				description="Ticket registrations over time"
+				data={registrationData}
 				isLoading={isLoading}
 				color="var(--chart-1)"
 				icon={<Ticket className="h-4 w-4" />}
 			/>
-			<WeeklyChart
-				title="Weekly Scanned Tickets"
-				description="Ticket scans over the last 7 days"
-				data={weeklyScannedTickets}
+			<TimeSeriesChart
+				title="Ticket Scans"
+				description="Ticket scans over time"
+				data={scanData}
 				isLoading={isLoading}
 				color="var(--chart-2)"
 				icon={<QrCode className="h-4 w-4" />}
 			/>
-			<WeeklyChart
-				title="Weekly Sales Amount"
-				description="Sales revenue over the last 7 days"
-				data={weeklySalesAmount}
+			<TimeSeriesChart
+				title="Revenue"
+				description="Sales revenue over time"
+				data={revenueData}
 				isLoading={isLoading}
 				color="var(--chart-3)"
 				icon={<DollarSign className="h-4 w-4" />}

@@ -115,27 +115,6 @@ export type BackendRevenueResponse = {
 	totalAmountPrice: number;
 };
 
-export type BackendWeeklyRegisteredResponse = {
-	weeklyRegisteredTickets: Array<{
-		date: string;
-		count: number;
-	}>;
-};
-
-export type BackendWeeklyScannedResponse = {
-	weeklyScannedTickets: Array<{
-		date: string;
-		count: number;
-	}>;
-};
-
-export type BackendWeeklySalesResponse = {
-	weeklySalesAmount: Array<{
-		date: string;
-		count: number;
-	}>;
-};
-
 export type BackendTicket = {
 	id: number;
 	public_id: string;

@@ -2,10 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
-import { use } from "react";
+import { use, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	getDateRangeFromPreset,
+	getGroupByFromPreset,
+	TimeRangeFilter,
+	type TimeRangePreset,
+} from "@/components/ui/time-range-filter";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 
 interface AnalyticsPageProps {
@@ -17,11 +23,22 @@ interface AnalyticsPageProps {
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
+	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+
+	// Get date range and grouping based on selected preset
+	// Returns undefined for "event_duration" to let backend use event dates and auto-detect grouping
+	const dateRange = getDateRangeFromPreset(timeRange);
+	const groupBy = getGroupByFromPreset(timeRange);
 
 	// Single aggregated query to reduce network calls and token refreshes
 	const { data, isLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics"],
-		queryFn: () => getEventAnalytics(event_id),
+		queryKey: ["event", eventId, "analytics", timeRange],
+		queryFn: () =>
+			getEventAnalytics(event_id, {
+				startDate: dateRange?.startDate,
+				endDate: dateRange?.endDate,
+				groupBy,
+			}),
 	});
 
 	const formatCurrency = (amount?: number) => {
@@ -54,13 +71,17 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 						].map((key) => (
 							<div
 								key={key}
-								className="rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l"
+								className="h-full rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l"
 							>
-								<div className="flex h-full flex-col items-center justify-between gap-2 p-6 md:flex-row md:gap-0">
-									<Skeleton className="size-7 md:size-6" />
-									<div className="flex w-full flex-col gap-2">
-										<Skeleton className="h-4 w-20" />
-										<Skeleton className="h-6 w-16" />
+								<div className="h-full p-0">
+									<div className="flex h-full flex-col items-center justify-between gap-2 md:flex-row md:gap-0">
+										<div className="flex h-full items-center justify-center px-6 pt-3 md:py-0">
+											<Skeleton className="size-7 md:size-6" />
+										</div>
+										<div className="flex h-full w-full flex-col justify-center gap-1 px-4 pb-4 text-center md:px-0 md:py-4 md:text-left">
+											<Skeleton className="h-4 w-20" />
+											<Skeleton className="h-6 w-16" />
+										</div>
 									</div>
 								</div>
 							</div>
@@ -94,19 +115,16 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 
 			{/* Charts Section */}
 			<div className="mb-12 space-y-4 border-y border-dashed">
+				{/* Filter Bar */}
+				<div className="flex items-center justify-between px-4 pt-4">
+					<h3 className="font-medium text-sm">Analytics Trends</h3>
+					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+				</div>
+
 				<AnalyticsGraph
-					weeklyRegisteredTickets={data?.registrationData?.map((d) => ({
-						date: d.date,
-						count: d.value,
-					}))}
-					weeklyScannedTickets={data?.scanData?.map((d) => ({
-						date: d.date,
-						count: d.value,
-					}))}
-					weeklySalesAmount={data?.revenueData?.map((d) => ({
-						date: d.date,
-						count: d.value,
-					}))}
+					registrationData={data?.registrationData}
+					scanData={data?.scanData}
+					revenueData={data?.revenueData}
 					isLoading={isLoading}
 				/>
 			</div>

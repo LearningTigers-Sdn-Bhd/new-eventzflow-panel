@@ -1,4 +1,5 @@
-// Mock data for analytics
+// Response types for analytics
+
 export type TotalTicketsResponse = {
 	totalTickets: number;
 };
@@ -15,21 +16,25 @@ export type TotalAmountPriceResponse = {
 	totalAmountPrice: number;
 };
 
+// Time series data point
+export type TimeSeriesDataPoint = {
+	period: string;
+	value: number;
+};
+
+// Time series response from backend
+export type TimeSeriesResponse = {
+	metric: string;
+	group_by: string;
+	start_date: string;
+	end_date: string;
+	data: TimeSeriesDataPoint[];
+};
+
+// Legacy format for backward compatibility with charts
 export type DateCountColumn = {
 	date: string;
 	count: number;
-};
-
-export type WeeklyRegisteredTicketsResponse = {
-	weeklyRegisteredTickets: DateCountColumn[];
-};
-
-export type WeeklyScannedTicketsResponse = {
-	weeklyScannedTickets: DateCountColumn[];
-};
-
-export type WeeklySalesAmountResponse = {
-	weeklySalesAmount: DateCountColumn[];
 };
 
 // Aggregated analytics response
@@ -38,9 +43,9 @@ export type AllEventAnalyticsResponse = {
 	totalScannedTickets: number;
 	totalUnscannedTickets: number;
 	totalAmountPrice: number;
-	weeklyRegisteredTickets: DateCountColumn[];
-	weeklyScannedTickets: DateCountColumn[];
-	weeklySalesAmount: DateCountColumn[];
+	registrationData: DateCountColumn[];
+	scanData: DateCountColumn[];
+	revenueData: DateCountColumn[];
 };
 
 // Mall Live Feed types
