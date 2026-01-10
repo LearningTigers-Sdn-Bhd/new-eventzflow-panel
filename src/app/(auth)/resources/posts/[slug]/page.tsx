@@ -3,7 +3,7 @@
 import { useResource } from "@/app/(auth)/resources/layout";
 import { RichEditor } from "@/components/admin-ui/editor/rich-editor";
 import { LoadingState } from "@/components/data-state";
-import { PostHeader } from "@/components/pages/resources/posts/editor-page/post-header";
+import { PostHeader } from "@/components/pages/resources/posts/show-page/post-header";
 
 export default function PostDetailPage() {
 	const post = useResource();

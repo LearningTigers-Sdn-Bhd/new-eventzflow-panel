@@ -1,19 +1,28 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Save, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { ContentOutline } from "@/components/admin-ui/editor/content-outline";
 import {
-	RichEditor,
+	EditorContentArea,
+	EditorContentOutline,
+	EditorFooter,
+	EditorToolbar,
+	PublicContent,
+	PublicContentArea,
+	PublicContentOutline,
+	RichTextEditor,
+	ToolbarLeftSlot,
+	ToolbarRightSlot,
 	useRichEditor,
-} from "@/components/admin-ui/editor/rich-editor";
-import { Toolbar } from "@/components/admin-ui/editor/toolbar";
+} from "@/components/admin-ui/new-editor";
+import { PostHeader } from "@/components/pages/resources/posts/show-page/post-header";
+import { Button } from "@/components/ui/button";
 import { updateResource } from "@/lib/api/resource";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
 import { useResourceEditorStore } from "@/stores/resource-editor-store";
-import { PostHeader } from "./post-header";
 
 interface ArticleCanvasProps {
 	initialPost?: Resource;
@@ -22,8 +31,9 @@ interface ArticleCanvasProps {
 export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 	const queryClient = useQueryClient();
 	const isPreviewMode = useResourceEditorStore((state) => state.isPreviewMode);
-	const showToC = useResourceEditorStore((state) => state.showToC);
-	const toggleToC = useResourceEditorStore((state) => state.toggleToC);
+	const [articleContent, setArticleContent] = useState(
+		initialPost?.article || "<p>Start writing your resource post...</p>",
+	);
 
 	const updateMutation = useMutation({
 		mutationFn: updateResource,
@@ -44,75 +54,115 @@ export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 	});
 
 	const editor = useRichEditor({
-		value: initialPost?.article || "<p>Start writing your resource post...</p>",
+		value: articleContent,
+		onChange: setArticleContent,
 		minHeight: "calc(100vh - 300px)",
 	});
 
-	useEffect(() => {
-		if (editor) {
-			const isPublished = initialPost?.status === "published";
-			editor.setEditable(!isPreviewMode && !isPublished);
-		}
-	}, [editor, isPreviewMode, initialPost?.status]);
-
 	const handleSave = () => {
 		if (!initialPost || !editor) return;
+
 		updateMutation.mutate({
 			id: initialPost.id,
 			article: editor.getHTML(),
 		});
 	};
 
+	const handleClear = () => {
+		if (!editor) return;
+
+		editor.commands.setContent("<p>Start writing your resource post...</p>");
+	};
+
 	const isPublished = initialPost?.status === "published";
 
 	return (
-		<div className="flex w-full flex-col gap-4">
+		<>
+			{isPreviewMode && (
+				<PublicContent
+					value={articleContent}
+					navVisible={true}
+					className="flex h-full w-full flex-col gap-4"
+				>
+					<div className="flex w-full flex-row">
+						<PublicContentOutline style="block" side="left" />
+						<PublicContentArea className="w-full">
+							{initialPost && (
+								<div className="w-full px-4 md:px-8">
+									<PostHeader resource={initialPost} />
+								</div>
+							)}
+						</PublicContentArea>
+					</div>
+				</PublicContent>
+			)}
+
 			<div
 				className={cn(
-					"flex w-full gap-1 transition-all duration-300",
-					showToC ? "flex-row" : "flex-col",
+					"flex w-full flex-col gap-4 md:mt-0",
+					isPreviewMode && "hidden",
 				)}
 			>
-				{showToC && (
-					<div className="sticky top-0 h-screen w-64 shrink-0 overflow-hidden rounded-none border bg-card shadow-sm transition-all">
-						<ContentOutline editor={editor} />
-					</div>
-				)}
+				<RichTextEditor
+					editor={editor}
+					value={articleContent}
+					onChange={setArticleContent}
+					editMode={!isPreviewMode && !isPublished}
+					className="w-full"
+				>
+					<EditorToolbar editor={editor}>
+						<ToolbarLeftSlot>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-8 rounded-none px-3 font-medium text-xs"
+								onClick={() => window.history.back()}
+							>
+								Back
+							</Button>
+						</ToolbarLeftSlot>
+						<ToolbarRightSlot>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-8 rounded-none px-3 font-medium text-muted-foreground text-xs hover:text-foreground"
+								onClick={handleClear}
+								disabled={isPublished}
+							>
+								<X className="mr-1 h-3 w-3" />
+								Clear
+							</Button>
+							<Button
+								type="button"
+								variant="default"
+								size="sm"
+								className="h-8 rounded-none px-3 font-medium text-xs"
+								onClick={handleSave}
+								disabled={
+									!initialPost || updateMutation.isPending || isPublished
+								}
+							>
+								<Save className="mr-1 h-3 w-3" />
+								Save Article
+							</Button>
+						</ToolbarRightSlot>
+					</EditorToolbar>
 
-				<div className="min-h-screen flex-1 rounded-none border-x-0 border-y shadow-none md:rounded-none md:border md:shadow-sm">
-					{!isPreviewMode && (
-						<Toolbar
-							editor={editor}
-							showToC={showToC}
-							onToggleToC={toggleToC}
-							action={
-								!isPublished
-									? {
-											label: "Save Article",
-											onClick: handleSave,
-											loading: updateMutation.isPending,
-											disabled: !initialPost,
-										}
-									: undefined
-							}
-						/>
-					)}
+					<EditorContentOutline editor={editor} style="inset" side="left" />
 
-					{initialPost && (
-						<div className="mx-auto max-w-4xl px-4 md:px-8">
-							<PostHeader resource={initialPost} />
-						</div>
-					)}
+					<EditorContentArea editor={editor} className="w-full">
+						{initialPost && <PostHeader resource={initialPost} />}
+					</EditorContentArea>
 
-					<RichEditor
-						editor={editor}
-						value={initialPost?.article || ""}
-						onChange={() => {}} // Uncontrolled: we don't need to sync back to local state
-						hideToolbar
-						className="mx-auto max-w-4xl rounded-none border-none bg-transparent shadow-none"
-					/>
-				</div>
+					<EditorFooter>
+						<span className="px-4 text-muted-foreground text-xs">
+							{editor?.storage.characterCount?.words() || 0} words
+						</span>
+					</EditorFooter>
+				</RichTextEditor>
 			</div>
-		</div>
+		</>
 	);
 };
