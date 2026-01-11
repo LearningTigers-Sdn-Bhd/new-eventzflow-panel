@@ -70,7 +70,6 @@ interface RichEditorProps {
 	placeholder?: string;
 	className?: string;
 	minHeight?: string;
-	editable?: boolean;
 	children?: ReactNode;
 	disabledExtensions?: string[];
 	disabledGroups?: string[];
@@ -307,7 +306,6 @@ export function RichEditor({
 	placeholder = "Start writing...",
 	className,
 	minHeight = "200px",
-	editable = true,
 	children,
 	disabledExtensions = [],
 	disabledGroups = [],
@@ -319,7 +317,7 @@ export function RichEditor({
 			console.error(error);
 		},
 		nodes: EditorNodes,
-		editable,
+		editable: true,
 	};
 
 	return (
