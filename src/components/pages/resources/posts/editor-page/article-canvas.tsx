@@ -4,6 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { RichDisplay } from "@/components/admin-ui/rich-editor/display/display";
+import { RichDisplayContent } from "@/components/admin-ui/rich-editor/display/display-content";
+import { RichDisplayOutline } from "@/components/admin-ui/rich-editor/display/display-outline";
 import { WordCount } from "@/components/admin-ui/rich-editor/plugins/word-count";
 import { RichEditor } from "@/components/admin-ui/rich-editor/rich-editor";
 import { RichEditorContentArea } from "@/components/admin-ui/rich-editor/rich-editor-content-area";
@@ -23,12 +26,14 @@ import { cn } from "@/lib/utils";
 
 interface ArticleCanvasProps {
 	initialPost?: Resource;
+	isPreviewMode?: boolean;
 }
 
-export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
+export const ArticleCanvas = ({
+	initialPost,
+	isPreviewMode = false,
+}: ArticleCanvasProps) => {
 	const queryClient = useQueryClient();
-	// Store was removed, defaulting to false for now
-	const isPreviewMode = false;
 	const [articleContent, setArticleContent] = useState(
 		initialPost?.article || "<p>Start writing your resource post...</p>",
 	);
@@ -72,22 +77,19 @@ export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 		<>
 			{isPreviewMode && (
 				<div className="flex h-full w-full flex-col gap-4">
-					{/* Replicating PublicContent layout with read-only RichEditor */}
-					<RichEditor
-						value={articleContent}
-						onChange={() => {}} // Read-only, no change
-						editable={false}
+					<RichDisplay
+						content={articleContent}
 						className="h-full w-full border-none shadow-none"
 					>
-						<RichEditorOutline style="block" side="left" />
-						<RichEditorContentArea className="w-full">
+						<RichDisplayOutline style="block" side="left" />
+						<RichDisplayContent>
 							{initialPost && (
 								<div className="w-full px-4 md:px-8">
 									<PostHeader resource={initialPost} />
 								</div>
 							)}
-						</RichEditorContentArea>
-					</RichEditor>
+						</RichDisplayContent>
+					</RichDisplay>
 				</div>
 			)}
 
@@ -100,7 +102,6 @@ export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 				<RichEditor
 					value={articleContent}
 					onChange={setArticleContent}
-					editable={!isPublished}
 					className="w-full"
 					minHeight="calc(100vh - 300px)"
 				>
@@ -144,7 +145,7 @@ export const ArticleCanvas = ({ initialPost }: ArticleCanvasProps) => {
 						</ToolbarRightSlot>
 					</RichEditorToolbar>
 
-					<RichEditorOutline style="inset" side="right" />
+					<RichEditorOutline style="block" side="left" />
 
 					<RichEditorContentArea className="w-full">
 						{initialPost && <PostHeader resource={initialPost} />}
