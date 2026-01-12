@@ -5,8 +5,8 @@ import { Copy } from "lucide-react";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { StatusBadge } from "./status-helpers";
-import type { ScanResult } from "./types";
+import { StatusBadge, TypeBadge } from "../status-helpers";
+import type { ScanResult } from "../types";
 
 export function generateColumns(): ColumnDef<ScanResult>[] {
 	return [
@@ -15,18 +15,20 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 			size: 48,
 			header: () => <div className="text-center text-xs sm:text-sm">No</div>,
 			cell: ({ row, table }) => {
-				// Get index from filtered/sorted rows
-				const allRows = table.getRowModel().rows;
-				const index = allRows.findIndex((r) => r.id === row.id);
+				// Get absolute row number across all pages
+				const pageIndex = table.getState().pagination.pageIndex;
+				const pageSize = table.getState().pagination.pageSize;
+				const rowIndexInPage = row.index;
+				const absoluteIndex = pageIndex * pageSize + rowIndexInPage + 1;
 				return (
 					<div className="w-12 py-2 text-center font-mono text-[10px] text-muted-foreground sm:py-3 sm:text-xs">
-						{index >= 0 ? index + 1 : ""}
+						{absoluteIndex}
 					</div>
 				);
 			},
 		},
 		{
-			accessorKey: "attendeeName",
+			accessorKey: "name",
 			size: 100,
 			header: ({ column }) => {
 				return (
@@ -39,25 +41,25 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 			},
 			cell: ({ row }) => {
 				const { copyToClipboard } = useCopyToClipboard({
-					successMessage: "Ticket ID copied to clipboard",
+					successMessage: "ID copied to clipboard",
 				});
-				const ticketId = row.original.ticketId;
+				const scanId = row.original.scanId;
 
 				return (
 					<div className="min-w-[100px] py-2 sm:py-3">
 						<div className="truncate font-medium text-xs sm:text-sm">
-							{row.getValue("attendeeName") || "Unknown"}
+							{row.getValue("name") || "Unknown"}
 						</div>
-						{ticketId && (
+						{scanId && (
 							<div className="mt-1 flex items-center gap-1">
 								<Button
 									variant="ghost"
 									size="sm"
 									className="group rounded-none p-0! hover:bg-transparent"
-									onClick={() => copyToClipboard(ticketId)}
+									onClick={() => copyToClipboard(scanId)}
 								>
 									<span className="font-mono text-[10px] text-muted-foreground group-hover:underline sm:text-xs">
-										{ticketId}
+										{scanId}
 									</span>
 									<Copy className="ml-2 size-3 sm:size-3.5" />
 								</Button>
@@ -94,40 +96,49 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 			),
 		},
 		{
-			accessorKey: "ticketType",
+			accessorKey: "type",
 			size: 100,
 			header: () => (
 				<div className="hidden font-medium text-xs sm:table-cell sm:text-sm">
-					Ticket Type
+					Type
 				</div>
 			),
-			cell: ({ row }) => (
-				<div className="hidden min-w-[100px] truncate py-2 text-muted-foreground text-xs sm:table-cell sm:py-3 sm:text-sm">
-					{row.getValue("ticketType") || "-"}
-				</div>
-			),
+			cell: ({ row }) => {
+				const result = row.original;
+				return (
+					<div className="hidden min-w-[100px] py-2 sm:table-cell sm:py-3">
+						<TypeBadge type={result.type} className="rounded-none" />
+					</div>
+				);
+			},
 		},
 		{
 			accessorKey: "timestamp",
-			size: 140,
+			size: 120,
 			header: ({ column }) => {
 				return (
 					<SortableHeader
 						column={column}
-						label="Check-In Time"
+						label="Check-In"
 						className="whitespace-nowrap text-xs sm:text-sm"
 					/>
 				);
 			},
 			cell: ({ row }) => {
 				const timestamp = row.getValue("timestamp") as Date;
+				const timeStr = timestamp.toLocaleTimeString([], {
+					hour: "2-digit",
+					minute: "2-digit",
+				});
+				const dateStr = timestamp.toLocaleDateString("en-GB", {
+					day: "numeric",
+					month: "short",
+					year: "numeric",
+				});
 				return (
-					<div className="whitespace-nowrap py-2 text-[10px] text-muted-foreground sm:py-3 sm:text-sm">
-						{timestamp.toLocaleTimeString([], {
-							hour: "2-digit",
-							minute: "2-digit",
-							second: "2-digit",
-						})}
+					<div className="flex flex-col py-2 sm:py-3">
+						<span className="text-xs font-medium sm:text-sm">{timeStr}</span>
+						<span className="text-[10px] text-muted-foreground sm:text-xs">{dateStr}</span>
 					</div>
 				);
 			},

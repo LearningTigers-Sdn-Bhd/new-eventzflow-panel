@@ -1,25 +1,30 @@
 /**
  * Scan Result Types
- * Type definitions for the ticket scanning feature
+ * Type definitions for the unified scanning feature (tickets and visitors)
  */
 
+import type { ScanType } from "@/lib/api/scan";
+
 export interface ScanResult {
-	ticketId: string; // This is the public_id from QR code
+	scanId: string;
 	timestamp: Date;
 	status: "success" | "error" | "duplicate";
 	message: string;
-	attendeeName?: string;
-	attendeeEmail?: string;
-	attendeePhone?: string;
-	ticketType?: string;
-	ticketValue?: number;
-	seatNumber?: string;
+	type: ScanType;
+	name?: string;
+	email?: string;
+	phone?: string;
+	eventName?: string;
+	eventId?: number;
 	checkedIn?: boolean;
 	checkInAt?: string | null;
-	eventName?: string; // Name of the event
-	eventId?: number; // ID of the event
+	ticketType?: string;
+	ticketValue?: number;
+	gender?: string;
+	age?: number;
 }
 
 export type ScanStatus = ScanResult["status"];
-export type FilterType = string; // Event ID or "all"
+export type FilterType = string;
+export type TypeFilter = "all" | "ticket" | "visitor";
 export type SortType = "newest" | "oldest" | "status";

@@ -8,9 +8,9 @@ import { useDuplicateDetection } from "@/hooks/use-duplicate-detection";
 import { useScanner } from "@/hooks/use-scanner";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
 import { cn } from "@/lib/utils";
-import { SCANNER_CONFIG } from "./constants";
+import { SCANNER_CONFIG } from "../constants";
 import { RecentScanCard } from "./recent-scan-card";
-import type { ScanResult } from "./types";
+import type { ScanResult } from "../types";
 
 interface ScannerCardProps {
 	isScanning: boolean;
@@ -203,7 +203,7 @@ export function ScannerCard({
 								) : (
 									recentScans.map((scan, idx) => (
 										<RecentScanCard
-											key={`${scan.ticketId}-${idx}`}
+											key={`${scan.scanId}-${idx}`}
 											scan={scan}
 										/>
 									))

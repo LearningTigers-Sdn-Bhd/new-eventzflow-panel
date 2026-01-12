@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, Copy, Ticket } from "lucide-react";
+import { Calendar, Clock, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Item,
@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "./status-helpers";
-import type { ScanResult } from "./types";
+import { StatusBadge, TypeBadge } from "../status-helpers";
+import type { ScanResult } from "../types";
 
 interface ScanItemProps {
 	scanResult: ScanResult;
@@ -22,17 +22,26 @@ interface ScanItemProps {
 
 export function ScanItem({ scanResult, isRecent = false }: ScanItemProps) {
 	const { copyToClipboard } = useCopyToClipboard({
-		successMessage: "Ticket ID copied to clipboard",
+		successMessage: "ID copied to clipboard",
 	});
 
-	const handleCopyTicketId = () => {
-		copyToClipboard(scanResult.ticketId);
+	const scanId = scanResult.scanId;
+
+	const handleCopyId = () => {
+		if (scanId) {
+			copyToClipboard(scanId);
+		}
 	};
 
-	const formattedTime = scanResult.timestamp.toLocaleTimeString([], {
+	const timeStr = scanResult.timestamp.toLocaleTimeString([], {
 		hour: "2-digit",
 		minute: "2-digit",
-		second: "2-digit",
+	});
+
+	const dateStr = scanResult.timestamp.toLocaleDateString("en-GB", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
 	});
 
 	return (
@@ -46,20 +55,20 @@ export function ScanItem({ scanResult, isRecent = false }: ScanItemProps) {
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="w-full">
 					<h3 className="text-balance font-bold text-lg">
-						{scanResult.attendeeName || "Unknown"}
+						{scanResult.name || "Unknown"}
 					</h3>
 				</ItemTitle>
 				<ItemDescription className="flex w-full flex-col gap-1">
-					{scanResult.ticketId && (
+					{scanId && (
 						<div className="flex w-full items-center gap-2">
 							<Button
 								variant="ghost"
 								size="sm"
 								className="group rounded-none bg-accent p-0! px-2! hover:bg-transparent"
-								onClick={handleCopyTicketId}
+								onClick={handleCopyId}
 							>
 								<span className="font-mono text-[10px] text-muted-foreground group-hover:underline sm:text-xs">
-									ID: {scanResult.ticketId}
+									ID: {scanId}
 								</span>
 								<Copy className="size-2.5 sm:size-3" />
 							</Button>
@@ -67,7 +76,7 @@ export function ScanItem({ scanResult, isRecent = false }: ScanItemProps) {
 					)}
 				</ItemDescription>
 			</ItemHeader>
-			<ItemContent className="flex flex-col">
+			<ItemContent className="flex flex-col gap-2">
 				{scanResult.eventName && (
 					<div className="flex items-center gap-2">
 						<Calendar className="size-4 text-muted-foreground" />
@@ -76,19 +85,15 @@ export function ScanItem({ scanResult, isRecent = false }: ScanItemProps) {
 						</span>
 					</div>
 				)}
-				{scanResult.ticketType && (
-					<div className="flex items-center gap-2">
-						<Ticket className="size-4 text-muted-foreground" />
-						<span className="text-muted-foreground text-sm">
-							{scanResult.ticketType}
-						</span>
-					</div>
-				)}
+				<div className="flex items-center gap-2">
+					<TypeBadge type={scanResult.type} className="rounded-none" />
+				</div>
 				<div className="flex items-center gap-2">
 					<Clock className="size-4 text-muted-foreground" />
-					<span className="text-muted-foreground text-sm">
-						Checked in at {formattedTime}
-					</span>
+					<div className="flex flex-col">
+						<span className="text-sm font-medium">{timeStr}</span>
+						<span className="text-xs text-muted-foreground">{dateStr}</span>
+					</div>
 				</div>
 			</ItemContent>
 			<ItemFooter className="flex justify-end">

@@ -16,27 +16,24 @@ import {
 } from "@/components/ui/collapsible";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScanHistory } from "@/hooks/use-scan-history";
-import { useTicketValidation } from "@/hooks/use-ticket-validation";
 import { ActivityFeed } from "./activity-feed";
 import { UI_TIMING } from "./constants";
-import { ScannerCard } from "./scanner-card";
-import { StatsGrid } from "./stats-grid";
-import { StorageStatus } from "./storage-status";
-import type { FilterType, ScanResult, SortType } from "./types";
+import { ScannerCard } from "./cards/scanner-card";
+import { StatsGrid } from "./cards/stats-grid";
+import { StorageStatus } from "./cards/storage-status";
+import type { FilterType, ScanResult, SortType, TypeFilter } from "./types";
 import { exportToCSV } from "./utils";
 
 export default function ScanContent() {
 	const isMobile = useIsMobile();
 	const [isScanning, setIsScanning] = useState(false);
 	const { scanResults, isLoading, addScanResult } = useScanHistory();
-	// Ticket validation hook is used by scanner-card component
-	useTicketValidation();
 	// Use ref to track scanned IDs immediately without waiting for React re-render
 	const scannedTicketIdsRef = useRef<Set<string>>(new Set());
 	const [recentScan, setRecentScan] = useState<ScanResult | null>(null);
-	const [searchQuery, setSearchQuery] = useState("");
 	const [filterType, setFilterType] = useState<FilterType>("all");
-	const [sortType, setSortType] = useState<SortType>("oldest");
+	const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+	const [sortType, setSortType] = useState<SortType>("newest");
 
 	/**
 	 * Rebuild scannedTicketIds set from loaded history
@@ -46,7 +43,7 @@ export default function ScanContent() {
 			const successfulIds = new Set(
 				scanResults
 					.filter((r) => r.status === "success")
-					.map((r) => r.ticketId.toLowerCase()),
+					.map((r) => r.scanId.toLowerCase()),
 			);
 			scannedTicketIdsRef.current = successfulIds;
 		}
@@ -62,9 +59,9 @@ export default function ScanContent() {
 		// Add to persistent storage
 		addScanResult(result);
 
-		// Add ticket ID to the ref AND state if it's a successful scan (not duplicate or error)
+		// Add ID to the ref if it's a successful scan (not duplicate or error)
 		if (result.status === "success") {
-			const normalizedId = result.ticketId.toLowerCase();
+			const normalizedId = result.scanId.toLowerCase();
 
 			// Update ref immediately (synchronous)
 			scannedTicketIdsRef.current.add(normalizedId);
@@ -193,14 +190,13 @@ export default function ScanContent() {
 			<ActivityFeed
 				scanResults={scanResults}
 				recentScan={recentScan}
-				searchQuery={searchQuery}
 				filterType={filterType}
+				typeFilter={typeFilter}
 				sortType={sortType}
 				isLoading={isLoading}
-				onSearchChange={setSearchQuery}
 				onFilterChange={setFilterType}
+				onTypeFilterChange={setTypeFilter}
 				onSortChange={setSortType}
-				onExport={handleExport}
 			/>
 		</div>
 	);

@@ -4,8 +4,8 @@
  */
 
 import { cn } from "@/lib/utils";
-import { getStatusIcon, getStatusVariant } from "./status-helpers";
-import type { ScanResult } from "./types";
+import { getStatusIcon, getStatusVariant, TypeBadge } from "../status-helpers";
+import type { ScanResult } from "../types";
 
 interface RecentScanCardProps {
 	scan: ScanResult;
@@ -13,6 +13,17 @@ interface RecentScanCardProps {
 
 export function RecentScanCard({ scan }: RecentScanCardProps) {
 	const variant = getStatusVariant(scan.status);
+
+	const timeStr = scan.timestamp.toLocaleTimeString([], {
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+
+	const dateStr = scan.timestamp.toLocaleDateString("en-GB", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
 
 	return (
 		<div
@@ -28,36 +39,30 @@ export function RecentScanCard({ scan }: RecentScanCardProps) {
 				</div>
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-semibold text-sm">
-						{scan.attendeeName || "Unknown"}
+						{scan.name || "Unknown"}
 					</p>
 					<p
 						className={cn(
 							"truncate text-xs",
-							scan.attendeeEmail
+							scan.email
 								? "text-muted-foreground"
 								: "text-muted-foreground/60 italic",
 						)}
 					>
-						{scan.attendeeEmail || "No email"}
+						{scan.email || "No email"}
 					</p>
-					{scan.ticketType && (
-						<p className="text-muted-foreground text-xs">
-							{scan.ticketType}
-							{scan.ticketValue && ` • $${scan.ticketValue}`}
-						</p>
-					)}
+					<div className="mt-1">
+						<TypeBadge type={scan.type} />
+					</div>
 				</div>
 			</div>
 			<p className="truncate font-mono text-muted-foreground text-xs">
-				{scan.ticketId}
+				{scan.scanId}
 			</p>
-			<p className="mt-1 text-muted-foreground text-xs">
-				{scan.timestamp.toLocaleTimeString([], {
-					hour: "2-digit",
-					minute: "2-digit",
-					second: "2-digit",
-				})}
-			</p>
+			<div className="mt-1 flex flex-col">
+				<span className="text-sm font-medium">{timeStr}</span>
+				<span className="text-xs text-muted-foreground">{dateStr}</span>
+			</div>
 		</div>
 	);
 }
