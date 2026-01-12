@@ -72,7 +72,6 @@ function transformResource(backend: BackendResource): Resource {
 		id: backend.id.toString(),
 		title: backend.title,
 		slug: backend.slug,
-		summary: backend.summary ?? null,
 		metaDescription: backend.meta_description ?? null,
 		article: backend.article ?? null,
 		status: backend.status,
@@ -82,6 +81,7 @@ function transformResource(backend: BackendResource): Resource {
 		publishedAt: backend.published_at,
 		coverImageUrl: backend.cover_image_url,
 		headerImgUrl: backend.header_img_url,
+        minRead: backend.min_read,
 
 		topic: backend.topic ? transformTopic(backend.topic) : undefined,
 		category: backend.category
@@ -91,6 +91,7 @@ function transformResource(backend: BackendResource): Resource {
 			? transformMediaType(backend.media_type)
 			: undefined,
 		author: backend.author ? transformAuthor(backend.author) : undefined,
+        suggestions: backend.suggestions ? backend.suggestions.map(transformResource) : undefined,
 
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
@@ -216,6 +217,55 @@ export async function getPublicResource(id: string): Promise<Resource> {
 	return transformResource(resource);
 }
 
+// Get all resources (Public view)
+export async function getPublicResources(options?: {
+	priority?: number;
+	priorityMin?: number;
+	priorityMax?: number;
+	topicSlug?: string;
+	categorySlug?: string;
+	mediaTypeSlug?: string;
+	page?: number;
+	perPage?: number;
+}): Promise<{ data: Resource[]; pagination?: any }> {
+	const params = new URLSearchParams();
+	if (options?.priority !== undefined)
+		params.append("priority", options.priority.toString());
+	if (options?.priorityMin !== undefined)
+		params.append("priority_min", options.priorityMin.toString());
+	if (options?.priorityMax !== undefined)
+		params.append("priority_max", options.priorityMax.toString());
+	if (options?.topicSlug) params.append("topic_slug", options.topicSlug);
+	if (options?.categorySlug)
+		params.append("category_slug", options.categorySlug);
+	if (options?.mediaTypeSlug)
+		params.append("media_type_slug", options.mediaTypeSlug);
+	if (options?.page) params.append("page", options.page.toString());
+	if (options?.perPage) params.append("per_page", options.perPage.toString());
+
+	const queryString = params.toString();
+	const url = queryString
+		? `v1/resources/public?${queryString}`
+		: "v1/resources/public";
+
+	const response = await publicRestClient.get<
+		BackendResource[] | { data: BackendResource[]; pagination?: any }
+	>(url);
+
+	if (Array.isArray(response)) {
+		return { data: response.map(transformResource) };
+	}
+
+	if (response && "data" in response && Array.isArray(response.data)) {
+		return {
+			data: response.data.map(transformResource),
+			pagination: response.pagination,
+		};
+	}
+
+	return { data: [] };
+}
+
 // Get single resource (Admin/Dashboard view)
 export async function getResource(id: string): Promise<Resource> {
 	const response = await restClient.get<
@@ -243,6 +293,22 @@ export async function getResourceBySlug(slug: string): Promise<Resource> {
 	return transformResource(resource);
 }
 
+// Public fetch by slug
+export async function getPublicResourceBySlug(slug: string): Promise<Resource> {
+	const response = await publicRestClient.get<
+		BackendResource | { data: BackendResource }
+	>(`v1/resources/${slug}/public`);
+
+	const resource =
+		"data" in response ? response.data : (response as BackendResource);
+
+	return transformResource(resource);
+}
+
+export async function incrementResourceView(id: string): Promise<void> {
+	await publicRestClient.post(`v1/resources/${id}/increment_view`);
+}
+
 export async function createResource(
 	data: CreateResourceRequest,
 ): Promise<Resource> {
@@ -251,7 +317,6 @@ export async function createResource(
 
 		const payload = {
 			title: validated.title,
-			summary: validated.summary,
 			meta_description: validated.metaDescription,
 			article: validated.article,
 			status: validated.status,
@@ -304,7 +369,6 @@ export async function updateResource(
 
 		const payload: Record<string, any> = {};
 		if (validated.title !== undefined) payload.title = validated.title;
-		if (validated.summary !== undefined) payload.summary = validated.summary;
 		if (validated.metaDescription !== undefined)
 			payload.meta_description = validated.metaDescription;
 		if (validated.article !== undefined) payload.article = validated.article;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import BlogPageClient from "./page-client";
+import ResourcesPageClient from "./page-client";
 
 export const metadata: Metadata = {
 	title: "Resources - EventzFlow",
@@ -16,6 +16,8 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function BlogPage() {
-	return <BlogPageClient />;
+// url "/resources"
+// A page that displays a list of featured resources.
+export default async function ResourcesPage() {
+	return <ResourcesPageClient />;
 }

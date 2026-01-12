@@ -28,7 +28,8 @@ export default function PublicLayout({
 		pathname.startsWith("/blog") ||
 		pathname.startsWith("/contact") ||
 		pathname === "/privacy-policy" ||
-		pathname === "/terms-and-conditions";
+		pathname === "/terms-and-conditions" ||
+		pathname.startsWith("/resources");
 
 	// Pages where nav should be hidden
 	const isNavHidden =

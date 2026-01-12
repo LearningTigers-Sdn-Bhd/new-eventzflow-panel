@@ -2,6 +2,7 @@
 export type BackendResourceCategory = {
 	id: number;
 	name: string;
+	slug: string;
 	description: string | null;
 	created_at: string;
 	updated_at: string;
@@ -12,6 +13,7 @@ export type BackendResourceCategory = {
 export type ResourceCategory = {
 	id: string;
 	name: string;
+	slug: string;
 	description: string | null;
 	createdAt: string;
 	updatedAt: string;

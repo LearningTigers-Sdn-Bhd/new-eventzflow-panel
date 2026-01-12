@@ -38,7 +38,6 @@ export type BackendResource = {
 	id: number;
 	title: string;
 	slug: string;
-	summary?: string | null;
 	meta_description?: string | null;
 	article?: string | null; // Rich text HTML
 	status: "draft" | "pending_review" | "published" | "archived" | "rejected";
@@ -48,11 +47,13 @@ export type BackendResource = {
 	published_at: string | null;
 	cover_image_url: string | null;
 	header_img_url: string | null;
+    min_read?: number;
 
 	topic?: BackendResourceTopic;
 	category?: BackendResourceCategory;
 	media_type?: BackendResourceMediaType;
 	author?: ResourceBackendUser;
+    suggestions?: BackendResource[];
 
 	created_at: string;
 	updated_at: string;
@@ -64,7 +65,6 @@ export type Resource = {
 	id: string;
 	title: string;
 	slug: string;
-	summary?: string | null;
 	metaDescription?: string | null;
 	article?: string | null;
 	status: "draft" | "pending_review" | "published" | "archived" | "rejected";
@@ -74,11 +74,13 @@ export type Resource = {
 	publishedAt: string | null;
 	coverImageUrl: string | null;
 	headerImgUrl: string | null;
+    minRead?: number;
 
 	topic?: ResourceTopic;
 	category?: ResourceCategory;
 	mediaType?: ResourceMediaType;
 	author?: ResourceAuthor;
+    suggestions?: Resource[];
 
 	createdAt: string;
 	updatedAt: string;

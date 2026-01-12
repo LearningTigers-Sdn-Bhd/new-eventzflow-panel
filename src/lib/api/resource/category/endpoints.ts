@@ -13,6 +13,7 @@ function transformResourceCategory(
 	return {
 		id: backend.id.toString(),
 		name: backend.name,
+		slug: backend.slug,
 		description: backend.description ?? null,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
@@ -22,12 +23,16 @@ function transformResourceCategory(
 
 export async function getResourceCategories(options?: {
 	filter?: "active" | "archived" | "all";
+	sort?: "most_published_resources";
 	page?: number;
 	perPage?: number;
 }): Promise<{ data: ResourceCategory[]; pagination?: any }> {
 	const params = new URLSearchParams();
 	if (options?.filter) {
 		params.append("filter", options.filter);
+	}
+	if (options?.sort) {
+		params.append("sort", options.sort);
 	}
 	if (options?.page) params.append("page", options.page.toString());
 	if (options?.perPage) params.append("per_page", options.perPage.toString());

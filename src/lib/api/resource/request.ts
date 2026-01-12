@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const createResourceSchema = z.object({
 	title: z.string().min(1, "Title is required"),
-	summary: z.string().optional(),
 	metaDescription: z.string().optional(),
 	article: z.string().optional(), // HTML content
 	status: z
@@ -23,7 +22,6 @@ export const createResourceSchema = z.object({
 export const updateResourceSchema = z.object({
 	id: z.string().min(1, "ID is required"),
 	title: z.string().min(1).optional(),
-	summary: z.string().optional(),
 	metaDescription: z.string().optional(),
 	article: z.string().optional(),
 	status: z

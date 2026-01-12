@@ -2,6 +2,7 @@
 export type BackendResourceTopic = {
 	id: number;
 	name: string;
+	slug: string;
 	description: string | null;
 	logo: string | null;
 	created_at: string;
@@ -13,6 +14,7 @@ export type BackendResourceTopic = {
 export type ResourceTopic = {
 	id: string;
 	name: string;
+	slug: string;
 	description: string | null;
 	logo: string | null;
 	createdAt: string;

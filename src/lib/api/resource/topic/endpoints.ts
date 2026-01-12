@@ -11,6 +11,7 @@ function transformResourceTopic(backend: BackendResourceTopic): ResourceTopic {
 	return {
 		id: backend.id.toString(),
 		name: backend.name,
+		slug: backend.slug,
 		description: backend.description ?? null,
 		logo: backend.logo ?? null,
 		createdAt: backend.created_at,

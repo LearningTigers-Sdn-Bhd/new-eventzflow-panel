@@ -13,6 +13,7 @@ function transformResourceMediaType(
 	return {
 		id: backend.id.toString(),
 		name: backend.name,
+		slug: backend.slug,
 		description: backend.description ?? null,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
