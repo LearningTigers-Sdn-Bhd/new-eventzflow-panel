@@ -107,6 +107,9 @@ export function AccountInfoSection({
 								onChange={(e) => emailField.handleChange(e.target.value)}
 							/>
 						</InputGroup>
+						<p className="text-muted-foreground text-xs">
+							Must be a valid email address
+						</p>
 						{emailField.state.meta.errors.length > 0 && (
 							<p className="text-red-500 text-sm">
 								{emailField.state.meta.errors[0]}
@@ -115,7 +118,7 @@ export function AccountInfoSection({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor={phoneField.name}>Phone Number</Label>
+						<Label htmlFor={phoneField.name}>Phone Number *</Label>
 						<InputGroup
 							className={cn(
 								"h-11 transition-all focus-within:ring-2 focus-within:ring-primary/20",
@@ -136,6 +139,9 @@ export function AccountInfoSection({
 								onChange={(e) => phoneField.handleChange(e.target.value)}
 							/>
 						</InputGroup>
+						<p className="text-muted-foreground text-xs">
+							Must be a valid phone number
+						</p>
 						{phoneField.state.meta.errors.length > 0 && (
 							<p className="text-red-500 text-sm">
 								{phoneField.state.meta.errors[0]}
@@ -262,7 +268,7 @@ export const accountInfoValidators = {
 	},
 	phone: {
 		onChange: ({ value }: { value: string }) => {
-			if (!value) return undefined;
+			if (!value) return "Phone number is required";
 			const result = phoneSchema.safeParse(value);
 			if (!result.success) {
 				return result.error.issues[0]?.message;

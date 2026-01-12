@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, Percent, Receipt, Ticket, TrendingUp } from "lucide-react";
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import {
 	Area,
 	AreaChart,
@@ -24,6 +24,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {
+	getDateRangeFromPreset,
+	getGroupByFromPreset,
+	TimeRangeFilter,
+	type TimeRangePreset,
+} from "@/components/ui/time-range-filter";
 import { useAuth } from "@/hooks/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventVendors } from "@/lib/api/event-vendor";
@@ -42,6 +48,11 @@ export default function VoucherAnalyticsPage({
 	const eventId = Number.parseInt(event_id, 10);
 	const { user } = useAuth();
 	const permissions = useEventPermissions(event_id);
+	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+
+	// Get date range and grouping based on selected preset
+	const dateRange = getDateRangeFromPreset(timeRange);
+	const groupBy = getGroupByFromPreset(timeRange);
 
 	// Fetch event vendors to get the vendor_id for the current user if they're a vendor
 	const { data: eventVendors } = useQuery({
@@ -59,11 +70,14 @@ export default function VoucherAnalyticsPage({
 
 	// Fetch voucher analytics with vendor_id filter for vendors
 	const { data, isLoading } = useQuery({
-		queryKey: ["voucher-analytics", eventId, currentUserVendorId],
+		queryKey: ["voucher-analytics", eventId, currentUserVendorId, timeRange],
 		queryFn: () =>
 			getVoucherAnalytics({
 				event_id: eventId,
 				vendor_id: currentUserVendorId,
+				start_date: dateRange?.startDate,
+				end_date: dateRange?.endDate,
+				group_by: groupBy,
 			}),
 		enabled:
 			!Number.isNaN(eventId) &&
@@ -116,13 +130,17 @@ export default function VoucherAnalyticsPage({
 						].map((key) => (
 							<div
 								key={key}
-								className="rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l"
+								className="h-full rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l"
 							>
-								<div className="flex h-full flex-col items-center justify-between gap-2 p-6 md:flex-row md:gap-0">
-									<Skeleton className="size-7 md:size-6" />
-									<div className="flex w-full flex-col gap-2">
-										<Skeleton className="h-4 w-20" />
-										<Skeleton className="h-6 w-16" />
+								<div className="h-full p-0">
+									<div className="flex h-full flex-col items-center justify-between gap-2 md:flex-row md:gap-0">
+										<div className="flex h-full items-center justify-center px-6 pt-3 md:py-0">
+											<Skeleton className="size-7 md:size-6" />
+										</div>
+										<div className="flex h-full w-full flex-col justify-center gap-1 px-4 pb-4 text-center md:px-0 md:py-4 md:text-left">
+											<Skeleton className="h-4 w-20" />
+											<Skeleton className="h-6 w-16" />
+										</div>
 									</div>
 								</div>
 							</div>
@@ -163,14 +181,16 @@ export default function VoucherAnalyticsPage({
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				{/* Daily Redemption Trend Chart */}
 				<Card className="rounded-none border-dashed lg:col-span-2">
-					<CardHeader>
-						<CardTitle>Daily Redemption Trend</CardTitle>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle>Redemption Trend</CardTitle>
+						<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (
 							<Skeleton className="h-64 w-full" />
 						) : data?.dailyRedemptionTrend &&
-							data.dailyRedemptionTrend.length > 0 ? (
+							data.dailyRedemptionTrend.length > 0 &&
+							data.dailyRedemptionTrend.some((d) => d.count > 0) ? (
 							<ResponsiveContainer width="100%" height={350}>
 								<AreaChart
 									data={data.dailyRedemptionTrend}
@@ -231,8 +251,10 @@ export default function VoucherAnalyticsPage({
 								</AreaChart>
 							</ResponsiveContainer>
 						) : (
-							<div className="flex h-64 items-center justify-center text-muted-foreground">
-								No redemption data available
+							<div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
+								<TrendingUp className="h-8 w-8 opacity-50" />
+								<p className="text-sm">No redemptions in this period</p>
+								<p className="text-xs opacity-70">Try selecting a different time range</p>
 							</div>
 						)}
 					</CardContent>

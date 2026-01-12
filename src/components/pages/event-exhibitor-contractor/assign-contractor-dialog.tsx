@@ -41,7 +41,7 @@ export function AssignContractorDialog({
 				exhibition_contractor_profile_id: profileId,
 			}),
 		onSuccess: () => {
-			toast.success("Exhibitor contractor assigned successfully!");
+			toast.success("Main contractor assigned successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["event", String(eventId), "exhibition-contractor"],
 			});
@@ -75,8 +75,8 @@ export function AssignContractorDialog({
 				<div>
 					<p className="font-medium">No Active Contractors</p>
 					<p className="text-muted-foreground text-sm">
-						There are no active exhibitor contractors available. Please add
-						contractors from the Exhibitor Contractors page first.
+						There are no active main contractors available. Please add
+						contractors from the Main Contractors page first.
 					</p>
 				</div>
 			</div>
@@ -119,9 +119,7 @@ export function AssignContractorDialog({
 											/>
 										</div>
 										<div className="space-y-1">
-											<p className="font-medium">
-												{contractor.full_name}
-											</p>
+											<p className="font-medium">{contractor.full_name}</p>
 											{profile?.contact_person && (
 												<p className="text-muted-foreground text-sm">
 													{profile.contact_person}

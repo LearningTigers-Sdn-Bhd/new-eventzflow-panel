@@ -7,9 +7,16 @@ import {
 	AlertCircle,
 	XCircle,
 	ExternalLink,
+	ChevronDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { ExhibitorTeamMemberPaymentInKit } from "@/lib/api/exhibitor-kit/response";
 
@@ -87,7 +94,79 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 	},
 	{
 		accessorKey: "status",
-		header: "Status",
+		header: ({ column }) => {
+			const filterStatus = column.getFilterValue() as string | undefined;
+			const getFilterLabel = (status: string | undefined) => {
+				switch (status) {
+					case "submitted":
+						return "Under Review";
+					case "verified":
+						return "Verified";
+					case "rejected":
+						return "Rejected";
+					case "pending":
+						return "Pending";
+					default:
+						return null;
+				}
+			};
+			return (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<div className="flex cursor-pointer items-center gap-2">
+							<p className="font-medium">
+								Status
+								{filterStatus && (
+									<Badge
+										variant="secondary"
+										className="ml-2 bg-transparent text-xs underline"
+									>
+										{getFilterLabel(filterStatus)}
+									</Badge>
+								)}
+							</p>
+							<ChevronDown className="size-4" />
+						</div>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none bg-background"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
+							All Status
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("submitted")}
+						>
+							Under Review
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("verified")}
+						>
+							Verified
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("rejected")}
+						>
+							Rejected
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("pending")}
+						>
+							Pending
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			);
+		},
 		cell: ({ row }) => {
 			const config = getStatusConfig(row.original.status);
 			const StatusIcon = config.icon;
@@ -102,7 +181,7 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 			);
 		},
 		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
+			return row.getValue(id) === value;
 		},
 	},
 	{

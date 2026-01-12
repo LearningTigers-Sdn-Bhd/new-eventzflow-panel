@@ -108,7 +108,7 @@ export const TAB_ITEMS: TabItem[] = [
 		title: "My Profile",
 		description: "View your vendor profile and exhibitor kit details.",
 		icon: Building2,
-		route: "my-profile",
+		route: "vendor-profile",
 	},
 	{
 		id: "my-team-members",
@@ -154,9 +154,9 @@ export const TAB_ITEMS: TabItem[] = [
 	},
 	{
 		id: "exhibitor-contractor",
-		label: "Exhibitor Contractor",
-		title: "Exhibitor Contractor",
-		description: "Assign and manage exhibitor contractors for this event.",
+		label: "Main Contractor",
+		title: "Main Contractor",
+		description: "Assign and manage the main contractor for this event.",
 		icon: HardHat,
 		route: "exhibitor-contractor",
 	},
@@ -166,7 +166,7 @@ export const TAB_ITEMS: TabItem[] = [
 		title: "My Profile",
 		description: "View and manage your contractor profile information.",
 		icon: HardHat,
-		route: "exhibitor-contractor",
+		route: "contractor-profile",
 	},
 	{
 		id: "contractor-exhibitor-kits",

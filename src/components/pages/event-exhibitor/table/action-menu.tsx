@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	CreditCard,
 	Eye,
 	MoreHorizontal,
 	Package,
@@ -17,6 +18,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -28,6 +30,7 @@ import { deleteEventVendor } from "@/lib/api/event-vendor";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
+import { ManagePaymentForm } from "../forms/manage-payment-form";
 import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
 
 interface ExhibitorActionsMenuProps {
@@ -131,6 +134,25 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 		});
 	};
 
+	const handleManagePaymentClick = () => {
+		if (!exhibitor.exhibitor_kit) {
+			toast.error("No exhibitor kit found for this exhibitor");
+			return;
+		}
+		openDialog({
+			component: ManagePaymentForm,
+			props: {
+				vendor: exhibitor,
+				onClose: closeDialog,
+			},
+			config: {
+				title: "Manage Payment",
+				description: "Update payment status, amount paid, and notes",
+				size: "md",
+			},
+		});
+	};
+
 	const handleDeleteClick = () => {
 		openConfirm({
 			title: "Remove Exhibitor",
@@ -159,6 +181,8 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 				align="end"
 				className="w-48 rounded-none bg-background"
 			>
+				<DropdownMenuLabel className="rounded-none">Actions</DropdownMenuLabel>
+				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={handleEditClick}
 					className="cursor-pointer rounded-none"
@@ -172,6 +196,13 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 				>
 					<Package className="mr-2 size-4" />
 					Manage Kits
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={handleManagePaymentClick}
+					className="cursor-pointer rounded-none"
+				>
+					<CreditCard className="mr-2 size-4" />
+					Manage Payment
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={handleViewExhibitorClick}

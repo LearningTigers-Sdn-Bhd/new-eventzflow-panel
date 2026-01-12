@@ -118,10 +118,10 @@ export function ExhibitorKitSection({
 							value={boothTypeField.state.value}
 							onValueChange={boothTypeField.handleChange}
 						>
-							<SelectTrigger className="h-11 w-full">
+							<SelectTrigger className="!h-11 w-full">
 								<SelectValue placeholder="Select booth type" />
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent className="rounded-none">
 								<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
 								<SelectItem value="raw_space">Raw Space</SelectItem>
 							</SelectContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
 	Activity,
 	ArrowLeft,
@@ -24,7 +25,7 @@ import {
 	BlankCard,
 	BlankCardWithButton,
 	StatsCard,
-	WeeklyChart,
+	TimeSeriesChart,
 } from "@/components/admin-ui/analytic";
 import { IconHeading } from "@/components/admin-ui/icon-heading";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -32,6 +33,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	getDateRangeFromPreset,
+	getGroupByFromPreset,
+	TimeRangeFilter,
+	type TimeRangePreset,
+} from "@/components/ui/time-range-filter";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -58,6 +65,11 @@ export function EventAnalytics({
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
+	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+
+	// Get date range and grouping based on selected preset
+	const dateRange = getDateRangeFromPreset(timeRange);
+	const groupBy = getGroupByFromPreset(timeRange);
 
 	// Get user role to determine Live Feed visibility (must be before any early returns)
 	const user = useUserSessionStore((state) => state.user);
@@ -78,8 +90,13 @@ export function EventAnalytics({
 		isLoading: analyticsLoading,
 		error: analyticsError,
 	} = useQuery({
-		queryKey: ["event-analytics", eventId],
-		queryFn: () => getEventAnalytics(eventId),
+		queryKey: ["event-analytics", eventId, timeRange],
+		queryFn: () =>
+			getEventAnalytics(eventId, {
+				startDate: dateRange?.startDate,
+				endDate: dateRange?.endDate,
+				groupBy,
+			}),
 		initialData,
 		enabled: isTicketEvent,
 	});
@@ -211,43 +228,40 @@ export function EventAnalytics({
 		</div>
 	);
 
-	const renderWeeklyStats = () => {
+	const renderTimeSeriesStats = () => {
 		if (isTicketEvent) {
 			return (
-				<div className="mb-8 grid grid-cols-1 gap-4 border-y border-dashed lg:grid-cols-3">
-					<WeeklyChart
-						title="Weekly Registered Tickets"
-						description="Ticket registrations over the last 7 days"
-						data={ticketAnalytics?.registrationData.map((d) => ({
-							date: d.date,
-							count: d.value,
-						}))}
-						isLoading={false}
-						color="var(--chart-1)"
-						icon={<Ticket className="h-4 w-4" />}
-					/>
-					<WeeklyChart
-						title="Weekly Scanned Tickets"
-						description="Ticket scans over the last 7 days"
-						data={ticketAnalytics?.scanData.map((d) => ({
-							date: d.date,
-							count: d.value,
-						}))}
-						isLoading={false}
-						color="var(--chart-2)"
-						icon={<QrCode className="h-4 w-4" />}
-					/>
-					<WeeklyChart
-						title="Weekly Sales Amount"
-						description="Sales revenue over the last 7 days"
-						data={ticketAnalytics?.revenueData.map((d) => ({
-							date: d.date,
-							count: d.value,
-						}))}
-						isLoading={false}
-						color="var(--chart-3)"
-						icon={<DollarSign className="h-4 w-4" />}
-					/>
+				<div className="mb-8 space-y-4 border-y border-dashed">
+					<div className="flex items-center justify-between px-4 pt-4">
+						<h3 className="font-medium text-sm">Analytics Trends</h3>
+						<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					</div>
+					<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+						<TimeSeriesChart
+							title="Ticket Registrations"
+							description="Ticket registrations over time"
+							data={ticketAnalytics?.registrationData}
+							isLoading={false}
+							color="var(--chart-1)"
+							icon={<Ticket className="h-4 w-4" />}
+						/>
+						<TimeSeriesChart
+							title="Ticket Scans"
+							description="Ticket scans over time"
+							data={ticketAnalytics?.scanData}
+							isLoading={false}
+							color="var(--chart-2)"
+							icon={<QrCode className="h-4 w-4" />}
+						/>
+						<TimeSeriesChart
+							title="Revenue"
+							description="Sales revenue over time"
+							data={ticketAnalytics?.revenueData}
+							isLoading={false}
+							color="var(--chart-3)"
+							icon={<DollarSign className="h-4 w-4" />}
+						/>
+					</div>
 				</div>
 			);
 		}
@@ -257,7 +271,7 @@ export function EventAnalytics({
 		// 		<div className="text-center text-muted-foreground">
 		// 			<Activity className="mx-auto mb-2 h-12 w-12 opacity-50" />
 		// 			<p className="text-sm">
-		// 				Weekly stats not available for visitor events
+		// 				Analytics not available for visitor events
 		// 			</p>
 		// 		</div>
 		// 	</div>
@@ -624,8 +638,8 @@ export function EventAnalytics({
 										Key Metrics
 									</TabsTrigger>
 									{isTicketEvent && (
-										<TabsTrigger value="weekly-stats" className="rounded-none">
-											Weekly Stats
+										<TabsTrigger value="time-series-stats" className="rounded-none">
+											Analytics
 										</TabsTrigger>
 									)}
 									<TabsTrigger value="quick-info" className="rounded-none">
@@ -645,8 +659,8 @@ export function EventAnalytics({
 					</TabsContent>
 
 					{isTicketEvent && (
-						<TabsContent value="weekly-stats" className="mt-2">
-							{renderWeeklyStats()}
+						<TabsContent value="time-series-stats" className="mt-2">
+							{renderTimeSeriesStats()}
 						</TabsContent>
 					)}
 
@@ -670,8 +684,8 @@ export function EventAnalytics({
 			{/* Key Metrics */}
 			<div>{renderKeyMetrics()}</div>
 
-			{/* Weekly Stats */}
-			<div>{renderWeeklyStats()}</div>
+			{/* Analytics */}
+			<div>{renderTimeSeriesStats()}</div>
 
 			{/* Quick Info */}
 			<div className="grid grid-cols-2 gap-2">

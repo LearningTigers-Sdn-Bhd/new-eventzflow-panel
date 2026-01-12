@@ -1,9 +1,10 @@
 /**
- * Ticket Validation Hook
- * Handles ticket check-in validation via REST API (online) or localStorage (offline)
+ * Scan Validation Hook
+ * Handles unified check-in validation for both tickets and visitors
+ * via REST API (online) or localStorage (offline)
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	ERROR_MESSAGES,
@@ -11,7 +12,8 @@ import {
 } from "@/components/pages/scan/constants";
 import type { ScanResult } from "@/components/pages/scan/types";
 import { playBeep } from "@/components/pages/scan/utils";
-import { checkInTicket } from "@/lib/api/ticket";
+import { checkIn, ScanCheckInError } from "@/lib/api/scan";
+import type { ScanType } from "@/lib/api/scan";
 import { useOfflineTicketValidation } from "./use-offline-ticket-validation";
 
 export function useTicketValidation() {
@@ -22,33 +24,31 @@ export function useTicketValidation() {
 	const { validateTicketOffline, hasOfflineData } =
 		useOfflineTicketValidation();
 
-	// Listen for online/offline events
-	if (typeof window !== "undefined") {
-		window.addEventListener("online", () => setIsOnline(true));
-		window.addEventListener("offline", () => setIsOnline(false));
-	}
+	useEffect(() => {
+		const handleOnline = () => setIsOnline(true);
+		const handleOffline = () => setIsOnline(false);
 
-	/**
-	 * Check if ticket is already scanned (from scanned IDs set)
-	 */
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
+
+		return () => {
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
+		};
+	}, []);
+
 	const checkLocalDuplicate = useCallback(
-		(ticketId: string, scannedTicketIds: Set<string>): ScanResult | null => {
-			const normalizedTicketId = ticketId.toLowerCase();
-			const isDuplicate = scannedTicketIds.has(normalizedTicketId);
-
-			console.log("🎫 Scan Check:", {
-				ticketId,
-				normalizedId: normalizedTicketId,
-				isDuplicate,
-				scannedIds: Array.from(scannedTicketIds),
-			});
+		(scanId: string, scannedIds: Set<string>): ScanResult | null => {
+			const normalizedId = scanId.toLowerCase();
+			const isDuplicate = scannedIds.has(normalizedId);
 
 			if (isDuplicate) {
 				return {
-					ticketId,
+					scanId,
 					timestamp: new Date(),
 					status: "duplicate",
 					message: ERROR_MESSAGES.DUPLICATE_SCAN_SESSION,
+					type: "ticket",
 				};
 			}
 
@@ -57,16 +57,12 @@ export function useTicketValidation() {
 		[],
 	);
 
-	/**
-	 * Validate and check-in ticket via API (online) or offline data
-	 */
 	const validateTicket = useCallback(
 		async (
-			ticketId: string,
-			scannedTicketIds: Set<string>,
+			scanId: string,
+			scannedIds: Set<string>,
 		): Promise<ScanResult> => {
-			// Check for local duplicate first (before any validation)
-			const duplicateResult = checkLocalDuplicate(ticketId, scannedTicketIds);
+			const duplicateResult = checkLocalDuplicate(scanId, scannedIds);
 			if (duplicateResult) {
 				toast.error("Duplicate Scan", {
 					description: duplicateResult.message,
@@ -75,15 +71,14 @@ export function useTicketValidation() {
 				return duplicateResult;
 			}
 
-			// Check if offline mode should be used
 			if (!isOnline) {
 				if (!hasOfflineData()) {
 					const errorResult: ScanResult = {
-						ticketId,
+						scanId,
 						timestamp: new Date(),
 						status: "error",
-						message:
-							"No internet connection and no offline data. Please sync when online.",
+						message: "No internet connection and no offline data. Please sync when online.",
+						type: "ticket",
 					};
 					toast.error("Offline Mode", {
 						description: errorResult.message,
@@ -92,9 +87,8 @@ export function useTicketValidation() {
 					return errorResult;
 				}
 
-				// Use offline validation
 				toast.info("Offline Mode", { description: "Using offline data" });
-				const offlineResult = validateTicketOffline(ticketId, scannedTicketIds);
+				const offlineResult = validateTicketOffline(scanId, scannedIds);
 				if (offlineResult) {
 					if (offlineResult.status !== "success") {
 						playBeep(false);
@@ -103,81 +97,81 @@ export function useTicketValidation() {
 				}
 			}
 
-			// Start processing
 			setIsProcessing(true);
 
 			try {
-				// Check in the ticket via API
-				const checkedInTicket = await checkInTicket(ticketId);
+				const response = await checkIn(scanId);
 
-				// Create success result
+				const isTicket = response.type === "ticket";
+				const typeLabel = isTicket ? "Ticket" : "Visitor";
+				const detailLabel = isTicket && response.ticketType
+					? response.ticketType.name
+					: response.type;
+
 				const result: ScanResult = {
-					ticketId,
+					scanId,
 					timestamp: new Date(),
 					status: "success",
-					message: SUCCESS_MESSAGES.TICKET_CHECKED_IN,
-					attendeeName: checkedInTicket.name,
-					attendeeEmail: checkedInTicket.email,
-					attendeePhone: checkedInTicket.phone,
-					ticketType: checkedInTicket.ticketTypeName,
-					ticketValue: checkedInTicket.value,
+					message: `${typeLabel} checked in successfully`,
+					type: response.type,
+					name: response.name,
+					email: response.email,
+					phone: response.phone,
+					ticketType: response.ticketType?.name,
+					ticketValue: response.ticketType?.price,
 					checkedIn: true,
-					checkInAt: checkedInTicket.checkInAt,
-					eventName: checkedInTicket.eventName,
-					eventId: checkedInTicket.eventId
-						? Number.parseInt(checkedInTicket.eventId, 10)
-						: undefined,
+					checkInAt: response.checkInAt,
+					eventName: response.eventName,
+					eventId: response.eventId,
+					gender: response.gender,
+					age: response.age,
 				};
 
 				toast.success(SUCCESS_MESSAGES.TICKET_VALID, {
-					description: `${checkedInTicket.name} • ${checkedInTicket.ticketTypeName}`,
+					description: `${response.name} • ${detailLabel}`,
 				});
 
 				playBeep(true);
 
 				return result;
-			} catch (error: any) {
-				console.error("❌ Scan error:", error);
+			} catch (error: unknown) {
+				const errorMessage = error instanceof Error ? error.message : "Unknown error";
+				const scanType: ScanType = error instanceof ScanCheckInError && error.type ? error.type : "ticket";
+				const typeLabel = scanType === "visitor" ? "Visitor" : "Ticket";
 
-				// If network error and offline data available, fallback to offline
 				const isNetworkError =
-					error.message?.toLowerCase().includes("network") ||
-					error.message?.toLowerCase().includes("fetch failed") ||
-					error.code === "ECONNREFUSED";
+					errorMessage.toLowerCase().includes("network") ||
+					errorMessage.toLowerCase().includes("fetch failed");
 
 				if (isNetworkError && hasOfflineData()) {
 					toast.warning("Network Error", {
 						description: "Switching to offline mode",
 					});
-					const offlineResult = validateTicketOffline(
-						ticketId,
-						scannedTicketIds,
-					);
+					const offlineResult = validateTicketOffline(scanId, scannedIds);
 					if (offlineResult) {
 						return offlineResult;
 					}
 				}
 
-				// Check if this is a duplicate scan (already checked in)
 				const isDuplicateError =
-					error.message?.toLowerCase().includes("already") ||
-					error.message?.toLowerCase().includes("checked in");
+					errorMessage.toLowerCase().includes("already") ||
+					errorMessage.toLowerCase().includes("checked in");
 
-				// Handle error
 				const result: ScanResult = {
-					ticketId,
+					scanId,
 					timestamp: new Date(),
 					status: isDuplicateError ? "duplicate" : "error",
-					message: error.message || ERROR_MESSAGES.INVALID_TICKET,
+					message: errorMessage || ERROR_MESSAGES.INVALID_TICKET,
+					type: scanType,
 				};
 
 				if (isDuplicateError) {
 					toast.error("Already Checked In", {
-						description: error.message || ERROR_MESSAGES.DUPLICATE_SCAN_BACKEND,
+						description: `This ${typeLabel.toLowerCase()} has already been checked in`,
 					});
 				} else {
-					toast.error("Invalid Ticket", {
-						description: error.message || ERROR_MESSAGES.INVALID_TICKET,
+					toast.error("Invalid QR Code", {
+						description: errorMessage || "Record not found. Invalid QR code.",
 					});
 				}
 

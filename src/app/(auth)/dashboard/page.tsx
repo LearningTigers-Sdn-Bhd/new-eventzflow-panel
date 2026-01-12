@@ -8,6 +8,7 @@ import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-c
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
 import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
+import { ContractorDashboard } from "@/components/pages/dashboard/contractor-dashboard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
@@ -40,6 +41,11 @@ export default function DashboardPage() {
 	// Show vendor dashboard for vendor role
 	if (user?.role === "vendor") {
 		return <VendorDashboard />;
+	}
+
+	// Show contractor dashboard for exhibition_contractor role
+	if (user?.role === "exhibition_contractor") {
+		return <ContractorDashboard />;
 	}
 
 	return (

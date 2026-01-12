@@ -12,7 +12,7 @@ import type {
  * Get voucher analytics for an event
  * GET /v1/events/:event_id/voucher_analytics
  *
- * @param params - Required event_id, optional vendor_id to filter by vendor
+ * @param params - Required event_id, optional vendor_id to filter by vendor, optional date range
  * @returns Promise resolving to voucher analytics data
  * @throws Error if request fails
  */
@@ -28,10 +28,19 @@ export async function getVoucherAnalytics(
 			throw new Error("event_id is required");
 		}
 
-		// Build URL with optional vendor_id query parameter
+		// Build URL with optional query parameters
 		const queryParams = new URLSearchParams();
 		if (validated.vendor_id) {
 			queryParams.append("vendor_id", validated.vendor_id.toString());
+		}
+		if (validated.start_date) {
+			queryParams.append("start_date", validated.start_date);
+		}
+		if (validated.end_date) {
+			queryParams.append("end_date", validated.end_date);
+		}
+		if (validated.group_by) {
+			queryParams.append("group_by", validated.group_by);
 		}
 
 		const baseUrl = `v1/events/${validated.event_id}/voucher_analytics`;

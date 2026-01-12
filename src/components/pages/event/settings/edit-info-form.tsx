@@ -35,6 +35,7 @@ const formSchema = z.object({
 	useExhibitorKit: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
+	useSponsorship: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -105,6 +106,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			useSponsorship: false,
 			description: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
@@ -126,6 +128,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
+					use_sponsorship: value.useSponsorship,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
@@ -156,6 +159,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.allow_contractor_printing_services ?? false,
 				);
 				form.setFieldValue("useBusinessMatching", event.use_business_matching ?? false);
+				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
@@ -530,6 +534,21 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												</form.Field>
 											)}
 										</div>
+									)}
+								</form.Field>
+								{/* Sponsorships */}
+								<form.Field name="useSponsorship">
+									{(field) => (
+										<SwitchCardInput
+											label="Sponsorships"
+											description="Enable sponsorship management for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
 									)}
 								</form.Field>
 							</div>

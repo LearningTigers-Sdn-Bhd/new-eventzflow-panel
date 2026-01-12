@@ -59,7 +59,7 @@ export async function updateEvent(
 
 	const response = await restClient.put<BackendEvent>(
 		`v1/events/${eventId}`,
-		validated,
+		{ event: validated },
 	);
 
 	// Return full event data without transformation

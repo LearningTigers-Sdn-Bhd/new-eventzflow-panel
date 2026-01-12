@@ -28,8 +28,8 @@ export function ExhibitorContractorPageButton() {
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Assign Exhibitor Contractor",
-				description: "Select an exhibitor contractor to assign to this event.",
+				title: "Assign Main Contractor",
+				description: "Select a main contractor to assign to this event.",
 				size: "lg",
 			},
 		});
@@ -40,11 +40,12 @@ export function ExhibitorContractorPageButton() {
 			component: RemoveContractorDialog,
 			props: {
 				eventId: Number(eventId),
-				contractorName: eventContractor?.contractor?.full_name || "this contractor",
+				contractorName:
+					eventContractor?.contractor?.full_name || "this contractor",
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Remove Exhibitor Contractor",
+				title: "Remove Main Contractor",
 				size: "md",
 			},
 		});

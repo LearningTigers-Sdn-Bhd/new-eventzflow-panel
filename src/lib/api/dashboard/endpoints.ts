@@ -9,9 +9,6 @@ import type {
 	BackendScannedTicketsResponse,
 	BackendTicket,
 	BackendUnscannedTicketsResponse,
-	BackendWeeklyRegisteredResponse,
-	BackendWeeklySalesResponse,
-	BackendWeeklyScannedResponse,
 	EventAnalytics,
 	EventOverview,
 	RecentScan,
@@ -20,6 +17,15 @@ import type {
 // Helper to convert cents to dollars
 const centsToDollars = (cents: number): number => {
 	return Math.round(cents / 100);
+};
+
+// Time series response type
+type TimeSeriesResponse = {
+	metric: string;
+	group_by: string;
+	start_date: string;
+	end_date: string;
+	data: Array<{ period: string; value: number }>;
 };
 
 /**
@@ -78,8 +84,23 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
  */
 export async function getEventAnalytics(
 	eventId: string,
+	options?: {
+		startDate?: string;
+		endDate?: string;
+		groupBy?: "hour" | "day" | "week" | "month";
+	},
 ): Promise<EventAnalytics> {
 	const eventIdNum = Number.parseInt(eventId, 10);
+
+	// Build time series URL with optional params
+	const buildTimeSeriesUrl = (metric: string) => {
+		const params = new URLSearchParams();
+		params.set("metric", metric);
+		if (options?.groupBy) params.set("group_by", options.groupBy);
+		if (options?.startDate) params.set("start_date", options.startDate);
+		if (options?.endDate) params.set("end_date", options.endDate);
+		return `v1/events/${eventIdNum}/metrics/time_series?${params.toString()}`;
+	};
 
 	// Fetch event details
 	const event = await restClient.get<{
@@ -88,15 +109,15 @@ export async function getEventAnalytics(
 		status: string;
 	}>(`v1/events/${eventIdNum}`);
 
-	// Fetch all analytics data in parallel
+	// Fetch all analytics data in parallel (using new time_series endpoint)
 	const [
 		totalTickets,
 		scannedTickets,
 		unscannedTickets,
 		totalRevenue,
-		weeklyRegistered,
-		weeklyScanned,
-		weeklySales,
+		ticketsTimeSeries,
+		scansTimeSeries,
+		revenueTimeSeries,
 	] = await Promise.all([
 		restClient.get<BackendAnalyticsResponse>(
 			`v1/events/${eventIdNum}/metrics/total_tickets`,
@@ -110,15 +131,9 @@ export async function getEventAnalytics(
 		restClient.get<BackendRevenueResponse>(
 			`v1/events/${eventIdNum}/metrics/total_amount_price`,
 		),
-		restClient.get<BackendWeeklyRegisteredResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_registered`,
-		),
-		restClient.get<BackendWeeklyScannedResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_scanned`,
-		),
-		restClient.get<BackendWeeklySalesResponse>(
-			`v1/events/${eventIdNum}/metrics/weekly_sales_amount`,
-		),
+		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("tickets")),
+		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("scans")),
+		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("revenue")),
 	]);
 
 	// Fetch event locations to get count
@@ -188,17 +203,17 @@ export async function getEventAnalytics(
 		pendingTickets: unscannedTickets.totalUnscannedTickets,
 		locations: locations.length,
 		recentScans,
-		registrationData: weeklyRegistered.weeklyRegisteredTickets.map((d) => ({
-			date: d.date,
-			value: d.count,
+		registrationData: (ticketsTimeSeries.data ?? []).map((d) => ({
+			date: d.period,
+			value: d.value,
 		})),
-		scanData: weeklyScanned.weeklyScannedTickets.map((d) => ({
-			date: d.date,
-			value: d.count,
+		scanData: (scansTimeSeries.data ?? []).map((d) => ({
+			date: d.period,
+			value: d.value,
 		})),
-		revenueData: weeklySales.weeklySalesAmount.map((d) => ({
-			date: d.date,
-			value: centsToDollars(d.count),
+		revenueData: (revenueTimeSeries.data ?? []).map((d) => ({
+			date: d.period,
+			value: centsToDollars(d.value),
 		})),
 	};
 }

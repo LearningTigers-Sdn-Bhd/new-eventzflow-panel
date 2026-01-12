@@ -12,4 +12,4 @@ export {
 	type StatsCardProps,
 	type StatsVariant,
 } from "./stats-card";
-export { WeeklyChart } from "./weekly-chart";
+export { TimeSeriesChart } from "./time-series-chart";

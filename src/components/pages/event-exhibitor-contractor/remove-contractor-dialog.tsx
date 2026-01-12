@@ -26,13 +26,14 @@ export function RemoveContractorDialog({
 }: RemoveContractorDialogProps) {
 	const queryClient = useQueryClient();
 	const [hasTransactions, setHasTransactions] = useState(false);
-	const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
+	const [transactionDetails, setTransactionDetails] =
+		useState<TransactionDetails | null>(null);
 
 	// Remove contractor mutation
 	const removeMutation = useMutation({
 		mutationFn: () => removeEventExhibitionContractor(eventId),
 		onSuccess: () => {
-			toast.success("Exhibitor contractor removed successfully!");
+			toast.success("Main contractor removed successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["event", String(eventId), "exhibition-contractor"],
 			});
@@ -42,7 +43,10 @@ export function RemoveContractorDialog({
 			// Check if this is a HAS_TRANSACTIONS error
 			if (error instanceof HTTPError && error.response.status === 422) {
 				try {
-					const errorBody = await error.response.json() as { code?: string; details?: TransactionDetails };
+					const errorBody = (await error.response.json()) as {
+						code?: string;
+						details?: TransactionDetails;
+					};
 					if (errorBody.code === "HAS_TRANSACTIONS") {
 						setHasTransactions(true);
 						setTransactionDetails(errorBody.details || null);
@@ -65,23 +69,25 @@ export function RemoveContractorDialog({
 						<ShoppingCart className="h-5 w-5 text-amber-500" />
 					</div>
 					<div className="space-y-2">
-						<p className="font-medium text-sm">
-							Cannot remove contractor
-						</p>
+						<p className="font-medium text-sm">Cannot remove contractor</p>
 						<p className="text-muted-foreground text-sm">
-							Exhibitors have already made transactions for items or services from{" "}
-							<strong>{contractorName}</strong>.
+							Exhibitors have already made transactions for items or services
+							from <strong>{contractorName}</strong>.
 						</p>
 						{transactionDetails && (
 							<div className="mt-3 space-y-1 rounded-md bg-muted p-3 text-sm">
 								{transactionDetails.rentable_items_in_use > 0 && (
 									<p>
-										<strong>{transactionDetails.rentable_items_in_use}</strong> rentable item(s) in use
+										<strong>{transactionDetails.rentable_items_in_use}</strong>{" "}
+										rentable item(s) in use
 									</p>
 								)}
 								{transactionDetails.printing_services_in_use > 0 && (
 									<p>
-										<strong>{transactionDetails.printing_services_in_use}</strong> printing service(s) in use
+										<strong>
+											{transactionDetails.printing_services_in_use}
+										</strong>{" "}
+										printing service(s) in use
 									</p>
 								)}
 							</div>
@@ -110,8 +116,8 @@ export function RemoveContractorDialog({
 						from this event?
 					</p>
 					<p className="text-muted-foreground text-sm">
-						This action will unassign the exhibitor contractor from this event.
-						The exhibitor kit feature may also be disabled.
+						This action will unassign the main contractor from this event. The
+						exhibitor kit feature may also be disabled.
 					</p>
 				</div>
 			</div>

@@ -147,34 +147,36 @@ export function MobileTableControl<TData>({
 				placeholder={searchConfig.placeholder}
 				searchCustomFields={searchConfig.enableCustomSearch}
 			/>
-			<Collapsible>
-				<CollapsibleTrigger asChild>
-					<Button
-						variant="outline"
-						className="w-full rounded-none bg-muted py-5 text-sm tracking-tight"
-					>
-						More Filter
-						<Menu className="size-4" />
-					</Button>
-				</CollapsibleTrigger>
-				<CollapsibleContent className="flex flex-col gap-4 bg-foreground/10 p-2">
-					<div
-						className={cn(
-							"grid grid-cols-2 gap-2 sm:grid-cols-4",
-							regularItems.length % 2 === 1 && "[&>*:last-child]:col-span-2",
-						)}
-					>
-						{/* Render topPriority items first */}
-						{topPriorityItems.map((config, index) =>
-							renderControl(config, index),
-						)}
-						{/* Then render regular items */}
-						{regularItems.map((config, index) =>
-							renderControl(config, topPriorityItems.length + index),
-						)}
-					</div>
-				</CollapsibleContent>
-			</Collapsible>
+			{controlConfigs.length > 0 && (
+				<Collapsible>
+					<CollapsibleTrigger asChild>
+						<Button
+							variant="outline"
+							className="w-full rounded-none bg-muted py-5 text-sm tracking-tight"
+						>
+							More Filter
+							<Menu className="size-4" />
+						</Button>
+					</CollapsibleTrigger>
+					<CollapsibleContent className="flex flex-col gap-4 bg-foreground/10 p-2">
+						<div
+							className={cn(
+								"grid grid-cols-2 gap-2 sm:grid-cols-4",
+								regularItems.length % 2 === 1 && "[&>*:last-child]:col-span-2",
+							)}
+						>
+							{/* Render topPriority items first */}
+							{topPriorityItems.map((config, index) =>
+								renderControl(config, index),
+							)}
+							{/* Then render regular items */}
+							{regularItems.map((config, index) =>
+								renderControl(config, topPriorityItems.length + index),
+							)}
+						</div>
+					</CollapsibleContent>
+				</Collapsible>
+			)}
 		</div>
 	);
 }

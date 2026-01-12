@@ -55,44 +55,49 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 			scannedTicketIdsRef.current,
 		);
 
+		const scanId = result.scanId;
+
 		if (result.status === "success") {
-			scannedTicketIdsRef.current.add(result.ticketId.toLowerCase());
+			scannedTicketIdsRef.current.add(scanId.toLowerCase());
+
+			const isVisitor = result.type === "visitor";
+			const typeLabel = isVisitor ? "Visitor" : result.ticketType || "Ticket";
 
 			const scanResult: ResultData = {
 				success: true,
 				message: "Check-in successful!",
 				details: {
-					name: result.attendeeName,
-					ticketType: result.ticketType,
+					name: result.name,
+					ticketType: typeLabel,
 					eventName: result.eventName,
 				},
 			};
 			setLastResult(scanResult);
 			toast.success("Check-in Successful", {
-				description: `Welcome, ${result.attendeeName}!`,
+				description: `Welcome, ${result.name}!`,
 			});
 		} else if (result.status === "duplicate") {
 			const scanResult: ResultData = {
 				success: false,
-				message: "This ticket has already been checked in.",
+				message: "Already checked in.",
 				details: {
-					name: result.attendeeName,
+					name: result.name,
 					ticketType: result.ticketType,
 					eventName: result.eventName,
 				},
 			};
 			setLastResult(scanResult);
 			toast.error("Already Checked In", {
-				description: "This ticket was already used for check-in.",
+				description: "This was already used for check-in.",
 			});
 		} else {
 			const scanResult: ResultData = {
 				success: false,
-				message: result.message || "Failed to validate ticket.",
+				message: result.message || "Failed to validate.",
 			};
 			setLastResult(scanResult);
 			toast.error("Scan Failed", {
-				description: result.message || "Could not validate the ticket.",
+				description: result.message || "Could not validate the QR code.",
 			});
 		}
 	};

@@ -27,9 +27,6 @@ interface OfflineTicket {
 }
 
 export function useOfflineTicketValidation() {
-	/**
-	 * Check if offline data is available
-	 */
 	const hasOfflineData = useCallback((): boolean => {
 		try {
 			const tickets = localStorage.getItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY);
@@ -39,67 +36,64 @@ export function useOfflineTicketValidation() {
 		}
 	}, []);
 
-	/**
-	 * Validate ticket against offline data
-	 */
 	const validateTicketOffline = useCallback(
-		(ticketId: string, scannedTicketIds: Set<string>): ScanResult | null => {
+		(scanId: string, scannedIds: Set<string>): ScanResult | null => {
 			try {
-				// Check local duplicate first
-				const normalizedTicketId = ticketId.toLowerCase();
-				if (scannedTicketIds.has(normalizedTicketId)) {
+				const normalizedId = scanId.toLowerCase();
+				if (scannedIds.has(normalizedId)) {
 					return {
-						ticketId,
+						scanId,
 						timestamp: new Date(),
 						status: "duplicate",
 						message: ERROR_MESSAGES.DUPLICATE_SCAN_SESSION,
+						type: "ticket",
 					};
 				}
 
-				// Load offline tickets
 				const ticketsData = localStorage.getItem(
 					STORAGE_CONFIG.OFFLINE_TICKETS_KEY,
 				);
 				if (!ticketsData) {
 					return {
-						ticketId,
+						scanId,
 						timestamp: new Date(),
 						status: "error",
 						message: "No offline data available. Please sync first.",
+						type: "ticket",
 					};
 				}
 
 				const tickets: OfflineTicket[] = JSON.parse(ticketsData);
 				const ticket = tickets.find(
-					(t) => t.publicId.toLowerCase() === normalizedTicketId,
+					(t) => t.publicId.toLowerCase() === normalizedId,
 				);
 
 				if (!ticket) {
 					return {
-						ticketId,
+						scanId,
 						timestamp: new Date(),
 						status: "error",
 						message: "Ticket not found in offline database",
+						type: "ticket",
 					};
 				}
 
-				// Check if already checked in (from offline data)
 				if (ticket.checkedIn) {
 					return {
-						ticketId,
+						scanId,
 						timestamp: new Date(),
 						status: "duplicate",
 						message: ERROR_MESSAGES.DUPLICATE_SCAN_BACKEND,
-						attendeeName: ticket.name,
-						attendeeEmail: ticket.email,
-						attendeePhone: ticket.phone,
+						name: ticket.name,
+						email: ticket.email,
+						phone: ticket.phone,
 						ticketType: ticket.ticketTypeName,
 						eventName: ticket.eventName,
 						eventId: ticket.eventId,
+						type: "ticket",
 					};
 				}
 
-				// Mark as checked in in offline data
 				ticket.checkedIn = true;
 				ticket.checkInAt = new Date().toISOString();
 				localStorage.setItem(
@@ -107,15 +101,15 @@ export function useOfflineTicketValidation() {
 					JSON.stringify(tickets),
 				);
 
-				// Create success result
 				const result: ScanResult = {
-					ticketId,
+					scanId,
 					timestamp: new Date(),
 					status: "success",
 					message: `${SUCCESS_MESSAGES.TICKET_CHECKED_IN} (Offline)`,
-					attendeeName: ticket.name,
-					attendeeEmail: ticket.email,
-					attendeePhone: ticket.phone,
+					type: "ticket",
+					name: ticket.name,
+					email: ticket.email,
+					phone: ticket.phone,
 					ticketType: ticket.ticketTypeName,
 					ticketValue: ticket.value,
 					checkedIn: true,
@@ -124,20 +118,21 @@ export function useOfflineTicketValidation() {
 					eventId: ticket.eventId,
 				};
 
-				toast.success("✓ Valid Ticket (Offline)", {
+				toast.success("Valid Ticket (Offline)", {
 					description: `${ticket.name} • ${ticket.ticketTypeName || "Standard"}`,
 				});
 
 				playBeep(true);
 
 				return result;
-			} catch (error: any) {
-				console.error("❌ Offline validation error:", error);
+			} catch (error) {
+				console.error("Offline validation error:", error);
 				return {
-					ticketId,
+					scanId,
 					timestamp: new Date(),
 					status: "error",
 					message: "Offline validation failed",
+					type: "ticket",
 				};
 			}
 		},
