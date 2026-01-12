@@ -4,14 +4,16 @@ import type { Table } from "@tanstack/react-table";
 import * as React from "react";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
-import type { ScanResult } from "./types";
+import type { ScanResult, TypeFilter } from "../types";
 
 interface DataControlProps {
 	table: Table<ScanResult>;
 	scanResults: ScanResult[];
 	filterType: string;
+	typeFilter: TypeFilter;
 	sortType: "newest" | "oldest" | "status";
 	onFilterChange: (filter: string) => void;
+	onTypeFilterChange: (filter: TypeFilter) => void;
 	onSortChange: (sort: "newest" | "oldest" | "status") => void;
 }
 
@@ -19,8 +21,10 @@ export function DataControl({
 	table,
 	scanResults,
 	filterType,
+	typeFilter,
 	sortType,
 	onFilterChange,
+	onTypeFilterChange,
 	onSortChange,
 }: DataControlProps) {
 	// Get unique events for filter
@@ -67,9 +71,37 @@ export function DataControl({
 		}
 	};
 
+	// Handle type filter change
+	const handleTypeFilterChange = (value: string) => {
+		onTypeFilterChange(value as TypeFilter);
+		const typeColumn = table.getColumn("type");
+
+		if (value === "all") {
+			typeColumn?.setFilterValue(undefined);
+		} else {
+			typeColumn?.setFilterValue(value);
+		}
+	};
+
 	if (scanResults.length === 0) {
 		return null;
 	}
+
+	// Type filter control (Ticket/Visitor)
+	const typeFilterControl: ControlConfig = {
+		label: "Type",
+		columnId: "type",
+		type: "filter",
+		data: [
+			{ label: "All Types", value: "all" },
+			{ label: "Ticket", value: "ticket" },
+			{ label: "Visitor", value: "visitor" },
+		],
+		customFilter: {
+			value: typeFilter,
+			onChange: handleTypeFilterChange,
+		},
+	};
 
 	// Event filter control
 	const eventFilterControl: ControlConfig = {
@@ -107,14 +139,16 @@ export function DataControl({
 	};
 
 	const desktopControlConfigs: ControlConfig[] = [
+		typeFilterControl,
 		eventFilterControl,
 		sortControl,
 	];
 
 	const mobileControlConfigs: ControlConfig[] = [
+		{ ...typeFilterControl, topPriority: true },
 		{ ...eventFilterControl, topPriority: true },
 		{ ...sortControl, topPriority: true },
-		{ label: "Attendee", columnId: "attendeeName", type: "sort" },
+		{ label: "Attendee", columnId: "name", type: "sort" },
 		{ label: "Event", columnId: "eventName", type: "sort" },
 		{ label: "Check-In Time", columnId: "timestamp", type: "sort" },
 		{ label: "Status", columnId: "status", type: "sort" },
@@ -125,9 +159,9 @@ export function DataControl({
 			table={table}
 			searchConfig={{
 				searchConfig: {
-					placeholder: "Search tickets, names, events...",
+					placeholder: "Search names, IDs, events...",
 					enableCustomSearch: true,
-					columns: ["attendeeName", "ticketId", "eventName", "ticketType"],
+					columns: ["name", "scanId", "eventName", "ticketType"],
 				},
 			}}
 			desktopConfig={{

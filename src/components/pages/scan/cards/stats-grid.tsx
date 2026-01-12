@@ -4,7 +4,7 @@ import {
 	ProgressStatsCard,
 } from "@/components/admin-ui/analytic/stats-card";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import type { ScanResult } from "./types";
+import type { ScanResult } from "../types";
 
 interface StatsGridProps {
 	scanResults: ScanResult[];

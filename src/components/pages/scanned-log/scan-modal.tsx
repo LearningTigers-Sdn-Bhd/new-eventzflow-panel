@@ -57,7 +57,7 @@ export function ScanModal({
 		// Show toast based on status
 		if (result.status === "success") {
 			toast.success("Ticket validated!", {
-				description: `${result.attendeeName} - ${result.ticketType}`,
+				description: `${result.name} - ${result.ticketType}`,
 			});
 
 			// Immediately refetch the scanned logs table after successful scan

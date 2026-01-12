@@ -1,14 +1,11 @@
 /**
  * Scan Utility Functions
- * Filtering, sorting, exporting, and audio feedback utilities
+ * Audio feedback and export utilities
  */
 
 import { toast } from "sonner";
 import { AUDIO_CONFIG, ERROR_MESSAGES, SUCCESS_MESSAGES } from "./constants";
-import type { FilterType, ScanResult, SortType } from "./types";
-
-// NOTE: Actual validation is now done via REST API in scanner-card.tsx
-// This file only contains utility functions for filtering, sorting, and exporting
+import type { ScanResult } from "./types";
 
 /**
  * Play audio feedback for scan result
@@ -45,51 +42,6 @@ export function playBeep(success: boolean) {
 }
 
 /**
- * Filter and sort scan results
- */
-export function filterAndSortResults(
-	results: ScanResult[],
-	searchQuery: string,
-	filterType: FilterType,
-	sortType: SortType,
-): ScanResult[] {
-	return results
-		.filter((result) => {
-			// Apply event filter
-			if (filterType !== "all" && result.eventId?.toString() !== filterType)
-				return false;
-
-			// Apply search
-			if (searchQuery) {
-				const query = searchQuery.toLowerCase();
-				return (
-					result.ticketId.toLowerCase().includes(query) ||
-					result.attendeeName?.toLowerCase().includes(query) ||
-					result.attendeeEmail?.toLowerCase().includes(query) ||
-					result.attendeePhone?.toLowerCase().includes(query) ||
-					result.ticketType?.toLowerCase().includes(query) ||
-					result.seatNumber?.toLowerCase().includes(query) ||
-					result.eventName?.toLowerCase().includes(query)
-				);
-			}
-
-			return true;
-		})
-		.sort((a, b) => {
-			switch (sortType) {
-				case "newest":
-					return b.timestamp.getTime() - a.timestamp.getTime();
-				case "oldest":
-					return a.timestamp.getTime() - b.timestamp.getTime();
-				case "status":
-					return a.status.localeCompare(b.status);
-				default:
-					return 0;
-			}
-		});
-}
-
-/**
  * Export scan results to CSV file
  */
 export function exportToCSV(results: ScanResult[]) {
@@ -100,26 +52,26 @@ export function exportToCSV(results: ScanResult[]) {
 
 	const csv = [
 		[
-			"Ticket ID",
+			"Scan ID",
+			"Type",
 			"Status",
-			"Attendee Name",
+			"Name",
 			"Email",
 			"Phone",
 			"Ticket Type",
-			"Seat",
 			"Value",
 			"Checked In",
 			"Timestamp",
 		].join(","),
 		...results.map((r) =>
 			[
-				r.ticketId,
+				r.scanId,
+				r.type || "ticket",
 				r.status,
-				r.attendeeName || "",
-				r.attendeeEmail || "",
-				r.attendeePhone || "",
+				r.name || "",
+				r.email || "",
+				r.phone || "",
 				r.ticketType || "",
-				r.seatNumber || "",
 				r.ticketValue || "",
 				r.checkedIn ? "Yes" : "No",
 				r.timestamp.toISOString(),

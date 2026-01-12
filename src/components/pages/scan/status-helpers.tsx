@@ -3,7 +3,7 @@
  * Shared utilities for rendering scan status indicators
  */
 
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Ticket, UserRound, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tooltip,
@@ -13,6 +13,21 @@ import {
 import { cn } from "@/lib/utils";
 import { STATUS_VARIANTS } from "./constants";
 import type { ScanStatus } from "./types";
+import type { ScanType } from "@/lib/api/scan";
+
+// Type variants for Ticket/Visitor badges
+const TYPE_VARIANTS = {
+	ticket: {
+		badgeBg: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+		text: "text-blue-600",
+		label: "Ticket",
+	},
+	visitor: {
+		badgeBg: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+		text: "text-purple-600",
+		label: "Visitor",
+	},
+} as const;
 
 /**
  * Get status icon component based on scan status
@@ -88,5 +103,55 @@ export function StatusBadge({ status, message, className }: StatusBadgeProps) {
 				<p>{tooltipMessage}</p>
 			</TooltipContent>
 		</Tooltip>
+	);
+}
+
+/**
+ * Get type icon component based on scan type
+ */
+export function getTypeIcon(type: ScanType, className?: string) {
+	const defaultClassName = "h-4 w-4";
+	const combinedClassName = cn(defaultClassName, className);
+
+	switch (type) {
+		case "ticket":
+			return (
+				<Ticket
+					className={cn(combinedClassName, TYPE_VARIANTS.ticket.text)}
+				/>
+			);
+		case "visitor":
+			return (
+				<UserRound
+					className={cn(combinedClassName, TYPE_VARIANTS.visitor.text)}
+				/>
+			);
+	}
+}
+
+/**
+ * Render a type badge (Ticket/Visitor)
+ */
+interface TypeBadgeProps {
+	type: ScanType;
+	className?: string;
+}
+
+export function TypeBadge({ type, className }: TypeBadgeProps) {
+	const variant = TYPE_VARIANTS[type];
+	const label = variant.label;
+
+	return (
+		<Badge
+			variant="outline"
+			className={cn(
+				"gap-1 px-1.5 py-0.5 text-[10px] sm:gap-1.5 sm:px-2 sm:py-1 sm:text-xs",
+				variant.badgeBg,
+				className,
+			)}
+		>
+			{getTypeIcon(type)}
+			<span>{label}</span>
+		</Badge>
 	);
 }

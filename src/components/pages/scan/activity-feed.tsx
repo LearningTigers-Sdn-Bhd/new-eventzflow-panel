@@ -5,31 +5,31 @@
 
 import { ScanFace } from "lucide-react";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import { generateColumns } from "./scan-table-columns";
-import { DataTable } from "./scan-table";
-import type { FilterType, ScanResult, SortType } from "./types";
+import { generateColumns } from "./table/scan-table-columns";
+import { DataTable } from "./table/scan-table";
+import type { FilterType, ScanResult, SortType, TypeFilter } from "./types";
 
 interface ActivityFeedProps {
 	scanResults: ScanResult[];
 	recentScan: ScanResult | null;
 	filterType: FilterType;
+	typeFilter: TypeFilter;
 	sortType: SortType;
 	isLoading?: boolean;
 	onFilterChange: (filter: FilterType) => void;
+	onTypeFilterChange: (filter: TypeFilter) => void;
 	onSortChange: (sort: SortType) => void;
-	// Legacy props - kept for backward compatibility but no longer used
-	searchQuery?: string;
-	onSearchChange?: (query: string) => void;
-	onExport?: () => void;
 }
 
 export function ActivityFeed({
 	scanResults,
 	recentScan,
 	filterType,
+	typeFilter,
 	sortType,
 	isLoading = false,
 	onFilterChange,
+	onTypeFilterChange,
 	onSortChange,
 }: ActivityFeedProps) {
 	return (
@@ -48,9 +48,11 @@ export function ActivityFeed({
 				data={scanResults}
 				recentScan={recentScan}
 				filterType={filterType}
+				typeFilter={typeFilter}
 				sortType={sortType}
 				isLoading={isLoading}
 				onFilterChange={onFilterChange}
+				onTypeFilterChange={onTypeFilterChange}
 				onSortChange={onSortChange}
 			/>
 		</div>

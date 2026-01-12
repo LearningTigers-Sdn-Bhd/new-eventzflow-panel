@@ -16,7 +16,7 @@ import {
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { Button } from "@/components/ui/button";
 import { getAllForOffline } from "@/lib/api/ticket";
-import { ERROR_MESSAGES, STORAGE_CONFIG, SUCCESS_MESSAGES } from "./constants";
+import { ERROR_MESSAGES, STORAGE_CONFIG, SUCCESS_MESSAGES } from "../constants";
 
 interface StorageData {
 	events: number;

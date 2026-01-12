@@ -70,10 +70,9 @@ export const ERROR_MESSAGES = {
 	CAMERA_PERMISSION_DENIED: "Camera permission denied",
 	CAMERA_START_FAILED: "Failed to start camera",
 	CAMERA_PERMISSION_HELP: "Please check your camera permissions",
-	DUPLICATE_SCAN_SESSION:
-		"This ticket has already been scanned in this session",
-	DUPLICATE_SCAN_BACKEND: "This ticket has already been checked in",
-	INVALID_TICKET: "Ticket not found or network error",
+	DUPLICATE_SCAN_SESSION: "Already scanned in this session",
+	DUPLICATE_SCAN_BACKEND: "Already checked in",
+	INVALID_TICKET: "Record not found or network error",
 	SCAN_HISTORY_LOAD_FAILED: "Failed to load scan history",
 	SCAN_HISTORY_SAVE_FAILED: "Failed to save scan history",
 	SCAN_HISTORY_CLEAR_FAILED: "Failed to clear scan history",
