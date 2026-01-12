@@ -100,6 +100,7 @@ export default function ImageComponent({
 				width={1200}
 				height={800}
 				unoptimized
+				sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 60vw"
 				className="h-auto w-full object-cover"
 				draggable="false"
 			/>

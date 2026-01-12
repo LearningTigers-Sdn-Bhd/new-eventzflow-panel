@@ -1,9 +1,13 @@
 "use client";
 
+import parse, { Element } from "html-react-parser";
+import DOMPurify from "isomorphic-dompurify";
+import Image from "next/image";
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useRichDisplayContext } from "./context";
-import "../styles.css"; // Reuse editor styles if needed, or rely on prose
+import "../styles.css";
 
 interface RichDisplayContentProps {
 	className?: string;
@@ -15,6 +19,38 @@ export function RichDisplayContent({
 	children,
 }: RichDisplayContentProps) {
 	const { html, setScrollContainer, style } = useRichDisplayContext();
+
+	const parsedContent = useMemo(() => {
+		const cleanHtml = DOMPurify.sanitize(html);
+
+		return parse(cleanHtml, {
+			replace: (domNode) => {
+				if (domNode instanceof Element && domNode.name === "img") {
+					const { src, alt, width, height, class: className } = domNode.attribs;
+
+					// Parse dimensions, defaulting to something reasonable if missing/invalid
+					// "inherit" comes from Lexical default, handle it
+					const safeWidth =
+						width && width !== "inherit" ? Number.parseInt(width, 10) : 1200;
+					const safeHeight =
+						height && height !== "inherit" ? Number.parseInt(height, 10) : 800;
+
+					return (
+						<Image
+							src={src}
+							alt={alt || ""}
+							width={safeWidth}
+							height={safeHeight}
+							unoptimized // Keep unoptimized for external URLs until config is set
+							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 60vw"
+							className={cn("h-auto w-full object-cover", className)}
+						/>
+					);
+				}
+				return domNode;
+			},
+		});
+	}, [html]);
 
 	return (
 		<div
@@ -43,11 +79,9 @@ export function RichDisplayContent({
 					</div>
 				)}
 
-				<div
-					className="prose prose-sm dark:prose-invert max-w-none"
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: Trusted content from editor
-					dangerouslySetInnerHTML={{ __html: html }}
-				/>
+				<div className="prose prose-sm dark:prose-invert max-w-none">
+					{parsedContent}
+				</div>
 			</div>
 		</div>
 	);

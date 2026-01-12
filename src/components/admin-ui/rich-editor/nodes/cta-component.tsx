@@ -19,7 +19,7 @@ import { FormGroupContainer } from "@/components/admin-ui/form/form-group-contai
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CtaBlockView } from "../../new-editor/extensions/cta-block-view";
+import { CtaBlockView } from "./cta-block-view";
 import { $isCtaNode } from "./cta-node";
 
 export default function CtaComponent({
