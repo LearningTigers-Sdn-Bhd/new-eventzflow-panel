@@ -11,6 +11,7 @@ export type Event = {
 	use_exhibitor_kit: boolean;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
+	use_sponsorship: boolean;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;

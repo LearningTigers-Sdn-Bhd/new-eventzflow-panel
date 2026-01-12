@@ -18,6 +18,7 @@ import {
 	CreditCard,
 	FileText,
 	Gift,
+	Handshake,
 	HardHat,
 	Import,
 	Logs,
@@ -151,6 +152,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Manage your contractor profile and settings.",
 			icon: User,
 			visible: visible.contractorOnly,
+		},
+		{
+			route: "sponsorships",
+			label: "Sponsorships",
+			description: "Manage event sponsorships and tiers.",
+			icon: Handshake,
+			visible: (p, e) => visible.eventAdmin(p) && e?.use_sponsorship === true,
 		},
 		{
 			route: "business-matching",

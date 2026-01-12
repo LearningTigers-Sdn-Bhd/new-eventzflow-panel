@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
 	ClipboardList,
 	FolderOpen,
+	Handshake,
 	HardHat,
 	Import,
 	Key,
@@ -131,6 +132,13 @@ export const navigationData = {
 			name: "Exhibitor Contractors",
 			url: "/exhibitor-contractor" as Route,
 			icon: HardHat,
+			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
+			allowBottomNavigation: false,
+		},
+		{
+			name: "Sponsors",
+			url: "/sponsors" as Route,
+			icon: Handshake,
 			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
 			allowBottomNavigation: false,
 		},

@@ -38,6 +38,7 @@ const formSchema = z
 		useExhibitorKit: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
+		useSponsorship: z.boolean(),
 		status: z.enum(["draft", "published", "cancelled"]),
 		eventAdminId: z.union([z.string(), z.undefined()]),
 		description: z.string(),
@@ -107,6 +108,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			useSponsorship: false,
 			status: "draft" as "draft" | "published" | "cancelled",
 			eventAdminId: undefined as string | undefined,
 			description: "",
@@ -125,6 +127,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
 				use_business_matching: value.useBusinessMatching ?? false,
+				use_sponsorship: value.useSponsorship ?? false,
 				status: value.status ?? "draft",
 				description: value.description.trim() || undefined,
 				start_date: value.startDate?.toISOString() || "",
@@ -479,6 +482,22 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 												<SwitchCardInput
 													label="Business Matching"
 													description="Allow business matching for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
+									<form.Field name="useSponsorship">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Sponsorships"
+													description="Enable sponsorship management for this event."
 													htmlFor={field.name}
 													variant="no-rounded"
 													border={true}
