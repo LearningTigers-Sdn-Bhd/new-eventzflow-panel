@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useResource } from "@/app/(auth)/resources/layout";
+import { useResource } from "@/app/(auth)/manage-resources/layout";
 import { LoadingState } from "@/components/data-state";
 import { ArticleCanvas } from "@/components/pages/resources/posts/editor-page/article-canvas";
 import { ResourceEditorActionButtons } from "@/components/pages/resources/posts/editor-page/page-action/action-buttons";

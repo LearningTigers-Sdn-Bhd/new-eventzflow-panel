@@ -71,7 +71,7 @@ export default function PublishedPostsPage() {
 			}}
 			clickableRowConfig={{
 				isEnabled: true,
-				onRowClick: (row) => router.push(`/resources/posts/${row.slug}`),
+				onRowClick: (row) => router.push(`/manage-resources/posts/${row.slug}`),
 			}}
 		/>
 	);

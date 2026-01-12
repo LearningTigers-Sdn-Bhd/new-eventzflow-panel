@@ -39,7 +39,7 @@ export function PublishedPostsActionMenu({ post }: PublishedPostsActionMenuProps
 						className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
 						title="Edit Post"
 					>
-						<Link href={`/resources/posts/${post.slug}/manage` as Route}>
+						<Link href={`/manage-resources/posts/${post.slug}/manage` as Route}>
 							<Pencil className="size-4" />
 						</Link>
 					</Button>

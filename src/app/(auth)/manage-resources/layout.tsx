@@ -116,7 +116,7 @@ function ResourceLayoutContent({
 				description:
 					"The resource you are looking for does not exist or has been removed.",
 			});
-			router.push("/resources/posts");
+			router.push("/manage-resources/posts");
 		}
 	}, [error, router]);
 

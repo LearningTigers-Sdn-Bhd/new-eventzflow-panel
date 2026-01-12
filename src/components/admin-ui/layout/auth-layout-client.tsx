@@ -48,7 +48,7 @@ export default function AuthLayoutClient({
 
 	// Detect if we're on a resource route
 	const isResourceRoute = useMemo(() => {
-		return pathname.startsWith("/resources/") && pathname !== "/resources";
+		return pathname.startsWith("/manage-resources/") && pathname !== "/manage-resources";
 	}, [pathname]);
 
 	// Extract event_id from pathname

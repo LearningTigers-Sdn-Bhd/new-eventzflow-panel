@@ -67,7 +67,7 @@ export function ResourceSidebar({
 
 	// Check if menu item is active
 	const isActive = useCallback(
-		(route: string) => pathname.includes(`/resources/${route}`),
+		(route: string) => pathname.includes(`/manage-resources/${route}`),
 		[pathname],
 	);
 

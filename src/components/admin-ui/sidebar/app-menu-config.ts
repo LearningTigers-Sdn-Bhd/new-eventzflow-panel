@@ -155,7 +155,7 @@ export const navigationData = {
 	miscellaneous: [
 		{
 			name: "Manage Post Content",
-			url: "/resources/posts/" as Route,
+			url: "/manage-resources/posts/" as Route,
 			icon: FileText,
 			roleAllowed: [
 				USER_ROLES.ORG_OWNER,
@@ -164,7 +164,7 @@ export const navigationData = {
 			],
 			allowBottomNavigation: false,
 			requiresPermission: "has_writer_permission",
-			isActive: (pathname: string) => pathname.startsWith("/resources/"),
+			isActive: (pathname: string) => pathname.startsWith("/manage-resources/"),
 		},
 		{
 			name: "API Keys",

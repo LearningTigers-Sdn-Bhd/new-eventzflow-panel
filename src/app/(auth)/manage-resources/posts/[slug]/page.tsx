@@ -1,6 +1,6 @@
 "use client";
 
-import { useResource } from "@/app/(auth)/resources/layout";
+import { useResource } from "@/app/(auth)/manage-resources/layout";
 import { RichDisplay } from "@/components/admin-ui/rich-editor/display/display";
 import { RichDisplayContent } from "@/components/admin-ui/rich-editor/display/display-content";
 import { RichDisplayOutline } from "@/components/admin-ui/rich-editor/display/display-outline";

@@ -14,7 +14,7 @@ export default function BlogPageClient() {
 					initial={{ scaleY: 0 }}
 					animate={{ scaleY: 1 }}
 					transition={{ duration: 1.5, ease: SMOOTH_EASE }}
-					className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
+					className="absolute top-0 left-6 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 				/>
 
 				{/* Content */}
@@ -24,11 +24,11 @@ export default function BlogPageClient() {
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					className="text-center"
 				>
-					<p className="mb-4 text-base font-medium uppercase tracking-[0.3em] text-white/60">
+					<p className="mb-4 font-medium text-base text-white/60 uppercase tracking-[0.3em]">
 						Insights & Updates
 					</p>
-					<h1 className="font-black text-4xl uppercase tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-						Blog
+					<h1 className="font-black text-4xl text-white uppercase tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+						Resources
 					</h1>
 				</motion.div>
 			</section>
@@ -45,13 +45,13 @@ export default function BlogPageClient() {
 						{/* Decorative line */}
 						<div className="mx-auto mb-8 h-[2px] w-16 bg-black/20" />
 
-						<p className="mb-4 text-xs font-bold uppercase tracking-[0.4em] text-black/40">
+						<p className="mb-4 font-bold text-black/40 text-xs uppercase tracking-[0.4em]">
 							Coming Soon
 						</p>
-						<h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
+						<h2 className="mb-6 font-black text-3xl text-black uppercase tracking-tighter sm:text-4xl md:text-5xl">
 							We're working on it
 						</h2>
-						<p className="mx-auto max-w-xl text-base leading-relaxed text-black/60 md:text-lg">
+						<p className="mx-auto max-w-xl text-base text-black/60 leading-relaxed md:text-lg">
 							Our team is preparing insightful articles, guides, and case
 							studies to help you get the most out of your events. Stay tuned.
 						</p>
@@ -64,4 +64,3 @@ export default function BlogPageClient() {
 		</main>
 	);
 }
-

@@ -43,7 +43,7 @@ export function ResourceMenuItem({
 			setOpenTablet(false);
 		}
 		// Then navigate
-		router.push(`/resources/${route}` as Route);
+		router.push(`/manage-resources/${route}` as Route);
 	};
 
 	return (

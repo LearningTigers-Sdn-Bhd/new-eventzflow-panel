@@ -16,7 +16,7 @@ export default function TeamPage() {
 		error,
 	} = useQuery({
 		queryKey: ["team", "members"],
-		queryFn: getTeamMembers,
+		queryFn: () => getTeamMembers(),
 		enabled: isHydrated, // Only fetch when store is hydrated
 	});
 

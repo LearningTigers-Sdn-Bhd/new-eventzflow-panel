@@ -1,8 +1,8 @@
 "use client";
 
 import { redirect, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useEffect, useState } from "react";
 import FloatingNav from "@/components/floating-nav";
 import Footer from "@/components/footer";
 import LoadingScreen, {

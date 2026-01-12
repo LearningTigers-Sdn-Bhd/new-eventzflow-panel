@@ -2,24 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { CreatePostButton } from "@/components/pages/resources/posts/page-action/create-post-button";
-import { PostTable } from "@/components/pages/resources/posts/post-table";
+import { PostApprovalTable } from "@/components/pages/resources/post-approval/post-approval-table";
 import { Button } from "@/components/ui/button";
-import { useSetResourceActions } from "@/hooks/use-set-resource-actions";
-import { getResources } from "@/lib/api/resource";
+import { getApprovalResources } from "@/lib/api/resource";
 
-type PostFilter = "published" | "draft" | "pending_review" | "rejected" | "archived" | "all";
-
-export default function PostsPage() {
+export default function PostApprovalPage() {
 	const router = useRouter();
-	const [filter, setFilter] = useState<PostFilter>("all");
 	const [pageIndex, setPageIndex] = useState(0);
 	const [pageSize, setPageSize] = useState(10);
-
-	const actions = useMemo(() => <CreatePostButton />, []);
-	useSetResourceActions(actions);
 
 	const {
 		data: postsData,
@@ -27,13 +19,9 @@ export default function PostsPage() {
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["resources", filter, pageIndex, pageSize],
+		queryKey: ["resources-approval", pageIndex, pageSize],
 		queryFn: () =>
-			getResources({
-				status: filter === "all" ? undefined : filter,
-				page: pageIndex + 1,
-				perPage: pageSize,
-			}),
+			getApprovalResources({ page: pageIndex + 1, perPage: pageSize }),
 	});
 
 	const posts = postsData?.data;
@@ -42,8 +30,8 @@ export default function PostsPage() {
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading posts..."
-				description="Please wait while we fetch resource posts..."
+				title="Loading approval queue..."
+				description="Please wait while we fetch pending resource posts..."
 			/>
 		);
 	}
@@ -51,7 +39,7 @@ export default function PostsPage() {
 	if (error) {
 		return (
 			<ErrorState
-				title="Failed to load posts"
+				title="Failed to load approval queue"
 				description={
 					error.message ||
 					"We couldn't load resource posts. Please try again."
@@ -62,13 +50,8 @@ export default function PostsPage() {
 	}
 
 	return (
-		<PostTable
+		<PostApprovalTable
 			data={posts || []}
-			filter={filter}
-			onFilterChange={(newFilter) => {
-				setFilter(newFilter);
-				setPageIndex(0); // Reset to first page on filter change
-			}}
 			pagination={
 				pagination
 					? {
@@ -84,7 +67,7 @@ export default function PostsPage() {
 			}}
 			clickableRowConfig={{
 				isEnabled: true,
-				onRowClick: (row) => router.push(`/resources/posts/${row.slug}`),
+				onRowClick: (row) => router.push(`/manage-resources/posts/${row.slug}`),
 			}}
 		/>
 	);
