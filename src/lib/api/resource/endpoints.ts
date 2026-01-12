@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	BackendResourceCategory,
 	ResourceCategory,
