@@ -24,7 +24,7 @@ const getMediaTypeColor = (type?: string) => {
 		case "webinar":
 			return "bg-emerald-500 hover:bg-emerald-600 text-white border-transparent";
 		default:
-			return "bg-primary-foreground text-primary hover:bg-primary/80 border-transparent";
+			return "bg-white text-black hover:bg-white/90 border-transparent";
 	}
 };
 
@@ -61,7 +61,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 					<div
 						className={cn(
 							"relative -mb-px aspect-3/2 w-full overflow-hidden bg-black sm:aspect-4/3",
-							!displayImage && "bg-primary",
+							!displayImage && "bg-black",
 						)}
 					>
 						{" "}
@@ -146,7 +146,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 				<div
 					className={cn(
 						"relative h-56 w-full shrink-0 overflow-hidden sm:h-full sm:w-80",
-						!displayImage && "bg-primary/10",
+						!displayImage && "bg-black",
 					)}
 				>
 					{displayImage ? (
@@ -177,18 +177,12 @@ export const ResourcesCard = memo(function ResourcesCard({
 				<div className="flex min-w-0 flex-1 flex-col justify-center p-6 sm:py-8 sm:pr-8">
 					<div className="mb-4 flex flex-wrap gap-2">
 						{topic && (
-							<Badge
-								variant="secondary"
-								className="rounded-none bg-secondary/50 font-medium text-secondary-foreground"
-							>
+							<Badge className="rounded-none bg-black text-white hover:bg-black/80 font-medium">
 								{topic.name}
 							</Badge>
 						)}
 						{category && (
-							<Badge
-								variant="secondary"
-								className="rounded-none bg-secondary/50 font-medium text-secondary-foreground"
-							>
+							<Badge className="rounded-none bg-black text-white hover:bg-black/80 font-medium">
 								{category.name}
 							</Badge>
 						)}

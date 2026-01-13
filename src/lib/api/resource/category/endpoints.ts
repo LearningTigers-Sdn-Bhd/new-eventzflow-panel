@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type CreateResourceCategoryRequest,
 	createResourceCategorySchema,
@@ -42,7 +42,7 @@ export async function getResourceCategories(options?: {
 		? `v1/resources/categories?${queryString}`
 		: "v1/resources/categories";
 
-	const response = await restClient.get<
+	const response = await publicRestClient.get<
 		BackendResourceCategory[] | { data: BackendResourceCategory[]; pagination?: any }
 	>(url);
 

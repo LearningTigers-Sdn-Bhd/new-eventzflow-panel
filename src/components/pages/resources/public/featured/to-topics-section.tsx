@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ export default function ToTopicsSection() {
 	const [canScrollPrev, setCanScrollPrev] = useState(false);
 	const [canScrollNext, setCanScrollNext] = useState(false);
 
-	const { data: topicsData, isLoading } = useQuery({
+	const { data: topicsData } = useSuspenseQuery({
 		queryKey: ["resource-topics", { filter: "active" }],
 		queryFn: () => getResourceTopics({ filter: "active" }),
 	});
@@ -69,7 +69,7 @@ export default function ToTopicsSection() {
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						viewport={{ once: true, margin: "-100px" }}
 						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 					>
 						<p className="mb-4 font-medium text-white/40 text-xs uppercase tracking-[0.3em]">
@@ -82,75 +82,67 @@ export default function ToTopicsSection() {
 				</div>
 
 				{/* Carousel */}
-				<div className="relative w-full">
-					{isLoading ? (
-						<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-							{[1, 2, 3].map((i) => (
-								<div
-									key={i}
-									className={cn(
-										"aspect-4/5 animate-pulse border border-white/10 bg-white/5",
-										i % 2 !== 0 ? "-translate-y-4" : "translate-y-4",
-									)}
-								/>
-							))}
-						</div>
-					) : (
-						<div className="relative px-18">
-							<Carousel
-								setApi={setApi}
-								opts={{
-									align: "start",
-									loop: false,
-								}}
-								className="w-full"
-							>
-								<CarouselContent className="select-none py-18">
-									{topics.map((topic, index) => (
-										<CarouselItem
-											key={topic.id}
-											className="pl-4 sm:basis-1/2 md:basis-1/3 md:pl-6"
-											onClick={() => handleTopicClick(topic.slug)}
+				<motion.div
+					initial={{ opacity: 0, y: 40 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					viewport={{ once: true, margin: "-100px" }}
+					transition={{ duration: 0.8, ease: SMOOTH_EASE, delay: 0.2 }}
+					className="relative w-full"
+				>
+					<div className="relative px-18">
+						<Carousel
+							setApi={setApi}
+							opts={{
+								align: "start",
+								loop: false,
+							}}
+							className="w-full"
+						>
+							<CarouselContent className="select-none py-18">
+								{topics.map((topic, index) => (
+									<CarouselItem
+										key={topic.id}
+										className="pl-4 sm:basis-1/2 md:basis-1/3 md:pl-6"
+										onClick={() => handleTopicClick(topic.slug)}
+									>
+										<div
+											className={cn(
+												"transition-transform duration-500",
+												index % 2 === 0 ? "-translate-y-4" : "translate-y-4",
+											)}
 										>
-											<div
-												className={cn(
-													"transition-transform duration-500",
-													index % 2 === 0 ? "-translate-y-4" : "translate-y-4",
-												)}
-											>
-												<TopicCard topic={topic} />
-											</div>
-										</CarouselItem>
-									))}
-								</CarouselContent>
-							</Carousel>
+											<TopicCard topic={topic} />
+										</div>
+									</CarouselItem>
+								))}
+							</CarouselContent>
+						</Carousel>
 
-							{/* Custom Navigation */}
-							<button
-								type="button"
-								onClick={() => api?.scrollPrev()}
-								className={cn(
-									"absolute top-1/2 left-0 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white",
-									!canScrollPrev && "pointer-events-none opacity-0",
-								)}
-								disabled={!canScrollPrev}
-							>
-								<ChevronLeft className="size-12" />
-							</button>
-							<button
-								type="button"
-								onClick={() => api?.scrollNext()}
-								className={cn(
-									"absolute top-1/2 right-0 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white",
-									!canScrollNext && "pointer-events-none opacity-0",
-								)}
-								disabled={!canScrollNext}
-							>
-								<ChevronRight className="size-12" />
-							</button>
-						</div>
-					)}
-				</div>
+						{/* Custom Navigation */}
+						<button
+							type="button"
+							onClick={() => api?.scrollPrev()}
+							className={cn(
+								"absolute top-1/2 left-0 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white",
+								!canScrollPrev && "pointer-events-none opacity-0",
+							)}
+							disabled={!canScrollPrev}
+						>
+							<ChevronLeft className="size-12" />
+						</button>
+						<button
+							type="button"
+							onClick={() => api?.scrollNext()}
+							className={cn(
+								"absolute top-1/2 right-0 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white",
+								!canScrollNext && "pointer-events-none opacity-0",
+							)}
+							disabled={!canScrollNext}
+						>
+							<ChevronRight className="size-12" />
+						</button>
+					</div>
+				</motion.div>
 			</div>
 		</section>
 	);

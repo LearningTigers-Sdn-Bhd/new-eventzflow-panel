@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type CreateResourceMediaTypeRequest,
 	createResourceMediaTypeSchema,
@@ -38,7 +38,7 @@ export async function getResourceMediaTypes(options?: {
 		? `v1/resources/media_types?${queryString}`
 		: "v1/resources/media_types";
 
-	const response = await restClient.get<
+	const response = await publicRestClient.get<
 		BackendResourceMediaType[] | { data: BackendResourceMediaType[]; pagination?: any }
 	>(url);
 

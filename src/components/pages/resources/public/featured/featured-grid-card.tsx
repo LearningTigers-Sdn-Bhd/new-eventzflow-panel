@@ -17,6 +17,10 @@ export const FeaturedGridCard = memo(function FeaturedGridCard({
 	const isSmallGrid = total > 0 && total < 5 && !isThreeItems;
 
 	const getHoverClass = (index: number) => {
+		if (total === 1) {
+			return "lg:hover:-translate-y-4";
+		}
+
 		if (isFiveItems) {
 			switch (index) {
 				case 0: // Top Left (Wide)
@@ -35,7 +39,7 @@ export const FeaturedGridCard = memo(function FeaturedGridCard({
 		}
 
 		if (isSmallGrid) {
-			// 2-column logic (1, 2, 4 items)
+			// 2-column logic (2, 4 items)
 			const isLeft = index % 2 === 0;
 			const isTop = index < 2;
 			const isBottom = index >= 2;
@@ -71,7 +75,7 @@ export const FeaturedGridCard = memo(function FeaturedGridCard({
 	return (
 		<div
 			className={cn(
-				"grid gap-0 bg-primary/50",
+				"grid gap-0 bg-black/30",
 				// Mobile/Tablet: 1 -> 2 cols
 				// Desktop:
 				// - 5 items: 6 cols (special layout)
@@ -85,14 +89,17 @@ export const FeaturedGridCard = memo(function FeaturedGridCard({
 			)}
 		>
 			{resources.map((resource, index) => {
-				// Special span logic for 5 items on desktop:
-				// First 2 items: col-span-3 (Top Row)
-				// Next 3 items: col-span-2 (Bottom Row)
-				const spanClass = isFiveItems
-					? index < 2
-						? "lg:col-span-3"
-						: "lg:col-span-2"
-					: "";
+				// Special span logic:
+				// 1 item: col-span-2
+				// 5 items: First 2 col-span-3, next 3 col-span-2
+				const spanClass =
+					total === 1
+						? "md:col-span-2"
+						: isFiveItems
+							? index < 2
+								? "lg:col-span-3"
+								: "lg:col-span-2"
+							: "";
 
 				return (
 					<ResourcesCard
@@ -100,8 +107,8 @@ export const FeaturedGridCard = memo(function FeaturedGridCard({
 						resource={resource}
 						layout="grid"
 						className={cn(
-							"transition-all duration-500",
-							"lg:hover:z-30 lg:hover:shadow-2xl",
+							"transition-all duration-550",
+							"border-0 border-black hover:border-2 hover:border-white lg:hover:z-30 lg:hover:shadow-2xl",
 							spanClass,
 							getHoverClass(index),
 						)}

@@ -42,13 +42,18 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
-            // Suppress global error toasts for business matching queries
-            // as they are handled locally with specific UI states or ignored to prevent spam
-            const queryKey = query.queryKey;
-            const suppressedKeys = ['business-matching', 'event-details'];
-            if (Array.isArray(queryKey) && queryKey.some(k => typeof k === 'string' && suppressedKeys.some(sk => k.includes(sk)))) {
-                return;
-            }
+			// Suppress global error toasts for business matching queries
+			// as they are handled locally with specific UI states or ignored to prevent spam
+			const queryKey = query.queryKey;
+			const suppressedKeys = ["business-matching", "event-details"];
+			if (
+				Array.isArray(queryKey) &&
+				queryKey.some(
+					(k) => typeof k === "string" && suppressedKeys.some((sk) => k.includes(sk)),
+				)
+			) {
+				return;
+			}
 
 			// onError is called after all retries are exhausted
 			// Show error toast with retry option
@@ -93,8 +98,10 @@ export const kyClient = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated = useUserSessionStore.persist.hasHydrated();
-					if (!isHydrated) {
+					const isHydrated =
+						typeof window !== "undefined" &&
+						useUserSessionStore.persist?.hasHydrated();
+					if (typeof window !== "undefined" && !isHydrated) {
 						logger.debug("⚠️ Store not hydrated yet, waiting...");
 						return;
 					}
@@ -182,8 +189,10 @@ export const kyClientForFormData = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated = useUserSessionStore.persist.hasHydrated();
-					if (!isHydrated) {
+					const isHydrated =
+						typeof window !== "undefined" &&
+						useUserSessionStore.persist?.hasHydrated();
+					if (typeof window !== "undefined" && !isHydrated) {
 						logger.debug("⚠️ Store not hydrated yet, waiting... (FormData)");
 						return;
 					}

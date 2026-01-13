@@ -12,7 +12,7 @@ interface TopicCardProps {
 
 const TopicCard: React.FC<TopicCardProps> = ({ topic }) => {
 	return (
-		<div className="group relative aspect-[4/5] w-full">
+		<div className="group relative aspect-4/5 w-full cursor-pointer">
 			{/* Duplicate div that stays */}
 			<div className="absolute inset-0 border border-white bg-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
@@ -50,7 +50,8 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic }) => {
 							transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 						>
 							<p className="text-base text-black/70 leading-relaxed md:text-lg">
-								{topic.description || "Explore insights and guides on this topic."}
+								{topic.description ||
+									"Explore insights and guides on this topic."}
 							</p>
 						</motion.div>
 					</div>

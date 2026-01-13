@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type CreateResourceTopicRequest,
 	createResourceTopicSchema,
@@ -37,7 +37,7 @@ export async function getResourceTopics(options?: {
 		? `v1/resources/topics?${queryString}`
 		: "v1/resources/topics";
 
-	const response = await restClient.get<
+	const response = await publicRestClient.get<
 		BackendResourceTopic[] | { data: BackendResourceTopic[]; pagination?: any }
 	>(url);
 

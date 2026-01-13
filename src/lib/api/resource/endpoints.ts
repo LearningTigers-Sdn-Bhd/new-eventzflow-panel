@@ -105,6 +105,7 @@ export async function getResources(options?: {
 	topicId?: string;
 	categoryId?: string;
 	mediaTypeId?: string;
+	search?: string;
 	page?: number;
 	perPage?: number;
 }): Promise<{ data: Resource[]; pagination?: any }> {
@@ -115,6 +116,7 @@ export async function getResources(options?: {
 		params.append("resource_category_id", options.categoryId);
 	if (options?.mediaTypeId)
 		params.append("resource_media_type_id", options.mediaTypeId);
+	if (options?.search) params.append("search", options.search);
 	if (options?.page) params.append("page", options.page.toString());
 	if (options?.perPage) params.append("per_page", options.perPage.toString());
 
@@ -225,6 +227,7 @@ export async function getPublicResources(options?: {
 	topicSlug?: string;
 	categorySlug?: string;
 	mediaTypeSlug?: string;
+	search?: string;
 	page?: number;
 	perPage?: number;
 }): Promise<{ data: Resource[]; pagination?: any }> {
@@ -240,6 +243,7 @@ export async function getPublicResources(options?: {
 		params.append("category_slug", options.categorySlug);
 	if (options?.mediaTypeSlug)
 		params.append("media_type_slug", options.mediaTypeSlug);
+	if (options?.search) params.append("search", options.search);
 	if (options?.page) params.append("page", options.page.toString());
 	if (options?.perPage) params.append("per_page", options.perPage.toString());
 

@@ -1,5 +1,10 @@
-import { ArrowUpRight, BookOpen } from "lucide-react";
-import Image from "next/image";
+/** biome-ignore-all lint/performance/noImgElement: Will implement next/image later */
+import {
+	ArrowUpRight,
+	BookOpen,
+	ChevronLeft,
+	ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +14,9 @@ import {
 	type CarouselApi,
 	CarouselContent,
 	CarouselItem,
-	CarouselNext,
-	CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { Resource } from "@/lib/api/resource";
+import { cn } from "@/lib/utils";
 
 interface FeaturedCardProps {
 	resources: Resource[];
@@ -21,61 +25,70 @@ interface FeaturedCardProps {
 export function FeaturedCard({ resources }: FeaturedCardProps) {
 	const [api, setApi] = React.useState<CarouselApi>();
 	const [current, setCurrent] = React.useState(0);
+	const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+	const [canScrollNext, setCanScrollNext] = React.useState(false);
+
+	const onSelect = React.useCallback((api: CarouselApi) => {
+		if (!api) return;
+		setCurrent(api.selectedScrollSnap());
+		setCanScrollPrev(api.canScrollPrev());
+		setCanScrollNext(api.canScrollNext());
+	}, []);
 
 	React.useEffect(() => {
 		if (!api) return;
-
-		setCurrent(api.selectedScrollSnap());
-
-		api.on("select", () => {
-			setCurrent(api.selectedScrollSnap());
-		});
-	}, [api]);
+		onSelect(api);
+		api.on("select", () => onSelect(api));
+		api.on("reInit", () => onSelect(api));
+	}, [api, onSelect]);
 
 	const activeResource = resources[current];
 
 	if (!resources.length) return null;
 
 	return (
-		<div className="grid grid-cols-1 gap-0 border border-primary lg:grid-cols-3">
+		<div className="group/card grid grid-cols-1 gap-0 border border-black lg:grid-cols-3">
 			<Carousel
 				setApi={setApi}
-				className="group w-full lg:col-span-2"
+				className="w-full lg:col-span-2"
 				opts={{
 					loop: true,
 				}}
 			>
 				<CarouselContent>
-					{resources.map((resource, index) => (
+					{resources.map((resource) => (
 						<CarouselItem key={resource.id}>
-							<div className="relative h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]">
+							<Link
+								href={`/resources/${resource.slug}`}
+								className="relative block h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]"
+							>
 								{resource.coverImageUrl ? (
 									<img
 										src={resource.coverImageUrl}
 										alt={resource.title}
 										loading="lazy"
 										decoding="async"
-										className="absolute inset-0 h-full w-full object-cover"
+										className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-105"
 									/>
 								) : (
 									<div className="flex h-full w-full items-center justify-center text-gray-400">
 										No Image
 									</div>
 								)}
-								<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-500 group-hover:opacity-100 md:p-8">
+								<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 md:p-8">
 									<div className="mb-3 flex flex-wrap items-center gap-2">
 										{resource.topic && (
-											<Badge className="rounded-none border border-primary-foreground bg-transparent text-primary-foreground shadow-none hover:bg-primary-foreground/10">
+											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
 												{resource.topic.name}
 											</Badge>
 										)}
 										{resource.category && (
-											<Badge className="rounded-none border border-primary-foreground bg-transparent text-primary-foreground shadow-none hover:bg-primary-foreground/10">
+											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
 												{resource.category.name}
 											</Badge>
 										)}
 										{resource.mediaType && (
-											<Badge className="rounded-none border border-primary-foreground bg-transparent text-primary-foreground shadow-none hover:bg-primary-foreground/10">
+											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
 												{resource.mediaType.name}
 											</Badge>
 										)}
@@ -91,19 +104,41 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 										)}
 									</div>
 								</div>
-							</div>
+							</Link>
 						</CarouselItem>
 					))}
 				</CarouselContent>
+
+				{/* Custom Navigation */}
 				{resources.length > 1 && (
 					<>
-						<CarouselPrevious className="left-4 rounded-none border-white/20 bg-transparent text-white opacity-0 transition-opacity duration-500 hover:bg-white/10 group-hover:opacity-100" />
-						<CarouselNext className="right-4 rounded-none border-white/20 bg-transparent text-white opacity-0 transition-opacity duration-500 hover:bg-white/10 group-hover:opacity-100" />
+						<button
+							type="button"
+							onClick={() => api?.scrollPrev()}
+							className={cn(
+								"absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white group-hover/card:opacity-100",
+								!canScrollPrev ? "pointer-events-none opacity-0" : "opacity-0",
+							)}
+							disabled={!canScrollPrev}
+						>
+							<ChevronLeft className="size-12" />
+						</button>
+						<button
+							type="button"
+							onClick={() => api?.scrollNext()}
+							className={cn(
+								"absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer text-white/70 transition-all duration-300 hover:text-white group-hover/card:opacity-100",
+								!canScrollNext ? "pointer-events-none opacity-0" : "opacity-0",
+							)}
+							disabled={!canScrollNext}
+						>
+							<ChevronRight className="size-12" />
+						</button>
 					</>
 				)}
 			</Carousel>
 
-			<div className="flex flex-col justify-center gap-6 rounded-none bg-primary p-6 text-primary-foreground lg:col-span-1">
+			<div className="flex flex-col justify-center gap-6 rounded-none bg-black p-6 text-white lg:col-span-1">
 				<div className="flex flex-col gap-2">
 					<p className="font-medium text-sm uppercase tracking-wider opacity-80">
 						Read More About :
@@ -112,10 +147,10 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 						{activeResource?.title}
 					</h2>
 				</div>
-				<div className="group mt-auto flex w-full flex-col gap-1">
+				<div className="group/buttons mt-auto flex w-full flex-col gap-1">
 					<Button
 						asChild
-						className="w-full rounded-none border border-transparent bg-background py-6 text-primary hover:border-primary-foreground hover:bg-transparent hover:text-primary-foreground group-hover:border-primary-foreground group-hover:bg-transparent group-hover:text-primary-foreground"
+						className="w-full rounded-none border border-white bg-white py-6 text-black transition-all duration-300 hover:bg-transparent! hover:text-white! group-hover/buttons:bg-transparent group-hover/buttons:text-white"
 					>
 						<Link href={`/resources/${activeResource?.slug}`}>
 							Read
@@ -124,8 +159,7 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 					</Button>
 					<Button
 						asChild
-						variant="outline"
-						className="w-full rounded-none border-primary-foreground bg-transparent py-6 text-primary-foreground hover:bg-primary-foreground hover:text-primary group-hover:bg-primary-foreground group-hover:text-primary"
+						className="w-full rounded-none border border-white bg-transparent py-6 text-white transition-all duration-300 hover:bg-white! hover:text-black! group-hover/buttons:bg-white group-hover/buttons:text-black"
 					>
 						<Link href="/resources/topics/all">
 							Explore More
