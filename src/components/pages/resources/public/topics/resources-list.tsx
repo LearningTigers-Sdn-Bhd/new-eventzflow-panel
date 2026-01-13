@@ -1,170 +1,335 @@
 "use client";
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
-	useReactTable,
-	getCoreRowModel,
-	flexRender,
-} from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+	useSuspenseInfiniteQuery,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Loader2 } from "lucide-react";
-
-import { getPublicResources } from "@/lib/api/resource/endpoints";
-import { getResourceTopics } from "@/lib/api/resource/topic/endpoints";
-import { getResourceCategories } from "@/lib/api/resource/category/endpoints";
-import { getResourceMediaTypes } from "@/lib/api/resource/media-type/endpoints";
-
-import { ResourcesListControl } from "./resources-list-control";
-import { resourceColumns } from "./resources-list-column";
+import { useParams, useRouter } from "next/navigation";
+import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import {
+	DesktopView,
+	MobileTabletView,
+	ResponsiveLayout,
+	useResponsive,
+} from "@/components/admin-ui/layout/responsive-layout";
 import { Button } from "@/components/ui/button";
+import { getResourceCategories } from "@/lib/api/resource/category/endpoints";
+import { getPublicResources } from "@/lib/api/resource/endpoints";
+import { getResourceMediaTypes } from "@/lib/api/resource/media-type/endpoints";
+import { getResourceTopics } from "@/lib/api/resource/topic/endpoints";
+import { cn } from "@/lib/utils";
+import { ResourcesCard } from "../resources-card";
+import {
+	ResourcesCloseFilterButton,
+	ResourcesFilterButton,
+	ResourcesFilterSelect,
+	ResourcesSearchInput,
+	ResourcesTopicButton,
+} from "./resources-list-components";
+import { ResourcesListControl } from "./resources-list-control";
 
 export default function ResourcesList() {
+	return (
+		<ResponsiveLayout>
+			<ResourcesListInner />
+		</ResponsiveLayout>
+	);
+}
+
+function ResourcesListInner() {
 	const router = useRouter();
 	const params = useParams();
-	const searchParams = useSearchParams();
-
+	const { breakpoint } = useResponsive();
+	const listRef = useRef<HTMLDivElement>(null);
+	const [isPending, startTransition] = useTransition();
+	const _isPending = isPending;
 	const slug = (params.slug as string) || "all";
-    
-    // Parse comma-separated slugs from URL
-	const categorySlugParam = searchParams.get("category") || "";
-    const categorySlugs = useMemo(() => categorySlugParam ? categorySlugParam.split(",") : [], [categorySlugParam]);
 
-	const mediaTypeSlugParam = searchParams.get("mediaType") || "";
-    const mediaTypeSlugs = useMemo(() => mediaTypeSlugParam ? mediaTypeSlugParam.split(",") : [], [mediaTypeSlugParam]);
+	// Nuqs state management for query params
+	const [categorySlugs, setCategorySlugs] = useQueryState(
+		"category",
+		parseAsArrayOf(parseAsString)
+			.withDefault([])
+			.withOptions({ shallow: false }),
+	);
+
+	const [mediaTypeSlugs, setMediaTypeSlugs] = useQueryState(
+		"mediaType",
+		parseAsArrayOf(parseAsString)
+			.withDefault([])
+			.withOptions({ shallow: false }),
+	);
+
+	const [search, setSearch] = useQueryState(
+		"search",
+		parseAsString.withDefault("").withOptions({ shallow: false }),
+	);
 
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
 	// Fetch filters
-	const { data: topicsData } = useQuery({
+	const { data: topicsData } = useSuspenseQuery({
 		queryKey: ["resource-topics"],
 		queryFn: () => getResourceTopics({ filter: "active" }),
+		staleTime: 1000 * 60 * 60, // 1 hour
 	});
 
-	const { data: categoriesData } = useQuery({
+	const { data: categoriesData } = useSuspenseQuery({
 		queryKey: ["resource-categories"],
 		queryFn: () => getResourceCategories({ filter: "active" }),
+		staleTime: 1000 * 60 * 60, // 1 hour
 	});
 
-	const { data: mediaTypesData } = useQuery({
+	const { data: mediaTypesData } = useSuspenseQuery({
 		queryKey: ["resource-media-types"],
 		queryFn: () => getResourceMediaTypes({ filter: "active" }),
+		staleTime: 1000 * 60 * 60, // 1 hour
 	});
+
+	// Prepare filter params for API
+	const categorySlugParam = categorySlugs.join(",");
+	const mediaTypeSlugParam = mediaTypeSlugs.join(",");
 
 	// Infinite Query for Resources
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isLoading,
-		isError,
-	} = useInfiniteQuery({
-		queryKey: ["public-resources", slug, categorySlugParam, mediaTypeSlugParam],
-		queryFn: ({ pageParam = 1 }) =>
-			getPublicResources({
-				topicSlug: slug,
-				categorySlug: categorySlugParam, // Pass comma-separated string directly
-				mediaTypeSlug: mediaTypeSlugParam,
-				page: pageParam,
-				perPage: 12,
-			}),
-		initialPageParam: 1,
-		getNextPageParam: (lastPage, allPages) => {
-			if (!lastPage.data || lastPage.data.length < 12) return undefined;
-            if (lastPage.pagination?.next) return lastPage.pagination.next;
-            if (lastPage.data.length === 12) return allPages.length + 1;
-			return undefined;
-		},
-	});
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+		useSuspenseInfiniteQuery({
+			queryKey: [
+				"public-resources",
+				slug,
+				categorySlugParam,
+				mediaTypeSlugParam,
+				search,
+			],
+			queryFn: ({ pageParam = 1 }) =>
+				getPublicResources({
+					topicSlug: slug,
+					categorySlug: categorySlugParam,
+					mediaTypeSlug: mediaTypeSlugParam,
+					search: search,
+					page: pageParam as number,
+					perPage: 12,
+				}),
+			initialPageParam: 1,
+			getNextPageParam: (lastPage, allPages) => {
+				if (!lastPage.data || lastPage.data.length < 12) return undefined;
+				if (lastPage.pagination?.next) return lastPage.pagination.next;
+				if (lastPage.data.length === 12) return allPages.length + 1;
+				return undefined;
+			},
+		});
 
-	// Flatten data for the table
+	// Flatten data
 	const flatData = useMemo(
-		() => data?.pages.flatMap((page) => page.data) || [],
+		() => data.pages.flatMap((page) => page.data) || [],
 		[data],
 	);
 
-	// Table definition
-	const table = useReactTable({
-		data: flatData,
-		columns: resourceColumns,
-		getCoreRowModel: getCoreRowModel(),
+	// Handlers
+	const handleTopicChange = useCallback(
+		(newSlug: string) => {
+			const currentQuery = new URLSearchParams(window.location.search);
+			startTransition(() => {
+				if (newSlug === "all") {
+					router.push(`/resources/topics/all?${currentQuery.toString()}`);
+				} else {
+					router.push(
+						`/resources/topics/${newSlug}?${currentQuery.toString()}`,
+					);
+				}
+			});
+		},
+		[router],
+	);
+
+	// Handlers for mobile actions
+	const handleClearFilters = useCallback(() => {
+		startTransition(() => {
+			setCategorySlugs(null);
+			setMediaTypeSlugs(null);
+			setSearch("");
+		});
+	}, [setCategorySlugs, setMediaTypeSlugs, setSearch]);
+
+	const topics = topicsData.data || [];
+	const categories = categoriesData.data || [];
+	const mediaTypes = mediaTypesData.data || [];
+
+	// Determine layout based on responsive view
+	// Mobile/Tablet forces list view
+	const currentViewMode =
+		breakpoint === "mobile" || breakpoint === "tablet" ? "list" : viewMode;
+
+	// Virtualization logic
+	const columns = currentViewMode === "grid" ? 3 : 1;
+	const rowCount = Math.ceil(flatData.length / columns);
+
+	const virtualizer = useWindowVirtualizer({
+		count: rowCount,
+		estimateSize: () => (currentViewMode === "grid" ? 450 : 250), // Estimate heights
+		overscan: 5,
+		scrollMargin: listRef.current?.offsetTop ?? 0,
 	});
 
-	// Handlers
-	const handleTopicChange = (newSlug: string) => {
-		const query = new URLSearchParams(searchParams.toString());
-		if (newSlug === "all") {
-            router.push(`/resources/topics/all?${query.toString()}`);
-        } else {
-            router.push(`/resources/topics/${newSlug}?${query.toString()}`);
-        }
-	};
-
-	const handleCategoryChange = (slugs: string[]) => {
-		const query = new URLSearchParams(searchParams.toString());
-		if (slugs.length > 0) {
-			query.set("category", slugs.join(","));
-		} else {
-			query.delete("category");
-		}
-        const currentPath = window.location.pathname;
-		router.push(`${currentPath}?${query.toString()}`);
-	};
-
-	const handleMediaTypeChange = (slugs: string[]) => {
-		const query = new URLSearchParams(searchParams.toString());
-		if (slugs.length > 0) {
-			query.set("mediaType", slugs.join(","));
-		} else {
-			query.delete("mediaType");
-		}
-        const currentPath = window.location.pathname;
-		router.push(`${currentPath}?${query.toString()}`);
-	};
+	const virtualItems = virtualizer.getVirtualItems();
 
 	return (
 		<div className="space-y-8">
-			<ResourcesListControl
-				topics={topicsData?.data || []}
-				categories={categoriesData?.data || []}
-				mediaTypes={mediaTypesData?.data || []}
-				selectedTopicSlug={slug}
-				selectedCategorySlugs={categorySlugs}
-				selectedMediaTypeSlugs={mediaTypeSlugs}
-				viewMode={viewMode}
-				onTopicChange={handleTopicChange}
-				onCategoryChange={handleCategoryChange}
-				onMediaTypeChange={handleMediaTypeChange}
-				onViewModeChange={setViewMode}
-			/>
+			{/* Desktop View: Standard Control */}
+			<DesktopView>
+				<ResourcesListControl
+					topics={topics}
+					categories={categories}
+					mediaTypes={mediaTypes}
+					selectedTopicSlug={slug}
+					selectedCategorySlugs={categorySlugs}
+					selectedMediaTypeSlugs={mediaTypeSlugs}
+					searchQuery={search}
+					viewMode={viewMode}
+					onTopicChange={handleTopicChange}
+					onCategoryChange={(slugs) =>
+						setCategorySlugs(slugs.length > 0 ? slugs : null)
+					}
+					onMediaTypeChange={(slugs) =>
+						setMediaTypeSlugs(slugs.length > 0 ? slugs : null)
+					}
+					onSearchChange={setSearch}
+					onViewModeChange={setViewMode}
+					onClearFilters={handleClearFilters}
+				/>
+			</DesktopView>
 
-			{isLoading ? (
-				<div className="flex h-40 items-center justify-center">
-					<Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+			{/* Mobile/Tablet View: Custom Layout */}
+			<MobileTabletView>
+				<div className="space-y-4">
+					{/* Swipeable Topics - Always visible */}
+					<div className="scrollbar-hide -mx-4 mb-2 flex w-[calc(100%+2rem)] overflow-x-auto px-4 pb-2">
+						<div className="flex min-w-max gap-2">
+							<ResourcesTopicButton
+								label="All Topics"
+								isSelected={slug === "all"}
+								onClick={() => handleTopicChange("all")}
+							/>
+							{topics.map((topic) => (
+								<ResourcesTopicButton
+									key={topic.id}
+									label={topic.name}
+									isSelected={slug === topic.slug}
+									onClick={() => handleTopicChange(topic.slug)}
+								/>
+							))}
+						</div>
+					</div>
+
+					{!isMobileFilterOpen ? (
+						<div className="flex flex-col gap-4">
+							{/* Filter Button */}
+							<ResourcesFilterButton
+								onClick={() => setIsMobileFilterOpen(true)}
+								label="Filter Resources"
+							/>
+						</div>
+					) : (
+						<div className="fade-in slide-in-from-top-2 flex animate-in flex-col gap-4 duration-200">
+							{/* Search */}
+							<ResourcesSearchInput
+								value={search}
+								onChange={setSearch}
+								placeholder="Search resources..."
+							/>
+
+							{/* Filters Row */}
+							<div className="flex gap-2">
+								<ResourcesFilterSelect
+									value={categorySlugs}
+									onChange={(slugs) =>
+										setCategorySlugs(slugs.length > 0 ? slugs : null)
+									}
+									placeholder="Category"
+									options={categories.map((c) => ({
+										label: c.name,
+										value: c.slug,
+									}))}
+								/>
+								<ResourcesFilterSelect
+									value={mediaTypeSlugs}
+									onChange={(slugs) =>
+										setMediaTypeSlugs(slugs.length > 0 ? slugs : null)
+									}
+									placeholder="Media Type"
+									options={mediaTypes.map((t) => ({
+										label: t.name,
+										value: t.slug,
+									}))}
+								/>
+							</div>
+
+							{/* Actions Row */}
+							<div className="grid grid-cols-2 gap-2">
+								<Button
+									onClick={handleClearFilters}
+									className="h-10 cursor-pointer rounded-none border border-black bg-red-600 font-medium text-white shadow-none transition-all hover:bg-red-700"
+								>
+									Clear All
+								</Button>
+								<ResourcesCloseFilterButton
+									onClick={() => setIsMobileFilterOpen(false)}
+								/>
+							</div>
+						</div>
+					)}
 				</div>
-			) : isError ? (
-				<div className="text-center text-red-500">Failed to load resources.</div>
-			) : flatData.length === 0 ? (
-				<div className="text-center text-gray-500 py-20">
-                    <p className="text-lg font-medium">No resources found.</p>
-                    <p>Try adjusting your filters.</p>
-                </div>
+			</MobileTabletView>
+
+			{/* Resource List with Virtualization */}
+			{flatData.length === 0 ? (
+				<div className="py-20 text-center text-gray-500">
+					<p className="font-medium text-lg">No resources found.</p>
+					<p>Try adjusting your filters.</p>
+				</div>
 			) : (
 				<div
-					className={
-						viewMode === "grid"
-							? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-							: "flex flex-col gap-6"
-					}
+					ref={listRef}
+					className="relative w-full"
+					style={{
+						height: `${virtualizer.getTotalSize()}px`,
+					}}
 				>
-					{table.getRowModel().rows.map((row) => {
-                        const cell = row.getVisibleCells().find(c => c.column.id === "title"); 
-                        return (
-                            <div key={row.id} className="h-full">
-                                {cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null}
-                            </div>
-                        )
+					{virtualItems.map((virtualRow) => {
+						const startIndex = virtualRow.index * columns;
+						const rowItems = flatData.slice(startIndex, startIndex + columns);
+
+						return (
+							<div
+								key={virtualRow.key}
+								data-index={virtualRow.index}
+								ref={virtualizer.measureElement}
+								className={cn(
+									"absolute top-0 left-0 w-full",
+									currentViewMode === "grid"
+										? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+										: "flex flex-col gap-6",
+								)}
+								style={{
+									transform: `translateY(${
+										virtualRow.start - virtualizer.options.scrollMargin
+									}px)`,
+									paddingBottom: currentViewMode === "grid" ? "24px" : "24px",
+								}}
+							>
+								{rowItems.map((resource) => (
+									<div key={resource.id} className="h-full">
+										<ResourcesCard
+											resource={resource}
+											layout={currentViewMode}
+										/>
+									</div>
+								))}
+							</div>
+						);
 					})}
 				</div>
 			)}
@@ -176,8 +341,8 @@ export default function ResourcesList() {
 						onClick={() => fetchNextPage()}
 						disabled={isFetchingNextPage}
 						variant="outline"
-                        size="lg"
-                        className="min-w-[200px]"
+						size="lg"
+						className="min-w-[200px]"
 					>
 						{isFetchingNextPage ? (
 							<>
@@ -189,8 +354,10 @@ export default function ResourcesList() {
 						)}
 					</Button>
 				) : (
-					!isLoading && flatData.length > 0 && (
-						<p className="text-gray-400 font-medium text-sm">Contents End Here</p>
+					flatData.length > 0 && (
+						<p className="font-medium text-gray-400 text-sm">
+							Contents End Here
+						</p>
 					)
 				)}
 			</div>

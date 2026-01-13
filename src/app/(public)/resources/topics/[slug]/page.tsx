@@ -1,5 +1,13 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import ResourcesList from "@/components/pages/resources/public/topics/resources-list";
+import { ResourcesListHero } from "@/components/pages/resources/public/topics/resources-list-hero";
+import { getResourceCategories } from "@/lib/api/resource/category/endpoints";
+import { getPublicResources } from "@/lib/api/resource/endpoints";
+import { getResourceMediaTypes } from "@/lib/api/resource/media-type/endpoints";
+import { getResourceTopics } from "@/lib/api/resource/topic/endpoints";
+import { getQueryClient } from "@/lib/query-client";
 
 export const metadata: Metadata = {
 	title: "Resource Topics - EventzFlow",
@@ -11,28 +19,96 @@ interface PageProps {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+interface ResourcesListStreamProps {
+	slug: string;
+	categorySlugParam: string;
+	mediaTypeSlugParam: string;
+	searchParam: string;
+}
+
+async function ResourcesListStream({
+	slug,
+	categorySlugParam,
+	mediaTypeSlugParam,
+	searchParam,
+}: ResourcesListStreamProps) {
+	const queryClient = getQueryClient();
+
+	// Prefetch filters and list in parallel
+	await Promise.all([
+		queryClient.prefetchQuery({
+			queryKey: ["resource-topics"],
+			queryFn: () => getResourceTopics({ filter: "active" }),
+		}),
+		queryClient.prefetchQuery({
+			queryKey: ["resource-categories"],
+			queryFn: () => getResourceCategories({ filter: "active" }),
+		}),
+		queryClient.prefetchQuery({
+			queryKey: ["resource-media-types"],
+			queryFn: () => getResourceMediaTypes({ filter: "active" }),
+		}),
+		queryClient.prefetchInfiniteQuery({
+			queryKey: [
+				"public-resources",
+				slug,
+				categorySlugParam,
+				mediaTypeSlugParam,
+				searchParam,
+			],
+			queryFn: ({ pageParam }) =>
+				getPublicResources({
+					topicSlug: slug,
+					categorySlug: categorySlugParam,
+					mediaTypeSlug: mediaTypeSlugParam,
+					search: searchParam,
+					page: pageParam as number,
+					perPage: 12,
+				}),
+			initialPageParam: 1,
+		}),
+	]);
+
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<ResourcesList />
+		</HydrationBoundary>
+	);
+}
+
 export default async function ResourceTopicsPage({
 	params,
 	searchParams,
 }: PageProps) {
-	// We can prefetch here if needed, but for now we rely on the client component's useInfiniteQuery
-	// which is standard for infinite scroll/load more patterns in Next.js/React Query unless using hydration.
-	// Given the prompt's focus on "use tanstack query", client-side fetching is acceptable.
+	const resolvedParams = await params;
+	const resolvedSearchParams = await searchParams;
+
+	const slug = resolvedParams.slug || "all";
+	const categorySlugParam = (resolvedSearchParams.category as string) || "";
+	const mediaTypeSlugParam = (resolvedSearchParams.mediaType as string) || "";
+	const searchParam = (resolvedSearchParams.search as string) || "";
 
 	return (
 		<main className="min-h-screen bg-gray-50/50">
-			<div className="container mx-auto max-w-7xl px-4 py-12 md:py-20">
-				<div className="mb-12 text-center">
-					<h1 className="font-black text-4xl text-gray-900 uppercase tracking-tighter sm:text-5xl md:text-6xl">
-						Explore Resources
-					</h1>
-					<p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
-						Discover insights, guides, and latest updates curated for your
-						success.
-					</p>
-				</div>
+			{/* Hero loads immediately */}
+			<ResourcesListHero />
 
-				<ResourcesList />
+			<div className="container mx-auto max-w-7xl px-4 py-12 md:py-20">
+				{/* List streams in */}
+				<Suspense
+					fallback={
+						<div className="flex h-40 items-center justify-center">
+							<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
+						</div>
+					}
+				>
+					<ResourcesListStream
+						slug={slug}
+						categorySlugParam={categorySlugParam}
+						mediaTypeSlugParam={mediaTypeSlugParam}
+						searchParam={searchParam}
+					/>
+				</Suspense>
 			</div>
 		</main>
 	);
