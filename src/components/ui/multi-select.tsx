@@ -92,7 +92,7 @@ const MultiSelectTrigger = React.forwardRef<
 				variant="outline"
 				role="combobox"
 				className={cn(
-					"w-full justify-between h-auto min-h-10 py-2 transition-all data-[state=open]:border-2 data-[state=open]:border-black",
+					"w-full justify-between h-auto min-h-10 py-2 transition-all",
 					className,
 				)}
 				{...props}

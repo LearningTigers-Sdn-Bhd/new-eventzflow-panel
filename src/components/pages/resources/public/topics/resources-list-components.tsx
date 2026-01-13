@@ -107,7 +107,7 @@ export const ResourcesFilterSelect = memo(function ResourcesFilterSelect({
 		<div className="w-full">
 			<MultiSelect value={value} onValueChange={onChange}>
 				<MultiSelectTrigger
-					className="h-10 cursor-pointer rounded-none border border-black bg-white! text-black shadow-none hover:bg-gray-200! focus:border-black! focus:ring-0 data-[state=open]:border-black!"
+					className="h-10 cursor-pointer rounded-none border border-black! bg-white! text-black shadow-none hover:bg-gray-200! focus:ring-0"
 					iconClassName="text-black opacity-100"
 				>
 					<MultiSelectValue
