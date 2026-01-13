@@ -47,7 +47,11 @@ interface JoinEventFormProps {
 interface ExhibitorKitData {
 	booth_number?: string;
 	booth_type?: string;
+	booth_dimensions?: string;
+	side_wall_left_required?: boolean;
+	side_wall_right_required?: boolean;
 	name_on_fascia?: string;
+	fascia_upgrade_required?: boolean;
 	company_name?: string;
 	company_address?: string;
 	pic_full_name: string;
@@ -137,7 +141,11 @@ export function JoinEventForm({
 			// Exhibitor kit fields
 			booth_number: "",
 			booth_type: "",
+			booth_dimensions: "",
+			side_wall_left_required: false,
+			side_wall_right_required: false,
 			name_on_fascia: "",
+			fascia_upgrade_required: false,
 			company_name: "",
 			company_address: "",
 			pic_full_name: "",
@@ -162,7 +170,11 @@ export function JoinEventForm({
 					exhibitorKit: {
 						booth_number: value.booth_number || undefined,
 						booth_type: value.booth_type || undefined,
+						booth_dimensions: value.booth_dimensions || undefined,
+						side_wall_left_required: value.side_wall_left_required || undefined,
+						side_wall_right_required: value.side_wall_right_required || undefined,
 						name_on_fascia: value.name_on_fascia || undefined,
+						fascia_upgrade_required: value.fascia_upgrade_required || undefined,
 						company_name: value.company_name || undefined,
 						company_address: value.company_address || undefined,
 						pic_full_name: value.pic_full_name,
@@ -186,7 +198,7 @@ export function JoinEventForm({
 			/>
 
 			<PatternedLayout>
-				<div className="w-full max-w-5xl space-y-4">
+				<div className="w-full max-w-7xl space-y-4">
 					{/* Header */}
 					<div className="rounded-none border bg-background p-5 text-center">
 						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -273,67 +285,12 @@ export function JoinEventForm({
 						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
 						{useExhibitorKit && (
 							<div className="rounded-none border bg-background p-5">
-								<form.Field name="booth_number">
-									{(boothNumberField) => (
-										<form.Field name="booth_type">
-											{(boothTypeField) => (
-												<form.Field name="name_on_fascia">
-													{(nameOnFasciaField) => (
-														<form.Field name="company_name">
-															{(companyNameField) => (
-																<form.Field name="company_address">
-																	{(companyAddressField) => (
-																		<form.Field name="pic_full_name">
-																			{(picFullNameField) => (
-																				<form.Field name="pic_contact_number">
-																					{(picContactNumberField) => (
-																						<form.Field name="pic_email_address">
-																							{(picEmailAddressField) => (
-																								<ExhibitorKitSection
-																									boothNumberField={
-																										boothNumberField
-																									}
-																									boothTypeField={
-																										boothTypeField
-																									}
-																									nameOnFasciaField={
-																										nameOnFasciaField
-																									}
-																									companyNameField={
-																										companyNameField
-																									}
-																									companyAddressField={
-																										companyAddressField
-																									}
-																									picFullNameField={
-																										picFullNameField
-																									}
-																									picContactNumberField={
-																										picContactNumberField
-																									}
-																									picEmailAddressField={
-																										picEmailAddressField
-																									}
-																									guidelinesPdfUrl={guidelinesPdfUrl}
-																								/>
-																							)}
-																						</form.Field>
-																					)}
-																				</form.Field>
-																			)}
-																		</form.Field>
-																	)}
-																</form.Field>
-															)}
-														</form.Field>
-													)}
-												</form.Field>
-											)}
-										</form.Field>
-									)}
-								</form.Field>
-							</div>
-						)}
+						<ExhibitorKitSection
+							form={form}
+							guidelinesPdfUrl={guidelinesPdfUrl}
+						/>
+					</div>
+				)}
 
 						{/* Team Members Section - Only when event uses exhibitor kit */}
 						{useExhibitorKit && (

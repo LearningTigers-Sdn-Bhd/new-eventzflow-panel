@@ -1,7 +1,8 @@
 "use client";
 
-import { Building2, FileText, Handshake, Package, Tag } from "lucide-react";
+import { Building2, FileText, Handshake, ImageIcon, Package, Tag } from "lucide-react";
 import { useState } from "react";
+import ImageUpload from "@/components/file-upload/image-upload";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -54,6 +55,8 @@ interface BusinessInformationSectionProps {
 	descriptionField: FieldApi;
 	companyProfileField: FieldApi;
 	notesField: FieldApi;
+	image: File | null;
+	onImageChange: (file: File | null) => void;
 }
 
 export function BusinessInformationSection({
@@ -62,6 +65,8 @@ export function BusinessInformationSection({
 	descriptionField,
 	companyProfileField,
 	notesField,
+	image,
+	onImageChange,
 }: BusinessInformationSectionProps) {
 	const [showCustomCategory, setShowCustomCategory] = useState(false);
 
@@ -183,6 +188,18 @@ export function BusinessInformationSection({
 							onChange={(e) => notesField.handleChange(e.target.value)}
 						/>
 					</div>
+				</div>
+
+				{/* Vendor Profile Image */}
+				<div className="space-y-2">
+					<Label className="flex items-center gap-2">
+						<ImageIcon className="h-4 w-4" />
+						Vendor Profile Image
+					</Label>
+					<p className="text-muted-foreground text-xs">
+						Upload your company logo or profile image (max 5MB)
+					</p>
+					<ImageUpload value={image || undefined} onChange={onImageChange} />
 				</div>
 			</div>
 		</div>

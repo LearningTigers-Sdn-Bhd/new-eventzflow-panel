@@ -144,6 +144,19 @@ export const kyPublicClient = ky.create({
 	},
 });
 
+// A public ky client for multipart/form-data uploads (no auth, no default Content-Type)
+// Use this for public endpoints that accept file uploads
+export const kyPublicClientForFormData = ky.create({
+	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	timeout: 60000,
+	// Note: Do NOT set default Content-Type so the browser can set multipart/form-data with boundary
+	retry: {
+		limit: 3,
+		methods: ["post"],
+		statusCodes: [408, 429, 500, 502, 503, 504],
+	},
+});
+
 // A dedicated ky client for multipart/form-data uploads (no default Content-Type)
 export const kyClientForFormData = ky.create({
 	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
