@@ -26,9 +26,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # 3. THE "FORCE FIX": Ensure Linux-specific native binaries exist.
-# We delete the lightningcss folder and force Bun to fetch the linux-x64 target.
-RUN rm -rf node_modules/lightningcss && \
-    bun install --arch=x64 --platform=linux
+# Force reinstall lightningcss without frozen lockfile to fetch linux-x64-gnu binary
+RUN bun remove lightningcss && bun add lightningcss@1.30.2
 
 # 4. Set Build Arguments (Coolify injects these)
 ARG NEXT_PUBLIC_API_URL
