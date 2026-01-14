@@ -197,9 +197,9 @@ export const columns: ColumnDef<Resource>[] = [
 								<Badge
 									variant={hasStatus ? "default" : "outline"}
 									className={cn(
-										"rounded-none text-xs gap-1 px-1.5",
+										"gap-1 rounded-none px-1.5 text-xs",
 										hasStatus
-											? "bg-green-500 hover:bg-green-600 border-green-600"
+											? "border-green-600 bg-green-500 hover:bg-green-600"
 											: "text-muted-foreground",
 									)}
 								>
@@ -212,9 +212,9 @@ export const columns: ColumnDef<Resource>[] = [
 								<Badge
 									variant={isOfficial ? "default" : "outline"}
 									className={cn(
-										"rounded-none text-xs gap-1 px-1.5",
+										"gap-1 rounded-none px-1.5 text-xs",
 										isOfficial
-											? "bg-blue-500 hover:bg-blue-600 border-blue-600"
+											? "border-blue-600 bg-blue-500 hover:bg-blue-600"
 											: "text-muted-foreground",
 									)}
 								>
@@ -235,6 +235,8 @@ export const columns: ColumnDef<Resource>[] = [
 		header: ({ column }) => <SortableHeader column={column} label="Status" />,
 		cell: ({ row }) => {
 			const status = row.original.status;
+			const isArchived = !!row.original.deletedAt;
+
 			let variant: "default" | "secondary" | "destructive" | "outline" =
 				"outline";
 			switch (status) {
@@ -255,9 +257,19 @@ export const columns: ColumnDef<Resource>[] = [
 					break;
 			}
 			return (
-				<Badge variant={variant} className="rounded-none capitalize">
-					{(status || "unknown").replace("_", " ")}
-				</Badge>
+				<div className="flex flex-wrap gap-1">
+					{isArchived && (
+						<Badge
+							variant="secondary"
+							className="rounded-none text-[10px] uppercase"
+						>
+							Archived
+						</Badge>
+					)}
+					<Badge variant={variant} className="rounded-none capitalize">
+						{(status || "unknown").replace("_", " ")}
+					</Badge>
+				</div>
 			);
 		},
 	},

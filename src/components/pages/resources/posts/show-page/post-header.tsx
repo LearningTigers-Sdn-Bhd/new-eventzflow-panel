@@ -1,5 +1,7 @@
+/** biome-ignore-all lint/performance/noImgElement: will be replaced with next/image */
 "use client";
 
+import { useMemo } from "react";
 import {
 	FaFacebookF,
 	FaInstagram,
@@ -7,7 +9,6 @@ import {
 	FaWhatsapp,
 	FaXTwitter,
 } from "react-icons/fa6";
-import { useMemo } from "react";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
 

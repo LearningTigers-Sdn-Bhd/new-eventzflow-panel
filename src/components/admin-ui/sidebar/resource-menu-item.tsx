@@ -2,7 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -33,6 +33,7 @@ export function ResourceMenuItem({
 	isActive,
 }: ResourceMenuItemProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const isTablet = useIsTablet();
 	const { setOpenTablet } = useSidebar();
 
@@ -55,10 +56,14 @@ export function ResourceMenuItem({
 						<SidebarMenu>
 							{standalone.map((item) => {
 								const Icon = item.icon;
+								// Use custom isActive function if provided, otherwise use default
+								const itemIsActive = item.isActive
+									? item.isActive(pathname, item.route)
+									: isActive(item.route);
 								return (
 									<SidebarMenuItem key={item.route}>
 										<SidebarMenuButton
-											isActive={isActive(item.route)}
+											isActive={itemIsActive}
 											tooltip={item.label}
 											onClick={() => handleMenuItemClick(item.route)}
 											className="cursor-pointer rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
@@ -95,10 +100,14 @@ export function ResourceMenuItem({
 									<SidebarMenu>
 										{group.tabs.map((item) => {
 											const Icon = item.icon;
+											// Use custom isActive function if provided, otherwise use default
+											const itemIsActive = item.isActive
+												? item.isActive(pathname, item.route)
+												: isActive(item.route);
 											return (
 												<SidebarMenuItem key={item.route}>
 													<SidebarMenuButton
-														isActive={isActive(item.route)}
+														isActive={itemIsActive}
 														tooltip={item.label}
 														onClick={() => handleMenuItemClick(item.route)}
 														className="cursor-pointer rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"

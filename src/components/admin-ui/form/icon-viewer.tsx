@@ -1,6 +1,7 @@
 import {
 	AlertCircle,
 	Award,
+	Bot,
 	Briefcase,
 	Calendar,
 	CheckCircle,
@@ -11,12 +12,18 @@ import {
 	HelpCircle,
 	Image,
 	Layout,
+	ListChecks,
 	MapPin,
 	Megaphone,
 	Mic,
 	Settings,
 	Star,
 	Tag,
+	Ticket,
+	TicketCheck,
+	TicketMinus,
+	TicketPlus,
+	TicketX,
 	Users,
 	Video,
 } from "lucide-react";
@@ -43,6 +50,13 @@ export const ICON_OPTIONS = [
 	{ value: "CheckCircle", label: "Check Circle", icon: CheckCircle },
 	{ value: "AlertCircle", label: "Alert Circle", icon: AlertCircle },
 	{ value: "HelpCircle", label: "Help Circle", icon: HelpCircle },
+	{ value: "Ticket", label: "Ticket", icon: Ticket },
+	{ value: "TicketCheck", label: "Ticket Check", icon: TicketCheck },
+	{ value: "TicketX", label: "Ticket X", icon: TicketX },
+	{ value: "TicketPlus", label: "Ticket Plus", icon: TicketPlus },
+	{ value: "TicketMinus", label: "Ticket Minus", icon: TicketMinus },
+	{ value: "Bot", label: "Robot", icon: Bot },
+	{ value: "ListChecks", label: "Checklist", icon: ListChecks },
 ] as const;
 
 interface IconViewerProps {

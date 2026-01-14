@@ -16,6 +16,7 @@ import {
 	type LucideIcon,
 	PenTool,
 	Tag,
+	TrendingUp,
 	UserPlus,
 	Video,
 } from "lucide-react";
@@ -34,6 +35,7 @@ export type MenuItem = {
 	description: string;
 	icon: IconType | LucideIcon;
 	visible?: (permissions: Permissions) => boolean;
+	isActive?: (pathname: string, route: string) => boolean;
 };
 
 export type MenuGroup = {
@@ -131,11 +133,27 @@ export const resourceMenuConfig: ResourceMenuConfig = {
 			icon: BarChart3,
 			tabs: [
 				{
+					route: "leads/metrics",
+					label: "Lead Metrics",
+					description: "Analytics and insights for lead generation performance.",
+					icon: TrendingUp,
+					visible: visible.orgOwner,
+					isActive: (pathname, route) => {
+						// Exact match for metrics route
+						return pathname === `/manage-resources/${route}` ||
+						       pathname.startsWith(`/manage-resources/${route}/`);
+					},
+				},
+				{
 					route: "leads",
 					label: "Leads",
 					description: "View and manage resource leads.",
 					icon: BarChart3,
 					visible: visible.orgOwner,
+					isActive: (pathname, route) => {
+						// Only active if exactly on /leads, not on /leads/metrics or other sub-routes
+						return pathname === `/manage-resources/${route}`;
+					},
 				},
 			],
 		},

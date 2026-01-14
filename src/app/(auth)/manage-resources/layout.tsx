@@ -257,7 +257,7 @@ function ResourceLayoutContent({
 				{/* Current Menu Header */}
 				<div
 					className={cn(
-						"mx-auto w-full rounded-none bg-card px-0",
+						"mx-auto w-full rounded-none px-0",
 						isManageRoute
 							? "md:max-w-7xl 2xl:max-w-360"
 							: "md:max-w-5xl 2xl:max-w-7xl",

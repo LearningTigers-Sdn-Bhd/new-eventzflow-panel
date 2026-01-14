@@ -138,6 +138,7 @@ export const columns: ColumnDef<Resource>[] = [
 		cell: ({ row }) => {
 			const status = row.original.status;
 			const rejectionReason = row.original.rejectionReason;
+			const isArchived = !!row.original.deletedAt;
 
 			let variant: "default" | "secondary" | "destructive" | "outline" =
 				"outline";
@@ -159,19 +160,29 @@ export const columns: ColumnDef<Resource>[] = [
 					break;
 			}
 
-			const badge = (
-				<Badge variant={variant} className="rounded-none capitalize">
-					{(status || "unknown").replace("_", " ")}
-				</Badge>
+			const badgeContent = (
+				<div className="flex flex-wrap gap-1">
+					{isArchived && (
+						<Badge
+							variant="secondary"
+							className="rounded-none text-[10px] uppercase"
+						>
+							Archived
+						</Badge>
+					)}
+					<Badge variant={variant} className="rounded-none capitalize">
+						{(status || "unknown").replace("_", " ")}
+					</Badge>
+				</div>
 			);
 
 			if (status === "rejected" && rejectionReason) {
 				return (
 					<HoverCell>
-						<CellView>{badge}</CellView>
+						<CellView>{badgeContent}</CellView>
 						<HoverCardView side="top" align="center" className="w-64">
 							<div className="space-y-2">
-								<h4 className="font-semibold text-xs text-destructive uppercase tracking-wider">
+								<h4 className="font-semibold text-destructive text-xs uppercase tracking-wider">
 									Rejection Reason
 								</h4>
 								<p className="text-xs leading-relaxed">{rejectionReason}</p>
@@ -181,7 +192,7 @@ export const columns: ColumnDef<Resource>[] = [
 				);
 			}
 
-			return badge;
+			return badgeContent;
 		},
 	},
 	{

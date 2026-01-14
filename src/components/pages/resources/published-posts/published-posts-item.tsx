@@ -21,6 +21,8 @@ interface PublishedPostsItemProps {
 
 export function PublishedPostsItem({ post, onClick }: PublishedPostsItemProps) {
 	const status = post.status;
+	const isArchived = !!post.deletedAt;
+
 	let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
 	switch (status) {
 		case "published":
@@ -46,6 +48,7 @@ export function PublishedPostsItem({ post, onClick }: PublishedPostsItemProps) {
 			className={cn(
 				"rounded-none",
 				onClick && "cursor-pointer transition-colors hover:bg-accent/50",
+				isArchived && "bg-muted/30 opacity-60",
 			)}
 			onClick={onClick}
 		>
@@ -55,16 +58,24 @@ export function PublishedPostsItem({ post, onClick }: PublishedPostsItemProps) {
 						<div className="flex size-8 items-center justify-center border bg-muted">
 							<FileText className="h-4 w-4 text-muted-foreground" />
 						</div>
-						<span className="line-clamp-2 font-medium">
-							{post.title}
-						</span>
+						<span className="line-clamp-2 font-medium">{post.title}</span>
 					</div>
-					<Badge
-						variant={variant}
-						className="h-5 shrink-0 rounded-none text-[10px] capitalize"
-					>
-						{(status || "unknown").replace("_", " ")}
-					</Badge>
+					<div className="flex items-center gap-1">
+						{isArchived && (
+							<Badge
+								variant="secondary"
+								className="h-5 shrink-0 rounded-none text-[10px] uppercase"
+							>
+								Archived
+							</Badge>
+						)}
+						<Badge
+							variant={variant}
+							className="h-5 shrink-0 rounded-none text-[10px] capitalize"
+						>
+							{(status || "unknown").replace("_", " ")}
+						</Badge>
+					</div>
 				</ItemTitle>
 			</ItemHeader>
 			<ItemContent className="space-y-2">

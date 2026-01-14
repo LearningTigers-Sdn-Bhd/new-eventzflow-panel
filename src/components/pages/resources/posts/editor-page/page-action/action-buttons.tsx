@@ -1,13 +1,13 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Pencil, Send, XCircle } from "lucide-react";
+import { toast } from "sonner";
+import { EditPostForm } from "@/components/pages/resources/posts/form-modals/edit-post-form";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { EditPostForm } from "@/components/pages/resources/posts/form-modals/edit-post-form";
-import type { Resource } from "@/lib/api/resource/response";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateResource } from "@/lib/api/resource";
-import { toast } from "sonner";
+import type { Resource } from "@/lib/api/resource/response";
 
 interface ResourceEditorActionButtonsProps {
 	resource: Resource;
@@ -88,38 +88,34 @@ export function ResourceEditorActionButtons({
 				</Button>
 			)}
 
-			{resource.status !== "published" && (
-				<Button
-					className="rounded-none border py-6 md:py-4"
-					variant="secondary"
-					onClick={onTogglePreviewMode}
-				>
-					{isPreviewMode ? (
-						<>
-							<EyeOff className="mr-2 h-4 w-4" />
-							<span>Edit Mode</span>
-						</>
-					) : (
-						<>
-							<Eye className="mr-2 h-4 w-4" />
-							<span>Preview Mode</span>
-						</>
-					)}
-				</Button>
-			)}
+			<Button
+				className="rounded-none border py-6 md:py-4"
+				variant="secondary"
+				onClick={onTogglePreviewMode}
+			>
+				{isPreviewMode ? (
+					<>
+						<EyeOff className="mr-2 h-4 w-4" />
+						<span>Edit Mode</span>
+					</>
+				) : (
+					<>
+						<Eye className="mr-2 h-4 w-4" />
+						<span>Preview Mode</span>
+					</>
+				)}
+			</Button>
 
-			{resource.status !== "published" && (
-				<Button
-					className="rounded-none border py-6 md:py-4"
-					variant="outline"
-					onClick={openResourceSettings}
-				>
-					<Pencil className="mr-2 h-4 w-4" />
-					<span>
-						Edit Post <span className="inline md:hidden lg:inline">Details</span>
-					</span>
-				</Button>
-			)}
+			<Button
+				className="rounded-none border py-6 md:py-4"
+				variant="outline"
+				onClick={openResourceSettings}
+			>
+				<Pencil className="mr-2 h-4 w-4" />
+				<span>
+					Edit Post <span className="inline md:hidden lg:inline">Details</span>
+				</span>
+			</Button>
 		</div>
 	);
 }

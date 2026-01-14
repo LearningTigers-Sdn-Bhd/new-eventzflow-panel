@@ -15,14 +15,6 @@ export default function PostManagePage() {
 	const isLoading = !post;
 	const [isPreviewMode, setPreviewMode] = useState(false);
 
-	useEffect(() => {
-		if (post?.status === "published") {
-			setPreviewMode(true);
-		} else {
-			setPreviewMode(false);
-		}
-	}, [post?.id, post?.status]);
-
 	const actions = useMemo(
 		() =>
 			post ? (

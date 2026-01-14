@@ -197,9 +197,9 @@ export const columns: ColumnDef<Resource>[] = [
 								<Badge
 									variant={hasStatus ? "default" : "outline"}
 									className={cn(
-										"rounded-none text-xs gap-1 px-1.5",
+										"gap-1 rounded-none px-1.5 text-xs",
 										hasStatus
-											? "bg-green-500 hover:bg-green-600 border-green-600"
+											? "border-green-600 bg-green-500 hover:bg-green-600"
 											: "text-muted-foreground",
 									)}
 								>
@@ -212,9 +212,9 @@ export const columns: ColumnDef<Resource>[] = [
 								<Badge
 									variant={isOfficial ? "default" : "outline"}
 									className={cn(
-										"rounded-none text-xs gap-1 px-1.5",
+										"gap-1 rounded-none px-1.5 text-xs",
 										isOfficial
-											? "bg-blue-500 hover:bg-blue-600 border-blue-600"
+											? "border-blue-600 bg-blue-500 hover:bg-blue-600"
 											: "text-muted-foreground",
 									)}
 								>

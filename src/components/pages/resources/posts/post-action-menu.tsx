@@ -30,25 +30,22 @@ export function PostActionMenu({ post }: PostActionMenuProps) {
 		});
 
 	const isDeleted = !!post.deletedAt;
-	const isPublished = post.status === "published";
 
 	return (
 		<ButtonGroup>
 			{!isDeleted && (
 				<>
-					{!isPublished && (
-						<Button
-							asChild
-							size="icon-sm"
-							variant="outline"
-							className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
-							title="Edit Post"
-						>
-							<Link href={`/manage-resources/posts/${post.slug}/manage` as Route}>
-								<Pencil className="size-4" />
-							</Link>
-						</Button>
-					)}
+					<Button
+						asChild
+						size="icon-sm"
+						variant="outline"
+						className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+						title="Edit Post"
+					>
+						<Link href={`/manage-resources/posts/${post.slug}/manage` as Route}>
+							<Pencil className="size-4" />
+						</Link>
+					</Button>
 					<Button
 						size="icon-sm"
 						variant="outline"
@@ -58,17 +55,15 @@ export function PostActionMenu({ post }: PostActionMenuProps) {
 					>
 						<Copy className="size-4" />
 					</Button>
-					{!isPublished && (
-						<Button
-							size="icon-sm"
-							variant="outline"
-							className="rounded-none text-amber-500 hover:bg-amber-50 hover:text-amber-600 [&_svg]:text-amber-500 hover:[&_svg]:text-amber-600"
-							onClick={() => handleArchive(post.id)}
-							title="Archive Post"
-						>
-							<Archive className="size-4" />
-						</Button>
-					)}
+					<Button
+						size="icon-sm"
+						variant="outline"
+						className="rounded-none text-amber-500 hover:bg-amber-50 hover:text-amber-600 [&_svg]:text-amber-500 hover:[&_svg]:text-amber-600"
+						onClick={() => handleArchive(post.id)}
+						title="Archive Post"
+					>
+						<Archive className="size-4" />
+					</Button>
 				</>
 			)}
 

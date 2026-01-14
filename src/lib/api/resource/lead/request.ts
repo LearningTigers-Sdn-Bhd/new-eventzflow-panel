@@ -5,7 +5,10 @@ export const createResourceLeadSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	email: z.string().email("Invalid email"),
 	phone: z.string().optional(),
-	company: z.string().optional(),
+	company_name: z.string().optional(),
+	job_title: z.string().optional(),
+	state: z.string().optional(),
+	country: z.string().optional(),
 });
 
 export type CreateResourceLeadRequest = z.infer<
