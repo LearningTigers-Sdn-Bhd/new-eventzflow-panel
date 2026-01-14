@@ -1,16 +1,23 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
-import { trackResourceVisit } from "@/app/(public)/resources/[slug]/actions";
+import {
+	grantGatedAccess,
+	trackResourceVisit,
+} from "@/app/(public)/resources/[slug]/actions";
 
 interface PublicSession {
 	ip: string;
 	content: string[]; // array of resource IDs
+	gatedAccess: string[]; // array of resource IDs with granted access
 }
 
 interface ShowContextType {
 	session: PublicSession | null;
 	isFirstVisitToResource: boolean;
+	hasGatedAccess: boolean;
+	grantAccess: () => Promise<void>;
 	isLoading: boolean;
 }
 
@@ -25,6 +32,7 @@ export function ShowProvider({
 	resourceId: string;
 	initialSession: PublicSession | null;
 }) {
+	const router = useRouter();
 	const [session, setSession] = useState<PublicSession | null>(initialSession);
 	const [isLoading, setIsLoading] = useState(!initialSession);
 
@@ -47,11 +55,36 @@ export function ShowProvider({
 	// Based on the initial session or the updated one
 	const isFirstVisitToResource = !initialSession?.content.includes(resourceId);
 
+	// Check if user has gated access to this resource
+	const hasGatedAccess = session?.gatedAccess?.includes(resourceId) ?? false;
+
+	// Function to grant access to the current resource
+	const grantAccess = async () => {
+		try {
+			await grantGatedAccess(resourceId);
+			// Update local session state
+			setSession((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					gatedAccess: [...(prev.gatedAccess || []), resourceId],
+				};
+			});
+			// Refresh the page to show the content
+			router.refresh();
+		} catch (error) {
+			console.error("Failed to grant access:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ShowContext.Provider
 			value={{
 				session,
 				isFirstVisitToResource,
+				hasGatedAccess,
+				grantAccess,
 				isLoading,
 			}}
 		>

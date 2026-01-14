@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import BranchCTASection from "@/components/pages/resources/public/featured/branch-cta-section";
 import ResourcesList from "@/components/pages/resources/public/topics/resources-list";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { getResourceCategories } from "@/lib/api/resource/category/endpoints";
 import { getResourceMediaTypes } from "@/lib/api/resource/media-type/endpoints";
 import { getResourceTopics } from "@/lib/api/resource/topic/endpoints";
@@ -50,12 +51,15 @@ export default async function ResourceTopicsPage({
 	await searchParams;
 
 	return (
-		<section className="min-h-screen bg-white">
-			<div className="container mx-auto max-w-7xl px-4 py-12 md:py-20">
-				{/* List streams in */}
-				<ResourcesListStream />
-			</div>
-			<BranchCTASection />
-		</section>
+		<>
+			<ScrollToTop />
+			<section className="min-h-screen bg-white">
+				<div className="container mx-auto max-w-7xl px-4 py-12 md:py-20">
+					{/* List streams in */}
+					<ResourcesListStream />
+				</div>
+				<BranchCTASection />
+			</section>
+		</>
 	);
 }

@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowRight, ArrowUpRight, HelpCircle, Phone } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 interface CTALink {
@@ -41,7 +41,13 @@ const links: CTALink[] = [
 
 const MotionLink = motion.create(Link);
 
-function CTALinkCard({ link, index }: { link: CTALink; index: number }) {
+const CTALinkCard = memo(function CTALinkCard({
+	link,
+	index,
+}: {
+	link: CTALink;
+	index: number;
+}) {
 	const [isHovered, setIsHovered] = useState(false);
 
 	return (
@@ -95,7 +101,7 @@ function CTALinkCard({ link, index }: { link: CTALink; index: number }) {
 			</div>
 		</MotionLink>
 	);
-}
+});
 
 export default function CTASection() {
 	return (

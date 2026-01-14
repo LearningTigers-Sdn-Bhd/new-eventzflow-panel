@@ -14,8 +14,6 @@ export const createResourceSchema = z.object({
 	isGated: z.boolean().default(false),
 	isOfficial: z.boolean().default(false), // Admin/Official only, but good to have in schema
 
-	cover_image: z.any().optional(),
-	coverImageUrl: z.string().url().optional().or(z.literal("")),
 	headerImg: z.any().optional(),
 });
 
@@ -33,7 +31,6 @@ export const updateResourceSchema = z.object({
 	mediaTypeId: z.string().or(z.number()).optional(),
 	isGated: z.boolean().optional(),
 
-	coverImageUrl: z.string().url().optional().or(z.literal("")),
 	headerImg: z.any().optional(),
 });
 

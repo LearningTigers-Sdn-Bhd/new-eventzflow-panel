@@ -2,18 +2,18 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { FeaturedGridCard } from "@/components/pages/resources/public/featured/featured-grid-card";
-import { getPublicResources } from "@/lib/api/resource";
+import { getFeaturedResources } from "@/lib/api/resource";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
-export function LatestSection() {
-	const { data: standardData } = useSuspenseQuery({
-		queryKey: ["public-resources", { priorityMin: 2, priorityMax: 5 }],
-		queryFn: () =>
-			getPublicResources({ priorityMin: 2, priorityMax: 5, perPage: 6 }),
+export const LatestSection = memo(function LatestSection() {
+	const { data } = useSuspenseQuery({
+		queryKey: ["featured-resources"],
+		queryFn: () => getFeaturedResources(),
 	});
 
-	const standardResources = standardData?.data || [];
+	const standardResources = data?.standard || [];
 
 	if (standardResources.length === 0) return null;
 
@@ -33,11 +33,11 @@ export function LatestSection() {
 					initial={{ opacity: 0, y: 40 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true, margin: "-100px" }}
-					transition={{ duration: 0.8, ease: SMOOTH_EASE, delay: 0.1 }}
+					transition={{ duration: 0.5, ease: SMOOTH_EASE }}
 				>
 					<FeaturedGridCard resources={standardResources} />
 				</motion.div>
 			</div>
 		</section>
 	);
-}
+});

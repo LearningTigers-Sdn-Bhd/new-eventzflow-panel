@@ -45,7 +45,6 @@ export type BackendResource = {
 	is_official: boolean;
 	rejection_reason: string | null;
 	published_at: string | null;
-	cover_image_url: string | null;
 	header_img_url: string | null;
     min_read?: number;
 
@@ -72,7 +71,6 @@ export type Resource = {
 	isOfficial: boolean;
 	rejectionReason: string | null;
 	publishedAt: string | null;
-	coverImageUrl: string | null;
 	headerImgUrl: string | null;
     minRead?: number;
 

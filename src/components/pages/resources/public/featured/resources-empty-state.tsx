@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
-export function ResourcesEmptyState() {
+export const ResourcesEmptyState = memo(function ResourcesEmptyState() {
 	return (
 		<section className="bg-white px-6 py-32 md:py-40">
 			<div className="mx-auto max-w-4xl text-center">
@@ -33,4 +34,4 @@ export function ResourcesEmptyState() {
 			</div>
 		</section>
 	);
-}
+});

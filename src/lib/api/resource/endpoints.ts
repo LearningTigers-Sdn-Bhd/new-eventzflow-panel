@@ -28,6 +28,7 @@ function transformResource(backend: BackendResource): Resource {
 	const transformTopic = (t: BackendResourceTopic): ResourceTopic => ({
 		id: t.id.toString(),
 		name: t.name,
+		slug: t.slug,
 		description: t.description,
 		logo: t.logo,
 		createdAt: t.created_at,
@@ -38,6 +39,7 @@ function transformResource(backend: BackendResource): Resource {
 	const transformCategory = (c: BackendResourceCategory): ResourceCategory => ({
 		id: c.id.toString(),
 		name: c.name,
+		slug: c.slug,
 		description: c.description,
 		createdAt: c.created_at,
 		updatedAt: c.updated_at,
@@ -49,6 +51,7 @@ function transformResource(backend: BackendResource): Resource {
 	): ResourceMediaType => ({
 		id: m.id.toString(),
 		name: m.name,
+		slug: m.slug,
 		description: m.description,
 		createdAt: m.created_at,
 		updatedAt: m.updated_at,
@@ -79,7 +82,6 @@ function transformResource(backend: BackendResource): Resource {
 		isOfficial: backend.is_official,
 		rejectionReason: backend.rejection_reason ?? null,
 		publishedAt: backend.published_at,
-		coverImageUrl: backend.cover_image_url,
 		headerImgUrl: backend.header_img_url,
         minRead: backend.min_read,
 
@@ -268,6 +270,24 @@ export async function getPublicResources(options?: {
 	}
 
 	return { data: [] };
+}
+
+// Get featured resources (Homepage view - returns both featured and standard in one call)
+export async function getFeaturedResources(): Promise<{
+	featured: Resource[];
+	standard: Resource[];
+}> {
+	const response = await publicRestClient.get<{
+		data: {
+			featured: BackendResource[];
+			standard: BackendResource[];
+		};
+	}>("v1/resources/public?featured=true");
+
+	return {
+		featured: response.data.featured.map(transformResource),
+		standard: response.data.standard.map(transformResource),
+	};
 }
 
 // Get single resource (Admin/Dashboard view)

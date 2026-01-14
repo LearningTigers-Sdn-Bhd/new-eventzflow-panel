@@ -97,21 +97,30 @@ function RichDisplayLayout({
 			return (
 				<div className={cn("grid w-full items-start gap-4", gridCols)}>
 					{isLeftSide && isOutlineVisible && (
-						<div className="sticky top-0 h-screen overflow-y-auto">
-							{collected.outline}
+						<div className="sticky top-0 min-h-screen border-r bg-muted/5">
+							<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+								{collected.outline}
+							</div>
 						</div>
 					)}
 
 					<div className="relative flex min-w-0 flex-col">
 						{collected.outline && (
-							<div className="sticky top-0 left-0 z-50 h-0 w-fit overflow-visible">
+							<div
+								data-slot="outline-toggle"
+								className="sticky top-0 left-0 z-10 h-0 w-fit overflow-visible"
+							>
 								<Button
 									variant="outline"
+									data-slot="outline-toggle-button"
 									size="icon"
 									className="mt-6 ml-6 rounded-full bg-background/80 opacity-50 shadow-sm backdrop-blur-sm transition-opacity hover:opacity-100"
 									onClick={() => setOutlineVisible(!outlineVisible)}
 								>
-									<PanelLeft className="h-4 w-4" />
+									<PanelLeft
+										data-slot="outline-toggle-icon"
+										className="h-4 w-4"
+									/>
 								</Button>
 							</div>
 						)}
@@ -119,8 +128,10 @@ function RichDisplayLayout({
 					</div>
 
 					{!isLeftSide && isOutlineVisible && (
-						<div className="sticky top-0 h-screen overflow-y-auto">
-							{collected.outline}
+						<div className="sticky top-0 min-h-screen border-l bg-muted/5">
+							<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+								{collected.outline}
+							</div>
 						</div>
 					)}
 				</div>
@@ -137,21 +148,30 @@ function RichDisplayLayout({
 		return (
 			<div className={cn("grid w-full items-start", gridCols)}>
 				{isLeftSide && isOutlineVisible && (
-					<div className="sticky top-13 h-[calc(100vh-3.25rem)] overflow-y-auto border-r">
-						{collected.outline}
+					<div className="sticky top-0 min-h-screen border-r bg-muted/5">
+						<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+							{collected.outline}
+						</div>
 					</div>
 				)}
 
 				<div className="relative min-w-0 flex-1">
 					{collected.outline && (
-						<div className="sticky top-0 left-0 z-50 h-0 w-fit overflow-visible">
+						<div
+							data-slot="outline-toggle"
+							className="sticky top-0 left-0 z-50 h-0 w-fit overflow-visible"
+						>
 							<Button
 								variant="outline"
+								data-slot="outline-toggle-button"
 								size="icon"
 								className="mt-6 ml-6 rounded-full bg-background/80 opacity-50 shadow-sm backdrop-blur-sm transition-opacity hover:opacity-100"
 								onClick={() => setOutlineVisible(!outlineVisible)}
 							>
-								<PanelLeft className="h-4 w-4" />
+								<PanelLeft
+									data-slot="outline-toggle-icon"
+									className="h-4 w-4"
+								/>
 							</Button>
 						</div>
 					)}
@@ -159,8 +179,10 @@ function RichDisplayLayout({
 				</div>
 
 				{!isLeftSide && isOutlineVisible && (
-					<div className="sticky top-13 h-[calc(100vh-3.25rem)] overflow-y-auto border-l">
-						{collected.outline}
+					<div className="sticky top-0 min-h-screen border-l bg-muted/5">
+						<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+							{collected.outline}
+						</div>
 					</div>
 				)}
 			</div>
@@ -231,6 +253,29 @@ export function RichDisplay({
 
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(content, "text/html");
+
+		// Map standard HTML tags to Lexical editor classes for parity
+		const classMapping: Record<string, string> = {
+			h1: "editor-heading-h1",
+			h2: "editor-heading-h2",
+			h3: "editor-heading-h3",
+			ul: "editor-list-ul",
+			ol: "editor-list-ol",
+			li: "editor-listitem",
+			blockquote: "editor-quote",
+			a: "editor-link",
+			pre: "editor-code",
+			table: "editor-table",
+			th: "editor-tableHeader",
+			td: "editor-tableCell",
+		};
+
+		for (const [tag, className] of Object.entries(classMapping)) {
+			doc.querySelectorAll(tag).forEach((el) => {
+				el.classList.add(className);
+			});
+		}
+
 		const headings = doc.querySelectorAll("h1, h2, h3");
 		const newToc: TocItem[] = [];
 		const seenIds = new Set<string>();

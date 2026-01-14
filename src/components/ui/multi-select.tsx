@@ -1,18 +1,17 @@
 "use client";
 
+import { ChevronsUpDown } from "lucide-react";
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 // --- Context ---
 
@@ -78,7 +77,7 @@ const MultiSelect = ({
 interface MultiSelectTriggerProps
 	extends React.ComponentPropsWithoutRef<typeof Button> {
 	asChild?: boolean;
-    iconClassName?: string;
+	iconClassName?: string;
 }
 
 const MultiSelectTrigger = React.forwardRef<
@@ -92,13 +91,15 @@ const MultiSelectTrigger = React.forwardRef<
 				variant="outline"
 				role="combobox"
 				className={cn(
-					"w-full justify-between h-auto min-h-10 py-2 transition-all",
+					"h-auto min-h-10 w-full justify-between py-2 transition-all",
 					className,
 				)}
 				{...props}
 			>
 				{children}
-				<ChevronsUpDown className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", iconClassName)} />
+				<ChevronsUpDown
+					className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", iconClassName)}
+				/>
 			</Button>
 		</PopoverTrigger>
 	);
@@ -109,52 +110,67 @@ MultiSelectTrigger.displayName = "MultiSelectTrigger";
 interface MultiSelectValueProps {
 	placeholder?: string;
 	maxDisplay?: number;
-    // Helper to map values to labels if needed for display
-    options?: { label: string; value: string }[]; 
-    className?: string;
-    children?: (value: string[]) => React.ReactNode;
+	// Helper to map values to labels if needed for display
+	options?: { label: string; value: string }[];
+	className?: string;
+	children?: (value: string[]) => React.ReactNode;
 }
 
 const MultiSelectValue = ({
 	placeholder = "Select items...",
 	maxDisplay = 2,
-    options = [],
-    className,
-    children
+	options = [],
+	className,
+	children,
 }: MultiSelectValueProps) => {
 	const { value } = useMultiSelect();
 
-    if (children) {
-        return <>{children(value)}</>;
-    }
+	if (children) {
+		return <>{children(value)}</>;
+	}
 
-    if (value.length === 0) {
-        return <span className={cn("text-muted-foreground", className)}>{placeholder}</span>;
-    }
+	if (value.length === 0) {
+		return (
+			<span className={cn("text-muted-foreground", className)}>
+				{placeholder}
+			</span>
+		);
+	}
 
-    // Default badge renderer
-    if (value.length > maxDisplay) {
-        return (
-            <div className={cn("flex flex-row flex-wrap items-center gap-1", className)}>
-                <Badge className="bg-black text-white rounded-none border-black hover:bg-black">{value.length} selected</Badge>
-            </div>
-        );
-    }
+	// Default badge renderer
+	if (value.length > maxDisplay) {
+		return (
+			<div
+				className={cn("flex flex-row flex-wrap items-center gap-1", className)}
+			>
+				<Badge className="rounded-none border-black bg-black text-white hover:bg-black">
+					{value.length} selected
+				</Badge>
+			</div>
+		);
+	}
 
-    return (
-        <div className={cn("inline-flex !flex-row flex-nowrap items-center gap-1 overflow-hidden", className)}>
-            {value.map((val) => {
-                const label = options.find(o => o.value === val)?.label || val;
-                return (
-                    <Badge key={val} className="bg-black text-white rounded-none border-black hover:bg-black shrink-0">
-                        {label}
-                    </Badge>
-                );
-            })}
-        </div>
-    );
+	return (
+		<div
+			className={cn(
+				"inline-flex flex-row! flex-nowrap items-center gap-1 overflow-hidden",
+				className,
+			)}
+		>
+			{value.map((val) => {
+				const label = options.find((o) => o.value === val)?.label || val;
+				return (
+					<Badge
+						key={val}
+						className="shrink-0 rounded-none border-black bg-black text-white hover:bg-black"
+					>
+						{label}
+					</Badge>
+				);
+			})}
+		</div>
+	);
 };
-
 
 // Content
 const MultiSelectContent = React.forwardRef<
@@ -169,9 +185,7 @@ const MultiSelectContent = React.forwardRef<
 			{...props}
 		>
 			<ScrollArea className="max-h-60">
-                <div className="p-2 space-y-1">
-				    {children}
-                </div>
+				<div className="space-y-1 p-2">{children}</div>
 			</ScrollArea>
 		</PopoverContent>
 	);
@@ -179,55 +193,57 @@ const MultiSelectContent = React.forwardRef<
 MultiSelectContent.displayName = "MultiSelectContent";
 
 // Item
-interface MultiSelectItemProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MultiSelectItemProps
+	extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onSelect"> {
 	value: string;
-    onSelect?: (value: string) => void; 
+	onSelect?: (value: string) => void;
 }
 
-const MultiSelectItem = React.forwardRef<HTMLDivElement, MultiSelectItemProps>(
-	({ className, children, value: itemValue, onSelect, ...props }, ref) => {
-		const { value: selectedValues, onValueChange } = useMultiSelect();
-        const isSelected = selectedValues.includes(itemValue);
+const MultiSelectItem = React.forwardRef<
+	HTMLButtonElement,
+	MultiSelectItemProps
+>(({ className, children, value: itemValue, onSelect, ...props }, ref) => {
+	const { value: selectedValues, onValueChange } = useMultiSelect();
+	const isSelected = selectedValues.includes(itemValue);
 
-		const handleSelect = () => {
-			if (isSelected) {
-				onValueChange(selectedValues.filter((v) => v !== itemValue));
-			} else {
-				onValueChange([...selectedValues, itemValue]);
-			}
-            onSelect?.(itemValue);
-		};
+	const handleSelect = () => {
+		if (isSelected) {
+			onValueChange(selectedValues.filter((v) => v !== itemValue));
+		} else {
+			onValueChange([...selectedValues, itemValue]);
+		}
+		onSelect?.(itemValue);
+	};
 
-		return (
-			<div
-				ref={ref}
-                data-state={isSelected ? "checked" : "unchecked"}
-				className={cn(
-					"flex items-center space-x-2 rounded-sm p-2 hover:bg-accent cursor-pointer",
-					className,
-				)}
-				onClick={(e) => {
-                    e.preventDefault();
-                    handleSelect();
-                }}
-				{...props}
+	return (
+		<button
+			ref={ref}
+			type="button"
+			data-state={isSelected ? "checked" : "unchecked"}
+			className={cn(
+				"flex w-full cursor-pointer items-center space-x-2 rounded-sm p-2 text-left hover:bg-accent",
+				className,
+			)}
+			onClick={(e) => {
+				e.preventDefault();
+				handleSelect();
+			}}
+			{...props}
+		>
+			<Checkbox
+				checked={isSelected}
+				onCheckedChange={handleSelect}
+				id={`ms-item-${itemValue}`}
+			/>
+			<label
+				htmlFor={`ms-item-${itemValue}`}
+				className="flex-1 cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 			>
-				<Checkbox
-					checked={isSelected}
-					onCheckedChange={handleSelect}
-                    id={`ms-item-${itemValue}`}
-				/>
-                <label 
-                    htmlFor={`ms-item-${itemValue}`}
-                    className="flex-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    onClick={(e) => e.preventDefault()}
-                >
-				    {children}
-                </label>
-			</div>
-		);
-	},
-);
+				{children}
+			</label>
+		</button>
+	);
+});
 MultiSelectItem.displayName = "MultiSelectItem";
 
 // --- Exports ---
@@ -238,12 +254,12 @@ export {
 	MultiSelectValue,
 	MultiSelectContent,
 	MultiSelectItem,
-    useMultiSelect
+	useMultiSelect,
 };
 
 // --- Compatibility / Convenience Component ---
-// (Optional: Keeps the old API working if you want, but user asked to change to composition. 
-//  I will leave a helper `MultiSelectPrimitive` as the legacy name if needed, 
+// (Optional: Keeps the old API working if you want, but user asked to change to composition.
+//  I will leave a helper `MultiSelectPrimitive` as the legacy name if needed,
 //  but typically in these refactors we replace the export.)
 
 export interface Option {
@@ -272,10 +288,7 @@ export function MultiSelectLegacy({
 	return (
 		<MultiSelect value={selected} onValueChange={onChange}>
 			<MultiSelectTrigger className={className}>
-				<MultiSelectValue 
-                    placeholder={placeholder} 
-                    options={options} 
-                />
+				<MultiSelectValue placeholder={placeholder} options={options} />
 			</MultiSelectTrigger>
 			<MultiSelectContent>
 				{options.map((option) => (

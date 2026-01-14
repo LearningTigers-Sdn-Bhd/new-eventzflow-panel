@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
-export function ResourcesHero() {
+export const ResourcesHero = memo(function ResourcesHero() {
 	return (
 		<section className="relative flex min-h-[50vh] flex-col items-center justify-center overflow-hidden bg-black px-6 py-24">
 			{/* Left vertical accent line */}
@@ -30,4 +31,4 @@ export function ResourcesHero() {
 			</motion.div>
 		</section>
 	);
-}
+});

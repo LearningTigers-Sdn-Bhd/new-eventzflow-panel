@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/performance/noImgElement: will be replaced with next/image */
+import { Image } from "@unpic/react";
 import { format } from "date-fns";
 import { Calendar, Clock } from "lucide-react";
 import Link from "next/link";
@@ -37,7 +37,6 @@ export const ResourcesCard = memo(function ResourcesCard({
 		title,
 		metaDescription,
 		headerImgUrl,
-		coverImageUrl,
 		topic,
 		category,
 		mediaType,
@@ -46,7 +45,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 		slug,
 	} = resource;
 
-	const displayImage = headerImgUrl || coverImageUrl;
+	const displayImage = headerImgUrl;
 	const dateDisplay = publishedAt
 		? format(new Date(publishedAt), "MMM d, yyyy")
 		: "Recently";
@@ -55,6 +54,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 		return (
 			<Link
 				href={`/resources/${slug}`}
+				prefetch={true}
 				className={cn("group block h-full", className)}
 			>
 				<div className="relative flex h-full flex-col overflow-hidden rounded-none bg-card">
@@ -67,11 +67,13 @@ export const ResourcesCard = memo(function ResourcesCard({
 						{" "}
 						{displayImage ? (
 							<div className="absolute inset-0 h-[101%] w-[101%] transition-transform duration-700 group-hover:scale-110">
-								<img
+								<Image
 									src={displayImage}
 									alt={title}
-									loading="lazy"
-									decoding="async"
+									layout="constrained"
+									width={600}
+									height={400}
+									background="auto"
 									className="absolute inset-0 h-full w-full object-cover"
 								/>
 								<div className="absolute inset-0 h-full w-full bg-linear-to-t from-black/90 via-black/40 to-transparent" />
@@ -140,6 +142,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 	return (
 		<Link
 			href={`/resources/${slug}`}
+			prefetch={true}
 			className={cn("group block w-full", className)}
 		>
 			<div className="flex h-auto flex-col gap-0 overflow-hidden rounded-none border bg-card shadow-sm sm:h-56 sm:flex-row sm:gap-8">
@@ -151,11 +154,13 @@ export const ResourcesCard = memo(function ResourcesCard({
 				>
 					{displayImage ? (
 						<div className="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-105">
-							<img
+							<Image
 								src={displayImage}
 								alt={title}
-								loading="lazy"
-								decoding="async"
+								layout="constrained"
+								width={600}
+								height={400}
+								background="auto"
 								className="absolute inset-0 h-full w-full object-cover"
 							/>
 						</div>
@@ -177,12 +182,12 @@ export const ResourcesCard = memo(function ResourcesCard({
 				<div className="flex min-w-0 flex-1 flex-col justify-center p-6 sm:py-8 sm:pr-8">
 					<div className="mb-4 flex flex-wrap gap-2">
 						{topic && (
-							<Badge className="rounded-none bg-black text-white hover:bg-black/80 font-medium">
+							<Badge className="rounded-none bg-black font-medium text-white hover:bg-black/80">
 								{topic.name}
 							</Badge>
 						)}
 						{category && (
-							<Badge className="rounded-none bg-black text-white hover:bg-black/80 font-medium">
+							<Badge className="rounded-none bg-black font-medium text-white hover:bg-black/80">
 								{category.name}
 							</Badge>
 						)}

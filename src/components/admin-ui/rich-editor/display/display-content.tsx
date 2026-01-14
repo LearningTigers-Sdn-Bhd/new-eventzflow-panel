@@ -54,15 +54,13 @@ export function RichDisplayContent({
 
 	return (
 		<div
-			className={cn(
-				"flex-1 scroll-pt-20 overflow-auto bg-muted/20",
-				style === "block" && "rounded-none border",
-			)}
+			className={cn("flex-1 scroll-pt-20 overflow-auto bg-muted/20")}
 			ref={setScrollContainer}
 		>
 			<div
 				className={cn(
 					"min-h-full w-full bg-background px-4 py-12 shadow-[0_0_1px_rgba(0,0,0,0.1)] md:px-12",
+					style === "block" && "rounded-none border",
 					className,
 				)}
 			>

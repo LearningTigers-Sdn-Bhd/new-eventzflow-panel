@@ -7,6 +7,8 @@ export default function ResourcesTopicsLayout({
 }) {
 	return (
 		<main className="min-h-screen bg-white">
+			{/* Scroll anchor for navigation */}
+			<div id="top" className="absolute top-0" />
 			{/* Hero persists across topic changes */}
 			<ResourcesListHero />
 			{children}

@@ -2,17 +2,18 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { FeaturedCard } from "@/components/pages/resources/public/featured/featured-card";
-import { getPublicResources } from "@/lib/api/resource";
+import { getFeaturedResources } from "@/lib/api/resource";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
-export function FeaturedSection() {
-	const { data: featuredData } = useSuspenseQuery({
-		queryKey: ["public-resources", { priority: 1 }],
-		queryFn: () => getPublicResources({ priority: 1, perPage: 3 }),
+export const FeaturedSection = memo(function FeaturedSection() {
+	const { data } = useSuspenseQuery({
+		queryKey: ["featured-resources"],
+		queryFn: () => getFeaturedResources(),
 	});
 
-	const featuredResources = featuredData?.data || [];
+	const featuredResources = data?.featured || [];
 
 	if (featuredResources.length === 0) return null;
 
@@ -38,11 +39,11 @@ export function FeaturedSection() {
 				<motion.div
 					initial={{ opacity: 0, y: 40 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, ease: SMOOTH_EASE, delay: 0.4 }}
+					transition={{ duration: 0.5, ease: SMOOTH_EASE, delay: 0.2 }}
 				>
 					<FeaturedCard resources={featuredResources} />
 				</motion.div>
 			</div>
 		</section>
 	);
-}
+});

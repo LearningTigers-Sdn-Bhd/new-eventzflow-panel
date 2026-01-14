@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
 	Carousel,
 	type CarouselApi,
@@ -17,7 +17,7 @@ import { SMOOTH_EASE } from "@/lib/constants/animation";
 import { cn } from "@/lib/utils";
 import TopicCard from "./topic-card";
 
-export default function ToTopicsSection() {
+const ToTopicsSection = memo(function ToTopicsSection() {
 	const router = useRouter();
 	const [api, setApi] = useState<CarouselApi>();
 	const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -45,7 +45,7 @@ export default function ToTopicsSection() {
 	}, [topicsData]);
 
 	const handleTopicClick = (slug: string) => {
-		router.push(`/resources/topics/${slug}`);
+		router.push(`/resources/topics/${slug}#top`);
 	};
 
 	const onSelect = useCallback((api: CarouselApi) => {
@@ -70,7 +70,7 @@ export default function ToTopicsSection() {
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true, margin: "-100px" }}
-						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
+						transition={{ duration: 0.6, ease: SMOOTH_EASE }}
 					>
 						<p className="mb-4 font-medium text-white/40 text-xs uppercase tracking-[0.3em]">
 							Explore variety of
@@ -86,7 +86,7 @@ export default function ToTopicsSection() {
 					initial={{ opacity: 0, y: 40 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true, margin: "-100px" }}
-					transition={{ duration: 0.8, ease: SMOOTH_EASE, delay: 0.2 }}
+					transition={{ duration: 0.6, ease: SMOOTH_EASE, delay: 0.1 }}
 					className="relative w-full"
 				>
 					<div className="relative px-18">
@@ -146,4 +146,6 @@ export default function ToTopicsSection() {
 			</div>
 		</section>
 	);
-}
+});
+
+export default ToTopicsSection;

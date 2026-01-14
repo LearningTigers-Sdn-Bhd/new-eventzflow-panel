@@ -1,15 +1,16 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { getResourceCategories } from "@/lib/api/resource";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
+import { cn } from "@/lib/utils";
 
-const ToCategoriesSection: React.FC = () => {
+const ToCategoriesSection: React.FC = memo(function ToCategoriesSection() {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const router = useRouter();
 
@@ -32,9 +33,9 @@ const ToCategoriesSection: React.FC = () => {
 
 	const handleCategoryClick = (slug: string) => {
 		if (slug) {
-			router.push(`/resources/topics/all?category=${slug}`);
+			router.push(`/resources/topics/all?category=${slug}#top`);
 		} else {
-			router.push("/resources/topics/all");
+			router.push("/resources/topics/all#top");
 		}
 	};
 
@@ -86,7 +87,6 @@ const ToCategoriesSection: React.FC = () => {
 					<div className="lg:col-span-7">
 						{displayItems.map((item, i) => (
 							<motion.div
-								layout
 								key={item.id}
 								initial={{ opacity: 0, y: 20 }}
 								whileInView={{ opacity: 1, y: 0 }}
@@ -98,82 +98,78 @@ const ToCategoriesSection: React.FC = () => {
 								}}
 								onMouseEnter={() => setHoveredIndex(i)}
 								onMouseLeave={() => setHoveredIndex(null)}
-								className={`relative cursor-pointer overflow-hidden border-black/10 transition-colors duration-300 ${
-									hoveredIndex === i
-										? "border-black bg-black text-white"
-										: "border-black/10 border-b text-black"
-								}`}
+								className={cn(
+									"group relative cursor-pointer overflow-hidden border-black/10 border-b transition-all duration-300 ease-in-out",
+									hoveredIndex === i && "border-black bg-black text-white",
+								)}
 								onClick={() => handleCategoryClick(item.slug)}
 							>
-								<div className="flex w-full items-start justify-between gap-8 px-6 py-8 text-left transition-colors">
+								<div className="flex w-full items-start justify-between gap-8 px-6 py-8 text-left">
 									<div className="flex items-start gap-6">
 										<span
-											className={`pt-1 font-bold text-sm transition-colors ${
-												hoveredIndex === i ? "text-white/40" : "text-black/40"
-											}`}
+											className={cn(
+												"pt-1 font-bold text-sm transition-colors duration-300",
+												hoveredIndex === i ? "text-white/40" : "text-black/40",
+											)}
 										>
 											{i < 9 ? `0${i + 1}` : i + 1}
 										</span>
 										<div className="flex flex-col gap-2">
 											<div className="flex items-center gap-4">
-												<div className="group relative">
+												<div className="relative">
 													<h3
-														className={`font-bold text-xl uppercase leading-tight tracking-tight transition-colors md:text-2xl ${
-															hoveredIndex === i ? "text-white" : "text-black"
-														}`}
+														className={cn(
+															"font-bold text-xl uppercase leading-tight tracking-tight transition-colors duration-300 md:text-2xl",
+															hoveredIndex === i ? "text-white" : "text-black",
+														)}
 													>
 														{item.name}
 													</h3>
-													{/* Underline effect left to right */}
-													<motion.div
-														initial={{ scaleX: 0 }}
-														animate={{ scaleX: hoveredIndex === i ? 1 : 0 }}
-														className={`absolute bottom-0 left-0 h-[2px] w-full origin-left transition-colors ${
-															hoveredIndex === i ? "bg-white" : "bg-black"
-														}`}
-														transition={{ duration: 0.3, ease: "easeInOut" }}
+													{/* Optimized underline with CSS transform */}
+													<div
+														className={cn(
+															"absolute bottom-0 left-0 h-[2px] w-full origin-left transition-all duration-300 ease-in-out",
+															hoveredIndex === i
+																? "scale-x-100 bg-white"
+																: "scale-x-0 bg-black",
+														)}
 													/>
 												</div>
 											</div>
 										</div>
 									</div>
 
-									{/* Arrow Right Top on Hover */}
+									{/* Optimized Arrow with CSS transitions */}
 									<div className="mt-1 min-w-[24px] shrink-0">
-										<AnimatePresence>
-											{hoveredIndex === i && (
-												<motion.div
-													initial={{ opacity: 0, scale: 0.5, x: -10, y: 10 }}
-													animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-													exit={{ opacity: 0, scale: 0.5, x: -10, y: 10 }}
-													transition={{ duration: 0.2 }}
-												>
-													<ArrowUpRight className="h-6 w-6 text-white" />
-												</motion.div>
+										<ArrowUpRight
+											className={cn(
+												"h-6 w-6 text-white transition-all duration-200 ease-in-out",
+												hoveredIndex === i
+													? "translate-x-0 translate-y-0 scale-100 opacity-100"
+													: "-translate-x-2 translate-y-2 scale-50 opacity-0",
 											)}
-										</AnimatePresence>
+										/>
 									</div>
 								</div>
 
-								{/* Hover content - description */}
-								<AnimatePresence>
-									{hoveredIndex === i && (
-										<motion.div
-											initial={{ height: 0, opacity: 0 }}
-											animate={{ height: "auto", opacity: 1 }}
-											exit={{ height: 0, opacity: 0 }}
-											transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-											className="overflow-hidden"
-										>
-											<div className="px-6 pb-8 pl-12 md:pl-14">
-												<p className="text-left text-base text-white/60 leading-relaxed md:text-lg">
-													{item.description ||
-														"Explore resources and articles in this category."}
-												</p>
-											</div>
-										</motion.div>
+								{/* Optimized description with CSS grid */}
+								<div
+									className={cn(
+										"grid transition-all duration-300 ease-in-out",
+										hoveredIndex === i
+											? "grid-rows-[1fr] opacity-100"
+											: "grid-rows-[0fr] opacity-0",
 									)}
-								</AnimatePresence>
+								>
+									<div className="overflow-hidden">
+										<div className="px-6 pb-8 pl-12 md:pl-14">
+											<p className="text-left text-base text-white/60 leading-relaxed md:text-lg">
+												{item.description ||
+													"Explore resources and articles in this category."}
+											</p>
+										</div>
+									</div>
+								</div>
 							</motion.div>
 						))}
 					</div>
@@ -181,6 +177,6 @@ const ToCategoriesSection: React.FC = () => {
 			</div>
 		</section>
 	);
-};
+});
 
 export default ToCategoriesSection;

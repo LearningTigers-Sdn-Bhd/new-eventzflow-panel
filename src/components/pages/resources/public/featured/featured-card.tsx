@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/performance/noImgElement: Will implement next/image later */
+import { Image } from "@unpic/react";
 import {
 	ArrowUpRight,
 	BookOpen,
@@ -22,7 +22,9 @@ interface FeaturedCardProps {
 	resources: Resource[];
 }
 
-export function FeaturedCard({ resources }: FeaturedCardProps) {
+export const FeaturedCard = React.memo(function FeaturedCard({
+	resources,
+}: FeaturedCardProps) {
 	const [api, setApi] = React.useState<CarouselApi>();
 	const [current, setCurrent] = React.useState(0);
 	const [canScrollPrev, setCanScrollPrev] = React.useState(false);
@@ -42,7 +44,11 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 		api.on("reInit", () => onSelect(api));
 	}, [api, onSelect]);
 
-	const activeResource = resources[current];
+	// Memoize active resource to avoid unnecessary recalculations
+	const activeResource = React.useMemo(
+		() => resources[current],
+		[resources, current],
+	);
 
 	if (!resources.length) return null;
 
@@ -60,22 +66,25 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 						<CarouselItem key={resource.id}>
 							<Link
 								href={`/resources/${resource.slug}`}
+								prefetch={true}
 								className="relative block h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]"
 							>
-								{resource.coverImageUrl ? (
-									<img
-										src={resource.coverImageUrl}
+								{resource.headerImgUrl ? (
+									<Image
+										src={resource.headerImgUrl}
 										alt={resource.title}
-										loading="lazy"
-										decoding="async"
-										className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-105"
+										layout="fullWidth"
+										background="auto"
+										fetchpriority="high"
+										loading="eager"
+										className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover/card:scale-105"
 									/>
 								) : (
 									<div className="flex h-full w-full items-center justify-center text-gray-400">
 										No Image
 									</div>
 								)}
-								<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 md:p-8">
+								<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-300 will-change-opacity group-hover/card:opacity-100 md:p-8">
 									<div className="mb-3 flex flex-wrap items-center gap-2">
 										{resource.topic && (
 											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
@@ -161,7 +170,7 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 						asChild
 						className="w-full rounded-none border border-white bg-transparent py-6 text-white transition-all duration-300 hover:bg-white! hover:text-black! group-hover/buttons:bg-white group-hover/buttons:text-black"
 					>
-						<Link href="/resources/topics/all">
+						<Link href="/resources/topics/all#top">
 							Explore More
 							<ArrowUpRight className="h-4 w-4" />
 						</Link>
@@ -170,4 +179,4 @@ export function FeaturedCard({ resources }: FeaturedCardProps) {
 			</div>
 		</div>
 	);
-}
+});

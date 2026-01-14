@@ -219,8 +219,10 @@ function RichEditorLayout({
 				<>
 					<div className={cn("grid w-full items-start", gridCols)}>
 						{isLeftSide && isOutlineVisible && (
-							<div className="sticky top-0 h-screen overflow-y-auto border-r">
-								{collected.outline}
+							<div className="sticky top-0 min-h-screen border-r bg-muted/5">
+								<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+									{collected.outline}
+								</div>
 							</div>
 						)}
 
@@ -230,8 +232,10 @@ function RichEditorLayout({
 						</div>
 
 						{!isLeftSide && isOutlineVisible && (
-							<div className="sticky top-0 h-screen overflow-y-auto border-l">
-								{collected.outline}
+							<div className="sticky top-0 min-h-screen border-l bg-muted/5">
+								<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+									{collected.outline}
+								</div>
 							</div>
 						)}
 					</div>
@@ -251,16 +255,20 @@ function RichEditorLayout({
 				{collected.toolbar}
 				<div className={cn("grid w-full items-start", gridCols)}>
 					{isLeftSide && isOutlineVisible && (
-						<div className="sticky top-13 h-[calc(100vh-3.25rem)] overflow-y-auto border-r">
-							{collected.outline}
+						<div className="sticky top-0 min-h-screen border-r bg-muted/5">
+							<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+								{collected.outline}
+							</div>
 						</div>
 					)}
 
 					<div className="min-w-0 flex-1">{collected.contentArea}</div>
 
 					{!isLeftSide && isOutlineVisible && (
-						<div className="sticky top-13 h-[calc(100vh-3.25rem)] overflow-y-auto border-l">
-							{collected.outline}
+						<div className="sticky top-0 min-h-screen border-l bg-muted/5">
+							<div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto px-2 py-2">
+								{collected.outline}
+							</div>
 						</div>
 					)}
 				</div>

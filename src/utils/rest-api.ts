@@ -29,8 +29,13 @@ const logger = {
 };
 
 // Export the base API URL for use in other modules
+// Use different URLs for server-side and client-side rendering
+// Server-side: API_URL (for internal Docker network, etc.)
+// Client-side: NEXT_PUBLIC_API_URL (for browser)
 export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+	typeof window === "undefined"
+		? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
@@ -70,7 +75,7 @@ export const queryClient = new QueryClient({
 });
 
 export const kyClient = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 90000,
 	headers: {
 		"Content-Type": "application/json",
@@ -128,7 +133,7 @@ export const kyClient = ky.create({
 // A public ky client that doesn't require authentication
 // Use this for public-facing pages that should be accessible without login
 export const kyPublicClient = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 30000,
 	headers: {
 		"Content-Type": "application/json",
@@ -154,7 +159,7 @@ export const kyPublicClient = ky.create({
 // A public ky client for multipart/form-data uploads (no auth, no default Content-Type)
 // Use this for public endpoints that accept file uploads
 export const kyPublicClientForFormData = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 60000,
 	// Note: Do NOT set default Content-Type so the browser can set multipart/form-data with boundary
 	retry: {
@@ -166,7 +171,7 @@ export const kyPublicClientForFormData = ky.create({
 
 // A dedicated ky client for multipart/form-data uploads (no default Content-Type)
 export const kyClientForFormData = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 30000,
 	// Note: Do NOT set default headers here so the browser can set the multipart boundary
 	retry: {
