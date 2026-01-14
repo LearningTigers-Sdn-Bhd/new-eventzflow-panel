@@ -1,129 +1,222 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import type React from "react";
 
 const capabilities = [
 	{
-		title: "WHATSAPP BOT REGISTRATION",
+		id: "01",
+		title: "WhatsApp Based Registration",
+		subtitle: "Signature Capability",
 		description:
-			"Let attendees register via WhatsApp with automated confirmations and reminders.",
+			"Seamless event registration. Enable attendees to sign up, receive tickets, and get real-time updates instantly through WhatsApp.",
+		isMain: true,
 	},
 	{
-		title: "QR CODE CHECK-IN",
-		description: "Fast, contactless entry with real-time attendance tracking.",
+		id: "02",
+		title: "QR Code Check-In",
+		subtitle: "Entry System",
+		description: "Fast contactless entry with real-time tracking.",
+		isBlue: false,
 	},
 	{
-		title: "INSTANT BADGE PRINTING",
-		description: "Print professional badges on-demand as attendees check in.",
+		id: "03",
+		title: "Instant Badge Printing",
+		subtitle: "On-Demand",
+		description: "Instant badge printing on-demand.",
+		isBlue: true,
 	},
 	{
-		title: "BUSINESS MATCHING",
-		description:
-			"Connect the right people with AI-powered meeting recommendations.",
+		id: "04",
+		title: "Business Matching",
+		subtitle: "Networking",
+		description: "Connect attendees based on interests and business goals.",
+		isBlue: false,
 	},
 	{
-		title: "LUCKY DRAW SYSTEM",
-		description:
-			"Engage your audience with interactive lucky draws and giveaways.",
+		id: "05",
+		title: "Lucky Draw",
+		subtitle: "Engagement",
+		description: "Engage your audience with interactive lucky draw and giveaways.",
+		isBlue: true,
 	},
 	{
-		title: "EXHIBITOR MANAGEMENT",
-		description:
-			"Give exhibitors their own portal to manage leads and booth details.",
+		id: "06",
+		title: "Exhibitor Management",
+		subtitle: "Management",
+		description: "Manage your exhibitors and leads with ease.",
+		isBlue: false,
 	},
 	{
-		title: "VOUCHER REDEMPTION",
-		description:
-			"Distribute and track digital vouchers for sponsors and attendees.",
+		id: "07",
+		title: "Voucher Redemption",
+		subtitle: "Digital Value",
+		description: "Distribute and track vouchers with ease.",
+		isBlue: true,
 	},
 	{
-		title: "ANALYTICS DASHBOARD",
-		description:
-			"See real-time data on attendance, engagement, and conversions.",
-	},
-	{
-		title: "VISITOR TRACKING",
-		description:
-			"Track booth visits and session attendance with RFID or QR scanning.",
+		id: "08",
+		title: "Analytics Dashboard",
+		subtitle: "Insights",
+		description: "Real-time analytics and insights to optimize your event.",
+		isBlue: false,
 	},
 ];
 
+const Stripes = () => (
+	<div
+		className="h-full w-full"
+		style={{
+			backgroundImage:
+				"linear-gradient(45deg, #000 25%, transparent 25%, transparent 50%, #000 50%, #000 75%, transparent 75%, transparent)",
+			backgroundSize: "20px 20px",
+			opacity: 0.15,
+		}}
+	/>
+);
+
 const CapabilitiesSection: React.FC = () => {
 	return (
-		<section
-			id="capabilities"
-			className="bg-white px-6 py-16 md:py-30 md:px-12"
-		>
-			<div className="mx-auto max-w-7xl">
-				{/* Header */}
-				<div className="mb-12 flex flex-col gap-6 md:mb-20 md:flex-row md:items-end md:justify-between">
-					<div className="max-w-2xl">
-						<h2 className="mb-4 font-black text-4xl tracking-tighter text-black sm:text-5xl md:mb-6 md:text-6xl lg:text-8xl">
-							OUR
-							<br />
-							CAPABILITIES
-						</h2>
-						<p className="text-lg leading-relaxed text-black/70 md:text-xl">
-							Everything you need to run seamless events, all in one platform.
-						</p>
-					</div>
-					<div className="hidden border-b border-black/40 pb-2 font-bold text-sm tracking-widest text-black/40 md:block">
-						01 — 09 / FEATURES
-					</div>
-				</div>
+		<section id="capabilities" className="bg-blue-background py-12 md:py-24">
+			<div className="mx-auto max-w-[1600px] px-4 md:px-8">
+				<div className="flex flex-col lg:flex-row">
+					{/* ------------------- SIDEBAR ------------------- */}
+					<div className="relative flex w-full flex-col border-black border-4 lg:border-0 lg:w-48 lg:border-r-4">
+						{/* Top Thick Line (Accent) */}
+						<div className="h-4 w-32 bg-black" />
 
-				{/* Capabilities Grid */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-					{capabilities.map((capability, i) => {
-						const isBlackCard = i % 2 === 1;
-						return (
-							<motion.div
-								key={i}
-								initial={{ opacity: 0, y: 50 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								whileHover={{
-									y: -12,
-									transition: { duration: 0.3, ease: "easeOut" },
-								}}
-								viewport={{ once: true }}
-								transition={{
-									duration: 0.8,
-									delay: i * 0.05,
-									ease: [0.16, 1, 0.3, 1],
-								}}
-								className={`group relative flex min-h-[220px] flex-col justify-between border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[280px] md:p-10 ${
-									isBlackCard
-										? "border-white/20 bg-black hover:border-white"
-										: "border-black/20 bg-white hover:border-black"
-								}`}
-							>
-								<div className="relative z-10">
-									<span
-										className={`font-bold text-xs tracking-widest ${
-											isBlackCard ? "text-white/40" : "text-black/40"
-										}`}
+						{/* Rotated Text */}
+						<div className="flex h-full items-center justify-center p-6 lg:items-start lg:justify-center lg:p-0 lg:pt-[500px]">
+							<h2 className="whitespace-nowrap font-black text-4xl sm:text-5xl tracking-tighter text-black lg:origin-center lg:-rotate-90 lg:text-8xl xl:text-9xl">
+								OUR SOLUTIONS
+							</h2>
+						</div>
+
+						{/* Diagonal Stripes (Bottom) */}
+						<div className="mt-auto h-32 w-full border-t-4 border-black lg:h-64">
+							<Stripes />
+						</div>
+					</div>
+
+					{/* ------------------- MAIN GRID ------------------- */}
+					<div className="flex-1">
+						{/* Top Border for the whole grid area */}
+						<div className="hidden h-4 w-full border-b-4 border-black lg:block" />
+
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+							{capabilities.map((item, i) => {
+								const isMain = item.isMain;
+								// @ts-ignore
+								const isBlue = item.isBlue;
+
+								// Layout Logic:
+								// Card 01 (Main) spans 2x2
+								// Others are 1x1
+								const spanClass = isMain
+									? "md:col-span-2 md:row-span-2"
+									: "col-span-1 row-span-1";
+
+								// Borders:
+								const borderClass =
+									"border-b-4 border-r-4 border-l-4 lg:border-l-0 border-black";
+
+								// Background Logic
+								const bgClass = isBlue ? "bg-brand-blue" : "bg-white";
+
+								return (
+									<motion.div
+										key={item.id}
+										initial={{ opacity: 0 }}
+										whileInView={{ opacity: 1 }}
+										viewport={{ once: true }}
+										transition={{ delay: i * 0.1, duration: 0.5 }}
+										className={`group relative flex flex-col justify-between p-6 ${bgClass} ${spanClass} ${borderClass}`}
 									>
-										0{i + 1}
-									</span>
-									<h3
-										className={`mt-6 font-black text-2xl leading-tight tracking-tight ${
-											isBlackCard ? "text-white" : "text-black"
-										}`}
-									>
-										{capability.title}
-									</h3>
-								</div>
-								<p
-									className={`relative z-10 text-base leading-relaxed md:text-lg ${
-										isBlackCard ? "text-white/70" : "text-black/70"
-									}`}
-								>
-									{capability.description}
-								</p>
-							</motion.div>
-						);
-					})}
+										{/* --- HEADER PART --- */}
+										<div className="relative z-10 flex items-start justify-between">
+											<div>
+												<span
+													className={`block font-black text-6xl sm:text-7xl tracking-tighter text-black md:text-8xl transition-colors duration-300 ${!isBlue && !isMain ? "group-hover:text-brand-green" : ""}`}
+												>
+													{item.id}
+												</span>
+												<h3 className="mt-2 font-bold text-lg sm:text-xl uppercase leading-none tracking-tight text-black md:text-2xl">
+													{item.title}
+												</h3>
+											</div>
+
+											{/* Technical Label (Top Right) */}
+											<div
+												className={`hidden text-right font-mono text-xs uppercase md:block ${isBlue ? "text-black/60" : "text-gray-500"}`}
+											>
+												{item.subtitle}
+											</div>
+										</div>
+
+										{/* --- SEPARATOR --- */}
+										{!isMain && (
+											<div
+												className={`my-6 h-1 w-full ${isBlue ? "bg-black/20" : "bg-black"}`}
+											/>
+										)}
+
+										{/* --- CONTENT PART --- */}
+										<div className="relative mt-auto">
+											{isMain ? (
+												// Main Card Content (The "Red Block" equivalent)
+												<div className="mt-8 relative h-64 w-full overflow-hidden bg-brand-green md:h-96">
+													{/* Decorative "Cuts" or Shapes */}
+													<div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
+
+													<div className="relative flex h-full flex-col justify-end p-6 md:p-10">
+														<MessageCircle className="mb-4 h-12 w-12 text-white" />
+														<p className="max-w-lg font-bold text-xl sm:text-2xl text-white md:text-4xl leading-tight">
+															{item.description}
+														</p>
+														<div className="mt-6 flex items-center gap-2 font-mono text-sm uppercase text-white/80">
+															<div className="h-2 w-2 bg-white animate-pulse" />
+															Flagship Solution
+														</div>
+													</div>
+												</div>
+											) : (
+												// Standard Card Content
+												<div className="flex flex-col gap-4">
+													<p
+														className={`font-medium text-sm md:text-base leading-relaxed ${isBlue ? "text-black/80" : "text-gray-500"}`}
+													>
+														{item.description}
+													</p>
+
+													{/* Reference Footer */}
+													<div
+														className={`mt-4 flex items-end justify-between border-t pt-4 ${isBlue ? "border-black/10" : "border-gray-200"}`}
+													>
+														<span
+															className={`font-mono text-[10px] uppercase ${isBlue ? "text-black/50" : "text-gray-400"}`}
+														>
+															SOLUTION. {item.id}
+														</span>
+														<ArrowUpRight
+															className={`h-6 w-6 text-black transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 ${!isBlue ? "group-hover:text-brand-green" : ""}`}
+														/>
+													</div>
+												</div>
+											)}
+										</div>
+									</motion.div>
+								);
+							})}
+
+							{/* Filler/Decorative Block to close the grid if needed */}
+							<div className="border-b-4 border-r-4 border-l-4 lg:border-l-0 border-black bg-gray-50 p-6 flex flex-col justify-end">
+								<span className="font-black text-9xl text-brand-blue/20">
+									///
+								</span>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>

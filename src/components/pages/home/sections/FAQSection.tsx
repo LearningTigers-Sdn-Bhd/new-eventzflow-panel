@@ -58,19 +58,19 @@ const FAQSection: React.FC = () => {
 	};
 
 	return (
-		<section id="faq" className="bg-black px-6 py-16 md:py-30 md:px-12">
+		<section id="faq" className="bg-white/20 px-6 py-16 md:py-30 md:px-12 border border-black">
 			<div className="mx-auto max-w-7xl">
 				<div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
 					{/* Left Side - Title */}
 					<div className="lg:col-span-4">
 						<div className="lg:sticky lg:top-40">
-							<h2 className="font-black text-4xl tracking-tighter text-white sm:text-5xl md:text-7xl">
+							<h2 className="font-black text-4xl tracking-tighter text-black sm:text-5xl md:text-7xl">
 								COMMON
 								<br />
 								QUESTIONS.
 							</h2>
-							<div className="my-4 h-1 w-12 bg-white/20 md:my-6" />
-							<p className="text-lg leading-relaxed text-white/70 md:text-xl">
+							<div className="my-4 h-1 w-12 bg-brand-green md:my-6" />
+							<p className="text-lg leading-relaxed text-black/70 md:text-xl">
 								Everything you need to know about EventzFlow. Can't find your
 								answer? Reach out to our team.
 							</p>
@@ -90,27 +90,27 @@ const FAQSection: React.FC = () => {
 									delay: i * 0.05,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`border border-white/10 ${openIndex === i ? "border-white" : "border-b border-white/10"}`}
+								className={`border ${openIndex === i ? "border-brand-green" : "border-black/10"} hover:border-black/30 transition-all duration-200`}
 							>
 								<button
 									type="button"
 									onClick={() => toggleFAQ(i)}
 									aria-expanded={openIndex === i}
 									aria-controls={`faq-answer-${i}`}
-									className="group flex w-full items-start justify-between gap-8 px-6 py-8 text-left transition-colors hover:bg-white/5"
+									className={`group flex w-full items-start justify-between gap-8 bg-white/60 backdrop-blur-sm px-6 py-8 text-left transition-all duration-200 hover:bg-white/80 ${openIndex === i ? "border-b border-black/10" : ""}`}
 								>
 									<div className="flex items-start gap-6">
-										<span className="font-bold text-sm text-white/40">
+										<span className="font-bold text-sm text-brand-green">
 											0{i + 1}
 										</span>
 										<h3
 											id={`faq-question-${i}`}
-											className="font-bold text-lg leading-tight tracking-tight text-white md:text-xl"
+											className="font-bold text-lg leading-tight tracking-tight text-black md:text-xl"
 										>
 											{faq.question}
 										</h3>
 									</div>
-									<div className="mt-1 flex-shrink-0 text-white/50 transition-colors group-hover:text-white">
+									<div className="mt-1 flex-shrink-0 text-black/40 transition-colors group-hover:text-black">
 										{openIndex === i ? (
 											<Minus className="h-5 w-5" />
 										) : (

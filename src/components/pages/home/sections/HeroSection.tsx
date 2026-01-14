@@ -31,7 +31,7 @@ const HeroSection: React.FC = () => {
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
 				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
-				className="absolute left-6 top-0 hidden h-[70%] w-[3px] origin-top bg-white md:block md:left-12 lg:left-16"
+				className="absolute left-6 top-0 hidden h-[70%] w-[3px] origin-top bg-brand-green md:block md:left-12 lg:left-16"
 			/>
 
 			{/* Main content */}
@@ -60,14 +60,11 @@ const HeroSection: React.FC = () => {
 							>
 								END-TO-END,
 								<br />
-								<span
-									className="text-transparent"
-									style={{ WebkitTextStroke: "1px white" }}
-								>
-									AI-POWERED
+								<span className="text-brand-green">
+									SMART
 								</span>
 								<br />
-								EVENT INTELLIGENCE
+								EVENT SOLUTIONS
 							</motion.h1>
 						</div>
 					</div>
@@ -80,20 +77,20 @@ const HeroSection: React.FC = () => {
 							transition={{ duration: 1, delay: 0.7, ease: SMOOTH_EASE }}
 						>
 							{/* Horizontal line */}
-							<div className="mb-6 h-px w-full bg-white/30" />
+							<div className="mb-6 h-px w-full bg-brand-green" />
 
 							{/* Description text */}
 							<p className="text-left text-base leading-relaxed text-white/80 md:text-right lg:text-lg">
 								From visitor booth tracking and QR check-in with instant badge
-								printing, to AI audience profiling and retargeting — EventzFlow
-								connects every part of the event journey.
+								printing, to real-time analytics and seamless exhibitor management
+								— EventzFlow connects every part of your event journey.
 							</p>
 
 							{/* CTA */}
 							<div className="mt-8 flex items-center justify-start gap-6 md:justify-end">
 								<Link
 									href={"/auth?login" as Route}
-									className="inline-block bg-white px-10 py-5 text-base font-bold uppercase tracking-[0.15em] text-black transition-all hover:bg-[#23c460] hover:text-white hover:scale-[1.03]"
+									className="inline-block bg-brand-green px-10 py-5 text-base font-bold uppercase tracking-[0.15em] text-white transition-all hover:bg-brand-green-dark hover:scale-[1.03]"
 								>
 									Get Started
 								</Link>
@@ -112,30 +109,16 @@ const HeroSection: React.FC = () => {
 				className="absolute bottom-0 right-[15%] hidden h-[40%] w-px origin-bottom bg-white/20 lg:block"
 			/>
 
-			{/* Scroll indicator */}
+			{/* Scroll hint */}
 			<motion.div
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				transition={{ delay: 1.5 }}
 				className="absolute bottom-12 left-1/2 -translate-x-1/2"
 			>
-				<motion.div
-					animate={{ y: [0, 8, 0] }}
-					transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-					className="flex flex-col items-center gap-4"
-				>
-					<div className="flex h-10 w-6 items-start justify-center rounded-full border border-white/30 p-2">
-						<motion.div
-							animate={{ y: [0, 8, 0], opacity: [1, 0.3, 1] }}
-							transition={{
-								duration: 1.5,
-								repeat: Infinity,
-								ease: "easeInOut",
-							}}
-							className="h-2 w-1 rounded-full bg-white"
-						/>
-					</div>
-				</motion.div>
+				<span className="text-xs font-medium uppercase tracking-[0.3em] text-white/50">
+					Scroll to explore
+				</span>
 			</motion.div>
 		</section>
 	);

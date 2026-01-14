@@ -429,7 +429,7 @@ export default function FloatingNavNew() {
 							/* CTA Button - Desktop (only when not logged in) */
 							<button
 								onClick={() => router.push("/auth?login")}
-								className="hidden border border-white px-6 py-2.5 text-sm font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] lg:block"
+								className="hidden bg-brand-green px-6 py-2.5 text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-brand-green-dark lg:block"
 							>
 								GET STARTED
 							</button>
@@ -634,7 +634,7 @@ export default function FloatingNavNew() {
 											router.push("/auth?login");
 											setIsOpen(false);
 										}}
-										className="mt-8 w-full border border-white bg-white py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
+										className="mt-8 w-full bg-brand-green py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-brand-green-dark"
 									>
 										GET STARTED
 									</motion.button>

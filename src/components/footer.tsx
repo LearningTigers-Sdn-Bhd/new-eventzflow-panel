@@ -52,8 +52,16 @@ const FooterNew: React.FC = () => {
 			icon: MessageCircle,
 			href: "https://wa.me/60177268130",
 			label: "WhatsApp",
+			activeClass: "border-brand-green bg-brand-green text-black",
+			hoverClass: "hover:bg-brand-green-dark hover:border-brand-green-dark",
 		},
-		{ icon: Mail, href: "mailto:info@eventzflow.com", label: "Email" },
+		{
+			icon: Mail,
+			href: "mailto:info@eventzflow.com",
+			label: "Email",
+			activeClass: "border-brand-blue bg-brand-blue text-black",
+			hoverClass: "hover:bg-brand-blue-dark hover:border-brand-blue-dark",
+		},
 	];
 
 	const scrollToSection = (sectionId: string) => {
@@ -115,7 +123,7 @@ const FooterNew: React.FC = () => {
 										target="_blank"
 										rel="noopener noreferrer"
 										aria-label={social.label}
-										className="group flex h-12 w-12 items-center justify-center border border-white/20 text-white/50 transition-all duration-300 hover:border-[#23c460] hover:bg-[#23c460] hover:text-white"
+										className={`group flex h-12 w-12 items-center justify-center border transition-all duration-300 ${social.activeClass} ${social.hoverClass}`}
 									>
 										<IconComponent className="h-5 w-5" />
 									</a>
