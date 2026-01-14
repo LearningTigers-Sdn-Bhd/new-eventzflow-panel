@@ -109,6 +109,8 @@
 		"typescript": "^5.9.3"
 	},
 	"trustedDependencies": [
-		"@tsparticles/engine"
+		"@tsparticles/engine",
+		"lightningcss",
+		"sharp"
 	]
 }
