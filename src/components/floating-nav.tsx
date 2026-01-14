@@ -626,10 +626,8 @@ export default function FloatingNavNew() {
 										GO TO DASHBOARD
 									</Link>
 								) : (
-									<motion.button
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ duration: 0.3, delay: 0.2 }}
+									<button
+										type="button"
 										onClick={() => {
 											router.push("/auth?login");
 											setIsOpen(false);
@@ -637,7 +635,7 @@ export default function FloatingNavNew() {
 										className="mt-8 w-full bg-brand-green py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-brand-green-dark"
 									>
 										GET STARTED
-									</motion.button>
+									</button>
 								)}
 							</div>
 						</div>
