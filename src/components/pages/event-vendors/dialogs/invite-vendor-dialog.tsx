@@ -52,7 +52,7 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 	// Fetch organizers for org_owner dropdown
 	const { data: teamMembers = [], isLoading: isLoadingOrganizers } = useQuery({
 		queryKey: ["team_members"],
-		queryFn: getTeamMembers,
+		queryFn: () => getTeamMembers(),
 		enabled: open && isOrgOwner,
 	});
 

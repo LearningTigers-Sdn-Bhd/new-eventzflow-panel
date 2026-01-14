@@ -74,9 +74,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 	// Fetch team members for event admin selection (only members with role "member")
 	// Only fetch if user is org_owner
-	const { data: teamMembers = [], isLoading: isLoadingUsers } = useQuery({
-		queryKey: ["team-members"],
-		queryFn: getTeamMembers,
+	const { data: teamMembers = [], isLoading: isLoadingOrganizers } = useQuery({
+		queryKey: ["team_members"],
+		queryFn: () => getTeamMembers(),
 		enabled: canAssignEventAdmin,
 	});
 
@@ -238,15 +238,15 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 												errors={field.state.meta.errors}
 												isInvalid={isInvalid}
 												placeholder={
-													isLoadingUsers
+													isLoadingOrganizers
 														? "Loading users..."
 														: "Select event admin (optional)"
 												}
 												disabled={
-													createEventMutation.isPending || isLoadingUsers
+													createEventMutation.isPending || isLoadingOrganizers
 												}
 												emptyMessage={
-													isLoadingUsers
+													isLoadingOrganizers
 														? "Loading members..."
 														: "No active members available"
 												}

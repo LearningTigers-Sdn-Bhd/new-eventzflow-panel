@@ -1,18 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { use, useEffect, useMemo, useRef, useState } from "react";
-
-// Register GSAP plugin
-if (typeof window !== "undefined") {
-	gsap.registerPlugin(ScrollTrigger);
-}
+import { use, useMemo } from "react";
 
 import { IconHeading } from "@/components/admin-ui/icon-heading";
+import {
+	MobileStickyHeader,
+	MobileStickyHeaderContent,
+	MobileStickyHeaderIcon,
+	MobileStickyHeaderMain,
+	MobileStickyHeaderNav,
+	MobileStickyHeaderRow,
+	MobileStickyHeaderTitle,
+} from "@/components/admin-ui/layout/mobile-sticky-header";
 import { routeMenuMap } from "@/components/admin-ui/sidebar/event-menu-config";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -39,29 +41,6 @@ function EventActionsSlot() {
 	return actions ? (
 		<div className="flex items-center gap-3">{actions}</div>
 	) : null;
-}
-
-// MobileNavigationMenu - shows current menu label and sidebar trigger on mobile
-function MobileNavigationMenu({
-	currentMenuLabel,
-}: {
-	currentMenuLabel: string;
-}) {
-	const { toggleSidebar } = useSidebar();
-
-	return (
-		<button
-			type="button"
-			onClick={toggleSidebar}
-			className="flex items-center justify-between gap-4 rounded-none border bg-muted px-4 py-2"
-		>
-			<span className="font-semibold text-sm">{currentMenuLabel}</span>
-			<div className="py-2">
-				<Menu className="size-5" />
-				<span className="sr-only">Open Event Navigation</span>
-			</div>
-		</button>
-	);
 }
 
 function AvatarIcon({ title }: { title: string }) {
@@ -106,125 +85,6 @@ function EventBadges({ status, use_ticket }: EventBadgesProps) {
 			>
 				{use_ticket ? "Ticket Event" : "Visitor Event"}
 			</Badge>
-		</>
-	);
-}
-
-interface MobileEventHeaderProps {
-	currentEvent: {
-		title: string;
-		status: "draft" | "published" | "cancelled" | "completed";
-		use_ticket: boolean;
-	};
-	currentMenuTitle: string;
-}
-
-function MobileEventHeader({
-	currentEvent,
-	currentMenuTitle,
-}: MobileEventHeaderProps) {
-	const headerRef = useRef<HTMLDivElement>(null);
-	const detailsRef = useRef<HTMLDivElement>(null);
-	const descriptionRef = useRef<HTMLDivElement>(null);
-	const [isSticky, setIsSticky] = useState(false);
-
-	useEffect(() => {
-		const ctx = gsap.context(() => {
-			ScrollTrigger.create({
-				trigger: headerRef.current,
-				start: "top top-=50px",
-				onEnter: () => {
-					setIsSticky(true);
-					// Only animate the smooth transitions, let CSS handle positioning
-					gsap.to(descriptionRef.current, {
-						height: 0,
-						opacity: 0,
-						duration: 0.25,
-						ease: "power2.out",
-					});
-					gsap.to(detailsRef.current, {
-						paddingTop: "0.5rem",
-						paddingBottom: "0.5rem",
-						duration: 0.25,
-						ease: "power2.out",
-					});
-				},
-				onLeaveBack: () => {
-					setIsSticky(false);
-					// Reverse animations
-					gsap.to(descriptionRef.current, {
-						height: "auto",
-						opacity: 1,
-						duration: 0.25,
-						ease: "power2.in",
-					});
-					gsap.to(detailsRef.current, {
-						paddingTop: "0.5rem",
-						paddingBottom: "2rem",
-						duration: 0.25,
-						ease: "power2.in",
-					});
-				},
-			});
-		});
-
-		return () => ctx.revert(); // Cleanup
-	}, []);
-
-	return (
-		<>
-			{/* Placeholder div to prevent layout jump when header becomes fixed */}
-			{isSticky && <div className="h-40" />}
-			{/* When scrolling, the change div into absolute top-0, w-screen, -mt-4 */}
-			<div
-				ref={headerRef}
-				className={cn(
-					"flex flex-col",
-					isSticky
-						? "fixed top-0 left-0 z-50 -mt-4 w-screen pt-4 shadow-sm"
-						: "relative w-full",
-				)}
-			>
-				<div
-					ref={detailsRef}
-					className={cn(
-						"flex w-full flex-col items-start gap-2 rounded-none border bg-muted px-4 transition-all duration-300",
-						isSticky ? "pt-2 pb-2" : "pt-2 pb-8",
-					)}
-				>
-					<div className="flex h-full items-center gap-4">
-						<AvatarIcon title={currentEvent.title} />
-						{/* When scrolling, the title should be truncated */}
-						<h3
-							className={cn(
-								"text-balance font-bold text-lg tracking-tight md:text-xl",
-								isSticky && "line-clamp-1",
-							)}
-						>
-							{currentEvent.title}
-						</h3>
-					</div>
-					{/* When scrolling, dont render this div */}
-					<div
-						ref={descriptionRef}
-						className={cn(
-							"flex w-full flex-col gap-2 overflow-hidden transition-all duration-300",
-							isSticky && "hidden",
-						)}
-					>
-						<p className="text-muted-foreground text-sm md:text-base">
-							{`Manage current event details, team members and vendors, and ${currentEvent.use_ticket ? "tickets" : "visitors"}.`}
-						</p>
-						<div className="flex items-center gap-2">
-							<EventBadges
-								status={currentEvent.status}
-								use_ticket={currentEvent.use_ticket}
-							/>
-						</div>
-					</div>
-				</div>
-				<MobileNavigationMenu currentMenuLabel={currentMenuTitle} />
-			</div>
 		</>
 	);
 }
@@ -276,9 +136,7 @@ function EventDetailLayoutContent({
 		queryKey: ["events"],
 		queryFn: () => getEvents(),
 	});
-	const currentEvent = events?.find(
-		(event) => event.id.toString() === eventId,
-	);
+	const currentEvent = events?.find((event) => event.id.toString() === eventId);
 
 	// Get event permissions for the current user
 	const permissions = useEventPermissions(eventId, currentEvent);
@@ -368,10 +226,31 @@ function EventDetailLayoutContent({
 						)}
 					</div>
 				) : currentEvent ? (
-					<MobileEventHeader
-						currentEvent={currentEvent}
-						currentMenuTitle={currentMenuTitle}
-					/>
+					<MobileStickyHeader>
+						<MobileStickyHeaderMain>
+							<MobileStickyHeaderRow>
+								<MobileStickyHeaderIcon
+									icon={<AvatarIcon title={currentEvent.title} />}
+								/>
+								<MobileStickyHeaderTitle>
+									{currentEvent.title}
+								</MobileStickyHeaderTitle>
+							</MobileStickyHeaderRow>
+
+							<MobileStickyHeaderContent>
+								<p className="text-muted-foreground text-sm md:text-base">
+									{`Manage current event details, team members and vendors, and ${currentEvent.use_ticket ? "tickets" : "visitors"}.`}
+								</p>
+								<div className="flex items-center gap-2">
+									<EventBadges
+										status={currentEvent.status}
+										use_ticket={currentEvent.use_ticket}
+									/>
+								</div>
+							</MobileStickyHeaderContent>
+						</MobileStickyHeaderMain>
+						<MobileStickyHeaderNav label={currentMenuTitle} />
+					</MobileStickyHeader>
 				) : null}
 			</div>
 

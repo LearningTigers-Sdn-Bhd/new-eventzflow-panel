@@ -2,14 +2,14 @@
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { AuthMainWrapper } from "@/components/admin-ui/layout/auth-main-wrapper";
 import LoadingPage from "@/components/admin-ui/loading-page";
 import { AppSidebar } from "@/components/admin-ui/sidebar/app-sidebar";
 import { EventSidebar } from "@/components/admin-ui/sidebar/event-sidebar";
-import { Separator } from "@/components/ui/separator";
+import { ResourceSidebar } from "@/components/admin-ui/sidebar/resource-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
 interface NoSidebarRoute {
@@ -46,20 +46,22 @@ export default function AuthLayoutClient({
 		return pathname.startsWith("/event/") && pathname !== "/event";
 	}, [pathname]);
 
+	// Detect if we're on a resource route
+	const isResourceRoute = useMemo(() => {
+		return pathname.startsWith("/manage-resources/") && pathname !== "/manage-resources";
+	}, [pathname]);
+
 	// Extract event_id from pathname
 	const eventId = useMemo(() => {
 		if (!isEventRoute) return null;
-		const match = pathname.match(/^\/event\/([^/]+)/);
-		return match ? match[1] : null;
+		const pathSegments = pathname.split("/"); // e.g., /event/abc -> ["", "event", "abc"]
+		const potentialEventId = pathSegments[2];
+		return potentialEventId || null;
 	}, [pathname, isEventRoute]);
 
-	// Calculate left offset for event sidebar based on main sidebar state
-	// Main sidebar uses collapsible="icon", so:
-	// - When open: 16rem (256px) - expanded width
-	// - When closed: 3rem (48px) - icon width
-	const eventSidebarLeftOffset = useMemo(() => {
+	// Calculate left offset for nested sidebar based on main sidebar state
+	const nestedSidebarLeftOffset = useMemo(() => {
 		if (isTablet) return 0; // No offset on tablet/mobile
-		// Convert rem to pixels: 16rem = 256px, 3rem = 48px
 		return isMainSidebarOpen ? "16rem" : "3rem";
 	}, [isMainSidebarOpen, isTablet]);
 
@@ -138,7 +140,6 @@ export default function AuthLayoutClient({
 				>
 					<AppSidebar />
 					<SidebarInset>
-						{/* Nested SidebarProvider for event sidebar when on event routes */}
 						{isEventRoute && eventId ? (
 							<SidebarProvider
 								open={isEventSidebarOpen}
@@ -146,102 +147,24 @@ export default function AuthLayoutClient({
 							>
 								<EventSidebar
 									eventId={eventId}
-									leftOffset={eventSidebarLeftOffset}
+									leftOffset={nestedSidebarLeftOffset}
 								/>
 								<SidebarInset>
-									{!isTablet && (
-										<header className="flex h-12 flex-row items-center justify-between gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-											<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-												<Separator
-													orientation="vertical"
-													className="data-[orientation=vertical]:h-12"
-												/>
-											</div>
-											<div className="flex items-center gap-2 px-4" />
-											<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-												<Separator
-													orientation="vertical"
-													className="data-[orientation=vertical]:h-12"
-												/>
-											</div>
-										</header>
-									)}
-									<div
-										className={cn("mx-auto w-full px-12", isTablet && "px-4")}
-									>
-										<div
-											className={cn(
-												"min-h-[calc(100vh-48px)] w-full",
-												isTablet ? "pb-24" : "border-x border-dashed",
-											)}
-										>
-											<div className="w-full">{children}</div>
-										</div>
-									</div>
-									{!isTablet && (
-										<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-											<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-												<Separator
-													orientation="vertical"
-													className="data-[orientation=vertical]:h-12"
-												/>
-											</div>
-											<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-												<Separator
-													orientation="vertical"
-													className="data-[orientation=vertical]:h-12"
-												/>
-											</div>
-										</footer>
-									)}
+									<AuthMainWrapper>{children}</AuthMainWrapper>
+								</SidebarInset>
+							</SidebarProvider>
+						) : isResourceRoute ? (
+							<SidebarProvider
+								open={isEventSidebarOpen}
+								onOpenChange={setEventSidebarOpen}
+							>
+								<ResourceSidebar leftOffset={nestedSidebarLeftOffset} />
+								<SidebarInset>
+									<AuthMainWrapper>{children}</AuthMainWrapper>
 								</SidebarInset>
 							</SidebarProvider>
 						) : (
-							<>
-								{!isTablet && (
-									<header className="flex h-12 flex-row items-center justify-between gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-										<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-											<Separator
-												orientation="vertical"
-												className="data-[orientation=vertical]:h-12"
-											/>
-										</div>
-										<div className="flex items-center gap-2 px-4" />
-										<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-											<Separator
-												orientation="vertical"
-												className="data-[orientation=vertical]:h-12"
-											/>
-										</div>
-									</header>
-								)}
-								<div className={cn("mx-auto w-full px-12", isTablet && "px-4")}>
-									<div
-										className={cn(
-											"min-h-[calc(100vh-48px)] w-full",
-											isTablet ? "pb-24" : "border-x border-dashed pb-12",
-										)}
-									>
-										<div className="w-full">{children}</div>
-									</div>
-								</div>
-								{!isTablet && (
-									<footer className="flex h-12 flex-row items-center justify-between gap-2 border-t transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-										<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-											<Separator
-												orientation="vertical"
-												className="data-[orientation=vertical]:h-12"
-											/>
-										</div>
-										<div className="flex flex-row items-stretch justify-start gap-2 px-12">
-											<Separator
-												orientation="vertical"
-												className="data-[orientation=vertical]:h-12"
-											/>
-										</div>
-									</footer>
-								)}
-							</>
+							<AuthMainWrapper>{children}</AuthMainWrapper>
 						)}
 					</SidebarInset>
 				</SidebarProvider>

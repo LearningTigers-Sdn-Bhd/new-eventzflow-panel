@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
+import { getPublicResources } from "@/lib/api/resource/endpoints";
+import { getResourceTopics } from "@/lib/api/resource/topic/endpoints";
 
-export default function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = "https://eventzflow.com";
 
-	const staticPages = [
+	const staticPages: MetadataRoute.Sitemap = [
 		{
 			url: baseUrl,
 			lastModified: new Date(),
@@ -34,7 +36,46 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
 			changeFrequency: "yearly",
 			priority: 0.3,
 		},
+		{
+			url: `${baseUrl}/resources`,
+			lastModified: new Date(),
+			changeFrequency: "daily",
+			priority: 0.9,
+		},
 	];
 
-	return Promise.resolve([...staticPages] as MetadataRoute.Sitemap);
+	try {
+		// Fetch all published resources (limit to reasonable number for sitemap)
+		const resourcesResponse = await getPublicResources({
+			page: 1,
+			perPage: 1000, // Adjust based on your needs
+		});
+
+		// Add individual resource pages
+		const resourcePages: MetadataRoute.Sitemap = resourcesResponse.data.map(
+			(resource) => ({
+				url: `${baseUrl}/resources/${resource.slug}`,
+				lastModified: new Date(resource.updatedAt),
+				changeFrequency: "monthly",
+				priority: 0.7,
+			}),
+		);
+
+		// Fetch all topics and add topic browsing pages
+		const topicsResponse = await getResourceTopics({ filter: "active" });
+		const topicPages: MetadataRoute.Sitemap = topicsResponse.data.map(
+			(topic) => ({
+				url: `${baseUrl}/resources/topics/${topic.slug}`,
+				lastModified: new Date(),
+				changeFrequency: "weekly",
+				priority: 0.8,
+			}),
+		);
+
+		return [...staticPages, ...resourcePages, ...topicPages];
+	} catch (error) {
+		console.error("Error generating sitemap:", error);
+		// Return static pages if dynamic content fetch fails
+		return staticPages;
+	}
 }

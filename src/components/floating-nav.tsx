@@ -11,6 +11,7 @@ import {
 	HelpCircle,
 	LayoutDashboard,
 	LogOut,
+	type LucideIcon,
 	Menu,
 	Printer,
 	Settings,
@@ -18,7 +19,6 @@ import {
 	Store,
 	Users,
 	X,
-	type LucideIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -173,7 +173,7 @@ export default function FloatingNavNew() {
 
 	const resources: NavResource[] = [
 		{ icon: HelpCircle, label: "FAQs", href: "/#faq", isScrollLink: true },
-		{ icon: BookOpen, label: "Blog", href: "/blog" },
+		{ icon: BookOpen, label: "Resources Center", href: "/resources" },
 	];
 
 	return (
@@ -184,13 +184,14 @@ export default function FloatingNavNew() {
 				transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 				className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${
 					scrolled
-						? "bg-black/95 backdrop-blur-xl shadow-2xl"
+						? "bg-black/95 shadow-2xl backdrop-blur-xl"
 						: "bg-transparent"
 				}`}
 			>
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-12">
 					{/* Logo */}
 					<button
+						type="button"
 						onClick={scrollToTop}
 						className="group flex items-center transition-all duration-300"
 					>
@@ -231,7 +232,7 @@ export default function FloatingNavNew() {
 								aria-controls="services-menu"
 								aria-haspopup="true"
 								onClick={() => setServicesOpen((prev) => !prev)}
-								className="flex items-center gap-1 px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
+								className="flex items-center gap-1 px-5 py-2 font-medium text-sm text-white/70 tracking-widest transition-all duration-300 hover:text-white"
 							>
 								SERVICES
 								<ChevronDown
@@ -249,9 +250,9 @@ export default function FloatingNavNew() {
 										animate={{ opacity: 1, y: 0 }}
 										exit={{ opacity: 0, y: 10 }}
 										transition={{ duration: 0.2 }}
-										className="absolute left-1/2 top-full -translate-x-1/2 pt-2"
+										className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
 									>
-										<div className="w-[550px] border border-white/10 bg-black/95 backdrop-blur-xl p-6">
+										<div className="w-[550px] border border-white/10 bg-black/95 p-6 backdrop-blur-xl">
 											<div className="grid grid-cols-2 gap-3">
 												{services.map((service, index) => {
 													const IconComponent = service.icon;
@@ -266,7 +267,7 @@ export default function FloatingNavNew() {
 																<IconComponent className="h-4 w-4" />
 															</div>
 															<div>
-																<p className="text-sm font-medium text-white/80 transition-colors duration-200 group-hover:text-black">
+																<p className="font-medium text-sm text-white/80 transition-colors duration-200 group-hover:text-black">
 																	{service.label}
 																</p>
 																<p className="text-sm text-white/60 transition-colors duration-200 group-hover:text-black/70">
@@ -308,7 +309,7 @@ export default function FloatingNavNew() {
 								aria-controls="resources-menu"
 								aria-haspopup="true"
 								onClick={() => setResourcesOpen((prev) => !prev)}
-								className="flex items-center gap-1 px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
+								className="flex items-center gap-1 px-5 py-2 font-medium text-sm text-white/70 tracking-widest transition-all duration-300 hover:text-white"
 							>
 								RESOURCES
 								<ChevronDown
@@ -325,9 +326,9 @@ export default function FloatingNavNew() {
 										animate={{ opacity: 1, y: 0 }}
 										exit={{ opacity: 0, y: 10 }}
 										transition={{ duration: 0.2 }}
-										className="absolute left-1/2 top-full -translate-x-1/2 pt-2"
+										className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
 									>
-										<div className="w-[200px] border border-white/10 bg-black/95 backdrop-blur-xl p-3">
+										<div className="w-[200px] border border-white/10 bg-black/95 p-3 backdrop-blur-xl">
 											<div className="flex flex-col gap-1">
 												{resources.map((resource, index) => {
 													const IconComponent = resource.icon;
@@ -339,7 +340,7 @@ export default function FloatingNavNew() {
 															className="group flex items-center gap-3 p-3 text-left transition-all duration-200 hover:bg-white"
 														>
 															<IconComponent className="h-4 w-4 text-white/50 transition-colors duration-200 group-hover:text-black" />
-															<span className="text-sm font-medium text-white/80 transition-colors duration-200 group-hover:text-black">
+															<span className="font-medium text-sm text-white/80 transition-colors duration-200 group-hover:text-black">
 																{resource.label}
 															</span>
 														</Link>
@@ -355,7 +356,7 @@ export default function FloatingNavNew() {
 						{/* About Us */}
 						<Link
 							href="/about"
-							className="relative px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
+							className="relative px-5 py-2 font-medium text-sm text-white/70 tracking-widest transition-all duration-300 hover:text-white"
 						>
 							ABOUT US
 						</Link>
@@ -363,7 +364,7 @@ export default function FloatingNavNew() {
 						{/* Contact Us */}
 						<Link
 							href="/contact"
-							className="relative px-5 py-2 text-sm font-medium tracking-widest text-white/70 transition-all duration-300 hover:text-white"
+							className="relative px-5 py-2 font-medium text-sm text-white/70 tracking-widest transition-all duration-300 hover:text-white"
 						>
 							CONTACT US
 						</Link>
@@ -375,9 +376,12 @@ export default function FloatingNavNew() {
 							/* User Dropdown */
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
-									<button className="flex items-center gap-3 px-2 py-1 transition-all duration-300 hover:opacity-80">
+									<button
+										type="button"
+										className="flex items-center gap-3 px-2 py-1 transition-all duration-300 hover:opacity-80"
+									>
 										<Avatar className="h-8 w-8 border border-white/30">
-											<AvatarFallback className="bg-white text-black text-sm font-bold">
+											<AvatarFallback className="bg-white font-bold text-black text-sm">
 												{user.full_name?.charAt(0)?.toUpperCase() ||
 													user.email.charAt(0).toUpperCase()}
 											</AvatarFallback>
@@ -388,7 +392,7 @@ export default function FloatingNavNew() {
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent
-									className="bg-card rounded-none"
+									className="rounded-none bg-card"
 									side="bottom"
 									align="end"
 								>
@@ -428,8 +432,9 @@ export default function FloatingNavNew() {
 						) : (
 							/* CTA Button - Desktop (only when not logged in) */
 							<button
+								type="button"
 								onClick={() => router.push("/auth?login")}
-								className="hidden bg-brand-green px-6 py-2.5 text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-brand-green-dark lg:block"
+								className="hidden bg-brand-green px-6 py-2.5 font-bold text-black text-sm tracking-widest transition-all duration-300 hover:bg-brand-green-dark lg:block"
 							>
 								GET STARTED
 							</button>
@@ -437,6 +442,7 @@ export default function FloatingNavNew() {
 
 						{/* Mobile Menu Button */}
 						<button
+							type="button"
 							onClick={() => setIsOpen(!isOpen)}
 							className="flex h-10 w-10 items-center justify-center border border-white/30 text-white transition-all duration-300 hover:border-white lg:hidden"
 						>
@@ -451,7 +457,7 @@ export default function FloatingNavNew() {
 
 				{/* Subtle bottom line when scrolled */}
 				<div
-					className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transition-opacity duration-500 ${
+					className={`absolute right-0 bottom-0 left-0 h-px bg-linear-to-r from-transparent via-white/20 to-transparent transition-opacity duration-500 ${
 						scrolled ? "opacity-100" : "opacity-0"
 					}`}
 				/>
@@ -467,7 +473,7 @@ export default function FloatingNavNew() {
 						transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
 						className="fixed top-[73px] right-0 left-0 z-40 overflow-hidden bg-black/98 backdrop-blur-xl lg:hidden"
 					>
-						<div className="border-t border-white/10">
+						<div className="border-white/10 border-t">
 							<div className="mx-auto max-w-7xl px-6 py-8">
 								{/* Mobile Services Section - Expandable */}
 								<div className="mb-2">
@@ -478,9 +484,9 @@ export default function FloatingNavNew() {
 										aria-controls="mobile-services-menu"
 										aria-haspopup="true"
 										onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-										className="group flex items-center justify-between border-b border-white/10 py-4 text-left w-full"
+										className="group flex w-full items-center justify-between border-white/10 border-b py-4 text-left"
 									>
-										<span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
+										<span className="font-medium text-sm text-white/60 tracking-widest transition-colors duration-200 group-hover:text-white">
 											SERVICES
 										</span>
 										<ChevronDown
@@ -519,13 +525,13 @@ export default function FloatingNavNew() {
 																		setIsOpen(false);
 																		setMobileServicesOpen(false);
 																	}}
-																	className="group flex items-center gap-3 py-3 border-b border-white/5"
+																	className="group flex items-center gap-3 border-white/5 border-b py-3"
 																>
 																	<div className="flex h-8 w-8 shrink-0 items-center justify-center border border-white/20 text-white/50 transition-all duration-200 group-hover:border-white group-hover:text-white">
 																		<IconComponent className="h-4 w-4" />
 																	</div>
 																	<div>
-																		<p className="text-sm font-medium text-white/70 transition-colors duration-200 group-hover:text-white">
+																		<p className="font-medium text-sm text-white/70 transition-colors duration-200 group-hover:text-white">
 																			{service.label}
 																		</p>
 																		<p className="text-sm text-white/60">
@@ -556,9 +562,9 @@ export default function FloatingNavNew() {
 												scrollToSection("faq");
 												setIsOpen(false);
 											}}
-											className="group flex w-full items-center justify-between border-b border-white/10 py-4 text-left"
+											className="group flex w-full items-center justify-between border-white/10 border-b py-4 text-left"
 										>
-											<span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
+											<span className="font-medium text-sm text-white/60 tracking-widest transition-colors duration-200 group-hover:text-white">
 												FAQS
 											</span>
 										</button>
@@ -571,12 +577,12 @@ export default function FloatingNavNew() {
 										transition={{ duration: 0.3, delay: 0.05 }}
 									>
 										<Link
-											href="/blog"
+											href="/resources"
 											onClick={() => setIsOpen(false)}
-											className="group flex items-center justify-between border-b border-white/10 py-4 text-left"
+											className="group flex items-center justify-between border-white/10 border-b py-4 text-left"
 										>
-											<span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
-												BLOG
+											<span className="font-medium text-sm text-white/60 tracking-widest transition-colors duration-200 group-hover:text-white">
+												RESOURCES
 											</span>
 										</Link>
 									</motion.div>
@@ -590,9 +596,9 @@ export default function FloatingNavNew() {
 										<Link
 											href="/about"
 											onClick={() => setIsOpen(false)}
-											className="group flex items-center justify-between border-b border-white/10 py-4 text-left"
+											className="group flex items-center justify-between border-white/10 border-b py-4 text-left"
 										>
-											<span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
+											<span className="font-medium text-sm text-white/60 tracking-widest transition-colors duration-200 group-hover:text-white">
 												ABOUT US
 											</span>
 										</Link>
@@ -607,9 +613,9 @@ export default function FloatingNavNew() {
 										<Link
 											href="/contact"
 											onClick={() => setIsOpen(false)}
-											className="group flex items-center justify-between border-b border-white/10 py-4 text-left"
+											className="group flex items-center justify-between border-white/10 border-b py-4 text-left"
 										>
-											<span className="text-sm font-medium tracking-widest text-white/60 transition-colors duration-200 group-hover:text-white">
+											<span className="font-medium text-sm text-white/60 tracking-widest transition-colors duration-200 group-hover:text-white">
 												CONTACT US
 											</span>
 										</Link>
@@ -621,7 +627,7 @@ export default function FloatingNavNew() {
 									<Link
 										href="/dashboard"
 										onClick={() => setIsOpen(false)}
-										className="mt-8 block w-full border border-white bg-white py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-transparent hover:text-white"
+										className="mt-8 block w-full border border-white bg-white py-4 text-center font-bold text-black text-sm tracking-widest transition-all duration-300 hover:bg-transparent hover:text-white"
 									>
 										GO TO DASHBOARD
 									</Link>
@@ -632,7 +638,7 @@ export default function FloatingNavNew() {
 											router.push("/auth?login");
 											setIsOpen(false);
 										}}
-										className="mt-8 w-full bg-brand-green py-4 text-center text-sm font-bold tracking-widest text-black transition-all duration-300 hover:bg-brand-green-dark"
+										className="mt-8 w-full bg-brand-green py-4 text-center font-bold text-black text-sm tracking-widest transition-all duration-300 hover:bg-brand-green-dark"
 									>
 										GET STARTED
 									</button>

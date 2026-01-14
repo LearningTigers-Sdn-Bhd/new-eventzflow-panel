@@ -1,8 +1,8 @@
 "use client";
 
 import { redirect, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useEffect, useState } from "react";
 import FloatingNav from "@/components/floating-nav";
 import Footer from "@/components/footer";
 import LoadingScreen, {
@@ -28,7 +28,8 @@ export default function PublicLayout({
 		pathname.startsWith("/blog") ||
 		pathname.startsWith("/contact") ||
 		pathname === "/privacy-policy" ||
-		pathname === "/terms-and-conditions";
+		pathname === "/terms-and-conditions" ||
+		pathname.startsWith("/resources");
 
 	// Pages where nav should be hidden
 	const isNavHidden =
