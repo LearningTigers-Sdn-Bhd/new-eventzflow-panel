@@ -18,12 +18,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2 # Updated to v2
         with:
           bun-version: latest
 
       - name: Install dependencies
+        # Force bun to respect the platform-specific binaries for the runner
         run: bun install --frozen-lockfile
+
+      - name: Add missing native binary (If rebuild fails)
+        # This acts as a fallback specifically for the lightningcss error
+        run: bun add lightningcss-linux-x64-gnu
 
       - name: Type check
         run: bunx tsc --noEmit
