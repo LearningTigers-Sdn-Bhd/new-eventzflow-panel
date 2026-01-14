@@ -52,6 +52,7 @@ export function BaseTable<TData>({
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
+									const isSticky = !!header.column.columnDef.meta?.sticky;
 									return (
 										<TableHead
 											key={header.id}
@@ -62,14 +63,22 @@ export function BaseTable<TData>({
 													"sticky left-0 z-10 bg-background",
 												header.column.columnDef.meta?.sticky === "right" &&
 													"sticky right-0 z-10 bg-background",
+												isSticky && "p-0",
 											)}
 										>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
+											<div
+												className={cn(
+													"flex items-center",
+													isSticky && "h-full w-full px-4",
+												)}
+											>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext(),
+														)}
+											</div>
 										</TableHead>
 									);
 								})}
@@ -88,40 +97,51 @@ export function BaseTable<TData>({
 											: undefined
 									}
 									className={cn(
+										"group transition-colors hover:bg-muted/50",
 										clickableRowConfig?.isEnabled
-											? "group cursor-pointer"
+											? "cursor-pointer"
 											: undefined,
-										"hover:bg-muted/50",
 									)}
 								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell
-											key={cell.id}
-											style={{ width: `${cell.column.getSize()}px` }}
-											className={cn(
-												table.getVisibleLeafColumns()[0]?.id ===
-													cell.column.id && "ps-4",
-												cell.column.columnDef.meta?.sticky === "left" &&
-													"sticky left-0 z-10 bg-background",
-												cell.column.columnDef.meta?.sticky === "right" &&
-													"sticky right-0 z-10 bg-background",
-											)}
-											onClick={(e) => {
-												if (
-													clickableRowConfig?.excludeRowClickColumns?.includes(
-														cell.column.id,
-													)
-												) {
-													e.stopPropagation();
-												}
-											}}
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
+									{row.getVisibleCells().map((cell) => {
+										const isSticky = !!cell.column.columnDef.meta?.sticky;
+										return (
+											<TableCell
+												key={cell.id}
+												style={{ width: `${cell.column.getSize()}px` }}
+												className={cn(
+													table.getVisibleLeafColumns()[0]?.id ===
+														cell.column.id && "ps-4",
+													cell.column.columnDef.meta?.sticky === "left" &&
+														"sticky left-0 z-10 bg-background group-hover:bg-muted/50",
+													cell.column.columnDef.meta?.sticky === "right" &&
+														"sticky right-0 z-10 bg-background group-hover:bg-muted/50",
+													isSticky && "p-0",
+												)}
+												onClick={(e) => {
+													if (
+														clickableRowConfig?.excludeRowClickColumns?.includes(
+															cell.column.id,
+														)
+													) {
+														e.stopPropagation();
+													}
+												}}
+											>
+												<div
+													className={cn(
+														"flex items-center",
+														isSticky && "h-full w-full px-4",
+													)}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</div>
+											</TableCell>
+										);
+									})}
 								</TableRow>
 							))
 						) : (

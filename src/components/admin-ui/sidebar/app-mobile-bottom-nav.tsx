@@ -31,15 +31,21 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { useUserPermissions } from "@/hooks/use-user-permissions";
 import { getContractor } from "@/lib/api/contractor";
 import { cn } from "@/lib/utils";
-import { getMobileNavigation, type UserRole, type UserPermissions } from "./app-menu-config";
+import {
+	getMobileNavigation,
+	type UserPermissions,
+	type UserRole,
+} from "./app-menu-config";
 
 export function AppMobileBottomNav() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
+	const { permissions: resourcePermissions } = useUserPermissions();
 
 	// Fetch contractor profile for exhibition_contractor users
 	const isContractor = user?.role === "exhibition_contractor";
@@ -49,10 +55,16 @@ export function AppMobileBottomNav() {
 		enabled: !!user?.id && isContractor,
 	});
 
-	// Build permissions object from contractor profile
-	const permissions: UserPermissions | undefined = isContractor && contractor
-		? { allow_printing_services: contractor.exhibition_contractor_profile?.allow_printing_services }
-		: undefined;
+	// Build permissions object from contractor profile and resource permissions
+	const permissions: UserPermissions | undefined = {
+		...(isContractor && contractor
+			? {
+					allow_printing_services:
+						contractor.exhibition_contractor_profile?.allow_printing_services,
+				}
+			: {}),
+		...resourcePermissions,
+	};
 
 	const handleLogout = async () => {
 		await logout();
@@ -233,6 +245,8 @@ export function AppMobileBottomNav() {
 									</div>
 								</div>
 							)}
+
+
 
 							{mobileNav.miscellaneous.length > 0 && (
 								<div className="flex flex-col gap-2">

@@ -66,6 +66,9 @@ export function VendorSignupForm({
 	// Team members state for exhibitor kit
 	const [teamMembers, setTeamMembers] = useState<{ full_name: string }[]>([]);
 
+	// Vendor profile image state
+	const [profileImage, setProfileImage] = useState<File | null>(null);
+
 	const registerMutation = useMutation({
 		mutationFn: registerInvitedVendor,
 		onSuccess: (response) => {
@@ -119,7 +122,11 @@ export function VendorSignupForm({
 			// Exhibitor kit fields
 			booth_number: "",
 			booth_type: "",
+			booth_dimensions: "",
+			side_wall_left_required: false,
+			side_wall_right_required: false,
 			name_on_fascia: "",
+			fascia_upgrade_required: false,
 			company_name: "",
 			company_address: "",
 			pic_full_name: "",
@@ -155,10 +162,16 @@ export function VendorSignupForm({
 				vendor_profile: {
 					description: value.vendor_description || undefined,
 					category: finalCategory || undefined,
-					person_in_charge: value.person_in_charge || undefined,
-					address: value.vendor_address || undefined,
+					// Use exhibitor kit's PIC name and company address if available, otherwise use form values
+					person_in_charge: useExhibitorKit
+						? value.pic_full_name || value.person_in_charge || undefined
+						: value.person_in_charge || undefined,
+					address: useExhibitorKit
+						? value.company_address || value.vendor_address || undefined
+						: value.vendor_address || undefined,
 					notes: value.vendor_notes || undefined,
 					company_profile: value.company_profile || undefined,
+					image: profileImage || undefined,
 				},
 				event_vendor: {
 					redirect_url: value.redirect_url || undefined,
@@ -172,7 +185,11 @@ export function VendorSignupForm({
 							| "shell_scheme"
 							| "raw_space"
 							| undefined,
+						booth_dimensions: value.booth_dimensions || undefined,
+						side_wall_left_required: value.side_wall_left_required || undefined,
+						side_wall_right_required: value.side_wall_right_required || undefined,
 						name_on_fascia: value.name_on_fascia || undefined,
+						fascia_upgrade_required: value.fascia_upgrade_required || undefined,
 						company_name: value.company_name || undefined,
 						company_address: value.company_address || undefined,
 						pic_full_name: value.pic_full_name,
@@ -196,7 +213,7 @@ export function VendorSignupForm({
 			/>
 
 			<PatternedLayout centered={false}>
-				<div className="mx-auto w-full max-w-5xl py-6 lg:py-10">
+				<div className="mx-auto w-full max-w-7xl py-6 lg:py-10">
 					{/* Header */}
 					<div className="mb-6 rounded-none border bg-background p-5">
 						<p className="mb-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -287,6 +304,8 @@ export function VendorSignupForm({
 																		descriptionField={descriptionField}
 																		companyProfileField={companyProfileField}
 																		notesField={notesField}
+																		image={profileImage}
+																		onImageChange={setProfileImage}
 																	/>
 																)}
 															</form.Field>
@@ -323,6 +342,8 @@ export function VendorSignupForm({
 																						companyProfileField={companyProfileField}
 																						addressField={addressField}
 																						notesField={notesField}
+																						image={profileImage}
+																						onImageChange={setProfileImage}
 																					/>
 																				)}
 																			</form.Field>
@@ -341,68 +362,12 @@ export function VendorSignupForm({
 						</div>
 						)}
 						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
-						{useExhibitorKit && (
+								{useExhibitorKit && (
 							<div className="rounded-none border bg-background p-5">
-								<form.Field name="booth_number">
-									{(boothNumberField) => (
-										<form.Field name="booth_type">
-											{(boothTypeField) => (
-												<form.Field name="name_on_fascia">
-													{(nameOnFasciaField) => (
-														<form.Field name="company_name">
-															{(companyNameField) => (
-																<form.Field name="company_address">
-																	{(companyAddressField) => (
-																		<form.Field name="pic_full_name">
-																			{(picFullNameField) => (
-																				<form.Field name="pic_contact_number">
-																					{(picContactNumberField) => (
-																						<form.Field name="pic_email_address">
-																							{(picEmailAddressField) => (
-																								<ExhibitorKitSection
-																									boothNumberField={
-																										boothNumberField
-																									}
-																									boothTypeField={
-																										boothTypeField
-																									}
-																									nameOnFasciaField={
-																										nameOnFasciaField
-																									}
-																									companyNameField={
-																										companyNameField
-																									}
-																									companyAddressField={
-																										companyAddressField
-																									}
-																									picFullNameField={
-																										picFullNameField
-																									}
-																									picContactNumberField={
-																										picContactNumberField
-																									}
-																									picEmailAddressField={
-																										picEmailAddressField
-																									}
-																								
-																									guidelinesPdfUrl={guidelinesPdfUrl}
-																								/>
-																							)}
-																						</form.Field>
-																					)}
-																				</form.Field>
-																			)}
-																		</form.Field>
-																	)}
-																</form.Field>
-															)}
-														</form.Field>
-													)}
-												</form.Field>
-											)}
-										</form.Field>
-									)}
-								</form.Field>
+								<ExhibitorKitSection
+									form={form}
+									guidelinesPdfUrl={guidelinesPdfUrl}
+								/>
 							</div>
 						)}
 

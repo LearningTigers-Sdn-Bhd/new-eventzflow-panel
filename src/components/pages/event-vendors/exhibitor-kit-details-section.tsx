@@ -330,7 +330,7 @@ export function ExhibitorKitDetailsSection({
 								</div>
 
 								{/* Paid Team Members */}
-								{kit.excess_team_member_count && kit.excess_team_member_count > 0 && (
+								{kit.excess_team_member_count != null && kit.excess_team_member_count > 0 && (
 									<div className="space-y-2">
 										<div className="flex items-center justify-between">
 											<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

@@ -9,6 +9,7 @@ export const vendorProfileAttributesSchema = z.object({
 	person_in_charge: z.string().optional(),
 	address: z.string().optional(),
 	notes: z.string().optional(),
+	company_profile: z.string().optional(),
 });
 
 // Zod schemas for form validation and request data

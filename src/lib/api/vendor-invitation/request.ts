@@ -19,6 +19,7 @@ export const registerInvitedVendorSchema = z
 				address: z.string().optional(),
 				notes: z.string().optional(),
 				company_profile: z.string().optional(),
+				image: z.instanceof(File).optional(),
 			})
 			.optional(),
 		// Event vendor fields
@@ -46,7 +47,11 @@ export const registerInvitedVendorSchema = z
 			.object({
 				booth_number: z.string().optional(),
 				booth_type: z.enum(["shell_scheme", "raw_space"]).optional(),
+				booth_dimensions: z.string().optional(),
+				side_wall_left_required: z.boolean().optional(),
+				side_wall_right_required: z.boolean().optional(),
 				name_on_fascia: z.string().max(25, "Max 25 characters").optional(),
+				fascia_upgrade_required: z.boolean().optional(),
 				company_name: z.string().optional(),
 				company_address: z.string().optional(),
 				pic_full_name: z.string().min(1, "PIC name is required"),

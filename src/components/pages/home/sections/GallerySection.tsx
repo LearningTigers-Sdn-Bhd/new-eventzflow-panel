@@ -2,80 +2,82 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-import { SMOOTH_EASE } from "@/lib/constants/animation";
+import Link from "next/link"; // Added Link import
 
 const galleryImages = [
 	{
+		id: "01",
 		src: "/images/homepage/Gallery1.webp",
-		alt: "EventzFlow in action - Event check-in",
+		title: "CHECK-IN",
+		subtitle: "FLOW CONTROL",
+		className: "md:row-span-2 md:col-span-1", // Vertical Hero
 	},
 	{
+		id: "02",
 		src: "/images/homepage/Gallery2.webp",
-		alt: "EventzFlow in action - Conference networking",
+		title: "CONNECT",
+		subtitle: "DATA MESH",
+		className: "md:col-span-1", // Horizontal Stack
 	},
 	{
+		id: "03",
 		src: "/images/homepage/Gallery3.webp",
-		alt: "EventzFlow in action - Exhibition booth",
+		title: "ENGAGE",
+		subtitle: "SPATIAL ANALYTICS",
+		className: "md:col-span-1", // Horizontal Stack
 	},
 ];
 
 const GallerySection: React.FC = () => {
 	return (
-		<section className="bg-black px-6 py-16 md:py-24 lg:py-32 lg:px-16">
-			<div className="mx-auto max-w-7xl">
-				{/* Header */}
-				<motion.div
-					initial={{ opacity: 0, y: 30 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-					className="mb-10 md:mb-16"
-				>
-					<h2 className="font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
-						See EventzFlow
-						<br />
-						In Action
+		<section className="bg-white/20 px-4 py-16 text-neutral-900 md:py-24 md:px-8 border border-black">
+			<div className="mx-auto max-w-[1400px]">
+				{/* Swiss Header */}
+				<div className="mb-2 flex flex-col items-start justify-between border-neutral-900 border-t-4 pt-4 pb-8 md:items-end md:pt-6 md:pb-12 md:flex-row">
+					<h2 className="mb-4 font-black text-3xl uppercase leading-none tracking-tighter sm:text-5xl md:text-7xl md:mb-0">
+						See Eventzflow <br /> In Action
 					</h2>
-					<p className="mt-3 max-w-2xl text-lg leading-relaxed text-white/70 md:mt-4 md:text-xl">
-						Real events, real results. Here&apos;s a glimpse of what we do.
-					</p>
-				</motion.div>
+				</div>
 
-				{/* Gallery Grid - Staggered Layout */}
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-					{galleryImages.map((image, index) => (
+				{/* Asymmetrical Grid System */}
+				<div className="grid h-auto grid-cols-1 gap-px border border-neutral-300 bg-neutral-200 md:h-[800px] md:grid-cols-2">
+					{galleryImages.map((item, index) => (
 						<motion.div
-							key={image.src}
-							initial={{ opacity: 0, y: 60 }}
+							key={item.id}
+							initial={{ opacity: 0, y: 20 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
-							transition={{
-								duration: 0.8,
-								delay: index * 0.15,
-								ease: SMOOTH_EASE,
-							}}
-							className={`group relative overflow-hidden ${
-								index === 1 ? "md:mt-24 md:h-[500px]" : "md:h-[400px]"
-							} h-[250px] sm:h-[300px]`}
+							transition={{ delay: index * 0.1 }}
+							className={`group relative overflow-hidden bg-[#F5F5F7] hover:z-10 ${item.className} ${index > 0 ? "aspect-[16/10] md:aspect-auto" : "aspect-[4/5] md:aspect-auto"}`}
 						>
-							{/* Image number badge */}
-							<div className="absolute left-4 top-4 z-10 text-xs font-medium text-white/60">
-								0{index + 1}
+							{/* Background Image */}
+							<div className="absolute inset-0 transition-transform duration-700 md:group-hover:scale-105">
+								<Image
+									src={item.src}
+									alt={item.title}
+									fill
+									priority={index === 0}
+									className="object-cover opacity-100 transition-all duration-500 md:opacity-90 md:grayscale md:group-hover:opacity-100 md:group-hover:grayscale-0"
+								/>
+								<div className="absolute inset-0 bg-transparent transition-colors duration-500 md:bg-black/20 md:group-hover:bg-transparent" />
 							</div>
 
-							{/* Image */}
-							<Image
-								src={image.src}
-								alt={image.alt}
-								fill
-								priority={index === 0}
-								className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-								sizes="(max-width: 768px) 100vw, 33vw"
-							/>
+							{/* Content Overlay */}
+							<div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-10">
+								{/* Top Meta: Solid Index Label */}
+								<div className="flex items-start justify-between">
+									<span className="flex h-7 w-7 items-center justify-center border border-black/10 bg-white font-bold font-mono text-black text-xs md:h-8 md:w-8 md:text-sm">
+										{item.id}
+									</span>
+								</div>
 
-							{/* Hover overlay */}
-							<div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/20" />
+								{/* Bottom Typography */}
+								<div>
+									<h3 className="font-black text-2xl text-white uppercase leading-none tracking-tighter mix-blend-overlay sm:text-3xl md:text-7xl">
+										{item.title}
+									</h3>
+								</div>
+							</div>
 						</motion.div>
 					))}
 				</div>

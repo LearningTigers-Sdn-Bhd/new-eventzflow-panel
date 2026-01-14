@@ -28,22 +28,22 @@ const benefits = [
 
 const WhyChooseSection: React.FC = () => {
 	return (
-		<section className="bg-black px-6 py-16 md:py-30 md:px-12">
+		<section className="bg-white/20 px-6 py-16 md:py-30 md:px-12 border-black border-y">
 			<div className="mx-auto max-w-7xl">
 				<div className="mb-12 flex flex-col gap-6 md:mb-24 md:flex-row md:items-end md:justify-between">
 					<div className="max-w-2xl">
-						<h2 className="mb-4 font-black text-4xl tracking-tighter text-white sm:text-5xl md:mb-8 md:text-6xl lg:text-8xl">
+						<h2 className="mb-4 font-black text-4xl tracking-tighter text-black sm:text-5xl md:mb-8 md:text-6xl lg:text-8xl">
 							WHY
 							<br />
 							CHOOSE US ?
 						</h2>
-						<p className="text-lg leading-relaxed text-white/70 md:text-xl">
+						<p className="text-lg leading-relaxed text-black/70 md:text-xl">
 							Less manual work. Lower costs. Happier attendees. EventzFlow
 							automates the tedious tasks so you can focus on creating
 							exceptional experiences.
 						</p>
 					</div>
-					<div className="hidden border-b border-white/40 pb-2 font-bold text-sm tracking-widest text-white/40 md:block">
+					<div className="hidden border-b border-black/40 pb-2 font-bold text-sm tracking-widest text-black/40 md:block">
 						01 — 04 / BENEFITS
 					</div>
 				</div>
@@ -51,6 +51,7 @@ const WhyChooseSection: React.FC = () => {
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-1 lg:grid-cols-4">
 					{benefits.map((benefit, i) => {
 						const isWhiteCard = i % 2 === 1;
+						const isBlueCard = i === 2;
 						return (
 							<motion.div
 								key={i}
@@ -70,33 +71,27 @@ const WhyChooseSection: React.FC = () => {
 								className={`group relative flex min-h-[300px] flex-col justify-between overflow-hidden border p-6 transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-2xl md:min-h-[450px] md:p-10 ${
 									isWhiteCard
 										? "border-black/20 bg-white hover:border-black"
-										: "border-white/20 bg-black hover:border-white"
+										: isBlueCard
+											? "border-black/20 bg-brand-blue hover:border-black"
+											: "border-black/20 bg-brand-green hover:border-black"
 								}`}
 							>
 								<div className="relative z-10">
-									<span
-										className={`font-bold text-xs tracking-widest ${
-											isWhiteCard ? "text-black/40" : "text-white/40"
-										}`}
-									>
+									<span className="font-bold text-xs tracking-widest text-black/40">
 										0{i + 1}
 									</span>
 									<h3 className="mt-8 font-black text-3xl leading-none tracking-tighter">
 										{benefit.title.split(" ").map((word, idx) => (
 											<span
 												key={idx}
-												className={`block ${isWhiteCard ? "text-black" : "text-white"}`}
+												className="block text-black"
 											>
 												{word}
 											</span>
 										))}
 									</h3>
 								</div>
-								<p
-									className={`relative z-10 text-base leading-relaxed md:text-lg ${
-										isWhiteCard ? "text-black/70" : "text-white/80"
-									}`}
-								>
+								<p className="relative z-10 text-base leading-relaxed text-black/70 md:text-lg">
 									{benefit.description}
 								</p>
 							</motion.div>

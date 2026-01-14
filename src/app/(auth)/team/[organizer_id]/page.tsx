@@ -24,7 +24,7 @@ export default function OrganizerMembersPage({
 		error,
 	} = useQuery({
 		queryKey: ["team", "members"],
-		queryFn: getTeamMembers,
+		queryFn: () => getTeamMembers(),
 	});
 
 	// Find the organizer

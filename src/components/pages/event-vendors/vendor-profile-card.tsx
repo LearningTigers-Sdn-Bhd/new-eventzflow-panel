@@ -72,7 +72,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">
 							<p className="font-medium text-muted-foreground text-xs uppercase">
-								About
+								About / Business Information
 							</p>
 							{profile.description ? (
 								<p className="whitespace-pre-line leading-relaxed">
@@ -177,7 +177,7 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 									<StickyNote className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div>
 										<p className="font-medium text-muted-foreground text-xs uppercase">
-											Notes
+											Additional Notes
 										</p>
 										{profile.notes ? (
 											<p className="whitespace-pre-line">{profile.notes}</p>

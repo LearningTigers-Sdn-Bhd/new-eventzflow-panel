@@ -51,7 +51,7 @@ export function EventMenuItem({
 	return (
 		<SidebarContent className="gap-0">
 			{standalone.length > 0 && (
-				<SidebarGroup className="py-0">
+				<SidebarGroup className="pt-0">
 					<SidebarGroupLabel>Generic Actions</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
@@ -63,6 +63,7 @@ export function EventMenuItem({
 											isActive={isActive(item.route)}
 											tooltip={item.label}
 											onClick={() => handleMenuItemClick(item.route)}
+											className="cursor-pointer rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
 										>
 											<Icon />
 											<span>{item.label}</span>
@@ -79,7 +80,11 @@ export function EventMenuItem({
 				if (group.tabs.length === 0) return null;
 
 				return (
-					<Collapsible key={group.id} defaultOpen className="group/collapsible">
+					<Collapsible
+						key={group.id}
+						defaultOpen
+						className="group/collapsible pb-2"
+					>
 						<SidebarGroup>
 							<SidebarGroupLabel asChild className="group/label rounded-none">
 								<CollapsibleTrigger>
@@ -98,6 +103,7 @@ export function EventMenuItem({
 														isActive={isActive(item.route)}
 														tooltip={item.label}
 														onClick={() => handleMenuItemClick(item.route)}
+														className="cursor-pointer rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
 													>
 														<Icon />
 														<span>{item.label}</span>

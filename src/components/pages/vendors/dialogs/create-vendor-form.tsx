@@ -1,28 +1,16 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, User } from "lucide-react";
+import { Building2, Eye, EyeOff, User } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
+import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-	FieldSeparator,
-	FieldSet,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { createVendor } from "@/lib/api/vendor";
 
 const VENDOR_CATEGORIES = [
@@ -52,8 +40,10 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 	const passwordId = useId();
 	const confirmPasswordId = useId();
 	const categoryId = useId();
+	const customCategoryId = useId();
 	const personInChargeId = useId();
 	const descriptionId = useId();
+	const companyProfileId = useId();
 	const addressId = useId();
 	const notesId = useId();
 
@@ -67,12 +57,15 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 		customCategory: "",
 		person_in_charge: "",
 		description: "",
+		company_profile: "",
 		address: "",
 		notes: "",
 	});
 
 	const [image, setImage] = useState<File | null>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	const queryClient = useQueryClient();
 	const createVendorMutation = useMutation({
@@ -86,6 +79,8 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 			toast.error(error.message || "Failed to create vendor");
 		},
 	});
+
+	const isPending = createVendorMutation.isPending;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -130,6 +125,7 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 					category: finalCategory || undefined,
 					person_in_charge: formData.person_in_charge || undefined,
 					description: formData.description || undefined,
+					company_profile: formData.company_profile || undefined,
 					address: formData.address || undefined,
 					notes: formData.notes || undefined,
 					image: image || undefined,
@@ -155,234 +151,231 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 		}
 	};
 
-	return (
-		<div className="mx-auto w-full max-w-8xl px-8">
-			<form onSubmit={handleSubmit}>
-				<FieldSet>
-					<FieldSeparator />
-					<FieldGroup>
-						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-							{/* LEFT COLUMN - Basic Information */}
-							<div className="space-y-4">
-								<div className="flex items-center gap-2 border-b pb-2">
-									<User className="size-5 text-primary" />
-									<h3 className="font-semibold text-lg">Basic Information</h3>
-								</div>
+	// Category options for select
+	const categoryOptions = VENDOR_CATEGORIES.map((cat) => ({
+		value: cat,
+		label: cat,
+	}));
 
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={nameId}>Vendor Name</FieldLabel>
-									{errors.full_name && (
-										<FieldError>{errors.full_name}</FieldError>
-									)}
-									<Input
-										id={nameId}
+	return (
+		<div className="w-full px-0 pt-0 md:px-4 md:pt-4">
+			<form
+				onSubmit={handleSubmit}
+				className="flex flex-col justify-between gap-4 md:gap-8 md:pb-4"
+			>
+				<FieldSet>
+					{/* Account Information */}
+					<FormGroupContainer
+						title={{
+							icon: User,
+							label: "Account Information",
+							description: "Login credentials and profile image",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
+							{/* Left side - Form fields */}
+							<div className="space-y-4">
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<InputLabel
+										htmlFor={nameId}
+										label="Full Name"
 										placeholder="John Doe"
 										value={formData.full_name}
-										onChange={(e) => handleChange("full_name", e.target.value)}
+										onChange={(value) => handleChange("full_name", value)}
 										required
-										disabled={createVendorMutation.isPending}
+										disabled={isPending}
+										variant="no-rounded"
+										isInvalid={!!errors.full_name}
+										errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
 									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={emailId}>Email</FieldLabel>
-									{errors.email && <FieldError>{errors.email}</FieldError>}
-									<Input
-										id={emailId}
-										type="email"
-										placeholder="john.doe@example.com"
+									<InputLabel
+										htmlFor={emailId}
+										label="Email Address"
+										placeholder="vendor@example.com"
 										value={formData.email}
-										onChange={(e) => handleChange("email", e.target.value)}
+										onChange={(value) => handleChange("email", value)}
 										required
-										disabled={createVendorMutation.isPending}
+										disabled={isPending}
+										variant="no-rounded"
+										isInvalid={!!errors.email}
+										errors={errors.email ? [{ message: errors.email }] : undefined}
 									/>
-								</Field>
+								</div>
 
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={phoneId}>Phone (Optional)</FieldLabel>
-									<Input
-										id={phoneId}
-										type="tel"
-										placeholder="+1234567890"
-										value={formData.phone}
-										onChange={(e) => handleChange("phone", e.target.value)}
-										disabled={createVendorMutation.isPending}
-									/>
-								</Field>
+								<InputLabel
+									htmlFor={phoneId}
+									label="Phone Number"
+									placeholder="+60123456789"
+									value={formData.phone}
+									onChange={(value) => handleChange("phone", value)}
+									disabled={isPending}
+									variant="no-rounded"
+								/>
 
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={passwordId}>Password</FieldLabel>
-									{errors.password && (
-										<FieldError>{errors.password}</FieldError>
-									)}
-									<Input
-										id={passwordId}
-										type="password"
-										placeholder="Enter password"
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<InputActionLabel
+										htmlFor={passwordId}
+										label="Password"
+										type={showPassword ? "text" : "password"}
+										placeholder="Min 8 characters"
 										value={formData.password}
-										onChange={(e) => handleChange("password", e.target.value)}
+										onChange={(value) => handleChange("password", value)}
 										required
-										disabled={createVendorMutation.isPending}
+										disabled={isPending}
+										variant="no-rounded"
+										onAction={() => setShowPassword(!showPassword)}
+										actionIcon={showPassword ? <EyeOff /> : <Eye />}
+										actionLabel={showPassword ? "Hide password" : "Show password"}
+										isInvalid={!!errors.password}
+										errors={errors.password ? [{ message: errors.password }] : undefined}
 									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={confirmPasswordId}>
-										Confirm Password
-									</FieldLabel>
-									{errors.confirmPassword && (
-										<FieldError>{errors.confirmPassword}</FieldError>
-									)}
-									<Input
-										id={confirmPasswordId}
-										type="password"
+									<InputActionLabel
+										htmlFor={confirmPasswordId}
+										label="Confirm Password"
+										type={showConfirmPassword ? "text" : "password"}
 										placeholder="Confirm password"
 										value={formData.confirmPassword}
-										onChange={(e) =>
-											handleChange("confirmPassword", e.target.value)
-										}
+										onChange={(value) => handleChange("confirmPassword", value)}
 										required
-										disabled={createVendorMutation.isPending}
+										disabled={isPending}
+										variant="no-rounded"
+										onAction={() => setShowConfirmPassword(!showConfirmPassword)}
+										actionIcon={showConfirmPassword ? <EyeOff /> : <Eye />}
+										actionLabel={showConfirmPassword ? "Hide password" : "Show password"}
+										isInvalid={!!errors.confirmPassword}
+										errors={errors.confirmPassword ? [{ message: errors.confirmPassword }] : undefined}
 									/>
-								</Field>
+								</div>
 							</div>
 
-							{/* RIGHT COLUMN - Profile Information */}
-							<div className="space-y-4">
-								<div className="flex items-center gap-2 border-b pb-2">
-									<Building2 className="size-5 text-primary" />
-									<h3 className="font-semibold text-lg">Profile Information</h3>
-								</div>
+							{/* Right side - Image upload */}
+							<Field orientation="vertical" className="lg:w-100">
+								<FieldLabel>Vendor Profile Image</FieldLabel>
+								<ImageUpload
+									value={image ?? undefined}
+									onChange={handleImageChange}
+									disabled={isPending}
+								/>
+							</Field>
+						</div>
+					</FormGroupContainer>
 
-								<div
-									className={`grid gap-4 ${formData.category === "Others" ? "grid-cols-2" : "grid-cols-1"}`}
-								>
-									<Field orientation="vertical">
-										<FieldLabel htmlFor={categoryId}>Category</FieldLabel>
-										<Select
-											value={formData.category}
-											onValueChange={(value) => {
-												handleChange("category", value);
-												if (value !== "Others") {
-													handleChange("customCategory", "");
-												}
-											}}
-											disabled={createVendorMutation.isPending}
-										>
-											<SelectTrigger id={categoryId}>
-												<SelectValue placeholder="Select a category" />
-											</SelectTrigger>
-											<SelectContent>
-												{VENDOR_CATEGORIES.map((category) => (
-													<SelectItem key={category} value={category}>
-														{category}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</Field>
-
-									{formData.category === "Others" && (
-										<Field orientation="vertical">
-											<FieldLabel htmlFor={`${categoryId}-custom`}>
-												Custom Category
-											</FieldLabel>
-											<Input
-												id={`${categoryId}-custom`}
-												placeholder="Enter custom category"
-												value={formData.customCategory}
-												onChange={(e) =>
-													handleChange("customCategory", e.target.value)
-												}
-												disabled={createVendorMutation.isPending}
-											/>
-										</Field>
-									)}
-								</div>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={personInChargeId}>
-										Person in Charge
-									</FieldLabel>
-									<Input
-										id={personInChargeId}
-										placeholder="Contact person name"
-										value={formData.person_in_charge}
-										onChange={(e) =>
-											handleChange("person_in_charge", e.target.value)
-										}
-										disabled={createVendorMutation.isPending}
-									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel>Vendor Image</FieldLabel>
-									<ImageUpload
-										value={image ?? undefined}
-										onChange={handleImageChange}
-										disabled={createVendorMutation.isPending}
-									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={descriptionId}>Description</FieldLabel>
-									<Textarea
-										id={descriptionId}
-										placeholder="Vendor description"
-										value={formData.description}
-										onChange={(e) =>
-											handleChange("description", e.target.value)
-										}
-										disabled={createVendorMutation.isPending}
-										rows={3}
-									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={addressId}>Address</FieldLabel>
-									<Textarea
-										id={addressId}
-										placeholder="Business address"
-										value={formData.address}
-										onChange={(e) => handleChange("address", e.target.value)}
-										disabled={createVendorMutation.isPending}
-										rows={2}
-									/>
-								</Field>
-
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={notesId}>Notes</FieldLabel>
-									<Textarea
-										id={notesId}
-										placeholder="Additional notes"
-										value={formData.notes}
-										onChange={(e) => handleChange("notes", e.target.value)}
-										disabled={createVendorMutation.isPending}
-										rows={2}
-									/>
-								</Field>
-							</div>
+					{/* Business Details */}
+					<FormGroupContainer
+						title={{
+							icon: Building2,
+							label: "Business Details",
+							description: "Vendor business information and profile",
+						}}
+					>
+						<div className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+							<SelectLabel
+								htmlFor={categoryId}
+								label="Business Category"
+								placeholder="Select a category"
+								value={formData.category}
+								onChange={(value) => {
+									handleChange("category", value);
+									if (value !== "Others") {
+										handleChange("customCategory", "");
+									}
+								}}
+								options={categoryOptions}
+								disabled={isPending}
+								variant="no-rounded"
+							/>
+							{formData.category === "Others" && (
+								<InputLabel
+									htmlFor={customCategoryId}
+									label="Custom Category Name"
+									placeholder="Enter your category"
+									value={formData.customCategory}
+									onChange={(value) => handleChange("customCategory", value)}
+									disabled={isPending}
+									variant="no-rounded"
+								/>
+							)}
+							<InputLabel
+								htmlFor={personInChargeId}
+								label="Person In Charge"
+								placeholder="Contact person name"
+								value={formData.person_in_charge}
+								onChange={(value) => handleChange("person_in_charge", value)}
+								disabled={isPending}
+								variant="no-rounded"
+							/>
 						</div>
 
-						<FieldSeparator />
+						<InputLabel
+							htmlFor={descriptionId}
+							label="Business Information / Products / Projects / Services to be Exhibited"
+							type="textarea"
+							placeholder="Describe the products, projects, or services you will be exhibiting..."
+							value={formData.description}
+							onChange={(value) => handleChange("description", value)}
+							disabled={isPending}
+							variant="no-rounded"
+							rows={3}
+						/>
 
-						<div className="flex justify-end gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={onClose}
-								disabled={createVendorMutation.isPending}
-							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={createVendorMutation.isPending}>
-								{createVendorMutation.isPending
-									? "Creating..."
-									: "Create Vendor"}
-							</Button>
+						<InputLabel
+							htmlFor={companyProfileId}
+							label="Company Profile"
+							type="textarea"
+							placeholder="Brief description of your company, history, and expertise..."
+							value={formData.company_profile}
+							onChange={(value) => handleChange("company_profile", value)}
+							disabled={isPending}
+							variant="no-rounded"
+							rows={3}
+						/>
+
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<InputLabel
+								htmlFor={addressId}
+								label="Business Address"
+								type="textarea"
+								placeholder="Your business address"
+								value={formData.address}
+								onChange={(value) => handleChange("address", value)}
+								disabled={isPending}
+								variant="no-rounded"
+								rows={2}
+							/>
+							<InputLabel
+								htmlFor={notesId}
+								label="Wishing to Connect With (Sector's) / Additional Notes"
+								type="textarea"
+								placeholder="Sectors or types of businesses you'd like to connect with, or any additional notes..."
+								value={formData.notes}
+								onChange={(value) => handleChange("notes", value)}
+								disabled={isPending}
+								variant="no-rounded"
+								rows={2}
+							/>
 						</div>
-					</FieldGroup>
+					</FormGroupContainer>
 				</FieldSet>
+
+				{/* Action Buttons */}
+				<FieldGroup className="flex flex-col gap-2 md:flex-row md:justify-end">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						disabled={isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						disabled={isPending}
+						className="rounded-none py-6 md:py-2"
+					>
+						{isPending ? "Creating..." : "Create Vendor"}
+					</Button>
+				</FieldGroup>
 			</form>
 		</div>
 	);

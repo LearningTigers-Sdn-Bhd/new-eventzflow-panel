@@ -8,6 +8,18 @@
 		"Inter", "Geist", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 	--breakpoint-3xl: 120rem;
+
+	/* Brand colors */
+	--color-brand-green: #23c460;
+	--color-brand-green-dark: #1da550;
+	--color-brand-blue: #7dd3fc;
+	--color-brand-blue-dark: #50a8d4;
+
+	/* Background colors */
+	--color-green-background: #ecffe6;
+	--color-green-background-dark: #166534;
+	--color-blue-background: #f0f8ff;
+	--color-blue-background-dark: #1e40af;
 }
 
 html,

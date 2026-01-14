@@ -1,7 +1,8 @@
 "use client";
 
-import { Building2, ExternalLink, FileText, Hash, Mail, Phone, Tag, User } from "lucide-react";
+import { Building2, ExternalLink, FileText, Hash, Mail, Phone, Ruler, Tag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -17,37 +18,46 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-interface FieldApi {
-	name: string;
-	state: {
-		value: string;
-		meta: { errors: (string | undefined)[] };
-	};
-	handleBlur: () => void;
-	handleChange: (value: string) => void;
+// Define the form values interface for exhibitor kit fields
+interface ExhibitorKitFormValues {
+	booth_number: string;
+	booth_type: string;
+	booth_dimensions: string;
+	side_wall_left_required: boolean;
+	side_wall_right_required: boolean;
+	name_on_fascia: string;
+	fascia_upgrade_required: boolean;
+	company_name: string;
+	company_address: string;
+	pic_full_name: string;
+	pic_contact_number: string;
+	pic_email_address: string;
+}
+
+// Form type that has at least the exhibitor kit fields
+interface FormWithExhibitorKitFields {
+	Field: React.ComponentType<{
+		name: keyof ExhibitorKitFormValues;
+		children: (field: {
+			name: string;
+			state: {
+				value: string | boolean;
+				meta: { errors: (string | undefined)[] };
+			};
+			handleBlur: () => void;
+			handleChange: (value: string | boolean) => void;
+		}) => React.ReactNode;
+	}>;
 }
 
 interface ExhibitorKitSectionProps {
-	boothNumberField: FieldApi;
-	boothTypeField: FieldApi;
-	nameOnFasciaField: FieldApi;
-	companyNameField: FieldApi;
-	companyAddressField: FieldApi;
-	picFullNameField: FieldApi;
-	picContactNumberField: FieldApi;
-	picEmailAddressField: FieldApi;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	form: FormWithExhibitorKitFields | any;
 	guidelinesPdfUrl?: string | null;
 }
 
 export function ExhibitorKitSection({
-	boothNumberField,
-	boothTypeField,
-	nameOnFasciaField,
-	companyNameField,
-	companyAddressField,
-	picFullNameField,
-	picContactNumberField,
-	picEmailAddressField,
+	form,
 	guidelinesPdfUrl,
 }: ExhibitorKitSectionProps) {
 	return (
@@ -96,57 +106,165 @@ export function ExhibitorKitSection({
 					Booth Information
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-2">
-						<Label htmlFor={boothNumberField.name}>Booth Number</Label>
-						<InputGroup className="h-11">
-							<InputGroupAddon>
-								<Hash className="h-4 w-4" />
-							</InputGroupAddon>
-							<InputGroupInput
-								id={boothNumberField.name}
-								placeholder="e.g., A-101"
-								value={boothNumberField.state.value}
-								onBlur={boothNumberField.handleBlur}
-								onChange={(e) => boothNumberField.handleChange(e.target.value)}
-							/>
-						</InputGroup>
-					</div>
+					<form.Field name="booth_number">
+						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Booth Number</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<Hash className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="e.g., A-101"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</InputGroup>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor={boothTypeField.name}>Booth Type</Label>
-						<Select
-							value={boothTypeField.state.value}
-							onValueChange={boothTypeField.handleChange}
-						>
-							<SelectTrigger className="!h-11 w-full">
-								<SelectValue placeholder="Select booth type" />
-							</SelectTrigger>
-							<SelectContent className="rounded-none">
-								<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
-								<SelectItem value="raw_space">Raw Space</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+					<form.Field name="booth_type">
+						{(field: { name: string; state: { value: string }; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Booth Type</Label>
+								<Select
+									value={field.state.value}
+									onValueChange={field.handleChange}
+								>
+									<SelectTrigger className="!h-11 w-full">
+										<SelectValue placeholder="Select booth type" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
+										<SelectItem value="raw_space">Raw Space</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						)}
+					</form.Field>
 				</div>
 
-				<div className="space-y-2">
-					<Label htmlFor={nameOnFasciaField.name}>Name on Fascia</Label>
-					<InputGroup className="h-11">
-						<InputGroupAddon>
-							<Tag className="h-4 w-4" />
-						</InputGroupAddon>
-						<InputGroupInput
-							id={nameOnFasciaField.name}
-							placeholder="Company name to display (max 25 chars)"
-							maxLength={25}
-							value={nameOnFasciaField.state.value}
-							onBlur={nameOnFasciaField.handleBlur}
-							onChange={(e) => nameOnFasciaField.handleChange(e.target.value)}
-						/>
-					</InputGroup>
-					<p className="text-muted-foreground text-xs">
-						{nameOnFasciaField.state.value.length}/25 characters
-					</p>
+				<div className="grid gap-4 sm:grid-cols-2">
+					<form.Field name="booth_dimensions">
+						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Booth Dimensions</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<Ruler className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="e.g., 3m x 3m"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</InputGroup>
+							</div>
+						)}
+					</form.Field>
+
+					<form.Field name="name_on_fascia">
+						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Name on Fascia</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<Tag className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="Company name to display (max 25 chars)"
+										maxLength={25}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</InputGroup>
+								<p className="text-muted-foreground text-xs">
+									{field.state.value.length}/25 characters
+								</p>
+							</div>
+						)}
+					</form.Field>
+				</div>
+
+				{/* Booth Options */}
+				<div className="space-y-3">
+					<div>
+						<Label className="text-muted-foreground text-sm">Booth Options</Label>
+						<p className="text-muted-foreground text-xs mt-1">
+							Tick the boxes below if you need any of these options for your booth
+						</p>
+					</div>
+					<div className="grid gap-3 sm:grid-cols-3">
+						<form.Field name="side_wall_left_required">
+							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+								<div className="flex items-center space-x-2 border bg-muted p-2">
+									<Checkbox
+										id={field.name}
+										checked={field.state.value}
+										className="bg-background"
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
+									/>
+									<Label
+										htmlFor={field.name}
+										className="font-normal text-sm cursor-pointer"
+									>
+										Left Side Wall Required
+									</Label>
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="side_wall_right_required">
+							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+								<div className="flex items-center space-x-2 border bg-muted p-2">
+									<Checkbox
+										id={field.name}
+										checked={field.state.value}
+										className="bg-background"
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
+									/>
+									<Label
+										htmlFor={field.name}
+										className="font-normal text-sm cursor-pointer"
+									>
+										Right Side Wall Required
+									</Label>
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="fascia_upgrade_required">
+							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+								<div className="flex items-center space-x-2 border bg-muted p-2">
+									<Checkbox
+										id={field.name}
+										checked={field.state.value}
+										className="bg-background"
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
+									/>
+									<Label
+										htmlFor={field.name}
+										className="font-normal text-sm cursor-pointer"
+									>
+										Fascia Upgrade Required
+									</Label>
+								</div>
+							)}
+						</form.Field>
+					</div>
 				</div>
 			</div>
 
@@ -156,33 +274,41 @@ export function ExhibitorKitSection({
 					Company Information
 				</h4>
 				<div className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor={companyNameField.name}>Company Name</Label>
-						<InputGroup className="h-11">
-							<InputGroupAddon>
-								<Building2 className="h-4 w-4" />
-							</InputGroupAddon>
-							<InputGroupInput
-								id={companyNameField.name}
-								placeholder="Your company name"
-								value={companyNameField.state.value}
-								onBlur={companyNameField.handleBlur}
-								onChange={(e) => companyNameField.handleChange(e.target.value)}
-							/>
-						</InputGroup>
-					</div>
+					<form.Field name="company_name">
+						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Company Name</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<Building2 className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="Your company name"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</InputGroup>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor={companyAddressField.name}>Company Address</Label>
-						<Textarea
-							id={companyAddressField.name}
-							placeholder="Full company address"
-							rows={2}
-							value={companyAddressField.state.value}
-							onBlur={companyAddressField.handleBlur}
-							onChange={(e) => companyAddressField.handleChange(e.target.value)}
-						/>
-					</div>
+					<form.Field name="company_address">
+						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>Company Address</Label>
+								<Textarea
+									id={field.name}
+									placeholder="Full company address"
+									rows={2}
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+							</div>
+						)}
+					</form.Field>
 				</div>
 			</div>
 
@@ -192,75 +318,87 @@ export function ExhibitorKitSection({
 					Person In Charge (PIC) <span className="text-destructive">*</span>
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-2">
-						<Label htmlFor={picFullNameField.name}>
-							Full Name <span className="text-destructive">*</span>
-						</Label>
-						<InputGroup className="h-11">
-							<InputGroupAddon>
-								<User className="h-4 w-4" />
-							</InputGroupAddon>
-							<InputGroupInput
-								id={picFullNameField.name}
-								placeholder="PIC full name"
-								value={picFullNameField.state.value}
-								onBlur={picFullNameField.handleBlur}
-								onChange={(e) => picFullNameField.handleChange(e.target.value)}
-								required
-							/>
-						</InputGroup>
-						{picFullNameField.state.meta.errors.length > 0 && (
-							<p className="text-destructive text-xs">
-								{picFullNameField.state.meta.errors[0]}
-							</p>
+					<form.Field name="pic_full_name">
+						{(field: { name: string; state: { value: string; meta: { errors: (string | undefined)[] } }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>
+									Full Name <span className="text-destructive">*</span>
+								</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<User className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="PIC full name"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										required
+									/>
+								</InputGroup>
+								{field.state.meta.errors.length > 0 && (
+									<p className="text-destructive text-xs">
+										{field.state.meta.errors[0]}
+									</p>
+								)}
+							</div>
 						)}
-					</div>
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor={picContactNumberField.name}>
-							Contact Number <span className="text-destructive">*</span>
-						</Label>
-						<InputGroup className="h-11">
-							<InputGroupAddon>
-								<Phone className="h-4 w-4" />
-							</InputGroupAddon>
-							<InputGroupInput
-								id={picContactNumberField.name}
-								placeholder="+60 12-345 6789"
-								value={picContactNumberField.state.value}
-								onBlur={picContactNumberField.handleBlur}
-								onChange={(e) =>
-									picContactNumberField.handleChange(e.target.value)
-								}
-								required
-							/>
-						</InputGroup>
-						{picContactNumberField.state.meta.errors.length > 0 && (
-							<p className="text-destructive text-xs">
-								{picContactNumberField.state.meta.errors[0]}
-							</p>
+					<form.Field name="pic_contact_number">
+						{(field: { name: string; state: { value: string; meta: { errors: (string | undefined)[] } }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+							<div className="space-y-2">
+								<Label htmlFor={field.name}>
+									Contact Number <span className="text-destructive">*</span>
+								</Label>
+								<InputGroup className="h-11">
+									<InputGroupAddon>
+										<Phone className="h-4 w-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id={field.name}
+										placeholder="+60 12-345 6789"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(e.target.value)
+										}
+										required
+									/>
+								</InputGroup>
+								{field.state.meta.errors.length > 0 && (
+									<p className="text-destructive text-xs">
+										{field.state.meta.errors[0]}
+									</p>
+								)}
+							</div>
 						)}
-					</div>
+					</form.Field>
 				</div>
 
-				<div className="space-y-2">
-					<Label htmlFor={picEmailAddressField.name}>Email Address</Label>
-					<InputGroup className="h-11">
-						<InputGroupAddon>
-							<Mail className="h-4 w-4" />
-						</InputGroupAddon>
-						<InputGroupInput
-							id={picEmailAddressField.name}
-							type="email"
-							placeholder="pic@company.com"
-							value={picEmailAddressField.state.value}
-							onBlur={picEmailAddressField.handleBlur}
-							onChange={(e) =>
-								picEmailAddressField.handleChange(e.target.value)
-							}
-						/>
-					</InputGroup>
-				</div>
+				<form.Field name="pic_email_address">
+					{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						<div className="space-y-2">
+							<Label htmlFor={field.name}>Email Address</Label>
+							<InputGroup className="h-11">
+								<InputGroupAddon>
+									<Mail className="h-4 w-4" />
+								</InputGroupAddon>
+								<InputGroupInput
+									id={field.name}
+									type="email"
+									placeholder="pic@company.com"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) =>
+										field.handleChange(e.target.value)
+									}
+								/>
+							</InputGroup>
+						</div>
+					)}
+				</form.Field>
 			</div>
 		</div>
 	);

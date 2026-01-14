@@ -29,8 +29,13 @@ const logger = {
 };
 
 // Export the base API URL for use in other modules
+// Use different URLs for server-side and client-side rendering
+// Server-side: API_URL (for internal Docker network, etc.)
+// Client-side: NEXT_PUBLIC_API_URL (for browser)
 export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+	typeof window === "undefined"
+		? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
@@ -42,13 +47,18 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
-            // Suppress global error toasts for business matching queries
-            // as they are handled locally with specific UI states or ignored to prevent spam
-            const queryKey = query.queryKey;
-            const suppressedKeys = ['business-matching', 'event-details'];
-            if (Array.isArray(queryKey) && queryKey.some(k => typeof k === 'string' && suppressedKeys.some(sk => k.includes(sk)))) {
-                return;
-            }
+			// Suppress global error toasts for business matching queries
+			// as they are handled locally with specific UI states or ignored to prevent spam
+			const queryKey = query.queryKey;
+			const suppressedKeys = ["business-matching", "event-details"];
+			if (
+				Array.isArray(queryKey) &&
+				queryKey.some(
+					(k) => typeof k === "string" && suppressedKeys.some((sk) => k.includes(sk)),
+				)
+			) {
+				return;
+			}
 
 			// onError is called after all retries are exhausted
 			// Show error toast with retry option
@@ -65,7 +75,7 @@ export const queryClient = new QueryClient({
 });
 
 export const kyClient = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 90000,
 	headers: {
 		"Content-Type": "application/json",
@@ -93,8 +103,10 @@ export const kyClient = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated = useUserSessionStore.persist.hasHydrated();
-					if (!isHydrated) {
+					const isHydrated =
+						typeof window !== "undefined" &&
+						useUserSessionStore.persist?.hasHydrated();
+					if (typeof window !== "undefined" && !isHydrated) {
 						logger.debug("⚠️ Store not hydrated yet, waiting...");
 						return;
 					}
@@ -121,14 +133,14 @@ export const kyClient = ky.create({
 // A public ky client that doesn't require authentication
 // Use this for public-facing pages that should be accessible without login
 export const kyPublicClient = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 30000,
 	headers: {
 		"Content-Type": "application/json",
 	},
 	retry: {
 		limit: 3,
-		methods: ["get"],
+		methods: ["get", "post"],
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
@@ -144,9 +156,22 @@ export const kyPublicClient = ky.create({
 	},
 });
 
+// A public ky client for multipart/form-data uploads (no auth, no default Content-Type)
+// Use this for public endpoints that accept file uploads
+export const kyPublicClientForFormData = ky.create({
+	prefixUrl: API_BASE_URL,
+	timeout: 60000,
+	// Note: Do NOT set default Content-Type so the browser can set multipart/form-data with boundary
+	retry: {
+		limit: 3,
+		methods: ["post"],
+		statusCodes: [408, 429, 500, 502, 503, 504],
+	},
+});
+
 // A dedicated ky client for multipart/form-data uploads (no default Content-Type)
 export const kyClientForFormData = ky.create({
-	prefixUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+	prefixUrl: API_BASE_URL,
 	timeout: 30000,
 	// Note: Do NOT set default headers here so the browser can set the multipart boundary
 	retry: {
@@ -169,8 +194,10 @@ export const kyClientForFormData = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated = useUserSessionStore.persist.hasHydrated();
-					if (!isHydrated) {
+					const isHydrated =
+						typeof window !== "undefined" &&
+						useUserSessionStore.persist?.hasHydrated();
+					if (typeof window !== "undefined" && !isHydrated) {
 						logger.debug("⚠️ Store not hydrated yet, waiting... (FormData)");
 						return;
 					}
@@ -417,6 +444,44 @@ export const restClient = {
 	},
 
 	/**
+	 * Make a PUT request with FormData for file uploads
+	 * @param url - The endpoint URL
+	 * @param formData - FormData object containing files and other fields
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to the response data
+	 */
+	putFormData: <T>(
+		url: string,
+		formData: FormData,
+		token?: string,
+	): Promise<T> => {
+		const headers: Record<string, string> = token
+			? { Authorization: `Bearer ${token}` }
+			: {};
+
+		// Do NOT set Content-Type; let the browser set multipart/form-data with boundary
+		const requestOptions = {
+			body: formData,
+			headers,
+		} as const;
+
+		logger.debug("🔍 HTTP Client Debug (PUT FORM DATA):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Token:", token);
+		logger.debug("  - Headers:", headers);
+		logger.debug(
+			"  - FormData entries:",
+			Array.from(formData.entries()).map(([key, value]) =>
+				value instanceof File
+					? [key, `File: ${value.name} (${value.size} bytes)`]
+					: [key, value],
+			),
+		);
+
+		return kyClientForFormData.put(url, requestOptions).json<T>();
+	},
+
+	/**
 	 * Get the full URL for an image endpoint
 	 * @param path - The image path (e.g., "v1/voucher_images/filename.jpg")
 	 * @returns Full URL to access the image
@@ -442,6 +507,19 @@ export const publicRestClient = {
 		logger.debug("🔍 Public HTTP Client Debug (GET):");
 		logger.debug("  - URL:", url);
 		return kyPublicClient.get(url).json<T>();
+	},
+
+	/**
+	 * Make a POST request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	post: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (POST):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.post(url, { json: data }).json<T>();
 	},
 
 	/**

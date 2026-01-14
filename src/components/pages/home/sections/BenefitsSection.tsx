@@ -22,7 +22,7 @@ const BenefitsSection: React.FC = () => {
 	return (
 		<section id="benefits" className="relative overflow-hidden">
 			{/* Marquee content */}
-			<div className="relative overflow-hidden bg-white py-6">
+			<div className="relative overflow-hidden bg-white py-6 border border-black">
 				<div className="flex">
 					<motion.div
 						className="flex shrink-0 whitespace-nowrap"
@@ -45,7 +45,7 @@ const BenefitsSection: React.FC = () => {
 								className="flex shrink-0 items-center font-black text-xl tracking-tight text-black sm:text-2xl md:text-4xl lg:text-5xl"
 							>
 								<span className="mx-6">{item}</span>
-								<span className="mx-6 text-black/30">•</span>
+								<span className="mx-6 text-brand-green">•</span>
 							</span>
 						))}
 					</motion.div>

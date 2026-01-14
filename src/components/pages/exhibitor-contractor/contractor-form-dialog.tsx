@@ -52,9 +52,9 @@ export function ContractorFormContent() {
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch team members for org_owner
-	const { data: teamMembers = [] } = useQuery({
-		queryKey: ["team-members"],
-		queryFn: getTeamMembers,
+	const { data: teamMembers = [], isLoading: isLoadingOrganizers } = useQuery({
+		queryKey: ["team_members"],
+		queryFn: () => getTeamMembers(),
 		enabled: isOrgOwner,
 	});
 

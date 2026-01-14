@@ -61,36 +61,48 @@ export function TeamMembersSection({
 				<span className="text-muted-foreground text-sm">(Optional)</span>
 			</div>
 
-			<p className="text-muted-foreground text-sm">
-				Add your team members who will be participating in the exhibition.
-				{teamMemberLimit != null && (
-					<>
-						<span className="font-medium">
-							{" "}
-							{teamMemberLimit} members included.
-						</span>
-						{extraTeamMemberFee != null && extraTeamMemberFee > 0 && (
-							<span>
+			<div className="space-y-3">
+				<p className="text-muted-foreground text-sm">
+					Add your team members who will be participating in the exhibition.
+					{teamMemberLimit != null && (
+						<>
+							<span className="font-medium">
 								{" "}
-								Extra members will be charged{" "}
-								<span className="font-medium">
-									{formatCurrency(extraTeamMemberFee)}
-								</span>{" "}
-								per person.
+								{teamMemberLimit} members included.
 							</span>
-						)}
-					</>
-				)}
-			</p>
+							{extraTeamMemberFee != null && extraTeamMemberFee > 0 && (
+								<span>
+									{" "}
+									Extra members will be charged{" "}
+									<span className="font-medium">
+										{formatCurrency(extraTeamMemberFee)}
+									</span>{" "}
+									per person.
+								</span>
+							)}
+						</>
+					)}
+				</p>
+
+				{/* How to use guide */}
+				<div className="bg-blue-50 border border-blue-200 p-3">
+					<p className="text-blue-800 text-xs">
+						<span className="font-medium">How to add:</span> Type the full name of your team member in the box below, then click the "Add" button. You can add multiple team members one by one.
+					</p>
+				</div>
+			</div>
 
 			{/* Add Member Input */}
 			<div className="space-y-2">
 				<Label>Add Team Member</Label>
+				<p className="text-muted-foreground text-xs">
+					Enter the full name of a team member and click "Add" to include them
+				</p>
 				<div className="flex flex-col gap-2 sm:flex-row">
 					<Input
 						value={newMemberName}
 						onChange={(e) => setNewMemberName(e.target.value)}
-						placeholder="Enter team member full name"
+						placeholder="e.g., Ahmad bin Abdullah"
 						className="flex-1"
 						onKeyDown={(e) => {
 							if (e.key === "Enter") {
@@ -106,15 +118,18 @@ export function TeamMembersSection({
 						className="w-full sm:w-auto"
 					>
 						<Plus className="mr-2 h-4 w-4" />
-						Add
+						Add Member
 					</Button>
 				</div>
 			</div>
 
 			{/* Team Members List */}
-			{teamMembers.length > 0 && (
+			{teamMembers.length > 0 ? (
 				<div className="space-y-2">
 					<Label>Added Members ({teamMembers.length})</Label>
+					<p className="text-muted-foreground text-xs">
+						You can edit names by clicking on them, or remove a member by clicking the red trash icon
+					</p>
 					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 						{teamMembers.map((member, index) => (
 							<div
@@ -135,12 +150,23 @@ export function TeamMembersSection({
 									size="icon"
 									onClick={() => handleRemoveMember(index)}
 									className="shrink-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+									title="Remove this member"
 								>
 									<Trash2 className="h-4 w-4" />
 								</Button>
 							</div>
 						))}
 					</div>
+				</div>
+			) : (
+				<div className="border border-dashed bg-muted/20 p-4 text-center">
+					<Users className="mx-auto h-8 w-8 text-muted-foreground/50" />
+					<p className="mt-2 text-muted-foreground text-sm">
+						No team members added yet
+					</p>
+					<p className="text-muted-foreground text-xs">
+						Use the form above to add your first team member
+					</p>
 				</div>
 			)}
 

@@ -7,12 +7,12 @@ import { usePathname } from "next/navigation";
 import type { IconType } from "react-icons";
 import {
 	SidebarGroup,
+	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 export function NavGroup({
 	name,
@@ -23,36 +23,37 @@ export function NavGroup({
 		name: string;
 		url: Route;
 		icon: LucideIcon | IconType;
+		isActive?: (pathname: string) => boolean;
 	}[];
 }) {
 	const pathname = usePathname();
 	return (
-		<SidebarGroup className="py-0">
+		<SidebarGroup>
 			<SidebarGroupLabel>{name}</SidebarGroupLabel>
-			<SidebarMenu>
-				{navGroup.map((item) => {
-					const isActive =
-						pathname === item.url || pathname.startsWith(`${item.url}/`);
-					return (
-						<SidebarMenuItem key={item.name}>
-							<SidebarMenuButton
-								asChild
-								tooltip={item.name}
-								className={cn(
-									"rounded-none",
-									isActive &&
-										"group bg-stone-900 text-stone-50 hover:bg-stone-700 hover:text-stone-50",
-								)}
-							>
-								<Link href={item.url}>
-									<item.icon className="size-8" />
-									<span>{item.name}</span>
-								</Link>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					);
-				})}
-			</SidebarMenu>
+			<SidebarGroupContent>
+				<SidebarMenu>
+					{navGroup.map((item) => {
+						const isActive = item.isActive
+							? item.isActive(pathname)
+							: pathname === item.url || pathname.startsWith(`${item.url}/`);
+						return (
+							<SidebarMenuItem key={item.name}>
+								<SidebarMenuButton
+									asChild
+									tooltip={item.name}
+									className="rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
+									isActive={isActive}
+								>
+									<Link href={item.url}>
+										<item.icon className="size-8" />
+										<span>{item.name}</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						);
+					})}
+				</SidebarMenu>
+			</SidebarGroupContent>
 		</SidebarGroup>
 	);
 }
