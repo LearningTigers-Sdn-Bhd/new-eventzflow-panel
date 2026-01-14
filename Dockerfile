@@ -19,6 +19,10 @@ RUN bun install --frozen-lockfile
 FROM dependencies as builder
 # Copy the rest of the source code.
 COPY . .
+
+# Reinstall to ensure native modules are properly linked after COPY
+RUN bun install --frozen-lockfile
+
 # Accept build arguments for NEXT_PUBLIC_ variables
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_ENABLE_DEVTOOLS
