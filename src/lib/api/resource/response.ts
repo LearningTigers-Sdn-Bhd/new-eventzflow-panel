@@ -56,6 +56,7 @@ export type BackendResource = {
 	published_at: string | null;
 	header_img_url: string | ResourceImageVariants | null;
     min_read?: number;
+	priority?: number;
 
 	topic?: BackendResourceTopic;
 	category?: BackendResourceCategory;
@@ -82,6 +83,7 @@ export type Resource = {
 	publishedAt: string | null;
 	headerImgUrl: string | ResourceImageVariants | null;
     minRead?: number;
+	priority?: number;
 
 	topic?: ResourceTopic;
 	category?: ResourceCategory;

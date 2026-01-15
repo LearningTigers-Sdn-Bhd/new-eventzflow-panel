@@ -13,6 +13,7 @@ export const createResourceSchema = z.object({
 	mediaTypeId: z.string().or(z.number()),
 	isGated: z.boolean().default(false),
 	isOfficial: z.boolean().default(false), // Admin/Official only, but good to have in schema
+	priority: z.number().int().min(1).max(10).optional(),
 
 	headerImg: z.any().optional(),
 });
@@ -30,6 +31,7 @@ export const updateResourceSchema = z.object({
 	categoryId: z.string().or(z.number()).optional(),
 	mediaTypeId: z.string().or(z.number()).optional(),
 	isGated: z.boolean().optional(),
+	priority: z.number().int().min(1).max(10).optional(),
 
 	headerImg: z.any().optional(),
 	removeHeaderImg: z.boolean().optional(),
