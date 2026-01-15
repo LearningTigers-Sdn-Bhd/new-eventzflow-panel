@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 import type { IconType } from "react-icons";
 import {
 	SidebarGroup,
@@ -14,10 +15,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function NavGroup({
-	name,
-	navGroup,
-}: {
+interface NavGroupProps {
 	name: string;
 	navGroup: {
 		name: string;
@@ -25,7 +23,12 @@ export function NavGroup({
 		icon: LucideIcon | IconType;
 		isActive?: (pathname: string) => boolean;
 	}[];
-}) {
+}
+
+export const NavGroup = React.memo(function NavGroup({
+	name,
+	navGroup,
+}: NavGroupProps) {
 	const pathname = usePathname();
 	return (
 		<SidebarGroup>
@@ -56,4 +59,4 @@ export function NavGroup({
 			</SidebarGroupContent>
 		</SidebarGroup>
 	);
-}
+});

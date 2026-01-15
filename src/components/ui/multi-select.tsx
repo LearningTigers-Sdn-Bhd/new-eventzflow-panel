@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/useSemanticElements: skipping this rule for this file */
 "use client";
 
 import { ChevronsUpDown } from "lucide-react";
@@ -194,56 +195,70 @@ MultiSelectContent.displayName = "MultiSelectContent";
 
 // Item
 interface MultiSelectItemProps
-	extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onSelect"> {
+	extends Omit<React.HTMLAttributes<HTMLDivElement>, "onSelect"> {
 	value: string;
 	onSelect?: (value: string) => void;
 }
 
-const MultiSelectItem = React.forwardRef<
-	HTMLButtonElement,
-	MultiSelectItemProps
->(({ className, children, value: itemValue, onSelect, ...props }, ref) => {
-	const { value: selectedValues, onValueChange } = useMultiSelect();
-	const isSelected = selectedValues.includes(itemValue);
+const MultiSelectItem = React.forwardRef<HTMLDivElement, MultiSelectItemProps>(
+	({ className, children, value: itemValue, onSelect, ...props }, ref) => {
+		const { value: selectedValues, onValueChange } = useMultiSelect();
+		const isSelected = selectedValues.includes(itemValue);
 
-	const handleSelect = () => {
-		if (isSelected) {
-			onValueChange(selectedValues.filter((v) => v !== itemValue));
-		} else {
-			onValueChange([...selectedValues, itemValue]);
-		}
-		onSelect?.(itemValue);
-	};
+		const handleSelect = () => {
+			if (isSelected) {
+				onValueChange(selectedValues.filter((v) => v !== itemValue));
+			} else {
+				onValueChange([...selectedValues, itemValue]);
+			}
+			onSelect?.(itemValue);
+		};
 
-	return (
-		<button
-			ref={ref}
-			type="button"
-			data-state={isSelected ? "checked" : "unchecked"}
-			className={cn(
-				"flex w-full cursor-pointer items-center space-x-2 rounded-sm p-2 text-left hover:bg-accent",
-				className,
-			)}
-			onClick={(e) => {
-				e.preventDefault();
-				handleSelect();
-			}}
-			{...props}
-		>
-			<Checkbox
-				checked={isSelected}
-				onCheckedChange={handleSelect}
-				id={`ms-item-${itemValue}`}
-			/>
-			<label
-				htmlFor={`ms-item-${itemValue}`}
-				className="flex-1 cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+		return (
+			<div
+				ref={ref}
+				role="button"
+				tabIndex={0}
+				data-state={isSelected ? "checked" : "unchecked"}
+				className={cn(
+					"flex w-full cursor-pointer items-center space-x-2 rounded-sm p-2 text-left hover:bg-accent",
+					className,
+				)}
+				onClick={(e) => {
+					// Don't handle click if it originated from the checkbox (it handles its own clicks)
+					const target = e.target as HTMLElement;
+					if (
+						target.closest('[role="checkbox"]') ||
+						target.closest('button[type="button"][role="checkbox"]')
+					) {
+						return;
+					}
+					e.preventDefault();
+					handleSelect();
+				}}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						handleSelect();
+					}
+				}}
+				{...props}
 			>
-				{children}
-			</label>
-		</button>
-	);
-});
+				<Checkbox
+					checked={isSelected}
+					onCheckedChange={handleSelect}
+					id={`ms-item-${itemValue}`}
+				/>
+				<label
+					htmlFor={`ms-item-${itemValue}`}
+					className="flex-1 cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				>
+					{children}
+				</label>
+			</div>
+		);
+	},
+);
 MultiSelectItem.displayName = "MultiSelectItem";
 
 // --- Exports ---

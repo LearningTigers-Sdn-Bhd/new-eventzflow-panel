@@ -93,6 +93,7 @@ function transformResource(backend: BackendResource): Resource {
 		publishedAt: backend.published_at,
 		headerImgUrl: transformHeaderImgUrl(backend.header_img_url),
 		minRead: backend.min_read,
+		priority: backend.priority,
 
 		topic: backend.topic ? transformTopic(backend.topic) : undefined,
 		category: backend.category
@@ -354,7 +355,7 @@ export async function createResource(
 	try {
 		const validated = createResourceSchema.parse(data);
 
-		const payload = {
+		const payload: Record<string, unknown> = {
 			title: validated.title,
 			meta_description: validated.metaDescription,
 			article: validated.article,
@@ -365,6 +366,7 @@ export async function createResource(
 			is_gated: validated.isGated,
 			is_official: validated.isOfficial,
 		};
+		if (validated.priority !== undefined) payload.priority = validated.priority;
 
 		if (validated.headerImg) {
 			const formData = new FormData();
@@ -419,6 +421,7 @@ export async function updateResource(
 		if (validated.mediaTypeId !== undefined)
 			payload.resource_media_type_id = validated.mediaTypeId;
 		if (validated.isGated !== undefined) payload.is_gated = validated.isGated;
+		if (validated.priority !== undefined) payload.priority = validated.priority;
 
 		// Handle image deletion flag
 		if (validated.removeHeaderImg) {
