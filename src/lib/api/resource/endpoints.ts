@@ -71,6 +71,14 @@ function transformResource(backend: BackendResource): Resource {
 			: undefined,
 	});
 
+	const transformHeaderImgUrl = (
+		url: string | { large: string; original: string } | null,
+	): string | null => {
+		if (!url) return null;
+		if (typeof url === "string") return url;
+		return url.large || url.original;
+	};
+
 	return {
 		id: backend.id.toString(),
 		title: backend.title,
@@ -82,7 +90,7 @@ function transformResource(backend: BackendResource): Resource {
 		isOfficial: backend.is_official,
 		rejectionReason: backend.rejection_reason ?? null,
 		publishedAt: backend.published_at,
-		headerImgUrl: backend.header_img_url,
+		headerImgUrl: transformHeaderImgUrl(backend.header_img_url),
         minRead: backend.min_read,
 
 		topic: backend.topic ? transformTopic(backend.topic) : undefined,
