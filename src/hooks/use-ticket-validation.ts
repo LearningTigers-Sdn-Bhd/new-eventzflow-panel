@@ -114,6 +114,7 @@ export function useTicketValidation() {
 					status: "success",
 					message: `${typeLabel} checked in successfully`,
 					type: response.type,
+					role: response.role,
 					name: response.name,
 					email: response.email,
 					phone: response.phone,

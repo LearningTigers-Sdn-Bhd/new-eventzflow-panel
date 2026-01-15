@@ -4,6 +4,7 @@
  */
 
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { getStatusIcon, getStatusVariant, TypeBadge } from "../status-helpers";
 import type { ScanResult } from "../types";
 
@@ -51,8 +52,8 @@ export function RecentScanCard({ scan }: RecentScanCardProps) {
 					>
 						{scan.email || "No email"}
 					</p>
-					<div className="mt-1">
-						<TypeBadge type={scan.type} />
+					<div className="mt-1 flex flex-wrap gap-1">
+						<TypeBadge type={scan.type} role={scan.role} />
 					</div>
 				</div>
 			</div>

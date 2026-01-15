@@ -4,6 +4,7 @@ export interface Visitor {
 	id: number;
 	event_id: number;
 	public_id: string;
+	role?: string;
 	full_name: string;
 	email: string;
 	phone: string;

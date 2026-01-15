@@ -56,6 +56,13 @@ export const useBusinessMatchingEvents = (eventId: string) => {
 		staleTime: 1000 * 60 * 30, // 30 minutes
 		refetchOnWindowFocus: false,
         retry: 1,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (data && (data as any).is_pending_async) {
+                return 1000;
+            }
+            return false;
+        },
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -97,6 +104,13 @@ export const useBusinessMatchingAvailability = (
         gcTime: 0,
         refetchOnMount: "always",
         retry: 1,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (data && (data as any).is_pending_async) {
+                return 1000;
+            }
+            return false;
+        },
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -117,6 +131,13 @@ export const useBusinessMatchingDetailedSlots = (
         gcTime: 0,
         refetchOnMount: "always",
         retry: 1,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (data && (data as any).is_pending_async) {
+                return 1000;
+            }
+            return false;
+        },
 	});
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;
@@ -139,6 +160,13 @@ export const useBusinessMatchingBookings = (
         gcTime: 0, // Ensure data is not cached/persisted
         refetchOnMount: "always",
         retry: 1,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (data && (data as any).is_pending_async) {
+                return 1000;
+            }
+            return false;
+        },
     });
 
     const isAsyncPending = queryResult.data && (queryResult.data as any).is_pending_async === true;

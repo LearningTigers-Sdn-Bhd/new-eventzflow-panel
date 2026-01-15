@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
+import { Badge } from "@/components/ui/badge";
 import type { Visitor } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
 import { VisitorActionsMenu } from "./event-visitor-action-menu";
@@ -63,6 +64,23 @@ export function generateColumns(
 					>
 						{email || "Not provided"}
 					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "role",
+			size: 150,
+			header: ({ column }) => <SortableHeader column={column} label="Role" />,
+			cell: ({ row }) => {
+				const role = row.getValue("role") as string | undefined;
+				if (!role) return <span className="text-muted-foreground">-</span>;
+				return (
+					<Badge
+						variant="outline"
+						className="rounded-none border-primary/20 bg-primary/5 text-primary"
+					>
+						{role}
+					</Badge>
 				);
 			},
 		},

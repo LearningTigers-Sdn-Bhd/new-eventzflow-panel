@@ -31,6 +31,7 @@ export default function PendingTicketForm() {
 	const screenshotUrlId = useId();
 	const transactionIdId = useId();
 	const paymentMethodId = useId();
+	const roleId = useId();
 
 	// Custom fields state (dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -79,6 +80,7 @@ export default function PendingTicketForm() {
 			attendee_email: "",
 			attendee_phone: "",
 			ticket_type_id: null as number | null,
+			role: "",
 			payment_status: PAYMENT_STATUS.PENDING,
 			payment_method: "",
 			transaction_id: "",
@@ -103,6 +105,7 @@ export default function PendingTicketForm() {
 				attendee_email: value.attendee_email.trim() || null,
 				attendee_phone: value.attendee_phone || null,
 				ticket_type_id: value.ticket_type_id,
+				role: value.role || undefined,
 				payment_status: value.payment_status,
 				payment_screenshot_url: value.payment_screenshot_url || undefined,
 				transaction_id: value.transaction_id || undefined,
@@ -215,6 +218,20 @@ export default function PendingTicketForm() {
 										label="Phone Number"
 										htmlFor={phoneId}
 										placeholder="+1 234 567 8900"
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										onBlur={field.handleBlur}
+										disabled={createMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="role">
+								{(field) => (
+									<InputLabel
+										label="Role"
+										htmlFor={roleId}
+										placeholder="e.g., VIP, Speaker, Staff"
 										value={field.state.value}
 										onChange={(value) => field.handleChange(value)}
 										onBlur={field.handleBlur}

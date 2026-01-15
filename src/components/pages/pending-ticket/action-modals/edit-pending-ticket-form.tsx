@@ -38,6 +38,7 @@ export default function PendingTicketEditModal({
 	const screenshotUrlId = useId();
 	const transactionIdId = useId();
 	const paymentMethodId = useId();
+	const roleId = useId();
 
 	const [customFields, setCustomFields] = useState<
 		Array<{ labelKey: string; labelName: string; value: string }>
@@ -96,6 +97,7 @@ export default function PendingTicketEditModal({
 			attendee_name: ticket.name ?? "",
 			attendee_email: ticket.email ?? "",
 			attendee_phone: ticket.phone ?? "",
+			role: ticket.role ?? "",
 			ticket_type_id: ticket.ticketTypeId || null,
 			payment_status: getPaymentStatusNumber(ticket.paymentStatus),
 			payment_method: ticket.paymentMethod ?? "",
@@ -117,6 +119,7 @@ export default function PendingTicketEditModal({
 					attendee_name: value.attendee_name,
 					attendee_email: value.attendee_email.trim() || null,
 					attendee_phone: value.attendee_phone || null,
+					role: value.role || undefined,
 					ticket_type_id: value.ticket_type_id || undefined,
 					payment_status: value.payment_status,
 					payment_screenshot_url: value.payment_screenshot_url || undefined,
@@ -232,6 +235,20 @@ export default function PendingTicketEditModal({
 										label="Phone Number"
 										htmlFor={phoneId}
 										placeholder="+1 234 567 8900"
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										onBlur={field.handleBlur}
+										disabled={updateMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="role">
+								{(field) => (
+									<InputLabel
+										label="Role"
+										htmlFor={roleId}
+										placeholder="e.g., VIP, Speaker, Staff"
 										value={field.state.value}
 										onChange={(value) => field.handleChange(value)}
 										onBlur={field.handleBlur}

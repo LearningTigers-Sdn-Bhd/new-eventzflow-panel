@@ -26,6 +26,7 @@ export default function TicketForm() {
 	const nameId = useId();
 	const emailId = useId();
 	const phoneId = useId();
+	const roleId = useId();
 
 	// Custom fields state (kept separate since they're dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -77,6 +78,7 @@ export default function TicketForm() {
 			attendee_email: "",
 			attendee_phone: "",
 			ticket_type_id: null as number | null,
+			role: "",
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -97,6 +99,7 @@ export default function TicketForm() {
 				attendee_email: value.attendee_email.trim() || null,
 				attendee_phone: value.attendee_phone || undefined,
 				ticket_type_id: value.ticket_type_id,
+				role: value.role || undefined,
 				custom_fields_data:
 					Object.keys(customFieldsData).length > 0
 						? customFieldsData
@@ -217,6 +220,20 @@ export default function TicketForm() {
 										onChange={field.handleChange}
 										onBlur={field.handleBlur}
 										placeholder="+1 234 567 8900"
+										disabled={createTicketMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="role">
+								{(field) => (
+									<InputLabel
+										label="Role"
+										htmlFor={roleId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										onBlur={field.handleBlur}
+										placeholder="e.g. VIP, Speaker, Staff"
 										disabled={createTicketMutation.isPending}
 									/>
 								)}
