@@ -28,7 +28,7 @@ const benefits = [
 
 const WhyChooseSection: React.FC = () => {
 	return (
-		<section className="bg-white/20 px-6 py-16 md:py-30 md:px-12 border-black border-y">
+		<section className="bg-white-background px-6 py-16 md:py-30 md:px-12 border-black border-y">
 			<div className="mx-auto max-w-7xl">
 				<div className="mb-12 flex flex-col gap-6 md:mb-24 md:flex-row md:items-end md:justify-between">
 					<div className="max-w-2xl">

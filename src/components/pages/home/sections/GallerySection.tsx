@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link"; // Added Link import
 
 const galleryImages = [
 	{
@@ -30,7 +29,7 @@ const galleryImages = [
 
 const GallerySection: React.FC = () => {
 	return (
-		<section className="bg-white/20 px-4 py-16 text-neutral-900 md:py-24 md:px-8 border border-black">
+		<section className="bg-white-background px-4 py-16 text-neutral-900 md:py-24 md:px-8 border border-black">
 			<div className="mx-auto max-w-[1400px]">
 				{/* Swiss Header */}
 				<div className="mb-2 flex flex-col items-start justify-between border-neutral-900 border-t-4 pt-4 pb-8 md:items-end md:pt-6 md:pb-12 md:flex-row">

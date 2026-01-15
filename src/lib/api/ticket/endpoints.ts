@@ -322,12 +322,12 @@ function transformBackendTicket(
 	const checkedIn = ticket.checked_in;
 	const checkInAt = ticket.check_in_at || undefined;
 	const event_id = eventId || ticket.event_id.toString();
-	const status = ticket.status === "scanned" ? "scanned" : "not_scanned";
-	const createdAt = ticket.created_at;
+	const status = ticket.checked_in ? "scanned" : "not_scanned";
+	const createdAt = ticket.created_at || new Date().toISOString();
 
 	let name = "";
 	let email = "";
-	let phone: string | undefined = undefined;
+	let phone: string | undefined;
 	let ticketTypeName = "Unknown";
 	let ticketTypeId = 0;
 	let value = 0;
