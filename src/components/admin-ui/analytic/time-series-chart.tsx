@@ -46,11 +46,38 @@ export function TimeSeriesChart({
 	// Check if data is empty or all values are 0
 	const hasData = data.length > 0 && data.some((d) => d.value > 0);
 
+	// Detect if data is hourly (format: "2026-01-14 14:00") or daily (format: "2026-01-14")
+	const isHourlyData = data.length > 0 && data[0]?.date?.includes(" ");
+
 	const formatDate = (dateString: string) => {
+		if (isHourlyData) {
+			// Hourly format: "2026-01-14 14:00" -> "14:00"
+			const timePart = dateString.split(" ")[1];
+			return timePart || dateString;
+		}
+		// Daily format: show month/day
 		const date = new Date(dateString);
 		return date.toLocaleDateString("ms-MY", {
 			month: "numeric",
 			day: "numeric",
+		});
+	};
+
+	const formatTooltipLabel = (dateString: string) => {
+		if (isHourlyData) {
+			// For hourly: "2026-01-14 14:00" -> "Jan 14, 2026 14:00"
+			const [datePart, timePart] = dateString.split(" ");
+			const date = new Date(datePart);
+			return `${date.toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+				year: "numeric",
+			})} ${timePart}`;
+		}
+		return new Date(dateString).toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
 		});
 	};
 
@@ -69,7 +96,7 @@ export function TimeSeriesChart({
 					</div>
 				</CardHeader>
 				<CardContent className="flex flex-col items-center justify-center bg-accent p-0">
-					<div className="h-[200px] w-full pt-2 px-4 pb-4">
+					<div className="h-[200px] w-full px-4 pb-4 pt-2">
 						<Skeleton className="h-full w-full" />
 					</div>
 				</CardContent>
@@ -140,13 +167,7 @@ export function TimeSeriesChart({
 								cursor={false}
 								content={
 									<ChartTooltipContent
-										labelFormatter={(value) => {
-											return new Date(value).toLocaleDateString("en-US", {
-												month: "short",
-												day: "numeric",
-												year: "numeric",
-											});
-										}}
+										labelFormatter={formatTooltipLabel}
 										indicator="dot"
 									/>
 								}

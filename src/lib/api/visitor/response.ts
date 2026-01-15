@@ -10,6 +10,9 @@ export interface Visitor {
 	phone: string;
 	gender?: string;
 	age?: number;
+	checked_in: boolean;
+	check_in_at?: string;
+	scanned_by_id?: number;
 	custom_fields_data?: Record<string, string>;
 	created_at: string;
 	updated_at: string;

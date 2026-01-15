@@ -9,7 +9,12 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export type TimeRangePreset = "today" | "last_7_days" | "last_30_days" | "event_duration";
+export type TimeRangePreset =
+	| "today"
+	| "last_24_hours"
+	| "last_7_days"
+	| "last_30_days"
+	| "event_duration";
 
 export interface TimeRangeOption {
 	value: TimeRangePreset;
@@ -18,6 +23,7 @@ export interface TimeRangeOption {
 
 const TIME_RANGE_OPTIONS: TimeRangeOption[] = [
 	{ value: "today", label: "Today" },
+	{ value: "last_24_hours", label: "Last 24 Hours" },
 	{ value: "last_7_days", label: "Last 7 Days" },
 	{ value: "last_30_days", label: "Last 30 Days" },
 	{ value: "event_duration", label: "Event Duration" },
@@ -29,7 +35,11 @@ interface TimeRangeFilterProps {
 	className?: string;
 }
 
-export function TimeRangeFilter({ value, onChange, className }: TimeRangeFilterProps) {
+export function TimeRangeFilter({
+	value,
+	onChange,
+	className,
+}: TimeRangeFilterProps) {
 	const selectedOption = TIME_RANGE_OPTIONS.find((opt) => opt.value === value);
 
 	return (
@@ -72,6 +82,14 @@ export function getDateRangeFromPreset(
 				startDate: formatDate(today),
 				endDate: formatDate(today),
 			};
+		case "last_24_hours": {
+			const yesterday = new Date(today);
+			yesterday.setDate(today.getDate() - 1);
+			return {
+				startDate: formatDate(yesterday),
+				endDate: formatDate(today),
+			};
+		}
 		case "last_7_days": {
 			const sevenDaysAgo = new Date(today);
 			sevenDaysAgo.setDate(today.getDate() - 6);
@@ -101,9 +119,13 @@ export type GroupByOption = "hour" | "day" | "week" | "month";
  * Get appropriate group_by based on date range
  * Returns undefined for event_duration to let backend auto-detect
  */
-export function getGroupByFromPreset(preset: TimeRangePreset): GroupByOption | undefined {
+export function getGroupByFromPreset(
+	preset: TimeRangePreset,
+): GroupByOption | undefined {
 	switch (preset) {
 		case "today":
+			return "hour";
+		case "last_24_hours":
 			return "hour";
 		case "last_7_days":
 			return "day";

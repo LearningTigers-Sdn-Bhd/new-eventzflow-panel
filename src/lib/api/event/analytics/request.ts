@@ -16,6 +16,7 @@ export const getTimeSeriesSchema = z.object({
 		"scans",
 		"revenue",
 		"visitors",
+		"visitor_scans",
 		"stamps",
 		"redemptions",
 		"redemption_value",
