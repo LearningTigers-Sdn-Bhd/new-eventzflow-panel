@@ -85,6 +85,36 @@ export function generateColumns(
 			},
 		},
 		{
+			accessorKey: "checked_in",
+			size: 150,
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Check-in Status" />
+			),
+			cell: ({ row }) => {
+				const checkedIn = row.getValue("checked_in") as boolean;
+
+				if (checkedIn) {
+					return (
+						<Badge
+							variant="outline"
+							className="w-fit rounded-none border-green-500/20 bg-green-500/10 text-green-700"
+						>
+							Checked In
+						</Badge>
+					);
+				}
+
+				return (
+					<Badge
+						variant="outline"
+						className="w-fit rounded-none border-gray-300/50 bg-gray-100/50 text-gray-600"
+					>
+						Not Checked In
+					</Badge>
+				);
+			},
+		},
+		{
 			accessorKey: "created_at",
 			size: 180,
 			header: ({ column }) => (
