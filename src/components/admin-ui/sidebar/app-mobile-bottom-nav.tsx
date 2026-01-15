@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import {
 	BadgeCheck,
 	Bell,
@@ -22,6 +21,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
@@ -31,47 +31,23 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import { useUserPermissions } from "@/hooks/use-user-permissions";
-import { getContractor } from "@/lib/api/contractor";
+import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
+import { useNavigation } from "@/hooks/use-navigation";
 import { cn } from "@/lib/utils";
-import {
-	getMobileNavigation,
-	type UserPermissions,
-	type UserRole,
-} from "./app-menu-config";
+import type { UserRole } from "./app-menu-config";
 
 export function AppMobileBottomNav() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
-	const { permissions: resourcePermissions } = useUserPermissions();
-
-	// Fetch contractor profile for exhibition_contractor users
-	const isContractor = user?.role === "exhibition_contractor";
-	const { data: contractor } = useQuery({
-		queryKey: ["contractor", user?.id],
-		queryFn: () => getContractor(user!.id),
-		enabled: !!user?.id && isContractor,
-	});
-
-	// Build permissions object from contractor profile and resource permissions
-	const permissions: UserPermissions | undefined = {
-		...(isContractor && contractor
-			? {
-					allow_printing_services:
-						contractor.exhibition_contractor_profile?.allow_printing_services,
-				}
-			: {}),
-		...resourcePermissions,
-	};
+	const { permissions } = useContractorPermissions();
+	const { mobileNav } = useNavigation(user?.role as UserRole, permissions);
 
 	const handleLogout = async () => {
 		await logout();
 		router.push("/");
 	};
-
-	const mobileNav = getMobileNavigation(user?.role as UserRole, permissions);
 
 	const canManagePaymentDetails =
 		user?.role &&
@@ -121,211 +97,215 @@ export function AppMobileBottomNav() {
 					</div>
 				</SheetTrigger>
 				<SheetContent side="right" className="w-[300px]">
-					<div className="flex h-full flex-col justify-start gap-4">
-						<SheetHeader>
-							<SheetTitle>More Menu</SheetTitle>
-						</SheetHeader>
+					<ScrollArea className="h-screen pb-8">
+						<div className="flex h-full flex-col justify-start gap-4">
+							<SheetHeader>
+								<SheetTitle>More Menu</SheetTitle>
+							</SheetHeader>
 
-						{/* Account Info Section */}
-						<div className="flex flex-col gap-4 px-4">
-							<div className="flex items-center gap-3">
-								<Avatar className="h-12 w-12 rounded-none">
-									<AvatarFallback className="rounded-none">
-										{user?.full_name?.charAt(0)?.toUpperCase() ||
-											user?.email.charAt(0).toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
-								<div className="flex flex-col">
-									<h3 className="font-medium text-sm">
-										{user?.full_name || "User"}
-									</h3>
-									<p className="text-muted-foreground text-xs">{user?.email}</p>
+							{/* Account Info Section */}
+							<div className="flex flex-col gap-4 px-4">
+								<div className="flex items-center gap-3">
+									<Avatar className="h-12 w-12 rounded-none">
+										<AvatarFallback className="rounded-none">
+											{user?.full_name?.charAt(0)?.toUpperCase() ||
+												user?.email.charAt(0).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+									<div className="flex flex-col">
+										<h3 className="font-medium text-sm">
+											{user?.full_name || "User"}
+										</h3>
+										<p className="text-muted-foreground text-xs">
+											{user?.email}
+										</p>
+									</div>
 								</div>
 							</div>
-						</div>
-						<Separator />
+							<Separator />
 
-						{/* Theme Toggle Section */}
-						<div className="flex flex-col gap-2 px-2">
-							<h4 className="font-medium text-muted-foreground text-xs uppercase">
-								Appearance
-							</h4>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="lg"
-										className="w-full justify-start rounded-none"
+							{/* Theme Toggle Section */}
+							<div className="flex flex-col gap-2 px-2">
+								<h4 className="font-medium text-muted-foreground text-xs uppercase">
+									Appearance
+								</h4>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant="ghost"
+											size="lg"
+											className="w-full justify-start rounded-none"
+										>
+											{theme === "light" && <Sun className="mr-2 size-4" />}
+											{theme === "dark" && <Moon className="mr-2 size-4" />}
+											{theme === "system" && (
+												<Monitor className="mr-2 size-4" />
+											)}
+											{theme === "light" && "Light Theme"}
+											{theme === "dark" && "Dark Theme"}
+											{theme === "system" && "System Theme"}
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent
+										align="start"
+										className="w-(--radix-dropdown-menu-trigger-width) rounded-none"
 									>
-										{theme === "light" && <Sun className="mr-2 size-4" />}
-										{theme === "dark" && <Moon className="mr-2 size-4" />}
-										{theme === "system" && <Monitor className="mr-2 size-4" />}
-										{theme === "light" && "Light Theme"}
-										{theme === "dark" && "Dark Theme"}
-										{theme === "system" && "System Theme"}
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent
-									align="start"
-									className="w-(--radix-dropdown-menu-trigger-width) rounded-none"
-								>
-									<DropdownMenuItem
-										className="rounded-none"
-										onClick={() => setTheme("light")}
-									>
-										<Sun className="mr-2 size-4" />
-										Light
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										className="rounded-none"
-										onClick={() => setTheme("dark")}
-									>
-										<Moon className="mr-2 size-4" />
-										Dark
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										className="rounded-none"
-										onClick={() => setTheme("system")}
-									>
-										<Monitor className="mr-2 size-4" />
-										System
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
+										<DropdownMenuItem
+											className="rounded-none"
+											onClick={() => setTheme("light")}
+										>
+											<Sun className="mr-2 size-4" />
+											Light
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											className="rounded-none"
+											onClick={() => setTheme("dark")}
+										>
+											<Moon className="mr-2 size-4" />
+											Dark
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											className="rounded-none"
+											onClick={() => setTheme("system")}
+										>
+											<Monitor className="mr-2 size-4" />
+											System
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</div>
 
-						<Separator />
+							<Separator />
 
-						{/* Menu Section - Other Navigation Groups */}
-						<div className="flex flex-col gap-4 px-2">
-							{mobileNav.mainMenuNotInBottomNav.length > 0 && (
-								<div className="flex flex-col gap-2">
-									<h4 className="font-medium text-muted-foreground text-xs uppercase">
-										Main Menu
-									</h4>
+							{/* Menu Section - Other Navigation Groups */}
+							<div className="flex flex-col gap-4 px-2">
+								{mobileNav.mainMenuNotInBottomNav.length > 0 && (
 									<div className="flex flex-col gap-2">
-										{mobileNav.mainMenuNotInBottomNav.map((item) => (
-											<Button
-												key={item.name}
-												variant="ghost"
-												size="lg"
-												className="justify-start rounded-none"
-												asChild
-											>
-												<Link href={item.url}>
-													<item.icon className="mr-2 size-4" />
-													{item.name}
-												</Link>
-											</Button>
-										))}
+										<h4 className="font-medium text-muted-foreground text-xs uppercase">
+											Main Menu
+										</h4>
+										<div className="flex flex-col gap-2">
+											{mobileNav.mainMenuNotInBottomNav.map((item) => (
+												<Button
+													key={item.name}
+													variant="ghost"
+													size="lg"
+													className="justify-start rounded-none"
+													asChild
+												>
+													<Link href={item.url}>
+														<item.icon className="mr-2 size-4" />
+														{item.name}
+													</Link>
+												</Button>
+											))}
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 
-							{mobileNav.memberManagement.length > 0 && (
-								<div className="flex flex-col gap-2">
-									<h4 className="font-medium text-muted-foreground text-xs uppercase">
-										Member Management
-									</h4>
+								{mobileNav.memberManagement.length > 0 && (
 									<div className="flex flex-col gap-2">
-										{mobileNav.memberManagement.map((item) => (
-											<Button
-												key={item.name}
-												variant="ghost"
-												size="lg"
-												className="justify-start rounded-none"
-												asChild
-											>
-												<Link href={item.url}>
-													<item.icon className="mr-2 size-4" />
-													{item.name}
-												</Link>
-											</Button>
-										))}
+										<h4 className="font-medium text-muted-foreground text-xs uppercase">
+											Member Management
+										</h4>
+										<div className="flex flex-col gap-2">
+											{mobileNav.memberManagement.map((item) => (
+												<Button
+													key={item.name}
+													variant="ghost"
+													size="lg"
+													className="justify-start rounded-none"
+													asChild
+												>
+													<Link href={item.url}>
+														<item.icon className="mr-2 size-4" />
+														{item.name}
+													</Link>
+												</Button>
+											))}
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 
-
-
-							{mobileNav.miscellaneous.length > 0 && (
-								<div className="flex flex-col gap-2">
-									<h4 className="font-medium text-muted-foreground text-xs uppercase">
-										Miscellaneous
-									</h4>
+								{mobileNav.miscellaneous.length > 0 && (
 									<div className="flex flex-col gap-2">
-										{mobileNav.miscellaneous.map((item) => (
-											<Button
-												key={item.name}
-												variant="ghost"
-												size="lg"
-												className="justify-start rounded-none"
-												asChild
-											>
-												<Link href={item.url}>
-													<item.icon className="mr-2 size-4" />
-													{item.name}
-												</Link>
-											</Button>
-										))}
+										<h4 className="font-medium text-muted-foreground text-xs uppercase">
+											Miscellaneous
+										</h4>
+										<div className="flex flex-col gap-2">
+											{mobileNav.miscellaneous.map((item) => (
+												<Button
+													key={item.name}
+													variant="ghost"
+													size="lg"
+													className="justify-start rounded-none"
+													asChild
+												>
+													<Link href={item.url}>
+														<item.icon className="mr-2 size-4" />
+														{item.name}
+													</Link>
+												</Button>
+											))}
+										</div>
 									</div>
-								</div>
-							)}
-						</div>
+								)}
+							</div>
 
-						<Separator />
+							<Separator />
 
-						{/* My Account Menu Section */}
-						<div className="flex flex-col gap-2 px-2">
-							<h4 className="font-medium text-muted-foreground text-xs uppercase">
-								My Account
-							</h4>
-							<Button
-								variant="ghost"
-								size="lg"
-								className="justify-start rounded-none"
-								asChild
-							>
-								<Link href="/settings">
-									<BadgeCheck className="mr-2 size-4" />
-									Account Settings
-								</Link>
-							</Button>
-							{canManagePaymentDetails && (
+							{/* My Account Menu Section */}
+							<div className="flex flex-col gap-2 px-2">
+								<h4 className="font-medium text-muted-foreground text-xs uppercase">
+									My Account
+								</h4>
 								<Button
 									variant="ghost"
 									size="lg"
 									className="justify-start rounded-none"
 									asChild
 								>
-									<Link href="/settings#payment-details">
-										<CreditCard className="mr-2 size-4" />
-										Payment Details
+									<Link href="/settings">
+										<BadgeCheck className="mr-2 size-4" />
+										Account Settings
 									</Link>
 								</Button>
-							)}
-							<Button
-								variant="ghost"
-								size="lg"
-								className="justify-start rounded-none"
-								asChild
-							>
-								<Link href="/settings">
-									<Bell className="mr-2 size-4" />
-									Notifications
-								</Link>
-							</Button>
-							<Button
-								variant="ghost"
-								size="lg"
-								className="group justify-start rounded-none bg-destructive text-white transition-colors hover:bg-destructive/90 hover:text-red-950"
-								onClick={handleLogout}
-							>
-								<LogOut className="mr-2 size-4 text-white transition-colors group-hover:text-red-950" />
-								Sign Out
-							</Button>
+								{canManagePaymentDetails && (
+									<Button
+										variant="ghost"
+										size="lg"
+										className="justify-start rounded-none"
+										asChild
+									>
+										<Link href="/settings#payment-details">
+											<CreditCard className="mr-2 size-4" />
+											Payment Details
+										</Link>
+									</Button>
+								)}
+								<Button
+									variant="ghost"
+									size="lg"
+									className="justify-start rounded-none"
+									asChild
+								>
+									<Link href="/settings">
+										<Bell className="mr-2 size-4" />
+										Notifications
+									</Link>
+								</Button>
+								<Button
+									variant="ghost"
+									size="lg"
+									className="group justify-start rounded-none bg-destructive text-white transition-colors hover:bg-destructive/90 hover:text-red-950"
+									onClick={handleLogout}
+								>
+									<LogOut className="mr-2 size-4 text-white transition-colors group-hover:text-red-950" />
+									Sign Out
+								</Button>
+							</div>
 						</div>
-					</div>
+					</ScrollArea>
 				</SheetContent>
 			</Sheet>
 		</nav>

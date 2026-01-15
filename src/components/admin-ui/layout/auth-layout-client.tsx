@@ -48,7 +48,10 @@ export default function AuthLayoutClient({
 
 	// Detect if we're on a resource route
 	const isResourceRoute = useMemo(() => {
-		return pathname.startsWith("/manage-resources/") && pathname !== "/manage-resources";
+		return (
+			pathname.startsWith("/manage-resources/") &&
+			pathname !== "/manage-resources"
+		);
 	}, [pathname]);
 
 	// Extract event_id from pathname
@@ -150,7 +153,7 @@ export default function AuthLayoutClient({
 									leftOffset={nestedSidebarLeftOffset}
 								/>
 								<SidebarInset>
-									<AuthMainWrapper>{children}</AuthMainWrapper>
+									<AuthMainWrapper hasDoubleSidebar>{children}</AuthMainWrapper>
 								</SidebarInset>
 							</SidebarProvider>
 						) : isResourceRoute ? (
@@ -160,7 +163,7 @@ export default function AuthLayoutClient({
 							>
 								<ResourceSidebar leftOffset={nestedSidebarLeftOffset} />
 								<SidebarInset>
-									<AuthMainWrapper>{children}</AuthMainWrapper>
+									<AuthMainWrapper hasDoubleSidebar>{children}</AuthMainWrapper>
 								</SidebarInset>
 							</SidebarProvider>
 						) : (
