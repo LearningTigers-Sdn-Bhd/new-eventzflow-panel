@@ -19,21 +19,21 @@ const links: CTALink[] = [
 	{
 		label: "Browse FAQ",
 		description:
-			"Find quick answers to common questions about our platform and services.",
+			"Discover instant solutions and unlock the full potential of our platform with expert insights.",
 		href: "/#faq",
 		icon: HelpCircle,
 	},
 	{
 		label: "Contact Us",
 		description:
-			"Have specific requirements? Our team is here to help you find the right solution.",
+			"Let's discuss your unique vision. Our expert team is ready to craft the perfect solution for you.",
 		href: "/contact",
 		icon: Phone,
 	},
 	{
 		label: "Get Started",
 		description:
-			"Join the community of event professionals and elevate your attendee experience.",
+			"Begin your journey today and join thousands of event professionals creating extraordinary experiences.",
 		href: "/auth?login",
 		icon: ArrowRight,
 	},
@@ -116,11 +116,12 @@ export default function CTASection() {
 					>
 						<div className="mx-auto mb-8 h-px w-16 bg-white/30" />
 						<h2 className="mb-6 font-bold text-3xl text-white tracking-tight md:text-4xl lg:text-5xl">
-							Want to know more about EventzFlow?
+							Ready to Transform Your Events?
 						</h2>
 						<p className="mx-auto max-w-2xl text-base text-white/60 md:text-lg">
-							Explore our resources or get in touch with our team to see how we
-							can help you build better event experiences.
+							Welcome to a world of innovative event solutions. Dive into our
+							curated resources or connect with our team to discover how we can
+							transform your events into unforgettable experiences.
 						</p>
 					</motion.div>
 				</div>

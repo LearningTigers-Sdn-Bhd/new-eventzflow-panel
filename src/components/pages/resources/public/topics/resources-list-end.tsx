@@ -24,10 +24,10 @@ export function ResourcesListEnd() {
 					</div>
 					<div className="flex flex-col items-start justify-start">
 						<h3 className="font-black text-3xl text-white uppercase tracking-tighter md:text-4xl lg:text-5xl">
-							All Content Loaded
+							Exploration Complete
 						</h3>
 						<p className="ps-1 text-base text-stone-400 tracking-tight lg:text-lg">
-							You've reached the end of the list.
+							You've explored everything we have to offer!
 						</p>
 					</div>
 				</div>
