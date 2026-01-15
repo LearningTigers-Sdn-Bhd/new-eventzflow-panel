@@ -21,6 +21,7 @@ import type {
 	Resource,
 	ResourceAuthor,
 	ResourceBackendUser,
+	ResourceImageVariants,
 } from "./response";
 import type { BackendResourceTopic, ResourceTopic } from "./topic/response";
 
@@ -73,11 +74,18 @@ function transformResource(backend: BackendResource): Resource {
 	});
 
 	const transformHeaderImgUrl = (
-		url: string | { large: string; original: string } | null,
-	): string | null => {
+		url: string | ResourceImageVariants | null,
+	): string | ResourceImageVariants | null => {
 		if (!url) return null;
+		// If it's already a string (legacy format), return as-is
 		if (typeof url === "string") return url;
-		return url.large || url.original;
+		// If it's an object with variants, preserve the full object
+		// This ensures all variant URLs are available for responsive images
+		if (typeof url === "object" && "thumbnail" in url && "medium" in url && "large" in url && "original" in url) {
+			return url;
+		}
+		// Fallback for any other object shape (shouldn't happen, but safe fallback)
+		return null;
 	};
 
 	return {
