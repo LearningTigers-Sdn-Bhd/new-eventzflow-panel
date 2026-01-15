@@ -1,5 +1,8 @@
 "use client";
+import { PanelLeftIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useSidebarStore } from "@/stores/sidebar-store";
 import {
 	DesktopView,
 	MobileTabletView,
@@ -8,14 +11,36 @@ import {
 
 interface AuthMainWrapperProps {
 	children: React.ReactNode;
+	hasDoubleSidebar?: boolean;
 }
 
-export function AuthMainWrapper({ children }: AuthMainWrapperProps) {
+export function AuthMainWrapper({
+	children,
+	hasDoubleSidebar = false,
+}: AuthMainWrapperProps) {
+	const { toggleEventSidebar } = useSidebarStore();
+
 	return (
 		<ResponsiveLayout>
 			<DesktopView>
 				<header className="flex h-12 flex-row items-center justify-between gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-					<div className="flex flex-row items-stretch justify-start gap-2 px-12">
+					<div className="flex flex-row items-stretch justify-start gap-2 px-1">
+						{hasDoubleSidebar ? (
+							<div className="flex items-center justify-center">
+								<Button
+									variant="ghost"
+									size="icon"
+									className="rounded-none p-1"
+									onClick={toggleEventSidebar}
+									aria-label="Toggle Second Sidebar"
+								>
+									<PanelLeftIcon className="size-4" />
+									<span className="sr-only">Toggle Second Sidebar</span>
+								</Button>
+							</div>
+						) : (
+							<div className="flex w-9 items-center justify-center" />
+						)}
 						<Separator
 							orientation="vertical"
 							className="data-[orientation=vertical]:h-12"

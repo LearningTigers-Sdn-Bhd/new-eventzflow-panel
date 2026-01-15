@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import ImageUpload from "@/components/file-upload/image-upload";
@@ -28,6 +29,7 @@ const editPostSchema = z.object({
 	mediaTypeId: z.string().min(1, "Media type is required"),
 	isGated: z.boolean().default(false),
 	isOfficial: z.boolean().default(false),
+	priority: z.number().int().min(1).max(10).optional(),
 	headerImg: z.any().optional(),
 });
 
@@ -100,6 +102,7 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 			mediaTypeId: resource.mediaType?.id || "",
 			isGated: resource.isGated,
 			isOfficial: resource.isOfficial,
+			priority: resource.priority ?? 10,
 			// Initialize with existing image URL if available, so we can track removal
 			headerImg: hadOriginalImage
 				? (getResourceImage(resource.headerImgUrl, "original") || null)
@@ -123,6 +126,7 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 				categoryId: value.categoryId,
 				mediaTypeId: value.mediaTypeId,
 				isGated: value.isGated,
+				priority: isOrgOwner ? value.priority : undefined,
 				headerImg: isFile ? headerImgValue : undefined,
 				removeHeaderImg: shouldDeleteImage ? true : undefined,
 				// Backend might not allow changing official status if not authorized,
@@ -371,6 +375,38 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 											onCheckedChange={(checked) => field.handleChange(checked)}
 											disabled={isPending || isLoading}
 											variant="no-rounded"
+										/>
+									)}
+								</form.Field>
+							)}
+
+							{isOrgOwner && (
+								<form.Field
+									name="priority"
+									validators={{
+										onChange: ({ value }) => {
+											const result =
+												editPostSchema.shape.priority.safeParse(value);
+											if (!result.success) return result.error.issues[0].message;
+											return undefined;
+										},
+									}}
+								>
+									{(field) => (
+										<NumberInputLabel
+											label="Priority"
+											description="Set the priority level (1-10, higher is more important)"
+											value={field.state.value}
+											onChange={(value) => field.handleChange(value)}
+											min={1}
+											max={10}
+											disabled={isPending || isLoading}
+											isInvalid={field.state.meta.errors.length > 0}
+											errors={
+												field.state.meta.errors.length > 0
+													? [{ message: String(field.state.meta.errors[0]) }]
+													: undefined
+											}
 										/>
 									)}
 								</form.Field>

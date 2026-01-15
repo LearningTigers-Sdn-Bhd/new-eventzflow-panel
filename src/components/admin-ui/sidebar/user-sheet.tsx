@@ -30,7 +30,9 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import { getFilteredNavigation, type UserRole } from "./app-menu-config";
+import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
+import { useNavigation } from "@/hooks/use-navigation";
+import type { UserRole } from "./app-menu-config";
 
 interface UserSheetProps {
 	trigger: React.ReactNode;
@@ -40,14 +42,13 @@ export function UserSheet({ trigger }: UserSheetProps) {
 	const router = useRouter();
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
+	const { permissions } = useContractorPermissions();
+	const { filteredNav } = useNavigation(user?.role as UserRole, permissions);
 
 	const handleLogout = async () => {
 		await logout();
 		router.push("/");
 	};
-
-	// Get filtered navigation by user role
-	const filteredNav = getFilteredNavigation(user?.role as UserRole);
 
 	const canManagePaymentDetails =
 		user?.role &&

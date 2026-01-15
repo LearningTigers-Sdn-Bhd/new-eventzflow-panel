@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import ImageUpload from "@/components/file-upload/image-upload";
@@ -26,6 +27,7 @@ const createPostSchema = z.object({
 	mediaTypeId: z.string().min(1, "Media type is required"),
 	isGated: z.boolean().default(false),
 	isOfficial: z.boolean().default(false),
+	priority: z.number().int().min(1).max(10).optional(),
 	headerImg: z.any().optional(),
 });
 
@@ -83,6 +85,7 @@ export function CreatePostForm() {
 			mediaTypeId: "",
 			isGated: false,
 			isOfficial: false,
+			priority: 10,
 			headerImg: null as File | null,
 		},
 		onSubmit: async ({ value }) => {
@@ -94,6 +97,7 @@ export function CreatePostForm() {
 				mediaTypeId: value.mediaTypeId,
 				isGated: value.isGated,
 				isOfficial: canSetOfficial ? value.isOfficial : false,
+				priority: isOrgOwner ? value.priority : undefined,
 				status: "draft",
 				headerImg: value.headerImg,
 			});
@@ -337,6 +341,38 @@ export function CreatePostForm() {
 											onCheckedChange={(checked) => field.handleChange(checked)}
 											disabled={isPending || isLoading}
 											variant="no-rounded"
+										/>
+									)}
+								</form.Field>
+							)}
+
+							{isOrgOwner && (
+								<form.Field
+									name="priority"
+									validators={{
+										onChange: ({ value }) => {
+											const result =
+												createPostSchema.shape.priority.safeParse(value);
+											if (!result.success) return result.error.issues[0].message;
+											return undefined;
+										},
+									}}
+								>
+									{(field) => (
+										<NumberInputLabel
+											label="Priority"
+											description="Set the priority level (1-10, higher is more important)"
+											value={field.state.value}
+											onChange={(value) => field.handleChange(value)}
+											min={1}
+											max={10}
+											disabled={isPending || isLoading}
+											isInvalid={field.state.meta.errors.length > 0}
+											errors={
+												field.state.meta.errors.length > 0
+													? [{ message: String(field.state.meta.errors[0]) }]
+													: undefined
+											}
 										/>
 									)}
 								</form.Field>

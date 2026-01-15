@@ -11,11 +11,11 @@ export function ResourcesListEmpty() {
 				</div>
 				<div className="flex flex-col items-start justify-start">
 					<h3 className="font-black text-5xl text-black uppercase tracking-tighter lg:text-7xl">
-						No resources found
+						Discover resources
 					</h3>
 					<p className="text-balance ps-1 text-base text-stone-950 tracking-tight lg:text-lg">
-						Try adjusting your filters or search terms to find what you're
-						looking for...
+						Use the search or filters above to explore our collection and find
+						what you're looking for
 					</p>
 				</div>
 			</div>
