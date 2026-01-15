@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa6";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 interface PostHeaderProps {
 	resource: Resource;
@@ -71,13 +72,15 @@ export function PostHeader({ resource, className }: PostHeaderProps) {
 		},
 	];
 
+	const displayImage = getResourceImage(resource.headerImgUrl, "large");
+
 	return (
 		<div className={cn("flex w-full flex-col gap-6 py-8", className)}>
 			{/* Image */}
-			{resource.headerImgUrl && (
+			{displayImage && (
 				<div className="relative aspect-video w-full overflow-hidden rounded-none border bg-muted shadow-sm md:aspect-21/9">
 					<img
-						src={resource.headerImgUrl}
+						src={displayImage}
 						alt={resource.title}
 						className="h-full w-full object-cover"
 					/>

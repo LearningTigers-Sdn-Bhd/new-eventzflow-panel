@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa6";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 interface ShowHeaderProps {
 	resource: Resource;
@@ -58,17 +59,20 @@ export default function ShowHeader({ resource }: ShowHeaderProps) {
 		},
 	];
 
+	const displayImage = getResourceImage(resource.headerImgUrl, "large");
+
 	return (
 		<div className="relative h-[50vh] min-h-[500px] w-full overflow-hidden bg-black">
-			{resource.headerImgUrl && (
+			{displayImage && (
 				<Image
-					src={resource.headerImgUrl}
+					src={displayImage}
 					alt={resource.title}
 					layout="fullWidth"
 					background="auto"
 					fetchpriority="high"
 					loading="eager"
 					className="absolute inset-0 h-full w-full object-cover opacity-60"
+					suppressHydrationWarning
 				/>
 			)}
 			<div className="absolute inset-0 bg-linear-to-t from-black/90 to-transparent" />

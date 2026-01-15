@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/carousel";
 import type { Resource } from "@/lib/api/resource";
 import { cn } from "@/lib/utils";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 interface FeaturedCardProps {
 	resources: Resource[];
@@ -62,22 +63,25 @@ export const FeaturedCard = React.memo(function FeaturedCard({
 				}}
 			>
 				<CarouselContent>
-					{resources.map((resource) => (
+					{resources.map((resource) => {
+						const displayImage = getResourceImage(resource.headerImgUrl, "large");
+						return (
 						<CarouselItem key={resource.id}>
 							<Link
 								href={`/resources/${resource.slug}`}
 								prefetch={true}
 								className="relative block h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]"
 							>
-								{resource.headerImgUrl ? (
+								{displayImage ? (
 									<Image
-										src={resource.headerImgUrl}
+										src={displayImage}
 										alt={resource.title}
 										layout="fullWidth"
 										background="auto"
 										fetchpriority="high"
 										loading="eager"
 										className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover/card:scale-105"
+										suppressHydrationWarning
 									/>
 								) : (
 									<div className="flex h-full w-full items-center justify-center text-gray-400">
@@ -115,7 +119,8 @@ export const FeaturedCard = React.memo(function FeaturedCard({
 								</div>
 							</Link>
 						</CarouselItem>
-					))}
+						);
+					})}
 				</CarouselContent>
 
 				{/* Custom Navigation */}

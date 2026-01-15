@@ -33,13 +33,15 @@ export type ResourceAuthor = {
 	};
 };
 
-// Backend Resource
+// Image Variants
 export type ResourceImageVariants = {
 	thumbnail: string;
 	medium: string;
 	large: string;
 	original: string;
 };
+
+// Backend Resource
 
 export type BackendResource = {
 	id: number;
@@ -78,7 +80,7 @@ export type Resource = {
 	isOfficial: boolean;
 	rejectionReason: string | null;
 	publishedAt: string | null;
-	headerImgUrl: string | null;
+	headerImgUrl: string | ResourceImageVariants | null;
     minRead?: number;
 
 	topic?: ResourceTopic;

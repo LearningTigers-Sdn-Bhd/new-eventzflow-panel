@@ -1,3 +1,4 @@
+import type { BackendPaginationMeta } from "@/utils/pagination-handler";
 import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	BackendResourceCategory,
@@ -91,7 +92,7 @@ function transformResource(backend: BackendResource): Resource {
 		rejectionReason: backend.rejection_reason ?? null,
 		publishedAt: backend.published_at,
 		headerImgUrl: transformHeaderImgUrl(backend.header_img_url),
-        minRead: backend.min_read,
+		minRead: backend.min_read,
 
 		topic: backend.topic ? transformTopic(backend.topic) : undefined,
 		category: backend.category
@@ -101,7 +102,9 @@ function transformResource(backend: BackendResource): Resource {
 			? transformMediaType(backend.media_type)
 			: undefined,
 		author: backend.author ? transformAuthor(backend.author) : undefined,
-        suggestions: backend.suggestions ? backend.suggestions.map(transformResource) : undefined,
+		suggestions: backend.suggestions
+			? backend.suggestions.map(transformResource)
+			: undefined,
 
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
@@ -118,7 +121,7 @@ export async function getResources(options?: {
 	search?: string;
 	page?: number;
 	perPage?: number;
-}): Promise<{ data: Resource[]; pagination?: any }> {
+}): Promise<{ data: Resource[]; pagination?: BackendPaginationMeta }> {
 	const params = new URLSearchParams();
 	if (options?.status) params.append("status", options.status);
 	if (options?.topicId) params.append("resource_topic_id", options.topicId);
@@ -134,7 +137,8 @@ export async function getResources(options?: {
 	const url = queryString ? `v1/resources?${queryString}` : "v1/resources";
 
 	const response = await restClient.get<
-		BackendResource[] | { data: BackendResource[]; pagination?: any }
+		| BackendResource[]
+		| { data: BackendResource[]; pagination?: BackendPaginationMeta }
 	>(url);
 
 	if (Array.isArray(response)) {
@@ -156,7 +160,7 @@ export async function getResourcesOwner(options?: {
 	status?: string;
 	page?: number;
 	perPage?: number;
-}): Promise<{ data: Resource[]; pagination?: any }> {
+}): Promise<{ data: Resource[]; pagination?: BackendPaginationMeta }> {
 	const params = new URLSearchParams();
 	if (options?.status) params.append("status", options.status);
 	if (options?.page) params.append("page", options.page.toString());
@@ -168,7 +172,8 @@ export async function getResourcesOwner(options?: {
 		: "v1/resources/owner";
 
 	const response = await restClient.get<
-		BackendResource[] | { data: BackendResource[]; pagination?: any }
+		| BackendResource[]
+		| { data: BackendResource[]; pagination?: BackendPaginationMeta }
 	>(url);
 
 	if (Array.isArray(response)) {
@@ -189,7 +194,7 @@ export async function getResourcesOwner(options?: {
 export async function getApprovalResources(options?: {
 	page?: number;
 	perPage?: number;
-}): Promise<{ data: Resource[]; pagination?: any }> {
+}): Promise<{ data: Resource[]; pagination?: BackendPaginationMeta }> {
 	const params = new URLSearchParams();
 	if (options?.page) params.append("page", options.page.toString());
 	if (options?.perPage) params.append("per_page", options.perPage.toString());
@@ -200,7 +205,8 @@ export async function getApprovalResources(options?: {
 		: "v1/resources/approval_index";
 
 	const response = await restClient.get<
-		BackendResource[] | { data: BackendResource[]; pagination?: any }
+		| BackendResource[]
+		| { data: BackendResource[]; pagination?: BackendPaginationMeta }
 	>(url);
 
 	if (Array.isArray(response)) {
@@ -240,7 +246,7 @@ export async function getPublicResources(options?: {
 	search?: string;
 	page?: number;
 	perPage?: number;
-}): Promise<{ data: Resource[]; pagination?: any }> {
+}): Promise<{ data: Resource[]; pagination?: BackendPaginationMeta }> {
 	const params = new URLSearchParams();
 	if (options?.priority !== undefined)
 		params.append("priority", options.priority.toString());
@@ -263,7 +269,8 @@ export async function getPublicResources(options?: {
 		: "v1/resources/public";
 
 	const response = await publicRestClient.get<
-		BackendResource[] | { data: BackendResource[]; pagination?: any }
+		| BackendResource[]
+		| { data: BackendResource[]; pagination?: BackendPaginationMeta }
 	>(url);
 
 	if (Array.isArray(response)) {
@@ -399,7 +406,7 @@ export async function updateResource(
 		const validated = updateResourceSchema.parse(data);
 		const { id } = validated;
 
-		const payload: Record<string, any> = {};
+		const payload: Record<string, unknown> = {};
 		if (validated.title !== undefined) payload.title = validated.title;
 		if (validated.metaDescription !== undefined)
 			payload.meta_description = validated.metaDescription;
@@ -412,6 +419,11 @@ export async function updateResource(
 		if (validated.mediaTypeId !== undefined)
 			payload.resource_media_type_id = validated.mediaTypeId;
 		if (validated.isGated !== undefined) payload.is_gated = validated.isGated;
+
+		// Handle image deletion flag
+		if (validated.removeHeaderImg) {
+			payload.remove_header_img = true;
+		}
 
 		if (validated.headerImg) {
 			const formData = new FormData();

@@ -18,6 +18,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { createResourceLead } from "@/lib/api/resource/lead/endpoints";
 import type { Resource } from "@/lib/api/resource/response";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 interface GatedFormProps {
 	resource: Resource;
@@ -71,15 +72,17 @@ export default function GatedForm({ resource }: GatedFormProps) {
 		},
 	});
 
+	const displayImage = getResourceImage(resource.headerImgUrl, "medium");
+
 	return (
 		<div className="container mx-auto max-w-7xl px-4 py-12 md:py-20">
 			<div className="grid grid-cols-1 divide-x divide-black rounded-none border border-black lg:grid-cols-2">
 				{/* Left: Post Preview (Blurred/Locked) */}
 				<div className="flex w-full flex-col gap-6 p-6">
-					{resource.headerImgUrl ? (
+					{displayImage ? (
 						<div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 shadow-lg">
 							<img
-								src={resource.headerImgUrl}
+								src={displayImage}
 								alt={resource.title}
 								className="absolute inset-0 h-full w-full object-cover"
 								loading="lazy"

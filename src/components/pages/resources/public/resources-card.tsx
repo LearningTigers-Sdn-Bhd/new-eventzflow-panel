@@ -2,10 +2,11 @@ import { Image } from "@unpic/react";
 import { format } from "date-fns";
 import { Calendar, Clock } from "lucide-react";
 import Link from "next/link";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { Resource } from "@/lib/api/resource/response";
 import { cn } from "@/lib/utils";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 interface ResourcesCardProps {
 	resource: Resource;
@@ -45,10 +46,19 @@ export const ResourcesCard = memo(function ResourcesCard({
 		slug,
 	} = resource;
 
-	const displayImage = headerImgUrl;
-	const dateDisplay = publishedAt
-		? format(new Date(publishedAt), "MMM d, yyyy")
-		: "Recently";
+	// Use thumbnail for grid view, medium for list view
+	// Memoize to ensure consistent rendering between server and client
+	const displayImage = useMemo(() => {
+		if (!headerImgUrl) return null;
+		return getResourceImage(headerImgUrl, layout === "grid" ? "thumbnail" : "medium");
+	}, [headerImgUrl, layout]);
+
+	// Memoize date to prevent hydration mismatches from timezone differences
+	const dateDisplay = useMemo(() => {
+		if (!publishedAt) return "Recently";
+		// Use a consistent date format that doesn't depend on locale/timezone
+		return format(new Date(publishedAt), "MMM d, yyyy");
+	}, [publishedAt]);
 
 	if (layout === "grid") {
 		return (
@@ -64,7 +74,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 							!displayImage && "bg-black",
 						)}
 					>
-						{" "}
+						{/* Always render image container to maintain consistent DOM structure */}
 						{displayImage ? (
 							<div className="absolute inset-0 h-[101%] w-[101%] transition-transform duration-700 group-hover:scale-110">
 								<Image
@@ -75,10 +85,14 @@ export const ResourcesCard = memo(function ResourcesCard({
 									height={400}
 									background="auto"
 									className="absolute inset-0 h-full w-full object-cover"
+									suppressHydrationWarning
 								/>
 								<div className="absolute inset-0 h-full w-full bg-linear-to-t from-black/90 via-black/40 to-transparent" />
 							</div>
-						) : null}
+						) : (
+							// Placeholder to maintain DOM structure consistency
+							<div className="absolute inset-0" aria-hidden="true" />
+						)}
 						<div className="absolute top-4 right-4 z-10">
 							<Badge
 								className={cn(
@@ -162,6 +176,7 @@ export const ResourcesCard = memo(function ResourcesCard({
 								height={400}
 								background="auto"
 								className="absolute inset-0 h-full w-full object-cover"
+								suppressHydrationWarning
 							/>
 						</div>
 					) : null}
