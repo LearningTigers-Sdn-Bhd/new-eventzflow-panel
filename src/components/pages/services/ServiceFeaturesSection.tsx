@@ -23,7 +23,7 @@ export default function ServiceFeaturesSection({
 	features,
 }: ServiceFeaturesSectionProps) {
 	return (
-		<section className="bg-white px-4 py-12 md:px-8 md:py-26 border border-black">
+		<section className="bg-white-background px-4 py-12 md:px-8 md:py-26 border border-black">
 			<div className="mx-auto max-w-[1600px]">
 				{/* Header */}
 				<div className="mb-16 flex flex-col justify-between gap-12 md:mb-24 md:flex-row md:items-end">

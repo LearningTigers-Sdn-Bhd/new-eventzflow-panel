@@ -6,7 +6,7 @@ import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 export default function CTASection() {
 	return (
-		<section className="bg-white px-6 py-24 md:py-32">
+		<section className="bg-white-background px-6 py-12 md:py-20 border border-black">
 			<div className="mx-auto max-w-4xl text-center">
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
@@ -31,13 +31,13 @@ export default function CTASection() {
 							href="https://wa.me/60177268130"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="w-full sm:w-auto border border-black bg-white px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] hover:text-white"
+							className="w-full sm:w-auto border border-black bg-brand-green px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] hover:text-white"
 						>
 							CHAT ON WHATSAPP
 						</a>
 						<Link
 							href="/contact"
-							className="w-full sm:w-auto border border-black bg-black px-8 py-4 text-center text-xs font-bold tracking-widest text-white transition-all duration-300 hover:bg-[#2766ec] hover:border-[#2766ec]"
+							className="w-full sm:w-auto border border-black bg-brand-blue px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#2766ec] hover:border-[#2766ec] hover:text-white"
 						>
 							CONTACT US
 						</Link>

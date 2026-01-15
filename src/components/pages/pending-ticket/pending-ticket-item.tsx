@@ -39,7 +39,17 @@ export function PendingTicketItem({
 		<Item variant="outline" className="h-full w-full rounded-none">
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between">
-					<h3 className="truncate font-bold text-xl">{ticket.name}</h3>
+					<div className="flex items-center gap-2">
+						<h3 className="truncate font-bold text-xl">{ticket.name}</h3>
+						{ticket.role && (
+							<Badge
+								variant="outline"
+								className="rounded-none border-primary/20 bg-primary/5 text-primary"
+							>
+								{ticket.role}
+							</Badge>
+						)}
+					</div>
 					<Badge
 						variant="secondary"
 						className={cn(

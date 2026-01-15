@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Heart, Sparkles, Users } from "lucide-react";
+import { CheckCircle2, Heart, Cpu, Users } from "lucide-react";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const missionPillars = [
@@ -18,7 +18,7 @@ const missionPillars = [
 			"Every feature reflects real conversations with event teams. We're building this alongside the people who will actually use it every day.",
 	},
 	{
-		icon: Sparkles,
+		icon: Cpu,
 		title: "Technology meets hospitality",
 		description:
 			"Great events blend seamless operations with genuine human connection. Our platform handles the complexity so you can focus on creating memorable experiences.",
@@ -51,7 +51,7 @@ const storyMilestones = [
 
 export default function StorySection() {
 	return (
-		<section className="bg-white px-6 py-24 md:py-32">
+		<section className="bg-white-background px-6 py-24 md:py-32 border border-black">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<motion.div
@@ -93,7 +93,7 @@ export default function StorySection() {
 									ease: SMOOTH_EASE,
 								}}
 								whileHover={{ y: -8 }}
-								className="group border border-black/10 bg-white p-8 transition-all duration-300 hover:border-black hover:shadow-2xl"
+								className="group border border-black/30 bg-white p-8 transition-all duration-300 hover:border-black hover:shadow-2xl"
 							>
 								<div className="mb-4 flex h-12 w-12 items-center justify-center border border-black/30 text-black transition-all duration-300 group-hover:bg-black group-hover:text-white">
 									<IconComponent className="h-5 w-5" />
@@ -113,9 +113,9 @@ export default function StorySection() {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-					className="bg-black p-8 md:p-12"
+					className="bg-green-background border border-black p-8 md:p-12"
 				>
-					<h3 className="mb-8 font-bold text-2xl text-white uppercase tracking-tight">
+					<h3 className="mb-8 font-bold text-2xl text-black uppercase tracking-tight">
 						How We Got Here
 					</h3>
 					<div className="grid gap-6 md:grid-cols-3">
@@ -129,9 +129,9 @@ export default function StorySection() {
 									duration: 0.5,
 									ease: SMOOTH_EASE,
 								}}
-								className="border border-black/10 bg-white p-6"
+								className="border border-black bg-white p-6"
 							>
-								<span className="text-xs font-bold text-black/30">
+								<span className="text-xs font-bold text-brand-green">
 									Phase {milestone.phase}
 								</span>
 								<h4 className="mt-2 mb-3 font-bold text-lg text-black">
@@ -140,8 +140,8 @@ export default function StorySection() {
 								<p className="mb-4 text-base text-black/70 leading-relaxed md:text-lg">
 									{milestone.description}
 								</p>
-								<div className="flex items-start gap-2 border-t border-black/10 pt-4">
-									<CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-black/40" />
+								<div className="flex items-start gap-2 border-t border-black pt-4">
+									<CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-green" />
 									<span className="text-sm text-black/50 md:text-base">
 										{milestone.impact}
 									</span>

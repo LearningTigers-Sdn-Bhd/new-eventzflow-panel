@@ -1,8 +1,14 @@
 export interface BackendPaginationMeta {
-	current_page?: number;
-	per_page?: number;
-	total_pages?: number;
-	total_count?: number;
+	current_page: number;
+	per_page: number;
+	total_pages: number;
+	total_count: number;
+	prev_page?: number | null;
+	next_page?: number | null;
+	first_page?: number;
+	last_page?: number;
+	from?: number;
+	to?: number;
 }
 
 export interface BackendSuccess<T> {

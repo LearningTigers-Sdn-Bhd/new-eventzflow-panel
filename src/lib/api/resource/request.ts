@@ -32,6 +32,7 @@ export const updateResourceSchema = z.object({
 	isGated: z.boolean().optional(),
 
 	headerImg: z.any().optional(),
+	removeHeaderImg: z.boolean().optional(),
 });
 
 export const approvalResourceSchema = z.object({

@@ -58,7 +58,7 @@ const FAQSection: React.FC = () => {
 	};
 
 	return (
-		<section id="faq" className="bg-white/20 px-6 py-16 md:py-30 md:px-12 border border-black">
+		<section id="faq" className="bg-white-background px-6 py-16 md:py-30 md:px-12 border border-black">
 			<div className="mx-auto max-w-7xl">
 				<div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
 					{/* Left Side - Title */}
@@ -90,14 +90,14 @@ const FAQSection: React.FC = () => {
 									delay: i * 0.05,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`border ${openIndex === i ? "border-brand-green" : "border-black/10"} hover:border-black/30 transition-all duration-200`}
+								className={`border ${openIndex === i ? "border-brand-green" : "border-black/30"} hover:border-black/50 transition-all duration-200`}
 							>
 								<button
 									type="button"
 									onClick={() => toggleFAQ(i)}
 									aria-expanded={openIndex === i}
 									aria-controls={`faq-answer-${i}`}
-									className={`group flex w-full items-start justify-between gap-8 bg-white/60 backdrop-blur-sm px-6 py-8 text-left transition-all duration-200 hover:bg-white/80 ${openIndex === i ? "border-b border-black/10" : ""}`}
+									className={`group flex w-full items-start justify-between gap-8 bg-white/60 backdrop-blur-sm px-6 py-8 text-left transition-all duration-200 hover:bg-white/80 ${openIndex === i ? "border-b border-black/30" : ""}`}
 								>
 									<div className="flex items-start gap-6">
 										<span className="font-bold text-sm text-brand-green">

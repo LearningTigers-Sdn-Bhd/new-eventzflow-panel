@@ -47,9 +47,11 @@ function transformPendingTicket(
 
 	return {
 		id: backendTicket.public_id,
+		publicId: backendTicket.public_id,
 		name: backendTicket.attendee_name,
 		email: backendTicket.attendee_email,
 		phone: backendTicket.attendee_phone || "",
+		role: backendTicket.role || null,
 		value: backendTicket.ticket_type?.price || 0,
 		status: backendTicket.status === "scanned" ? "scanned" : "not_scanned",
 		customLabels,

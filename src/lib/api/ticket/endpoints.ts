@@ -306,6 +306,86 @@ export async function getMyScannedTickets(
 }
 
 /**
+ * Transform a backend ticket object to the frontend Ticket format
+ */
+function transformBackendTicket(
+	ticket: BackendTicket | BackendTicketTransformed,
+	eventTitle = "Unknown Event",
+	eventId?: string,
+): Ticket {
+	const customLabels: Array<{ name: string; value: string }> = [];
+
+	// Handle both raw and transformed backend formats
+	const id = ticket.id.toString();
+	const publicId = ticket.public_id;
+	const role = ticket.role || undefined;
+	const checkedIn = ticket.checked_in;
+	const checkInAt = ticket.check_in_at || undefined;
+	const event_id = eventId || ticket.event_id.toString();
+	const status = ticket.checked_in ? "scanned" : "not_scanned";
+	const createdAt = ticket.created_at || new Date().toISOString();
+
+	let name = "";
+	let email = "";
+	let phone: string | undefined;
+	let ticketTypeName = "Unknown";
+	let ticketTypeId = 0;
+	let value = 0;
+	let deletedAt: string | null = null;
+
+	if ("attendee_name" in ticket) {
+		// BackendTicket format
+		const bt = ticket as BackendTicket;
+		name = bt.attendee_name;
+		email = bt.attendee_email;
+		phone = bt.attendee_phone || undefined;
+		ticketTypeId = bt.ticket_type_id;
+		ticketTypeName = bt.ticket_type?.name || "Unknown";
+		value = bt.ticket_type?.price || 0;
+		deletedAt = bt.deleted_at || null;
+
+		if (bt.custom_fields_data) {
+			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
+				customLabels.push({ name: String(key), value: String(val) });
+			}
+		}
+	} else {
+		// BackendTicketTransformed format
+		const btt = ticket as BackendTicketTransformed;
+		name = btt.attendee_name;
+		email = btt.attendee_email;
+		phone = btt.attendee_phone || undefined;
+		ticketTypeId = btt.ticket_type_id;
+		ticketTypeName = btt.ticket_type_name || "Unknown";
+		value = btt.value || 0;
+
+		if (btt.custom_labels) {
+			customLabels.push(...btt.custom_labels);
+		}
+	}
+
+	return {
+		id,
+		publicId,
+		role,
+		name,
+		email,
+		phone,
+		ticketTypeName,
+		ticketTypeId,
+		value,
+		checkedIn,
+		checkInAt,
+		eventName: eventTitle,
+		eventId: event_id,
+		status,
+		createdAt,
+		deletedAt,
+		customLabels: customLabels.length > 0 ? customLabels : undefined,
+	};
+}
+
+/**
  * Get tickets for a specific event
  * @param eventId - The event ID
  * @param options - Query options for filtering tickets
@@ -338,45 +418,10 @@ export async function getEventTickets(
 		restClient.get<BackendTicket[]>(ticketsUrl),
 	]);
 
-	// Filter to only show paid tickets (payment_status = 1 or "paid")
-	const paidTickets = response.filter((ticket) => {
-		// Handle both number and string payment status
-		if (typeof ticket.payment_status === "number") {
-			return ticket.payment_status === 1; // 1 = paid
-		}
-		return ticket.payment_status === "paid";
-	});
-
 	// Transform backend response to frontend format
-	return paidTickets.map((ticket) => {
-		// Resolve label keys to current label names from event.labels_data
-		const customLabels: Array<{ name: string; value: string }> = [];
-		if (ticket.custom_fields_data) {
-			for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-				const labelName = event.labels_data?.[key] || key;
-				customLabels.push({ name: String(labelName), value: String(value) });
-			}
-		}
-
-		return {
-			id: ticket.id.toString(),
-			publicId: ticket.public_id,
-			name: ticket.attendee_name,
-			email: ticket.attendee_email,
-			phone: ticket.attendee_phone || undefined,
-			ticketTypeName: ticket.ticket_type?.name || "Unknown",
-			ticketTypeId: ticket.ticket_type_id,
-			value: ticket.ticket_type?.price || 0,
-			checkedIn: ticket.checked_in,
-			checkInAt: ticket.check_in_at || undefined,
-			eventName: event.title,
-			eventId: ticket.event_id.toString(),
-			status: ticket.status === "scanned" ? "scanned" : "not_scanned",
-			createdAt: ticket.created_at,
-			deletedAt: ticket.deleted_at || null,
-			customLabels: customLabels.length > 0 ? customLabels : undefined,
-		};
-	});
+	return response.map((ticket) =>
+		transformBackendTicket(ticket, event.title, eventId),
+	);
 }
 
 /**
@@ -389,34 +434,19 @@ export async function createTicket(data: {
 	attendee_phone?: string | null;
 	ticket_type_id: number;
 	custom_fields_data?: Record<string, string>;
+	role?: string;
 	payment_status?: number;
 }): Promise<CreateTicketResponse> {
 	const validated = createTicketSchema.parse(data);
 	const { eventId, ...ticketData } = validated;
 
-	const response = await restClient.post<BackendTicketTransformed>(
+	const response = await restClient.post<BackendTicket>(
 		`v1/events/${eventId}/tickets`,
 		{ ticket: ticketData },
 	);
 
 	// Transform backend response to frontend format
-	return {
-		id: response.id.toString(),
-		publicId: response.public_id,
-		name: response.attendee_name,
-		email: response.attendee_email,
-		phone: response.attendee_phone,
-		ticketTypeName: response.ticket_type_name,
-		ticketTypeId: response.ticket_type_id,
-		value: response.value,
-		checkedIn: response.checked_in,
-		checkInAt: response.check_in_at,
-		eventName: response.event_name,
-		eventId: response.event_id.toString(),
-		status: response.checked_in ? "scanned" : "not_scanned",
-		createdAt: response.created_at || new Date().toISOString(),
-		customLabels: response.custom_labels,
-	};
+	return transformBackendTicket(response, "Unknown Event", eventId);
 }
 
 /**
@@ -429,34 +459,19 @@ export async function updateTicket(data: {
 	attendee_email?: string | null;
 	attendee_phone?: string | null;
 	ticket_type_id: number;
+	role?: string;
 	custom_fields_data?: Record<string, string>;
 }): Promise<UpdateTicketResponse> {
 	const validated = updateTicketSchema.parse(data);
 	const { eventId, ticketId, ...ticketData } = validated;
 
-	const response = await restClient.put<BackendTicketTransformed>(
+	const response = await restClient.put<BackendTicket>(
 		`v1/events/${eventId}/tickets/${ticketId}`,
 		{ ticket: ticketData },
 	);
 
 	// Transform backend response to frontend format
-	return {
-		id: response.id.toString(),
-		publicId: response.public_id,
-		name: response.attendee_name,
-		email: response.attendee_email,
-		phone: response.attendee_phone,
-		ticketTypeName: response.ticket_type_name,
-		ticketTypeId: response.ticket_type_id,
-		value: response.value,
-		checkedIn: response.checked_in,
-		checkInAt: response.check_in_at,
-		eventName: response.event_name,
-		eventId: response.event_id.toString(),
-		status: response.checked_in ? "scanned" : "not_scanned",
-		createdAt: response.created_at || new Date().toISOString(),
-		customLabels: response.custom_labels,
-	};
+	return transformBackendTicket(response, "Unknown Event", eventId);
 }
 
 // Backend ticket type from v1/events/{id}/tickets endpoint

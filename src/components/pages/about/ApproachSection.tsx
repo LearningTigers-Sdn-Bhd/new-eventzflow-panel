@@ -33,7 +33,7 @@ const approach = [
 
 export default function ApproachSection() {
 	return (
-		<section className="bg-white px-6 py-24 md:py-32">
+		<section className="bg-white-background px-6 py-24 md:py-32 border border-black">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<motion.div
@@ -75,7 +75,7 @@ export default function ApproachSection() {
 									ease: SMOOTH_EASE,
 								}}
 								whileHover={{ y: -8 }}
-								className="group border border-black/10 p-8 transition-all duration-300 hover:border-black hover:shadow-2xl"
+								className="group border border-black/30 p-8 transition-all duration-300 hover:border-black hover:shadow-2xl"
 							>
 								<div className="mb-4 flex h-12 w-12 items-center justify-center border border-black/30 text-black transition-all duration-300 group-hover:bg-black group-hover:text-white">
 									<IconComponent className="h-5 w-5" />

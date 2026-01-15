@@ -10,6 +10,7 @@ import { TicketActionsMenu } from "./event-ticket-action-menu";
 export type BaseTicket = {
 	id: string;
 	publicId: string;
+	role?: string | null;
 	name: string;
 	email: string | null;
 	phone: string;
@@ -81,6 +82,23 @@ export function generateColumns(
 					>
 						{email || "Not provided"}
 					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "role",
+			size: 150,
+			header: ({ column }) => <SortableHeader column={column} label="Role" />,
+			cell: ({ row }) => {
+				const role = row.getValue("role") as string | undefined;
+				if (!role) return <span className="text-muted-foreground">-</span>;
+				return (
+					<Badge
+						variant="outline"
+						className="rounded-none border-primary/20 bg-primary/5 text-primary"
+					>
+						{role}
+					</Badge>
 				);
 			},
 		},

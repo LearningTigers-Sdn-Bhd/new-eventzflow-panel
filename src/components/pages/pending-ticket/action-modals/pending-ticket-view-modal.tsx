@@ -153,6 +153,12 @@ export default function PendingTicketViewModal({
 									icon={Mail}
 									ticket={ticket}
 								/>
+								<InfoLabel
+									label="Role"
+									value={ticket.role ?? "None"}
+									icon={User}
+									ticket={ticket}
+								/>
 							</div>
 							{ticket.phone && (
 								<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">

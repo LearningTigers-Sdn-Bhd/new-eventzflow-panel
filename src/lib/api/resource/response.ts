@@ -33,7 +33,16 @@ export type ResourceAuthor = {
 	};
 };
 
+// Image Variants
+export type ResourceImageVariants = {
+	thumbnail: string;
+	medium: string;
+	large: string;
+	original: string;
+};
+
 // Backend Resource
+
 export type BackendResource = {
 	id: number;
 	title: string;
@@ -45,7 +54,7 @@ export type BackendResource = {
 	is_official: boolean;
 	rejection_reason: string | null;
 	published_at: string | null;
-	header_img_url: string | null;
+	header_img_url: string | ResourceImageVariants | null;
     min_read?: number;
 
 	topic?: BackendResourceTopic;
@@ -71,7 +80,7 @@ export type Resource = {
 	isOfficial: boolean;
 	rejectionReason: string | null;
 	publishedAt: string | null;
-	headerImgUrl: string | null;
+	headerImgUrl: string | ResourceImageVariants | null;
     minRead?: number;
 
 	topic?: ResourceTopic;

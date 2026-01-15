@@ -43,7 +43,7 @@ const ProblemSection: React.FC = () => {
 	const [focused, setFocused] = useState<string | null>(null);
 
 	return (
-		<section className="border-black border-b bg-white/20 py-12 text-black md:py-20">
+		<section className="border-black border-b bg-white-background py-12 text-black md:py-20">
 			<div className="mx-auto max-w-[1600px] px-4 md:px-8">
 				{/* Header - Refined Swiss Layout */}
 				<div className="mb-0">
@@ -52,14 +52,21 @@ const ProblemSection: React.FC = () => {
 						<div className="lg:col-span-8">
 							<h2 className="font-black text-5xl text-black uppercase leading-[0.85] tracking-tighter sm:text-7xl md:text-9xl">
 								Event
-								<span className="block text-brand-green">Complexity.</span>
+								<span className="block text-black">Complexity.</span>
 							</h2>
 						</div>
-						<div className="border-black/10 pb-2 lg:col-span-4 lg:border-l lg:pl-8">
-							<p className="font-medium text-lg text-zinc-800 leading-relaxed md:text-xl">
-								Great events are remembered. <br />
-								<span className="font-bold text-red-600">
-									Bad ones are never forgotten.
+						<div className="flex flex-col justify-end border-black/10 pb-2 lg:col-span-4 lg:border-l lg:pl-8">
+							<p className="font-medium text-lg text-black leading-relaxed md:text-xl">
+								Good events are{" "}
+								<span className="border-brand-green/50 border-b-2 font-bold text-zinc-900">
+									memorable
+								</span>
+								.
+							</p>
+							<p className="mt-2 font-bold text-xl text-zinc-900 leading-tight md:text-2xl">
+								But, great events are{" "}
+								<span className="mt-1 block font-black text-4xl text-brand-green uppercase italic tracking-tighter drop-shadow-sm md:text-5xl">
+									unforgettable.
 								</span>
 							</p>
 						</div>

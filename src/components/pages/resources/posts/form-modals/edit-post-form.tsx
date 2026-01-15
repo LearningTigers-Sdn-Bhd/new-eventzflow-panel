@@ -18,6 +18,7 @@ import { getResourceCategories } from "@/lib/api/resource/category";
 import { getResourceMediaTypes } from "@/lib/api/resource/media-type";
 import type { Resource } from "@/lib/api/resource/response";
 import { getResourceTopics } from "@/lib/api/resource/topic";
+import { getResourceImage } from "@/lib/utils/resource-image";
 
 const editPostSchema = z.object({
 	title: z.string().min(1, "Title is required"),
@@ -87,6 +88,9 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 
 	const canSetOfficial = isOrgOwner || isOfficialWriter;
 
+	// Track if resource originally had an image
+	const hadOriginalImage = resource.headerImgUrl !== null && resource.headerImgUrl !== undefined;
+
 	const form = useForm({
 		defaultValues: {
 			title: resource.title,
@@ -96,9 +100,21 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 			mediaTypeId: resource.mediaType?.id || "",
 			isGated: resource.isGated,
 			isOfficial: resource.isOfficial,
-			headerImg: null as File | string | null,
+			// Initialize with existing image URL if available, so we can track removal
+			headerImg: hadOriginalImage
+				? (getResourceImage(resource.headerImgUrl, "original") || null)
+				: null as File | string | null,
 		},
 		onSubmit: async ({ value }) => {
+			// Determine if image should be deleted
+			// If resource originally had an image and headerImg is now null (removed by user), delete it
+			// Note: headerImg will be null if user clicked "Remove", or a File if they uploaded a new one
+			const headerImgValue = value.headerImg;
+			const isFile = headerImgValue instanceof File;
+			const shouldDeleteImage = hadOriginalImage &&
+				headerImgValue === null &&
+				!isFile;
+
 			updateMutation.mutate({
 				id: resource.id,
 				title: value.title.trim(),
@@ -107,7 +123,8 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 				categoryId: value.categoryId,
 				mediaTypeId: value.mediaTypeId,
 				isGated: value.isGated,
-				headerImg: value.headerImg instanceof File ? value.headerImg : undefined,
+				headerImg: isFile ? headerImgValue : undefined,
+				removeHeaderImg: shouldDeleteImage ? true : undefined,
 				// Backend might not allow changing official status if not authorized,
 				// but we handle visibility in UI
 			});
@@ -187,13 +204,23 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 						}}
 					>
 						<form.Field name="headerImg">
-							{(field) => (
-								<ImageUpload
-									value={field.state.value || resource.headerImgUrl || ""}
-									onChange={(file) => field.handleChange(file)}
-									disabled={isPending || isLoading}
-								/>
-							)}
+							{(field) => {
+								// Display the current value (URL string or File), or empty string if null
+								// When user clicks "Remove", onChange(null) will be called, setting field value to null
+								const displayValue = field.state.value || "";
+
+								return (
+									<ImageUpload
+										value={displayValue}
+										onChange={(file) => {
+											// When user removes image, file will be null
+											// When user uploads new image, file will be a File object
+											field.handleChange(file);
+										}}
+										disabled={isPending || isLoading}
+									/>
+								);
+							}}
 						</form.Field>
 					</FormGroupContainer>
 				</div>

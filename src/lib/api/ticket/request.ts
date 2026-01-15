@@ -18,6 +18,7 @@ export const createTicketSchema = z.object({
 		.optional(),
 	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
+	role: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 	payment_status: z.number().optional(),
 });
@@ -36,6 +37,7 @@ export const updateTicketSchema = z.object({
 		.optional(),
 	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
+	role: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 

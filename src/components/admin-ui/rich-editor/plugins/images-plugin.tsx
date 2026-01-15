@@ -30,13 +30,49 @@ export const INSERT_IMAGE_COMMAND: LexicalCommand<InsertImagePayload> =
 
 import { uploadFile } from "@/lib/api/upload/endpoints";
 
+// Maximum file size for rich editor images (10MB - matches backend)
+const MAX_RICH_EDITOR_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+// Allowed image types for rich editor
+const ALLOWED_IMAGE_TYPES = [
+	"image/jpeg",
+	"image/jpg",
+	"image/png",
+	"image/webp",
+	"image/gif",
+];
+
+/**
+ * Validates and uploads an image for the rich text editor
+ * @param file The file to upload
+ * @returns Promise resolving to the uploaded image URL
+ */
 async function uploadImage(file: File): Promise<string> {
+	// Validate file type
+	if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+		throw new Error(
+			`Invalid file type: ${file.type}. Allowed types: ${ALLOWED_IMAGE_TYPES.join(", ")}`,
+		);
+	}
+
+	// Validate file size
+	if (file.size > MAX_RICH_EDITOR_FILE_SIZE) {
+		const maxSizeMB = MAX_RICH_EDITOR_FILE_SIZE / (1024 * 1024);
+		throw new Error(
+			`File size exceeds maximum allowed size of ${maxSizeMB}MB. Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+		);
+	}
+
 	try {
 		const response = await uploadFile(file, "rich-editor");
 		return response.url;
 	} catch (error) {
 		console.error("Image upload failed:", error);
-		throw error;
+		// Re-throw with a user-friendly message if it's an API error
+		if (error instanceof Error) {
+			throw error;
+		}
+		throw new Error("Failed to upload image. Please try again.");
 	}
 }
 
@@ -61,35 +97,51 @@ export default function ImagesPlugin(): null {
 						// Or just insert it.
 						// If we want to replace src later, we need the node key.
 
-																		editor.update(() => {
-																				const imageNode = $createImageNode({
-																						altText: file.name,
-																						src: blobUrl,
-																				});
-																				$insertNodes([imageNode]);
-																				if ($isRootOrShadowRoot(imageNode.getParentOrThrow())) {
-																						$wrapNodeInElement(imageNode, $createParagraphNode).selectEnd();
-																				}
-						
-																				// Trigger upload
-																				uploadImage(file)
-																						.then((remoteUrl) => {
-																								editor.update(() => {
-																										const node = imageNode.getLatest();
-																										if ($isImageNode(node)) {
-																												node.setSrc(remoteUrl);
-																										}
-																								});
-																								toast.success("Image uploaded");
-																						})
-																						.catch(() => {
-																								toast.error("Image upload failed");
-																								editor.update(() => {
-																										const node = imageNode.getLatest();
-																										node.remove();
-																								});
-																						});
-																		});
+						editor.update(() => {
+							const imageNode = $createImageNode({
+								altText: file.name,
+								src: blobUrl,
+							});
+							$insertNodes([imageNode]);
+							if ($isRootOrShadowRoot(imageNode.getParentOrThrow())) {
+								$wrapNodeInElement(imageNode, $createParagraphNode).selectEnd();
+							}
+
+							// Trigger upload with better error handling
+							uploadImage(file)
+								.then((remoteUrl) => {
+									// Clean up blob URL to free memory
+									URL.revokeObjectURL(blobUrl);
+
+									editor.update(() => {
+										const node = imageNode.getLatest();
+										if ($isImageNode(node)) {
+											node.setSrc(remoteUrl);
+										}
+									});
+									toast.success("Image uploaded successfully");
+								})
+								.catch((error) => {
+									// Clean up blob URL on error
+									URL.revokeObjectURL(blobUrl);
+
+									const errorMessage =
+										error instanceof Error
+											? error.message
+											: "Image upload failed. Please try again.";
+
+									toast.error(errorMessage, {
+										duration: 5000,
+									});
+
+									editor.update(() => {
+										const node = imageNode.getLatest();
+										if ($isImageNode(node)) {
+											node.remove();
+										}
+									});
+								});
+						});
 						return true;
 					}
 
@@ -126,10 +178,8 @@ export default function ImagesPlugin(): null {
 			),
 			editor.registerCommand<ClipboardEvent>(
 				PASTE_COMMAND,
-				() => {
-					// Handle paste
-					// ...
-					return false;
+				(event) => {
+					return onPaste(event, editor);
 				},
 				COMMAND_PRIORITY_LOW,
 			),
@@ -228,4 +278,33 @@ function canDropImage(event: DragEvent): boolean {
 		target.parentElement &&
 		target.parentElement.closest("div.ContentEditable__root")
 	);
+}
+
+function onPaste(event: ClipboardEvent, editor: LexicalEditor): boolean {
+	const clipboardData = event.clipboardData;
+	if (!clipboardData) {
+		return false;
+	}
+
+	const items = Array.from(clipboardData.items);
+	const imageItem = items.find((item) => item.type.startsWith("image/"));
+
+	if (!imageItem) {
+		return false;
+	}
+
+	// Get the file from the clipboard item
+	const file = imageItem.getAsFile();
+	if (!file) {
+		return false;
+	}
+
+	// Prevent default paste behavior
+	event.preventDefault();
+
+	// Dispatch the INSERT_IMAGE_COMMAND with the File object
+	// This will trigger the upload flow in the INSERT_IMAGE_COMMAND handler
+	editor.dispatchCommand(INSERT_IMAGE_COMMAND, file);
+
+	return true;
 }

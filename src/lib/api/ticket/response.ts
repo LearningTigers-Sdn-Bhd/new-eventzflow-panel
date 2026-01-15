@@ -4,6 +4,7 @@
 export type Ticket = {
 	id: string;
 	publicId: string;
+	role?: string;
 	name: string;
 	email: string;
 	phone?: string;
@@ -25,6 +26,7 @@ export type Ticket = {
 
 export type ScannedTicket = {
 	id: string;
+	role?: string;
 	name: string;
 	email: string;
 	phone?: string;
@@ -85,6 +87,7 @@ export type BackendImportTicketsResponse = {
 export type BackendTicket = {
 	id: number;
 	public_id: string;
+	role?: string | null;
 	attendee_name: string;
 	attendee_email: string;
 	attendee_phone?: string | null;
@@ -110,6 +113,7 @@ export type BackendTicket = {
 export type BackendTicketTransformed = {
 	id: number;
 	public_id: string;
+	role?: string | null;
 	attendee_name: string;
 	attendee_email: string;
 	attendee_phone?: string;
@@ -130,6 +134,7 @@ export type BackendTicketTransformed = {
 export type BackendCheckInResponse = {
 	id: number;
 	public_id: string;
+	role?: string | null;
 	attendee_name: string;
 	attendee_email: string;
 	attendee_phone?: string;

@@ -42,6 +42,7 @@ export function useScanHistory(eventId?: number) {
 					status: item.status,
 					message: `${item.type === "visitor" ? "Visitor" : "Ticket"} checked in`,
 					type: item.type,
+					role: item.role,
 					name: item.name,
 					email: item.email,
 					phone: item.phone,

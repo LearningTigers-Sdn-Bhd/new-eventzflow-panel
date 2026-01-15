@@ -41,8 +41,7 @@ export default function PostApprovalPage() {
 			<ErrorState
 				title="Failed to load approval queue"
 				description={
-					error.message ||
-					"We couldn't load resource posts. Please try again."
+					error.message || "We couldn't load resource posts. Please try again."
 				}
 				action={<Button onClick={() => refetch()}>Retry</Button>}
 			/>

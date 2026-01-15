@@ -27,7 +27,7 @@ export default function ServiceShowcaseSection({
 	decorativeLabels,
 }: ServiceShowcaseSectionProps) {
 	return (
-		<section className="bg-white px-6 py-24 md:py-32 border border-black">
+		<section className="bg-white-background px-6 py-24 md:py-32 border border-black">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-16 md:mb-20">
