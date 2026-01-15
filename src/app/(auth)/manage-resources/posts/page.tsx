@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { useSetResourceActions } from "@/hooks/use-set-resource-actions";
 import { getResources } from "@/lib/api/resource";
 
-type PostFilter = "published" | "draft" | "pending_review" | "rejected" | "archived" | "all";
+type PostFilter =
+	| "published"
+	| "draft"
+	| "pending_review"
+	| "rejected"
+	| "archived"
+	| "all";
 
 export default function PostsPage() {
 	const router = useRouter();
@@ -53,8 +59,7 @@ export default function PostsPage() {
 			<ErrorState
 				title="Failed to load posts"
 				description={
-					error.message ||
-					"We couldn't load resource posts. Please try again."
+					error.message || "We couldn't load resource posts. Please try again."
 				}
 				action={<Button onClick={() => refetch()}>Retry</Button>}
 			/>

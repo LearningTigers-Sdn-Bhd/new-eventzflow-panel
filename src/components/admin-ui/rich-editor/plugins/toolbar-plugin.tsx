@@ -7,6 +7,11 @@ import {
 	INSERT_ORDERED_LIST_COMMAND,
 	INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list";
+import {
+	$isMarkNode,
+	$unwrapMarkNode,
+	$wrapSelectionInMarkNode,
+} from "@lexical/mark";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $createQuoteNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
@@ -19,7 +24,6 @@ import {
 	INSERT_TABLE_COMMAND,
 } from "@lexical/table";
 import { mergeRegister } from "@lexical/utils";
-import { $isMarkNode, $unwrapMarkNode, $wrapSelectionInMarkNode } from "@lexical/mark";
 import {
 	$getSelection,
 	$insertNodes,
@@ -59,25 +63,22 @@ import {
 	Underline,
 	Undo,
 } from "lucide-react";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger,
-	DropdownMenuSub,
-	DropdownMenuSubTrigger,
-	DropdownMenuSubContent,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useRichEditorContext } from "../context";
 import { $createCtaNode } from "../nodes/cta-node";
 import { ToolbarButton } from "../toolbar-button";
@@ -86,7 +87,7 @@ import { INSERT_IMAGE_COMMAND } from "./images-plugin";
 type ToolbarItem = {
 	id: string;
 	label: string;
-	icon: any;
+	icon: React.ComponentType<{ className?: string }>;
 	onClick?: () => void;
 	isActive?: boolean;
 	disabled?: boolean;
@@ -99,7 +100,11 @@ type ToolbarGroup = {
 	items: ToolbarItem[];
 };
 
-export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
+export function ToolbarPlugin({
+	children: _children,
+}: {
+	children?: React.ReactNode;
+}) {
 	const [editor] = useLexicalComposerContext();
 	const { hasOutline, outlineVisible, toggleOutline, disabledGroups } =
 		useRichEditorContext();
@@ -133,7 +138,7 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 			const node = selection.getNodes()[0];
 			const parent = node.getParent();
 			setIsLink(parent?.getType() === "link" || node.getType() === "link");
-			
+
 			// Check for highlight
 			let hasMark = false;
 			const nodes = selection.getNodes();
@@ -215,7 +220,7 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 			clearTimeout(timeoutId);
 			if (frameId) cancelAnimationFrame(frameId);
 		};
-	}, [hasOutline, isOutlineDisabled]);
+	}, []);
 
 	const insertCta = () => {
 		editor.update(() => {
@@ -241,16 +246,39 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 						}
 					}
 				} else {
-					$wrapSelectionInMarkNode(selection, selection.isBackward(), "highlight");
+					$wrapSelectionInMarkNode(
+						selection,
+						selection.isBackward(),
+						"highlight",
+					);
 				}
 			}
 		});
 	};
 
+	// Maximum file size for rich editor images (10MB - matches backend)
+	const MAX_RICH_EDITOR_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 	const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = event.target.files;
 		if (files && files.length > 0) {
 			const file = files[0];
+
+			// Client-side validation for better UX
+			if (file.size > MAX_RICH_EDITOR_FILE_SIZE) {
+				const maxSizeMB = MAX_RICH_EDITOR_FILE_SIZE / (1024 * 1024);
+				const currentSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+				toast.error(
+					`File size (${currentSizeMB}MB) exceeds maximum allowed size of ${maxSizeMB}MB`,
+					{ duration: 5000 },
+				);
+				// Reset file input
+				if (fileInputRef.current) {
+					fileInputRef.current.value = "";
+				}
+				return;
+			}
+
 			editor.dispatchCommand(INSERT_IMAGE_COMMAND, file);
 		}
 		if (fileInputRef.current) {
@@ -310,7 +338,8 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 					id: "underline",
 					label: "Format Underline",
 					icon: Underline,
-					onClick: () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline"),
+					onClick: () =>
+						editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline"),
 					isActive: isUnderline,
 				},
 				{
@@ -343,19 +372,22 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 					id: "align-center",
 					label: "Align Center",
 					icon: AlignCenter,
-					onClick: () => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "center"),
+					onClick: () =>
+						editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "center"),
 				},
 				{
 					id: "align-right",
 					label: "Align Right",
 					icon: AlignRight,
-					onClick: () => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "right"),
+					onClick: () =>
+						editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "right"),
 				},
 				{
 					id: "align-justify",
 					label: "Align Justify",
 					icon: AlignJustify,
-					onClick: () => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "justify"),
+					onClick: () =>
+						editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "justify"),
 				},
 			],
 		},
@@ -510,8 +542,7 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 							id: "del-row",
 							label: "Delete Row",
 							icon: TableIcon,
-							onClick: () =>
-								editor.update(() => $deleteTableRowAtSelection()),
+							onClick: () => editor.update(() => $deleteTableRowAtSelection()),
 						},
 						{
 							id: "del-table",
@@ -530,7 +561,7 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 									}
 								}),
 						},
-					]
+					],
 				},
 			],
 		},
@@ -566,10 +597,13 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 						</DropdownMenu>
 					);
 				}
+				if (!item.onClick) {
+					return null;
+				}
 				return (
 					<ToolbarButton
 						key={item.id}
-						onClick={item.onClick!}
+						onClick={item.onClick}
 						isActive={item.isActive}
 						disabled={item.disabled}
 						tooltip={item.label}
@@ -614,7 +648,9 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 					>
 						<item.icon className="h-4 w-4" />
 						<span>{item.label}</span>
-						{item.isActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+						{item.isActive && (
+							<div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+						)}
 					</DropdownMenuItem>
 				);
 			})}
@@ -655,9 +691,10 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 				<div className="flex h-9 min-w-0 flex-1 items-center gap-1 overflow-hidden">
 					{visibleGroups.map((group, index) => (
 						<div key={group.id} className="flex items-center">
-							{group.id !== "navigation" && (index > 0 || visibleGroups[0].id !== "navigation") && (
-								<Separator orientation="vertical" className="mx-1 h-6" />
-							)}
+							{group.id !== "navigation" &&
+								(index > 0 || visibleGroups[0].id !== "navigation") && (
+									<Separator orientation="vertical" className="mx-1 h-6" />
+								)}
 							{renderGroup(group)}
 						</div>
 					))}
@@ -676,13 +713,15 @@ export function ToolbarPlugin({ children }: { children?: React.ReactNode }) {
 								<MoreHorizontal className="h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-56 rounded-none p-2" sideOffset={5}>
+						<DropdownMenuContent
+							align="end"
+							className="w-56 rounded-none p-2"
+							sideOffset={5}
+						>
 							<div className="flex flex-col gap-1">
 								{overflowGroups.map((group, index) => (
 									<div key={group.id} className="flex flex-col">
-										{index > 0 && (
-											<DropdownMenuSeparator className="my-1" />
-										)}
+										{index > 0 && <DropdownMenuSeparator className="my-1" />}
 										{renderOverflowGroup(group)}
 									</div>
 								))}

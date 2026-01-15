@@ -287,7 +287,7 @@ const ResourcesGrid = memo(function ResourcesGrid({
 			initialPageParam: 1,
 			getNextPageParam: (lastPage, allPages) => {
 				if (!lastPage.data || lastPage.data.length < 12) return undefined;
-				if (lastPage.pagination?.next) return lastPage.pagination.next;
+				if (lastPage.pagination?.next_page) return lastPage.pagination.next_page;
 				if (lastPage.data.length === 12) return allPages.length + 1;
 				return undefined;
 			},
