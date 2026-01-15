@@ -7,6 +7,7 @@ export const createVisitorSchema = z.object({
 	phone: z.string().optional(),
 	gender: z.string().optional(),
 	age: z.number().optional(),
+	role: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
@@ -16,6 +17,7 @@ export const updateVisitorSchema = z.object({
 	phone: z.string().optional(),
 	gender: z.string().optional(),
 	age: z.number().optional(),
+	role: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 

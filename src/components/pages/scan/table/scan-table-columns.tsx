@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Copy } from "lucide-react";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { StatusBadge, TypeBadge } from "../status-helpers";
@@ -107,7 +108,11 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 				const result = row.original;
 				return (
 					<div className="hidden min-w-[100px] py-2 sm:table-cell sm:py-3">
-						<TypeBadge type={result.type} className="rounded-none" />
+						<TypeBadge
+							type={result.type}
+							role={result.role}
+							className="rounded-none"
+						/>
 					</div>
 				);
 			},

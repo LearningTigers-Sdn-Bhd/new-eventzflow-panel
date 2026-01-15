@@ -54,6 +54,7 @@ export function exportToCSV(results: ScanResult[]) {
 		[
 			"Scan ID",
 			"Type",
+			"Role",
 			"Status",
 			"Name",
 			"Email",
@@ -67,6 +68,7 @@ export function exportToCSV(results: ScanResult[]) {
 			[
 				r.scanId,
 				r.type || "ticket",
+				r.role || "",
 				r.status,
 				r.name || "",
 				r.email || "",

@@ -175,6 +175,12 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 												: "Not Allowed"}
 										</p>
 									</div>
+									<div className="flex items-center justify-between rounded-none p-3">
+										<span className="text-sm">Sponsorships</span>
+										<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+											{event.use_sponsorship ? "Enabled" : "Disabled"}
+										</p>
+									</div>
 								</div>
 							</div>
 						</div>

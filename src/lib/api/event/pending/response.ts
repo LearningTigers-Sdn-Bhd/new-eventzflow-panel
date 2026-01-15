@@ -5,6 +5,7 @@ export interface BackendPendingTicket {
 	attendee_name: string;
 	attendee_email: string;
 	attendee_phone?: string | null;
+	role?: string | null;
 	ticket_type_id: number;
 	event_id: number;
 	status: "purchased" | "scanned" | "refunded" | "canceled";
@@ -27,9 +28,11 @@ export interface BackendPendingTicket {
 // Frontend pending ticket type
 export type PendingTicket = {
 	id: string;
+	publicId: string;
 	name: string;
 	email: string;
 	phone: string;
+	role?: string | null;
 	value: number;
 	status: "scanned" | "not_scanned";
 	customLabels: Array<{ name: string; value: string }>;

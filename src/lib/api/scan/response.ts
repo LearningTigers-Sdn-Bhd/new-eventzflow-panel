@@ -18,6 +18,7 @@ export interface BackendScanCheckInResponse {
 		id: number;
 		full_name: string;
 	} | null;
+	role?: string | null;
 	// Ticket-specific fields
 	attendee_name?: string;
 	attendee_email?: string;
@@ -40,6 +41,7 @@ export interface ScanCheckInResponse {
 	type: ScanType;
 	publicId: string;
 	id: string;
+	role?: string | null;
 	checkedIn: boolean;
 	checkInAt: string;
 	// Common fields (normalized)
@@ -69,6 +71,7 @@ export interface ScanCheckInResponse {
 export interface BackendRecentCheckIn {
 	type: ScanType;
 	scan_id: string;
+	role?: string | null;
 	name: string;
 	email?: string;
 	phone?: string;
@@ -108,6 +111,7 @@ export class ScanCheckInError extends Error {
 export interface RecentCheckIn {
 	type: ScanType;
 	scanId: string;
+	role?: string | null;
 	name: string;
 	email?: string;
 	phone?: string;

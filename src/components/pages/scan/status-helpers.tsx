@@ -109,9 +109,18 @@ export function StatusBadge({ status, message, className }: StatusBadgeProps) {
 /**
  * Get type icon component based on scan type
  */
-export function getTypeIcon(type: ScanType, className?: string) {
+export function getTypeIcon(type: ScanType, role?: string | null, className?: string) {
 	const defaultClassName = "h-4 w-4";
 	const combinedClassName = cn(defaultClassName, className);
+
+	// If it has a role, use UserRound as it's more generic for dynamic roles
+	if (role) {
+		return (
+			<UserRound
+				className={cn(combinedClassName, type === 'ticket' ? TYPE_VARIANTS.ticket.text : TYPE_VARIANTS.visitor.text)}
+			/>
+		);
+	}
 
 	switch (type) {
 		case "ticket":
@@ -134,12 +143,13 @@ export function getTypeIcon(type: ScanType, className?: string) {
  */
 interface TypeBadgeProps {
 	type: ScanType;
+	role?: string | null;
 	className?: string;
 }
 
-export function TypeBadge({ type, className }: TypeBadgeProps) {
+export function TypeBadge({ type, role, className }: TypeBadgeProps) {
 	const variant = TYPE_VARIANTS[type];
-	const label = variant.label;
+	const label = role || variant.label;
 
 	return (
 		<Badge
@@ -150,7 +160,7 @@ export function TypeBadge({ type, className }: TypeBadgeProps) {
 				className,
 			)}
 		>
-			{getTypeIcon(type)}
+			{getTypeIcon(type, role)}
 			<span>{label}</span>
 		</Badge>
 	);

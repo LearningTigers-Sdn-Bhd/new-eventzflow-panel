@@ -29,6 +29,7 @@ export async function checkIn(publicId: string): Promise<ScanCheckInResponse> {
 			type: response.type,
 			publicId: response.public_id,
 			id: response.id.toString(),
+			role: response.role,
 			checkedIn: response.checked_in,
 			checkInAt: response.check_in_at,
 			// Normalize name field (tickets use attendee_name, visitors use full_name)
@@ -94,6 +95,7 @@ export async function getRecentCheckIns(options?: {
 		return response.check_ins.map((item) => ({
 			type: item.type,
 			scanId: item.scan_id,
+			role: item.role,
 			name: item.name,
 			email: item.email,
 			phone: item.phone,

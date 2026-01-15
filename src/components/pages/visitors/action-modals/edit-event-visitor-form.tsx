@@ -39,6 +39,7 @@ export default function EditEventVisitorForm({
 	const phoneId = useId();
 	const genderId = useId();
 	const ageId = useId();
+	const roleId = useId();
 
 	// Custom fields state
 	const [customFields, setCustomFields] = useState<
@@ -98,6 +99,7 @@ export default function EditEventVisitorForm({
 			phone: visitor.phone || "",
 			gender: visitor.gender || "",
 			age: visitor.age?.toString() || "",
+			role: visitor.role || "",
 		},
 		onSubmit: async ({ value }) => {
 			// Transform custom fields array to object
@@ -116,6 +118,7 @@ export default function EditEventVisitorForm({
 				phone: value.phone || undefined,
 				gender: value.gender || undefined,
 				age: value.age ? Number(value.age) : undefined,
+				role: value.role || undefined,
 				custom_fields_data:
 					Object.keys(customFieldsData).length > 0
 						? customFieldsData
@@ -229,6 +232,20 @@ export default function EditEventVisitorForm({
 										onChange={field.handleChange}
 										onBlur={field.handleBlur}
 										placeholder="+1 234 567 8900"
+										disabled={updateVisitorMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="role">
+								{(field) => (
+									<InputLabel
+										label="Role"
+										htmlFor={roleId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										onBlur={field.handleBlur}
+										placeholder="e.g. VIP, Speaker, Staff"
 										disabled={updateVisitorMutation.isPending}
 									/>
 								)}

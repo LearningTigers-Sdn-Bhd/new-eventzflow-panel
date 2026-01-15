@@ -31,6 +31,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 	const nameId = useId();
 	const emailId = useId();
 	const phoneId = useId();
+	const roleId = useId();
 
 	// Custom fields state (kept separate since they're dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -89,6 +90,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			attendee_email: ticket.email ?? "",
 			attendee_phone: ticket.phone || "",
 			ticket_type_id: ticket.ticketTypeId || null,
+			role: ticket.role || "",
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -109,6 +111,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				attendee_email: value.attendee_email.trim() || null,
 				attendee_phone: value.attendee_phone || null,
 				ticket_type_id: value.ticket_type_id,
+				role: value.role || undefined,
 				custom_fields_data:
 					customFields.length > 0 ? customFieldsData : undefined,
 			});
@@ -220,6 +223,20 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 										onChange={field.handleChange}
 										onBlur={field.handleBlur}
 										placeholder="+1 234 567 8900"
+										disabled={updateTicketMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="role">
+								{(field) => (
+									<InputLabel
+										label="Role"
+										htmlFor={roleId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										onBlur={field.handleBlur}
+										placeholder="e.g. VIP, Speaker, Staff"
 										disabled={updateTicketMutation.isPending}
 									/>
 								)}

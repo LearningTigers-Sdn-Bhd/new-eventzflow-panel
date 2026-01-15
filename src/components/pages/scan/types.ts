@@ -11,6 +11,7 @@ export interface ScanResult {
 	status: "success" | "error" | "duplicate";
 	message: string;
 	type: ScanType;
+	role?: string | null;
 	name?: string;
 	email?: string;
 	phone?: string;
