@@ -12,7 +12,7 @@ FROM base AS deps
 # Only copy files needed for install to maximize cache hits
 COPY package.json bun.lock* ./
 
-# Install dependencies with frozen lockfile for reproducibility
+# Install dependencies with frozen lockfile (includes both macOS & Linux binaries)
 RUN bun install --no-save --frozen-lockfile
 
 # ---- Build Stage ----
@@ -25,9 +25,7 @@ COPY --from=deps /app/node_modules ./node_modules
 # 2. Copy source code
 COPY . .
 
-# 3. THE "FORCE FIX": Ensure Linux-specific native binaries exist.
-# Force reinstall lightningcss without frozen lockfile to fetch linux-x64-gnu binary
-RUN bun remove lightningcss && bun add lightningcss@1.30.2
+# 3. No additional fixes needed - Bun fetches correct platform binaries automatically
 
 # 4. Set Build Arguments (Coolify injects these)
 ARG NEXT_PUBLIC_API_URL
