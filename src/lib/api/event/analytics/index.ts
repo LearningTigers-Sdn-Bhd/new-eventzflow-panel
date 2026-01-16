@@ -5,8 +5,11 @@ export {
 	getTimeSeries,
 	getTotalAmountPrice,
 	getTotalScannedTickets,
+	getTotalScannedVisitors,
 	getTotalTickets,
 	getTotalUnscannedTickets,
+	getTotalUnscannedVisitors,
+	getTotalVisitors,
 } from "./endpoints";
 
 // Request types and schemas
@@ -30,6 +33,9 @@ export type {
 	TopMerchant,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
+	TotalScannedVisitorsResponse,
 	TotalTicketsResponse,
 	TotalUnscannedTicketsResponse,
+	TotalUnscannedVisitorsResponse,
+	TotalVisitorsResponse,
 } from "./response";

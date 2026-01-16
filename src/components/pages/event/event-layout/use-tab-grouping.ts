@@ -102,7 +102,7 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 				title: "Analytics & Insights",
 				description: "View ticket analytics, voucher insights, and mall live feed",
 				icon: ChartBar,
-				route: "analytics",
+				route: analyticsTabs[0]?.route || "analytics/ticket",
 			});
 		}
 

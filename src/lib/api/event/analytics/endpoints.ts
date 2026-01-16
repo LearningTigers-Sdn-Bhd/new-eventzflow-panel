@@ -12,8 +12,11 @@ import type {
 	TimeSeriesResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
+	TotalScannedVisitorsResponse,
 	TotalTicketsResponse,
 	TotalUnscannedTicketsResponse,
+	TotalUnscannedVisitorsResponse,
+	TotalVisitorsResponse,
 } from "./response";
 
 /**
@@ -216,5 +219,68 @@ export async function getMallLiveFeed(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch mall live feed");
+	}
+}
+
+/**
+ * Get total visitors for an event
+ */
+export async function getTotalVisitors(
+	data: GetEventAnalyticsRequest,
+): Promise<TotalVisitorsResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<TotalVisitorsResponse>(
+			`v1/events/${validated.id}/metrics/total_visitors`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get total visitors for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch total visitors");
+	}
+}
+
+/**
+ * Get total scanned visitors for an event
+ */
+export async function getTotalScannedVisitors(
+	data: GetEventAnalyticsRequest,
+): Promise<TotalScannedVisitorsResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<TotalScannedVisitorsResponse>(
+			`v1/events/${validated.id}/metrics/total_scanned_visitors`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get total scanned visitors for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch total scanned visitors");
+	}
+}
+
+/**
+ * Get total unscanned visitors for an event
+ */
+export async function getTotalUnscannedVisitors(
+	data: GetEventAnalyticsRequest,
+): Promise<TotalUnscannedVisitorsResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<TotalUnscannedVisitorsResponse>(
+			`v1/events/${validated.id}/metrics/total_unscanned_visitors`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get total unscanned visitors for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch total unscanned visitors");
 	}
 }
