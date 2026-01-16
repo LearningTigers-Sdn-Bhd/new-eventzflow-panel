@@ -45,6 +45,7 @@ import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
 import { getEventById } from "@/lib/api/event";
 import { getMallLiveFeed } from "@/lib/api/event/analytics";
+import { getTimeSeries } from "@/lib/api/event/analytics";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
@@ -122,9 +123,52 @@ export function EventAnalytics({
 		enabled: !isTicketEvent && !eventLoading,
 	});
 
+	// Fetch visitor registrations time series
+	const { data: visitorsData, isLoading: visitorsTimeSeriesLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				Number.parseInt(eventId, 10),
+				"analytics",
+				"visitors",
+				timeRange,
+			],
+			queryFn: () =>
+				getTimeSeries({
+					eventId: Number.parseInt(eventId, 10),
+					metric: "visitors",
+					groupBy,
+					startDate: dateRange?.startDate,
+					endDate: dateRange?.endDate,
+				}),
+			enabled: !isTicketEvent && !eventLoading,
+		});
+
+	// Fetch visitor scans time series
+	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
+		queryKey: [
+			"event",
+			Number.parseInt(eventId, 10),
+			"analytics",
+			"visitor_scans",
+			timeRange,
+		],
+		queryFn: () =>
+			getTimeSeries({
+				eventId: Number.parseInt(eventId, 10),
+				metric: "visitor_scans",
+				groupBy,
+				startDate: dateRange?.startDate,
+				endDate: dateRange?.endDate,
+			}),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
 	const isLoading =
 		eventLoading ||
-		(isTicketEvent ? analyticsLoading : mallLoading || voucherLoading);
+		(isTicketEvent
+			? analyticsLoading
+			: mallLoading || voucherLoading || visitorsTimeSeriesLoading || visitorScansLoading);
 	const error = isTicketEvent ? analyticsError : mallError;
 
 	if (isLoading) {
@@ -265,18 +309,37 @@ export function EventAnalytics({
 				</div>
 			);
 		}
-		// Visitor events - placeholder/empty state
-		// return (
-		// 	<div className="mb-8 flex h-64 items-center justify-center border-y border-dashed">
-		// 		<div className="text-center text-muted-foreground">
-		// 			<Activity className="mx-auto mb-2 h-12 w-12 opacity-50" />
-		// 			<p className="text-sm">
-		// 				Analytics not available for visitor events
-		// 			</p>
-		// 		</div>
-		// 	</div>
-		// );
-		return null;
+		// Visitor events - show visitor analytics
+		// Transform visitor data for charts
+		const transformData = (data?: { period: string; value: number }[]) =>
+			data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
+
+		return (
+			<div className="mb-8 space-y-4 border-y border-dashed">
+				<div className="flex items-center justify-between px-4 pt-4">
+					<h3 className="font-medium text-sm">Analytics Trends</h3>
+					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+				</div>
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<TimeSeriesChart
+						title="Visitor Registrations"
+						description="Visitor registrations over time"
+						data={transformData(visitorsData?.data)}
+						isLoading={visitorsTimeSeriesLoading}
+						color="var(--chart-1)"
+						icon={<Users className="h-4 w-4" />}
+					/>
+					<TimeSeriesChart
+						title="Visitor Scans"
+						description="Visitor check-ins over time"
+						data={transformData(visitorScansData?.data)}
+						isLoading={visitorScansLoading}
+						color="var(--chart-2)"
+						icon={<QrCode className="h-4 w-4" />}
+					/>
+				</div>
+			</div>
+		);
 	};
 
 	const renderQuickInfo = () => {

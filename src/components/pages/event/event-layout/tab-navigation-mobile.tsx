@@ -39,7 +39,9 @@ export function TabNavigationMobile({
 }: TabNavigationMobileProps) {
 	const getSelectValue = () => {
 		if (currentTab === "tickets-group") return "tickets";
-		if (currentTab === "analytics-group") return "analytics";
+		if (currentTab === "analytics-group") {
+			return analyticsTabs[0]?.route || "analytics/ticket";
+		}
 		if (currentTab === "logs-group") return "voucher-logs";
 		if (currentTab === "exhibitor-kit-group") {
 			return exhibitorKitTabs[0]?.route || "my-items";

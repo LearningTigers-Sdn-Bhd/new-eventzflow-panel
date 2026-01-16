@@ -118,10 +118,8 @@ const visible = {
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
 	businessMatchingAccess: (p: Permissions, e?: Event) =>
-		p.isEventAdmin ||
-		p.isOrganizer ||
-		p.isEventStaff ||
-		e?.use_business_matching === true,
+		e?.use_business_matching === true &&
+		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
 };
@@ -436,12 +434,20 @@ export const eventMenuConfig: EventMenuConfig = {
 					visible: visible.vendorOrAdmin,
 				},
 				{
-					route: "analytics",
+					route: "analytics/ticket",
 					label: "Ticket Analytics",
-					description: "View event analytics, charts, and insights.",
+					description: "View ticket registrations, scans, and revenue analytics.",
 					icon: ChartBar,
 					visible: (p, e) =>
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+				},
+				{
+					route: "analytics/visitor",
+					label: "Visitor Analytics",
+					description: "View visitor registrations and check-in analytics.",
+					icon: ChartBar,
+					visible: (p, e) =>
+						visible.mallEvent(p, e) && visible.eventAdmin(p),
 				},
 				{
 					route: "mall-live-feed",

@@ -16,6 +16,19 @@ export type TotalAmountPriceResponse = {
 	totalAmountPrice: number;
 };
 
+// Visitor analytics response types
+export type TotalVisitorsResponse = {
+	totalVisitors: number;
+};
+
+export type TotalScannedVisitorsResponse = {
+	totalScannedVisitors: number;
+};
+
+export type TotalUnscannedVisitorsResponse = {
+	totalUnscannedVisitors: number;
+};
+
 // Time series data point
 export type TimeSeriesDataPoint = {
 	period: string;

@@ -145,6 +145,18 @@ function EventDetailLayoutContent({
 	const currentMenu = useMemo(() => {
 		const segments = pathname.split("/").filter(Boolean);
 
+		// First, try to match composite routes (e.g., "analytics/ticket", "analytics/visitor")
+		for (let i = segments.length - 1; i >= 1; i--) {
+			const compositeRoute = `${segments[i - 1]}/${segments[i]}`;
+			if (routeMenuMap[compositeRoute]) {
+				return {
+					title: routeMenuMap[compositeRoute].label,
+					description: routeMenuMap[compositeRoute].description,
+					icon: routeMenuMap[compositeRoute].icon,
+				};
+			}
+		}
+
 		// Walk from the end to find the first segment that matches a route
 		for (let i = segments.length - 1; i >= 0; i--) {
 			const segment = segments[i];

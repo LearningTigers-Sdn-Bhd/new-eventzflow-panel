@@ -85,7 +85,7 @@ export function useTabFiltering(
 					"pending-tickets",
 					"scanned-logs",
 					"ticket-types",
-					"analytics",
+					"ticket-analytics",
 				].includes(tab.id)
 			) {
 				return currentEvent?.use_ticket !== false;
@@ -93,6 +93,11 @@ export function useTabFiltering(
 
 			// Mall live feed - only for non-ticket events
 			if (tab.id === "mall-live-feed") {
+				return currentEvent?.use_ticket === false;
+			}
+
+			// Visitor analytics - only for non-ticket events
+			if (tab.id === "visitor-analytics") {
 				return currentEvent?.use_ticket === false;
 			}
 

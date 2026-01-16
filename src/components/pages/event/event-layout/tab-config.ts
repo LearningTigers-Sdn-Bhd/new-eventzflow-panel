@@ -252,13 +252,22 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "stamp-logs",
 	},
 	{
-		id: "analytics",
+		id: "ticket-analytics",
 		label: "Ticket Analytics",
 		title: "Ticket Analytics",
 		description:
-			"This page will display event analytics, charts, and insights.",
+			"View ticket registrations, scans, and revenue analytics.",
 		icon: ChartBar,
-		route: "analytics",
+		route: "analytics/ticket",
+	},
+	{
+		id: "visitor-analytics",
+		label: "Visitor Analytics",
+		title: "Visitor Analytics",
+		description:
+			"View visitor registrations and check-in analytics.",
+		icon: ChartBar,
+		route: "analytics/visitor",
 	},
 	{
 		id: "mall-live-feed",
@@ -287,7 +296,8 @@ export const TICKET_TAB_IDS = [
 	"ticket-types",
 ];
 export const ANALYTICS_TAB_IDS = [
-	"analytics",
+	"ticket-analytics",
+	"visitor-analytics",
 	"voucher-analytics",
 	"mall-live-feed",
 ];
