@@ -61,7 +61,14 @@ export function useScanner({
 					setTimeout(resolve, SCANNER_CONFIG.STOP_DELAY_MS),
 				);
 			}
-		} catch (error) {
+		} catch (error: any) {
+			// Ignore "already under transition" error as it often happens during rapid unmounts
+			if (
+				error?.toString().includes("already under transition") ||
+				error?.message?.includes("already under transition")
+			) {
+				return;
+			}
 			console.error("Error stopping scanner:", error);
 		}
 	}, []);
