@@ -7,8 +7,8 @@ import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/an
 import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -22,18 +22,18 @@ export default function EventDetailsPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
-	const isHydrated = useHydratedStore();
+	const { isInitialized } = useAuth();
 	const { isVendor, isExhibitionContractor } = useEventPermissions(event_id);
 
 	const shouldFetchAnalytics =
-		isHydrated && !isVendor && !isExhibitionContractor;
+		isInitialized && !isVendor && !isExhibitionContractor;
 
 	const queries = useQueries({
 		queries: [
 			{
 				queryKey: ["event", event_id],
 				queryFn: () => getEventById(event_id),
-				enabled: isHydrated,
+				enabled: isInitialized,
 			},
 			{
 				queryKey: ["event-analytics", event_id],

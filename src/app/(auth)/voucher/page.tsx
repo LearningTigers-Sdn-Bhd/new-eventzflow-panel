@@ -5,18 +5,16 @@ import { Ticket } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { VendorVouchersPageButton } from "@/components/pages/vendor-vouchers/page-action/button";
-import type { VendorVoucher } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table-columns";
 import { VendorVoucherTable } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table";
+import type { VendorVoucher } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table-columns";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useAuth } from "@/hooks/use-auth";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getEvents } from "@/lib/api/event";
 import { getVouchers } from "@/lib/api/voucher";
 
 export default function VendorVouchersPage() {
-	const { user } = useAuth();
-	const isHydrated = useHydratedStore();
+	const { user, isInitialized } = useAuth();
 
 	// Fetch vouchers and events in parallel
 	const [
@@ -32,12 +30,12 @@ export default function VendorVouchersPage() {
 			{
 				queryKey: ["vendor-vouchers", user?.id],
 				queryFn: () => getVouchers({ vendor_id: user?.id }),
-				enabled: isHydrated && !!user?.id,
+				enabled: isInitialized && !!user?.id,
 			},
 			{
 				queryKey: ["events"],
 				queryFn: () => getEvents(),
-				enabled: isHydrated,
+				enabled: isInitialized,
 			},
 		],
 	});

@@ -36,11 +36,6 @@ export const registerRequestSchema = z.object({
 		}),
 });
 
-// Refresh token request schema
-export const refreshTokenRequestSchema = z.object({
-	refresh_token: z.string().min(1, "Refresh token is required"),
-});
-
 // Password reset: request reset email
 export const requestResetPasswordSchema = z.object({
 	email: emailSchema,
@@ -78,7 +73,6 @@ export const updatePasswordRequestSchema = z
 // Export TypeScript types derived from schemas
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
-export type RefreshTokenRequest = z.infer<typeof refreshTokenRequestSchema>;
 export type RequestResetPasswordRequest = z.infer<
 	typeof requestResetPasswordSchema
 >;

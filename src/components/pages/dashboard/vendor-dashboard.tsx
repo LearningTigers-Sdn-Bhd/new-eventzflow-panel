@@ -8,6 +8,7 @@ import {
 	Stamp,
 	Ticket,
 } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { MdSpaceDashboard } from "react-icons/md";
 import { StatsCard } from "@/components/admin-ui/analytic";
@@ -17,18 +18,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/use-auth";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getVendorDashboard } from "@/lib/api/vendor-dashboard";
 import type { VendorEventData } from "@/lib/api/vendor-dashboard/response";
 import { cn } from "@/lib/utils";
-import { useUserSessionStore } from "@/stores/new-auth-store";
 
 export function VendorDashboard() {
-	const isHydrated = useHydratedStore();
+	const { isInitialized, user } = useAuth();
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
-	const user = useUserSessionStore((state) => state.user);
 
 	// Single optimized API call for all vendor dashboard data
 	const {
@@ -38,10 +37,10 @@ export function VendorDashboard() {
 	} = useQuery({
 		queryKey: ["vendor-dashboard"],
 		queryFn: getVendorDashboard,
-		enabled: isHydrated,
+		enabled: isInitialized,
 	});
 
-	if (!isHydrated || isLoading) {
+	if (!isInitialized || isLoading) {
 		return <VendorDashboardSkeleton />;
 	}
 
@@ -130,7 +129,7 @@ export function VendorDashboard() {
 								event={event}
 								formatDate={formatDate}
 								onViewDetails={() =>
-									router.push(`/event/${event.id}/vendor-profile` as any)
+									router.push(`/event/${event.id}/vendor-profile` as Route)
 								}
 							/>
 						))}

@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	Banknote,
 	Calendar,
+	CheckCircle2,
 	ChevronRight,
 	Clock,
 	Users,
-	CheckCircle2,
 } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { MdSpaceDashboard } from "react-icons/md";
 import { StatsCard } from "@/components/admin-ui/analytic";
@@ -18,18 +19,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/use-auth";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getContractorDashboard } from "@/lib/api/contractor-dashboard";
 import type { ContractorEventData } from "@/lib/api/contractor-dashboard/response";
 import { cn } from "@/lib/utils";
-import { useUserSessionStore } from "@/stores/new-auth-store";
 
 export function ContractorDashboard() {
-	const isHydrated = useHydratedStore();
+	const { isInitialized, user } = useAuth();
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
-	const user = useUserSessionStore((state) => state.user);
 
 	const {
 		data: dashboardData,
@@ -38,10 +37,10 @@ export function ContractorDashboard() {
 	} = useQuery({
 		queryKey: ["contractor-dashboard"],
 		queryFn: getContractorDashboard,
-		enabled: isHydrated,
+		enabled: isInitialized,
 	});
 
-	if (!isHydrated || isLoading) {
+	if (!isInitialized || isLoading) {
 		return <ContractorDashboardSkeleton />;
 	}
 
@@ -136,7 +135,7 @@ export function ContractorDashboard() {
 								event={event}
 								formatDate={formatDate}
 								onViewDetails={() =>
-									router.push(`/event/${event.id}/contractor-profile` as any)
+									router.push(`/event/${event.id}/contractor-profile` as Route)
 								}
 							/>
 						))}
@@ -245,10 +244,13 @@ function ContractorEventCard({
 							className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all"
 							style={{
 								width: `${
-									event.verified_payments_count + event.pending_payments_count > 0
-										? (event.verified_payments_count /
-												(event.verified_payments_count + event.pending_payments_count)) *
-											100
+									event.verified_payments_count + event.pending_payments_count >
+									0
+										? (
+												event.verified_payments_count /
+													(event.verified_payments_count +
+														event.pending_payments_count)
+											) * 100
 										: 0
 								}%`,
 							}}
@@ -256,7 +258,8 @@ function ContractorEventCard({
 					</div>
 					<p className="mt-1 text-right text-muted-foreground text-xs">
 						{event.verified_payments_count} /{" "}
-						{event.verified_payments_count + event.pending_payments_count} payments
+						{event.verified_payments_count + event.pending_payments_count}{" "}
+						payments
 					</p>
 				</div>
 			</CardContent>

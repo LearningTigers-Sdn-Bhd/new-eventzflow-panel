@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import TeamClientWrapper from "@/components/pages/team/team-client-wrapper";
 import { Button } from "@/components/ui/button";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
+import { useAuth } from "@/hooks/use-auth";
 import { getTeamMembers } from "@/lib/api/team";
 
 export default function TeamPage() {
-	const isHydrated = useHydratedStore();
+	const { isInitialized } = useAuth();
 
 	const {
 		data: teamMembers,
@@ -17,7 +17,7 @@ export default function TeamPage() {
 	} = useQuery({
 		queryKey: ["team", "members"],
 		queryFn: () => getTeamMembers(),
-		enabled: isHydrated, // Only fetch when store is hydrated
+		enabled: isInitialized, // Only fetch when store is hydrated
 	});
 
 	return (

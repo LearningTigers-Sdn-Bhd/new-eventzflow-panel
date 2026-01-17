@@ -38,7 +38,7 @@ interface BookMeetingPageProps {
 export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	const { event_id } = use(params);
 	const router = useRouter();
-	const { user, isAuthenticated, isHydrated } = useAuth();
+	const { user, isAuthenticated, isInitialized } = useAuth();
 
 	// Wizard Step State: 1=User Details, 2=Select Session, 3=Date & Time, 4=Confirm
 	const [step, setStep] = useState(1);
@@ -50,12 +50,12 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 
 	// Pre-fill user details
 	useEffect(() => {
-		if (isHydrated && isAuthenticated && user) {
+		if (isInitialized && isAuthenticated && user) {
 			setName(user.full_name || "");
 			setEmail(user.email);
 			setPhone(user.phone || "");
 		}
-	}, [isHydrated, isAuthenticated, user]);
+	}, [isInitialized, isAuthenticated, user]);
 
 	// Selection State
 	const [selectedBmEvent, setSelectedBmEvent] =
@@ -177,7 +177,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	};
 
 	// --- Render Helpers ---
-	if (!isHydrated) {
+	if (!isInitialized) {
 		return (
 			<div className="flex min-h-[50vh] items-center justify-center">
 				<Loader2 className="h-8 w-8 animate-spin text-primary" />

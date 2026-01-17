@@ -6,7 +6,7 @@ import { useState } from "react";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
+import { useAuth } from "@/hooks/use-auth";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import type { EventOverview } from "@/lib/api/dashboard/response";
 import { AllEventsOverview } from "./all-events-overview";
@@ -37,7 +37,7 @@ export function DashboardClientWrapper({
 	initialEvents,
 }: DashboardClientWrapperProps) {
 	const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-	const isHydrated = useHydratedStore();
+	const { isInitialized } = useAuth();
 
 	const [
 		{ data: _stats, isLoading: _statsLoading, error: _statsError },
@@ -48,13 +48,13 @@ export function DashboardClientWrapper({
 				queryKey: ["dashboard-stats"],
 				queryFn: getAllEventsStats,
 				initialData: initialStats,
-				enabled: isHydrated, // Only fetch when store is hydrated
+				enabled: isInitialized, // Only fetch when store is hydrated
 			},
 			{
 				queryKey: ["events-overview"],
 				queryFn: getEventsOverview,
 				initialData: initialEvents,
-				enabled: isHydrated, // Only fetch when store is hydrated
+				enabled: isInitialized, // Only fetch when store is hydrated
 			},
 		],
 	});

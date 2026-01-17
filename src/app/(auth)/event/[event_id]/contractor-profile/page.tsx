@@ -1,11 +1,11 @@
 "use client";
 
 import { use } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { ErrorState } from "@/components/data-state";
+import { ContractorProfileView } from "@/components/pages/event-exhibitor-contractor/contractor-profile-view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContractorProfileView } from "@/components/pages/event-exhibitor-contractor/contractor-profile-view";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ContractorProfilePage({
 	params,
@@ -13,10 +13,10 @@ export default function ContractorProfilePage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
-	const { user, isHydrated } = useAuth();
+	const { user, isInitialized } = useAuth();
 
 	// Show loading while auth is hydrating
-	if (!isHydrated) {
+	if (!isInitialized) {
 		return (
 			<div className="space-y-6 p-6">
 				<Skeleton className="h-8 w-64" />
@@ -31,9 +31,7 @@ export default function ContractorProfilePage({
 			<ErrorState
 				title="Access Denied"
 				description="This page is only accessible to exhibition contractor users."
-				action={
-					<Button onClick={() => window.history.back()}>Go Back</Button>
-				}
+				action={<Button onClick={() => window.history.back()}>Go Back</Button>}
 			/>
 		);
 	}

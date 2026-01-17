@@ -4,21 +4,19 @@ import { useQueries } from "@tanstack/react-query";
 import { MdSpaceDashboard } from "react-icons/md";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
+import { ContractorDashboard } from "@/components/pages/dashboard/contractor-dashboard";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
 import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
-import { ContractorDashboard } from "@/components/pages/dashboard/contractor-dashboard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
-	const isHydrated = useHydratedStore();
-	const { user } = useAuth();
+	const { user, isInitialized } = useAuth();
 	const isTablet = useIsTablet();
 	const [
 		{ data: stats, isLoading: statsLoading, error: statsError },
@@ -28,12 +26,12 @@ export default function DashboardPage() {
 			{
 				queryKey: ["dashboard-stats"],
 				queryFn: getAllEventsStats,
-				enabled: isHydrated, // Only fetch when store is hydrated
+				enabled: isInitialized, // Only fetch when store is hydrated
 			},
 			{
 				queryKey: ["events-overview"],
 				queryFn: getEventsOverview,
-				enabled: isHydrated, // Only fetch when store is hydrated
+				enabled: isInitialized, // Only fetch when store is hydrated
 			},
 		],
 	});
