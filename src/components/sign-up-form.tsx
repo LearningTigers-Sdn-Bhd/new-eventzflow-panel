@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { Eye, EyeOff, Lock, Mail, Phone, User } from "lucide-react";
 import { useState } from "react";
-import { useAuthForm } from "@/hooks/use-auth-form";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
 import {
 	emailSchema,
 	nameSchema,

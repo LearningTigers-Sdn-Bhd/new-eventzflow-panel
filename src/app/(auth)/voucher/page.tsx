@@ -9,7 +9,7 @@ import { VendorVoucherTable } from "@/components/pages/vendor-vouchers/table/ven
 import type { VendorVoucher } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table-columns";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEvents } from "@/lib/api/event";
 import { getVouchers } from "@/lib/api/voucher";
 

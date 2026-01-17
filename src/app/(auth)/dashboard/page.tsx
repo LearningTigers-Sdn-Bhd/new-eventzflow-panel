@@ -10,7 +10,7 @@ import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
 import { StatsSkeleton } from "@/components/pages/dashboard/stats-skeleton";
 import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import { cn } from "@/lib/utils";

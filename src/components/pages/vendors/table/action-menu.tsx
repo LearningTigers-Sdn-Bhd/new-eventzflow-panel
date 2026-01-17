@@ -5,7 +5,7 @@ import { Pencil, Power, PowerOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Vendor } from "@/lib/api/vendor";

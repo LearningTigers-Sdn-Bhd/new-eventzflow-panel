@@ -13,7 +13,7 @@ import {
 	SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { useUserPermissions } from "@/hooks/use-user-permissions";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { type MenuGroup, resourceMenuConfig } from "./resource-menu-config";
 import { ResourceMenuItem } from "./resource-menu-item";

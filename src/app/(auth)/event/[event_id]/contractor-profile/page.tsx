@@ -5,7 +5,7 @@ import { ErrorState } from "@/components/data-state";
 import { ContractorProfileView } from "@/components/pages/event-exhibitor-contractor/contractor-profile-view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 export default function ContractorProfilePage({
 	params,

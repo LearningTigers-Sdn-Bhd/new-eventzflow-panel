@@ -7,7 +7,7 @@ import { LocationPageButton } from "@/components/pages/location/event-location-a
 import { DataTable } from "@/components/pages/location/event-location-table";
 import { columns } from "@/components/pages/location/event-location-table-columns";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getLocations } from "@/lib/api/event/location";
 

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import ExhibitorKitsClientWrapper from "@/components/pages/exhibitor-kits-public/exhibitor-kits-client-wrapper";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { redirect } from "next/navigation";
 import { getEvents } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";

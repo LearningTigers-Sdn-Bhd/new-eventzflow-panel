@@ -11,7 +11,7 @@ import VendorClientWrapper from "@/components/pages/vendors/vendor-client-wrappe
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useGroups } from "@/hooks/use-groups";
 import { getVendors } from "@/lib/api/vendor";

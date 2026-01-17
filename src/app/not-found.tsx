@@ -3,7 +3,7 @@
 import { Image } from "@unpic/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 export default function NotFoundPage() {
 	const { isAuthenticated, isInitialized } = useAuth();

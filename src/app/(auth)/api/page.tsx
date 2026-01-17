@@ -5,7 +5,7 @@ import { ErrorState } from "@/components/data-state";
 import ApiKeysClientWrapper from "@/components/pages/api/api-keys-client-wrapper";
 import { ApiKeysSkeleton } from "@/components/pages/api/skeleton/api-keys-skeleton";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getApiKeys } from "@/lib/api/api-keys";
 
 export default function ApiPage() {

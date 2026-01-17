@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { SessionWrapper } from "@/components/pages/surprise-mechanics/roulette/session/session-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById } from "@/lib/api/event";
 import { getRouletteSession } from "@/lib/api/roulette";
 

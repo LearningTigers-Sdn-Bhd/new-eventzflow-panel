@@ -14,7 +14,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useJoinBusinessHost } from "@/hooks/use-business-matching-public";
 
 function InviteHostContent() {

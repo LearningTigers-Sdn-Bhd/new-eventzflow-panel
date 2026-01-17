@@ -8,7 +8,7 @@ import { VouchersPageButton } from "@/components/pages/vouchers/page-action/butt
 import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { DataTable } from "@/components/pages/vouchers/table/event-voucher-table";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getVouchers } from "@/lib/api/voucher";

@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useAuth } from "@/hooks/use-auth"; // Keep useAuth for potential future use or if user logs in mid-flow
+import { useAuth } from "@/hooks/auth/use-auth"; // Keep useAuth for potential future use or if user logs in mid-flow
 import {
 	useBusinessHosts,
 	useBusinessMatchingEvents,

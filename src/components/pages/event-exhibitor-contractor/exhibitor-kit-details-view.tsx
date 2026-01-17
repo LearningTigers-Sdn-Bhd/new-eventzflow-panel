@@ -21,7 +21,7 @@ import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;

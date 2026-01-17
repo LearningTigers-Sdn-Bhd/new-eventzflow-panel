@@ -8,7 +8,7 @@ import Footer from "@/components/footer";
 import LoadingScreen, {
 	EXIT_ANIMATION_DURATION_MS,
 } from "@/components/loading-screen";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 export default function PublicLayout({
 	children,

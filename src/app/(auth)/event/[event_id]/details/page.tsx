@@ -7,7 +7,7 @@ import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/an
 import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";

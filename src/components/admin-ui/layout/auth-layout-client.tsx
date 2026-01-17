@@ -8,7 +8,7 @@ import { AppSidebar } from "@/components/admin-ui/sidebar/app-sidebar";
 import { EventSidebar } from "@/components/admin-ui/sidebar/event-sidebar";
 import { ResourceSidebar } from "@/components/admin-ui/sidebar/resource-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { useSidebarStore } from "@/stores/sidebar-store";
 

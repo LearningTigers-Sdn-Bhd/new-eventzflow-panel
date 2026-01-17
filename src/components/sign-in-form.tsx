@@ -3,7 +3,7 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAuthForm } from "@/hooks/use-auth-form";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
 import { emailSchema, passwordSchema } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
 import Loader from "./loader";

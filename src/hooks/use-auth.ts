@@ -1,1 +1,0 @@
-export { useAuth } from "@/hooks/auth/use-auth";

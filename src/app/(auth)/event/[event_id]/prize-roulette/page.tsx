@@ -6,7 +6,7 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/surprise-mechanics/roulette/draw-session-table";
 import { RoulettePageButton } from "@/components/pages/surprise-mechanics/roulette/manage-session/index-create-button";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getRouletteSessions } from "@/lib/api/roulette";
 

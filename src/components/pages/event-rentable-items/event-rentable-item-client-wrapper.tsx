@@ -6,7 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	getEventRentableItems,

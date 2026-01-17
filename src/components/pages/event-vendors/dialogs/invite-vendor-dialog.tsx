@@ -25,7 +25,7 @@ import {
 import { generateVendorInviteLink } from "@/lib/api/vendor-invitation";
 import { getGroups } from "@/lib/api/group";
 import { getTeamMembers } from "@/lib/api/team";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 interface InviteVendorDialogProps {
 	eventId: number;

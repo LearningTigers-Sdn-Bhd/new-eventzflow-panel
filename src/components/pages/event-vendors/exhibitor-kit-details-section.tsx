@@ -19,7 +19,7 @@ import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
 import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
 import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 function ExpandableText({ text, className }: { text: string; className?: string }) {
 	return (

@@ -4,7 +4,7 @@ import { Edit, Mail, MapPin, Phone, StickyNote, User2 } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import type { VendorProfile } from "@/lib/api/vendor-profile";
 import { EditVendorProfileDialog } from "./edit-vendor-profile-dialog";
 

@@ -30,7 +30,7 @@ import {
 	TimeRangeFilter,
 	type TimeRangePreset,
 } from "@/components/ui/time-range-filter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";

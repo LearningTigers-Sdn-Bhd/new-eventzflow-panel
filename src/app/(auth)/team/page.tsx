@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import TeamClientWrapper from "@/components/pages/team/team-client-wrapper";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getTeamMembers } from "@/lib/api/team";
 
 export default function TeamPage() {

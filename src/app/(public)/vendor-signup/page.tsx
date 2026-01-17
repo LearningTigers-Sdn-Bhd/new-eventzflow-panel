@@ -14,7 +14,7 @@ import { VendorSignupForm } from "@/components/pages/vendor-signup/vendor-signup
 import { VendorSignupSuccessCard } from "@/components/pages/vendor-signup/vendor-signup-success-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { verifyVendorInviteToken } from "@/lib/api/vendor-invitation";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 

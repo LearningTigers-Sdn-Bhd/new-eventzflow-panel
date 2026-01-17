@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { getVendorDashboard } from "@/lib/api/vendor-dashboard";
 import type { VendorEventData } from "@/lib/api/vendor-dashboard/response";

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
 import type { EventOverview } from "@/lib/api/dashboard/response";
 import { AllEventsOverview } from "./all-events-overview";
