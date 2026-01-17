@@ -3,47 +3,47 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { DataTable } from "@/components/pages/surprise-mechanics/lucky-draw/draw-session-table";
-import { LuckyDrawPageButton } from "@/components/pages/surprise-mechanics/lucky-draw/manage-session/index-create-button";
+import { DataTable } from "@/components/pages/surprise-mechanics/roulette/draw-session-table";
+import { RoulettePageButton } from "@/components/pages/surprise-mechanics/roulette/manage-session/index-create-button";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { getLuckyDrawSessions } from "@/lib/api/lucky-draw";
+import { getRouletteSessions } from "@/lib/api/roulette";
 
-interface LuckyDrawPageProps {
+interface PrizeRoulettePageProps {
 	params: Promise<{
 		event_id: string;
 	}>;
 }
 
-export default function LuckyDrawPage({ params }: LuckyDrawPageProps) {
+export default function PrizeRoulettePage({ params }: PrizeRoulettePageProps) {
 	const { event_id } = use(params);
 	const { user } = useAuth();
 
 	// Only show create button if user is not a vendor
 	const isVendor = user?.role === "vendor";
-	useSetEventActions(isVendor ? null : <LuckyDrawPageButton />);
+	useSetEventActions(isVendor ? null : <RoulettePageButton />);
 
 	const {
 		data: sessions,
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ["lucky-draw-sessions", event_id],
-		queryFn: () => getLuckyDrawSessions(event_id),
+		queryKey: ["roulette-sessions", event_id],
+		queryFn: () => getRouletteSessions(event_id),
 	});
 
 	return (
 		<div className="space-y-4">
 			{isLoading ? (
 				<LoadingState
-					title="Loading lucky draw sessions..."
-					description="Please wait while we fetch your lucky draw sessions..."
+					title="Loading prize roulette sessions..."
+					description="Please wait while we fetch your prize roulette sessions..."
 				/>
 			) : error ? (
 				<ErrorState
-					title="Failed to load lucky draw sessions"
-					description="We couldn't load lucky draw sessions. Please try again."
+					title="Failed to load prize roulette sessions"
+					description="We couldn't load prize roulette sessions. Please try again."
 					action={
 						<Button onClick={() => window.location.reload()}>Retry</Button>
 					}

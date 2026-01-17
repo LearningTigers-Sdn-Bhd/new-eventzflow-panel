@@ -98,10 +98,13 @@ export default function EventDetailLayout({
 
 	// Check if we're on special routes that don't need sidebar - check FIRST before any sidebar hooks
 	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
+	const isPrizeRouletteSessionRoute = pathname.includes(
+		"prize-roulette/session",
+	);
 	const isReviewSubmitRoute = pathname.includes("review-submit");
 
 	// Early return for special routes that don't use sidebar
-	if (isLuckyDrawSessionRoute) {
+	if (isLuckyDrawSessionRoute || isPrizeRouletteSessionRoute) {
 		return <div className="w-full">{children}</div>;
 	}
 
@@ -267,7 +270,7 @@ function EventDetailLayoutContent({
 			</div>
 
 			{/* Current Menu Header */}
-			<div className="mx-auto w-full max-w-4xl rounded-none bg-card px-0 md:max-w-5xl 2xl:max-w-7xl">
+			<div className="mx-auto w-full max-w-4xl rounded-none bg-transparent px-0 md:max-w-5xl 2xl:max-w-7xl">
 				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
 					<IconHeading
 						icon={currentMenu.icon}

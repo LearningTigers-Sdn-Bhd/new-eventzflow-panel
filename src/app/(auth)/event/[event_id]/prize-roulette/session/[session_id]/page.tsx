@@ -2,22 +2,22 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
-import { LuckyDrawWrapper } from "@/components/pages/surprise-mechanics/lucky-draw/session/session-wrapper";
+import { SessionWrapper } from "@/components/pages/surprise-mechanics/roulette/session/session-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getEventById } from "@/lib/api/event";
-import { getLuckyDrawSession } from "@/lib/api/lucky-draw";
+import { getRouletteSession } from "@/lib/api/roulette";
 
-interface LuckyDrawSessionPageProps {
+interface PrizeRouletteSessionPageProps {
 	params: Promise<{
 		event_id: string;
 		session_id: string;
 	}>;
 }
 
-export default function LuckyDrawSessionPage({
+export default function PrizeRouletteSessionPage({
 	params,
-}: LuckyDrawSessionPageProps) {
+}: PrizeRouletteSessionPageProps) {
 	const { event_id, session_id } = use(params);
 	const isHydrated = useHydratedStore();
 	const sessionId = Number.parseInt(session_id, 10);
@@ -29,9 +29,9 @@ export default function LuckyDrawSessionPage({
 	});
 
 	const { data: session, isLoading: isLoadingSession } = useQuery({
-		queryKey: ["lucky-draw-session", event_id, sessionId],
-		queryFn: () => getLuckyDrawSession(event_id, sessionId),
-		enabled: isHydrated && !!sessionId,
+		queryKey: ["roulette-session", event_id, sessionId],
+		queryFn: () => getRouletteSession(event_id, sessionId),
+		enabled: isHydrated && !!event_id && !!sessionId,
 	});
 
 	if (isLoadingEvent || isLoadingSession) {
@@ -45,7 +45,7 @@ export default function LuckyDrawSessionPage({
 	if (!session) return <div>Session not found</div>;
 
 	return (
-		<LuckyDrawWrapper
+		<SessionWrapper
 			eventId={event_id}
 			sessionId={sessionId}
 			session={session}

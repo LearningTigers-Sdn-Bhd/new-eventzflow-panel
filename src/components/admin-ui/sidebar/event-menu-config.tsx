@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import type { IconType } from "react-icons";
 import { BiInfoSquare } from "react-icons/bi";
+import { FaGifts } from "react-icons/fa6";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
 import type { useEventPermissions } from "@/hooks/use-event-permissions";
@@ -106,6 +107,8 @@ const visible = {
 	// Special access
 	luckyDrawAccess: (p: Permissions) =>
 		p.isOrgOwner || p.isEventAdmin || p.isOrganizer || p.isEventStaff,
+	prizeRouletteAccess: (p: Permissions) =>
+		p.isOrgOwner || p.isEventAdmin || p.isEventVendor,
 	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
@@ -173,13 +176,6 @@ export const eventMenuConfig: EventMenuConfig = {
 			visible: (p) =>
 				!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 		},
-		{
-			route: "lucky-draw",
-			label: "Lucky Draw",
-			description: "Manage lucky draw sessions, configurations, and prizes.",
-			icon: Gift,
-			visible: visible.luckyDrawAccess,
-		},
 		// Import Visitors - mall events only, organizer/org_owner only
 		{
 			route: "import-visitors",
@@ -192,6 +188,33 @@ export const eventMenuConfig: EventMenuConfig = {
 
 	/** Grouped tabs with conditional visibility */
 	groups: [
+		// ------------------------------------------------------------------------
+		// EVENT INFORMATION GROUP - Only for ticket-based events
+		// ------------------------------------------------------------------------
+		{
+			id: "surprise-mechanics",
+			label: "Surprise Mechanics",
+			icon: BiInfoSquare,
+			visible: (p, e) => visible.ticketEvent(p, e),
+			tabs: [
+				{
+					route: "lucky-draw",
+					label: "Lucky Draw",
+					description:
+						"Manage lucky draw sessions, configurations, and prizes.",
+					icon: Gift,
+					visible: visible.luckyDrawAccess,
+				},
+				{
+					route: "prize-roulette",
+					label: "Prize Roulette",
+					description: "Manage prize roulette sessions for this event.",
+					icon: FaGifts,
+					visible: visible.prizeRouletteAccess,
+				},
+			],
+		},
+
 		// ------------------------------------------------------------------------
 		// TICKETS GROUP - Only for ticket-based events
 		// ------------------------------------------------------------------------
@@ -318,7 +341,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Event Printing",
 					description: "View and manage printing services for this event.",
 					icon: Printer,
-					visible: (p, e) => e?.allow_contractor_printing_services === true,
+					visible: (_p, e) => e?.allow_contractor_printing_services === true,
 				},
 			],
 		},
