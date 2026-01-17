@@ -12,7 +12,7 @@ import { DataTable } from "@/components/pages/event/event-table";
 import type { Event } from "@/components/pages/event/event-table-columns";
 import { getColumns } from "@/components/pages/event/event-table-columns";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEvents } from "@/lib/api/event";
 

@@ -9,7 +9,7 @@ import { DataTable } from "@/components/pages/event-staff/event-staff-table";
 import { getEventStaffColumns } from "@/components/pages/event-staff/event-staff-table-columns";
 import { EventStaffPageButton } from "@/components/pages/event-staff/page-action/button";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 

@@ -1,7 +1,7 @@
 import { create, type StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface User {
+export interface User {
 	id: number;
 	email: string;
 	full_name?: string | null | undefined;
@@ -18,7 +18,6 @@ interface User {
 
 interface SessionCredentials {
 	accessToken: string;
-	refreshToken: string;
 	expiresAt: number;
 }
 
@@ -52,11 +51,27 @@ const userSessionStoreSlice: StateCreator<UserSessionState> = (set, get) => ({
 	},
 });
 
-const persistedUserSessionStore = persist<UserSessionState>(
-	userSessionStoreSlice,
-	{
-		name: "user-session",
-	},
-);
+// Memory-only store for session data (security best practice)
+export const useUserSessionStore = create(userSessionStoreSlice);
 
-export const useUserSessionStore = create(persistedUserSessionStore);
+// Separate persisted store for non-sensitive user preferences
+interface UserPreferences {
+	lastLoggedInEmail: string | null;
+	theme: "light" | "dark";
+	setLastLoggedInEmail: (email: string) => void;
+	setTheme: (theme: "light" | "dark") => void;
+}
+
+export const useUserPreferencesStore = create(
+	persist<UserPreferences>(
+		(set) => ({
+			lastLoggedInEmail: null,
+			theme: "light",
+			setLastLoggedInEmail: (email) => set({ lastLoggedInEmail: email }),
+			setTheme: (theme) => set({ theme }),
+		}),
+		{
+			name: "user-preferences",
+		},
+	),
+);

@@ -73,7 +73,7 @@ export function VendorSignupForm({
 		mutationFn: registerInvitedVendor,
 		onSuccess: (response) => {
 			// Auto-login: Save user and session credentials to store
-			const { user, access_token, refresh_token, expires_at } = response.data;
+			const { user, access_token, expires_at } = response.data;
 
 			setUser({
 				id: user.id,
@@ -86,7 +86,6 @@ export function VendorSignupForm({
 
 			setSessionCredentials({
 				accessToken: access_token,
-				refreshToken: refresh_token,
 				expiresAt: new Date(expires_at).getTime(),
 			});
 

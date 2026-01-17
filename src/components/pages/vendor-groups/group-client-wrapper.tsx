@@ -4,7 +4,7 @@ import { Boxes } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import type { Group } from "@/lib/api/group/response";
 import { CreateGroupDialog } from "./dialogs/create-group-dialog";
 import { DataTable } from "./table/vendor-group-table";

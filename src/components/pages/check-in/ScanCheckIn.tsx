@@ -10,10 +10,10 @@ import {
 	XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDuplicateDetection } from "@/hooks/use-duplicate-detection";
 import { useScanner } from "@/hooks/use-scanner";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
@@ -36,7 +36,7 @@ interface ScanCheckInProps {
 
 export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 	const router = useRouter();
-	const { isAuthenticated, isHydrated } = useAuth();
+	const { isAuthenticated, isInitialized } = useAuth();
 	const [isScanning, setIsScanning] = useState(false);
 	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [lastResult, setLastResult] = useState<ResultData | null>(null);
@@ -46,61 +46,64 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 	const { checkAndMark } = useDuplicateDetection();
 	const { validateTicket, isProcessing } = useTicketValidation();
 
-	const handleScanSuccess = async (decodedText: string) => {
-		if (isProcessing) return;
-		if (checkAndMark(decodedText)) return;
+	const handleScanSuccess = useCallback(
+		async (decodedText: string) => {
+			if (isProcessing) return;
+			if (checkAndMark(decodedText)) return;
 
-		const result = await validateTicket(
-			decodedText,
-			scannedTicketIdsRef.current,
-		);
+			const result = await validateTicket(
+				decodedText,
+				scannedTicketIdsRef.current,
+			);
 
-		const scanId = result.scanId;
+			const scanId = result.scanId;
 
-		if (result.status === "success") {
-			scannedTicketIdsRef.current.add(scanId.toLowerCase());
+			if (result.status === "success") {
+				scannedTicketIdsRef.current.add(scanId.toLowerCase());
 
-			const isVisitor = result.type === "visitor";
-			const typeLabel = isVisitor ? "Visitor" : result.ticketType || "Ticket";
+				const isVisitor = result.type === "visitor";
+				const typeLabel = isVisitor ? "Visitor" : result.ticketType || "Ticket";
 
-			const scanResult: ResultData = {
-				success: true,
-				message: "Check-in successful!",
-				details: {
-					name: result.name,
-					ticketType: typeLabel,
-					eventName: result.eventName,
-				},
-			};
-			setLastResult(scanResult);
-			toast.success("Check-in Successful", {
-				description: `Welcome, ${result.name}!`,
-			});
-		} else if (result.status === "duplicate") {
-			const scanResult: ResultData = {
-				success: false,
-				message: "Already checked in.",
-				details: {
-					name: result.name,
-					ticketType: result.ticketType,
-					eventName: result.eventName,
-				},
-			};
-			setLastResult(scanResult);
-			toast.error("Already Checked In", {
-				description: "This was already used for check-in.",
-			});
-		} else {
-			const scanResult: ResultData = {
-				success: false,
-				message: result.message || "Failed to validate.",
-			};
-			setLastResult(scanResult);
-			toast.error("Scan Failed", {
-				description: result.message || "Could not validate the QR code.",
-			});
-		}
-	};
+				const scanResult: ResultData = {
+					success: true,
+					message: "Check-in successful!",
+					details: {
+						name: result.name,
+						ticketType: typeLabel,
+						eventName: result.eventName,
+					},
+				};
+				setLastResult(scanResult);
+				toast.success("Check-in Successful", {
+					description: `Welcome, ${result.name}!`,
+				});
+			} else if (result.status === "duplicate") {
+				const scanResult: ResultData = {
+					success: false,
+					message: "Already checked in.",
+					details: {
+						name: result.name,
+						ticketType: result.ticketType,
+						eventName: result.eventName,
+					},
+				};
+				setLastResult(scanResult);
+				toast.error("Already Checked In", {
+					description: "This was already used for check-in.",
+				});
+			} else {
+				const scanResult: ResultData = {
+					success: false,
+					message: result.message || "Failed to validate.",
+				};
+				setLastResult(scanResult);
+				toast.error("Scan Failed", {
+					description: result.message || "Could not validate the QR code.",
+				});
+			}
+		},
+		[isProcessing, checkAndMark, validateTicket],
+	);
 
 	const { startScanner: startScannerHook, stopScanner: stopScannerHook } =
 		useScanner({
@@ -108,31 +111,31 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 			onScanSuccess: handleScanSuccess,
 		});
 
-	const handleStartScanner = async () => {
+	const handleStartScanner = useCallback(async () => {
 		setIsTransitioning(true);
 		const success = await startScannerHook();
 		if (success) {
 			setIsScanning(true);
 		}
 		setIsTransitioning(false);
-	};
+	}, [startScannerHook]);
 
-	const handleStopScanner = async () => {
+	const handleStopScanner = useCallback(async () => {
 		setIsTransitioning(true);
 		const success = await stopScannerHook();
 		if (success) {
 			setIsScanning(false);
 		}
 		setIsTransitioning(false);
-	};
+	}, [stopScannerHook]);
 
-	const handleBack = async () => {
+	const handleBack = useCallback(async () => {
 		// Stop scanner before going back
 		if (isScanning) {
 			await stopScannerHook();
 		}
 		onBack();
-	};
+	}, [isScanning, stopScannerHook, onBack]);
 
 	const handleLoginRedirect = () => {
 		const returnUrl = station ? `/check-in?station=${station}` : "/check-in";
@@ -141,7 +144,7 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 
 	// Auto-start scanner when authenticated
 	useEffect(() => {
-		if (isHydrated && isAuthenticated && !hasAutoStarted.current) {
+		if (isInitialized && isAuthenticated && !hasAutoStarted.current) {
 			hasAutoStarted.current = true;
 			// Small delay to ensure DOM is ready
 			const timer = setTimeout(() => {
@@ -149,10 +152,10 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 			}, 100);
 			return () => clearTimeout(timer);
 		}
-	}, [isHydrated, isAuthenticated]);
+	}, [isInitialized, isAuthenticated, handleStartScanner]);
 
 	// Show loading state while hydrating
-	if (!isHydrated) {
+	if (!isInitialized) {
 		return (
 			<div className="space-y-4">
 				<div className="flex items-center justify-center py-12">
@@ -235,7 +238,7 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 				{/* Active Scanning Overlay */}
 				{isScanning && (
 					<>
-						<div className="-translate-x-1/2 absolute top-2 left-1/2 z-20">
+						<div className="absolute top-2 left-1/2 z-20 -translate-x-1/2">
 							<div className="flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 shadow-lg">
 								<span className="relative flex h-2 w-2">
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
@@ -246,7 +249,7 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 								</span>
 							</div>
 						</div>
-						<div className="-translate-x-1/2 absolute bottom-2 left-1/2 z-20 w-full px-4">
+						<div className="absolute bottom-2 left-1/2 z-20 w-full -translate-x-1/2 px-4">
 							<Button
 								onClick={handleStopScanner}
 								variant="destructive"
@@ -274,9 +277,9 @@ export function ScanCheckIn({ onBack, station }: ScanCheckInProps) {
 				>
 					<div className="flex items-start gap-3">
 						{lastResult.success ? (
-							<CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+							<CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
 						) : (
-							<XCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+							<XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
 						)}
 						<div className="min-w-0 flex-1">
 							<p

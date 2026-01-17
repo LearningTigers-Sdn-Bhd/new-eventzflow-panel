@@ -36,7 +36,7 @@ interface VendorSignInFormProps {
 	group?: GroupInfo | null;
 	vendorType?: "Exhibitor" | "Merchant";
 	useExhibitorKit?: boolean;
-	onSuccess: (accessToken: string, refreshToken: string) => void;
+	onSuccess: (accessToken: string) => void;
 	onBack: () => void;
 }
 
@@ -60,7 +60,7 @@ export function VendorSignInForm({
 				});
 				return;
 			}
-			onSuccess(response.data.access_token, response.data.refresh_token);
+			onSuccess(response.data.access_token);
 		},
 		onError: (error: Error) => {
 			toast.error("Sign in failed", {

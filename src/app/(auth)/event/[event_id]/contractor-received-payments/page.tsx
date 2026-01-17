@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { ContractorReceivedPaymentsView } from "@/components/pages/contractor-received-payments/contractor-received-payments-view";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { redirect } from "next/navigation";
 
 export default function ContractorReceivedPaymentsPage({

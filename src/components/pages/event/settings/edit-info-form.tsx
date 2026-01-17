@@ -21,7 +21,7 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { cn } from "@/lib/utils";

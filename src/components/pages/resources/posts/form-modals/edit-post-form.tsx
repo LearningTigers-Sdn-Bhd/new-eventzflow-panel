@@ -13,7 +13,7 @@ import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { useUserPermissions } from "@/hooks/use-user-permissions";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
 import { updateResource } from "@/lib/api/resource";
 import { getResourceCategories } from "@/lib/api/resource/category";
 import { getResourceMediaTypes } from "@/lib/api/resource/media-type";

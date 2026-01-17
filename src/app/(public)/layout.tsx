@@ -8,16 +8,14 @@ import Footer from "@/components/footer";
 import LoadingScreen, {
 	EXIT_ANIMATION_DURATION_MS,
 } from "@/components/loading-screen";
-import { useAuth } from "@/hooks/use-auth";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 export default function PublicLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const isHydrated = useHydratedStore();
-	const { user } = useAuth();
+	const { user, isInitialized } = useAuth();
 	const pathname = usePathname();
 
 	// Landing/marketing pages - show loading screen, nav, and footer
@@ -67,7 +65,7 @@ export default function PublicLayout({
 	useEffect(() => {
 		if (!isLandingPage) return;
 
-		if (isHydrated && minTimeElapsed && showLoading) {
+		if (isInitialized && minTimeElapsed && showLoading) {
 			setIsExiting(true);
 
 			const timer = setTimeout(() => {
@@ -76,7 +74,7 @@ export default function PublicLayout({
 
 			return () => clearTimeout(timer);
 		}
-	}, [isHydrated, minTimeElapsed, showLoading, isLandingPage]);
+	}, [isInitialized, minTimeElapsed, showLoading, isLandingPage]);
 
 	return (
 		<>

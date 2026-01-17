@@ -3,10 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { DataTable } from "@/components/pages/lucky-draw/draw-session-table";
-import { LuckyDrawPageButton } from "@/components/pages/lucky-draw/manage-session/index-create-button";
+import { DataTable } from "@/components/pages/surprise-mechanics/lucky-draw/draw-session-table";
+import { LuckyDrawPageButton } from "@/components/pages/surprise-mechanics/lucky-draw/manage-session/index-create-button";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getLuckyDrawSessions } from "@/lib/api/lucky-draw";
 

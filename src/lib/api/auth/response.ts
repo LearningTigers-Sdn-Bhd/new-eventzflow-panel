@@ -23,7 +23,6 @@ export const authResponseSchema = z.object({
 	message: z.string(),
 	data: z.object({
 		access_token: z.string(),
-		refresh_token: z.string(),
 		expires_at: z.string(),
 		user: userSchema,
 	}),
@@ -35,8 +34,8 @@ export const refreshTokenResponseSchema = z.object({
 	message: z.string(),
 	data: z.object({
 		access_token: z.string(),
-		refresh_token: z.string(),
 		expires_at: z.string(),
+		user: userSchema,
 	}),
 });
 
@@ -67,7 +66,6 @@ export const updatePasswordResponseSchema = z.object({
 	message: z.string().optional().default("Password updated successfully"),
 	data: z.object({
 		access_token: z.string(),
-		refresh_token: z.string(),
 		expires_at: z.string(),
 	}),
 });

@@ -14,6 +14,7 @@ import { VendorSignupForm } from "@/components/pages/vendor-signup/vendor-signup
 import { VendorSignupSuccessCard } from "@/components/pages/vendor-signup/vendor-signup-success-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { verifyVendorInviteToken } from "@/lib/api/vendor-invitation";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 
@@ -37,27 +38,14 @@ function VendorSignupContent() {
 	const [eventId, setEventId] = useState<number | null>(null);
 	const [accessToken, setAccessToken] = useState<string>("");
 	const [isExistingVendor, setIsExistingVendor] = useState<boolean>(false);
-	const [isHydrated, setIsHydrated] = useState(false);
 
-	// Get session from store
+	const { user, isLoading: isAuthLoading } = useAuth();
+	// Also get sessionCredentials directly if needed for access token
 	const sessionCredentials = useUserSessionStore(
 		(state) => state.sessionCredentials,
 	);
-	const user = useUserSessionStore((state) => state.user);
 
-	// Wait for store hydration
-	useEffect(() => {
-		const checkHydration = () => {
-			if (useUserSessionStore.persist.hasHydrated()) {
-				setIsHydrated(true);
-			}
-		};
-		checkHydration();
-		const unsubscribe = useUserSessionStore.persist.onFinishHydration(() => {
-			setIsHydrated(true);
-		});
-		return unsubscribe;
-	}, []);
+	const isInitialized = !isAuthLoading;
 
 	// Decode event_id from token
 	useEffect(() => {
@@ -80,14 +68,14 @@ function VendorSignupContent() {
 	// Get stored access token if user is logged in as vendor
 	const storedAccessToken = useMemo(() => {
 		if (
-			isHydrated &&
+			isInitialized &&
 			sessionCredentials?.accessToken &&
 			user?.role === "vendor"
 		) {
 			return sessionCredentials.accessToken;
 		}
 		return undefined;
-	}, [isHydrated, sessionCredentials, user]);
+	}, [isInitialized, sessionCredentials, user]);
 
 	// Verify token (pass access token if logged in to check assignment)
 	const {
@@ -99,17 +87,17 @@ function VendorSignupContent() {
 		queryKey: ["verify-vendor-invite", eventId, token, storedAccessToken],
 		queryFn: () =>
 			verifyVendorInviteToken(eventId as number, token, storedAccessToken),
-		enabled: Boolean(token) && Boolean(eventId) && isHydrated,
+		enabled: Boolean(token) && Boolean(eventId) && isInitialized,
 		retry: false,
 	});
 
 	// Check if user is logged in with non-vendor role
 	const isNonVendorAuthenticated = useMemo(() => {
-		if (isHydrated && sessionCredentials?.accessToken && user) {
+		if (isInitialized && sessionCredentials?.accessToken && user) {
 			return user.role !== "vendor";
 		}
 		return false;
-	}, [isHydrated, sessionCredentials, user]);
+	}, [isInitialized, sessionCredentials, user]);
 
 	// Update page state based on verification result
 	useEffect(() => {
@@ -126,7 +114,7 @@ function VendorSignupContent() {
 
 		if (!token) {
 			setPageState("invalid_token");
-		} else if (!isHydrated || isVerifying || !eventId) {
+		} else if (!isInitialized || isVerifying || !eventId) {
 			setPageState("loading");
 		} else if (isNonVendorAuthenticated) {
 			// User is logged in but not as a vendor
@@ -154,7 +142,7 @@ function VendorSignupContent() {
 		}
 	}, [
 		token,
-		isHydrated,
+		isInitialized,
 		isVerifying,
 		isVerifyError,
 		verifyData,

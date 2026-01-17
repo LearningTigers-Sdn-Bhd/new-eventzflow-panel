@@ -19,7 +19,7 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { cn } from "@/lib/utils";
 import { createEvent } from "@/lib/api/event";
 import { getTeamMembers } from "@/lib/api/team";

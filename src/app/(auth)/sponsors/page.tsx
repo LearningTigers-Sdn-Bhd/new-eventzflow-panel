@@ -2,29 +2,23 @@
 
 import { Handshake } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import CreateSponsorForm from "@/components/pages/sponsors/forms/create-sponsor-form";
+import SponsorsListView from "@/components/pages/sponsors/sponsors-list-view";
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
-import { useAuth } from "@/hooks/use-auth";
-import { useSponsors } from "@/hooks/use-sponsorships";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
-import SponsorsListView from "@/components/pages/sponsors/sponsors-list-view";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import CreateSponsorForm from "@/components/pages/sponsors/forms/create-sponsor-form";
+import { useSponsors } from "@/hooks/use-sponsorships";
 
 export default function SponsorsPage() {
-	const isHydrated = useHydratedStore();
-	const { user } = useAuth();
+	const { user, isInitialized } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
 
 	// Only org_owner and organizer can create sponsors
 	const canCreateSponsor =
 		user?.role === "org_owner" || user?.role === "organizer";
 
-	const {
-		data: sponsors,
-		isLoading,
-		error,
-	} = useSponsors();
+	const { data: sponsors, isLoading, error } = useSponsors();
 
 	const handleAddSponsor = () => {
 		openDialog({
@@ -44,7 +38,7 @@ export default function SponsorsPage() {
 	return (
 		<div className="space-y-6 p-0">
 			{/* Show loading state, error state, or content */}
-			{isLoading && isHydrated ? (
+			{isLoading && isInitialized ? (
 				<LoadingState
 					title="Loading sponsors..."
 					description="Please wait while we fetch your sponsors..."
@@ -80,10 +74,10 @@ export default function SponsorsPage() {
 					</div>
 
 					<div className="mt-6 px-4">
-                        <SponsorsListView 
-                            sponsors={sponsors || []} 
-                            onAddSponsor={canCreateSponsor ? handleAddSponsor : undefined}
-                        />
+						<SponsorsListView
+							sponsors={sponsors || []}
+							onAddSponsor={canCreateSponsor ? handleAddSponsor : undefined}
+						/>
 					</div>
 				</div>
 			)}

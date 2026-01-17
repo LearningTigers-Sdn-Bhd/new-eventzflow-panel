@@ -8,7 +8,7 @@ import { AppSidebar } from "@/components/admin-ui/sidebar/app-sidebar";
 import { EventSidebar } from "@/components/admin-ui/sidebar/event-sidebar";
 import { ResourceSidebar } from "@/components/admin-ui/sidebar/resource-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
@@ -20,6 +20,7 @@ interface NoSidebarRoute {
 const NoSidebarRoutes: NoSidebarRoute[] = [
 	{ route: "/verify-email", type: "start" },
 	{ route: "lucky-draw/session", type: "include" },
+	{ route: "prize-roulette/session", type: "include" },
 	{ route: "review-submit", type: "include" },
 ];
 
@@ -28,7 +29,7 @@ export default function AuthLayoutClient({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const { user, isHydrated } = useAuth();
+	const { user, isInitialized } = useAuth();
 	const router = useRouter();
 	const pathname = usePathname();
 	const isTablet = useIsTablet();
@@ -71,7 +72,7 @@ export default function AuthLayoutClient({
 	// Side effects: Handle redirects
 	useEffect(() => {
 		// Wait for hydration before handling redirects
-		if (!isHydrated) return;
+		if (!isInitialized) return;
 
 		// Redirect unauthenticated users to login
 		if (!user) {
@@ -90,14 +91,14 @@ export default function AuthLayoutClient({
 		if (user.email_verified && pathname.startsWith("/verify-email")) {
 			router.push("/dashboard");
 		}
-	}, [user, pathname, isHydrated, router]);
+	}, [user, pathname, isInitialized, router]);
 
 	// Determine layout state
 	type LayoutState = "loading" | "redirecting" | "no-sidebar" | "sidebar";
 
 	const getLayoutState = (): LayoutState => {
 		// Show loading spinner during hydration
-		if (!isHydrated) return "loading";
+		if (!isInitialized) return "loading";
 
 		// Return null while redirecting unauthenticated users
 		if (!user) return "redirecting";

@@ -29,7 +29,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
 import { useNavigation } from "@/hooks/use-navigation";
 import type { UserRole } from "./app-menu-config";
