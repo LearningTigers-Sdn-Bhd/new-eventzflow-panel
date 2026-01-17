@@ -5,7 +5,7 @@ import {
 	deleteEventVendor,
 	getEventVendors,
 } from "@/lib/api/event-vendor";
-import { useAuth } from "./use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 /**
  * Hook to fetch all vendors for an event
