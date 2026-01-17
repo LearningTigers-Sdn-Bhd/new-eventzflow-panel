@@ -10,7 +10,7 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { createTeamMember } from "@/lib/api/team";
 
 interface CreateMemberFormProps {

@@ -80,6 +80,7 @@ export const kyClient = ky.create({
 	headers: {
 		"Content-Type": "application/json",
 	},
+	credentials: "include", // Always include cookies (for HttpOnly refresh token)
 	retry: {
 		limit: 3,
 		methods: ["get", "post", "put", "delete", "patch"],
@@ -103,14 +104,6 @@ export const kyClient = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated =
-						typeof window !== "undefined" &&
-						useUserSessionStore.persist?.hasHydrated();
-					if (typeof window !== "undefined" && !isHydrated) {
-						logger.debug("⚠️ Store not hydrated yet, waiting...");
-						return;
-					}
-
 					const credentials = useUserSessionStore.getState().sessionCredentials;
 					if (credentials?.accessToken) {
 						request.headers.set(
@@ -125,6 +118,36 @@ export const kyClient = ky.create({
 						logger.debug("⚠️ No access token available");
 					}
 				}
+			},
+		],
+		afterResponse: [
+			async (request, _options, response) => {
+				// Global 401 handler
+				if (response.status === 401) {
+					const url = new URL(request.url);
+					// Don't intercept auth endpoints to avoid loops (e.g. failed login/refresh)
+					const isAuthEndpoint = url.pathname.includes("/auth/");
+
+					if (!isAuthEndpoint) {
+						logger.warn("401 Unauthorized detected. Clearing session.");
+						
+						// Clear session
+						const state = useUserSessionStore.getState();
+						state.removeSessionCredentials();
+						state.setUser(null);
+
+						// Redirect to login if in browser
+						if (typeof window !== "undefined") {
+							// Use window.location to force a full refresh and clear client state
+							// Append return URL if needed
+							const currentPath = window.location.pathname;
+							if (currentPath !== "/sign-in" && currentPath !== "/login") {
+								window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
+							}
+						}
+					}
+				}
+				return response;
 			},
 		],
 	},
@@ -173,6 +196,7 @@ export const kyPublicClientForFormData = ky.create({
 export const kyClientForFormData = ky.create({
 	prefixUrl: API_BASE_URL,
 	timeout: 30000,
+	credentials: "include",
 	// Note: Do NOT set default headers here so the browser can set the multipart boundary
 	retry: {
 		limit: 3,
@@ -194,14 +218,6 @@ export const kyClientForFormData = ky.create({
 
 				// Attach token if not already present
 				if (!request.headers.has("Authorization")) {
-					const isHydrated =
-						typeof window !== "undefined" &&
-						useUserSessionStore.persist?.hasHydrated();
-					if (typeof window !== "undefined" && !isHydrated) {
-						logger.debug("⚠️ Store not hydrated yet, waiting... (FormData)");
-						return;
-					}
-
 					const credentials = useUserSessionStore.getState().sessionCredentials;
 					if (credentials?.accessToken) {
 						request.headers.set(

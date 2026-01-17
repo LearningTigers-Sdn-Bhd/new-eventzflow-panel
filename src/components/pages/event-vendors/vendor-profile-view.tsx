@@ -5,7 +5,7 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getVendorProfile } from "@/lib/api/vendor-profile";
 

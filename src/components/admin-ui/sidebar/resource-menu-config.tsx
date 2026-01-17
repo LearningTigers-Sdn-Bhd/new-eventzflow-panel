@@ -21,7 +21,7 @@ import {
 	Video,
 } from "lucide-react";
 import type { IconType } from "react-icons";
-import type { useUserPermissions } from "@/hooks/use-user-permissions";
+import type { useUserPermissions } from "@/hooks/auth/use-user-permissions";
 
 // ============================================================================
 // TYPES

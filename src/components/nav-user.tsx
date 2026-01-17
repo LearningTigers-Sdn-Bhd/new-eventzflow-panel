@@ -22,7 +22,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "./ui/skeleton";
 

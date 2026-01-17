@@ -7,7 +7,7 @@ import { TicketScanButton } from "@/components/pages/scanned-log/ticket-scan-but
 import { columns } from "@/components/pages/scanned-log/ticket-scanned-log-columns";
 import { DataTable } from "@/components/pages/scanned-log/ticket-scanned-log-table";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 import { getScanLogs } from "@/lib/api/event/scan-log";

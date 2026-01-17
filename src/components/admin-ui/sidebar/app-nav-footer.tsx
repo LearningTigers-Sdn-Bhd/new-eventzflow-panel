@@ -23,7 +23,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function NavUser() {

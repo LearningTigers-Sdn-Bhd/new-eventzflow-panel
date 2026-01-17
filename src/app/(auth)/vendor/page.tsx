@@ -11,15 +11,13 @@ import VendorClientWrapper from "@/components/pages/vendors/vendor-client-wrappe
 import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useGroups } from "@/hooks/use-groups";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
 import { getVendors } from "@/lib/api/vendor";
 
 export default function VendorPage() {
-	const isHydrated = useHydratedStore();
-	const { user } = useAuth();
+	const { user, isInitialized } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
 	const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState("vendors");
@@ -37,7 +35,7 @@ export default function VendorPage() {
 	} = useQuery({
 		queryKey: ["vendors"],
 		queryFn: getVendors,
-		enabled: isHydrated, // Only fetch when store is hydrated
+		enabled: isInitialized, // Only fetch when store is hydrated
 	});
 
 	const {

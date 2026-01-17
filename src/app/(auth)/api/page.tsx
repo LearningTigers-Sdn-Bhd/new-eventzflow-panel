@@ -5,11 +5,11 @@ import { ErrorState } from "@/components/data-state";
 import ApiKeysClientWrapper from "@/components/pages/api/api-keys-client-wrapper";
 import { ApiKeysSkeleton } from "@/components/pages/api/skeleton/api-keys-skeleton";
 import { Button } from "@/components/ui/button";
-import { useHydratedStore } from "@/hooks/use-hydrated-store";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getApiKeys } from "@/lib/api/api-keys";
 
 export default function ApiPage() {
-	const isHydrated = useHydratedStore();
+	const { isInitialized } = useAuth();
 
 	const {
 		data: apiKeys,
@@ -18,7 +18,7 @@ export default function ApiPage() {
 	} = useQuery({
 		queryKey: ["api-keys"],
 		queryFn: getApiKeys,
-		enabled: isHydrated, // Only fetch when store is hydrated
+		enabled: isInitialized, // Only fetch when store is hydrated
 	});
 
 	return (

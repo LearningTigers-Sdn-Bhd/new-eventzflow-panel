@@ -4,7 +4,7 @@ import { Activity, Pencil, QrCode, Ticket, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Event } from "@/lib/api/event/response";

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
 import { getContractor, updateContractorProfile, uploadContractorGuidelinesPdf } from "@/lib/api/contractor";

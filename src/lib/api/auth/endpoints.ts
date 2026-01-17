@@ -4,12 +4,10 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type LoginRequest,
 	loginRequestSchema,
-	type RefreshTokenRequest,
 	type RegisterRequest,
 	type RegisterRequestData,
 	type RequestResetPasswordRequest,
 	type ResetPasswordRequest,
-	refreshTokenRequestSchema,
 	registerRequestSchema,
 	requestResetPasswordSchema,
 	resetPasswordSchema,
@@ -62,24 +60,14 @@ export async function refreshToken(): Promise<string> {
 	}
 
 	const state = useUserSessionStore.getState();
-	const credentials = state.sessionCredentials;
-
-	if (!credentials?.refreshToken) {
-		throw new Error("No refresh token available");
-	}
 
 	refreshPromise = (async () => {
 		try {
-			// Validate refresh token request
-			const refreshRequest: RefreshTokenRequest = {
-				refresh_token: credentials.refreshToken,
-			};
-
-			const validatedRequest = refreshTokenRequestSchema.parse(refreshRequest);
-
+			// No request body needed, cookie contains refresh token
+			// We send an empty object as body because it's a POST request
 			const response = await restClient.post<RefreshTokenResponse>(
 				"v1/auth/refresh_token",
-				validatedRequest,
+				{},
 			);
 
 			// Validate response
@@ -89,16 +77,16 @@ export async function refreshToken(): Promise<string> {
 				throw new Error(validatedResponse.message || "Token refresh failed");
 			}
 
-			const { access_token, refresh_token, expires_at } =
-				validatedResponse.data;
+			const { access_token, expires_at, user } = validatedResponse.data;
 			const expiresAtTimestamp = parseExpiresAt(expires_at);
 
 			// Update store with new tokens
+			// Note: We don't store refresh_token anymore, it's in the HttpOnly cookie
 			state.setSessionCredentials({
 				accessToken: access_token,
-				refreshToken: refresh_token,
 				expiresAt: expiresAtTimestamp,
 			});
+			state.setUser(user);
 
 			return access_token;
 		} catch (error) {
@@ -107,7 +95,7 @@ export async function refreshToken(): Promise<string> {
 			logout();
 
 			if (error instanceof Error && error.name === "ZodError") {
-				throw new Error("Invalid refresh token data");
+				throw new Error("Invalid refresh token response");
 			}
 			throw error;
 		} finally {
@@ -141,23 +129,17 @@ export async function login(
 		// Validate response
 		const validatedResponse = authResponseSchema.parse(response);
 
-		if (!validatedResponse.success) {
-			throw new Error(validatedResponse.message || "Login failed");
-		}
-
-		const { access_token, refresh_token, expires_at, user } =
-			validatedResponse.data;
-		const expiresAtTimestamp = parseExpiresAt(expires_at);
-
-		// Update store with tokens and user data
-		const state = useUserSessionStore.getState();
-		state.setSessionCredentials({
-			accessToken: access_token,
-			refreshToken: refresh_token,
-			expiresAt: expiresAtTimestamp,
-		});
-		state.setUser(user);
-
+		        const { access_token, expires_at, user } =
+		            validatedResponse.data;
+		        const expiresAtTimestamp = parseExpiresAt(expires_at);
+		
+		        // Update store with tokens and user data
+		        const state = useUserSessionStore.getState();
+		        state.setSessionCredentials({
+		            accessToken: access_token,
+		            expiresAt: expiresAtTimestamp,
+		        });
+		        state.setUser(user);
 		return validatedResponse;
 	} catch (error) {
 		// Handle validation errors
@@ -197,7 +179,7 @@ export async function register(
 			throw new Error(validatedResponse.message || "Registration failed");
 		}
 
-		const { access_token, refresh_token, expires_at, user } =
+		const { access_token, expires_at, user } =
 			validatedResponse.data;
 		const expiresAtTimestamp = parseExpiresAt(expires_at);
 
@@ -205,7 +187,6 @@ export async function register(
 		const state = useUserSessionStore.getState();
 		state.setSessionCredentials({
 			accessToken: access_token,
-			refreshToken: refresh_token,
 			expiresAt: expiresAtTimestamp,
 		});
 		state.setUser(user);
@@ -396,12 +377,11 @@ export async function updatePassword(
 		);
 		const validated = updatePasswordResponseSchema.parse(response);
 		if (validated.success) {
-			const { access_token, refresh_token, expires_at } = validated.data;
+			const { access_token, expires_at } = validated.data;
 			const expiresAtTimestamp = new Date(expires_at).getTime();
 			const state = useUserSessionStore.getState();
 			state.setSessionCredentials({
 				accessToken: access_token,
-				refreshToken: refresh_token,
 				expiresAt: expiresAtTimestamp,
 			});
 		}

@@ -27,7 +27,7 @@ import {
 	InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
 import type { Route } from "next"; // Import Route
 
