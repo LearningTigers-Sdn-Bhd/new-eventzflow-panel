@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -45,8 +46,7 @@ export default function PublishedPostsPage() {
 			<ErrorState
 				title="Failed to load resources"
 				description={
-					error.message ||
-					"We couldn't load resource posts. Please try again."
+					error.message || "We couldn't load resource posts. Please try again."
 				}
 				action={<Button onClick={() => refetch()}>Retry</Button>}
 			/>
@@ -71,7 +71,8 @@ export default function PublishedPostsPage() {
 			}}
 			clickableRowConfig={{
 				isEnabled: true,
-				onRowClick: (row) => router.push(`/manage-resources/posts/${row.slug}`),
+				onRowClick: (row) =>
+					router.push(`/manage-resources/published-posts/${row.slug}` as Route),
 			}}
 		/>
 	);

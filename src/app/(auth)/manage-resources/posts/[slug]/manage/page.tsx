@@ -1,18 +1,14 @@
 "use client";
 
-import type { Route } from "next";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { useResource } from "@/app/(auth)/manage-resources/layout";
+import { useMemo, useState } from "react";
 import { LoadingState } from "@/components/data-state";
 import { ArticleCanvas } from "@/components/pages/resources/posts/editor-page/article-canvas";
 import { ResourceEditorActionButtons } from "@/components/pages/resources/posts/editor-page/page-action/action-buttons";
+import { useResourceSidebarContext } from "@/components/sidebars/features/resources/resource-sidebar-provider";
 import { useSetResourceActions } from "@/hooks/use-set-resource-actions";
 
 export default function PostManagePage() {
-	const router = useRouter();
-	const post = useResource();
-	const isLoading = !post;
+	const { resource: post, isLoading } = useResourceSidebarContext();
 	const [isPreviewMode, setPreviewMode] = useState(false);
 
 	const actions = useMemo(

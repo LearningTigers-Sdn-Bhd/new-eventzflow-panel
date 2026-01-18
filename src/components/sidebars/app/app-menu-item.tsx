@@ -15,7 +15,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-interface NavGroupProps {
+interface AppMenuItemProps {
 	name: string;
 	navGroup: {
 		name: string;
@@ -25,10 +25,10 @@ interface NavGroupProps {
 	}[];
 }
 
-export const NavGroup = React.memo(function NavGroup({
+export const AppMenuItem = React.memo(function AppMenuItem({
 	name,
 	navGroup,
-}: NavGroupProps) {
+}: AppMenuItemProps) {
 	const pathname = usePathname();
 	return (
 		<SidebarGroup>

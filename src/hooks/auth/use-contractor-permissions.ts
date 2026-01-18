@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import type { UserPermissions } from "@/components/admin-ui/sidebar/app-menu-config";
+import type { UserPermissions } from "@/components/sidebars/app/app-menu-config";
+import { getContractor } from "@/lib/api/contractor";
 import { useAuth } from "./use-auth";
 import { useUserPermissions } from "./use-user-permissions";
-import { getContractor } from "@/lib/api/contractor";
 
 /**
  * Hook to fetch contractor data and build combined permissions object

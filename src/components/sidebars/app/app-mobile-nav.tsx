@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useNavigation } from "@/components/sidebars/hooks/use-navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,11 +33,10 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
-import { useNavigation } from "@/hooks/use-navigation";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "./app-menu-config";
 
-export function AppMobileBottomNav() {
+export function AppMobileNav() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { user, logout } = useAuth();
