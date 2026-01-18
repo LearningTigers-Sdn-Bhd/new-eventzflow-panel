@@ -22,6 +22,7 @@ import {
 	HardHat,
 	Import,
 	Logs,
+	type LucideIcon,
 	MapPin,
 	Package,
 	Printer,
@@ -49,25 +50,26 @@ import type { Event } from "@/lib/api/event/response";
 
 type Permissions = ReturnType<typeof useEventPermissions>;
 
-export type MenuItem = {
+export type EventMenuItem = {
 	route: string;
 	label: string;
 	description: string;
-	icon: IconType;
+	icon: IconType | LucideIcon;
 	visible?: (permissions: Permissions, event?: Event) => boolean;
+	isActive?: (pathname: string, route: string) => boolean;
 };
 
-export type MenuGroup = {
+export type EventMenuGroup = {
 	id: string;
 	label: string;
-	icon: IconType;
+	icon: IconType | LucideIcon;
 	visible?: (permissions: Permissions, event?: Event) => boolean;
-	tabs: MenuItem[];
+	tabs: EventMenuItem[];
 };
 
 export type EventMenuConfig = {
-	standalone: MenuItem[];
-	groups: MenuGroup[];
+	standalone: EventMenuItem[];
+	groups: EventMenuGroup[];
 };
 
 // ============================================================================
@@ -459,7 +461,8 @@ export const eventMenuConfig: EventMenuConfig = {
 				{
 					route: "analytics/ticket",
 					label: "Ticket Analytics",
-					description: "View ticket registrations, scans, and revenue analytics.",
+					description:
+						"View ticket registrations, scans, and revenue analytics.",
 					icon: ChartBar,
 					visible: (p, e) =>
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
@@ -469,8 +472,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Visitor Analytics",
 					description: "View visitor registrations and check-in analytics.",
 					icon: ChartBar,
-					visible: (p, e) =>
-						visible.mallEvent(p, e) && visible.eventAdmin(p),
+					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
 				},
 				{
 					route: "mall-live-feed",
@@ -525,8 +527,8 @@ export const eventMenuConfig: EventMenuConfig = {
  * Flattened map of all routes to their menu item configurations.
  * Used by layout.tsx to display current page title, description, and icon.
  */
-export const routeMenuMap: Record<string, MenuItem> = (() => {
-	const map: Record<string, MenuItem> = {};
+export const routeMenuMap: Record<string, EventMenuItem> = (() => {
+	const map: Record<string, EventMenuItem> = {};
 
 	// Add standalone items
 	for (const item of eventMenuConfig.standalone) {

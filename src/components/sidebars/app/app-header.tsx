@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
-export function AppSidebarIcon() {
+export function AppHeader() {
 	const router = useRouter();
 	const { state } = useSidebar();
 	const { toggleMainSidebar } = useSidebarStore();

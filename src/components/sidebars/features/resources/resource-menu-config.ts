@@ -29,7 +29,7 @@ import type { useUserPermissions } from "@/hooks/auth/use-user-permissions";
 
 type Permissions = ReturnType<typeof useUserPermissions>;
 
-export type MenuItem = {
+export type ResourceMenuItem = {
 	route: string;
 	label: string;
 	description: string;
@@ -38,17 +38,17 @@ export type MenuItem = {
 	isActive?: (pathname: string, route: string) => boolean;
 };
 
-export type MenuGroup = {
+export type ResourceMenuGroup = {
 	id: string;
 	label: string;
 	icon: IconType | LucideIcon;
 	visible?: (permissions: Permissions) => boolean;
-	tabs: MenuItem[];
+	tabs: ResourceMenuItem[];
 };
 
 export type ResourceMenuConfig = {
-	standalone: MenuItem[];
-	groups: MenuGroup[];
+	standalone: ResourceMenuItem[];
+	groups: ResourceMenuGroup[];
 };
 
 // ============================================================================
@@ -135,13 +135,16 @@ export const resourceMenuConfig: ResourceMenuConfig = {
 				{
 					route: "leads/metrics",
 					label: "Lead Metrics",
-					description: "Analytics and insights for lead generation performance.",
+					description:
+						"Analytics and insights for lead generation performance.",
 					icon: TrendingUp,
 					visible: visible.orgOwner,
 					isActive: (pathname, route) => {
 						// Exact match for metrics route
-						return pathname === `/manage-resources/${route}` ||
-						       pathname.startsWith(`/manage-resources/${route}/`);
+						return (
+							pathname === `/manage-resources/${route}` ||
+							pathname.startsWith(`/manage-resources/${route}/`)
+						);
 					},
 				},
 				{
@@ -164,8 +167,8 @@ export const resourceMenuConfig: ResourceMenuConfig = {
 // ROUTE LOOKUP MAP
 // ============================================================================
 
-export const routeMenuMap: Record<string, MenuItem> = (() => {
-	const map: Record<string, MenuItem> = {};
+export const routeMenuMap: Record<string, ResourceMenuItem> = (() => {
+	const map: Record<string, ResourceMenuItem> = {};
 
 	// Add standalone items
 	for (const item of resourceMenuConfig.standalone) {

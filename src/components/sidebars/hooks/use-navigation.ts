@@ -4,7 +4,7 @@ import {
 	getMobileNavigation,
 	type UserPermissions,
 	type UserRole,
-} from "@/components/admin-ui/sidebar/app-menu-config";
+} from "@/components/sidebars/app/app-menu-config";
 
 /**
  * Hook to get memoized filtered navigation for both desktop and mobile

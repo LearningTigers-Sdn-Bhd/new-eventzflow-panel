@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AuthLayoutClient from "@/components/admin-ui/layout/auth-layout-client";
+import AuthLayoutClient from "@/components/layout/auth-layout-client";
 
 export const metadata: Metadata = {
 	title: {
