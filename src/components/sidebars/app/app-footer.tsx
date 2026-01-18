@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export function NavUser() {
+export function AppFooter() {
 	const isMobile = useIsMobile();
 	const router = useRouter();
 	const { user, isLoading, logout } = useAuth();
@@ -39,9 +39,11 @@ export function NavUser() {
 		return null;
 	}
 
-	const canManagePaymentDetails = ["org_owner", "organizer", "exhibition_contractor"].includes(
-		user.role,
-	);
+	const canManagePaymentDetails = [
+		"org_owner",
+		"organizer",
+		"exhibition_contractor",
+	].includes(user.role);
 
 	return (
 		<SidebarMenu>
@@ -101,7 +103,9 @@ export function NavUser() {
 							{canManagePaymentDetails && (
 								<DropdownMenuItem
 									className="cursor-pointer rounded-none"
-									onClick={() => router.push("/settings#payment-details" as Route)}
+									onClick={() =>
+										router.push("/settings#payment-details" as Route)
+									}
 								>
 									<CreditCard />
 									Payment Details

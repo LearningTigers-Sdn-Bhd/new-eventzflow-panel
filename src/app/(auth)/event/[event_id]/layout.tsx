@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { use, useMemo } from "react";
+import { useMemo } from "react";
 
 import { IconHeading } from "@/components/admin-ui/icon-heading";
 import {
@@ -15,24 +14,20 @@ import {
 	MobileStickyHeaderRow,
 	MobileStickyHeaderTitle,
 } from "@/components/admin-ui/layout/mobile-sticky-header";
-import { routeMenuMap } from "@/components/admin-ui/sidebar/event-menu-config";
+import { routeMenuMap } from "@/components/sidebars/features/events/event-menu-config";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { getEvents } from "@/lib/api/event";
 import { cn } from "@/lib/utils";
 import { useEventActionsStore } from "@/stores/event-actions-store";
 
 interface EventDetailLayoutProps {
 	children: React.ReactNode;
-	params: Promise<{
-		event_id: string;
-	}>;
 }
 
 // EventActionsSlot - renders actions from Zustand store
@@ -91,10 +86,8 @@ function EventBadges({ status, use_ticket }: EventBadgesProps) {
 
 export default function EventDetailLayout({
 	children,
-	params,
 }: EventDetailLayoutProps) {
 	const pathname = usePathname();
-	const { event_id } = use(params);
 
 	// Check if we're on special routes that don't need sidebar - check FIRST before any sidebar hooks
 	const isLuckyDrawSessionRoute = pathname.includes("lucky-draw/session");
@@ -114,35 +107,26 @@ export default function EventDetailLayout({
 
 	// Render the full layout with sidebar integration
 	return (
-		<EventDetailLayoutContent eventId={event_id} pathname={pathname}>
+		<EventDetailLayoutContent pathname={pathname}>
 			{children}
 		</EventDetailLayoutContent>
 	);
 }
 
-// Separate component that uses useSidebar - only rendered when SidebarProvider exists
+// Separate component that uses useSidebar and useEventSidebarContext
 function EventDetailLayoutContent({
 	children,
-	eventId,
 	pathname,
 }: {
 	children: React.ReactNode;
-	eventId: string;
 	pathname: string;
 }) {
 	const isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const { toggleSidebar } = useSidebar();
 
-	// Fetch event details
-	const { data: events, isLoading } = useQuery({
-		queryKey: ["events"],
-		queryFn: () => getEvents(),
-	});
-	const currentEvent = events?.find((event) => event.id.toString() === eventId);
-
-	// Get event permissions for the current user
-	const permissions = useEventPermissions(eventId, currentEvent);
+	// Use context from EventSidebarProvider - no more duplicate data fetching!
+	const { currentEvent, permissions, isLoading } = useEventSidebarContext();
 
 	// Determine current menu from pathname
 	const currentMenu = useMemo(() => {

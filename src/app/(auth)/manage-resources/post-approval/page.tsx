@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -66,7 +67,8 @@ export default function PostApprovalPage() {
 			}}
 			clickableRowConfig={{
 				isEnabled: true,
-				onRowClick: (row) => router.push(`/manage-resources/posts/${row.slug}`),
+				onRowClick: (row) =>
+					router.push(`/manage-resources/post-approval/${row.slug}` as Route),
 			}}
 		/>
 	);

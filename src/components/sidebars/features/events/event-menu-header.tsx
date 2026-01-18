@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,46 +19,31 @@ import {
 	SidebarMenuItem,
 	SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
-import { getEvents } from "@/lib/api/event";
-import type { Event } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
+import { useEventSidebarContext } from "./event-sidebar-provider";
 
-interface EventMenuHeaderProps {
-	eventId: string;
-	onEventsLoaded?: (events: Event[], currentEvent: Event | undefined) => void;
-}
-
-export function EventMenuHeader({
-	eventId,
-	onEventsLoaded,
-}: EventMenuHeaderProps) {
+export function EventMenuHeader() {
 	const router = useRouter();
-
-	// Fetch events
-	const { data: events, isLoading: isLoadingEvents } = useQuery({
-		queryKey: ["events"],
-		queryFn: () => getEvents(),
-	});
-
-	// Get current event
-	const currentEvent = useMemo(() => {
-		return events?.find((event) => event.id.toString() === eventId);
-	}, [events, eventId]);
-
-	// Notify parent component when events are loaded
-	useEffect(() => {
-		if (events && onEventsLoaded) {
-			onEventsLoaded(events, currentEvent);
-		}
-	}, [events, currentEvent, onEventsLoaded]);
+	const { events, currentEvent, isLoading } = useEventSidebarContext();
 
 	// Handle event selection
 	const handleEventSelect = (selectedEventId: string) => {
 		router.push(`/event/${selectedEventId}/details`);
 	};
 
+	// Memoize initials to avoid re-calculation on every render
+	const eventTitle = currentEvent?.title;
+	const initials = useMemo(() => {
+		if (!eventTitle) return "";
+		return eventTitle
+			.split(" ")
+			.map((word) => word.charAt(0))
+			.slice(0, 2)
+			.join("");
+	}, [eventTitle]);
+
 	// Loading state
-	if (isLoadingEvents) {
+	if (isLoading) {
 		return (
 			<SidebarHeader>
 				<SidebarMenu>
@@ -90,12 +74,7 @@ export function EventMenuHeader({
 								<div className="flex items-center gap-2">
 									<Avatar className="rounded-none">
 										<AvatarFallback className="rounded-none bg-amber-200 font-bold text-xs">
-											{/* Split by space and get first character of each 2 words */}
-											{currentEvent.title
-												.split(" ")
-												.map((word) => word.charAt(0))
-												.slice(0, 2)
-												.join("")}
+											{initials}
 										</AvatarFallback>
 									</Avatar>
 								</div>
@@ -134,7 +113,7 @@ export function EventMenuHeader({
 									</div>
 								</div>
 								<div className="flex items-center justify-end gap-2 group-data-[state=open]:block group-data-[state=collapsed]:hidden">
-									<ChevronDown className="group-data-[state=open]:-rotate-180 size-4 shrink-0 opacity-50 transition-transform duration-300" />
+									<ChevronDown className="size-4 shrink-0 opacity-50 transition-transform duration-300 group-data-[state=open]:-rotate-180" />
 								</div>
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>

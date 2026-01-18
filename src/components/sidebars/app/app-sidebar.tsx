@@ -6,10 +6,11 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
-import { AppMobileBottomNav } from "@/components/admin-ui/sidebar/app-mobile-bottom-nav";
-import { NavUser } from "@/components/admin-ui/sidebar/app-nav-footer";
-import { AppSidebarIcon } from "@/components/admin-ui/sidebar/app-sidebar-icon";
-import { NavGroup } from "@/components/admin-ui/sidebar/nav-group";
+import { AppFooter } from "@/components/sidebars/app/app-footer";
+import { AppHeader } from "@/components/sidebars/app/app-header";
+import { AppMenuItem } from "@/components/sidebars/app/app-menu-item";
+import { AppMobileNav } from "@/components/sidebars/app/app-mobile-nav";
+import { useNavigation } from "@/components/sidebars/hooks/use-navigation";
 import {
 	Sidebar,
 	SidebarContent,
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
-import { useNavigation } from "@/hooks/use-navigation";
 import type { UserRole } from "./app-menu-config";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -32,31 +32,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			<DesktopView>
 				<Sidebar collapsible="icon" {...props}>
 					<SidebarHeader>
-						<AppSidebarIcon />
+						<AppHeader />
 					</SidebarHeader>
 					<SidebarContent>
-						<NavGroup name="Main Menu" navGroup={filteredNav.mainMenu} />
+						<AppMenuItem name="Main Menu" navGroup={filteredNav.mainMenu} />
 						{filteredNav.memberManagement.length > 0 && (
-							<NavGroup
+							<AppMenuItem
 								name="Member Management"
 								navGroup={filteredNav.memberManagement}
 							/>
 						)}
 						{filteredNav.miscellaneous.length > 0 && (
-							<NavGroup
+							<AppMenuItem
 								name="Miscellaneous"
 								navGroup={filteredNav.miscellaneous}
 							/>
 						)}
 					</SidebarContent>
 					<SidebarFooter>
-						<NavUser />
+						<AppFooter />
 					</SidebarFooter>
 					<SidebarRail />
 				</Sidebar>
 			</DesktopView>
 			<MobileTabletView>
-				<AppMobileBottomNav />
+				<AppMobileNav />
 			</MobileTabletView>
 		</ResponsiveLayout>
 	);
