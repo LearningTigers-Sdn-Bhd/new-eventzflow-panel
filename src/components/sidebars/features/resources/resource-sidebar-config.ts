@@ -15,6 +15,7 @@ import {
  * - Menu configuration (standalone items + groups)
  */
 export const resourceSidebarConfig: FeatureConfig = {
+	basePath: "/manage-resources",
 	loader: {
 		provider: ResourceSidebarProvider,
 		useContext: useResourceSidebarContext,
