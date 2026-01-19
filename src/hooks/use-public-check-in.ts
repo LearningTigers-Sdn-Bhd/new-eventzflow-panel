@@ -1,0 +1,176 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+	type AttendeePreview,
+	type CheckInMethod,
+	checkIn,
+	confirmCheckIn,
+	getCheckInEvent,
+	type PublicEventInfo,
+} from "@/lib/api/event-check-in";
+
+export type ViewState =
+	| "loading"
+	| "error"
+	| "search"
+	| "results"
+	| "confirm"
+	| "success"
+	| "already-checked-in";
+
+export type InputStep = "selection" | "input";
+
+export function usePublicCheckIn(slug: string) {
+	const [event, setEvent] = useState<PublicEventInfo | null>(null);
+	const [view, setView] = useState<ViewState>("loading");
+	const [errorMessage, setErrorMessage] = useState("");
+
+	const [searchMethod, setSearchMethod] = useState<CheckInMethod>("name");
+	const [searchValue, setSearchValue] = useState("");
+	const [isSearching, setIsSearching] = useState(false);
+	const [inputStep, setInputStep] = useState<InputStep>("selection");
+
+	const [searchResults, setSearchResults] = useState<AttendeePreview[]>([]);
+	const [selectedAttendee, setSelectedAttendee] =
+		useState<AttendeePreview | null>(null);
+	const [isConfirming, setIsConfirming] = useState(false);
+
+	// Load Event
+	useEffect(() => {
+		async function loadEvent() {
+			try {
+				const eventData = await getCheckInEvent(slug);
+				setEvent(eventData);
+				setView("search");
+			} catch (error) {
+				setErrorMessage(
+					error instanceof Error ? error.message : "Event not found",
+				);
+				setView("error");
+			}
+		}
+		loadEvent();
+	}, [slug]);
+
+	// Actions
+	const handleSearch = async (e?: React.FormEvent) => {
+		e?.preventDefault();
+		if (!searchValue.trim()) {
+			toast.error("Input required");
+			return;
+		}
+
+		setIsSearching(true);
+		try {
+			const response = await checkIn(slug, searchMethod, searchValue.trim());
+
+			if (response.action === "select") {
+				setSearchResults(response.attendees);
+				setView("results");
+			} else if (response.action === "checked_in") {
+				setSelectedAttendee(response.attendee);
+				setView("success");
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Search failed");
+		} finally {
+			setIsSearching(false);
+		}
+	};
+
+	const handleSelectAttendee = (attendee: AttendeePreview) => {
+		if (attendee.checked_in) {
+			setSelectedAttendee(attendee);
+			setView("already-checked-in");
+			return;
+		}
+		setSelectedAttendee(attendee);
+		setView("confirm");
+	};
+
+	const handleConfirmCheckIn = async () => {
+		if (!selectedAttendee) return;
+
+		setIsConfirming(true);
+		try {
+			const response = await confirmCheckIn(slug, selectedAttendee.public_id);
+
+			if (response.action === "checked_in") {
+				setSelectedAttendee(response.attendee);
+				setView("success");
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Check-in failed";
+			if (message.toLowerCase().includes("already")) {
+				setView("already-checked-in");
+			} else {
+				toast.error(message);
+			}
+		} finally {
+			setIsConfirming(false);
+		}
+	};
+
+	const handleQRScan = useCallback(
+		async (scannedValue: string) => {
+			try {
+				const response = await checkIn(slug, "scan", scannedValue);
+
+				if (response.action === "checked_in") {
+					setSelectedAttendee(response.attendee);
+					setView("success");
+				}
+			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : "Check-in failed";
+				if (message.toLowerCase().includes("already")) {
+					setView("already-checked-in");
+				} else {
+					toast.error(message);
+					setInputStep("selection");
+				}
+			}
+		},
+		[slug],
+	);
+
+	const handleReset = () => {
+		setSearchValue("");
+		setSearchResults([]);
+		setSelectedAttendee(null);
+		setView("search");
+		setInputStep("selection");
+	};
+
+	const selectMethod = (method: CheckInMethod) => {
+		setSearchMethod(method);
+		setSearchValue("");
+		setInputStep("input");
+	};
+
+	return {
+		event,
+		view,
+		setView,
+		errorMessage,
+		searchMethod,
+		setSearchMethod,
+		searchValue,
+		setSearchValue,
+		isSearching,
+		inputStep,
+		setInputStep,
+		searchResults,
+		selectedAttendee,
+		isConfirming,
+		handleSearch,
+		handleSelectAttendee,
+		handleConfirmCheckIn,
+		handleQRScan,
+		handleReset,
+		selectMethod,
+	};
+}
