@@ -263,12 +263,14 @@ function transformBackendTicket(
  * @param options - Query options for filtering tickets
  * @param options.archived - If true, returns only archived tickets. If false/undefined, returns only active tickets.
  * @param options.full - If true, returns all tickets (active + archived). Overrides archived parameter.
+ * @param options.unassigned - If true, returns only tickets that are not assigned to any table.
  */
 export async function getEventTickets(
 	eventId: string,
 	options?: {
 		archived?: boolean;
 		full?: boolean;
+		unassigned?: boolean;
 	},
 ): Promise<Ticket[]> {
 	// Build query parameters
@@ -277,6 +279,9 @@ export async function getEventTickets(
 		params.append("full", "true");
 	} else if (options?.archived) {
 		params.append("archived", "true");
+	}
+	if (options?.unassigned) {
+		params.append("unassigned", "true");
 	}
 
 	const queryString = params.toString();

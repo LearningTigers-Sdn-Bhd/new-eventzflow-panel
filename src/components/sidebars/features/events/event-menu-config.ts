@@ -18,6 +18,7 @@ import {
 	CreditCard,
 	FileText,
 	Gift,
+	Grid,
 	Handshake,
 	HardHat,
 	Import,
@@ -171,6 +172,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "View and manage business matching for this event.",
 			icon: Briefcase,
 			visible: visible.businessMatchingAccess,
+		},
+		{
+			route: "plans",
+			label: "Seating Plans",
+			description: "Manage seating plans and table assignments.",
+			icon: Grid,
+			visible: visible.eventAdmin,
 		},
 		{
 			route: "location",
