@@ -67,10 +67,15 @@ function OrchestratorContent({ children }: OrchestratorContentProps) {
 		layoutState,
 	} = useSidebarOrchestrator();
 
-	// Extract dynamic base path
+	// Extract base path - prefer static config, fall back to dynamic extraction
 	const basePath = useMemo(() => {
+		// If feature config defines a static base path, use it
+		if (featureConfig?.basePath) {
+			return featureConfig.basePath;
+		}
+		// Otherwise, extract dynamic base path from URL (e.g., /event/[id])
 		return getFeatureBasePath(pathname);
-	}, [pathname]);
+	}, [pathname, featureConfig?.basePath]);
 
 	// Handle different layout states
 	if (layoutState === "no-sidebar") {

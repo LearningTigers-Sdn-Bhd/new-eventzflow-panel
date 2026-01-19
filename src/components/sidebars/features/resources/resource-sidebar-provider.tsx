@@ -72,16 +72,40 @@ export function ResourceSidebarProvider({
 	// Extract slug if we are on a post route
 	const slug = useMemo(() => {
 		const segments = pathname.split("/").filter(Boolean);
+
+		// Start with null
+		let extractedSlug: string | null = null;
+
+		// Handle /posts/[slug]
 		const postsIndex = segments.indexOf("posts");
 		if (postsIndex !== -1 && segments[postsIndex + 1]) {
-			// Ensure it's not one of the static routes under posts
-			const nextSegment = segments[postsIndex + 1];
-			if (["published-posts", "post-approval"].includes(nextSegment)) {
-				return null;
-			}
-			return nextSegment;
+			extractedSlug = segments[postsIndex + 1];
 		}
-		return null;
+
+		// Handle /published-posts/[slug]
+		const publishedPostsIndex = segments.indexOf("published-posts");
+		if (publishedPostsIndex !== -1 && segments[publishedPostsIndex + 1]) {
+			extractedSlug = segments[publishedPostsIndex + 1];
+		}
+
+		// Handle /post-approval/[slug]
+		const postApprovalIndex = segments.indexOf("post-approval");
+		if (postApprovalIndex !== -1 && segments[postApprovalIndex + 1]) {
+			extractedSlug = segments[postApprovalIndex + 1];
+		}
+
+		// SAFETY CHECK: Ensure the extracted slug is not actually a route segment
+		// This prevents /manage-resources/published-posts from treating "published-posts" as a slug
+		// if we somehow got the logic wrong or if the URL structure is unexpected.
+		if (
+			["published-posts", "post-approval", "posts", "manage"].includes(
+				extractedSlug || "",
+			)
+		) {
+			return null;
+		}
+
+		return extractedSlug;
 	}, [pathname]);
 
 	// Fetch resource details
@@ -91,6 +115,7 @@ export function ResourceSidebarProvider({
 		error,
 	} = useQuery({
 		queryKey: ["resource", slug],
+
 		queryFn: () => getResourceBySlug(slug as string),
 		enabled: !!slug,
 		retry: false,
