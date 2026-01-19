@@ -18,35 +18,32 @@ export const CheckInMethodCard = ({
 }) => (
 	<button
 		onClick={onClick}
-		className="group relative flex h-[240px] w-full flex-col justify-between rounded-none border border-neutral-200 bg-white p-8 text-left transition-colors duration-200 hover:border-black hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+		className="group relative flex h-[180px] w-full flex-col justify-between overflow-hidden rounded-none border border-neutral-300 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-black hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
 	>
-		{/* Accent Line - Functional Decoration */}
-		<div className="absolute top-0 left-0 h-0 w-1.5 bg-black transition-[height] duration-300 ease-out group-hover:h-full" />
-
 		{featured && (
-			<div className="absolute top-0 right-0 rounded-none bg-black px-4 py-1.5 font-bold font-mono text-[10px] text-white uppercase tracking-widest">
+			<div className="absolute top-0 right-0 rounded-none bg-black px-4 py-1.5 font-bold font-mono text-[9px] text-white uppercase tracking-widest z-10">
 				Recommended
 			</div>
 		)}
 
-		<div className="flex w-full items-start justify-between">
-			<div className="flex h-12 w-12 items-center justify-center rounded-none bg-neutral-100 text-neutral-900 transition-colors duration-200 group-hover:bg-black group-hover:text-white">
+		<div className="relative z-10 flex w-full items-start justify-between">
+			<div className="flex h-12 w-12 items-center justify-center rounded-none bg-neutral-100 text-neutral-900 transition-all duration-300 group-hover:bg-black group-hover:text-white group-hover:shadow-lg">
 				<Icon className="h-5 w-5" />
 			</div>
 		</div>
 
-		<div className="space-y-3">
-			<span className="block font-bold text-neutral-900 text-xl uppercase tracking-tighter">
+		<div className="relative z-10 space-y-2">
+			<span className="block font-bold text-neutral-900 text-lg uppercase tracking-tight group-hover:text-black">
 				{label}
 			</span>
-			<span className="block max-w-[85%] font-medium text-neutral-500 text-xs uppercase leading-5 tracking-wide">
+			<span className="block max-w-[90%] font-medium text-neutral-400 text-[10px] uppercase leading-4 tracking-wider transition-colors group-hover:text-neutral-500">
 				{description}
 			</span>
 		</div>
 
-		{/* Geometric Arrow Indicator */}
-		<div className="absolute right-6 bottom-8 translate-x-2 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-			<ArrowRight className="h-6 w-6 text-black" />
+		{/* Arrow Indicator */}
+		<div className="absolute right-6 bottom-6 translate-x-4 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+			<ArrowRight className="h-5 w-5" />
 		</div>
 	</button>
 );

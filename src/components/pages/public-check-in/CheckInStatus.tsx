@@ -36,7 +36,7 @@ export function CheckInStatus({
 					</div>
 					<button
 						onClick={onClose}
-						className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-110"
+						className="flex h-12 w-12 items-center justify-center rounded-none bg-white text-black transition-transform hover:scale-110"
 					>
 						<X className="h-6 w-6" />
 					</button>
@@ -53,7 +53,7 @@ export function CheckInStatus({
 
 				<div className="flex flex-col gap-12 border-white/20 border-t pt-12 md:flex-row">
 					<div className="flex-1">
-						<div className="mb-2 font-mono text-xs uppercase tracking-widest opacity-60">
+						<div className="mb-3 bg-white/20 px-3 py-1.5 font-bold font-mono text-xs uppercase tracking-widest inline-block">
 							Attendee
 						</div>
 						<div className="font-bold text-3xl uppercase md:text-5xl">
@@ -61,14 +61,19 @@ export function CheckInStatus({
 						</div>
 					</div>
 					<div className="flex-1">
-						<div className="mb-2 font-mono text-xs uppercase tracking-widest opacity-60">
+						<div className="mb-3 bg-white/20 px-3 py-1.5 font-bold font-mono text-xs uppercase tracking-widest inline-block">
 							Details
 						</div>
-						<div className="text-xl md:text-2xl">
-							{attendee.type_name || "General"} <br />
-							<span className="opacity-70">
-								{new Date().toLocaleTimeString("en-GB")}
-							</span>
+						<div className="space-y-1 text-xl md:text-2xl">
+							{attendee.type_name && (
+								<div>{attendee.type_name}</div>
+							)}
+							{attendee.email && (
+								<div className="break-all opacity-90">{attendee.email}</div>
+							)}
+							{attendee.phone && (
+								<div className="opacity-90">{attendee.phone}</div>
+							)}
 						</div>
 					</div>
 				</div>

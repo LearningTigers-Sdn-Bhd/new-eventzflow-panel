@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
 	type AttendeePreview,
@@ -22,6 +22,9 @@ export type ViewState =
 
 export type InputStep = "selection" | "input";
 
+const DEBOUNCE_MS = 300;
+const MIN_SEARCH_LENGTH = 2;
+
 export function usePublicCheckIn(slug: string) {
 	const [event, setEvent] = useState<PublicEventInfo | null>(null);
 	const [view, setView] = useState<ViewState>("loading");
@@ -33,9 +36,14 @@ export function usePublicCheckIn(slug: string) {
 	const [inputStep, setInputStep] = useState<InputStep>("selection");
 
 	const [searchResults, setSearchResults] = useState<AttendeePreview[]>([]);
+	const [liveResults, setLiveResults] = useState<AttendeePreview[]>([]);
+	const [searchError, setSearchError] = useState<string | null>(null);
 	const [selectedAttendee, setSelectedAttendee] =
 		useState<AttendeePreview | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const lastSearchRef = useRef<string>("");
 
 	// Load Event
 	useEffect(() => {
@@ -54,6 +62,65 @@ export function usePublicCheckIn(slug: string) {
 		loadEvent();
 	}, [slug]);
 
+	// Debounced live search as user types (only for name and phone)
+	useEffect(() => {
+		// Only do live search when in input step, not scanning, and not email (email requires exact match)
+		if (inputStep !== "input" || searchMethod === "scan" || searchMethod === "email") {
+			return;
+		}
+
+		// Clear previous debounce
+		if (debounceRef.current) {
+			clearTimeout(debounceRef.current);
+		}
+
+		// Clear results immediately when input changes
+		setLiveResults([]);
+
+		// Clear results if input is too short
+		if (searchValue.trim().length < MIN_SEARCH_LENGTH) {
+			setIsSearching(false);
+			return;
+		}
+
+		// Track this search value
+		const currentSearchValue = searchValue.trim();
+
+		debounceRef.current = setTimeout(async () => {
+			lastSearchRef.current = currentSearchValue;
+			setIsSearching(true);
+
+			try {
+				const response = await checkIn(slug, searchMethod, currentSearchValue);
+
+				// Only update if this is still the latest search
+				if (lastSearchRef.current === currentSearchValue) {
+					if (response.action === "select") {
+						setLiveResults(response.attendees);
+					} else if (response.action === "checked_in") {
+						setSelectedAttendee(response.attendee);
+						setView("success");
+					}
+				}
+			} catch (error) {
+				// Only clear if this is still the latest search
+				if (lastSearchRef.current === currentSearchValue) {
+					setLiveResults([]);
+				}
+			} finally {
+				if (lastSearchRef.current === currentSearchValue) {
+					setIsSearching(false);
+				}
+			}
+		}, DEBOUNCE_MS);
+
+		return () => {
+			if (debounceRef.current) {
+				clearTimeout(debounceRef.current);
+			}
+		};
+	}, [searchValue, searchMethod, inputStep, slug]);
+
 	// Actions
 	const handleSearch = async (e?: React.FormEvent) => {
 		e?.preventDefault();
@@ -63,6 +130,7 @@ export function usePublicCheckIn(slug: string) {
 		}
 
 		setIsSearching(true);
+		setSearchError(null);
 		try {
 			const response = await checkIn(slug, searchMethod, searchValue.trim());
 
@@ -74,18 +142,28 @@ export function usePublicCheckIn(slug: string) {
 				setView("success");
 			}
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Search failed");
+			const message = error instanceof Error ? error.message : "Search failed";
+			// For email search, show inline error instead of toast
+			if (searchMethod === "email") {
+				setSearchError(message.includes("not found")
+					? "No registration found with this email address. Please check and try again."
+					: message
+				);
+			} else {
+				toast.error(message);
+			}
 		} finally {
 			setIsSearching(false);
 		}
 	};
 
-	const handleSelectAttendee = (attendee: AttendeePreview) => {
+	const handleSelectAttendee = async (attendee: AttendeePreview) => {
 		if (attendee.checked_in) {
 			setSelectedAttendee(attendee);
 			setView("already-checked-in");
 			return;
 		}
+
 		setSelectedAttendee(attendee);
 		setView("confirm");
 	};
@@ -140,6 +218,8 @@ export function usePublicCheckIn(slug: string) {
 	const handleReset = () => {
 		setSearchValue("");
 		setSearchResults([]);
+		setLiveResults([]);
+		setSearchError(null);
 		setSelectedAttendee(null);
 		setView("search");
 		setInputStep("selection");
@@ -148,7 +228,13 @@ export function usePublicCheckIn(slug: string) {
 	const selectMethod = (method: CheckInMethod) => {
 		setSearchMethod(method);
 		setSearchValue("");
+		setLiveResults([]);
+		setSearchError(null);
 		setInputStep("input");
+	};
+
+	const clearLiveResults = () => {
+		setLiveResults([]);
 	};
 
 	return {
@@ -164,6 +250,8 @@ export function usePublicCheckIn(slug: string) {
 		inputStep,
 		setInputStep,
 		searchResults,
+		liveResults,
+		searchError,
 		selectedAttendee,
 		isConfirming,
 		handleSearch,
@@ -172,5 +260,6 @@ export function usePublicCheckIn(slug: string) {
 		handleQRScan,
 		handleReset,
 		selectMethod,
+		clearLiveResults,
 	};
 }

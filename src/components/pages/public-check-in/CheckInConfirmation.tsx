@@ -19,67 +19,65 @@ export function CheckInConfirmation({
 }: CheckInConfirmationProps) {
 	return (
 		<motion.div
-			key="confirm-mode"
-			initial={{ opacity: 0, x: 20 }}
-			animate={{ opacity: 1, x: 0 }}
-			exit={{ opacity: 0, x: -20 }}
-			className="flex h-full flex-col justify-center"
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -20 }}
+			className="flex flex-col"
 		>
-			<div className="mb-12 border-brand-green border-l-4 pl-8">
-				<span className="mb-4 block font-mono text-[10px] text-brand-green uppercase tracking-[0.2em]">
-					Confirm Entry
-				</span>
-				<h1 className="font-bold text-5xl uppercase leading-[0.9] tracking-tight lg:text-7xl">
+			<div className="mb-6">
+				<div className="mb-2 font-mono text-xs text-neutral-500 uppercase tracking-widest">
+					Confirm Check-In
+				</div>
+				<h2 className="font-bold text-2xl text-black uppercase lg:text-3xl">
 					{attendee.name}
-				</h1>
+				</h2>
 			</div>
 
-			<div className="mb-8 grid grid-cols-2 gap-8 border-neutral-100 border-t pt-8">
-				<div>
-					<span className="mb-2 block font-mono text-[9px] text-neutral-400 uppercase tracking-[0.2em]">
-						Type
-					</span>
-					<div className="font-bold text-xl">
-						{attendee.type_name || "Standard"}
+			<div className="mb-6 space-y-2 border-neutral-200 border-t pt-4">
+				{attendee.type_name && (
+					<div className="flex items-center justify-between text-sm">
+						<span className="text-neutral-500">Type</span>
+						<span className="font-medium text-black">{attendee.type_name}</span>
 					</div>
-				</div>
+				)}
 				{attendee.email && (
-					<div>
-						<span className="mb-2 block font-mono text-[9px] text-neutral-400 uppercase tracking-[0.2em]">
-							Identifier
-						</span>
-						<div className="break-all font-medium text-neutral-600 text-sm">
+					<div className="flex items-center justify-between text-sm">
+						<span className="text-neutral-500">Email</span>
+						<span className="break-all text-right font-medium text-black">
 							{attendee.email}
-						</div>
+						</span>
+					</div>
+				)}
+				{attendee.phone && (
+					<div className="flex items-center justify-between text-sm">
+						<span className="text-neutral-500">Phone</span>
+						<span className="font-medium text-black">{attendee.phone}</span>
 					</div>
 				)}
 			</div>
 
-			{/* REMINDER */}
-			<div className="mb-8 rounded-lg border border-neutral-100 bg-neutral-50 p-4 text-center">
-				<p className="font-medium text-neutral-500 text-xs">
-					Please ensure all details above are correct before proceeding.
-				</p>
+			<div className="mb-6 bg-amber-50 p-3 text-amber-800 text-xs leading-relaxed">
+				Please verify your details are correct before checking in.
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="flex gap-3">
 				<button
 					onClick={onCancel}
-					className="flex h-16 items-center justify-center border border-neutral-200 font-bold text-[10px] uppercase tracking-widest transition-colors hover:border-black hover:bg-white"
+					className="flex h-12 flex-1 items-center justify-center border border-neutral-300 bg-white font-medium text-neutral-700 text-sm transition-colors hover:bg-neutral-100"
 				>
 					Cancel
 				</button>
 				<button
 					onClick={onConfirm}
 					disabled={isConfirming}
-					className="flex h-16 items-center justify-center gap-3 bg-brand-green font-bold text-[10px] text-white uppercase tracking-widest transition-transform hover:scale-[1.02] hover:bg-brand-green-dark"
+					className="flex h-12 flex-1 items-center justify-center gap-2 bg-brand-green font-medium text-sm text-white transition-colors hover:bg-brand-green/90 disabled:opacity-50"
 				>
 					{isConfirming ? (
 						<Loader2 className="h-4 w-4 animate-spin" />
 					) : (
 						<>
-							<span>Check In</span>
 							<Check className="h-4 w-4" />
+							<span>Check In</span>
 						</>
 					)}
 				</button>
