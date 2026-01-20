@@ -25,7 +25,7 @@ export type InputStep = "selection" | "input";
 const DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 2;
 
-export function usePublicCheckIn(slug: string) {
+export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 	const [event, setEvent] = useState<PublicEventInfo | null>(null);
 	const [view, setView] = useState<ViewState>("loading");
 	const [errorMessage, setErrorMessage] = useState("");
@@ -91,7 +91,7 @@ export function usePublicCheckIn(slug: string) {
 			setIsSearching(true);
 
 			try {
-				const response = await checkIn(slug, searchMethod, currentSearchValue);
+				const response = await checkIn(slug, searchMethod, currentSearchValue, checkInUrl);
 
 				// Only update if this is still the latest search
 				if (lastSearchRef.current === currentSearchValue) {
@@ -119,7 +119,7 @@ export function usePublicCheckIn(slug: string) {
 				clearTimeout(debounceRef.current);
 			}
 		};
-	}, [searchValue, searchMethod, inputStep, slug]);
+	}, [searchValue, searchMethod, inputStep, slug, checkInUrl]);
 
 	// Actions
 	const handleSearch = async (e?: React.FormEvent) => {
@@ -132,7 +132,7 @@ export function usePublicCheckIn(slug: string) {
 		setIsSearching(true);
 		setSearchError(null);
 		try {
-			const response = await checkIn(slug, searchMethod, searchValue.trim());
+			const response = await checkIn(slug, searchMethod, searchValue.trim(), checkInUrl);
 
 			if (response.action === "select") {
 				setSearchResults(response.attendees);
@@ -173,7 +173,7 @@ export function usePublicCheckIn(slug: string) {
 
 		setIsConfirming(true);
 		try {
-			const response = await confirmCheckIn(slug, selectedAttendee.public_id);
+			const response = await confirmCheckIn(slug, selectedAttendee.public_id, checkInUrl);
 
 			if (response.action === "checked_in") {
 				setSelectedAttendee(response.attendee);
@@ -195,7 +195,7 @@ export function usePublicCheckIn(slug: string) {
 	const handleQRScan = useCallback(
 		async (scannedValue: string) => {
 			try {
-				const response = await checkIn(slug, "scan", scannedValue);
+				const response = await checkIn(slug, "scan", scannedValue, checkInUrl);
 
 				if (response.action === "checked_in") {
 					setSelectedAttendee(response.attendee);
@@ -212,7 +212,7 @@ export function usePublicCheckIn(slug: string) {
 				}
 			}
 		},
-		[slug],
+		[slug, checkInUrl],
 	);
 
 	const handleReset = () => {

@@ -32,6 +32,17 @@ function EventCheckInContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const slug = params.slug as string;
+
+	const [currentDate, setCurrentDate] = useState<Date | null>(null);
+	const [station, setStation] = useState<string | null>(null);
+	const [showStationSelection, setShowStationSelection] = useState(false);
+
+	// Build check-in URL for webhook/printer integration
+	const checkInUrl =
+		typeof window !== "undefined" && station
+			? `${window.location.origin}/events/${slug}/check-in?station=${station}`
+			: undefined;
+
 	const {
 		event,
 		view,
@@ -55,11 +66,7 @@ function EventCheckInContent() {
 		handleQRScan,
 		handleReset,
 		selectMethod,
-	} = usePublicCheckIn(slug);
-
-	const [currentDate, setCurrentDate] = useState<Date | null>(null);
-	const [station, setStation] = useState<string | null>(null);
-	const [showStationSelection, setShowStationSelection] = useState(false);
+	} = usePublicCheckIn(slug, checkInUrl);
 
 	// Initialize station from URL or localStorage
 	useEffect(() => {

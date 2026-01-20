@@ -35,11 +35,23 @@ export async function checkIn(
 	eventSlug: string,
 	method: CheckInMethod,
 	value: string,
+	checkInUrl?: string,
 ): Promise<CheckInResponse> {
 	try {
+		const payload: {
+			method: CheckInMethod;
+			value: string;
+			check_in_url?: string;
+		} = { method, value };
+
+		// Include check_in_url for webhook/printer integration
+		if (checkInUrl) {
+			payload.check_in_url = checkInUrl;
+		}
+
 		const response = await publicRestClient.post<{ data: CheckInResponse }>(
 			`v1/public/events/${eventSlug}/check_in`,
-			{ method, value },
+			payload,
 		);
 		return response.data;
 	} catch (error: unknown) {
@@ -50,10 +62,12 @@ export async function checkIn(
 
 /**
  * Confirm check-in for a specific attendee
+ * @param checkInUrl - URL with station info for webhook/printer integration
  */
 export async function confirmCheckIn(
 	eventSlug: string,
 	publicId: string,
+	checkInUrl?: string,
 ): Promise<CheckInResponse> {
-	return checkIn(eventSlug, "scan", publicId);
+	return checkIn(eventSlug, "scan", publicId, checkInUrl);
 }

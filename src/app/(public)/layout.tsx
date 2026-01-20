@@ -33,7 +33,6 @@ export default function PublicLayout({
 	const isNavHidden =
 		pathname.startsWith("/auth") ||
 		pathname.startsWith("/forget-password") ||
-		pathname.startsWith("/check-in") ||
 		pathname.startsWith("/event") ||
 		pathname.startsWith("/vendor-signup");
 
