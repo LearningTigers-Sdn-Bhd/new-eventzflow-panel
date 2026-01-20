@@ -3,6 +3,7 @@
 export type Event = {
 	id: number;
 	title: string;
+	slug: string;
 	description: string | null;
 	status: "draft" | "published" | "cancelled" | "completed";
 	visibility: boolean;
