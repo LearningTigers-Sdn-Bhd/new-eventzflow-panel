@@ -197,7 +197,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "surprise-mechanics",
 			label: "Surprise Mechanics",
 			icon: BiInfoSquare,
-			visible: (p, e) => visible.ticketEvent(p, e),
+			// Visible on both ticket and visitor events
 			tabs: [
 				{
 					route: "lucky-draw",
@@ -384,6 +384,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Ticket,
 			tabs: [
 				{
+					route: "vouchers",
+					label: "Vouchers",
+					description: "View and manage vouchers for vendors.",
+					icon: Ticket,
+					visible: visible.vendorOrAdmin,
+				},
+				{
 					route: "voucher-redemption",
 					label: "Scan Voucher",
 					description: "Scan and redeem vouchers.",
@@ -396,13 +403,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "Scan visitor QR codes to create stamps.",
 					icon: ScanQrCode,
 					visible: visible.vendor,
-				},
-				{
-					route: "vouchers",
-					label: "Vouchers",
-					description: "View and manage vouchers for vendors.",
-					icon: Ticket,
-					visible: visible.vendorOrAdmin,
 				},
 			],
 		},

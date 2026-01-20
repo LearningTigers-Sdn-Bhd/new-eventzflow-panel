@@ -60,10 +60,11 @@ const userSessionStoreSlice: StateCreator<
 export const useUserSessionStore = create(
 	persist<UserSessionState>(userSessionStoreSlice, {
 		name: "user-session",
-		partialize: (state) => ({
-			user: state.user,
-			sessionCredentials: state.sessionCredentials,
-		}),
+		partialize: (state) =>
+			({
+				user: state.user,
+				sessionCredentials: state.sessionCredentials,
+			}) as UserSessionState,
 	}),
 );
 

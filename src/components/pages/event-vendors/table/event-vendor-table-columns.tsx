@@ -35,7 +35,9 @@ const baseColumns: ColumnDef<EventVendorMember>[] = [
 		size: 200,
 		header: ({ column }) => <SortableHeader column={column} label="Vendor Name" />,
 		cell: ({ row }) => (
-			<div className="font-medium">{row.original.vendor.full_name}</div>
+			<div className="max-w-[200px] truncate font-medium">
+				{row.original.vendor.full_name}
+			</div>
 		),
 	},
 	{

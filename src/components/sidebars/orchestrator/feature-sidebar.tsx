@@ -130,8 +130,14 @@ function FeatureMenuContent({
 			if (item.isActive) {
 				return item.isActive(pathname, item.route);
 			}
-			// Default behavior: check if pathname includes the route
-			return pathname.includes(`${basePath}/${item.route}`);
+			// Default behavior: check if pathname matches the route segment
+			// Use regex to ensure exact segment match (e.g., "exhibitor" shouldn't match "exhibitor-contractor")
+			const fullRoute = `${basePath}/${item.route}`;
+			return (
+				pathname === fullRoute ||
+				pathname.startsWith(`${fullRoute}/`) ||
+				pathname.startsWith(`${fullRoute}?`)
+			);
 		},
 		[pathname, basePath],
 	);

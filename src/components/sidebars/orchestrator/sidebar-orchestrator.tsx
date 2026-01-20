@@ -39,8 +39,13 @@ function FeatureSidebarWrapper({
 	const contextData = featureConfig.loader?.useContext?.();
 
 	// Extract permissions and data from context
+	// Each feature sidebar may use different key names for their data
 	const permissions = contextData?.permissions ?? contextData;
-	const data = contextData?.event ?? contextData?.data;
+	const data =
+		contextData?.currentEvent ?? // Event sidebar
+		contextData?.resource ?? // Resource sidebar
+		contextData?.event ??
+		contextData?.data;
 	const isLoading = contextData?.isLoading ?? false;
 
 	return (
