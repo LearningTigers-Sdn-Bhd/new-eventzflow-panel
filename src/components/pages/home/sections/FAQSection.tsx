@@ -17,25 +17,25 @@ const faqs = [
 			"Attendees receive a unique QR code via email or WhatsApp. At the venue, staff scan the code and instantly print a personalized badge in under 3 seconds. Our system includes duplicate detection and real-time capacity monitoring.",
 	},
 	{
-		question: "CAN WE TRACK WHICH BOOTHS ATTENDEES VISIT DURING THE EVENT?",
+		question: "CAN WE TRACK BOOTH INFORMATION AND EXHIBITOR DETAILS?",
 		answer:
-			"Absolutely. EventzFlow provides booth heat maps, dwell time analytics, and visitor tracking. You'll see which booths get the most traffic, how long attendees stay, and can generate automated follow-ups based on their interests.",
+			"Yes. EventzFlow allows you to manage booth assignments, track exhibitor information, and monitor voucher redemptions at each booth. You can access detailed analytics on exhibitor engagement and generate reports for post-event follow-ups.",
 	},
 	{
 		question:
-			"DOES EVENTZFLOW INTEGRATE WITH OUR EXISTING CRM OR MARKETING TOOLS?",
+			"CAN EVENTZFLOW CONNECT WITH OUR EXISTING SYSTEMS?",
 		answer:
-			"Yes. We offer native integrations with HubSpot, Salesforce, Mailchimp, Stripe, and WhatsApp Business API. For custom systems, our REST API and webhooks ensure seamless data sync across all your platforms.",
+			"Yes. EventzFlow provides API access and webhook notifications that allow your technical team to integrate event data with your existing systems. This enables automatic data syncing between EventzFlow and your other business tools.",
 	},
 	{
-		question: "HOW DO YOU HANDLE DATA SECURITY AND COMPLIANCE?",
+		question: "IS OUR EVENT DATA SECURE?",
 		answer:
-			"EventzFlow runs on SOC 2-ready infrastructure with encryption at rest and in transit. We follow GDPR and PDPA guidelines, offer regional data residency, provide audit logs, and can sign enterprise-grade Data Processing Agreements (DPAs).",
+			"Yes. EventzFlow is built with security as a priority. Your data is protected with industry-standard encryption, and we follow best practices to keep your attendee information safe and private.",
 	},
 	{
 		question: "WHAT KIND OF ANALYTICS AND REPORTS DO YOU PROVIDE?",
 		answer:
-			"EventzFlow provides real-time dashboards with check-in velocity, booth heat maps, attendance trends, engagement scores, and post-event exports. All data can be exported to Excel or integrated directly into your BI tools via API.",
+			"EventzFlow provides real-time dashboards showing check-in activity, attendance trends, voucher redemptions, and exhibitor engagement. You can export all data to Excel or connect it to your reporting tools for deeper analysis.",
 	},
 	{
 		question:
@@ -90,14 +90,14 @@ const FAQSection: React.FC = () => {
 									delay: i * 0.05,
 									ease: [0.16, 1, 0.3, 1],
 								}}
-								className={`border ${openIndex === i ? "border-brand-green" : "border-black/30"} hover:border-black/50 transition-all duration-200`}
+								className="border-2 border-black/30 hover:border-black transition-all duration-200"
 							>
 								<button
 									type="button"
 									onClick={() => toggleFAQ(i)}
 									aria-expanded={openIndex === i}
 									aria-controls={`faq-answer-${i}`}
-									className={`group flex w-full items-start justify-between gap-8 bg-white/60 backdrop-blur-sm px-6 py-8 text-left transition-all duration-200 hover:bg-white/80 ${openIndex === i ? "border-b border-black/30" : ""}`}
+									className="group flex w-full items-start justify-between gap-8 bg-white/60 backdrop-blur-sm px-6 py-8 text-left transition-all duration-200 hover:bg-white/80 border-b-2 border-black/30 hover:border-black"
 								>
 									<div className="flex items-start gap-6">
 										<span className="font-bold text-sm text-brand-green">
