@@ -32,18 +32,37 @@ function shouldSkipAuthRefresh(pathname: string): boolean {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [isLoading, setIsLoading] = useState(true);
+	const [isHydrated, setIsHydrated] = useState(false);
 	const user = useUserSessionStore((state) => state.user);
 	const sessionCredentials = useUserSessionStore(
 		(state) => state.sessionCredentials,
 	);
+	const isTokenExpired = useUserSessionStore((state) => state.isTokenExpired);
 	const pathname = usePathname();
 
 	// We use this flag to prevent double-execution in strict mode
 	const [isInitialized, setIsInitialized] = useState(false);
 
+	// Wait for zustand persist hydration
+	useEffect(() => {
+		const unsubscribe = useUserSessionStore.persist.onFinishHydration(() => {
+			setIsHydrated(true);
+		});
+
+		// Check if already hydrated
+		if (useUserSessionStore.persist.hasHydrated()) {
+			setIsHydrated(true);
+		}
+
+		return () => {
+			unsubscribe();
+		};
+	}, []);
+
 	useEffect(() => {
 		const initAuth = async () => {
-			if (isInitialized) return;
+			// Wait for hydration before checking auth
+			if (!isHydrated || isInitialized) return;
 
 			// Skip auth refresh on truly public routes to prevent token rotation
 			// that would invalidate sessions in other browser tabs
@@ -53,11 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				return;
 			}
 
-			// If we already have credentials in memory (e.g. from a previous navigation or hydration if it were persistent),
-			// we might not need to refresh immediately, but since we switched to memory-only,
-			// on a fresh page load sessionCredentials will be null.
+			// Only refresh if:
+			// 1. No credentials exist (not logged in), OR
+			// 2. Token is expired/expiring soon
+			const needsRefresh = !sessionCredentials || isTokenExpired();
 
-			if (!sessionCredentials) {
+			if (needsRefresh) {
 				try {
 					// Attempt silent refresh using HttpOnly cookie
 					await refreshToken();
@@ -73,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		};
 
 		initAuth();
-	}, [sessionCredentials, isInitialized, pathname]);
+	}, [sessionCredentials, isInitialized, pathname, isHydrated, isTokenExpired]);
 
 	const logout = async () => {
 		setIsLoading(true);
