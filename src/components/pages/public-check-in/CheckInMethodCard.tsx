@@ -18,10 +18,10 @@ export const CheckInMethodCard = ({
 }) => (
 	<button
 		onClick={onClick}
-		className="group relative flex h-[180px] w-full flex-col justify-between overflow-hidden rounded-none border border-neutral-300 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-black hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+		className="group relative flex h-full min-h-[160px] w-full flex-col justify-between overflow-hidden rounded-none border border-gray-400 bg-white p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-black hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 sm:p-6"
 	>
 		{featured && (
-			<div className="absolute top-0 right-0 rounded-none bg-black px-4 py-1.5 font-bold font-mono text-[9px] text-white uppercase tracking-widest z-10">
+			<div className="absolute top-0 right-0 z-10 rounded-none bg-black px-4 py-1.5 font-bold font-mono text-[9px] text-white uppercase tracking-widest">
 				Recommended
 			</div>
 		)}
@@ -33,10 +33,10 @@ export const CheckInMethodCard = ({
 		</div>
 
 		<div className="relative z-10 space-y-2">
-			<span className="block font-bold text-neutral-900 text-lg uppercase tracking-tight group-hover:text-black">
+			<span className="block font-bold text-lg text-neutral-900 uppercase tracking-tight group-hover:text-black">
 				{label}
 			</span>
-			<span className="block max-w-[90%] font-medium text-neutral-400 text-[10px] uppercase leading-4 tracking-wider transition-colors group-hover:text-neutral-500">
+			<span className="block max-w-[90%] font-medium text-[10px] text-neutral-400 uppercase leading-4 tracking-wider transition-colors group-hover:text-neutral-500">
 				{description}
 			</span>
 		</div>

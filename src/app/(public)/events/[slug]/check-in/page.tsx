@@ -1,11 +1,12 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, ChevronDown, Clock, MapPin } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CheckInConfirmation } from "@/components/pages/public-check-in/CheckInConfirmation";
+import { CheckInLoading } from "@/components/pages/public-check-in/CheckInLoading";
 import { CheckInResults } from "@/components/pages/public-check-in/CheckInResults";
 import { CheckInSelection } from "@/components/pages/public-check-in/CheckInSelection";
 import { CheckInStatus } from "@/components/pages/public-check-in/CheckInStatus";
@@ -20,13 +21,7 @@ const STATION_STORAGE_KEY = "public_checkin_station";
 
 export default function EventCheckInPage() {
 	return (
-		<Suspense fallback={
-			<div className="flex min-h-screen items-center justify-center bg-neutral-50 text-black">
-				<div className="flex flex-col items-center gap-6">
-					<div className="h-1 w-12 animate-[pulse_1s_ease-in-out_infinite] bg-brand-green" />
-				</div>
-			</div>
-		}>
+		<Suspense fallback={<CheckInLoading />}>
 			<EventCheckInContent />
 		</Suspense>
 	);
@@ -80,7 +75,7 @@ function EventCheckInContent() {
 			setStation(savedStation);
 			const newUrl = new URL(window.location.href);
 			newUrl.searchParams.set("station", savedStation);
-			router.replace(newUrl.pathname + newUrl.search);
+			router.replace((newUrl.pathname + newUrl.search) as any);
 		} else {
 			// No station set, show selection
 			setShowStationSelection(true);
@@ -92,7 +87,7 @@ function EventCheckInContent() {
 		localStorage.setItem(STATION_STORAGE_KEY, stationNum);
 		const newUrl = new URL(window.location.href);
 		newUrl.searchParams.set("station", stationNum);
-		router.replace(newUrl.pathname + newUrl.search);
+		router.replace((newUrl.pathname + newUrl.search) as any);
 		setShowStationSelection(false);
 		toast.success(`Station ${stationNum} Selected`, {
 			description: "You can now start checking in attendees",
@@ -106,13 +101,7 @@ function EventCheckInContent() {
 	}, []);
 
 	if (view === "loading") {
-		return (
-			<div className="flex min-h-screen items-center justify-center bg-neutral-50 text-black">
-				<div className="flex flex-col items-center gap-6">
-					<div className="h-1 w-12 animate-[pulse_1s_ease-in-out_infinite] bg-brand-green" />
-				</div>
-			</div>
-		);
+		return <CheckInLoading />;
 	}
 
 	if (view === "error") {
@@ -132,13 +121,13 @@ function EventCheckInContent() {
 
 	return (
 		<div className="flex min-h-screen w-full flex-col bg-green-background font-sans text-black lg:flex-row">
-			{/* LEFT: BRAND & CONTEXT */}
-			<div className="relative flex w-full flex-col justify-center p-6 lg:w-[42%] lg:p-12">
+			{/* LEFT: BRAND & CONTEXT - Hidden on mobile during interaction, shown as header */}
+			<div className="relative flex w-full flex-col justify-center p-6 sm:p-6 lg:w-[42%] lg:p-12">
 				<div className="relative z-10 mx-auto w-full max-w-lg lg:mx-0">
 					{/* Logo Area */}
-					<div className="mb-6 flex items-center gap-4 lg:mb-8">
+					<div className="mb-6 flex items-center gap-3 sm:mb-6 lg:mb-8 lg:gap-4">
 						<span
-							className="font-bold text-xl leading-tight lg:text-2xl"
+							className="font-bold text-2xl leading-tight sm:text-xl lg:text-2xl"
 							style={{ fontFamily: "Times New Roman, serif" }}
 						>
 							<span style={{ color: "#23c460" }}>Event</span>
@@ -148,20 +137,22 @@ function EventCheckInContent() {
 					</div>
 
 					{/* Title Area */}
-					<div className="mb-6 lg:mb-8">
-						<div className="mb-2 flex items-center gap-2">
-							<div className="h-[2px] w-6 bg-brand-green" />
-							<span className="font-bold font-mono text-[10px] text-brand-green uppercase tracking-[0.3em]">Event Check-in</span>
+					<div className="mb-6 sm:mb-6 lg:mb-8">
+						<div className="mb-2 flex items-center gap-2 sm:mb-2">
+							<div className="h-[2px] w-6 bg-brand-green sm:w-6" />
+							<span className="font-bold font-mono text-[10px] text-neutral-600 uppercase tracking-[0.2em] sm:text-[10px] sm:tracking-[0.3em]">
+								Event Check-in
+							</span>
 						</div>
-						<h1 className="break-words font-black text-2xl text-black uppercase leading-[0.9] tracking-tight sm:text-3xl lg:text-4xl">
+						<h1 className="break-words font-black text-2xl text-black uppercase leading-[0.9] tracking-tight sm:text-2xl md:text-3xl lg:text-4xl">
 							{event?.title}
 						</h1>
 					</div>
 
-					{/* Info Grid */}
-					<div className="space-y-2">
+					{/* Info Grid - Compact on mobile */}
+					<div className="hidden space-y-2 sm:block">
 						{station && (
-							<div className="border border-neutral-300 bg-white/50 p-4 backdrop-blur-sm">
+							<div className="border border-neutral-300 bg-white/50 p-3 backdrop-blur-sm sm:p-4">
 								<StationRow
 									station={station}
 									onClick={() => setShowStationSelection(true)}
@@ -169,7 +160,7 @@ function EventCheckInContent() {
 								/>
 							</div>
 						)}
-						<div className="border border-neutral-300 bg-white/50 p-4 backdrop-blur-sm">
+						<div className="border border-neutral-300 bg-white/50 p-3 backdrop-blur-sm sm:p-4">
 							<InfoRow
 								label="Date"
 								value={
@@ -183,7 +174,7 @@ function EventCheckInContent() {
 								icon={Calendar}
 							/>
 						</div>
-						<div className="border border-neutral-300 bg-white/50 p-4 backdrop-blur-sm">
+						<div className="border border-neutral-300 bg-white/50 p-3 backdrop-blur-sm sm:p-4">
 							<InfoRow
 								label="Time"
 								value={
@@ -198,19 +189,35 @@ function EventCheckInContent() {
 							/>
 						</div>
 					</div>
+
+					{/* Mobile: Compact station indicator */}
+					{station && (
+						<button
+							type="button"
+							onClick={() => setShowStationSelection(true)}
+							className="flex items-center gap-2 border border-black bg-white px-4 py-2.5 text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none sm:hidden"
+						>
+							<MapPin className="h-4 w-4 text-brand-green" />
+							<span className="font-bold font-mono text-black text-xs uppercase tracking-wider">
+								Station {station}
+							</span>
+							<ChevronDown className="h-3 w-3 text-black" />
+						</button>
+					)}
 				</div>
 			</div>
 
 			{/* RIGHT: INTERACTION */}
-			<div className="relative flex w-full flex-col justify-center bg-white-background border-l border-black p-8 lg:w-[58%] lg:p-24">
+			<div className="relative flex min-h-[50vh] w-full flex-1 flex-col justify-start border-black border-t bg-white-background p-4 pt-6 sm:p-6 sm:pt-8 lg:min-h-0 lg:w-[58%] lg:justify-center lg:border-t-0 lg:border-l lg:p-24">
 				{/* Subtle Background Pattern for Right Side */}
-				<div className="absolute inset-0 opacity-[0.02] pointer-events-none" 
-					style={{ 
-						backgroundImage: `radial-gradient(#000 1px, transparent 1px)`,
-						backgroundSize: '24px 24px'
-					}} 
+				<div
+					className="pointer-events-none absolute inset-0 opacity-[0.02]"
+					style={{
+						backgroundImage: "radial-gradient(#000 1px, transparent 1px)",
+						backgroundSize: "24px 24px",
+					}}
 				/>
-				
+
 				<div className="relative z-10 mx-auto w-full max-w-lg">
 					<AnimatePresence mode="wait">
 						{view === "search" && (
