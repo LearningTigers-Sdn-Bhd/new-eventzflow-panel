@@ -6,6 +6,7 @@ import {
 	FileText,
 	HardHat,
 	Mail,
+	Package,
 	Phone,
 	Plus,
 	User,
@@ -187,6 +188,23 @@ export function ExhibitorContractorView({
 									<ExternalLink className="h-4 w-4" />
 									View PDF
 								</a>
+							</div>
+						</div>
+					)}
+
+					{/* Standard Package Info */}
+					{profile?.standard_package_info && (
+						<div className="border-t border-dashed pt-4">
+							<p className="mb-3 font-semibold text-sm">Standard Package</p>
+							<div className="flex gap-4 border border-dashed p-4">
+								<div className="flex h-12 w-12 shrink-0 items-center justify-center bg-muted">
+									<Package className="h-6 w-6 text-muted-foreground" />
+								</div>
+								<div className="flex-1 min-w-0 overflow-hidden">
+									<p className="text-sm whitespace-pre-wrap break-words">
+										{profile.standard_package_info}
+									</p>
+								</div>
 							</div>
 						</div>
 					)}
