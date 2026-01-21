@@ -22,6 +22,7 @@ interface AppMenuItemProps {
 		url: Route;
 		icon: LucideIcon | IconType;
 		isActive?: (pathname: string) => boolean;
+		openInNewTab?: boolean;
 	}[];
 }
 
@@ -47,7 +48,11 @@ export const AppMenuItem = React.memo(function AppMenuItem({
 									className="rounded-none data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
 									isActive={isActive}
 								>
-									<Link href={item.url}>
+									<Link
+										href={item.url}
+										target={item.openInNewTab ? "_blank" : undefined}
+										rel={item.openInNewTab ? "noopener noreferrer" : undefined}
+									>
 										<item.icon className="size-8" />
 										<span>{item.name}</span>
 									</Link>

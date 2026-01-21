@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+	CircleHelp,
 	ClipboardList,
 	FileText,
 	FolderOpen,
@@ -40,6 +41,7 @@ export interface NavigationItem {
 	allowBottomNavigation: boolean; // Controls visibility in mobile bottom nav
 	requiresPermission?: string; // Optional permission key for dynamic visibility
 	isActive?: (pathname: string) => boolean;
+	openInNewTab?: boolean; // Opens link in new tab
 }
 
 // Navigation configuration data
@@ -186,6 +188,20 @@ export const navigationData = {
 			icon: FolderOpen,
 			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
 			allowBottomNavigation: false,
+		},
+		{
+			name: "Help & Docs",
+			url: "/help" as Route,
+			icon: CircleHelp,
+			roleAllowed: [
+				USER_ROLES.ORG_OWNER,
+				USER_ROLES.ORGANIZER,
+				USER_ROLES.MEMBER,
+				USER_ROLES.VENDOR,
+				USER_ROLES.EXHIBITION_CONTRACTOR,
+			],
+			allowBottomNavigation: false,
+			openInNewTab: true,
 		},
 	],
 };

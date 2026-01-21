@@ -84,11 +84,7 @@ function OrchestratorContent({ children }: OrchestratorContentProps) {
 
 	// Handle different layout states
 	if (layoutState === "no-sidebar") {
-		return (
-			<div className="mx-auto flex h-svh w-full max-w-7xl flex-col">
-				{children}
-			</div>
-		);
+		return <>{children}</>;
 	}
 
 	// Unified layout for single and double sidebar to ensure valid transitions
