@@ -5,12 +5,12 @@ import { DollarSign, QrCode, Ticket, Users } from "lucide-react";
 import { useState } from "react";
 import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import { getEventAnalytics } from "@/lib/api/dashboard";
+import { getEventById } from "@/lib/api/event";
 import { getTimeSeries } from "@/lib/api/event/analytics";
 
 interface EventDetailsTimeSeriesStatsProps {
@@ -22,66 +22,79 @@ export function EventDetailsTimeSeriesStats({
 	isTicketEvent,
 	eventId,
 }: EventDetailsTimeSeriesStatsProps) {
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "full_duration",
+	});
 	const eventIdNum = Number.parseInt(eventId, 10);
 
-	// Get date range and grouping based on selected preset
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	// Fetch event to get start/end dates
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventIdNum],
+		queryFn: () => getEventById(eventId),
+	});
+
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Fetch ticket analytics
 	const { data: ticketAnalytics, isLoading: ticketLoading } = useQuery({
-		queryKey: ["event-analytics", eventId, "time-series", timeRange],
+		queryKey: ["event-analytics", eventId, "time-series", dateSelection],
 		queryFn: () =>
 			getEventAnalytics(eventId, {
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
-				groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+				groupBy: analyticsParams.groupBy,
 			}),
-		enabled: isTicketEvent,
+		enabled: isTicketEvent && !!event,
 	});
 
 	// Fetch visitor registrations
 	const { data: visitorsData, isLoading: visitorsLoading } = useQuery({
-		queryKey: ["event", eventIdNum, "analytics", "visitors", timeRange],
+		queryKey: ["event", eventIdNum, "analytics", "visitors", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId: eventIdNum,
 				metric: "visitors",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
-		enabled: !isTicketEvent,
+		enabled: !isTicketEvent && !!event,
 	});
 
 	// Fetch visitor scans
 	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
-		queryKey: ["event", eventIdNum, "analytics", "visitor_scans", timeRange],
+		queryKey: ["event", eventIdNum, "analytics", "visitor_scans", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId: eventIdNum,
 				metric: "visitor_scans",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
-		enabled: !isTicketEvent,
+		enabled: !isTicketEvent && !!event,
 	});
 
 	// Transform visitor data for charts
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
 
-	const isLoading = isTicketEvent
+	const isLoading = eventLoading || (isTicketEvent
 		? ticketLoading
-		: visitorsLoading || visitorScansLoading;
+		: visitorsLoading || visitorScansLoading);
 
 	return (
 		<div className="mb-8 space-y-4 border-y border-dashed">
 			<div className="flex items-center justify-between px-4 pt-4">
 				<h3 className="font-medium text-sm">Analytics Trends</h3>
-				<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+				{event && (
+					<EventDateFilter
+						eventStartDate={event.start_date}
+						eventEndDate={event.end_date}
+						value={dateSelection}
+						onChange={setDateSelection}
+					/>
+				)}
 			</div>
 			{isTicketEvent ? (
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

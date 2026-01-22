@@ -34,11 +34,10 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -66,11 +65,11 @@ export function EventAnalytics({
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "full_duration",
+	});
 
-	// Get date range and grouping based on selected preset
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Get user role to determine Live Feed visibility (must be before any early returns)
 	const user = useUserSessionStore((state) => state.user);
@@ -91,12 +90,12 @@ export function EventAnalytics({
 		isLoading: analyticsLoading,
 		error: analyticsError,
 	} = useQuery({
-		queryKey: ["event-analytics", eventId, timeRange],
+		queryKey: ["event-analytics", eventId, dateSelection],
 		queryFn: () =>
 			getEventAnalytics(eventId, {
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
-				groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+				groupBy: analyticsParams.groupBy,
 			}),
 		initialData,
 		enabled: isTicketEvent,
@@ -131,15 +130,15 @@ export function EventAnalytics({
 				Number.parseInt(eventId, 10),
 				"analytics",
 				"visitors",
-				timeRange,
+				dateSelection,
 			],
 			queryFn: () =>
 				getTimeSeries({
 					eventId: Number.parseInt(eventId, 10),
 					metric: "visitors",
-					groupBy,
-					startDate: dateRange?.startDate,
-					endDate: dateRange?.endDate,
+					groupBy: analyticsParams.groupBy,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
 				}),
 			enabled: !isTicketEvent && !eventLoading,
 		});
@@ -151,15 +150,15 @@ export function EventAnalytics({
 			Number.parseInt(eventId, 10),
 			"analytics",
 			"visitor_scans",
-			timeRange,
+			dateSelection,
 		],
 		queryFn: () =>
 			getTimeSeries({
 				eventId: Number.parseInt(eventId, 10),
 				metric: "visitor_scans",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
 		enabled: !isTicketEvent && !eventLoading,
 	});
@@ -278,7 +277,14 @@ export function EventAnalytics({
 				<div className="mb-8 space-y-4 border-y border-dashed">
 					<div className="flex items-center justify-between px-4 pt-4">
 						<h3 className="font-medium text-sm">Analytics Trends</h3>
-						<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+						{eventDetails && (
+							<EventDateFilter
+								eventStartDate={eventDetails.start_date}
+								eventEndDate={eventDetails.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
 					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 						<TimeSeriesChart
@@ -318,7 +324,14 @@ export function EventAnalytics({
 			<div className="mb-8 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					{eventDetails && (
+						<EventDateFilter
+							eventStartDate={eventDetails.start_date}
+							eventEndDate={eventDetails.end_date}
+							value={dateSelection}
+							onChange={setDateSelection}
+						/>
+					)}
 				</div>
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<TimeSeriesChart

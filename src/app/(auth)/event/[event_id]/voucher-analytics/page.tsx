@@ -25,13 +25,13 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 
@@ -48,11 +48,17 @@ export default function VoucherAnalyticsPage({
 	const eventId = Number.parseInt(event_id, 10);
 	const { user } = useAuth();
 	const permissions = useEventPermissions(event_id);
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "full_duration",
+	});
 
-	// Get date range and grouping based on selected preset
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	// Fetch event to get start/end dates
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(event_id),
+	});
+
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Fetch event vendors to get the vendor_id for the current user if they're a vendor
 	const { data: eventVendors } = useQuery({
@@ -69,20 +75,23 @@ export default function VoucherAnalyticsPage({
 	}, [permissions.isEventVendor, user, eventVendors]);
 
 	// Fetch voucher analytics with vendor_id filter for vendors
-	const { data, isLoading } = useQuery({
-		queryKey: ["voucher-analytics", eventId, currentUserVendorId, timeRange],
+	const { data, isLoading: analyticsLoading } = useQuery({
+		queryKey: ["voucher-analytics", eventId, currentUserVendorId, dateSelection],
 		queryFn: () =>
 			getVoucherAnalytics({
 				event_id: eventId,
 				vendor_id: currentUserVendorId,
-				start_date: dateRange?.startDate,
-				end_date: dateRange?.endDate,
-				group_by: groupBy,
+				start_date: analyticsParams.startDate,
+				end_date: analyticsParams.endDate,
+				group_by: analyticsParams.groupBy,
 			}),
 		enabled:
 			!Number.isNaN(eventId) &&
-			(!permissions.isEventVendor || !!currentUserVendorId),
+			(!permissions.isEventVendor || !!currentUserVendorId) &&
+			!!event,
 	});
+
+	const isLoading = eventLoading || analyticsLoading;
 
 	const formatCurrency = (amount?: number) => {
 		if (!amount) return "RM 0.00";
@@ -183,7 +192,14 @@ export default function VoucherAnalyticsPage({
 				<Card className="rounded-none border-dashed lg:col-span-2">
 					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle>Redemption Trend</CardTitle>
-						<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+						{event && (
+						<EventDateFilter
+							eventStartDate={event.start_date}
+							eventEndDate={event.end_date}
+							value={dateSelection}
+							onChange={setDateSelection}
+						/>
+					)}
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (

@@ -6,17 +6,17 @@ import { use, useState } from "react";
 import { StatsCard, TimeSeriesChart } from "@/components/admin-ui/analytic";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import {
 	getTimeSeries,
 	getTotalScannedVisitors,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
 } from "@/lib/api/event/analytics";
+import { getEventById } from "@/lib/api/event";
 
 interface VisitorAnalyticsPageProps {
 	params: Promise<{
@@ -27,10 +27,17 @@ interface VisitorAnalyticsPageProps {
 export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "full_duration",
+	});
 
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	// Fetch event to get start/end dates
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(event_id),
+	});
+
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Fetch visitor stats
 	const { data: totalVisitors, isLoading: totalLoading } = useQuery({
@@ -52,28 +59,30 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 
 	// Fetch visitor registrations time series
 	const { data: visitorsData, isLoading: visitorsLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", "visitors", timeRange],
+		queryKey: ["event", eventId, "analytics", "visitors", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId,
 				metric: "visitors",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
+		enabled: !!event,
 	});
 
 	// Fetch visitor scans time series
 	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", "visitor_scans", timeRange],
+		queryKey: ["event", eventId, "analytics", "visitor_scans", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId,
 				metric: "visitor_scans",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
+		enabled: !!event,
 	});
 
 	// Transform visitor data for charts
@@ -138,7 +147,14 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 			<div className="mb-12 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					{event && (
+						<EventDateFilter
+							eventStartDate={event.start_date}
+							eventEndDate={event.end_date}
+							value={dateSelection}
+							onChange={setDateSelection}
+						/>
+					)}
 				</div>
 
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -146,7 +162,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 						title="Visitor Registrations"
 						description="Visitor registrations over time"
 						data={transformData(visitorsData?.data)}
-						isLoading={visitorsLoading}
+						isLoading={eventLoading || visitorsLoading}
 						color="var(--chart-1)"
 						icon={<Users className="h-4 w-4" />}
 					/>
@@ -154,7 +170,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 						title="Visitor Scans"
 						description="Visitor check-ins over time"
 						data={transformData(visitorScansData?.data)}
-						isLoading={visitorScansLoading}
+						isLoading={eventLoading || visitorScansLoading}
 						color="var(--chart-2)"
 						icon={<QrCode className="h-4 w-4" />}
 					/>
