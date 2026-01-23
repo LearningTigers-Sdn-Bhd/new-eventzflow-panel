@@ -24,7 +24,7 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "full_duration",
+		type: "all_time",
 	});
 
 	// Fetch event to get start/end dates
@@ -41,6 +41,7 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 			getEventAnalytics(event_id, {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
 			}),
 		enabled: !!event,

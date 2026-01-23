@@ -28,7 +28,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "full_duration",
+		type: "all_time",
 	});
 
 	// Fetch event to get start/end dates
@@ -65,6 +65,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 				eventId,
 				metric: "visitors",
 				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),
@@ -79,6 +80,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 				eventId,
 				metric: "visitor_scans",
 				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),

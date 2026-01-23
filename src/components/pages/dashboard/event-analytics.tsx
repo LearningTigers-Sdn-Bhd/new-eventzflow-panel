@@ -66,7 +66,7 @@ export function EventAnalytics({
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "full_duration",
+		type: "all_time",
 	});
 
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
@@ -95,6 +95,7 @@ export function EventAnalytics({
 			getEventAnalytics(eventId, {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
 			}),
 		initialData,
@@ -137,6 +138,7 @@ export function EventAnalytics({
 					eventId: Number.parseInt(eventId, 10),
 					metric: "visitors",
 					groupBy: analyticsParams.groupBy,
+					dateMode: analyticsParams.dateMode,
 					startDate: analyticsParams.startDate,
 					endDate: analyticsParams.endDate,
 				}),
@@ -157,6 +159,7 @@ export function EventAnalytics({
 				eventId: Number.parseInt(eventId, 10),
 				metric: "visitor_scans",
 				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),

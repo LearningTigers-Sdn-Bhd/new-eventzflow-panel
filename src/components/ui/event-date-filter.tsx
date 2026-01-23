@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export type EventDateSelection =
-	| { type: "full_duration" }
+	| { type: "all_time" }
+	| { type: "pre_event" }
+	| { type: "event_duration" }
 	| { type: "specific_date"; date: Date };
 
 export interface EventDateFilterProps {
@@ -22,6 +24,10 @@ export interface EventDateFilterProps {
 	value: EventDateSelection;
 	onChange: (value: EventDateSelection) => void;
 	className?: string;
+	/** Hide the all_time option */
+	hideAllTime?: boolean;
+	/** Hide the pre-event option */
+	hidePreEvent?: boolean;
 }
 
 export function EventDateFilter({
@@ -30,6 +36,8 @@ export function EventDateFilter({
 	value,
 	onChange,
 	className,
+	hideAllTime = false,
+	hidePreEvent = false,
 }: EventDateFilterProps) {
 	// Generate all dates between event start and end
 	const eventDates = useMemo(() => {
@@ -40,10 +48,16 @@ export function EventDateFilter({
 
 	// Get display label
 	const getLabel = () => {
-		if (value.type === "full_duration") {
-			return "Full Duration";
+		switch (value.type) {
+			case "all_time":
+				return "All Time";
+			case "pre_event":
+				return "Pre-Event";
+			case "event_duration":
+				return "Event Duration";
+			case "specific_date":
+				return format(value.date, "MMM d, yyyy");
 		}
-		return format(value.date, "MMM d, yyyy");
 	};
 
 	return (
@@ -56,11 +70,27 @@ export function EventDateFilter({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto rounded-none">
+				{!hideAllTime && (
+					<DropdownMenuItem
+						onClick={() => onChange({ type: "all_time" })}
+						className={`rounded-none ${value.type === "all_time" ? "bg-accent" : ""}`}
+					>
+						All Time
+					</DropdownMenuItem>
+				)}
+				{!hidePreEvent && (
+					<DropdownMenuItem
+						onClick={() => onChange({ type: "pre_event" })}
+						className={`rounded-none ${value.type === "pre_event" ? "bg-accent" : ""}`}
+					>
+						Pre-Event
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
-					onClick={() => onChange({ type: "full_duration" })}
-					className={`rounded-none ${value.type === "full_duration" ? "bg-accent" : ""}`}
+					onClick={() => onChange({ type: "event_duration" })}
+					className={`rounded-none ${value.type === "event_duration" ? "bg-accent" : ""}`}
 				>
-					Full Duration
+					Event Duration
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				{eventDates.map((date, index) => (
@@ -89,19 +119,26 @@ export function getAnalyticsParamsFromSelection(
 ): {
 	startDate?: string;
 	endDate?: string;
+	dateMode?: "all_time" | "pre_event";
 	groupBy: "hour" | "day";
 } {
-	if (selection.type === "full_duration") {
-		// Return undefined dates to let backend use event duration
-		// Use "day" grouping for full duration view
-		return { groupBy: "day" };
+	switch (selection.type) {
+		case "all_time":
+			// Use date_mode param to let backend calculate full range
+			return { dateMode: "all_time", groupBy: "day" };
+		case "pre_event":
+			// Use date_mode param to let backend calculate pre-event range
+			return { dateMode: "pre_event", groupBy: "day" };
+		case "event_duration":
+			// Return undefined dates to let backend use event duration
+			return { groupBy: "day" };
+		case "specific_date":
+			// For specific date, return that date with hourly grouping
+			const dateStr = format(selection.date, "yyyy-MM-dd");
+			return {
+				startDate: dateStr,
+				endDate: dateStr,
+				groupBy: "hour",
+			};
 	}
-
-	// For specific date, return that date with hourly grouping
-	const dateStr = format(selection.date, "yyyy-MM-dd");
-	return {
-		startDate: dateStr,
-		endDate: dateStr,
-		groupBy: "hour",
-	};
 }

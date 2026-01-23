@@ -23,7 +23,7 @@ export function EventDetailsTimeSeriesStats({
 	eventId,
 }: EventDetailsTimeSeriesStatsProps) {
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "full_duration",
+		type: "all_time",
 	});
 	const eventIdNum = Number.parseInt(eventId, 10);
 
@@ -42,6 +42,7 @@ export function EventDetailsTimeSeriesStats({
 			getEventAnalytics(eventId, {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
 			}),
 		enabled: isTicketEvent && !!event,
@@ -55,6 +56,7 @@ export function EventDetailsTimeSeriesStats({
 				eventId: eventIdNum,
 				metric: "visitors",
 				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),
@@ -69,6 +71,7 @@ export function EventDetailsTimeSeriesStats({
 				eventId: eventIdNum,
 				metric: "visitor_scans",
 				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),

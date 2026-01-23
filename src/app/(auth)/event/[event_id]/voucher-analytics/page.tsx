@@ -49,7 +49,7 @@ export default function VoucherAnalyticsPage({
 	const { user } = useAuth();
 	const permissions = useEventPermissions(event_id);
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "full_duration",
+		type: "event_duration",
 	});
 
 	// Fetch event to get start/end dates
@@ -198,6 +198,8 @@ export default function VoucherAnalyticsPage({
 							eventEndDate={event.end_date}
 							value={dateSelection}
 							onChange={setDateSelection}
+							hideAllTime
+							hidePreEvent
 						/>
 					)}
 					</CardHeader>
