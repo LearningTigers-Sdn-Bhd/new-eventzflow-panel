@@ -20,12 +20,42 @@ interface UseExportPdfReturn {
 	error: string | null;
 }
 
+function createPdfDocument(data: AnalyticsReportData) {
+	switch (data.type) {
+		case "ticket":
+			return <TicketAnalyticsReport data={data as TicketReportData} />;
+		case "visitor":
+			return <VisitorAnalyticsReport data={data as VisitorReportData} />;
+		case "voucher":
+			return <VoucherAnalyticsReport data={data as VoucherReportData} />;
+		default:
+			throw new Error("Unknown report type");
+	}
+}
+
+function isMobileDevice(): boolean {
+	if (typeof navigator === "undefined") return false;
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+		navigator.userAgent
+	);
+}
+
+function generateFilename(data: AnalyticsReportData): string {
+	const reportTypeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+	const eventName = data.event.name
+		.replace(/[^a-zA-Z0-9\s]/g, "")
+		.trim()
+		.replace(/\s+/g, "_");
+	const date = new Date().toISOString().split("T")[0];
+	return `${eventName}_${reportTypeLabel}_Report_${date}.pdf`;
+}
+
 /**
  * Hook to export analytics data to PDF
  */
 export function useExportPdf(
 	data: AnalyticsReportData | null,
-	filename?: string,
+	_filename?: string,
 ): UseExportPdfReturn {
 	const [status, setStatus] = useState<ExportStatus>("idle");
 	const [error, setError] = useState<string | null>(null);
@@ -41,32 +71,25 @@ export function useExportPdf(
 		setError(null);
 
 		try {
-			let document: JSX.Element;
+			const pdfDocument = createPdfDocument(data);
+			const blob = await pdf(pdfDocument).toBlob();
+			const url = URL.createObjectURL(blob);
+			const pdfFilename = generateFilename(data);
 
-			switch (data.type) {
-				case "ticket":
-					document = <TicketAnalyticsReport data={data as TicketReportData} />;
-					break;
-				case "visitor":
-					document = <VisitorAnalyticsReport data={data as VisitorReportData} />;
-					break;
-				case "voucher":
-					document = <VoucherAnalyticsReport data={data as VoucherReportData} />;
-					break;
-				default:
-					throw new Error("Unknown report type");
+			if (isMobileDevice()) {
+				const link = window.document.createElement("a");
+				link.href = url;
+				link.download = pdfFilename;
+				window.document.body.appendChild(link);
+				link.click();
+				window.document.body.removeChild(link);
+			} else {
+				window.open(url, "_blank");
 			}
 
-			const blob = await pdf(document).toBlob();
-
-			// Open PDF in new tab for preview
-			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank");
-
-			// Clean up the URL after a delay to allow the new tab to load
 			setTimeout(() => {
 				URL.revokeObjectURL(url);
-			}, 1000);
+			}, 5000);
 
 			setStatus("success");
 		} catch (err) {
@@ -74,14 +97,13 @@ export function useExportPdf(
 			setError(err instanceof Error ? err.message : "Failed to generate PDF");
 			setStatus("error");
 		}
-	}, [data, filename]);
+	}, [data]);
 
 	return { exportPdf, status, error };
 }
 
 /**
  * Helper function to prepare ticket analytics data for export
- * Always generates a complete report regardless of current filter
  */
 export function prepareTicketReportData(
 	event: { id: string; name: string; start_date: string; end_date: string },
@@ -127,7 +149,6 @@ export function prepareTicketReportData(
 
 /**
  * Helper function to prepare visitor analytics data for export
- * Always generates a complete report regardless of current filter
  */
 export function prepareVisitorReportData(
 	event: { id: string; name: string; start_date: string; end_date: string },
@@ -170,7 +191,6 @@ export function prepareVisitorReportData(
 
 /**
  * Helper function to prepare voucher analytics data for export
- * Always generates a complete report regardless of current filter
  */
 export function prepareVoucherReportData(
 	event: { id: string; name: string; start_date: string; end_date: string },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Tooltip,
@@ -49,7 +49,7 @@ export function ExportPdfButton({
 
 	const getLabel = () => {
 		if (isGenerating) return "Generating...";
-		return "Preview PDF";
+		return "Export PDF";
 	};
 
 	const button = (
@@ -71,7 +71,7 @@ export function ExportPdfButton({
 				<Tooltip>
 					<TooltipTrigger asChild>{button}</TooltipTrigger>
 					<TooltipContent>
-						<p>{isGenerating ? "Generating PDF..." : "Preview PDF Report"}</p>
+						<p>{isGenerating ? "Generating PDF..." : "Export PDF Report"}</p>
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>

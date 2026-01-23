@@ -44,7 +44,12 @@ import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
 import { getEventById } from "@/lib/api/event";
 import { getMallLiveFeed } from "@/lib/api/event/analytics";
-import { getTimeSeries } from "@/lib/api/event/analytics";
+import {
+	getTimeSeries,
+	getTotalScannedVisitors,
+	getTotalUnscannedVisitors,
+	getTotalVisitors,
+} from "@/lib/api/event/analytics";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
@@ -128,6 +133,25 @@ export function EventAnalytics({
 		enabled: !isTicketEvent && !eventLoading,
 	});
 
+	// Fetch visitor stats (for PDF export)
+	const { data: totalVisitorsData, isLoading: totalVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "total_visitors"],
+		queryFn: () => getTotalVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
+	const { data: scannedVisitorsData, isLoading: scannedVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "scanned_visitors"],
+		queryFn: () => getTotalScannedVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
+	const { data: unscannedVisitorsData, isLoading: unscannedVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "unscanned_visitors"],
+		queryFn: () => getTotalUnscannedVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
 	// Fetch visitor registrations time series
 	const { data: visitorsData, isLoading: visitorsTimeSeriesLoading } =
 		useQuery({
@@ -175,7 +199,7 @@ export function EventAnalytics({
 		eventLoading ||
 		(isTicketEvent
 			? analyticsLoading
-			: mallLoading || voucherLoading || visitorsTimeSeriesLoading || visitorScansLoading);
+			: mallLoading || voucherLoading || visitorsTimeSeriesLoading || visitorScansLoading || totalVisitorsLoading || scannedVisitorsLoading || unscannedVisitorsLoading);
 	const error = isTicketEvent ? analyticsError : mallError;
 
 	if (isLoading) {
@@ -259,11 +283,9 @@ export function EventAnalytics({
 						end_date: eventDetails.end_date,
 					},
 					{
-						totalVisitors: mallData?.shoppers_registered_today ?? 0,
-						scannedVisitors: mallData?.voucher_redemptions ?? 0,
-						unscannedVisitors:
-							(mallData?.shoppers_registered_today ?? 0) -
-							(mallData?.voucher_redemptions ?? 0),
+						totalVisitors: totalVisitorsData?.totalVisitors ?? 0,
+						scannedVisitors: scannedVisitorsData?.totalScannedVisitors ?? 0,
+						unscannedVisitors: unscannedVisitorsData?.totalUnscannedVisitors ?? 0,
 					},
 					{
 						registrations: transformData(visitorsData?.data),
@@ -331,14 +353,22 @@ export function EventAnalytics({
 				<div className="mb-8 space-y-4 border-y border-dashed">
 					<div className="flex items-center justify-between px-4 pt-4">
 						<h3 className="font-medium text-sm">Analytics Trends</h3>
-						{eventDetails && (
-							<EventDateFilter
-								eventStartDate={eventDetails.start_date}
-								eventEndDate={eventDetails.end_date}
-								value={dateSelection}
-								onChange={setDateSelection}
+						<div className="flex items-center gap-2">
+							{eventDetails && (
+								<EventDateFilter
+									eventStartDate={eventDetails.start_date}
+									eventEndDate={eventDetails.end_date}
+									value={dateSelection}
+									onChange={setDateSelection}
+								/>
+							)}
+							<ExportPdfButton
+								data={pdfReportData}
+								variant="outline"
+								size="sm"
+								disabled={isLoading}
 							/>
-						)}
+						</div>
 					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 						<TimeSeriesChart
@@ -378,14 +408,22 @@ export function EventAnalytics({
 			<div className="mb-8 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					{eventDetails && (
-						<EventDateFilter
-							eventStartDate={eventDetails.start_date}
-							eventEndDate={eventDetails.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
+					<div className="flex items-center gap-2">
+						{eventDetails && (
+							<EventDateFilter
+								eventStartDate={eventDetails.start_date}
+								eventEndDate={eventDetails.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={pdfReportData}
+							variant="outline"
+							size="sm"
+							disabled={isLoading}
 						/>
-					)}
+					</div>
 				</div>
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<TimeSeriesChart
@@ -685,11 +723,6 @@ export function EventAnalytics({
 						</IconHeading>
 					</div>
 					<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
-						<ExportPdfButton
-							data={pdfReportData}
-							className="w-full py-6 md:py-4 lg:w-auto"
-							variant="secondary"
-						/>
 						{isTicketEvent ? (
 							<>
 								<Button

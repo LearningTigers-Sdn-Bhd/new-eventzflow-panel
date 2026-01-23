@@ -1,85 +1,75 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, View } from "@react-pdf/renderer";
+import { BarChart, DistributionSummary, DonutChart } from "./charts";
 import {
-	ReportHeader,
+	BulletList,
+	GridCol,
+	GridRow,
 	ReportFooter,
+	ReportHeader,
 	Section,
 	StatsCard,
 	StatsGrid,
 	SummaryBox,
-	RateIndicator,
-	BulletList,
 	Table,
 } from "./components";
-import { DonutChart, BarChart, DistributionSummary } from "./charts";
-import { styles, colors } from "./styles";
-import {
-	type VoucherReportData,
-	formatReportCurrency,
-	formatReportDateTime,
-} from "./types";
+import { colors, styles } from "./styles";
+import { formatReportCurrency, type VoucherReportData } from "./types";
 
 interface VoucherAnalyticsReportProps {
 	data: VoucherReportData;
 }
 
 export function VoucherAnalyticsReport({ data }: VoucherAnalyticsReportProps) {
-	const { event, metadata, stats, timeSeries, topVouchers, latestTransactions } = data;
+	const {
+		event,
+		metadata,
+		stats,
+		timeSeries,
+		topVouchers,
+		latestTransactions,
+	} = data;
 
-	// Generate summary insights
-	const insights = [];
-	if (stats.totalVouchersIssued > 0) {
-		insights.push(
-			`${stats.totalVouchersIssued.toLocaleString()} vouchers issued for this event.`,
-		);
-	}
-	if (stats.totalRedemptions > 0) {
-		insights.push(
-			`${stats.totalRedemptions.toLocaleString()} redemptions recorded (${stats.redemptionRate.toFixed(1)}% rate).`,
-		);
-	}
-	if (stats.totalSales > 0) {
-		insights.push(
-			`Total sales through voucher redemptions: ${formatReportCurrency(stats.totalSales)}.`,
-		);
-	}
-	if (stats.totalDiscountValue > 0) {
-		insights.push(
-			`Total discount value provided: ${formatReportCurrency(stats.totalDiscountValue)}.`,
-		);
-	}
+	const insights = [
+		`Program Reach: ${stats.totalVouchersIssued.toLocaleString()} vouchers distributed to attendees.`,
+		`Conversion: ${stats.redemptionRate.toFixed(1)}% redemption rate achieved.`,
+		`Economic Impact: ${formatReportCurrency(stats.totalSales)} in sales generated from voucher redemptions.`,
+	];
 
-	// Prepare redemption chart data
-	const redemptionData = timeSeries.redemptions?.map((d) => ({
-		date: d.date,
-		value: d.count,
-	})) ?? [];
+	const redemptionData =
+		timeSeries.redemptions?.map((d) => ({ date: d.date, value: d.count })) ??
+		[];
 
-	// Prepare top vouchers table data
-	const topVouchersRows = topVouchers.slice(0, 10).map((voucher, index) => [
-		`${index + 1}`,
-		voucher.voucher_title,
-		voucher.vendor_name || "N/A",
-		voucher.redemption_count.toString(),
-	]);
+	const topVouchersRows = topVouchers
+		.slice(0, 10)
+		.map((voucher, index) => [
+			(index + 1).toString(),
+			voucher.voucher_title,
+			voucher.vendor_name || "-",
+			voucher.redemption_count.toString(),
+		]);
 
-	// Prepare top vouchers for distribution chart
-	const topVouchersDistribution = topVouchers.slice(0, 5).map((voucher, index) => ({
-		label: voucher.voucher_title.length > 25
-			? `${voucher.voucher_title.substring(0, 25)}...`
-			: voucher.voucher_title,
-		value: voucher.redemption_count,
-		color: index === 0 ? colors.accent : undefined,
-	}));
+	const topVouchersDistribution = topVouchers
+		.slice(0, 5)
+		.map((voucher, index) => ({
+			label:
+				voucher.voucher_title.length > 25
+					? `${voucher.voucher_title.substring(0, 25)}...`
+					: voucher.voucher_title,
+			value: voucher.redemption_count,
+			color: index === 0 ? colors.brandSecondary : colors.textSecondary,
+		}));
 
-	// Prepare latest transactions table data
-	const transactionsRows = latestTransactions.slice(0, 8).map((tx) => [
-		tx.voucher_title.length > 20 ? `${tx.voucher_title.substring(0, 20)}...` : tx.voucher_title,
-		tx.vendor_name || "N/A",
-		formatReportCurrency(Number.parseFloat(tx.transaction_gross_amount)),
-		formatReportCurrency(Number.parseFloat(tx.discount_applied_value)),
-	]);
+	const transactionsRows = latestTransactions
+		.slice(0, 12)
+		.map((tx) => [
+			tx.voucher_title.length > 25
+				? `${tx.voucher_title.substring(0, 25)}...`
+				: tx.voucher_title,
+			tx.vendor_name || "-",
+			formatReportCurrency(Number.parseFloat(tx.transaction_gross_amount)),
+		]);
 
 	return (
 		<Document>
@@ -90,115 +80,85 @@ export function VoucherAnalyticsReport({ data }: VoucherAnalyticsReportProps) {
 					metadata={metadata}
 				/>
 
-				{/* Executive Summary */}
-				<SummaryBox title="Executive Summary">
-					<BulletList items={insights.length > 0 ? insights : ["No voucher data available for this period."]} />
+				<SummaryBox title="Program Analysis">
+					<BulletList items={insights} />
 				</SummaryBox>
 
-				{/* Key Metrics Section */}
-				<Section title="Key Metrics">
-					<View style={{ flexDirection: "row", gap: 16 }}>
-						{/* Left side: Stats Cards */}
-						<View style={{ flex: 1 }}>
-							<StatsGrid>
-								<StatsCard
-									label="Vouchers Issued"
-									value={stats.totalVouchersIssued.toLocaleString()}
-								/>
-								<StatsCard
-									label="Redemptions"
-									value={stats.totalRedemptions.toLocaleString()}
-								/>
-								<StatsCard
-									label="Total Sales"
-									value={formatReportCurrency(stats.totalSales)}
-								/>
-								<StatsCard
-									label="Total Discount"
-									value={formatReportCurrency(stats.totalDiscountValue)}
-								/>
-							</StatsGrid>
-							<RateIndicator label="Redemption Rate" rate={stats.redemptionRate} />
-						</View>
-						{/* Right side: Donut Chart */}
+				<Section title="Performance Metrics">
+					<StatsGrid>
+						<StatsCard
+							label="Vouchers Issued"
+							value={stats.totalVouchersIssued.toLocaleString()}
+						/>
+						<StatsCard
+							label="Redeemed"
+							value={stats.totalRedemptions.toLocaleString()}
+						/>
+						<StatsCard
+							label="Total Sales"
+							value={formatReportCurrency(stats.totalSales)}
+						/>
+						<StatsCard
+							label="Discounts Given"
+							value={formatReportCurrency(stats.totalDiscountValue)}
+							isLast
+						/>
+					</StatsGrid>
+				</Section>
+
+				<Section title="Redemption Analysis">
+					<View style={{ alignItems: "center", paddingVertical: 12 }}>
 						<DonutChart
 							value1={stats.totalRedemptions}
 							value2={stats.totalVouchersIssued - stats.totalRedemptions}
 							label1="Redeemed"
 							label2="Unused"
-							color1={colors.accent}
-							color2={colors.border}
+							color1={colors.brandGreen}
+							color2="#d1d5db"
 						/>
 					</View>
 				</Section>
 
-				{/* Daily Redemption Trend */}
+				<Section title="Performance Distribution">
+					<DistributionSummary
+						items={topVouchersDistribution}
+						title="Top Performing Vouchers"
+					/>
+				</Section>
+
 				{redemptionData.length > 0 && (
-					<Section title="Daily Redemption Trend">
-						<View style={{
-							borderWidth: 1,
-							borderColor: colors.border,
-							padding: 12,
-							backgroundColor: colors.white,
-						}}>
-							<BarChart
-								data={redemptionData}
-								title="Redemptions by Day"
-								maxBars={8}
-								barColor={colors.accent}
-							/>
-						</View>
+					<Section title="Daily Redemption Trend" breakOnPage>
+						<BarChart
+							data={redemptionData}
+							title="Redemption Volume (Daily)"
+							maxBars={20}
+							barColor={colors.brandSecondary}
+						/>
+					</Section>
+				)}
+
+				{topVouchers.length > 0 && (
+					<Section title="Top Vouchers by Volume" breakOnPage>
+						<Table
+							headers={["#", "Voucher Name", "Vendor", "Count"]}
+							rows={topVouchersRows}
+							columnWidths={["10%", "45%", "30%", "15%"]}
+						/>
+					</Section>
+				)}
+
+				{latestTransactions.length > 0 && (
+					<Section title="Recent Transactions">
+						<Table
+							headers={["Voucher", "Vendor", "Transaction Value"]}
+							rows={transactionsRows}
+							columnWidths={["40%", "30%", "30%"]}
+						/>
 					</Section>
 				)}
 
 				<ReportFooter />
 			</Page>
-
-			{/* Second page for tables and distribution */}
-			{(topVouchers.length > 0 || latestTransactions.length > 0) && (
-				<Page size="A4" style={styles.page}>
-					{/* Top Vouchers Distribution */}
-					{topVouchersDistribution.length > 0 && (
-						<Section title="Top Vouchers Performance">
-							<View style={{
-								borderWidth: 1,
-								borderColor: colors.border,
-								padding: 12,
-								backgroundColor: colors.white,
-							}}>
-								<DistributionSummary
-									items={topVouchersDistribution}
-									title="Redemptions by Voucher"
-								/>
-							</View>
-						</Section>
-					)}
-
-					{/* Top Vouchers Table */}
-					{topVouchers.length > 0 && (
-						<Section title="Top Scanned Vouchers">
-							<Table
-								headers={["#", "Voucher Name", "Vendor", "Redemptions"]}
-								rows={topVouchersRows}
-								columnWidths={["8%", "47%", "25%", "20%"]}
-							/>
-						</Section>
-					)}
-
-					{/* Latest Transactions */}
-					{latestTransactions.length > 0 && (
-						<Section title="Latest Transactions">
-							<Table
-								headers={["Voucher", "Vendor", "Amount", "Discount"]}
-								rows={transactionsRows}
-								columnWidths={["35%", "25%", "20%", "20%"]}
-							/>
-						</Section>
-					)}
-
-					<ReportFooter />
-				</Page>
-			)}
 		</Document>
 	);
 }

@@ -2,31 +2,18 @@
 
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
-import { styles, colors } from "./styles";
+import { colors, styles } from "./styles";
 import {
 	type AnalyticsReportData,
-	type ReportMetadata,
 	formatReportDate,
 	getEventDateRangeLabel,
 	getReportTypeLabel,
+	type ReportMetadata,
 } from "./types";
 
 /**
- * Text-based Logo Component (matching floating-nav style)
- */
-function LogoText() {
-	return (
-		<Text style={{ fontFamily: "Times-Roman", fontSize: 18, fontWeight: "bold" }}>
-			<Text style={{ color: colors.brandGreen }}>Event</Text>
-			<Text style={{ color: colors.brandBlue }}>z</Text>
-			<Text style={{ color: colors.brandGreen }}>Flow</Text>
-		</Text>
-	);
-}
-
-/**
- * Report Header Component
- * Swiss International Design: Clean stacked layout that handles long titles
+ * Report Header
+ * Standard corporate header layout
  */
 export function ReportHeader({
 	eventName,
@@ -38,40 +25,68 @@ export function ReportHeader({
 	metadata: ReportMetadata;
 }) {
 	return (
-		<View style={styles.header}>
-			{/* Top row: Logo and metadata */}
+		<View style={styles.header} fixed>
 			<View style={styles.headerTop}>
-				<LogoText />
-				<View style={styles.headerMeta}>
-					<Text style={styles.reportTitle}>{getReportTypeLabel(reportType)}</Text>
-					<Text style={styles.reportSubtitle}>
-						{getEventDateRangeLabel(metadata.eventStartDate, metadata.eventEndDate)}
+				<View>
+					{/* EventzFlow Logo with Floating Nav Colors */}
+					<Text style={{ fontSize: 24, fontFamily: "Times-Bold" }}>
+						<Text style={{ color: colors.brandGreen }}>Event</Text>
+						<Text style={{ color: colors.brandBlue }}>z</Text>
+						<Text style={{ color: colors.brandGreen }}>Flow</Text>
 					</Text>
-					<Text style={styles.reportDate}>
-						Generated {formatReportDate(metadata.generatedAt)}
+				</View>
+				<View style={{ alignItems: "flex-end" }}>
+					<Text
+						style={{
+							fontSize: 12,
+							fontFamily: "Helvetica-Bold",
+							color: colors.textMain,
+							textTransform: "uppercase",
+						}}
+					>
+						{getReportTypeLabel(reportType)}
+					</Text>
+					<Text
+						style={{ fontSize: 9, color: colors.textSecondary, marginTop: 4 }}
+					>
+						Generated on {formatReportDate(metadata.generatedAt)}
 					</Text>
 				</View>
 			</View>
-			{/* Event name on its own line - allows for long titles */}
-			<Text style={styles.eventName}>{eventName}</Text>
+
+			<View>
+				<Text style={styles.label}>Event Name</Text>
+				<Text style={styles.h1}>{eventName}</Text>
+
+				<View style={[styles.headerMeta, { marginTop: 8 }]}>
+					<View>
+						<Text style={styles.label}>Event Duration</Text>
+						<Text style={styles.textSmall}>
+							{getEventDateRangeLabel(
+								metadata.eventStartDate,
+								metadata.eventEndDate,
+							)}
+						</Text>
+					</View>
+				</View>
+			</View>
 		</View>
 	);
 }
 
 /**
- * Report Footer Component
+ * Footer
  */
 export function ReportFooter() {
 	return (
 		<View style={styles.footer} fixed>
-			<Text style={styles.footerBrand}>EventzFlow</Text>
-			<Text style={styles.footerText}>
-				Confidential - For internal use only
+			<Text style={{ fontSize: 8, color: colors.textMuted }}>
+				Confidential & Proprietary - EventzFlow Analytics
 			</Text>
 			<Text
-				style={styles.pageNumber}
+				style={{ fontSize: 8, color: colors.textMuted }}
 				render={({ pageNumber, totalPages }) =>
-					`${pageNumber} / ${totalPages}`
+					`Page ${pageNumber} of ${totalPages}`
 				}
 			/>
 		</View>
@@ -79,52 +94,61 @@ export function ReportFooter() {
 }
 
 /**
- * Section Component
+ * Standard Section
  */
 export function Section({
 	title,
 	children,
+	breakOnPage = false,
 }: {
 	title: string;
 	children: ReactNode;
+	breakOnPage?: boolean;
 }) {
 	return (
-		<View style={styles.section}>
-			<Text style={styles.sectionTitle}>{title}</Text>
+		<View style={styles.mb4} break={breakOnPage}>
+			<Text style={styles.h2} minPresenceAhead={60}>{title}</Text>
 			{children}
 		</View>
 	);
 }
 
 /**
- * Stats Card Component
+ * Stats Grid Container
+ */
+export function StatsGrid({ children }: { children: ReactNode }) {
+	return <View style={styles.statsContainer}>{children}</View>;
+}
+
+/**
+ * Individual Stat Item
  */
 export function StatsCard({
 	label,
 	value,
-	fullWidth = false,
+	subtext,
+	isLast = false,
 }: {
 	label: string;
 	value: string | number;
-	fullWidth?: boolean;
+	subtext?: string;
+	isLast?: boolean;
 }) {
 	return (
-		<View style={fullWidth ? styles.statsCardFull : styles.statsCard}>
-			<Text style={styles.statsLabel}>{label}</Text>
-			<Text style={styles.statsValue}>{value}</Text>
+		<View style={[styles.statItem, isLast ? styles.statItemLast : {}]}>
+			<Text style={styles.label}>{label}</Text>
+			<Text style={styles.value}>{value}</Text>
+			{subtext && (
+				<Text style={{ fontSize: 9, color: colors.success, marginTop: 4 }}>
+					{subtext}
+				</Text>
+			)}
 		</View>
 	);
 }
 
 /**
- * Stats Grid Component
- */
-export function StatsGrid({ children }: { children: ReactNode }) {
-	return <View style={styles.statsGrid}>{children}</View>;
-}
-
-/**
- * Summary Box Component
+ * Summary Box
  */
 export function SummaryBox({
 	title,
@@ -134,15 +158,15 @@ export function SummaryBox({
 	children: ReactNode;
 }) {
 	return (
-		<View style={styles.summaryBox}>
-			<Text style={styles.summaryTitle}>{title}</Text>
+		<View style={styles.summaryBox} wrap={false}>
+			<Text style={styles.h3}>{title}</Text>
 			{children}
 		</View>
 	);
 }
 
 /**
- * Table Component
+ * Standard Table
  */
 export function Table({
 	headers,
@@ -158,7 +182,7 @@ export function Table({
 			<View style={styles.tableHeader}>
 				{headers.map((header, index) => (
 					<Text
-						key={`header-${header}-${index}`}
+						key={`header-${index}`}
 						style={[styles.tableHeaderCell, { width: columnWidths[index] }]}
 					>
 						{header}
@@ -169,11 +193,18 @@ export function Table({
 				rows.map((row, rowIndex) => (
 					<View
 						key={`row-${rowIndex}`}
-						style={rowIndex % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
+						style={[
+							styles.tableRow,
+							{
+								backgroundColor:
+									rowIndex % 2 === 0 ? colors.white : colors.background,
+							},
+						]}
+						wrap={false}
 					>
 						{row.map((cell, cellIndex) => (
 							<Text
-								key={`cell-${rowIndex}-${cellIndex}`}
+								key={`cell-${cellIndex}`}
 								style={[styles.tableCell, { width: columnWidths[cellIndex] }]}
 							>
 								{cell}
@@ -182,8 +213,10 @@ export function Table({
 					</View>
 				))
 			) : (
-				<View style={styles.emptyState}>
-					<Text style={styles.emptyStateText}>No data available</Text>
+				<View style={{ padding: 12, alignItems: "center" }}>
+					<Text style={styles.textSmall}>
+						No data available for this selection.
+					</Text>
 				</View>
 			)}
 		</View>
@@ -191,63 +224,12 @@ export function Table({
 }
 
 /**
- * Time Series Data Grid Component
- */
-export function TimeSeriesGrid({
-	title,
-	data,
-	formatValue,
-}: {
-	title: string;
-	data: { period: string; value: number }[] | { date: string; value?: number; count?: number }[];
-	formatValue?: (value: number) => string;
-}) {
-	const normalizedData = data.map((item) => ({
-		period: "period" in item ? item.period : item.date,
-		value: "value" in item && item.value !== undefined ? item.value : ("count" in item ? item.count ?? 0 : 0),
-	}));
-
-	if (normalizedData.length === 0) {
-		return (
-			<View style={styles.timeSeriesSection}>
-				<Text style={styles.timeSeriesTitle}>{title}</Text>
-				<View style={styles.emptyState}>
-					<Text style={styles.emptyStateText}>No data for this period</Text>
-				</View>
-			</View>
-		);
-	}
-
-	return (
-		<View style={styles.timeSeriesSection}>
-			<Text style={styles.timeSeriesTitle}>{title}</Text>
-			<View style={styles.timeSeriesGrid}>
-				{normalizedData.slice(0, 12).map((item, index) => (
-					<View key={`ts-${index}`} style={styles.timeSeriesItem}>
-						<Text style={styles.timeSeriesPeriod}>{item.period}</Text>
-						<Text style={styles.timeSeriesValue}>
-							{formatValue ? formatValue(item.value) : item.value.toLocaleString()}
-						</Text>
-					</View>
-				))}
-			</View>
-			{normalizedData.length > 12 && (
-				<Text style={[styles.emptyStateText, { marginTop: 8 }]}>
-					Showing first 12 of {normalizedData.length} entries
-				</Text>
-			)}
-		</View>
-	);
-}
-
-/**
- * Rate/Progress Bar Component
- * Uses accent color (brand green) for the fill
+ * Progress Bar / Rate Indicator
  */
 export function RateIndicator({
 	label,
 	rate,
-	color = colors.accent,
+	color = colors.brandSecondary,
 }: {
 	label: string;
 	rate: number;
@@ -256,53 +238,70 @@ export function RateIndicator({
 	const clampedRate = Math.min(100, Math.max(0, rate));
 
 	return (
-		<View style={styles.rateContainer}>
-			<View style={styles.rateBar}>
+		<View style={styles.mb4} wrap={false}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+					marginBottom: 6,
+				}}
+			>
+				<Text style={styles.textSmall}>{label}</Text>
+				<Text style={[styles.textSmall, { fontFamily: "Helvetica-Bold" }]}>
+					{rate.toFixed(1)}%
+				</Text>
+			</View>
+			<View
+				style={{ height: 6, backgroundColor: colors.border, width: "100%" }}
+			>
 				<View
-					style={[
-						styles.rateFill,
-						{ width: `${clampedRate}%`, backgroundColor: color },
-					]}
+					style={{
+						height: "100%",
+						width: `${clampedRate}%`,
+						backgroundColor: color,
+					}}
 				/>
 			</View>
-			<Text style={styles.rateLabel}>
-				{label}: {rate.toFixed(1)}%
-			</Text>
 		</View>
 	);
 }
 
 /**
- * Metric Highlight Component
- * For displaying key metrics like check-in rate prominently
- */
-export function MetricHighlight({
-	value,
-	label,
-}: {
-	value: string | number;
-	label: string;
-}) {
-	return (
-		<View style={styles.metricHighlight}>
-			<Text style={styles.metricValue}>{value}</Text>
-			<Text style={styles.metricLabel}>{label}</Text>
-		</View>
-	);
-}
-
-/**
- * List Component
+ * Bullet List
  */
 export function BulletList({ items }: { items: string[] }) {
 	return (
-		<View style={styles.list}>
+		<View style={{ gap: 6 }}>
 			{items.map((item, index) => (
-				<View key={`bullet-${index}`} style={styles.listItem}>
-					<Text style={styles.listBullet}>{"\u2022"}</Text>
-					<Text style={styles.listText}>{item}</Text>
+				<View key={`bullet-${index}`} style={{ flexDirection: "row" }}>
+					<Text
+						style={{ width: 12, fontSize: 10, color: colors.brandSecondary }}
+					>
+						•
+					</Text>
+					<Text style={[styles.text, { flex: 1 }]}>{item}</Text>
 				</View>
 			))}
 		</View>
 	);
+}
+
+/**
+ * Layout Grid Row
+ */
+export function GridRow({ children }: { children: ReactNode }) {
+	return <View style={styles.row}>{children}</View>;
+}
+
+/**
+ * Layout Grid Column
+ */
+export function GridCol({
+	children,
+	width = "col6",
+}: {
+	children: ReactNode;
+	width?: "col6" | "col4" | "col12";
+}) {
+	return <View style={styles[width]}>{children}</View>;
 }

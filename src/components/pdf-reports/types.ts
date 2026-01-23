@@ -1,4 +1,7 @@
-import type { ChartDataPoint, EventAnalytics } from "@/lib/api/dashboard/response";
+import type {
+	ChartDataPoint,
+	EventAnalytics,
+} from "@/lib/api/dashboard/response";
 import type {
 	DailyRedemptionTrend,
 	LatestRedemptionTransaction,
@@ -22,6 +25,7 @@ export type ReportEventInfo = {
  */
 export type ReportMetadata = {
 	generatedAt: Date;
+	generatedBy?: string;
 	eventStartDate: string;
 	eventEndDate: string;
 };
@@ -159,7 +163,10 @@ export function getReportTypeLabel(type: AnalyticsReportData["type"]): string {
 /**
  * Get event date range label for report
  */
-export function getEventDateRangeLabel(startDate: string, endDate: string): string {
+export function getEventDateRangeLabel(
+	startDate: string,
+	endDate: string,
+): string {
 	const start = formatReportDate(startDate);
 	const end = formatReportDate(endDate);
 	if (start === end) {

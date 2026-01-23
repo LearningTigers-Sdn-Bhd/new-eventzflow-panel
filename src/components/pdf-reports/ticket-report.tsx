@@ -1,22 +1,23 @@
 "use client";
 
 import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { BarChart, DonutChart } from "./charts";
 import {
-	ReportHeader,
+	BulletList,
+	GridCol,
+	GridRow,
 	ReportFooter,
+	ReportHeader,
 	Section,
 	StatsCard,
 	StatsGrid,
 	SummaryBox,
-	RateIndicator,
-	BulletList,
 } from "./components";
-import { DonutChart, BarChart } from "./charts";
-import { styles, colors } from "./styles";
+import { colors, styles } from "./styles";
 import {
-	type TicketReportData,
-	formatReportCurrency,
 	calculatePercentage,
+	formatReportCurrency,
+	type TicketReportData,
 } from "./types";
 
 interface TicketAnalyticsReportProps {
@@ -25,49 +26,24 @@ interface TicketAnalyticsReportProps {
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 	const { event, metadata, stats, timeSeries } = data;
-	const scanRate = calculatePercentage(stats.scannedTickets, stats.totalTickets);
+	const scanRate = calculatePercentage(
+		stats.scannedTickets,
+		stats.totalTickets,
+	);
 
-	// Generate summary insights
-	const insights = [];
-	if (stats.totalTickets > 0) {
-		insights.push(
-			`Total of ${stats.totalTickets.toLocaleString()} tickets registered for this event.`,
-		);
-	}
-	if (scanRate >= 80) {
-		insights.push(
-			`Excellent check-in rate of ${scanRate}% - most attendees have arrived.`,
-		);
-	} else if (scanRate >= 50) {
-		insights.push(
-			`Good check-in progress at ${scanRate}% - over half of attendees checked in.`,
-		);
-	} else if (stats.totalTickets > 0) {
-		insights.push(
-			`Current check-in rate is ${scanRate}% - ${stats.unscannedTickets.toLocaleString()} tickets pending.`,
-		);
-	}
-	if (stats.totalRevenue > 0) {
-		insights.push(
-			`Total revenue generated: ${formatReportCurrency(stats.totalRevenue)}.`,
-		);
-	}
+	const insights = [
+		`Total Issuance: ${stats.totalTickets.toLocaleString()} tickets have been issued or sold.`,
+		`Total Revenue: The event has generated ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
+		`Utilization: ${scanRate}% of issued tickets have been scanned at entry.`,
+	];
 
-	// Prepare chart data
-	const registrationData = timeSeries.registrations?.map((d) => ({
-		date: d.date,
-		value: d.value,
-	})) ?? [];
-
-	const scanData = timeSeries.scans?.map((d) => ({
-		date: d.date,
-		value: d.value,
-	})) ?? [];
-
-	const revenueData = timeSeries.revenue?.map((d) => ({
-		date: d.date,
-		value: d.value,
-	})) ?? [];
+	const registrationData =
+		timeSeries.registrations?.map((d) => ({ date: d.date, value: d.value })) ??
+		[];
+	const scanData =
+		timeSeries.scans?.map((d) => ({ date: d.date, value: d.value })) ?? [];
+	const revenueData =
+		timeSeries.revenue?.map((d) => ({ date: d.date, value: d.value })) ?? [];
 
 	return (
 		<Document>
@@ -78,108 +54,76 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 					metadata={metadata}
 				/>
 
-				{/* Executive Summary */}
-				<SummaryBox title="Executive Summary">
-					<BulletList items={insights.length > 0 ? insights : ["No ticket data available for this period."]} />
+				<SummaryBox title="Performance Summary">
+					<BulletList items={insights} />
 				</SummaryBox>
 
-				{/* Key Metrics Section */}
-				<Section title="Key Metrics">
-					<View style={{ flexDirection: "row", gap: 16 }}>
-						{/* Left side: Stats Cards */}
-						<View style={{ flex: 1 }}>
-							<StatsGrid>
-								<StatsCard
-									label="Total Tickets"
-									value={stats.totalTickets.toLocaleString()}
-								/>
-								<StatsCard
-									label="Scanned"
-									value={stats.scannedTickets.toLocaleString()}
-								/>
-								<StatsCard
-									label="Unscanned"
-									value={stats.unscannedTickets.toLocaleString()}
-								/>
-								<StatsCard
-									label="Revenue"
-									value={formatReportCurrency(stats.totalRevenue)}
-								/>
-							</StatsGrid>
-							<RateIndicator label="Check-in Rate" rate={scanRate} />
-						</View>
-						{/* Right side: Donut Chart */}
+				<Section title="Sales Overview">
+					<StatsGrid>
+						<StatsCard
+							label="Total Revenue"
+							value={formatReportCurrency(stats.totalRevenue)}
+						/>
+						<StatsCard
+							label="Total Tickets"
+							value={stats.totalTickets.toLocaleString()}
+						/>
+						<StatsCard
+							label="Redeemed"
+							value={stats.scannedTickets.toLocaleString()}
+							subtext={`${scanRate}% Utilization`}
+							isLast
+						/>
+					</StatsGrid>
+				</Section>
+
+				<Section title="Utilization Ratio">
+					<View style={{ alignItems: "center", paddingVertical: 12 }}>
 						<DonutChart
 							value1={stats.scannedTickets}
 							value2={stats.unscannedTickets}
 							label1="Scanned"
-							label2="Unscanned"
-							color1={colors.accent}
-							color2={colors.border}
+							label2="Pending"
+							color1={colors.brandGreen}
+							color2="#d1d5db"
 						/>
 					</View>
 				</Section>
 
-				{/* Daily Breakdown - Stacked Layout */}
-				{registrationData.length > 0 && (
-					<Section title="Daily Breakdown">
-						<View style={{
-							borderWidth: 1,
-							borderColor: colors.border,
-							padding: 12,
-							backgroundColor: colors.white,
-						}}>
-							<BarChart
-								data={registrationData}
-								title="Registrations by Day"
-								maxBars={6}
-								barColor={colors.accent}
-							/>
-						</View>
-						{scanData.length > 0 && (
-							<View style={{
-								borderWidth: 1,
-								borderColor: colors.border,
-								padding: 12,
-								backgroundColor: colors.white,
-								marginTop: 12,
-							}}>
-								<BarChart
-									data={scanData}
-									title="Check-ins by Day"
-									maxBars={6}
-									barColor={colors.brandBlue}
-								/>
-							</View>
-						)}
+				<Section title="Daily Activity Analysis" breakOnPage>
+					<View style={{ marginBottom: 24 }}>
+						<BarChart
+							data={scanData}
+							title="Check-in Volume (Daily)"
+							maxBars={20}
+							barColor={colors.brandGreen}
+						/>
+					</View>
+
+					<View style={{ borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 24 }}>
+						<BarChart
+							data={registrationData}
+							title="Ticket Sales Volume (Daily)"
+							maxBars={20}
+							barColor={colors.brandPrimary}
+						/>
+					</View>
+				</Section>
+
+				{revenueData.length > 0 && (
+					<Section title="Financial Performance">
+						<BarChart
+							data={revenueData}
+							title="Daily Revenue Trend"
+							formatValue={(v) => formatReportCurrency(v)}
+							maxBars={15}
+							barColor={colors.success}
+						/>
 					</Section>
 				)}
 
 				<ReportFooter />
 			</Page>
-
-			{/* Second page for revenue if needed */}
-			{revenueData.length > 0 && (
-				<Page size="A4" style={styles.page}>
-					<Section title="Revenue Trend">
-						<View style={{
-							borderWidth: 1,
-							borderColor: colors.border,
-							padding: 12,
-							backgroundColor: colors.white,
-						}}>
-							<BarChart
-								data={revenueData}
-								title="Daily Revenue"
-								formatValue={(v) => formatReportCurrency(v)}
-								maxBars={10}
-								barColor={colors.accent}
-							/>
-						</View>
-					</Section>
-					<ReportFooter />
-				</Page>
-			)}
 		</Document>
 	);
 }

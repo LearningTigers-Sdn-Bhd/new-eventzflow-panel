@@ -16,7 +16,8 @@ import type { VoucherAnalyticsResponse } from "@/lib/api/voucher-analytics/respo
 import { EventDetailsKeyMetrics } from "./event-details-key-metrics";
 import { EventDetailsQuickInfo } from "./event-details-quick-info";
 import { EventDetailsRecentScans } from "./event-details-recent-scans";
-import { EventDetailsTimeSeriesStats } from "./event-details-time-series-stats";
+import { EventDetailsTicketStats } from "./event-details-ticket-stats";
+import { EventDetailsVisitorStats } from "./event-details-visitor-stats";
 
 interface AnalyticsClientWrapperProps {
 	event: Event;
@@ -68,14 +69,12 @@ export function AnalyticsClientWrapper({
 										<TabsTrigger value="key-metrics" className="rounded-none">
 											Key Metrics
 										</TabsTrigger>
-										{isTicketEvent && (
-											<TabsTrigger
-												value="time-series-stats"
-												className="rounded-none"
-											>
-												Analytics
-											</TabsTrigger>
-										)}
+										<TabsTrigger
+											value="time-series-stats"
+											className="rounded-none"
+										>
+											Analytics
+										</TabsTrigger>
 										<TabsTrigger value="quick-info" className="rounded-none">
 											Quick Info
 										</TabsTrigger>
@@ -97,14 +96,13 @@ export function AnalyticsClientWrapper({
 							/>
 						</TabsContent>
 
-						{isTicketEvent && (
-							<TabsContent value="time-series-stats" className="mt-2">
-								<EventDetailsTimeSeriesStats
-									isTicketEvent={isTicketEvent}
-									eventId={event.id.toString()}
-								/>
-							</TabsContent>
-						)}
+						<TabsContent value="time-series-stats" className="mt-2">
+							{isTicketEvent ? (
+								<EventDetailsTicketStats eventId={event.id.toString()} />
+							) : (
+								<EventDetailsVisitorStats eventId={event.id.toString()} />
+							)}
+						</TabsContent>
 
 						<TabsContent value="quick-info" className="mt-2">
 							<EventDetailsQuickInfo
@@ -140,10 +138,11 @@ export function AnalyticsClientWrapper({
 					/>
 
 					{/* Analytics */}
-					<EventDetailsTimeSeriesStats
-						isTicketEvent={isTicketEvent}
-						eventId={event.id.toString()}
-					/>
+					{isTicketEvent ? (
+						<EventDetailsTicketStats eventId={event.id.toString()} />
+					) : (
+						<EventDetailsVisitorStats eventId={event.id.toString()} />
+					)}
 
 					{/* Quick Info */}
 					<div className="grid grid-cols-2 gap-2">

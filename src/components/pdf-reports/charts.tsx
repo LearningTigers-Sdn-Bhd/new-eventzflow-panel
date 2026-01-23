@@ -1,20 +1,28 @@
 "use client";
 
-import { Svg, G, Path, Rect, Text, View, Circle } from "@react-pdf/renderer";
-import { styles, colors } from "./styles";
+import {
+	Circle,
+	G,
+	Line,
+	Path,
+	Rect,
+	Svg,
+	Text,
+	View,
+} from "@react-pdf/renderer";
+import { colors, styles } from "./styles";
 
 /**
- * Donut Chart Component
- * Shows distribution between two values (e.g., scanned vs unscanned)
+ * Donut Chart - Professional Style
  */
 export function DonutChart({
 	value1,
 	value2,
 	label1,
 	label2,
-	color1 = colors.accent,
-	color2 = colors.borderLight,
-	size = 80,
+	color1 = colors.brandSecondary,
+	color2 = colors.border,
+	size = 140,
 }: {
 	value1: number;
 	value2: number;
@@ -26,18 +34,23 @@ export function DonutChart({
 }) {
 	const total = value1 + value2;
 	const percentage1 = total > 0 ? (value1 / total) * 100 : 0;
+	const percentage2 = total > 0 ? (value2 / total) * 100 : 0;
 
-	// Calculate arc paths
+	// Dimensions
 	const centerX = size / 2;
 	const centerY = size / 2;
-	const radius = size / 2 - 6;
-	const innerRadius = radius * 0.55;
+	const radius = size / 2;
+	const innerRadius = radius * 0.7; // Thicker, bolder ring
 
-	// Convert percentage to radians (starting from top, going clockwise)
+	// Angles
 	const angle1 = (percentage1 / 100) * 360;
 
-	// Create arc path for the first segment
-	const createArc = (startAngle: number, endAngle: number, outerR: number, innerR: number) => {
+	const createArc = (
+		startAngle: number,
+		endAngle: number,
+		outerR: number,
+		innerR: number,
+	) => {
 		const startAngleRad = ((startAngle - 90) * Math.PI) / 180;
 		const endAngleRad = ((endAngle - 90) * Math.PI) / 180;
 
@@ -56,69 +69,136 @@ export function DonutChart({
 	};
 
 	return (
-		<View style={{
-			padding: 12,
-			borderWidth: 1,
-			borderColor: colors.border,
-			backgroundColor: colors.white,
-			alignItems: "center",
-		}}>
-			<Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-				{/* Background circle (value2) */}
-				{percentage1 < 100 && (
+		<View
+			style={{
+				flexDirection: "row",
+				alignItems: "center",
+				justifyContent: "space-between",
+				width: "100%",
+				paddingVertical: 12,
+				paddingHorizontal: 24,
+			}}
+			wrap={false}
+		>
+			{/* Chart Section */}
+			<View style={{ position: "relative" }}>
+				<Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+					{/* Background Ring */}
 					<Path
-						d={createArc(angle1, 360, radius, innerRadius)}
-						fill={color2}
+						d={createArc(0, 359.9, radius, innerRadius)}
+						fill={colors.backgroundHeader}
 					/>
-				)}
-				{/* Foreground arc (value1) */}
-				{percentage1 > 0 && percentage1 < 100 && (
-					<Path
-						d={createArc(0, angle1, radius, innerRadius)}
-						fill={color1}
-					/>
-				)}
-				{/* Full circle if 100% */}
-				{percentage1 >= 100 && (
-					<>
-						<Circle cx={centerX} cy={centerY} r={radius} fill={color1} />
-						<Circle cx={centerX} cy={centerY} r={innerRadius} fill={colors.white} />
-					</>
-				)}
-				{/* Full empty circle if 0% */}
-				{percentage1 === 0 && (
-					<>
-						<Circle cx={centerX} cy={centerY} r={radius} fill={color2} />
-						<Circle cx={centerX} cy={centerY} r={innerRadius} fill={colors.white} />
-					</>
-				)}
-				{/* Center percentage text */}
-				<Text
-					x={centerX}
-					y={centerY + 4}
+					{/* Unused Segment */}
+					{percentage1 < 100 && (
+						<Path
+							d={createArc(angle1, 360, radius, innerRadius)}
+							fill={color2}
+						/>
+					)}
+					{/* Active Segment */}
+					{percentage1 > 0 && (
+						<Path d={createArc(0, angle1, radius, innerRadius)} fill={color1} />
+					)}
+				</Svg>
+			</View>
+
+			{/* Data Table Legend */}
+			<View style={{ flex: 1, marginLeft: 48 }}>
+				{/* Row 1 */}
+				<View
 					style={{
-						fontSize: 14,
-						fontWeight: "bold",
-						textAnchor: "middle",
+						flexDirection: "row",
+						justifyContent: "space-between",
+						alignItems: "center",
+						borderBottomWidth: 1,
+						borderBottomColor: colors.border,
+						paddingBottom: 8,
+						marginBottom: 12,
 					}}
-					fill={colors.text}
 				>
-					{percentage1.toFixed(0)}%
-				</Text>
-			</Svg>
-			{/* Legend */}
-			<View style={{ marginTop: 8 }}>
-				<View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>
-					<View style={{ width: 6, height: 6, backgroundColor: color1 }} />
-					<Text style={{ fontSize: 7, color: colors.textSecondary }}>
-						{label1}: {value1.toLocaleString()}
-					</Text>
+					<View style={{ flexDirection: "row", alignItems: "center" }}>
+						<View
+							style={{
+								width: 14,
+								height: 14,
+								backgroundColor: color1,
+								marginRight: 12,
+								borderRadius: 2,
+							}}
+						/>
+						<Text
+							style={{
+								fontSize: 10,
+								color: colors.textSecondary,
+								textTransform: "uppercase",
+								letterSpacing: 0.5,
+							}}
+						>
+							{label1}
+						</Text>
+					</View>
+					<View style={{ alignItems: "flex-end" }}>
+						<Text
+							style={{
+								fontSize: 14,
+								fontFamily: "Helvetica-Bold",
+								color: colors.textMain,
+							}}
+						>
+							{value1.toLocaleString()}
+						</Text>
+						<Text style={{ fontSize: 9, color: colors.textSecondary }}>
+							{percentage1.toFixed(1)}%
+						</Text>
+					</View>
 				</View>
-				<View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-					<View style={{ width: 6, height: 6, backgroundColor: color2 }} />
-					<Text style={{ fontSize: 7, color: colors.textSecondary }}>
-						{label2}: {value2.toLocaleString()}
-					</Text>
+
+				{/* Row 2 */}
+				<View
+					style={{
+						flexDirection: "row",
+						justifyContent: "space-between",
+						alignItems: "center",
+						borderBottomWidth: 1,
+						borderBottomColor: colors.border,
+						paddingBottom: 8,
+					}}
+				>
+					<View style={{ flexDirection: "row", alignItems: "center" }}>
+						<View
+							style={{
+								width: 14,
+								height: 14,
+								backgroundColor: color2,
+								marginRight: 12,
+								borderRadius: 2,
+							}}
+						/>
+						<Text
+							style={{
+								fontSize: 10,
+								color: colors.textSecondary,
+								textTransform: "uppercase",
+								letterSpacing: 0.5,
+							}}
+						>
+							{label2}
+						</Text>
+					</View>
+					<View style={{ alignItems: "flex-end" }}>
+						<Text
+							style={{
+								fontSize: 14,
+								fontFamily: "Helvetica-Bold",
+								color: colors.textMain,
+							}}
+						>
+							{value2.toLocaleString()}
+						</Text>
+						<Text style={{ fontSize: 9, color: colors.textSecondary }}>
+							{percentage2.toFixed(1)}%
+						</Text>
+					</View>
 				</View>
 			</View>
 		</View>
@@ -126,16 +206,14 @@ export function DonutChart({
 }
 
 /**
- * Horizontal Bar Chart Component
- * Shows daily/periodic data as horizontal bars
- * Designed to fit within A4 page width (515pt usable width with 48pt padding)
+ * Bar Chart - Clean Corporate
  */
 export function BarChart({
 	data,
 	title,
 	formatValue,
 	maxBars = 10,
-	barColor = colors.accent,
+	barColor = colors.brandSecondary,
 }: {
 	data: { date: string; value: number }[] | { period: string; value: number }[];
 	title?: string;
@@ -143,142 +221,76 @@ export function BarChart({
 	maxBars?: number;
 	barColor?: string;
 }) {
-	// Normalize data
 	const normalizedData = data.slice(0, maxBars).map((item) => ({
 		label: "period" in item ? item.period : item.date,
 		value: item.value,
 	}));
 
-	if (normalizedData.length === 0) {
-		return (
-			<View style={{ padding: 16, alignItems: "center" }}>
-				<Text style={{ fontSize: 9, color: colors.textMuted, fontStyle: "italic" }}>
-					No data available
-				</Text>
-			</View>
-		);
-	}
+	if (normalizedData.length === 0) return null;
 
 	const maxValue = Math.max(...normalizedData.map((d) => d.value), 1);
-	const barHeight = 14;
-	const barGap = 4;
+	const barHeight = 16;
+	const gap = 12;
 
 	return (
 		<View style={{ marginVertical: 8 }}>
-			{title && (
-				<Text style={{ fontSize: 9, fontWeight: "bold", color: colors.text, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>
-					{title}
-				</Text>
-			)}
+			{title && <Text style={styles.h3}>{title}</Text>}
+
 			{normalizedData.map((item, index) => {
 				const percentage = (item.value / maxValue) * 100;
+				const displayValue = formatValue
+					? formatValue(item.value)
+					: item.value.toLocaleString();
+
 				return (
-					<View
-						key={`bar-${index}`}
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							marginBottom: barGap,
-						}}
-					>
-						{/* Label - fixed width */}
-						<Text
-							style={{
-								width: 50,
-								fontSize: 7,
-								color: colors.textSecondary,
-								textAlign: "right",
-								paddingRight: 6,
-							}}
-						>
-							{formatDateLabel(item.label)}
-						</Text>
-						{/* Bar container - use percentage width */}
+					<View key={`bar-${index}`} style={{ marginBottom: gap }}>
 						<View
 							style={{
-								flex: 1,
-								height: barHeight,
-								backgroundColor: colors.borderLight,
 								flexDirection: "row",
+								justifyContent: "space-between",
+								marginBottom: 4,
 							}}
 						>
+							<Text style={{ fontSize: 9, color: colors.textSecondary }}>
+								{formatDateLabel(item.label)}
+							</Text>
+							<Text
+								style={{
+									fontSize: 9,
+									fontFamily: "Helvetica-Bold",
+									color: colors.textMain,
+								}}
+							>
+								{displayValue}
+							</Text>
+						</View>
+
+						{/* Track */}
+						<View
+							style={{
+								height: barHeight,
+								width: "100%",
+								backgroundColor: colors.background,
+							}}
+						>
+							{/* Fill */}
 							<View
 								style={{
 									width: `${Math.max(percentage, 1)}%`,
-									height: barHeight,
+									height: "100%",
 									backgroundColor: barColor,
 								}}
 							/>
 						</View>
-						{/* Value - fixed width */}
-						<Text
-							style={{
-								width: 60,
-								fontSize: 8,
-								fontWeight: "bold",
-								color: colors.text,
-								textAlign: "right",
-								paddingLeft: 6,
-							}}
-						>
-							{formatValue ? formatValue(item.value) : item.value.toLocaleString()}
-						</Text>
 					</View>
 				);
 			})}
-			{data.length > maxBars && (
-				<Text style={{ fontSize: 7, color: colors.textMuted, marginTop: 4, fontStyle: "italic" }}>
-					Showing top {maxBars} of {data.length} entries
-				</Text>
-			)}
 		</View>
 	);
 }
 
 /**
- * Mini Sparkline Bar Chart (for inline display)
- */
-export function SparklineBar({
-	data,
-	width = 200,
-	height = 40,
-	barColor = colors.accent,
-}: {
-	data: number[];
-	width?: number;
-	height?: number;
-	barColor?: string;
-}) {
-	if (data.length === 0) return null;
-
-	const maxValue = Math.max(...data, 1);
-	const barWidth = Math.max(4, (width - data.length * 2) / data.length);
-	const gap = 2;
-
-	return (
-		<Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-			{data.slice(0, 20).map((value, index) => {
-				const barHeight = (value / maxValue) * (height - 4);
-				const x = index * (barWidth + gap);
-				const y = height - barHeight - 2;
-				return (
-					<Rect
-						key={`spark-${index}`}
-						x={x}
-						y={y}
-						width={barWidth}
-						height={barHeight}
-						fill={barColor}
-					/>
-				);
-			})}
-		</Svg>
-	);
-}
-
-/**
- * Distribution Summary Component
- * Shows a visual breakdown with percentage bars
+ * Distribution Summary
  */
 export function DistributionSummary({
 	items,
@@ -290,28 +302,46 @@ export function DistributionSummary({
 	const total = items.reduce((sum, item) => sum + item.value, 0);
 
 	return (
-		<View style={{ marginVertical: 12 }}>
-			{title && (
-				<Text style={{ fontSize: 10, fontWeight: "bold", color: colors.text, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
-					{title}
-				</Text>
-			)}
+		<View style={{ marginVertical: 8 }}>
+			{title && <Text style={styles.h3}>{title}</Text>}
 			{items.map((item, index) => {
 				const percentage = total > 0 ? (item.value / total) * 100 : 0;
 				return (
-					<View key={`dist-${index}`} style={{ marginBottom: 8 }}>
-						<View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-							<Text style={{ fontSize: 9, color: colors.text }}>{item.label}</Text>
-							<Text style={{ fontSize: 9, color: colors.textSecondary }}>
-								{item.value.toLocaleString()} ({percentage.toFixed(1)}%)
+					<View key={`dist-${index}`} style={{ marginBottom: 12 }} wrap={false}>
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								marginBottom: 4,
+							}}
+						>
+							<Text
+								style={{ fontSize: 9, color: colors.textMain, width: "70%" }}
+							>
+								{item.label}
+							</Text>
+							<Text
+								style={{
+									fontSize: 9,
+									fontFamily: "Helvetica-Bold",
+									color: colors.textMain,
+								}}
+							>
+								{percentage.toFixed(1)}%
 							</Text>
 						</View>
-						<View style={{ height: 6, backgroundColor: colors.borderLight }}>
+						<View
+							style={{
+								height: 6,
+								width: "100%",
+								backgroundColor: colors.background,
+							}}
+						>
 							<View
 								style={{
 									width: `${percentage}%`,
-									height: 6,
-									backgroundColor: item.color || colors.accent,
+									height: "100%",
+									backgroundColor: item.color || colors.brandPrimary,
 								}}
 							/>
 						</View>
@@ -322,9 +352,6 @@ export function DistributionSummary({
 	);
 }
 
-/**
- * Helper to format date labels for charts
- */
 function formatDateLabel(dateStr: string): string {
 	try {
 		const date = new Date(dateStr);

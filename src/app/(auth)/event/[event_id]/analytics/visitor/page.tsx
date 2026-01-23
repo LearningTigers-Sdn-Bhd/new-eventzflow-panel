@@ -117,7 +117,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 		);
 	}, [event, totalVisitors, scannedVisitors, unscannedVisitors, visitorsData, visitorScansData, event_id]);
 
-	const isLoading = statsLoading || eventLoading;
+	const isLoading = statsLoading || eventLoading || visitorsLoading || visitorScansLoading;
 
 	if (Number.isNaN(eventId)) {
 		return (
