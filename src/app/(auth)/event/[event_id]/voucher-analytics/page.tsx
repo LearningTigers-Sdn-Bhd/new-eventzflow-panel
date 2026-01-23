@@ -14,6 +14,10 @@ import {
 	YAxis,
 } from "recharts";
 import { StatsCard } from "@/components/admin-ui/analytic";
+import {
+	ExportPdfButton,
+	prepareVoucherReportData,
+} from "@/components/pdf-reports";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -116,6 +120,29 @@ export default function VoucherAnalyticsPage({
 		});
 	};
 
+	// Prepare report data for PDF export (always full report, ignores filter)
+	const reportData = useMemo(() => {
+		if (!event || !data) return null;
+		return prepareVoucherReportData(
+			{
+				id: event_id,
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalVouchersIssued: data.totalVouchersIssued ?? 0,
+				totalRedemptions: data.totalRedemptions ?? 0,
+				eventRedemptionRate: data.eventRedemptionRate ?? 0,
+				totalDiscountValue: data.totalDiscountValue ?? 0,
+				totalSales: data.totalSales ?? 0,
+				dailyRedemptionTrend: data.dailyRedemptionTrend ?? [],
+				topScannedVouchers: data.topScannedVouchers ?? [],
+				latestRedemptionTransactions: data.latestRedemptionTransactions ?? [],
+			},
+		);
+	}, [event, data, event_id]);
+
 	if (Number.isNaN(eventId)) {
 		return (
 			<div className="flex h-64 items-center justify-center">
@@ -192,16 +219,22 @@ export default function VoucherAnalyticsPage({
 				<Card className="rounded-none border-dashed lg:col-span-2">
 					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle>Redemption Trend</CardTitle>
-						{event && (
-						<EventDateFilter
-							eventStartDate={event.start_date}
-							eventEndDate={event.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
-							hideAllTime
-							hidePreEvent
-						/>
-					)}
+						<div className="flex items-center gap-2">
+							{event && (
+							<EventDateFilter
+								eventStartDate={event.start_date}
+								eventEndDate={event.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+								hideAllTime
+								hidePreEvent
+							/>
+						)}
+							<ExportPdfButton
+								data={reportData}
+								disabled={isLoading}
+							/>
+						</div>
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (

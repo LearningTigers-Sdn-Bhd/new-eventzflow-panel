@@ -2,9 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
+import {
+	ExportPdfButton,
+	prepareTicketReportData,
+} from "@/components/pdf-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	EventDateFilter,
@@ -48,6 +52,30 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 	});
 
 	const isLoading = eventLoading || analyticsLoading;
+
+	// Prepare report data for PDF export (always full report, ignores filter)
+	const reportData = useMemo(() => {
+		if (!event || !data) return null;
+		return prepareTicketReportData(
+			{
+				id: event_id,
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalTickets: data.totalTickets ?? 0,
+				scannedTickets: data.scannedTickets ?? 0,
+				unscannedTickets: data.unscannedTickets ?? 0,
+				totalRevenue: data.totalRevenue ?? 0,
+			},
+			{
+				registrations: data.registrationData,
+				scans: data.scanData,
+				revenue: data.revenueData,
+			},
+		);
+	}, [event, data, event_id]);
 
 	const formatCurrency = (amount?: number) => {
 		if (!amount) return "$0";
@@ -125,14 +153,20 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 			<div className="mb-12 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					{event && (
-						<EventDateFilter
-							eventStartDate={event.start_date}
-							eventEndDate={event.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
+					<div className="flex items-center gap-2">
+						{event && (
+							<EventDateFilter
+								eventStartDate={event.start_date}
+								eventEndDate={event.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={reportData}
+							disabled={isLoading}
 						/>
-					)}
+					</div>
 				</div>
 
 				<AnalyticsGraph

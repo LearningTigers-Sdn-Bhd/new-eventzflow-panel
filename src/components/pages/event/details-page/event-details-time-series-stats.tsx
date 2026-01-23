@@ -5,6 +5,11 @@ import { DollarSign, QrCode, Ticket, Users } from "lucide-react";
 import { useState } from "react";
 import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 import {
+	ExportPdfButton,
+	prepareTicketReportData,
+	prepareVisitorReportData,
+} from "@/components/pdf-reports";
+import {
 	EventDateFilter,
 	getAnalyticsParamsFromSelection,
 	type EventDateSelection,
@@ -82,6 +87,48 @@ export function EventDetailsTimeSeriesStats({
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
 
+	// Prepare PDF report data based on event type
+	const pdfReportData = event
+		? isTicketEvent
+			? prepareTicketReportData(
+					{
+						id: eventId,
+						name: event.title,
+						start_date: event.start_date,
+						end_date: event.end_date,
+					},
+					{
+						totalTickets: ticketAnalytics?.totalTickets ?? 0,
+						scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
+						unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
+						totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+					},
+					{
+						registrations: ticketAnalytics?.registrationData,
+						scans: ticketAnalytics?.scanData,
+						revenue: ticketAnalytics?.revenueData,
+					},
+				)
+			: prepareVisitorReportData(
+					{
+						id: eventId,
+						name: event.title,
+						start_date: event.start_date,
+						end_date: event.end_date,
+					},
+					{
+						totalVisitors: visitorsData?.total ?? 0,
+						scannedVisitors: visitorScansData?.total ?? 0,
+						unscannedVisitors:
+							(visitorsData?.total ?? 0) - (visitorScansData?.total ?? 0),
+					},
+					{
+						registrations: transformData(visitorsData?.data),
+						scans: transformData(visitorScansData?.data),
+					},
+				)
+		: null;
+
 	const isLoading = eventLoading || (isTicketEvent
 		? ticketLoading
 		: visitorsLoading || visitorScansLoading);
@@ -90,14 +137,21 @@ export function EventDetailsTimeSeriesStats({
 		<div className="mb-8 space-y-4 border-y border-dashed">
 			<div className="flex items-center justify-between px-4 pt-4">
 				<h3 className="font-medium text-sm">Analytics Trends</h3>
-				{event && (
-					<EventDateFilter
-						eventStartDate={event.start_date}
-						eventEndDate={event.end_date}
-						value={dateSelection}
-						onChange={setDateSelection}
+				<div className="flex items-center gap-2">
+					{event && (
+						<EventDateFilter
+							eventStartDate={event.start_date}
+							eventEndDate={event.end_date}
+							value={dateSelection}
+							onChange={setDateSelection}
+						/>
+					)}
+					<ExportPdfButton
+						data={pdfReportData}
+						size="sm"
+						variant="outline"
 					/>
-				)}
+				</div>
 			</div>
 			{isTicketEvent ? (
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

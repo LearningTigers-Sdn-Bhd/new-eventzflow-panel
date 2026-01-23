@@ -48,6 +48,11 @@ import { getTimeSeries } from "@/lib/api/event/analytics";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
+import {
+	ExportPdfButton,
+	prepareTicketReportData,
+	prepareVisitorReportData,
+} from "@/components/pdf-reports";
 
 interface EventAnalyticsProps {
 	eventId: string;
@@ -220,6 +225,52 @@ export function EventAnalytics({
 			currency: "MYR",
 		}).format(amount);
 	};
+
+	// Prepare PDF report data based on event type
+	const transformData = (data?: { period: string; value: number }[]) =>
+		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
+
+	const pdfReportData = eventDetails
+		? isTicketEvent
+			? prepareTicketReportData(
+					{
+						id: eventId,
+						name: eventName,
+						start_date: eventDetails.start_date,
+						end_date: eventDetails.end_date,
+					},
+					{
+						totalTickets: ticketAnalytics?.totalTickets ?? 0,
+						scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
+						unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
+						totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+					},
+					{
+						registrations: ticketAnalytics?.registrationData,
+						scans: ticketAnalytics?.scanData,
+						revenue: ticketAnalytics?.revenueData,
+					},
+				)
+			: prepareVisitorReportData(
+					{
+						id: eventId,
+						name: eventName,
+						start_date: eventDetails.start_date,
+						end_date: eventDetails.end_date,
+					},
+					{
+						totalVisitors: mallData?.shoppers_registered_today ?? 0,
+						scannedVisitors: mallData?.voucher_redemptions ?? 0,
+						unscannedVisitors:
+							(mallData?.shoppers_registered_today ?? 0) -
+							(mallData?.voucher_redemptions ?? 0),
+					},
+					{
+						registrations: transformData(visitorsData?.data),
+						scans: transformData(visitorScansData?.data),
+					},
+				)
+		: null;
 
 	// Render content sections
 	const renderKeyMetrics = () => (
@@ -634,6 +685,11 @@ export function EventAnalytics({
 						</IconHeading>
 					</div>
 					<div className="flex w-full flex-col items-center gap-2 lg:flex-row lg:justify-end">
+						<ExportPdfButton
+							data={pdfReportData}
+							className="w-full py-6 md:py-4 lg:w-auto"
+							variant="secondary"
+						/>
 						{isTicketEvent ? (
 							<>
 								<Button

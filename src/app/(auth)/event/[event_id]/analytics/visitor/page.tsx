@@ -2,8 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QrCode, UserCheck, UserMinus, Users } from "lucide-react";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { StatsCard, TimeSeriesChart } from "@/components/admin-ui/analytic";
+import {
+	ExportPdfButton,
+	prepareVisitorReportData,
+} from "@/components/pdf-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	EventDateFilter,
@@ -91,6 +95,30 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
 
+	// Prepare report data for PDF export (always full report, ignores filter)
+	const reportData = useMemo(() => {
+		if (!event || !totalVisitors || !scannedVisitors || !unscannedVisitors) return null;
+		return prepareVisitorReportData(
+			{
+				id: event_id,
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalVisitors: totalVisitors.totalVisitors ?? 0,
+				scannedVisitors: scannedVisitors.totalScannedVisitors ?? 0,
+				unscannedVisitors: unscannedVisitors.totalUnscannedVisitors ?? 0,
+			},
+			{
+				registrations: transformData(visitorsData?.data),
+				scans: transformData(visitorScansData?.data),
+			},
+		);
+	}, [event, totalVisitors, scannedVisitors, unscannedVisitors, visitorsData, visitorScansData, event_id]);
+
+	const isLoading = statsLoading || eventLoading;
+
 	if (Number.isNaN(eventId)) {
 		return (
 			<div className="flex h-64 items-center justify-center">
@@ -149,14 +177,20 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 			<div className="mb-12 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					{event && (
-						<EventDateFilter
-							eventStartDate={event.start_date}
-							eventEndDate={event.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
+					<div className="flex items-center gap-2">
+						{event && (
+							<EventDateFilter
+								eventStartDate={event.start_date}
+								eventEndDate={event.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={reportData}
+							disabled={isLoading}
 						/>
-					)}
+					</div>
 				</div>
 
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
