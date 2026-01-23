@@ -40,6 +40,7 @@ export async function getTimeSeries(
 		const params = new URLSearchParams();
 		params.set("metric", validated.metric);
 		if (validated.groupBy) params.set("group_by", validated.groupBy);
+		if (validated.dateMode) params.set("date_mode", validated.dateMode);
 		if (validated.startDate) params.set("start_date", validated.startDate);
 		if (validated.endDate) params.set("end_date", validated.endDate);
 

@@ -2,21 +2,25 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QrCode, UserCheck, UserMinus, Users } from "lucide-react";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { StatsCard, TimeSeriesChart } from "@/components/admin-ui/analytic";
+import {
+	ExportPdfButton,
+	prepareVisitorReportData,
+} from "@/components/pdf-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import {
 	getTimeSeries,
 	getTotalScannedVisitors,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
 } from "@/lib/api/event/analytics";
+import { getEventById } from "@/lib/api/event";
 
 interface VisitorAnalyticsPageProps {
 	params: Promise<{
@@ -27,10 +31,17 @@ interface VisitorAnalyticsPageProps {
 export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "all_time",
+	});
 
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	// Fetch event to get start/end dates
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(event_id),
+	});
+
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Fetch visitor stats
 	const { data: totalVisitors, isLoading: totalLoading } = useQuery({
@@ -52,33 +63,61 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 
 	// Fetch visitor registrations time series
 	const { data: visitorsData, isLoading: visitorsLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", "visitors", timeRange],
+		queryKey: ["event", eventId, "analytics", "visitors", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId,
 				metric: "visitors",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
+		enabled: !!event,
 	});
 
 	// Fetch visitor scans time series
 	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", "visitor_scans", timeRange],
+		queryKey: ["event", eventId, "analytics", "visitor_scans", dateSelection],
 		queryFn: () =>
 			getTimeSeries({
 				eventId,
 				metric: "visitor_scans",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
+		enabled: !!event,
 	});
 
 	// Transform visitor data for charts
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
+
+	// Prepare report data for PDF export (always full report, ignores filter)
+	const reportData = useMemo(() => {
+		if (!event || !totalVisitors || !scannedVisitors || !unscannedVisitors) return null;
+		return prepareVisitorReportData(
+			{
+				id: event_id,
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalVisitors: totalVisitors.totalVisitors ?? 0,
+				scannedVisitors: scannedVisitors.totalScannedVisitors ?? 0,
+				unscannedVisitors: unscannedVisitors.totalUnscannedVisitors ?? 0,
+			},
+			{
+				registrations: transformData(visitorsData?.data),
+				scans: transformData(visitorScansData?.data),
+			},
+		);
+	}, [event, totalVisitors, scannedVisitors, unscannedVisitors, visitorsData, visitorScansData, event_id]);
+
+	const isLoading = statsLoading || eventLoading || visitorsLoading || visitorScansLoading;
 
 	if (Number.isNaN(eventId)) {
 		return (
@@ -138,7 +177,20 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 			<div className="mb-12 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					<div className="flex items-center gap-2">
+						{event && (
+							<EventDateFilter
+								eventStartDate={event.start_date}
+								eventEndDate={event.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={reportData}
+							disabled={isLoading}
+						/>
+					</div>
 				</div>
 
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -146,7 +198,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 						title="Visitor Registrations"
 						description="Visitor registrations over time"
 						data={transformData(visitorsData?.data)}
-						isLoading={visitorsLoading}
+						isLoading={eventLoading || visitorsLoading}
 						color="var(--chart-1)"
 						icon={<Users className="h-4 w-4" />}
 					/>
@@ -154,7 +206,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 						title="Visitor Scans"
 						description="Visitor check-ins over time"
 						data={transformData(visitorScansData?.data)}
-						isLoading={visitorScansLoading}
+						isLoading={eventLoading || visitorScansLoading}
 						color="var(--chart-2)"
 						icon={<QrCode className="h-4 w-4" />}
 					/>

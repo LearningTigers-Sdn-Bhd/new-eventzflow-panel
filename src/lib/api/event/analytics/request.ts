@@ -5,6 +5,7 @@ export const getEventAnalyticsSchema = z.object({
 	id: z.number().int().positive(),
 	startDate: z.string().optional(),
 	endDate: z.string().optional(),
+	dateMode: z.enum(["all_time", "pre_event"]).optional(),
 	groupBy: z.enum(["hour", "day", "week", "month"]).optional(),
 });
 
@@ -22,6 +23,7 @@ export const getTimeSeriesSchema = z.object({
 		"redemption_value",
 	]),
 	groupBy: z.enum(["hour", "day", "week", "month"]).optional(),
+	dateMode: z.enum(["all_time", "pre_event"]).optional(),
 	startDate: z.string().optional(),
 	endDate: z.string().optional(),
 });
@@ -31,3 +33,4 @@ export type GetEventAnalyticsRequest = z.infer<typeof getEventAnalyticsSchema>;
 export type GetTimeSeriesRequest = z.infer<typeof getTimeSeriesSchema>;
 export type TimeSeriesMetric = GetTimeSeriesRequest["metric"];
 export type TimeSeriesGroupBy = NonNullable<GetTimeSeriesRequest["groupBy"]>;
+export type DateMode = NonNullable<GetTimeSeriesRequest["dateMode"]>;
