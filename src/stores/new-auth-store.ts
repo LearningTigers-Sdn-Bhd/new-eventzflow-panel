@@ -31,13 +31,16 @@ interface UserSessionState {
 	isTokenExpiringSoon: () => boolean;
 }
 
-const userSessionStoreSlice: StateCreator<UserSessionState> = (set, get) => ({
+const userSessionStoreSlice: StateCreator<
+	UserSessionState,
+	[["zustand/persist", unknown]]
+> = (set, get) => ({
 	user: null,
 	sessionCredentials: null,
 	setUser: (user: User | null) => set({ user }),
 	setSessionCredentials: (sessionCredentials: SessionCredentials) =>
 		set({ sessionCredentials }),
-	removeSessionCredentials: () => set({ sessionCredentials: null }),
+	removeSessionCredentials: () => set({ sessionCredentials: null, user: null }),
 	isTokenExpired: () => {
 		const credentials = get().sessionCredentials;
 		if (!credentials) return true;
@@ -51,8 +54,19 @@ const userSessionStoreSlice: StateCreator<UserSessionState> = (set, get) => ({
 	},
 });
 
-// Memory-only store for session data (security best practice)
-export const useUserSessionStore = create(userSessionStoreSlice);
+// Persisted session store - shares access token across tabs
+// Note: Refresh token remains in HttpOnly cookie (secure)
+// Access token is short-lived (15 min) so localStorage is acceptable
+export const useUserSessionStore = create(
+	persist<UserSessionState>(userSessionStoreSlice, {
+		name: "user-session",
+		partialize: (state) =>
+			({
+				user: state.user,
+				sessionCredentials: state.sessionCredentials,
+			}) as UserSessionState,
+	}),
+);
 
 // Separate persisted store for non-sensitive user preferences
 interface UserPreferences {

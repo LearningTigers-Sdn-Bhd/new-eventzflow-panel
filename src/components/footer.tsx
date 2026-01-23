@@ -107,7 +107,7 @@ const FooterNew: React.FC = () => {
 							<span style={{ color: "#23c460" }}>Flow</span>
 						</div>
 						<p className="mb-6 text-white/40 text-xs tracking-wide">
-							by Sales Chatalyst
+							Smart Event Management
 						</p>
 						<div className="mb-6 h-px w-50 bg-white/20" />
 
@@ -184,7 +184,7 @@ const FooterNew: React.FC = () => {
 						</p>
 						<div className="hidden h-4 w-px bg-white/20 sm:block" />
 						<p className="text-sm text-white/40 tracking-wide">
-							BY SALES CHATALYST
+							BY JESSELTON PIXEL SDN. BHD.
 						</p>
 					</div>
 

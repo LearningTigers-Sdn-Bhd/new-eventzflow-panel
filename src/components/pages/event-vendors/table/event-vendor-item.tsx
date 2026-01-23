@@ -48,7 +48,7 @@ export function EventVendorItem({ vendor }: EventVendorItemProps) {
 		<Item variant="outline" className="w-full rounded-none">
 			<ItemContent className="flex flex-col gap-3">
 				<ItemTitle className="flex items-center justify-between">
-					<span className="font-bold">{vendor.vendor.full_name}</span>
+					<span className="truncate font-bold">{vendor.vendor.full_name}</span>
 				</ItemTitle>
 				<div className="flex items-center gap-2">
 					<Badge

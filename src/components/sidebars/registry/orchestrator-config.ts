@@ -9,6 +9,7 @@ import type {
  */
 export const noSidebarRoutes: NoSidebarRoute[] = [
 	{ route: "/verify-email", type: "start" },
+	{ route: "/help", type: "start" },
 	{ route: "lucky-draw/session", type: "include" },
 	{ route: "prize-roulette/session", type: "include" },
 	{ route: "review-submit", type: "include" },

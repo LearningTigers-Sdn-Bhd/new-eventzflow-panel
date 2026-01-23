@@ -34,21 +34,30 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
 import { getEventById } from "@/lib/api/event";
 import { getMallLiveFeed } from "@/lib/api/event/analytics";
-import { getTimeSeries } from "@/lib/api/event/analytics";
+import {
+	getTimeSeries,
+	getTotalScannedVisitors,
+	getTotalUnscannedVisitors,
+	getTotalVisitors,
+} from "@/lib/api/event/analytics";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
 import { cn } from "@/lib/utils";
 import { useUserSessionStore } from "@/stores/new-auth-store";
+import {
+	ExportPdfButton,
+	prepareTicketReportData,
+	prepareVisitorReportData,
+} from "@/components/pdf-reports";
 
 interface EventAnalyticsProps {
 	eventId: string;
@@ -66,11 +75,11 @@ export function EventAnalytics({
 	const router = useRouter();
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "all_time",
+	});
 
-	// Get date range and grouping based on selected preset
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	// Get user role to determine Live Feed visibility (must be before any early returns)
 	const user = useUserSessionStore((state) => state.user);
@@ -91,12 +100,13 @@ export function EventAnalytics({
 		isLoading: analyticsLoading,
 		error: analyticsError,
 	} = useQuery({
-		queryKey: ["event-analytics", eventId, timeRange],
+		queryKey: ["event-analytics", eventId, dateSelection],
 		queryFn: () =>
 			getEventAnalytics(eventId, {
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
-				groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+				dateMode: analyticsParams.dateMode,
+				groupBy: analyticsParams.groupBy,
 			}),
 		initialData,
 		enabled: isTicketEvent,
@@ -123,6 +133,25 @@ export function EventAnalytics({
 		enabled: !isTicketEvent && !eventLoading,
 	});
 
+	// Fetch visitor stats (for PDF export)
+	const { data: totalVisitorsData, isLoading: totalVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "total_visitors"],
+		queryFn: () => getTotalVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
+	const { data: scannedVisitorsData, isLoading: scannedVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "scanned_visitors"],
+		queryFn: () => getTotalScannedVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
+	const { data: unscannedVisitorsData, isLoading: unscannedVisitorsLoading } = useQuery({
+		queryKey: ["event", Number.parseInt(eventId, 10), "unscanned_visitors"],
+		queryFn: () => getTotalUnscannedVisitors({ id: Number.parseInt(eventId, 10) }),
+		enabled: !isTicketEvent && !eventLoading,
+	});
+
 	// Fetch visitor registrations time series
 	const { data: visitorsData, isLoading: visitorsTimeSeriesLoading } =
 		useQuery({
@@ -131,15 +160,16 @@ export function EventAnalytics({
 				Number.parseInt(eventId, 10),
 				"analytics",
 				"visitors",
-				timeRange,
+				dateSelection,
 			],
 			queryFn: () =>
 				getTimeSeries({
 					eventId: Number.parseInt(eventId, 10),
 					metric: "visitors",
-					groupBy,
-					startDate: dateRange?.startDate,
-					endDate: dateRange?.endDate,
+					groupBy: analyticsParams.groupBy,
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
 				}),
 			enabled: !isTicketEvent && !eventLoading,
 		});
@@ -151,15 +181,16 @@ export function EventAnalytics({
 			Number.parseInt(eventId, 10),
 			"analytics",
 			"visitor_scans",
-			timeRange,
+			dateSelection,
 		],
 		queryFn: () =>
 			getTimeSeries({
 				eventId: Number.parseInt(eventId, 10),
 				metric: "visitor_scans",
-				groupBy,
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
+				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
 			}),
 		enabled: !isTicketEvent && !eventLoading,
 	});
@@ -168,7 +199,7 @@ export function EventAnalytics({
 		eventLoading ||
 		(isTicketEvent
 			? analyticsLoading
-			: mallLoading || voucherLoading || visitorsTimeSeriesLoading || visitorScansLoading);
+			: mallLoading || voucherLoading || visitorsTimeSeriesLoading || visitorScansLoading || totalVisitorsLoading || scannedVisitorsLoading || unscannedVisitorsLoading);
 	const error = isTicketEvent ? analyticsError : mallError;
 
 	if (isLoading) {
@@ -218,6 +249,50 @@ export function EventAnalytics({
 			currency: "MYR",
 		}).format(amount);
 	};
+
+	// Prepare PDF report data based on event type
+	const transformData = (data?: { period: string; value: number }[]) =>
+		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
+
+	const pdfReportData = eventDetails
+		? isTicketEvent
+			? prepareTicketReportData(
+					{
+						id: eventId,
+						name: eventName,
+						start_date: eventDetails.start_date,
+						end_date: eventDetails.end_date,
+					},
+					{
+						totalTickets: ticketAnalytics?.totalTickets ?? 0,
+						scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
+						unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
+						totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+					},
+					{
+						registrations: ticketAnalytics?.registrationData,
+						scans: ticketAnalytics?.scanData,
+						revenue: ticketAnalytics?.revenueData,
+					},
+				)
+			: prepareVisitorReportData(
+					{
+						id: eventId,
+						name: eventName,
+						start_date: eventDetails.start_date,
+						end_date: eventDetails.end_date,
+					},
+					{
+						totalVisitors: totalVisitorsData?.totalVisitors ?? 0,
+						scannedVisitors: scannedVisitorsData?.totalScannedVisitors ?? 0,
+						unscannedVisitors: unscannedVisitorsData?.totalUnscannedVisitors ?? 0,
+					},
+					{
+						registrations: transformData(visitorsData?.data),
+						scans: transformData(visitorScansData?.data),
+					},
+				)
+		: null;
 
 	// Render content sections
 	const renderKeyMetrics = () => (
@@ -278,7 +353,22 @@ export function EventAnalytics({
 				<div className="mb-8 space-y-4 border-y border-dashed">
 					<div className="flex items-center justify-between px-4 pt-4">
 						<h3 className="font-medium text-sm">Analytics Trends</h3>
-						<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+						<div className="flex items-center gap-2">
+							{eventDetails && (
+								<EventDateFilter
+									eventStartDate={eventDetails.start_date}
+									eventEndDate={eventDetails.end_date}
+									value={dateSelection}
+									onChange={setDateSelection}
+								/>
+							)}
+							<ExportPdfButton
+								data={pdfReportData}
+								variant="outline"
+								size="sm"
+								disabled={isLoading}
+							/>
+						</div>
 					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 						<TimeSeriesChart
@@ -318,7 +408,22 @@ export function EventAnalytics({
 			<div className="mb-8 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					<div className="flex items-center gap-2">
+						{eventDetails && (
+							<EventDateFilter
+								eventStartDate={eventDetails.start_date}
+								eventEndDate={eventDetails.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={pdfReportData}
+							variant="outline"
+							size="sm"
+							disabled={isLoading}
+						/>
+					</div>
 				</div>
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<TimeSeriesChart

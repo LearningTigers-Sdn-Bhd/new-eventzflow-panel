@@ -87,6 +87,7 @@ export async function getEventAnalytics(
 	options?: {
 		startDate?: string;
 		endDate?: string;
+		dateMode?: "all_time" | "pre_event";
 		groupBy?: "hour" | "day" | "week" | "month";
 	},
 ): Promise<EventAnalytics> {
@@ -97,6 +98,7 @@ export async function getEventAnalytics(
 		const params = new URLSearchParams();
 		params.set("metric", metric);
 		if (options?.groupBy) params.set("group_by", options.groupBy);
+		if (options?.dateMode) params.set("date_mode", options.dateMode);
 		if (options?.startDate) params.set("start_date", options.startDate);
 		if (options?.endDate) params.set("end_date", options.endDate);
 		return `v1/events/${eventIdNum}/metrics/time_series?${params.toString()}`;

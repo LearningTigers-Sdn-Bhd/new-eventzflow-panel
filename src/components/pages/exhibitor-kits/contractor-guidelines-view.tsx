@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, FileText } from "lucide-react";
+import { ExternalLink, FileText, Package } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
@@ -109,10 +109,23 @@ export function ContractorGuidelinesView({
 			)}
 
 			{profile?.standard_package_info && (
-				<div className="max-h-180 overflow-y-auto border bg-background/60 p-6">
-					<pre className="whitespace-pre-wrap font-sans text-base font-medium text-muted-foreground">
-						{profile.standard_package_info}
-					</pre>
+				<div className="border bg-background/60 p-6">
+					<div className="flex items-start gap-4 mb-4">
+						<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-muted">
+							<Package className="h-8 w-8 text-muted-foreground" />
+						</div>
+						<div className="space-y-1">
+							<p className="font-medium">Standard Package</p>
+							<p className="text-muted-foreground text-sm">
+								Included items and services in the standard package
+							</p>
+						</div>
+					</div>
+					<div className="max-h-180 overflow-y-auto border border-dashed bg-muted/30 p-4">
+						<pre className="whitespace-pre-wrap break-words font-sans text-sm text-foreground">
+							{profile.standard_package_info}
+						</pre>
+					</div>
 				</div>
 			)}
 		</div>

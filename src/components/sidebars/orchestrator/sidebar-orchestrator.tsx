@@ -39,8 +39,13 @@ function FeatureSidebarWrapper({
 	const contextData = featureConfig.loader?.useContext?.();
 
 	// Extract permissions and data from context
+	// Each feature sidebar may use different key names for their data
 	const permissions = contextData?.permissions ?? contextData;
-	const data = contextData?.event ?? contextData?.data;
+	const data =
+		contextData?.currentEvent ?? // Event sidebar
+		contextData?.resource ?? // Resource sidebar
+		contextData?.event ??
+		contextData?.data;
 	const isLoading = contextData?.isLoading ?? false;
 
 	return (
@@ -79,11 +84,7 @@ function OrchestratorContent({ children }: OrchestratorContentProps) {
 
 	// Handle different layout states
 	if (layoutState === "no-sidebar") {
-		return (
-			<div className="mx-auto flex h-svh w-full max-w-7xl flex-col">
-				{children}
-			</div>
-		);
+		return <>{children}</>;
 	}
 
 	// Unified layout for single and double sidebar to ensure valid transitions

@@ -2,17 +2,21 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
+import {
+	ExportPdfButton,
+	prepareTicketReportData,
+} from "@/components/pdf-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	getDateRangeFromPreset,
-	getGroupByFromPreset,
-	TimeRangeFilter,
-	type TimeRangePreset,
-} from "@/components/ui/time-range-filter";
+	EventDateFilter,
+	getAnalyticsParamsFromSelection,
+	type EventDateSelection,
+} from "@/components/ui/event-date-filter";
 import { getEventAnalytics } from "@/lib/api/dashboard";
+import { getEventById } from "@/lib/api/event";
 
 interface TicketAnalyticsPageProps {
 	params: Promise<{
@@ -23,20 +27,55 @@ interface TicketAnalyticsPageProps {
 export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
-	const [timeRange, setTimeRange] = useState<TimeRangePreset>("last_7_days");
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "all_time",
+	});
 
-	const dateRange = getDateRangeFromPreset(timeRange);
-	const groupBy = getGroupByFromPreset(timeRange);
+	// Fetch event to get start/end dates
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(event_id),
+	});
 
-	const { data, isLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", timeRange],
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
+
+	const { data, isLoading: analyticsLoading } = useQuery({
+		queryKey: ["event", eventId, "analytics", dateSelection],
 		queryFn: () =>
 			getEventAnalytics(event_id, {
-				startDate: dateRange?.startDate,
-				endDate: dateRange?.endDate,
-				groupBy,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+				dateMode: analyticsParams.dateMode,
+				groupBy: analyticsParams.groupBy,
 			}),
+		enabled: !!event,
 	});
+
+	const isLoading = eventLoading || analyticsLoading;
+
+	// Prepare report data for PDF export (always full report, ignores filter)
+	const reportData = useMemo(() => {
+		if (!event || !data) return null;
+		return prepareTicketReportData(
+			{
+				id: event_id,
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalTickets: data.totalTickets ?? 0,
+				scannedTickets: data.scannedTickets ?? 0,
+				unscannedTickets: data.unscannedTickets ?? 0,
+				totalRevenue: data.totalRevenue ?? 0,
+			},
+			{
+				registrations: data.registrationData,
+				scans: data.scanData,
+				revenue: data.revenueData,
+			},
+		);
+	}, [event, data, event_id]);
 
 	const formatCurrency = (amount?: number) => {
 		if (!amount) return "$0";
@@ -114,7 +153,20 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 			<div className="mb-12 space-y-4 border-y border-dashed">
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
-					<TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+					<div className="flex items-center gap-2">
+						{event && (
+							<EventDateFilter
+								eventStartDate={event.start_date}
+								eventEndDate={event.end_date}
+								value={dateSelection}
+								onChange={setDateSelection}
+							/>
+						)}
+						<ExportPdfButton
+							data={reportData}
+							disabled={isLoading}
+						/>
+					</div>
 				</div>
 
 				<AnalyticsGraph
