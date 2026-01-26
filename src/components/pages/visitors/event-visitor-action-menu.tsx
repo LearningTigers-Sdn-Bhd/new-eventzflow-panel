@@ -26,17 +26,17 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 
 	// Only org_owner, organizer, and event_admin can edit/delete
 	const canEditDelete =
-		user?.role === "org_owner" ||
-		user?.role === "organizer" ||
-		isEventAdmin;
+		user?.role === "org_owner" || user?.role === "organizer" || isEventAdmin;
 
 	const openViewModal = () => {
 		openDialog({
 			component: ViewEventVisitorModal,
 			config: {
 				title: "View Visitor",
+				description: "View the visitor information.",
 				size: "2xl",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { visitor },
 		});

@@ -25,6 +25,7 @@ export function PendingTicketActionsMenu({
 				description: "Edit the pending ticket information.",
 				size: "full",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { ticket },
 		});
@@ -38,6 +39,7 @@ export function PendingTicketActionsMenu({
 				description: "View the pending ticket information.",
 				size: "2xl",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { ticket },
 		});

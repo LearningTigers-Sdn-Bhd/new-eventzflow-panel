@@ -53,8 +53,9 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			const fields = Object.entries(eventData.labels_data).map(
 				([key, labelNameValue]) => {
 					const currentLabelName = labelNameValue as string;
+					// Match by key, not display name
 					const existingLabel = ticket.customLabels?.find(
-						(label) => label.name === currentLabelName,
+						(label) => label.name === key,
 					);
 
 					return {

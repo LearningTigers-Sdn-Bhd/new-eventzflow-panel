@@ -127,15 +127,6 @@ export default function CustomLabelForm({
 			{} as Record<string, string>,
 		);
 
-		// OLD CODE - Using generic "Label 1", "Label 2", etc. as keys
-		// const labelsData = nonEmptyLabels.reduce(
-		// 	(acc, label, index) => {
-		// 		acc[`Label ${index + 1}`] = label.value.trim();
-		// 		return acc;
-		// 	},
-		// 	{} as Record<string, string>,
-		// );
-
 		// Update event with labels_data
 		await updateEventMutation.mutateAsync(labelsData);
 	};

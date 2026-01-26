@@ -198,8 +198,9 @@ export function generateColumns(
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {
+					// Match by key, not display name
 					const customLabel = row.customLabels?.find(
-						(l) => l.name === labelName,
+						(l) => l.name === key,
 					);
 					return customLabel?.value || "";
 				},
@@ -208,8 +209,9 @@ export function generateColumns(
 					<SortableHeader column={column} label={labelName} />
 				),
 				cell: ({ row }) => {
+					// Match by key, not display name
 					const customLabel = row.original.customLabels?.find(
-						(l) => l.name === labelName,
+						(l) => l.name === key,
 					);
 					const value = customLabel?.value || "";
 					return (
