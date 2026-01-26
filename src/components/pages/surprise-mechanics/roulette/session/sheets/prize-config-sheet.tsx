@@ -21,6 +21,7 @@ import {
 	deleteRoulettePrize,
 	deleteRouletteWinner,
 	getRoulettePrizes,
+	notifyRouletteWinner,
 	updateRoulettePrize,
 } from "@/lib/api/roulette";
 import type { RoulettePrize } from "@/lib/api/roulette/response";
@@ -47,6 +48,7 @@ export function PrizeConfigSheet({
 	const [newQuantity, setNewQuantity] = useState(1);
 	const [newImage, setNewImage] = useState<File | null>(null);
 	const [isAddPrizeCardOpen, setIsAddPrizeCardOpen] = useState(false);
+	const [notifyingWinnerIds, setNotifyingWinnerIds] = useState<Set<number>>(new Set());
 
 	const {
 		data: prizes,
@@ -136,6 +138,27 @@ export function PrizeConfigSheet({
 		},
 	});
 
+	const notifyWinnerMutation = useMutation({
+		mutationFn: (winnerId: number) =>
+			notifyRouletteWinner(eventId, sessionId, winnerId),
+		onMutate: (winnerId) => {
+			setNotifyingWinnerIds(prev => new Set(prev).add(winnerId));
+		},
+		onSuccess: () => {
+			toast.success("Notification sent successfully");
+		},
+		onError: (err: unknown) => {
+			toast.error(getErrorMessage(err) || "Failed to send notification");
+		},
+		onSettled: (_data, _error, winnerId) => {
+			setNotifyingWinnerIds(prev => {
+				const next = new Set(prev);
+				next.delete(winnerId);
+				return next;
+			});
+		},
+	});
+
 	const handleCreate = () => {
 		const validation = validatePrize(newName, newQuantity);
 		if (!validation.isValid) {
@@ -180,6 +203,10 @@ export function PrizeConfigSheet({
 		deleteWinnerMutation.mutate(winnerId);
 	};
 
+	const handleNotifyWinner = (winnerId: number) => {
+		notifyWinnerMutation.mutate(winnerId);
+	};
+
 	const renderPrizeCards = () => {
 		if (isLoading) {
 			return (
@@ -211,9 +238,11 @@ export function PrizeConfigSheet({
 								onUpdate={handleUpdate}
 								onDelete={handleDelete}
 								onDeleteWinner={handleDeleteWinner}
+								onNotifyWinner={handleNotifyWinner}
 								isUpdating={updateMutation.isPending}
 								isDeleting={deleteMutation.isPending}
 								isDeletingWinner={deleteWinnerMutation.isPending}
+								notifyingWinnerIds={notifyingWinnerIds}
 							/>
 						))}
 					</div>

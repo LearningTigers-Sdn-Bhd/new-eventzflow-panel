@@ -370,6 +370,30 @@ export async function clearWinner(
 }
 
 /**
+ * Notify Gift Winner
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/gifts/:gift_id/winners/:winner_id/notify
+ */
+export async function notifyGiftWinner(
+	eventId: string,
+	sessionId: number,
+	giftId: number,
+	winnerId: number,
+): Promise<void> {
+	try {
+		const response = await restClient.post<ApiResponse<unknown>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/gifts/${giftId}/winners/${winnerId}/notify`,
+		);
+
+		if (!response.success) {
+			throw new Error(response.message || "Failed to send notification");
+		}
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Get Participants
  * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/participants
  */
@@ -474,6 +498,29 @@ export async function removeInvalidParticipant(
 		await restClient.delete(
 			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants/${id}`,
 		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Notify Invalid Participant (Winner)
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/invalid_participants/:id/notify
+ */
+export async function notifyInvalidParticipant(
+	eventId: string,
+	sessionId: number,
+	id: number,
+): Promise<void> {
+	try {
+		const response = await restClient.post<ApiResponse<unknown>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants/${id}/notify`,
+		);
+
+		if (!response.success) {
+			throw new Error(response.message || "Failed to send notification");
+		}
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

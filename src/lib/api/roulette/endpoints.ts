@@ -408,6 +408,32 @@ export async function deleteRouletteWinner(
 }
 
 /**
+ * Notify Roulette Winner
+ * POST /v1/events/:event_id/roulette/sessions/:session_id/winners/:winner_id/notify
+ * Sends webhook notification for the winner
+ */
+export async function notifyRouletteWinner(
+	eventId: string,
+	sessionId: number,
+	winnerId: number,
+): Promise<RouletteWinner> {
+	try {
+		const response = await restClient.post<ApiResponse<RouletteWinner>>(
+			`v1/events/${eventId}/roulette/sessions/${sessionId}/winners/${winnerId}/notify`,
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(response.message || "Failed to send notification");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Get Roulette Participant
  * GET /v1/events/:event_id/roulette/sessions/:session_id/participants/:id
  * Fetches a ticket or visitor by public_id or id for roulette feature
