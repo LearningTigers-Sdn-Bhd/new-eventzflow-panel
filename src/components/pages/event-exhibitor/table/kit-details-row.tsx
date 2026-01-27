@@ -71,35 +71,39 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 
 	return (
 		<div className="border-t bg-muted/30 px-3 py-3">
-			<div className="grid gap-x-3 gap-y-3 text-sm md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid min-w-0 gap-x-3 gap-y-3 text-sm md:grid-cols-2 lg:grid-cols-3">
 				{/* Booth Information */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
 							Booth Information
 						</h4>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Booth Number</span>
-						<span className="text-muted-foreground">{kit.booth_number || "-"}</span>
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Booth Number</span>
+						<span className="break-words text-right text-muted-foreground">
+							{kit.booth_number || "-"}
+						</span>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Type</span>
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge
 							variant="outline"
-							className="h-5 rounded-none text-xs capitalize"
+							className="h-5 shrink-0 rounded-none text-xs capitalize"
 						>
 							{kit.booth_type?.replace("_", " ") || "-"}
 						</Badge>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Dimensions</span>
-						<span className="text-muted-foreground">{kit.booth_dimensions || "-"}</span>
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Dimensions</span>
+						<span className="break-words text-right text-muted-foreground">
+							{kit.booth_dimensions || "-"}
+						</span>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Side Walls</span>
-						<span className="text-muted-foreground text-xs">
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Side Walls</span>
+						<span className="break-words text-right text-muted-foreground text-xs">
 							{kit.side_wall_left_required && "Left "}
 							{kit.side_wall_right_required && "Right"}
 							{!kit.side_wall_left_required &&
@@ -107,9 +111,11 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 								"-"}
 						</span>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Fascia</span>
-						<span className="text-muted-foreground">{kit.name_on_fascia || "-"}</span>
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Fascia</span>
+						<span className="break-words text-right text-muted-foreground">
+							{kit.name_on_fascia || "-"}
+						</span>
 					</div>
 					{kit.fascia_upgrade_required && (
 						<Badge
@@ -122,7 +128,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Company & PIC */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -130,45 +136,47 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						</h4>
 					</div>
 					<div className="py-0.5">
-						<span className="mb-0.5 block font-medium text-xs">
-							Company
+						<span className="mb-0.5 block font-medium text-xs">Company</span>
+						<span className="block break-words text-muted-foreground text-xs">
+							{kit.company_name || "-"}
 						</span>
-						<span className="text-muted-foreground text-xs">{kit.company_name || "-"}</span>
 					</div>
 					<div className="py-0.5">
-						<span className="mb-0.5 block font-medium text-xs">
-							Address
+						<span className="mb-0.5 block font-medium text-xs">Address</span>
+						<span className="block break-words text-muted-foreground text-xs">
+							{kit.company_address || "-"}
 						</span>
-						<span className="text-muted-foreground text-xs">{kit.company_address || "-"}</span>
 					</div>
 					<div className="border-t pt-1.5">
 						<span className="mb-0.5 block font-medium text-xs">
 							Person In Charge
 						</span>
-						<p className="text-muted-foreground text-xs">{kit.pic_full_name || "-"}</p>
-						<p className="text-muted-foreground text-xs">
+						<p className="break-words text-muted-foreground text-xs">
+							{kit.pic_full_name || "-"}
+						</p>
+						<p className="break-words text-muted-foreground text-xs">
 							{kit.pic_contact_number || "-"}
 						</p>
-						<p className="text-muted-foreground text-xs">
+						<p className="break-words text-muted-foreground text-xs">
 							{kit.pic_email_address || "-"}
 						</p>
 					</div>
 				</div>
 
 				{/* Payment Information */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<CreditCard className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
 							Booth Rental Payment
 						</h4>
 					</div>
-					<div className="flex items-center justify-between py-0.5">
-						<span className="font-medium text-xs">Status</span>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Status</span>
 						<Badge
 							variant="outline"
 							className={cn(
-								"h-5 rounded-none font-bold text-xs capitalize",
+								"h-5 shrink-0 rounded-none font-bold text-xs capitalize",
 								kit.payment_status === "paid" &&
 									"border-green-500 text-green-500",
 								kit.payment_status === "unpaid" &&
@@ -182,9 +190,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							{kit.payment_status || "unpaid"}
 						</Badge>
 					</div>
-					<div className="flex justify-between py-0.5">
-						<span className="font-medium text-xs">Amount Paid</span>
-						<span className="text-muted-foreground text-xs">
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Amount Paid</span>
+						<span className="break-words text-right text-muted-foreground text-xs">
 							{kit.amount_paid
 								? `RM ${Number(kit.amount_paid).toFixed(2)}`
 								: "-"}
@@ -192,9 +200,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.payment_note && (
 						<div className="border-t pt-1.5">
-							<span className="mb-0.5 block font-medium text-xs">
-								Note
-							</span>
+							<span className="mb-0.5 block font-medium text-xs">Note</span>
 							<ExpandableText text={kit.payment_note} />
 						</div>
 					)}
@@ -209,7 +215,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Team Members */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center justify-between border-b pb-1.5">
 						<div className="flex items-center gap-1.5">
 							<Users className="size-3.5 text-primary" />
@@ -220,7 +226,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						{kit.team_member_limit && (
 							<span className="text-xs">
 								<span className="font-medium">Limit</span>{" "}
-								<span className="text-muted-foreground">{kit.team_member_limit}</span>
+								<span className="text-muted-foreground">
+									{kit.team_member_limit}
+								</span>
 							</span>
 						)}
 					</div>
@@ -309,7 +317,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Ordered Items */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Package className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -342,7 +350,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Ordered Services */}
-				<div className="space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Printer className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">

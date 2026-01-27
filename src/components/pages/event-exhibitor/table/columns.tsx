@@ -15,8 +15,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { cn } from "@/lib/utils";
 import { ExhibitorActionsMenu } from "./action-menu";
 
 export type ExhibitorMember = EventVendor;
@@ -27,7 +27,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		size: 50,
 		header: () => null,
 		cell: ({ row, table }) => {
-			const isExpanded = (table.options.meta as any)?.expandedRows?.[row.id] || false;
+			const isExpanded =
+				(table.options.meta as any)?.expandedRows?.[row.id] || false;
 			return (
 				<Button
 					variant="ghost"
@@ -347,7 +348,9 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 							<div className="flex items-center gap-1">
 								<span className="font-medium text-sm">{totalCount}</span>
 								{limit && (
-									<span className="text-muted-foreground text-xs">/ {limit}</span>
+									<span className="text-muted-foreground text-xs">
+										/ {limit}
+									</span>
 								)}
 							</div>
 							{excessCount > 0 && extraCharges && (
@@ -420,6 +423,9 @@ const actionsColumn: ColumnDef<ExhibitorMember> = {
 	id: "actions",
 	size: 80,
 	enableHiding: false,
+	meta: {
+		sticky: "right",
+	},
 	header: () => <div className="text-center">Actions</div>,
 	cell: ({ row }) => {
 		const exhibitor = row.original;

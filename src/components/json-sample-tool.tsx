@@ -1,32 +1,31 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import {
+	Check,
+	CheckSquare,
+	Copy,
+	FileJson,
+	Square,
+	Terminal,
+	UserCheck,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Field,
 	FieldGroup,
 	FieldLabel,
 	FieldTitle,
 } from "@/components/ui/field";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDialog } from "@/hooks/use-dialog";
-import { useUserSessionStore } from "@/stores/new-auth-store";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { getEventById } from "@/lib/api/event";
-import { toast } from "sonner";
-import {
-	Check,
-	Copy,
-	FileJson,
-	CheckSquare,
-	Square,
-	Terminal,
-	UserCheck,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
+import { useUserSessionStore } from "@/stores/new-auth-store";
 
 interface JsonSampleToolProps {
 	resourceName: string;
@@ -34,7 +33,11 @@ interface JsonSampleToolProps {
 	baseFields: string[];
 }
 
-export function JsonSampleTool({ resourceName, eventId, baseFields }: JsonSampleToolProps) {
+export function JsonSampleTool({
+	resourceName,
+	eventId,
+	baseFields,
+}: JsonSampleToolProps) {
 	const { openDialog } = useDialog();
 	const user = useUserSessionStore((state) => state.user);
 
@@ -52,7 +55,8 @@ export function JsonSampleTool({ resourceName, eventId, baseFields }: JsonSample
 			},
 			config: {
 				title: `${resourceName} Sample Data`,
-				description: "Customize and preview your sample data (JSON) in real-time.",
+				description:
+					"Customize and preview your sample data (JSON) in real-time.",
 				size: "5xl",
 				className: "rounded-none",
 			},
@@ -84,7 +88,11 @@ interface FieldOption {
 	key?: string;
 }
 
-function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps) {
+function JsonToolModal({
+	resourceName,
+	eventId,
+	baseFields,
+}: JsonToolModalProps) {
 	const { data: eventData, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
@@ -92,10 +100,13 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 
 	const baseOptions = useMemo<FieldOption[]>(() => {
 		return baseFields
-			.filter(f => f !== "custom_fields_data")
-			.map(f => ({
+			.filter((f) => f !== "custom_fields_data")
+			.map((f) => ({
 				id: f,
-				label: f.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+				label: f
+					.split("_")
+					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+					.join(" "),
 				isCustom: false,
 				key: undefined,
 			}));
@@ -111,37 +122,42 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 					id: `custom_${key}`,
 					label: (value as string) || key,
 					isCustom: true,
-					key: key
+					key: key,
 				});
 			});
 		} else {
-			// Dummy custom fields if none exist
 			options.push({
 				id: "custom_placeholder_1",
 				label: "Sample Custom Field 1",
 				isCustom: true,
-				key: "sample_field_1"
+				key: "sample_field_1",
 			});
 			options.push({
 				id: "custom_placeholder_2",
 				label: "Sample Custom Field 2",
 				isCustom: true,
-				key: "sample_field_2"
+				key: "sample_field_2",
 			});
 		}
 		return options;
 	}, [eventData]);
 
-	const allOptions = useMemo<FieldOption[]>(() => [...baseOptions, ...customOptions], [baseOptions, customOptions]);
+	const allOptions = useMemo<FieldOption[]>(
+		() => [...baseOptions, ...customOptions],
+		[baseOptions, customOptions],
+	);
 	const [selectedFieldIds, setSelectedFieldIds] = useState<string[]>([]);
 
 	useMemo(() => {
 		if (allOptions.length > 0 && selectedFieldIds.length === 0) {
-			setSelectedFieldIds(allOptions.map(o => o.id));
+			setSelectedFieldIds(allOptions.map((o) => o.id));
 		}
 	}, [allOptions]);
 
 	const [copied, setCopied] = useState(false);
+	const [method, setMethod] = useState<
+		"GET" | "POST" | "PATCH" | "PUT" | "DELETE"
+	>("POST");
 
 	const toggleField = (id: string) => {
 		setSelectedFieldIds((prev) =>
@@ -165,15 +181,16 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 			if (f.includes("status")) return 1;
 			if (f.includes("role")) return "attendee";
 			if (f.includes("type")) return 1;
-			if (f.includes("amount") || f.includes("price")) return 150.00;
-			if (f.includes("date") || f.includes("at")) return new Date().toISOString();
+			if (f.includes("amount") || f.includes("price")) return 150.0;
+			if (f.includes("date") || f.includes("at"))
+				return new Date().toISOString();
 			return "sample_value";
 		};
 
 		const result: Record<string, any> = {};
 		const customFields: Record<string, any> = {};
 
-		allOptions.forEach(option => {
+		allOptions.forEach((option) => {
 			if (selectedFieldIds.includes(option.id)) {
 				if (option.isCustom && option.key) {
 					customFields[option.key] = generateValue(option.label);
@@ -190,63 +207,86 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 		return JSON.stringify(result, null, 2);
 	}, [allOptions, selectedFieldIds]);
 
+	const curlCommand = useMemo(() => {
+		const baseUrl = "https://api.eventzflow.com/v1";
+		const endpoint = `/${resourceName.toLowerCase()}${method === "GET" || method === "DELETE" ? "?event_id=" + eventId : ""}`;
+
+		let curl = `curl -X ${method} "${baseUrl}${endpoint}" \\\n`;
+		curl += `  -H "Content-Type: application/json" \\\n`;
+		curl += `  -H "Authorization: Bearer YOUR_API_KEY"`;
+
+		if (
+			method !== "GET" &&
+			method !== "DELETE" &&
+			selectedFieldIds.length > 0
+		) {
+			curl += ` \\\n  -d '${sampleJson.replace(/'/g, "'\\''")}'`;
+		}
+
+		return curl;
+	}, [method, resourceName, eventId, sampleJson, selectedFieldIds]);
+
 	const copyToClipboard = () => {
-		navigator.clipboard.writeText(sampleJson);
+		navigator.clipboard.writeText(curlCommand);
 		setCopied(true);
-		toast.success("JSON copied to clipboard");
+		toast.success("cURL command copied to clipboard");
 		setTimeout(() => setCopied(false), 2000);
 	};
 
 	if (isLoadingEvent) {
-		return <div className="p-8 text-center text-muted-foreground italic">Loading event schema...</div>;
+		return (
+			<div className="p-8 text-center text-muted-foreground italic">
+				Loading event schema...
+			</div>
+		);
 	}
 
 	return (
-		<div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr] rounded-none bg-card p-4 sm:p-6">
+		<div className="grid h-[calc(100vh-200px)] min-h-[500px] grid-cols-1 gap-6 overflow-hidden rounded-none bg-card p-4 sm:p-6 lg:grid-cols-[360px_1fr]">
 			{/* Left Column: Fields */}
-			<div className="flex flex-col gap-4">
-					<div className="rounded-none border bg-background p-4">
-						<div className="flex items-start gap-3">
-							<div className="mt-0.5 rounded-none border bg-muted/40 p-2">
-								<UserCheck className="h-4 w-4" />
-							</div>
-							<div>
-								<p className="text-sm font-semibold">Choose fields</p>
-								<p className="text-xs text-muted-foreground">
-									Pick what to include in your sample JSON.
-								</p>
-							</div>
+			<div className="flex min-h-0 flex-col overflow-hidden">
+				<div className="flex h-full flex-col rounded-none border bg-background p-4">
+					<div className="flex items-start gap-3">
+						<div className="mt-0.5 rounded-none border bg-muted/40 p-2">
+							<UserCheck className="h-4 w-4" />
 						</div>
+						<div>
+							<p className="font-semibold text-sm">Choose fields</p>
+							<p className="text-muted-foreground text-xs">
+								Pick what to include in your sample JSON.
+							</p>
+						</div>
+					</div>
 
 					<div className="mt-4 flex items-center justify-between">
-						<span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+						<span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
 							Attributes
 						</span>
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-7 px-2 text-[10px] rounded-none"
+							className="h-7 rounded-none px-2 text-[10px]"
 							onClick={handleToggleAll}
 						>
 							{isAllSelected ? (
-								<CheckSquare className="h-3 w-3 mr-1" />
+								<CheckSquare className="mr-1 h-3 w-3" />
 							) : (
-								<Square className="h-3 w-3 mr-1" />
+								<Square className="mr-1 h-3 w-3" />
 							)}
 							{isAllSelected ? "Unselect All" : "Select All"}
 						</Button>
 					</div>
-					<ScrollArea className="mt-3 h-[320px] sm:h-[420px] lg:h-[470px]">
-						<FieldGroup className="pr-3 py-1 gap-2">
+					<ScrollArea className="mt-3 flex-1 overflow-hidden">
+						<FieldGroup className="gap-2 py-1 pr-3">
 							{baseOptions.map((option) => (
 								<Field
 									key={option.id}
 									orientation="horizontal"
 									className={cn(
-										"group cursor-pointer rounded-none border border-muted bg-muted/20 px-3 py-2.5 transition-colors hover:bg-primary/5 hover:border-primary/30",
+										"group cursor-pointer rounded-none border border-muted bg-muted/20 px-3 py-2.5 transition-colors hover:border-primary/30 hover:bg-primary/5",
 										selectedFieldIds.includes(option.id)
 											? "border-primary/40 bg-primary/5"
-											: ""
+											: "",
 									)}
 								>
 									<Checkbox
@@ -260,10 +300,10 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 										className="flex-1 cursor-pointer border-none bg-transparent p-0 hover:bg-transparent"
 									>
 										<div className="flex flex-col gap-1">
-											<FieldTitle className="text-sm font-semibold">
+											<FieldTitle className="font-semibold text-sm">
 												{option.label}
 											</FieldTitle>
-											<span className="text-[10px] font-mono text-muted-foreground">
+											<span className="font-mono text-[10px] text-muted-foreground">
 												{option.id}
 											</span>
 										</div>
@@ -275,10 +315,10 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 									key={option.id}
 									orientation="horizontal"
 									className={cn(
-										"group cursor-pointer rounded-none border border-muted bg-muted/20 px-3 py-2.5 transition-colors hover:bg-primary/5 hover:border-primary/30",
+										"group cursor-pointer rounded-none border border-muted bg-muted/20 px-3 py-2.5 transition-colors hover:border-primary/30 hover:bg-primary/5",
 										selectedFieldIds.includes(option.id)
 											? "border-primary/40 bg-primary/5"
-											: ""
+											: "",
 									)}
 								>
 									<Checkbox
@@ -293,14 +333,17 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 									>
 										<div className="flex flex-col gap-1">
 											<div className="flex items-center gap-2">
-												<FieldTitle className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+												<FieldTitle className="font-semibold text-blue-600 text-sm dark:text-blue-400">
 													{option.label}
 												</FieldTitle>
-												<Badge variant="outline" className="rounded-none text-[9px] font-semibold">
+												<Badge
+													variant="outline"
+													className="rounded-none font-semibold text-[9px]"
+												>
 													Custom
 												</Badge>
 											</div>
-											<span className="text-[10px] font-mono text-muted-foreground">
+											<span className="font-mono text-[10px] text-muted-foreground">
 												key: {option.key}
 											</span>
 										</div>
@@ -313,15 +356,15 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 			</div>
 
 			{/* Right Column: Preview */}
-			<div className="rounded-none border bg-background p-4">
+			<div className="flex min-h-0 flex-col overflow-hidden rounded-none border bg-background p-4">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 					<div className="flex items-start gap-3">
 						<div className="mt-0.5 rounded-none border bg-muted/40 p-2">
 							<Terminal className="h-4 w-4" />
 						</div>
 						<div>
-							<p className="text-sm font-semibold">Sample Preview</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="font-semibold text-sm">Sample Preview</p>
+							<p className="text-muted-foreground text-xs">
 								Live generated request body
 							</p>
 						</div>
@@ -330,51 +373,91 @@ function JsonToolModal({ resourceName, eventId, baseFields }: JsonToolModalProps
 						variant={copied ? "default" : "secondary"}
 						size="sm"
 						className={cn(
-							"h-8 px-4 font-bold text-xs rounded-none transition-all sm:px-6",
-							copied && "bg-green-600 hover:bg-green-600"
+							"h-8 rounded-none px-4 font-bold text-xs transition-all sm:px-6",
+							copied && "bg-green-600 hover:bg-green-600",
 						)}
 						onClick={copyToClipboard}
-						disabled={selectedFieldIds.length === 0}
 					>
 						{copied ? (
-							<Check className="h-4 w-4 mr-2" />
+							<Check className="mr-2 h-4 w-4" />
 						) : (
-							<Copy className="h-4 w-4 mr-2" />
+							<Copy className="mr-2 h-4 w-4" />
 						)}
-						{copied ? "COPIED" : "COPY JSON"}
+						{copied ? "COPIED" : "COPY CURL"}
 					</Button>
 				</div>
 
 				<div className="mt-3 flex items-center justify-between">
+					<div className="flex items-center gap-1 rounded-none border bg-muted/40 p-1">
+						{(["GET", "POST", "PATCH", "PUT", "DELETE"] as const).map((m) => (
+							<Button
+								key={m}
+								variant={method === m ? "default" : "ghost"}
+								size="sm"
+								className={cn(
+									"h-7 rounded-none px-3 font-bold text-[10px]",
+									method === m
+										? "bg-primary text-primary-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+								onClick={() => setMethod(m)}
+							>
+								{m}
+							</Button>
+						))}
+					</div>
 					<Badge
 						variant="outline"
-						className="font-mono text-[10px] rounded-none border-primary/20 bg-primary/5 text-primary"
+						className="rounded-none border-primary/20 bg-primary/5 font-mono text-[10px] text-primary"
 					>
 						{selectedFieldIds.length} ACTIVE FIELDS
 					</Badge>
 				</div>
 
-				<div className="mt-3 h-[280px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-none border bg-muted/30">
-					<ScrollArea className="h-full">
-						<pre className="p-4 sm:p-6 font-mono text-xs sm:text-sm leading-relaxed text-foreground/90 overflow-x-auto whitespace-pre">
-							{selectedFieldIds.length > 0 ? (
-								<code className="block min-w-max pr-6">{sampleJson}</code>
-							) : (
-								<div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground gap-3">
-									<FileJson className="h-12 w-12 opacity-10" />
-									<p className="text-xs font-semibold opacity-60 tracking-wider">
-										Select fields to preview
+				<div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border bg-muted/30">
+					<div className="h-full w-full overflow-y-auto overflow-x-hidden">
+						<div className="p-4 sm:p-6">
+							<div className="flex flex-col gap-4">
+								<div>
+									<p className="mb-2 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+										cURL Command
 									</p>
+									<pre className="whitespace-pre-wrap break-all font-mono text-foreground/90 text-xs leading-relaxed sm:text-sm">
+										<code className="text-blue-600 dark:text-blue-400">
+											{curlCommand}
+										</code>
+									</pre>
 								</div>
-							)}
-						</pre>
-					</ScrollArea>
+
+								<div className="border-t border-dashed" />
+
+								<div>
+									<p className="mb-2 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+										Sample Result
+									</p>
+									{selectedFieldIds.length > 0 ? (
+										<pre className="whitespace-pre-wrap break-all font-mono text-foreground/90 text-xs leading-relaxed sm:text-sm">
+											<code>{sampleJson}</code>
+										</pre>
+									) : (
+										<div className="flex h-[100px] flex-col items-center justify-center gap-3 text-muted-foreground">
+											<p className="font-semibold text-xs tracking-wider opacity-60">
+												Select fields to preview payload
+											</p>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<div className="mt-3 flex items-center gap-2 rounded-none border bg-muted/20 p-3">
 					<Check className="h-4 w-4 text-emerald-600" />
-					<p className="text-[11px] text-muted-foreground leading-snug font-medium tracking-tight">
-						Synced with <span className="text-foreground">{eventData?.title}</span> settings.
+					<p className="font-medium text-[11px] text-muted-foreground leading-snug tracking-tight">
+						Synced with{" "}
+						<span className="text-foreground">{eventData?.title}</span>{" "}
+						settings.
 					</p>
 				</div>
 			</div>
