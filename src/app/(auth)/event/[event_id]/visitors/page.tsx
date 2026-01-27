@@ -1,13 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { use } from "react";
+import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { VisitorsDataTable } from "@/components/pages/visitors/event-visitor-table";
 import { CreateEventVisitorButton } from "@/components/pages/visitors/page-action/create-event-visitor-button";
+import { JsonSampleTool } from "@/components/json-sample-tool";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getVisitors } from "@/lib/api/visitor";
+
+const VISITOR_BASE_FIELDS = [
+	"full_name",
+	"email",
+	"phone",
+	"gender",
+	"age",
+	"role",
+];
 
 export default function VisitorsPage({
 	params,
@@ -17,7 +27,21 @@ export default function VisitorsPage({
 	const { event_id } = use(params);
 	const eventId = Number(event_id);
 
-	useSetEventActions(<CreateEventVisitorButton eventId={eventId} />);
+	const eventActions = useMemo(
+		() => (
+			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<JsonSampleTool 
+					resourceName="Visitor" 
+					eventId={event_id} 
+					baseFields={VISITOR_BASE_FIELDS} 
+				/>
+				<CreateEventVisitorButton eventId={eventId} />
+			</div>
+		),
+		[event_id, eventId],
+	);
+
+	useSetEventActions(eventActions);
 
 	const {
 		data: visitors,
