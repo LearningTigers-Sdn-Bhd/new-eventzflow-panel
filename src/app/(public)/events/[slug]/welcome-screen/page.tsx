@@ -9,15 +9,12 @@ import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
 
-/**
- * Public welcome screen page for displaying check-in names
- * Fullscreen display that shows attendee names when check-ins occur
- */
+const STALE_TIME_MS = 1000 * 60 * 5;
+
 export default function WelcomeScreenPage() {
 	const params = useParams();
 	const slug = params.slug as string;
 
-	// Fetch display settings
 	const {
 		data: displaySettings,
 		isLoading,
@@ -26,20 +23,16 @@ export default function WelcomeScreenPage() {
 		queryKey: ["public-check-in-display", slug],
 		queryFn: () => fetchPublicCheckInDisplay(slug),
 		retry: 3,
-		staleTime: 1000 * 60 * 5, // 5 minutes
+		staleTime: STALE_TIME_MS,
 	});
 
-	// Connect to WebSocket for real-time updates
 	const eventId = displaySettings?.event?.id ?? null;
-	const { latestCheckIn, isConnected } = useWelcomeScreenChannel(eventId);
+	const { latestCheckIn, queueSize, isConnected } =
+		useWelcomeScreenChannel(eventId);
 
-	// Set page title
 	useEffect(() => {
-		if (displaySettings?.event?.title) {
-			document.title = `Welcome Screen - ${displaySettings.event.title}`;
-		} else {
-			document.title = "Welcome Screen";
-		}
+		const title = displaySettings?.event?.title;
+		document.title = title ? `Welcome Screen - ${title}` : "Welcome Screen";
 	}, [displaySettings?.event?.title]);
 
 	if (isLoading) {
@@ -70,12 +63,15 @@ export default function WelcomeScreenPage() {
 
 	return (
 		<>
-			{/* Load Google Fonts */}
 			{/* eslint-disable-next-line @next/next/no-page-custom-font */}
 			<link rel="stylesheet" href={getGoogleFontsUrl()} />
 
-			{/* Connection status indicator */}
-			<div className="fixed top-4 right-4 z-50">
+			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+				{queueSize > 0 && (
+					<div className="rounded-full bg-black/50 px-2 py-1 text-white text-xs">
+						{queueSize} pending
+					</div>
+				)}
 				<div
 					className={`h-3 w-3 rounded-full ${
 						isConnected ? "bg-green-500" : "bg-red-500"

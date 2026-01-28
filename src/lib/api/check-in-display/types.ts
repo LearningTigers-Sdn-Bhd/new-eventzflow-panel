@@ -1,7 +1,3 @@
-/**
- * Check-In Display API Types
- */
-
 export type AnimationType =
 	| "fade_in"
 	| "slide_up"
@@ -39,3 +35,32 @@ export interface CheckInBroadcast {
 	name: string;
 	checked_in_at: string;
 }
+
+export interface WelcomeScreenStateMessage {
+	type: "state";
+	name: string | null;
+	remaining_ms: number;
+	queue_size: number;
+}
+
+export interface WelcomeScreenDisplayMessage {
+	type: "display";
+	name: string;
+	display_duration_ms: number;
+	checked_in_at: string;
+}
+
+export interface WelcomeScreenQueueUpdateMessage {
+	type: "queue_update";
+	queue_size: number;
+}
+
+export interface WelcomeScreenClearMessage {
+	type: "clear";
+}
+
+export type WelcomeScreenMessage =
+	| WelcomeScreenStateMessage
+	| WelcomeScreenDisplayMessage
+	| WelcomeScreenQueueUpdateMessage
+	| WelcomeScreenClearMessage;

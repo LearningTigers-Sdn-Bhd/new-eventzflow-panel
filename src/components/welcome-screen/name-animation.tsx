@@ -32,16 +32,7 @@ export function NameAnimation({
 	isBold = false,
 	nameColor = "#FFFFFF",
 }: NameAnimationProps) {
-	const [key, setKey] = useState(0);
 	const [displayedText, setDisplayedText] = useState("");
-
-	// Reset animation when name changes
-	useEffect(() => {
-		setKey((prev) => prev + 1);
-		if (animationType === "typewriter") {
-			setDisplayedText("");
-		}
-	}, [name, animationType]);
 
 	// Typewriter effect
 	useEffect(() => {
@@ -62,7 +53,7 @@ export function NameAnimation({
 		}, 80);
 
 		return () => clearInterval(interval);
-	}, [name, animationType, key]);
+	}, [name, animationType]);
 
 	const getAnimationVariants = (): AnimationVariants => {
 		switch (animationType) {
@@ -117,7 +108,7 @@ export function NameAnimation({
 	return (
 		<AnimatePresence mode="wait">
 			<motion.div
-				key={key}
+				key={name}
 				initial={variants.initial}
 				animate={variants.animate}
 				exit={variants.exit}
