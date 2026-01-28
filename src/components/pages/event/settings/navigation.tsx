@@ -1,18 +1,18 @@
 "use client";
 
-import { InfoIcon, TagIcon } from "lucide-react";
+import { InfoIcon, Monitor, TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface NavigationItem {
-	id: "event-information" | "custom-labels";
+	id: "event-information" | "custom-labels" | "welcome-screen";
 	label: string;
 	icon: React.ComponentType<{ className?: string }>;
 }
 
 interface SettingsNavigationProps {
-	activeTab: "event-information" | "custom-labels";
-	onTabChange: (tab: "event-information" | "custom-labels") => void;
+	activeTab: "event-information" | "custom-labels" | "welcome-screen";
+	onTabChange: (tab: "event-information" | "custom-labels" | "welcome-screen") => void;
 	onClose?: () => void;
 }
 
@@ -27,6 +27,11 @@ const navigationItems: NavigationItem[] = [
 		label: "Custom Labels",
 		icon: TagIcon,
 	},
+	{
+		id: "welcome-screen",
+		label: "Welcome Screen",
+		icon: Monitor,
+	},
 ];
 
 export default function SettingsNavigation({
@@ -34,7 +39,7 @@ export default function SettingsNavigation({
 	onTabChange,
 }: SettingsNavigationProps) {
 	return (
-		<div className="sticky top-0 hidden w-full self-start md:flex md:flex-col md:gap-2">
+		<div className="sticky top-0 flex w-full flex-row gap-2 overflow-x-auto self-start md:flex-col">
 			{navigationItems.map((item) => {
 				const Icon = item.icon;
 				const isActive = activeTab === item.id;
@@ -43,7 +48,7 @@ export default function SettingsNavigation({
 					<Button
 						key={item.id}
 						className={cn(
-							"w-full justify-start rounded-none",
+							"shrink-0 justify-start rounded-none",
 							isActive && "border",
 						)}
 						variant={isActive ? "secondary" : "ghost"}
@@ -51,7 +56,8 @@ export default function SettingsNavigation({
 						onClick={() => onTabChange(item.id)}
 					>
 						<Icon className="mr-2 size-4" />
-						{item.label}
+						<span className="hidden md:inline">{item.label}</span>
+						<span className="md:hidden">{item.label.split(" ")[0]}</span>
 					</Button>
 				);
 			})}

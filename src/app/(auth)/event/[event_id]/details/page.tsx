@@ -1,13 +1,15 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
-import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
+import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -23,7 +25,8 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
-	const { isVendor, isExhibitionContractor } = useEventPermissions(event_id);
+	const { isVendor, isExhibitionContractor, canManageEvent } = useEventPermissions(event_id);
+	const { openDialog, closeDialog } = useDialog();
 
 	const shouldFetchAnalytics =
 		isInitialized && !isVendor && !isExhibitionContractor;
@@ -63,8 +66,34 @@ export default function EventDetailsPage({
 		{ data: voucherAnalytics, isLoading: voucherLoading },
 	] = queries;
 
+	// Set header actions
+	const openEventSettings = () => {
+		if (!event) return;
+		openDialog({
+			component: EventSettingsDialog,
+			config: {
+				title: "Event Settings",
+				size: "full",
+			},
+			props: {
+				eventId: event.id,
+				onClose: closeDialog,
+			},
+		});
+	};
+
 	useSetEventActions(
-		event ? <EventDetailsActionButtons event={event} /> : null,
+		event && canManageEvent ? (
+			<Button
+				variant="outline"
+				size="sm"
+				className="rounded-none"
+				onClick={openEventSettings}
+			>
+				<Pencil className="mr-2 h-4 w-4" />
+				Edit Event
+			</Button>
+		) : null,
 	);
 
 	if (eventLoading) {

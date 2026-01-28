@@ -14,7 +14,6 @@ import {
 	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import { queryClient } from "@/utils/rest-api";
 
@@ -165,8 +164,8 @@ export default function CustomLabelForm({
 	}
 
 	return (
-		<section className="h-full w-full">
-			<FieldSet className="h-full w-full gap-1">
+		<section className="flex h-full w-full flex-col">
+			<FieldSet className="flex min-h-0 flex-1 flex-col gap-1">
 				<div className="flex flex-col items-start justify-between gap-2 pb-2 md:flex-row">
 					<div className="flex-1">
 						<FieldLegend className="font-bold text-xl!">
@@ -191,8 +190,8 @@ export default function CustomLabelForm({
 				<FieldSeparator />
 
 				{/* Label Fields - Grid Layout: 2 columns on desktop, 1 on mobile */}
-				<ScrollArea className="h-[calc(100vh-31rem)] w-full p-2 md:h-[calc(100vh-10rem)]">
-					<div className="grid h-full grid-cols-1 gap-3 md:grid-cols-2">
+				<div className="min-h-0 flex-1 overflow-y-auto p-2">
+					<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 						{labels.map((label, index) => (
 							<InputActionLabel
 								key={label.id}
@@ -211,10 +210,10 @@ export default function CustomLabelForm({
 							/>
 						))}
 					</div>
-				</ScrollArea>
+				</div>
 
-				{/* Action Buttons */}
-				<FieldGroup className="flex flex-col items-stretch justify-end gap-2 pt-4 md:flex-row md:items-end">
+				{/* Action Buttons - Always visible at bottom */}
+				<FieldGroup className="flex shrink-0 flex-col items-stretch justify-end gap-2 border-t bg-background pt-4 md:flex-row md:items-end">
 					<Button
 						type="button"
 						variant="outline"

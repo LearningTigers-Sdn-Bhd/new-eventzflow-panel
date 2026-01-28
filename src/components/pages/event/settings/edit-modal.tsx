@@ -4,6 +4,7 @@ import { useState } from "react";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import SettingsNavigation from "./navigation";
+import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
 	eventId: number;
@@ -15,7 +16,7 @@ export default function EventSettingsDialog({
 	onClose,
 }: EventSettingsDialogProps) {
 	const [activeTab, setActiveTab] = useState<
-		"event-information" | "custom-labels"
+		"event-information" | "custom-labels" | "welcome-screen"
 	>("event-information");
 
 	return (
@@ -31,6 +32,9 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "custom-labels" && (
 					<CustomLabelForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "welcome-screen" && (
+					<WelcomeScreenForm eventId={eventId} onClose={onClose} />
 				)}
 			</div>
 		</div>
