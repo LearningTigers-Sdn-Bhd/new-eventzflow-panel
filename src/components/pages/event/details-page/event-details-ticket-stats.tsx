@@ -14,84 +14,70 @@ import {
 	type EventDateSelection,
 } from "@/components/ui/event-date-filter";
 import { getEventAnalytics } from "@/lib/api/dashboard";
-import { getEventById } from "@/lib/api/event";
+import type { Event } from "@/lib/api/event/response";
 
 interface EventDetailsTicketStatsProps {
-	eventId: string;
+	event: Event;
 }
 
 export function EventDetailsTicketStats({
-	eventId,
+	event,
 }: EventDetailsTicketStatsProps) {
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
-	const eventIdNum = Number.parseInt(eventId, 10);
-
-	// Fetch event to get start/end dates
-	const { data: event, isLoading: eventLoading } = useQuery({
-		queryKey: ["event", eventIdNum],
-		queryFn: () => getEventById(eventId),
-	});
 
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
-	// Fetch ticket analytics
+	// Fetch ticket analytics with time-series data
 	const { data: ticketAnalytics, isLoading: ticketLoading } = useQuery({
-		queryKey: ["event-analytics", eventId, "time-series", dateSelection],
+		queryKey: ["event-analytics", event.id.toString(), "time-series", dateSelection],
 		queryFn: () =>
-			getEventAnalytics(eventId, {
+			getEventAnalytics(event.id.toString(), {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
 			}),
-		enabled: !!event,
 	});
 
 	// Prepare PDF report data
-	const pdfReportData = event
-		? prepareTicketReportData(
-				{
-					id: eventId,
-					name: event.title,
-					start_date: event.start_date,
-					end_date: event.end_date,
-				},
-				{
-					totalTickets: ticketAnalytics?.totalTickets ?? 0,
-					scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
-					unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
-					totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
-				},
-				{
-					registrations: ticketAnalytics?.registrationData,
-					scans: ticketAnalytics?.scanData,
-					revenue: ticketAnalytics?.revenueData,
-				},
-			)
-		: null;
-
-	const isLoading = eventLoading || ticketLoading;
+	const pdfReportData = prepareTicketReportData(
+		{
+			id: event.id.toString(),
+			name: event.title,
+			start_date: event.start_date,
+			end_date: event.end_date,
+		},
+		{
+			totalTickets: ticketAnalytics?.totalTickets ?? 0,
+			scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
+			unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
+			totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+		},
+		{
+			registrations: ticketAnalytics?.registrationData,
+			scans: ticketAnalytics?.scanData,
+			revenue: ticketAnalytics?.revenueData,
+		},
+	);
 
 	return (
 		<div className="mb-8 space-y-4 border-y border-dashed">
 			<div className="flex items-center justify-between px-4 pt-4">
 				<h3 className="font-medium text-sm">Analytics Trends</h3>
 				<div className="flex items-center gap-2">
-					{event && (
-						<EventDateFilter
-							eventStartDate={event.start_date}
-							eventEndDate={event.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
-						/>
-					)}
+					<EventDateFilter
+						eventStartDate={event.start_date}
+						eventEndDate={event.end_date}
+						value={dateSelection}
+						onChange={setDateSelection}
+					/>
 					<ExportPdfButton
 						data={pdfReportData}
 						size="sm"
 						variant="outline"
-						disabled={isLoading}
+						disabled={ticketLoading}
 					/>
 				</div>
 			</div>
@@ -100,7 +86,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Registrations"
 					description="Ticket registrations over time"
 					data={ticketAnalytics?.registrationData}
-					isLoading={isLoading}
+					isLoading={ticketLoading}
 					color="var(--chart-1)"
 					icon={<Ticket className="h-4 w-4" />}
 				/>
@@ -108,7 +94,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Scans"
 					description="Ticket scans over time"
 					data={ticketAnalytics?.scanData}
-					isLoading={isLoading}
+					isLoading={ticketLoading}
 					color="var(--chart-2)"
 					icon={<QrCode className="h-4 w-4" />}
 				/>
@@ -116,7 +102,7 @@ export function EventDetailsTicketStats({
 					title="Revenue"
 					description="Sales revenue over time"
 					data={ticketAnalytics?.revenueData}
-					isLoading={isLoading}
+					isLoading={ticketLoading}
 					color="var(--chart-3)"
 					icon={<DollarSign className="h-4 w-4" />}
 				/>

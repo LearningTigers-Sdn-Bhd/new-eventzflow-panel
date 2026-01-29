@@ -61,9 +61,9 @@ export default function EventDetailsPage({
 
 	const [
 		{ data: event, isLoading: eventLoading, error: eventError },
-		{ data: analytics, isLoading: analyticsLoading, error: analyticsError },
-		{ data: mallData, isLoading: mallLoading, error: mallError },
-		{ data: voucherAnalytics, isLoading: voucherLoading },
+		{ data: analytics },
+		{ data: mallData },
+		{ data: voucherAnalytics },
 	] = queries;
 
 	// Set header actions
@@ -110,37 +110,6 @@ export default function EventDetailsPage({
 			<ErrorState
 				title="Failed to load event details"
 				description="We couldn't load event details. Please try again."
-				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
-			/>
-		);
-	}
-
-	const isTicketEvent = event.use_ticket !== false;
-
-	// Only show loading/error for analytics if we are actually fetching them
-	const isLoading =
-		shouldFetchAnalytics &&
-		(isTicketEvent ? analyticsLoading : mallLoading || voucherLoading);
-	const error = shouldFetchAnalytics
-		? isTicketEvent
-			? analyticsError
-			: mallError
-		: null;
-
-	if (isLoading) {
-		return (
-			<LoadingState
-				title="Loading analytics..."
-				description="Please wait while we fetch event analytics."
-			/>
-		);
-	}
-
-	if (error || (shouldFetchAnalytics && isTicketEvent && !analytics)) {
-		return (
-			<ErrorState
-				title="Failed to load analytics"
-				description="We couldn't load event analytics. Please try again."
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);

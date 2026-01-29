@@ -9,6 +9,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -123,59 +124,61 @@ export function EventMenuHeader() {
 							className="w-[250px] rounded-none"
 						>
 							<ScrollArea className="h-[300px]">
-								{events.map((event) => (
-									<DropdownMenuItem
-										key={event.id}
-										onClick={() => handleEventSelect(event.id.toString())}
-										className={cn(
-											"cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
-											currentEvent.id === event.id &&
-												"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
-										)}
-									>
-										<div className="flex flex-1 flex-col gap-1">
-											<div className="flex flex-col items-start justify-start gap-2">
-												<h3
-													className={cn(
-														"line-clamp-2 truncate text-balance font-semibold text-sm",
-														currentEvent.id === event.id &&
-															"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
-													)}
-												>
-													{event.title}
-												</h3>
-												<div className="flex items-center gap-2">
-													<Badge
+								{events.map((event, index) => (
+									<div key={event.id}>
+										<DropdownMenuItem
+											onClick={() => handleEventSelect(event.id.toString())}
+											className={cn(
+												"cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
+												currentEvent.id === event.id &&
+													"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
+											)}
+										>
+											<div className="flex flex-1 flex-col gap-1">
+												<div className="flex flex-col items-start justify-start gap-2">
+													<h3
 														className={cn(
-															"h-4 rounded-none text-[10px] capitalize",
-															event.status === "published" &&
-																"bg-green-500 text-white",
-															event.status === "draft" &&
-																"bg-yellow-500 text-white",
-															event.status === "cancelled" &&
-																"bg-red-500 text-white",
-															event.status === "completed" &&
-																"bg-blue-500 text-white",
+															"line-clamp-2 truncate text-balance font-semibold text-sm",
+															currentEvent.id === event.id &&
+																"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
 														)}
 													>
-														{event.status}
-													</Badge>
-													<Badge
-														className={cn(
-															"h-4 rounded-none text-[10px] capitalize",
-															event.use_ticket !== false
-																? "bg-purple-500 text-white"
-																: "bg-cyan-500 text-white",
-														)}
-													>
-														{event.use_ticket !== false
-															? "Ticket Event"
-															: "Visitor Event"}
-													</Badge>
+														{event.title}
+													</h3>
+													<div className="flex items-center gap-2">
+														<Badge
+															className={cn(
+																"h-4 rounded-none text-[10px] capitalize",
+																event.status === "published" &&
+																	"bg-green-500 text-white",
+																event.status === "draft" &&
+																	"bg-yellow-500 text-white",
+																event.status === "cancelled" &&
+																	"bg-red-500 text-white",
+																event.status === "completed" &&
+																	"bg-blue-500 text-white",
+															)}
+														>
+															{event.status}
+														</Badge>
+														<Badge
+															className={cn(
+																"h-4 rounded-none text-[10px] capitalize",
+																event.use_ticket !== false
+																	? "bg-purple-500 text-white"
+																	: "bg-cyan-500 text-white",
+															)}
+														>
+															{event.use_ticket !== false
+																? "Ticket Event"
+																: "Visitor Event"}
+														</Badge>
+													</div>
 												</div>
 											</div>
-										</div>
-									</DropdownMenuItem>
+										</DropdownMenuItem>
+										{index < events.length - 1 && <DropdownMenuSeparator />}
+									</div>
 								))}
 							</ScrollArea>
 						</DropdownMenuContent>
