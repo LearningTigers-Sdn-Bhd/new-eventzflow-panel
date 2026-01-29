@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { MdSpaceDashboard } from "react-icons/md";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
@@ -12,28 +12,20 @@ import { VendorDashboard } from "@/components/pages/dashboard/vendor-dashboard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { getAllEventsStats, getEventsOverview } from "@/lib/api/dashboard";
+import { getAllEventsStats } from "@/lib/api/dashboard";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
 	const { user, isInitialized } = useAuth();
 	const isTablet = useIsTablet();
-	const [
-		{ data: stats, isLoading: statsLoading, error: statsError },
-		{ data: events },
-	] = useQueries({
-		queries: [
-			{
-				queryKey: ["dashboard-stats"],
-				queryFn: getAllEventsStats,
-				enabled: isInitialized, // Only fetch when store is hydrated
-			},
-			{
-				queryKey: ["events-overview"],
-				queryFn: getEventsOverview,
-				enabled: isInitialized, // Only fetch when store is hydrated
-			},
-		],
+	const {
+		data: stats,
+		isLoading: statsLoading,
+		error: statsError,
+	} = useQuery({
+		queryKey: ["dashboard-stats"],
+		queryFn: getAllEventsStats,
+		enabled: isInitialized,
 	});
 
 	// Show vendor dashboard for vendor role
@@ -78,7 +70,7 @@ export default function DashboardPage() {
 
 			{/* Interactive Dashboard Content */}
 			<div className={cn("mt-6", !isTablet ? "border-t border-dashed" : "")}>
-				<DashboardClientWrapper initialStats={stats} initialEvents={events} />
+				<DashboardClientWrapper />
 			</div>
 		</div>
 	);

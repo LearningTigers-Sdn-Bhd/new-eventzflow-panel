@@ -10,6 +10,8 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { CompactStatsCard } from "@/components/admin-ui/analytic";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -19,10 +21,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { EventOverview } from "@/lib/api/dashboard/response";
+import {
+	getEventStatusClass,
+	getEventTypeClass,
+	getEventTypeLabel,
+} from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
 
 interface AllEventsOverviewProps {
-	onEventSelect: (eventId: string) => void;
 	events?: EventOverview[];
 	isLoading?: boolean;
 	error?: unknown;
@@ -30,13 +36,13 @@ interface AllEventsOverviewProps {
 
 function EventCardHeader({
 	event,
-	onEventSelect,
 	formatDate,
 }: {
 	event: EventOverview;
-	onEventSelect: (eventId: string) => void;
 	formatDate: (date: string | Date) => string;
 }): ReactElement {
+	const router = useRouter();
+
 	return (
 		<CardHeader className="space-y-2 px-4 pt-4">
 			<div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between md:gap-2">
@@ -51,10 +57,7 @@ function EventCardHeader({
 						<Badge
 							className={cn(
 								"min-w-24 shrink-0 rounded-none py-0.5 capitalize md:py-1",
-								event.status === "published" && "bg-green-500 text-white",
-								event.status === "draft" && "bg-yellow-500 text-white",
-								event.status === "cancelled" && "bg-red-500 text-white",
-								event.status === "completed" && "bg-blue-500 text-white",
+								getEventStatusClass(event.status),
 							)}
 						>
 							{event.status}
@@ -62,19 +65,17 @@ function EventCardHeader({
 						<Badge
 							className={cn(
 								"min-w-24 shrink-0 rounded-none py-0.5 capitalize md:py-1",
-								event.useTicket
-									? "bg-purple-500 text-white"
-									: "bg-cyan-500 text-white",
+								getEventTypeClass(event.useTicket),
 							)}
 						>
-							{event.useTicket ? "Ticket Event" : "Visitor Event"}
+							{getEventTypeLabel(event.useTicket)}
 						</Badge>
 					</div>
 				</div>
 				<Button
 					variant="default"
 					size="sm"
-					onClick={() => onEventSelect(event.id)}
+					onClick={() => router.push(`/event/${event.id}/details` as Route)}
 					className="w-full shrink-0 gap-1 rounded-none py-6 transition-shadow group-hover:shadow-md sm:w-auto md:py-0"
 				>
 					Details
@@ -87,11 +88,9 @@ function EventCardHeader({
 
 function TicketEventCard({
 	event,
-	onEventSelect,
 	formatDate,
 }: {
 	event: EventOverview;
-	onEventSelect: (eventId: string) => void;
 	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	const scanRate =
@@ -106,7 +105,6 @@ function TicketEventCard({
 		>
 			<EventCardHeader
 				event={event}
-				onEventSelect={onEventSelect}
 				formatDate={formatDate}
 			/>
 			<CardContent className="p-0">
@@ -167,11 +165,9 @@ function TicketEventCard({
 
 function VisitorEventCard({
 	event,
-	onEventSelect,
 	formatDate,
 }: {
 	event: EventOverview;
-	onEventSelect: (eventId: string) => void;
 	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	const engagementRate =
@@ -186,7 +182,6 @@ function VisitorEventCard({
 		>
 			<EventCardHeader
 				event={event}
-				onEventSelect={onEventSelect}
 				formatDate={formatDate}
 			/>
 			<CardContent className="p-0">
@@ -228,18 +223,15 @@ function VisitorEventCard({
 
 function EventOverviewCard({
 	event,
-	onEventSelect,
 	formatDate,
 }: {
 	event: EventOverview;
-	onEventSelect: (eventId: string) => void;
 	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	if (event.useTicket) {
 		return (
 			<TicketEventCard
 				event={event}
-				onEventSelect={onEventSelect}
 				formatDate={formatDate}
 			/>
 		);
@@ -248,14 +240,12 @@ function EventOverviewCard({
 	return (
 		<VisitorEventCard
 			event={event}
-			onEventSelect={onEventSelect}
 			formatDate={formatDate}
 		/>
 	);
 }
 
 export function AllEventsOverview({
-	onEventSelect,
 	events,
 	isLoading,
 	error,
@@ -283,14 +273,13 @@ export function AllEventsOverview({
 
 	if (!events || events.length === 0) {
 		return (
-			<Card>
-				<CardContent className="p-12 text-center">
-					<Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-					<h3 className="mb-2 font-semibold text-lg">No events yet</h3>
-					<p className="mb-4 text-muted-foreground">
+			<Card className="rounded-none border-dashed">
+				<CardContent className="p-8 text-center sm:p-12">
+					<Calendar className="mx-auto mb-4 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
+					<h3 className="mb-2 font-semibold text-base sm:text-lg">No events yet</h3>
+					<p className="text-muted-foreground text-sm">
 						Create your first event to get started.
 					</p>
-					<Button>Create Event</Button>
 				</CardContent>
 			</Card>
 		);
@@ -315,7 +304,6 @@ export function AllEventsOverview({
 					<EventOverviewCard
 						key={event.id}
 						event={event}
-						onEventSelect={onEventSelect}
 						formatDate={formatDate}
 					/>
 				))}
