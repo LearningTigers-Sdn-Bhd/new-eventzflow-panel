@@ -46,6 +46,12 @@ export function useEventSidebarContext() {
 	return context;
 }
 
+/** Safe version that returns null when not inside EventSidebarProvider */
+/** For note: added this to make it work with the new breadcrumb feature */
+export function useEventSidebarContextSafe() {
+	return useContext(EventSidebarContext);
+}
+
 // ============================================================================
 // PROVIDER
 // ============================================================================
