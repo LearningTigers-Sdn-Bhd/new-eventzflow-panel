@@ -223,7 +223,7 @@ export default function BusinessMatchingPage() {
 						variant="outline"
 						size="sm"
 						onClick={() => handleGenerateReport("xlsx")}
-						className="h-8 md:h-9"
+						className="h-8 rounded-none md:h-9"
 					>
 						<Download className="h-4 w-4 md:mr-2" />
 						<span className="hidden lg:inline">Generate Report</span>
@@ -234,7 +234,7 @@ export default function BusinessMatchingPage() {
 							variant="outline"
 							size="sm"
 							onClick={handleCopyPublicLink}
-							className="h-8 md:h-9"
+							className="h-8 rounded-none md:h-9"
 						>
 							<LinkIcon className="h-4 w-4 md:mr-2" />
 							<span className="hidden lg:inline">Copy Invite Link</span>
@@ -249,7 +249,7 @@ export default function BusinessMatchingPage() {
 				size="sm"
 				onClick={handleRefresh}
 				disabled={isRefreshing}
-				className="h-8 md:h-9"
+				className="h-8 rounded-none md:h-9"
 			>
 				<RefreshCw
 					className={`h-4 w-4 md:mr-2 ${isRefreshing ? "animate-spin" : ""}`}
@@ -260,32 +260,34 @@ export default function BusinessMatchingPage() {
 	);
 
 	return (
-		<div className="space-y-6 p-4">
+		<div className="space-y-4">
 			{canManageEvent && event && !event.business_matching_webhook_url && (
-				<Card className="border-l-4 border-l-amber-500">
+				<Card className="rounded-none border border-l-4 border-l-amber-500">
 					<CardHeader className="pb-3">
 						<CardTitle className="text-lg font-medium flex items-center gap-2">
 							<AlertTriangle className="h-5 w-5 text-amber-500" />
 							Setup Business Matching
 						</CardTitle>
 						<CardDescription>
-							To enable real-time data synchronization for Business Matching, please provide the Webhook URL. 
+							To enable real-time data synchronization for Business Matching, please provide the Webhook URL.
 							(Contact your administrator if you don&apos;t have this URL).
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="flex w-full max-w-sm items-center space-x-2">
-							<Input 
-								type="url" 
-								placeholder="https://webhook.example.com/bm" 
+							<Input
+								type="url"
+								placeholder="https://webhook.example.com/bm"
 								value={webhookUrlInput}
 								onChange={(e) => setWebhookUrlInput(e.target.value)}
 								disabled={updateEventMutation.isPending}
+								className="rounded-none"
 							/>
-							<Button 
-								type="button" 
+							<Button
+								type="button"
 								onClick={handleSaveWebhook}
 								disabled={updateEventMutation.isPending}
+								className="rounded-none"
 							>
 								{updateEventMutation.isPending ? "Saving..." : "Save URL"}
 							</Button>

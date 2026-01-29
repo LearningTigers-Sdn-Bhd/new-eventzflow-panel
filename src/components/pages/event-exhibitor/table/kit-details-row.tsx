@@ -73,7 +73,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 		<div className="border-t bg-muted/30 px-3 py-3">
 			<div className="grid min-w-0 gap-x-3 gap-y-3 text-sm md:grid-cols-2 lg:grid-cols-3">
 				{/* Booth Information */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -128,7 +128,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Company & PIC */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -143,9 +143,11 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					<div className="py-0.5">
 						<span className="mb-0.5 block font-medium text-xs">Address</span>
-						<span className="block break-words text-muted-foreground text-xs">
-							{kit.company_address || "-"}
-						</span>
+						{kit.company_address ? (
+							<ExpandableText text={kit.company_address} />
+						) : (
+							<span className="block text-muted-foreground text-xs">-</span>
+						)}
 					</div>
 					<div className="border-t pt-1.5">
 						<span className="mb-0.5 block font-medium text-xs">
@@ -164,7 +166,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Payment Information */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<CreditCard className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -215,7 +217,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Team Members */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center justify-between border-b pb-1.5">
 						<div className="flex items-center gap-1.5">
 							<Users className="size-3.5 text-primary" />
@@ -317,7 +319,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Ordered Items */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Package className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">
@@ -350,7 +352,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 				</div>
 
 				{/* Ordered Services */}
-				<div className="min-w-0 space-y-1.5 border bg-background p-3">
+				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Printer className="size-3.5 text-primary" />
 						<h4 className="font-semibold text-xs uppercase tracking-wide">

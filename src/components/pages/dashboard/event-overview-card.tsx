@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useFormatDate } from "@/hooks/use-format-date";
+import { getEventStatusClass } from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
 
 export type EventOverview = {
@@ -51,10 +52,7 @@ export function EventOverviewCard({
 						<Badge
 							className={cn(
 								"text-xs capitalize",
-								event.status === "published" && "bg-green-500 text-white",
-								event.status === "draft" && "bg-yellow-500 text-white",
-								event.status === "cancelled" && "bg-red-500 text-white",
-								event.status === "completed" && "bg-blue-500 text-white",
+								getEventStatusClass(event.status),
 							)}
 						>
 							{event.status}

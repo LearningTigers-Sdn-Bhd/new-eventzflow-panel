@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { getContractorDashboard } from "@/lib/api/contractor-dashboard";
 import type { ContractorEventData } from "@/lib/api/contractor-dashboard/response";
+import { getEventStatusClass } from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
 
 export function ContractorDashboard() {
@@ -116,7 +117,7 @@ export function ContractorDashboard() {
 				</div>
 
 				{events.length === 0 ? (
-					<Card className="mx-3 sm:mx-4">
+					<Card className="mx-3 rounded-none border-dashed sm:mx-4">
 						<CardContent className="p-8 text-center sm:p-12">
 							<Calendar className="mx-auto mb-4 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
 							<h3 className="mb-2 font-semibold text-base sm:text-lg">
@@ -178,10 +179,7 @@ function ContractorEventCard({
 					<Badge
 						className={cn(
 							"shrink-0 rounded-none text-xs capitalize",
-							event.status === "published" && "bg-green-500 text-white",
-							event.status === "draft" && "bg-yellow-500 text-white",
-							event.status === "cancelled" && "bg-red-500 text-white",
-							event.status === "completed" && "bg-blue-500 text-white",
+							getEventStatusClass(event.status),
 						)}
 					>
 						{event.status}
@@ -270,27 +268,79 @@ function ContractorEventCard({
 function ContractorDashboardSkeleton() {
 	return (
 		<div className="space-y-0">
+			{/* Header */}
 			<div className="page-header border-b border-dashed">
 				<div className="px-3 sm:px-4">
 					<Skeleton className="h-7 w-40 sm:h-8 sm:w-48" />
 					<Skeleton className="mt-2 h-4 w-52 sm:w-64" />
 				</div>
 			</div>
+
+			{/* Summary Stats */}
 			<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-3">
 				{[1, 2, 3, 4, 5].map((i) => (
-					<div key={i} className="border p-3 sm:p-4">
-						<Skeleton className="h-3 w-20 sm:h-4 sm:w-24" />
-						<Skeleton className="mt-2 h-6 w-12 sm:h-8 sm:w-16" />
+					<div
+						key={i}
+						className="flex items-center justify-between rounded-none border border-dashed p-3 sm:p-4"
+					>
+						<div className="space-y-2">
+							<Skeleton className="h-3 w-20 sm:h-4 sm:w-24" />
+							<Skeleton className="h-6 w-12 sm:h-8 sm:w-16" />
+							<Skeleton className="h-3 w-16 sm:w-20" />
+						</div>
+						<Skeleton className="h-8 w-8 shrink-0 rounded-md sm:h-10 sm:w-10" />
 					</div>
 				))}
 			</div>
+
+			{/* Events Section */}
 			<div className="mt-4 border-t border-dashed pt-4 sm:mt-6 sm:pt-6">
 				<div className="mb-3 px-3 sm:mb-4 sm:px-4">
 					<Skeleton className="h-5 w-28 sm:h-6 sm:w-32" />
+					<Skeleton className="mt-1 h-3 w-48 sm:w-56" />
 				</div>
 				<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
 					{[1, 2].map((i) => (
-						<Skeleton key={i} className="h-44 w-full sm:h-48" />
+						<div
+							key={i}
+							className="rounded-none border border-dashed p-0"
+						>
+							{/* Card Header */}
+							<div className="space-y-3 p-3 sm:p-4">
+								<div className="flex items-start justify-between gap-2">
+									<Skeleton className="h-5 w-40 sm:h-6 sm:w-48" />
+									<Skeleton className="h-8 w-16 shrink-0 rounded-none" />
+								</div>
+								<div className="flex flex-wrap items-center gap-2">
+									<Skeleton className="h-5 w-20 rounded-none" />
+									<Skeleton className="h-3 w-32" />
+								</div>
+							</div>
+
+							{/* Stats Grid */}
+							<div className="grid grid-cols-3 gap-2 border-t p-3 sm:gap-3 sm:p-4">
+								{[1, 2, 3].map((j) => (
+									<div
+										key={j}
+										className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2"
+									>
+										<Skeleton className="h-4 w-4 sm:h-5 sm:w-5" />
+										<Skeleton className="h-2 w-12 sm:h-3" />
+										<Skeleton className="h-5 w-10 sm:h-6 sm:w-12" />
+									</div>
+								))}
+							</div>
+
+							{/* Progress Bar */}
+							<div className="border-t p-3 sm:p-4">
+								<div className="flex items-center justify-between">
+									<Skeleton className="h-3 w-24" />
+									<Skeleton className="h-3 w-16" />
+								</div>
+								<Skeleton className="mt-2 h-1.5 w-full rounded-none" />
+								<Skeleton className="ml-auto mt-1 h-3 w-20" />
+							</div>
+						</div>
 					))}
 				</div>
 			</div>

@@ -56,6 +56,7 @@ export function DataTable<TData, TValue>({
 			component: InfoForm,
 			config: {
 				title: "Create Location",
+				size: "full",
 			},
 		});
 	};

@@ -16,7 +16,7 @@ import { Briefcase } from "lucide-react";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { Input } from "@/components/ui/input";
+import { QuerySearchField } from "@/components/query-search-field";
 import {
 	Table,
 	TableBody,
@@ -68,23 +68,23 @@ export function DataTable<TData, TValue>({
 	});
 
 	return (
-		<div className="w-full space-y-4">
-			{/* Simple Control Panel */}
-			<div className="flex items-center justify-between gap-4">
-				<Input
-					placeholder="Filter events..."
-					value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-					onChange={(event) =>
-						table.getColumn("title")?.setFilterValue(event.target.value)
-					}
-					className="h-8 max-w-sm md:h-9"
-				/>
-				{actions && <div className="shrink-0">{actions}</div>}
+		<div className="w-full">
+			{/* Control Panel */}
+			<div className="mb-4 flex flex-col border border-dashed bg-transparent px-0 py-0 md:px-2 md:py-4 lg:bg-accent lg:px-4 lg:py-4">
+				<div className="flex items-center gap-2">
+					<QuerySearchField
+						table={table}
+						columns={["title"]}
+						placeholder="Filter events..."
+						searchCustomFields={false}
+					/>
+					{actions && <div className="ml-auto shrink-0">{actions}</div>}
+				</div>
 			</div>
 
 			{/* Data Table */}
 			{!isTablet ? (
-				<div className="rounded-md border">
+				<div className="rounded-none border border-dashed">
 					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -140,7 +140,7 @@ export function DataTable<TData, TValue>({
 					</Table>
 				</div>
 			) : (
-				<div className="space-y-2">
+				<div className="mt-4 space-y-2">
 					{table.getRowModel().rows?.length ? (
 						table
 							.getRowModel()

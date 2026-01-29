@@ -6,6 +6,7 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
+import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ModeToggle } from "@/components/mode-toggle";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,11 @@ export function ContentLayout({
 								<PanelLeftIcon className="h-4 w-4 stroke-foreground" />
 							</Button>
 						)}
+					</div>
+
+					{/* Top Header Bar (Breadcrumbs) */}
+					<div className="absolute top-0 right-12 left-12 z-40 flex h-12 items-center border-border border-b border-dashed bg-background px-4">
+						<BreadcrumbNav />
 					</div>
 
 					{/* Top Right Corner */}

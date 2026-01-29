@@ -28,7 +28,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const host = event.host;
 
 	return (
-		<Item variant="outline" className="w-full rounded-none">
+		<Item variant="outline" className="w-full rounded-none border-dashed">
 			<ItemContent className="flex flex-col gap-3">
 				<ItemTitle>
 					<span className="font-bold">{event.title}</span>
@@ -80,7 +80,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									className="w-full"
+									className="w-full rounded-none"
 									onClick={() => {
 										openDialog({
 											component: AttachHostDialog,
@@ -105,7 +105,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 						<Button
 							variant="outline"
 							size="sm"
-							className="flex-1 sm:flex-initial"
+							className="flex-1 rounded-none sm:flex-initial"
 							onClick={() => {
 								openDialog({
 									component: AvailabilityDialog,
@@ -126,7 +126,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 						<Button
 							variant="outline"
 							size="sm"
-							className="flex-1 sm:flex-initial"
+							className="flex-1 rounded-none sm:flex-initial"
 							onClick={() => {
 								openDialog({
 									component: BookingsDialog,

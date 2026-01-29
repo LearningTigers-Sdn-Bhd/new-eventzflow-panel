@@ -25,11 +25,13 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
 import { generateColumns } from "./event-ticket-table-columns";
 import { DataControl } from "./event-ticket-table-control";
+import TicketForm from "./page-action/create-event-ticket-form";
 
 type TicketFilter = "active" | "archived" | "all";
 
@@ -46,6 +48,19 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
+	const { openDialog } = useDialog();
+
+	const openTicketCreate = () => {
+		openDialog({
+			component: TicketForm,
+			config: {
+				size: "full",
+				showCloseButton: true,
+				title: "Create New Ticket",
+				description: "Add a new ticket for this event",
+			},
+		});
+	};
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -128,7 +143,7 @@ export function DataTable<TData>({
 								title: "No tickets found",
 								desc: "Create your first ticket to get started",
 								icon: <Calendar />,
-								action: <Button>Create Ticket</Button>,
+								action: <Button onClick={openTicketCreate}>Create Ticket</Button>,
 							}}
 						/>
 					</DesktopView>
@@ -150,7 +165,7 @@ export function DataTable<TData>({
 									description="Create your first ticket to get started"
 									icon={<Calendar />}
 									height="h-auto"
-									action={<Button>Create Ticket</Button>}
+									action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
 								/>
 							)}
 						</div>
@@ -173,7 +188,7 @@ export function DataTable<TData>({
 										description="Create your first ticket to get started"
 										icon={<Calendar />}
 										height="h-auto"
-										action={<Button>Create Ticket</Button>}
+										action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
 									/>
 								</div>
 							)}
