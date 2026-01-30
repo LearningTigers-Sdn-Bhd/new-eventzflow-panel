@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import {
 	fetchCheckInDisplay,
 	updateCheckInDisplay,
@@ -58,6 +59,18 @@ const NAME_COLORS: { value: string; label: string }[] = [
 	{ value: "#F39C12", label: "Orange" },
 ];
 
+const VOICE_TYPES: { value: string; label: string }[] = [
+	{ value: "en-US-female", label: "American Woman" },
+	{ value: "en-GB-female", label: "British Woman" },
+	{ value: "en-GB-male", label: "British Man" },
+	{ value: "zh-CN-female", label: "Chinese Woman" },
+	{ value: "id-ID-female", label: "Indonesian Woman" },
+	{ value: "ja-JP-female", label: "Japanese Woman" },
+	{ value: "ko-KR-female", label: "Korean Woman" },
+	{ value: "es-ES-male", label: "Spanish Man" },
+	{ value: "fr-FR-female", label: "French Woman" },
+];
+
 interface WelcomeScreenFormProps {
 	eventId: number;
 	onClose?: () => void;
@@ -76,6 +89,14 @@ export default function WelcomeScreenForm({
 	const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
 	const [removeBackgroundImage, setRemoveBackgroundImage] = useState(false);
 	const [previewKey, setPreviewKey] = useState(0);
+	const [voiceEnabled, setVoiceEnabled] = useState(true);
+	const [voiceType, setVoiceType] = useState("en-US-female");
+
+	// Text-to-speech hook for preview
+	const { speak } = useTextToSpeech({
+		enabled: true,
+		voiceType: voiceType,
+	});
 
 	// Fetch existing settings
 	const {
@@ -113,6 +134,8 @@ export default function WelcomeScreenForm({
 			setIsBold(displaySettings.is_bold || false);
 			setNameColor(displaySettings.name_color || "#FFFFFF");
 			setExistingImageUrl(displaySettings.background_image_url);
+			setVoiceEnabled(displaySettings.voice_enabled ?? true);
+			setVoiceType(displaySettings.voice_type || "en-US-female");
 		}
 	}, [displaySettings]);
 
@@ -140,6 +163,8 @@ export default function WelcomeScreenForm({
 			animation_type: animationType,
 			is_bold: isBold,
 			name_color: nameColor,
+			voice_enabled: voiceEnabled,
+			voice_type: voiceType,
 		};
 
 		if (selectedImage) {
@@ -164,6 +189,8 @@ export default function WelcomeScreenForm({
 		setExistingImageUrl(null);
 		setRemoveBackgroundImage(true);
 		clearFiles();
+		setVoiceEnabled(true);
+		setVoiceType("en-US-female");
 		toast.info("Restored to defaults");
 	};
 
@@ -176,6 +203,10 @@ export default function WelcomeScreenForm({
 
 	const triggerPreviewAnimation = () => {
 		setPreviewKey((prev) => prev + 1);
+		// Play voice preview if voice is enabled
+		if (voiceEnabled) {
+			speak("Welcome, John Doe");
+		}
 	};
 
 	if (isLoading) {
@@ -449,6 +480,46 @@ export default function WelcomeScreenForm({
 								Preview shows how attendee names will appear on check-in
 							</p>
 						</FieldGroup>
+					</div>
+
+					{/* Voice Settings */}
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<FieldGroup>
+							<FieldLabel>Voice Announcement</FieldLabel>
+							<div className="flex h-9 items-center border border-input px-3">
+								<Switch
+									checked={voiceEnabled}
+									onCheckedChange={setVoiceEnabled}
+								/>
+								<span className="ml-2 text-sm text-muted-foreground">
+									{voiceEnabled ? "Enabled" : "Disabled"}
+								</span>
+							</div>
+							<FieldDescription>
+								Announce visitor names using text-to-speech when they check in
+							</FieldDescription>
+						</FieldGroup>
+
+						{voiceEnabled && (
+							<FieldGroup>
+								<FieldLabel>Voice Type</FieldLabel>
+								<Select value={voiceType} onValueChange={setVoiceType}>
+									<SelectTrigger className="w-full rounded-none">
+										<SelectValue placeholder="Select voice type" />
+									</SelectTrigger>
+									<SelectContent>
+										{VOICE_TYPES.map((type) => (
+											<SelectItem key={type.value} value={type.value}>
+												{type.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FieldDescription>
+									Select the voice style for announcements. For best results, use Chrome browser on the welcome screen display.
+								</FieldDescription>
+							</FieldGroup>
+						)}
 					</div>
 				</div>
 

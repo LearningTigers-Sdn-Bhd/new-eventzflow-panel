@@ -14,6 +14,8 @@ export interface CheckInDisplay {
 	is_bold: boolean;
 	name_color: string;
 	background_image_url: string | null;
+	voice_enabled: boolean;
+	voice_type: string;
 	event: {
 		id: string;
 		title: string;
@@ -29,6 +31,8 @@ export interface CheckInDisplayFormData {
 	name_color: string;
 	background_image?: File;
 	remove_background_image?: boolean;
+	voice_enabled?: boolean;
+	voice_type?: string;
 }
 
 export interface CheckInBroadcast {

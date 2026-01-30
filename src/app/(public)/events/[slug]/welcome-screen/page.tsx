@@ -1,10 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Volume2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
@@ -14,6 +16,7 @@ const STALE_TIME_MS = 1000 * 60 * 5;
 export default function WelcomeScreenPage() {
 	const params = useParams();
 	const slug = params.slug as string;
+	const previousCheckInRef = useRef<string | null>(null);
 
 	const {
 		data: displaySettings,
@@ -29,6 +32,20 @@ export default function WelcomeScreenPage() {
 	const eventId = displaySettings?.event?.id ?? null;
 	const { latestCheckIn, queueSize, isConnected } =
 		useWelcomeScreenChannel(eventId);
+
+	const { speak, requiresInteraction, enableAudio, isSupported } = useTextToSpeech({
+		enabled: displaySettings?.voice_enabled ?? false,
+		voiceType: displaySettings?.voice_type ?? "en-US-female",
+	});
+
+	// Speak the visitor name when a new check-in arrives
+	useEffect(() => {
+		if (!latestCheckIn?.name) return;
+		if (latestCheckIn.name === previousCheckInRef.current) return;
+
+		previousCheckInRef.current = latestCheckIn.name;
+		speak(`Welcome, ${latestCheckIn.name}`);
+	}, [latestCheckIn?.name, speak]);
 
 	useEffect(() => {
 		const title = displaySettings?.event?.title;
@@ -67,6 +84,17 @@ export default function WelcomeScreenPage() {
 			<link rel="stylesheet" href={getGoogleFontsUrl()} />
 
 			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+				{/* Audio enable button for Safari */}
+				{displaySettings.voice_enabled && isSupported && requiresInteraction && (
+					<Button
+						onClick={enableAudio}
+						size="sm"
+						className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-white text-xs hover:bg-black/70"
+					>
+						<Volume2 className="h-4 w-4" />
+						Tap to enable audio
+					</Button>
+				)}
 				{queueSize > 0 && (
 					<div className="rounded-full bg-black/50 px-2 py-1 text-white text-xs">
 						{queueSize} pending

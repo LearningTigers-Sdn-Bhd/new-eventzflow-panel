@@ -81,6 +81,20 @@ export async function updateCheckInDisplay(
 			);
 		}
 
+		if (data.voice_enabled !== undefined) {
+			formData.append(
+				"check_in_display[voice_enabled]",
+				data.voice_enabled.toString(),
+			);
+		}
+
+		if (data.voice_type) {
+			formData.append(
+				"check_in_display[voice_type]",
+				data.voice_type,
+			);
+		}
+
 		if (data.remove_background_image) {
 			formData.append(
 				"check_in_display[remove_background_image]",
