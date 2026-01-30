@@ -104,6 +104,8 @@ const visible = {
 	// Feature flags
 	hasExhibitorKit: (_p: Permissions, e?: Event) =>
 		e?.use_exhibitor_kit === true,
+	hasSeatTicketing: (_p: Permissions, e?: Event) =>
+		e?.use_seat_ticketing === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
 
 	// Special access
@@ -250,6 +252,25 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Ticket Types",
 					description: "Manage ticket types for this event.",
 					icon: HiTicket,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// SEAT TICKETING GROUP
+		// ------------------------------------------------------------------------
+		{
+			id: "seat-ticketing",
+			label: "Seat Ticketing",
+			icon: Ticket,
+			visible: (p, e) =>
+				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+			tabs: [
+				{
+					route: "seat-ticketing/sessions",
+					label: "Sessions",
+					description: "Manage seat ticketing sessions for this event.",
+					icon: Ticket,
 				},
 			],
 		},

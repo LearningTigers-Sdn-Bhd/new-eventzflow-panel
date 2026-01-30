@@ -9,6 +9,7 @@ export type Event = {
 	visibility: boolean;
 	multiple_scans: boolean;
 	use_ticket: boolean;
+	use_seat_ticketing: boolean;
 	use_exhibitor_kit: boolean;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;

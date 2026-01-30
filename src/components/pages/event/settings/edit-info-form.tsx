@@ -32,6 +32,7 @@ const formSchema = z.object({
 	status: z.enum(["draft", "published", "cancelled", "completed"]),
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
+	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
@@ -103,6 +104,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			status: "draft" as "draft" | "published" | "cancelled" | "completed",
 			visibility: true,
 			useTicket: true,
+			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
@@ -125,6 +127,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
+					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
@@ -152,8 +155,12 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.status as "draft" | "published" | "cancelled" | "completed",
 				);
 				form.setFieldValue("visibility", event.visibility ?? true);
-				form.setFieldValue("useTicket", event.use_ticket ?? true);
-				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
+			form.setFieldValue("useTicket", event.use_ticket ?? true);
+			form.setFieldValue(
+				"useSeatTicketing",
+				event.use_seat_ticketing ?? false,
+			);
+			form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
 				form.setFieldValue(
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
@@ -435,7 +442,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							)}
 							{/* Left Column: Visibility (if org_owner) and Event Types */}
 							<div className="flex flex-col gap-6 md:gap-4">
-								{/* Exhibitor Kit Section */}
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
 									<FieldLabel>Event Types</FieldLabel>
 									<FieldDescription className="text-balance">
@@ -445,7 +451,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								<form.Field name="useTicket">
 									{(field) => {
 										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
+											field.state.meta.isTouched &&
+											!field.state.meta.isValid;
 										return (
 											<SwitchStateCardInput
 												states={{
@@ -459,30 +466,42 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 														label: "Visitor System",
 														description:
 															"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
-														color: "amber",
-													},
-												}}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												disabled={updateEventMutation.isPending}
-												variant="no-rounded"
-											/>
-										);
+													color: "amber",
+												},
+											}}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											disabled={updateEventMutation.isPending}
+											variant="no-rounded"
+										/>
+									);
 									}}
 								</form.Field>
 							</div>
 							<div className="flex flex-col gap-4">
-								{/* Exhibitor Kit Section */}
+								<form.Field name="useSeatTicketing">
+									{(field) => (
+										<SwitchCardInput
+											label="Seat Ticketing System"
+											description="Enable reserved seat sessions and seat maps for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
 									<FieldLabel>Option Flags</FieldLabel>
 									<FieldDescription className="text-balance">
 										Select the options for your event.
 									</FieldDescription>
 								</FieldContent>
-								{/* Multiple Scans */}
 								<form.Field name="multipleScans">
 									{(field) => (
 										<SwitchCardInput
@@ -497,7 +516,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
-								{/* Business Matching */}
 								<form.Field name="useBusinessMatching">
 									{(field) => (
 										<div className="flex flex-col gap-4">
@@ -536,7 +554,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										</div>
 									)}
 								</form.Field>
-								{/* Sponsorships */}
 								<form.Field name="useSponsorship">
 									{(field) => (
 										<SwitchCardInput
