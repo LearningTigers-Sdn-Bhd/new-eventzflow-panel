@@ -27,6 +27,7 @@ export function useTextToSpeech({
 	const [isSupported, setIsSupported] = useState(false);
 	const [requiresInteraction, setRequiresInteraction] = useState(false);
 	const [audioEnabled, setAudioEnabled] = useState(false);
+	const [voicesReady, setVoicesReady] = useState(false);
 	const queueRef = useRef<string[]>([]);
 	const isSpeakingRef = useRef(false);
 
@@ -39,6 +40,12 @@ export function useTextToSpeech({
 		if (supported) {
 			const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 			setRequiresInteraction(isSafari && !audioEnabled);
+
+			// Check if voices are already available (Firefox/Edge load sync)
+			const voices = window.speechSynthesis.getVoices();
+			if (voices.length > 0) {
+				setVoicesReady(true);
+			}
 		}
 	}, [audioEnabled]);
 
@@ -115,12 +122,19 @@ export function useTextToSpeech({
 		if (!isSupported || !enabled || isSpeakingRef.current) return;
 		if (queueRef.current.length === 0) return;
 		if (requiresInteraction && !audioEnabled) return;
+		// Wait for voices to be loaded (Safari/Chrome load async)
+		if (!voicesReady) return;
 
 		const text = queueRef.current.shift();
 		if (!text) return;
 
 		isSpeakingRef.current = true;
 		setIsSpeaking(true);
+
+		const synth = window.speechSynthesis;
+
+		// Cancel any pending speech - required for Safari to reset state
+		synth.cancel();
 
 		// Parse language from voiceType
 		const parts = voiceType.split("-");
@@ -136,7 +150,23 @@ export function useTextToSpeech({
 			utterance.lang = lang;
 		}
 
+		// Safari 15+ fix: keep speech alive for longer utterances
+		// Without this, Safari stops speaking after ~15 seconds
+		let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+
+		utterance.onstart = () => {
+			keepAliveInterval = setInterval(() => {
+				if (!synth.speaking) {
+					if (keepAliveInterval) clearInterval(keepAliveInterval);
+				} else {
+					synth.pause();
+					synth.resume();
+				}
+			}, 10000);
+		};
+
 		utterance.onend = () => {
+			if (keepAliveInterval) clearInterval(keepAliveInterval);
 			isSpeakingRef.current = false;
 			setIsSpeaking(false);
 			// Process next item in queue
@@ -144,14 +174,15 @@ export function useTextToSpeech({
 		};
 
 		utterance.onerror = () => {
+			if (keepAliveInterval) clearInterval(keepAliveInterval);
 			isSpeakingRef.current = false;
 			setIsSpeaking(false);
 			// Process next item in queue even on error
 			processQueue();
 		};
 
-		window.speechSynthesis.speak(utterance);
-	}, [isSupported, enabled, getVoice, requiresInteraction, audioEnabled]);
+		synth.speak(utterance);
+	}, [isSupported, enabled, getVoice, requiresInteraction, audioEnabled, voicesReady]);
 
 	// Speak function - adds to queue
 	const speak = useCallback(
@@ -170,18 +201,24 @@ export function useTextToSpeech({
 		setAudioEnabled(true);
 		setRequiresInteraction(false);
 
-		// Trigger voices to load
+		// Trigger voices to load and check if already available
 		if (isSupported) {
-			window.speechSynthesis.getVoices();
+			const voices = window.speechSynthesis.getVoices();
+			if (voices.length > 0) {
+				setVoicesReady(true);
+			}
 		}
 	}, [isSupported]);
 
-	// Load voices when they become available
+	// Load voices when they become available (Safari/Chrome load async)
 	useEffect(() => {
 		if (!isSupported) return;
 
 		const handleVoicesChanged = () => {
-			// Voices are now loaded
+			const voices = window.speechSynthesis.getVoices();
+			if (voices.length > 0) {
+				setVoicesReady(true);
+			}
 		};
 
 		window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
@@ -192,6 +229,13 @@ export function useTextToSpeech({
 			window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
 		};
 	}, [isSupported]);
+
+	// Process queue when voices become ready (handles Safari async loading)
+	useEffect(() => {
+		if (voicesReady && queueRef.current.length > 0) {
+			processQueue();
+		}
+	}, [voicesReady, processQueue]);
 
 	return {
 		speak,
