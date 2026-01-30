@@ -15,7 +15,7 @@ export type ReelItem = {
 
 // Type for items in the slot machine (can be either prize or participant)
 type SlotItem =
-	| { name: string; id: number; prize: Prize }
+	| { name: string; id: string | number; prize: Prize }
 	| { name: string; id: string; participant: Participant };
 
 // Config for the animation
@@ -50,7 +50,26 @@ export function useSlot({
 	// Determine which data source to use
 	const isPrizesMode = mode === "prizes";
 	const items = isPrizesMode
-		? (prizes || []).map((p) => ({ name: p.name, id: p.id, prize: p }))
+		? (prizes || []).flatMap((p) => {
+				const count = p.remaining ?? p.quantity ?? 1;
+				const safeCount = Math.max(1, count);
+				return Array.from({ length: safeCount }).map((_, i) => ({
+					name: p.name,
+					id: `${p.id}-${i}`, // Use string ID to match SlotItem type if needed, but SlotItem id is number?
+					// Wait, SlotItem definition:
+					// | { name: string; id: number; prize: Prize }
+					// | { name: string; id: string; participant: Participant };
+					// Prize ID is number. Here I'm making it string.
+					// I need to check SlotItem type usage.
+					// 'id' is used in 'items' array.
+					// 'createItem' generates new ID for ReelItem.
+					// 'items' elements are stored in 'lastWinnerItemRef.current'.
+					// 'items' elements are used to pick 'selectedItem'.
+					// 'selectedItem.id' isn't explicitly used for logic other than identity maybe?
+					// Let's check SlotItem type again.
+					prize: p,
+				}));
+		  })
 		: (participants || []).map((p) => ({
 				name: p.name,
 				id: p.publicId,

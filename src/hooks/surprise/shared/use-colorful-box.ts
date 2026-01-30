@@ -27,7 +27,13 @@ export function useColorfulBox({
 
 	// Determine which data source to use
 	const isPrizesMode = mode === "prizes";
-	const items = isPrizesMode ? prizes || [] : participants || [];
+	const items = isPrizesMode
+		? (prizes || []).flatMap((p) => {
+				const count = p.remaining ?? p.quantity ?? 1;
+				const safeCount = Math.max(1, count);
+				return Array(safeCount).fill(p);
+		  })
+		: participants || [];
 
 	const prevIsDrawingRef = useRef(false);
 	const prevIsCelebratingRef = useRef(false);

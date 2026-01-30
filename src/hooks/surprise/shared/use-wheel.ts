@@ -91,12 +91,17 @@ export function useWheel(
 	const items = useMemo(
 		() =>
 			isPrizesMode
-				? (prizes || []).map((p) => ({
-						name: p.name,
-						id: p.id,
-						type: "prize" as const,
-						prize: p,
-					}))
+				? (prizes || []).flatMap((p) => {
+						const count = p.remaining ?? p.quantity ?? 1;
+						// Ensure we have at least 1 item if count is invalid, though availablePrizes should filter 0s
+						const safeCount = Math.max(1, count);
+						return Array.from({ length: safeCount }).map((_, i) => ({
+							name: p.name,
+							id: `${p.id}-${i}`,
+							type: "prize" as const,
+							prize: p,
+						}));
+				  })
 				: (participants || []).map((p) => ({
 						name: p.name,
 						id: p.publicId,
