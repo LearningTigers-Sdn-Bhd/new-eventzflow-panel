@@ -65,6 +65,7 @@ function EventCheckInContent() {
 		handleConfirmCheckIn,
 		handleQRScan,
 		handleReset,
+		handleResetToScan,
 		selectMethod,
 	} = usePublicCheckIn(slug, checkInUrl);
 
@@ -274,7 +275,7 @@ function EventCheckInContent() {
 						<CheckInStatus
 							status={view}
 							attendee={selectedAttendee}
-							onClose={handleReset}
+							onClose={searchMethod === "scan" ? handleResetToScan : handleReset}
 						/>
 					)}
 			</AnimatePresence>

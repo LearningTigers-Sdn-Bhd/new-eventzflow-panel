@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, Volume2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
@@ -36,6 +35,7 @@ export default function WelcomeScreenPage() {
 	const { speak, requiresInteraction, enableAudio, isSupported } = useTextToSpeech({
 		enabled: displaySettings?.voice_enabled ?? false,
 		voiceType: displaySettings?.voice_type ?? "en-US-female",
+		debug: true, // Enable to see TTS logs in console
 	});
 
 	// Speak the visitor name when a new check-in arrives
@@ -78,23 +78,31 @@ export default function WelcomeScreenPage() {
 		);
 	}
 
+	// Handle click anywhere on screen to enable audio
+	const handleScreenClick = () => {
+		if (displaySettings?.voice_enabled && isSupported && requiresInteraction) {
+			enableAudio();
+		}
+	};
+
+	const showAudioPrompt = displaySettings.voice_enabled && isSupported && requiresInteraction;
+
 	return (
-		<>
+		<div onClick={handleScreenClick} className={requiresInteraction ? "cursor-pointer" : ""}>
 			{/* eslint-disable-next-line @next/next/no-page-custom-font */}
 			<link rel="stylesheet" href={getGoogleFontsUrl()} />
 
+			{/* Full-screen audio enable overlay */}
+			{showAudioPrompt && (
+				<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+					<div className="flex flex-col items-center gap-4 text-white animate-pulse">
+						<Volume2 className="h-16 w-16" />
+						<p className="text-2xl font-semibold">Tap anywhere to enable audio</p>
+					</div>
+				</div>
+			)}
+
 			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-				{/* Audio enable button for Safari */}
-				{displaySettings.voice_enabled && isSupported && requiresInteraction && (
-					<Button
-						onClick={enableAudio}
-						size="sm"
-						className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-white text-xs hover:bg-black/70"
-					>
-						<Volume2 className="h-4 w-4" />
-						Tap to enable audio
-					</Button>
-				)}
 				{queueSize > 0 && (
 					<div className="rounded-full bg-black/50 px-2 py-1 text-white text-xs">
 						{queueSize} pending
@@ -118,6 +126,6 @@ export default function WelcomeScreenPage() {
 				nameColor={displaySettings.name_color || "#FFFFFF"}
 				backgroundImageUrl={displaySettings.background_image_url}
 			/>
-		</>
+		</div>
 	);
 }

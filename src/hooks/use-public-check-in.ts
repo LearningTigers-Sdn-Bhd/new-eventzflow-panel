@@ -225,6 +225,18 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		setInputStep("selection");
 	};
 
+	// Reset but stay in scan mode (for continuous scanning)
+	const handleResetToScan = () => {
+		setSearchValue("");
+		setSearchResults([]);
+		setLiveResults([]);
+		setSearchError(null);
+		setSelectedAttendee(null);
+		setView("search");
+		setSearchMethod("scan");
+		setInputStep("input");
+	};
+
 	const selectMethod = (method: CheckInMethod) => {
 		setSearchMethod(method);
 		setSearchValue("");
@@ -259,6 +271,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		handleConfirmCheckIn,
 		handleQRScan,
 		handleReset,
+		handleResetToScan,
 		selectMethod,
 		clearLiveResults,
 	};

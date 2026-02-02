@@ -50,6 +50,7 @@ export function useTextToSpeech({
 	const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 	const retryCountRef = useRef(0);
 	const browserInfoRef = useRef(getBrowserInfo());
+	const notAllowedErrorRef = useRef(false);
 
 	const log = useCallback((...args: unknown[]) => {
 		if (debug) {
@@ -62,14 +63,36 @@ export function useTextToSpeech({
 		const supported = typeof window !== "undefined" && "speechSynthesis" in window;
 		setIsSupported(supported);
 
-		if (supported) {
-			const { isSafari } = browserInfoRef.current;
-			// Safari and iOS require user interaction before speech works
-			const needsInteraction = isSafari && !audioEnabled;
-			setRequiresInteraction(needsInteraction);
-			log("Browser info:", browserInfoRef.current, "Needs interaction:", needsInteraction);
+		if (supported && enabled) {
+			// Always require user interaction to enable audio on page load
+			// This ensures audio works reliably across all browsers after refresh
+			if (!audioEnabled) {
+				setRequiresInteraction(true);
+				log("Audio requires user interaction to enable");
+			}
 		}
-	}, [audioEnabled, log]);
+	}, [enabled, audioEnabled, log]);
+
+	// Reset speech synthesis on mount to fix stuck state after page refresh
+	useEffect(() => {
+		if (!isSupported) return;
+
+		const synth = window.speechSynthesis;
+		// Cancel any pending speech from previous page
+		synth.cancel();
+
+		// Warm up speech synthesis with a silent utterance
+		// This helps prevent the first real utterance from being blocked
+		const warmUp = () => {
+			const silentUtterance = new SpeechSynthesisUtterance("");
+			silentUtterance.volume = 0;
+			synth.speak(silentUtterance);
+		};
+
+		// Small delay to let the browser settle after page load
+		const timer = setTimeout(warmUp, 100);
+		return () => clearTimeout(timer);
+	}, [isSupported]);
 
 	// Load voices with polling fallback for Windows/Edge
 	useEffect(() => {
@@ -289,6 +312,18 @@ export function useTextToSpeech({
 					if (keepAliveInterval) clearInterval(keepAliveInterval);
 					if (timeoutId) clearTimeout(timeoutId);
 
+					// Handle "not-allowed" error - browser requires user interaction
+					if (event.error === "not-allowed") {
+						log("Audio blocked by browser - requiring user interaction");
+						notAllowedErrorRef.current = true;
+						setRequiresInteraction(true);
+						isSpeakingRef.current = false;
+						setIsSpeaking(false);
+						// Keep the text in queue so it plays after user enables audio
+						queueRef.current.unshift(text);
+						return;
+					}
+
 					// Retry on certain errors
 					if (event.error === "interrupted" || event.error === "canceled") {
 						// These are expected when canceling, don't retry
@@ -335,7 +370,7 @@ export function useTextToSpeech({
 				return;
 			}
 			if (requiresInteraction && !audioEnabled) {
-				log("Requires user interaction first (Safari)");
+				log("Audio not enabled yet - text skipped");
 				return;
 			}
 
@@ -346,17 +381,20 @@ export function useTextToSpeech({
 		[isSupported, enabled, processQueue, requiresInteraction, audioEnabled, log],
 	);
 
-	// Enable audio after user interaction (required for Safari/iOS)
+	// Enable audio after user interaction (required for Safari/iOS and when browser blocks audio)
 	const enableAudio = useCallback(() => {
 		log("Enabling audio (user interaction)");
 		setAudioEnabled(true);
 		setRequiresInteraction(false);
+		notAllowedErrorRef.current = false;
 
 		if (isSupported) {
 			const synth = window.speechSynthesis;
 
-			// Safari requires an actual utterance to be spoken after user interaction
-			// to "unlock" the audio context. We speak an empty/silent utterance.
+			// Cancel any stuck speech first
+			synth.cancel();
+
+			// Speak a silent utterance to "unlock" the audio context
 			const silentUtterance = new SpeechSynthesisUtterance("");
 			silentUtterance.volume = 0;
 			synth.speak(silentUtterance);
