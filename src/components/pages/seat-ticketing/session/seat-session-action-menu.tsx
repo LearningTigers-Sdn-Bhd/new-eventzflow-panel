@@ -1,29 +1,23 @@
 "use client";
 
-import {
-	Archive,
-	Eye,
-	MoreVertical,
-	Pencil,
-	Trash2,
-	Undo2,
-} from "lucide-react";
+import { Archive, Eye, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useSeatSessionMutation } from "@/hooks/seat-ticketing/use-session-mutation";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import { useSeatSessionMutation } from "@/hooks/seat-ticketing/use-session-mutation";
-import type { SeatSessionRow } from "./seat-session-table-columns";
+import { cn } from "@/lib/utils";
 import SeatSessionEditModal from "./form-modals/seat-session-edit-modal";
 import SeatSessionViewModal from "./form-modals/seat-session-view-modal";
+import type { SeatSessionRow } from "./seat-session-table-columns";
 
 interface SeatSessionActionMenuProps {
 	session: SeatSessionRow;
@@ -112,47 +106,83 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="size-8 rounded-none">
-					<MoreVertical className="size-4" />
-					<span className="sr-only">Open menu</span>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-48 rounded-none">
-				<DropdownMenuItem onClick={openView}>
-					<Eye className="mr-2 size-4" />
-					View Details
-				</DropdownMenuItem>
-				{!isVendor && (
-					<>
-						<DropdownMenuItem onClick={openEdit}>
-							<Pencil className="mr-2 size-4" />
-							Edit Session
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						{!isArchived ? (
-							<DropdownMenuItem onClick={confirmArchive}>
-								<Archive className="mr-2 size-4" />
-								Archive
-							</DropdownMenuItem>
-						) : (
-							<DropdownMenuItem onClick={confirmRestore}>
-								<Undo2 className="mr-2 size-4" />
-								Restore
-							</DropdownMenuItem>
-						)}
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							onClick={confirmForceDelete}
-							className="rounded-none hover:bg-background/50"
-						>
-							<Trash2 className="mr-2 size-4 text-red-600" />
-							<span className="text-red-600">Delete Permanently</span>
-						</DropdownMenuItem>
-					</>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<div className="py-2">
+			<TooltipProvider delayDuration={0}>
+				<ButtonGroup>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-none text-blue-600 hover:text-blue-600 hover:bg-blue-50"
+								onClick={openView}
+							>
+								<Eye className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">View Details</TooltipContent>
+					</Tooltip>
+
+					{!isVendor && (
+						<>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className="rounded-none text-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
+										onClick={openEdit}
+									>
+										<Pencil className="h-4 w-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom">Edit Session</TooltipContent>
+							</Tooltip>
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className={cn(
+											"rounded-none",
+											isArchived
+												? "text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
+												: "text-amber-600 hover:text-amber-600 hover:bg-amber-50",
+										)}
+										onClick={isArchived ? confirmRestore : confirmArchive}
+									>
+										{isArchived ? (
+											<RotateCcw className="h-4 w-4" />
+										) : (
+											<Archive className="h-4 w-4" />
+										)}
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom">
+									{isArchived ? "Restore" : "Archive"}
+								</TooltipContent>
+							</Tooltip>
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className="rounded-none text-red-600 hover:text-red-600 hover:bg-red-50"
+										onClick={confirmForceDelete}
+									>
+										<Trash2 className="h-4 w-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom">
+									Delete Permanently
+								</TooltipContent>
+							</Tooltip>
+						</>
+					)}
+				</ButtonGroup>
+			</TooltipProvider>
+		</div>
 	);
 }

@@ -22,19 +22,6 @@ export type SeatSessionRow = {
 
 export const columns: ColumnDef<SeatSessionRow>[] = [
 	{
-		accessorKey: "id",
-		size: 140,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Session ID" />
-		),
-		cell: ({ row }) => (
-			<CopyCell
-				value={row.getValue("id")}
-				successMessage="Session ID copied to clipboard"
-			/>
-		),
-	},
-	{
 		accessorKey: "name",
 		size: 260,
 		header: ({ column }) => (
@@ -120,8 +107,11 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 	},
 	{
 		id: "actions",
-		size: 120,
+		size: 180,
 		enableHiding: false,
+		meta: {
+			sticky: "right",
+		},
 		header: () => <div className="text-center">Actions</div>,
 		cell: ({ row }) => (
 			<div className="flex justify-center">

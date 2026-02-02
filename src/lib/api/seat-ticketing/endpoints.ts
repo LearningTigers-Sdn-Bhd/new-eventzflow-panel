@@ -1,22 +1,23 @@
 import { restClient } from "@/utils/rest-api";
 import type {
-	CreateSeatSessionRequest,
-	CreateSeatSectionRequest,
-	CreateSeatVenueRequest,
+	BulkUpdateSeatSessionRequest,
 	CreateEventTicketSeatRequest,
+	CreateSeatSectionRequest,
+	CreateSeatSessionRequest,
+	CreateSeatVenueRequest,
+	GetEventTicketSeatsRequest,
+	GetSeatSectionsRequest,
 	GetSeatSessionRequest,
 	GetSeatSessionsRequest,
-	GetSeatSectionsRequest,
 	GetSeatVenuesRequest,
-	GetEventTicketSeatsRequest,
 	UpdateEventTicketSeatRequest,
-	UpdateSeatSessionRequest,
 	UpdateSeatSectionRequest,
+	UpdateSeatSessionRequest,
 	UpdateSeatVenueRequest,
 } from "./request";
 import type {
-	EventSeatSession,
 	EventSeatSection,
+	EventSeatSession,
 	EventSeatVenue,
 	EventTicketSeat,
 } from "./response";
@@ -40,13 +41,16 @@ function appendVenueFormData(
 	if (data.name !== undefined) {
 		formData.append("venue[name]", data.name);
 	}
-	if (data.row !== undefined) {
-		formData.append("venue[row]", data.row === null ? "" : String(data.row));
-	}
-	if (data.column !== undefined) {
+	if (data.total_row !== undefined) {
 		formData.append(
-			"venue[column]",
-			data.column === null ? "" : String(data.column),
+			"venue[total_row]",
+			data.total_row === null ? "" : String(data.total_row),
+		);
+	}
+	if (data.total_column !== undefined) {
+		formData.append(
+			"venue[total_column]",
+			data.total_column === null ? "" : String(data.total_column),
 		);
 	}
 	if (data.image) {
@@ -105,6 +109,18 @@ export async function updateSeatSession(
 	);
 }
 
+export async function updateSeatSessionBlueprint(
+	sessionId: string,
+	data: BulkUpdateSeatSessionRequest,
+): Promise<EventSeatSession> {
+	return await restClient.patch<EventSeatSession>(
+		`v1/seat_ticketing/sessions/${sessionId}/bulk_update`,
+		{
+			session: data,
+		},
+	);
+}
+
 export async function archiveSeatSession(sessionId: string): Promise<void> {
 	await restClient.delete<void>(`v1/seat_ticketing/sessions/${sessionId}`);
 }
@@ -158,8 +174,8 @@ export async function createSeatVenue(
 		{
 			venue: {
 				name: data.name,
-				row: data.row ?? null,
-				column: data.column ?? null,
+				total_row: data.total_row ?? null,
+				total_column: data.total_column ?? null,
 			},
 		},
 	);
@@ -184,10 +200,23 @@ export async function updateSeatVenue(
 		{
 			venue: {
 				name: data.name,
-				row: data.row ?? null,
-				column: data.column ?? null,
+				total_row: data.total_row ?? null,
+				total_column: data.total_column ?? null,
 			},
 		},
+	);
+}
+
+export async function uploadVenueImage(
+	sessionId: string,
+	venueId: string,
+	image: File,
+): Promise<EventSeatVenue> {
+	const formData = new FormData();
+	formData.append("image", image);
+	return await restClient.postFormData<EventSeatVenue>(
+		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/attach_image`,
+		formData,
 	);
 }
 
@@ -223,17 +252,30 @@ export async function createSeatSection(
 	venueId: string,
 	data: CreateSeatSectionRequest,
 ): Promise<EventSeatSection> {
+	const sectionPayload: Record<string, unknown> = {
+		name: data.name,
+		seat_row: data.seat_row ?? 1,
+		seat_column: data.seat_column ?? 1,
+	};
+	if (data.price !== undefined) {
+		sectionPayload.price = data.price;
+	}
+	if (data.start_row !== undefined) {
+		sectionPayload.start_row = data.start_row;
+	}
+	if (data.start_column !== undefined) {
+		sectionPayload.start_column = data.start_column;
+	}
+	if (data.row_span !== undefined) {
+		sectionPayload.row_span = data.row_span;
+	}
+	if (data.col_span !== undefined) {
+		sectionPayload.col_span = data.col_span;
+	}
 	return await restClient.post<EventSeatSection>(
 		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections`,
 		{
-			section: {
-				name: data.name,
-				prize: data.prize ?? null,
-				seat_row: data.seat_row ?? null,
-				seat_column: data.seat_column ?? null,
-				row_span: data.row_span ?? null,
-				col_span: data.col_span ?? null,
-			},
+			section: sectionPayload,
 		},
 	);
 }
@@ -244,17 +286,35 @@ export async function updateSeatSection(
 	sectionId: string,
 	data: UpdateSeatSectionRequest,
 ): Promise<EventSeatSection> {
+	const sectionPayload: Record<string, unknown> = {};
+	if (data.name !== undefined) {
+		sectionPayload.name = data.name;
+	}
+	if (data.price !== undefined) {
+		sectionPayload.price = data.price;
+	}
+	if (data.start_row !== undefined) {
+		sectionPayload.start_row = data.start_row;
+	}
+	if (data.start_column !== undefined) {
+		sectionPayload.start_column = data.start_column;
+	}
+	if (data.seat_row !== undefined) {
+		sectionPayload.seat_row = data.seat_row;
+	}
+	if (data.seat_column !== undefined) {
+		sectionPayload.seat_column = data.seat_column;
+	}
+	if (data.row_span !== undefined) {
+		sectionPayload.row_span = data.row_span;
+	}
+	if (data.col_span !== undefined) {
+		sectionPayload.col_span = data.col_span;
+	}
 	return await restClient.patch<EventSeatSection>(
 		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections/${sectionId}`,
 		{
-			section: {
-				name: data.name,
-				prize: data.prize ?? null,
-				seat_row: data.seat_row ?? null,
-				seat_column: data.seat_column ?? null,
-				row_span: data.row_span ?? null,
-				col_span: data.col_span ?? null,
-			},
+			section: sectionPayload,
 		},
 	);
 }

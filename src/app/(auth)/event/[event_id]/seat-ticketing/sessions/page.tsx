@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { SeatSessionCreateButton } from "@/components/pages/seat-ticketing/session/seat-session-create-button";
@@ -18,10 +20,10 @@ export default function SeatSessionsPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const router = useRouter();
 	const { user } = useAuth();
-	const [sessionFilter, setSessionFilter] = useState<SeatSessionFilter>(
-		"active",
-	);
+	const [sessionFilter, setSessionFilter] =
+		useState<SeatSessionFilter>("active");
 
 	const isVendor = user?.role === "vendor";
 
@@ -78,6 +80,14 @@ export default function SeatSessionsPage({
 					}))}
 					sessionFilter={sessionFilter}
 					onSessionFilterChange={setSessionFilter}
+					clickableRowConfig={{
+						isEnabled: true,
+						onRowClick: (row) => {
+							router.push(
+								`/event/${event_id}/seat-ticketing/sessions/${row.id}` as Route,
+							);
+						},
+					}}
 				/>
 			)}
 		</div>

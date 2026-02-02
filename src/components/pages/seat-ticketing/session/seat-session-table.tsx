@@ -30,11 +30,18 @@ import { SeatSessionItem } from "./seat-session-items";
 import type { SeatSessionRow } from "./seat-session-table-columns";
 import { DataControl, type SeatSessionFilter } from "./seat-session-table-control";
 
+interface ClickableRowConfig<TData> {
+	isEnabled: boolean;
+	onRowClick?: (row: TData) => void;
+	excludeRowClickColumns?: string[];
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	sessionFilter?: SeatSessionFilter;
 	onSessionFilterChange?: (filter: SeatSessionFilter) => void;
+	clickableRowConfig?: ClickableRowConfig<TData>;
 }
 
 export function SeatSessionTable<TData, TValue>({
@@ -42,6 +49,7 @@ export function SeatSessionTable<TData, TValue>({
 	data,
 	sessionFilter = "active",
 	onSessionFilterChange,
+	clickableRowConfig,
 }: DataTableProps<TData, TValue>) {
 	const { openDialog } = useDialog();
 	const { user } = useAuth();
@@ -82,6 +90,19 @@ export function SeatSessionTable<TData, TValue>({
 		},
 	});
 
+	const clickableConfig = React.useMemo(() => {
+		if (!clickableRowConfig) return undefined;
+
+		return {
+			...clickableRowConfig,
+			excludeRowClickColumns: [
+				...(clickableRowConfig.excludeRowClickColumns || []),
+				"id",
+				"actions",
+			],
+		};
+	}, [clickableRowConfig]);
+
 	return (
 		<div className="w-full">
 			<DataControl
@@ -105,6 +126,7 @@ export function SeatSessionTable<TData, TValue>({
 									<Button onClick={openCreate}>Create Session</Button>
 								) : undefined,
 							}}
+							clickableRowConfig={clickableConfig}
 						/>
 					</DesktopView>
 					<MobileView>
@@ -114,6 +136,11 @@ export function SeatSessionTable<TData, TValue>({
 									<SeatSessionItem
 										key={row.id}
 										session={row.original as SeatSessionRow}
+										onClick={
+											clickableRowConfig?.isEnabled
+												? () => clickableRowConfig.onRowClick?.(row.original)
+												: undefined
+										}
 									/>
 								))
 							) : (
@@ -142,6 +169,11 @@ export function SeatSessionTable<TData, TValue>({
 									<div key={row.id} className="col-span-1">
 										<SeatSessionItem
 											session={row.original as SeatSessionRow}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
 										/>
 									</div>
 								))}

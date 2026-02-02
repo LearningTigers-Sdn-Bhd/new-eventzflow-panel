@@ -13,6 +13,7 @@ export const noSidebarRoutes: NoSidebarRoute[] = [
 	{ route: "lucky-draw/session", type: "include" },
 	{ route: "prize-roulette/session", type: "include" },
 	{ route: "review-submit", type: "include" },
+	{ route: "seat-ticketing/sessions/", type: "include" },
 ];
 
 /**

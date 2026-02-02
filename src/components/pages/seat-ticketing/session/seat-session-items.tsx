@@ -22,9 +22,10 @@ import { getSessionStatusConfig } from "./utils";
 
 interface SeatSessionItemProps {
 	session: SeatSessionRow;
+	onClick?: () => void;
 }
 
-export function SeatSessionItem({ session }: SeatSessionItemProps) {
+export function SeatSessionItem({ session, onClick }: SeatSessionItemProps) {
 	const { copyToClipboard } = useCopyToClipboard({
 		successMessage: "Session ID copied to clipboard",
 	});
@@ -33,7 +34,14 @@ export function SeatSessionItem({ session }: SeatSessionItemProps) {
 	const statusConfig = getSessionStatusConfig(session.status);
 
 	return (
-		<Item variant="outline" className="h-full w-full rounded-none">
+		<Item
+			variant="outline"
+			className={cn(
+				"h-full w-full rounded-none",
+				onClick && "cursor-pointer transition-colors hover:bg-accent/50",
+			)}
+			onClick={onClick}
+		>
 			<ItemHeader className="flex flex-col gap-2">
 				{!isMobile ? (
 					<ItemTitle className="min-h-12 w-full justify-between">

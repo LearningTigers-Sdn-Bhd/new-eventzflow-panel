@@ -1,9 +1,10 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 import type { SeatSessionRow } from "../seat-session-table-columns";
 import { getSessionStatusConfig } from "../utils";
 
@@ -78,6 +79,10 @@ export default function SeatSessionViewModal({
 						</span>
 					</div>
 				</div>
+			</div>
+
+			<div className="flex w-full">
+				<Button>Manage Session</Button>
 			</div>
 		</div>
 	);

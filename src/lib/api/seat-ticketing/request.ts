@@ -31,15 +31,17 @@ export interface GetSeatVenuesRequest {
 
 export interface CreateSeatVenueRequest {
 	name: string;
-	row?: number | null;
-	column?: number | null;
+	total_row?: number | null;
+	total_column?: number | null;
+	aspect_ratio?: string | null;
 	image?: File | null;
 }
 
 export interface UpdateSeatVenueRequest {
 	name?: string;
-	row?: number | null;
-	column?: number | null;
+	total_row?: number | null;
+	total_column?: number | null;
+	aspect_ratio?: string | null;
 	image?: File | null;
 }
 
@@ -50,7 +52,9 @@ export interface GetSeatSectionsRequest {
 
 export interface CreateSeatSectionRequest {
 	name: string;
-	prize?: number | string | null;
+	price?: number | string | null;
+	start_row?: number | null;
+	start_column?: number | null;
 	seat_row?: number | null;
 	seat_column?: number | null;
 	row_span?: number | null;
@@ -59,7 +63,9 @@ export interface CreateSeatSectionRequest {
 
 export interface UpdateSeatSectionRequest {
 	name?: string;
-	prize?: number | string | null;
+	price?: number | string | null;
+	start_row?: number | null;
+	start_column?: number | null;
 	seat_row?: number | null;
 	seat_column?: number | null;
 	row_span?: number | null;
@@ -86,4 +92,48 @@ export interface UpdateEventTicketSeatRequest {
 	row_set?: number | null;
 	col_set?: number | null;
 	ticket_id?: number | null;
+}
+
+export interface BulkUpdateSeatSessionRequest {
+	name?: string;
+	status?: number | "draft" | "published" | "cancelled";
+	location?: string | null;
+	start_datetime?: string | null;
+	end_datetime?: string | null;
+	event_seat_venues_attributes?: BulkUpdateVenueAttributes[];
+}
+
+export interface BulkUpdateVenueAttributes {
+	id?: number;
+	name?: string;
+	total_row?: number | null;
+	total_column?: number | null;
+	aspect_ratio?: string | null;
+	image?: File | null;
+	_destroy?: boolean;
+	event_seat_sections_attributes?: BulkUpdateSectionAttributes[];
+}
+
+export interface BulkUpdateSectionAttributes {
+	id?: number;
+	name?: string;
+	price?: number | string | null;
+	start_row?: number | null;
+	start_column?: number | null;
+	seat_row?: number | null;
+	seat_column?: number | null;
+	row_span?: number | null;
+	col_span?: number | null;
+	_destroy?: boolean;
+	event_ticket_seats_attributes?: BulkUpdateSeatAttributes[];
+}
+
+export interface BulkUpdateSeatAttributes {
+	id?: number;
+	name?: string;
+	extra_price?: number | string | null;
+	row_set?: number | null;
+	col_set?: number | null;
+	ticket_id?: number | null;
+	_destroy?: boolean;
 }

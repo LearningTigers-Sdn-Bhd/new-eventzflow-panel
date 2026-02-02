@@ -78,7 +78,7 @@ export function DataControl<TData>({
 				searchConfig: {
 					placeholder: "Search seat sessions...",
 					enableCustomSearch: false,
-					columns: ["name", "location", "id"],
+					columns: ["name", "location"],
 				},
 			}}
 			desktopConfig={{
