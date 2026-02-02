@@ -93,7 +93,7 @@ export default function WelcomeScreenForm({
 	const [voiceType, setVoiceType] = useState("en-US-female");
 
 	// Text-to-speech hook for preview
-	const { speak } = useTextToSpeech({
+	const { speak, enableAudio } = useTextToSpeech({
 		enabled: true,
 		voiceType: voiceType,
 	});
@@ -203,6 +203,8 @@ export default function WelcomeScreenForm({
 
 	const triggerPreviewAnimation = () => {
 		setPreviewKey((prev) => prev + 1);
+		// Enable audio on user interaction (required for Safari)
+		enableAudio();
 		// Play voice preview if voice is enabled
 		if (voiceEnabled) {
 			speak("Welcome, John Doe");
@@ -433,7 +435,7 @@ export default function WelcomeScreenForm({
 									onClick={triggerPreviewAnimation}
 									className="h-7 rounded-none text-xs"
 								>
-									Replay Animation
+									Preview Animation
 								</Button>
 							</div>
 							<div
