@@ -6,17 +6,44 @@ import type { AttendeePreview } from "@/lib/api/event-check-in";
 import { cn } from "@/lib/utils";
 
 interface CheckInStatusProps {
-	status: "success" | "already-checked-in";
+	status: "success" | "already-checked-in" | "wrong-day";
 	attendee: AttendeePreview | null;
 	onClose: () => void;
+	message?: string;
 }
 
 export function CheckInStatus({
 	status,
 	attendee,
 	onClose,
+	message,
 }: CheckInStatusProps) {
-	if (!attendee) return null;
+	if (!attendee && status !== "wrong-day") return null;
+
+	const getStatusConfig = () => {
+		switch (status) {
+			case "success":
+				return {
+					bgColor: "bg-brand-green",
+					badge: "Entry Authorized",
+					title: "Valid",
+				};
+			case "already-checked-in":
+				return {
+					bgColor: "bg-destructive",
+					badge: "Entry Denied",
+					title: "Used",
+				};
+			case "wrong-day":
+				return {
+					bgColor: "bg-amber-500",
+					badge: "Wrong Day",
+					title: "Invalid",
+				};
+		}
+	};
+
+	const config = getStatusConfig();
 
 	return (
 		<motion.div
@@ -26,13 +53,13 @@ export function CheckInStatus({
 			transition={{ type: "spring", damping: 25, stiffness: 200 }}
 			className={cn(
 				"fixed inset-0 z-50 flex flex-col justify-center p-4 text-white sm:p-8 lg:p-24",
-				status === "success" ? "bg-brand-green" : "bg-destructive",
+				config.bgColor,
 			)}
 		>
 			<div className="mx-auto w-full max-w-4xl">
 				<div className="mb-6 flex items-start justify-between sm:mb-12">
 					<div className="bg-black/20 px-2.5 py-1.5 font-bold font-mono text-[10px] uppercase tracking-widest backdrop-blur-lg sm:px-4 sm:py-2 sm:text-xs">
-						{status === "success" ? "Entry Authorized" : "Entry Denied"}
+						{config.badge}
 					</div>
 					<button
 						onClick={onClose}
@@ -48,31 +75,39 @@ export function CheckInStatus({
 					transition={{ delay: 0.1 }}
 					className="mb-6 font-bold text-[15vw] uppercase leading-none tracking-tighter sm:mb-8 sm:text-[12vw] lg:text-[10rem]"
 				>
-					{status === "success" ? "Valid" : "Used"}
+					{config.title}
 				</motion.h1>
 
 				<div className="flex flex-col gap-6 border-white/20 border-t pt-6 sm:gap-12 sm:pt-12 md:flex-row">
+					{attendee && (
+						<div className="flex-1">
+							<div className="mb-2 inline-block bg-white/20 px-2.5 py-1 font-bold font-mono text-[10px] uppercase tracking-widest sm:mb-3 sm:px-3 sm:py-1.5 sm:text-xs">
+								Attendee
+							</div>
+							<div className="font-bold text-2xl uppercase sm:text-3xl md:text-5xl">
+								{attendee.name}
+							</div>
+						</div>
+					)}
 					<div className="flex-1">
 						<div className="mb-2 inline-block bg-white/20 px-2.5 py-1 font-bold font-mono text-[10px] uppercase tracking-widest sm:mb-3 sm:px-3 sm:py-1.5 sm:text-xs">
-							Attendee
-						</div>
-						<div className="font-bold text-2xl uppercase sm:text-3xl md:text-5xl">
-							{attendee.name}
-						</div>
-					</div>
-					<div className="flex-1">
-						<div className="mb-2 inline-block bg-white/20 px-2.5 py-1 font-bold font-mono text-[10px] uppercase tracking-widest sm:mb-3 sm:px-3 sm:py-1.5 sm:text-xs">
-							Details
+							{status === "wrong-day" ? "Reason" : "Details"}
 						</div>
 						<div className="space-y-0.5 text-base sm:space-y-1 sm:text-xl md:text-2xl">
-							{attendee.type_name && (
-								<div>{attendee.type_name}</div>
-							)}
-							{attendee.email && (
-								<div className="break-all opacity-90 text-sm sm:text-xl md:text-2xl">{attendee.email}</div>
-							)}
-							{attendee.phone && (
-								<div className="opacity-90">{attendee.phone}</div>
+							{status === "wrong-day" ? (
+								<div>{message || "This ticket is not valid for today's date"}</div>
+							) : (
+								<>
+									{attendee?.type_name && (
+										<div>{attendee.type_name}</div>
+									)}
+									{attendee?.email && (
+										<div className="break-all opacity-90 text-sm sm:text-xl md:text-2xl">{attendee.email}</div>
+									)}
+									{attendee?.phone && (
+										<div className="opacity-90">{attendee.phone}</div>
+									)}
+								</>
 							)}
 						</div>
 					</div>

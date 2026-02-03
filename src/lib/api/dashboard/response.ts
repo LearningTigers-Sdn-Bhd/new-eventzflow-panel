@@ -124,15 +124,19 @@ export type BackendTicket = {
 	ticket_type_name: string;
 	value: number;
 	checked_in: boolean;
-	check_in_at: string | null;
+	checked_in_today?: boolean;
 	event_name: string;
 	event_id: number;
 	custom_labels: string[];
 	status: string;
-	scanned_by?: {
-		full_name: string;
-	};
-	scanned_by_id?: number;
+	check_ins?: Array<{
+		id: number;
+		check_in_at: string;
+		scanned_by?: {
+			id: number;
+			full_name: string;
+		};
+	}>;
 };
 
 export type BackendEventLocation = {

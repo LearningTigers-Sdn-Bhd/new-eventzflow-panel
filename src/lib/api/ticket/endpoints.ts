@@ -62,7 +62,7 @@ export async function checkInTicket(
 
 /**
  * Unscan a ticket (org_owner only)
- * Resets checked_in, check_in_at, scanned_by_id, and status
+ * Resets checked_in status and removes check_in records
  */
 export async function unscanTicket(ticketId: string): Promise<void> {
 	console.log("🔄 Unscanning ticket with ID:", ticketId);
@@ -80,7 +80,7 @@ export async function unscanTicket(ticketId: string): Promise<void> {
 
 /**
  * Get tickets scanned by current authenticated user
- * Returns only tickets where scanned_by_id matches the current user's ID
+ * Returns only tickets where check_ins contains a record with scanned_by matching current user's ID
  */
 export async function getMyScannedTickets(
 	limit = 1000,
@@ -132,16 +132,30 @@ export async function getMyScannedTickets(
 		const allTickets = allTicketsArrays.flat();
 
 		// Filter ONLY for tickets scanned BY this authenticated user
+		// Backend now uses check_ins association instead of scanned_by_id
 		const scannedByCurrentUser = allTickets.filter(
-			(ticket) => ticket.checked_in && ticket.scanned_by_id === userId,
+			(ticket) =>
+				ticket.checked_in &&
+				ticket.check_ins?.some((checkIn) => checkIn.scanned_by?.id === userId),
 		);
+
+		// Helper to get latest check_in_at from check_ins array
+		const getLatestCheckInAt = (ticket: BackendTicket & { eventName: string; eventId: number }): string | undefined => {
+			if (ticket.check_ins && ticket.check_ins.length > 0) {
+				const latest = ticket.check_ins.reduce((a, b) =>
+					new Date(a.check_in_at).getTime() > new Date(b.check_in_at).getTime() ? a : b
+				);
+				return latest.check_in_at;
+			}
+			return undefined;
+		};
 
 		// Sort by check_in_at (newest first) and limit results
 		const sortedTickets = scannedByCurrentUser
 			.sort((a, b) => {
-				const dateA = a.check_in_at ? new Date(a.check_in_at).getTime() : 0;
-				const dateB = b.check_in_at ? new Date(b.check_in_at).getTime() : 0;
-				return dateB - dateA;
+				const dateA = getLatestCheckInAt(a);
+				const dateB = getLatestCheckInAt(b);
+				return (dateB ? new Date(dateB).getTime() : 0) - (dateA ? new Date(dateA).getTime() : 0);
 			})
 			.slice(0, limit);
 
@@ -164,7 +178,7 @@ export async function getMyScannedTickets(
 				ticketTypeId: ticket.ticket_type_id,
 				value: ticket.ticket_type?.price || 0,
 				checkedIn: ticket.checked_in,
-				checkInAt: ticket.check_in_at || undefined,
+				checkInAt: getLatestCheckInAt(ticket),
 				eventName: ticket.eventName,
 				eventId: ticket.eventId.toString(),
 				createdAt: ticket.created_at,
@@ -192,10 +206,35 @@ function transformBackendTicket(
 	const publicId = ticket.public_id;
 	const role = ticket.role || undefined;
 	const checkedIn = ticket.checked_in;
-	const checkInAt = ticket.check_in_at || undefined;
 	const event_id = eventId || ticket.event_id.toString();
 	const status = ticket.checked_in ? "scanned" : "not_scanned";
 	const createdAt = ticket.created_at || new Date().toISOString();
+
+	// Get check_in_at from check_ins array
+	let checkInAt: string | undefined;
+	let checkIns: Array<{ id: number; checkInAt: string; scannedBy?: { id: number; fullName: string } }> | undefined;
+	let checkedInToday: boolean | undefined;
+
+	if ("attendee_name" in ticket) {
+		const bt = ticket as BackendTicket;
+		// Transform check_ins array if present
+		if (bt.check_ins && bt.check_ins.length > 0) {
+			checkIns = bt.check_ins.map((ci) => ({
+				id: ci.id,
+				checkInAt: ci.check_in_at,
+				scannedBy: ci.scanned_by
+					? { id: ci.scanned_by.id, fullName: ci.scanned_by.full_name }
+					: undefined,
+			}));
+			// Get latest check_in_at from check_ins
+			const latestCheckIn = bt.check_ins.sort(
+				(a, b) => new Date(b.check_in_at).getTime() - new Date(a.check_in_at).getTime()
+			)[0];
+			checkInAt = latestCheckIn?.check_in_at || undefined;
+		}
+		checkedInToday = bt.checked_in_today;
+	}
+	// Note: BackendTicketTransformed no longer has check_in_at field
 
 	let name = "";
 	let email = "";
@@ -247,7 +286,9 @@ function transformBackendTicket(
 		ticketTypeId,
 		value,
 		checkedIn,
+		checkedInToday,
 		checkInAt,
+		checkIns,
 		eventName: eventTitle,
 		eventId: event_id,
 		status,
@@ -358,8 +399,7 @@ interface BackendTicketForOffline {
 	status: "purchased" | "scanned" | "refunded" | "canceled";
 	payment_status: "pending" | "paid" | "failed" | "refunded_payment" | number;
 	checked_in: boolean;
-	check_in_at: string | null;
-	scanned_by_id?: number | null;
+	checked_in_today?: boolean;
 	custom_fields_data: Record<string, string> | null;
 	created_at: string;
 	updated_at: string;
@@ -367,7 +407,17 @@ interface BackendTicketForOffline {
 		id: number;
 		name: string;
 		price: number;
+		valid_from_date?: string | null;
+		valid_to_date?: string | null;
 	};
+	check_ins?: Array<{
+		id: number;
+		check_in_at: string;
+		scanned_by?: {
+			id: number;
+			full_name: string;
+		};
+	}>;
 }
 
 /**
@@ -378,6 +428,11 @@ function transformTicket(
 	eventId: number,
 	eventName: string,
 ) {
+	// Get check_in_at from check_ins array
+	const latestCheckIn = backendTicket.check_ins?.sort(
+		(a, b) => new Date(b.check_in_at).getTime() - new Date(a.check_in_at).getTime()
+	)[0];
+
 	return {
 		publicId: backendTicket.public_id,
 		eventId,
@@ -388,7 +443,10 @@ function transformTicket(
 		ticketTypeName: backendTicket.ticket_type?.name || "Unknown",
 		value: backendTicket.ticket_type?.price || 0,
 		checkedIn: backendTicket.checked_in,
-		checkInAt: backendTicket.check_in_at,
+		checkInAt: latestCheckIn?.check_in_at || null,
+		// Multi-day ticketing fields
+		validFromDate: backendTicket.ticket_type?.valid_from_date || null,
+		validToDate: backendTicket.ticket_type?.valid_to_date || null,
 	};
 }
 
@@ -563,7 +621,6 @@ export async function restoreTicket(
 			ticketTypeId: response.ticket_type_id,
 			value: response.value,
 			checkedIn: response.checked_in,
-			checkInAt: response.check_in_at,
 			eventName: response.event_name,
 			eventId: response.event_id.toString(),
 			status: response.checked_in ? "scanned" : "not_scanned",

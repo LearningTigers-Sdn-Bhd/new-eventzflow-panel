@@ -54,7 +54,12 @@ export function QRScanner({ onScan }: QRScannerProps) {
 				{ facingMode: "environment" },
 				{
 					fps: 10,
-					qrbox: { width: 250, height: 250 },
+					// Use qrbox as function for responsive sizing
+					qrbox: (viewfinderWidth, viewfinderHeight) => {
+						const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+						const size = Math.floor(minEdge * 0.7);
+						return { width: size, height: size };
+					},
 					aspectRatio: 1.0,
 				},
 				handleScanSuccess,
@@ -106,21 +111,21 @@ export function QRScanner({ onScan }: QRScannerProps) {
 				</div>
 			)}
 
-			{/* UI Overlay */}
+			{/* UI Overlay - responsive sizing */}
 			<div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-				<div className="relative h-64 w-64">
+				<div className="relative h-[70%] w-[70%]">
 					{/* Corners */}
-					<div className="absolute top-0 left-0 h-8 w-8 border-brand-green border-t-2 border-l-2" />
-					<div className="absolute top-0 right-0 h-8 w-8 border-brand-green border-t-2 border-r-2" />
-					<div className="absolute bottom-0 left-0 h-8 w-8 border-brand-green border-b-2 border-l-2" />
-					<div className="absolute right-0 bottom-0 h-8 w-8 border-brand-green border-r-2 border-b-2" />
+					<div className="absolute top-0 left-0 h-6 w-6 border-brand-green border-t-2 border-l-2 sm:h-8 sm:w-8" />
+					<div className="absolute top-0 right-0 h-6 w-6 border-brand-green border-t-2 border-r-2 sm:h-8 sm:w-8" />
+					<div className="absolute bottom-0 left-0 h-6 w-6 border-brand-green border-b-2 border-l-2 sm:h-8 sm:w-8" />
+					<div className="absolute right-0 bottom-0 h-6 w-6 border-brand-green border-r-2 border-b-2 sm:h-8 sm:w-8" />
 
 					{/* Laser Scan Effect */}
 					<div className="absolute inset-x-0 h-0.5 animate-[scan_2s_ease-in-out_infinite] bg-brand-green/80 shadow-[0_0_15px_rgba(35,196,96,0.8)]" />
 
 					{/* Label */}
-					<div className="absolute right-0 -bottom-8 left-0 text-center">
-						<span className="border border-brand-green/20 bg-brand-green/10 px-3 py-1 font-mono text-[10px] text-brand-green uppercase tracking-widest backdrop-blur-md">
+					<div className="absolute right-0 -bottom-6 left-0 text-center sm:-bottom-8">
+						<span className="border border-brand-green/20 bg-brand-green/10 px-2 py-0.5 font-mono text-[8px] text-brand-green uppercase tracking-widest backdrop-blur-md sm:px-3 sm:py-1 sm:text-[10px]">
 							Scanning Active
 						</span>
 					</div>

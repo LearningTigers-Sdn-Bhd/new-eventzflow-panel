@@ -18,7 +18,8 @@ export type ViewState =
 	| "results"
 	| "confirm"
 	| "success"
-	| "already-checked-in";
+	| "already-checked-in"
+	| "wrong-day";
 
 export type InputStep = "selection" | "input";
 
@@ -41,6 +42,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 	const [selectedAttendee, setSelectedAttendee] =
 		useState<AttendeePreview | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+	const [wrongDayMessage, setWrongDayMessage] = useState<string | null>(null);
 
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const lastSearchRef = useRef<string>("");
@@ -184,6 +186,9 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 				error instanceof Error ? error.message : "Check-in failed";
 			if (message.toLowerCase().includes("already")) {
 				setView("already-checked-in");
+			} else if (message.toLowerCase().includes("not valid for today") || message.toLowerCase().includes("wrong day")) {
+				setWrongDayMessage(message);
+				setView("wrong-day");
 			} else {
 				toast.error(message);
 			}
@@ -205,11 +210,17 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 				const message =
 					error instanceof Error ? error.message : "Check-in failed";
 				if (message.toLowerCase().includes("already")) {
-					setView("already-checked-in");
+					toast.error("Already Checked In", {
+						description: "This ticket was already scanned today",
+					});
+				} else if (message.toLowerCase().includes("not valid for today") || message.toLowerCase().includes("wrong day")) {
+					toast.error("Wrong Day", {
+						description: message,
+					});
 				} else {
 					toast.error(message);
-					setInputStep("selection");
 				}
+				// Don't change view or reset - scanner stays open for continuous scanning
 			}
 		},
 		[slug, checkInUrl],
@@ -221,6 +232,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		setLiveResults([]);
 		setSearchError(null);
 		setSelectedAttendee(null);
+		setWrongDayMessage(null);
 		setView("search");
 		setInputStep("selection");
 	};
@@ -232,6 +244,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		setLiveResults([]);
 		setSearchError(null);
 		setSelectedAttendee(null);
+		setWrongDayMessage(null);
 		setView("search");
 		setSearchMethod("scan");
 		setInputStep("input");
@@ -266,6 +279,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		searchError,
 		selectedAttendee,
 		isConfirming,
+		wrongDayMessage,
 		handleSearch,
 		handleSelectAttendee,
 		handleConfirmCheckIn,

@@ -154,6 +154,47 @@ export function useTicketValidation() {
 					}
 				}
 
+				// Check for wrong_day error
+				if (error instanceof ScanCheckInError && error.reason === "wrong_day") {
+					const result: ScanResult = {
+						scanId,
+						timestamp: new Date(),
+						status: "wrong_day",
+						message: error.validityDescription || ERROR_MESSAGES.WRONG_DAY,
+						reason: "wrong_day",
+						validFrom: error.validFrom,
+						validTo: error.validTo,
+						validityDescription: error.validityDescription,
+						type: scanType,
+					};
+
+					toast.error("Wrong Day", {
+						description: error.validityDescription || ERROR_MESSAGES.WRONG_DAY,
+					});
+
+					playBeep(false);
+					return result;
+				}
+
+				// Check for duplicate_today error
+				if (error instanceof ScanCheckInError && error.reason === "duplicate_today") {
+					const result: ScanResult = {
+						scanId,
+						timestamp: new Date(),
+						status: "duplicate",
+						message: ERROR_MESSAGES.DUPLICATE_TODAY,
+						reason: "duplicate_today",
+						type: scanType,
+					};
+
+					toast.error("Already Checked In", {
+						description: "This ticket was already scanned today",
+					});
+
+					playBeep(false);
+					return result;
+				}
+
 				const isDuplicateError =
 					errorMessage.toLowerCase().includes("already") ||
 					errorMessage.toLowerCase().includes("checked in");

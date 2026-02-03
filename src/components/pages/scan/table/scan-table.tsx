@@ -34,7 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ScanItem } from "./scan-item";
 import { DataControl } from "./scan-table-control";
-import type { ScanResult, TypeFilter } from "../types";
+import type { ScanResult, TypeFilter, StatusFilter } from "../types";
 
 interface DataTableProps {
 	columns: ColumnDef<ScanResult>[];
@@ -42,10 +42,12 @@ interface DataTableProps {
 	recentScan: ScanResult | null;
 	filterType: string;
 	typeFilter: TypeFilter;
+	statusFilter: StatusFilter;
 	sortType: "newest" | "oldest" | "status";
 	isLoading?: boolean;
 	onFilterChange: (filter: string) => void;
 	onTypeFilterChange: (filter: TypeFilter) => void;
+	onStatusFilterChange: (filter: StatusFilter) => void;
 	onSortChange: (sort: "newest" | "oldest" | "status") => void;
 }
 
@@ -96,10 +98,12 @@ export function DataTable({
 	recentScan,
 	filterType,
 	typeFilter,
+	statusFilter,
 	sortType,
 	isLoading = false,
 	onFilterChange,
 	onTypeFilterChange,
+	onStatusFilterChange,
 	onSortChange,
 }: DataTableProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([
@@ -165,9 +169,11 @@ export function DataTable({
 				scanResults={data}
 				filterType={filterType}
 				typeFilter={typeFilter}
+				statusFilter={statusFilter}
 				sortType={sortType}
 				onFilterChange={onFilterChange}
 				onTypeFilterChange={onTypeFilterChange}
+				onStatusFilterChange={onStatusFilterChange}
 				onSortChange={onSortChange}
 			/>
 

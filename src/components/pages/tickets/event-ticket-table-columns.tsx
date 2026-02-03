@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
+import type { TicketCheckIn } from "@/lib/api/ticket/response";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./event-ticket-action-menu";
 
@@ -22,6 +23,7 @@ export type BaseTicket = {
 	ticketTypeName?: string;
 	checkedIn?: boolean;
 	checkInAt?: string | null;
+	checkIns?: TicketCheckIn[];
 	deletedAt?: string | null;
 };
 

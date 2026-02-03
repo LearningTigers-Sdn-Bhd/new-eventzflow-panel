@@ -147,8 +147,8 @@ export function CheckInSelection({
 								animate={{ opacity: 1, scale: 1 }}
 								className="space-y-4 sm:space-y-8"
 							>
-								<div className="border-2 border-neutral-100 bg-neutral-50 p-2 sm:p-4">
-									<div className="relative aspect-square overflow-hidden bg-black">
+								<div className="border-2 border-neutral-100 bg-neutral-50 p-1 sm:p-4">
+									<div className="relative aspect-square w-full overflow-hidden bg-black">
 										<QRScanner onScan={onScan} />
 									</div>
 								</div>

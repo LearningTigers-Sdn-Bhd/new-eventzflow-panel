@@ -1,5 +1,25 @@
 // Pure TypeScript types for API responses
 
+// Check-in record for multi-day events
+export interface TicketCheckIn {
+	id: number;
+	checkInAt: string;
+	scannedBy?: {
+		id: number;
+		fullName: string;
+	};
+}
+
+// Backend check-in record format
+export interface BackendTicketCheckIn {
+	id: number;
+	check_in_at: string;
+	scanned_by?: {
+		id: number;
+		full_name: string;
+	};
+}
+
 // Frontend types (transformed from backend)
 export type Ticket = {
 	id: string;
@@ -12,7 +32,9 @@ export type Ticket = {
 	ticketTypeId: number;
 	value: number;
 	checkedIn: boolean;
+	checkedInToday?: boolean;
 	checkInAt?: string;
+	checkIns?: TicketCheckIn[];
 	eventName: string;
 	eventId: string;
 	status: "scanned" | "not_scanned";
@@ -96,8 +118,7 @@ export type BackendTicket = {
 	status: "purchased" | "scanned" | "refunded" | "canceled";
 	payment_status: "pending" | "paid" | "failed" | "refunded_payment" | number;
 	checked_in: boolean;
-	check_in_at: string | null;
-	scanned_by_id?: number | null;
+	checked_in_today?: boolean;
 	custom_fields_data: Record<string, string> | null;
 	created_at: string;
 	updated_at: string;
@@ -106,7 +127,10 @@ export type BackendTicket = {
 		id: number;
 		name: string;
 		price: number;
+		valid_from_date?: string | null;
+		valid_to_date?: string | null;
 	};
+	check_ins?: BackendTicketCheckIn[];
 };
 
 // Backend response types (transformed from other endpoints like scanned tickets)
@@ -121,7 +145,6 @@ export type BackendTicketTransformed = {
 	ticket_type_id: number;
 	value: number;
 	checked_in: boolean;
-	check_in_at?: string;
 	created_at?: string;
 	event_name: string;
 	event_id: number;
@@ -173,6 +196,9 @@ export interface OfflineTicket {
 	value: number;
 	checkedIn?: boolean;
 	checkInAt?: string | null;
+	// Multi-day ticketing fields
+	validFromDate?: string | null;
+	validToDate?: string | null;
 }
 
 export interface OfflineData {

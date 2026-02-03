@@ -56,6 +56,7 @@ export function TicketTypeActionsMenu({
 				title: "Edit Ticket Type",
 				description: "Update ticket type information",
 				size: "2xl",
+				className: "rounded-none",
 			},
 		});
 	};

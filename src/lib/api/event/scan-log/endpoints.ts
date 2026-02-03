@@ -11,20 +11,24 @@ function mapTicketToScannedLog(
 	ticket: BackendTicket,
 	userLocationMap: Map<number, string>,
 ): ScannedLog {
-	// Determine who scanned the ticket
-	let scannedBy = "Auto Check-in"; // Default for null scanned_by_id
+	// Get the most recent check-in for this ticket
+	const latestCheckIn = ticket.check_ins?.sort(
+		(a, b) =>
+			new Date(b.check_in_at).getTime() - new Date(a.check_in_at).getTime(),
+	)[0];
 
-	if (ticket.scanned_by) {
-		// If scanned_by user data is available, use their full name
-		scannedBy = ticket.scanned_by.full_name;
-	} else if (ticket.scanned_by_id) {
-		// Fallback if we have ID but no user data (shouldn't happen with proper includes)
-		scannedBy = `Staff ID: ${ticket.scanned_by_id}`;
+	// Determine who scanned the ticket from check_ins
+	let scannedBy = "Auto Check-in";
+	let scannedById: number | null = null;
+
+	if (latestCheckIn?.scanned_by) {
+		scannedBy = latestCheckIn.scanned_by.full_name;
+		scannedById = latestCheckIn.scanned_by.id;
 	}
 
 	// Get location name from the map
-	const locationName = ticket.scanned_by_id
-		? userLocationMap.get(ticket.scanned_by_id) || "General Access"
+	const locationName = scannedById
+		? userLocationMap.get(scannedById) || "General Access"
 		: "N/A";
 
 	return {
@@ -35,7 +39,7 @@ function mapTicketToScannedLog(
 		locationName,
 		scannedBy,
 		status: ticket.status === "scanned" ? "scanned" : "not_scanned",
-		checkedInAt: ticket.check_in_at || ticket.created_at,
+		checkedInAt: latestCheckIn?.check_in_at || ticket.created_at,
 	};
 }
 

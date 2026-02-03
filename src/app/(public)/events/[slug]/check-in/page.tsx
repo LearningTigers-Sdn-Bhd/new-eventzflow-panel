@@ -60,6 +60,7 @@ function EventCheckInContent() {
 		searchError,
 		selectedAttendee,
 		isConfirming,
+		wrongDayMessage,
 		handleSearch,
 		handleSelectAttendee,
 		handleConfirmCheckIn,
@@ -270,12 +271,13 @@ function EventCheckInContent() {
 
 			{/* SUCCESS / ERROR OVERLAY */}
 			<AnimatePresence>
-				{(view === "success" || view === "already-checked-in") &&
+				{(view === "success" || view === "already-checked-in" || view === "wrong-day") &&
 					selectedAttendee && (
 						<CheckInStatus
 							status={view}
 							attendee={selectedAttendee}
 							onClose={searchMethod === "scan" ? handleResetToScan : handleReset}
+							message={view === "wrong-day" ? wrongDayMessage ?? undefined : undefined}
 						/>
 					)}
 			</AnimatePresence>

@@ -156,6 +156,10 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 		{
 			accessorKey: "status",
 			size: 150,
+			filterFn: (row, _id, value) => {
+				if (value === undefined || value === "all") return true;
+				return row.original.status === value;
+			},
 			header: ({ column }) => {
 				return (
 					<SortableHeader

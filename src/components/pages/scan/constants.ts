@@ -63,6 +63,15 @@ export const STATUS_VARIANTS = {
 		text: "text-yellow-600",
 		label: "Duplicate",
 	},
+	wrong_day: {
+		bg: "bg-orange-50 dark:bg-orange-950/20",
+		border: "border-orange-200 dark:border-orange-900/30",
+		iconBg: "bg-orange-500/20",
+		badgeBg:
+			"bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
+		text: "text-orange-600",
+		label: "Wrong Day",
+	},
 } as const;
 
 // Error Messages
@@ -72,6 +81,8 @@ export const ERROR_MESSAGES = {
 	CAMERA_PERMISSION_HELP: "Please check your camera permissions",
 	DUPLICATE_SCAN_SESSION: "Already scanned in this session",
 	DUPLICATE_SCAN_BACKEND: "Already checked in",
+	DUPLICATE_TODAY: "Already checked in today",
+	WRONG_DAY: "Ticket not valid for today",
 	INVALID_TICKET: "Record not found or network error",
 	SCAN_HISTORY_LOAD_FAILED: "Failed to load scan history",
 	SCAN_HISTORY_SAVE_FAILED: "Failed to save scan history",

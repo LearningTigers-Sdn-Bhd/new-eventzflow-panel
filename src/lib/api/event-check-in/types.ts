@@ -19,6 +19,7 @@ export interface AttendeePreview {
 	role: string | null;
 	type_name: string | null;
 	checked_in: boolean;
+	checked_in_today?: boolean;
 	check_in_at: string | null;
 }
 

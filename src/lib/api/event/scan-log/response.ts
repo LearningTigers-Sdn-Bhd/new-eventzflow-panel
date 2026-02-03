@@ -5,6 +5,13 @@ export type ScanLogBackendUser = {
 	email: string;
 };
 
+// Backend check-in record type
+export type ScanLogBackendCheckIn = {
+	id: number;
+	check_in_at: string;
+	scanned_by?: ScanLogBackendUser | null;
+};
+
 // Backend ticket response type (from Rails API)
 export type BackendTicket = {
 	id: number;
@@ -15,9 +22,7 @@ export type BackendTicket = {
 	attendee_email: string;
 	attendee_phone: string | null;
 	checked_in: boolean;
-	check_in_at: string | null;
-	scanned_by_id: number | null;
-	scanned_by?: ScanLogBackendUser | null; // User who scanned the ticket
+	checked_in_today?: boolean;
 	status: "purchased" | "scanned" | "refunded" | "canceled";
 	created_at: string;
 	updated_at: string;
@@ -26,6 +31,7 @@ export type BackendTicket = {
 		name: string;
 		price: string;
 	};
+	check_ins?: ScanLogBackendCheckIn[];
 };
 
 // Frontend scanned log type

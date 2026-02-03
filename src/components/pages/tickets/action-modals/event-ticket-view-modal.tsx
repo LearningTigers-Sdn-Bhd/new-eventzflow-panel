@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
 	Calendar,
 	Check,
@@ -6,6 +7,7 @@ import {
 	DollarSign,
 	FileText,
 	Hash,
+	History,
 	Info,
 	type LucideIcon,
 	Mail,
@@ -176,6 +178,51 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							</CardContent>
 						</Card>
 					</div>
+
+					{/* Check-in History Section (for multi-day events) */}
+					{ticket.checkIns && ticket.checkIns.length > 0 && (
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<History className="size-4 text-primary" />
+								<h3 className="font-bold text-sm uppercase tracking-tight">
+									Check-in History
+								</h3>
+							</div>
+							<Separator />
+
+							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
+								<CardContent className="p-0">
+									<div className="divide-y">
+										{ticket.checkIns.map((checkIn, index) => (
+											<div
+												key={checkIn.id}
+												className="flex items-center justify-between px-6 py-4"
+											>
+												<div className="flex items-center gap-3">
+													<div className="flex h-8 w-8 items-center justify-center bg-green-100 dark:bg-green-900/30">
+														<Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+													</div>
+													<div>
+														<p className="font-medium text-sm">
+															{format(new Date(checkIn.checkInAt), "EEEE, MMMM d, yyyy")}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{format(new Date(checkIn.checkInAt), "h:mm a")}
+														</p>
+													</div>
+												</div>
+												{checkIn.scannedBy && (
+													<span className="text-xs text-muted-foreground">
+														by {checkIn.scannedBy.fullName}
+													</span>
+												)}
+											</div>
+										))}
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+					)}
 
 					{/* Custom Information Section */}
 					<div className="space-y-4">

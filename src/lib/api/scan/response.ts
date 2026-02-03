@@ -96,14 +96,34 @@ export interface BackendRecentCheckInsResponse {
 	limit: number;
 }
 
-// Custom error class for check-in errors that includes the scan type
+// Custom error class for check-in errors that includes the scan type and multi-day info
 export class ScanCheckInError extends Error {
 	type: ScanType | null;
+	reason?: "wrong_day" | "duplicate_today" | "invalid";
+	validFrom?: string;
+	validTo?: string;
+	validityDescription?: string;
+	checkedInAt?: string;
 
-	constructor(message: string, type: ScanType | null = null) {
+	constructor(
+		message: string,
+		options?: {
+			type?: ScanType | null;
+			reason?: "wrong_day" | "duplicate_today" | "invalid";
+			validFrom?: string;
+			validTo?: string;
+			validityDescription?: string;
+			checkedInAt?: string;
+		}
+	) {
 		super(message);
 		this.name = "ScanCheckInError";
-		this.type = type;
+		this.type = options?.type ?? null;
+		this.reason = options?.reason;
+		this.validFrom = options?.validFrom;
+		this.validTo = options?.validTo;
+		this.validityDescription = options?.validityDescription;
+		this.checkedInAt = options?.checkedInAt;
 	}
 }
 

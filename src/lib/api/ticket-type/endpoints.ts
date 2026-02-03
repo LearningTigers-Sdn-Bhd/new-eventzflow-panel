@@ -35,6 +35,9 @@ function transformTicketType(backendType: BackendTicketType): TicketType {
 		customFieldsData: backendType.custom_fields_data,
 		createdAt: backendType.created_at,
 		updatedAt: backendType.updated_at,
+		validFromDate: backendType.valid_from_date,
+		validToDate: backendType.valid_to_date,
+		validityDescription: backendType.validity_description,
 	};
 }
 

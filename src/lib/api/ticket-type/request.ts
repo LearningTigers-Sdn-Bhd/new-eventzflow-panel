@@ -23,6 +23,8 @@ export const createTicketTypeSchema = z.object({
 	status: z.enum(["draft", "published", "archived"]).optional(),
 	hidden: z.boolean().optional(),
 	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	valid_from_date: z.string().nullable().optional(),
+	valid_to_date: z.string().nullable().optional(),
 });
 
 // Validation schema for updating a ticket type
@@ -38,6 +40,8 @@ export const updateTicketTypeSchema = z.object({
 	status: z.enum(["draft", "published", "archived"]).optional(),
 	hidden: z.boolean().optional(),
 	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	valid_from_date: z.string().nullable().optional(),
+	valid_to_date: z.string().nullable().optional(),
 });
 
 // Validation schema for deleting a ticket type

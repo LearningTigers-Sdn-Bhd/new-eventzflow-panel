@@ -23,6 +23,7 @@ export function TicketTypePageButton({ eventId }: TicketTypePageButtonProps) {
 				title: "Create Ticket Type",
 				description: "Add a new ticket type for this event",
 				size: "2xl",
+				className: "rounded-none",
 			},
 		});
 	};

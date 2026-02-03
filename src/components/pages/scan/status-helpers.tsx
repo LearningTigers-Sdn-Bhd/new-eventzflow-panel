@@ -3,7 +3,7 @@
  * Shared utilities for rendering scan status indicators
  */
 
-import { AlertCircle, CheckCircle2, Ticket, UserRound, XCircle } from "lucide-react";
+import { AlertCircle, CalendarX, CheckCircle2, Ticket, UserRound, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tooltip,
@@ -53,6 +53,12 @@ export function getStatusIcon(status: ScanStatus, className?: string) {
 			return (
 				<AlertCircle
 					className={cn(combinedClassName, STATUS_VARIANTS.duplicate.text)}
+				/>
+			);
+		case "wrong_day":
+			return (
+				<CalendarX
+					className={cn(combinedClassName, STATUS_VARIANTS.wrong_day.text)}
 				/>
 			);
 	}

@@ -21,7 +21,7 @@ import { UI_TIMING } from "./constants";
 import { ScannerCard } from "./cards/scanner-card";
 import { StatsGrid } from "./cards/stats-grid";
 import { StorageStatus } from "./cards/storage-status";
-import type { FilterType, ScanResult, SortType, TypeFilter } from "./types";
+import type { FilterType, ScanResult, SortType, TypeFilter, StatusFilter } from "./types";
 import { exportToCSV } from "./utils";
 
 export default function ScanContent() {
@@ -33,6 +33,7 @@ export default function ScanContent() {
 	const [recentScan, setRecentScan] = useState<ScanResult | null>(null);
 	const [filterType, setFilterType] = useState<FilterType>("all");
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 	const [sortType, setSortType] = useState<SortType>("newest");
 
 	/**
@@ -192,10 +193,12 @@ export default function ScanContent() {
 				recentScan={recentScan}
 				filterType={filterType}
 				typeFilter={typeFilter}
+				statusFilter={statusFilter}
 				sortType={sortType}
 				isLoading={isLoading}
 				onFilterChange={setFilterType}
 				onTypeFilterChange={setTypeFilter}
+				onStatusFilterChange={setStatusFilter}
 				onSortChange={setSortType}
 			/>
 		</div>

@@ -13,6 +13,10 @@ export interface BackendTicketType {
 	custom_fields_data: Record<string, unknown>;
 	created_at: string;
 	updated_at: string;
+	// Multi-day ticketing fields
+	valid_from_date: string | null;
+	valid_to_date: string | null;
+	validity_description: string;
 }
 
 // Frontend ticket type format
@@ -30,6 +34,10 @@ export interface TicketType {
 	customFieldsData: Record<string, unknown>;
 	createdAt: string;
 	updatedAt: string;
+	// Multi-day ticketing fields
+	validFromDate: string | null;
+	validToDate: string | null;
+	validityDescription: string;
 }
 
 // Response types for operations

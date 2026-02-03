@@ -39,6 +39,19 @@ const columns: ColumnDef<TicketType>[] = [
 		cell: ({ row }) => <div>{row.getValue("maxPerOrder")}</div>,
 	},
 	{
+		accessorKey: "validityDescription",
+		size: 160,
+		header: () => <p className="font-medium">Valid Days</p>,
+		cell: ({ row }) => {
+			const description = row.getValue("validityDescription") as string;
+			return (
+				<div className="text-muted-foreground text-sm">
+					{description || "All days"}
+				</div>
+			);
+		},
+	},
+	{
 		accessorKey: "status",
 		size: 120,
 		filterFn: (row, id, value) => row.getValue(id) === value,

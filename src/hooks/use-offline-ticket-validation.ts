@@ -24,6 +24,9 @@ interface OfflineTicket {
 	value: number;
 	checkedIn?: boolean;
 	checkInAt?: string | null;
+	// Multi-day ticketing fields
+	validFromDate?: string | null;
+	validToDate?: string | null;
 }
 
 export function useOfflineTicketValidation() {
@@ -76,6 +79,43 @@ export function useOfflineTicketValidation() {
 						message: "Ticket not found in offline database",
 						type: "ticket",
 					};
+				}
+
+				// Check if ticket is valid for today (multi-day ticketing)
+				if (ticket.validFromDate && ticket.validToDate) {
+					const today = new Date().toISOString().split("T")[0];
+					if (today < ticket.validFromDate || today > ticket.validToDate) {
+						const fromDate = new Date(ticket.validFromDate).toLocaleDateString("en-US", {
+							month: "short",
+							day: "numeric",
+						});
+						const toDate = new Date(ticket.validToDate).toLocaleDateString("en-US", {
+							month: "short",
+							day: "numeric",
+							year: "numeric",
+						});
+						const validityDescription = `Valid: ${fromDate} - ${toDate}`;
+
+						playBeep(false);
+
+						return {
+							scanId,
+							timestamp: new Date(),
+							status: "wrong_day",
+							message: ERROR_MESSAGES.WRONG_DAY,
+							reason: "wrong_day",
+							validFrom: ticket.validFromDate,
+							validTo: ticket.validToDate,
+							validityDescription,
+							name: ticket.name,
+							email: ticket.email,
+							phone: ticket.phone,
+							ticketType: ticket.ticketTypeName,
+							eventName: ticket.eventName,
+							eventId: ticket.eventId,
+							type: "ticket",
+						};
+					}
 				}
 
 				if (ticket.checkedIn) {

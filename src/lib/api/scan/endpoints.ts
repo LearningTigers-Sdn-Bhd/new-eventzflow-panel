@@ -56,14 +56,41 @@ export async function checkIn(publicId: string): Promise<ScanCheckInResponse> {
 			age: response.age,
 		};
 	} catch (error) {
-		// Try to extract type from error response (backend sends it for duplicate errors)
+		// Try to extract type and multi-day info from error response
 		let scanType: ScanType | null = null;
+		let reason: "wrong_day" | "duplicate_today" | "invalid" | undefined;
+		let validFrom: string | undefined;
+		let validTo: string | undefined;
+		let validityDescription: string | undefined;
+		let checkedInAt: string | undefined;
+
 		if (error && typeof error === "object" && "response" in error) {
-			const response = error.response as { data?: { type?: ScanType } };
+			const response = error.response as {
+				data?: {
+					type?: ScanType;
+					reason?: string;
+					valid_from?: string;
+					valid_to?: string;
+					validity_description?: string;
+					checked_in_at?: string;
+				};
+			};
 			scanType = response?.data?.type ?? null;
+			reason = response?.data?.reason as typeof reason;
+			validFrom = response?.data?.valid_from;
+			validTo = response?.data?.valid_to;
+			validityDescription = response?.data?.validity_description;
+			checkedInAt = response?.data?.checked_in_at;
 		}
 		const message = await extractErrorMessage(error);
-		throw new ScanCheckInError(message, scanType);
+		throw new ScanCheckInError(message, {
+			type: scanType,
+			reason,
+			validFrom,
+			validTo,
+			validityDescription,
+			checkedInAt,
+		});
 	}
 }
 

@@ -177,12 +177,23 @@ export async function getEventAnalyticsServer(
 		token,
 	);
 
+	// Helper to get latest check_in_at from check_ins array
+	const getLatestCheckInAt = (ticket: BackendTicket): number => {
+		if (ticket.check_ins && ticket.check_ins.length > 0) {
+			const latest = ticket.check_ins.reduce((a, b) =>
+				new Date(a.check_in_at).getTime() > new Date(b.check_in_at).getTime() ? a : b
+			);
+			return new Date(latest.check_in_at).getTime();
+		}
+		return 0;
+	};
+
 	// Filter for scanned tickets and get the 5 most recent
 	const recentScannedTickets = allTickets
 		.filter((ticket) => ticket.status === "scanned" && ticket.checked_in)
 		.sort((a, b) => {
-			const dateA = new Date(a.check_in_at || 0).getTime();
-			const dateB = new Date(b.check_in_at || 0).getTime();
+			const dateA = getLatestCheckInAt(a);
+			const dateB = getLatestCheckInAt(b);
 			return dateB - dateA;
 		})
 		.slice(0, 5);
@@ -208,9 +219,16 @@ export async function getEventAnalyticsServer(
 
 	// Map to RecentScan format
 	const recentScans: RecentScan[] = recentScannedTickets.map((ticket) => {
-		const scannedBy = ticket.scanned_by?.full_name || "Auto Check-in";
-		const locationName = ticket.scanned_by_id
-			? userLocationMap.get(ticket.scanned_by_id) || "General Access"
+		// Get the most recent check-in for this ticket
+		const latestCheckIn = ticket.check_ins?.sort(
+			(a, b) =>
+				new Date(b.check_in_at).getTime() - new Date(a.check_in_at).getTime(),
+		)[0];
+
+		const scannedBy = latestCheckIn?.scanned_by?.full_name || "Auto Check-in";
+		const scannedById = latestCheckIn?.scanned_by?.id;
+		const locationName = scannedById
+			? userLocationMap.get(scannedById) || "General Access"
 			: "N/A";
 
 		return {
@@ -219,7 +237,7 @@ export async function getEventAnalyticsServer(
 			email: ticket.attendee_email,
 			location: locationName,
 			scannedBy,
-			timestamp: ticket.check_in_at || new Date().toISOString(),
+			timestamp: latestCheckIn?.check_in_at || new Date().toISOString(),
 			status: "scanned",
 		};
 	});

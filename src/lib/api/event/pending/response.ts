@@ -1,3 +1,13 @@
+// Backend check-in record type for pending tickets
+export interface BackendPendingTicketCheckIn {
+	id: number;
+	check_in_at: string;
+	scanned_by?: {
+		id: number;
+		full_name: string;
+	};
+}
+
 // Backend ticket response type (with payment fields)
 export interface BackendPendingTicket {
 	id: number;
@@ -14,7 +24,7 @@ export interface BackendPendingTicket {
 	transaction_id?: string | null;
 	payment_method?: string | null;
 	checked_in: boolean;
-	check_in_at: string | null;
+	checked_in_today?: boolean;
 	custom_fields_data: Record<string, string> | null;
 	created_at: string;
 	updated_at: string;
@@ -23,6 +33,7 @@ export interface BackendPendingTicket {
 		name: string;
 		price: number;
 	};
+	check_ins?: BackendPendingTicketCheckIn[];
 }
 
 // Frontend pending ticket type

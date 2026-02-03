@@ -4,16 +4,18 @@ import type { Table } from "@tanstack/react-table";
 import * as React from "react";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
-import type { ScanResult, TypeFilter } from "../types";
+import type { ScanResult, TypeFilter, StatusFilter } from "../types";
 
 interface DataControlProps {
 	table: Table<ScanResult>;
 	scanResults: ScanResult[];
 	filterType: string;
 	typeFilter: TypeFilter;
+	statusFilter: StatusFilter;
 	sortType: "newest" | "oldest" | "status";
 	onFilterChange: (filter: string) => void;
 	onTypeFilterChange: (filter: TypeFilter) => void;
+	onStatusFilterChange: (filter: StatusFilter) => void;
 	onSortChange: (sort: "newest" | "oldest" | "status") => void;
 }
 
@@ -22,9 +24,11 @@ export function DataControl({
 	scanResults,
 	filterType,
 	typeFilter,
+	statusFilter,
 	sortType,
 	onFilterChange,
 	onTypeFilterChange,
+	onStatusFilterChange,
 	onSortChange,
 }: DataControlProps) {
 	// Get unique events for filter
@@ -83,6 +87,18 @@ export function DataControl({
 		}
 	};
 
+	// Handle status filter change
+	const handleStatusFilterChange = (value: string) => {
+		onStatusFilterChange(value as StatusFilter);
+		const statusColumn = table.getColumn("status");
+
+		if (value === "all") {
+			statusColumn?.setFilterValue(undefined);
+		} else {
+			statusColumn?.setFilterValue(value);
+		}
+	};
+
 	if (scanResults.length === 0) {
 		return null;
 	}
@@ -100,6 +116,24 @@ export function DataControl({
 		customFilter: {
 			value: typeFilter,
 			onChange: handleTypeFilterChange,
+		},
+	};
+
+	// Status filter control
+	const statusFilterControl: ControlConfig = {
+		label: "Status",
+		columnId: "status",
+		type: "filter",
+		data: [
+			{ label: "All Status", value: "all" },
+			{ label: "Success", value: "success" },
+			{ label: "Duplicate", value: "duplicate" },
+			{ label: "Wrong Day", value: "wrong_day" },
+			{ label: "Error", value: "error" },
+		],
+		customFilter: {
+			value: statusFilter,
+			onChange: handleStatusFilterChange,
 		},
 	};
 
@@ -140,18 +174,19 @@ export function DataControl({
 
 	const desktopControlConfigs: ControlConfig[] = [
 		typeFilterControl,
+		statusFilterControl,
 		eventFilterControl,
 		sortControl,
 	];
 
 	const mobileControlConfigs: ControlConfig[] = [
 		{ ...typeFilterControl, topPriority: true },
+		{ ...statusFilterControl, topPriority: true },
 		{ ...eventFilterControl, topPriority: true },
 		{ ...sortControl, topPriority: true },
 		{ label: "Attendee", columnId: "name", type: "sort" },
 		{ label: "Event", columnId: "eventName", type: "sort" },
 		{ label: "Check-In Time", columnId: "timestamp", type: "sort" },
-		{ label: "Status", columnId: "status", type: "sort" },
 	];
 
 	return (
