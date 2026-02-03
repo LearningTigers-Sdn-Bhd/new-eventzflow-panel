@@ -36,7 +36,9 @@ export type BackendTicket = {
 
 // Frontend scanned log type
 export type ScannedLog = {
-	id: string;
+	id: string; // Format: {public_id}_{check_in_id} for uniqueness
+	ticketId: string; // The ticket's public_id
+	checkInId?: number; // The check_in record id (for multi-day)
 	name: string;
 	email: string;
 	phone: string;

@@ -9,18 +9,11 @@ import { SortableHeader } from "@/components/admin-ui/table/header/sortable-head
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
+import type { ScannedLog } from "@/lib/api/event/scan-log/response";
 import { cn } from "@/lib/utils";
 
-export type ScannedLog = {
-	id: string;
-	name: string;
-	email: string;
-	phone: string;
-	locationName: string;
-	scannedBy: string;
-	status: "scanned" | "not_scanned";
-	checkedInAt: string;
-};
+// Re-export the type for consumers
+export type { ScannedLog } from "@/lib/api/event/scan-log/response";
 
 const ScannedLogViewModal = ({
 	name,

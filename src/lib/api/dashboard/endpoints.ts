@@ -195,7 +195,7 @@ export async function getEventAnalytics(
 				new Date(b.check_in_at).getTime() - new Date(a.check_in_at).getTime(),
 		)[0];
 
-		const scannedBy = latestCheckIn?.scanned_by?.full_name || "Auto Check-in";
+		const scannedBy = latestCheckIn?.scanned_by?.full_name || "Public Check-in";
 		const scannedById = latestCheckIn?.scanned_by?.id;
 		const locationName = scannedById
 			? userLocationMap.get(scannedById) || "General Access"
