@@ -8,6 +8,7 @@ import type {
 import {
 	archiveSeatSession,
 	createSeatSession,
+	duplicateSeatSession,
 	forceDeleteSeatSession,
 	restoreSeatSession,
 	updateSeatSession,
@@ -93,11 +94,25 @@ export function useSeatSessionMutation({
 		},
 	});
 
+	const duplicateMutation = useMutation({
+		mutationFn: (sessionId: string) => duplicateSeatSession(sessionId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey });
+			toast.success("Seat session duplicated");
+		},
+		onError: (error: Error) => {
+			toast.error("Failed to duplicate seat session", {
+				description: error.message,
+			});
+		},
+	});
+
 	return {
 		createMutation,
 		updateMutation,
 		archiveMutation,
 		restoreMutation,
 		forceDeleteMutation,
+		duplicateMutation,
 	};
 }

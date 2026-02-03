@@ -4,8 +4,16 @@ export interface GetSeatSessionsRequest {
 	full?: boolean;
 }
 
+export interface GetPublicSeatSessionsRequest {
+	eventSlug: string;
+}
+
 export interface GetSeatSessionRequest {
 	sessionId: string;
+}
+
+export interface GetPublicSeatSessionRequest {
+	idOrSlugOrPublicId: string;
 }
 
 export interface CreateSeatSessionRequest {

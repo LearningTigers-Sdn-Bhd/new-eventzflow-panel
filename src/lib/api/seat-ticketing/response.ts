@@ -3,6 +3,8 @@ export interface EventSeatSession {
 	event_id: number;
 	name: string;
 	status: string;
+	public_id?: string;
+	slug?: string;
 	location: string | null;
 	start_datetime: string | null;
 	end_datetime: string | null;

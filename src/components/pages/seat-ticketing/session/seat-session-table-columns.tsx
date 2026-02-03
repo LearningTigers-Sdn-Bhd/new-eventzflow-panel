@@ -25,7 +25,7 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 		accessorKey: "name",
 		size: 260,
 		header: ({ column }) => (
-			<SortableHeader column={column} label="Session" />
+			<SortableHeader column={column} label="Reservation Name" />
 		),
 		cell: ({ row }) => (
 			<div className="truncate font-medium">{row.getValue("name")}</div>

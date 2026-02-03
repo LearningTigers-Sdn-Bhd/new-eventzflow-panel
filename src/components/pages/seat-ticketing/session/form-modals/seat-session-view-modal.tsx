@@ -3,10 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useDialog } from "@/hooks/use-dialog";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import type { SeatSessionRow } from "../seat-session-table-columns";
 import { getSessionStatusConfig } from "../utils";
+import { useParams, useRouter } from "next/navigation";
 
 interface SeatSessionViewModalProps {
 	session: SeatSessionRow;
@@ -17,6 +19,10 @@ export default function SeatSessionViewModal({
 }: SeatSessionViewModalProps) {
 	const isArchived = session.archived ?? !!session.deleted_at;
 	const statusConfig = getSessionStatusConfig(session.status);
+	const router = useRouter();
+	const params = useParams();
+	const eventId = params.event_id as string;
+	const { closeDialog } = useDialog();
 
 	return (
 		<div className="flex flex-col gap-6 p-4 md:pb-8">
@@ -81,8 +87,18 @@ export default function SeatSessionViewModal({
 				</div>
 			</div>
 
-			<div className="flex w-full">
-				<Button>Manage Session</Button>
+			<div className="flex w-full mt-6">
+				<Button
+					className="w-full rounded-none"
+					onClick={() => {
+						closeDialog();
+						router.push(
+							`/event/${eventId}/seat-ticketing/sessions/${session.id}`,
+						);
+					}}
+				>
+					Manage Session
+				</Button>
 			</div>
 		</div>
 	);

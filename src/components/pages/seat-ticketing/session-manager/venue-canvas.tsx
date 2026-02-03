@@ -167,8 +167,10 @@ function VenueCanvasContent({
 					key={`${r}-${c}`}
 					type="button"
 					className={cn(
-						"bg-white transition-colors outline-none p-0 cursor-pointer block rounded-none w-full h-full relative z-0",
-						!isPanning && "hover:bg-slate-50",
+						"bg-white transition-colors outline-none p-0 block rounded-none w-full h-full relative z-0",
+						interactionMode === "create"
+							? "cursor-pointer hover:bg-slate-50"
+							: "cursor-default",
 					)}
 					onClick={(e) => {
 						e.stopPropagation();
@@ -181,14 +183,17 @@ function VenueCanvasContent({
 	}
 
 	return (
-		<div className="relative flex items-center justify-center w-full h-full bg-muted">
+		<div
+			className="relative flex items-center justify-center w-full h-full bg-muted"
+			onClick={() => selectSection(null)}
+		>
 			{/* Canvas Content */}
 			<div className="absolute inset-0 flex items-center justify-center">
 				<div className="absolute inset-0 bg-muted" aria-hidden="true" />
 				<div
 					style={gridStyle}
 					className="relative transition-transform duration-75 ease-out border border-primary"
-					onClick={() => selectSection(null)}
+					onClick={(e) => e.stopPropagation()}
 				>
 					{cells}
 
@@ -213,7 +218,10 @@ function VenueCanvasContent({
 			</div>
 
 			{/* Sticky Controls */}
-			<div className="absolute bottom-6 right-6 flex flex-col gap-2 z-50">
+			<div
+				className="absolute bottom-6 right-6 flex flex-col gap-2 z-50"
+				onClick={(e) => e.stopPropagation()}
+			>
 				<button
 					type="button"
 					className={cn(

@@ -261,15 +261,16 @@ export const eventMenuConfig: EventMenuConfig = {
 		// ------------------------------------------------------------------------
 		{
 			id: "seat-ticketing",
-			label: "Seat Ticketing",
+			label: "Seat Reservation",
 			icon: Ticket,
 			visible: (p, e) =>
 				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
 			tabs: [
 				{
 					route: "seat-ticketing/sessions",
-					label: "Sessions",
-					description: "Manage seat ticketing sessions for this event.",
+					label: "Seat Reservation Sessions",
+					description:
+						"Set up and organize seat reservation sessions, sections, and seating layouts for this event.",
 					icon: Ticket,
 				},
 			],

@@ -37,8 +37,15 @@ export function SeatCanvas() {
 }
 
 function SeatCanvasContent({ section }: { section: EventSeatSection }) {
-	const { selectSeat, zoom, setZoom, pan, isPanning, setIsPanning } =
-		useSeatSessionStore();
+	const {
+		selectSeat,
+		selectSeatPosition,
+		zoom,
+		setZoom,
+		pan,
+		isPanning,
+		setIsPanning,
+	} = useSeatSessionStore();
 
 	const { isDragging } = useCanvas();
 
@@ -81,20 +88,26 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 	}
 
 	return (
-		<>
+		<div
+			className="relative w-full h-full"
+			onClick={() => {
+				selectSeat(null);
+				selectSeatPosition(null);
+			}}
+		>
 			<div
 				style={gridStyle}
 				className="relative transition-transform duration-75 ease-out"
-				onClick={(e) => {
-					e.stopPropagation();
-					selectSeat(null);
-				}}
+				onClick={(e) => e.stopPropagation()}
 			>
 				{cells}
 			</div>
 
 			{/* Sticky Controls */}
-			<div className="absolute bottom-6 right-6 flex flex-col gap-2 z-50">
+			<div
+				className="absolute bottom-6 right-6 flex flex-col gap-2 z-50"
+				onClick={(e) => e.stopPropagation()}
+			>
 				<button
 					type="button"
 					className={cn(
@@ -125,6 +138,6 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 					</button>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }

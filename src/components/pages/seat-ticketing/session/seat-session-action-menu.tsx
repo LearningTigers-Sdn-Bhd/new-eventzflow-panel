@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Eye, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Copy, Eye, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -32,7 +32,7 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 	const isVendor = user?.role === "vendor";
 	const isArchived = session.archived ?? !!session.deleted_at;
 
-	const { archiveMutation, restoreMutation, forceDeleteMutation } =
+	const { archiveMutation, restoreMutation, forceDeleteMutation, duplicateMutation } =
 		useSeatSessionMutation({
 			queryKey: ["seat-ticketing", "sessions", eventId],
 		});
@@ -105,6 +105,21 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 		});
 	};
 
+	const confirmDuplicate = () => {
+		openConfirm({
+			title: "Duplicate Seat Session",
+			message:
+				"This will create a full copy of the session, including venues, sections, and seats.",
+			description: `Duplicate "${session.name}"?`,
+			type: "info",
+			icon: "copy",
+			confirmLabel: "Duplicate",
+			onConfirm: async () => {
+				await duplicateMutation.mutateAsync(session.id);
+			},
+		});
+	};
+
 	return (
 		<div className="py-2">
 			<TooltipProvider delayDuration={0}>
@@ -125,19 +140,34 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 
 					{!isVendor && (
 						<>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										variant="outline"
-										size="icon"
-										className="rounded-none text-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
-										onClick={openEdit}
-									>
-										<Pencil className="h-4 w-4" />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent side="bottom">Edit Session</TooltipContent>
-							</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-none text-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
+								onClick={openEdit}
+							>
+								<Pencil className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">Edit Session</TooltipContent>
+					</Tooltip>
+
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-none text-slate-600 hover:text-slate-600 hover:bg-slate-50"
+								disabled={duplicateMutation.isPending}
+								onClick={confirmDuplicate}
+							>
+								<Copy className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">Duplicate Session</TooltipContent>
+					</Tooltip>
 
 							<Tooltip>
 								<TooltipTrigger asChild>

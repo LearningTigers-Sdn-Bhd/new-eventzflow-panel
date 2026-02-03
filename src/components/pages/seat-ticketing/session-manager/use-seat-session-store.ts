@@ -19,6 +19,9 @@ import type {
 export type EditorMode = "venue_blueprint" | "seat_placement";
 export type InteractionMode = "select" | "create";
 
+export const seatSessionDraftKey = (sessionId: number) =>
+	`seat-session-draft:${sessionId}`;
+
 interface SeatSessionState {
 	session: EventSeatSession | null;
 	mode: EditorMode;
@@ -26,10 +29,12 @@ interface SeatSessionState {
 	isPanning: boolean;
 	selectedSectionId: number | null;
 	selectedSeatId: number | null;
+	selectedSeatPosition: { row: number; col: number; sectionId: number } | null;
 	zoom: number;
 	pan: { x: number; y: number };
 	isSaving: boolean;
 	error: string | null;
+	hasUnsavedChanges: boolean;
 
 	// Track deletions for API sync
 	deletedSectionIds: number[];
@@ -37,6 +42,11 @@ interface SeatSessionState {
 
 	// Actions
 	setSession: (session: EventSeatSession) => void;
+	initializeSession: (session: EventSeatSession) => void;
+	resetViewState: () => void;
+	setDeletedSectionIds: (ids: number[]) => void;
+	setDeletedSeatIds: (ids: { seatId: number; sectionId: number }[]) => void;
+	setHasUnsavedChanges: (value: boolean) => void;
 	setMode: (mode: EditorMode) => void;
 	setInteractionMode: (mode: InteractionMode) => void;
 	setIsPanning: (isPanning: boolean) => void;
@@ -45,6 +55,9 @@ interface SeatSessionState {
 
 	selectSection: (id: number | null) => void;
 	selectSeat: (id: number | null) => void;
+	selectSeatPosition: (
+		position: { row: number; col: number; sectionId: number } | null,
+	) => void;
 
 	// Venue Actions
 	updateVenue: (data: Partial<EventSeatVenue>) => void;
@@ -81,10 +94,12 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 	isPanning: false,
 	selectedSectionId: null,
 	selectedSeatId: null,
+	selectedSeatPosition: null,
 	zoom: 1,
 	pan: { x: 0, y: 0 },
 	isSaving: false,
 	error: null,
+	hasUnsavedChanges: false,
 	deletedSectionIds: [],
 	deletedSeatIds: [],
 
@@ -103,6 +118,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 					name: "Main Venue",
 					total_row: 20,
 					total_column: 20,
+					aspect_ratio: "square",
 					created_at: new Date().toISOString(),
 					updated_at: new Date().toISOString(),
 					event_seat_sections: [],
@@ -111,23 +127,62 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 		}
 		set({ session: processedSession, error: null });
 	},
+	initializeSession: (session) => {
+		const state = get();
+		state.resetViewState();
+		state.setSession(session);
+		set({ hasUnsavedChanges: false });
+	},
+	resetViewState: () =>
+		set({
+			mode: "venue_blueprint",
+			interactionMode: "select",
+			isPanning: false,
+			selectedSectionId: null,
+			selectedSeatId: null,
+			selectedSeatPosition: null,
+			zoom: 1,
+			pan: { x: 0, y: 0 },
+			error: null,
+			deletedSectionIds: [],
+			deletedSeatIds: [],
+		}),
+	setDeletedSectionIds: (ids) => set({ deletedSectionIds: ids }),
+	setDeletedSeatIds: (ids) => set({ deletedSeatIds: ids }),
+	setHasUnsavedChanges: (value) => set({ hasUnsavedChanges: value }),
 	setMode: (mode) =>
-		set({ mode, interactionMode: "select", selectedSeatId: null }),
+		set({
+			mode,
+			interactionMode: "select",
+			selectedSeatId: null,
+			selectedSeatPosition: null,
+		}),
 	setInteractionMode: (interactionMode) =>
 		set({ interactionMode, isPanning: false }),
 	setIsPanning: (isPanning) => set({ isPanning, interactionMode: "select" }),
 	setZoom: (zoom) => set({ zoom }),
 	setPan: (pan) => set({ pan }),
 
-	selectSection: (id) => set({ selectedSectionId: id, selectedSeatId: null }),
-	selectSeat: (id) => set({ selectedSeatId: id }),
+	selectSection: (id) =>
+		set({
+			selectedSectionId: id,
+			selectedSeatId: null,
+			selectedSeatPosition: null,
+		}),
+	selectSeat: (id) =>
+		set({ selectedSeatId: id, selectedSeatPosition: null }),
+	selectSeatPosition: (position) =>
+		set({ selectedSeatPosition: position, selectedSeatId: null }),
 
 	updateVenue: (data) => {
 		set((state) => {
 			if (!state.session?.event_seat_venues?.[0]) return state;
 			const venues = [...state.session.event_seat_venues];
 			venues[0] = { ...venues[0], ...data };
-			return { session: { ...state.session, event_seat_venues: venues } };
+			return {
+				session: { ...state.session, event_seat_venues: venues },
+				hasUnsavedChanges: true,
+			};
 		});
 	},
 
@@ -157,6 +212,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 			return {
 				session: { ...state.session, event_seat_venues: [newVenue] },
 				selectedSectionId: tempId,
+				hasUnsavedChanges: true,
 			};
 		});
 	},
@@ -173,6 +229,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 					...state.session,
 					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
 				},
+				hasUnsavedChanges: true,
 			};
 		});
 	},
@@ -197,6 +254,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 				selectedSectionId:
 					state.selectedSectionId === id ? null : state.selectedSectionId,
 				deletedSectionIds: deletedIds,
+				hasUnsavedChanges: true,
 			};
 		});
 	},
@@ -228,6 +286,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 					...state.session,
 					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
 				},
+				hasUnsavedChanges: true,
 			};
 		});
 	},
@@ -247,6 +306,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 					...state.session,
 					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
 				},
+				hasUnsavedChanges: true,
 			};
 		});
 	},
@@ -284,13 +344,14 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 				selectedSeatId:
 					state.selectedSeatId === id ? null : state.selectedSeatId,
 				deletedSeatIds: deletedIds,
+				hasUnsavedChanges: true,
 			};
 		});
 	},
 
-	save: async () => {
-		const { session, deletedSectionIds, deletedSeatIds } = get();
-		if (!session) return;
+		save: async () => {
+			const { session, deletedSectionIds, deletedSeatIds } = get();
+			if (!session) return;
 
 		set({ isSaving: true, error: null });
 		try {
@@ -384,7 +445,11 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 				isSaving: false,
 				deletedSectionIds: [],
 				deletedSeatIds: [],
+				hasUnsavedChanges: false,
 			});
+			if (typeof window !== "undefined") {
+				localStorage.removeItem(seatSessionDraftKey(session.id));
+			}
 		} catch (e: unknown) {
 			const errorMessage =
 				e instanceof Error ? e.message : "Failed to save session";

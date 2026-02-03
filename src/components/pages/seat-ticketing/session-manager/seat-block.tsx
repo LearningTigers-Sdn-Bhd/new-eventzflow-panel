@@ -24,7 +24,9 @@ export function SeatBlock({
 }: SeatBlockProps) {
 	const {
 		selectedSeatId,
+		selectedSeatPosition,
 		selectSeat,
+		selectSeatPosition,
 		removeSeat,
 		addSeat,
 		interactionMode,
@@ -32,6 +34,11 @@ export function SeatBlock({
 	} = useSeatSessionStore();
 
 	const isSelected = seat && selectedSeatId === seat.id;
+	const isEmptySelected =
+		!seat &&
+		selectedSeatPosition?.row === row &&
+		selectedSeatPosition?.col === col &&
+		selectedSeatPosition?.sectionId === sectionId;
 
 	const handleGridClick = () => {
 		if (isPanning) return;
@@ -44,12 +51,16 @@ export function SeatBlock({
 				col_set: col,
 				ticket_id: null,
 			});
-		} else {
-			selectSeat(null);
+			return;
 		}
+
+		selectSeatPosition({ row, col, sectionId });
 	};
 
-	const showMenu = !!(seat && isSelected && !isPanning);
+	const showMenu =
+		!isPanning &&
+		((seat && isSelected) ||
+			(!seat && isEmptySelected && interactionMode === "select"));
 
 	return (
 		<Popover open={showMenu}>
@@ -60,9 +71,10 @@ export function SeatBlock({
 						e.stopPropagation();
 						if (seat) {
 							selectSeat(seat.id);
-						} else {
-							handleGridClick();
+							return;
 						}
+
+						handleGridClick();
 					}}
 					aria-label={`Seat row ${row} col ${col}`}
 					className={cn(
@@ -111,6 +123,28 @@ export function SeatBlock({
 							}}
 						>
 							<Trash2 className="h-4 w-4" />
+						</Button>
+					</div>
+				)}
+				{!seat && isEmptySelected && interactionMode === "select" && (
+					<div className="animate-in fade-in zoom-in-50 duration-200">
+						<Button
+							size="sm"
+							className="h-8 rounded-none shadow-md"
+							onClick={(e) => {
+								e.stopPropagation();
+								addSeat(sectionId, {
+									name: `${sectionName}-${row}${String.fromCharCode(64 + col)}`,
+									extra_price: 0,
+									row_set: row,
+									col_set: col,
+									ticket_id: null,
+								});
+								selectSeatPosition(null);
+							}}
+						>
+							<Armchair className="h-3.5 w-3.5 mr-2" />
+							Add Seat
 						</Button>
 					</div>
 				)}

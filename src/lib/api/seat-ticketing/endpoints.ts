@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	BulkUpdateSeatSessionRequest,
 	CreateEventTicketSeatRequest,
@@ -6,6 +6,8 @@ import type {
 	CreateSeatSessionRequest,
 	CreateSeatVenueRequest,
 	GetEventTicketSeatsRequest,
+	GetPublicSeatSessionRequest,
+	GetPublicSeatSessionsRequest,
 	GetSeatSectionsRequest,
 	GetSeatSessionRequest,
 	GetSeatSessionsRequest,
@@ -76,6 +78,23 @@ export async function getSeatSession(
 	);
 }
 
+export async function getAllPublicSession(
+	data: GetPublicSeatSessionsRequest,
+): Promise<EventSeatSession[]> {
+	const queryParams = new URLSearchParams();
+	queryParams.append("event_slug", data.eventSlug);
+	const url = `v1/seat_ticketing/sessions/public?${queryParams.toString()}`;
+	return await publicRestClient.get<EventSeatSession[]>(url);
+}
+
+export async function getPublicSession(
+	data: GetPublicSeatSessionRequest,
+): Promise<EventSeatSession> {
+	return await publicRestClient.get<EventSeatSession>(
+		`v1/seat_ticketing/sessions/public/${data.idOrSlugOrPublicId}`,
+	);
+}
+
 export async function createSeatSession(
 	data: CreateSeatSessionRequest,
 ): Promise<EventSeatSession> {
@@ -106,6 +125,14 @@ export async function updateSeatSession(
 				end_datetime: data.end_datetime ?? null,
 			},
 		},
+	);
+}
+
+export async function duplicateSeatSession(
+	sessionId: string,
+): Promise<EventSeatSession> {
+	return await restClient.post<EventSeatSession>(
+		`v1/seat_ticketing/sessions/${sessionId}/duplicate`,
 	);
 }
 
