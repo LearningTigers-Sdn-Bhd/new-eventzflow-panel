@@ -1,11 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Volume2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { DEFAULT_VOICE, type VoiceId, useTTS } from "@/hooks/use-tts";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
@@ -32,13 +32,14 @@ export default function WelcomeScreenPage() {
 	const { latestCheckIn, queueSize, isConnected } =
 		useWelcomeScreenChannel(eventId);
 
-	const { speak, requiresInteraction, enableAudio, isSupported } = useTextToSpeech({
+	// Text-to-speech for welcome announcements
+	const { speak, error: ttsError } = useTTS({
 		enabled: displaySettings?.voice_enabled ?? false,
-		voiceType: displaySettings?.voice_type ?? "en-US-female",
-		debug: true, // Enable to see TTS logs in console
+		voiceId: (displaySettings?.voice_type as VoiceId) || DEFAULT_VOICE,
+		debug: true,
 	});
 
-	// Speak the visitor name when a new check-in arrives
+	// Announce visitor name on new check-in
 	useEffect(() => {
 		if (!latestCheckIn?.name) return;
 		if (latestCheckIn.name === previousCheckInRef.current) return;
@@ -47,6 +48,7 @@ export default function WelcomeScreenPage() {
 		speak(`Welcome, ${latestCheckIn.name}`);
 	}, [latestCheckIn?.name, speak]);
 
+	// Update page title
 	useEffect(() => {
 		const title = displaySettings?.event?.title;
 		document.title = title ? `Welcome Screen - ${title}` : "Welcome Screen";
@@ -78,31 +80,18 @@ export default function WelcomeScreenPage() {
 		);
 	}
 
-	// Handle click anywhere on screen to enable audio
-	const handleScreenClick = () => {
-		if (displaySettings?.voice_enabled && isSupported && requiresInteraction) {
-			enableAudio();
-		}
-	};
-
-	const showAudioPrompt = displaySettings.voice_enabled && isSupported && requiresInteraction;
-
 	return (
-		<div onClick={handleScreenClick} className={requiresInteraction ? "cursor-pointer" : ""}>
+		<div>
 			{/* eslint-disable-next-line @next/next/no-page-custom-font */}
 			<link rel="stylesheet" href={getGoogleFontsUrl()} />
 
-			{/* Full-screen audio enable overlay */}
-			{showAudioPrompt && (
-				<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
-					<div className="flex flex-col items-center gap-4 text-white animate-pulse">
-						<Volume2 className="h-16 w-16" />
-						<p className="text-2xl font-semibold">Tap anywhere to enable audio</p>
-					</div>
-				</div>
-			)}
-
+			{/* Status indicators */}
 			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+				{ttsError && (
+					<div className="rounded-full bg-red-500/80 px-2 py-1 text-white text-xs">
+						Voice error
+					</div>
+				)}
 				{queueSize > 0 && (
 					<div className="rounded-full bg-black/50 px-2 py-1 text-white text-xs">
 						{queueSize} pending

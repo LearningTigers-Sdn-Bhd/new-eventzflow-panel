@@ -5,7 +5,6 @@ import { ImageIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
-import { NameAnimation } from "@/components/welcome-screen/name-animation";
 import { Button } from "@/components/ui/button";
 import {
 	FieldDescription,
@@ -15,21 +14,30 @@ import {
 	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { NameAnimation } from "@/components/welcome-screen/name-animation";
 import {
-	fetchCheckInDisplay,
-	updateCheckInDisplay,
+	DEFAULT_VOICE,
+	type VoiceId,
+	getVoicesByCategory,
+	useTTS,
+} from "@/hooks/use-tts";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import {
 	type AnimationType,
 	type CheckInDisplayFormData,
+	fetchCheckInDisplay,
+	updateCheckInDisplay,
 } from "@/lib/api/check-in-display";
 import { DEFAULT_FONT, getFontNames, getGoogleFontsUrl } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -59,18 +67,6 @@ const NAME_COLORS: { value: string; label: string }[] = [
 	{ value: "#F39C12", label: "Orange" },
 ];
 
-const VOICE_TYPES: { value: string; label: string }[] = [
-	{ value: "en-US-female", label: "American Woman" },
-	{ value: "en-GB-female", label: "British Woman" },
-	{ value: "en-GB-male", label: "British Man" },
-	{ value: "zh-CN-female", label: "Chinese Woman" },
-	{ value: "id-ID-female", label: "Indonesian Woman" },
-	{ value: "ja-JP-female", label: "Japanese Woman" },
-	{ value: "ko-KR-female", label: "Korean Woman" },
-	{ value: "es-ES-male", label: "Spanish Man" },
-	{ value: "fr-FR-female", label: "French Woman" },
-];
-
 interface WelcomeScreenFormProps {
 	eventId: number;
 	onClose?: () => void;
@@ -90,12 +86,15 @@ export default function WelcomeScreenForm({
 	const [removeBackgroundImage, setRemoveBackgroundImage] = useState(false);
 	const [previewKey, setPreviewKey] = useState(0);
 	const [voiceEnabled, setVoiceEnabled] = useState(true);
-	const [voiceType, setVoiceType] = useState("en-US-female");
+	const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE);
+	const [previewName, setPreviewName] = useState("Dato' Ahmad bin Ismail");
+	const [welcomeText, setWelcomeText] = useState("Selamat Datang");
 
-	// Text-to-speech hook for preview
-	const { speak, enableAudio } = useTextToSpeech({
+	// TTS hook for preview
+	const { speak, error: ttsError } = useTTS({
 		enabled: true,
-		voiceType: voiceType,
+		voiceId,
+		debug: true,
 	});
 
 	// Fetch existing settings
@@ -109,21 +108,30 @@ export default function WelcomeScreenForm({
 	});
 
 	// File upload hook
-	const [{ isDragging, errors }, { handleDrop, handleDragOver, handleDragEnter, handleDragLeave, getInputProps, clearFiles }] =
-		useFileUpload({
-			accept: "image/*",
-			maxSize: 5 * 1024 * 1024, // 5MB
-			multiple: false,
-			onFilesChange: (files) => {
-				if (files.length > 0 && files[0].file instanceof File) {
-					setSelectedImage(files[0].file);
-					setRemoveBackgroundImage(false);
-				}
-			},
-			onError: (errors) => {
-				errors.forEach((err) => toast.error(err));
-			},
-		});
+	const [
+		{ isDragging, errors },
+		{
+			handleDrop,
+			handleDragOver,
+			handleDragEnter,
+			handleDragLeave,
+			getInputProps,
+			clearFiles,
+		},
+	] = useFileUpload({
+		accept: "image/*",
+		maxSize: 5 * 1024 * 1024, // 5MB
+		multiple: false,
+		onFilesChange: (files) => {
+			if (files.length > 0 && files[0].file instanceof File) {
+				setSelectedImage(files[0].file);
+				setRemoveBackgroundImage(false);
+			}
+		},
+		onError: (errors) => {
+			errors.forEach((err) => toast.error(err));
+		},
+	});
 
 	// Load existing settings
 	useEffect(() => {
@@ -135,9 +143,14 @@ export default function WelcomeScreenForm({
 			setNameColor(displaySettings.name_color || "#FFFFFF");
 			setExistingImageUrl(displaySettings.background_image_url);
 			setVoiceEnabled(displaySettings.voice_enabled ?? true);
-			setVoiceType(displaySettings.voice_type || "en-US-female");
+			const savedVoiceId = localStorage.getItem(`tts_voice_${eventId}`);
+			if (savedVoiceId) {
+				setVoiceId(savedVoiceId as VoiceId);
+			} else if (displaySettings.voice_type) {
+				setVoiceId(displaySettings.voice_type as VoiceId);
+			}
 		}
-	}, [displaySettings]);
+	}, [displaySettings, eventId]);
 
 	// Update mutation
 	const updateMutation = useMutation({
@@ -157,6 +170,8 @@ export default function WelcomeScreenForm({
 	});
 
 	const handleSave = async () => {
+		localStorage.setItem(`tts_voice_${eventId}`, voiceId);
+
 		const data: CheckInDisplayFormData = {
 			font_family: fontFamily,
 			font_size: fontSize,
@@ -164,7 +179,7 @@ export default function WelcomeScreenForm({
 			is_bold: isBold,
 			name_color: nameColor,
 			voice_enabled: voiceEnabled,
-			voice_type: voiceType,
+			voice_type: voiceId,
 		};
 
 		if (selectedImage) {
@@ -190,7 +205,9 @@ export default function WelcomeScreenForm({
 		setRemoveBackgroundImage(true);
 		clearFiles();
 		setVoiceEnabled(true);
-		setVoiceType("en-US-female");
+		setVoiceId(DEFAULT_VOICE);
+		setPreviewName("Dato' Ahmad bin Ismail");
+		setWelcomeText("Selamat Datang");
 		toast.info("Restored to defaults");
 	};
 
@@ -203,12 +220,7 @@ export default function WelcomeScreenForm({
 
 	const triggerPreviewAnimation = () => {
 		setPreviewKey((prev) => prev + 1);
-		// Enable audio on user interaction (required for Safari)
-		enableAudio();
-		// Play voice preview if voice is enabled
-		if (voiceEnabled) {
-			speak("Welcome, John Doe");
-		}
+		speak(`${welcomeText}, ${previewName}`);
 	};
 
 	if (isLoading) {
@@ -246,307 +258,365 @@ export default function WelcomeScreenForm({
 					<div className="flex flex-col items-start justify-between gap-2 pb-2">
 						<div className="flex-1">
 							<FieldLegend className="font-bold text-xl!">
-							Welcome Screen
-						</FieldLegend>
-						<FieldDescription>
-							Configure the check-in welcome display that shows attendee names
-							when they check in.
-						</FieldDescription>
-					</div>
-				</div>
-				<FieldSeparator />
-
-				<div className="space-y-6 py-4">
-					{/* Settings Row - Font Family, Font Size, Animation, Bold, Name Color */}
-					<div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-						{/* Font Family */}
-						<FieldGroup>
-							<FieldLabel>Font Family</FieldLabel>
-							<Select value={fontFamily} onValueChange={setFontFamily}>
-								<SelectTrigger className="w-full rounded-none">
-									<SelectValue placeholder="Select font" />
-								</SelectTrigger>
-								<SelectContent>
-									{getFontNames().map((font) => (
-										<SelectItem key={font} value={font}>
-											<span style={{ fontFamily: font }}>{font}</span>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</FieldGroup>
-
-						{/* Font Size */}
-						<FieldGroup>
-							<FieldLabel>Font Size (px)</FieldLabel>
-							<Select
-								value={fontSize.toString()}
-								onValueChange={(v) => setFontSize(Number(v))}
-							>
-								<SelectTrigger className="w-full rounded-none">
-									<SelectValue placeholder="Select size" />
-								</SelectTrigger>
-								<SelectContent>
-									{FONT_SIZES.map((size) => (
-										<SelectItem key={size} value={size.toString()}>
-											{size}px
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</FieldGroup>
-
-						{/* Animation Type */}
-						<FieldGroup>
-							<FieldLabel>Animation</FieldLabel>
-							<Select
-								value={animationType}
-								onValueChange={(v) => setAnimationType(v as AnimationType)}
-							>
-								<SelectTrigger className="w-full rounded-none">
-									<SelectValue placeholder="Select animation" />
-								</SelectTrigger>
-								<SelectContent>
-									{ANIMATION_TYPES.map((anim) => (
-										<SelectItem key={anim.value} value={anim.value}>
-											{anim.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</FieldGroup>
-
-						{/* Name Color */}
-						<FieldGroup>
-							<FieldLabel>Name Color</FieldLabel>
-							<Select value={nameColor} onValueChange={setNameColor}>
-								<SelectTrigger className="w-full rounded-none">
-									<SelectValue placeholder="Select color">
-										<div className="flex items-center gap-2">
-											<div
-												className="h-4 w-4 border border-input"
-												style={{ backgroundColor: nameColor }}
-											/>
-											<span>{NAME_COLORS.find((c) => c.value === nameColor)?.label || "Select color"}</span>
-										</div>
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									{NAME_COLORS.map((color) => (
-										<SelectItem key={color.value} value={color.value}>
-											<div className="flex items-center gap-2">
-												<div
-													className="h-4 w-4 border border-input"
-													style={{ backgroundColor: color.value }}
-												/>
-												<span>{color.label}</span>
-											</div>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</FieldGroup>
-
-						{/* Bold Toggle */}
-						<FieldGroup>
-							<FieldLabel>Bold Text</FieldLabel>
-							<div className="flex h-9 items-center border border-input px-3">
-								<Switch
-									checked={isBold}
-									onCheckedChange={setIsBold}
-								/>
-								<span className="ml-2 text-sm text-muted-foreground">
-									{isBold ? "On" : "Off"}
-								</span>
-							</div>
-						</FieldGroup>
-					</div>
-
-					{/* Background Image and Live Preview - Side by Side */}
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						{/* Background Image Upload */}
-						<FieldGroup>
-							<div className="flex h-7 items-center">
-								<FieldLabel className="mb-0">Background Image</FieldLabel>
-							</div>
-							<div
-								className={cn(
-									"relative flex h-[280px] cursor-pointer flex-col items-center justify-center border-2 border-dashed p-4 transition-colors",
-									isDragging
-										? "border-primary bg-primary/5"
-										: "border-muted-foreground/25 hover:border-primary/50",
-								)}
-								onDrop={handleDrop}
-								onDragOver={handleDragOver}
-								onDragEnter={handleDragEnter}
-								onDragLeave={handleDragLeave}
-								onClick={() =>
-									document.getElementById("welcome-screen-image-input")?.click()
-								}
-							>
-								<input
-									{...getInputProps()}
-									id="welcome-screen-image-input"
-									className="hidden"
-								/>
-
-								{previewImageUrl ? (
-									<div className="relative h-full w-full">
-										<img
-											src={previewImageUrl}
-											alt="Background preview"
-											className="h-full w-full object-contain"
-										/>
-										<Button
-											type="button"
-											variant="destructive"
-											size="icon"
-											className="absolute top-1 right-1 size-6 rounded-none"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleRemoveImage();
-											}}
-										>
-											<X className="size-3" />
-										</Button>
-									</div>
-								) : (
-									<>
-										<ImageIcon className="mb-2 size-8 text-muted-foreground" />
-										<p className="text-center text-muted-foreground text-xs">
-											Click or drag to upload<br />(PNG, JPG, GIF up to 5MB)
-										</p>
-									</>
-								)}
-							</div>
-							{errors.length > 0 && (
-								<p className="mt-1 text-destructive text-sm">{errors[0]}</p>
-							)}
-						</FieldGroup>
-
-						{/* Live Preview */}
-						<FieldGroup>
-							<div className="flex h-7 items-center justify-between">
-								<FieldLabel className="mb-0">Live Preview</FieldLabel>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onClick={triggerPreviewAnimation}
-									className="h-7 rounded-none text-xs"
-								>
-									Preview Animation
-								</Button>
-							</div>
-							<div
-								className="relative flex h-[280px] items-center justify-center overflow-hidden border"
-								style={{
-									backgroundColor: "#1a1a2e",
-								}}
-							>
-								{/* Background Image */}
-								{previewImageUrl && (
-									<div
-										className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-										style={{
-											backgroundImage: `url(${previewImageUrl})`,
-										}}
-									>
-										<div className="absolute inset-0 bg-black/20" />
-									</div>
-								)}
-
-								{/* Preview Content */}
-								<div className="relative z-10 px-4 text-center text-black">
-									<p
-										className="mb-2 text-xs uppercase tracking-widest opacity-80"
-										style={{
-											color: nameColor,
-											fontWeight: isBold ? "bold" : "normal",
-										}}
-									>
-										Welcome
-									</p>
-									<NameAnimation
-										key={previewKey}
-										name="John Doe"
-										animationType={animationType}
-										fontFamily={fontFamily}
-										fontSize={Math.round(16 + (fontSize - 24) * (48 - 16) / (200 - 24))}
-										isBold={isBold}
-										nameColor={nameColor}
-									/>
-								</div>
-							</div>
-							<p className="text-muted-foreground text-xs">
-								Preview shows how attendee names will appear on check-in
-							</p>
-						</FieldGroup>
-					</div>
-
-					{/* Voice Settings */}
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<FieldGroup>
-							<FieldLabel>Voice Announcement</FieldLabel>
-							<div className="flex h-9 items-center border border-input px-3">
-								<Switch
-									checked={voiceEnabled}
-									onCheckedChange={setVoiceEnabled}
-								/>
-								<span className="ml-2 text-sm text-muted-foreground">
-									{voiceEnabled ? "Enabled" : "Disabled"}
-								</span>
-							</div>
+								Welcome Screen
+							</FieldLegend>
 							<FieldDescription>
-								Announce visitor names using text-to-speech when they check in
+								Configure the check-in welcome display that shows attendee names
+								when they check in.
 							</FieldDescription>
-						</FieldGroup>
+						</div>
+					</div>
+					<FieldSeparator />
 
-						{voiceEnabled && (
+					<div className="space-y-6 py-4">
+						{/* Settings Row - Font Family, Font Size, Animation, Bold, Name Color */}
+						<div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+							{/* Font Family */}
 							<FieldGroup>
-								<FieldLabel>Voice Type</FieldLabel>
-								<Select value={voiceType} onValueChange={setVoiceType}>
+								<FieldLabel>Font Family</FieldLabel>
+								<Select value={fontFamily} onValueChange={setFontFamily}>
 									<SelectTrigger className="w-full rounded-none">
-										<SelectValue placeholder="Select voice type" />
+										<SelectValue placeholder="Select font" />
 									</SelectTrigger>
 									<SelectContent>
-										{VOICE_TYPES.map((type) => (
-											<SelectItem key={type.value} value={type.value}>
-												{type.label}
+										{getFontNames().map((font) => (
+											<SelectItem key={font} value={font}>
+												<span style={{ fontFamily: font }}>{font}</span>
 											</SelectItem>
 										))}
 									</SelectContent>
 								</Select>
+							</FieldGroup>
+
+							{/* Font Size */}
+							<FieldGroup>
+								<FieldLabel>Font Size (px)</FieldLabel>
+								<Select
+									value={fontSize.toString()}
+									onValueChange={(v) => setFontSize(Number(v))}
+								>
+									<SelectTrigger className="w-full rounded-none">
+										<SelectValue placeholder="Select size" />
+									</SelectTrigger>
+									<SelectContent>
+										{FONT_SIZES.map((size) => (
+											<SelectItem key={size} value={size.toString()}>
+												{size}px
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</FieldGroup>
+
+							{/* Animation Type */}
+							<FieldGroup>
+								<FieldLabel>Animation</FieldLabel>
+								<Select
+									value={animationType}
+									onValueChange={(v) => setAnimationType(v as AnimationType)}
+								>
+									<SelectTrigger className="w-full rounded-none">
+										<SelectValue placeholder="Select animation" />
+									</SelectTrigger>
+									<SelectContent>
+										{ANIMATION_TYPES.map((anim) => (
+											<SelectItem key={anim.value} value={anim.value}>
+												{anim.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</FieldGroup>
+
+							{/* Name Color */}
+							<FieldGroup>
+								<FieldLabel>Name Color</FieldLabel>
+								<Select value={nameColor} onValueChange={setNameColor}>
+									<SelectTrigger className="w-full rounded-none">
+										<SelectValue placeholder="Select color">
+											<div className="flex items-center gap-2">
+												<div
+													className="h-4 w-4 border border-input"
+													style={{ backgroundColor: nameColor }}
+												/>
+												<span>
+													{NAME_COLORS.find((c) => c.value === nameColor)
+														?.label || "Select color"}
+												</span>
+											</div>
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										{NAME_COLORS.map((color) => (
+											<SelectItem key={color.value} value={color.value}>
+												<div className="flex items-center gap-2">
+													<div
+														className="h-4 w-4 border border-input"
+														style={{ backgroundColor: color.value }}
+													/>
+													<span>{color.label}</span>
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</FieldGroup>
+
+							{/* Bold Toggle */}
+							<FieldGroup>
+								<FieldLabel>Bold Text</FieldLabel>
+								<div className="flex h-9 items-center border border-input px-3">
+									<Switch checked={isBold} onCheckedChange={setIsBold} />
+									<span className="ml-2 text-muted-foreground text-sm">
+										{isBold ? "On" : "Off"}
+									</span>
+								</div>
+							</FieldGroup>
+						</div>
+
+						{/* Background Image and Live Preview - Side by Side */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							{/* Background Image Upload */}
+							<FieldGroup>
+								<div className="flex h-7 items-center">
+									<FieldLabel className="mb-0">Background Image</FieldLabel>
+								</div>
+								<div
+									className={cn(
+										"relative flex h-[280px] cursor-pointer flex-col items-center justify-center border-2 border-dashed p-4 transition-colors",
+										isDragging
+											? "border-primary bg-primary/5"
+											: "border-muted-foreground/25 hover:border-primary/50",
+									)}
+									onDrop={handleDrop}
+									onDragOver={handleDragOver}
+									onDragEnter={handleDragEnter}
+									onDragLeave={handleDragLeave}
+									onClick={() =>
+										document
+											.getElementById("welcome-screen-image-input")
+											?.click()
+									}
+								>
+									<input
+										{...getInputProps()}
+										id="welcome-screen-image-input"
+										className="hidden"
+									/>
+
+									{previewImageUrl ? (
+										<div className="relative h-full w-full">
+											<img
+												src={previewImageUrl}
+												alt="Background preview"
+												className="h-full w-full object-contain"
+											/>
+											<Button
+												type="button"
+												variant="destructive"
+												size="icon"
+												className="absolute top-1 right-1 size-6 rounded-none"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleRemoveImage();
+												}}
+											>
+												<X className="size-3" />
+											</Button>
+										</div>
+									) : (
+										<>
+											<ImageIcon className="mb-2 size-8 text-muted-foreground" />
+											<p className="text-center text-muted-foreground text-xs">
+												Click or drag to upload
+												<br />
+												(PNG, JPG, GIF up to 5MB)
+											</p>
+										</>
+									)}
+								</div>
+								{errors.length > 0 && (
+									<p className="mt-1 text-destructive text-sm">{errors[0]}</p>
+								)}
+							</FieldGroup>
+
+							{/* Live Preview */}
+							<FieldGroup>
+								<div className="flex h-7 items-center justify-between">
+									<FieldLabel className="mb-0">Live Preview</FieldLabel>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={triggerPreviewAnimation}
+										className="h-7 rounded-none text-xs"
+									>
+										Preview Animation
+									</Button>
+								</div>
+								<div
+									className="relative flex h-[280px] items-center justify-center overflow-hidden border"
+									style={{
+										backgroundColor: "#1a1a2e",
+									}}
+								>
+									{/* Background Image */}
+									{previewImageUrl && (
+										<div
+											className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+											style={{
+												backgroundImage: `url(${previewImageUrl})`,
+											}}
+										>
+											<div className="absolute inset-0 bg-black/20" />
+										</div>
+									)}
+
+									{/* Preview Content */}
+									<div className="relative z-10 px-4 text-center text-black">
+										<p
+											className="mb-2 text-xs uppercase tracking-widest opacity-80"
+											style={{
+												color: nameColor,
+												fontWeight: isBold ? "bold" : "normal",
+											}}
+										>
+											{welcomeText}
+										</p>
+										<NameAnimation
+											key={previewKey}
+											name={previewName}
+											animationType={animationType}
+											fontFamily={fontFamily}
+											fontSize={Math.round(
+												16 + ((fontSize - 24) * (48 - 16)) / (200 - 24),
+											)}
+											isBold={isBold}
+											nameColor={nameColor}
+										/>
+									</div>
+								</div>
+								{/* Editable Preview Fields */}
+								<div className="mt-2 grid grid-cols-2 gap-2">
+									<div>
+										<FieldLabel className="text-xs">Welcome Text</FieldLabel>
+										<Input
+											value={welcomeText}
+											onChange={(e) => setWelcomeText(e.target.value)}
+											placeholder="Welcome"
+											className="h-8 rounded-none text-sm"
+										/>
+									</div>
+									<div>
+										<FieldLabel className="text-xs">Preview Name</FieldLabel>
+										<Input
+											value={previewName}
+											onChange={(e) => setPreviewName(e.target.value)}
+											placeholder="John Doe"
+											className="h-8 rounded-none text-sm"
+										/>
+									</div>
+								</div>
+							</FieldGroup>
+						</div>
+
+						{/* Voice Settings */}
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<FieldGroup>
+								<FieldLabel>Voice Announcement</FieldLabel>
+								<div className="flex h-9 items-center border border-input px-3">
+									<Switch
+										checked={voiceEnabled}
+										onCheckedChange={setVoiceEnabled}
+									/>
+									<span className="ml-2 text-muted-foreground text-sm">
+										{voiceEnabled ? "Enabled" : "Disabled"}
+									</span>
+								</div>
 								<FieldDescription>
-									Select the voice style for announcements. For best results, use Chrome browser on the welcome screen display.
+									Announce visitor names using text-to-speech when they check in
 								</FieldDescription>
 							</FieldGroup>
-						)}
-					</div>
-				</div>
 
-				{/* Action Buttons */}
-				<FieldGroup className="flex flex-col items-stretch justify-end gap-2 pt-4 md:flex-row md:items-end">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={handleRestoreDefaults}
-						disabled={updateMutation.isPending}
-						className="w-full rounded-none py-6 md:w-auto md:py-2"
-					>
-						Restore Defaults
-					</Button>
-					<Button
-						type="button"
-						onClick={handleSave}
-						disabled={updateMutation.isPending}
-						className="w-full rounded-none py-6 md:w-auto md:py-2"
-					>
-						{updateMutation.isPending ? "Saving..." : "Save Changes"}
-					</Button>
-				</FieldGroup>
-			</FieldSet>
-		</section>
+							{voiceEnabled && (
+								<FieldGroup>
+									<FieldLabel>Voice</FieldLabel>
+									<Select
+										value={voiceId}
+										onValueChange={(v) => setVoiceId(v as VoiceId)}
+									>
+										<SelectTrigger className="w-full rounded-none">
+											<SelectValue placeholder="Select voice" />
+										</SelectTrigger>
+										<SelectContent>
+											{/* Malay voices - Best for Malaysian names */}
+											<SelectGroup>
+												<SelectLabel>
+													Malay (Best for Malaysian names)
+												</SelectLabel>
+												{getVoicesByCategory().malay.map((voice) => (
+													<SelectItem key={voice.id} value={voice.id}>
+														{voice.label}
+													</SelectItem>
+												))}
+											</SelectGroup>
+											{/* English voices */}
+											<SelectGroup>
+												<SelectLabel>English</SelectLabel>
+												{getVoicesByCategory().english.map((voice) => (
+													<SelectItem key={voice.id} value={voice.id}>
+														{voice.label}
+													</SelectItem>
+												))}
+											</SelectGroup>
+
+											{/* Chinese voices */}
+											<SelectGroup>
+												<SelectLabel>Chinese</SelectLabel>
+												{getVoicesByCategory().chinese.map((voice) => (
+													<SelectItem key={voice.id} value={voice.id}>
+														{voice.label}
+													</SelectItem>
+												))}
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+									<FieldDescription>
+										Use Malay voices for Malaysian names (Dato&apos;, Tan Sri,
+										etc.)
+										{ttsError && (
+											<span className="mt-1 block text-destructive">
+												{ttsError}
+											</span>
+										)}
+									</FieldDescription>
+								</FieldGroup>
+							)}
+						</div>
+					</div>
+
+					{/* Action Buttons */}
+					<FieldGroup className="flex flex-col items-stretch justify-end gap-2 pt-4 md:flex-row md:items-end">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={handleRestoreDefaults}
+							disabled={updateMutation.isPending}
+							className="w-full rounded-none py-6 md:w-auto md:py-2"
+						>
+							Restore Defaults
+						</Button>
+						<Button
+							type="button"
+							onClick={handleSave}
+							disabled={updateMutation.isPending}
+							className="w-full rounded-none py-6 md:w-auto md:py-2"
+						>
+							{updateMutation.isPending ? "Saving..." : "Save Changes"}
+						</Button>
+					</FieldGroup>
+				</FieldSet>
+			</section>
 		</>
 	);
 }

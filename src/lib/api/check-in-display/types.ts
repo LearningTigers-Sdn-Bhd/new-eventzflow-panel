@@ -15,7 +15,7 @@ export interface CheckInDisplay {
 	name_color: string;
 	background_image_url: string | null;
 	voice_enabled: boolean;
-	voice_type: string;
+	voice_type: string; // ElevenLabs voice ID
 	event: {
 		id: string;
 		title: string;
@@ -32,7 +32,7 @@ export interface CheckInDisplayFormData {
 	background_image?: File;
 	remove_background_image?: boolean;
 	voice_enabled?: boolean;
-	voice_type?: string;
+	voice_type?: string; // ElevenLabs voice ID
 }
 
 export interface CheckInBroadcast {
