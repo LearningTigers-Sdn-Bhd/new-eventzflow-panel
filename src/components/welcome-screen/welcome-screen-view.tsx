@@ -13,6 +13,7 @@ interface WelcomeScreenViewProps {
 	isBold: boolean;
 	nameColor: string;
 	backgroundImageUrl: string | null;
+	welcomeText: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export function WelcomeScreenView({
 	isBold,
 	nameColor,
 	backgroundImageUrl,
+	welcomeText,
 }: WelcomeScreenViewProps) {
 	const displayName = latestCheckIn?.name || eventTitle;
 
@@ -67,7 +69,7 @@ export function WelcomeScreenView({
 								fontWeight: isBold ? "bold" : "normal",
 							}}
 						>
-							Welcome
+							{welcomeText}
 						</p>
 						<NameAnimation
 							name={displayName}
