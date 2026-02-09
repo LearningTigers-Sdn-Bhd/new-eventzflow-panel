@@ -29,6 +29,7 @@ import { NameAnimation } from "@/components/welcome-screen/name-animation";
 import {
 	DEFAULT_VOICE,
 	type VoiceId,
+	VOICES,
 	getVoicesByCategory,
 	useTTS,
 } from "@/hooks/use-tts";
@@ -88,7 +89,7 @@ export default function WelcomeScreenForm({
 	const [voiceEnabled, setVoiceEnabled] = useState(true);
 	const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE);
 	const [previewName, setPreviewName] = useState("Dato' Ahmad bin Ismail");
-	const [welcomeText, setWelcomeText] = useState("Selamat Datang");
+	const [welcomeText, setWelcomeText] = useState("Welcome");
 
 	// TTS hook for preview
 	const { speak, error: ttsError } = useTTS({
@@ -143,12 +144,17 @@ export default function WelcomeScreenForm({
 			setNameColor(displaySettings.name_color || "#FFFFFF");
 			setExistingImageUrl(displaySettings.background_image_url);
 			setVoiceEnabled(displaySettings.voice_enabled ?? true);
+			setWelcomeText(displaySettings.welcome_text || "Welcome");
 			const savedVoiceId = localStorage.getItem(`tts_voice_${eventId}`);
-			if (savedVoiceId) {
-				setVoiceId(savedVoiceId as VoiceId);
-			} else if (displaySettings.voice_type) {
+			const isValidVoice = (id: string | null): id is VoiceId =>
+				id !== null && VOICES.some((v) => v.id === id);
+
+			if (isValidVoice(savedVoiceId)) {
+				setVoiceId(savedVoiceId);
+			} else if (isValidVoice(displaySettings.voice_type ?? null)) {
 				setVoiceId(displaySettings.voice_type as VoiceId);
 			}
+			// If neither is valid, keep the DEFAULT_VOICE from initial state
 		}
 	}, [displaySettings, eventId]);
 
@@ -180,6 +186,7 @@ export default function WelcomeScreenForm({
 			name_color: nameColor,
 			voice_enabled: voiceEnabled,
 			voice_type: voiceId,
+			welcome_text: welcomeText,
 		};
 
 		if (selectedImage) {
@@ -207,7 +214,7 @@ export default function WelcomeScreenForm({
 		setVoiceEnabled(true);
 		setVoiceId(DEFAULT_VOICE);
 		setPreviewName("Dato' Ahmad bin Ismail");
-		setWelcomeText("Selamat Datang");
+		setWelcomeText("Welcome");
 		toast.info("Restored to defaults");
 	};
 

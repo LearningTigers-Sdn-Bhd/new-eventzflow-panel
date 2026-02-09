@@ -45,7 +45,8 @@ export default function WelcomeScreenPage() {
 		if (latestCheckIn.name === previousCheckInRef.current) return;
 
 		previousCheckInRef.current = latestCheckIn.name;
-		speak(`Welcome, ${latestCheckIn.name}`);
+		const welcomeText = displaySettings?.welcome_text || "Welcome";
+		speak(`${welcomeText}, ${latestCheckIn.name}`);
 	}, [latestCheckIn?.name, speak]);
 
 	// Update page title
@@ -114,6 +115,7 @@ export default function WelcomeScreenPage() {
 				isBold={displaySettings.is_bold || false}
 				nameColor={displaySettings.name_color || "#FFFFFF"}
 				backgroundImageUrl={displaySettings.background_image_url}
+				welcomeText={displaySettings.welcome_text || "Welcome"}
 			/>
 		</div>
 	);
