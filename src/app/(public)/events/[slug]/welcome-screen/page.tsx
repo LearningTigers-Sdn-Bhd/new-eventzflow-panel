@@ -36,7 +36,6 @@ export default function WelcomeScreenPage() {
 	const { speak, error: ttsError } = useTTS({
 		enabled: displaySettings?.voice_enabled ?? false,
 		voiceId: (displaySettings?.voice_type as VoiceId) || DEFAULT_VOICE,
-		debug: true,
 	});
 
 	// Announce visitor name on new check-in

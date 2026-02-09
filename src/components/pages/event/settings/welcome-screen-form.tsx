@@ -95,7 +95,6 @@ export default function WelcomeScreenForm({
 	const { speak, error: ttsError } = useTTS({
 		enabled: true,
 		voiceId,
-		debug: true,
 	});
 
 	// Fetch existing settings
