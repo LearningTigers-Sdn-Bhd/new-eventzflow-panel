@@ -1,7 +1,7 @@
 "use client";
 
 import { Document, Page, View } from "@react-pdf/renderer";
-import { BarChart, DistributionSummary, DonutChart } from "./charts";
+import { AreaChart, DistributionSummary, DonutChart } from "./charts";
 import {
 	BulletList,
 	GridCol,
@@ -128,11 +128,11 @@ export function VoucherAnalyticsReport({ data }: VoucherAnalyticsReportProps) {
 
 				{redemptionData.length > 0 && (
 					<Section title="Daily Redemption Trend" breakOnPage>
-						<BarChart
+						<AreaChart
 							data={redemptionData}
-							title="Redemption Volume (Daily)"
-							maxBars={20}
-							barColor={colors.brandSecondary}
+							title="Redemption Volume"
+							subtitle="Voucher redemptions over time"
+							areaColor={colors.brandSecondary}
 						/>
 					</Section>
 				)}

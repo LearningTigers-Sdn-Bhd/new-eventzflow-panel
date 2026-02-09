@@ -1,10 +1,18 @@
 // PDF Report exports
 
-export { BarChart, DistributionSummary, DonutChart } from "./charts";
+export {
+	AreaChart,
+	BarChart,
+	DailyHourlyBreakdownSection,
+	DistributionSummary,
+	DonutChart,
+	HourlyBarChart,
+} from "./charts";
 export { ExportPdfButton } from "./export-button";
 export { TicketAnalyticsReport } from "./ticket-report";
 export type {
 	AnalyticsReportData,
+	DailyHourlyBreakdown,
 	ReportEventInfo,
 	ReportMetadata,
 	TicketReportData,

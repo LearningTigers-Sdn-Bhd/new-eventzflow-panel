@@ -9,14 +9,16 @@ import {
 	ExportPdfButton,
 	prepareTicketReportData,
 } from "@/components/pdf-reports";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	EventDateFilter,
-	getAnalyticsParamsFromSelection,
 	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import { getEventById } from "@/lib/api/event";
+import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 
 interface TicketAnalyticsPageProps {
 	params: Promise<{
@@ -24,7 +26,9 @@ interface TicketAnalyticsPageProps {
 	}>;
 }
 
-export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps) {
+export default function TicketAnalyticsPage({
+	params,
+}: TicketAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
@@ -51,11 +55,63 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 		enabled: !!event,
 	});
 
+	// Determine if event spans multiple days (for hourly breakdown)
+	const isMultiDayEvent = useMemo(() => {
+		if (!event) return false;
+		const start = new Date(event.start_date);
+		const end = new Date(event.end_date);
+		return start.toDateString() !== end.toDateString();
+	}, [event]);
+
+	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	const shouldFetchHourlyBreakdown =
+		isMultiDayEvent &&
+		(dateSelection.type === "all_time" ||
+			dateSelection.type === "pre_event" ||
+			dateSelection.type === "event_duration");
+
+	const { data: hourlyRegistrations } = useQuery({
+		queryKey: ["event", eventId, "hourly_breakdown", "tickets", dateSelection],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event_id, "tickets", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: !!event && shouldFetchHourlyBreakdown,
+	});
+
+	const { data: hourlyScans } = useQuery({
+		queryKey: ["event", eventId, "hourly_breakdown", "scans", dateSelection],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event_id, "scans", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: !!event && shouldFetchHourlyBreakdown,
+	});
+
 	const isLoading = eventLoading || analyticsLoading;
+
+	// Generate date filter label for PDF filename
+	const dateFilterLabel = useMemo(() => {
+		return getDateFilterLabelFromSelection(dateSelection, event?.start_date);
+	}, [dateSelection, event?.start_date]);
 
 	// Prepare report data for PDF export (always full report, ignores filter)
 	const reportData = useMemo(() => {
 		if (!event || !data) return null;
+
+		// Include hourly breakdown for multi-day events
+		const hourlyBreakdown =
+			shouldFetchHourlyBreakdown && (hourlyRegistrations || hourlyScans)
+				? {
+						registrations: hourlyRegistrations,
+						scans: hourlyScans,
+					}
+				: undefined;
+
 		return prepareTicketReportData(
 			{
 				id: event_id,
@@ -74,8 +130,18 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 				scans: data.scanData,
 				revenue: data.revenueData,
 			},
+			hourlyBreakdown,
+			dateFilterLabel,
 		);
-	}, [event, data, event_id]);
+	}, [
+		event,
+		data,
+		event_id,
+		shouldFetchHourlyBreakdown,
+		hourlyRegistrations,
+		hourlyScans,
+		dateFilterLabel,
+	]);
 
 	const formatCurrency = (amount?: number) => {
 		if (!amount) return "$0";
@@ -162,10 +228,7 @@ export default function TicketAnalyticsPage({ params }: TicketAnalyticsPageProps
 								onChange={setDateSelection}
 							/>
 						)}
-						<ExportPdfButton
-							data={reportData}
-							disabled={isLoading}
-						/>
+						<ExportPdfButton data={reportData} disabled={isLoading} />
 					</div>
 				</div>
 

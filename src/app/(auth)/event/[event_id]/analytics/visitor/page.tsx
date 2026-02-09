@@ -8,19 +8,21 @@ import {
 	ExportPdfButton,
 	prepareVisitorReportData,
 } from "@/components/pdf-reports";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	EventDateFilter,
-	getAnalyticsParamsFromSelection,
 	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getEventById } from "@/lib/api/event";
 import {
+	getHourlyBreakdownByDay,
 	getTimeSeries,
 	getTotalScannedVisitors,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
 } from "@/lib/api/event/analytics";
-import { getEventById } from "@/lib/api/event";
 
 interface VisitorAnalyticsPageProps {
 	params: Promise<{
@@ -28,7 +30,9 @@ interface VisitorAnalyticsPageProps {
 	}>;
 }
 
-export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPageProps) {
+export default function VisitorAnalyticsPage({
+	params,
+}: VisitorAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
@@ -91,13 +95,72 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 		enabled: !!event,
 	});
 
+	// Determine if event spans multiple days (for hourly breakdown)
+	const isMultiDayEvent = useMemo(() => {
+		if (!event) return false;
+		const start = new Date(event.start_date);
+		const end = new Date(event.end_date);
+		return start.toDateString() !== end.toDateString();
+	}, [event]);
+
+	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	const shouldFetchHourlyBreakdown =
+		isMultiDayEvent &&
+		(dateSelection.type === "all_time" ||
+			dateSelection.type === "pre_event" ||
+			dateSelection.type === "event_duration");
+
+	const { data: hourlyRegistrations } = useQuery({
+		queryKey: ["event", eventId, "hourly_breakdown", "visitors", dateSelection],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event_id, "visitors", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: !!event && shouldFetchHourlyBreakdown,
+	});
+
+	const { data: hourlyScans } = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"hourly_breakdown",
+			"visitor_scans",
+			dateSelection,
+		],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event_id, "visitor_scans", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: !!event && shouldFetchHourlyBreakdown,
+	});
+
 	// Transform visitor data for charts
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
 
+	// Generate date filter label for PDF filename
+	const dateFilterLabel = useMemo(() => {
+		return getDateFilterLabelFromSelection(dateSelection, event?.start_date);
+	}, [dateSelection, event?.start_date]);
+
 	// Prepare report data for PDF export (always full report, ignores filter)
 	const reportData = useMemo(() => {
-		if (!event || !totalVisitors || !scannedVisitors || !unscannedVisitors) return null;
+		if (!event || !totalVisitors || !scannedVisitors || !unscannedVisitors)
+			return null;
+
+		// Include hourly breakdown for multi-day events
+		const hourlyBreakdown =
+			shouldFetchHourlyBreakdown && (hourlyRegistrations || hourlyScans)
+				? {
+						registrations: hourlyRegistrations,
+						scans: hourlyScans,
+					}
+				: undefined;
+
 		return prepareVisitorReportData(
 			{
 				id: event_id,
@@ -114,10 +177,25 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 				registrations: transformData(visitorsData?.data),
 				scans: transformData(visitorScansData?.data),
 			},
+			hourlyBreakdown,
+			dateFilterLabel,
 		);
-	}, [event, totalVisitors, scannedVisitors, unscannedVisitors, visitorsData, visitorScansData, event_id]);
+	}, [
+		event,
+		totalVisitors,
+		scannedVisitors,
+		unscannedVisitors,
+		visitorsData,
+		visitorScansData,
+		event_id,
+		shouldFetchHourlyBreakdown,
+		hourlyRegistrations,
+		hourlyScans,
+		dateFilterLabel,
+	]);
 
-	const isLoading = statsLoading || eventLoading || visitorsLoading || visitorScansLoading;
+	const isLoading =
+		statsLoading || eventLoading || visitorsLoading || visitorScansLoading;
 
 	if (Number.isNaN(eventId)) {
 		return (
@@ -161,12 +239,17 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 						/>
 						<StatsCard
 							label="Scanned Visitors"
-							value={scannedVisitors?.totalScannedVisitors?.toLocaleString() || "0"}
+							value={
+								scannedVisitors?.totalScannedVisitors?.toLocaleString() || "0"
+							}
 							Icon={UserCheck}
 						/>
 						<StatsCard
 							label="Unscanned Visitors"
-							value={unscannedVisitors?.totalUnscannedVisitors?.toLocaleString() || "0"}
+							value={
+								unscannedVisitors?.totalUnscannedVisitors?.toLocaleString() ||
+								"0"
+							}
 							Icon={UserMinus}
 						/>
 					</div>
@@ -186,10 +269,7 @@ export default function VisitorAnalyticsPage({ params }: VisitorAnalyticsPagePro
 								onChange={setDateSelection}
 							/>
 						)}
-						<ExportPdfButton
-							data={reportData}
-							disabled={isLoading}
-						/>
+						<ExportPdfButton data={reportData} disabled={isLoading} />
 					</div>
 				</div>
 

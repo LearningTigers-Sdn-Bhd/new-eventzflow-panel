@@ -1,6 +1,12 @@
 "use client";
 
-import { format, eachDayOfInterval, parseISO, isSameDay } from "date-fns";
+import {
+	differenceInCalendarDays,
+	eachDayOfInterval,
+	format,
+	isSameDay,
+	parseISO,
+} from "date-fns";
 import { Calendar, ChevronDown } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -63,13 +69,20 @@ export function EventDateFilter({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className={`rounded-none ${className}`}>
+				<Button
+					variant="outline"
+					size="sm"
+					className={`rounded-none ${className}`}
+				>
 					<Calendar className="mr-2 h-4 w-4" />
 					{getLabel()}
 					<ChevronDown className="ml-2 h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto rounded-none">
+			<DropdownMenuContent
+				align="end"
+				className="max-h-[300px] overflow-y-auto rounded-none"
+			>
 				{!hideAllTime && (
 					<DropdownMenuItem
 						onClick={() => onChange({ type: "all_time" })}
@@ -132,7 +145,7 @@ export function getAnalyticsParamsFromSelection(
 		case "event_duration":
 			// Return undefined dates to let backend use event duration
 			return { groupBy: "day" };
-		case "specific_date":
+		case "specific_date": {
 			// For specific date, return that date with hourly grouping
 			const dateStr = format(selection.date, "yyyy-MM-dd");
 			return {
@@ -140,5 +153,34 @@ export function getAnalyticsParamsFromSelection(
 				endDate: dateStr,
 				groupBy: "hour",
 			};
+		}
+	}
+}
+
+/**
+ * Get label used for PDF filenames from the filter selection
+ */
+export function getDateFilterLabelFromSelection(
+	selection: EventDateSelection,
+	eventStartDate?: string,
+): string {
+	switch (selection.type) {
+		case "all_time":
+			return "All_Time";
+		case "pre_event":
+			return "Pre_Event";
+		case "event_duration":
+			return "Event_Duration";
+		case "specific_date": {
+			if (eventStartDate) {
+				const eventStart = parseISO(eventStartDate);
+				const dayDiff = differenceInCalendarDays(selection.date, eventStart);
+				if (dayDiff >= 0) {
+					return `Day_${dayDiff + 1}`;
+				}
+			}
+
+			return format(selection.date, "yyyy-MM-dd");
+		}
 	}
 }

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, QrCode, Ticket } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 import {
 	ExportPdfButton,
@@ -10,10 +10,12 @@ import {
 } from "@/components/pdf-reports";
 import {
 	EventDateFilter,
-	getAnalyticsParamsFromSelection,
 	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
 import { getEventAnalytics } from "@/lib/api/dashboard";
+import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 import type { Event } from "@/lib/api/event/response";
 
 interface EventDetailsTicketStatsProps {
@@ -31,7 +33,12 @@ export function EventDetailsTicketStats({
 
 	// Fetch ticket analytics with time-series data
 	const { data: ticketAnalytics, isLoading: ticketLoading } = useQuery({
-		queryKey: ["event-analytics", event.id.toString(), "time-series", dateSelection],
+		queryKey: [
+			"event-analytics",
+			event.id.toString(),
+			"time-series",
+			dateSelection,
+		],
 		queryFn: () =>
 			getEventAnalytics(event.id.toString(), {
 				startDate: analyticsParams.startDate,
@@ -41,26 +48,87 @@ export function EventDetailsTicketStats({
 			}),
 	});
 
-	// Prepare PDF report data
-	const pdfReportData = prepareTicketReportData(
-		{
-			id: event.id.toString(),
-			name: event.title,
-			start_date: event.start_date,
-			end_date: event.end_date,
-		},
-		{
-			totalTickets: ticketAnalytics?.totalTickets ?? 0,
-			scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
-			unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
-			totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
-		},
-		{
-			registrations: ticketAnalytics?.registrationData,
-			scans: ticketAnalytics?.scanData,
-			revenue: ticketAnalytics?.revenueData,
-		},
+	// Determine if event spans multiple days (for hourly breakdown)
+	const isMultiDayEvent = useMemo(() => {
+		const start = new Date(event.start_date);
+		const end = new Date(event.end_date);
+		return start.toDateString() !== end.toDateString();
+	}, [event.start_date, event.end_date]);
+
+	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	const shouldFetchHourlyBreakdown =
+		isMultiDayEvent &&
+		(dateSelection.type === "all_time" ||
+			dateSelection.type === "pre_event" ||
+			dateSelection.type === "event_duration");
+
+	const { data: hourlyRegistrations } = useQuery({
+		queryKey: ["event", event.id, "hourly_breakdown", "tickets", dateSelection],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event.id, "tickets", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: shouldFetchHourlyBreakdown,
+	});
+
+	const { data: hourlyScans } = useQuery({
+		queryKey: ["event", event.id, "hourly_breakdown", "scans", dateSelection],
+		queryFn: () =>
+			getHourlyBreakdownByDay(event.id, "scans", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: shouldFetchHourlyBreakdown,
+	});
+
+	const dateFilterLabel = useMemo(
+		() => getDateFilterLabelFromSelection(dateSelection, event.start_date),
+		[dateSelection, event.start_date],
 	);
+
+	// Prepare PDF report data
+	const pdfReportData = useMemo(() => {
+		// Include hourly breakdown for multi-day events
+		const hourlyBreakdown =
+			shouldFetchHourlyBreakdown && (hourlyRegistrations || hourlyScans)
+				? {
+						registrations: hourlyRegistrations,
+						scans: hourlyScans,
+					}
+				: undefined;
+
+		return prepareTicketReportData(
+			{
+				id: event.id.toString(),
+				name: event.title,
+				start_date: event.start_date,
+				end_date: event.end_date,
+			},
+			{
+				totalTickets: ticketAnalytics?.totalTickets ?? 0,
+				scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
+				unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
+				totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+			},
+			{
+				registrations: ticketAnalytics?.registrationData,
+				scans: ticketAnalytics?.scanData,
+				revenue: ticketAnalytics?.revenueData,
+			},
+			hourlyBreakdown,
+			dateFilterLabel,
+		);
+	}, [
+		event,
+		ticketAnalytics,
+		shouldFetchHourlyBreakdown,
+		hourlyRegistrations,
+		hourlyScans,
+		dateFilterLabel,
+	]);
 
 	return (
 		<div className="mb-8 space-y-4 border-y border-dashed">

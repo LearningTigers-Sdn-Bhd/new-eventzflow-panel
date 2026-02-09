@@ -1,7 +1,7 @@
 "use client";
 
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { BarChart, DonutChart } from "./charts";
+import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
 	GridCol,
@@ -25,7 +25,7 @@ interface TicketAnalyticsReportProps {
 }
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
-	const { event, metadata, stats, timeSeries } = data;
+	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
 	const scanRate = calculatePercentage(
 		stats.scannedTickets,
 		stats.totalTickets,
@@ -44,6 +44,17 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 		timeSeries.scans?.map((d) => ({ date: d.date, value: d.value })) ?? [];
 	const revenueData =
 		timeSeries.revenue?.map((d) => ({ date: d.date, value: d.value })) ?? [];
+
+	// Detect if data is hourly (single date) or daily (all time/event duration/pre-event)
+	const isHourlyData = registrationData.length > 0 && registrationData[0]?.date?.includes(" ");
+
+	// Dynamic subtitles based on data type
+	const registrationSubtitle = isHourlyData
+		? "Ticket sales over time"
+		: "Daily Registration Breakdown by Date";
+	const checkInSubtitle = isHourlyData
+		? "Ticket scans over time"
+		: "Daily Check-in Breakdown by Date";
 
 	return (
 		<Document>
@@ -92,32 +103,50 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 
 				<Section title="Daily Activity Analysis" breakOnPage>
 					<View style={{ marginBottom: 24 }}>
-						<BarChart
+						<AreaChart
 							data={scanData}
-							title="Check-in Volume (Daily)"
-							maxBars={20}
-							barColor={colors.brandGreen}
+							title="Check-in Volume"
+							subtitle={checkInSubtitle}
+							areaColor={colors.brandGreen}
 						/>
 					</View>
 
 					<View style={{ borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 24 }}>
-						<BarChart
+						<AreaChart
 							data={registrationData}
-							title="Ticket Sales Volume (Daily)"
-							maxBars={20}
-							barColor={colors.brandPrimary}
+							title="Ticket Sales Volume"
+							subtitle={registrationSubtitle}
+							areaColor={colors.brandBlue}
 						/>
 					</View>
 				</Section>
 
 				{revenueData.length > 0 && (
 					<Section title="Financial Performance">
-						<BarChart
+						<AreaChart
 							data={revenueData}
-							title="Daily Revenue Trend"
-							formatValue={(v) => formatReportCurrency(v)}
-							maxBars={15}
-							barColor={colors.success}
+							title="Revenue Trend"
+							subtitle="Daily revenue over time"
+							areaColor={colors.success}
+						/>
+					</Section>
+				)}
+
+				{/* Hourly Breakdown per Day - for multi-day events */}
+				{hourlyBreakdown?.scans && hourlyBreakdown.scans.length > 0 && (
+					<Section title="Hourly Check-in Breakdown by Day" breakOnPage>
+						<DailyHourlyBreakdownSection
+							data={hourlyBreakdown.scans}
+							barColor={colors.brandGreen}
+						/>
+					</Section>
+				)}
+
+				{hourlyBreakdown?.registrations && hourlyBreakdown.registrations.length > 0 && (
+					<Section title="Hourly Sales Breakdown by Day">
+						<DailyHourlyBreakdownSection
+							data={hourlyBreakdown.registrations}
+							barColor={colors.brandBlue}
 						/>
 					</Section>
 				)}

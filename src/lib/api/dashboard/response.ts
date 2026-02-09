@@ -149,3 +149,21 @@ export type BackendEventLocation = {
 		email: string;
 	}>;
 };
+
+// Hourly breakdown types
+export type HourlyDataPoint = {
+	hour: string;
+	value: number;
+};
+
+export type DailyHourlyBreakdown = {
+	date: string;
+	hourlyData: HourlyDataPoint[];
+};
+
+export type HourlyBreakdownByDayResponse = {
+	metric: string;
+	start_date: string;
+	end_date: string;
+	data: DailyHourlyBreakdown[];
+};

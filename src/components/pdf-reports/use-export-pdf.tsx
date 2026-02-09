@@ -1,12 +1,13 @@
 "use client";
 
 import { pdf } from "@react-pdf/renderer";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { TicketAnalyticsReport } from "./ticket-report";
 import { VisitorAnalyticsReport } from "./visitor-report";
 import { VoucherAnalyticsReport } from "./voucher-report";
 import type {
 	AnalyticsReportData,
+	DailyHourlyBreakdown,
 	TicketReportData,
 	VisitorReportData,
 	VoucherReportData,
@@ -40,6 +41,15 @@ function isMobileDevice(): boolean {
 	);
 }
 
+function isIOSDevice(): boolean {
+	if (typeof navigator === "undefined") return false;
+	return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function canUseWebShare(): boolean {
+	return typeof navigator !== "undefined" && !!navigator.share && !!navigator.canShare;
+}
+
 function generateFilename(data: AnalyticsReportData): string {
 	const reportTypeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
 	const eventName = data.event.name
@@ -47,7 +57,8 @@ function generateFilename(data: AnalyticsReportData): string {
 		.trim()
 		.replace(/\s+/g, "_");
 	const date = new Date().toISOString().split("T")[0];
-	return `${eventName}_${reportTypeLabel}_Report_${date}.pdf`;
+	const dateFilter = data.metadata.dateFilterLabel || "All_Time";
+	return `${eventName}_${reportTypeLabel}_Report_${dateFilter}_${date}.pdf`;
 }
 
 /**
@@ -60,8 +71,14 @@ export function useExportPdf(
 	const [status, setStatus] = useState<ExportStatus>("idle");
 	const [error, setError] = useState<string | null>(null);
 
+	// Use ref to always get the latest data, avoiding stale closure issues
+	const dataRef = useRef(data);
+	dataRef.current = data;
+
 	const exportPdf = useCallback(async () => {
-		if (!data) {
+		const currentData = dataRef.current;
+
+		if (!currentData) {
 			setError("No data available for export");
 			setStatus("error");
 			return;
@@ -71,21 +88,31 @@ export function useExportPdf(
 		setError(null);
 
 		try {
-			const pdfDocument = createPdfDocument(data);
+			const pdfDocument = createPdfDocument(currentData);
 			const blob = await pdf(pdfDocument).toBlob();
-			const url = URL.createObjectURL(blob);
-			const pdfFilename = generateFilename(data);
+			const pdfFilename = generateFilename(currentData);
 
-			if (isMobileDevice()) {
-				const link = window.document.createElement("a");
-				link.href = url;
-				link.download = pdfFilename;
-				window.document.body.appendChild(link);
-				link.click();
-				window.document.body.removeChild(link);
-			} else {
-				window.open(url, "_blank");
+			// iOS Safari: Use Web Share API for proper file download
+			if (isIOSDevice() && canUseWebShare()) {
+				const file = new File([blob], pdfFilename, { type: "application/pdf" });
+				const shareData = { files: [file] };
+
+				if (navigator.canShare(shareData)) {
+					await navigator.share(shareData);
+					setStatus("success");
+					return;
+				}
 			}
+
+			const url = URL.createObjectURL(blob);
+
+			// Use download link for all devices to ensure correct filename
+			const link = window.document.createElement("a");
+			link.href = url;
+			link.download = pdfFilename;
+			window.document.body.appendChild(link);
+			link.click();
+			window.document.body.removeChild(link);
 
 			setTimeout(() => {
 				URL.revokeObjectURL(url);
@@ -97,7 +124,7 @@ export function useExportPdf(
 			setError(err instanceof Error ? err.message : "Failed to generate PDF");
 			setStatus("error");
 		}
-	}, [data]);
+	}, []);
 
 	return { exportPdf, status, error };
 }
@@ -118,6 +145,11 @@ export function prepareTicketReportData(
 		scans?: { date: string; value: number }[];
 		revenue?: { date: string; value: number }[];
 	},
+	hourlyBreakdown?: {
+		registrations?: DailyHourlyBreakdown[];
+		scans?: DailyHourlyBreakdown[];
+	},
+	dateFilterLabel?: string,
 ): TicketReportData {
 	return {
 		type: "ticket",
@@ -131,6 +163,7 @@ export function prepareTicketReportData(
 			generatedAt: new Date(),
 			eventStartDate: event.start_date,
 			eventEndDate: event.end_date,
+			dateFilterLabel,
 		},
 		stats: {
 			...stats,
@@ -144,6 +177,7 @@ export function prepareTicketReportData(
 			scans: timeSeries.scans ?? [],
 			revenue: timeSeries.revenue ?? [],
 		},
+		hourlyBreakdown,
 	};
 }
 
@@ -161,6 +195,11 @@ export function prepareVisitorReportData(
 		registrations?: { date: string; value: number }[];
 		scans?: { date: string; value: number }[];
 	},
+	hourlyBreakdown?: {
+		registrations?: DailyHourlyBreakdown[];
+		scans?: DailyHourlyBreakdown[];
+	},
+	dateFilterLabel?: string,
 ): VisitorReportData {
 	return {
 		type: "visitor",
@@ -174,6 +213,7 @@ export function prepareVisitorReportData(
 			generatedAt: new Date(),
 			eventStartDate: event.start_date,
 			eventEndDate: event.end_date,
+			dateFilterLabel,
 		},
 		stats: {
 			...stats,
@@ -186,6 +226,7 @@ export function prepareVisitorReportData(
 			registrations: timeSeries.registrations ?? [],
 			scans: timeSeries.scans ?? [],
 		},
+		hourlyBreakdown,
 	};
 }
 

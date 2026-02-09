@@ -1,6 +1,7 @@
 // API endpoints
 export {
 	getAllEventAnalytics,
+	getHourlyBreakdownByDay,
 	getMallLiveFeed,
 	getTimeSeries,
 	getTotalAmountPrice,
@@ -25,7 +26,10 @@ export {
 // Response types
 export type {
 	AllEventAnalyticsResponse,
+	DailyHourlyBreakdown,
 	DateCountColumn,
+	HourlyBreakdownByDayResponse,
+	HourlyDataPoint,
 	MallLiveFeedResponse,
 	PopularHall,
 	TimeSeriesDataPoint,
