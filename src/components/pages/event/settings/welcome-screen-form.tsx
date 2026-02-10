@@ -252,6 +252,13 @@ export default function WelcomeScreenForm({
 		: existingImageUrl
 			? `${API_BASE_URL}${existingImageUrl}`
 			: null;
+	const previewNameFontSize = Math.round(
+		16 + ((fontSize - 24) * (48 - 16)) / (200 - 24),
+	);
+	const previewWelcomeTextFontSize = Math.max(
+		10,
+		Math.round(previewNameFontSize * 0.55),
+	);
 
 	return (
 		<>
@@ -481,10 +488,12 @@ export default function WelcomeScreenForm({
 									{/* Preview Content */}
 									<div className="relative z-10 px-4 text-center text-black">
 										<p
-											className="mb-2 text-xs uppercase tracking-widest opacity-80"
+											className="mb-2 uppercase tracking-widest opacity-80"
 											style={{
 												color: nameColor,
 												fontWeight: isBold ? "bold" : "normal",
+												fontSize: `${previewWelcomeTextFontSize}px`,
+												lineHeight: 1.2,
 											}}
 										>
 											{welcomeText}
@@ -494,9 +503,7 @@ export default function WelcomeScreenForm({
 											name={previewName}
 											animationType={animationType}
 											fontFamily={fontFamily}
-											fontSize={Math.round(
-												16 + ((fontSize - 24) * (48 - 16)) / (200 - 24),
-											)}
+											fontSize={previewNameFontSize}
 											isBold={isBold}
 											nameColor={nameColor}
 										/>
@@ -557,9 +564,7 @@ export default function WelcomeScreenForm({
 										<SelectContent>
 											{/* Malay voices - Best for Malaysian names */}
 											<SelectGroup>
-												<SelectLabel>
-													Malay (Best for Malaysian names)
-												</SelectLabel>
+												<SelectLabel>Malay (Recommended)</SelectLabel>
 												{getVoicesByCategory().malay.map((voice) => (
 													<SelectItem key={voice.id} value={voice.id}>
 														{voice.label}
@@ -589,7 +594,7 @@ export default function WelcomeScreenForm({
 									</Select>
 									<FieldDescription>
 										Use Malay voices for Malaysian names (Dato&apos;, Tan Sri,
-										etc.)
+										Puan, Encik, etc.)
 										{ttsError && (
 											<span className="mt-1 block text-destructive">
 												{ttsError}

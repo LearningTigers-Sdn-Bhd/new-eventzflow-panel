@@ -3,69 +3,33 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-	type VoiceId,
 	isConfigured,
 	playBase64Audio,
 	synthesizeSpeech,
+	type VoiceId,
 } from "@/lib/tts";
 
-// Re-export for convenience
 export {
 	DEFAULT_VOICE,
-	type VoiceId,
-	VOICES,
 	getVoicesByCategory,
+	VOICES,
+	type VoiceId,
 } from "@/lib/tts";
 
-// ─────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────
-
 interface UseTTSOptions {
-	/** Whether TTS is enabled */
 	enabled: boolean;
-	/** Voice ID to use for speech synthesis */
 	voiceId: VoiceId;
-	/** Enable debug logging to console */
 	debug?: boolean;
 }
 
 interface UseTTSReturn {
-	/** Queue text to be spoken */
-	speak: (text: string) => void;
-	/** Whether audio is currently playing */
+	speak: (text: string) => Promise<void>;
 	isSpeaking: boolean;
-	/** Whether TTS is properly configured */
 	isSupported: boolean;
-	/** Current error message, if any */
 	error: string | null;
-	/** Clear the current error */
 	clearError: () => void;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Hook
-// ─────────────────────────────────────────────────────────────
-
-/**
- * React hook for text-to-speech using Google Cloud TTS.
- *
- * Features:
- * - Queue-based speech processing (handles rapid check-ins)
- * - Automatic cleanup on unmount
- * - Error handling with user-friendly messages
- *
- * @example
- * ```tsx
- * const { speak, isSpeaking, error } = useTTS({
- *   enabled: true,
- *   voiceId: "ms-MY-Wavenet-A",
- * });
- *
- * // Announce a check-in
- * speak("Welcome, Dato' Ahmad bin Ismail");
- * ```
- */
 export function useTTS({
 	enabled,
 	voiceId,
@@ -74,13 +38,8 @@ export function useTTS({
 	const [isSpeaking, setIsSpeaking] = useState(false);
 	const [isSupported, setIsSupported] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-
-	// Queue management refs
-	const queueRef = useRef<string[]>([]);
-	const isProcessingRef = useRef(false);
 	const isMountedRef = useRef(true);
 
-	// Debug logger
 	const log = useCallback(
 		(...args: unknown[]) => {
 			if (debug) {
@@ -90,7 +49,6 @@ export function useTTS({
 		[debug],
 	);
 
-	// Check browser support and configuration on mount
 	useEffect(() => {
 		const supported =
 			typeof window !== "undefined" &&
@@ -100,7 +58,9 @@ export function useTTS({
 		setIsSupported(supported);
 
 		if (!isConfigured() && enabled) {
-			log("Warning: TTS not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY");
+			log(
+				"Warning: TTS not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY",
+			);
 		}
 
 		return () => {
@@ -108,94 +68,47 @@ export function useTTS({
 		};
 	}, [enabled, log]);
 
-	// Process speech queue
-	const processQueue = useCallback(async () => {
-		if (!isSupported || !enabled || isProcessingRef.current) {
-			return;
-		}
-
-		if (queueRef.current.length === 0) {
-			return;
-		}
-
-		const text = queueRef.current.shift();
-		if (!text) {
-			return;
-		}
-
-		isProcessingRef.current = true;
-		setIsSpeaking(true);
-		setError(null);
-
-		log("Processing:", text);
-
-		try {
-			const result = await synthesizeSpeech({ text, voiceId });
-
-			if (!result.success || !result.audioContent) {
-				throw new Error(result.error ?? "Speech synthesis failed");
+	const speak = useCallback(
+		async (text: string) => {
+			if (!enabled || !isSupported) {
+				return;
 			}
 
-			log("Playing audio...");
-			await playBase64Audio(result.audioContent);
-			log("Playback complete");
-		} catch (err) {
-			const message = err instanceof Error ? err.message : "Unknown error";
-			log("Error:", message);
-
-			if (isMountedRef.current) {
-				setError(message);
+			const trimmedText = text.trim();
+			if (!trimmedText) {
+				return;
 			}
-		} finally {
-			isProcessingRef.current = false;
 
-			if (isMountedRef.current) {
-				setIsSpeaking(false);
+			setIsSpeaking(true);
+			setError(null);
 
-				// Process next item in queue
-				if (queueRef.current.length > 0) {
-					setTimeout(() => processQueue(), 100);
+			try {
+				const result = await synthesizeSpeech({ text: trimmedText, voiceId });
+
+				if (!result.success || !result.audioContent) {
+					throw new Error(result.error ?? "Speech synthesis failed");
+				}
+
+				await playBase64Audio(result.audioContent);
+			} catch (err) {
+				const message =
+					err instanceof Error ? err.message : "Unknown text-to-speech error";
+				log("Error:", message);
+
+				if (isMountedRef.current) {
+					setError(message);
+				}
+			} finally {
+				if (isMountedRef.current) {
+					setIsSpeaking(false);
 				}
 			}
-		}
-	}, [isSupported, enabled, voiceId, log]);
-
-	// Public speak function
-	const speak = useCallback(
-		(text: string) => {
-			if (!isSupported) {
-				log("TTS not supported or configured");
-				return;
-			}
-
-			if (!enabled) {
-				log("TTS disabled");
-				return;
-			}
-
-			const trimmed = text.trim();
-			if (!trimmed) {
-				log("Empty text, skipping");
-				return;
-			}
-
-			log("Queueing:", trimmed);
-			queueRef.current.push(trimmed);
-			processQueue();
 		},
-		[isSupported, enabled, processQueue, log],
+		[enabled, isSupported, log, voiceId],
 	);
 
-	// Clear error
 	const clearError = useCallback(() => {
 		setError(null);
-	}, []);
-
-	// Cleanup on unmount
-	useEffect(() => {
-		return () => {
-			queueRef.current = [];
-		};
 	}, []);
 
 	return {

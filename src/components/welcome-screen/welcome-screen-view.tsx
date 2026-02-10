@@ -1,6 +1,9 @@
 "use client";
 
-import type { AnimationType, CheckInBroadcast } from "@/lib/api/check-in-display/types";
+import type {
+	AnimationType,
+	CheckInBroadcast,
+} from "@/lib/api/check-in-display/types";
 import { API_BASE_URL } from "@/utils/rest-api";
 import { NameAnimation } from "./name-animation";
 
@@ -32,6 +35,7 @@ export function WelcomeScreenView({
 	welcomeText,
 }: WelcomeScreenViewProps) {
 	const displayName = latestCheckIn?.name || eventTitle;
+	const welcomeTextFontSize = Math.max(16, Math.round(fontSize * 0.24));
 
 	// Build full URL for background image (API returns relative path)
 	const fullBackgroundImageUrl = backgroundImageUrl
@@ -48,7 +52,7 @@ export function WelcomeScreenView({
 			{/* Background Image */}
 			{fullBackgroundImageUrl && (
 				<div
-					className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+					className="absolute inset-0 bg-center bg-cover bg-no-repeat"
 					style={{
 						backgroundImage: `url(${fullBackgroundImageUrl})`,
 					}}
@@ -63,10 +67,12 @@ export function WelcomeScreenView({
 				{latestCheckIn ? (
 					<>
 						<p
-							className="mb-2 text-sm uppercase tracking-widest opacity-80 sm:mb-4 sm:text-lg"
+							className="mb-2 uppercase tracking-widest opacity-80 sm:mb-4"
 							style={{
 								color: nameColor,
 								fontWeight: isBold ? "bold" : "normal",
+								fontSize: `${welcomeTextFontSize}px`,
+								lineHeight: 1.2,
 							}}
 						>
 							{welcomeText}

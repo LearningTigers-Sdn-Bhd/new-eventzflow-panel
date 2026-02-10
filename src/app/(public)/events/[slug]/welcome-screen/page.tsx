@@ -3,20 +3,38 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
-import { DEFAULT_VOICE, type VoiceId, useTTS } from "@/hooks/use-tts";
+import { DEFAULT_VOICE, useTTS, type VoiceId } from "@/hooks/use-tts";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
+import type { CheckInBroadcast } from "@/lib/api/check-in-display/types";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
 import { getVoiceById } from "@/lib/tts";
 
 const STALE_TIME_MS = 1000 * 60 * 5;
+const ANNOUNCEMENT_GAP_MS = 3000;
+
+function wait(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getCheckInId(checkIn: CheckInBroadcast): string {
+	return `${checkIn.checked_in_at}:${checkIn.name}`;
+}
 
 export default function WelcomeScreenPage() {
 	const params = useParams();
 	const slug = params.slug as string;
-	const previousCheckInRef = useRef<string | null>(null);
+	const [announcementQueue, setAnnouncementQueue] = useState<
+		CheckInBroadcast[]
+	>([]);
+	const [activeCheckIn, setActiveCheckIn] = useState<CheckInBroadcast | null>(
+		null,
+	);
+	const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+	const seenAnnouncementIdsRef = useRef(new Set<string>());
+	const isMountedRef = useRef(true);
 
 	const {
 		data: displaySettings,
@@ -33,28 +51,81 @@ export default function WelcomeScreenPage() {
 	const { latestCheckIn, queueSize, isConnected } =
 		useWelcomeScreenChannel(eventId);
 
-	// Text-to-speech for welcome announcements
 	const resolvedVoiceId: VoiceId =
 		displaySettings?.voice_type && getVoiceById(displaySettings.voice_type)
 			? (displaySettings.voice_type as VoiceId)
 			: DEFAULT_VOICE;
 
+	const voiceEnabled = displaySettings?.voice_enabled ?? false;
+
 	const { speak, error: ttsError } = useTTS({
-		enabled: displaySettings?.voice_enabled ?? false,
+		enabled: voiceEnabled,
 		voiceId: resolvedVoiceId,
 	});
 
-	// Announce visitor name on new check-in
 	useEffect(() => {
-		if (!latestCheckIn?.name) return;
-		if (latestCheckIn.name === previousCheckInRef.current) return;
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, []);
 
-		previousCheckInRef.current = latestCheckIn.name;
-		const welcomeText = displaySettings?.welcome_text || "Welcome";
-		speak(`${welcomeText}, ${latestCheckIn.name}`);
-	}, [latestCheckIn?.name, speak]);
+	useEffect(() => {
+		if (!latestCheckIn || !voiceEnabled) {
+			return;
+		}
 
-	// Update page title
+		const checkInId = getCheckInId(latestCheckIn);
+		if (seenAnnouncementIdsRef.current.has(checkInId)) {
+			return;
+		}
+
+		seenAnnouncementIdsRef.current.add(checkInId);
+		setAnnouncementQueue((prevQueue) => [...prevQueue, latestCheckIn]);
+	}, [latestCheckIn, voiceEnabled]);
+
+	useEffect(() => {
+		if (!voiceEnabled || isProcessingQueue || announcementQueue.length === 0) {
+			return;
+		}
+		const nextCheckIn = announcementQueue[0];
+
+		const processAnnouncement = async () => {
+			setIsProcessingQueue(true);
+			setActiveCheckIn(nextCheckIn);
+
+			const welcomeText = displaySettings?.welcome_text || "Welcome";
+			await speak(`${welcomeText}, ${nextCheckIn.name}`);
+			await wait(ANNOUNCEMENT_GAP_MS);
+
+			if (!isMountedRef.current) {
+				return;
+			}
+
+			setAnnouncementQueue((prevQueue) => prevQueue.slice(1));
+			setIsProcessingQueue(false);
+
+			if (announcementQueue.length <= 1) {
+				setActiveCheckIn(null);
+			}
+		};
+
+		void processAnnouncement();
+	}, [
+		announcementQueue,
+		displaySettings?.welcome_text,
+		isProcessingQueue,
+		speak,
+		voiceEnabled,
+	]);
+
+	const checkInToDisplay = useMemo(() => {
+		if (voiceEnabled) {
+			return activeCheckIn;
+		}
+
+		return latestCheckIn;
+	}, [activeCheckIn, latestCheckIn, voiceEnabled]);
+
 	useEffect(() => {
 		const title = displaySettings?.event?.title;
 		document.title = title ? `Welcome Screen - ${title}` : "Welcome Screen";
@@ -91,7 +162,6 @@ export default function WelcomeScreenPage() {
 			{/* eslint-disable-next-line @next/next/no-page-custom-font */}
 			<link rel="stylesheet" href={getGoogleFontsUrl()} />
 
-			{/* Status indicators */}
 			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
 				{ttsError && (
 					<div className="rounded-full bg-red-500/80 px-2 py-1 text-white text-xs">
@@ -113,7 +183,7 @@ export default function WelcomeScreenPage() {
 
 			<WelcomeScreenView
 				eventTitle={displaySettings.event.title}
-				latestCheckIn={latestCheckIn}
+				latestCheckIn={checkInToDisplay}
 				fontFamily={displaySettings.font_family || DEFAULT_FONT}
 				fontSize={displaySettings.font_size || 72}
 				animationType={displaySettings.animation_type || "fade_in"}

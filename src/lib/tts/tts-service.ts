@@ -2,12 +2,12 @@
  * Google Cloud Text-to-Speech Service
  *
  * Handles speech synthesis via Google Cloud TTS REST API.
- * Uses WaveNet voices for natural-sounding announcements.
  *
  * @see https://cloud.google.com/text-to-speech/docs/reference/rest
  */
 
-import { type VoiceId, getVoiceLocale } from "./voices";
+import { prepareTtsText } from "./pronunciation";
+import type { VoiceId } from "./voices";
 
 // ─────────────────────────────────────────────────────────────
 // Configuration
@@ -31,6 +31,8 @@ export interface TTSRequest {
 	text: string;
 	/** Voice ID to use */
 	voiceId: VoiceId;
+	/** Normalize Malaysian abbreviations before synth */
+	normalizeText?: boolean;
 	/** Speaking rate (0.25 to 4.0, default 1.0) */
 	speakingRate?: number;
 	/** Pitch adjustment (-20.0 to 20.0, default 0) */
@@ -42,7 +44,11 @@ export interface TTSResponse {
 	/** Base64 encoded MP3 audio */
 	audioContent?: string;
 	error?: string;
-	errorCode?: "MISSING_API_KEY" | "INVALID_REQUEST" | "API_ERROR" | "NETWORK_ERROR";
+	errorCode?:
+		| "MISSING_API_KEY"
+		| "INVALID_REQUEST"
+		| "API_ERROR"
+		| "NETWORK_ERROR";
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -74,14 +80,22 @@ export function isConfigured(): boolean {
  * }
  * ```
  */
-export async function synthesizeSpeech(request: TTSRequest): Promise<TTSResponse> {
-	const { text, voiceId, speakingRate = 1.0, pitch = 0 } = request;
+export async function synthesizeSpeech(
+	request: TTSRequest,
+): Promise<TTSResponse> {
+	const {
+		text,
+		voiceId,
+		normalizeText = true,
+		speakingRate = 1.0,
+		pitch = 0,
+	} = request;
 
-	// Validate API key
 	if (!ttsConfig.apiKey) {
 		return {
 			success: false,
-			error: "Google Cloud TTS API key not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY.",
+			error:
+				"Google Cloud TTS API key not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY.",
 			errorCode: "MISSING_API_KEY",
 		};
 	}
@@ -96,25 +110,30 @@ export async function synthesizeSpeech(request: TTSRequest): Promise<TTSResponse
 		};
 	}
 
+	const normalizedText = prepareTtsText(trimmedText, normalizeText);
+
 	try {
-		const response = await fetch(`${ttsConfig.endpoint}?key=${ttsConfig.apiKey}`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
+		const response = await fetch(
+			`${ttsConfig.endpoint}?key=${ttsConfig.apiKey}`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					input: { text: normalizedText },
+					voice: {
+						languageCode: getLanguageCode(voiceId),
+						name: voiceId,
+					},
+					audioConfig: {
+						audioEncoding: "MP3",
+						speakingRate: clamp(speakingRate, 0.5, 1.5),
+						pitch: clamp(pitch, -10, 10),
+					},
+				}),
 			},
-			body: JSON.stringify({
-				input: { text: trimmedText },
-				voice: {
-					languageCode: getVoiceLocale(voiceId),
-					name: voiceId,
-				},
-				audioConfig: {
-					audioEncoding: "MP3",
-					speakingRate,
-					pitch,
-				},
-			}),
-		});
+		);
 
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => ({}));
@@ -163,7 +182,10 @@ export function playBase64Audio(base64Audio: string): Promise<void> {
 /**
  * Parse Google Cloud API error into user-friendly message.
  */
-function parseApiError(status: number, errorData: { error?: { message?: string } }): string {
+function parseApiError(
+	status: number,
+	errorData: { error?: { message?: string } },
+): string {
 	const apiMessage = errorData.error?.message;
 
 	switch (status) {
@@ -180,4 +202,22 @@ function parseApiError(status: number, errorData: { error?: { message?: string }
 		default:
 			return apiMessage ?? `API error (${status})`;
 	}
+}
+
+function getLanguageCode(voiceId: string): string {
+	const firstDashIndex = voiceId.indexOf("-");
+	if (firstDashIndex < 0) {
+		return "en-US";
+	}
+
+	const secondDashIndex = voiceId.indexOf("-", firstDashIndex + 1);
+	if (secondDashIndex < 0) {
+		return "en-US";
+	}
+
+	return voiceId.slice(0, secondDashIndex);
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(Math.max(value, min), max);
 }

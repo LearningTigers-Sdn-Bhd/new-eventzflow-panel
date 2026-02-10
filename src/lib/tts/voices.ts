@@ -3,8 +3,6 @@
  *
  * Google Cloud WaveNet voices optimized for Malaysian event welcome screens.
  * Supports Malay, English, and Chinese names.
- *
- * @see https://cloud.google.com/text-to-speech/docs/voices
  */
 
 export type VoiceCategory = "malay" | "english" | "chinese";
@@ -26,16 +24,9 @@ export interface Voice {
 
 /**
  * Curated list of WaveNet voices for the welcome screen.
- *
- * Priority:
- * 1. Malay (ms-MY) - Best for Malaysian names (Dato', Tan Sri, etc.)
- * 2. English - For international attendees
- * 3. Chinese - For Chinese names
  */
 export const VOICES = [
-	// ─────────────────────────────────────────────────────────────
 	// MALAY - Best for Malaysian names
-	// ─────────────────────────────────────────────────────────────
 	{
 		id: "ms-MY-Wavenet-A",
 		name: "Siti",
@@ -69,9 +60,7 @@ export const VOICES = [
 		category: "malay",
 	},
 
-	// ─────────────────────────────────────────────────────────────
-	// ENGLISH (US & UK)
-	// ─────────────────────────────────────────────────────────────
+	// ENGLISH
 	{
 		id: "en-US-Wavenet-F",
 		name: "Emma",
@@ -105,9 +94,7 @@ export const VOICES = [
 		category: "english",
 	},
 
-	// ─────────────────────────────────────────────────────────────
 	// CHINESE (Mandarin)
-	// ─────────────────────────────────────────────────────────────
 	{
 		id: "cmn-CN-Wavenet-A",
 		name: "Xiaomei",
@@ -126,35 +113,22 @@ export const VOICES = [
 	},
 ] as const satisfies readonly Voice[];
 
-/** Voice ID type derived from available voices */
 export type VoiceId = (typeof VOICES)[number]["id"];
 
-/** Default voice - Siti (Malay Female) for Malaysian events */
 export const DEFAULT_VOICE: VoiceId = "ms-MY-Wavenet-A";
 
-/**
- * Get voices grouped by category for UI display.
- */
 export function getVoicesByCategory(): Record<VoiceCategory, Voice[]> {
 	return {
-		malay: VOICES.filter((v) => v.category === "malay"),
-		english: VOICES.filter((v) => v.category === "english"),
-		chinese: VOICES.filter((v) => v.category === "chinese"),
+		malay: VOICES.filter((voice) => voice.category === "malay"),
+		english: VOICES.filter((voice) => voice.category === "english"),
+		chinese: VOICES.filter((voice) => voice.category === "chinese"),
 	};
 }
 
-/**
- * Get the locale for a voice ID.
- * @returns Locale string or "en-US" as fallback
- */
-export function getVoiceLocale(voiceId: string): string {
-	const voice = VOICES.find((v) => v.id === voiceId);
-	return voice?.locale ?? "en-US";
+export function getVoiceById(voiceId: string): Voice | undefined {
+	return VOICES.find((voice) => voice.id === voiceId);
 }
 
-/**
- * Get voice metadata by ID.
- */
-export function getVoiceById(voiceId: string): Voice | undefined {
-	return VOICES.find((v) => v.id === voiceId);
+export function getVoiceLocale(voiceId: string): string {
+	return getVoiceById(voiceId)?.locale ?? "en-US";
 }
