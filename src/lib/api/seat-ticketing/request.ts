@@ -16,6 +16,14 @@ export interface GetPublicSeatSessionRequest {
 	idOrSlugOrPublicId: string;
 }
 
+export interface GetCheckoutSessionRequest {
+	checkoutSessionUuid: string;
+}
+
+export interface ClearCheckoutSessionLocksRequest {
+	checkoutSessionUuid: string;
+}
+
 export interface CreateSeatSessionRequest {
 	event_id: number;
 	name: string;
@@ -67,6 +75,7 @@ export interface CreateSeatSectionRequest {
 	seat_column?: number | null;
 	row_span?: number | null;
 	col_span?: number | null;
+	rotation?: number | null;
 }
 
 export interface UpdateSeatSectionRequest {
@@ -78,6 +87,7 @@ export interface UpdateSeatSectionRequest {
 	seat_column?: number | null;
 	row_span?: number | null;
 	col_span?: number | null;
+	rotation?: number | null;
 }
 
 export interface GetEventTicketSeatsRequest {
@@ -100,6 +110,26 @@ export interface UpdateEventTicketSeatRequest {
 	row_set?: number | null;
 	col_set?: number | null;
 	ticket_id?: number | null;
+}
+
+export interface LockSeatRequest {
+	sessionId: string;
+	venueId: string;
+	sectionId: string;
+	seatId: string;
+	checkout_session_uuid: string;
+}
+
+export interface CheckoutRequest {
+	sessionId: string;
+	seat_ids: (number | string)[];
+	visitor: {
+		full_name: string;
+		email: string;
+		phone: string;
+	};
+	checkout_session_uuid: string;
+	ticket_type_id?: number | string;
 }
 
 export interface BulkUpdateSeatSessionRequest {
@@ -132,8 +162,20 @@ export interface BulkUpdateSectionAttributes {
 	seat_column?: number | null;
 	row_span?: number | null;
 	col_span?: number | null;
+	rotation?: number | null;
+	color?: string | null;
 	_destroy?: boolean;
 	event_ticket_seats_attributes?: BulkUpdateSeatAttributes[];
+	event_seat_groups_attributes?: BulkUpdateGroupAttributes[];
+}
+
+export interface BulkUpdateGroupAttributes {
+	id?: number;
+	name?: string;
+	extra_price?: number | string | null;
+	color?: string | null;
+	_destroy?: boolean;
+	event_seat_group_assignments_attributes?: BulkUpdateGroupAssignmentAttributes[];
 }
 
 export interface BulkUpdateSeatAttributes {
@@ -143,5 +185,13 @@ export interface BulkUpdateSeatAttributes {
 	row_set?: number | null;
 	col_set?: number | null;
 	ticket_id?: number | null;
+	_destroy?: boolean;
+	event_seat_group_assignment_attributes?: BulkUpdateGroupAssignmentAttributes;
+}
+
+export interface BulkUpdateGroupAssignmentAttributes {
+	id?: number;
+	event_seat_group_id?: number;
+	event_ticket_seat_id?: number;
 	_destroy?: boolean;
 }

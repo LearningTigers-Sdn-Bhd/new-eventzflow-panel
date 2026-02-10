@@ -2,10 +2,12 @@
 
 import { createContext, type ReactNode, useContext } from "react";
 import type { PublicEventInfo } from "@/lib/api/event/endpoints";
+import type { EventSeatSession } from "@/lib/api/seat-ticketing/response";
 
 interface EventSeatReservationsContextValue {
 	publicEvent: PublicEventInfo | null;
 	eventSlug: string | null;
+	publicSessions: EventSeatSession[] | null;
 }
 
 const EventSeatReservationsContext =
@@ -15,15 +17,19 @@ interface EventSeatReservationsProviderProps {
 	children: ReactNode;
 	publicEvent: PublicEventInfo | null;
 	eventSlug: string | null;
+	publicSessions: EventSeatSession[] | null;
 }
 
 export function EventSeatReservationsProvider({
 	children,
 	publicEvent,
 	eventSlug,
+	publicSessions,
 }: EventSeatReservationsProviderProps) {
 	return (
-		<EventSeatReservationsContext.Provider value={{ publicEvent, eventSlug }}>
+		<EventSeatReservationsContext.Provider
+			value={{ publicEvent, eventSlug, publicSessions }}
+		>
 			{children}
 		</EventSeatReservationsContext.Provider>
 	);

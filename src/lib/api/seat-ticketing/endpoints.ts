@@ -5,13 +5,17 @@ import type {
 	CreateSeatSectionRequest,
 	CreateSeatSessionRequest,
 	CreateSeatVenueRequest,
+	ClearCheckoutSessionLocksRequest,
 	GetEventTicketSeatsRequest,
+	GetCheckoutSessionRequest,
 	GetPublicSeatSessionRequest,
 	GetPublicSeatSessionsRequest,
 	GetSeatSectionsRequest,
 	GetSeatSessionRequest,
 	GetSeatSessionsRequest,
 	GetSeatVenuesRequest,
+	LockSeatRequest,
+	CheckoutRequest,
 	UpdateEventTicketSeatRequest,
 	UpdateSeatSectionRequest,
 	UpdateSeatSessionRequest,
@@ -21,6 +25,7 @@ import type {
 	EventSeatSection,
 	EventSeatSession,
 	EventSeatVenue,
+	EventSeatCheckoutSession,
 	EventTicketSeat,
 } from "./response";
 
@@ -92,6 +97,30 @@ export async function getPublicSession(
 ): Promise<EventSeatSession> {
 	return await publicRestClient.get<EventSeatSession>(
 		`v1/seat_ticketing/sessions/public/${data.idOrSlugOrPublicId}`,
+	);
+}
+
+export async function getCheckoutSession(
+	data: GetCheckoutSessionRequest,
+): Promise<EventSeatCheckoutSession> {
+	return await publicRestClient.get<EventSeatCheckoutSession>(
+		`v1/seat_ticketing/checkout_sessions/${data.checkoutSessionUuid}`,
+	);
+}
+
+export async function checkoutSessionHeartbeat(
+	data: GetCheckoutSessionRequest,
+): Promise<{ success: boolean; expires_at: string }> {
+	return await publicRestClient.post<{ success: boolean; expires_at: string }>(
+		`v1/seat_ticketing/checkout_sessions/${data.checkoutSessionUuid}/heartbeat`,
+	);
+}
+
+export async function clearCheckoutSessionLocks(
+	data: ClearCheckoutSessionLocksRequest,
+): Promise<{ success: boolean; cleared: number }> {
+	return await publicRestClient.post<{ success: boolean; cleared: number }>(
+		`v1/seat_ticketing/checkout_sessions/${data.checkoutSessionUuid}/clear_locks`,
 	);
 }
 
@@ -299,6 +328,9 @@ export async function createSeatSection(
 	if (data.col_span !== undefined) {
 		sectionPayload.col_span = data.col_span;
 	}
+	if (data.rotation !== undefined) {
+		sectionPayload.rotation = data.rotation;
+	}
 	return await restClient.post<EventSeatSection>(
 		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections`,
 		{
@@ -337,6 +369,9 @@ export async function updateSeatSection(
 	}
 	if (data.col_span !== undefined) {
 		sectionPayload.col_span = data.col_span;
+	}
+	if (data.rotation !== undefined) {
+		sectionPayload.rotation = data.rotation;
 	}
 	return await restClient.patch<EventSeatSection>(
 		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections/${sectionId}`,
@@ -424,5 +459,33 @@ export async function deleteEventTicketSeat(
 ): Promise<void> {
 	await restClient.delete<void>(
 		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections/${sectionId}/ticket-seats/${seatId}`,
+	);
+}
+
+export async function lockSeat(data: LockSeatRequest): Promise<EventTicketSeat> {
+	return await publicRestClient.post<EventTicketSeat>(
+		`v1/seat_ticketing/sessions/${data.sessionId}/venues/${data.venueId}/sections/${data.sectionId}/ticket-seats/${data.seatId}/lock`,
+		{ checkout_session_uuid: data.checkout_session_uuid },
+	);
+}
+
+export async function unlockSeat(
+	data: LockSeatRequest,
+): Promise<EventTicketSeat> {
+	return await publicRestClient.post<EventTicketSeat>(
+		`v1/seat_ticketing/sessions/${data.sessionId}/venues/${data.venueId}/sections/${data.sectionId}/ticket-seats/${data.seatId}/unlock`,
+		{ checkout_session_uuid: data.checkout_session_uuid },
+	);
+}
+
+export async function checkoutSession(data: CheckoutRequest): Promise<any> {
+	return await publicRestClient.post<any>(
+		`v1/seat_ticketing/sessions/${data.sessionId}/checkout`,
+		{
+			seat_ids: data.seat_ids,
+			visitor: data.visitor,
+			checkout_session_uuid: data.checkout_session_uuid,
+			ticket_type_id: data.ticket_type_id,
+		},
 	);
 }
