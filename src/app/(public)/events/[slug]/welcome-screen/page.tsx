@@ -9,6 +9,7 @@ import { DEFAULT_VOICE, type VoiceId, useTTS } from "@/hooks/use-tts";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
+import { getVoiceById } from "@/lib/tts";
 
 const STALE_TIME_MS = 1000 * 60 * 5;
 
@@ -33,9 +34,14 @@ export default function WelcomeScreenPage() {
 		useWelcomeScreenChannel(eventId);
 
 	// Text-to-speech for welcome announcements
+	const resolvedVoiceId: VoiceId =
+		displaySettings?.voice_type && getVoiceById(displaySettings.voice_type)
+			? (displaySettings.voice_type as VoiceId)
+			: DEFAULT_VOICE;
+
 	const { speak, error: ttsError } = useTTS({
 		enabled: displaySettings?.voice_enabled ?? false,
-		voiceId: (displaySettings?.voice_type as VoiceId) || DEFAULT_VOICE,
+		voiceId: resolvedVoiceId,
 	});
 
 	// Announce visitor name on new check-in

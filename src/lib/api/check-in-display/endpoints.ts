@@ -5,7 +5,7 @@
 
 import { extractErrorMessage } from "@/utils/error-handler";
 import { publicRestClient, restClient } from "@/utils/rest-api";
-import type { CheckInDisplay, CheckInDisplayFormData } from "./types";
+import type { AnnounceGuestResponse, CheckInDisplay, CheckInDisplayFormData } from "./types";
 
 /**
  * Fetch public check-in display settings (no auth required)
@@ -95,6 +95,13 @@ export async function updateCheckInDisplay(
 			);
 		}
 
+		if (data.welcome_text !== undefined) {
+			formData.append(
+				"check_in_display[welcome_text]",
+				data.welcome_text,
+			);
+		}
+
 		if (data.remove_background_image) {
 			formData.append(
 				"check_in_display[remove_background_image]",
@@ -107,6 +114,26 @@ export async function updateCheckInDisplay(
 			formData,
 		);
 		return response;
+	} catch (error: unknown) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Announce a guest name on the welcome screen
+ * POST /v1/events/:eventId/check_in_display/announce
+ */
+export async function announceGuest(
+	eventId: string,
+	name: string,
+): Promise<AnnounceGuestResponse> {
+	try {
+		const response = await restClient.post<{ data: AnnounceGuestResponse }>(
+			`v1/events/${eventId}/check_in_display/announce`,
+			{ name },
+		);
+		return response.data;
 	} catch (error: unknown) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

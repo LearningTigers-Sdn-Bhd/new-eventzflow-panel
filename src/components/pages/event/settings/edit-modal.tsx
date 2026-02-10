@@ -8,16 +8,18 @@ import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
 	eventId: number;
+	initialTab?: "event-information" | "custom-labels" | "welcome-screen";
 	onClose?: () => void;
 }
 
 export default function EventSettingsDialog({
 	eventId,
+	initialTab = "event-information",
 	onClose,
 }: EventSettingsDialogProps) {
 	const [activeTab, setActiveTab] = useState<
 		"event-information" | "custom-labels" | "welcome-screen"
-	>("event-information");
+	>(initialTab);
 
 	return (
 		<div className="relative flex flex-col gap-4 px-4 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6 md:px-6">

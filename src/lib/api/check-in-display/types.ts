@@ -42,6 +42,11 @@ export interface CheckInBroadcast {
 	checked_in_at: string;
 }
 
+export interface AnnounceGuestResponse {
+	message: string;
+	name: string;
+}
+
 export interface WelcomeScreenStateMessage {
 	type: "state";
 	name: string | null;

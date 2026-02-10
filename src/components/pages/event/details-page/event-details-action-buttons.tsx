@@ -2,18 +2,32 @@
 
 import {
 	Activity,
+	ChevronDown,
 	ExternalLink,
+	Megaphone,
 	Monitor,
 	QrCode,
+	Settings,
 	Ticket,
 	Users,
 	Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Event } from "@/lib/api/event/response";
+import EventSettingsDialog from "../settings/edit-modal";
+import { AnnounceGuestDialog } from "./announce-guest-dialog";
 
 interface EventDetailsActionButtonsProps {
 	event: Event;
@@ -24,6 +38,7 @@ export function EventDetailsActionButtons({
 }: EventDetailsActionButtonsProps) {
 	const router = useRouter();
 	const { user } = useAuth();
+	const { openDialog, closeDialog } = useDialog();
 	const {
 		canManageEvent,
 		canScanTickets,
@@ -38,8 +53,18 @@ export function EventDetailsActionButtons({
 	const isTicketEvent = event.use_ticket !== false;
 	const canViewPublicCheckIn = isOrgOwner || isOrganizer || isEventStaff;
 
-	const openWelcomeScreen = () => {
-		window.open(`/events/${event.slug}/welcome-screen`, "_blank");
+	const [announceOpen, setAnnounceOpen] = useState(false);
+
+	const openDisplaySettings = () => {
+		openDialog({
+			component: EventSettingsDialog,
+			config: { title: "Event Settings", size: "full" },
+			props: {
+				eventId: event.id,
+				initialTab: "welcome-screen" as const,
+				onClose: closeDialog,
+			},
+		});
 	};
 
 	if (!user) return null;
@@ -118,16 +143,48 @@ export function EventDetailsActionButtons({
 				)}
 
 				{canManageEvent && (
-					<Button
-						className="rounded-none border py-5"
-						variant="outline"
-						onClick={openWelcomeScreen}
-					>
-						<Monitor className="mr-2 h-4 w-4" />
-						<span>Welcome Screen</span>
-					</Button>
+					<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="rounded-none border py-5"
+									variant="outline"
+								>
+									<Monitor className="mr-2 h-4 w-4" />
+									<span>Welcome Screen</span>
+									<ChevronDown className="ml-2 h-3 w-3" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="rounded-none">
+								<DropdownMenuItem
+									onClick={() =>
+										window.open(
+											`/events/${event.slug}/welcome-screen`,
+											"_blank",
+										)
+									}
+								>
+									<Monitor className="mr-2 h-4 w-4" />
+									Open Display
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setAnnounceOpen(true)}>
+									<Megaphone className="mr-2 h-4 w-4" />
+									Announce Guest
+								</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={openDisplaySettings}>
+									<Settings className="mr-2 h-4 w-4" />
+									Display Settings
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 				)}
 			</div>
+
+			<AnnounceGuestDialog
+				open={announceOpen}
+				onOpenChange={setAnnounceOpen}
+				eventId={event.id}
+			/>
 		</div>
 	);
 }

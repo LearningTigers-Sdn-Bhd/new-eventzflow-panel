@@ -59,11 +59,11 @@ export function WelcomeScreenView({
 			)}
 
 			{/* Content */}
-			<div className="relative z-10 max-w-[90vw] px-8 text-center text-black">
+			<div className="relative z-10 max-w-[90vw] px-4 text-center text-black sm:px-8">
 				{latestCheckIn ? (
 					<>
 						<p
-							className="mb-4 text-lg uppercase tracking-widest opacity-80"
+							className="mb-2 text-sm uppercase tracking-widest opacity-80 sm:mb-4 sm:text-lg"
 							style={{
 								color: nameColor,
 								fontWeight: isBold ? "bold" : "normal",
