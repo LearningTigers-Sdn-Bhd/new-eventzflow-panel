@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import type { TicketType } from "@/lib/api/ticket-type";
 import { cn } from "@/lib/utils";
 import { TicketTypeActionsMenu } from "./action-menu";
+import { ActivePriceTierBadge } from "./active-price-tier-badge";
+import { ActivePriceTierPrice } from "./active-price-tier-price";
+import { PriceTierButton } from "./price-tier-button";
 
 const columns: ColumnDef<TicketType>[] = [
 	{
@@ -19,11 +22,21 @@ const columns: ColumnDef<TicketType>[] = [
 	},
 	{
 		accessorKey: "price",
-		size: 120,
+		size: 150,
 		header: ({ column }) => <SortableHeader column={column} label="Price" />,
 		cell: ({ row }) => {
-			const price = row.getValue("price") as number;
-			return <div className="text-muted-foreground">RM{price.toFixed(2)}</div>;
+			const ticketType = row.original;
+			return (
+				<div className="space-y-1">
+					<div className="font-medium">
+						<ActivePriceTierPrice
+							ticketTypeId={ticketType.id}
+							basePrice={ticketType.price}
+						/>
+					</div>
+					<ActivePriceTierBadge ticketTypeId={ticketType.id} />
+				</div>
+			);
 		},
 	},
 	{
@@ -37,6 +50,16 @@ const columns: ColumnDef<TicketType>[] = [
 		size: 120,
 		header: () => <p className="font-medium">Max/Order</p>,
 		cell: ({ row }) => <div>{row.getValue("maxPerOrder")}</div>,
+	},
+	{
+		id: "priceTiers",
+		size: 150,
+		header: () => <div className="text-center font-medium">Price Tiers</div>,
+		cell: ({ row }) => (
+			<div className="flex justify-center">
+				<PriceTierButton ticketType={row.original} />
+			</div>
+		),
 	},
 	{
 		accessorKey: "status",

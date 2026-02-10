@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
-import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { type TicketType, updateTicketType } from "@/lib/api/ticket-type";
@@ -28,9 +27,9 @@ export function EditTicketTypeForm({
 
 	const [formData, setFormData] = useState({
 		name: ticketType.name,
-		price: ticketType.price,
-		quantity: ticketType.quantity,
-		max_per_order: ticketType.maxPerOrder,
+		price: ticketType.price.toString(),
+		quantity: ticketType.quantity.toString(),
+		max_per_order: ticketType.maxPerOrder.toString(),
 		status: ticketType.status,
 	});
 
@@ -61,15 +60,18 @@ export function EditTicketTypeForm({
 			newErrors.name = "Name is required";
 		}
 
-		if (formData.price < 0) {
+		const priceNum = Number.parseFloat(formData.price) || 0;
+		if (priceNum < 0) {
 			newErrors.price = "Price must be a valid positive number";
 		}
 
-		if (formData.quantity < 0) {
+		const quantityNum = Number.parseInt(formData.quantity) || 0;
+		if (quantityNum < 0) {
 			newErrors.quantity = "Quantity must be a valid positive number";
 		}
 
-		if (formData.max_per_order < 1) {
+		const maxPerOrderNum = Number.parseInt(formData.max_per_order) || 1;
+		if (maxPerOrderNum < 1) {
 			newErrors.max_per_order = "Max per order must be at least 1";
 		}
 
@@ -82,9 +84,9 @@ export function EditTicketTypeForm({
 			eventId,
 			ticketTypeId: ticketType.id.toString(),
 			name: formData.name,
-			price: formData.price,
-			quantity: formData.quantity,
-			max_per_order: formData.max_per_order,
+			price: priceNum,
+			quantity: quantityNum,
+			max_per_order: maxPerOrderNum,
 			status: formData.status,
 		});
 	};
@@ -118,21 +120,21 @@ export function EditTicketTypeForm({
 						/>
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<NumberInputLabel
+							<InputLabel
 								label="Price"
 								htmlFor={priceId}
 								value={formData.price}
 								onChange={(value) => handleChange("price", value)}
 								errors={errors.price ? [{ message: errors.price }] : undefined}
 								isInvalid={!!errors.price}
-								min={0}
-								step={0.01}
+								type="input"
+								inputMode="decimal"
 								placeholder="0.00"
 								required
 								disabled={updateMutation.isPending}
 							/>
 
-							<NumberInputLabel
+							<InputLabel
 								label="Quantity"
 								htmlFor={quantityId}
 								value={formData.quantity}
@@ -141,7 +143,8 @@ export function EditTicketTypeForm({
 									errors.quantity ? [{ message: errors.quantity }] : undefined
 								}
 								isInvalid={!!errors.quantity}
-								min={0}
+								type="input"
+								inputMode="numeric"
 								placeholder="100"
 								required
 								disabled={updateMutation.isPending}
@@ -149,7 +152,7 @@ export function EditTicketTypeForm({
 						</div>
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<NumberInputLabel
+							<InputLabel
 								label="Max Per Order"
 								htmlFor={maxPerOrderId}
 								value={formData.max_per_order}
@@ -160,7 +163,8 @@ export function EditTicketTypeForm({
 										: undefined
 								}
 								isInvalid={!!errors.max_per_order}
-								min={1}
+								type="input"
+								inputMode="numeric"
 								placeholder="10"
 								required
 								disabled={updateMutation.isPending}

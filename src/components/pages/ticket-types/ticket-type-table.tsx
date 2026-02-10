@@ -50,6 +50,7 @@ export function DataTable({ data }: DataTableProps) {
 				title: "Create Ticket Type",
 				description: "Add a new ticket type for this event",
 				size: "2xl",
+				className: "rounded-none",
 			},
 		});
 	};
@@ -90,7 +91,11 @@ export function DataTable({ data }: DataTableProps) {
 								title: "No ticket types found",
 								desc: "Create your first ticket type to get started",
 								icon: <Ticket />,
-								action: <Button onClick={handleCreateTicketType}>Create Ticket Type</Button>,
+								action: (
+									<Button onClick={handleCreateTicketType}>
+										Create Ticket Type
+									</Button>
+								),
 							}}
 						/>
 					</DesktopView>
@@ -108,7 +113,11 @@ export function DataTable({ data }: DataTableProps) {
 									description="Create your first ticket type to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button onClick={handleCreateTicketType}>Create Ticket Type</Button>}
+									action={
+										<Button onClick={handleCreateTicketType}>
+											Create Ticket Type
+										</Button>
+									}
 								/>
 							)}
 						</div>
@@ -127,14 +136,20 @@ export function DataTable({ data }: DataTableProps) {
 									description="Create your first ticket type to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button onClick={handleCreateTicketType}>Create Ticket Type</Button>}
+									action={
+										<Button onClick={handleCreateTicketType}>
+											Create Ticket Type
+										</Button>
+									}
 								/>
 							)}
 						</div>
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} />
+			<div className="pb-14 md:pb-4">
+				<DataPagination table={table} />
+			</div>
 		</div>
 	);
 }
