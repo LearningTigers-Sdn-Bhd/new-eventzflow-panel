@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getCachedPublicEvent } from "@/components/pages/seat-ticketing/public/event-data";
+import SeatCheckoutSessionBannerProvider from "@/components/pages/seat-ticketing/public/session-page/checkout/seat-checkout-session-banner-provider";
+import { SeatReservationSessionProvider } from "@/components/pages/seat-ticketing/public/session-page/seat-reservation-session-provider";
 import { getPublicSession } from "@/lib/api/seat-ticketing";
 
 interface LayoutProps {
@@ -42,10 +45,33 @@ export async function generateMetadata({
 	}
 }
 
-export default function EventSeatReservationsLayout({
+export default async function EventSeatReservationsLayout({
 	children,
+	params,
 }: Readonly<{
 	children: React.ReactNode;
+	params: Promise<{
+		slug: string;
+		"slug-or-public-id": string;
+	}>;
 }>) {
-	return <>{children}</>;
+	const { slug, "slug-or-public-id": sessionId } = await params;
+
+	// Fetch session once at layout level for prehydration
+	let session = null;
+	try {
+		session = await getPublicSession({ idOrSlugOrPublicId: sessionId });
+	} catch {
+		notFound();
+	}
+
+	return (
+		<SeatReservationSessionProvider initialSession={session}>
+			<SeatCheckoutSessionBannerProvider
+				eventSlug={slug}
+				sessionIdentifier={sessionId}
+			/>
+			{children}
+		</SeatReservationSessionProvider>
+	);
 }

@@ -51,6 +51,7 @@ export function VenueForm() {
 
 		if (
 			ratio &&
+			ratio !== "custom" &&
 			(field === "total_row" || field === "total_column" || field === "aspect_ratio")
 		) {
 			let rows =
@@ -69,6 +70,10 @@ export function VenueForm() {
 				if (field === "total_column" || field === "aspect_ratio")
 					rows = Math.round(cols * (3 / 4));
 				else if (field === "total_row") cols = Math.round(rows * (4 / 3));
+			} else if (ratio === "9:16") {
+				if (field === "total_column" || field === "aspect_ratio")
+					rows = Math.round(cols * (16 / 9));
+				else if (field === "total_row") cols = Math.round(rows * (9 / 16));
 			}
 
 			newData.total_row = rows;
@@ -88,7 +93,7 @@ export function VenueForm() {
 				<InputLabel
 					label="Venue Name"
 					placeholder="Main Hall..."
-					value={venue.name}
+					value={venue.name || ""}
 					onChange={(val) => handleChange("name", val)}
 					variant="no-rounded"
 				/>
@@ -101,26 +106,43 @@ export function VenueForm() {
 					<RadioGroup
 						value={venue.aspect_ratio || "video"}
 						onValueChange={(val) => handleChange("aspect_ratio", val)}
-						className="flex flex-wrap gap-2"
+						className="grid grid-cols-3 gap-2"
 					>
-						<div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-none">
-							<RadioGroupItem value="video" id="r1" />
-							<Label htmlFor="r1" className="text-xs cursor-pointer">
-								Video (16:9)
-							</Label>
-						</div>
-						<div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-none">
-							<RadioGroupItem value="square" id="r2" />
-							<Label htmlFor="r2" className="text-xs cursor-pointer">
-								Square (1:1)
-							</Label>
-						</div>
-						<div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-none">
-							<RadioGroupItem value="4:3" id="r3" />
-							<Label htmlFor="r3" className="text-xs cursor-pointer">
-								4:3 Ratio
-							</Label>
-						</div>
+						<Label
+							htmlFor="r1"
+							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+						>
+							<RadioGroupItem value="video" id="r1" className="rounded-none" />
+							<span className="text-[10px] font-medium uppercase">16:9</span>
+						</Label>
+						<Label
+							htmlFor="r2"
+							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+						>
+							<RadioGroupItem value="square" id="r2" className="rounded-none" />
+							<span className="text-[10px] font-medium uppercase">1:1</span>
+						</Label>
+						<Label
+							htmlFor="r3"
+							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+						>
+							<RadioGroupItem value="4:3" id="r3" className="rounded-none" />
+							<span className="text-[10px] font-medium uppercase">4:3</span>
+						</Label>
+						<Label
+							htmlFor="r4"
+							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+						>
+							<RadioGroupItem value="9:16" id="r4" className="rounded-none" />
+							<span className="text-[10px] font-medium uppercase">9:16</span>
+						</Label>
+						<Label
+							htmlFor="r5"
+							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+						>
+							<RadioGroupItem value="custom" id="r5" className="rounded-none" />
+							<span className="text-[10px] font-medium uppercase">Custom</span>
+						</Label>
 					</RadioGroup>
 				</div>
 

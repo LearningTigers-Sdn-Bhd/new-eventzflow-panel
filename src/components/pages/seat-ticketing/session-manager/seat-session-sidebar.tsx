@@ -1,9 +1,11 @@
 "use client";
 
 import { Check, HelpCircle, LayoutGrid } from "lucide-react";
+import { ColorPicker } from "@/components/admin-ui/form/color-picker";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Sidebar,
 	SidebarContent,
@@ -70,6 +72,64 @@ export function SeatSessionSidebar() {
 				</div>
 			</SidebarFooter>
 		</Sidebar>
+	);
+}
+
+const ROTATION_STEP = 15;
+
+const snapRotation = (value: number) => {
+	const normalized = ((value % 360) + 360) % 360;
+	const snapped = Math.round(normalized / ROTATION_STEP) * ROTATION_STEP;
+	return snapped === 360 ? 0 : snapped;
+};
+
+function SectionRotationControls({ section }: { section: EventSeatSection }) {
+	const { updateSection } = useSeatSessionStore();
+	const rotation = section.rotation ?? 0;
+
+	const setRotation = (value: number) => {
+		updateSection(section.id, { rotation: snapRotation(value) });
+	};
+
+	return (
+		<div className="space-y-2 pt-2 border-t">
+			<NumberInputLabel
+				label="Rotation (deg)"
+				value={rotation}
+				onChange={(val: number) => setRotation(val)}
+				min={0}
+				max={360}
+				step={ROTATION_STEP}
+				description="Snaps to 15 degree steps"
+				variant="no-rounded"
+			/>
+			<div className="flex items-center gap-2">
+				<Button
+					variant="outline"
+					size="sm"
+					className="h-8 rounded-none"
+					onClick={() => setRotation(rotation - ROTATION_STEP)}
+				>
+					-15
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					className="h-8 rounded-none"
+					onClick={() => setRotation(rotation + ROTATION_STEP)}
+				>
+					+15
+				</Button>
+				<Button
+					variant="ghost"
+					size="sm"
+					className="h-8 rounded-none"
+					onClick={() => setRotation(0)}
+				>
+					Reset
+				</Button>
+			</div>
+		</div>
 	);
 }
 
@@ -152,6 +212,12 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 						variant="no-rounded"
 					/>
 				</div>
+				<ColorPicker
+					label="Section Color"
+					value={section.color || "blue"}
+					onChange={(val: string) => handleChange("color", val)}
+				/>
+				<SectionRotationControls section={section} />
 			</SidebarGroupContent>
 		</SidebarGroup>
 	);
@@ -208,6 +274,12 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 						variant="no-rounded"
 					/>
 				</div>
+				<ColorPicker
+					label="Section Color"
+					value={section.color || "blue"}
+					onChange={(val: string) => handleChange("color", val)}
+				/>
+				<SectionRotationControls section={section} />
 			</SidebarGroupContent>
 		</SidebarGroup>
 	);

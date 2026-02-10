@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import type { EventSeatSection } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
+import { getGroupColor } from "@/lib/utils/group-colors";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 interface SectionBlockProps {
@@ -39,11 +40,15 @@ export function SectionBlock({
 	const [isResizing, setIsResizing] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
 
+	const sectionColorClass = getGroupColor(section.color || "blue");
+
 	const style: React.CSSProperties = {
 		gridRowStart: section.start_row || 1,
 		gridRowEnd: `span ${section.row_span || 1}`,
 		gridColumnStart: section.start_column || 1,
 		gridColumnEnd: `span ${section.col_span || 1}`,
+		transform: `rotate(${section.rotation ?? 0}deg)`,
+		transformOrigin: "center",
 		zIndex: isSelected || isDragging ? 30 : 20,
 		cursor: isPanning
 			? "grab"
@@ -158,18 +163,23 @@ export function SectionBlock({
 					onMouseDown={handleMouseDown}
 					onClick={(e) => e.stopPropagation()}
 					className={cn(
-						"relative flex flex-col border-2 transition-all group select-none rounded-none",
+						"relative flex flex-col border-2 transition-all group select-none rounded-none bg-slate-50",
 						isSelected
 							? "border-primary ring-2 ring-primary ring-offset-2 z-20"
-							: "border-primary/20 hover:border-primary/50 bg-white/80 backdrop-blur-sm",
+							: "border-primary/20 hover:border-primary/50",
 						(isResizing || isDragging) &&
 							"opacity-80 pointer-events-none-children",
 						isDragging && "cursor-grabbing",
 					)}
 				>
 					{/* Header */}
-					<div className="flex items-center justify-between bg-primary text-primary-foreground py-2 px-3 shrink-0 rounded-none">
-						<div className="flex flex-col">
+					<div
+						className={cn(
+							"flex items-center justify-between py-2 px-3 shrink-0 rounded-none text-white",
+							sectionColorClass,
+						)}
+					>
+						<div className="flex flex-col text-white">
 							<span className="text-xs font-bold truncate max-w-[80px]">
 								{section.name}
 							</span>
@@ -181,8 +191,13 @@ export function SectionBlock({
 					</div>
 
 					{/* Content */}
-					<div className="flex-1 flex flex-col items-center justify-center p-2 text-center pointer-events-none rounded-none">
-						<span className="text-xl font-bold text-primary">
+					<div className="flex-1 flex flex-col items-center justify-center p-2 text-center pointer-events-none rounded-none bg-slate-50">
+						<span
+							className={cn(
+								"text-xl font-bold",
+								sectionColorClass.replace("bg-", "text-"),
+							)}
+						>
 							{section.event_ticket_seats?.length || 0}
 						</span>
 						<span className="text-[10px] text-muted-foreground uppercase tracking-tight">
@@ -193,7 +208,10 @@ export function SectionBlock({
 					{/* Resize Handle */}
 					{isSelected && !isPanning && (
 						<div
-							className="absolute -bottom-1.5 -right-1.5 w-4 h-4 bg-primary cursor-nwse-resize rounded-none z-30 hover:scale-125 transition-transform"
+							className={cn(
+								"absolute -bottom-1.5 -right-1.5 w-4 h-4 cursor-nwse-resize rounded-none z-30 hover:scale-125 transition-transform",
+								sectionColorClass,
+							)}
 							onMouseDown={(e) => handleResizeStart(e)}
 						/>
 					)}

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { getCachedPublicEvent } from "@/components/pages/seat-ticketing/public/event-data";
+import {
+	getCachedPublicEvent,
+	getCachedPublicSessions,
+} from "@/components/pages/seat-ticketing/public/event-data";
 import { EventSeatReservationsProvider } from "@/components/pages/seat-ticketing/public/event-seat-reservations-provider";
 
 interface LayoutProps {
@@ -46,12 +49,19 @@ export default async function EventSeatReservationsLayout({
 }>) {
 	const { slug } = await params;
 	let publicEvent = null;
+	let publicSessions = null;
 
 	if (slug) {
 		try {
-			publicEvent = await getCachedPublicEvent(slug);
+			const [event, sessions] = await Promise.all([
+				getCachedPublicEvent(slug),
+				getCachedPublicSessions(slug),
+			]);
+			publicEvent = event;
+			publicSessions = sessions;
 		} catch {
 			publicEvent = null;
+			publicSessions = null;
 		}
 	}
 
@@ -59,6 +69,7 @@ export default async function EventSeatReservationsLayout({
 		<EventSeatReservationsProvider
 			publicEvent={publicEvent}
 			eventSlug={slug ?? null}
+			publicSessions={publicSessions}
 		>
 			{children}
 		</EventSeatReservationsProvider>

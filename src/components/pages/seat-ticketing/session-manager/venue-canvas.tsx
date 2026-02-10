@@ -115,14 +115,17 @@ function VenueCanvasContent({
 	const { isDragging } = useCanvas();
 
 	const gridStyle = useMemo(() => {
+		const ratio = venue.aspect_ratio as string;
 		const aspectRatio =
-			venue.aspect_ratio === "video"
+			ratio === "video"
 				? "16/9"
-				: venue.aspect_ratio === "square"
+				: ratio === "square"
 					? "1/1"
-					: venue.aspect_ratio === "4:3"
+					: ratio === "4:3"
 						? "4/3"
-						: undefined;
+						: ratio === "9:16"
+							? "9/16"
+							: undefined;
 
 		return {
 			display: "grid",
@@ -166,6 +169,10 @@ function VenueCanvasContent({
 				<button
 					key={`${r}-${c}`}
 					type="button"
+					style={{
+						gridRowStart: r,
+						gridColumnStart: c,
+					}}
 					className={cn(
 						"bg-white transition-colors outline-none p-0 block rounded-none w-full h-full relative z-0",
 						interactionMode === "create"

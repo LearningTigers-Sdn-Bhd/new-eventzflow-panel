@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventSeatSession } from "@/lib/api/seat-ticketing/response";
 import {
@@ -33,7 +33,7 @@ export function SeatSessionProvider({
 	);
 	const toastIdRef = useRef<number | string | null>(null);
 
-	const saveDraft = (session: EventSeatSession) => {
+	const saveDraft = useCallback((session: EventSeatSession) => {
 		if (typeof window === "undefined") return;
 		const state = useSeatSessionStore.getState();
 		const draft = {
@@ -46,9 +46,9 @@ export function SeatSessionProvider({
 			seatSessionDraftKey(session.id),
 			JSON.stringify(draft),
 		);
-	};
+	}, []);
 
-	const loadDraft = (sessionId: number) => {
+	const loadDraft = useCallback((sessionId: number) => {
 		if (typeof window === "undefined") return null;
 		const raw = localStorage.getItem(seatSessionDraftKey(sessionId));
 		if (!raw) return null;
@@ -57,17 +57,16 @@ export function SeatSessionProvider({
 		} catch {
 			return null;
 		}
-	};
+	}, []);
 
-	const discardDraft = (sessionId: number) => {
+	const discardDraft = useCallback((sessionId: number) => {
 		if (typeof window === "undefined") return;
 		localStorage.removeItem(seatSessionDraftKey(sessionId));
-	};
+	}, []);
 
 	useEffect(() => {
 		const currentState = useSeatSessionStore.getState();
 		const currentSession = currentState.session;
-		const currentSessionId = currentSession?.id;
 		if (currentSession && currentState.hasUnsavedChanges) {
 			saveDraft(currentSession);
 		}
@@ -117,6 +116,9 @@ export function SeatSessionProvider({
 		setDeletedSeatIds,
 		setHasUnsavedChanges,
 		setSession,
+		saveDraft,
+		loadDraft,
+		discardDraft,
 	]);
 
 	useEffect(() => {
@@ -126,7 +128,21 @@ export function SeatSessionProvider({
 				saveDraft(state.session);
 			}
 		};
-	}, []);
+	}, [saveDraft]);
+
+	// Debounced auto-save draft
+	const session = useSeatSessionStore((state) => state.session);
+	const hasUnsavedChanges = useSeatSessionStore((state) => state.hasUnsavedChanges);
+
+	useEffect(() => {
+		if (!session || !hasUnsavedChanges) return;
+
+		const timeoutId = setTimeout(() => {
+			saveDraft(session);
+		}, 2000); // Save after 2 seconds of inactivity
+
+		return () => clearTimeout(timeoutId);
+	}, [session, hasUnsavedChanges, saveDraft]);
 
 	return <>{children}</>;
 }

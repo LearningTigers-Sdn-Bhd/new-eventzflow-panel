@@ -1,10 +1,17 @@
 "use client";
 
-import { Armchair, Trash2 } from "lucide-react";
+import { Armchair, Layers, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import {
+	Popover,
+	PopoverAnchor,
+	PopoverContent,
+} from "@/components/ui/popover";
+import { useDialog } from "@/hooks/use-dialog";
 import type { EventTicketSeat } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
+import { getGroupColor } from "@/lib/utils/group-colors";
+import { GroupAssignmentModal } from "./group-assignment-modal";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 interface SeatBlockProps {
@@ -23,22 +30,43 @@ export function SeatBlock({
 	sectionName,
 }: SeatBlockProps) {
 	const {
+		session,
 		selectedSeatId,
+		selectedSeatIds,
 		selectedSeatPosition,
 		selectSeat,
+		toggleSeatSelection,
 		selectSeatPosition,
 		removeSeat,
 		addSeat,
 		interactionMode,
 		isPanning,
+		activeGroupId,
+		assignSeatsToGroup,
 	} = useSeatSessionStore();
 
-	const isSelected = seat && selectedSeatId === seat.id;
+	const { openDialog } = useDialog();
+
+	const isSelected = seat && selectedSeatIds.includes(seat.id);
 	const isEmptySelected =
 		!seat &&
 		selectedSeatPosition?.row === row &&
 		selectedSeatPosition?.col === col &&
 		selectedSeatPosition?.sectionId === sectionId;
+
+	// Determine group color
+	let groupColorClass = "";
+	if (seat?.event_seat_group_assignment) {
+		const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
+			(s) => s.id === sectionId,
+		);
+		const group = section?.event_seat_groups?.find(
+			(g) => g.id === seat.event_seat_group_assignment?.event_seat_group_id,
+		);
+		if (group) {
+			groupColorClass = getGroupColor(group.color);
+		}
+	}
 
 	const handleGridClick = () => {
 		if (isPanning) return;
@@ -57,9 +85,65 @@ export function SeatBlock({
 		selectSeatPosition({ row, col, sectionId });
 	};
 
+	const handleSeatClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (!seat) {
+			handleGridClick();
+			return;
+		}
+
+		if (activeGroupId !== null) {
+			assignSeatsToGroup([seat.id], activeGroupId);
+			return;
+		}
+
+		if (e.shiftKey) {
+			toggleSeatSelection(seat.id);
+		} else {
+			selectSeat(seat.id);
+		}
+	};
+
+	const handleAssignGroup = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		const ids =
+			selectedSeatIds.length > 0 ? selectedSeatIds : seat ? [seat.id] : [];
+		if (ids.length === 0) return;
+
+		openDialog({
+			component: GroupAssignmentModal,
+			props: {
+				seatIds: ids,
+				sectionId,
+			},
+			config: {
+				title:
+					ids.length > 1
+						? `Assign ${ids.length} Seats to Group`
+						: "Assign Seat to Group",
+				size: "sm",
+			},
+		});
+	};
+
+	const handleRemoveClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (!seat) return;
+
+		if (selectedSeatIds.length > 1) {
+			// Bulk remove
+			for (const id of selectedSeatIds) {
+				removeSeat(id);
+			}
+		} else {
+			removeSeat(seat.id);
+		}
+	};
+
 	const showMenu =
 		!isPanning &&
-		((seat && isSelected) ||
+		activeGroupId === null &&
+		((seat && isSelected && selectedSeatId === seat.id) ||
 			(!seat && isEmptySelected && interactionMode === "select"));
 
 	return (
@@ -67,14 +151,12 @@ export function SeatBlock({
 			<PopoverAnchor asChild>
 				<button
 					type="button"
-					onClick={(e) => {
-						e.stopPropagation();
+					onClick={handleSeatClick}
+					onContextMenu={(e) => {
 						if (seat) {
+							e.preventDefault();
 							selectSeat(seat.id);
-							return;
 						}
-
-						handleGridClick();
 					}}
 					aria-label={`Seat row ${row} col ${col}`}
 					className={cn(
@@ -88,10 +170,21 @@ export function SeatBlock({
 				>
 					{seat ? (
 						<>
+							{seat.event_seat_group_assignment && (
+								<div
+									className={cn(
+										"absolute top-1 right-1 w-2 h-2 rounded-full",
+										groupColorClass || "bg-blue-500",
+									)}
+								/>
+							)}
 							<Armchair
 								className={cn(
 									"h-5 w-5",
 									isSelected ? "text-primary-foreground" : "text-slate-400",
+									!isSelected && groupColorClass
+										? groupColorClass.replace("bg-", "text-")
+										: "",
 								)}
 							/>
 							<span className="text-[8px] font-bold mt-1 truncate w-full text-center px-1">
@@ -108,19 +201,31 @@ export function SeatBlock({
 			<PopoverContent
 				side="top"
 				sideOffset={8}
-				className="w-auto p-1 bg-transparent border-none shadow-none rounded-none"
+				className="w-auto p-1 flex items-center gap-1 bg-white border shadow-md rounded-none"
 				onOpenAutoFocus={(e) => e.preventDefault()}
 			>
 				{seat && (
-					<div className="animate-in fade-in zoom-in-50 duration-200">
+					<div className="flex items-center gap-1 animate-in fade-in zoom-in-50 duration-200">
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-8 w-8 rounded-none"
+							onClick={handleAssignGroup}
+							title="Assign Group"
+						>
+							<Layers className="h-4 w-4" />
+						</Button>
+						<div className="w-px h-4 bg-border mx-0.5" />
 						<Button
 							variant="destructive"
 							size="icon"
 							className="h-8 w-8 rounded-none shadow-md"
-							onClick={(e) => {
-								e.stopPropagation();
-								removeSeat(seat.id);
-							}}
+							onClick={handleRemoveClick}
+							title={
+								selectedSeatIds.length > 1
+									? `Delete ${selectedSeatIds.length} seats`
+									: "Delete seat"
+							}
 						>
 							<Trash2 className="h-4 w-4" />
 						</Button>
