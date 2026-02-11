@@ -15,11 +15,10 @@ import type { VoiceId } from "./voices";
 
 /**
  * TTS configuration from environment.
- * API key should be set via NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY
+ * Client calls our internal API route.
  */
 export const ttsConfig = {
-	apiKey: process.env.NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY ?? "",
-	endpoint: "https://texttospeech.googleapis.com/v1/text:synthesize",
+	endpoint: "/api/tts/synthesize",
 } as const;
 
 // ─────────────────────────────────────────────────────────────
@@ -47,6 +46,7 @@ export interface TTSResponse {
 	errorCode?:
 		| "MISSING_API_KEY"
 		| "INVALID_REQUEST"
+		| "RATE_LIMIT"
 		| "API_ERROR"
 		| "NETWORK_ERROR";
 }
@@ -59,7 +59,7 @@ export interface TTSResponse {
  * Check if TTS is properly configured.
  */
 export function isConfigured(): boolean {
-	return Boolean(ttsConfig.apiKey);
+	return Boolean(ttsConfig.endpoint);
 }
 
 /**
@@ -91,15 +91,6 @@ export async function synthesizeSpeech(
 		pitch = 0,
 	} = request;
 
-	if (!ttsConfig.apiKey) {
-		return {
-			success: false,
-			error:
-				"Google Cloud TTS API key not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY.",
-			errorCode: "MISSING_API_KEY",
-		};
-	}
-
 	// Validate text
 	const trimmedText = text.trim();
 	if (!trimmedText) {
@@ -113,34 +104,27 @@ export async function synthesizeSpeech(
 	const normalizedText = prepareTtsText(trimmedText, normalizeText);
 
 	try {
-		const response = await fetch(
-			`${ttsConfig.endpoint}?key=${ttsConfig.apiKey}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					input: { text: normalizedText },
-					voice: {
-						languageCode: getLanguageCode(voiceId),
-						name: voiceId,
-					},
-					audioConfig: {
-						audioEncoding: "MP3",
-						speakingRate: clamp(speakingRate, 0.5, 1.5),
-						pitch: clamp(pitch, -10, 10),
-					},
-				}),
+		const response = await fetch(ttsConfig.endpoint, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
 			},
-		);
+			body: JSON.stringify({
+				text: normalizedText,
+				voiceId,
+				normalizeText: false,
+				speakingRate: clamp(speakingRate, 0.5, 1.5),
+				pitch: clamp(pitch, -10, 10),
+			}),
+		});
 
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => ({}));
+			const errorCode = response.status === 429 ? "RATE_LIMIT" : "API_ERROR";
 			return {
 				success: false,
 				error: parseApiError(response.status, errorData),
-				errorCode: "API_ERROR",
+				errorCode,
 			};
 		}
 
@@ -202,20 +186,6 @@ function parseApiError(
 		default:
 			return apiMessage ?? `API error (${status})`;
 	}
-}
-
-function getLanguageCode(voiceId: string): string {
-	const firstDashIndex = voiceId.indexOf("-");
-	if (firstDashIndex < 0) {
-		return "en-US";
-	}
-
-	const secondDashIndex = voiceId.indexOf("-", firstDashIndex + 1);
-	if (secondDashIndex < 0) {
-		return "en-US";
-	}
-
-	return voiceId.slice(0, secondDashIndex);
 }
 
 function clamp(value: number, min: number, max: number): number {

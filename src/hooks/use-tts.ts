@@ -2,12 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-	isConfigured,
-	playBase64Audio,
-	synthesizeSpeech,
-	type VoiceId,
-} from "@/lib/tts";
+import { playBase64Audio, synthesizeSpeech, type VoiceId } from "@/lib/tts";
 
 export {
 	DEFAULT_VOICE,
@@ -51,22 +46,14 @@ export function useTTS({
 
 	useEffect(() => {
 		const supported =
-			typeof window !== "undefined" &&
-			typeof Audio !== "undefined" &&
-			isConfigured();
+			typeof window !== "undefined" && typeof Audio !== "undefined";
 
 		setIsSupported(supported);
-
-		if (!isConfigured() && enabled) {
-			log(
-				"Warning: TTS not configured. Set NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY",
-			);
-		}
 
 		return () => {
 			isMountedRef.current = false;
 		};
-	}, [enabled, log]);
+	}, []);
 
 	const speak = useCallback(
 		async (text: string) => {
