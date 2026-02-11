@@ -94,7 +94,10 @@ export default function WelcomeScreenPage() {
 			setActiveCheckIn(nextCheckIn);
 
 			const welcomeText = displaySettings?.welcome_text || "Welcome";
-			await speak(`${welcomeText}, ${nextCheckIn.name}`);
+			const tableSuffix = nextCheckIn.table_label
+				? `. ${nextCheckIn.table_label}`
+				: "";
+			await speak(`${welcomeText}, ${nextCheckIn.name}${tableSuffix}`);
 			await wait(ANNOUNCEMENT_GAP_MS);
 
 			if (!isMountedRef.current) {

@@ -39,6 +39,7 @@ export interface CheckInDisplayFormData {
 
 export interface CheckInBroadcast {
 	name: string;
+	table_label?: string | null;
 	checked_in_at: string;
 }
 
@@ -50,6 +51,7 @@ export interface AnnounceGuestResponse {
 export interface WelcomeScreenStateMessage {
 	type: "state";
 	name: string | null;
+	table_label?: string | null;
 	remaining_ms: number;
 	queue_size: number;
 }
@@ -57,6 +59,7 @@ export interface WelcomeScreenStateMessage {
 export interface WelcomeScreenDisplayMessage {
 	type: "display";
 	name: string;
+	table_label?: string | null;
 	display_duration_ms: number;
 	checked_in_at: string;
 }

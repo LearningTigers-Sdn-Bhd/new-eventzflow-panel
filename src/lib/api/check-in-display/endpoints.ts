@@ -5,7 +5,11 @@
 
 import { extractErrorMessage } from "@/utils/error-handler";
 import { publicRestClient, restClient } from "@/utils/rest-api";
-import type { AnnounceGuestResponse, CheckInDisplay, CheckInDisplayFormData } from "./types";
+import type {
+	AnnounceGuestResponse,
+	CheckInDisplay,
+	CheckInDisplayFormData,
+} from "./types";
 
 /**
  * Fetch public check-in display settings (no auth required)
@@ -53,26 +57,11 @@ export async function updateCheckInDisplay(
 ): Promise<CheckInDisplay> {
 	try {
 		const formData = new FormData();
-		formData.append(
-			"check_in_display[font_family]",
-			data.font_family,
-		);
-		formData.append(
-			"check_in_display[font_size]",
-			data.font_size.toString(),
-		);
-		formData.append(
-			"check_in_display[animation_type]",
-			data.animation_type,
-		);
-		formData.append(
-			"check_in_display[is_bold]",
-			data.is_bold.toString(),
-		);
-		formData.append(
-			"check_in_display[name_color]",
-			data.name_color,
-		);
+		formData.append("check_in_display[font_family]", data.font_family);
+		formData.append("check_in_display[font_size]", data.font_size.toString());
+		formData.append("check_in_display[animation_type]", data.animation_type);
+		formData.append("check_in_display[is_bold]", data.is_bold.toString());
+		formData.append("check_in_display[name_color]", data.name_color);
 
 		if (data.background_image) {
 			formData.append(
@@ -89,24 +78,15 @@ export async function updateCheckInDisplay(
 		}
 
 		if (data.voice_type) {
-			formData.append(
-				"check_in_display[voice_type]",
-				data.voice_type,
-			);
+			formData.append("check_in_display[voice_type]", data.voice_type);
 		}
 
 		if (data.welcome_text !== undefined) {
-			formData.append(
-				"check_in_display[welcome_text]",
-				data.welcome_text,
-			);
+			formData.append("check_in_display[welcome_text]", data.welcome_text);
 		}
 
 		if (data.remove_background_image) {
-			formData.append(
-				"check_in_display[remove_background_image]",
-				"true",
-			);
+			formData.append("check_in_display[remove_background_image]", "true");
 		}
 
 		const response = await restClient.patchFormData<CheckInDisplay>(
@@ -127,11 +107,12 @@ export async function updateCheckInDisplay(
 export async function announceGuest(
 	eventId: string,
 	name: string,
+	customFieldsData?: Record<string, string>,
 ): Promise<AnnounceGuestResponse> {
 	try {
 		const response = await restClient.post<{ data: AnnounceGuestResponse }>(
 			`v1/events/${eventId}/check_in_display/announce`,
-			{ name },
+			{ name, custom_fields_data: customFieldsData },
 		);
 		return response.data;
 	} catch (error: unknown) {

@@ -36,6 +36,7 @@ export function WelcomeScreenView({
 }: WelcomeScreenViewProps) {
 	const displayName = latestCheckIn?.name || eventTitle;
 	const welcomeTextFontSize = Math.max(16, Math.round(fontSize * 0.24));
+	const tableTextFontSize = Math.max(20, Math.round(fontSize * 0.45));
 
 	// Build full URL for background image (API returns relative path)
 	const fullBackgroundImageUrl = backgroundImageUrl
@@ -85,19 +86,45 @@ export function WelcomeScreenView({
 							isBold={isBold}
 							nameColor={nameColor}
 						/>
+						{latestCheckIn.table_label && (
+							<p
+								className="mt-4 opacity-90 sm:mt-6"
+								style={{
+									color: nameColor,
+									fontWeight: isBold ? "bold" : "normal",
+									fontSize: `${tableTextFontSize}px`,
+									lineHeight: 1.2,
+								}}
+							>
+								{latestCheckIn.table_label}
+							</p>
+						)}
 					</>
 				) : (
-					<div
-						style={{
-							fontFamily,
-							fontSize: `${fontSize}px`,
-							lineHeight: 1.2,
-							fontWeight: isBold ? "bold" : "normal",
-							color: nameColor,
-						}}
-					>
-						{eventTitle}
-					</div>
+					<>
+						<p
+							className="mb-2 uppercase tracking-widest opacity-80 sm:mb-4"
+							style={{
+								color: nameColor,
+								fontWeight: isBold ? "bold" : "normal",
+								fontSize: `${welcomeTextFontSize}px`,
+								lineHeight: 1.2,
+							}}
+						>
+							{welcomeText}
+						</p>
+						<div
+							style={{
+								fontFamily,
+								fontSize: `${fontSize}px`,
+								lineHeight: 1.2,
+								fontWeight: isBold ? "bold" : "normal",
+								color: nameColor,
+							}}
+						>
+							{eventTitle}
+						</div>
+					</>
 				)}
 			</div>
 

@@ -17,6 +17,11 @@ import { announceGuest } from "@/lib/api/check-in-display";
 
 const STORAGE_KEY_PREFIX = "announce_guest_list_";
 
+interface AnnounceGuestItem {
+	name: string;
+	tableNumber?: string;
+}
+
 interface AnnounceGuestDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -29,8 +34,9 @@ export function AnnounceGuestDialog({
 	eventId,
 }: AnnounceGuestDialogProps) {
 	const storageKey = `${STORAGE_KEY_PREFIX}${eventId}`;
-	const [names, setNames] = useState<string[]>([]);
-	const [inputValue, setInputValue] = useState("");
+	const [guests, setGuests] = useState<AnnounceGuestItem[]>([]);
+	const [inputName, setInputName] = useState("");
+	const [inputTableNumber, setInputTableNumber] = useState("");
 	const [announcingAll, setAnnouncingAll] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,46 +46,102 @@ export function AnnounceGuestDialog({
 			const saved = localStorage.getItem(storageKey);
 			if (saved) {
 				try {
-					setNames(JSON.parse(saved));
+					const parsed = JSON.parse(saved);
+					if (!Array.isArray(parsed)) {
+						setGuests([]);
+						return;
+					}
+
+					const normalizedGuests = parsed
+						.map((entry) => {
+							if (typeof entry === "string") {
+								return { name: entry.trim() };
+							}
+
+							if (
+								typeof entry === "object" &&
+								entry !== null &&
+								typeof entry.name === "string"
+							) {
+								const tableNumber =
+									typeof entry.tableNumber === "string"
+										? entry.tableNumber.trim()
+										: "";
+								return {
+									name: entry.name.trim(),
+									tableNumber: tableNumber || undefined,
+								};
+							}
+
+							return null;
+						})
+						.filter(
+							(
+								entry,
+							): entry is {
+								name: string;
+								tableNumber?: string;
+							} => Boolean(entry?.name),
+						);
+
+					setGuests(normalizedGuests);
 				} catch {
-					setNames([]);
+					setGuests([]);
 				}
 			}
 		}
 	}, [open, storageKey]);
 
 	// Persist to localStorage
-	const persistNames = useCallback(
-		(updated: string[]) => {
-			setNames(updated);
+	const persistGuests = useCallback(
+		(updated: AnnounceGuestItem[]) => {
+			setGuests(updated);
 			localStorage.setItem(storageKey, JSON.stringify(updated));
 		},
 		[storageKey],
 	);
 
-	const addName = (e?: React.FormEvent) => {
+	const addGuest = (e?: React.FormEvent) => {
 		e?.preventDefault();
-		const trimmed = inputValue.trim();
+		const trimmed = inputName.trim();
+		const trimmedTable = inputTableNumber.trim();
 		if (!trimmed) return;
-		persistNames([...names, trimmed]);
-		setInputValue("");
+		persistGuests([
+			...guests,
+			{ name: trimmed, tableNumber: trimmedTable || undefined },
+		]);
+		setInputName("");
+		setInputTableNumber("");
 		inputRef.current?.focus();
 	};
 
-	const removeName = (index: number) => {
-		persistNames(names.filter((_, i) => i !== index));
+	const removeGuest = (index: number) => {
+		persistGuests(guests.filter((_, i) => i !== index));
 	};
 
 	const clearAll = () => {
-		persistNames([]);
+		persistGuests([]);
 	};
 
 	// Announce a single name
 	const announceMutation = useMutation({
-		mutationFn: (name: string) => announceGuest(eventId.toString(), name),
-		onSuccess: (_, name) => {
-			toast.success(`Announced: ${name}`);
-			persistNames(names.filter((n) => n !== name));
+		mutationFn: async ({
+			guest,
+			index,
+		}: {
+			guest: AnnounceGuestItem;
+			index: number;
+		}) => {
+			const customFieldsData = guest.tableNumber
+				? { table_number: guest.tableNumber }
+				: undefined;
+			await announceGuest(eventId.toString(), guest.name, customFieldsData);
+			return { guest, index };
+		},
+		onSuccess: ({ guest, index }) => {
+			const tableSuffix = guest.tableNumber ? ` (${guest.tableNumber})` : "";
+			toast.success(`Announced: ${guest.name}${tableSuffix}`);
+			persistGuests(guests.filter((_, currentIndex) => currentIndex !== index));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to announce guest");
@@ -88,22 +150,26 @@ export function AnnounceGuestDialog({
 
 	// Announce all names sequentially
 	const handleAnnounceAll = async () => {
-		if (names.length === 0) return;
+		if (guests.length === 0) return;
 		setAnnouncingAll(true);
-		const toAnnounce = [...names];
-		const remaining = [...names];
+		const toAnnounce = [...guests];
+		const remaining = [...guests];
 
-		for (const name of toAnnounce) {
+		for (const guest of toAnnounce) {
 			try {
-				await announceGuest(eventId.toString(), name);
-				toast.success(`Announced: ${name}`);
+				const customFieldsData = guest.tableNumber
+					? { table_number: guest.tableNumber }
+					: undefined;
+				await announceGuest(eventId.toString(), guest.name, customFieldsData);
+				const tableSuffix = guest.tableNumber ? ` (${guest.tableNumber})` : "";
+				toast.success(`Announced: ${guest.name}${tableSuffix}`);
 				remaining.shift();
-				persistNames([...remaining]);
+				persistGuests([...remaining]);
 			} catch (error) {
 				toast.error(
 					error instanceof Error
 						? error.message
-						: `Failed to announce: ${name}`,
+						: `Failed to announce: ${guest.name}`,
 				);
 				break;
 			}
@@ -119,50 +185,65 @@ export function AnnounceGuestDialog({
 				<DialogHeader>
 					<DialogTitle>Announce Guest</DialogTitle>
 					<DialogDescription>
-						Add guest names to the list, then announce individually or all at
-						once.
+						Add guest names (with optional table number), then announce
+						individually or all at once.
 					</DialogDescription>
 				</DialogHeader>
 
 				{/* Add name input */}
-				<form onSubmit={addName} className="flex gap-2">
+				<form
+					onSubmit={addGuest}
+					className="grid gap-2 sm:grid-cols-[1fr_150px_auto]"
+				>
 					<Input
 						ref={inputRef}
-						value={inputValue}
-						onChange={(e) => setInputValue(e.target.value)}
+						value={inputName}
+						onChange={(e) => setInputName(e.target.value)}
 						placeholder="Enter guest name"
 						className="rounded-none"
 						autoFocus
+						disabled={isAnnouncing}
+					/>
+					<Input
+						value={inputTableNumber}
+						onChange={(e) => setInputTableNumber(e.target.value)}
+						placeholder="No. meja"
+						className="rounded-none"
 						disabled={isAnnouncing}
 					/>
 					<Button
 						type="submit"
 						variant="secondary"
 						className="shrink-0 rounded-none"
-						disabled={!inputValue.trim() || isAnnouncing}
+						disabled={!inputName.trim() || isAnnouncing}
 					>
 						Add
 					</Button>
 				</form>
 
 				{/* Names list */}
-				{names.length > 0 && (
+				{guests.length > 0 && (
 					<div className="space-y-2">
 						<div className="max-h-[240px] space-y-1 overflow-y-auto">
-							{names.map((name, index) => (
+							{guests.map((guest, index) => (
 								<div
-									key={`${name}-${index}`}
+									key={`${guest.name}-${guest.tableNumber || ""}-${index}`}
 									className="flex items-center gap-2 border px-3 py-2"
 								>
-									<span className="min-w-0 flex-1 truncate text-sm">
-										{name}
-									</span>
+									<div className="min-w-0 flex-1">
+										<p className="truncate text-sm">{guest.name}</p>
+										{guest.tableNumber && (
+											<p className="truncate text-muted-foreground text-xs">
+												Meja {guest.tableNumber}
+											</p>
+										)}
+									</div>
 									<Button
 										type="button"
 										variant="ghost"
 										size="icon"
 										className="h-7 w-7 shrink-0 rounded-none"
-										onClick={() => announceMutation.mutate(name)}
+										onClick={() => announceMutation.mutate({ guest, index })}
 										disabled={isAnnouncing}
 										title="Announce"
 									>
@@ -173,7 +254,7 @@ export function AnnounceGuestDialog({
 										variant="ghost"
 										size="icon"
 										className="h-7 w-7 shrink-0 rounded-none text-muted-foreground hover:text-destructive"
-										onClick={() => removeName(index)}
+										onClick={() => removeGuest(index)}
 										disabled={isAnnouncing}
 										title="Remove"
 									>
@@ -205,8 +286,8 @@ export function AnnounceGuestDialog({
 							>
 								<Play className="mr-1 h-3 w-3" />
 								{announcingAll
-									? `Announcing (${names.length} left)...`
-									: `Announce All (${names.length})`}
+									? `Announcing (${guests.length} left)...`
+									: `Announce All (${guests.length})`}
 							</Button>
 						</div>
 					</div>

@@ -113,13 +113,17 @@ export function NameAnimation({
 				animate={variants.animate}
 				exit={variants.exit}
 				transition={variants.transition}
-				className="text-center"
+				className="mx-auto text-center"
 				style={{
 					fontFamily,
 					fontSize: `${fontSize}px`,
 					lineHeight: 1.2,
 					fontWeight: isBold ? "bold" : "normal",
 					color: nameColor,
+					maxWidth: "90vw",
+					whiteSpace: "normal",
+					overflowWrap: "anywhere",
+					wordBreak: "break-word",
 				}}
 			>
 				{textToDisplay}

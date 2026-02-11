@@ -14,6 +14,7 @@ export {
 interface UseTTSOptions {
 	enabled: boolean;
 	voiceId: VoiceId;
+	speakingRate?: number;
 	debug?: boolean;
 }
 
@@ -28,6 +29,7 @@ interface UseTTSReturn {
 export function useTTS({
 	enabled,
 	voiceId,
+	speakingRate = 0.88,
 	debug = false,
 }: UseTTSOptions): UseTTSReturn {
 	const [isSpeaking, setIsSpeaking] = useState(false);
@@ -70,7 +72,11 @@ export function useTTS({
 			setError(null);
 
 			try {
-				const result = await synthesizeSpeech({ text: trimmedText, voiceId });
+				const result = await synthesizeSpeech({
+					text: trimmedText,
+					voiceId,
+					speakingRate,
+				});
 
 				if (!result.success || !result.audioContent) {
 					throw new Error(result.error ?? "Speech synthesis failed");
@@ -91,7 +97,7 @@ export function useTTS({
 				}
 			}
 		},
-		[enabled, isSupported, log, voiceId],
+		[enabled, isSupported, log, speakingRate, voiceId],
 	);
 
 	const clearError = useCallback(() => {

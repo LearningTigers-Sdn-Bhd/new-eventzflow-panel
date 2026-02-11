@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { cable } from "@/lib/cable";
 import type {
 	CheckInBroadcast,
 	WelcomeScreenMessage,
 } from "@/lib/api/check-in-display/types";
+import { cable } from "@/lib/cable";
 
 export function useWelcomeScreenChannel(eventId: string | number | null) {
 	const [latestCheckIn, setLatestCheckIn] = useState<CheckInBroadcast | null>(
@@ -20,6 +20,7 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 				if (data.name) {
 					setLatestCheckIn({
 						name: data.name,
+						table_label: data.table_label ?? null,
 						checked_in_at: new Date().toISOString(),
 					});
 				} else {
@@ -31,6 +32,7 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 			case "display":
 				setLatestCheckIn({
 					name: data.name,
+					table_label: data.table_label ?? null,
 					checked_in_at: data.checked_in_at,
 				});
 				break;
