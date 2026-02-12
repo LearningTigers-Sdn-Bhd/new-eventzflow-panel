@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -8,7 +9,6 @@ import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import type { SeatSessionRow } from "../seat-session-table-columns";
 import { getSessionStatusConfig } from "../utils";
-import { useParams, useRouter } from "next/navigation";
 
 interface SeatSessionViewModalProps {
 	session: SeatSessionRow;

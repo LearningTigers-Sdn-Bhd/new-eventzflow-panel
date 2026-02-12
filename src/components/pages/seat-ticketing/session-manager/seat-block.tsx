@@ -29,21 +29,19 @@ export function SeatBlock({
 	sectionId,
 	sectionName,
 }: SeatBlockProps) {
-	const {
-		session,
-		selectedSeatId,
-		selectedSeatIds,
-		selectedSeatPosition,
-		selectSeat,
-		toggleSeatSelection,
-		selectSeatPosition,
-		removeSeat,
-		addSeat,
-		interactionMode,
-		isPanning,
-		activeGroupId,
-		assignSeatsToGroup,
-	} = useSeatSessionStore();
+	const selectedSeatId = useSeatSessionStore(state => state.selectedSeatId);
+	const selectedSeatIds = useSeatSessionStore(state => state.selectedSeatIds);
+	const selectedSeatPosition = useSeatSessionStore(state => state.selectedSeatPosition);
+	const selectSeat = useSeatSessionStore(state => state.selectSeat);
+	const toggleSeatSelection = useSeatSessionStore(state => state.toggleSeatSelection);
+	const selectSeatPosition = useSeatSessionStore(state => state.selectSeatPosition);
+	const removeSeat = useSeatSessionStore(state => state.removeSeat);
+	const addSeat = useSeatSessionStore(state => state.addSeat);
+	const interactionMode = useSeatSessionStore(state => state.interactionMode);
+	const isPanning = useSeatSessionStore(state => state.isPanning);
+	const activeGroupId = useSeatSessionStore(state => state.activeGroupId);
+	const assignSeatsToGroup = useSeatSessionStore(state => state.assignSeatsToGroup);
+	const section = useSeatSessionStore(state => state.sections[sectionId]);
 
 	const { openDialog } = useDialog();
 
@@ -56,11 +54,8 @@ export function SeatBlock({
 
 	// Determine group color
 	let groupColorClass = "";
-	if (seat?.event_seat_group_assignment) {
-		const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-			(s) => s.id === sectionId,
-		);
-		const group = section?.event_seat_groups?.find(
+	if (seat?.event_seat_group_assignment && section) {
+		const group = section.event_seat_groups?.find(
 			(g) => g.id === seat.event_seat_group_assignment?.event_seat_group_id,
 		);
 		if (group) {
@@ -146,11 +141,25 @@ export function SeatBlock({
 		((seat && isSelected && selectedSeatId === seat.id) ||
 			(!seat && isEmptySelected && interactionMode === "select"));
 
+	const SEAT_SIZE = 50;
+	const SEAT_GAP = 8;
+	const PADDING = 20;
+
+	const style: React.CSSProperties = {
+		position: "absolute",
+		left: `${PADDING + (col - 1) * (SEAT_SIZE + SEAT_GAP)}px`,
+		top: `${PADDING + (row - 1) * (SEAT_SIZE + SEAT_GAP)}px`,
+		width: `${SEAT_SIZE}px`,
+		height: `${SEAT_SIZE}px`,
+		zIndex: isSelected ? 30 : 20,
+	};
+
 	return (
 		<Popover open={showMenu}>
 			<PopoverAnchor asChild>
 				<button
 					type="button"
+					style={style}
 					onClick={handleSeatClick}
 					onContextMenu={(e) => {
 						if (seat) {
@@ -160,10 +169,10 @@ export function SeatBlock({
 					}}
 					aria-label={`Seat row ${row} col ${col}`}
 					className={cn(
-						"w-[50px] h-[50px] rounded-none border flex flex-col items-center justify-center transition-all cursor-pointer relative outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 p-0",
+						"rounded-none border flex flex-col items-center justify-center transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 p-0",
 						seat
 							? isSelected
-								? "bg-primary text-primary-foreground border-primary shadow-lg ring-2 ring-primary ring-offset-2 z-10"
+								? "bg-primary text-primary-foreground border-primary shadow-lg ring-2 ring-primary ring-offset-2"
 								: "bg-white hover:bg-slate-50 border-slate-200"
 							: "border-dashed border-slate-200 hover:border-primary/50 hover:bg-slate-50/50",
 					)}

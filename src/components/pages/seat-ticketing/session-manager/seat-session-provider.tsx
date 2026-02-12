@@ -2,7 +2,12 @@
 
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import type { EventSeatSession } from "@/lib/api/seat-ticketing/response";
+import type {
+	EventSeatSection,
+	EventSeatSession,
+	EventSeatVenue,
+	EventTicketSeat,
+} from "@/lib/api/seat-ticketing/response";
 import {
 	seatSessionDraftKey,
 	useSeatSessionStore,
@@ -20,30 +25,26 @@ export function SeatSessionProvider({
 	const initializeSession = useSeatSessionStore(
 		(state) => state.initializeSession,
 	);
-	const resetViewState = useSeatSessionStore((state) => state.resetViewState);
-	const setSession = useSeatSessionStore((state) => state.setSession);
-	const setDeletedSectionIds = useSeatSessionStore(
-		(state) => state.setDeletedSectionIds,
-	);
-	const setDeletedSeatIds = useSeatSessionStore(
-		(state) => state.setDeletedSeatIds,
-	);
-	const setHasUnsavedChanges = useSeatSessionStore(
-		(state) => state.setHasUnsavedChanges,
-	);
 	const toastIdRef = useRef<number | string | null>(null);
 
-	const saveDraft = useCallback((session: EventSeatSession) => {
+	const saveDraft = useCallback(() => {
 		if (typeof window === "undefined") return;
 		const state = useSeatSessionStore.getState();
-		const draft = {
-			session: sanitizeSession(session),
+		if (!state.session) return;
+
+		const draft: SeatSessionDraft = {
+			session: state.session,
+			venue: state.venue,
+			sections: state.sections,
+			sectionIds: state.sectionIds,
+			seats: state.seats,
 			deletedSectionIds: state.deletedSectionIds,
 			deletedSeatIds: state.deletedSeatIds,
+			deletedGroupIds: state.deletedGroupIds,
 			savedAt: new Date().toISOString(),
 		};
 		localStorage.setItem(
-			seatSessionDraftKey(session.id),
+			seatSessionDraftKey(state.session.id),
 			JSON.stringify(draft),
 		);
 	}, []);
@@ -65,12 +66,6 @@ export function SeatSessionProvider({
 	}, []);
 
 	useEffect(() => {
-		const currentState = useSeatSessionStore.getState();
-		const currentSession = currentState.session;
-		if (currentSession && currentState.hasUnsavedChanges) {
-			saveDraft(currentSession);
-		}
-
 		initializeSession(initialSession);
 
 		if (toastIdRef.current) {
@@ -87,11 +82,17 @@ export function SeatSessionProvider({
 			action: {
 				label: "Restore",
 				onClick: () => {
-					resetViewState();
-					setSession(draft.session);
-					setDeletedSectionIds(draft.deletedSectionIds);
-					setDeletedSeatIds(draft.deletedSeatIds);
-					setHasUnsavedChanges(true);
+					useSeatSessionStore.setState({
+						session: draft.session,
+						venue: draft.venue,
+						sections: draft.sections,
+						sectionIds: draft.sectionIds,
+						seats: draft.seats,
+						deletedSectionIds: draft.deletedSectionIds,
+						deletedSeatIds: draft.deletedSeatIds,
+						deletedGroupIds: draft.deletedGroupIds,
+						hasUnsavedChanges: true,
+					});
 					discardDraft(initialSession.id);
 					toast.dismiss(toastId);
 					toastIdRef.current = null;
@@ -108,64 +109,33 @@ export function SeatSessionProvider({
 		});
 
 		toastIdRef.current = toastId;
-	}, [
-		initializeSession,
-		initialSession,
-		resetViewState,
-		setDeletedSectionIds,
-		setDeletedSeatIds,
-		setHasUnsavedChanges,
-		setSession,
-		saveDraft,
-		loadDraft,
-		discardDraft,
-	]);
-
-	useEffect(() => {
-		return () => {
-			const state = useSeatSessionStore.getState();
-			if (state.session?.id && state.hasUnsavedChanges) {
-				saveDraft(state.session);
-			}
-		};
-	}, [saveDraft]);
+	}, [initializeSession, initialSession, loadDraft, discardDraft]);
 
 	// Debounced auto-save draft
-	const session = useSeatSessionStore((state) => state.session);
 	const hasUnsavedChanges = useSeatSessionStore((state) => state.hasUnsavedChanges);
+	const session = useSeatSessionStore((state) => state.session);
 
 	useEffect(() => {
-		if (!session || !hasUnsavedChanges) return;
+		if (!hasUnsavedChanges || !session) return;
 
 		const timeoutId = setTimeout(() => {
-			saveDraft(session);
-		}, 2000); // Save after 2 seconds of inactivity
+			saveDraft();
+		}, 2000);
 
 		return () => clearTimeout(timeoutId);
-	}, [session, hasUnsavedChanges, saveDraft]);
+	}, [hasUnsavedChanges, session, saveDraft]);
 
 	return <>{children}</>;
 }
 
 interface SeatSessionDraft {
-	session: EventSeatSession;
+	session: Omit<EventSeatSession, "event_seat_venues"> | null;
+	venue: EventSeatVenue | null;
+	sections: Record<number, EventSeatSection>;
+	seats: Record<number, EventTicketSeat>;
+	sectionIds: number[];
 	deletedSectionIds: number[];
 	deletedSeatIds: { seatId: number; sectionId: number }[];
+	deletedGroupIds: { groupId: number; sectionId: number }[];
 	savedAt: string;
-}
-
-function sanitizeSession(session: EventSeatSession): EventSeatSession {
-	return {
-		...session,
-		event_seat_venues: session.event_seat_venues?.map((venue) => ({
-			...venue,
-			image: null,
-			event_seat_sections: venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_ticket_seats: section.event_ticket_seats?.map((seat) => ({
-					...seat,
-				})),
-			})),
-		})),
-	};
 }

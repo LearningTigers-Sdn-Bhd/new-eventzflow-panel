@@ -4,11 +4,8 @@
 
 import { Image } from "@unpic/react";
 import { Hand, Minus, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type {
-	EventSeatSection,
-	EventSeatVenue,
-} from "@/lib/api/seat-ticketing/response";
+import { useEffect, useMemo, useRef } from "react";
+import type { EventSeatVenue } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
 import { CanvasProvider, useCanvas } from "./canvas-provider";
 import { SectionBlock } from "./section-block";
@@ -16,52 +13,16 @@ import { useSeatSessionStore } from "./use-seat-session-store";
 
 const BASE_CELL_SIZE = 40;
 const CELL_GAP = 1;
-const MIN_CELL_SIZE = 12;
 
 export function VenueCanvas() {
-	const { session } = useSeatSessionStore();
-	const venue = session?.event_seat_venues?.[0];
+	const venue = useSeatSessionStore((state) => state.venue);
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-	useEffect(() => {
-		const container = containerRef.current;
-		if (!container) return;
-
-		const updateSize = () => {
-			setContainerSize({
-				width: container.clientWidth,
-				height: container.clientHeight,
-			});
-		};
-
-		updateSize();
-		const observer = new ResizeObserver(updateSize);
-		observer.observe(container);
-
-		return () => observer.disconnect();
-	}, []);
 
 	const columns = venue?.total_column || 1;
 	const rows = venue?.total_row || 1;
 
-	const cellSize = useMemo(() => {
-		if (!containerSize.width || !containerSize.height) return BASE_CELL_SIZE;
-		const availableWidth = Math.max(
-			0,
-			containerSize.width - (columns + 1) * CELL_GAP,
-		);
-		const availableHeight = Math.max(
-			0,
-			containerSize.height - (rows + 1) * CELL_GAP,
-		);
-		const maxCellSize = Math.min(
-			BASE_CELL_SIZE,
-			availableWidth / columns,
-			availableHeight / rows,
-		);
-		return Math.max(MIN_CELL_SIZE, Math.floor(maxCellSize));
-	}, [columns, rows, containerSize.height, containerSize.width]);
+	// Use a fixed base size for logic; CanvasProvider handles the "Fit to Screen" via zoom
+	const cellSize = BASE_CELL_SIZE;
 
 	const gridWidth = columns * cellSize + (columns + 1) * CELL_GAP;
 	const gridHeight = rows * cellSize + (rows + 1) * CELL_GAP;
@@ -80,6 +41,7 @@ export function VenueCanvas() {
 				contentWidth={gridWidth}
 				contentHeight={gridHeight}
 				enabled={!!venue}
+				venueId={venue?.id}
 			>
 				<VenueCanvasContent
 					venue={venue}
@@ -100,54 +62,95 @@ function VenueCanvasContent({
 	cellSize: number;
 	cellGap: number;
 }) {
-	const {
-		interactionMode,
-		setInteractionMode,
-		addSection,
-		selectSection,
-		zoom,
-		setZoom,
-		pan,
-		isPanning,
-		setIsPanning,
-	} = useSeatSessionStore();
+	const interactionMode = useSeatSessionStore((state) => state.interactionMode);
+	const setInteractionMode = useSeatSessionStore(
+		(state) => state.setInteractionMode,
+	);
+	const addSection = useSeatSessionStore((state) => state.addSection);
+	const selectSection = useSeatSessionStore((state) => state.selectSection);
+	const zoom = useSeatSessionStore((state) => state.zoom);
+	const setZoom = useSeatSessionStore((state) => state.setZoom);
+	const pan = useSeatSessionStore((state) => state.pan);
+	const isPanning = useSeatSessionStore((state) => state.isPanning);
+	const setIsPanning = useSeatSessionStore((state) => state.setIsPanning);
+	const sectionIds = useSeatSessionStore((state) => state.sectionIds);
 
 	const { isDragging } = useCanvas();
 
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	// Draw Grid on Canvas
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return;
+
+		const cols = venue.total_column || 1;
+		const rows = venue.total_row || 1;
+
+		// Set canvas size
+		canvas.width = cols * cellSize + (cols + 1) * cellGap;
+		canvas.height = rows * cellSize + (rows + 1) * cellGap;
+
+		// Draw background
+		ctx.fillStyle = "#e5e7eb"; // Slate 200
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		// Draw cells
+		ctx.fillStyle = "white";
+		for (let r = 1; r <= rows; r++) {
+			for (let c = 1; c <= cols; c++) {
+				const x = (c - 1) * cellSize + c * cellGap;
+				const y = (r - 1) * cellSize + r * cellGap;
+				ctx.fillRect(x, y, cellSize, cellSize);
+			}
+		}
+	}, [venue.total_column, venue.total_row, cellSize, cellGap]);
+
 	const gridStyle = useMemo(() => {
-		const ratio = venue.aspect_ratio as string;
-		const aspectRatio =
-			ratio === "video"
-				? "16/9"
-				: ratio === "square"
-					? "1/1"
-					: ratio === "4:3"
-						? "4/3"
-						: ratio === "9:16"
-							? "9/16"
-							: undefined;
+		const cols = venue.total_column || 1;
+		const rows = venue.total_row || 1;
 
 		return {
-			display: "grid",
-			gridTemplateColumns: `repeat(${venue.total_column || 1}, ${cellSize}px)`,
-			gridTemplateRows: `repeat(${venue.total_row || 1}, ${cellSize}px)`,
+			display: "grid" as const,
+			gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+			gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
 			gap: `${cellGap}px`,
-			backgroundColor: "#e5e7eb",
-			width: "fit-content",
+			width: `${cols * cellSize + (cols + 1) * cellGap}px`,
+			height: `${rows * cellSize + (rows + 1) * cellGap}px`,
 			padding: `${cellGap}px`,
 			transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
 			transformOrigin: "top left",
 			cursor: isPanning ? (isDragging ? "grabbing" : "grab") : "default",
-			aspectRatio,
+			backgroundColor: "#e5e7eb",
 		};
 	}, [venue, zoom, pan, isPanning, isDragging, cellSize, cellGap]);
 
-	const handleGridClick = (row: number, col: number) => {
+	const handleGridClick = (e: React.MouseEvent) => {
 		if (isPanning) return;
+
+		// Calculate row/col from click coordinates
+		const rect = e.currentTarget.getBoundingClientRect();
+		const x = (e.clientX - rect.left) / zoom;
+		const y = (e.clientY - rect.top) / zoom;
+
+		const col = Math.floor(x / (cellSize + cellGap)) + 1;
+		const row = Math.floor(y / (cellSize + cellGap)) + 1;
+
+		if (
+			col > (venue.total_column || 0) ||
+			row > (venue.total_row || 0) ||
+			col < 1 ||
+			row < 1
+		) {
+			selectSection(null);
+			return;
+		}
 
 		if (interactionMode === "create") {
 			addSection({
-				name: `Section ${venue?.event_seat_sections?.length || 0 + 1}`,
+				name: `Section ${sectionIds.length + 1}`,
 				price: 0,
 				start_row: row,
 				start_column: col,
@@ -155,6 +158,7 @@ function VenueCanvasContent({
 				col_span: 5,
 				seat_row: 5,
 				seat_column: 5,
+				color: "blue",
 			});
 			setInteractionMode("select");
 		} else {
@@ -162,66 +166,36 @@ function VenueCanvasContent({
 		}
 	};
 
-	const cells = [];
-	for (let r = 1; r <= (venue.total_row || 1); r++) {
-		for (let c = 1; c <= (venue.total_column || 1); c++) {
-			cells.push(
-				<button
-					key={`${r}-${c}`}
-					type="button"
-					style={{
-						gridRowStart: r,
-						gridColumnStart: c,
-					}}
-					className={cn(
-						"bg-white transition-colors outline-none p-0 block rounded-none w-full h-full relative z-0",
-						interactionMode === "create"
-							? "cursor-pointer hover:bg-slate-50"
-							: "cursor-default",
-					)}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleGridClick(r, c);
-					}}
-					aria-label={`Grid cell row ${r} column ${c}`}
-				/>,
-			);
-		}
-	}
-
 	return (
 		<div
-			className="relative flex items-center justify-center w-full h-full bg-muted"
+			className="relative w-full h-full bg-muted overflow-hidden"
 			onClick={() => selectSection(null)}
 		>
 			{/* Canvas Content */}
-			<div className="absolute inset-0 flex items-center justify-center">
-				<div className="absolute inset-0 bg-muted" aria-hidden="true" />
-				<div
-					style={gridStyle}
-					className="relative transition-transform duration-75 ease-out border border-primary"
-					onClick={(e) => e.stopPropagation()}
-				>
-					{cells}
+			<div
+				style={gridStyle}
+				className="relative transition-transform duration-75 ease-out border border-primary bg-slate-200"
+				onClick={handleGridClick}
+			>
+				<canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-					{venue.image_url && (
-						<Image
-							src={venue.image_url}
-							alt="Venue overlay"
-							className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-10"
-							layout="fullWidth"
-						/>
-					)}
+				{venue.image_url && (
+					<Image
+						src={venue.image_url}
+						alt="Venue overlay"
+						className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-10"
+						layout="fullWidth"
+					/>
+				)}
 
-					{venue.event_seat_sections?.map((section: EventSeatSection) => (
-						<SectionBlock
-							key={section.id}
-							section={section}
-							cellSize={cellSize}
-							cellGap={cellGap}
-						/>
-					))}
-				</div>
+				{sectionIds.map((sid) => (
+					<SectionWrapper
+						key={sid}
+						id={sid}
+						cellSize={cellSize}
+						cellGap={cellGap}
+					/>
+				))}
 			</div>
 
 			{/* Sticky Controls */}
@@ -260,5 +234,21 @@ function VenueCanvasContent({
 				</div>
 			</div>
 		</div>
+	);
+}
+
+function SectionWrapper({
+	id,
+	cellSize,
+	cellGap,
+}: {
+	id: number;
+	cellSize: number;
+	cellGap: number;
+}) {
+	const section = useSeatSessionStore((state) => state.sections[id]);
+	if (!section) return null;
+	return (
+		<SectionBlock section={section} cellSize={cellSize} cellGap={cellGap} />
 	);
 }

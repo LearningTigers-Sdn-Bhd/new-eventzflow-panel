@@ -112,7 +112,7 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 				"This will create a full copy of the session, including venues, sections, and seats.",
 			description: `Duplicate "${session.name}"?`,
 			type: "info",
-			icon: "copy",
+			icon: "info",
 			confirmLabel: "Duplicate",
 			onConfirm: async () => {
 				await duplicateMutation.mutateAsync(session.id);

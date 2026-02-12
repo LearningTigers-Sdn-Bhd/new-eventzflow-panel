@@ -16,8 +16,8 @@ import type { EventSeatVenue } from "@/lib/api/seat-ticketing/response";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 export function VenueForm() {
-	const { session, updateVenue } = useSeatSessionStore();
-	const venue = session?.event_seat_venues?.[0];
+	const venue = useSeatSessionStore(state => state.venue);
+	const updateVenue = useSeatSessionStore(state => state.updateVenue);
 	const previewUrlRef = useRef<string | null>(null);
 
 	// Cleanup preview URL on unmount

@@ -11,10 +11,14 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldSet } from "@/components/ui/field";
-import { useDialog } from "@/hooks/use-dialog";
 import { useSeatSessionMutation } from "@/hooks/seat-ticketing/use-session-mutation";
+import { useDialog } from "@/hooks/use-dialog";
 import type { SeatSessionRow } from "../seat-session-table-columns";
-import { SESSION_STATUS, SESSION_STATUS_OPTIONS, type SessionStatus } from "../utils";
+import {
+	SESSION_STATUS,
+	SESSION_STATUS_OPTIONS,
+	type SessionStatus,
+} from "../utils";
 
 const formSchema = z
 	.object({
@@ -25,8 +29,8 @@ const formSchema = z
 			SESSION_STATUS.CANCELLED,
 		]),
 		location: z.string(),
-		startDate: z.date({ required_error: "Start date is required" }),
-		endDate: z.date({ required_error: "End date is required" }),
+		startDate: z.date({ error: "Start date is required" }),
+		endDate: z.date({ error: "End date is required" }),
 	})
 	.refine(
 		(data) => {
@@ -63,7 +67,9 @@ export default function SeatSessionEditModal({
 			startDate: session.start_datetime
 				? new Date(session.start_datetime)
 				: undefined,
-			endDate: session.end_datetime ? new Date(session.end_datetime) : undefined,
+			endDate: session.end_datetime
+				? new Date(session.end_datetime)
+				: undefined,
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -100,7 +106,7 @@ export default function SeatSessionEditModal({
 							description: "Update session details and schedule.",
 						}}
 					>
-					<form.Field name="name">
+						<form.Field name="name">
 							{(field) => {
 								const isInvalid =
 									field.state.meta.isTouched && !field.state.meta.isValid;
@@ -119,31 +125,31 @@ export default function SeatSessionEditModal({
 									/>
 								);
 							}}
-					</form.Field>
+						</form.Field>
 
-					<form.Field name="status">
-						{(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							return (
-								<SelectLabel
-									label="Session Status"
-									htmlFor={field.name}
-									value={field.state.value}
-									onChange={(value) =>
-										field.handleChange(value as SessionStatus)
-									}
-									onBlur={field.handleBlur}
-									options={SESSION_STATUS_OPTIONS}
-									errors={field.state.meta.errors}
-									isInvalid={isInvalid}
-									placeholder="Select status"
-									disabled={updateMutation.isPending}
-									required
-								/>
-							);
-						}}
-					</form.Field>
+						<form.Field name="status">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<SelectLabel
+										label="Session Status"
+										htmlFor={field.name}
+										value={field.state.value}
+										onChange={(value) =>
+											field.handleChange(value as SessionStatus)
+										}
+										onBlur={field.handleBlur}
+										options={SESSION_STATUS_OPTIONS}
+										errors={field.state.meta.errors}
+										isInvalid={isInvalid}
+										placeholder="Select status"
+										disabled={updateMutation.isPending}
+										required
+									/>
+								);
+							}}
+						</form.Field>
 
 						<form.Field name="location">
 							{(field) => (
@@ -162,55 +168,45 @@ export default function SeatSessionEditModal({
 							<form.Field name="startDate">
 								{(field) => {
 									const isInvalid =
-										field.state.meta.isTouched &&
-										!field.state.meta.isValid;
+										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<DateTimePickerField
 											label="Start Date"
 											htmlFor={field.name}
 											value={field.state.value}
-											onChange={(date) =>
-												field.handleChange(date || undefined)
-											}
+											onChange={(date) => field.handleChange(date || undefined)}
 											errors={field.state.meta.errors.map((error) => ({
 												message:
-													typeof error === "string"
-														? error
-														: String(error),
+													typeof error === "string" ? error : String(error),
 											}))}
 											isInvalid={isInvalid}
 											placeholder="Select start"
 											disabled={updateMutation.isPending}
 										/>
 									);
-							}}
+								}}
 							</form.Field>
 
 							<form.Field name="endDate">
 								{(field) => {
 									const isInvalid =
-										field.state.meta.isTouched &&
-										!field.state.meta.isValid;
+										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<DateTimePickerField
 											label="End Date"
 											htmlFor={field.name}
 											value={field.state.value}
-											onChange={(date) =>
-												field.handleChange(date || undefined)
-											}
+											onChange={(date) => field.handleChange(date || undefined)}
 											errors={field.state.meta.errors.map((error) => ({
 												message:
-													typeof error === "string"
-														? error
-														: String(error),
+													typeof error === "string" ? error : String(error),
 											}))}
 											isInvalid={isInvalid}
 											placeholder="Select end"
 											disabled={updateMutation.isPending}
 										/>
 									);
-							}}
+								}}
 							</form.Field>
 						</div>
 					</FormGroupContainer>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/popover";
 import type { EventSeatSection } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
-import { getGroupColor } from "@/lib/utils/group-colors";
+import { getGroupColorHex } from "@/lib/utils/group-colors";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 interface SectionBlockProps {
@@ -26,21 +26,19 @@ export function SectionBlock({
 	cellSize,
 	cellGap,
 }: SectionBlockProps) {
-	const {
-		selectedSectionId,
-		selectSection,
-		setMode,
-		removeSection,
-		interactionMode,
-		updateSection,
-		isPanning,
-	} = useSeatSessionStore();
+	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
+	const selectSection = useSeatSessionStore(state => state.selectSection);
+	const setMode = useSeatSessionStore(state => state.setMode);
+	const removeSection = useSeatSessionStore(state => state.removeSection);
+	const interactionMode = useSeatSessionStore(state => state.interactionMode);
+	const updateSection = useSeatSessionStore(state => state.updateSection);
+	const isPanning = useSeatSessionStore(state => state.isPanning);
 
 	const isSelected = selectedSectionId === section.id;
 	const [isResizing, setIsResizing] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
 
-	const sectionColorClass = getGroupColor(section.color || "blue");
+	const colorHex = getGroupColorHex(section.color);
 
 	const style: React.CSSProperties = {
 		gridRowStart: section.start_row || 1,
@@ -161,7 +159,10 @@ export function SectionBlock({
 				<div
 					style={style}
 					onMouseDown={handleMouseDown}
-					onClick={(e) => e.stopPropagation()}
+					onClick={(e) => {
+						e.stopPropagation();
+						selectSection(section.id);
+					}}
 					className={cn(
 						"relative flex flex-col border-2 transition-all group select-none rounded-none bg-slate-50",
 						isSelected
@@ -174,44 +175,43 @@ export function SectionBlock({
 				>
 					{/* Header */}
 					<div
-						className={cn(
-							"flex items-center justify-between py-2 px-3 shrink-0 rounded-none text-white",
-							sectionColorClass,
-						)}
+						className="flex items-center justify-between py-3 px-4 shrink-0 rounded-none text-white overflow-hidden"
+						style={{ backgroundColor: colorHex }}
 					>
 						<div className="flex flex-col text-white">
-							<span className="text-xs font-bold truncate max-w-[80px]">
+							<span className="text-lg font-bold truncate max-w-[120px]">
 								{section.name}
 							</span>
-							<span className="text-[10px] opacity-90">${section.price}</span>
+							<span className="text-base opacity-90">${section.price}</span>
 						</div>
-						<span className="text-[10px] font-mono whitespace-nowrap">
+						<span className="text-sm font-mono whitespace-nowrap">
 							{section.seat_row}x{section.seat_column}
 						</span>
 					</div>
 
 					{/* Content */}
-					<div className="flex-1 flex flex-col items-center justify-center p-2 text-center pointer-events-none rounded-none bg-slate-50">
-						<span
-							className={cn(
-								"text-xl font-bold",
-								sectionColorClass.replace("bg-", "text-"),
-							)}
+					<div className="flex-1 flex flex-col items-center justify-center p-4 text-center pointer-events-none rounded-none bg-slate-50 overflow-hidden">
+						<div 
+							className="flex flex-col items-center justify-center"
+							style={{ transform: `rotate(${- (section.rotation ?? 0)}deg)` }}
 						>
-							{section.event_ticket_seats?.length || 0}
-						</span>
-						<span className="text-[10px] text-muted-foreground uppercase tracking-tight">
-							Seats
-						</span>
+							<span
+								className="text-6xl font-black tracking-tighter"
+								style={{ color: colorHex }}
+							>
+								{section.seats_count ?? section.event_ticket_seats?.length ?? 0}
+							</span>
+							<span className="text-sm text-muted-foreground font-bold uppercase tracking-widest mt-1">
+								Seats
+							</span>
+						</div>
 					</div>
 
 					{/* Resize Handle */}
 					{isSelected && !isPanning && (
 						<div
-							className={cn(
-								"absolute -bottom-1.5 -right-1.5 w-4 h-4 cursor-nwse-resize rounded-none z-30 hover:scale-125 transition-transform",
-								sectionColorClass,
-							)}
+							className="absolute -bottom-1.5 -right-1.5 w-4 h-4 cursor-nwse-resize rounded-none z-30 hover:scale-125 transition-transform"
+							style={{ backgroundColor: colorHex }}
 							onMouseDown={(e) => handleResizeStart(e)}
 						/>
 					)}

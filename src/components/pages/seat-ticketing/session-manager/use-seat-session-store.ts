@@ -1,5 +1,7 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 import {
+	getSectionSeats,
 	updateSeatSessionBlueprint,
 	uploadVenueImage,
 } from "@/lib/api/seat-ticketing/endpoints";
@@ -8,7 +10,6 @@ import type {
 	BulkUpdateSeatAttributes,
 	BulkUpdateSeatSessionRequest,
 	BulkUpdateSectionAttributes,
-	BulkUpdateVenueAttributes,
 } from "@/lib/api/seat-ticketing/request";
 import type {
 	EventSeatGroup,
@@ -25,8 +26,17 @@ export type InteractionMode = "select" | "create";
 export const seatSessionDraftKey = (sessionId: number) =>
 	`seat-session-draft:${sessionId}`;
 
+// Normalized state structure
 interface SeatSessionState {
-	session: EventSeatSession | null;
+	session: Omit<EventSeatSession, "event_seat_venues"> | null;
+	venue: EventSeatVenue | null;
+	sections: Record<number, EventSeatSection>;
+	seats: Record<number, EventTicketSeat>;
+	hydratingSectionIds: number[];
+
+	// Track section IDs order for rendering
+	sectionIds: number[];
+
 	mode: EditorMode;
 	interactionMode: InteractionMode;
 	isPanning: boolean;
@@ -51,9 +61,6 @@ interface SeatSessionState {
 	setSession: (session: EventSeatSession) => void;
 	initializeSession: (session: EventSeatSession) => void;
 	resetViewState: () => void;
-	setDeletedSectionIds: (ids: number[]) => void;
-	setDeletedSeatIds: (ids: { seatId: number; sectionId: number }[]) => void;
-	setDeletedGroupIds: (ids: { groupId: number; sectionId: number }[]) => void;
 	setHasUnsavedChanges: (value: boolean) => void;
 	setMode: (mode: EditorMode) => void;
 	setInteractionMode: (mode: InteractionMode) => void;
@@ -63,6 +70,7 @@ interface SeatSessionState {
 
 	selectSection: (id: number | null) => void;
 	selectSeat: (id: number | null) => void;
+	selectSeats: (ids: number[]) => void;
 	toggleSeatSelection: (id: number) => void;
 	selectGroup: (id: number | null) => void;
 	setGroupPaintingMode: (groupId: number | null) => void;
@@ -82,11 +90,19 @@ interface SeatSessionState {
 	) => void;
 	updateSection: (id: number, data: Partial<EventSeatSection>) => void;
 	removeSection: (id: number) => void;
+	hydrateSectionSeats: (sectionId: number) => Promise<void>;
 
 	// Group Actions
-	addGroup: (sectionId: number, group: { name: string; extra_price: number }) => void;
-	updateGroup: (id: number, data: Partial<EventSeatGroup>) => void;
-	removeGroup: (id: number) => void;
+	addGroup: (
+		sectionId: number,
+		group: { name: string; extra_price: number },
+	) => void;
+	updateGroup: (
+		sectionId: number,
+		groupId: number,
+		data: Partial<EventSeatGroup>,
+	) => void;
+	removeGroup: (sectionId: number, groupId: number) => void;
 	assignSeatsToGroup: (seatIds: number[], groupId: number | null) => void;
 
 	// Seat Actions
@@ -104,75 +120,36 @@ interface SeatSessionState {
 			| "status"
 		>,
 	) => void;
+	addSeats: (
+		sectionId: number,
+		seats: Omit<
+			EventTicketSeat,
+			| "id"
+			| "event_seat_section_id"
+			| "created_at"
+			| "updated_at"
+			| "visitor_id"
+			| "locked_at"
+			| "locked_by_session_id"
+			| "status"
+		>[],
+	) => void;
 	updateSeat: (id: number, data: Partial<EventTicketSeat>) => void;
 	removeSeat: (id: number) => void;
+	clearSectionSeats: (sectionId: number) => void;
 
 	// Persistence
 	save: () => Promise<void>;
 }
 
-function syncSectionSeats(
-	section: EventSeatSection,
-	oldRows = 0,
-	oldCols = 0,
-): EventTicketSeat[] {
-	const rows = section.seat_row || 0;
-	const cols = section.seat_column || 0;
-	const currentSeats = section.event_ticket_seats || [];
-
-	const syncedSeats = currentSeats.filter(
-		(s) => (s.row_set || 0) <= rows && (s.col_set || 0) <= cols,
-	);
-
-	if (rows > oldRows) {
-		for (let r = oldRows + 1; r <= rows; r++) {
-			for (let c = 1; c <= cols; c++) {
-				syncedSeats.push({
-					id: -Math.floor(Math.random() * 1000000000),
-					event_seat_section_id: section.id,
-					name: `${section.name}-${r}${String.fromCharCode(64 + c)}`,
-					extra_price: 0,
-					row_set: r,
-					col_set: c,
-					ticket_id: null,
-					visitor_id: null,
-					locked_at: null,
-					locked_by_session_id: null,
-					status: "available",
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-				});
-			}
-		}
-	}
-
-	if (cols > oldCols) {
-		for (let r = 1; r <= Math.min(rows, oldRows); r++) {
-			for (let c = oldCols + 1; c <= cols; c++) {
-				syncedSeats.push({
-					id: -Math.floor(Math.random() * 1000000000),
-					event_seat_section_id: section.id,
-					name: `${section.name}-${r}${String.fromCharCode(64 + c)}`,
-					extra_price: 0,
-					row_set: r,
-					col_set: c,
-					ticket_id: null,
-					visitor_id: null,
-					locked_at: null,
-					locked_by_session_id: null,
-					status: "available",
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-				});
-			}
-		}
-	}
-
-	return syncedSeats;
-}
-
 export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 	session: null,
+	venue: null,
+	sections: {},
+	seats: {},
+	sectionIds: [],
+	hydratingSectionIds: [],
+
 	mode: "venue_blueprint",
 	interactionMode: "select",
 	isPanning: false,
@@ -192,34 +169,55 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 	deletedGroupIds: [],
 
 	setSession: (session) => {
-		const processedSession = { ...session };
-		if (
-			!processedSession.event_seat_venues ||
-			processedSession.event_seat_venues.length === 0
-		) {
+		const sections: Record<number, EventSeatSection> = {};
+		const sectionIds: number[] = [];
+		const seats: Record<number, EventTicketSeat> = {};
+
+		const venues = session.event_seat_venues || [];
+		let activeVenue: EventSeatVenue | null = venues[0] || null;
+
+		if (!activeVenue) {
 			const tempId = -Math.floor(Math.random() * 1000000);
-			processedSession.event_seat_venues = [
-				{
-					id: tempId,
-					event_seat_session_id: session.id,
-					name: "Main Venue",
-					total_row: 20,
-					total_column: 20,
-					aspect_ratio: "square",
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-					event_seat_sections: [],
-				},
-			];
+			activeVenue = {
+				id: tempId,
+				event_seat_session_id: session.id,
+				name: "Main Venue",
+				total_row: 20,
+				total_column: 20,
+				aspect_ratio: "square",
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+				event_seat_sections: [],
+			};
 		}
-		set({ session: processedSession, error: null });
+
+		activeVenue.event_seat_sections?.forEach((section) => {
+			sections[section.id] = section;
+			sectionIds.push(section.id);
+			section.event_ticket_seats?.forEach((seat) => {
+				seats[seat.id] = seat;
+			});
+		});
+
+		const { event_seat_venues, ...sessionData } = session;
+
+		set({
+			session: sessionData,
+			venue: activeVenue,
+			sections,
+			sectionIds,
+			seats,
+			error: null,
+		});
 	},
+
 	initializeSession: (session) => {
 		const state = get();
 		state.resetViewState();
 		state.setSession(session);
 		set({ hasUnsavedChanges: false });
 	},
+
 	resetViewState: () =>
 		set({
 			mode: "venue_blueprint",
@@ -238,9 +236,7 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 			deletedSeatIds: [],
 			deletedGroupIds: [],
 		}),
-	setDeletedSectionIds: (ids) => set({ deletedSectionIds: ids }),
-	setDeletedSeatIds: (ids) => set({ deletedSeatIds: ids }),
-	setDeletedGroupIds: (ids) => set({ deletedGroupIds: ids }),
+
 	setHasUnsavedChanges: (value) => set({ hasUnsavedChanges: value }),
 	setMode: (mode) =>
 		set({
@@ -268,11 +264,18 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 			selectedSeatPosition: null,
 		}),
 	selectSeat: (id) =>
-		set({ 
-			selectedSeatId: id, 
-			selectedSeatIds: id ? [id] : [], 
-			selectedGroupId: null, 
-			selectedSeatPosition: null 
+		set({
+			selectedSeatId: id,
+			selectedSeatIds: id ? [id] : [],
+			selectedGroupId: null,
+			selectedSeatPosition: null,
+		}),
+	selectSeats: (ids) =>
+		set({
+			selectedSeatIds: ids,
+			selectedSeatId: ids.length === 1 ? ids[0] : null,
+			selectedGroupId: null,
+			selectedSeatPosition: null,
 		}),
 	toggleSeatSelection: (id) => {
 		set((state) => {
@@ -283,122 +286,86 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 			} else {
 				selectedSeatIds.push(id);
 			}
-			return { 
+			return {
 				selectedSeatIds,
 				selectedSeatId: id,
-				selectedSeatPosition: null // Clear grid selection when selecting actual seats
+				selectedSeatPosition: null,
 			};
 		});
 	},
 	selectGroup: (id) =>
-		set({ 
-			selectedGroupId: id, 
-			selectedSeatId: null, 
+		set({
+			selectedGroupId: id,
+			selectedSeatId: null,
 			selectedSeatIds: [],
-			selectedSeatPosition: null 
+			selectedSeatPosition: null,
 		}),
-	setGroupPaintingMode: (groupId) => 
-		set({ activeGroupId: groupId, interactionMode: groupId ? "select" : get().interactionMode }),
+	setGroupPaintingMode: (groupId) =>
+		set({
+			activeGroupId: groupId,
+			interactionMode: groupId ? "select" : get().interactionMode,
+		}),
 	selectSeatPosition: (position) =>
-		set({ 
-			selectedSeatPosition: position, 
-			selectedSeatId: null, 
+		set({
+			selectedSeatPosition: position,
+			selectedSeatId: null,
 			selectedSeatIds: [],
-			selectedGroupId: null 
+			selectedGroupId: null,
 		}),
 
 	updateVenue: (data) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venues = [...state.session.event_seat_venues];
-			venues[0] = { ...venues[0], ...data };
-			return {
-				session: { ...state.session, event_seat_venues: venues },
-				hasUnsavedChanges: true,
-			};
-		});
+		set((state) => ({
+			venue: state.venue ? { ...state.venue, ...data } : null,
+			hasUnsavedChanges: true,
+		}));
 	},
 
 	addSection: (sectionData) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections
-				? [...venue.event_seat_sections]
-				: [];
+		const { venue, sectionIds, sections } = get();
+		if (!venue) return;
 
-			const tempId = -Math.floor(Math.random() * 1000000);
-			const newSection: EventSeatSection = {
-				...sectionData,
-				rotation: sectionData.rotation ?? 0,
-				color: "blue", // Default for new sections
-				id: tempId,
-				event_seat_venue_id: venue.id,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-				event_ticket_seats: [],
-			};
+		const tempId = -Math.floor(Math.random() * 1000000);
+		const newSection: EventSeatSection = {
+			...sectionData,
+			rotation: sectionData.rotation ?? 0,
+			color: "blue",
+			id: tempId,
+			event_seat_venue_id: venue.id,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			event_ticket_seats: [],
+			event_seat_groups: [],
+		};
 
-			newSection.event_ticket_seats = syncSectionSeats(newSection);
-
-			const newVenue = {
-				...venue,
-				event_seat_sections: [...sections, newSection],
-			};
-			return {
-				session: { ...state.session, event_seat_venues: [newVenue] },
-				selectedSectionId: tempId,
-				hasUnsavedChanges: true,
-			};
+		set({
+			sections: { ...sections, [tempId]: newSection },
+			sectionIds: [...sectionIds, tempId],
+			selectedSectionId: tempId,
+			hasUnsavedChanges: true,
 		});
 	},
 
 	updateSection: (id, data) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections?.map((s) => {
-				if (s.id !== id) return s;
-				const oldRows = s.seat_row || 0;
-				const oldCols = s.seat_column || 0;
-				const updatedSection = { ...s, ...data };
-
-				if (data.seat_row !== undefined || data.seat_column !== undefined) {
-					updatedSection.event_ticket_seats = syncSectionSeats(
-						updatedSection,
-						oldRows,
-						oldCols,
-					);
-				}
-
-				return updatedSection;
-			});
-			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
-				hasUnsavedChanges: true,
-			};
-		});
+		set((state) => ({
+			sections: {
+				...state.sections,
+				[id]: { ...state.sections[id], ...data },
+			},
+			hasUnsavedChanges: true,
+		}));
 	},
 
 	removeSection: (id) => {
 		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
+			const newSections = { ...state.sections };
+			delete newSections[id];
 
 			const deletedIds = [...state.deletedSectionIds];
-			if (id > 0) {
-				deletedIds.push(id);
-			}
+			if (id > 0) deletedIds.push(id);
 
-			const sections = venue.event_seat_sections?.filter((s) => s.id !== id);
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
+				sections: newSections,
+				sectionIds: state.sectionIds.filter((sid) => sid !== id),
 				selectedSectionId:
 					state.selectedSectionId === id ? null : state.selectedSectionId,
 				deletedSectionIds: deletedIds,
@@ -407,93 +374,137 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 		});
 	},
 
-	addGroup: (sectionId, groupData) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections?.map((section) => {
-				if (section.id !== sectionId) return section;
+	hydrateSectionSeats: async (sectionId) => {
+		const { session, venue } = get();
+		if (!session || !venue) return;
 
-				const groups = section.event_seat_groups ? [...section.event_seat_groups] : [];
-				const tempId = -Math.floor(Math.random() * 1000000);
-				const newGroup: EventSeatGroup = {
-					...groupData,
-					color: "green", // Default for new groups
-					id: tempId,
-					event_seat_section_id: sectionId,
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
+		set((state) => ({
+			hydratingSectionIds: [...state.hydratingSectionIds, sectionId],
+		}));
+
+		try {
+			const seatsData = await getSectionSeats(
+				session.id.toString(),
+				venue.id.toString(),
+				sectionId.toString(),
+			);
+
+			set((state) => {
+				const newSeats = { ...state.seats };
+				const deletedIds = state.deletedSeatIds.map((d) => d.seatId);
+
+				seatsData.forEach((seat: EventTicketSeat) => {
+					// Only add back if not in the deleted list
+					if (!deletedIds.includes(seat.id)) {
+						newSeats[seat.id] = seat;
+					}
+				});
+
+				const section = state.sections[sectionId];
+				return {
+					seats: newSeats,
+					sections: {
+						...state.sections,
+						[sectionId]: {
+							...section,
+							event_ticket_seats: seatsData.filter(
+								(s) => !deletedIds.includes(s.id),
+							),
+						},
+					},
+					hydratingSectionIds: state.hydratingSectionIds.filter(
+						(id) => id !== sectionId,
+					),
 				};
-
-				return { ...section, event_seat_groups: [...groups, newGroup] };
 			});
-
-			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
-				hasUnsavedChanges: true,
-			};
-		});
-	},
-
-	updateGroup: (id, data) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_seat_groups: section.event_seat_groups?.map((group) =>
-					group.id === id ? { ...group, ...data } : group,
+		} catch (e) {
+			console.error("Failed to hydrate seats", e);
+			set((state) => ({
+				hydratingSectionIds: state.hydratingSectionIds.filter(
+					(id) => id !== sectionId,
 				),
 			}));
+		}
+	},
+
+	addGroup: (sectionId, groupData) => {
+		set((state) => {
+			const section = state.sections[sectionId];
+			if (!section) return state;
+
+			const tempId = -Math.floor(Math.random() * 1000000);
+			const newGroup: EventSeatGroup = {
+				...groupData,
+				color: "green",
+				id: tempId,
+				event_seat_section_id: sectionId,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			};
+
+			const newGroups = [...(section.event_seat_groups || []), newGroup];
+
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
+				sections: {
+					...state.sections,
+					[sectionId]: { ...section, event_seat_groups: newGroups },
 				},
 				hasUnsavedChanges: true,
 			};
 		});
 	},
 
-	removeGroup: (id) => {
+	updateGroup: (sectionId, groupId, data) => {
 		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
+			const section = state.sections[sectionId];
+			if (!section) return state;
 
-			let sectionId = -1;
-			venue?.event_seat_sections?.forEach((s) => {
-				if (s.event_seat_groups?.some((g) => g.id === id)) {
-					sectionId = s.id;
+			const newGroups = section.event_seat_groups?.map((g) =>
+				g.id === groupId ? { ...g, ...data } : g,
+			);
+
+			return {
+				sections: {
+					...state.sections,
+					[sectionId]: { ...section, event_seat_groups: newGroups },
+				},
+				hasUnsavedChanges: true,
+			};
+		});
+	},
+
+	removeGroup: (sectionId, groupId) => {
+		set((state) => {
+			const section = state.sections[sectionId];
+			if (!section) return state;
+
+			const deletedIds = [...state.deletedGroupIds];
+			if (groupId > 0) deletedIds.push({ groupId, sectionId });
+
+			const newGroups = section.event_seat_groups?.filter(
+				(g) => g.id !== groupId,
+			);
+
+			// Also clear assignments in the flat seats map
+			const newSeats = { ...state.seats };
+			Object.keys(newSeats).forEach((id) => {
+				const seat = newSeats[Number(id)];
+				if (
+					seat.event_seat_section_id === sectionId &&
+					seat.event_seat_group_assignment?.event_seat_group_id === groupId
+				) {
+					newSeats[Number(id)] = { ...seat, event_seat_group_assignment: null };
 				}
 			});
 
-			const deletedIds = [...state.deletedGroupIds];
-			if (id > 0 && sectionId > 0) {
-				deletedIds.push({ groupId: id, sectionId });
-			}
-
-			const sections = venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_seat_groups: section.event_seat_groups?.filter(
-					(group) => group.id !== id,
-				),
-				event_ticket_seats: section.event_ticket_seats?.map(seat => {
-					if (seat.event_seat_group_assignment?.event_seat_group_id === id) {
-						return { ...seat, event_seat_group_assignment: null };
-					}
-					return seat;
-				})
-			}));
-
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
+				sections: {
+					...state.sections,
+					[sectionId]: { ...section, event_seat_groups: newGroups },
 				},
-				selectedGroupId: state.selectedGroupId === id ? null : state.selectedGroupId,
+				seats: newSeats,
+				selectedGroupId:
+					state.selectedGroupId === groupId ? null : state.selectedGroupId,
 				deletedGroupIds: deletedIds,
 				hasUnsavedChanges: true,
 			};
@@ -502,51 +513,72 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 
 	assignSeatsToGroup: (seatIds, groupId) => {
 		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
+			const newSeats = { ...state.seats };
+			seatIds.forEach((id) => {
+				const seat = newSeats[id];
+				if (!seat) return;
 
-			const sections = venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_ticket_seats: section.event_ticket_seats?.map((seat) => {
-					if (!seatIds.includes(seat.id)) return seat;
-
-					if (groupId === null) {
-						return { ...seat, event_seat_group_assignment: null };
-					}
-
+				if (groupId === null) {
+					newSeats[id] = { ...seat, event_seat_group_assignment: null };
+				} else {
 					const assignment: EventSeatGroupAssignment = {
-						id: seat.event_seat_group_assignment?.id || -Math.floor(Math.random() * 1000000),
+						id:
+							seat.event_seat_group_assignment?.id ||
+							-Math.floor(Math.random() * 1000000),
 						event_seat_group_id: groupId,
-						event_ticket_seat_id: seat.id
+						event_ticket_seat_id: id,
 					};
-
-					return { ...seat, event_seat_group_assignment: assignment };
-				})
-			}));
+					newSeats[id] = { ...seat, event_seat_group_assignment: assignment };
+				}
+			});
 
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
-				hasUnsavedChanges: true
+				seats: newSeats,
+				hasUnsavedChanges: true,
 			};
 		});
 	},
 
 	addSeat: (sectionId, seatData) => {
 		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections?.map((section) => {
-				if (section.id !== sectionId) return section;
+			const tempId = -Math.floor(Math.random() * 1000000);
+			const newSeat: EventTicketSeat = {
+				...seatData,
+				id: tempId,
+				event_seat_section_id: sectionId,
+				visitor_id: null,
+				locked_at: null,
+				locked_by_session_id: null,
+				status: "available",
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			};
 
-				const seats = section.event_ticket_seats
-					? [...section.event_ticket_seats]
-					: [];
-				const tempId = -Math.floor(Math.random() * 1000000);
-				const newSeat: EventTicketSeat = {
-					...seatData,
+			const section = state.sections[sectionId];
+			const newSection = section
+				? {
+						...section,
+						seats_count: (section.seats_count || 0) + 1,
+					}
+				: null;
+
+			return {
+				seats: { ...state.seats, [tempId]: newSeat },
+				sections: newSection
+					? { ...state.sections, [sectionId]: newSection }
+					: state.sections,
+				hasUnsavedChanges: true,
+			};
+		});
+	},
+
+	addSeats: (sectionId, seatsData) => {
+		set((state) => {
+			const newSeats = { ...state.seats };
+			seatsData.forEach((sd) => {
+				const tempId = -Math.floor(Math.random() * 1000000000);
+				newSeats[tempId] = {
+					...sd,
 					id: tempId,
 					event_seat_section_id: sectionId,
 					visitor_id: null,
@@ -556,68 +588,62 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 					created_at: new Date().toISOString(),
 					updated_at: new Date().toISOString(),
 				};
-
-				return { ...section, event_ticket_seats: [...seats, newSeat] };
 			});
 
+			const section = state.sections[sectionId];
+			const newSection = section
+				? {
+						...section,
+						seats_count: (section.seats_count || 0) + seatsData.length,
+					}
+				: null;
+
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
+				seats: newSeats,
+				sections: newSection
+					? { ...state.sections, [sectionId]: newSection }
+					: state.sections,
 				hasUnsavedChanges: true,
 			};
 		});
 	},
 
 	updateSeat: (id, data) => {
-		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
-			const sections = venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_ticket_seats: section.event_ticket_seats?.map((seat) =>
-					seat.id === id ? { ...seat, ...data } : seat,
-				),
-			}));
-			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
-				hasUnsavedChanges: true,
-			};
-		});
+		set((state) => ({
+			seats: {
+				...state.seats,
+				[id]: { ...state.seats[id], ...data },
+			},
+			hasUnsavedChanges: true,
+		}));
 	},
 
 	removeSeat: (id) => {
 		set((state) => {
-			if (!state.session?.event_seat_venues?.[0]) return state;
-			const venue = state.session.event_seat_venues[0];
+			const seat = state.seats[id];
+			if (!seat) return state;
 
-			let sectionId = -1;
-			venue?.event_seat_sections?.forEach((s) => {
-				if (s.event_ticket_seats?.some((seat) => seat.id === id)) {
-					sectionId = s.id;
-				}
-			});
+			const newSeats = { ...state.seats };
+			delete newSeats[id];
 
 			const deletedIds = [...state.deletedSeatIds];
-			if (id > 0 && sectionId > 0) {
-				deletedIds.push({ seatId: id, sectionId });
+			if (id > 0) {
+				deletedIds.push({ seatId: id, sectionId: seat.event_seat_section_id });
 			}
 
-			const sections = venue.event_seat_sections?.map((section) => ({
-				...section,
-				event_ticket_seats: section.event_ticket_seats?.filter(
-					(seat) => seat.id !== id,
-				),
-			}));
+			const section = state.sections[seat.event_seat_section_id];
+			const newSection = section
+				? {
+						...section,
+						seats_count: Math.max(0, (section.seats_count || 0) - 1),
+					}
+				: null;
+
 			return {
-				session: {
-					...state.session,
-					event_seat_venues: [{ ...venue, event_seat_sections: sections }],
-				},
+				seats: newSeats,
+				sections: newSection
+					? { ...state.sections, [seat.event_seat_section_id]: newSection }
+					: state.sections,
 				selectedSeatId:
 					state.selectedSeatId === id ? null : state.selectedSeatId,
 				deletedSeatIds: deletedIds,
@@ -626,14 +652,52 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 		});
 	},
 
+	clearSectionSeats: (sectionId) => {
+		set((state) => {
+			const newSeats = { ...state.seats };
+			const deletedIds = [...state.deletedSeatIds];
+
+			Object.values(state.seats).forEach((seat) => {
+				if (seat.event_seat_section_id === sectionId) {
+					delete newSeats[seat.id];
+					if (seat.id > 0) {
+						deletedIds.push({ seatId: seat.id, sectionId });
+					}
+				}
+			});
+
+			const section = state.sections[sectionId];
+			const newSection = section ? { ...section, seats_count: 0 } : null;
+
+			return {
+				seats: newSeats,
+				sections: newSection
+					? { ...state.sections, [sectionId]: newSection }
+					: state.sections,
+				deletedSeatIds: deletedIds,
+				selectedSeatId: null,
+				selectedSeatIds: [],
+				hasUnsavedChanges: true,
+			};
+		});
+	},
+
 	save: async () => {
-		const { session, deletedSectionIds, deletedSeatIds, deletedGroupIds } = get();
-		if (!session) return;
+		const {
+			session,
+			venue,
+			sections,
+			sectionIds,
+			seats,
+			deletedSectionIds,
+			deletedSeatIds,
+			deletedGroupIds,
+		} = get();
+		if (!session || !venue) return;
 
 		set({ isSaving: true, error: null });
 		try {
-			const venue = session.event_seat_venues?.[0];
-			if (venue?.image && venue.id > 0) {
+			if (venue.image && venue.id > 0) {
 				await uploadVenueImage(
 					session.id.toString(),
 					venue.id.toString(),
@@ -647,53 +711,67 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 				location: session.location,
 				start_datetime: session.start_datetime,
 				end_datetime: session.end_datetime,
-				event_seat_venues_attributes: session.event_seat_venues?.map(
-					(v): BulkUpdateVenueAttributes => {
-						const activeSections: BulkUpdateSectionAttributes[] =
-							v.event_seat_sections?.map((s): BulkUpdateSectionAttributes => {
+				event_seat_venues_attributes: [
+					{
+						id: venue.id > 0 ? venue.id : undefined,
+						name: venue.name,
+						total_row: venue.total_row,
+						total_column: venue.total_column,
+						aspect_ratio: venue.aspect_ratio,
+						event_seat_sections_attributes: [
+							...sectionIds.map((sid): BulkUpdateSectionAttributes => {
+								const s = sections[sid];
+								const sectionSeats = Object.values(seats).filter(
+									(st) => st.event_seat_section_id === sid,
+								);
+
 								const activeSeats: BulkUpdateSeatAttributes[] =
-									s.event_ticket_seats?.map(
-										(st): BulkUpdateSeatAttributes => ({
-											id: st.id > 0 ? st.id : undefined,
-											name: st.name,
-											extra_price: st.extra_price,
-											row_set: st.row_set,
-											col_set: st.col_set,
-											ticket_id: st.ticket_id,
-										}),
-									) || [];
+									sectionSeats.map((st) => ({
+										id: st.id > 0 ? st.id : undefined,
+										name: st.name,
+										extra_price: st.extra_price,
+										row_set: st.row_set,
+										col_set: st.col_set,
+										ticket_id: st.ticket_id,
+									}));
 
-								for (const d of deletedSeatIds) {
-									if (d.sectionId === s.id) {
+								deletedSeatIds
+									.filter((d) => d.sectionId === sid)
+									.forEach((d) => {
 										activeSeats.push({ id: d.seatId, _destroy: true });
-									}
-								}
+									});
 
-								const activeGroups: BulkUpdateGroupAttributes[] = 
-									s.event_seat_groups?.map((g): BulkUpdateGroupAttributes => {
-										const groupSeats = s.event_ticket_seats?.filter(
-											st => st.event_seat_group_assignment?.event_seat_group_id === g.id
-										) || [];
-										
-										return {
-											id: g.id > 0 ? g.id : undefined,
-											name: g.name,
-											extra_price: g.extra_price,
-											color: g.color,
-											event_seat_group_assignments_attributes: groupSeats.map(st => ({
-												id: st.event_seat_group_assignment?.id && st.event_seat_group_assignment.id > 0 
-													? st.event_seat_group_assignment.id 
-													: undefined,
-												event_ticket_seat_id: st.id
-											}))
-										};
-									}) || [];
-								
-								for (const d of deletedGroupIds) {
-									if (d.sectionId === s.id) {
+								const activeGroups: BulkUpdateGroupAttributes[] = (
+									s.event_seat_groups || []
+								).map((g) => {
+									const groupSeats = sectionSeats.filter(
+										(st) =>
+											st.event_seat_group_assignment?.event_seat_group_id ===
+											g.id,
+									);
+									return {
+										id: g.id > 0 ? g.id : undefined,
+										name: g.name,
+										extra_price: g.extra_price,
+										color: g.color,
+										event_seat_group_assignments_attributes: groupSeats.map(
+											(st) => ({
+												id:
+													st.event_seat_group_assignment?.id &&
+													st.event_seat_group_assignment.id > 0
+														? st.event_seat_group_assignment.id
+														: undefined,
+												event_ticket_seat_id: st.id,
+											}),
+										),
+									};
+								});
+
+								deletedGroupIds
+									.filter((d) => d.sectionId === sid)
+									.forEach((d) => {
 										activeGroups.push({ id: d.groupId, _destroy: true });
-									}
-								}
+									});
 
 								return {
 									id: s.id > 0 ? s.id : undefined,
@@ -707,46 +785,48 @@ export const useSeatSessionStore = create<SeatSessionState>((set, get) => ({
 									col_span: s.col_span,
 									rotation: s.rotation,
 									color: s.color,
+									blueprint_config: s.blueprint_config,
 									event_ticket_seats_attributes: activeSeats,
 									event_seat_groups_attributes: activeGroups,
 								};
-							}) || [];
-
-						for (const id of deletedSectionIds) {
-							activeSections.push({ id, _destroy: true });
-						}
-
-						return {
-							id: v.id > 0 ? v.id : undefined,
-							name: v.name,
-							total_row: v.total_row,
-							total_column: v.total_column,
-							aspect_ratio: v.aspect_ratio,
-							event_seat_sections_attributes: activeSections,
-						};
+							}),
+							...deletedSectionIds.map((id) => ({
+								id,
+								_destroy: true as const,
+							})),
+						],
 					},
-				),
+				],
 			};
 
 			const updatedSession = await updateSeatSessionBlueprint(
 				session.id.toString(),
 				request,
 			);
-
+			get().setSession(updatedSession);
 			set({
-				session: updatedSession,
 				isSaving: false,
 				deletedSectionIds: [],
 				deletedSeatIds: [],
 				deletedGroupIds: [],
 				hasUnsavedChanges: false,
 			});
+
+			toast.success("Venue plan updated successfully", {
+				description: "All changes have been saved to the database.",
+			});
+
 			if (typeof window !== "undefined") {
 				localStorage.removeItem(seatSessionDraftKey(session.id));
 			}
 		} catch (e: unknown) {
-			const errorMessage = e instanceof Error ? e.message : "Failed to save session";
+			const errorMessage =
+				e instanceof Error ? e.message : "Failed to save session";
 			set({ error: errorMessage, isSaving: false });
+
+			toast.error("Failed to save plan", {
+				description: errorMessage,
+			});
 		}
 	},
 }));

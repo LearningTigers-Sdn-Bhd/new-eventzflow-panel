@@ -34,6 +34,7 @@ export interface EventSeatSection {
 	event_seat_venue_id: number;
 	name: string;
 	price: string | number | null;
+	seats_count?: number;
 	ticket_seat_counts?: {
 		total: number;
 		available: number;
@@ -50,10 +51,19 @@ export interface EventSeatSection {
 	col_span: number | null;
 	rotation?: number | null;
 	color?: string | null;
+	blueprint_config?: BlueprintConfig | null;
 	created_at: string;
 	updated_at: string;
 	event_ticket_seats?: EventTicketSeat[];
 	event_seat_groups?: EventSeatGroup[];
+}
+
+export interface BlueprintConfig {
+	row_blocks?: number[];
+	col_blocks?: number[];
+	row_gap?: number;
+	col_gap?: number;
+	exclusions?: { r: number; c: number }[];
 }
 
 export interface EventSeatGroup {

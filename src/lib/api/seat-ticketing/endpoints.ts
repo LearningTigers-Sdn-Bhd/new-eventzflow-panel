@@ -10,6 +10,7 @@ import type {
 	GetCheckoutSessionRequest,
 	GetPublicSeatSessionRequest,
 	GetPublicSeatSessionsRequest,
+	GetPublicSectionSeatsRequest,
 	GetSeatSectionsRequest,
 	GetSeatSessionRequest,
 	GetSeatSessionsRequest,
@@ -88,7 +89,7 @@ export async function getAllPublicSession(
 ): Promise<EventSeatSession[]> {
 	const queryParams = new URLSearchParams();
 	queryParams.append("event_slug", data.eventSlug);
-	const url = `v1/seat_ticketing/sessions/public?${queryParams.toString()}`;
+	const url = `v1/seat_ticketing/public_sessions?${queryParams.toString()}`;
 	return await publicRestClient.get<EventSeatSession[]>(url);
 }
 
@@ -96,7 +97,15 @@ export async function getPublicSession(
 	data: GetPublicSeatSessionRequest,
 ): Promise<EventSeatSession> {
 	return await publicRestClient.get<EventSeatSession>(
-		`v1/seat_ticketing/sessions/public/${data.idOrSlugOrPublicId}`,
+		`v1/seat_ticketing/public_sessions/${data.idOrSlugOrPublicId}`,
+	);
+}
+
+export async function getPublicSectionSeats(
+	data: GetPublicSectionSeatsRequest,
+): Promise<{ section_id: number; seats: EventTicketSeat[] }> {
+	return await publicRestClient.get<{ section_id: number; seats: EventTicketSeat[] }>(
+		`v1/seat_ticketing/public_sessions/${data.sessionId}/section_seats?section_id=${data.sectionId}`,
 	);
 }
 
@@ -381,6 +390,16 @@ export async function updateSeatSection(
 	);
 }
 
+export async function getSectionSeats(
+	sessionId: string,
+	venueId: string,
+	sectionId: string,
+): Promise<EventTicketSeat[]> {
+	return await restClient.get<EventTicketSeat[]>(
+		`v1/seat_ticketing/sessions/${sessionId}/venues/${venueId}/sections/${sectionId}/seats`,
+	);
+}
+
 export async function deleteSeatSection(
 	sessionId: string,
 	venueId: string,
@@ -480,7 +499,7 @@ export async function unlockSeat(
 
 export async function checkoutSession(data: CheckoutRequest): Promise<any> {
 	return await publicRestClient.post<any>(
-		`v1/seat_ticketing/sessions/${data.sessionId}/checkout`,
+		`v1/seat_ticketing/public_sessions/${data.sessionId}/checkout`,
 		{
 			seat_ids: data.seat_ids,
 			visitor: data.visitor,

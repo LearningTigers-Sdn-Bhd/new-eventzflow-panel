@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, HelpCircle, LayoutGrid } from "lucide-react";
+import { Check, HelpCircle, LayoutGrid, Trash2 } from "lucide-react";
+import { ArrayInputLabel } from "@/components/admin-ui/form/array-input-label";
 import { ColorPicker } from "@/components/admin-ui/form/color-picker";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
@@ -18,25 +19,29 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import type { EventSeatSection } from "@/lib/api/seat-ticketing/response";
+import type {
+	BlueprintConfig,
+	EventSeatSection,
+} from "@/lib/api/seat-ticketing/response";
 import { SeatForm } from "./seat-form";
 import { useSeatSessionStore } from "./use-seat-session-store";
 import { VenueForm } from "./venue-form";
 
 export function SeatSessionSidebar() {
-	const { mode, selectedSectionId, session } = useSeatSessionStore();
-
-	const venue = session?.event_seat_venues?.[0];
-	const selectedSection = venue?.event_seat_sections?.find(
-		(s) => s.id === selectedSectionId,
+	const mode = useSeatSessionStore((state) => state.mode);
+	const selectedSectionId = useSeatSessionStore(
+		(state) => state.selectedSectionId,
+	);
+	const selectedSection = useSeatSessionStore((state) =>
+		selectedSectionId ? state.sections[selectedSectionId] : null,
 	);
 
 	return (
 		<Sidebar
 			collapsible="none"
-			className="w-80 border-r bg-muted/30 h-[calc(100vh-4rem)]"
+			className="w-80 border-r bg-muted/30 h-[calc(100vh-4rem)] flex flex-col"
 		>
-			<SidebarContent className="px-4 py-4 gap-6 overflow-y-auto">
+			<SidebarContent className="px-4 py-4 gap-6 overflow-y-auto flex-1">
 				{mode === "venue_blueprint" ? (
 					<>
 						<VenueForm />
@@ -84,7 +89,7 @@ const snapRotation = (value: number) => {
 };
 
 function SectionRotationControls({ section }: { section: EventSeatSection }) {
-	const { updateSection } = useSeatSessionStore();
+	const updateSection = useSeatSessionStore((state) => state.updateSection);
 	const rotation = section.rotation ?? 0;
 
 	const setRotation = (value: number) => {
@@ -134,9 +139,13 @@ function SectionRotationControls({ section }: { section: EventSeatSection }) {
 }
 
 function SectionInfoForm({ section }: { section: EventSeatSection }) {
-	const { updateSection, selectSection } = useSeatSessionStore();
+	const updateSection = useSeatSessionStore((state) => state.updateSection);
+	const selectSection = useSeatSessionStore((state) => state.selectSection);
 
-	const handleChange = (field: string, value: string | number) => {
+	const handleChange = (
+		field: keyof EventSeatSection,
+		value: string | number | BlueprintConfig | null,
+	) => {
 		updateSection(section.id, { [field]: value });
 	};
 
@@ -217,6 +226,81 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 					value={section.color || "blue"}
 					onChange={(val: string) => handleChange("color", val)}
 				/>
+
+				<div className="pt-4 border-t space-y-4">
+					<div className="flex items-center justify-between">
+						<p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+							Blueprint Generator
+						</p>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-none px-2"
+							onClick={() => {
+								if (
+									confirm(
+										"Are you sure you want to delete all seats in this section? This cannot be undone until you save or refresh.",
+									)
+								) {
+									useSeatSessionStore.getState().clearSectionSeats(section.id);
+								}
+							}}
+						>
+							<Trash2 className="h-3 w-3 mr-1" />
+							Clear All Seats
+						</Button>
+					</div>
+
+					<div className="grid grid-cols-2 gap-3">
+						<NumberInputLabel
+							label="Row Gap"
+							value={section.blueprint_config?.row_gap || 0}
+							onChange={(val: number) =>
+								handleChange("blueprint_config", {
+									...section.blueprint_config,
+									row_gap: val,
+								})
+							}
+							variant="no-rounded"
+						/>
+						<NumberInputLabel
+							label="Col Gap"
+							value={section.blueprint_config?.col_gap || 0}
+							onChange={(val: number) =>
+								handleChange("blueprint_config", {
+									...section.blueprint_config,
+									col_gap: val,
+								})
+							}
+							variant="no-rounded"
+						/>
+					</div>
+
+					<ArrayInputLabel
+						label="Row Blocks (e.g. 5,5)"
+						placeholder="Split by comma"
+						value={section.blueprint_config?.row_blocks || []}
+						onChange={(val) =>
+							handleChange("blueprint_config", {
+								...section.blueprint_config,
+								row_blocks: val,
+							})
+						}
+					/>
+
+					<ArrayInputLabel
+						label="Col Blocks (e.g. 10,10)"
+						placeholder="Split by comma"
+						value={section.blueprint_config?.col_blocks || []}
+						onChange={(val) =>
+							handleChange("blueprint_config", {
+								...section.blueprint_config,
+								col_blocks: val,
+							})
+						}
+					/>
+				</div>
+
 				<SectionRotationControls section={section} />
 			</SidebarGroupContent>
 		</SidebarGroup>
@@ -224,9 +308,13 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 }
 
 function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
-	const { updateSection, selectSection } = useSeatSessionStore();
+	const updateSection = useSeatSessionStore((state) => state.updateSection);
+	const selectSection = useSeatSessionStore((state) => state.selectSection);
 
-	const handleChange = (field: string, value: string | number) => {
+	const handleChange = (
+		field: keyof EventSeatSection,
+		value: string | number | BlueprintConfig | null,
+	) => {
 		updateSection(section.id, { [field]: value });
 	};
 
@@ -279,6 +367,81 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 					value={section.color || "blue"}
 					onChange={(val: string) => handleChange("color", val)}
 				/>
+
+				<div className="pt-4 border-t space-y-4">
+					<div className="flex items-center justify-between">
+						<p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+							Blueprint Generator
+						</p>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-none px-2"
+							onClick={() => {
+								if (
+									confirm(
+										"Are you sure you want to delete all seats in this section? This cannot be undone until you save or refresh.",
+									)
+								) {
+									useSeatSessionStore.getState().clearSectionSeats(section.id);
+								}
+							}}
+						>
+							<Trash2 className="h-3 w-3 mr-1" />
+							Clear All Seats
+						</Button>
+					</div>
+
+					<div className="grid grid-cols-2 gap-3">
+						<NumberInputLabel
+							label="Row Gap"
+							value={section.blueprint_config?.row_gap || 0}
+							onChange={(val: number) =>
+								handleChange("blueprint_config", {
+									...section.blueprint_config,
+									row_gap: val,
+								})
+							}
+							variant="no-rounded"
+						/>
+						<NumberInputLabel
+							label="Col Gap"
+							value={section.blueprint_config?.col_gap || 0}
+							onChange={(val: number) =>
+								handleChange("blueprint_config", {
+									...section.blueprint_config,
+									col_gap: val,
+								})
+							}
+							variant="no-rounded"
+						/>
+					</div>
+
+					<ArrayInputLabel
+						label="Row Blocks (e.g. 5,5)"
+						placeholder="Split by comma"
+						value={section.blueprint_config?.row_blocks || []}
+						onChange={(val) =>
+							handleChange("blueprint_config", {
+								...section.blueprint_config,
+								row_blocks: val,
+							})
+						}
+					/>
+
+					<ArrayInputLabel
+						label="Col Blocks (e.g. 10,10)"
+						placeholder="Split by comma"
+						value={section.blueprint_config?.col_blocks || []}
+						onChange={(val) =>
+							handleChange("blueprint_config", {
+								...section.blueprint_config,
+								col_blocks: val,
+							})
+						}
+					/>
+				</div>
+
 				<SectionRotationControls section={section} />
 			</SidebarGroupContent>
 		</SidebarGroup>
@@ -286,40 +449,45 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 }
 
 function SectionList() {
-	const { session, selectSection } = useSeatSessionStore();
-	const sections = session?.event_seat_venues?.[0]?.event_seat_sections || [];
+	const sectionIds = useSeatSessionStore((state) => state.sectionIds);
+	const sections = useSeatSessionStore((state) => state.sections);
+	const selectSection = useSeatSessionStore((state) => state.selectSection);
 
 	return (
 		<SidebarGroup className="p-0">
 			<SidebarGroupLabel className="px-0 mb-2 flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<LayoutGrid className="h-4 w-4" />
-					SECTIONS ({sections.length})
+					SECTIONS ({sectionIds.length})
 				</div>
 			</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					{sections.length === 0 ? (
+					{sectionIds.length === 0 ? (
 						<p className="text-xs text-muted-foreground italic px-2">
 							No sections created yet.
 						</p>
 					) : (
-						sections.map((s) => (
-							<SidebarMenuItem key={s.id}>
-								<SidebarMenuButton
-									onClick={() => selectSection(s.id)}
-									className="justify-between h-9 rounded-none"
-								>
-									<span className="truncate">{s.name}</span>
-									<Badge
-										variant="secondary"
-										className="text-[10px] h-4 font-normal rounded-none"
+						sectionIds.map((sid) => {
+							const s = sections[sid];
+							if (!s) return null;
+							return (
+								<SidebarMenuItem key={s.id}>
+									<SidebarMenuButton
+										onClick={() => selectSection(s.id)}
+										className="justify-between h-9 rounded-none"
 									>
-										{s.seat_row}x{s.seat_column}
-									</Badge>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))
+										<span className="truncate">{s.name}</span>
+										<Badge
+											variant="secondary"
+											className="text-[10px] h-4 font-normal rounded-none"
+										>
+											{s.seat_row}x{s.seat_column}
+										</Badge>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							);
+						})
 					)}
 				</SidebarMenu>
 			</SidebarGroupContent>

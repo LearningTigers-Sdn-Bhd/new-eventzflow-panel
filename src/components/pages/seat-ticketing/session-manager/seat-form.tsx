@@ -13,24 +13,21 @@ import { SeatList } from "./seat-list";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 export function SeatForm() {
-	const {
-		session,
-		selectedSectionId,
-		selectedSeatIds,
-		updateSeat,
-		removeSeat,
-		selectSeat,
-	} = useSeatSessionStore();
+	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
+	const selectedSeatIds = useSeatSessionStore(state => state.selectedSeatIds);
+	const updateSeat = useSeatSessionStore(state => state.updateSeat);
+	const removeSeat = useSeatSessionStore(state => state.removeSeat);
+	const selectSeat = useSeatSessionStore(state => state.selectSeat);
 
-	const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-		(s) => s.id === selectedSectionId,
+	const section = useSeatSessionStore(state => 
+		selectedSectionId ? state.sections[selectedSectionId] : null
 	);
 
 	const isSingleSeatSelected = selectedSeatIds.length === 1;
 	const activeSeatId = isSingleSeatSelected ? selectedSeatIds[0] : null;
 
-	const selectedSeat = section?.event_ticket_seats?.find(
-		(s) => s.id === activeSeatId,
+	const selectedSeat = useSeatSessionStore(state => 
+		activeSeatId ? state.seats[activeSeatId] : null
 	);
 
 	if (!section) return null;

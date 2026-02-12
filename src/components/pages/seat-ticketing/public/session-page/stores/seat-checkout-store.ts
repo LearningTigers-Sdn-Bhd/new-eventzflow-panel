@@ -9,7 +9,7 @@ interface SeatCheckoutSessionState {
 	setHasHydrated: (state: boolean) => void;
 }
 
-export const useSeatCheckoutSessionStore = create(
+export const useSeatCheckoutStore = create(
 	persist<SeatCheckoutSessionState>(
 		(set) => ({
 			checkoutSessionUuid: null,

@@ -1,3 +1,5 @@
+import type { BlueprintConfig } from "./response";
+
 export interface GetSeatSessionsRequest {
 	eventId?: string;
 	archived?: boolean;
@@ -14,6 +16,11 @@ export interface GetSeatSessionRequest {
 
 export interface GetPublicSeatSessionRequest {
 	idOrSlugOrPublicId: string;
+}
+
+export interface GetPublicSectionSeatsRequest {
+	sessionId: string;
+	sectionId: string;
 }
 
 export interface GetCheckoutSessionRequest {
@@ -164,6 +171,7 @@ export interface BulkUpdateSectionAttributes {
 	col_span?: number | null;
 	rotation?: number | null;
 	color?: string | null;
+	blueprint_config?: BlueprintConfig | null;
 	_destroy?: boolean;
 	event_ticket_seats_attributes?: BulkUpdateSeatAttributes[];
 	event_seat_groups_attributes?: BulkUpdateGroupAttributes[];

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -62,6 +63,42 @@ export default function SeatSessionDetailsPage({
 
 function SeatSessionLayout() {
 	const mode = useSeatSessionStore((state) => state.mode);
+	const save = useSeatSessionStore((state) => state.save);
+	const removeSeat = useSeatSessionStore((state) => state.removeSeat);
+	const removeSection = useSeatSessionStore((state) => state.removeSection);
+	const selectedSeatIds = useSeatSessionStore((state) => state.selectedSeatIds);
+	const selectedSectionId = useSeatSessionStore((state) => state.selectedSectionId);
+
+	// Global Keyboard Shortcuts
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// Ignore if user is typing in an input
+			const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+			if (isInput) return;
+
+			// Ctrl + S (Save)
+			if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+				e.preventDefault();
+				save();
+			}
+
+			// Delete / Backspace (Remove)
+			if (e.key === "Delete" || e.key === "Backspace") {
+				if (mode === "seat_placement" && selectedSeatIds.length > 0) {
+					e.preventDefault();
+					for (const id of selectedSeatIds) {
+						removeSeat(id);
+					}
+				} else if (mode === "venue_blueprint" && selectedSectionId) {
+					e.preventDefault();
+					removeSection(selectedSectionId);
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [save, removeSeat, removeSection, selectedSeatIds, selectedSectionId, mode]);
 
 	return (
 		<div className="flex h-svh w-full flex-col bg-background border rounded-none shadow-sm">

@@ -14,13 +14,11 @@ export function useCanvasInteraction({
 	contentHeight,
 	enabled = true,
 }: UseCanvasInteractionProps) {
-	const {
-		zoom,
-		setZoom,
-		pan,
-		setPan,
-		isPanning,
-	} = useSeatSessionStore();
+	const zoom = useSeatSessionStore(state => state.zoom);
+	const setZoom = useSeatSessionStore(state => state.setZoom);
+	const pan = useSeatSessionStore(state => state.pan);
+	const setPan = useSeatSessionStore(state => state.setPan);
+	const isPanning = useSeatSessionStore(state => state.isPanning);
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isDragging, setIsDragging] = useState(false);

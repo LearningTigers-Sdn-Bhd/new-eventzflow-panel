@@ -25,12 +25,11 @@ export function GroupAssignmentModal({
 	seatIds,
 	sectionId,
 }: GroupAssignmentModalProps) {
-	const { session, assignSeatsToGroup, addGroup } = useSeatSessionStore();
+	const assignSeatsToGroup = useSeatSessionStore(state => state.assignSeatsToGroup);
+	const addGroup = useSeatSessionStore(state => state.addGroup);
+	const section = useSeatSessionStore(state => state.sections[sectionId]);
 	const { closeDialog } = useDialog();
 
-	const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-		(s) => s.id === sectionId,
-	);
 	const groups = section?.event_seat_groups || [];
 
 	const [mode, setMode] = useState<"select" | "create">(
@@ -51,13 +50,10 @@ export function GroupAssignmentModal({
 
 			// Because addGroup is synchronous in our store, we can immediately assign
 			// but we need to find the ID. Our addGroup doesn't return the ID easily.
-			// Let's modify the store or just find the latest group.
 			setTimeout(() => {
 				const latestGroup = useSeatSessionStore
 					.getState()
-					.session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-						(s) => s.id === sectionId,
-					)
+					.sections[sectionId]
 					?.event_seat_groups?.slice(-1)[0];
 
 				if (latestGroup) {

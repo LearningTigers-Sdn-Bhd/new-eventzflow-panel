@@ -5,21 +5,21 @@ import {
 	getPublicEventById,
 	type PublicEventInfo,
 } from "@/lib/api/event/endpoints";
-import { useSeatReservation } from "./seat-reservation-session-provider";
-import SeatReservationSessionWrapper from "./seat-reservation-session-wrapper";
+import ReservationSessionLayout from "./reservation-session-layout";
+import { usePublicSeatStore } from "./stores/public-seat-store";
 
 const STALE_TIME_MS = 1000 * 60 * 5;
 
-interface SeatReservationSessionClientProps {
+interface ReservationSessionClientProps {
 	initialEvent: PublicEventInfo | null;
 	eventSlug: string;
 }
 
-export default function SeatReservationSessionClient({
+export default function ReservationSessionClient({
 	initialEvent,
 	eventSlug,
-}: SeatReservationSessionClientProps) {
-	const { session } = useSeatReservation();
+}: ReservationSessionClientProps) {
+	const session = usePublicSeatStore((state) => state.session);
 
 	const { data: event } = useQuery({
 		queryKey: ["public-event", eventSlug],
@@ -30,12 +30,10 @@ export default function SeatReservationSessionClient({
 		staleTime: STALE_TIME_MS,
 	});
 
-	// session is guaranteed to exist because SeatReservationSessionProvider
-	// guards its children and is fetched in the layout
 	if (!session) return null;
 
 	return (
-		<SeatReservationSessionWrapper
+		<ReservationSessionLayout
 			session={session}
 			eventTitle={event?.title ?? null}
 			eventSlug={eventSlug ?? null}

@@ -33,6 +33,7 @@ interface CanvasProviderProps {
 	contentWidth: number;
 	contentHeight: number;
 	enabled?: boolean;
+	venueId?: number; // Add venueId to track changes
 }
 
 export function CanvasProvider({
@@ -40,13 +41,18 @@ export function CanvasProvider({
 	contentWidth,
 	contentHeight,
 	enabled = true,
+	venueId,
 }: CanvasProviderProps) {
-	const { zoom, setZoom, pan, setPan, isPanning } = useSeatSessionStore();
+	const zoom = useSeatSessionStore(state => state.zoom);
+	const setZoom = useSeatSessionStore(state => state.setZoom);
+	const pan = useSeatSessionStore(state => state.pan);
+	const setPan = useSeatSessionStore(state => state.setPan);
+	const isPanning = useSeatSessionStore(state => state.isPanning);
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const [startPan, setStartPan] = useState({ x: 0, y: 0 });
-	const isInitializedRef = useRef(false);
+	const initializedVenueIdRef = useRef<number | null>(null);
 
 	// Center and fit on mount/resize
 	useEffect(() => {
@@ -54,23 +60,35 @@ export function CanvasProvider({
 		if (!container) return;
 
 		const centerCanvas = () => {
+			const container = containerRef.current;
 			if (
-				contentWidth > 0 &&
-				contentHeight > 0 &&
-				container.clientWidth > 0 &&
-				container.clientHeight > 0
-			) {
-				if (!isInitializedRef.current) {
-					const scaleX = container.clientWidth / contentWidth;
-					const scaleY = container.clientHeight / contentHeight;
-					const fitZoom = Math.min(1, scaleX, scaleY);
-					setZoom(fitZoom);
-					const scaledWidth = contentWidth * fitZoom;
-					const scaledHeight = contentHeight * fitZoom;
-					const x = (container.clientWidth - scaledWidth) / 2;
-					const y = (container.clientHeight - scaledHeight) / 2;
-					setPan({ x: Math.max(0, x), y: Math.max(0, y) });
-					isInitializedRef.current = true;
+				!container ||
+				contentWidth <= 0 ||
+				contentHeight <= 0 ||
+				container.clientWidth <= 0 ||
+				container.clientHeight <= 0
+			)
+				return;
+
+			// If venue changed or not yet initialized for this venue
+			if (initializedVenueIdRef.current !== venueId) {
+				// Calculate scale to fit with a small margin
+				const scaleX = (container.clientWidth - 60) / contentWidth;
+				const scaleY = (container.clientHeight - 60) / contentHeight;
+				const fitZoom = Math.min(scaleX, scaleY);
+				
+				setZoom(fitZoom);
+
+				const scaledWidth = contentWidth * fitZoom;
+				const scaledHeight = contentHeight * fitZoom;
+				const x = (container.clientWidth - scaledWidth) / 2;
+				const y = (container.clientHeight - scaledHeight) / 2;
+				
+				setPan({ x, y });
+				
+				// Mark as initialized for this specific venue
+				if (venueId) {
+					initializedVenueIdRef.current = venueId;
 				}
 			}
 		};
@@ -78,11 +96,10 @@ export function CanvasProvider({
 		const observer = new ResizeObserver(() => centerCanvas());
 		observer.observe(container);
 
-		// Initial check
 		centerCanvas();
 
 		return () => observer.disconnect();
-	}, [contentWidth, contentHeight, setPan, setZoom]);
+	}, [contentWidth, contentHeight, setPan, setZoom, venueId]);
 
 	// Wheel Listener
 	useEffect(() => {

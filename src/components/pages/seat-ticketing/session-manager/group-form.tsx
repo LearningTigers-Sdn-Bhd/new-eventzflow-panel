@@ -15,28 +15,25 @@ import {
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 export function GroupForm() {
-	const {
-		session,
-		selectedSectionId,
-		selectedGroupId,
-		updateGroup,
-		removeGroup,
-		selectGroup,
-		addGroup,
-	} = useSeatSessionStore();
+	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
+	const selectedGroupId = useSeatSessionStore(state => state.selectedGroupId);
+	const updateGroup = useSeatSessionStore(state => state.updateGroup);
+	const removeGroup = useSeatSessionStore(state => state.removeGroup);
+	const selectGroup = useSeatSessionStore(state => state.selectGroup);
+	const addGroup = useSeatSessionStore(state => state.addGroup);
 
-	const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-		(s) => s.id === selectedSectionId,
+	const section = useSeatSessionStore(state => 
+		selectedSectionId ? state.sections[selectedSectionId] : null
 	);
 	const selectedGroup = section?.event_seat_groups?.find(
 		(g) => g.id === selectedGroupId,
 	);
 
-	if (!section) return null;
+	if (!section || !selectedSectionId) return null;
 
 	const handleChange = (field: string, value: string | number | null) => {
 		if (selectedGroupId) {
-			updateGroup(selectedGroupId, { [field]: value });
+			updateGroup(selectedSectionId, selectedGroupId, { [field]: value });
 		}
 	};
 
@@ -56,7 +53,7 @@ export function GroupForm() {
 						<Check className="h-4 w-4" />
 					</SidebarGroupAction>
 					<SidebarGroupAction
-						onClick={() => removeGroup(selectedGroup.id)}
+						onClick={() => removeGroup(selectedSectionId, selectedGroup.id)}
 						className="text-destructive hover:text-destructive hover:bg-destructive/10 relative rounded-none"
 						title="Delete group"
 					>

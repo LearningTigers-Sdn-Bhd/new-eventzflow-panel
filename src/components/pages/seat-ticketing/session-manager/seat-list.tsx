@@ -1,6 +1,7 @@
 "use client";
 
 import { Armchair, MousePointer2, Plus, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	SidebarGroup,
@@ -17,26 +18,27 @@ import { getGroupColor } from "@/lib/utils/group-colors";
 import { useSeatSessionStore } from "./use-seat-session-store";
 
 export function SeatList() {
-	const {
-		session,
-		selectedSectionId,
-		selectSeat,
-		removeSeat,
-		activeGroupId,
-		setGroupPaintingMode,
-		selectedSeatIds,
-		interactionMode,
-		setInteractionMode,
-	} = useSeatSessionStore();
-
-	const section = session?.event_seat_venues?.[0]?.event_seat_sections?.find(
-		(s) => s.id === selectedSectionId,
+	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
+	const section = useSeatSessionStore(state => 
+		selectedSectionId ? state.sections[selectedSectionId] : null
 	);
+	
+	const selectSeat = useSeatSessionStore(state => state.selectSeat);
+	const removeSeat = useSeatSessionStore(state => state.removeSeat);
+	const activeGroupId = useSeatSessionStore(state => state.activeGroupId);
+	const setGroupPaintingMode = useSeatSessionStore(state => state.setGroupPaintingMode);
+	const selectedSeatIds = useSeatSessionStore(state => state.selectedSeatIds);
+	const interactionMode = useSeatSessionStore(state => state.interactionMode);
+	const setInteractionMode = useSeatSessionStore(state => state.setInteractionMode);
+
+	const allSeats = useSeatSessionStore(state => state.seats);
+	const seats = useMemo(() => 
+		Object.values(allSeats).filter(s => s.event_seat_section_id === selectedSectionId),
+	[allSeats, selectedSectionId]);
 
 	if (!section) return null;
 
 	const groups = section.event_seat_groups || [];
-	const seats = section.event_ticket_seats || [];
 
 	const unassignedSeats = seats.filter((s) => !s.event_seat_group_assignment);
 

@@ -1,55 +1,53 @@
 "use client";
 
-import { Image } from "@unpic/react";
+import { ArrowLeftIcon, TicketIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function SeatReservationsNotFoundPage() {
+export default function SeatReservationNotFound() {
 	const params = useParams();
 	const eventSlug = params.slug as string | undefined;
-	const redirectTo = eventSlug
-		? `/events/${eventSlug}/seat-reservations`
-		: "/";
-	const redirectLabel = eventSlug
-		? "Back to Seat Reservations"
-		: "Go Back";
+
+	const backHref = eventSlug
+		? (`/events/${eventSlug}/seat-reservations` as Route)
+		: ("/events" as Route);
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12 text-center">
-			<div className="max-w-md space-y-4">
-				<Image
-					src="https://images.unsplash.com/photo-1519750157634-b6d493a0f77c?auto=format&fit=crop&q=80&w=600&h=600"
-					alt="Event Not Found Cartoon"
-					width={192}
-					height={192}
-					className="mx-auto h-48 w-48 object-contain"
-				/>
-				<h1 className="font-bold text-6xl text-gray-900 tracking-tight sm:text-7xl">
-					Uh oh.
-				</h1>
-				<p className="font-medium text-gray-600 text-xl">
-					This seat reservation session doesn&apos;t exist.
-				</p>
-				<p className="text-gray-500">
-					Check the session link or return to the reservation catalogue.
-				</p>
-				<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-					<Link href="/" passHref>
-						<Button className="w-full rounded-none sm:w-auto">
-							Go to Homepage
-						</Button>
-					</Link>
-					<Link href={redirectTo} passHref>
-						<Button
-							variant="outline"
-							className="w-full rounded-none sm:w-auto"
-						>
-							{redirectLabel}
-						</Button>
-					</Link>
-				</div>
+		<main className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+			<div className="mb-6 rounded-full bg-slate-100 p-6">
+				<TicketIcon className="h-12 w-12 text-slate-400" />
 			</div>
-		</div>
+
+			<h1 className="mb-2 text-3xl font-black uppercase tracking-tight text-slate-900 md:text-4xl">
+				Session Not Found
+			</h1>
+
+			<p className="mb-10 max-w-md text-slate-600">
+				The seat reservation session you are looking for might have been
+				cancelled, unpublished, or moved.
+			</p>
+
+			<div className="flex flex-col gap-3 sm:flex-row">
+				<Button
+					asChild
+					variant="outline"
+					className="h-12 rounded-none border-2 font-bold px-8 uppercase tracking-widest"
+				>
+					<Link href={backHref}>
+						<ArrowLeftIcon className="mr-2 h-4 w-4" />
+						Back to Catalogue
+					</Link>
+				</Button>
+
+				<Button
+					asChild
+					className="h-12 rounded-none bg-brand-green font-bold px-8 uppercase tracking-widest hover:bg-brand-green/90"
+				>
+					<Link href={"/events" as Route}>Browse Events</Link>
+				</Button>
+			</div>
+		</main>
 	);
 }
