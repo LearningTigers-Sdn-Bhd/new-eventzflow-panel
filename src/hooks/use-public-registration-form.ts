@@ -1,39 +1,38 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   createPublicRegistration,
   getPublicTicketTypes,
-  type ConferenceRegistrationKind,
-  type PublicRegistrationMode,
 } from "@/lib/api/public-registration";
 import { getCheckInEvent } from "@/lib/api/event-check-in";
 import { getStatusCopy } from "@/lib/constants/public-registration";
-import { buildTicketTypeMap, resolveTicketTypeId } from "@/lib/api/public-registration/resolver";
 import {
-  conferenceSchema,
   simpleRegistrationSchema,
-  type ConferenceFormValues,
   type SimpleFormValues,
+  validateAttendeeCount,
 } from "@/lib/api/public-registration/request";
-import { submitGroupRegistrations, type GroupSubmissionSummary } from "@/lib/api/public-registration/submit";
+import { submitGroupRegistrations } from "@/lib/api/public-registration/submit";
 
-type FormValues = ConferenceFormValues | SimpleFormValues;
+type FormValues = SimpleFormValues;
 
 function compactCustomFields(fields: Record<string, string | undefined>) {
-  return Object.fromEntries(
-    Object.entries(fields).filter(([, value]) => Boolean(value?.trim())),
-  );
+  return Object.entries(fields).reduce<Record<string, string>>((result, [key, value]) => {
+    if (value?.trim()) {
+      result[key] = value;
+    }
+    return result;
+  }, {});
 }
 
 export function usePublicRegistrationForm({
   eventSlug,
-  mode,
+  formSlug,
 }: {
   eventSlug: string;
-  mode: PublicRegistrationMode;
+  formSlug: string;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -42,7 +41,6 @@ export function usePublicRegistrationForm({
     public_id: string;
     payment_status: string;
   } | null>(null);
-  const [groupSummary, setGroupSummary] = useState<GroupSubmissionSummary | null>(null);
 
   const eventQuery = useQuery({
     queryKey: ["public-registration-event", eventSlug],
@@ -50,77 +48,17 @@ export function usePublicRegistrationForm({
   });
 
   const ticketTypesQuery = useQuery({
-    queryKey: ["public-registration-ticket-types", eventSlug],
-    queryFn: () => getPublicTicketTypes(eventSlug),
+    queryKey: ["public-registration-ticket-types", eventSlug, formSlug],
+    queryFn: () => getPublicTicketTypes(eventSlug, formSlug),
   });
 
-  const ticketTypeMap = useMemo(
-    () => buildTicketTypeMap(ticketTypesQuery.data ?? []),
-    [ticketTypesQuery.data],
-  );
-
-  const modePriceInfo = useMemo(() => {
-    if (mode === "visitor") return ticketTypeMap.visitor;
-    if (mode === "golf") return ticketTypeMap.golf;
-    return ticketTypeMap.conference_individual;
-  }, [mode, ticketTypeMap]);
-
-  async function retryFailedGroup(
-    attendees: Array<{
-      attendee_name: string;
-      attendee_email?: string;
-      attendee_phone?: string;
-      custom_fields_data?: Record<string, string>;
-    }>,
-    conferenceKind: ConferenceRegistrationKind,
-  ) {
-    setIsSubmitting(true);
-    try {
-      const ticketTypeId = resolveTicketTypeId("conference", conferenceKind, ticketTypeMap);
-      const summary = await submitGroupRegistrations({
-        eventSlug,
-        ticketTypeId,
-        role: "delegate",
-        sharedCustomFields: compactCustomFields({
-          registration_mode: "conference",
-          conference_kind: conferenceKind,
-        }),
-        attendees,
-      });
-      setGroupSummary(summary);
-      if (summary.failedCount > 0) {
-        toast.warning(
-          `${summary.successCount} successful, ${summary.failedCount} failed.`,
-        );
-      } else {
-        toast.success(`Retry completed. ${summary.successCount} delegates registered.`);
-      }
-      return summary;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Retry failed";
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function submit(values: FormValues) {
+  async function submit(values: FormValues & { selectedTicketTypeId?: number }) {
     setIsSubmitting(true);
     setStatusMessage(null);
     setSingleResult(null);
-    setGroupSummary(null);
 
     try {
-      const conferenceKind =
-        mode === "conference"
-          ? (values as ConferenceFormValues).registrationKind
-          : ("individual" as ConferenceRegistrationKind);
-
-      const schemaResult =
-        mode === "conference"
-          ? conferenceSchema.safeParse(values)
-          : simpleRegistrationSchema.safeParse(values);
+      const schemaResult = simpleRegistrationSchema.safeParse(values);
 
       if (!schemaResult.success) {
         const firstError = schemaResult.error.issues[0]?.message ?? "Invalid form input";
@@ -128,22 +66,43 @@ export function usePublicRegistrationForm({
       }
 
       const parsed = schemaResult.data;
-      const ticketTypeId = resolveTicketTypeId(mode, conferenceKind, ticketTypeMap);
-      const conferenceValues =
-        mode === "conference" ? (parsed as ConferenceFormValues) : null;
-      const sharedCustomFields = compactCustomFields({
-        registration_mode: mode,
-        conference_kind: mode === "conference" ? conferenceKind : undefined,
-        membership_number: conferenceValues?.membership_number,
-        organization_name: conferenceValues?.organization_name,
-        country: conferenceValues?.country,
+
+      // Use explicitly selected ticket type, or fall back to first available
+      const ticketTypeId =
+        values.selectedTicketTypeId ??
+        ticketTypesQuery.data?.[0]?.id;
+
+      if (!ticketTypeId) {
+        throw new Error("No ticket type available for this registration form.");
+      }
+
+      const selectedTicketType =
+        ticketTypesQuery.data?.find((item) => item.id === ticketTypeId) ?? null;
+
+      if (!selectedTicketType) {
+        throw new Error("Selected ticket type is not available.");
+      }
+
+      const attendeeCountError = validateAttendeeCount(parsed.attendees.length, {
+        registration_mode: selectedTicketType.registration_mode,
+        min_attendees: selectedTicketType.min_attendees,
+        max_attendees: selectedTicketType.max_attendees,
       });
 
-      if (mode === "conference" && conferenceKind === "group") {
+      if (attendeeCountError) {
+        throw new Error(attendeeCountError);
+      }
+
+      const sharedCustomFields = compactCustomFields({
+        registration_mode: formSlug,
+      });
+
+      if (selectedTicketType.registration_mode === "group") {
         const summary = await submitGroupRegistrations({
           eventSlug,
           ticketTypeId,
           role: "delegate",
+          formSlug,
           sharedCustomFields,
           attendees: parsed.attendees.map((attendee) => ({
             attendee_name: attendee.attendee_name,
@@ -157,14 +116,12 @@ export function usePublicRegistrationForm({
           })),
         });
 
-        setGroupSummary(summary);
         if (summary.failedCount > 0) {
-          toast.warning(
-            `${summary.successCount} successful, ${summary.failedCount} failed. Retry failed attendees only.`,
-          );
-        } else {
-          toast.success(`All ${summary.successCount} delegates registered.`);
+          throw new Error(`${summary.successCount} successful, ${summary.failedCount} failed.`);
         }
+
+        setStatusMessage(`Group registration submitted for ${summary.successCount} attendees.`);
+        toast.success(`Group registration submitted for ${summary.successCount} attendees.`);
         return;
       }
 
@@ -174,7 +131,8 @@ export function usePublicRegistrationForm({
         attendee_email: attendee.attendee_email,
         attendee_phone: attendee.attendee_phone,
         ticket_type_id: ticketTypeId,
-        role: mode === "visitor" ? "visitor" : "delegate",
+        role: "delegate",
+        form_slug: formSlug,
         custom_fields_data: {
           ...sharedCustomFields,
           ...compactCustomFields({
@@ -203,13 +161,9 @@ export function usePublicRegistrationForm({
   return {
     eventQuery,
     ticketTypesQuery,
-    ticketTypeMap,
-    modePriceInfo,
     isSubmitting,
     statusMessage,
     singleResult,
-    groupSummary,
-    retryFailedGroup,
     submit,
   };
 }

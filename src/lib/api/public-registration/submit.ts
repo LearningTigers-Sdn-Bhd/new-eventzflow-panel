@@ -29,6 +29,7 @@ export async function submitGroupRegistrations(params: {
   eventSlug: string;
   ticketTypeId: number;
   role?: string;
+  formSlug?: string;
   sharedCustomFields?: Record<string, string>;
   attendees: Array<{
     attendee_name: string;
@@ -56,6 +57,7 @@ export async function submitGroupRegistrations(params: {
           attendee_phone: attendee.attendee_phone,
           ticket_type_id: params.ticketTypeId,
           role: params.role,
+          form_slug: params.formSlug,
           custom_fields_data: {
             ...(params.sharedCustomFields ?? {}),
             ...(attendee.custom_fields_data ?? {}),

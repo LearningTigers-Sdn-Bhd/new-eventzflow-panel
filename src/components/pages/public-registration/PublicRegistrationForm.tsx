@@ -1,20 +1,14 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import type {
-  ConferenceRegistrationKind,
-  PublicRegistrationMode,
-} from "@/lib/api/public-registration";
-import {
-  buildTicketTypeMap,
-  resolveTicketTypeId,
+  PublicTicketTypeItem,
 } from "@/lib/api/public-registration";
 import { usePublicRegistrationForm } from "@/hooks/use-public-registration-form";
-import { ConferenceModeSelector } from "./ConferenceModeSelector";
-import { GroupSubmissionResultTable } from "./GroupSubmissionResultTable";
 import { SubmissionStatusPanel } from "./SubmissionStatusPanel";
 
 interface AttendeeFormRow {
@@ -39,17 +33,13 @@ const emptyAttendee = (): AttendeeFormRow => ({
 
 export function PublicRegistrationForm({
   eventSlug,
-  mode,
+  formSlug,
 }: {
   eventSlug: string;
-  mode: PublicRegistrationMode;
+  formSlug: string;
 }) {
-  const [conferenceKind, setConferenceKind] =
-    useState<ConferenceRegistrationKind>("individual");
-  const [membershipNumber, setMembershipNumber] = useState("");
-  const [organizationName, setOrganizationName] = useState("");
-  const [country, setCountry] = useState("");
   const [attendees, setAttendees] = useState<AttendeeFormRow[]>([emptyAttendee()]);
+  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<number | null>(null);
 
   const {
     eventQuery,
@@ -57,26 +47,45 @@ export function PublicRegistrationForm({
     isSubmitting,
     singleResult,
     statusMessage,
-    groupSummary,
-    retryFailedGroup,
     submit,
-  } = usePublicRegistrationForm({ eventSlug, mode });
+  } = usePublicRegistrationForm({ eventSlug, formSlug });
 
-  const ticketTypeMap = useMemo(
-    () => buildTicketTypeMap(ticketTypesQuery.data ?? []),
-    [ticketTypesQuery.data],
-  );
+  const ticketTypes = ticketTypesQuery.data ?? [];
+  const hasTicketTypes = ticketTypes.length > 0;
+  const hasMultipleTicketTypes = ticketTypes.length > 1;
 
-  const activeTicketInfo = useMemo(() => {
-    try {
-      const id = resolveTicketTypeId(mode, conferenceKind, ticketTypeMap);
-      return (ticketTypesQuery.data ?? []).find((item) => item.id === id) ?? null;
-    } catch {
-      return null;
+  const activeTicketType = useMemo(() => {
+    if (selectedTicketTypeId) {
+      return ticketTypes.find((t) => t.id === selectedTicketTypeId) ?? null;
     }
-  }, [mode, conferenceKind, ticketTypeMap, ticketTypesQuery.data]);
+    return ticketTypes[0] ?? null;
+  }, [selectedTicketTypeId, ticketTypes]);
 
   const loading = eventQuery.isLoading || ticketTypesQuery.isLoading;
+
+  const registrationMode = activeTicketType?.registration_mode ?? "single";
+  const minAttendees = activeTicketType?.min_attendees ?? 1;
+  const maxAttendees = activeTicketType?.max_attendees ?? null;
+  const canAddAttendee = registrationMode === "group" && (!maxAttendees || attendees.length < maxAttendees);
+
+  useEffect(() => {
+    if (registrationMode === "single") {
+      setAttendees((current) => current.slice(0, 1));
+      return;
+    }
+
+    setAttendees((current) => {
+      if (current.length >= minAttendees) {
+        return current;
+      }
+
+      const next = [...current];
+      while (next.length < minAttendees) {
+        next.push(emptyAttendee());
+      }
+      return next;
+    });
+  }, [registrationMode, minAttendees]);
 
   function updateAttendee(index: number, key: keyof AttendeeFormRow, value: string) {
     setAttendees((current) => {
@@ -89,54 +98,31 @@ export function PublicRegistrationForm({
     });
   }
 
-  function addAttendee() {
-    setAttendees((current) => [...current, emptyAttendee()]);
+  function removeAttendee(index: number) {
+    if (registrationMode === "group" && attendees.length <= minAttendees) {
+      return;
+    }
+
+    setAttendees((current) => current.filter((_, i) => i !== index));
   }
 
-  function removeAttendee(index: number) {
-    setAttendees((current) => current.filter((_, i) => i !== index));
+  function addAttendee() {
+    if (!canAddAttendee) {
+      return;
+    }
+
+    setAttendees((current) => [...current, emptyAttendee()]);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const payload = {
-      registrationKind: conferenceKind,
-      membership_number: membershipNumber,
-      organization_name: organizationName,
-      country,
       attendees: attendees.map(({ row_id, ...attendee }) => attendee),
+      selectedTicketTypeId: activeTicketType?.id,
     };
 
     submit(payload);
-  }
-
-  async function handleRetryFailedOnly() {
-    if (!groupSummary) {
-      return;
-    }
-
-    const failedAttendees = groupSummary.rows
-      .filter((row) => !row.ok)
-      .map((row) => {
-        const source = attendees.find((item) => item.attendee_name === row.attendee_name);
-        return {
-          attendee_name: row.attendee_name,
-          attendee_email: source?.attendee_email,
-          attendee_phone: source?.attendee_phone,
-          custom_fields_data: {
-            company_name: source?.company_name ?? "",
-            job_title: source?.job_title ?? "",
-            country: source?.country ?? "",
-          },
-        };
-      });
-
-    if (failedAttendees.length === 0) {
-      return;
-    }
-
-    await retryFailedGroup(failedAttendees, conferenceKind);
   }
 
   if (loading) {
@@ -158,62 +144,46 @@ export function PublicRegistrationForm({
           <CardTitle>{eventQuery.data?.title ?? "Event registration"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1 text-sm text-muted-foreground">
-          <p>Current form: {mode.toUpperCase()}</p>
-          {activeTicketInfo ? (
+          {activeTicketType ? (
             <p>
-              Current rate: RM {activeTicketInfo.price.toLocaleString()} {activeTicketInfo.current_tier ? `(${activeTicketInfo.current_tier})` : ""}
+              Current rate: RM {activeTicketType.price.toLocaleString()} {activeTicketType.current_tier ? `(${activeTicketType.current_tier})` : ""}
             </p>
           ) : (
-            <p>Ticket type is not configured for this registration option.</p>
+            <p>No ticket type is configured for this registration form.</p>
           )}
         </CardContent>
       </Card>
 
-      <form className="space-y-6" onSubmit={onSubmit}>
-        {mode === "conference" ? (
+      {hasTicketTypes ? (
+        <form className="space-y-6" onSubmit={onSubmit}>
+        {/* Ticket type selector - shown when multiple ticket types mapped to this form */}
+        {hasMultipleTicketTypes ? (
           <Card>
             <CardHeader>
-              <CardTitle>Conference category</CardTitle>
+              <CardTitle>Select ticket type</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <ConferenceModeSelector value={conferenceKind} onChange={setConferenceKind} />
-
-              {conferenceKind === "member" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Input
-                    placeholder="Membership number"
-                    value={membershipNumber}
-                    onChange={(event) => setMembershipNumber(event.target.value)}
-                  />
-                  <Input
-                    placeholder="Organization name"
-                    value={organizationName}
-                    onChange={(event) => setOrganizationName(event.target.value)}
-                  />
-                </div>
-              ) : null}
-
-              {conferenceKind === "international" ? (
-                <Input
-                  placeholder="Country"
-                  value={country}
-                  onChange={(event) => setCountry(event.target.value)}
-                />
-              ) : null}
+            <CardContent>
+              <TicketTypeSelector
+                ticketTypes={ticketTypes}
+                selectedId={selectedTicketTypeId ?? ticketTypes[0]?.id ?? null}
+                onChange={setSelectedTicketTypeId}
+              />
             </CardContent>
           </Card>
         ) : null}
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              Attendee details
-              {mode === "conference" && conferenceKind === "group"
-                ? " (minimum 3)"
-                : ""}
-            </CardTitle>
+            <CardTitle>Attendee details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {registrationMode === "group" ? (
+              <p className="text-sm text-muted-foreground">
+                This ticket type is group registration. Minimum attendees: {minAttendees}
+                {maxAttendees ? `, maximum attendees: ${maxAttendees}` : ""}.
+              </p>
+            ) : null}
+
             {attendees.map((attendee, index) => (
               <div key={attendee.row_id} className="rounded-lg border p-3">
                 <div className="mb-3 flex items-center justify-between">
@@ -223,6 +193,7 @@ export function PublicRegistrationForm({
                       type="button"
                       variant="ghost"
                       size="sm"
+                      disabled={registrationMode === "group" && attendees.length <= minAttendees}
                       onClick={() => removeAttendee(index)}
                     >
                       Remove
@@ -281,18 +252,24 @@ export function PublicRegistrationForm({
               </div>
             ))}
 
-            {mode === "conference" && conferenceKind === "group" ? (
-              <Button type="button" variant="outline" onClick={addAttendee}>
+            {registrationMode === "group" ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addAttendee}
+                disabled={!canAddAttendee}
+              >
                 Add attendee
               </Button>
             ) : null}
 
-            <Button type="submit" disabled={isSubmitting || !activeTicketInfo}>
+            <Button type="submit" disabled={isSubmitting || !activeTicketType}>
               {isSubmitting ? "Submitting..." : "Submit registration"}
             </Button>
           </CardContent>
         </Card>
-      </form>
+        </form>
+      ) : null}
 
       {singleResult && statusMessage ? (
         <SubmissionStatusPanel
@@ -301,14 +278,39 @@ export function PublicRegistrationForm({
           message={statusMessage}
         />
       ) : null}
+    </div>
+  );
+}
 
-      {groupSummary ? (
-        <GroupSubmissionResultTable
-          summary={groupSummary}
-          onRetryFailed={handleRetryFailedOnly}
-          retrying={isSubmitting}
-        />
-      ) : null}
+function TicketTypeSelector({
+  ticketTypes,
+  selectedId,
+  onChange,
+}: {
+  ticketTypes: PublicTicketTypeItem[];
+  selectedId: number | null;
+  onChange: (id: number) => void;
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {ticketTypes.map((tt) => {
+        const active = selectedId === tt.id;
+        return (
+          <Button
+            key={tt.id}
+            type="button"
+            variant={active ? "default" : "outline"}
+            className={cn("h-auto flex-col items-start p-3 text-left")}
+            onClick={() => onChange(tt.id)}
+          >
+            <span className="font-medium text-sm">{tt.name}</span>
+            <span className="text-xs opacity-80">
+              RM {tt.price.toLocaleString()}
+              {tt.current_tier ? ` (${tt.current_tier})` : ""}
+            </span>
+          </Button>
+        );
+      })}
     </div>
   );
 }

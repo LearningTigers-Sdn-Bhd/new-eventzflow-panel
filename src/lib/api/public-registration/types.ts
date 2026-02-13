@@ -1,10 +1,15 @@
 export type PublicRegistrationMode = "conference" | "visitor" | "golf";
 
-export type ConferenceRegistrationKind =
-  | "individual"
-  | "group"
-  | "member"
-  | "international";
+export interface PublicRegistrationFormItem {
+  slug: string;
+  name: string;
+  description: string | null;
+}
+
+export interface PublicRegistrationFormsResponse {
+  success: boolean;
+  data: PublicRegistrationFormItem[];
+}
 
 export interface PublicTicketTypeItem {
   id: number;
@@ -12,6 +17,9 @@ export interface PublicTicketTypeItem {
   price: number;
   current_tier: string | null;
   available: boolean;
+  registration_mode: "single" | "group";
+  min_attendees: number;
+  max_attendees?: number | null;
   custom_fields_data?: Record<string, string | number | boolean | null>;
 }
 
@@ -26,6 +34,7 @@ export interface CreatePublicRegistrationPayload {
   attendee_phone?: string;
   ticket_type_id: number;
   role?: string;
+  form_slug?: string;
   custom_fields_data?: Record<string, string>;
 }
 
