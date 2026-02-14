@@ -21,6 +21,7 @@ import {
 	X,
 } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -195,14 +196,14 @@ export default function FloatingNavNew() {
 						onClick={scrollToTop}
 						className="group flex items-center transition-all duration-300"
 					>
-						<span
-							className="font-bold text-xl leading-tight lg:text-2xl"
-							style={{ fontFamily: "Times New Roman, serif" }}
-						>
-							<span style={{ color: "#23c460" }}>Event</span>
-							<span style={{ color: "#2766ec" }}>z</span>
-							<span style={{ color: "#23c460" }}>Flow</span>
-						</span>
+						<Image
+							src="/logo/Logo.png"
+							alt="Eventzflow logo"
+							width={907}
+							height={73}
+							priority
+							className="h-auto w-[185px] md:w-[225px]"
+						/>
 					</button>
 
 					{/* Desktop Navigation */}

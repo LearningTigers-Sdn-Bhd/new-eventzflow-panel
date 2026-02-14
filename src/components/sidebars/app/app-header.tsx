@@ -1,6 +1,7 @@
 import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BsTicketPerforatedFill } from "react-icons/bs";
+import { BsCalendar2Event } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
 import {
 	SidebarMenu,
@@ -33,7 +34,7 @@ export function AppHeader() {
 							tooltip="Home"
 						>
 							<div className="flex aspect-square size-8 items-center justify-center rounded-none bg-sidebar-primary text-sidebar-primary-foreground">
-								<BsTicketPerforatedFill className="size-4" />
+								<BsCalendar2Event className="size-4" />
 							</div>
 							<span className="sr-only">Home</span>
 						</SidebarMenuButton>
@@ -70,17 +71,25 @@ export function AppHeader() {
 					{/* Home button with icon and text */}
 					<SidebarMenuButton
 						size="lg"
-						className="flex-1 cursor-pointer rounded-none data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+						className="flex-1 cursor-pointer border border-primary rounded-none data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						onClick={() => {
 							router.push("/");
 						}}
 					>
-						<div className="flex aspect-square size-8 items-center justify-center rounded-none bg-sidebar-primary text-sidebar-primary-foreground">
-							<BsTicketPerforatedFill className="size-4" />
-						</div>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							<span className="truncate font-medium">EventzFlow Panel</span>
-							<span className="truncate text-xs">Saleschatalyst</span>
+						<div className="flex items-center gap-2">
+							<div className="flex size-7 items-center justify-center bg-black text-white">
+								<BsCalendar2Event className="size-3.5" />
+							</div>
+							<div className="flex leading-none">
+								<Image
+									src="/logo/Logo.png"
+									alt="Eventzflow logo"
+									width={907}
+									height={73}
+									priority
+									className="h-auto w-[156px]"
+								/>
+							</div>
 						</div>
 					</SidebarMenuButton>
 					{/* Toggle button - show PanelRightOpen when expanded */}
