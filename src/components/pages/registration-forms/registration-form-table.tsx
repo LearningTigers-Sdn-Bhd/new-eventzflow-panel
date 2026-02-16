@@ -27,6 +27,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import type { RegistrationForm } from "@/lib/api/registration-form";
 import { CreateRegistrationFormForm } from "./create-registration-form-form";
 import { generateColumns } from "./registration-form-columns";
+import { DataControl } from "./registration-form-table-control";
 
 interface RegistrationFormTableProps {
 	data: RegistrationForm[];
@@ -81,6 +82,8 @@ export function RegistrationFormTable({ data }: RegistrationFormTableProps) {
 
 	return (
 		<div className="w-full">
+			<DataControl table={table} />
+
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
 					<DesktopView>
@@ -111,7 +114,7 @@ export function RegistrationFormTable({ data }: RegistrationFormTableProps) {
 												{row.original.ticketTypes.map((tt) => (
 													<span
 														key={tt.id}
-														className="bg-secondary rounded px-1.5 py-0.5 text-xs"
+														className="rounded bg-secondary px-1.5 py-0.5 text-xs"
 													>
 														{tt.name}
 													</span>
@@ -138,10 +141,7 @@ export function RegistrationFormTable({ data }: RegistrationFormTableProps) {
 						<div className="grid grid-cols-2 gap-4">
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => (
-									<div
-										key={row.id}
-										className="col-span-1 rounded border p-4"
-									>
+									<div key={row.id} className="col-span-1 rounded border p-4">
 										<div className="font-medium">{row.original.name}</div>
 										<div className="text-muted-foreground text-sm">
 											/{row.original.slug}

@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { PublicRegistrationForm } from "@/components/pages/public-registration/PublicRegistrationForm";
-import { Button } from "@/components/ui/button";
 
 export default async function PublicRegistrationTypePage({
   params,
@@ -10,18 +10,22 @@ export default async function PublicRegistrationTypePage({
   const { slug, type } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center gap-3">
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/events/${encodeURIComponent(slug)}/register`}>Back</Link>
-        </Button>
-        <h1 className="font-semibold text-2xl tracking-tight">Registration form</h1>
-      </div>
+    <section className="relative min-h-screen bg-white-background overflow-hidden">
+      <main className="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:px-16 lg:py-24">
+        {/* Back button */}
+        <Link
+          href={`/events/${encodeURIComponent(slug)}/register`}
+          className="inline-flex items-center gap-2 text-sm font-medium text-black/60 hover:text-black transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to registration options
+        </Link>
 
-      <PublicRegistrationForm
-        eventSlug={slug}
-        formSlug={type}
-      />
-    </main>
+        <PublicRegistrationForm
+          eventSlug={slug}
+          formSlug={type}
+        />
+      </main>
+    </section>
   );
 }

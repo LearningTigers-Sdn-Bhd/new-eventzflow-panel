@@ -1,25 +1,30 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { createRegistrationForm } from "@/lib/api/registration-form";
 import { getEventTicketTypes, type TicketType } from "@/lib/api/ticket-type";
+import { buildCustomLabelsData, type CustomLabelInput } from "./custom-labels";
 
 interface TicketTypeRuleInput {
 	registration_mode: "single" | "group";
 	min_attendees: number;
 	max_attendees: string;
+	custom_labels: CustomLabelInput[];
 }
 
 const defaultRule = (): TicketTypeRuleInput => ({
 	registration_mode: "single",
 	min_attendees: 1,
 	max_attendees: "",
+	custom_labels: [],
 });
 
 interface CreateRegistrationFormFormProps {
@@ -47,6 +52,7 @@ export function CreateRegistrationFormForm({
 		Record<number, TicketTypeRuleInput>
 	>({});
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [customLabels, setCustomLabels] = useState<CustomLabelInput[]>([]);
 
 	const { data: ticketTypes } = useQuery({
 		queryKey: ["event", eventId, "ticket-types"],
@@ -86,6 +92,7 @@ export function CreateRegistrationFormForm({
 			name: formData.name,
 			slug: formData.slug,
 			description: formData.description || undefined,
+			custom_labels_data: buildCustomLabelsData(customLabels),
 			ticket_type_ids: selectedTicketTypeIds,
 			ticket_type_rules: selectedTicketTypeIds.map((ticketTypeId) => {
 				const rule = ticketTypeRules[ticketTypeId] ?? defaultRule();
@@ -96,6 +103,7 @@ export function CreateRegistrationFormForm({
 					max_attendees: rule.max_attendees
 						? Number.parseInt(rule.max_attendees, 10)
 						: null,
+					custom_labels_data: buildCustomLabelsData(rule.custom_labels),
 				};
 			}),
 		});
@@ -138,10 +146,7 @@ export function CreateRegistrationFormForm({
 		});
 	};
 
-	const updateRule = (
-		id: number,
-		patch: Partial<TicketTypeRuleInput>,
-	) => {
+	const updateRule = (id: number, patch: Partial<TicketTypeRuleInput>) => {
 		setTicketTypeRules((prev) => ({
 			...prev,
 			[id]: {
@@ -149,6 +154,55 @@ export function CreateRegistrationFormForm({
 				...patch,
 			},
 		}));
+	};
+
+	const addCustomLabel = () => {
+		setCustomLabels((prev) => [
+			...prev,
+			{ id: crypto.randomUUID(), value: "" },
+		]);
+	};
+
+	const removeCustomLabel = (id: string) => {
+		setCustomLabels((prev) => prev.filter((label) => label.id !== id));
+	};
+
+	const updateCustomLabel = (id: string, value: string) => {
+		setCustomLabels((prev) =>
+			prev.map((label) => (label.id === id ? { ...label, value } : label)),
+		);
+	};
+
+	const addTicketTypeCustomLabel = (ticketTypeId: number) => {
+		updateRule(ticketTypeId, {
+			custom_labels: [
+				...(ticketTypeRules[ticketTypeId]?.custom_labels ?? []),
+				{ id: crypto.randomUUID(), value: "" },
+			],
+		});
+	};
+
+	const removeTicketTypeCustomLabel = (
+		ticketTypeId: number,
+		labelId: string,
+	) => {
+		updateRule(ticketTypeId, {
+			custom_labels: (
+				ticketTypeRules[ticketTypeId]?.custom_labels ?? []
+			).filter((label) => label.id !== labelId),
+		});
+	};
+
+	const updateTicketTypeCustomLabel = (
+		ticketTypeId: number,
+		labelId: string,
+		value: string,
+	) => {
+		updateRule(ticketTypeId, {
+			custom_labels: (ticketTypeRules[ticketTypeId]?.custom_labels ?? []).map(
+				(label) => (label.id === labelId ? { ...label, value } : label),
+			),
+		});
 	};
 
 	return (
@@ -191,9 +245,54 @@ export function CreateRegistrationFormForm({
 							disabled={createMutation.isPending}
 						/>
 
+						<div className="space-y-3">
+							<div className="flex items-center justify-between gap-2">
+								<div>
+									<Label className="font-medium text-sm">
+										Additional Registration Fields
+									</Label>
+									<p className="text-muted-foreground text-xs">
+										Shown on public registration form and saved to ticket custom
+										labels.
+									</p>
+								</div>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={addCustomLabel}
+									disabled={createMutation.isPending}
+									className="rounded-none"
+								>
+									<Plus className="size-4" />
+									Add Field
+								</Button>
+							</div>
+
+							{customLabels.length > 0 ? (
+								<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+									{customLabels.map((label, index) => (
+										<InputActionLabel
+											key={label.id}
+											label={`Field ${index + 1}`}
+											htmlFor={label.id}
+											value={label.value}
+											onChange={(value) => updateCustomLabel(label.id, value)}
+											placeholder="e.g., Company Name"
+											disabled={createMutation.isPending}
+											variant="no-rounded"
+											onAction={() => removeCustomLabel(label.id)}
+											actionIcon={<Trash2 className="size-4" />}
+											actionLabel="Remove field"
+											actionVariant="destructive"
+										/>
+									))}
+								</div>
+							) : null}
+						</div>
+
 						{ticketTypes && ticketTypes.length > 0 && (
 							<div className="space-y-3">
-								<Label className="text-sm font-medium">Ticket Types</Label>
+								<Label className="font-medium text-sm">Ticket Types</Label>
 								<div className="space-y-2">
 									{ticketTypes.map((tt: TicketType) => (
 										<div
@@ -207,8 +306,8 @@ export function CreateRegistrationFormForm({
 													disabled={createMutation.isPending}
 												/>
 												<div className="flex-1">
-													<span className="text-sm font-medium">{tt.name}</span>
-													<span className="text-muted-foreground ml-2 text-xs">
+													<span className="font-medium text-sm">{tt.name}</span>
+													<span className="ml-2 text-muted-foreground text-xs">
 														RM {tt.price.toFixed(2)}
 													</span>
 												</div>
@@ -217,31 +316,42 @@ export function CreateRegistrationFormForm({
 											{selectedTicketTypeIds.includes(tt.id) ? (
 												<div className="mt-3 space-y-2 border-t pt-3">
 													{(() => {
-														const rule = ticketTypeRules[tt.id] ?? defaultRule();
+														const rule =
+															ticketTypeRules[tt.id] ?? defaultRule();
 
 														return (
 															<div className="grid gap-3 sm:grid-cols-3">
 																<div className="space-y-1">
-																	<Label htmlFor={`create-mode-${tt.id}`}>Registration type</Label>
+																	<Label htmlFor={`create-mode-${tt.id}`}>
+																		Registration type
+																	</Label>
 																	<select
 																		id={`create-mode-${tt.id}`}
 																		value={rule.registration_mode}
 																		onChange={(event) =>
 																			updateRule(tt.id, {
-																				registration_mode: event.target.value as "single" | "group",
+																				registration_mode: event.target.value as
+																					| "single"
+																					| "group",
 																			})
 																		}
 																		className="w-full rounded border bg-background px-3 py-2 text-sm"
 																	>
-																		<option value="single">Single attendee</option>
-																		<option value="group">Group registration</option>
+																		<option value="single">
+																			Single attendee
+																		</option>
+																		<option value="group">
+																			Group registration
+																		</option>
 																	</select>
 																</div>
 
 																{rule.registration_mode === "group" ? (
 																	<>
 																		<div className="space-y-1">
-																			<Label htmlFor={`create-min-${tt.id}`}>Minimum attendees</Label>
+																			<Label htmlFor={`create-min-${tt.id}`}>
+																				Minimum attendees
+																			</Label>
 																			<input
 																				id={`create-min-${tt.id}`}
 																				type="number"
@@ -251,7 +361,10 @@ export function CreateRegistrationFormForm({
 																					updateRule(tt.id, {
 																						min_attendees: Math.max(
 																							1,
-																							Number.parseInt(event.target.value || "1", 10),
+																							Number.parseInt(
+																								event.target.value || "1",
+																								10,
+																							),
 																						),
 																					})
 																				}
@@ -260,7 +373,9 @@ export function CreateRegistrationFormForm({
 																		</div>
 
 																		<div className="space-y-1">
-																			<Label htmlFor={`create-max-${tt.id}`}>Maximum attendees (optional)</Label>
+																			<Label htmlFor={`create-max-${tt.id}`}>
+																				Maximum attendees (optional)
+																			</Label>
 																			<input
 																				id={`create-max-${tt.id}`}
 																				type="number"
@@ -276,6 +391,66 @@ export function CreateRegistrationFormForm({
 																		</div>
 																	</>
 																) : null}
+
+																<div className="space-y-2">
+																	<div className="flex items-center justify-between gap-2">
+																		<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+																			Ticket-specific fields
+																		</Label>
+																		<Button
+																			type="button"
+																			variant="outline"
+																			onClick={() =>
+																				addTicketTypeCustomLabel(tt.id)
+																			}
+																			disabled={createMutation.isPending}
+																			className="h-8 rounded-none px-3 text-xs"
+																		>
+																			<Plus className="size-3" />
+																			Add
+																		</Button>
+																	</div>
+
+																	{(rule.custom_labels ?? []).length > 0 ? (
+																		<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+																			{(rule.custom_labels ?? []).map(
+																				(label, index) => (
+																					<InputActionLabel
+																						key={label.id}
+																						label={`Field ${index + 1}`}
+																						htmlFor={`tt-${tt.id}-${label.id}`}
+																						value={label.value}
+																						onChange={(value) =>
+																							updateTicketTypeCustomLabel(
+																								tt.id,
+																								label.id,
+																								value,
+																							)
+																						}
+																						placeholder="e.g., Member ID"
+																						disabled={createMutation.isPending}
+																						variant="no-rounded"
+																						onAction={() =>
+																							removeTicketTypeCustomLabel(
+																								tt.id,
+																								label.id,
+																							)
+																						}
+																						actionIcon={
+																							<Trash2 className="size-4" />
+																						}
+																						actionLabel="Remove field"
+																						actionVariant="destructive"
+																					/>
+																				),
+																			)}
+																		</div>
+																	) : (
+																		<p className="text-muted-foreground text-xs">
+																			No ticket-specific fields.
+																		</p>
+																	)}
+																</div>
 															</div>
 														);
 													})()}

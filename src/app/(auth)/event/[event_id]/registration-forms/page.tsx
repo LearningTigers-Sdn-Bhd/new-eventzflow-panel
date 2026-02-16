@@ -5,6 +5,7 @@ import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { RegistrationFormPageButton } from "@/components/pages/registration-forms/page-action/button";
 import { RegistrationFormTable } from "@/components/pages/registration-forms/registration-form-table";
+import { useEventSidebarContextSafe } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventRegistrationForms } from "@/lib/api/registration-form";
@@ -15,10 +16,12 @@ export default function RegistrationFormsPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const eventSidebarContext = useEventSidebarContextSafe();
+	const eventSlug = eventSidebarContext?.currentEvent?.slug;
 
 	useSetEventActions(
 		<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-			<RegistrationFormPageButton eventId={event_id} />
+			<RegistrationFormPageButton eventId={event_id} eventSlug={eventSlug} />
 		</div>,
 	);
 

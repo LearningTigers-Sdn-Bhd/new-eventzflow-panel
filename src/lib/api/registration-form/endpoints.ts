@@ -28,6 +28,7 @@ function transformRegistrationForm(
 		name: backend.name,
 		slug: backend.slug,
 		description: backend.description,
+		customLabelsData: backend.custom_labels_data ?? {},
 		status: backend.status,
 		position: backend.position,
 		createdAt: backend.created_at,
@@ -40,6 +41,7 @@ function transformRegistrationForm(
 			registrationMode: tt.registration_mode ?? "single",
 			minAttendees: tt.min_attendees ?? 1,
 			maxAttendees: tt.max_attendees ?? null,
+			customLabelsData: tt.custom_labels_data ?? {},
 		})),
 	};
 }

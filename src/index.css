@@ -7,6 +7,7 @@
 	--font-sans:
 		"Inter", "Geist", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--font-serif: var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 	--breakpoint-3xl: 120rem;
 
 	/* Brand colors */

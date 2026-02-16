@@ -27,7 +27,17 @@ const columns: ColumnDef<RegistrationForm>[] = [
 	},
 	{
 		id: "ticketTypes",
+		accessorFn: (row) => row.ticketTypes.map((tt) => tt.name).join(", "),
 		size: 250,
+		filterFn: (row, _columnId, filterValue) => {
+			if (!filterValue) return true;
+
+			const hasTicketTypes = row.original.ticketTypes.length > 0;
+			if (filterValue === "mapped") return hasTicketTypes;
+			if (filterValue === "unmapped") return !hasTicketTypes;
+
+			return true;
+		},
 		header: () => <p className="font-medium">Ticket Types</p>,
 		cell: ({ row }) => {
 			const ticketTypes = row.original.ticketTypes;
@@ -50,9 +60,7 @@ const columns: ColumnDef<RegistrationForm>[] = [
 	{
 		accessorKey: "position",
 		size: 100,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Position" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="Position" />,
 		cell: ({ row }) => <div>{row.getValue("position") ?? "-"}</div>,
 	},
 	{
