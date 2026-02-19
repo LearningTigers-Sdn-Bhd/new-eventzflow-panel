@@ -1,11 +1,15 @@
 import { extractErrorMessage } from "@/utils/error-handler";
 import { publicRestClient } from "@/utils/rest-api";
 import type {
+	CreatePaymentOrderPayload,
+	CreatePaymentOrderResponse,
 	CreatePublicRegistrationPayload,
 	CreatePublicRegistrationResponse,
 	ExistingRegistrationStatusResponse,
 	PublicRegistrationFormsResponse,
 	PublicTicketTypesResponse,
+	VerifyPaymentPayload,
+	VerifyPaymentResponse,
 } from "./types";
 
 export async function getPublicRegistrationForms(eventSlug: string) {
@@ -70,6 +74,38 @@ export async function getPublicRegistrationStatus(
 				`v1/public/events/${eventSlug}/registration_status?${query.toString()}`,
 			);
 
+		return response.data;
+	} catch (error: unknown) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+export async function createPublicPaymentOrder(
+	eventSlug: string,
+	payload: CreatePaymentOrderPayload,
+) {
+	try {
+		const response = await publicRestClient.post<CreatePaymentOrderResponse>(
+			`v1/public/events/${eventSlug}/payments/create_order`,
+			payload,
+		);
+		return response.data;
+	} catch (error: unknown) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+export async function verifyPublicPayment(
+	eventSlug: string,
+	payload: VerifyPaymentPayload,
+) {
+	try {
+		const response = await publicRestClient.post<VerifyPaymentResponse>(
+			`v1/public/events/${eventSlug}/payments/verify`,
+			payload,
+		);
 		return response.data;
 	} catch (error: unknown) {
 		const message = await extractErrorMessage(error);

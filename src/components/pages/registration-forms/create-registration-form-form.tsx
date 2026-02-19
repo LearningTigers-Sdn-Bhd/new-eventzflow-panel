@@ -206,46 +206,50 @@ export function CreateRegistrationFormForm({
 	};
 
 	return (
-		<div className="h-full w-full p-0 md:p-4">
+		<div className="h-full w-full p-4 md:p-6">
 			<form onSubmit={handleSubmit} className="h-full">
 				<div className="flex h-full flex-col justify-between gap-8">
 					<div className="space-y-6">
-						<InputLabel
-							label="Name"
-							htmlFor={nameId}
-							value={formData.name}
-							onChange={(value) => handleChange("name", value)}
-							errors={errors.name ? [{ message: errors.name }] : undefined}
-							isInvalid={!!errors.name}
-							placeholder="Conference"
-							required
-							disabled={createMutation.isPending}
-						/>
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<InputLabel
+								label="Name"
+								htmlFor={nameId}
+								value={formData.name}
+								onChange={(value) => handleChange("name", value)}
+								errors={errors.name ? [{ message: errors.name }] : undefined}
+								isInvalid={!!errors.name}
+								placeholder="Conference"
+								required
+								disabled={createMutation.isPending}
+							/>
 
-						<InputLabel
-							label="Slug"
-							htmlFor={slugId}
-							value={formData.slug}
-							onChange={(value) =>
-								setFormData((prev) => ({ ...prev, slug: value }))
-							}
-							errors={errors.slug ? [{ message: errors.slug }] : undefined}
-							isInvalid={!!errors.slug}
-							placeholder="conference"
-							required
-							disabled={createMutation.isPending}
-						/>
+							<InputLabel
+								label="Slug"
+								htmlFor={slugId}
+								value={formData.slug}
+								onChange={(value) =>
+									setFormData((prev) => ({ ...prev, slug: value }))
+								}
+								errors={errors.slug ? [{ message: errors.slug }] : undefined}
+								isInvalid={!!errors.slug}
+								placeholder="conference"
+								required
+								disabled={createMutation.isPending}
+							/>
+						</div>
 
 						<InputLabel
 							label="Description"
 							htmlFor={descriptionId}
+							type="textarea"
+							rows={4}
 							value={formData.description}
 							onChange={(value) => handleChange("description", value)}
 							placeholder="Optional description"
 							disabled={createMutation.isPending}
 						/>
 
-						<div className="space-y-3">
+						<div className="space-y-3 rounded-none border bg-muted/20 p-4 md:p-5">
 							<div className="flex items-center justify-between gap-2">
 								<div>
 									<Label className="font-medium text-sm">
@@ -297,7 +301,7 @@ export function CreateRegistrationFormForm({
 									{ticketTypes.map((tt: TicketType) => (
 										<div
 											key={tt.id}
-											className={`rounded border p-3 ${selectedTicketTypeIds.includes(tt.id) ? "border-primary" : ""}`}
+											className={`rounded-none border p-3 ${selectedTicketTypeIds.includes(tt.id) ? "border-primary bg-muted/10" : ""}`}
 										>
 											<div className="flex items-center gap-3">
 												<Checkbox
@@ -314,85 +318,86 @@ export function CreateRegistrationFormForm({
 											</div>
 
 											{selectedTicketTypeIds.includes(tt.id) ? (
-												<div className="mt-3 space-y-2 border-t pt-3">
+												<div className="mt-3 space-y-4 border-t pt-3">
 													{(() => {
 														const rule =
 															ticketTypeRules[tt.id] ?? defaultRule();
 
 														return (
-															<div className="grid gap-3 sm:grid-cols-3">
-																<div className="space-y-1">
-																	<Label htmlFor={`create-mode-${tt.id}`}>
-																		Registration type
-																	</Label>
-																	<select
-																		id={`create-mode-${tt.id}`}
-																		value={rule.registration_mode}
-																		onChange={(event) =>
-																			updateRule(tt.id, {
-																				registration_mode: event.target.value as
-																					| "single"
-																					| "group",
-																			})
-																		}
-																		className="w-full rounded border bg-background px-3 py-2 text-sm"
-																	>
-																		<option value="single">
-																			Single attendee
-																		</option>
-																		<option value="group">
-																			Group registration
-																		</option>
-																	</select>
+															<div className="space-y-4">
+																<div className="grid gap-3 md:grid-cols-3">
+																	<div className="space-y-1">
+																		<Label htmlFor={`create-mode-${tt.id}`}>
+																			Registration type
+																		</Label>
+																		<select
+																			id={`create-mode-${tt.id}`}
+																			value={rule.registration_mode}
+																			onChange={(event) =>
+																				updateRule(tt.id, {
+																					registration_mode: event.target
+																						.value as "single" | "group",
+																				})
+																			}
+																			className="w-full rounded border bg-background px-3 py-2 text-sm"
+																		>
+																			<option value="single">
+																				Single attendee
+																			</option>
+																			<option value="group">
+																				Group registration
+																			</option>
+																		</select>
+																	</div>
+
+																	{rule.registration_mode === "group" ? (
+																		<>
+																			<div className="space-y-1">
+																				<Label htmlFor={`create-min-${tt.id}`}>
+																					Minimum attendees
+																				</Label>
+																				<input
+																					id={`create-min-${tt.id}`}
+																					type="number"
+																					min={1}
+																					value={rule.min_attendees}
+																					onChange={(event) =>
+																						updateRule(tt.id, {
+																							min_attendees: Math.max(
+																								1,
+																								Number.parseInt(
+																									event.target.value || "1",
+																									10,
+																								),
+																							),
+																						})
+																					}
+																					className="w-full rounded border bg-background px-3 py-2 text-sm"
+																				/>
+																			</div>
+
+																			<div className="space-y-1">
+																				<Label htmlFor={`create-max-${tt.id}`}>
+																					Maximum attendees (optional)
+																				</Label>
+																				<input
+																					id={`create-max-${tt.id}`}
+																					type="number"
+																					min={1}
+																					value={rule.max_attendees}
+																					onChange={(event) =>
+																						updateRule(tt.id, {
+																							max_attendees: event.target.value,
+																						})
+																					}
+																					className="w-full rounded border bg-background px-3 py-2 text-sm"
+																				/>
+																			</div>
+																		</>
+																	) : null}
 																</div>
 
-																{rule.registration_mode === "group" ? (
-																	<>
-																		<div className="space-y-1">
-																			<Label htmlFor={`create-min-${tt.id}`}>
-																				Minimum attendees
-																			</Label>
-																			<input
-																				id={`create-min-${tt.id}`}
-																				type="number"
-																				min={1}
-																				value={rule.min_attendees}
-																				onChange={(event) =>
-																					updateRule(tt.id, {
-																						min_attendees: Math.max(
-																							1,
-																							Number.parseInt(
-																								event.target.value || "1",
-																								10,
-																							),
-																						),
-																					})
-																				}
-																				className="w-full rounded border bg-background px-3 py-2 text-sm"
-																			/>
-																		</div>
-
-																		<div className="space-y-1">
-																			<Label htmlFor={`create-max-${tt.id}`}>
-																				Maximum attendees (optional)
-																			</Label>
-																			<input
-																				id={`create-max-${tt.id}`}
-																				type="number"
-																				min={1}
-																				value={rule.max_attendees}
-																				onChange={(event) =>
-																					updateRule(tt.id, {
-																						max_attendees: event.target.value,
-																					})
-																				}
-																				className="w-full rounded border bg-background px-3 py-2 text-sm"
-																			/>
-																		</div>
-																	</>
-																) : null}
-
-																<div className="space-y-2">
+																<div className="space-y-2 rounded-none border bg-muted/20 p-3">
 																	<div className="flex items-center justify-between gap-2">
 																		<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
 																			Ticket-specific fields

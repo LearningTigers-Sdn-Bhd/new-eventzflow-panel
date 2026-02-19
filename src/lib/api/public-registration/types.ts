@@ -51,6 +51,45 @@ export interface ExistingRegistrationStatusResponse {
 	data: ExistingRegistrationStatusData;
 }
 
+export interface CreatePaymentOrderPayload {
+	ticket_public_id: string;
+}
+
+export interface CreatePaymentOrderData {
+	already_paid?: boolean;
+	ticket_public_id: string;
+	payment_status?: "pending" | "paid" | "failed" | "refunded_payment";
+	status?: string;
+	key_id?: string;
+	order_id?: string;
+	amount?: number;
+	currency?: string;
+}
+
+export interface CreatePaymentOrderResponse {
+	success: boolean;
+	data: CreatePaymentOrderData;
+}
+
+export interface VerifyPaymentPayload {
+	ticket_public_id: string;
+	razorpay_order_id: string;
+	razorpay_payment_id: string;
+	razorpay_signature: string;
+}
+
+export interface VerifyPaymentData {
+	ticket_public_id: string;
+	payment_status: "pending" | "paid" | "failed" | "refunded_payment";
+	status: string;
+	already_paid?: boolean;
+}
+
+export interface VerifyPaymentResponse {
+	success: boolean;
+	data: VerifyPaymentData;
+}
+
 export interface CreatePublicRegistrationPayload {
 	attendee_name: string;
 	attendee_email?: string;

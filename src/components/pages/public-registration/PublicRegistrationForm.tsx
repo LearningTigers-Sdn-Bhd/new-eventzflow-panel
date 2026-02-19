@@ -16,6 +16,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePublicRegistrationForm } from "@/hooks/use-public-registration-form";
 import type { ExistingRegistrationStatusData } from "@/lib/api/public-registration";
+import {
+	createPublicPaymentOrder,
+	verifyPublicPayment,
+} from "@/lib/api/public-registration";
+import {
+	normalizeAttendeesForMode,
+	syncAttendeeCustomFieldKeys,
+} from "@/lib/public-registration/attendee-state";
+import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
 
 interface AttendeeFormRow {
 	row_id: string;
@@ -41,6 +50,31 @@ const emptyAttendee = (customLabelKeys: string[] = []): AttendeeFormRow => ({
 
 const SMOOTH_EASE = [0.16, 1, 0.3, 1];
 
+declare global {
+	interface Window {
+		Razorpay?: new (
+			options: Record<string, unknown>,
+		) => {
+			open: () => void;
+		};
+	}
+}
+
+async function loadRazorpayCheckoutScript() {
+	if (window.Razorpay) {
+		return true;
+	}
+
+	return new Promise<boolean>((resolve) => {
+		const script = document.createElement("script");
+		script.src = "https://checkout.razorpay.com/v1/checkout.js";
+		script.async = true;
+		script.onload = () => resolve(true);
+		script.onerror = () => resolve(false);
+		document.body.appendChild(script);
+	});
+}
+
 export function PublicRegistrationForm({
 	eventSlug,
 	formSlug,
@@ -60,6 +94,9 @@ export function PublicRegistrationForm({
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 	const [existingRegistrationStatus, setExistingRegistrationStatus] =
 		useState<ExistingRegistrationStatusData | null>(null);
+	const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+	const [paymentError, setPaymentError] = useState<string | null>(null);
+	const [paymentSuccess, setPaymentSuccess] = useState(false);
 
 	const {
 		eventQuery,
@@ -93,6 +130,10 @@ export function PublicRegistrationForm({
 		() => Object.entries(mergedCustomLabelsData),
 		[mergedCustomLabelsData],
 	);
+	const customLabelKeys = useMemo(
+		() => customLabelEntries.map(([key]) => key),
+		[customLabelEntries],
+	);
 
 	const registrationMode = selectedTicketType?.registration_mode ?? "single";
 	const minAttendees = selectedTicketType?.min_attendees ?? 1;
@@ -114,39 +155,20 @@ export function PublicRegistrationForm({
 
 	// Handle group registration attendee count
 	useEffect(() => {
-		if (registrationMode === "single") {
-			setAttendees((current) => current.slice(0, 1));
-			return;
-		}
-
-		setAttendees((current) => {
-			if (current.length >= minAttendees) {
-				return current;
-			}
-			const next = [...current];
-			while (next.length < minAttendees) {
-				next.push(emptyAttendee(customLabelEntries.map(([key]) => key)));
-			}
-			return next;
-		});
-	}, [registrationMode, minAttendees, customLabelEntries]);
+		setAttendees((current) =>
+			normalizeAttendeesForMode(current, {
+				registrationMode,
+				minAttendees,
+				createAttendee: () => emptyAttendee(customLabelKeys),
+			}),
+		);
+	}, [registrationMode, minAttendees, customLabelKeys]);
 
 	useEffect(() => {
-		const customLabelKeys = customLabelEntries.map(([key]) => key);
-
 		setAttendees((current) =>
-			current.map((attendee) => ({
-				...attendee,
-				custom_fields_data: customLabelKeys.reduce<Record<string, string>>(
-					(acc, key) => {
-						acc[key] = attendee.custom_fields_data[key] ?? "";
-						return acc;
-					},
-					{},
-				),
-			})),
+			syncAttendeeCustomFieldKeys(current, customLabelKeys),
 		);
-	}, [customLabelEntries]);
+	}, [customLabelKeys]);
 
 	const loading =
 		eventQuery.isLoading ||
@@ -161,6 +183,26 @@ export function PublicRegistrationForm({
 			groupResult ||
 			existingRegistrationStatus?.has_pending_payment,
 	);
+
+	const paymentTicketPublicId = useMemo(() => {
+		if (singleResult?.public_id) {
+			return singleResult.public_id;
+		}
+
+		if (groupResult?.publicIds?.length) {
+			return groupResult.publicIds[0];
+		}
+
+		if (existingRegistrationStatus?.pending_tickets?.length) {
+			return existingRegistrationStatus.pending_tickets[0].public_id;
+		}
+
+		return null;
+	}, [
+		singleResult?.public_id,
+		groupResult?.publicIds,
+		existingRegistrationStatus,
+	]);
 
 	function goToNextStep() {
 		if (currentStep < 5) {
@@ -234,10 +276,7 @@ export function PublicRegistrationForm({
 
 	function addAttendee() {
 		if (!canAddAttendee) return;
-		setAttendees((current) => [
-			...current,
-			emptyAttendee(customLabelEntries.map(([key]) => key)),
-		]);
+		setAttendees((current) => [...current, emptyAttendee(customLabelKeys)]);
 	}
 
 	function updateCustomField(index: number, key: string, value: string) {
@@ -268,7 +307,97 @@ export function PublicRegistrationForm({
 		const success = await submit(payload);
 		if (success) {
 			setExistingRegistrationStatus(null);
+			setPaymentError(null);
+			setPaymentSuccess(false);
 			setCurrentStep(5);
+		}
+	}
+
+	async function handleProceedPayment() {
+		if (!paymentTicketPublicId) {
+			setPaymentError("No pending ticket reference found for payment.");
+			return;
+		}
+
+		setIsPaymentProcessing(true);
+		setPaymentError(null);
+
+		try {
+			const order = await createPublicPaymentOrder(eventSlug, {
+				ticket_public_id: paymentTicketPublicId,
+			});
+
+			if (order.already_paid) {
+				setPaymentSuccess(true);
+				setCurrentStep(6);
+				toast.success("Ticket already paid.");
+				setIsPaymentProcessing(false);
+				return;
+			}
+
+			if (!order.key_id || !order.order_id || !order.amount) {
+				throw new Error("Payment order response is incomplete.");
+			}
+
+			const isScriptLoaded = await loadRazorpayCheckoutScript();
+			if (!isScriptLoaded || !window.Razorpay) {
+				throw new Error("Unable to load Razorpay checkout script.");
+			}
+
+			const razorpay = new window.Razorpay({
+				key: order.key_id,
+				amount: order.amount,
+				currency: order.currency || "MYR",
+				name: eventQuery.data?.title || "Event Registration",
+				description: "Ticket payment",
+				order_id: order.order_id,
+				prefill: {
+					email,
+					name: attendees[0]?.attendee_name,
+					contact: attendees[0]?.attendee_phone,
+				},
+				handler: async (response: {
+					razorpay_order_id: string;
+					razorpay_payment_id: string;
+					razorpay_signature: string;
+				}) => {
+					try {
+						await verifyPublicPayment(eventSlug, {
+							ticket_public_id: paymentTicketPublicId,
+							razorpay_order_id: response.razorpay_order_id,
+							razorpay_payment_id: response.razorpay_payment_id,
+							razorpay_signature: response.razorpay_signature,
+						});
+
+						setPaymentSuccess(true);
+						setPaymentError(null);
+						setCurrentStep(6);
+						toast.success("Payment verified successfully.");
+					} catch (error) {
+						const message =
+							error instanceof Error
+								? error.message
+								: "Payment verification failed.";
+						setPaymentError(message);
+						toast.error(message);
+					} finally {
+						setIsPaymentProcessing(false);
+					}
+				},
+				modal: {
+					ondismiss: () => {
+						setIsPaymentProcessing(false);
+					},
+				},
+			});
+
+			razorpay.open();
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Unable to start payment.";
+			setPaymentError(message);
+			toast.error(message);
+			setIsPaymentProcessing(false);
 		}
 	}
 
@@ -312,13 +441,19 @@ export function PublicRegistrationForm({
 		);
 	}
 
-	const steps = [
-		{ id: 1, label: "Ticket Type", icon: Ticket, show: hasMultipleTicketTypes },
-		{ id: 2, label: "Email", icon: Mail, show: true },
-		{ id: 3, label: "Details", icon: UserCircle, show: true },
-		{ id: 4, label: "Confirm", icon: Check, show: true },
-		{ id: 5, label: "Payment", icon: CreditCard, show: true },
-	].filter((s) => s.show);
+	const steps = buildPublicRegistrationSteps({
+		hasMultipleTicketTypes,
+		paymentSuccess,
+	});
+
+	const stepIcons = {
+		1: Ticket,
+		2: Mail,
+		3: UserCircle,
+		4: Check,
+		5: CreditCard,
+		6: Check,
+	} as const;
 
 	const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
 	const connectorProgress =
@@ -341,7 +476,7 @@ export function PublicRegistrationForm({
 
 					<div className="relative z-10 flex items-start justify-between">
 						{steps.map((step, idx) => {
-							const Icon = step.icon;
+							const Icon = stepIcons[step.id];
 							const isActive = step.id === currentStep;
 							const isCompleted = currentStepIndex > idx;
 							const isUpcoming = !isActive && !isCompleted;
@@ -892,6 +1027,16 @@ export function PublicRegistrationForm({
 										)}
 									</div>
 								) : null}
+								{paymentError ? (
+									<p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-red-700 text-sm">
+										{paymentError}
+									</p>
+								) : null}
+								{paymentSuccess ? (
+									<p className="rounded border border-green-300 bg-green-50 px-3 py-2 text-green-700 text-sm">
+										Payment verified. Your ticket is now purchased.
+									</p>
+								) : null}
 							</div>
 
 							<div className="mt-6 border border-black/30 border-dashed bg-white p-5">
@@ -908,12 +1053,57 @@ export function PublicRegistrationForm({
 						<div>
 							<Button
 								type="button"
-								disabled={!hasPendingRegistration}
+								onClick={handleProceedPayment}
+								disabled={
+									!hasPendingRegistration ||
+									!paymentTicketPublicId ||
+									isPaymentProcessing ||
+									paymentSuccess
+								}
 								className="w-full rounded-none border-2 border-black bg-black py-6 font-bold text-white uppercase tracking-[0.15em] hover:bg-black/80 disabled:opacity-50"
 							>
-								Proceed to Razorpay Sandbox
+								{isPaymentProcessing
+									? "Opening Razorpay..."
+									: paymentSuccess
+										? "Payment Completed"
+										: "Proceed to Razorpay Sandbox"}
 								<CreditCard className="ml-2 h-4 w-4" />
 							</Button>
+						</div>
+					</motion.div>
+				)}
+
+				{currentStep === 6 && (
+					<motion.div
+						key="step6"
+						initial={{ opacity: 0, x: 20 }}
+						animate={{ opacity: 1, x: 0 }}
+						exit={{ opacity: 0, x: -20 }}
+						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
+						className="space-y-6"
+					>
+						<div className="border-2 border-black bg-white p-8 md:p-10">
+							<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
+								PAYMENT COMPLETE
+							</h2>
+							<p className="mb-6 text-black/60">
+								Your payment has been verified and your ticket is now marked as
+								purchased.
+							</p>
+
+							<div className="space-y-4 border border-green-300 bg-green-50 p-4">
+								<p className="font-semibold text-green-800">
+									Payment successful.
+								</p>
+								{paymentTicketPublicId ? (
+									<p className="text-green-900/80 text-sm">
+										Reference: {paymentTicketPublicId}
+									</p>
+								) : null}
+								<p className="text-green-900/80 text-sm">
+									A confirmation email will be sent to {email}.
+								</p>
+							</div>
 						</div>
 					</motion.div>
 				)}
