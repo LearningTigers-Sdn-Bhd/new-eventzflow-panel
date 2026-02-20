@@ -35,6 +35,7 @@ const formSchema = z
 		title: z.string().min(3, "Event name must be at least 3 characters"),
 		visibility: z.boolean(),
 		useTicket: z.boolean(),
+		useSeatTicketing: z.boolean(),
 		useExhibitorKit: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
@@ -105,6 +106,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			title: "",
 			visibility: true,
 			useTicket: true,
+			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
@@ -122,8 +124,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			const payload = {
 				title: value.title.trim(),
 				visibility: value.visibility ?? true,
-				use_ticket: value.useTicket ?? true,
-				use_exhibitor_kit: value.useExhibitorKit ?? false,
+			use_ticket: value.useTicket ?? true,
+			use_seat_ticketing: value.useSeatTicketing ?? false,
+			use_exhibitor_kit: value.useExhibitorKit ?? false,
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
 				use_business_matching: value.useBusinessMatching ?? false,
@@ -476,6 +479,22 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									}}
 								</form.Field>
 								<div className="flex flex-col gap-4">
+									<form.Field name="useSeatTicketing">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Seat Ticketing System"
+													description="Enable reserved seat sessions and seat maps for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
 									<form.Field name="useBusinessMatching">
 										{(field) => {
 											return (

@@ -221,6 +221,12 @@ body {
 }
 
 @layer utilities {
+	.bg-brand-green {
+		background-color: var(--color-brand-green);
+	}
+	.bg-brand-blue {
+		background-color: var(--color-brand-blue);
+	}
 	.page-header {
 		@apply flex flex-col items-start justify-between gap-4 py-4 md:flex-row lg:gap-2;
 	}

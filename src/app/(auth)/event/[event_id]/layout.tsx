@@ -94,10 +94,17 @@ export default function EventDetailLayout({
 	const isPrizeRouletteSessionRoute = pathname.includes(
 		"prize-roulette/session",
 	);
+	const isSeatTicketingSessionRoute = pathname.includes(
+		"seat-ticketing/sessions/",
+	);
 	const isReviewSubmitRoute = pathname.includes("review-submit");
 
 	// Early return for special routes that don't use sidebar
-	if (isLuckyDrawSessionRoute || isPrizeRouletteSessionRoute) {
+	if (
+		isLuckyDrawSessionRoute ||
+		isPrizeRouletteSessionRoute ||
+		isSeatTicketingSessionRoute
+	) {
 		return <div className="w-full">{children}</div>;
 	}
 

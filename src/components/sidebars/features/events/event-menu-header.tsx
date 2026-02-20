@@ -1,18 +1,17 @@
 "use client";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	SidebarHeader,
 	SidebarMenu,
@@ -26,6 +25,10 @@ import { useEventSidebarContext } from "./event-sidebar-provider";
 export function EventMenuHeader() {
 	const router = useRouter();
 	const { events, currentEvent, isLoading } = useEventSidebarContext();
+	const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
+	const setScrollRef = useCallback((node: HTMLDivElement | null) => {
+		setScrollElement(node);
+	}, []);
 
 	// Handle event selection
 	const handleEventSelect = (selectedEventId: string) => {
@@ -42,6 +45,22 @@ export function EventMenuHeader() {
 			.slice(0, 2)
 			.join("");
 	}, [eventTitle]);
+
+	const sortedEvents = useMemo(() => {
+		if (!events) return [];
+		return [...events].sort(
+			(a, b) =>
+				new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+		);
+	}, [events]);
+
+	const rowHeight = 88;
+	const virtualizer = useVirtualizer({
+		count: sortedEvents.length,
+		getScrollElement: () => scrollElement,
+		estimateSize: () => rowHeight,
+		overscan: 4,
+	});
 
 	// Loading state
 	if (isLoading) {
@@ -118,73 +137,95 @@ export function EventMenuHeader() {
 								</div>
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align="start"
-							side="bottom"
-							className="w-[250px] rounded-none"
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="w-[250px] rounded-none overflow-hidden p-0"
+					>
+						<div
+							ref={setScrollRef}
+							className="h-[300px] overflow-y-auto overflow-x-hidden"
 						>
-							<ScrollArea className="h-[300px]">
-								{events.map((event, index) => (
-									<div key={event.id}>
-										<DropdownMenuItem
-											onClick={() => handleEventSelect(event.id.toString())}
-											className={cn(
-												"cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
-												currentEvent.id === event.id &&
-													"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
-											)}
+							<div
+								className="relative w-full"
+								style={{ height: virtualizer.getTotalSize() }}
+							>
+								{virtualizer.getVirtualItems().map((virtualRow) => {
+									const event = sortedEvents[virtualRow.index];
+									if (!event) return null;
+									const isLast = virtualRow.index === sortedEvents.length - 1;
+									return (
+										<div
+											key={event.id}
+											className="absolute left-0 top-0 w-full"
+											style={{
+												transform: `translateY(${virtualRow.start}px)`,
+												height: rowHeight,
+												contentVisibility: "auto",
+												containIntrinsicSize: `${rowHeight}px`,
+											}}
 										>
-											<div className="flex flex-1 flex-col gap-1">
-												<div className="flex flex-col items-start justify-start gap-2">
-													<h3
-														className={cn(
-															"line-clamp-2 truncate text-balance font-semibold text-sm",
-															currentEvent.id === event.id &&
-																"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
-														)}
-													>
-														{event.title}
-													</h3>
-													<div className="flex items-center gap-2">
-														<Badge
+											<DropdownMenuItem
+												onClick={() => handleEventSelect(event.id.toString())}
+												className={cn(
+													"h-full cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
+													!isLast && "border-b border-border",
+													currentEvent.id === event.id &&
+														"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
+												)}
+											>
+												<div className="flex flex-1 flex-col gap-1">
+													<div className="flex flex-col items-start justify-start gap-2">
+														<h3
 															className={cn(
-																"h-4 rounded-none text-[10px] capitalize",
-																event.status === "published" &&
-																	"bg-green-500 text-white",
-																event.status === "draft" &&
-																	"bg-yellow-500 text-white",
-																event.status === "cancelled" &&
-																	"bg-red-500 text-white",
-																event.status === "completed" &&
-																	"bg-blue-500 text-white",
+																"line-clamp-2 truncate text-balance font-semibold text-sm",
+																currentEvent.id === event.id &&
+																	"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
 															)}
 														>
-															{event.status}
-														</Badge>
-														<Badge
-															className={cn(
-																"h-4 rounded-none text-[10px] capitalize",
-																event.use_ticket !== false
-																	? "bg-purple-500 text-white"
-																	: "bg-cyan-500 text-white",
-															)}
-														>
-															{event.use_ticket !== false
-																? "Ticket Event"
-																: "Visitor Event"}
-														</Badge>
+															{event.title}
+														</h3>
+														<div className="flex items-center gap-2">
+															<Badge
+																className={cn(
+																	"h-4 rounded-none text-[10px] capitalize",
+																	event.status === "published" &&
+																		"bg-green-500 text-white",
+																	event.status === "draft" &&
+																		"bg-yellow-500 text-white",
+																	event.status === "cancelled" &&
+																		"bg-red-500 text-white",
+																	event.status === "completed" &&
+																		"bg-blue-500 text-white",
+																)}
+															>
+																{event.status}
+															</Badge>
+															<Badge
+																className={cn(
+																	"h-4 rounded-none text-[10px] capitalize",
+																	event.use_ticket !== false
+																		? "bg-purple-500 text-white"
+																		: "bg-cyan-500 text-white",
+																)}
+															>
+																{event.use_ticket !== false
+																	? "Ticket Event"
+																	: "Visitor Event"}
+															</Badge>
+														</div>
 													</div>
 												</div>
-											</div>
-										</DropdownMenuItem>
-										{index < events.length - 1 && <DropdownMenuSeparator />}
-									</div>
-								))}
-							</ScrollArea>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</SidebarMenuItem>
-			</SidebarMenu>
-		</SidebarHeader>
+											</DropdownMenuItem>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</SidebarMenuItem>
+		</SidebarMenu>
+	</SidebarHeader>
 	);
 }
