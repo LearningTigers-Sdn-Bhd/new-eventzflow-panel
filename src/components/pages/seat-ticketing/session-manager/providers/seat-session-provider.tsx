@@ -11,7 +11,7 @@ import type {
 import {
 	seatSessionDraftKey,
 	useSeatSessionStore,
-} from "./use-seat-session-store";
+} from "../store/use-seat-session-store";
 
 interface SeatSessionProviderProps {
 	children: ReactNode;
@@ -112,7 +112,9 @@ export function SeatSessionProvider({
 	}, [initializeSession, initialSession, loadDraft, discardDraft]);
 
 	// Debounced auto-save draft
-	const hasUnsavedChanges = useSeatSessionStore((state) => state.hasUnsavedChanges);
+	const hasUnsavedChanges = useSeatSessionStore(
+		(state) => state.hasUnsavedChanges,
+	);
 	const session = useSeatSessionStore((state) => state.session);
 
 	useEffect(() => {

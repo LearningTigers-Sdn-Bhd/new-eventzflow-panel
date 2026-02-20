@@ -10,24 +10,26 @@ import {
 } from "@/components/ui/sidebar";
 import { GroupForm } from "./group-form";
 import { SeatList } from "./seat-list";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 
 export function SeatForm() {
-	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
-	const selectedSeatIds = useSeatSessionStore(state => state.selectedSeatIds);
-	const updateSeat = useSeatSessionStore(state => state.updateSeat);
-	const removeSeat = useSeatSessionStore(state => state.removeSeat);
-	const selectSeat = useSeatSessionStore(state => state.selectSeat);
+	const selectedSectionId = useSeatSessionStore(
+		(state) => state.selectedSectionId,
+	);
+	const selectedSeatIds = useSeatSessionStore((state) => state.selectedSeatIds);
+	const updateSeat = useSeatSessionStore((state) => state.updateSeat);
+	const removeSeat = useSeatSessionStore((state) => state.removeSeat);
+	const selectSeat = useSeatSessionStore((state) => state.selectSeat);
 
-	const section = useSeatSessionStore(state => 
-		selectedSectionId ? state.sections[selectedSectionId] : null
+	const section = useSeatSessionStore((state) =>
+		selectedSectionId ? state.sections[selectedSectionId] : null,
 	);
 
 	const isSingleSeatSelected = selectedSeatIds.length === 1;
 	const activeSeatId = isSingleSeatSelected ? selectedSeatIds[0] : null;
 
-	const selectedSeat = useSeatSessionStore(state => 
-		activeSeatId ? state.seats[activeSeatId] : null
+	const selectedSeat = useSeatSessionStore((state) =>
+		activeSeatId ? state.seats[activeSeatId] : null,
 	);
 
 	if (!section) return null;
@@ -41,21 +43,21 @@ export function SeatForm() {
 	if (selectedSeat && isSingleSeatSelected) {
 		return (
 			<SidebarGroup className="p-0">
-				<SidebarGroupLabel className="px-0 mb-2 flex items-center gap-2 text-primary">
+				<SidebarGroupLabel className="mb-2 flex items-center gap-2 px-0 text-primary">
 					<Armchair className="h-4 w-4" />
 					SEAT INFO
 				</SidebarGroupLabel>
 				<div className="absolute top-3.5 right-0 flex items-center gap-1">
 					<SidebarGroupAction
 						onClick={() => selectSeat(null)}
-						className="text-primary hover:text-primary hover:bg-primary/10 relative rounded-none"
+						className="relative rounded-none text-primary hover:bg-primary/10 hover:text-primary"
 						title="Done editing"
 					>
 						<Check className="h-4 w-4" />
 					</SidebarGroupAction>
 					<SidebarGroupAction
 						onClick={() => removeSeat(selectedSeat.id)}
-						className="text-destructive hover:text-destructive hover:bg-destructive/10 relative rounded-none"
+						className="relative rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 						title="Delete seat"
 					>
 						<Trash2 className="h-4 w-4" />

@@ -11,8 +11,8 @@ import { useDialog } from "@/hooks/use-dialog";
 import type { EventTicketSeat } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
 import { getGroupColor } from "@/lib/utils/group-colors";
-import { GroupAssignmentModal } from "./group-assignment-modal";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { GroupAssignmentModal } from "../../group-assignment-modal";
+import { useSeatSessionStore } from "../../store/use-seat-session-store";
 
 interface SeatBlockProps {
 	seat?: EventTicketSeat;
@@ -29,19 +29,27 @@ export function SeatBlock({
 	sectionId,
 	sectionName,
 }: SeatBlockProps) {
-	const selectedSeatId = useSeatSessionStore(state => state.selectedSeatId);
-	const selectedSeatIds = useSeatSessionStore(state => state.selectedSeatIds);
-	const selectedSeatPosition = useSeatSessionStore(state => state.selectedSeatPosition);
-	const selectSeat = useSeatSessionStore(state => state.selectSeat);
-	const toggleSeatSelection = useSeatSessionStore(state => state.toggleSeatSelection);
-	const selectSeatPosition = useSeatSessionStore(state => state.selectSeatPosition);
-	const removeSeat = useSeatSessionStore(state => state.removeSeat);
-	const addSeat = useSeatSessionStore(state => state.addSeat);
-	const interactionMode = useSeatSessionStore(state => state.interactionMode);
-	const isPanning = useSeatSessionStore(state => state.isPanning);
-	const activeGroupId = useSeatSessionStore(state => state.activeGroupId);
-	const assignSeatsToGroup = useSeatSessionStore(state => state.assignSeatsToGroup);
-	const section = useSeatSessionStore(state => state.sections[sectionId]);
+	const selectedSeatId = useSeatSessionStore((state) => state.selectedSeatId);
+	const selectedSeatIds = useSeatSessionStore((state) => state.selectedSeatIds);
+	const selectedSeatPosition = useSeatSessionStore(
+		(state) => state.selectedSeatPosition,
+	);
+	const selectSeat = useSeatSessionStore((state) => state.selectSeat);
+	const toggleSeatSelection = useSeatSessionStore(
+		(state) => state.toggleSeatSelection,
+	);
+	const selectSeatPosition = useSeatSessionStore(
+		(state) => state.selectSeatPosition,
+	);
+	const removeSeat = useSeatSessionStore((state) => state.removeSeat);
+	const addSeat = useSeatSessionStore((state) => state.addSeat);
+	const interactionMode = useSeatSessionStore((state) => state.interactionMode);
+	const isPanning = useSeatSessionStore((state) => state.isPanning);
+	const activeGroupId = useSeatSessionStore((state) => state.activeGroupId);
+	const assignSeatsToGroup = useSeatSessionStore(
+		(state) => state.assignSeatsToGroup,
+	);
+	const section = useSeatSessionStore((state) => state.sections[sectionId]);
 
 	const { openDialog } = useDialog();
 
@@ -169,12 +177,12 @@ export function SeatBlock({
 					}}
 					aria-label={`Seat row ${row} col ${col}`}
 					className={cn(
-						"rounded-none border flex flex-col items-center justify-center transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 p-0",
+						"flex cursor-pointer flex-col items-center justify-center rounded-none border p-0 outline-none transition-all focus:ring-2 focus:ring-primary focus:ring-offset-1",
 						seat
 							? isSelected
-								? "bg-primary text-primary-foreground border-primary shadow-lg ring-2 ring-primary ring-offset-2"
-								: "bg-white hover:bg-slate-50 border-slate-200"
-							: "border-dashed border-slate-200 hover:border-primary/50 hover:bg-slate-50/50",
+								? "border-primary bg-primary text-primary-foreground shadow-lg ring-2 ring-primary ring-offset-2"
+								: "border-slate-200 bg-white hover:bg-slate-50"
+							: "border-slate-200 border-dashed hover:border-primary/50 hover:bg-slate-50/50",
 					)}
 				>
 					{seat ? (
@@ -182,7 +190,7 @@ export function SeatBlock({
 							{seat.event_seat_group_assignment && (
 								<div
 									className={cn(
-										"absolute top-1 right-1 w-2 h-2 rounded-full",
+										"absolute top-1 right-1 h-2 w-2 rounded-full",
 										groupColorClass || "bg-blue-500",
 									)}
 								/>
@@ -196,12 +204,12 @@ export function SeatBlock({
 										: "",
 								)}
 							/>
-							<span className="text-[8px] font-bold mt-1 truncate w-full text-center px-1">
+							<span className="mt-1 w-full truncate px-1 text-center font-bold text-[8px]">
 								{seat.name}
 							</span>
 						</>
 					) : (
-						<span className="text-[10px] text-slate-300 font-mono">
+						<span className="font-mono text-[10px] text-slate-300">
 							{row}:{col}
 						</span>
 					)}
@@ -210,11 +218,11 @@ export function SeatBlock({
 			<PopoverContent
 				side="top"
 				sideOffset={8}
-				className="w-auto p-1 flex items-center gap-1 bg-white border shadow-md rounded-none"
+				className="flex w-auto items-center gap-1 rounded-none border bg-white p-1 shadow-md"
 				onOpenAutoFocus={(e) => e.preventDefault()}
 			>
 				{seat && (
-					<div className="flex items-center gap-1 animate-in fade-in zoom-in-50 duration-200">
+					<div className="fade-in zoom-in-50 flex animate-in items-center gap-1 duration-200">
 						<Button
 							variant="ghost"
 							size="icon"
@@ -224,7 +232,7 @@ export function SeatBlock({
 						>
 							<Layers className="h-4 w-4" />
 						</Button>
-						<div className="w-px h-4 bg-border mx-0.5" />
+						<div className="mx-0.5 h-4 w-px bg-border" />
 						<Button
 							variant="destructive"
 							size="icon"
@@ -241,7 +249,7 @@ export function SeatBlock({
 					</div>
 				)}
 				{!seat && isEmptySelected && interactionMode === "select" && (
-					<div className="animate-in fade-in zoom-in-50 duration-200">
+					<div className="fade-in zoom-in-50 animate-in duration-200">
 						<Button
 							size="sm"
 							className="h-8 rounded-none shadow-md"
@@ -257,7 +265,7 @@ export function SeatBlock({
 								selectSeatPosition(null);
 							}}
 						>
-							<Armchair className="h-3.5 w-3.5 mr-2" />
+							<Armchair className="mr-2 h-3.5 w-3.5" />
 							Add Seat
 						</Button>
 					</div>

@@ -14,7 +14,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useDialog } from "@/hooks/use-dialog";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 
 interface GroupAssignmentModalProps {
 	seatIds: number[];
@@ -25,9 +25,11 @@ export function GroupAssignmentModal({
 	seatIds,
 	sectionId,
 }: GroupAssignmentModalProps) {
-	const assignSeatsToGroup = useSeatSessionStore(state => state.assignSeatsToGroup);
-	const addGroup = useSeatSessionStore(state => state.addGroup);
-	const section = useSeatSessionStore(state => state.sections[sectionId]);
+	const assignSeatsToGroup = useSeatSessionStore(
+		(state) => state.assignSeatsToGroup,
+	);
+	const addGroup = useSeatSessionStore((state) => state.addGroup);
+	const section = useSeatSessionStore((state) => state.sections[sectionId]);
 	const { closeDialog } = useDialog();
 
 	const groups = section?.event_seat_groups || [];
@@ -53,8 +55,7 @@ export function GroupAssignmentModal({
 			setTimeout(() => {
 				const latestGroup = useSeatSessionStore
 					.getState()
-					.sections[sectionId]
-					?.event_seat_groups?.slice(-1)[0];
+					.sections[sectionId]?.event_seat_groups?.slice(-1)[0];
 
 				if (latestGroup) {
 					assignSeatsToGroup(seatIds, latestGroup.id);
@@ -72,7 +73,7 @@ export function GroupAssignmentModal({
 	return (
 		<div className="space-y-6 py-2">
 			<div className="flex items-center justify-between">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted-foreground text-sm">
 					Targeting {seatIds.length} seat(s)
 				</p>
 				{groups.length > 0 && (
@@ -80,7 +81,7 @@ export function GroupAssignmentModal({
 						variant="ghost"
 						size="sm"
 						onClick={() => setMode(mode === "select" ? "create" : "select")}
-						className="h-8 text-xs gap-1"
+						className="h-8 gap-1 text-xs"
 					>
 						{mode === "select" ? (
 							<>
@@ -114,7 +115,7 @@ export function GroupAssignmentModal({
 					</div>
 				</div>
 			) : (
-				<div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+				<div className="fade-in slide-in-from-top-2 animate-in space-y-4 duration-200">
 					<InputLabel
 						label="Group Name"
 						value={newGroupName}

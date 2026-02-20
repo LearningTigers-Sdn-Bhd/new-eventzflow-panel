@@ -10,8 +10,8 @@ import type {
 	EventSeatSection,
 	EventTicketSeat,
 } from "@/lib/api/seat-ticketing/response";
-import { GroupAssignmentModal } from "./group-assignment-modal";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { GroupAssignmentModal } from "../group-assignment-modal";
+import { useSeatSessionStore } from "../store/use-seat-session-store";
 
 const SEAT_SIZE = 40;
 const SEAT_GAP = 8;
@@ -75,7 +75,7 @@ export function useSeatCanvas(section: EventSeatSection) {
 
 	const isHydrating = hydratingSectionIds.includes(section.id);
 
-	const allSeats = useSeatSessionStore(state => state.seats);
+	const allSeats = useSeatSessionStore((state) => state.seats);
 	const sectionSeats = useMemo(
 		() =>
 			Object.values(allSeats).filter(
@@ -91,8 +91,14 @@ export function useSeatCanvas(section: EventSeatSection) {
 
 		// Only show ghost seats if actual seats are empty (new section)
 		// OR if the user is explicitly configuring the blueprint
-		const rowBlocks = config.row_blocks && config.row_blocks.length > 0 ? config.row_blocks : [section.seat_row || 0];
-		const colBlocks = config.col_blocks && config.col_blocks.length > 0 ? config.col_blocks : [section.seat_column || 0];
+		const rowBlocks =
+			config.row_blocks && config.row_blocks.length > 0
+				? config.row_blocks
+				: [section.seat_row || 0];
+		const colBlocks =
+			config.col_blocks && config.col_blocks.length > 0
+				? config.col_blocks
+				: [section.seat_column || 0];
 		const rowGap = config.row_gap || 0;
 		const colGap = config.col_gap || 0;
 
@@ -436,7 +442,12 @@ export function useSeatCanvas(section: EventSeatSection) {
 
 	const popoverPos = useMemo(() => {
 		if (selectedSeatIds.length === 0 || !stageRef.current) return null;
-		let [minR, maxR, minC, maxC] = [Infinity, -Infinity, Infinity, -Infinity];
+		let [minR, maxR, minC, maxC] = [
+			Number.POSITIVE_INFINITY,
+			Number.NEGATIVE_INFINITY,
+			Number.POSITIVE_INFINITY,
+			Number.NEGATIVE_INFINITY,
+		];
 		let hasValid = false;
 		for (const id of selectedSeatIds) {
 			const seat = allSeats[id];

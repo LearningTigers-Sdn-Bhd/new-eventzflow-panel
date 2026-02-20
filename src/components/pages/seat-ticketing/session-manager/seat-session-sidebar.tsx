@@ -24,7 +24,7 @@ import type {
 	EventSeatSection,
 } from "@/lib/api/seat-ticketing/response";
 import { SeatForm } from "./seat-form";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 import { VenueForm } from "./venue-form";
 
 export function SeatSessionSidebar() {
@@ -39,9 +39,9 @@ export function SeatSessionSidebar() {
 	return (
 		<Sidebar
 			collapsible="none"
-			className="w-80 border-r bg-muted/30 h-[calc(100vh-4rem)] flex flex-col"
+			className="flex h-[calc(100vh-4rem)] w-80 flex-col border-r bg-muted/30"
 		>
-			<SidebarContent className="px-4 py-4 gap-6 overflow-y-auto flex-1">
+			<SidebarContent className="flex-1 gap-6 overflow-y-auto px-4 py-4">
 				{mode === "venue_blueprint" ? (
 					<>
 						<VenueForm />
@@ -64,9 +64,9 @@ export function SeatSessionSidebar() {
 
 			<SidebarFooter className="p-2 px-4">
 				{/* Usage Tip */}
-				<div className="bg-primary/5 border border-primary/20 rounded-none px-3 py-2 flex gap-2">
-					<HelpCircle className="h-4 w-4 text-primary shrink-0" />
-					<div className="text-xs space-y-0.5">
+				<div className="flex gap-2 rounded-none border border-primary/20 bg-primary/5 px-3 py-2">
+					<HelpCircle className="h-4 w-4 shrink-0 text-primary" />
+					<div className="space-y-0.5 text-xs">
 						<p className="font-semibold text-primary">Pro Tip</p>
 						<p className="text-muted-foreground leading-relaxed">
 							{mode === "venue_blueprint"
@@ -97,7 +97,7 @@ function SectionRotationControls({ section }: { section: EventSeatSection }) {
 	};
 
 	return (
-		<div className="space-y-2 pt-2 border-t">
+		<div className="space-y-2 border-t pt-2">
 			<NumberInputLabel
 				label="Rotation (deg)"
 				value={rotation}
@@ -151,13 +151,13 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel className="px-0 mb-2 flex items-center gap-2 text-primary uppercase font-bold tracking-wider">
+			<SidebarGroupLabel className="mb-2 flex items-center gap-2 px-0 font-bold text-primary uppercase tracking-wider">
 				<LayoutGrid className="h-4 w-4" />
 				SECTION INFO
 			</SidebarGroupLabel>
 			<SidebarGroupAction
 				onClick={() => selectSection(null)}
-				className="text-primary hover:text-primary hover:bg-primary/10"
+				className="text-primary hover:bg-primary/10 hover:text-primary"
 				title="Done editing"
 			>
 				<Check className="h-4 w-4" />
@@ -207,7 +207,7 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 						variant="no-rounded"
 					/>
 				</div>
-				<div className="grid grid-cols-2 gap-3 pt-2 border-t">
+				<div className="grid grid-cols-2 gap-3 border-t pt-2">
 					<NumberInputLabel
 						label="Grid Rows"
 						value={section.seat_row || 0}
@@ -227,15 +227,15 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 					onChange={(val: string) => handleChange("color", val)}
 				/>
 
-				<div className="pt-4 border-t space-y-4">
+				<div className="space-y-4 border-t pt-4">
 					<div className="flex items-center justify-between">
-						<p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+						<p className="font-bold text-[10px] text-primary uppercase tracking-widest">
 							Blueprint Generator
 						</p>
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-none px-2"
+							className="h-6 rounded-none px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive"
 							onClick={() => {
 								if (
 									confirm(
@@ -246,7 +246,7 @@ function SectionInfoForm({ section }: { section: EventSeatSection }) {
 								}
 							}}
 						>
-							<Trash2 className="h-3 w-3 mr-1" />
+							<Trash2 className="mr-1 h-3 w-3" />
 							Clear All Seats
 						</Button>
 					</div>
@@ -320,13 +320,13 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel className="px-0 mb-2 flex items-center gap-2 text-primary uppercase font-bold tracking-wider">
+			<SidebarGroupLabel className="mb-2 flex items-center gap-2 px-0 font-bold text-primary uppercase tracking-wider">
 				<LayoutGrid className="h-4 w-4" />
 				SECTION INFO
 			</SidebarGroupLabel>
 			<SidebarGroupAction
 				onClick={() => selectSection(null)}
-				className="text-primary hover:text-primary hover:bg-primary/10"
+				className="text-primary hover:bg-primary/10 hover:text-primary"
 				title="Done editing"
 			>
 				<Check className="h-4 w-4" />
@@ -348,7 +348,7 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 					onChange={(val: number) => handleChange("price", val)}
 					variant="no-rounded"
 				/>
-				<div className="grid grid-cols-2 gap-3 pt-2 border-t">
+				<div className="grid grid-cols-2 gap-3 border-t pt-2">
 					<NumberInputLabel
 						label="Grid Rows"
 						value={section.seat_row || 0}
@@ -368,15 +368,15 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 					onChange={(val: string) => handleChange("color", val)}
 				/>
 
-				<div className="pt-4 border-t space-y-4">
+				<div className="space-y-4 border-t pt-4">
 					<div className="flex items-center justify-between">
-						<p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+						<p className="font-bold text-[10px] text-primary uppercase tracking-widest">
 							Blueprint Generator
 						</p>
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-none px-2"
+							className="h-6 rounded-none px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive"
 							onClick={() => {
 								if (
 									confirm(
@@ -387,7 +387,7 @@ function SimplifiedSectionForm({ section }: { section: EventSeatSection }) {
 								}
 							}}
 						>
-							<Trash2 className="h-3 w-3 mr-1" />
+							<Trash2 className="mr-1 h-3 w-3" />
 							Clear All Seats
 						</Button>
 					</div>
@@ -455,7 +455,7 @@ function SectionList() {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel className="px-0 mb-2 flex items-center justify-between">
+			<SidebarGroupLabel className="mb-2 flex items-center justify-between px-0">
 				<div className="flex items-center gap-2">
 					<LayoutGrid className="h-4 w-4" />
 					SECTIONS ({sectionIds.length})
@@ -464,7 +464,7 @@ function SectionList() {
 			<SidebarGroupContent>
 				<SidebarMenu>
 					{sectionIds.length === 0 ? (
-						<p className="text-xs text-muted-foreground italic px-2">
+						<p className="px-2 text-muted-foreground text-xs italic">
 							No sections created yet.
 						</p>
 					) : (
@@ -475,12 +475,12 @@ function SectionList() {
 								<SidebarMenuItem key={s.id}>
 									<SidebarMenuButton
 										onClick={() => selectSection(s.id)}
-										className="justify-between h-9 rounded-none"
+										className="h-9 justify-between rounded-none"
 									>
 										<span className="truncate">{s.name}</span>
 										<Badge
 											variant="secondary"
-											className="text-[10px] h-4 font-normal rounded-none"
+											className="h-4 rounded-none font-normal text-[10px]"
 										>
 											{s.seat_row}x{s.seat_column}
 										</Badge>

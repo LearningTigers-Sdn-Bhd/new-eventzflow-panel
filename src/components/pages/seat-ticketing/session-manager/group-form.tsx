@@ -12,18 +12,20 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 
 export function GroupForm() {
-	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
-	const selectedGroupId = useSeatSessionStore(state => state.selectedGroupId);
-	const updateGroup = useSeatSessionStore(state => state.updateGroup);
-	const removeGroup = useSeatSessionStore(state => state.removeGroup);
-	const selectGroup = useSeatSessionStore(state => state.selectGroup);
-	const addGroup = useSeatSessionStore(state => state.addGroup);
+	const selectedSectionId = useSeatSessionStore(
+		(state) => state.selectedSectionId,
+	);
+	const selectedGroupId = useSeatSessionStore((state) => state.selectedGroupId);
+	const updateGroup = useSeatSessionStore((state) => state.updateGroup);
+	const removeGroup = useSeatSessionStore((state) => state.removeGroup);
+	const selectGroup = useSeatSessionStore((state) => state.selectGroup);
+	const addGroup = useSeatSessionStore((state) => state.addGroup);
 
-	const section = useSeatSessionStore(state => 
-		selectedSectionId ? state.sections[selectedSectionId] : null
+	const section = useSeatSessionStore((state) =>
+		selectedSectionId ? state.sections[selectedSectionId] : null,
 	);
 	const selectedGroup = section?.event_seat_groups?.find(
 		(g) => g.id === selectedGroupId,
@@ -40,21 +42,21 @@ export function GroupForm() {
 	if (selectedGroup) {
 		return (
 			<SidebarGroup className="p-0">
-				<SidebarGroupLabel className="px-0 mb-2 flex items-center gap-2 text-primary">
+				<SidebarGroupLabel className="mb-2 flex items-center gap-2 px-0 text-primary">
 					<Layers className="h-4 w-4" />
 					GROUP INFO
 				</SidebarGroupLabel>
 				<div className="absolute top-3.5 right-0 flex items-center gap-1">
 					<SidebarGroupAction
 						onClick={() => selectGroup(null)}
-						className="text-primary hover:text-primary hover:bg-primary/10 relative rounded-none"
+						className="relative rounded-none text-primary hover:bg-primary/10 hover:text-primary"
 						title="Done editing"
 					>
 						<Check className="h-4 w-4" />
 					</SidebarGroupAction>
 					<SidebarGroupAction
 						onClick={() => removeGroup(selectedSectionId, selectedGroup.id)}
-						className="text-destructive hover:text-destructive hover:bg-destructive/10 relative rounded-none"
+						className="relative rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 						title="Delete group"
 					>
 						<Trash2 className="h-4 w-4" />
@@ -90,7 +92,7 @@ export function GroupForm() {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel className="px-0 mb-2 flex items-center justify-between uppercase font-bold tracking-wider">
+			<SidebarGroupLabel className="mb-2 flex items-center justify-between px-0 font-bold uppercase tracking-wider">
 				<div className="flex items-center gap-2">
 					<Layers className="h-4 w-4" />
 					PRICING GROUPS ({section.event_seat_groups?.length || 0})
@@ -102,7 +104,7 @@ export function GroupForm() {
 						<SidebarMenuItem key={group.id}>
 							<SidebarMenuButton
 								onClick={() => selectGroup(group.id)}
-								className="justify-between h-9 rounded-none"
+								className="h-9 justify-between rounded-none"
 							>
 								<div className="flex items-center gap-2 truncate">
 									<Layers className="h-3 w-3 text-slate-400" />
@@ -110,7 +112,7 @@ export function GroupForm() {
 								</div>
 								<Badge
 									variant="outline"
-									className="text-[10px] h-4 font-mono font-normal rounded-none"
+									className="h-4 rounded-none font-mono font-normal text-[10px]"
 								>
 									+${group.extra_price}
 								</Badge>
@@ -122,10 +124,10 @@ export function GroupForm() {
 							onClick={() =>
 								addGroup(section.id, { name: "New Group", extra_price: 0 })
 							}
-							className="text-primary hover:text-primary hover:bg-primary/5 gap-2 h-9 rounded-none border border-dashed border-primary/20 mt-1"
+							className="mt-1 h-9 gap-2 rounded-none border border-primary/20 border-dashed text-primary hover:bg-primary/5 hover:text-primary"
 						>
 							<Plus className="h-3.5 w-3.5" />
-							<span className="font-medium uppercase text-[10px]">
+							<span className="font-medium text-[10px] uppercase">
 								Add Pricing Group
 							</span>
 						</SidebarMenuButton>

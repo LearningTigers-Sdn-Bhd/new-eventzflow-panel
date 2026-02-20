@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/popover";
 import type { EventSeatSection } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
-import { CanvasProvider } from "./canvas-provider";
-import { useSeatCanvas } from "./use-seat-canvas";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatCanvas } from "../../hooks/use-seat-canvas";
+import { CanvasProvider } from "../../providers/canvas-provider";
+import { useSeatSessionStore } from "../../store/use-seat-session-store";
 
 const SEAT_SIZE = 40;
 const SEAT_GAP = 8;
@@ -84,11 +84,11 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 	} = useSeatCanvas(section);
 
 	return (
-		<div ref={containerRef} className="relative w-full h-full">
+		<div ref={containerRef} className="relative h-full w-full">
 			{isHydrating && (
-				<div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] animate-in fade-in duration-300">
-					<Loader2 className="h-8 w-8 text-primary animate-spin" />
-					<p className="mt-2 text-sm font-semibold text-primary uppercase tracking-widest">
+				<div className="fade-in absolute inset-0 z-50 flex animate-in flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] duration-300">
+					<Loader2 className="h-8 w-8 animate-spin text-primary" />
+					<p className="mt-2 font-semibold text-primary text-sm uppercase tracking-widest">
 						Loading Seats...
 					</p>
 				</div>
@@ -126,33 +126,33 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 
 						{/* Ghost Previews (Blueprint Preview) */}
 						{ghostSeats.map((ghost) => {
-								const x = PADDING + (ghost.c - 1) * (SEAT_SIZE + SEAT_GAP);
-								const y = PADDING + (ghost.r - 1) * (SEAT_SIZE + SEAT_GAP);
-								return (
-									<Group
-										key={`ghost-${ghost.r}-${ghost.c}`}
-										x={x}
-										y={y}
-										opacity={0.4}
-										listening={false}
-									>
-										<Rect
-											width={SEAT_SIZE}
-											height={SEAT_SIZE}
-											fill="#e2e8f0"
-											cornerRadius={4}
-										/>
-										<Rect
-											x={4}
-											y={4}
-											width={SEAT_SIZE - 8}
-											height={SEAT_SIZE - 8}
-											fill="#94a3b8"
-											cornerRadius={2}
-										/>
-									</Group>
-								);
-							})}
+							const x = PADDING + (ghost.c - 1) * (SEAT_SIZE + SEAT_GAP);
+							const y = PADDING + (ghost.r - 1) * (SEAT_SIZE + SEAT_GAP);
+							return (
+								<Group
+									key={`ghost-${ghost.r}-${ghost.c}`}
+									x={x}
+									y={y}
+									opacity={0.4}
+									listening={false}
+								>
+									<Rect
+										width={SEAT_SIZE}
+										height={SEAT_SIZE}
+										fill="#e2e8f0"
+										cornerRadius={4}
+									/>
+									<Rect
+										x={4}
+										y={4}
+										width={SEAT_SIZE - 8}
+										height={SEAT_SIZE - 8}
+										fill="#94a3b8"
+										cornerRadius={2}
+									/>
+								</Group>
+							);
+						})}
 
 						{selectedSeatPosition && (
 							<Rect
@@ -247,17 +247,17 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 			)}
 			{popoverPos && (
 				<div
-					className="absolute pointer-events-none"
+					className="pointer-events-none absolute"
 					style={{ left: popoverPos.x, top: popoverPos.y }}
 				>
 					<Popover open={true}>
 						<PopoverAnchor>
-							<div className="w-1 h-1" />
+							<div className="h-1 w-1" />
 						</PopoverAnchor>
 						<PopoverContent
 							side="top"
 							sideOffset={10}
-							className="w-auto p-1 flex items-center gap-1 bg-white border shadow-md rounded-none pointer-events-auto"
+							className="pointer-events-auto flex w-auto items-center gap-1 rounded-none border bg-white p-1 shadow-md"
 						>
 							<Button
 								variant="ghost"
@@ -268,7 +268,7 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 							>
 								<Layers className="h-4 w-4" />
 							</Button>
-							<div className="w-px h-4 bg-border mx-0.5" />
+							<div className="mx-0.5 h-4 w-px bg-border" />
 							<Button
 								variant="destructive"
 								size="icon"
@@ -284,17 +284,17 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 			)}
 			{emptySelectionPos && (
 				<div
-					className="absolute pointer-events-none"
+					className="pointer-events-none absolute"
 					style={{ left: emptySelectionPos.x, top: emptySelectionPos.y }}
 				>
 					<Popover open={true}>
 						<PopoverAnchor>
-							<div className="w-1 h-1" />
+							<div className="h-1 w-1" />
 						</PopoverAnchor>
 						<PopoverContent
 							side="top"
 							sideOffset={10}
-							className="w-auto p-1 bg-white border shadow-md rounded-none pointer-events-auto"
+							className="pointer-events-auto w-auto rounded-none border bg-white p-1 shadow-md"
 						>
 							<Button
 								size="sm"
@@ -313,30 +313,30 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 									}
 								}}
 							>
-								<ArmchairIcon className="h-3.5 w-3.5 mr-2" />
+								<ArmchairIcon className="mr-2 h-3.5 w-3.5" />
 								Add Seat
 							</Button>
 						</PopoverContent>
 					</Popover>
 				</div>
 			)}
-			<div className="absolute bottom-6 right-6 flex flex-col gap-2 z-50">
+			<div className="absolute right-6 bottom-6 z-50 flex flex-col gap-2">
 				<button
 					type="button"
 					className={cn(
-						"h-10 w-10 shadow-md rounded-none flex items-center justify-center border transition-colors",
+						"flex h-10 w-10 items-center justify-center rounded-none border shadow-md transition-colors",
 						isPanning
-							? "bg-primary text-primary-foreground border-primary"
-							: "bg-white text-foreground border-border hover:bg-muted",
+							? "border-primary bg-primary text-primary-foreground"
+							: "border-border bg-white text-foreground hover:bg-muted",
 					)}
 					onClick={() => setIsPanning(!isPanning)}
 				>
 					<Hand className="h-5 w-5" />
 				</button>
-				<div className="flex flex-col bg-background rounded-none shadow-md border overflow-hidden">
+				<div className="flex flex-col overflow-hidden rounded-none border bg-background shadow-md">
 					<button
 						type="button"
-						className="h-10 w-10 flex items-center justify-center hover:bg-muted transition-colors border-none"
+						className="flex h-10 w-10 items-center justify-center border-none transition-colors hover:bg-muted"
 						onClick={() => setZoom(Math.min(3, zoom + 0.1))}
 					>
 						<Plus className="h-4 w-4" />
@@ -344,7 +344,7 @@ function SeatCanvasContent({ section }: { section: EventSeatSection }) {
 					<div className="h-px w-full bg-border" />
 					<button
 						type="button"
-						className="h-10 w-10 flex items-center justify-center hover:bg-muted transition-colors border-none"
+						className="flex h-10 w-10 items-center justify-center border-none transition-colors hover:bg-muted"
 						onClick={() => setZoom(Math.max(0.2, zoom - 0.1))}
 					>
 						<Minus className="h-4 w-4" />

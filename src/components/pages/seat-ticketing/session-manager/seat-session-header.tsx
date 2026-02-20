@@ -6,11 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 
 export function SeatSessionHeader() {
 	const pathname = usePathname();
-	const sessionsListUrl = `${pathname.split("/sessions/")[0]}/sessions` as Route;
+	const sessionsListUrl =
+		`${pathname.split("/sessions/")[0]}/sessions` as Route;
 
 	const session = useSeatSessionStore((state) => state.session);
 	const mode = useSeatSessionStore((state) => state.mode);
@@ -21,7 +22,9 @@ export function SeatSessionHeader() {
 	);
 	const save = useSeatSessionStore((state) => state.save);
 	const isSaving = useSeatSessionStore((state) => state.isSaving);
-	const selectedSectionId = useSeatSessionStore((state) => state.selectedSectionId);
+	const selectedSectionId = useSeatSessionStore(
+		(state) => state.selectedSectionId,
+	);
 
 	const selectedSection = useSeatSessionStore((state) =>
 		selectedSectionId ? state.sections[selectedSectionId] : null,
@@ -29,12 +32,12 @@ export function SeatSessionHeader() {
 
 	if (mode === "seat_placement" && selectedSection) {
 		return (
-			<div className="relative flex items-center justify-between border-b px-6 py-3 bg-background shrink-0 h-16">
-				<div className="flex items-center gap-4 z-10">
+			<div className="relative flex h-16 shrink-0 items-center justify-between border-b bg-background px-6 py-3">
+				<div className="z-10 flex items-center gap-4">
 					<Button
 						variant="ghost"
 						size="sm"
-						className="gap-2 pl-2 rounded-none"
+						className="gap-2 rounded-none pl-2"
 						onClick={() => setMode("venue_blueprint")}
 					>
 						<ChevronLeft className="h-4 w-4" />
@@ -42,23 +45,23 @@ export function SeatSessionHeader() {
 					</Button>
 				</div>
 
-				<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-					<h1 className="text-lg font-bold leading-tight">
+				<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+					<h1 className="font-bold text-lg leading-tight">
 						{selectedSection.name}
 					</h1>
-					<p className="text-sm text-muted-foreground uppercase tracking-widest font-semibold">
+					<p className="font-semibold text-muted-foreground text-sm uppercase tracking-widest">
 						Seat Placement Mode
 					</p>
 				</div>
 
-				<div className="flex items-center gap-4 z-10">
-					<div className="flex items-center bg-muted rounded-none p-1 border">
+				<div className="z-10 flex items-center gap-4">
+					<div className="flex items-center rounded-none border bg-muted p-1">
 						<Button
 							variant={interactionMode === "select" ? "default" : "ghost"}
 							size="sm"
 							onClick={() => setInteractionMode("select")}
 							className={cn(
-								"gap-2 h-8 rounded-none transition-all",
+								"h-8 gap-2 rounded-none transition-all",
 								interactionMode === "select" && "shadow-sm",
 							)}
 						>
@@ -70,7 +73,7 @@ export function SeatSessionHeader() {
 							size="sm"
 							onClick={() => setInteractionMode("create")}
 							className={cn(
-								"gap-2 h-8 rounded-none transition-all",
+								"h-8 gap-2 rounded-none transition-all",
 								interactionMode === "create" && "shadow-sm",
 							)}
 						>
@@ -94,12 +97,12 @@ export function SeatSessionHeader() {
 	}
 
 	return (
-		<div className="relative flex items-center justify-between border-b px-6 py-3 bg-background shrink-0 h-16">
-			<div className="flex items-center gap-4 z-10">
+		<div className="relative flex h-16 shrink-0 items-center justify-between border-b bg-background px-6 py-3">
+			<div className="z-10 flex items-center gap-4">
 				<Button
 					variant="ghost"
 					size="sm"
-					className="gap-2 pl-2 rounded-none"
+					className="gap-2 rounded-none pl-2"
 					asChild
 				>
 					<Link href={sessionsListUrl}>
@@ -109,21 +112,21 @@ export function SeatSessionHeader() {
 				</Button>
 			</div>
 
-			<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-				<h1 className="text-lg font-bold leading-tight">{session?.name}</h1>
-				<p className="text-sm text-muted-foreground uppercase tracking-widest font-semibold">
+			<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+				<h1 className="font-bold text-lg leading-tight">{session?.name}</h1>
+				<p className="font-semibold text-muted-foreground text-sm uppercase tracking-widest">
 					Venue Blueprint
 				</p>
 			</div>
 
-			<div className="flex items-center gap-4 z-10">
-				<div className="flex items-center bg-muted rounded-none p-1 border">
+			<div className="z-10 flex items-center gap-4">
+				<div className="flex items-center rounded-none border bg-muted p-1">
 					<Button
 						variant={interactionMode === "select" ? "default" : "ghost"}
 						size="sm"
 						onClick={() => setInteractionMode("select")}
 						className={cn(
-							"gap-2 h-8 rounded-none transition-all",
+							"h-8 gap-2 rounded-none transition-all",
 							interactionMode === "select" && "shadow-sm",
 						)}
 					>
@@ -135,7 +138,7 @@ export function SeatSessionHeader() {
 						size="sm"
 						onClick={() => setInteractionMode("create")}
 						className={cn(
-							"gap-2 h-8 rounded-none transition-all",
+							"h-8 gap-2 rounded-none transition-all",
 							interactionMode === "create" && "shadow-sm",
 						)}
 					>

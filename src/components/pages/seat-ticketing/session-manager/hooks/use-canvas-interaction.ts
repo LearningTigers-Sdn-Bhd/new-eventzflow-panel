@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "../store/use-seat-session-store";
 
 interface UseCanvasInteractionProps {
 	contentWidth: number;
@@ -14,11 +14,11 @@ export function useCanvasInteraction({
 	contentHeight,
 	enabled = true,
 }: UseCanvasInteractionProps) {
-	const zoom = useSeatSessionStore(state => state.zoom);
-	const setZoom = useSeatSessionStore(state => state.setZoom);
-	const pan = useSeatSessionStore(state => state.pan);
-	const setPan = useSeatSessionStore(state => state.setPan);
-	const isPanning = useSeatSessionStore(state => state.isPanning);
+	const zoom = useSeatSessionStore((state) => state.zoom);
+	const setZoom = useSeatSessionStore((state) => state.setZoom);
+	const pan = useSeatSessionStore((state) => state.pan);
+	const setPan = useSeatSessionStore((state) => state.setPan);
+	const isPanning = useSeatSessionStore((state) => state.isPanning);
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
@@ -31,7 +31,12 @@ export function useCanvasInteraction({
 		if (!container) return;
 
 		const centerCanvas = () => {
-			if (contentWidth > 0 && contentHeight > 0 && container.clientWidth > 0 && container.clientHeight > 0) {
+			if (
+				contentWidth > 0 &&
+				contentHeight > 0 &&
+				container.clientWidth > 0 &&
+				container.clientHeight > 0
+			) {
 				// Only center if we haven't initialized yet or if pan is at default 0,0
 				if (!isInitialized || (pan.x === 0 && pan.y === 0)) {
 					const x = (container.clientWidth - contentWidth) / 2;
@@ -67,10 +72,10 @@ export function useCanvasInteraction({
 				e.preventDefault(); // Prevent native scroll
 				const deltaX = e.shiftKey && e.deltaY !== 0 ? e.deltaY : e.deltaX;
 				const deltaY = e.shiftKey ? 0 : e.deltaY;
-				
+
 				setPan({
 					x: pan.x - deltaX,
-					y: pan.y - deltaY
+					y: pan.y - deltaY,
 				});
 			}
 		};
@@ -81,10 +86,11 @@ export function useCanvasInteraction({
 
 	const handleMouseDown = (e: React.MouseEvent) => {
 		if (!enabled) return;
-		
+
 		// Allow pan if Panning mode OR Middle Click OR (Ctrl + Left Click)
-		const isPanAction = isPanning || e.button === 1 || (e.button === 0 && e.ctrlKey);
-		
+		const isPanAction =
+			isPanning || e.button === 1 || (e.button === 0 && e.ctrlKey);
+
 		if (!isPanAction) return;
 
 		e.preventDefault();
@@ -112,7 +118,11 @@ export function useCanvasInteraction({
 		const handleKeyDown = (e: KeyboardEvent) => {
 			const PAN_STEP = 20;
 			// Avoid interfering if typing in inputs
-			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement
+			)
+				return;
 
 			switch (e.key) {
 				case "ArrowUp":
@@ -140,8 +150,8 @@ export function useCanvasInteraction({
 						setZoom(Math.max(0.2, zoom - 0.1));
 					}
 					break;
-				case " ": // Spacebar to toggle pan mode temporarily? 
-					// Common pattern: Hold space to pan. 
+				case " ": // Spacebar to toggle pan mode temporarily?
+					// Common pattern: Hold space to pan.
 					// Implementing that requires keyup listener too.
 					break;
 			}

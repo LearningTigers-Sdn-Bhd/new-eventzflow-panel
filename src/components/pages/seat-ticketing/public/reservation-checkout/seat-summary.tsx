@@ -1,14 +1,3 @@
-import type {
-	EventSeatSection,
-	EventTicketSeat,
-} from "@/lib/api/seat-ticketing/response";
-
-interface SeatSummaryProps {
-	seats: EventTicketSeat[];
-	sections: Record<number, EventSeatSection>;
-	totalPrice: number;
-}
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type {
 	EventSeatSection,

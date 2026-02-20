@@ -8,7 +8,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "../store/use-seat-session-store";
 
 interface CanvasContextType {
 	containerRef: RefObject<HTMLDivElement | null>;
@@ -43,11 +43,11 @@ export function CanvasProvider({
 	enabled = true,
 	venueId,
 }: CanvasProviderProps) {
-	const zoom = useSeatSessionStore(state => state.zoom);
-	const setZoom = useSeatSessionStore(state => state.setZoom);
-	const pan = useSeatSessionStore(state => state.pan);
-	const setPan = useSeatSessionStore(state => state.setPan);
-	const isPanning = useSeatSessionStore(state => state.isPanning);
+	const zoom = useSeatSessionStore((state) => state.zoom);
+	const setZoom = useSeatSessionStore((state) => state.setZoom);
+	const pan = useSeatSessionStore((state) => state.pan);
+	const setPan = useSeatSessionStore((state) => state.setPan);
+	const isPanning = useSeatSessionStore((state) => state.isPanning);
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
@@ -76,16 +76,16 @@ export function CanvasProvider({
 				const scaleX = (container.clientWidth - 60) / contentWidth;
 				const scaleY = (container.clientHeight - 60) / contentHeight;
 				const fitZoom = Math.min(scaleX, scaleY);
-				
+
 				setZoom(fitZoom);
 
 				const scaledWidth = contentWidth * fitZoom;
 				const scaledHeight = contentHeight * fitZoom;
 				const x = (container.clientWidth - scaledWidth) / 2;
 				const y = (container.clientHeight - scaledHeight) / 2;
-				
+
 				setPan({ x, y });
-				
+
 				// Mark as initialized for this specific venue
 				if (venueId) {
 					initializedVenueIdRef.current = venueId;
@@ -201,7 +201,7 @@ export function CanvasProvider({
 		>
 			<div
 				ref={containerRef}
-				className="relative w-full h-full overflow-hidden bg-slate-100 select-none"
+				className="relative h-full w-full select-none overflow-hidden bg-slate-100"
 				onMouseDown={handleMouseDown}
 				onMouseMove={handleMouseMove}
 				onMouseUp={handleMouseUp}

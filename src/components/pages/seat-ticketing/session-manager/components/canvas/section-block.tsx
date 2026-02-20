@@ -13,7 +13,7 @@ import {
 import type { EventSeatSection } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
 import { getGroupColorHex } from "@/lib/utils/group-colors";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "../../store/use-seat-session-store";
 
 interface SectionBlockProps {
 	section: EventSeatSection;
@@ -26,13 +26,15 @@ export function SectionBlock({
 	cellSize,
 	cellGap,
 }: SectionBlockProps) {
-	const selectedSectionId = useSeatSessionStore(state => state.selectedSectionId);
-	const selectSection = useSeatSessionStore(state => state.selectSection);
-	const setMode = useSeatSessionStore(state => state.setMode);
-	const removeSection = useSeatSessionStore(state => state.removeSection);
-	const interactionMode = useSeatSessionStore(state => state.interactionMode);
-	const updateSection = useSeatSessionStore(state => state.updateSection);
-	const isPanning = useSeatSessionStore(state => state.isPanning);
+	const selectedSectionId = useSeatSessionStore(
+		(state) => state.selectedSectionId,
+	);
+	const selectSection = useSeatSessionStore((state) => state.selectSection);
+	const setMode = useSeatSessionStore((state) => state.setMode);
+	const removeSection = useSeatSessionStore((state) => state.removeSection);
+	const interactionMode = useSeatSessionStore((state) => state.interactionMode);
+	const updateSection = useSeatSessionStore((state) => state.updateSection);
+	const isPanning = useSeatSessionStore((state) => state.isPanning);
 
 	const isSelected = selectedSectionId === section.id;
 	const [isResizing, setIsResizing] = useState(false);
@@ -164,44 +166,44 @@ export function SectionBlock({
 						selectSection(section.id);
 					}}
 					className={cn(
-						"relative flex flex-col border-2 transition-all group select-none rounded-none bg-slate-50",
+						"group relative flex select-none flex-col rounded-none border-2 bg-slate-50 transition-all",
 						isSelected
-							? "border-primary ring-2 ring-primary ring-offset-2 z-20"
+							? "z-20 border-primary ring-2 ring-primary ring-offset-2"
 							: "border-primary/20 hover:border-primary/50",
 						(isResizing || isDragging) &&
-							"opacity-80 pointer-events-none-children",
+							"pointer-events-none-children opacity-80",
 						isDragging && "cursor-grabbing",
 					)}
 				>
 					{/* Header */}
 					<div
-						className="flex items-center justify-between py-3 px-4 shrink-0 rounded-none text-white overflow-hidden"
+						className="flex shrink-0 items-center justify-between overflow-hidden rounded-none px-4 py-3 text-white"
 						style={{ backgroundColor: colorHex }}
 					>
 						<div className="flex flex-col text-white">
-							<span className="text-lg font-bold truncate max-w-[120px]">
+							<span className="max-w-[120px] truncate font-bold text-lg">
 								{section.name}
 							</span>
 							<span className="text-base opacity-90">${section.price}</span>
 						</div>
-						<span className="text-sm font-mono whitespace-nowrap">
+						<span className="whitespace-nowrap font-mono text-sm">
 							{section.seat_row}x{section.seat_column}
 						</span>
 					</div>
 
 					{/* Content */}
-					<div className="flex-1 flex flex-col items-center justify-center p-4 text-center pointer-events-none rounded-none bg-slate-50 overflow-hidden">
-						<div 
+					<div className="pointer-events-none flex flex-1 flex-col items-center justify-center overflow-hidden rounded-none bg-slate-50 p-4 text-center">
+						<div
 							className="flex flex-col items-center justify-center"
-							style={{ transform: `rotate(${- (section.rotation ?? 0)}deg)` }}
+							style={{ transform: `rotate(${-(section.rotation ?? 0)}deg)` }}
 						>
 							<span
-								className="text-6xl font-black tracking-tighter"
+								className="font-black text-6xl tracking-tighter"
 								style={{ color: colorHex }}
 							>
 								{section.seats_count ?? section.event_ticket_seats?.length ?? 0}
 							</span>
-							<span className="text-sm text-muted-foreground font-bold uppercase tracking-widest mt-1">
+							<span className="mt-1 font-bold text-muted-foreground text-sm uppercase tracking-widest">
 								Seats
 							</span>
 						</div>
@@ -210,7 +212,7 @@ export function SectionBlock({
 					{/* Resize Handle */}
 					{isSelected && !isPanning && (
 						<div
-							className="absolute -bottom-1.5 -right-1.5 w-4 h-4 cursor-nwse-resize rounded-none z-30 hover:scale-125 transition-transform"
+							className="absolute -right-1.5 -bottom-1.5 z-30 h-4 w-4 cursor-nwse-resize rounded-none transition-transform hover:scale-125"
 							style={{ backgroundColor: colorHex }}
 							onMouseDown={(e) => handleResizeStart(e)}
 						/>
@@ -220,7 +222,7 @@ export function SectionBlock({
 			<PopoverContent
 				side="top"
 				sideOffset={10}
-				className="w-auto p-1 flex items-center gap-1 bg-white rounded-none"
+				className="flex w-auto items-center gap-1 rounded-none bg-white p-1"
 				onOpenAutoFocus={(e) => e.preventDefault()}
 			>
 				<Button
@@ -232,12 +234,12 @@ export function SectionBlock({
 					<Settings className="h-3.5 w-3.5" />
 					Manage Seats
 				</Button>
-				<div className="w-px h-4 bg-border mx-1" />
+				<div className="mx-1 h-4 w-px bg-border" />
 				<Button
 					variant="ghost"
 					size="sm"
 					onClick={handleDelete}
-					className="h-8 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-none"
+					className="h-8 gap-2 rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 				>
 					<Trash2 className="h-3.5 w-3.5" />
 					Delete

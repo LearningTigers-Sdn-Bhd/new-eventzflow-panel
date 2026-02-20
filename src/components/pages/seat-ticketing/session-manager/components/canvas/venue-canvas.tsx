@@ -7,9 +7,9 @@ import { Hand, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { EventSeatVenue } from "@/lib/api/seat-ticketing/response";
 import { cn } from "@/lib/utils";
-import { CanvasProvider, useCanvas } from "./canvas-provider";
+import { CanvasProvider, useCanvas } from "../../providers/canvas-provider";
+import { useSeatSessionStore } from "../../store/use-seat-session-store";
 import { SectionBlock } from "./section-block";
-import { useSeatSessionStore } from "./use-seat-session-store";
 
 const BASE_CELL_SIZE = 40;
 const CELL_GAP = 1;
@@ -29,14 +29,14 @@ export function VenueCanvas() {
 
 	if (!venue) {
 		return (
-			<div className="flex items-center justify-center h-full text-muted-foreground">
+			<div className="flex h-full items-center justify-center text-muted-foreground">
 				No venue configured.
 			</div>
 		);
 	}
 
 	return (
-		<div ref={containerRef} className="relative w-full h-full">
+		<div ref={containerRef} className="relative h-full w-full">
 			<CanvasProvider
 				contentWidth={gridWidth}
 				contentHeight={gridHeight}
@@ -168,22 +168,22 @@ function VenueCanvasContent({
 
 	return (
 		<div
-			className="relative w-full h-full bg-muted overflow-hidden"
+			className="relative h-full w-full overflow-hidden bg-muted"
 			onClick={() => selectSection(null)}
 		>
 			{/* Canvas Content */}
 			<div
 				style={gridStyle}
-				className="relative transition-transform duration-75 ease-out border border-primary bg-slate-200"
+				className="relative border border-primary bg-slate-200 transition-transform duration-75 ease-out"
 				onClick={handleGridClick}
 			>
-				<canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+				<canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
 				{venue.image_url && (
 					<Image
 						src={venue.image_url}
 						alt="Venue overlay"
-						className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-10"
+						className="pointer-events-none absolute inset-0 z-10 h-full w-full object-cover opacity-40"
 						layout="fullWidth"
 					/>
 				)}
@@ -200,25 +200,25 @@ function VenueCanvasContent({
 
 			{/* Sticky Controls */}
 			<div
-				className="absolute bottom-6 right-6 flex flex-col gap-2 z-50"
+				className="absolute right-6 bottom-6 z-50 flex flex-col gap-2"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<button
 					type="button"
 					className={cn(
-						"h-10 w-10 shadow-md rounded-none flex items-center justify-center border transition-colors",
+						"flex h-10 w-10 items-center justify-center rounded-none border shadow-md transition-colors",
 						isPanning
-							? "bg-primary text-primary-foreground border-primary"
-							: "bg-white text-foreground border-border hover:bg-muted",
+							? "border-primary bg-primary text-primary-foreground"
+							: "border-border bg-white text-foreground hover:bg-muted",
 					)}
 					onClick={() => setIsPanning(!isPanning)}
 				>
 					<Hand className="h-5 w-5" />
 				</button>
-				<div className="flex flex-col bg-background rounded-none shadow-md border overflow-hidden">
+				<div className="flex flex-col overflow-hidden rounded-none border bg-background shadow-md">
 					<button
 						type="button"
-						className="h-10 w-10 flex items-center justify-center hover:bg-muted transition-colors border-none"
+						className="flex h-10 w-10 items-center justify-center border-none transition-colors hover:bg-muted"
 						onClick={() => setZoom(Math.min(3, zoom + 0.1))}
 					>
 						<Plus className="h-4 w-4" />
@@ -226,7 +226,7 @@ function VenueCanvasContent({
 					<div className="h-px w-full bg-border" />
 					<button
 						type="button"
-						className="h-10 w-10 flex items-center justify-center hover:bg-muted transition-colors border-none"
+						className="flex h-10 w-10 items-center justify-center border-none transition-colors hover:bg-muted"
 						onClick={() => setZoom(Math.max(0.2, zoom - 0.1))}
 					>
 						<Minus className="h-4 w-4" />

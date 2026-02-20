@@ -13,11 +13,11 @@ import {
 	SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import type { EventSeatVenue } from "@/lib/api/seat-ticketing/response";
-import { useSeatSessionStore } from "./use-seat-session-store";
+import { useSeatSessionStore } from "./store/use-seat-session-store";
 
 export function VenueForm() {
-	const venue = useSeatSessionStore(state => state.venue);
-	const updateVenue = useSeatSessionStore(state => state.updateVenue);
+	const venue = useSeatSessionStore((state) => state.venue);
+	const updateVenue = useSeatSessionStore((state) => state.updateVenue);
 	const previewUrlRef = useRef<string | null>(null);
 
 	// Cleanup preview URL on unmount
@@ -47,12 +47,15 @@ export function VenueForm() {
 			newData.image_url = previewUrl;
 		}
 
-		const ratio = field === "aspect_ratio" ? (value as string) : venue.aspect_ratio;
+		const ratio =
+			field === "aspect_ratio" ? (value as string) : venue.aspect_ratio;
 
 		if (
 			ratio &&
 			ratio !== "custom" &&
-			(field === "total_row" || field === "total_column" || field === "aspect_ratio")
+			(field === "total_row" ||
+				field === "total_column" ||
+				field === "aspect_ratio")
 		) {
 			let rows =
 				field === "total_row" ? (value as number) : venue.total_row || 0;
@@ -85,7 +88,7 @@ export function VenueForm() {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel className="px-0 mb-2 flex items-center gap-2 text-primary">
+			<SidebarGroupLabel className="mb-2 flex items-center gap-2 px-0 text-primary">
 				<MapIcon className="h-4 w-4" />
 				VENUE INFO
 			</SidebarGroupLabel>
@@ -110,38 +113,38 @@ export function VenueForm() {
 					>
 						<Label
 							htmlFor="r1"
-							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+							className="flex cursor-pointer items-center space-x-2 rounded-none border bg-background px-2 py-2 transition-colors hover:bg-muted/50"
 						>
 							<RadioGroupItem value="video" id="r1" className="rounded-none" />
-							<span className="text-[10px] font-medium uppercase">16:9</span>
+							<span className="font-medium text-[10px] uppercase">16:9</span>
 						</Label>
 						<Label
 							htmlFor="r2"
-							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+							className="flex cursor-pointer items-center space-x-2 rounded-none border bg-background px-2 py-2 transition-colors hover:bg-muted/50"
 						>
 							<RadioGroupItem value="square" id="r2" className="rounded-none" />
-							<span className="text-[10px] font-medium uppercase">1:1</span>
+							<span className="font-medium text-[10px] uppercase">1:1</span>
 						</Label>
 						<Label
 							htmlFor="r3"
-							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+							className="flex cursor-pointer items-center space-x-2 rounded-none border bg-background px-2 py-2 transition-colors hover:bg-muted/50"
 						>
 							<RadioGroupItem value="4:3" id="r3" className="rounded-none" />
-							<span className="text-[10px] font-medium uppercase">4:3</span>
+							<span className="font-medium text-[10px] uppercase">4:3</span>
 						</Label>
 						<Label
 							htmlFor="r4"
-							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+							className="flex cursor-pointer items-center space-x-2 rounded-none border bg-background px-2 py-2 transition-colors hover:bg-muted/50"
 						>
 							<RadioGroupItem value="9:16" id="r4" className="rounded-none" />
-							<span className="text-[10px] font-medium uppercase">9:16</span>
+							<span className="font-medium text-[10px] uppercase">9:16</span>
 						</Label>
 						<Label
 							htmlFor="r5"
-							className="flex items-center space-x-2 bg-background border px-2 py-2 rounded-none cursor-pointer hover:bg-muted/50 transition-colors"
+							className="flex cursor-pointer items-center space-x-2 rounded-none border bg-background px-2 py-2 transition-colors hover:bg-muted/50"
 						>
 							<RadioGroupItem value="custom" id="r5" className="rounded-none" />
-							<span className="text-[10px] font-medium uppercase">Custom</span>
+							<span className="font-medium text-[10px] uppercase">Custom</span>
 						</Label>
 					</RadioGroup>
 				</div>
@@ -169,7 +172,7 @@ export function VenueForm() {
 						<Input
 							type="file"
 							accept="image/*"
-							className="text-xs h-9 cursor-pointer bg-background rounded-none"
+							className="h-9 cursor-pointer rounded-none bg-background text-xs"
 							onChange={(e) => {
 								const file = e.target.files?.[0];
 								if (file) handleChange("image", file);
