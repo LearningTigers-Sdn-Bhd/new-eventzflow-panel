@@ -97,6 +97,7 @@ export interface CreatePublicRegistrationPayload {
 	ticket_type_id: number;
 	role?: string;
 	form_slug?: string;
+	registered_by_email?: string;
 	custom_fields_data?: Record<string, string>;
 }
 

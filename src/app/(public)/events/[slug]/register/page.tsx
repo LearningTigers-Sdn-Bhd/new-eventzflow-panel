@@ -3,10 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { format, isSameDay, isValid, parseISO } from "date-fns";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { use } from "react";
 import { RegistrationOptionCards } from "@/components/pages/public-registration/RegistrationOptionCards";
 import { getPublicEventById } from "@/lib/api/event/endpoints";
 import { getPublicRegistrationForms } from "@/lib/api/public-registration";
+import { API_BASE_URL } from "@/utils/rest-api";
 
 const SMOOTH_EASE = [0.16, 1, 0.3, 1];
 
@@ -89,6 +91,25 @@ export default function EventRegistrationLandingPage({
 			/>
 
 			<main className="relative z-10 mx-auto max-w-[100rem] px-6 py-20 lg:px-16 lg:py-32">
+				{/* Logo — top right corner */}
+				{eventQuery.data?.logo_url && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
+						className="absolute top-8 right-6 lg:top-12 lg:right-16"
+					>
+						<Image
+							src={`${API_BASE_URL}${eventQuery.data.logo_url}`}
+							alt={`${eventTitle} logo`}
+							width={160}
+							height={80}
+							className="h-16 w-auto object-contain"
+							unoptimized
+						/>
+					</motion.div>
+				)}
+
 				{/* Header Section */}
 				<div className="mb-16 md:mb-24">
 					{/* Eyebrow */}

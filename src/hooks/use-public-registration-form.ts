@@ -72,7 +72,7 @@ export function usePublicRegistrationForm({
 	);
 
 	async function submit(
-		values: FormValues & { selectedTicketTypeId?: number },
+		values: FormValues & { selectedTicketTypeId?: number; leaderEmail?: string },
 	): Promise<boolean> {
 		setIsSubmitting(true);
 		setStatusMessage(null);
@@ -129,6 +129,7 @@ export function usePublicRegistrationForm({
 					role: "delegate",
 					formSlug,
 					sharedCustomFields,
+					registeredByEmail: values.leaderEmail,
 					attendees: parsed.attendees.map((attendee) => ({
 						attendee_name: attendee.attendee_name,
 						attendee_email: attendee.attendee_email,

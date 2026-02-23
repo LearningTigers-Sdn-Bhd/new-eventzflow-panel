@@ -302,6 +302,7 @@ export function PublicRegistrationForm({
 		const payload = {
 			attendees: attendees.map(({ row_id, ...attendee }) => attendee),
 			selectedTicketTypeId: selectedTicketType?.id,
+			leaderEmail: registrationMode === "group" ? email : undefined,
 		};
 
 		const success = await submit(payload);

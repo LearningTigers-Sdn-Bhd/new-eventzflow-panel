@@ -62,12 +62,6 @@ export function RegistrationOptionCards({
               <div className="mb-6" />
             )}
 
-            {/* Helper text */}
-            <p className="text-xs text-black/50 mb-4 flex items-center gap-2 uppercase tracking-wider">
-              <span className="inline-block w-1.5 h-1.5 bg-brand-green" />
-              Under 2 minutes
-            </p>
-
             {/* CTA Button */}
             <Link
               href={`/events/${encodeURIComponent(eventSlug)}/register/${encodeURIComponent(form.slug)}`}

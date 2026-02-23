@@ -1,18 +1,18 @@
 "use client";
 
-import { InfoIcon, Monitor, TagIcon } from "lucide-react";
+import { ImageIcon, InfoIcon, Monitor, TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface NavigationItem {
-	id: "event-information" | "custom-labels" | "welcome-screen";
+	id: "event-information" | "custom-labels" | "welcome-screen" | "branding";
 	label: string;
 	icon: React.ComponentType<{ className?: string }>;
 }
 
 interface SettingsNavigationProps {
-	activeTab: "event-information" | "custom-labels" | "welcome-screen";
-	onTabChange: (tab: "event-information" | "custom-labels" | "welcome-screen") => void;
+	activeTab: "event-information" | "custom-labels" | "welcome-screen" | "branding";
+	onTabChange: (tab: "event-information" | "custom-labels" | "welcome-screen" | "branding") => void;
 	onClose?: () => void;
 }
 
@@ -31,6 +31,11 @@ const navigationItems: NavigationItem[] = [
 		id: "welcome-screen",
 		label: "Welcome Screen",
 		icon: Monitor,
+	},
+	{
+		id: "branding",
+		label: "Branding",
+		icon: ImageIcon,
 	},
 ];
 
