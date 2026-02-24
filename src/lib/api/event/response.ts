@@ -25,6 +25,7 @@ export type Event = {
 	created_at: string;
 	updated_at: string;
 	deleted_at: string | null;
+	logo_url: string | null;
 };
 
 export type EventDetails = Event;

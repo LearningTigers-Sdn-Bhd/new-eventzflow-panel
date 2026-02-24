@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import SettingsNavigation from "./navigation";
@@ -8,7 +9,7 @@ import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
 	eventId: number;
-	initialTab?: "event-information" | "custom-labels" | "welcome-screen";
+	initialTab?: "event-information" | "custom-labels" | "welcome-screen" | "branding";
 	onClose?: () => void;
 }
 
@@ -18,7 +19,7 @@ export default function EventSettingsDialog({
 	onClose,
 }: EventSettingsDialogProps) {
 	const [activeTab, setActiveTab] = useState<
-		"event-information" | "custom-labels" | "welcome-screen"
+		"event-information" | "custom-labels" | "welcome-screen" | "branding"
 	>(initialTab);
 
 	return (
@@ -37,6 +38,9 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "welcome-screen" && (
 					<WelcomeScreenForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "branding" && (
+					<BrandingForm eventId={eventId} onClose={onClose} />
 				)}
 			</div>
 		</div>

@@ -10,7 +10,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Ticket } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import {
@@ -24,32 +24,31 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import type { TicketType } from "@/lib/api/ticket-type";
-import { CreateTicketTypeForm } from "./create-ticket-type-form";
-import { generateColumns } from "./ticket-type-columns";
-import { TicketTypeItem } from "./ticket-type-item";
-import { DataControl } from "./ticket-type-table-control";
+import type { RegistrationForm } from "@/lib/api/registration-form";
+import { CreateRegistrationFormForm } from "./create-registration-form-form";
+import { generateColumns } from "./registration-form-columns";
+import { DataControl } from "./registration-form-table-control";
 
-interface DataTableProps {
-	data: TicketType[];
+interface RegistrationFormTableProps {
+	data: RegistrationForm[];
 }
 
-export function DataTable({ data }: DataTableProps) {
+export function RegistrationFormTable({ data }: RegistrationFormTableProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
 
-	const handleCreateTicketType = () => {
+	const handleCreate = () => {
 		openDialog({
-			component: CreateTicketTypeForm,
+			component: CreateRegistrationFormForm,
 			props: {
 				eventId,
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Create Ticket Type",
-				description: "Add a new ticket type for this event",
-				size: "2xl",
+				title: "Create Registration Form",
+				description: "Add a new registration form for this event",
+				size: "full",
 				className: "rounded-none",
 			},
 		});
@@ -77,47 +76,63 @@ export function DataTable({ data }: DataTableProps) {
 		state: { sorting, columnFilters, columnVisibility },
 	});
 
+	const emptyAction = (
+		<Button onClick={handleCreate}>Create Registration Form</Button>
+	);
+
 	return (
 		<div className="w-full">
 			<DataControl table={table} />
 
-			{/* Data Table */}
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
 					<DesktopView>
 						<BaseTable
 							table={table}
 							emptyStateConfig={{
-								title: "No ticket types found",
-								desc: "Create your first ticket type to get started",
-								icon: <Ticket />,
-								action: (
-									<Button onClick={handleCreateTicketType}>
-										Create Ticket Type
-									</Button>
-								),
+								title: "No registration forms found",
+								desc: "Create your first registration form to get started",
+								icon: <ClipboardList />,
+								action: emptyAction,
 							}}
 						/>
 					</DesktopView>
 					<MobileView>
 						<div className="space-y-2">
 							{table.getRowModel().rows?.length ? (
-								table
-									.getRowModel()
-									.rows.map((row) => (
-										<TicketTypeItem key={row.id} ticketType={row.original} />
-									))
+								table.getRowModel().rows.map((row) => (
+									<div
+										key={row.id}
+										className="flex items-center justify-between rounded border p-4"
+									>
+										<div>
+											<div className="font-medium">{row.original.name}</div>
+											<div className="text-muted-foreground text-sm">
+												/{row.original.slug}
+											</div>
+											<div className="mt-1 flex flex-wrap gap-1">
+												{row.original.ticketTypes.map((tt) => (
+													<span
+														key={tt.id}
+														className="rounded bg-secondary px-1.5 py-0.5 text-xs"
+													>
+														{tt.name}
+													</span>
+												))}
+											</div>
+										</div>
+										<div className="flex justify-center">
+											{/* Actions handled by column */}
+										</div>
+									</div>
+								))
 							) : (
 								<EmptyState
-									title="No ticket types found"
-									description="Create your first ticket type to get started"
-									icon={<Ticket />}
+									title="No registration forms found"
+									description="Create your first registration form to get started"
+									icon={<ClipboardList />}
 									height="h-auto"
-									action={
-										<Button onClick={handleCreateTicketType}>
-											Create Ticket Type
-										</Button>
-									}
+									action={emptyAction}
 								/>
 							)}
 						</div>
@@ -126,21 +141,20 @@ export function DataTable({ data }: DataTableProps) {
 						<div className="grid grid-cols-2 gap-4">
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => (
-									<div key={row.id} className="col-span-1">
-										<TicketTypeItem ticketType={row.original} />
+									<div key={row.id} className="col-span-1 rounded border p-4">
+										<div className="font-medium">{row.original.name}</div>
+										<div className="text-muted-foreground text-sm">
+											/{row.original.slug}
+										</div>
 									</div>
 								))
 							) : (
 								<EmptyState
-									title="No ticket types found"
-									description="Create your first ticket type to get started"
-									icon={<Ticket />}
+									title="No registration forms found"
+									description="Create your first registration form to get started"
+									icon={<ClipboardList />}
 									height="h-auto"
-									action={
-										<Button onClick={handleCreateTicketType}>
-											Create Ticket Type
-										</Button>
-									}
+									action={emptyAction}
 								/>
 							)}
 						</div>

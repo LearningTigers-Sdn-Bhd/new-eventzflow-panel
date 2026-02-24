@@ -253,6 +253,12 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "Manage ticket types for this event.",
 					icon: HiTicket,
 				},
+				{
+					route: "registration-forms",
+					label: "Registration Forms",
+					description: "Manage registration forms and ticket mapping.",
+					icon: ClipboardList,
+				},
 			],
 		},
 

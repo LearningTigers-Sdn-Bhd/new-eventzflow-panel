@@ -14,16 +14,19 @@ import {
 } from "@/components/ui/tooltip";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import { deleteTicketType, type TicketType } from "@/lib/api/ticket-type";
-import { EditTicketTypeForm } from "./edit-ticket-type-form";
+import {
+	deleteRegistrationForm,
+	type RegistrationForm,
+} from "@/lib/api/registration-form";
+import { EditRegistrationFormForm } from "./edit-registration-form-form";
 
-interface TicketTypeActionsMenuProps {
-	ticketType: TicketType;
+interface RegistrationFormActionsMenuProps {
+	registrationForm: RegistrationForm;
 }
 
-export function TicketTypeActionsMenu({
-	ticketType,
-}: TicketTypeActionsMenuProps) {
+export function RegistrationFormActionsMenu({
+	registrationForm,
+}: RegistrationFormActionsMenuProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
@@ -31,31 +34,31 @@ export function TicketTypeActionsMenu({
 	const queryClient = useQueryClient();
 
 	const deleteMutation = useMutation({
-		mutationFn: deleteTicketType,
+		mutationFn: deleteRegistrationForm,
 		onSuccess: () => {
-			toast.success("Ticket type deleted successfully!");
+			toast.success("Registration form deleted successfully!");
 			queryClient.invalidateQueries({
-				queryKey: ["event", eventId, "ticket-types"],
+				queryKey: ["event", eventId, "registration-forms"],
 			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to delete ticket type");
+			toast.error(error.message || "Failed to delete registration form");
 		},
 	});
 
 	const handleEditClick = () => {
 		openDialog({
-			component: EditTicketTypeForm,
+			component: EditRegistrationFormForm,
 			props: {
-				ticketType,
+				registrationForm,
 				eventId,
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Edit Ticket Type",
-				description: "Update ticket type information",
-				size: "2xl",
+				title: "Edit Registration Form",
+				description: "Update registration form details and ticket mapping",
+				size: "full",
 				className: "rounded-none",
 			},
 		});
@@ -63,8 +66,8 @@ export function TicketTypeActionsMenu({
 
 	const handleDeleteClick = () => {
 		openConfirm({
-			title: "Delete Ticket Type",
-			message: `Are you sure you want to delete "${ticketType.name}"? This action cannot be undone.`,
+			title: "Delete Registration Form",
+			message: `Are you sure you want to delete "${registrationForm.name}"? This action cannot be undone.`,
 			confirmLabel: "Delete",
 			cancelLabel: "Cancel",
 			type: "destructive",
@@ -72,7 +75,7 @@ export function TicketTypeActionsMenu({
 			onConfirm: () => {
 				deleteMutation.mutate({
 					eventId,
-					ticketTypeId: ticketType.id.toString(),
+					registrationFormId: registrationForm.id.toString(),
 				});
 			},
 			onCancel: closeDialog,
