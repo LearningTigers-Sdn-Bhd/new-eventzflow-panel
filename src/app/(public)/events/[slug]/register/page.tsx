@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { format, isSameDay, isValid, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { use } from "react";
+import { use, useEffect } from "react";
 import { RegistrationOptionCards } from "@/components/pages/public-registration/RegistrationOptionCards";
 import { getPublicEventById } from "@/lib/api/event/endpoints";
 import { getPublicRegistrationForms } from "@/lib/api/public-registration";
+import { buildPublicRegistrationLandingTitle } from "@/lib/public-registration/title";
 import { API_BASE_URL } from "@/utils/rest-api";
 
-const SMOOTH_EASE = [0.16, 1, 0.3, 1];
+const SMOOTH_EASE = [0.16, 1, 0.3, 1] as const;
 
 function parseEventDate(value: string | null | undefined) {
 	if (!value) return null;
@@ -71,6 +72,12 @@ export default function EventRegistrationLandingPage({
 		eventQuery.data?.start_date,
 		eventQuery.data?.end_date,
 	);
+
+	useEffect(() => {
+		document.title = buildPublicRegistrationLandingTitle(
+			eventQuery.data?.title,
+		);
+	}, [eventQuery.data?.title]);
 
 	return (
 		<section className="relative min-h-screen overflow-hidden bg-white-background">

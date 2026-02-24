@@ -25,6 +25,7 @@ import {
 	syncAttendeeCustomFieldKeys,
 } from "@/lib/public-registration/attendee-state";
 import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
+import { buildPublicRegistrationTypeTitle } from "@/lib/public-registration/title";
 
 interface AttendeeFormRow {
 	row_id: string;
@@ -48,7 +49,7 @@ const emptyAttendee = (customLabelKeys: string[] = []): AttendeeFormRow => ({
 	),
 });
 
-const SMOOTH_EASE = [0.16, 1, 0.3, 1];
+const SMOOTH_EASE = [0.16, 1, 0.3, 1] as const;
 
 declare global {
 	interface Window {
@@ -102,6 +103,7 @@ export function PublicRegistrationForm({
 		eventQuery,
 		ticketTypesQuery,
 		registrationFormsQuery,
+		selectedRegistrationFormName,
 		customLabelsData,
 		isSubmitting,
 		singleResult,
@@ -169,6 +171,13 @@ export function PublicRegistrationForm({
 			syncAttendeeCustomFieldKeys(current, customLabelKeys),
 		);
 	}, [customLabelKeys]);
+
+	useEffect(() => {
+		document.title = buildPublicRegistrationTypeTitle(
+			eventQuery.data?.title,
+			selectedRegistrationFormName ?? formSlug,
+		);
+	}, [eventQuery.data?.title, selectedRegistrationFormName, formSlug]);
 
 	const loading =
 		eventQuery.isLoading ||

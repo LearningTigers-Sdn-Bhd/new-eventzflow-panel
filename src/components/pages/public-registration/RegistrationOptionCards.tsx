@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { PublicRegistrationFormItem } from "@/lib/api/public-registration";
 
-const SMOOTH_EASE = [0.16, 1, 0.3, 1];
+const SMOOTH_EASE = [0.16, 1, 0.3, 1] as const;
 
 export function RegistrationOptionCards({
   eventSlug,

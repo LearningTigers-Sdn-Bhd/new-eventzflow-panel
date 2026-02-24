@@ -72,7 +72,10 @@ export function usePublicRegistrationForm({
 	);
 
 	async function submit(
-		values: FormValues & { selectedTicketTypeId?: number; leaderEmail?: string },
+		values: FormValues & {
+			selectedTicketTypeId?: number;
+			leaderEmail?: string;
+		},
 	): Promise<boolean> {
 		setIsSubmitting(true);
 		setStatusMessage(null);
@@ -154,7 +157,7 @@ export function usePublicRegistrationForm({
 						.filter((id): id is string => Boolean(id)),
 					paymentStatuses: successfulRows
 						.map((row) => row.data?.payment_status)
-						.filter((status): status is string => Boolean(status)),
+						.filter((status): status is NonNullable<typeof status> => Boolean(status)),
 				});
 
 				setStatusMessage(
@@ -206,6 +209,7 @@ export function usePublicRegistrationForm({
 		eventQuery,
 		ticketTypesQuery,
 		registrationFormsQuery,
+		selectedRegistrationFormName: selectedRegistrationForm?.name ?? null,
 		customLabelsData: selectedRegistrationForm?.custom_labels_data ?? {},
 		isSubmitting,
 		statusMessage,
