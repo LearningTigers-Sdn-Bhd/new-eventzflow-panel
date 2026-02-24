@@ -8,6 +8,7 @@ import {
 	PartyPopper,
 	Percent,
 	Ticket,
+	TicketCheck,
 	User,
 	Wallet,
 } from "lucide-react";
@@ -131,11 +132,15 @@ export function RedemptionReviewCard({
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					{/* Left Column: Visitor & Voucher Info */}
 					<div className="space-y-4">
-						{/* Visitor Information */}
+						{/* Attendee Information */}
 						<div className="space-y-2">
 							<div className="flex items-center gap-2 font-medium text-muted-foreground text-xs">
-								<User className="h-3.5 w-3.5" />
-								<span>Visitor</span>
+								{visitorDetails.redeemerType === "ticket" ? (
+									<TicketCheck className="h-3.5 w-3.5" />
+								) : (
+									<User className="h-3.5 w-3.5" />
+								)}
+								<span>{visitorDetails.redeemerType === "ticket" ? "Ticket Holder" : "Visitor"}</span>
 							</div>
 							<div className="space-y-1.5 rounded-lg border bg-muted/30 p-3 text-sm">
 								<div className="flex justify-between gap-2">
