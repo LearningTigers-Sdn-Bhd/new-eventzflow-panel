@@ -1,9 +1,11 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { ScanStampButton } from "@/components/pages/visitor-stamps/page-action/scan-stamp-button";
 import { DataTable } from "@/components/pages/visitor-stamps/stamp-log-table";
 import { Button } from "@/components/ui/button";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { useEventStamps } from "@/hooks/use-visitor-stamps";
 
 interface VisitorStampsPageProps {
@@ -13,7 +15,18 @@ interface VisitorStampsPageProps {
 export default function VisitorStampsPage({ params }: VisitorStampsPageProps) {
 	const { event_id } = use(params);
 
-	const { data: visitorStamps, isLoading, error } = useEventStamps(event_id);
+	const { data: visitorStamps, isLoading, error, refetch } = useEventStamps(event_id);
+
+	const eventActions = useMemo(
+		() => (
+			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<ScanStampButton eventId={event_id} onRefetch={refetch} />
+			</div>
+		),
+		[event_id, refetch],
+	);
+
+	useSetEventActions(eventActions);
 
 	return (
 		<div className="space-y-4">

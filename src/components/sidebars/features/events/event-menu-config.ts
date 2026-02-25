@@ -430,7 +430,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Visitor Stamp Scanner",
 					description: "Scan visitor QR codes to create stamps.",
 					icon: ScanQrCode,
-					visible: visible.vendor,
+					visible: (p, e) => visible.mallEvent(p, e) && visible.vendor(p),
 				},
 			],
 		},
