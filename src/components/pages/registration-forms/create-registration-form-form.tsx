@@ -1,10 +1,14 @@
 "use client";
 
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import {
+	SortableContext,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
-import { useId, useState } from "react";
+import { Plus } from "lucide-react";
+import { useCallback, useId, useState } from "react";
 import { toast } from "sonner";
-import { InputActionLabel } from "@/components/admin-ui/form/input-action-label";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { createRegistrationForm } from "@/lib/api/registration-form";
 import { getEventTicketTypes, type TicketType } from "@/lib/api/ticket-type";
 import { buildCustomLabelsData, type CustomLabelInput } from "./custom-labels";
+import { SortableCustomLabelItem } from "./sortable-custom-label-item";
 
 interface TicketTypeRuleInput {
 	registration_mode: "single" | "group";
@@ -30,6 +35,23 @@ const defaultRule = (): TicketTypeRuleInput => ({
 interface CreateRegistrationFormFormProps {
 	eventId: string;
 	onClose: () => void;
+}
+
+function reorderByDragEvent<T extends { id: string }>(
+	items: T[],
+	event: DragEndEvent,
+): T[] {
+	const { active, over } = event;
+	if (!over || active.id === over.id) return items;
+
+	const oldIndex = items.findIndex((item) => item.id === String(active.id));
+	const newIndex = items.findIndex((item) => item.id === String(over.id));
+	if (oldIndex === -1 || newIndex === -1) return items;
+
+	const result = [...items];
+	const [moved] = result.splice(oldIndex, 1);
+	result.splice(newIndex, 0, moved);
+	return result;
 }
 
 export function CreateRegistrationFormForm({
@@ -173,6 +195,10 @@ export function CreateRegistrationFormForm({
 		);
 	};
 
+	const handleCustomLabelDragEnd = useCallback((event: DragEndEvent) => {
+		setCustomLabels((prev) => reorderByDragEvent(prev, event));
+	}, []);
+
 	const addTicketTypeCustomLabel = (ticketTypeId: number) => {
 		updateRule(ticketTypeId, {
 			custom_labels: [
@@ -204,6 +230,25 @@ export function CreateRegistrationFormForm({
 			),
 		});
 	};
+
+	const handleTicketTypeLabelDragEnd = useCallback(
+		(ticketTypeId: number) => (event: DragEndEvent) => {
+			setTicketTypeRules((prev) => {
+				const rule = prev[ticketTypeId] ?? defaultRule();
+				return {
+					...prev,
+					[ticketTypeId]: {
+						...rule,
+						custom_labels: reorderByDragEvent(
+							rule.custom_labels,
+							event,
+						),
+					},
+				};
+			});
+		},
+		[],
+	);
 
 	return (
 		<div className="h-full w-full p-4 md:p-6">
@@ -257,7 +302,7 @@ export function CreateRegistrationFormForm({
 									</Label>
 									<p className="text-muted-foreground text-xs">
 										Shown on public registration form and saved to ticket custom
-										labels.
+										labels. Drag to reorder.
 									</p>
 								</div>
 								<Button
@@ -273,24 +318,29 @@ export function CreateRegistrationFormForm({
 							</div>
 
 							{customLabels.length > 0 ? (
-								<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-									{customLabels.map((label, index) => (
-										<InputActionLabel
-											key={label.id}
-											label={`Field ${index + 1}`}
-											htmlFor={label.id}
-											value={label.value}
-											onChange={(value) => updateCustomLabel(label.id, value)}
-											placeholder="e.g., Company Name"
-											disabled={createMutation.isPending}
-											variant="no-rounded"
-											onAction={() => removeCustomLabel(label.id)}
-											actionIcon={<Trash2 className="size-4" />}
-											actionLabel="Remove field"
-											actionVariant="destructive"
-										/>
-									))}
-								</div>
+								<DndContext onDragEnd={handleCustomLabelDragEnd}>
+									<SortableContext
+										items={customLabels.map((l) => l.id)}
+										strategy={verticalListSortingStrategy}
+									>
+										<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+											{customLabels.map((label, index) => (
+												<SortableCustomLabelItem
+													key={label.id}
+													id={label.id}
+													label={`Field ${index + 1}`}
+													value={label.value}
+													onChange={(value) =>
+														updateCustomLabel(label.id, value)
+													}
+													onRemove={() => removeCustomLabel(label.id)}
+													placeholder="e.g., Company Name"
+													disabled={createMutation.isPending}
+												/>
+											))}
+										</div>
+									</SortableContext>
+								</DndContext>
 							) : null}
 						</div>
 
@@ -417,39 +467,49 @@ export function CreateRegistrationFormForm({
 																	</div>
 
 																	{(rule.custom_labels ?? []).length > 0 ? (
-																		<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-																			{(rule.custom_labels ?? []).map(
-																				(label, index) => (
-																					<InputActionLabel
-																						key={label.id}
-																						label={`Field ${index + 1}`}
-																						htmlFor={`tt-${tt.id}-${label.id}`}
-																						value={label.value}
-																						onChange={(value) =>
-																							updateTicketTypeCustomLabel(
-																								tt.id,
-																								label.id,
-																								value,
-																							)
-																						}
-																						placeholder="e.g., Member ID"
-																						disabled={createMutation.isPending}
-																						variant="no-rounded"
-																						onAction={() =>
-																							removeTicketTypeCustomLabel(
-																								tt.id,
-																								label.id,
-																							)
-																						}
-																						actionIcon={
-																							<Trash2 className="size-4" />
-																						}
-																						actionLabel="Remove field"
-																						actionVariant="destructive"
-																					/>
-																				),
+																		<DndContext
+																			onDragEnd={handleTicketTypeLabelDragEnd(
+																				tt.id,
 																			)}
-																		</div>
+																		>
+																			<SortableContext
+																				items={(rule.custom_labels ?? []).map(
+																					(l) => l.id,
+																				)}
+																				strategy={verticalListSortingStrategy}
+																			>
+																				<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+																					{(rule.custom_labels ?? []).map(
+																						(label, index) => (
+																							<SortableCustomLabelItem
+																								key={label.id}
+																								id={label.id}
+																								label={`Field ${index + 1}`}
+																								htmlFor={`tt-${tt.id}-${label.id}`}
+																								value={label.value}
+																								onChange={(value) =>
+																									updateTicketTypeCustomLabel(
+																										tt.id,
+																										label.id,
+																										value,
+																									)
+																								}
+																								onRemove={() =>
+																									removeTicketTypeCustomLabel(
+																										tt.id,
+																										label.id,
+																									)
+																								}
+																								placeholder="e.g., Member ID"
+																								disabled={
+																									createMutation.isPending
+																								}
+																							/>
+																						),
+																					)}
+																				</div>
+																			</SortableContext>
+																		</DndContext>
 																	) : (
 																		<p className="text-muted-foreground text-xs">
 																			No ticket-specific fields.

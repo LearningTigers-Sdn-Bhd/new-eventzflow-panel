@@ -4,7 +4,7 @@ export interface PublicRegistrationFormItem {
 	slug: string;
 	name: string;
 	description: string | null;
-	custom_labels_data: Record<string, string>;
+	custom_labels_data: Array<{ key: string; label: string }>;
 }
 
 export interface PublicRegistrationFormsResponse {
@@ -22,7 +22,7 @@ export interface PublicTicketTypeItem {
 	min_attendees: number;
 	max_attendees?: number | null;
 	custom_fields_data?: Record<string, string | number | boolean | null>;
-	custom_labels_data?: Record<string, string>;
+	custom_labels_data?: Array<{ key: string; label: string }>;
 }
 
 export interface PublicTicketTypesResponse {

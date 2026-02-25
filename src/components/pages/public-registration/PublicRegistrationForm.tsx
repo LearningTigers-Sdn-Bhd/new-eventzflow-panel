@@ -121,19 +121,23 @@ export function PublicRegistrationForm({
 	}, [selectedTicketTypeId, ticketTypes]);
 
 	const mergedCustomLabelsData = useMemo(
-		() => ({
+		() => [
 			...customLabelsData,
-			...(selectedTicketType?.custom_labels_data ?? {}),
-		}),
+			...(selectedTicketType?.custom_labels_data ?? []),
+		],
 		[customLabelsData, selectedTicketType?.custom_labels_data],
 	);
 
 	const customLabelEntries = useMemo(
-		() => Object.entries(mergedCustomLabelsData),
+		() => mergedCustomLabelsData.map((entry) => [entry.key, entry.label] as const),
 		[mergedCustomLabelsData],
 	);
 	const customLabelKeys = useMemo(
 		() => customLabelEntries.map(([key]) => key),
+		[customLabelEntries],
+	);
+	const customLabelsLookup = useMemo(
+		() => Object.fromEntries(customLabelEntries),
 		[customLabelEntries],
 	);
 
@@ -947,7 +951,7 @@ export function PublicRegistrationForm({
 															([key, value]) => (
 																<p key={`${attendee.row_id}-${key}`}>
 																	<span className="font-medium text-black/70">
-																		{(mergedCustomLabelsData[key] ?? key)
+																		{(customLabelsLookup[key] ?? key)
 																			.toString()
 																			.replaceAll("_", " ")}
 																	</span>

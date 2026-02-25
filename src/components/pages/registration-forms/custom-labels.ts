@@ -1,3 +1,8 @@
+export interface CustomLabelEntry {
+	key: string;
+	label: string;
+}
+
 export interface CustomLabelInput {
 	id: string;
 	value: string;
@@ -5,8 +10,8 @@ export interface CustomLabelInput {
 
 export function buildCustomLabelsData(
 	labels: CustomLabelInput[],
-): Record<string, string> {
-	const result: Record<string, string> = {};
+): CustomLabelEntry[] {
+	const result: CustomLabelEntry[] = [];
 	const keyCounts: Record<string, number> = {};
 
 	for (const label of labels) {
@@ -23,21 +28,21 @@ export function buildCustomLabelsData(
 		keyCounts[baseKey] = seenCount + 1;
 
 		const key = seenCount === 0 ? baseKey : `${baseKey}_${seenCount + 1}`;
-		result[key] = value;
+		result.push({ key, label: value });
 	}
 
 	return result;
 }
 
 export function getInitialCustomLabels(
-	customLabelsData?: Record<string, string> | null,
+	customLabelsData?: CustomLabelEntry[] | null,
 ): CustomLabelInput[] {
-	if (!customLabelsData || Object.keys(customLabelsData).length === 0) {
+	if (!customLabelsData || customLabelsData.length === 0) {
 		return [];
 	}
 
-	return Object.values(customLabelsData).map((value) => ({
+	return customLabelsData.map((entry) => ({
 		id: crypto.randomUUID(),
-		value,
+		value: entry.label,
 	}));
 }

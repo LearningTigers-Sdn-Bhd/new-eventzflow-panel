@@ -1,3 +1,8 @@
+export interface CustomLabelEntry {
+	key: string;
+	label: string;
+}
+
 export interface BackendRegistrationFormTicketType {
 	id: number;
 	name: string;
@@ -6,7 +11,7 @@ export interface BackendRegistrationFormTicketType {
 	registration_mode?: "single" | "group";
 	min_attendees?: number;
 	max_attendees?: number | null;
-	custom_labels_data?: Record<string, string>;
+	custom_labels_data?: CustomLabelEntry[];
 }
 
 export interface BackendRegistrationForm {
@@ -15,7 +20,7 @@ export interface BackendRegistrationForm {
 	name: string;
 	slug: string;
 	description: string | null;
-	custom_labels_data: Record<string, string>;
+	custom_labels_data: CustomLabelEntry[];
 	status: number;
 	position: number | null;
 	created_at: string;
@@ -31,7 +36,7 @@ export interface RegistrationFormTicketType {
 	registrationMode: "single" | "group";
 	minAttendees: number;
 	maxAttendees: number | null;
-	customLabelsData: Record<string, string>;
+	customLabelsData: CustomLabelEntry[];
 }
 
 export interface RegistrationForm {
@@ -40,7 +45,7 @@ export interface RegistrationForm {
 	name: string;
 	slug: string;
 	description: string | null;
-	customLabelsData: Record<string, string>;
+	customLabelsData: CustomLabelEntry[];
 	status: number;
 	position: number | null;
 	createdAt: string;

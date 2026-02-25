@@ -210,7 +210,7 @@ export function usePublicRegistrationForm({
 		ticketTypesQuery,
 		registrationFormsQuery,
 		selectedRegistrationFormName: selectedRegistrationForm?.name ?? null,
-		customLabelsData: selectedRegistrationForm?.custom_labels_data ?? {},
+		customLabelsData: selectedRegistrationForm?.custom_labels_data ?? [],
 		isSubmitting,
 		statusMessage,
 		singleResult,

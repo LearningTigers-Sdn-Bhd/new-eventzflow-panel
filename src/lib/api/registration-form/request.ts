@@ -1,11 +1,16 @@
 import { z } from "zod";
 
+const customLabelEntrySchema = z.object({
+	key: z.string(),
+	label: z.string(),
+});
+
 const ticketTypeRuleSchema = z.object({
 	ticket_type_id: z.number().int(),
 	registration_mode: z.enum(["single", "group"]),
 	min_attendees: z.number().int().min(1),
 	max_attendees: z.number().int().min(1).nullable().optional(),
-	custom_labels_data: z.record(z.string(), z.string()).optional(),
+	custom_labels_data: z.array(customLabelEntrySchema).optional(),
 });
 
 export const getEventRegistrationFormsSchema = z.object({
@@ -22,7 +27,7 @@ export const createRegistrationFormSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	slug: z.string().min(1, "Slug is required"),
 	description: z.string().optional(),
-	custom_labels_data: z.record(z.string(), z.string()).optional(),
+	custom_labels_data: z.array(customLabelEntrySchema).optional(),
 	status: z.number().int().optional(),
 	position: z.number().int().optional(),
 	ticket_type_ids: z.array(z.number()).optional(),
@@ -35,7 +40,7 @@ export const updateRegistrationFormSchema = z.object({
 	name: z.string().min(1).optional(),
 	slug: z.string().min(1).optional(),
 	description: z.string().optional(),
-	custom_labels_data: z.record(z.string(), z.string()).optional(),
+	custom_labels_data: z.array(customLabelEntrySchema).optional(),
 	status: z.number().int().optional(),
 	position: z.number().int().optional(),
 	ticket_type_ids: z.array(z.number()).optional(),
