@@ -15,13 +15,13 @@ import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
-import { useAuth } from "@/hooks/auth/use-auth";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
@@ -59,7 +59,8 @@ export function ExhibitorKitDetailsView({
 	});
 
 	// Check if contractor printing is enabled
-	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+	const allowContractorPrinting =
+		eventDetails?.allow_contractor_printing_services ?? false;
 
 	// Find the exhibitor kit from the vendors data (same approach as admin)
 	const exhibitorKit = vendors?.find(
@@ -101,6 +102,9 @@ export function ExhibitorKitDetailsView({
 	const printings = exhibitorKit.exhibitor_kit_printings || [];
 	const teamMembers = exhibitorKit.exhibitor_team_members || [];
 	const customRequests = exhibitorKit.custom_requests || [];
+	const customFieldsEntries = Object.entries(
+		exhibitorKit.custom_fields_data || {},
+	);
 
 	const itemsTotal = items.reduce(
 		(sum, item) => sum + Number(item.agreed_price) * item.quantity,
@@ -264,6 +268,12 @@ export function ExhibitorKitDetailsView({
 										{exhibitorKit.company_address || "-"}
 									</span>
 								</div>
+								<div>
+									<span className="mb-1 block text-muted-foreground">
+										Country:
+									</span>
+									<span className="text-sm">{exhibitorKit.country || "-"}</span>
+								</div>
 								<div className="border-t pt-2">
 									<span className="mb-1 block text-muted-foreground">
 										Person In Charge:
@@ -278,6 +288,28 @@ export function ExhibitorKitDetailsView({
 										{exhibitorKit.pic_email_address || "-"}
 									</p>
 								</div>
+								{customFieldsEntries.length > 0 && (
+									<div className="border-t pt-2">
+										<span className="mb-1 block text-muted-foreground">
+											Custom Fields:
+										</span>
+										<div className="space-y-1 text-xs">
+											{customFieldsEntries.map(([key, value]) => (
+												<div
+													key={key}
+													className="flex items-start justify-between gap-2"
+												>
+													<span className="font-medium">{key}</span>
+													<span className="text-right text-muted-foreground">
+														{typeof value === "string"
+															? value
+															: JSON.stringify(value)}
+													</span>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>

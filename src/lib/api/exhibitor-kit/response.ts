@@ -61,7 +61,11 @@ export interface CustomRequest {
 	updated_at?: string;
 }
 
-export type TeamMemberPaymentStatus = "pending" | "submitted" | "verified" | "rejected";
+export type TeamMemberPaymentStatus =
+	| "pending"
+	| "submitted"
+	| "verified"
+	| "rejected";
 
 export interface ExhibitorTeamMemberPaymentInKit {
 	id: number;
@@ -92,6 +96,7 @@ export interface ExhibitorKit {
 	fascia_upgrade_required: boolean;
 	company_name: string;
 	company_address: string;
+	country?: string;
 	pic_full_name: string;
 	pic_contact_number: string;
 	pic_email_address: string;
@@ -104,6 +109,7 @@ export interface ExhibitorKit {
 	amount_paid?: string;
 	payment_note?: string;
 	indemnity_link?: string;
+	custom_fields_data?: Record<string, unknown>;
 	exhibitor_team_members: ExhibitorTeamMember[];
 	exhibitor_kit_items?: ExhibitorKitItem[];
 	exhibitor_kit_printings?: ExhibitorKitPrinting[];
