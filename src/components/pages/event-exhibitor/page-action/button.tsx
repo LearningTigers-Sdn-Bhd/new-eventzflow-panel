@@ -1,6 +1,14 @@
 "use client";
 
-import { ChevronDown, Link2, Plus, Settings2, Tags, Users } from "lucide-react";
+import {
+	ChevronDown,
+	Link2,
+	MapPinned,
+	Plus,
+	Settings2,
+	Tags,
+	Users,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +23,7 @@ import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
+import { ZonePricingDialog } from "../dialogs/zone-pricing-dialog";
 import AddExhibitorModal from "../forms/add-exhibitor";
 
 export function ExhibitorPageButton() {
@@ -60,6 +69,19 @@ export function ExhibitorPageButton() {
 					align="end"
 					className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-none"
 				>
+					<ZonePricingDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<MapPinned className="h-4 w-4" />
+								Zones
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
 					<BoothPricingDialog
 						eventId={Number(eventId)}
 						trigger={

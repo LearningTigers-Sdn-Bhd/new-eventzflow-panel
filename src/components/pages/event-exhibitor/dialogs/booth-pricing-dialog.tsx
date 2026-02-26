@@ -38,6 +38,7 @@ import {
 	getExhibitorBoothPrices,
 	updateExhibitorBoothPrice,
 } from "@/lib/api/exhibitor-booth-price";
+import { getExhibitorZoneQuotas } from "@/lib/api/exhibitor-zone-quota";
 
 interface BoothPricingDialogProps {
 	eventId: number;
@@ -46,12 +47,14 @@ interface BoothPricingDialogProps {
 
 type FormState = {
 	boothType: "" | "shell_scheme" | "raw_space";
+	exhibitorZoneQuotaId: string;
 	label: string;
 	price: string;
 };
 
 const DEFAULT_FORM: FormState = {
 	boothType: "",
+	exhibitorZoneQuotaId: "",
 	label: "",
 	price: "",
 };
@@ -84,6 +87,27 @@ export function BoothPricingDialog({
 		queryFn: () => getExhibitorBoothPrices(eventId),
 		enabled: isOpen,
 	});
+
+	const { data: zoneQuotas = [] } = useQuery({
+		queryKey: ["exhibitor-zone-quotas", eventId],
+		queryFn: () => getExhibitorZoneQuotas(eventId),
+		enabled: isOpen,
+	});
+
+	const zoneOptions = React.useMemo(
+		() => zoneQuotas.map((zoneQuota) => ({ id: zoneQuota.id, zone: zoneQuota.zone })),
+		[zoneQuotas],
+	);
+	const hasZoneOptions = zoneOptions.length > 0;
+
+	React.useEffect(() => {
+		if (!editingItem && zoneOptions.length > 0 && !form.exhibitorZoneQuotaId) {
+			setForm((prev) => ({
+				...prev,
+				exhibitorZoneQuotaId: zoneOptions[0] ? String(zoneOptions[0].id) : "",
+			}));
+		}
+	}, [editingItem, zoneOptions, form.exhibitorZoneQuotaId]);
 
 	const invalidateBoothPrices = () => {
 		queryClient.invalidateQueries({
@@ -137,9 +161,26 @@ export function BoothPricingDialog({
 			return;
 		}
 
+		if (hasZoneOptions && !form.exhibitorZoneQuotaId) {
+			toast.error("Please select a zone");
+			return;
+		}
+
 		const parsedPrice = Number(form.price);
 		if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
 			toast.error("Price must be a valid value greater than or equal to 0");
+			return;
+		}
+
+		const parsedZoneQuotaId = form.exhibitorZoneQuotaId
+			? Number(form.exhibitorZoneQuotaId)
+			: null;
+
+		if (
+			parsedZoneQuotaId !== null &&
+			(Number.isNaN(parsedZoneQuotaId) || parsedZoneQuotaId <= 0)
+		) {
+			toast.error("Selected zone is invalid");
 			return;
 		}
 
@@ -147,6 +188,7 @@ export function BoothPricingDialog({
 			updateMutation.mutate({
 				id: editingItem.id,
 				booth_type: form.boothType,
+				exhibitor_zone_quota_id: parsedZoneQuotaId,
 				label: form.label.trim(),
 				price: parsedPrice,
 			});
@@ -156,6 +198,7 @@ export function BoothPricingDialog({
 		createMutation.mutate({
 			event_id: eventId,
 			booth_type: form.boothType,
+			exhibitor_zone_quota_id: parsedZoneQuotaId,
 			label: form.label.trim(),
 			price: parsedPrice,
 		});
@@ -165,6 +208,9 @@ export function BoothPricingDialog({
 		setEditingItem(item);
 		setForm({
 			boothType: item.boothType,
+			exhibitorZoneQuotaId: item.exhibitorZoneQuotaId
+				? String(item.exhibitorZoneQuotaId)
+				: "",
 			label: item.label,
 			price: item.price.toString(),
 		});
@@ -204,7 +250,7 @@ export function BoothPricingDialog({
 				</DialogHeader>
 
 				<form onSubmit={onSubmit} className="space-y-4 rounded-none border p-4">
-					<div className="grid gap-3 sm:grid-cols-3">
+					<div className={`grid gap-3 ${hasZoneOptions ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
 						<div className="space-y-2">
 							<Label htmlFor="booth-type">Booth Type</Label>
 							<Select
@@ -231,6 +277,31 @@ export function BoothPricingDialog({
 								</SelectContent>
 							</Select>
 						</div>
+						{hasZoneOptions && (
+							<div className="space-y-2">
+								<Label htmlFor="booth-zone">Zone</Label>
+								<Select
+									value={form.exhibitorZoneQuotaId}
+									onValueChange={(value) =>
+										setForm((prev) => ({ ...prev, exhibitorZoneQuotaId: value }))
+									}
+								>
+									<SelectTrigger
+										id="booth-zone"
+										className="h-9 w-full rounded-none"
+									>
+										<SelectValue placeholder="Select zone" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										{zoneOptions.map((zoneOption) => (
+											<SelectItem key={zoneOption.id} value={String(zoneOption.id)}>
+												{zoneOption.zone}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						)}
 						<div className="space-y-2">
 							<Label htmlFor="booth-label">Label</Label>
 							<Input
@@ -285,6 +356,7 @@ export function BoothPricingDialog({
 						<TableHeader>
 							<TableRow>
 								<TableHead>Booth Type</TableHead>
+								{hasZoneOptions && <TableHead>Zone</TableHead>}
 								<TableHead>Label</TableHead>
 								<TableHead>Rate</TableHead>
 								<TableHead className="w-[120px]">Actions</TableHead>
@@ -293,14 +365,14 @@ export function BoothPricingDialog({
 						<TableBody>
 							{isLoading ? (
 								<TableRow>
-									<TableCell colSpan={4} className="py-8 text-center">
+									<TableCell colSpan={hasZoneOptions ? 5 : 4} className="py-8 text-center">
 										<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
 									</TableCell>
 								</TableRow>
 							) : boothPrices.length === 0 ? (
 								<TableRow>
 									<TableCell
-										colSpan={4}
+										colSpan={hasZoneOptions ? 5 : 4}
 										className="py-8 text-center text-muted-foreground"
 									>
 										No booth prices configured yet.
@@ -312,6 +384,7 @@ export function BoothPricingDialog({
 										<TableCell className="font-medium">
 											{formatBoothType(item.boothType)}
 										</TableCell>
+										{hasZoneOptions && <TableCell>{item.zone || "-"}</TableCell>}
 										<TableCell>{item.label}</TableCell>
 										<TableCell>RM {item.price.toFixed(2)}</TableCell>
 										<TableCell>
