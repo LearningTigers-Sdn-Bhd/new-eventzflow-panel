@@ -1,13 +1,21 @@
 "use client";
 
-import { Link2, Plus } from "lucide-react";
+import { ChevronDown, Link2, Plus, Settings2, Tags, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
-import AddExhibitorModal from "../forms/add-exhibitor";
+import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
+import AddExhibitorModal from "../forms/add-exhibitor";
 
 export function ExhibitorPageButton() {
 	const params = useParams();
@@ -40,18 +48,62 @@ export function ExhibitorPageButton() {
 
 	return (
 		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
-			<TeamLimitsDialog eventId={Number(eventId)} />
-			{canInviteVendor && (
-				<InviteVendorDialog
-					eventId={Number(eventId)}
-					trigger={
-						<Button variant="outline" className="w-full rounded-none sm:w-auto">
-							<Link2 className="mr-2 h-4 w-4" />
-							Invite Exhibitor
-						</Button>
-					}
-				/>
-			)}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" className="w-full rounded-none sm:w-auto">
+						<Settings2 className="mr-2 h-4 w-4" />
+						Exhibitor Settings
+						<ChevronDown className="ml-2 h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-none"
+				>
+					<BoothPricingDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<Tags className="h-4 w-4" />
+								Booth Prices
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
+					<TeamLimitsDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<Users className="h-4 w-4" />
+								Team Limits
+							</DropdownMenuItem>
+						}
+					/>
+					{canInviteVendor && (
+						<>
+							<DropdownMenuSeparator />
+							<InviteVendorDialog
+								eventId={Number(eventId)}
+								trigger={
+									<DropdownMenuItem
+										onSelect={(e) => e.preventDefault()}
+										className="rounded-none"
+									>
+										<Link2 className="h-4 w-4" />
+										Invite Exhibitor
+									</DropdownMenuItem>
+								}
+							/>
+						</>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
 			<Button
 				onClick={handleAssignExhibitor}
 				className="w-full rounded-none sm:w-auto"
