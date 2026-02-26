@@ -77,7 +77,7 @@ export function GuestSidebar({ eventId }: GuestSidebarProps) {
   );
 }
 
-function DraggableGuest({ item }: { item: any }) {
+export function DraggableGuest({ item, isOverlay }: { item: any; isOverlay?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `guest-${item.type}-${item.id}`,
     data: {
@@ -87,9 +87,13 @@ function DraggableGuest({ item }: { item: any }) {
     },
   });
 
-  const style = transform ? {
+  const style = !isOverlay && transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
+
+  if (isDragging && !isOverlay) {
+    return <div ref={setNodeRef} className="h-12 w-full rounded-md bg-slate-100 border-dashed border" />;
+  }
 
   return (
     <div
@@ -98,8 +102,9 @@ function DraggableGuest({ item }: { item: any }) {
       {...listeners}
       {...attributes}
       className={cn(
-        "p-3 bg-card border rounded-md shadow-sm cursor-grab active:cursor-grabbing flex items-center gap-3 transition-opacity",
-        isDragging && "opacity-50 border-primary bg-primary/5"
+        "p-3 bg-card border rounded-md shadow-sm flex items-center gap-3 transition-opacity",
+        isOverlay ? "cursor-grabbing" : "cursor-grab active:cursor-grabbing",
+        isDragging && !isOverlay && "opacity-50 border-primary bg-primary/5"
       )}
     >
       <div className={cn(

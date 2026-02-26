@@ -14,6 +14,8 @@ export function AssetSidebar({ onAddObject }: AssetSidebarProps) {
     { type: "table_rect", label: "Rect Table", icon: Square },
     { type: "stage", label: "Stage", icon: Layout },
     { type: "wall", label: "Wall", icon: Square },
+    { type: "floor_diagonal", label: "Diagonal Floor", icon: Square },
+    { type: "wall_diagonal", label: "Diagonal Wall", icon: Square },
     { type: "door", label: "Door", icon: DoorOpen },
   ];
 

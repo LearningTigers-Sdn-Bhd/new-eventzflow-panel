@@ -146,6 +146,22 @@ export function Inspector({ plan, object, onUpdate, onDelete, onDeleteAssignment
         />
       </div>
 
+      {object.object_type === "floor" && (
+        <div className="space-y-2">
+          <Label htmlFor="path">SVG Path (for curves)</Label>
+          <textarea
+            id="path"
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+            value={object.path || ""}
+            onChange={(e) => onUpdate(object.id, { path: e.target.value })}
+            placeholder="M 0,0 L 100,0 ..."
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Use SVG path syntax. The floor's bounding box still uses Width/Height.
+          </p>
+        </div>
+      )}
+
       {object.object_type === "table" && (
         <div className="space-y-4">
           <Separator />

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { getPlans, createPlan, deletePlan } from "@/lib/api/plan";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/data-state";
 
 interface PageProps {
   params: Promise<{ event_id: string }>;
@@ -26,7 +27,7 @@ export default function PlansPage({ params }: PageProps) {
   const { event_id } = use(params);
   const queryClient = useQueryClient();
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, error, refetch } = useQuery({
     queryKey: ["plans", event_id],
     queryFn: () => getPlans(event_id),
   });
@@ -61,6 +62,16 @@ export default function PlansPage({ params }: PageProps) {
 
   if (isLoading) {
     return <PlansSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load plans"
+        description={error instanceof Error ? error.message : "An unknown error occurred"}
+        action={<Button onClick={() => refetch()}>Retry</Button>}
+      />
+    );
   }
 
   return (

@@ -1,13 +1,14 @@
 export interface PlanObject {
   id: number;
   plan_id: number;
-  object_type: string; // 'table', 'wall', 'door', 'stage', 'label'
+  object_type: string; // 'table', 'wall', 'door', 'stage', 'label', 'floor'
   layer: string;
   x: number;
   y: number;
   rotation: number;
   width: number;
   height: number;
+  path?: string | null;
   label: string | null;
   capacity: number | null;
   locked: boolean;
