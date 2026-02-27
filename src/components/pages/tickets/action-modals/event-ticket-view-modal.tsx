@@ -14,6 +14,7 @@ import {
 	User,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import * as React from "react";
 import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -72,9 +73,23 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 		queryFn: () => getEventById(eventId),
 	});
 
+	// Merge event labels_data with any custom labels injected directly into the ticket
+	const mergedLabelsMap = React.useMemo(() => {
+		const map: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
+		ticket.customLabels?.forEach(({ name }) => {
+			if (!(name in map)) {
+				// Prettify raw key: ic_no -> Ic No, t_shirt_size -> T Shirt Size
+				map[name] = name
+					.replace(/_/g, " ")
+					.replace(/\b\w/g, (c) => c.toUpperCase());
+			}
+		});
+		return map;
+	}, [eventData?.labels_data, ticket.customLabels]);
+
 	const customLabels =
-		eventData?.labels_data && Object.keys(eventData.labels_data).length > 0
-			? Object.entries(eventData.labels_data).map(([key, labelName]) => {
+		Object.keys(mergedLabelsMap).length > 0
+			? Object.entries(mergedLabelsMap).map(([key, labelName]) => {
 					const rawValue = ticket.customLabels?.find(
 						(l) => l.name === key,
 					)?.value;
