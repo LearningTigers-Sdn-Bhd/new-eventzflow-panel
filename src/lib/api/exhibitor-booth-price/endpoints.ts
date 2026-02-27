@@ -22,7 +22,7 @@ function transformBoothPrice(
 		id: backend.id,
 		eventId: backend.event_id,
 		boothType: backend.booth_type as "shell_scheme" | "raw_space",
-		exhibitorZoneQuotaId: backend.exhibitor_zone_quota_id,
+		exhibitorZoneId: backend.exhibitor_zone_id,
 		zone: backend.zone,
 		label: backend.label,
 		price: Number(backend.price),
@@ -51,7 +51,7 @@ export async function createExhibitorBoothPrice(
 		{
 			exhibitor_booth_price: {
 				booth_type: validated.booth_type,
-				exhibitor_zone_quota_id: validated.exhibitor_zone_quota_id ?? null,
+				exhibitor_zone_id: validated.exhibitor_zone_id ?? null,
 				label: validated.label,
 				price: validated.price,
 			},
@@ -74,7 +74,7 @@ export async function updateExhibitorBoothPrice(
 		{
 			exhibitor_booth_price: {
 				booth_type: validated.booth_type,
-				exhibitor_zone_quota_id: validated.exhibitor_zone_quota_id ?? null,
+				exhibitor_zone_id: validated.exhibitor_zone_id ?? null,
 				label: validated.label,
 				price: validated.price,
 			},

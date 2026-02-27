@@ -2,7 +2,7 @@ export type BackendExhibitorBoothPrice = {
 	id: number;
 	event_id: number;
 	booth_type: string;
-	exhibitor_zone_quota_id: number | null;
+	exhibitor_zone_id: number | null;
 	zone: string | null;
 	label: string;
 	price: number | string;
@@ -14,7 +14,7 @@ export type ExhibitorBoothPrice = {
 	id: number;
 	eventId: number;
 	boothType: "shell_scheme" | "raw_space";
-	exhibitorZoneQuotaId: number | null;
+	exhibitorZoneId: number | null;
 	zone: string | null;
 	label: string;
 	price: number;

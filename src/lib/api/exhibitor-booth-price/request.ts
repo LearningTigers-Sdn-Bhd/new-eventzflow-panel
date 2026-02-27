@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const boothPricePayloadSchema = z.object({
 	booth_type: z.enum(["shell_scheme", "raw_space"]),
-	exhibitor_zone_quota_id: z.number().int().min(1).nullable().optional(),
+	exhibitor_zone_id: z.number().int().min(1).nullable().optional(),
 	label: z.string().trim().min(1, "Label is required").max(255),
 	price: z.number().min(0, "Price must be 0 or greater"),
 });

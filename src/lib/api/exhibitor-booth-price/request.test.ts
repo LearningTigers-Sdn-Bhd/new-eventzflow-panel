@@ -10,7 +10,7 @@ describe("exhibitor booth price request schemas", () => {
 		const parsed = createExhibitorBoothPriceSchema.safeParse({
 			event_id: 10,
 			booth_type: "shell_scheme",
-			exhibitor_zone_quota_id: 12,
+			exhibitor_zone_id: 12,
 			label: "Shell Scheme Booth (3m x 3m)",
 			price: 2000,
 		});
@@ -22,7 +22,7 @@ describe("exhibitor booth price request schemas", () => {
 		const parsed = createExhibitorBoothPriceSchema.safeParse({
 			event_id: 10,
 			booth_type: "raw_space",
-			exhibitor_zone_quota_id: 7,
+			exhibitor_zone_id: 7,
 			label: "Raw Booth",
 			price: 0,
 		});
@@ -34,7 +34,7 @@ describe("exhibitor booth price request schemas", () => {
 		const parsed = createExhibitorBoothPriceSchema.safeParse({
 			event_id: 10,
 			booth_type: "",
-			exhibitor_zone_quota_id: 12,
+			exhibitor_zone_id: 12,
 			label: "Corner Booth",
 			price: 4000,
 		});
@@ -46,7 +46,7 @@ describe("exhibitor booth price request schemas", () => {
 		const parsed = createExhibitorBoothPriceSchema.safeParse({
 			event_id: 10,
 			booth_type: "corner_booth",
-			exhibitor_zone_quota_id: 12,
+			exhibitor_zone_id: 12,
 			label: "Corner Booth (3m x 3m)",
 			price: 4000,
 		});
@@ -58,7 +58,7 @@ describe("exhibitor booth price request schemas", () => {
 		const parsed = updateExhibitorBoothPriceSchema.safeParse({
 			id: 8,
 			booth_type: "raw_space",
-			exhibitor_zone_quota_id: 7,
+			exhibitor_zone_id: 7,
 			label: "Raw Booth",
 			price: -1,
 		});

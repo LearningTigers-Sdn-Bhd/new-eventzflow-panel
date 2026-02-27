@@ -38,7 +38,7 @@ import {
 	getExhibitorBoothPrices,
 	updateExhibitorBoothPrice,
 } from "@/lib/api/exhibitor-booth-price";
-import { getExhibitorZoneQuotas } from "@/lib/api/exhibitor-zone-quota";
+import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
 
 interface BoothPricingDialogProps {
 	eventId: number;
@@ -47,14 +47,14 @@ interface BoothPricingDialogProps {
 
 type FormState = {
 	boothType: "" | "shell_scheme" | "raw_space";
-	exhibitorZoneQuotaId: string;
+	exhibitorZoneId: string;
 	label: string;
 	price: string;
 };
 
 const DEFAULT_FORM: FormState = {
 	boothType: "",
-	exhibitorZoneQuotaId: "",
+	exhibitorZoneId: "",
 	label: "",
 	price: "",
 };
@@ -88,26 +88,26 @@ export function BoothPricingDialog({
 		enabled: isOpen,
 	});
 
-	const { data: zoneQuotas = [] } = useQuery({
-		queryKey: ["exhibitor-zone-quotas", eventId],
-		queryFn: () => getExhibitorZoneQuotas(eventId),
+	const { data: zones = [] } = useQuery({
+		queryKey: ["exhibitor-zones", eventId],
+		queryFn: () => getExhibitorZones(eventId),
 		enabled: isOpen,
 	});
 
 	const zoneOptions = React.useMemo(
-		() => zoneQuotas.map((zoneQuota) => ({ id: zoneQuota.id, zone: zoneQuota.zone })),
-		[zoneQuotas],
+		() => zones.map((zone) => ({ id: zone.id, zone: zone.zone })),
+		[zones],
 	);
 	const hasZoneOptions = zoneOptions.length > 0;
 
 	React.useEffect(() => {
-		if (!editingItem && zoneOptions.length > 0 && !form.exhibitorZoneQuotaId) {
+		if (!editingItem && zoneOptions.length > 0 && !form.exhibitorZoneId) {
 			setForm((prev) => ({
 				...prev,
-				exhibitorZoneQuotaId: zoneOptions[0] ? String(zoneOptions[0].id) : "",
+				exhibitorZoneId: zoneOptions[0] ? String(zoneOptions[0].id) : "",
 			}));
 		}
-	}, [editingItem, zoneOptions, form.exhibitorZoneQuotaId]);
+	}, [editingItem, zoneOptions, form.exhibitorZoneId]);
 
 	const invalidateBoothPrices = () => {
 		queryClient.invalidateQueries({
@@ -161,7 +161,7 @@ export function BoothPricingDialog({
 			return;
 		}
 
-		if (hasZoneOptions && !form.exhibitorZoneQuotaId) {
+		if (hasZoneOptions && !form.exhibitorZoneId) {
 			toast.error("Please select a zone");
 			return;
 		}
@@ -172,13 +172,13 @@ export function BoothPricingDialog({
 			return;
 		}
 
-		const parsedZoneQuotaId = form.exhibitorZoneQuotaId
-			? Number(form.exhibitorZoneQuotaId)
+		const parsedZoneId = form.exhibitorZoneId
+			? Number(form.exhibitorZoneId)
 			: null;
 
 		if (
-			parsedZoneQuotaId !== null &&
-			(Number.isNaN(parsedZoneQuotaId) || parsedZoneQuotaId <= 0)
+			parsedZoneId !== null &&
+			(Number.isNaN(parsedZoneId) || parsedZoneId <= 0)
 		) {
 			toast.error("Selected zone is invalid");
 			return;
@@ -188,7 +188,7 @@ export function BoothPricingDialog({
 			updateMutation.mutate({
 				id: editingItem.id,
 				booth_type: form.boothType,
-				exhibitor_zone_quota_id: parsedZoneQuotaId,
+				exhibitor_zone_id: parsedZoneId,
 				label: form.label.trim(),
 				price: parsedPrice,
 			});
@@ -198,7 +198,7 @@ export function BoothPricingDialog({
 		createMutation.mutate({
 			event_id: eventId,
 			booth_type: form.boothType,
-			exhibitor_zone_quota_id: parsedZoneQuotaId,
+			exhibitor_zone_id: parsedZoneId,
 			label: form.label.trim(),
 			price: parsedPrice,
 		});
@@ -208,8 +208,8 @@ export function BoothPricingDialog({
 		setEditingItem(item);
 		setForm({
 			boothType: item.boothType,
-			exhibitorZoneQuotaId: item.exhibitorZoneQuotaId
-				? String(item.exhibitorZoneQuotaId)
+			exhibitorZoneId: item.exhibitorZoneId
+				? String(item.exhibitorZoneId)
 				: "",
 			label: item.label,
 			price: item.price.toString(),
@@ -281,9 +281,9 @@ export function BoothPricingDialog({
 							<div className="space-y-2">
 								<Label htmlFor="booth-zone">Zone</Label>
 								<Select
-									value={form.exhibitorZoneQuotaId}
+									value={form.exhibitorZoneId}
 									onValueChange={(value) =>
-										setForm((prev) => ({ ...prev, exhibitorZoneQuotaId: value }))
+										setForm((prev) => ({ ...prev, exhibitorZoneId: value }))
 									}
 								>
 									<SelectTrigger

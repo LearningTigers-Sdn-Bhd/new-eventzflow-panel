@@ -25,12 +25,12 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	createExhibitorZoneQuota,
-	deleteExhibitorZoneQuota,
-	type ExhibitorZoneQuota,
-	getExhibitorZoneQuotas,
-	updateExhibitorZoneQuota,
-} from "@/lib/api/exhibitor-zone-quota";
+	createExhibitorZone,
+	deleteExhibitorZone,
+	type ExhibitorZone,
+	getExhibitorZones,
+	updateExhibitorZone,
+} from "@/lib/api/exhibitor-zone";
 
 interface ZonePricingDialogProps {
 	eventId: number;
@@ -50,27 +50,27 @@ const DEFAULT_FORM: FormState = {
 export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) {
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = React.useState(false);
-	const [editingItem, setEditingItem] = React.useState<ExhibitorZoneQuota | null>(
+	const [editingItem, setEditingItem] = React.useState<ExhibitorZone | null>(
 		null,
 	);
 	const [form, setForm] = React.useState<FormState>(DEFAULT_FORM);
 
-	const { data: zoneQuotas = [], isLoading } = useQuery({
-		queryKey: ["exhibitor-zone-quotas", eventId],
-		queryFn: () => getExhibitorZoneQuotas(eventId),
+	const { data: zones = [], isLoading } = useQuery({
+		queryKey: ["exhibitor-zones", eventId],
+		queryFn: () => getExhibitorZones(eventId),
 		enabled: isOpen,
 	});
 
-	const invalidateZoneQuotas = () => {
+	const invalidateZones = () => {
 		queryClient.invalidateQueries({
-			queryKey: ["exhibitor-zone-quotas", eventId],
+			queryKey: ["exhibitor-zones", eventId],
 		});
 	};
 
 	const createMutation = useMutation({
-		mutationFn: createExhibitorZoneQuota,
+		mutationFn: createExhibitorZone,
 		onSuccess: () => {
-			invalidateZoneQuotas();
+			invalidateZones();
 			queryClient.invalidateQueries({
 				queryKey: ["exhibitor-booth-prices", eventId],
 			});
@@ -83,9 +83,9 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 	});
 
 	const updateMutation = useMutation({
-		mutationFn: updateExhibitorZoneQuota,
+		mutationFn: updateExhibitorZone,
 		onSuccess: () => {
-			invalidateZoneQuotas();
+			invalidateZones();
 			queryClient.invalidateQueries({
 				queryKey: ["exhibitor-booth-prices", eventId],
 			});
@@ -99,9 +99,9 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: deleteExhibitorZoneQuota,
+		mutationFn: deleteExhibitorZone,
 		onSuccess: () => {
-			invalidateZoneQuotas();
+			invalidateZones();
 			queryClient.invalidateQueries({
 				queryKey: ["exhibitor-booth-prices", eventId],
 			});
@@ -122,9 +122,9 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 			return;
 		}
 
-		const parsedQuota = Number(form.quota);
-		if (Number.isNaN(parsedQuota) || parsedQuota < 0) {
-			toast.error("Zone quota must be a valid value greater than or equal to 0");
+		const parsedQuota = form.quota.trim() === "" ? null : Number(form.quota);
+		if (parsedQuota !== null && (Number.isNaN(parsedQuota) || parsedQuota < 0)) {
+			toast.error("Zone quota must be empty or a valid value greater than or equal to 0");
 			return;
 		}
 
@@ -144,11 +144,11 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 		});
 	};
 
-	const onStartEdit = (item: ExhibitorZoneQuota) => {
+	const onStartEdit = (item: ExhibitorZone) => {
 		setEditingItem(item);
 		setForm({
 			zone: item.zone,
-			quota: item.quota.toString(),
+			quota: item.quota === null ? "" : item.quota.toString(),
 		});
 	};
 
@@ -196,12 +196,11 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 								id="zone-quota"
 								type="number"
 								min="0"
-								placeholder="0"
+								placeholder="leave blank for no quota"
 								value={form.quota}
 								onChange={(e) =>
 									setForm((prev) => ({ ...prev, quota: e.target.value }))
 								}
-								required
 								className="h-9 rounded-none"
 							/>
 						</div>
@@ -241,7 +240,7 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 										<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
 									</TableCell>
 								</TableRow>
-							) : zoneQuotas.length === 0 ? (
+							) : zones.length === 0 ? (
 								<TableRow>
 									<TableCell
 										colSpan={3}
@@ -251,10 +250,10 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 									</TableCell>
 								</TableRow>
 							) : (
-								zoneQuotas.map((item) => (
+								zones.map((item) => (
 									<TableRow key={item.id}>
 										<TableCell className="font-medium">{item.zone}</TableCell>
-										<TableCell>{item.quota}</TableCell>
+										<TableCell>{item.quota ?? "-"}</TableCell>
 										<TableCell>
 											<div className="flex items-center gap-1">
 												<Button
