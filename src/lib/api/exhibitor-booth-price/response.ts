@@ -6,6 +6,7 @@ export type BackendExhibitorBoothPrice = {
 	zone: string | null;
 	label: string;
 	price: number | string;
+	quota: number | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -18,6 +19,7 @@ export type ExhibitorBoothPrice = {
 	zone: string | null;
 	label: string;
 	price: number;
+	quota: number | null;
 	createdAt: string;
 	updatedAt: string;
 };

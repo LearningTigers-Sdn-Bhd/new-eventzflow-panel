@@ -50,6 +50,7 @@ type FormState = {
 	exhibitorZoneId: string;
 	label: string;
 	price: string;
+	quota: string;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -57,6 +58,7 @@ const DEFAULT_FORM: FormState = {
 	exhibitorZoneId: "",
 	label: "",
 	price: "",
+	quota: "",
 };
 
 const BOOTH_TYPE_OPTIONS: Array<{
@@ -95,10 +97,61 @@ export function BoothPricingDialog({
 	});
 
 	const zoneOptions = React.useMemo(
-		() => zones.map((zone) => ({ id: zone.id, zone: zone.zone })),
+		() =>
+			zones.map((zone) => ({
+				id: zone.id,
+				zone: zone.zone,
+				quota: zone.quota,
+			})),
 		[zones],
 	);
 	const hasZoneOptions = zoneOptions.length > 0;
+
+	const allocatedQuotaByZoneId = React.useMemo(() => {
+		const quotaMap = new Map<number, number>();
+
+		for (const boothPrice of boothPrices) {
+			if (boothPrice.exhibitorZoneId === null || boothPrice.quota === null) {
+				continue;
+			}
+
+			const current = quotaMap.get(boothPrice.exhibitorZoneId) ?? 0;
+			quotaMap.set(boothPrice.exhibitorZoneId, current + boothPrice.quota);
+		}
+
+		return quotaMap;
+	}, [boothPrices]);
+
+	const selectedZoneOption = React.useMemo(
+		() =>
+			form.exhibitorZoneId
+				? zoneOptions.find((zone) => String(zone.id) === form.exhibitorZoneId)
+				: null,
+		[zoneOptions, form.exhibitorZoneId],
+	);
+
+	const selectedZoneMetrics = React.useMemo(() => {
+		if (!selectedZoneOption || selectedZoneOption.quota === null) {
+			return null;
+		}
+
+		const totalAllocated = allocatedQuotaByZoneId.get(selectedZoneOption.id) ?? 0;
+		const editingQuotaInZone =
+			editingItem && editingItem.exhibitorZoneId === selectedZoneOption.id
+				? editingItem.quota ?? 0
+				: 0;
+		const availableForSelection = Math.max(
+			selectedZoneOption.quota - (totalAllocated - editingQuotaInZone),
+			0,
+		);
+
+		return {
+			totalQuota: selectedZoneOption.quota,
+			totalAllocated,
+			totalRemaining: Math.max(selectedZoneOption.quota - totalAllocated, 0),
+			availableForSelection,
+		};
+	}, [allocatedQuotaByZoneId, editingItem, selectedZoneOption]);
 
 	React.useEffect(() => {
 		if (!editingItem && zoneOptions.length > 0 && !form.exhibitorZoneId) {
@@ -172,6 +225,16 @@ export function BoothPricingDialog({
 			return;
 		}
 
+		const normalizedQuota = form.quota.trim();
+		const parsedQuota = normalizedQuota === "" ? null : Number(normalizedQuota);
+		if (
+			parsedQuota !== null &&
+			(Number.isNaN(parsedQuota) || parsedQuota < 0 || !Number.isInteger(parsedQuota))
+		) {
+			toast.error("Quota must be a whole number greater than or equal to 0");
+			return;
+		}
+
 		const parsedZoneId = form.exhibitorZoneId
 			? Number(form.exhibitorZoneId)
 			: null;
@@ -184,6 +247,17 @@ export function BoothPricingDialog({
 			return;
 		}
 
+		if (
+			selectedZoneMetrics &&
+			parsedQuota !== null &&
+			parsedQuota > selectedZoneMetrics.availableForSelection
+		) {
+			toast.error(
+				`Quota exceeds remaining allocation for this zone. Available: ${selectedZoneMetrics.availableForSelection}`,
+			);
+			return;
+		}
+
 		if (editingItem) {
 			updateMutation.mutate({
 				id: editingItem.id,
@@ -191,6 +265,7 @@ export function BoothPricingDialog({
 				exhibitor_zone_id: parsedZoneId,
 				label: form.label.trim(),
 				price: parsedPrice,
+				quota: parsedQuota,
 			});
 			return;
 		}
@@ -201,6 +276,7 @@ export function BoothPricingDialog({
 			exhibitor_zone_id: parsedZoneId,
 			label: form.label.trim(),
 			price: parsedPrice,
+			quota: parsedQuota,
 		});
 	};
 
@@ -213,6 +289,7 @@ export function BoothPricingDialog({
 				: "",
 			label: item.label,
 			price: item.price.toString(),
+			quota: item.quota === null ? "" : String(item.quota),
 		});
 	};
 
@@ -250,7 +327,7 @@ export function BoothPricingDialog({
 				</DialogHeader>
 
 				<form onSubmit={onSubmit} className="space-y-4 rounded-none border p-4">
-					<div className={`grid gap-3 ${hasZoneOptions ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+					<div className={`grid gap-3 ${hasZoneOptions ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
 						<div className="space-y-2">
 							<Label htmlFor="booth-type">Booth Type</Label>
 							<Select
@@ -331,7 +408,37 @@ export function BoothPricingDialog({
 								className="h-9 rounded-none"
 							/>
 						</div>
+						<div className="space-y-2">
+							<Label htmlFor="booth-quota">Quota</Label>
+							<Input
+								id="booth-quota"
+								type="number"
+								step="1"
+								min="0"
+								placeholder="Unlimited"
+								value={form.quota}
+								onChange={(e) =>
+									setForm((prev) => ({ ...prev, quota: e.target.value }))
+								}
+								className="h-9 rounded-none"
+							/>
+						</div>
 					</div>
+					{selectedZoneOption && selectedZoneMetrics && (
+						<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+							<p className="font-semibold">
+								{selectedZoneOption.zone} quota
+							</p>
+							<p className="mt-1 font-medium">
+								Total: {selectedZoneMetrics.totalQuota} | Allocated: {selectedZoneMetrics.totalAllocated} | Remaining: {selectedZoneMetrics.totalRemaining}
+							</p>
+							{editingItem && (
+								<p className="mt-1">
+									Available for this edit: {selectedZoneMetrics.availableForSelection}
+								</p>
+							)}
+						</div>
+					)}
 
 					<DialogFooter>
 						{editingItem && (
@@ -359,20 +466,21 @@ export function BoothPricingDialog({
 								{hasZoneOptions && <TableHead>Zone</TableHead>}
 								<TableHead>Label</TableHead>
 								<TableHead>Rate</TableHead>
+								<TableHead>Quota</TableHead>
 								<TableHead className="w-[120px]">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{isLoading ? (
 								<TableRow>
-									<TableCell colSpan={hasZoneOptions ? 5 : 4} className="py-8 text-center">
+									<TableCell colSpan={hasZoneOptions ? 6 : 5} className="py-8 text-center">
 										<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
 									</TableCell>
 								</TableRow>
 							) : boothPrices.length === 0 ? (
 								<TableRow>
 									<TableCell
-										colSpan={hasZoneOptions ? 5 : 4}
+										colSpan={hasZoneOptions ? 6 : 5}
 										className="py-8 text-center text-muted-foreground"
 									>
 										No booth prices configured yet.
@@ -387,6 +495,7 @@ export function BoothPricingDialog({
 										{hasZoneOptions && <TableCell>{item.zone || "-"}</TableCell>}
 										<TableCell>{item.label}</TableCell>
 										<TableCell>RM {item.price.toFixed(2)}</TableCell>
+										<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
 										<TableCell>
 											<div className="flex items-center gap-1">
 												<Button

@@ -26,6 +26,7 @@ function transformBoothPrice(
 		zone: backend.zone,
 		label: backend.label,
 		price: Number(backend.price),
+		quota: backend.quota,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};
@@ -54,6 +55,7 @@ export async function createExhibitorBoothPrice(
 				exhibitor_zone_id: validated.exhibitor_zone_id ?? null,
 				label: validated.label,
 				price: validated.price,
+				quota: validated.quota ?? null,
 			},
 		},
 	);
@@ -77,6 +79,7 @@ export async function updateExhibitorBoothPrice(
 				exhibitor_zone_id: validated.exhibitor_zone_id ?? null,
 				label: validated.label,
 				price: validated.price,
+				quota: validated.quota ?? null,
 			},
 		},
 	);

@@ -13,6 +13,7 @@ describe("exhibitor booth price request schemas", () => {
 			exhibitor_zone_id: 12,
 			label: "Shell Scheme Booth (3m x 3m)",
 			price: 2000,
+			quota: 30,
 		});
 
 		expect(parsed.success).toBe(true);
@@ -25,6 +26,7 @@ describe("exhibitor booth price request schemas", () => {
 			exhibitor_zone_id: 7,
 			label: "Raw Booth",
 			price: 0,
+			quota: null,
 		});
 
 		expect(parsed.success).toBe(true);
@@ -61,6 +63,46 @@ describe("exhibitor booth price request schemas", () => {
 			exhibitor_zone_id: 7,
 			label: "Raw Booth",
 			price: -1,
+			quota: 5,
+		});
+
+		expect(parsed.success).toBe(false);
+	});
+
+	test("accepts optional quota as non-negative integer", () => {
+		const parsed = createExhibitorBoothPriceSchema.safeParse({
+			event_id: 11,
+			booth_type: "shell_scheme",
+			exhibitor_zone_id: 2,
+			label: "International",
+			price: 3200,
+			quota: 0,
+		});
+
+		expect(parsed.success).toBe(true);
+	});
+
+	test("rejects decimal quota", () => {
+		const parsed = createExhibitorBoothPriceSchema.safeParse({
+			event_id: 11,
+			booth_type: "shell_scheme",
+			exhibitor_zone_id: 2,
+			label: "International",
+			price: 3200,
+			quota: 1.5,
+		});
+
+		expect(parsed.success).toBe(false);
+	});
+
+	test("rejects negative quota", () => {
+		const parsed = createExhibitorBoothPriceSchema.safeParse({
+			event_id: 11,
+			booth_type: "shell_scheme",
+			exhibitor_zone_id: 2,
+			label: "International",
+			price: 3200,
+			quota: -1,
 		});
 
 		expect(parsed.success).toBe(false);
