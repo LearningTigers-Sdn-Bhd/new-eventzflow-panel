@@ -5,11 +5,12 @@ import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import SettingsNavigation from "./navigation";
+import PaymentGatewayForm from "./payment-gateway-form";
 import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
 	eventId: number;
-	initialTab?: "event-information" | "custom-labels" | "welcome-screen" | "branding";
+	initialTab?: "event-information" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
 	onClose?: () => void;
 }
 
@@ -19,7 +20,7 @@ export default function EventSettingsDialog({
 	onClose,
 }: EventSettingsDialogProps) {
 	const [activeTab, setActiveTab] = useState<
-		"event-information" | "custom-labels" | "welcome-screen" | "branding"
+		"event-information" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway"
 	>(initialTab);
 
 	return (
@@ -41,6 +42,9 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "branding" && (
 					<BrandingForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "payment-gateway" && (
+					<PaymentGatewayForm eventId={eventId} onClose={onClose} />
 				)}
 			</div>
 		</div>

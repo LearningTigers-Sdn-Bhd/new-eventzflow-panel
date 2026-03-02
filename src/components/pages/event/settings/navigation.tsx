@@ -1,18 +1,18 @@
 "use client";
 
-import { ImageIcon, InfoIcon, Monitor, TagIcon } from "lucide-react";
+import { CreditCard, ImageIcon, InfoIcon, Monitor, TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface NavigationItem {
-	id: "event-information" | "custom-labels" | "welcome-screen" | "branding";
+	id: "event-information" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
 	label: string;
 	icon: React.ComponentType<{ className?: string }>;
 }
 
 interface SettingsNavigationProps {
-	activeTab: "event-information" | "custom-labels" | "welcome-screen" | "branding";
-	onTabChange: (tab: "event-information" | "custom-labels" | "welcome-screen" | "branding") => void;
+	activeTab: "event-information" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
+	onTabChange: (tab: "event-information" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway") => void;
 	onClose?: () => void;
 }
 
@@ -36,6 +36,11 @@ const navigationItems: NavigationItem[] = [
 		id: "branding",
 		label: "Branding",
 		icon: ImageIcon,
+	},
+	{
+		id: "payment-gateway",
+		label: "Payment Gateway",
+		icon: CreditCard,
 	},
 ];
 
