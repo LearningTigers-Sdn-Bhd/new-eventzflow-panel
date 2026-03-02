@@ -16,6 +16,19 @@ export async function createPlan(eventId: string, data: CreatePlanRequest): Prom
 }
 
 export async function updatePlan(planId: string, data: UpdatePlanRequest): Promise<Plan> {
+  if (data.background_image) {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined && value !== null) {
+        if (key === 'background_image' && value instanceof File) {
+          formData.append(`plan[${key}]`, value);
+        } else {
+          formData.append(`plan[${key}]`, String(value));
+        }
+      }
+    }
+    return restClient.putFormData<Plan>(`v1/plans/${planId}`, formData);
+  }
   return restClient.put<Plan>(`v1/plans/${planId}`, { plan: data });
 }
 

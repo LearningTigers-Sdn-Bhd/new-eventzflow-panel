@@ -99,9 +99,9 @@ export default function PlansPage({ params }: PageProps) {
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline" size="sm" asChild>
-                <Link href={`/event/${event_id}/plans/${plan.id}`}>
+                <Link href={`/event/${event_id}/plans/${plan.id}`} target="_blank">
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit
+                  Edit Plan
                 </Link>
               </Button>
               <Button 

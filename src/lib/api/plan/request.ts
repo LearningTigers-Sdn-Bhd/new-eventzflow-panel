@@ -24,10 +24,13 @@ export const planSchema = z.object({
   pixels_per_unit: z.number().positive().default(20),
   public_enabled: z.boolean().default(false),
   settings_json: z.any().optional(),
+  background_image: z.any().optional(),
 });
 
 export type CreatePlanRequest = z.infer<typeof planSchema>;
-export type UpdatePlanRequest = Partial<CreatePlanRequest>;
+export type UpdatePlanRequest = Partial<CreatePlanRequest> & {
+    background_image?: File | null;
+};
 
 export const assignmentSchema = z.object({
   ticket_id: z.number().optional(),

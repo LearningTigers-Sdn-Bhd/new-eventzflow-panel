@@ -13,6 +13,7 @@ export interface PlanObject {
   capacity: number | null;
   locked: boolean;
   z_index: number;
+  image_url?: string | null;
   table_assignments?: TableAssignment[];
 }
 
@@ -45,4 +46,11 @@ export interface Plan {
   share_token: string;
   settings_json: any;
   plan_objects?: PlanObject[];
+  background_image_url?: string | null;
+  background_image_metadata?: {
+    width: number;
+    height: number;
+    byte_size: number;
+    content_type: string;
+  } | null;
 }

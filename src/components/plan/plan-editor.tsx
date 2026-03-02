@@ -7,7 +7,7 @@ import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Save, Loader2, Users, Sparkles, ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, MousePointer2, Eraser, Square as SquareIcon, Undo, Redo } from "lucide-react";
+import { ArrowLeft, Download, Save, Loader2, Users, Sparkles, ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, MousePointer2, Eraser, Square as SquareIcon, Undo, Redo, Maximize2 } from "lucide-react";
 import Link from "next/link";
 import { PlanCanvas } from "@/components/plan/plan-canvas";
 import { AssetSidebar } from "@/components/plan/asset-sidebar";
@@ -308,6 +308,21 @@ export function PlanEditorContent({ initialPlan, eventId }: { initialPlan: any, 
             >
                 {isRightSidebarOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
             </Button>
+            
+            <div className="h-4 w-px bg-border mx-1" />
+
+            <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 font-bold text-primary border-primary/20 hover:bg-primary/5"
+                asChild
+            >
+                <Link href={`/event/${eventId}/plans/${plan.id}/editor`} target="_blank">
+                    <Maximize2 className="h-4 w-4" />
+                    Workshop Mode
+                </Link>
+            </Button>
+
             <div className="h-4 w-px bg-border mx-1" />
 
             {isSaving && (
