@@ -93,7 +93,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							variant="outline"
 							className="h-5 shrink-0 rounded-none text-xs capitalize"
 						>
-							{kit.booth_type?.replace("_", " ") || "-"}
+							{kit.booth_type?.replace(/_/g, " ") || "-"}
 						</Badge>
 					</div>
 					<div className="flex justify-between gap-2 py-0.5">

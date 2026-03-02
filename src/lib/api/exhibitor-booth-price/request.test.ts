@@ -44,7 +44,7 @@ describe("exhibitor booth price request schemas", () => {
 		expect(parsed.success).toBe(false);
 	});
 
-	test("rejects unsupported booth type", () => {
+	test("accepts custom booth type", () => {
 		const parsed = createExhibitorBoothPriceSchema.safeParse({
 			event_id: 10,
 			booth_type: "corner_booth",
@@ -53,7 +53,7 @@ describe("exhibitor booth price request schemas", () => {
 			price: 4000,
 		});
 
-		expect(parsed.success).toBe(false);
+		expect(parsed.success).toBe(true);
 	});
 
 	test("rejects negative price on update", () => {

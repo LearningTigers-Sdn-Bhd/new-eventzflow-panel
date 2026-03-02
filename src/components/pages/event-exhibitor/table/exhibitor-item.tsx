@@ -66,7 +66,7 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 									"border-orange-500 text-orange-500",
 							)}
 						>
-							{kit.booth_type.replace("_", " ")}
+							{kit.booth_type.replace(/_/g, " ")}
 						</Badge>
 					)}
 					{kit?.payment_status && (

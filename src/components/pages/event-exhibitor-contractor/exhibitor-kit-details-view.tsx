@@ -163,7 +163,7 @@ export function ExhibitorKitDetailsView({
 						)}
 						{exhibitorKit.booth_type && (
 							<Badge variant="outline" className="rounded-none capitalize">
-								{exhibitorKit.booth_type.replace("_", " ")}
+								{exhibitorKit.booth_type.replace(/_/g, " ")}
 							</Badge>
 						)}
 						<Badge
@@ -207,7 +207,7 @@ export function ExhibitorKitDetailsView({
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Type:</span>
 									<Badge variant="outline" className="rounded-none capitalize">
-										{exhibitorKit.booth_type?.replace("_", " ") || "-"}
+										{exhibitorKit.booth_type?.replace(/_/g, " ") || "-"}
 									</Badge>
 								</div>
 								<div className="flex justify-between">

@@ -26,6 +26,7 @@ interface EventInfo {
 	description: string | null;
 	start_date: string | null;
 	end_date: string | null;
+	booth_types: string[];
 }
 
 interface GroupInfo {
@@ -180,10 +181,7 @@ export function VendorSignupForm({
 				...(useExhibitorKit && {
 					exhibitor_kit: {
 						booth_number: value.booth_number || undefined,
-						booth_type: value.booth_type as
-							| "shell_scheme"
-							| "raw_space"
-							| undefined,
+						booth_type: value.booth_type || undefined,
 						booth_dimensions: value.booth_dimensions || undefined,
 						side_wall_left_required: value.side_wall_left_required || undefined,
 						side_wall_right_required: value.side_wall_right_required || undefined,
@@ -366,6 +364,7 @@ export function VendorSignupForm({
 								<ExhibitorKitSection
 									form={form}
 									guidelinesPdfUrl={guidelinesPdfUrl}
+									customBoothTypes={event?.booth_types}
 								/>
 							</div>
 						)}

@@ -130,10 +130,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			return row.original.exhibitor_kit?.booth_type === value;
 		},
 		header: ({ column }) => {
-			const filterType = column.getFilterValue() as
-				| "shell_scheme"
-				| "raw_space"
-				| undefined;
+			const filterType = column.getFilterValue() as string | undefined;
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
@@ -145,7 +142,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 										variant="secondary"
 										className="ml-2 bg-transparent text-xs capitalize underline"
 									>
-										{filterType.replace("_", " ")}
+										{filterType.replace(/_/g, " ")}
 									</Badge>
 								)}
 							</p>
@@ -188,13 +185,14 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 					variant="outline"
 					className={cn(
 						"rounded-none font-medium capitalize",
-						kit.booth_type === "shell_scheme" &&
-							"border-purple-500 text-purple-500",
-						kit.booth_type === "raw_space" &&
-							"border-orange-500 text-orange-500",
+						kit.booth_type === "shell_scheme"
+							? "border-purple-500 text-purple-500"
+							: kit.booth_type === "raw_space"
+								? "border-orange-500 text-orange-500"
+								: "border-teal-500 text-teal-500",
 					)}
 				>
-					{kit.booth_type.replace("_", " ")}
+					{kit.booth_type.replace(/_/g, " ")}
 				</Badge>
 			);
 		},

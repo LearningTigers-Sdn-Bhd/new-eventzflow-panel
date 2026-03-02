@@ -20,6 +20,7 @@ export type Event = {
 	webhook_url: string | null;
 	business_matching_webhook_url: string | null;
 	labels_data: Record<string, any>;
+	booth_types: string[];
 	payment_status: "unpaid" | "paid" | "waived";
 	price: string;
 	published: boolean;

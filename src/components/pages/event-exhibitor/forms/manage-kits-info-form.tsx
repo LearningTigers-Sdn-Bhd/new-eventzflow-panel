@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { getEventById } from "@/lib/api/event";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManageKitsInfoFormProps {
@@ -89,6 +90,31 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 
 	const queryClient = useQueryClient();
 
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId.toString()),
+	});
+
+	const boothTypeOptions = useMemo(() => {
+		const defaults = [
+			{ value: "shell_scheme", label: "Shell Scheme" },
+			{ value: "raw_space", label: "Raw Space" },
+		];
+		const customTypes = event?.booth_types || [];
+		for (const type of customTypes) {
+			if (!defaults.some((o) => o.value === type)) {
+				defaults.push({
+					value: type,
+					label: type
+						.split("_")
+						.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+						.join(" "),
+				});
+			}
+		}
+		return defaults;
+	}, [event?.booth_types]);
+
 	const updateKitMutation = useMutation({
 		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) => {
 			if (!kitId) {
@@ -118,7 +144,7 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 
 		await updateKitMutation.mutateAsync({
 			booth_number: boothNumber || undefined,
-			booth_type: boothType as "shell_scheme" | "raw_space" | undefined,
+			booth_type: boothType || undefined,
 			booth_dimensions: boothDimensions || undefined,
 			side_wall_left_required: sideWallLeftRequired,
 			side_wall_right_required: sideWallRightRequired,
@@ -191,8 +217,11 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 									<SelectValue placeholder="Select type" />
 								</SelectTrigger>
 								<SelectContent className="rounded-none">
-									<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
-									<SelectItem value="raw_space">Raw Space</SelectItem>
+									{boothTypeOptions.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
 								</SelectContent>
 							</Select>
 						</Field>

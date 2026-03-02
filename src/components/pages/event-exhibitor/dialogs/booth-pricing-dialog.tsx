@@ -38,6 +38,7 @@ import {
 	getExhibitorBoothPrices,
 	updateExhibitorBoothPrice,
 } from "@/lib/api/exhibitor-booth-price";
+import { getEventById } from "@/lib/api/event";
 import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
 
 interface BoothPricingDialogProps {
@@ -46,7 +47,7 @@ interface BoothPricingDialogProps {
 }
 
 type FormState = {
-	boothType: "" | "shell_scheme" | "raw_space";
+	boothType: string;
 	exhibitorZoneId: string;
 	label: string;
 	price: string;
@@ -62,14 +63,14 @@ const DEFAULT_FORM: FormState = {
 };
 
 const BOOTH_TYPE_OPTIONS: Array<{
-	value: "shell_scheme" | "raw_space";
+	value: string;
 	label: string;
 }> = [
 	{ value: "shell_scheme", label: "Shell Scheme" },
 	{ value: "raw_space", label: "Raw Space" },
 ];
 
-const BOOTH_TYPE_LABEL_MAP: Record<"shell_scheme" | "raw_space", string> = {
+const BOOTH_TYPE_LABEL_MAP: Record<string, string> = {
 	shell_scheme: "Shell Scheme",
 	raw_space: "Raw Space",
 };
@@ -90,6 +91,12 @@ export function BoothPricingDialog({
 		enabled: isOpen,
 	});
 
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId.toString()),
+		enabled: isOpen,
+	});
+
 	const { data: zones = [] } = useQuery({
 		queryKey: ["exhibitor-zones", eventId],
 		queryFn: () => getExhibitorZones(eventId),
@@ -106,6 +113,25 @@ export function BoothPricingDialog({
 		[zones],
 	);
 	const hasZoneOptions = zoneOptions.length > 0;
+
+	const boothTypeOptions = React.useMemo(() => {
+		const options = [...BOOTH_TYPE_OPTIONS];
+		const customTypes = event?.booth_types || [];
+		for (const type of customTypes) {
+			if (!options.some((o) => o.value === type)) {
+				options.push({
+					value: type,
+					label:
+						BOOTH_TYPE_LABEL_MAP[type] ||
+						type
+							.split("_")
+							.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+							.join(" "),
+				});
+			}
+		}
+		return options;
+	}, [event?.booth_types]);
 
 	const allocatedQuotaByZoneId = React.useMemo(() => {
 		const quotaMap = new Map<number, number>();
@@ -298,9 +324,9 @@ export function BoothPricingDialog({
 		setForm(DEFAULT_FORM);
 	};
 
-	const formatBoothType = (boothType: ExhibitorBoothPrice["boothType"]) => {
+	const formatBoothType = (boothType: string) => {
 		return (
-			BOOTH_TYPE_LABEL_MAP[boothType as "shell_scheme" | "raw_space"] ||
+			BOOTH_TYPE_LABEL_MAP[boothType] ||
 			boothType
 				.split("_")
 				.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -335,7 +361,7 @@ export function BoothPricingDialog({
 								onValueChange={(value) =>
 									setForm((prev) => ({
 										...prev,
-										boothType: value as "shell_scheme" | "raw_space",
+										boothType: value,
 									}))
 								}
 							>
@@ -346,7 +372,7 @@ export function BoothPricingDialog({
 									<SelectValue placeholder="Select booth type" />
 								</SelectTrigger>
 								<SelectContent className="rounded-none">
-									{BOOTH_TYPE_OPTIONS.map((option) => (
+									{boothTypeOptions.map((option) => (
 										<SelectItem key={option.value} value={option.value}>
 											{option.label}
 										</SelectItem>

@@ -2,6 +2,7 @@
 
 import {
 	ChevronDown,
+	LayoutGrid,
 	Link2,
 	MapPinned,
 	Plus,
@@ -22,6 +23,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
+import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
 import { ZonePricingDialog } from "../dialogs/zone-pricing-dialog";
 import AddExhibitorModal from "../forms/add-exhibitor";
@@ -91,6 +93,19 @@ export function ExhibitorPageButton() {
 							>
 								<Tags className="h-4 w-4" />
 								Booth Prices
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
+					<BoothTypesDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<LayoutGrid className="h-4 w-4" />
+								Booth Types
 							</DropdownMenuItem>
 						}
 					/>

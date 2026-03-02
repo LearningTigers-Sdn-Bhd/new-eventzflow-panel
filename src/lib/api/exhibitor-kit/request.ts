@@ -53,8 +53,8 @@ export const customRequestSchema = z
 		{ message: "Description is required", path: ["description"] },
 	);
 
-// Booth type enum
-export const boothTypeEnum = z.enum(["shell_scheme", "raw_space"]);
+// Booth type validation
+export const boothTypeEnum = z.string().optional();
 
 // Payment status enum
 export const paymentStatusEnum = z.enum([
@@ -68,7 +68,7 @@ export const paymentStatusEnum = z.enum([
 export const createExhibitorKitSchema = z.object({
 	event_vendor_id: z.number().optional(), // Required when creating directly via exhibitor_kits endpoint
 	booth_number: z.string().optional(),
-	booth_type: boothTypeEnum.optional(),
+	booth_type: z.string().optional(),
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),
@@ -109,7 +109,7 @@ export const createExhibitorKitSchema = z.object({
 export const updateExhibitorKitSchema = z.object({
 	event_vendor_id: z.number().optional(),
 	booth_number: z.string().optional(),
-	booth_type: boothTypeEnum.optional(),
+	booth_type: z.string().optional(),
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),

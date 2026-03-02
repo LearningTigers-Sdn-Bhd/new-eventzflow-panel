@@ -121,7 +121,7 @@ export function ExhibitorKitDetailsSection({
 					)}
 					{kit.booth_type && (
 						<Badge variant="outline" className="rounded-none capitalize">
-							{kit.booth_type.replace("_", " ")}
+							{kit.booth_type.replace(/_/g, " ")}
 						</Badge>
 					)}
 					<Button
@@ -157,7 +157,7 @@ export function ExhibitorKitDetailsSection({
 							<div className="flex justify-between">
 								<span className="font-medium">Type</span>
 								<Badge variant="outline" className="rounded-none capitalize">
-									{kit.booth_type?.replace("_", " ") || "-"}
+									{kit.booth_type?.replace(/_/g, " ") || "-"}
 								</Badge>
 							</div>
 							<div className="flex justify-between">

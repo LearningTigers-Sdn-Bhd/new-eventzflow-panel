@@ -45,6 +45,7 @@ export const updateEventSchema = z.object({
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
+	booth_types: z.array(z.string()).optional(),
 });
 
 // Export types for form data

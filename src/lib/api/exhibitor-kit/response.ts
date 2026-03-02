@@ -46,7 +46,7 @@ export interface ExhibitorKitPrinting {
 	printing_service?: PrintingServiceInfo;
 }
 
-export type BoothType = "shell_scheme" | "raw_space";
+export type BoothType = string;
 export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
 
 export interface CustomRequest {

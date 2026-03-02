@@ -21,7 +21,7 @@ function transformBoothPrice(
 	return {
 		id: backend.id,
 		eventId: backend.event_id,
-		boothType: backend.booth_type as "shell_scheme" | "raw_space",
+		boothType: backend.booth_type,
 		exhibitorZoneId: backend.exhibitor_zone_id,
 		zone: backend.zone,
 		label: backend.label,
