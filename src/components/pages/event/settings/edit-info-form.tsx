@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Box, Cog, InfoIcon } from "lucide-react";
+import { Box, Cog, InfoIcon, Mail } from "lucide-react";
 import * as React from "react";
 import { useId } from "react";
 import { toast } from "sonner";
@@ -48,6 +48,12 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	paymentReceiptEmail: z
+		.string()
+		.refine(
+			(val) => val === "" || z.string().email().safeParse(val).success,
+			{ message: "Please enter a valid email address" },
+		),
 	multipleScans: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -112,6 +118,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			description: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
+			paymentReceiptEmail: "",
 			multipleScans: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -135,6 +142,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
+					payment_receipt_email: value.paymentReceiptEmail || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -170,6 +178,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
+				form.setFieldValue("paymentReceiptEmail", event.payment_receipt_email || "");
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
 					"startDate",
@@ -386,6 +395,36 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 
 					<FormGroupContainer
 						title={{
+							icon: Mail,
+							label: "Payment Notifications",
+							description:
+								"Configure email addresses that receive payment receipt copies.",
+						}}
+					>
+						<form.Field name="paymentReceiptEmail">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+								return (
+									<InputLabel
+										label="Organizer Payment Receipt Email"
+										htmlFor={field.name}
+										value={field.state.value}
+										onChange={field.handleChange}
+										onBlur={field.handleBlur}
+										errors={field.state.meta.errors}
+										isInvalid={isInvalid}
+										placeholder="organizer@example.com"
+										disabled={updateEventMutation.isPending}
+										description="Please ensure the email is valid. Payment receipts will not be sent if the email is invalid."
+									/>
+								);
+							}}
+						</form.Field>
+					</FormGroupContainer>
+
+					<FormGroupContainer
+						title={{
 							icon: Cog,
 							label: "Event Configuration",
 							description: "Configure the event settings and options.",
@@ -482,20 +521,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								</form.Field>
 							</div>
 							<div className="flex flex-col gap-4">
-								<form.Field name="useSeatTicketing">
-									{(field) => (
-										<SwitchCardInput
-											label="Seat Ticketing System"
-											description="Enable reserved seat sessions and seat maps for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
 									<FieldLabel>Option Flags</FieldLabel>
 									<FieldDescription className="text-balance">
@@ -559,6 +584,20 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<SwitchCardInput
 											label="Sponsorships"
 											description="Enable sponsorship management for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								<form.Field name="useSeatTicketing">
+									{(field) => (
+										<SwitchCardInput
+											label="Seat Ticketing System"
+											description="Enable reserved seat sessions and seat maps for this event."
 											htmlFor={field.name}
 											variant="no-rounded"
 											border={true}

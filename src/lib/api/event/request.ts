@@ -38,6 +38,7 @@ export const updateEventSchema = z.object({
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
+	payment_receipt_email: z.string().email().optional().or(z.literal("")).or(z.null()),
 	start_date: z.string().optional(),
 	end_date: z.string().optional(),
 	multiple_scans: z.boolean().optional(),

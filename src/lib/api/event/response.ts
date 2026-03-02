@@ -14,6 +14,7 @@ export type Event = {
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
 	use_sponsorship: boolean;
+	payment_receipt_email: string | null;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;
