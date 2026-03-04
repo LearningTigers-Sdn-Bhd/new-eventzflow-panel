@@ -79,13 +79,16 @@ export function generateColumns(): ColumnDef<BaseRedemptionLog>[] {
 		{
 			id: "redeemer",
 			size: 200,
-			accessorFn: (row) => row.redeemer?.fullName,
+			accessorFn: (row) => row.redeemer?.fullName || row.redeemerName,
 			header: () => <p className="font-medium">Redeemer</p>,
 			cell: ({ row }) => {
 				const redeemer = row.original.redeemer;
+				const fallbackName = row.original.redeemerName;
 				return (
 					<div className="space-y-0.5">
-						<div className="font-medium">{redeemer?.fullName || "-"}</div>
+						<div className="font-medium">
+							{redeemer?.fullName || fallbackName || "-"}
+						</div>
 						<div className="text-muted-foreground text-xs">
 							{redeemer?.email || redeemer?.phone || "-"}
 						</div>

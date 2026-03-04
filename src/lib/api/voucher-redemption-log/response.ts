@@ -22,6 +22,7 @@ export type BackendRedemptionLog = {
 	notes: string | null;
 	created_at: string;
 	updated_at: string;
+	redeemer_name?: string;
 	// Associations
 	voucher?: {
 		id: number;
@@ -68,6 +69,7 @@ export type RedemptionLog = {
 	notes: string | null;
 	createdAt: string;
 	updatedAt: string;
+	redeemerName?: string;
 	// Associations
 	voucher?: {
 		id: number;

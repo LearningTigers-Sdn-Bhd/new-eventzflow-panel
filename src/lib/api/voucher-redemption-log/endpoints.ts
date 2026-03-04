@@ -78,6 +78,7 @@ function transformRedemptionLog(
 		notes: backendLog.notes,
 		createdAt: backendLog.created_at,
 		updatedAt: backendLog.updated_at,
+		redeemerName: backendLog.redeemer_name,
 		voucher: backendLog.voucher
 			? {
 					id: backendLog.voucher.id,
@@ -91,7 +92,9 @@ function transformRedemptionLog(
 			? {
 					id: backendLog.redeemer.id,
 					fullName:
-						backendLog.redeemer.full_name || backendLog.redeemer.attendee_name,
+						backendLog.redeemer.full_name ||
+						backendLog.redeemer.attendee_name ||
+						backendLog.redeemer_name,
 					email: backendLog.redeemer.email || backendLog.redeemer.attendee_email,
 					phone: backendLog.redeemer.phone || backendLog.redeemer.attendee_phone,
 					publicId: backendLog.redeemer.public_id,
