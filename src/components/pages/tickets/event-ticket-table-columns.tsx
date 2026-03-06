@@ -13,6 +13,7 @@ export type BaseTicket = {
 	role?: string | null;
 	name: string;
 	email: string | null;
+	registeredByEmail?: string;
 	phone: string;
 	value: number | string;
 	status: "scanned" | "not_scanned";
@@ -199,9 +200,7 @@ export function generateColumns(
 				id: `custom_${key}`,
 				accessorFn: (row) => {
 					// Match by key, not display name
-					const customLabel = row.customLabels?.find(
-						(l) => l.name === key,
-					);
+					const customLabel = row.customLabels?.find((l) => l.name === key);
 					return customLabel?.value || "";
 				},
 				size: 180,

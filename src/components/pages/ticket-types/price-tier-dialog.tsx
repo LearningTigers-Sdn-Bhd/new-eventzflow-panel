@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Plus, Loader2, DollarSign, Tag, Trash2, Calendar } from "lucide-react";
+import { Calendar, DollarSign, Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
 	Table,
 	TableBody,
@@ -20,10 +20,9 @@ import {
 } from "@/components/ui/table";
 import type { TicketType } from "@/lib/api/ticket-type";
 import {
-	getTicketTypePriceTiers,
 	createTicketTypePriceTier,
 	deleteTicketTypePriceTier,
-	type TicketTypePriceTier,
+	getTicketTypePriceTiers,
 } from "@/lib/api/ticket-type-price-tier";
 
 interface PriceTierDialogProps {
@@ -63,7 +62,12 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 			});
 			toast.success("Price tier created successfully");
 			setIsAdding(false);
-			setFormData({ label: "", price: "", starts_at: undefined, ends_at: undefined });
+			setFormData({
+				label: "",
+				price: "",
+				starts_at: undefined,
+				ends_at: undefined,
+			});
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create price tier");
@@ -140,7 +144,7 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 	);
 
 	return (
-		<div className="space-y-6">
+		<div className="max-h-[70vh] space-y-6 overflow-y-auto pr-1">
 			{/* Ticket Type Info */}
 			<div className="rounded-none border bg-muted/50 p-4">
 				<h4 className="mb-2 font-medium">{ticketType.name}</h4>
@@ -168,73 +172,84 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 					</p>
 				</div>
 			) : (
-				<div className="rounded-none border">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Label</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Start Date</TableHead>
-								<TableHead>End Date</TableHead>
-								<TableHead className="w-[70px]">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{sortedTiers.map((tier) => (
-								<TableRow key={tier.id}>
-									<TableCell className="max-w-[200px]">
-										<div className="flex items-center gap-2">
-											<span className="font-medium truncate" title={tier.label}>
-												{tier.label}
-											</span>
-											{tier.active && (
-												<Badge variant="default" className="rounded-none shrink-0">
-													Active
-												</Badge>
-											)}
-										</div>
-									</TableCell>
-									<TableCell className="font-medium">
-										RM {tier.price.toFixed(2)}
-									</TableCell>
-									<TableCell>
-										<div className="text-sm">
-											{format(new Date(tier.startsAt), "MMM d, yyyy")}
-											<div className="text-muted-foreground text-xs">
-												{format(new Date(tier.startsAt), "h:mm a")}
-											</div>
-										</div>
-									</TableCell>
-									<TableCell>
-										<div className="text-sm">
-											{format(new Date(tier.endsAt), "MMM d, yyyy")}
-											<div className="text-muted-foreground text-xs">
-												{format(new Date(tier.endsAt), "h:mm a")}
-											</div>
-										</div>
-									</TableCell>
-									<TableCell>
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleDelete(tier.id)}
-											disabled={deleteMutation.isPending}
-											className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
-										>
-											<Trash2 className="h-4 w-4" />
-											<span className="sr-only">Delete</span>
-										</Button>
-									</TableCell>
+				<div className="overflow-hidden rounded-none border">
+					<div className="w-full overflow-x-auto">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Label</TableHead>
+									<TableHead>Price</TableHead>
+									<TableHead>Start Date</TableHead>
+									<TableHead>End Date</TableHead>
+									<TableHead className="w-[70px]">Actions</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{sortedTiers.map((tier) => (
+									<TableRow key={tier.id}>
+										<TableCell className="min-w-[220px] max-w-[300px] align-top">
+											<div className="flex items-start gap-2">
+												<span
+													className="whitespace-normal break-words font-medium"
+													title={tier.label}
+												>
+													{tier.label}
+												</span>
+												{tier.active && (
+													<Badge
+														variant="default"
+														className="shrink-0 rounded-none"
+													>
+														Active
+													</Badge>
+												)}
+											</div>
+										</TableCell>
+										<TableCell className="min-w-[120px] font-medium">
+											RM {tier.price.toFixed(2)}
+										</TableCell>
+										<TableCell className="min-w-[140px]">
+											<div className="text-sm">
+												{format(new Date(tier.startsAt), "MMM d, yyyy")}
+												<div className="text-muted-foreground text-xs">
+													{format(new Date(tier.startsAt), "h:mm a")}
+												</div>
+											</div>
+										</TableCell>
+										<TableCell className="min-w-[140px]">
+											<div className="text-sm">
+												{format(new Date(tier.endsAt), "MMM d, yyyy")}
+												<div className="text-muted-foreground text-xs">
+													{format(new Date(tier.endsAt), "h:mm a")}
+												</div>
+											</div>
+										</TableCell>
+										<TableCell>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => handleDelete(tier.id)}
+												disabled={deleteMutation.isPending}
+												className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
+											>
+												<Trash2 className="h-4 w-4" />
+												<span className="sr-only">Delete</span>
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 				</div>
 			)}
 
 			{/* Add New Tier Form */}
 			{isAdding ? (
-				<form onSubmit={handleSubmit} className="space-y-4 rounded-none border p-4">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4 rounded-none border p-4"
+				>
 					<h4 className="font-medium">Add New Price Tier</h4>
 
 					<div className="space-y-2">
@@ -304,7 +319,12 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 							variant="outline"
 							onClick={() => {
 								setIsAdding(false);
-								setFormData({ label: "", price: "", starts_at: undefined, ends_at: undefined });
+								setFormData({
+									label: "",
+									price: "",
+									starts_at: undefined,
+									ends_at: undefined,
+								});
 							}}
 							className="rounded-none"
 						>

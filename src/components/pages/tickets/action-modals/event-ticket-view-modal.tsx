@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
-	Check,
-	Clock,
 	DollarSign,
 	FileText,
 	Hash,
@@ -15,10 +13,8 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
-import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getEventById } from "@/lib/api/event";
@@ -99,6 +95,10 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 					};
 				})
 			: [];
+
+	const registeredByEmail = ticket.registeredByEmail?.trim();
+	const hasAdditionalInfo =
+		Boolean(registeredByEmail) || customLabels.length > 0;
 
 	return (
 		<div className="flex h-full w-full flex-col gap-0 p-0">
@@ -202,9 +202,16 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 						</div>
 						<Separator />
 
-						{customLabels.length > 0 ? (
+						{hasAdditionalInfo ? (
 							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
 								<CardContent className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
+									{registeredByEmail && (
+										<InfoItem
+											label="Register By"
+											value={registeredByEmail}
+											icon={Mail}
+										/>
+									)}
 									{customLabels.map((label, index) => (
 										<InfoItem
 											key={`${label.name}-${index}`}
@@ -220,7 +227,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							<div className="flex flex-col items-center justify-center rounded-none border border-dashed p-8 text-center">
 								<Info className="mb-2 size-8 text-muted-foreground/50" />
 								<p className="font-medium text-muted-foreground text-sm">
-									No custom fields found for this ticket.
+									No additional information found for this ticket.
 								</p>
 							</div>
 						)}

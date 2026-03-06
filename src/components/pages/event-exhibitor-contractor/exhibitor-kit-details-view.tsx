@@ -20,6 +20,7 @@ import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
+import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
 
@@ -102,8 +103,8 @@ export function ExhibitorKitDetailsView({
 	const printings = exhibitorKit.exhibitor_kit_printings || [];
 	const teamMembers = exhibitorKit.exhibitor_team_members || [];
 	const customRequests = exhibitorKit.custom_requests || [];
-	const customFieldsEntries = Object.entries(
-		exhibitorKit.custom_fields_data || {},
+	const customFieldsEntries = formatCustomFieldEntries(
+		exhibitorKit.custom_fields_data,
 	);
 
 	const itemsTotal = items.reduce(
@@ -240,6 +241,25 @@ export function ExhibitorKitDetailsView({
 										Fascia Upgrade Required
 									</Badge>
 								)}
+								{customFieldsEntries.length > 0 && (
+									<div className="space-y-1 border-t pt-2">
+										<div className="space-y-1">
+											{customFieldsEntries.map((entry) => (
+												<div
+													key={entry.key}
+													className="space-y-0.5 py-0.5 text-xs"
+												>
+													<span className="block font-medium">
+														{entry.label}
+													</span>
+													<span className="block whitespace-pre-wrap break-words text-muted-foreground">
+														{entry.value}
+													</span>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 
@@ -288,28 +308,6 @@ export function ExhibitorKitDetailsView({
 										{exhibitorKit.pic_email_address || "-"}
 									</p>
 								</div>
-								{customFieldsEntries.length > 0 && (
-									<div className="border-t pt-2">
-										<span className="mb-1 block text-muted-foreground">
-											Custom Fields:
-										</span>
-										<div className="space-y-1 text-xs">
-											{customFieldsEntries.map(([key, value]) => (
-												<div
-													key={key}
-													className="flex items-start justify-between gap-2"
-												>
-													<span className="font-medium">{key}</span>
-													<span className="text-right text-muted-foreground">
-														{typeof value === "string"
-															? value
-															: JSON.stringify(value)}
-													</span>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
 							</div>
 						</div>
 					</div>
