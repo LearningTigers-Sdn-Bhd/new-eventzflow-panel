@@ -182,11 +182,13 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 						<TableBody>
 							{sortedTiers.map((tier) => (
 								<TableRow key={tier.id}>
-									<TableCell>
+									<TableCell className="max-w-[200px]">
 										<div className="flex items-center gap-2">
-											<span className="font-medium">{tier.label}</span>
+											<span className="font-medium truncate" title={tier.label}>
+												{tier.label}
+											</span>
 											{tier.active && (
-												<Badge variant="default" className="rounded-none">
+												<Badge variant="default" className="rounded-none shrink-0">
 													Active
 												</Badge>
 											)}

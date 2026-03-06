@@ -46,6 +46,12 @@ export const updateEventSchema = z.object({
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	booth_types: z.array(z.string()).optional(),
+	event_email_setting_attributes: z.object({
+		sender_name: z.string().optional().or(z.literal("")).or(z.null()),
+		sender_address: z.string().email().optional().or(z.literal("")).or(z.null()),
+		contact_email: z.string().email().optional().or(z.literal("")).or(z.null()),
+		payment_receipt_email: z.string().email().optional().or(z.literal("")).or(z.null()),
+	}).optional(),
 });
 
 // Export types for form data

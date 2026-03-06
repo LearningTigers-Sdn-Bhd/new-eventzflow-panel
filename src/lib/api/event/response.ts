@@ -1,5 +1,12 @@
 // Pure TypeScript types for API responses
 
+export type EventEmailSetting = {
+	sender_name: string | null;
+	sender_address: string | null;
+	contact_email: string | null;
+	payment_receipt_email: string | null;
+};
+
 export type Event = {
 	id: number;
 	title: string;
@@ -15,6 +22,7 @@ export type Event = {
 	use_business_matching: boolean;
 	use_sponsorship: boolean;
 	payment_receipt_email: string | null;
+	event_email_setting: EventEmailSetting | null;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;
