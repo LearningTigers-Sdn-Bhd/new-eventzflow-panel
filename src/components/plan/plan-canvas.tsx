@@ -17,7 +17,9 @@ import {
 interface PlanCanvasProps {
   plan: Plan;
   selectedObjectId?: number | null;
-  activeTool: 'select' | 'floor' | 'eraser';
+  highlightObjectId?: number | null;
+  isReadOnly?: boolean;
+  activeTool?: 'select' | 'floor' | 'eraser';
   isCalibrating?: boolean;
   onSelectObject?: (id: number | null) => void;
   onUpdateObjectPosition?: (id: number, x: number, y: number) => void;
@@ -31,7 +33,9 @@ interface PlanCanvasProps {
 export function PlanCanvas({
   plan,
   selectedObjectId,
-  activeTool,
+  highlightObjectId,
+  isReadOnly,
+  activeTool = 'select',
   isCalibrating,
   onSelectObject,
   onUpdateObjectPosition,
@@ -153,7 +157,7 @@ export function PlanCanvas({
 
   return (
     <div className={cn(
-        "w-full h-full relative overflow-hidden bg-[#f0f2f5]",
+        "w-full h-full relative overflow-hidden bg-[#f0f2f5] dark:bg-slate-950",
         isCalibrating && "bg-slate-950"
     )}>
       <svg
@@ -169,13 +173,24 @@ export function PlanCanvas({
               {isCalibrating && <rect width={calibState.width} height={calibState.height} fill="none" className="stroke-[#00C4CC] stroke-2 stroke-dasharray-4" />}
           </g>
 
-          {/* Ghost Table */}
+          {/* Ghost Table (Reference) */}
           {isCalibrating && (
-              <g ref={ghostRef} transform={`translate(${calibState.width / 2 + calibState.bgX + calibState.ghostX}, ${calibState.height / 2 + calibState.bgY + calibState.ghostY})`} className="cursor-grab active:cursor-grabbing">
-                  <circle r={ghostR} className="fill-[#00C4CC]/30 stroke-[#00C4CC] stroke-[4px] animate-pulse pointer-events-none" />
-                  <text y={-ghostR - 20} textAnchor="middle" className="fill-white text-[14px] font-black uppercase tracking-widest pointer-events-none text-center leading-tight">Scale Reference<tspan x="0" dy="1.2em" className="text-[10px] fill-slate-400">1.8m Round</tspan></text>
-                  <circle r={12} className="fill-white/10 hover:fill-white/20 stroke-white/20 stroke-1" />
-                  <Move className="h-4 w-4 text-white -translate-x-2 -translate-y-2 opacity-50" />
+              <g 
+                ref={ghostRef} 
+                transform={`translate(${calibState.width / 2 + calibState.bgX + calibState.ghostX}, ${calibState.height / 2 + calibState.bgY + calibState.ghostY})`} 
+                className="cursor-grab active:cursor-grabbing group"
+              >
+                  {/* ENLARGED INVISIBLE DRAG AREA */}
+                  <circle r={ghostR * 2} className="fill-transparent pointer-events-all" />
+                  
+                  {/* Visible Ghost Table UI */}
+                  <circle r={ghostR} className="fill-[#00C4CC]/20 stroke-[#00C4CC] stroke-[4px] animate-pulse pointer-events-none group-active:scale-110 transition-transform" />
+                  <text y={-ghostR - 20} textAnchor="middle" className="fill-white text-[14px] font-black uppercase tracking-widest pointer-events-none drop-shadow-md">Scale Reference<tspan x="0" dy="1.2em" className="text-[10px] fill-slate-400">1.8m Round</tspan></text>
+                  
+                  {/* Move Icon center indicator (Removed middle circle per request) */}
+                  <g transform="translate(-10, -10)" className="pointer-events-none">
+                    <Move className="h-5 w-5 text-white opacity-90 drop-shadow-lg" />
+                  </g>
               </g>
           )}
 
@@ -204,23 +219,29 @@ export function PlanCanvas({
                             <PlanObjectRenderer
                                 object={obj}
                                 isSelected={selectedObjectId === obj.id}
-                                onClick={(e: any) => { e.stopPropagation(); onSelectObject?.(obj.id); }}
+                                isHighlighted={highlightObjectId === obj.id}
+                                isReadOnly={isReadOnly}
+                                onClick={(e: any) => { 
+                                    if (isReadOnly) return;
+                                    e.stopPropagation(); 
+                                    onSelectObject?.(obj.id); 
+                                }}
                                 onDragEnd={(x: number, y: number) => onUpdateObjectPosition?.(obj.id, x, y)}
                                 zoomScale={zoomTransform.k}
                             />
                         </svg>
                     </ContextMenuTrigger>
-                    <ContextMenuContent className="w-48 shadow-2xl border-slate-200">
-                        <ContextMenuItem onClick={() => onCreateObject?.({ ...obj, id: undefined, x: obj.x + 20, y: obj.y + 20, table_assignments: [] })} className="gap-2 font-bold text-xs">
+                    <ContextMenuContent className="w-48 shadow-2xl border-slate-200 dark:border-slate-800 dark:bg-slate-900">
+                        <ContextMenuItem onClick={() => onCreateObject?.({ ...obj, id: undefined, x: obj.x + 20, y: obj.y + 20, table_assignments: [] })} className="gap-2 font-bold text-xs dark:focus:bg-slate-800">
                             <Copy className="h-3.5 w-3.5" />
                             Duplicate (Cmd+D)
                         </ContextMenuItem>
-                        <ContextMenuItem onClick={() => onUpdateObject?.(obj.id, { locked: !obj.locked })} className="gap-2 font-bold text-xs">
+                        <ContextMenuItem onClick={() => onUpdateObject?.(obj.id, { locked: !obj.locked })} className="gap-2 font-bold text-xs dark:focus:bg-slate-800">
                             {obj.locked ? <Unlock className="h-3.5 w-3.5 text-orange-500" /> : <Lock className="h-3.5 w-3.5" />}
                             {obj.locked ? 'Unlock Element' : 'Lock Element'}
                         </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem onClick={() => onDeleteObject?.(obj.id)} className="gap-2 font-bold text-xs text-destructive focus:bg-destructive/5 focus:text-destructive">
+                        <ContextMenuSeparator className="dark:bg-slate-800" />
+                        <ContextMenuItem onClick={() => onDeleteObject?.(obj.id)} className="gap-2 font-bold text-xs text-destructive focus:bg-destructive/5 focus:text-destructive dark:focus:bg-destructive/10">
                             <Trash2 className="h-3.5 w-3.5" />
                             Delete Element
                         </ContextMenuItem>
@@ -234,14 +255,12 @@ export function PlanCanvas({
   );
 }
 
-function PlanObjectRenderer({ object, isSelected, onClick, onDragEnd, zoomScale }: any) {
+function PlanObjectRenderer({ object, isSelected, isHighlighted, isReadOnly, onClick, onDragEnd, zoomScale }: any) {
   const gRef = useRef<SVGGElement>(null);
-  
-  // DRAGGABLE LOGIC (D3)
   const deltaPos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (!gRef.current) return;
+    if (!gRef.current || isReadOnly) return;
     const g = d3.select(gRef.current);
     
     const drag = d3.drag<SVGGElement, unknown>()
@@ -265,14 +284,10 @@ function PlanObjectRenderer({ object, isSelected, onClick, onDragEnd, zoomScale 
     return () => { g.on(".drag", null); };
   }, [object.locked, onDragEnd, zoomScale, object.x, object.y]);
 
-  // DROPPABLE LOGIC (dnd-kit)
   const { isOver, setNodeRef: setDropRef } = useDroppable({
     id: `table-${object.id}`,
     disabled: object.object_type !== 'table',
-    data: {
-        type: 'table',
-        object
-    }
+    data: { type: 'table', object }
   });
 
   const commonClass = cn(isSelected && "stroke-[#00C4CC] stroke-[3px]");
@@ -281,46 +296,30 @@ function PlanObjectRenderer({ object, isSelected, onClick, onDragEnd, zoomScale 
 
   return (
     <g 
-        ref={(node) => {
-            gRef.current = node;
-            setDropRef(node as any);
-        }}
+        ref={(node) => { gRef.current = node; setDropRef(node as any); }}
         onClick={onClick} 
         transform={`translate(0,0)`}
-        className={cn(object.locked ? "cursor-default" : "cursor-move")}
+        className={cn((object.locked || isReadOnly) ? "cursor-default" : "cursor-move")}
     >
-      {/* Visual drop indicator */}
-      {isOver && (
+      {isOver && <rect width={object.width + 10} height={object.height + 10} x={-5} y={-5} rx={8} className="fill-primary/20 stroke-primary stroke-2 animate-pulse" />}
+      {isHighlighted && (
           <rect 
-            width={object.width + 10} 
-            height={object.height + 10} 
-            x={-5} y={-5}
-            rx={8}
-            className="fill-primary/20 stroke-primary stroke-2 animate-pulse"
+            width={object.width + 20} 
+            height={object.height + 20} 
+            x={-10} y={-10} 
+            rx={12} 
+            className="fill-primary/30 stroke-primary stroke-[4px] animate-pulse" 
           />
       )}
-
       {object.object_type === 'table' ? (
-          object.width === object.height ? (
-            <circle cx={object.width / 2} cy={object.height / 2} r={object.width / 2} className={cn("fill-white stroke-slate-400 stroke-2", commonClass)} />
-          ) : (
-            <rect width={object.width} height={object.height} rx={4} className={cn("fill-white stroke-slate-400 stroke-2", commonClass)} />
-          )
-      ) : (
-          <rect width={object.width} height={object.height} className={cn("fill-slate-100 stroke-slate-300 stroke-dasharray-4", commonClass)} />
-      )}
+          object.width === object.height 
+            ? <circle cx={object.width / 2} cy={object.height / 2} r={object.width / 2} className={cn("fill-white stroke-slate-400 stroke-2", commonClass)} /> 
+            : <rect width={object.width} height={object.height} rx={4} className={cn("fill-white stroke-slate-400 stroke-2", commonClass)} />
+      ) : <rect width={object.width} height={object.height} className={cn("fill-slate-100 stroke-slate-300 stroke-dasharray-4", commonClass)} />}
       
       <g transform={`translate(${object.width / 2}, ${object.height / 2})`} className="pointer-events-none text-center">
-          {object.label && (
-            <text textAnchor="middle" dominantBaseline="middle" dy={showCapacity ? "-0.6em" : "0"} className={cn("font-black fill-slate-700 text-[10px] select-none uppercase tracking-tighter")}>
-                {object.label}
-            </text>
-          )}
-          {showCapacity && (
-              <text textAnchor="middle" dominantBaseline="middle" dy={object.label ? "0.8em" : "0"} className={cn("font-black text-[9px] select-none", isOverCapacity ? "fill-destructive" : "fill-primary")}>
-                  {object.table_assignments?.length || 0}/{object.capacity}
-              </text>
-          )}
+          {object.label && <text textAnchor="middle" dominantBaseline="middle" dy={showCapacity ? "-0.6em" : "0"} className={cn("font-black fill-slate-700 text-[10px] select-none uppercase tracking-tighter")}>{object.label}</text>}
+          {showCapacity && <text textAnchor="middle" dominantBaseline="middle" dy={object.label ? "0.8em" : "0"} className={cn("font-black text-[9px] select-none", isOverCapacity ? "fill-destructive" : "fill-slate-600")}>{object.table_assignments?.length || 0}/{object.capacity}</text>}
       </g>
     </g>
   );

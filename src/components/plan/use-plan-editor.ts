@@ -64,6 +64,16 @@ export function usePlanEditor(initialPlan: Plan) {
     [planSettingsMutation, plan.id]
   );
 
+  // New function to force immediate save
+  const savePendingChanges = useCallback(async () => {
+      if (pendingUpdates.current.size === 0) return;
+      debouncedSync.flush();
+      // Wait for the mutation to finish if possible
+      if (batchMutation.isPending) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+      }
+  }, [debouncedSync, batchMutation.isPending]);
+
   const updateObject = useCallback((id: number, updates: Partial<PlanObject>) => {
     setPlan(prev => {
         const updatedObjects = prev.plan_objects?.map(obj => 
@@ -133,6 +143,7 @@ export function usePlanEditor(initialPlan: Plan) {
     updateObjectPosition,
     updateObject,
     updatePlanSettings,
+    savePendingChanges,
     isSaving: batchMutation.isPending || planSettingsMutation.isPending,
     undo,
     redo,

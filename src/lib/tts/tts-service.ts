@@ -130,6 +130,14 @@ export async function synthesizeSpeech(
 
 		const data = await response.json();
 
+		if (!data.success) {
+			return {
+				success: false,
+				error: data.error ?? "Speech synthesis failed",
+				errorCode: data.errorCode ?? "API_ERROR",
+			};
+		}
+
 		return {
 			success: true,
 			audioContent: data.audioContent,
@@ -150,12 +158,27 @@ export async function synthesizeSpeech(
  * @returns Promise that resolves when playback completes
  */
 export function playBase64Audio(base64Audio: string): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+	return new Promise((resolve) => {
+		try {
+			const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
 
-		audio.onended = () => resolve();
-		audio.onerror = () => reject(new Error("Audio playback failed"));
-		audio.play().catch(reject);
+			audio.onended = () => resolve();
+			audio.onerror = () => {
+				console.warn("TTS Audio element error, skipping playback");
+				resolve();
+			};
+
+			const playPromise = audio.play();
+			if (playPromise !== undefined) {
+				playPromise.catch((error) => {
+					console.warn("TTS Playback promise rejected (interrupted):", error);
+					resolve(); // Resolve anyway to unblock the queue
+				});
+			}
+		} catch (e) {
+			console.error("Failed to initialize TTS Audio:", e);
+			resolve();
+		}
 	});
 }
 

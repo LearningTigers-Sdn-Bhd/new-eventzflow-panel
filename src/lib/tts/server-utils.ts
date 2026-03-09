@@ -56,11 +56,13 @@ export async function synthesizeViaGoogle(
 	const apiKey =
 		process.env.GOOGLE_CLOUD_TTS_API_KEY ??
 		process.env.NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY;
+	
 	if (!apiKey) {
+		console.warn("TTS API Key is missing. Skipping synthesis.");
 		return {
 			success: false,
-			status: 500,
-			error: "TTS is not configured on server.",
+			status: 200, // Return 200 to prevent 500 error, but success false
+			error: "TTS_NOT_CONFIGURED",
 		};
 	}
 

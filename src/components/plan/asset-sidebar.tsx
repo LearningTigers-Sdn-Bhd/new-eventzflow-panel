@@ -44,27 +44,27 @@ export function AssetSidebar({ onAddObject }: AssetSidebarProps) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
       <div className="p-4 space-y-8">
         {categories.map((category) => (
           <div key={category.name} className="space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 px-1">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 px-1 dark:text-slate-500">
                 {category.name}
             </h3>
             <div className="grid grid-cols-3 gap-2">
               {category.items.map((item) => (
                 <button
                   key={item.type}
-                  className="group flex flex-col items-center justify-center gap-2 p-2 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+                  className="group flex flex-col items-center justify-center gap-2 p-2 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all active:scale-95 dark:hover:border-slate-800 dark:hover:bg-slate-800/50"
                   onClick={() => onAddObject(item.type)}
                 >
-                  <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-colors">
+                  <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-colors dark:bg-slate-800 dark:group-hover:bg-slate-700">
                     <item.icon 
-                        className="h-6 w-6 text-slate-600" 
+                        className="h-6 w-6 text-slate-600 dark:text-slate-400" 
                         style={item.rotate ? { transform: `rotate(${item.rotate}deg)` } : undefined} 
                     />
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 text-center leading-tight">
+                  <span className="text-[10px] font-bold text-slate-500 text-center leading-tight dark:text-slate-400">
                     {item.label}
                   </span>
                 </button>

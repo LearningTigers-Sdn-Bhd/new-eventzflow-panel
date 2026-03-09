@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, Users, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import { toast } from "sonner";
@@ -87,17 +87,34 @@ export default function PlansPage({ params }: PageProps) {
         {plans?.map((plan) => (
           <Card key={plan.id}>
             <CardHeader>
-              <CardTitle>{plan.name}</CardTitle>
-              <CardDescription>
-                {plan.canvas_width}x{plan.canvas_height} units
+              <CardTitle className="truncate">{plan.name}</CardTitle>
+              <CardDescription className="flex items-center gap-2">
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                {plan.tables_count || 0} Tables
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">
-                Pixels per unit: {plan.pixels_per_unit}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <Users className="h-3.5 w-3.5" />
+                    Assigned
+                  </span>
+                  <span className="font-bold">
+                    {plan.assigned_guests_count || 0} / {plan.total_capacity || 0}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-50 shadow-inner">
+                  <div 
+                    className="bg-primary h-full transition-all duration-500 ease-out" 
+                    style={{ 
+                      width: `${Math.min(100, ((plan.assigned_guests_count || 0) / (plan.total_capacity || 1)) * 100)}%` 
+                    }} 
+                  />
+                </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between border-t bg-slate-50/50 py-3">
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/event/${event_id}/plans/${plan.id}`} target="_blank">
                   <Edit className="mr-2 h-4 w-4" />

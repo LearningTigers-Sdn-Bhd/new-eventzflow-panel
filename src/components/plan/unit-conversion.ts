@@ -21,7 +21,8 @@ export function feetToMeters(ft: number): number {
 
 export function pxToUnit(px: number, unit: Unit): number {
     const meters = pxToMeters(px);
-    return unit === 'm' ? meters : metersToFeet(meters);
+    const value = unit === 'm' ? meters : metersToFeet(meters);
+    return Math.round(value * 100) / 100;
 }
 
 export function unitToPx(value: number, unit: Unit): number {
