@@ -16,6 +16,7 @@ export type Event = {
 	visibility: boolean;
 	multiple_scans: boolean;
 	use_ticket: boolean;
+	use_wedding: boolean;
 	use_seat_ticketing: boolean;
 	use_exhibitor_kit: boolean;
 	allow_contractor_printing_services: boolean;
@@ -27,7 +28,7 @@ export type Event = {
 	end_date: string;
 	webhook_url: string | null;
 	business_matching_webhook_url: string | null;
-	labels_data: Record<string, any>;
+	labels_data: Record<string, string>;
 	booth_types: string[];
 	payment_status: "unpaid" | "paid" | "waived";
 	price: string;
