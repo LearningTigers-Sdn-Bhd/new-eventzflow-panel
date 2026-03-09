@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Pencil, QrCode, Trash2 } from "lucide-react";
+import { Eye, Pencil, QrCode, RotateCcw, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -11,6 +11,7 @@ import type { Visitor } from "@/lib/api/visitor";
 import { DeleteVisitorDialog } from "./action-modals/delete-visitor-dialog";
 import EditEventVisitorForm from "./action-modals/edit-event-visitor-form";
 import VisitorQRModal from "./action-modals/qr-modal";
+import UnscanVisitorModal from "./action-modals/unscan-visitor-modal";
 import ViewEventVisitorModal from "./action-modals/view-event-visitor-modal";
 
 interface VisitorActionsMenuProps {
@@ -79,6 +80,21 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 		});
 	};
 
+	const openUnscanModal = () => {
+		openDialog({
+			component: UnscanVisitorModal,
+			config: {
+				title: "Unscan Visitor",
+				description: "Reset this visitor to not checked in status.",
+				size: "lg",
+				showCloseButton: true,
+			},
+			props: { visitor },
+		});
+	};
+
+	const showUnscanButton = user?.role === "org_owner" && visitor.checked_in;
+
 	return (
 		<ButtonGroup>
 			{canEditDelete && (
@@ -110,6 +126,17 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 			>
 				<QrCode className="size-4" />
 			</Button>
+			{showUnscanButton && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
+					onClick={openUnscanModal}
+					title="Unscan Visitor"
+				>
+					<RotateCcw className="size-4" />
+				</Button>
+			)}
 			{canEditDelete && (
 				<Button
 					size="icon-sm"
