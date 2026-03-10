@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, X, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { Check, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RsvpCompanionRequest } from "@/lib/api/rsvp";
 
@@ -26,21 +26,23 @@ export function ConfirmationStep({
 				initial={{ scale: 0.5, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={{ type: "spring", bounce: 0.6 }}
-				className="mb-8 flex h-20 w-20 items-center justify-center border-4 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:mb-10 sm:h-24 sm:w-24 sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+				className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-stone-100 bg-white shadow-stone-200/50 shadow-xl sm:mb-8 sm:h-20 sm:w-20"
 			>
 				{isAttending ? (
-					<Check className="h-10 w-10 text-black sm:h-12 sm:w-12" />
+					<Check className="h-6 w-6 text-stone-600 sm:h-8 sm:w-8" />
 				) : (
-					<X className="h-10 w-10 text-black sm:h-12 sm:w-12" />
+					<X className="h-6 w-6 text-stone-400 sm:h-8 sm:w-8" />
 				)}
 			</motion.div>
 
-			<div className="mb-10 sm:mb-12">
-				<h2 className="font-serif text-4xl leading-none text-black sm:text-6xl">
+			<div className="mb-6 sm:mb-10">
+				<h2 className="font-serif text-3xl text-stone-900 leading-tight sm:text-5xl">
 					{isAttending ? "We look forward to " : "Thank you for "} <br />
-					<span className="italic">{isAttending ? "celebrating with you!" : "letting us know."}</span>
+					<span className="mt-1 block text-stone-700 italic">
+						{isAttending ? "celebrating with you!" : "letting us know."}
+					</span>
 				</h2>
-				<p className="mt-6 text-base font-bold leading-relaxed text-black sm:mt-8 sm:text-xl">
+				<p className="mx-auto mt-4 max-w-lg font-serif text-base text-stone-600 italic sm:mt-6 sm:text-lg">
 					{isAttending
 						? `Your response for ${eventTitle} has been received. We've saved your spot!`
 						: `We're sorry you can't make it to ${eventTitle}, but we appreciate you keeping us informed.`}
@@ -48,34 +50,43 @@ export function ConfirmationStep({
 			</div>
 
 			{isAttending && companions.length > 0 && (
-				<div className="mb-10 w-full border-[3px] border-black bg-white p-6 text-left shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:mb-12 sm:border-4 sm:p-8 sm:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-					<p className="mb-4 border-b-2 border-black pb-2 text-xs font-black uppercase tracking-widest text-black sm:mb-6 sm:text-sm">Guests joining you</p>
-					<ul className="space-y-3 sm:space-y-4">
-						{companions.map((c, i) => (
-							<li key={`confirmed-${i}`} className="flex items-center gap-3 sm:gap-4">
-								<div className="h-2 w-2 bg-black sm:h-3 sm:w-3" />
-								<span className="font-serif text-xl text-black leading-none sm:text-2xl">{c.full_name}</span>
+				<div className="mb-8 w-full max-w-md rounded-xl border border-stone-100 bg-rsvp-canvas p-6 text-left shadow-sm sm:mb-10 sm:p-8">
+					<p className="mb-4 border-stone-200 border-b pb-2 font-semibold text-[10px] text-stone-500 uppercase tracking-[0.2em] sm:text-xs">
+						Guests joining you
+					</p>
+					<ul className="space-y-2 sm:space-y-3">
+						{companions.map((c) => (
+							<li
+								key={`confirmed-${c.full_name}-${c.email ?? c.phone ?? "guest"}`}
+								className="flex items-center gap-3 sm:gap-4"
+							>
+								<div className="h-1.5 w-1.5 rotate-45 border border-stone-400" />
+								<span className="font-serif text-lg text-stone-800 leading-none sm:text-2xl">
+									{c.full_name}
+								</span>
 							</li>
 						))}
 					</ul>
-					
-					<div className="mt-6 flex items-center gap-2 border-t-2 border-black pt-4 text-black sm:mt-8 sm:gap-3 sm:pt-6">
-						<ShieldCheck className="h-4 w-4 sm:h-5 w-5" />
-						<span className="text-[10px] font-black uppercase tracking-widest sm:text-xs">RSVP Confirmed</span>
+
+					<div className="mt-6 flex items-center gap-3 border-stone-200 border-t pt-4 text-stone-500 sm:pt-6">
+						<ShieldCheck className="h-4 w-4 w-5 sm:h-5" />
+						<span className="font-semibold text-[10px] uppercase tracking-[0.2em] sm:text-xs">
+							RSVP Confirmed
+						</span>
 					</div>
 				</div>
 			)}
 
-			<div className="w-full space-y-4">
-				<p className="text-sm font-medium text-gray-500">
-					Need to make a change? You can update your response at any time.
+			<div className="w-full max-w-xs space-y-3 sm:space-y-4">
+				<p className="font-serif text-[10px] text-stone-500 italic sm:text-xs">
+					Need to make a change?
 				</p>
 				<Button
 					onClick={onChangeResponse}
 					variant="ghost"
-					className="h-14 w-full rounded-none border-[3px] border-black bg-white text-xs font-black uppercase tracking-[0.3em] text-black transition-all hover:bg-black hover:text-white sm:h-16 sm:border-4"
+					className="h-12 w-full rounded-full border border-stone-200 bg-white font-semibold text-[10px] text-stone-500 uppercase tracking-[0.3em] transition-all hover:bg-stone-50 hover:text-stone-700 sm:h-14"
 				>
-					Update My Response
+					Update Response
 				</Button>
 			</div>
 		</div>

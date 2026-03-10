@@ -24,10 +24,10 @@ export default function RsvpPage() {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-stone-50">
+			<div className="flex min-h-screen items-center justify-center bg-[#FAF9F6]">
 				<div className="text-center">
-					<div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-stone-300 border-t-stone-800" />
-					<p className="mt-4 text-stone-600">Loading your invitation...</p>
+					<div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-stone-200 border-t-stone-800" />
+					<p className="mt-6 font-serif italic text-stone-500 text-lg">Preparing your invitation...</p>
 				</div>
 			</div>
 		);
@@ -35,13 +35,14 @@ export default function RsvpPage() {
 
 	if (error || !data) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-stone-50">
-				<div className="text-center">
-					<h1 className="font-semibold text-2xl text-stone-800">
+			<div className="flex min-h-screen items-center justify-center bg-[#FAF9F6] px-4">
+				<div className="text-center max-w-md">
+					<h1 className="font-serif text-3xl text-stone-900 sm:text-4xl">
 						Invitation Not Found
 					</h1>
-					<p className="mt-2 text-stone-600">
-						This invitation link may be invalid or expired.
+					<div className="mt-6 h-px w-12 bg-stone-200 mx-auto" />
+					<p className="mt-6 font-serif italic text-stone-500 text-lg leading-relaxed">
+						"This invitation link may be invalid or expired. Please check your link and try again."
 					</p>
 				</div>
 			</div>

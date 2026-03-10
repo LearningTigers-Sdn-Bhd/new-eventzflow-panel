@@ -28,25 +28,30 @@ export function CompanionQuestionStep({
 
 	return (
 		<div className="flex flex-col">
-			<div className="mb-8 flex items-center justify-between border-black border-b-4 pb-6 sm:mb-12 sm:pb-8">
-				<div>
-					<h2 className="font-serif text-3xl text-black sm:text-5xl">
-						Will you be <span className="italic">joining us with others?</span>
+			<div className="mb-8 flex items-center justify-between sm:mb-12">
+				<div className="max-w-lg">
+					<h2 className="font-serif text-3xl text-stone-900 sm:text-5xl">
+						Will you be{" "}
+						<span className="mt-1 block text-stone-700 italic">
+							joining us with others?
+						</span>
 					</h2>
 				</div>
 				<button
 					type="button"
 					onClick={onBack}
-					className="flex h-10 w-10 items-center justify-center border-2 border-black bg-white transition-colors hover:bg-black hover:text-white sm:h-12 sm:w-12"
+					className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition-all hover:border-stone-400 hover:text-stone-700 sm:h-12 sm:w-12"
 				>
 					<ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
 				</button>
 			</div>
 
-			<div className="mb-8 text-left sm:mb-10">
-				<p className="font-black text-black text-xs uppercase tracking-[0.2em] sm:text-sm">
+			<div className="mb-8 text-left sm:mb-12">
+				<p className="font-semibold text-[10px] text-stone-500 text-xs uppercase tracking-[0.2em] sm:text-sm">
 					Guest Invitation:{" "}
-					<span className="text-gray-500">{guestLimitCopy}</span>
+					<span className="ml-2 font-serif text-sm text-stone-700 normal-case italic tracking-normal sm:text-base">
+						{guestLimitCopy}
+					</span>
 				</p>
 			</div>
 
@@ -55,16 +60,16 @@ export function CompanionQuestionStep({
 					type="button"
 					onClick={() => onAnswer(true)}
 					disabled={isSubmitting}
-					className="group relative flex flex-col items-start gap-6 border-[3px] border-black bg-white p-6 transition-all hover:bg-black hover:text-white disabled:opacity-50 sm:gap-8 sm:border-4 sm:p-8"
+					className="group relative flex flex-col items-center gap-4 rounded-xl border border-stone-100 bg-rsvp-canvas p-6 transition-all hover:border-stone-200 hover:bg-white hover:shadow-stone-200/50 hover:shadow-xl disabled:opacity-50 sm:gap-6 sm:p-10"
 				>
-					<div className="flex h-12 w-12 items-center justify-center bg-black text-white transition-colors group-hover:bg-white group-hover:text-black sm:h-14 sm:w-14">
-						<Users className="h-6 w-6 sm:h-7 sm:w-7" />
+					<div className="flex h-12 w-12 items-center justify-center rounded-full border border-stone-100/50 bg-rsvp-canvas text-stone-500 shadow-sm transition-all group-hover:scale-105 group-hover:text-stone-900 sm:h-16 sm:w-16">
+						<Users className="h-6 w-6 sm:h-8 sm:w-8" />
 					</div>
-					<div className="text-left">
-						<span className="block font-black text-xl uppercase tracking-tighter sm:text-2xl">
+					<div className="text-center">
+						<span className="block font-serif text-stone-900 text-xl sm:text-2xl">
 							{BRINGING_FAMILY_MEMBER_LABEL}
 						</span>
-						<span className="mt-1 block font-bold text-[10px] uppercase tracking-widest opacity-60 sm:mt-2 sm:text-xs">
+						<span className="mt-1 block font-semibold text-[10px] text-stone-500 uppercase tracking-[0.2em] sm:mt-2">
 							Family & friends welcome
 						</span>
 					</div>
@@ -74,16 +79,16 @@ export function CompanionQuestionStep({
 					type="button"
 					onClick={() => onAnswer(false)}
 					disabled={isSubmitting}
-					className="group relative flex flex-col items-start gap-6 border-[3px] border-black bg-white p-6 transition-all hover:bg-black hover:text-white disabled:opacity-50 sm:gap-8 sm:border-4 sm:p-8"
+					className="group relative flex flex-col items-center gap-4 rounded-xl border border-stone-100 bg-rsvp-canvas p-6 transition-all hover:border-stone-200 hover:bg-white hover:shadow-stone-200/50 hover:shadow-xl disabled:opacity-50 sm:gap-6 sm:p-10"
 				>
-					<div className="flex h-12 w-12 items-center justify-center bg-black text-white transition-colors group-hover:bg-white group-hover:text-black sm:h-14 sm:w-14">
-						<User className="h-6 w-6 sm:h-7 sm:w-7" />
+					<div className="flex h-12 w-12 items-center justify-center rounded-full border border-stone-100/50 bg-rsvp-canvas text-stone-500 shadow-sm transition-all group-hover:scale-105 group-hover:text-stone-900 sm:h-16 sm:w-16">
+						<User className="h-6 w-6 sm:h-8 sm:w-8" />
 					</div>
-					<div className="text-left">
-						<span className="block font-black text-xl uppercase tracking-tighter sm:text-2xl">
+					<div className="text-center">
+						<span className="block font-serif text-stone-900 text-xl sm:text-2xl">
 							{ATTENDING_ALONE_LABEL}
 						</span>
-						<span className="mt-1 block font-bold text-[10px] uppercase tracking-widest opacity-60 sm:mt-2 sm:text-xs">
+						<span className="mt-1 block font-semibold text-[10px] text-stone-500 uppercase tracking-[0.2em] sm:mt-2">
 							Solo celebration
 						</span>
 					</div>
