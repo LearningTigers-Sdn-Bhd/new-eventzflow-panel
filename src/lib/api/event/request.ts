@@ -36,6 +36,7 @@ export const updateEventSchema = z.object({
 	visibility: z.boolean().optional(),
 	use_ticket: z.boolean().optional(),
 	use_wedding: z.boolean().optional(),
+	auto_approve_wishes: z.boolean().optional(),
 	extra_guest_limit: z.number().int().min(0).nullable().optional(),
 	use_seat_ticketing: z.boolean().optional(),
 	use_exhibitor_kit: z.boolean().optional(),

@@ -25,6 +25,7 @@ import {
 	Logs,
 	type LucideIcon,
 	MapPin,
+	MessageSquareHeart,
 	Package,
 	Printer,
 	ScanQrCode,
@@ -179,6 +180,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Manage seating plans and table assignments.",
 			icon: Grid,
 			visible: visible.eventAdmin,
+		},
+		{
+			route: "wishes",
+			label: "Guestbook",
+			description: "Moderate guest blessings and wishes wall.",
+			icon: MessageSquareHeart,
+			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
 		},
 		{
 			route: "location",

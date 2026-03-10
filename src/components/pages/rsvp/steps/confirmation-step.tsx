@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Check, ShieldCheck, X } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { RsvpCompanionRequest } from "@/lib/api/rsvp";
 
@@ -9,6 +10,8 @@ interface ConfirmationStepProps {
 	rsvpStatus: "attending" | "declined";
 	companions: RsvpCompanionRequest[];
 	eventTitle: string;
+	eventSlug: string;
+	visitorPublicId: string;
 	onChangeResponse: () => void;
 }
 
@@ -16,6 +19,8 @@ export function ConfirmationStep({
 	rsvpStatus,
 	companions,
 	eventTitle,
+	eventSlug,
+	visitorPublicId,
 	onChangeResponse,
 }: ConfirmationStepProps) {
 	const isAttending = rsvpStatus === "attending";
@@ -74,6 +79,28 @@ export function ConfirmationStep({
 							RSVP Confirmed
 						</span>
 					</div>
+				</div>
+			)}
+
+			{isAttending && (
+				<div className="mb-8 w-full max-w-md rounded-[1.75rem] border border-stone-200/80 bg-white/90 p-6 text-center shadow-[0_24px_60px_-28px_rgba(87,68,53,0.45)] sm:mb-10 sm:p-8">
+					<p className="font-semibold text-[10px] text-stone-500 uppercase tracking-[0.28em] sm:text-xs">
+						Digital Guestbook
+					</p>
+					<p className="mt-3 font-serif text-lg text-stone-800 italic sm:text-2xl">
+						Leave a blessing for the couple
+					</p>
+					<p className="mt-3 text-sm text-stone-500 leading-relaxed sm:text-base">
+						Share a warm note that can appear on the wedding wishes wall after review.
+					</p>
+					<Button
+						asChild
+						className="mt-6 h-12 rounded-full bg-stone-900 px-6 font-semibold text-[10px] text-white uppercase tracking-[0.3em] hover:bg-stone-800 sm:h-14 sm:text-xs"
+					>
+						<Link href={`/events/${eventSlug}/guestbook?visitor=${visitorPublicId}`}>
+							Write a Blessing
+						</Link>
+					</Button>
 				</div>
 			)}
 
