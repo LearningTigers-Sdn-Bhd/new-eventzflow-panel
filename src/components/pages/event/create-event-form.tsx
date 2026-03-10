@@ -20,7 +20,6 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { cn } from "@/lib/utils";
 import { createEvent } from "@/lib/api/event";
 import { getTeamMembers } from "@/lib/api/team";
 import { queryClient } from "@/utils/rest-api";
@@ -35,6 +34,7 @@ const formSchema = z
 		title: z.string().min(3, "Event name must be at least 3 characters"),
 		visibility: z.boolean(),
 		useTicket: z.boolean(),
+		useSeatTicketing: z.boolean(),
 		useExhibitorKit: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
@@ -105,6 +105,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			title: "",
 			visibility: true,
 			useTicket: true,
+			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
@@ -123,6 +124,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				title: value.title.trim(),
 				visibility: value.visibility ?? true,
 				use_ticket: value.useTicket ?? true,
+				use_wedding: false,
+				use_seat_ticketing: value.useSeatTicketing ?? false,
 				use_exhibitor_kit: value.useExhibitorKit ?? false,
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
@@ -476,6 +479,22 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 									}}
 								</form.Field>
 								<div className="flex flex-col gap-4">
+									<form.Field name="useSeatTicketing">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Seat Ticketing System"
+													description="Enable reserved seat sessions and seat maps for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
 									<form.Field name="useBusinessMatching">
 										{(field) => {
 											return (

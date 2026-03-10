@@ -104,6 +104,8 @@ const visible = {
 	// Feature flags
 	hasExhibitorKit: (_p: Permissions, e?: Event) =>
 		e?.use_exhibitor_kit === true,
+	hasSeatTicketing: (_p: Permissions, e?: Event) =>
+		e?.use_seat_ticketing === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
 
 	// Special access
@@ -250,6 +252,32 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Ticket Types",
 					description: "Manage ticket types for this event.",
 					icon: HiTicket,
+				},
+				{
+					route: "registration-forms",
+					label: "Registration Forms",
+					description: "Manage registration forms and ticket mapping.",
+					icon: ClipboardList,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// SEAT TICKETING GROUP
+		// ------------------------------------------------------------------------
+		{
+			id: "seat-ticketing",
+			label: "Seat Reservation",
+			icon: Ticket,
+			visible: (p, e) =>
+				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+			tabs: [
+				{
+					route: "seat-ticketing/sessions",
+					label: "Seat Reservation Sessions",
+					description:
+						"Set up and organize seat reservation sessions, sections, and seating layouts for this event.",
+					icon: Ticket,
 				},
 			],
 		},
@@ -402,7 +430,7 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Visitor Stamp Scanner",
 					description: "Scan visitor QR codes to create stamps.",
 					icon: ScanQrCode,
-					visible: visible.vendor,
+					visible: (p, e) => visible.mallEvent(p, e) && visible.vendor(p),
 				},
 			],
 		},

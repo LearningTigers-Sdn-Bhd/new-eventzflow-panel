@@ -115,6 +115,32 @@ export async function restoreEvent(eventId: string): Promise<Event> {
 	}
 }
 
+/**
+ * Upload or remove an event logo
+ */
+export async function uploadEventLogo(
+	eventId: string,
+	logo: File,
+): Promise<Event> {
+	const formData = new FormData();
+	formData.append("event[logo]", logo);
+	const response = await restClient.patchFormData<BackendEvent>(
+		`v1/events/${eventId}`,
+		formData,
+	);
+	return response;
+}
+
+export async function removeEventLogo(eventId: string): Promise<Event> {
+	const formData = new FormData();
+	formData.append("event[remove_logo]", "true");
+	const response = await restClient.patchFormData<BackendEvent>(
+		`v1/events/${eventId}`,
+		formData,
+	);
+	return response;
+}
+
 // ============================================================================
 // PUBLIC ENDPOINTS - No authentication required
 // ============================================================================
@@ -134,6 +160,7 @@ export interface PublicEventInfo {
 	venue_name: string | null;
 	venue_address: string | null;
 	status: string;
+	logo_url: string | null;
 }
 
 /**

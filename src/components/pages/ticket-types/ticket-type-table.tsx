@@ -11,6 +11,7 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { Ticket } from "lucide-react";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import {
 	DesktopView,
@@ -22,7 +23,9 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
 import type { TicketType } from "@/lib/api/ticket-type";
+import { CreateTicketTypeForm } from "./create-ticket-type-form";
 import { generateColumns } from "./ticket-type-columns";
 import { TicketTypeItem } from "./ticket-type-item";
 import { DataControl } from "./ticket-type-table-control";
@@ -32,6 +35,26 @@ interface DataTableProps {
 }
 
 export function DataTable({ data }: DataTableProps) {
+	const params = useParams();
+	const eventId = params.event_id as string;
+	const { openDialog, closeDialog } = useDialog();
+
+	const handleCreateTicketType = () => {
+		openDialog({
+			component: CreateTicketTypeForm,
+			props: {
+				eventId,
+				onClose: closeDialog,
+			},
+			config: {
+				title: "Create Ticket Type",
+				description: "Add a new ticket type for this event",
+				size: "2xl",
+				className: "rounded-none",
+			},
+		});
+	};
+
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -68,7 +91,11 @@ export function DataTable({ data }: DataTableProps) {
 								title: "No ticket types found",
 								desc: "Create your first ticket type to get started",
 								icon: <Ticket />,
-								action: <Button>Create Ticket Type</Button>,
+								action: (
+									<Button onClick={handleCreateTicketType}>
+										Create Ticket Type
+									</Button>
+								),
 							}}
 						/>
 					</DesktopView>
@@ -86,7 +113,11 @@ export function DataTable({ data }: DataTableProps) {
 									description="Create your first ticket type to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button>Create Ticket Type</Button>}
+									action={
+										<Button onClick={handleCreateTicketType}>
+											Create Ticket Type
+										</Button>
+									}
 								/>
 							)}
 						</div>
@@ -105,14 +136,20 @@ export function DataTable({ data }: DataTableProps) {
 									description="Create your first ticket type to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button>Create Ticket Type</Button>}
+									action={
+										<Button onClick={handleCreateTicketType}>
+											Create Ticket Type
+										</Button>
+									}
 								/>
 							)}
 						</div>
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} />
+			<div className="pb-14 md:pb-4">
+				<DataPagination table={table} />
+			</div>
 		</div>
 	);
 }

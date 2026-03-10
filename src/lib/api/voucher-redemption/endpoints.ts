@@ -59,6 +59,7 @@ export async function redeemVoucher(
 					net_amount: validated.net_amount,
 					...(validated.user_id && { user_id: validated.user_id }),
 					...(validated.visitor_id && { visitor_id: validated.visitor_id }),
+					...(validated.ticket_id && { ticket_id: validated.ticket_id }),
 				},
 			},
 		);

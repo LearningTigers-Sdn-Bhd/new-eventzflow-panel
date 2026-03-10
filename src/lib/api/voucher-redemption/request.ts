@@ -9,6 +9,7 @@ export const redeemVoucherSchema = z.object({
 	net_amount: z.number().nonnegative("Net amount must be zero or positive"),
 	user_id: z.number().optional(),
 	visitor_id: z.string().optional(),
+	ticket_id: z.string().optional(),
 });
 
 export type RedeemVoucherRequest = z.infer<typeof redeemVoucherSchema>;

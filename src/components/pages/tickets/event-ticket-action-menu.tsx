@@ -62,6 +62,7 @@ export function TicketActionsMenu({
 				description: "Edit the ticket information.",
 				size: "full",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { ticket },
 		});
@@ -75,6 +76,7 @@ export function TicketActionsMenu({
 				description: "View the ticket information.",
 				size: "2xl",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { ticket },
 		});
@@ -87,6 +89,7 @@ export function TicketActionsMenu({
 				title: "Generate QR Code",
 				size: "4xl",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { ticket },
 		});

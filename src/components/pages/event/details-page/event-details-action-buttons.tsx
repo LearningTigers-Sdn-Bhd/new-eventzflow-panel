@@ -1,13 +1,33 @@
 "use client";
 
-import { Activity, Pencil, QrCode, Ticket, Users } from "lucide-react";
+import {
+	Activity,
+	ChevronDown,
+	ExternalLink,
+	Megaphone,
+	Monitor,
+	QrCode,
+	Settings,
+	Ticket,
+	Users,
+	Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Event } from "@/lib/api/event/response";
+import EventSettingsDialog from "../settings/edit-modal";
+import { AnnounceGuestDialog } from "./announce-guest-dialog";
 
 interface EventDetailsActionButtonsProps {
 	event: Event;
@@ -17,27 +37,31 @@ export function EventDetailsActionButtons({
 	event,
 }: EventDetailsActionButtonsProps) {
 	const router = useRouter();
-	const { openDialog, closeDialog } = useDialog();
 	const { user } = useAuth();
+	const { openDialog, closeDialog } = useDialog();
 	const {
 		canManageEvent,
 		canScanTickets,
 		canManageTickets,
 		canViewVisitors,
 		canViewAnalytics,
+		isOrgOwner,
+		isOrganizer,
+		isEventStaff,
 	} = useEventPermissions(event.id, event);
 
 	const isTicketEvent = event.use_ticket !== false;
+	const canViewPublicCheckIn = isOrgOwner || isOrganizer || isEventStaff;
 
-	const openEventSettings = () => {
+	const [announceOpen, setAnnounceOpen] = useState(false);
+
+	const openDisplaySettings = () => {
 		openDialog({
 			component: EventSettingsDialog,
-			config: {
-				title: "Event Settings",
-				size: "full",
-			},
+			config: { title: "Event Settings", size: "full" },
 			props: {
 				eventId: event.id,
+				initialTab: "welcome-screen" as const,
 				onClose: closeDialog,
 			},
 		});
@@ -46,75 +70,121 @@ export function EventDetailsActionButtons({
 	if (!user) return null;
 
 	return (
-		<div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
-			{isTicketEvent ? (
-				<>
-					{canScanTickets && (
-						<Button
-							className="rounded-none border py-6 md:py-4"
-							variant="secondary"
-							onClick={() => router.push("/scan")}
+		<div className="border bg-background">
+			{/* Header */}
+			<div className="flex items-center gap-2 border-b px-4 py-2">
+				<Zap className="h-4 w-4 text-muted-foreground" />
+				<span className="font-medium text-sm">Quick Actions</span>
+			</div>
+
+			{/* Buttons Grid */}
+			<div className="grid grid-cols-2 gap-2 p-3 md:flex md:flex-row md:flex-wrap md:justify-end">
+				{isTicketEvent ? (
+					<>
+						{canScanTickets && (
+							<Button
+								className="rounded-none border py-5"
+								variant="secondary"
+								onClick={() => router.push("/scan")}
+							>
+								<QrCode className="mr-2 h-4 w-4" />
+								<span>Scan Tickets</span>
+							</Button>
+						)}
+						{canManageTickets && (
+							<Button
+								className="rounded-none border py-5"
+								onClick={() => router.push(`/event/${event.id}/tickets`)}
+							>
+								<Ticket className="mr-2 h-4 w-4" />
+								<span>View All Tickets</span>
+							</Button>
+						)}
+					</>
+				) : (
+					<>
+						{canViewVisitors && (
+							<Button
+								className="rounded-none border py-5"
+								variant="secondary"
+								onClick={() => router.push(`/event/${event.id}/visitors`)}
+							>
+								<Users className="mr-2 h-4 w-4" />
+								<span>View Visitors</span>
+							</Button>
+						)}
+						{canViewAnalytics && (
+							<Button
+								className="rounded-none border py-5"
+								onClick={() => router.push(`/event/${event.id}/mall-live-feed`)}
+							>
+								<Activity className="mr-2 h-4 w-4" />
+								<span>Live Feed</span>
+							</Button>
+						)}
+					</>
+				)}
+
+				{canViewPublicCheckIn && (
+					<Button
+						className="rounded-none border py-5"
+						variant="outline"
+						asChild
+					>
+						<a
+							href={`/events/${event.slug}/check-in`}
+							target="_blank"
+							rel="noopener noreferrer"
 						>
-							<QrCode className="mr-2 h-4 w-4" />
-							<span>
-								Scan <span className="inline md:hidden lg:inline">Tickets</span>
-							</span>
-						</Button>
-					)}
-					{canManageTickets && (
-						<Button
-							className="rounded-none border py-6 md:py-4"
-							onClick={() => router.push(`/event/${event.id}/tickets`)}
-						>
-							<Ticket className="mr-2 h-4 w-4" />
-							<span>
-								View All{" "}
-								<span className="inline md:hidden lg:inline">Tickets</span>
-							</span>
-						</Button>
-					)}
-				</>
-			) : (
-				<>
-					{canViewVisitors && (
-						<Button
-							className="rounded-none border py-5 md:py-4"
-							variant="secondary"
-							onClick={() => router.push(`/event/${event.id}/visitors`)}
-						>
-							<Users className="mr-2 h-4 w-4" />
-							<span>
-								View{" "}
-								<span className="inline md:hidden lg:inline">Visitors</span>
-							</span>
-						</Button>
-					)}
-					{canViewAnalytics && (
-						<Button
-							className="rounded-none border py-5 md:py-4"
-							onClick={() => router.push(`/event/${event.id}/mall-live-feed`)}
-						>
-							<Activity className="mr-2 h-4 w-4" />
-							<span>
-								Live <span className="inline md:hidden lg:inline">Feed</span>
-							</span>
-						</Button>
-					)}
-				</>
-			)}
-			{canManageEvent && (
-				<Button
-					className="rounded-none border py-6 md:py-4"
-					variant="outline"
-					onClick={openEventSettings}
-				>
-					<Pencil className="mr-2 h-4 w-4" />
-					<span>
-						Edit Event{" "}
-						<span className="inline md:hidden lg:inline">Details</span>
-					</span>
-				</Button>
-			)}
+							<ExternalLink className="mr-2 h-4 w-4" />
+							<span>Check-In Page</span>
+						</a>
+					</Button>
+				)}
+
+				{canManageEvent && (
+					<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="rounded-none border py-5"
+									variant="outline"
+								>
+									<Monitor className="mr-2 h-4 w-4" />
+									<span>Welcome Screen</span>
+									<ChevronDown className="ml-2 h-3 w-3" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="rounded-none">
+								<DropdownMenuItem
+									onClick={() =>
+										window.open(
+											`/events/${event.slug}/welcome-screen`,
+											"_blank",
+										)
+									}
+								>
+									<Monitor className="mr-2 h-4 w-4" />
+									Open Display
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setAnnounceOpen(true)}>
+									<Megaphone className="mr-2 h-4 w-4" />
+									Announce Guest
+								</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={openDisplaySettings}>
+									<Settings className="mr-2 h-4 w-4" />
+									Display Settings
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+				)}
+			</div>
+
+			<AnnounceGuestDialog
+				open={announceOpen}
+				onOpenChange={setAnnounceOpen}
+				eventId={event.id}
+			/>
 		</div>
 	);
 }

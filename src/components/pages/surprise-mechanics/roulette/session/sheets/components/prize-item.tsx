@@ -1,7 +1,7 @@
 "use client";
 
 import { Image } from "@unpic/react";
-import { ChevronDown, Edit2, Gift, Save, Trash2, UserX, X } from "lucide-react";
+import { Bell, ChevronDown, Edit2, Gift, Loader2, Save, Trash2, UserX, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ImageUpload from "@/components/file-upload/image-upload";
@@ -37,9 +37,11 @@ interface PrizeItemProps {
 	) => void;
 	onDelete: (prizeId: number) => void;
 	onDeleteWinner: (winnerId: number) => void;
+	onNotifyWinner: (winnerId: number) => void;
 	isUpdating: boolean;
 	isDeleting: boolean;
 	isDeletingWinner: boolean;
+	notifyingWinnerIds: Set<number>;
 }
 
 export function PrizeItem({
@@ -47,9 +49,11 @@ export function PrizeItem({
 	onUpdate,
 	onDelete,
 	onDeleteWinner,
+	onNotifyWinner,
 	isUpdating,
 	isDeleting,
 	isDeletingWinner,
+	notifyingWinnerIds,
 }: PrizeItemProps) {
 	const { openConfirm } = useConfirmDialog();
 	const [isEditing, setIsEditing] = useState(false);
@@ -268,7 +272,20 @@ export function PrizeItem({
 											{winners[0]?.participant_name || "Unknown"}
 										</span>
 									</div>
-									<div className="col-span-1 flex items-center justify-end">
+									<div className="col-span-1 flex items-center justify-end gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={winners[0] ? notifyingWinnerIds.has(winners[0].id) : true}
+											onClick={() => winners[0] && onNotifyWinner(winners[0].id)}
+											className="gap-2 rounded-none"
+										>
+											{winners[0] && notifyingWinnerIds.has(winners[0].id) ? (
+												<Loader2 className="size-4 animate-spin" />
+											) : (
+												<Bell className="size-4" />
+											)}
+										</Button>
 										<Button
 											variant="outline"
 											size="sm"
@@ -300,7 +317,20 @@ export function PrizeItem({
 														{winner.participant_name || "Unknown"}
 													</span>
 												</div>
-												<div className="col-span-1 flex items-center justify-end">
+												<div className="col-span-1 flex items-center justify-end gap-2">
+													<Button
+														variant="outline"
+														size="sm"
+														disabled={notifyingWinnerIds.has(winner.id)}
+														onClick={() => onNotifyWinner(winner.id)}
+														className="gap-2 rounded-none"
+													>
+														{notifyingWinnerIds.has(winner.id) ? (
+															<Loader2 className="size-4 animate-spin" />
+														) : (
+															<Bell className="size-4" />
+														)}
+													</Button>
 													<Button
 														variant="outline"
 														size="sm"

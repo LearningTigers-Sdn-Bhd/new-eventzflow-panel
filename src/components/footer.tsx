@@ -2,6 +2,7 @@
 
 import { Mail, MessageCircle } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type React from "react";
@@ -98,18 +99,14 @@ const FooterNew: React.FC = () => {
 					{/* Left - Logo & Social */}
 					<div className="lg:col-span-4">
 						{/* Logo */}
-						<div
-							className="mb-2 font-bold text-3xl leading-none md:text-4xl"
-							style={{ fontFamily: "Times New Roman, serif" }}
-						>
-							<span style={{ color: "#23c460" }}>Event</span>
-							<span style={{ color: "#2766ec" }}>z</span>
-							<span style={{ color: "#23c460" }}>Flow</span>
-						</div>
-						<p className="mb-6 text-white/40 text-xs tracking-wide">
-							Smart Event Management
-						</p>
-						<div className="mb-6 h-px w-50 bg-white/20" />
+						<Image
+							src="/logo/LogoDark.png"
+							alt="Eventzflow logo"
+							width={910}
+							height={127}
+							className="mx-auto mb-6 h-auto w-[210px] md:mx-0 md:-ml-2 md:w-[300px]"
+						/>
+						<div className="mx-auto mb-6 h-px w-50 bg-white/20 md:mx-0" />
 
 						<h4 className="mb-6 font-bold text-white/50 text-xs uppercase tracking-[0.2em]">
 							Connect With Us

@@ -1,14 +1,12 @@
 "use client";
 
-import { ExternalLink, List, QrCode, Settings } from "lucide-react";
+import { ExternalLink, List, Settings } from "lucide-react";
 import { BlankCard } from "@/components/admin-ui/analytic";
-import { Button } from "@/components/ui/button";
-import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { Event } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
-import PublicCheckInQrDialog from "./public-check-in-qr-dialog";
+import { EventDetailsActionButtons } from "./event-details-action-buttons";
 
 interface EventDetailsViewProps {
 	event: Event;
@@ -16,32 +14,13 @@ interface EventDetailsViewProps {
 
 export function EventDetailsView({ event }: EventDetailsViewProps) {
 	const { formatDate } = useFormatDate();
-	const { openDialog } = useDialog();
 	const {
 		isVendor,
 		isExhibitionContractor,
-		isOrgOwner,
-		isOrganizer,
-		isEventStaff,
 	} = useEventPermissions(event.id, event);
 
 	const showWebhookUrl = !isVendor && !isExhibitionContractor;
 	const showColumn2 = !isVendor && !isExhibitionContractor;
-	const canViewPublicCheckIn = isOrgOwner || isOrganizer || isEventStaff;
-
-	const openQrDialog = () => {
-		openDialog({
-			component: PublicCheckInQrDialog,
-			config: {
-				title: "Public Check-In QR Code",
-				size: "md",
-			},
-			props: {
-				eventTitle: event.title,
-				slug: event.slug,
-			},
-		});
-	};
 
 	// Parse labels_data
 	const labels =
@@ -53,9 +32,13 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 			: [];
 
 	return (
-		<div
-			className={cn("grid grid-cols-1 gap-2", showColumn2 && "lg:grid-cols-2")}
-		>
+		<div className="space-y-2">
+			{/* Action Buttons Row */}
+			<EventDetailsActionButtons event={event} />
+
+			<div
+				className={cn("grid grid-cols-1 gap-2", showColumn2 && "lg:grid-cols-2")}
+			>
 			{/* Column 1: Event Details Card */}
 			<BlankCard
 				title="Event Details"
@@ -135,41 +118,6 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 							)}
 						</div>
 					)}
-
-					{/* Public Check-In */}
-					{canViewPublicCheckIn && (
-						<div className="flex flex-col gap-2 px-3 py-2">
-							<p className="font-medium text-muted-foreground text-sm">
-								Public Check-In Page
-							</p>
-							<div className="flex flex-col gap-2 sm:flex-row">
-								<Button
-									variant="outline"
-									size="sm"
-									className="flex-1 rounded-none"
-									onClick={openQrDialog}
-								>
-									<QrCode className="mr-2 h-4 w-4" />
-									Show QR Code
-								</Button>
-								<Button
-									variant="outline"
-									size="sm"
-									className="flex-1 rounded-none"
-									asChild
-								>
-									<a
-										href={`/events/${event.slug}/check-in`}
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										<ExternalLink className="mr-2 h-4 w-4" />
-										Open Page
-									</a>
-								</Button>
-							</div>
-						</div>
-					)}
 				</div>
 			</BlankCard>
 
@@ -246,6 +194,7 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 			)}
 
 			{/* Column 3: Additional Information */}
+			</div>
 		</div>
 	);
 }

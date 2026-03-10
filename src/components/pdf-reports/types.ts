@@ -28,6 +28,15 @@ export type ReportMetadata = {
 	generatedBy?: string;
 	eventStartDate: string;
 	eventEndDate: string;
+	dateFilterLabel?: string; // e.g., "All_Time", "Pre_Event", "Day_1", etc.
+};
+
+/**
+ * Hourly breakdown data for a single day
+ */
+export type DailyHourlyBreakdown = {
+	date: string; // "2026-02-04"
+	hourlyData: { hour: string; value: number }[]; // e.g., [{ hour: "08:00", value: 5 }, ...]
 };
 
 /**
@@ -49,6 +58,11 @@ export type TicketReportData = {
 		scans: ChartDataPoint[];
 		revenue: ChartDataPoint[];
 	};
+	// Optional hourly breakdown per day for multi-day events
+	hourlyBreakdown?: {
+		registrations?: DailyHourlyBreakdown[];
+		scans?: DailyHourlyBreakdown[];
+	};
 };
 
 /**
@@ -67,6 +81,11 @@ export type VisitorReportData = {
 	timeSeries: {
 		registrations: ChartDataPoint[];
 		scans: ChartDataPoint[];
+	};
+	// Optional hourly breakdown per day for multi-day events
+	hourlyBreakdown?: {
+		registrations?: DailyHourlyBreakdown[];
+		scans?: DailyHourlyBreakdown[];
 	};
 };
 

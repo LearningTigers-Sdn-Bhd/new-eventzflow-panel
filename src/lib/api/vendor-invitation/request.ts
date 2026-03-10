@@ -46,7 +46,7 @@ export const registerInvitedVendorSchema = z
 		exhibitor_kit: z
 			.object({
 				booth_number: z.string().optional(),
-				booth_type: z.enum(["shell_scheme", "raw_space"]).optional(),
+				booth_type: z.string().optional(),
 				booth_dimensions: z.string().optional(),
 				side_wall_left_required: z.boolean().optional(),
 				side_wall_right_required: z.boolean().optional(),

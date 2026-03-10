@@ -93,8 +93,9 @@ export function TicketItem({ ticket, labelsData }: TicketItemProps) {
 						</h4>
 						<div className="grid grid-cols-1 gap-2">
 							{Object.entries(labelsData).map(([key, labelName]) => {
+								// Match by key, not display name
 								const value =
-									ticket.customLabels?.find((l) => l.name === labelName)
+									ticket.customLabels?.find((l) => l.name === key)
 										?.value || "";
 								return (
 									<div key={key} className="space-y-0.5">

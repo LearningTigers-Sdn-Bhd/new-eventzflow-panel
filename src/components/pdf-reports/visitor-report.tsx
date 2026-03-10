@@ -1,7 +1,7 @@
 "use client";
 
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { BarChart, DonutChart } from "./charts";
+import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
 	GridCol,
@@ -21,7 +21,7 @@ interface VisitorAnalyticsReportProps {
 }
 
 export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
-	const { event, metadata, stats, timeSeries } = data;
+	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
 	const scanRate = calculatePercentage(
 		stats.scannedVisitors,
 		stats.totalVisitors,
@@ -39,6 +39,17 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 	const scanData =
 		timeSeries.scans?.map((d) => ({ date: d.date, value: d.value })) ?? [];
 
+	// Detect if data is hourly (single date) or daily (all time/event duration/pre-event)
+	const isHourlyData = registrationData.length > 0 && registrationData[0]?.date?.includes(" ");
+
+	// Dynamic subtitles based on data type
+	const registrationSubtitle = isHourlyData
+		? "Registrations over time"
+		: "Daily Registration Breakdown by Date";
+	const checkInSubtitle = isHourlyData
+		? "Check-ins over time"
+		: "Daily Check-in Breakdown by Date";
+
 	return (
 		<Document>
 			<Page size="A4" style={styles.page}>
@@ -52,7 +63,7 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 					<BulletList items={insights} />
 				</SummaryBox>
 
-				<Section title="Attendance Overview">
+				<Section title="Attendance Over Time">
 					<StatsGrid>
 						<StatsCard
 							label="Total Registrations"
@@ -71,7 +82,7 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 					</StatsGrid>
 				</Section>
 
-				<Section title="Attendance Ratio">
+				<Section title="Attendance Ratio Throughout The Event">
 					<View style={{ alignItems: "center", paddingVertical: 12 }}>
 						<DonutChart
 							value1={stats.scannedVisitors}
@@ -86,23 +97,42 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 
 				<Section title="Daily Activity Analysis" breakOnPage>
 					<View style={{ marginBottom: 24 }}>
-						<BarChart
+						<AreaChart
 							data={scanData}
-							title="Check-in Volume (Daily)"
-							maxBars={20}
-							barColor={colors.brandGreen}
+							title="Check-in Volume"
+							subtitle={checkInSubtitle}
+							areaColor={colors.brandGreen}
 						/>
 					</View>
 
 					<View style={{ borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 24 }}>
-						<BarChart
+						<AreaChart
 							data={registrationData}
-							title="Registration Volume (Daily)"
-							maxBars={20}
-							barColor={colors.brandPrimary}
+							title="Registration Volume"
+							subtitle={registrationSubtitle}
+							areaColor={colors.brandBlue}
 						/>
 					</View>
 				</Section>
+
+				{/* Hourly Breakdown per Day - for multi-day events */}
+				{hourlyBreakdown?.scans && hourlyBreakdown.scans.length > 0 && (
+					<Section title="Hourly Check-in Breakdown by Day" breakOnPage>
+						<DailyHourlyBreakdownSection
+							data={hourlyBreakdown.scans}
+							barColor={colors.brandGreen}
+						/>
+					</Section>
+				)}
+
+				{hourlyBreakdown?.registrations && hourlyBreakdown.registrations.length > 0 && (
+					<Section title="Hourly Registration Breakdown by Day">
+						<DailyHourlyBreakdownSection
+							data={hourlyBreakdown.registrations}
+							barColor={colors.brandBlue}
+						/>
+					</Section>
+				)}
 
 				<ReportFooter />
 			</Page>

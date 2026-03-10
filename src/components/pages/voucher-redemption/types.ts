@@ -11,6 +11,8 @@ export type VoucherDetails = {
 	status: string;
 };
 
+export type RedeemerType = "visitor" | "ticket";
+
 export type VisitorDetails = {
 	id: number;
 	publicId: string;
@@ -18,6 +20,7 @@ export type VisitorDetails = {
 	email: string;
 	phone: string;
 	eventId: number;
+	redeemerType: RedeemerType;
 };
 
 export type RedemptionState = {

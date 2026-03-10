@@ -88,7 +88,7 @@ export function getColumns({
 					<div>
 						<div className="font-medium">{kit.booth_number}</div>
 						<div className="text-muted-foreground text-sm capitalize">
-							{kit.booth_type?.replace("_", " ") ?? "-"}
+							{kit.booth_type?.replace(/_/g, " ") ?? "-"}
 						</div>
 					</div>
 				);

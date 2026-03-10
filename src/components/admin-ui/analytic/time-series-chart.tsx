@@ -51,9 +51,17 @@ export function TimeSeriesChart({
 
 	const formatDate = (dateString: string) => {
 		if (isHourlyData) {
-			// Hourly format: "2026-01-14 14:00" -> "14:00"
+			// Hourly format: "2026-01-14 14:00" -> "2PM"
 			const timePart = dateString.split(" ")[1];
-			return timePart || dateString;
+			if (timePart) {
+				const [hourStr] = timePart.split(":");
+				const hour = parseInt(hourStr, 10);
+				if (hour === 0) return "12AM";
+				if (hour === 12) return "12PM";
+				if (hour < 12) return `${hour}AM`;
+				return `${hour - 12}PM`;
+			}
+			return dateString;
 		}
 		// Daily format: show month/day
 		const date = new Date(dateString);
@@ -65,9 +73,20 @@ export function TimeSeriesChart({
 
 	const formatTooltipLabel = (dateString: string) => {
 		if (isHourlyData) {
-			// For hourly: "2026-01-14 14:00" -> "Jan 14, 2026 14:00"
+			// For hourly: "2026-01-14 14:00" -> "Jan 14, 2026 2:00 PM"
 			const [datePart, timePart] = dateString.split(" ");
 			const date = new Date(datePart);
+			if (timePart) {
+				const [hourStr, minStr] = timePart.split(":");
+				const hour = parseInt(hourStr, 10);
+				const ampm = hour >= 12 ? "PM" : "AM";
+				const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+				return `${date.toLocaleDateString("en-US", {
+					month: "short",
+					day: "numeric",
+					year: "numeric",
+				})} ${hour12}:${minStr} ${ampm}`;
+			}
 			return `${date.toLocaleDateString("en-US", {
 				month: "short",
 				day: "numeric",
@@ -151,11 +170,14 @@ export function TimeSeriesChart({
 								axisLine={false}
 								tickMargin={8}
 								tickFormatter={formatDate}
+								interval={isHourlyData ? 0 : "preserveStartEnd"}
+								fontSize={isHourlyData ? 10 : 12}
 							/>
 							<YAxis
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
+								domain={[0, 'auto']}
 								tickFormatter={(value) => {
 									if (value >= 1000) {
 										return `${(value / 1000).toFixed(1)}k`;
@@ -174,9 +196,10 @@ export function TimeSeriesChart({
 							/>
 							<Area
 								dataKey="value"
-								type="natural"
+								type="monotone"
 								fill={`url(#fill-${title.replace(/\s+/g, "-").toLowerCase()})`}
 								stroke={color}
+								baseValue={0}
 							/>
 						</AreaChart>
 					</ChartContainer>

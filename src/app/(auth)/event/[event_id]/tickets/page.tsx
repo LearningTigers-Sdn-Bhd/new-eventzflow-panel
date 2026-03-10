@@ -6,11 +6,21 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
+import { JsonSampleTool } from "@/components/json-sample-tool";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTickets } from "@/lib/api/ticket";
 
 type TicketFilter = "active" | "archived" | "all";
+
+const TICKET_BASE_FIELDS = [
+	"attendee_name",
+	"attendee_email",
+	"attendee_phone",
+	"ticket_type_id",
+	"role",
+	"payment_status",
+];
 
 export default function TicketsPage({
 	params,
@@ -23,11 +33,16 @@ export default function TicketsPage({
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<JsonSampleTool 
+					resourceName="Ticket" 
+					eventId={event_id} 
+					baseFields={TICKET_BASE_FIELDS} 
+				/>
 				<ImportTicketButton />
 				<TicketPageButton />
 			</div>
 		),
-		[],
+		[event_id],
 	);
 
 	useSetEventActions(eventActions);

@@ -23,10 +23,12 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
 import type { VendorVoucher } from "./vendor-voucher-table-columns";
 import { generateColumns } from "./vendor-voucher-table-columns";
 import { DataControl } from "./vendor-voucher-table-control";
 import { VendorVoucherItem } from "./voucher-item";
+import AddVendorVoucherForm from "../forms/add-vendor-voucher-form";
 
 interface VendorVoucherTableProps<TData> {
 	data: TData[];
@@ -35,6 +37,22 @@ interface VendorVoucherTableProps<TData> {
 export function VendorVoucherTable<TData>({
 	data,
 }: VendorVoucherTableProps<TData>) {
+	const { openDialog, closeDialog } = useDialog();
+
+	const handleCreateVoucher = () => {
+		openDialog({
+			component: AddVendorVoucherForm,
+			props: {
+				onClose: closeDialog,
+			},
+			config: {
+				title: "Create Voucher",
+				description: "Create a new voucher for your store",
+				size: "full",
+			},
+		});
+	};
+
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -78,7 +96,7 @@ export function VendorVoucherTable<TData>({
 								title: "No vouchers yet",
 								desc: "Create your first voucher to start offering discounts",
 								icon: <Ticket />,
-								action: <Button>Create Voucher</Button>,
+								action: <Button onClick={handleCreateVoucher}>Create Voucher</Button>,
 							}}
 						/>
 					</DesktopView>
@@ -99,7 +117,7 @@ export function VendorVoucherTable<TData>({
 									description="Create your first voucher to start offering discounts"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button>Create Voucher</Button>}
+									action={<Button onClick={handleCreateVoucher}>Create Voucher</Button>}
 								/>
 							)}
 						</div>
@@ -121,7 +139,7 @@ export function VendorVoucherTable<TData>({
 										description="Create your first voucher to start offering discounts"
 										icon={<Ticket />}
 										height="h-auto"
-										action={<Button>Create Voucher</Button>}
+										action={<Button onClick={handleCreateVoucher}>Create Voucher</Button>}
 									/>
 								</div>
 							)}

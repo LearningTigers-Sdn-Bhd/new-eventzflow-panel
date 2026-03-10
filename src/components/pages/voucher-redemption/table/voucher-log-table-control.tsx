@@ -46,6 +46,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 			{ label: "All Types", value: "all" },
 			{ label: "User", value: "user_redeemer" },
 			{ label: "Visitor", value: "visitor_redeemer" },
+			{ label: "Ticket", value: "ticket_redeemer" },
 		],
 		customFilter: {
 			value: getRedeemerTypeFilterValue(),

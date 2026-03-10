@@ -14,6 +14,11 @@ export interface Visitor {
 	check_in_at?: string;
 	scanned_by_id?: number;
 	custom_fields_data?: Record<string, string>;
+	rsvp_status?: "pending" | "attending" | "declined";
+	rsvp_responded_at?: string;
+	added_by_id?: number;
+	added_by_name?: string;
+	companion_count?: number;
 	created_at: string;
 	updated_at: string;
 }

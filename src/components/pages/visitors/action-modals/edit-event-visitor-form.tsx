@@ -8,7 +8,6 @@ import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
-import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,11 @@ import {
 	updateVisitor,
 	type Visitor,
 } from "@/lib/api/visitor";
+import {
+	buildVisitorLabelsData,
+	WEDDING_SIDE_FIELD_KEY,
+	WEDDING_SIDE_OPTIONS,
+} from "../wedding-custom-field";
 
 interface EditVisitorFormProps {
 	visitor: Visitor;
@@ -55,23 +59,22 @@ export default function EditEventVisitorForm({
 
 	// Initialize custom fields from event labels_data and populate with visitor data
 	useEffect(() => {
-		if (
-			eventData?.labels_data &&
-			Object.keys(eventData.labels_data).length > 0
-		) {
-			const fields = Object.entries(eventData.labels_data).map(
-				([key, labelNameValue]) => {
-					const currentLabelName = labelNameValue as string;
-					const existingValue = visitor.custom_fields_data?.[key] || "";
+		const labelsData = buildVisitorLabelsData(eventData);
 
-					return {
-						labelKey: key,
-						labelName: currentLabelName,
-						value: existingValue,
-					};
-				},
-			);
+		if (Object.keys(labelsData).length > 0) {
+			const fields = Object.entries(labelsData).map(([key, labelNameValue]) => {
+				const currentLabelName = labelNameValue as string;
+				const existingValue = visitor.custom_fields_data?.[key] || "";
+
+				return {
+					labelKey: key,
+					labelName: currentLabelName,
+					value: existingValue,
+				};
+			});
 			setCustomFields(fields);
+		} else {
+			setCustomFields([]);
 		}
 	}, [eventData, visitor.custom_fields_data]);
 
@@ -276,14 +279,19 @@ export default function EditEventVisitorForm({
 
 								<form.Field name="age">
 									{(field) => (
-										<NumberInputLabel
+										<InputLabel
 											label="Age"
 											htmlFor={ageId}
-											value={Number(field.state.value)}
-											onChange={(val) => field.handleChange(String(val))}
-											placeholder="25"
-											min={1}
-											max={150}
+											name="age"
+											inputType="number"
+											value={field.state.value}
+											onChange={(value) =>
+												field.handleChange(value.replace(/[^\d]/g, ""))
+											}
+											onBlur={field.handleBlur}
+											inputMode="numeric"
+											pattern="[0-9]*"
+											placeholder="Enter your age"
 											disabled={updateVisitorMutation.isPending}
 										/>
 									)}
@@ -301,18 +309,33 @@ export default function EditEventVisitorForm({
 					>
 						{customFields.length > 0 ? (
 							<div className="grid gap-4 md:grid-cols-3 2xl:grid-cols-5">
-								{customFields.map((field) => (
-									<InputLabel
-										key={field.labelKey}
-										label={field.labelName}
-										value={field.value}
-										onChange={(value) =>
-											updateCustomField(field.labelKey, value)
-										}
-										placeholder={`Enter ${field.labelName.toLowerCase()}`}
-										disabled={updateVisitorMutation.isPending}
-									/>
-								))}
+								{customFields.map((field) =>
+									field.labelKey === WEDDING_SIDE_FIELD_KEY ? (
+										<SelectLabel
+											key={field.labelKey}
+											label={field.labelName}
+											htmlFor={field.labelKey}
+											value={field.value}
+											onChange={(value) =>
+												updateCustomField(field.labelKey, value)
+											}
+											placeholder="Select side"
+											options={WEDDING_SIDE_OPTIONS}
+											disabled={updateVisitorMutation.isPending}
+										/>
+									) : (
+										<InputLabel
+											key={field.labelKey}
+											label={field.labelName}
+											value={field.value}
+											onChange={(value) =>
+												updateCustomField(field.labelKey, value)
+											}
+											placeholder={`Enter ${field.labelName.toLowerCase()}`}
+											disabled={updateVisitorMutation.isPending}
+										/>
+									),
+								)}
 							</div>
 						) : (
 							<EmptyState

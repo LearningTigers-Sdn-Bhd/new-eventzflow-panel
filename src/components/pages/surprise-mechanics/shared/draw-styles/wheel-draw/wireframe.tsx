@@ -222,7 +222,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 						{participantCount.toLocaleString()}
 					</span>
 					<span className="font-semibold text-gray-600 text-sm">
-						participants
+						{mode === "prizes" ? "prizes" : "participants"}
 					</span>
 				</div>
 			)}

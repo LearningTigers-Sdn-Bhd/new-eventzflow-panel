@@ -1,13 +1,15 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
-import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
+import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -23,7 +25,8 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
-	const { isVendor, isExhibitionContractor } = useEventPermissions(event_id);
+	const { isVendor, isExhibitionContractor, canManageEvent } = useEventPermissions(event_id);
+	const { openDialog, closeDialog } = useDialog();
 
 	const shouldFetchAnalytics =
 		isInitialized && !isVendor && !isExhibitionContractor;
@@ -58,13 +61,39 @@ export default function EventDetailsPage({
 
 	const [
 		{ data: event, isLoading: eventLoading, error: eventError },
-		{ data: analytics, isLoading: analyticsLoading, error: analyticsError },
-		{ data: mallData, isLoading: mallLoading, error: mallError },
-		{ data: voucherAnalytics, isLoading: voucherLoading },
+		{ data: analytics },
+		{ data: mallData },
+		{ data: voucherAnalytics },
 	] = queries;
 
+	// Set header actions
+	const openEventSettings = () => {
+		if (!event) return;
+		openDialog({
+			component: EventSettingsDialog,
+			config: {
+				title: "Event Settings",
+				size: "full",
+			},
+			props: {
+				eventId: event.id,
+				onClose: closeDialog,
+			},
+		});
+	};
+
 	useSetEventActions(
-		event ? <EventDetailsActionButtons event={event} /> : null,
+		event && canManageEvent ? (
+			<Button
+				variant="outline"
+				size="sm"
+				className="rounded-none"
+				onClick={openEventSettings}
+			>
+				<Pencil className="mr-2 h-4 w-4" />
+				Edit Event
+			</Button>
+		) : null,
 	);
 
 	if (eventLoading) {
@@ -81,37 +110,6 @@ export default function EventDetailsPage({
 			<ErrorState
 				title="Failed to load event details"
 				description="We couldn't load event details. Please try again."
-				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
-			/>
-		);
-	}
-
-	const isTicketEvent = event.use_ticket !== false;
-
-	// Only show loading/error for analytics if we are actually fetching them
-	const isLoading =
-		shouldFetchAnalytics &&
-		(isTicketEvent ? analyticsLoading : mallLoading || voucherLoading);
-	const error = shouldFetchAnalytics
-		? isTicketEvent
-			? analyticsError
-			: mallError
-		: null;
-
-	if (isLoading) {
-		return (
-			<LoadingState
-				title="Loading analytics..."
-				description="Please wait while we fetch event analytics."
-			/>
-		);
-	}
-
-	if (error || (shouldFetchAnalytics && isTicketEvent && !analytics)) {
-		return (
-			<ErrorState
-				title="Failed to load analytics"
-				description="We couldn't load event analytics. Please try again."
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);

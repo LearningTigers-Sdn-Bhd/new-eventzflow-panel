@@ -11,12 +11,14 @@ interface FormGroupContainerProps {
 		label: string;
 		description: string;
 	};
+	actions?: React.ReactNode;
 	orientation?: "horizontal" | "vertical";
 }
 
 export function FormGroupContainer({
 	children,
 	title: { icon: Icon, label, description },
+	actions,
 	orientation = "vertical",
 }: FormGroupContainerProps) {
 	return (
@@ -26,6 +28,7 @@ export function FormGroupContainer({
 					<Icon className="size-5 md:size-6" />
 				</div>
 				<FieldSectionLabel label={label} description={description} />
+				{actions && <div className="ml-auto shrink-0">{actions}</div>}
 			</div>
 			<div className="flex h-full w-full flex-1 flex-col justify-start gap-2 p-3">
 				<FieldGroup

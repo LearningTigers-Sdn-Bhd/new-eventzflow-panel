@@ -8,11 +8,13 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+	Bell,
 	ChevronDown,
 	Edit2,
 	Gift as GiftIcon,
 	GripVertical,
 	List,
+	Loader2,
 	Plus,
 	Save,
 	Trash2,
@@ -50,12 +52,14 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
+import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 import type { Gift as GiftType } from "@/stores/lucky-draw-store";
 
 interface SortableGiftCardProps {
 	gift: GiftType;
 	onClearWinner: (giftId: string, winnerId: number) => void;
+	onNotifyWinner: (winnerId: number) => void;
 	onRemoveGift: (giftId: string) => void;
 	onUpdateGift: (
 		giftId: string,
@@ -68,15 +72,18 @@ interface SortableGiftCardProps {
 		type: "ticket" | "visitor";
 		publicId: string;
 	}>;
+	notifyingWinnerIds: Set<number>;
 }
 
 function SortableGiftCard({
 	gift,
 	onClearWinner,
+	onNotifyWinner,
 	onRemoveGift,
 	onUpdateGift,
 	winnerId,
 	allWinners = [],
+	notifyingWinnerIds,
 }: SortableGiftCardProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editName, setEditName] = useState(gift.name);
@@ -273,7 +280,24 @@ function SortableGiftCard({
 											{gift.winner?.name || allWinners[0]?.name}
 										</span>
 									</div>
-									<div className="col-span-1 flex items-center justify-end">
+									<div className="col-span-1 flex items-center justify-end gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												if (winnerId) {
+													onNotifyWinner(winnerId);
+												}
+											}}
+											disabled={!winnerId || (winnerId ? notifyingWinnerIds.has(winnerId) : false)}
+											className="gap-2 rounded-none"
+										>
+											{winnerId && notifyingWinnerIds.has(winnerId) ? (
+												<Loader2 className="size-4 animate-spin" />
+											) : (
+												<Bell className="size-4" />
+											)}
+										</Button>
 										<Button
 											variant="outline"
 											size="sm"
@@ -301,7 +325,20 @@ function SortableGiftCard({
 												<div className="col-span-2 flex items-center font-medium text-sm">
 													<span className="truncate">{winner.name}</span>
 												</div>
-												<div className="col-span-1 flex items-center justify-end">
+												<div className="col-span-1 flex items-center justify-end gap-2">
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => onNotifyWinner(winner.id)}
+														disabled={notifyingWinnerIds.has(winner.id)}
+														className="gap-2 rounded-none"
+													>
+														{notifyingWinnerIds.has(winner.id) ? (
+															<Loader2 className="size-4 animate-spin" />
+														) : (
+															<Bell className="size-4" />
+														)}
+													</Button>
 													<Button
 														variant="outline"
 														size="sm"
@@ -337,16 +374,21 @@ interface GiftInvalidListSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	luckyDraw: ReturnType<typeof useLuckyDraw>;
+	eventId: string;
+	sessionId: number;
 }
 
 export function GiftInvalidListSheet({
 	open,
 	onOpenChange,
 	luckyDraw,
+	eventId,
+	sessionId,
 }: GiftInvalidListSheetProps) {
 	const [newGiftName, setNewGiftName] = useState("");
 	const [newGiftWinnerCounts, setNewGiftWinnerCounts] = useState(1);
 	const [isAddGiftCardOpen, setIsAddGiftCardOpen] = useState(false);
+	const [notifyingIds, setNotifyingIds] = useState<Set<number>>(new Set());
 
 	// Get all data and actions from the hook
 	const {
@@ -365,6 +407,46 @@ export function GiftInvalidListSheet({
 		removeInvalidParticipant,
 		clearInvalidParticipants,
 	} = luckyDraw;
+
+	const handleNotifyWinner = async (invalidParticipantId: number) => {
+		setNotifyingIds(prev => new Set(prev).add(invalidParticipantId));
+		try {
+			await notifyInvalidParticipant(eventId, sessionId, invalidParticipantId);
+			toast.success("Notification sent successfully");
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to send notification");
+		} finally {
+			setNotifyingIds(prev => {
+				const next = new Set(prev);
+				next.delete(invalidParticipantId);
+				return next;
+			});
+		}
+	};
+
+	const handleNotifyGiftWinner = async (winnerId: number) => {
+		setNotifyingIds(prev => new Set(prev).add(winnerId));
+		try {
+			// Find the gift that contains this winner
+			const gift = giftsData?.find(g => g.winners.some(w => w.id === winnerId));
+			if (!gift) {
+				throw new Error("Gift not found for winner");
+			}
+			
+			// Import the notify function
+			const { notifyGiftWinner } = await import("@/lib/api/lucky-draw");
+			await notifyGiftWinner(eventId, sessionId, gift.id, winnerId);
+			toast.success("Notification sent successfully");
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to send notification");
+		} finally {
+			setNotifyingIds(prev => {
+				const next = new Set(prev);
+				next.delete(winnerId);
+				return next;
+			});
+		}
+	};
 
 	const handleAddGift = () => {
 		if (!newGiftName.trim()) {
@@ -459,10 +541,12 @@ export function GiftInvalidListSheet({
 										key={gift.id}
 										gift={gift}
 										onClearWinner={clearWinner}
+										onNotifyWinner={handleNotifyGiftWinner}
 										onRemoveGift={removeGift}
 										onUpdateGift={handleUpdateGift}
 										winnerId={winnerId}
 										allWinners={allWinners}
+										notifyingWinnerIds={notifyingIds}
 									/>
 								);
 							})}
@@ -601,7 +685,24 @@ export function GiftInvalidListSheet({
 											{participant.name}
 										</div>
 									</div>
-									<div className="col-span-1 flex items-center justify-end">
+									<div className="col-span-1 flex items-center justify-end gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											className="gap-2 rounded-none"
+											onClick={() => {
+												if (invalidParticipantId) {
+													handleNotifyWinner(invalidParticipantId);
+												}
+											}}
+											disabled={!invalidParticipantId || (invalidParticipantId ? notifyingIds.has(invalidParticipantId) : false)}
+										>
+											{invalidParticipantId && notifyingIds.has(invalidParticipantId) ? (
+												<Loader2 className="size-4 animate-spin" />
+											) : (
+												<Bell className="size-4" />
+											)}
+										</Button>
 										<Button
 											variant="outline"
 											size="sm"

@@ -12,6 +12,7 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { Ticket } from "lucide-react";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import {
 	DesktopView,
@@ -23,9 +24,11 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
 import type { BaseVoucher } from "./event-voucher-table-columns";
 import { DataControl } from "./event-voucher-table-control";
 import { VoucherItem } from "./voucher-item";
+import AddVoucherForm from "../forms/add-voucher-form";
 
 interface DataTableProps<TData> {
 	columns: ColumnDef<TData>[];
@@ -33,6 +36,25 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+	const params = useParams();
+	const eventId = params.event_id as string;
+	const { openDialog, closeDialog } = useDialog();
+
+	const handleAddVoucher = () => {
+		openDialog({
+			component: AddVoucherForm,
+			props: {
+				eventId: Number(eventId),
+				onClose: closeDialog,
+			},
+			config: {
+				title: "Create Voucher",
+				description: "Create a new voucher for this event.",
+				size: "full",
+			},
+		});
+	};
+
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -71,7 +93,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 								title: "No vouchers assigned",
 								desc: "Add vouchers to this event to get started",
 								icon: <Ticket />,
-								action: <Button>Add Voucher</Button>,
+								action: <Button onClick={handleAddVoucher}>Add Voucher</Button>,
 							}}
 						/>
 					</DesktopView>
@@ -92,7 +114,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 									description="Add vouchers to this event to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button>Add Voucher</Button>}
+									action={<Button onClick={handleAddVoucher}>Add Voucher</Button>}
 								/>
 							)}
 						</div>
@@ -114,7 +136,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 									description="Add vouchers to this event to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button>Add Voucher</Button>}
+									action={<Button onClick={handleAddVoucher}>Add Voucher</Button>}
 								/>
 							)}
 						</div>

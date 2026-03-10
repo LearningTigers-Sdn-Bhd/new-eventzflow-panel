@@ -1,18 +1,20 @@
 "use client";
 
-import { InfoIcon, TagIcon } from "lucide-react";
+import { CreditCard, ImageIcon, InfoIcon, Mail, Monitor, TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+export type SettingsTab = "event-information" | "email-settings" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
+
 interface NavigationItem {
-	id: "event-information" | "custom-labels";
+	id: SettingsTab;
 	label: string;
 	icon: React.ComponentType<{ className?: string }>;
 }
 
 interface SettingsNavigationProps {
-	activeTab: "event-information" | "custom-labels";
-	onTabChange: (tab: "event-information" | "custom-labels") => void;
+	activeTab: SettingsTab;
+	onTabChange: (tab: SettingsTab) => void;
 	onClose?: () => void;
 }
 
@@ -23,9 +25,29 @@ const navigationItems: NavigationItem[] = [
 		icon: InfoIcon,
 	},
 	{
+		id: "email-settings",
+		label: "Email Settings",
+		icon: Mail,
+	},
+	{
 		id: "custom-labels",
 		label: "Custom Labels",
 		icon: TagIcon,
+	},
+	{
+		id: "welcome-screen",
+		label: "Welcome Screen",
+		icon: Monitor,
+	},
+	{
+		id: "branding",
+		label: "Branding",
+		icon: ImageIcon,
+	},
+	{
+		id: "payment-gateway",
+		label: "Payment Gateway",
+		icon: CreditCard,
 	},
 ];
 
@@ -34,7 +56,7 @@ export default function SettingsNavigation({
 	onTabChange,
 }: SettingsNavigationProps) {
 	return (
-		<div className="sticky top-0 hidden w-full self-start md:flex md:flex-col md:gap-2">
+		<div className="sticky top-0 flex w-full flex-row gap-2 overflow-x-auto self-start md:flex-col">
 			{navigationItems.map((item) => {
 				const Icon = item.icon;
 				const isActive = activeTab === item.id;
@@ -43,7 +65,7 @@ export default function SettingsNavigation({
 					<Button
 						key={item.id}
 						className={cn(
-							"w-full justify-start rounded-none",
+							"shrink-0 justify-start rounded-none",
 							isActive && "border",
 						)}
 						variant={isActive ? "secondary" : "ghost"}
@@ -51,7 +73,8 @@ export default function SettingsNavigation({
 						onClick={() => onTabChange(item.id)}
 					>
 						<Icon className="mr-2 size-4" />
-						{item.label}
+						<span className="hidden md:inline">{item.label}</span>
+						<span className="md:hidden">{item.label.split(" ")[0]}</span>
 					</Button>
 				);
 			})}

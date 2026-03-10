@@ -30,11 +30,16 @@ export default function NotFoundPage() {
 				</p>
 				<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
 					<Link href="/" passHref>
-						<Button className="w-full sm:w-auto">Go to Homepage</Button>
+						<Button className="w-full rounded-none sm:w-auto">
+							Go to Homepage
+						</Button>
 					</Link>
 					{isInitialized && isAuthenticated && (
 						<Link href="/dashboard" passHref>
-							<Button variant="outline" className="w-full sm:w-auto">
+							<Button
+								variant="outline"
+								className="w-full rounded-none sm:w-auto"
+							>
 								Go to Dashboard
 							</Button>
 						</Link>

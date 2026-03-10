@@ -138,7 +138,7 @@ export function RedemptionScanner({
 								<p className="text-muted-foreground text-sm leading-relaxed">
 									{currentStep === "voucher"
 										? "Scan the voucher QR code to begin"
-										: "Scan the visitor's QR code to continue"}
+										: "Scan the attendee's QR code to continue"}
 								</p>
 							</div>
 
@@ -167,7 +167,7 @@ export function RedemptionScanner({
 								<span className="font-medium text-primary-foreground text-xs">
 									{currentStep === "voucher"
 										? "Scan Voucher QR"
-										: "Scan Visitor QR"}
+										: "Scan Attendee QR"}
 								</span>
 							</div>
 						</div>

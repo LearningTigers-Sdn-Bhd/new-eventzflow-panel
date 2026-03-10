@@ -15,13 +15,14 @@ import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
+import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { PaymentList } from "./payment-list";
 import { VerifyRejectPaymentDialog } from "./verify-reject-payment-dialog";
-import { useAuth } from "@/hooks/auth/use-auth";
 
 interface ExhibitorKitDetailsViewProps {
 	eventId: string;
@@ -59,7 +60,8 @@ export function ExhibitorKitDetailsView({
 	});
 
 	// Check if contractor printing is enabled
-	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+	const allowContractorPrinting =
+		eventDetails?.allow_contractor_printing_services ?? false;
 
 	// Find the exhibitor kit from the vendors data (same approach as admin)
 	const exhibitorKit = vendors?.find(
@@ -101,6 +103,9 @@ export function ExhibitorKitDetailsView({
 	const printings = exhibitorKit.exhibitor_kit_printings || [];
 	const teamMembers = exhibitorKit.exhibitor_team_members || [];
 	const customRequests = exhibitorKit.custom_requests || [];
+	const customFieldsEntries = formatCustomFieldEntries(
+		exhibitorKit.custom_fields_data,
+	);
 
 	const itemsTotal = items.reduce(
 		(sum, item) => sum + Number(item.agreed_price) * item.quantity,
@@ -159,7 +164,7 @@ export function ExhibitorKitDetailsView({
 						)}
 						{exhibitorKit.booth_type && (
 							<Badge variant="outline" className="rounded-none capitalize">
-								{exhibitorKit.booth_type.replace("_", " ")}
+								{exhibitorKit.booth_type.replace(/_/g, " ")}
 							</Badge>
 						)}
 						<Badge
@@ -203,7 +208,7 @@ export function ExhibitorKitDetailsView({
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Type:</span>
 									<Badge variant="outline" className="rounded-none capitalize">
-										{exhibitorKit.booth_type?.replace("_", " ") || "-"}
+										{exhibitorKit.booth_type?.replace(/_/g, " ") || "-"}
 									</Badge>
 								</div>
 								<div className="flex justify-between">
@@ -236,6 +241,25 @@ export function ExhibitorKitDetailsView({
 										Fascia Upgrade Required
 									</Badge>
 								)}
+								{customFieldsEntries.length > 0 && (
+									<div className="space-y-1 border-t pt-2">
+										<div className="space-y-1">
+											{customFieldsEntries.map((entry) => (
+												<div
+													key={entry.key}
+													className="space-y-0.5 py-0.5 text-xs"
+												>
+													<span className="block font-medium">
+														{entry.label}
+													</span>
+													<span className="block whitespace-pre-wrap break-words text-muted-foreground">
+														{entry.value}
+													</span>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 
@@ -263,6 +287,12 @@ export function ExhibitorKitDetailsView({
 									<span className="text-sm">
 										{exhibitorKit.company_address || "-"}
 									</span>
+								</div>
+								<div>
+									<span className="mb-1 block text-muted-foreground">
+										Country:
+									</span>
+									<span className="text-sm">{exhibitorKit.country || "-"}</span>
 								</div>
 								<div className="border-t pt-2">
 									<span className="mb-1 block text-muted-foreground">

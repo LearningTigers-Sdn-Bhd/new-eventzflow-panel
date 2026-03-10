@@ -10,34 +10,30 @@ import {
 } from "@/components/pdf-reports";
 import {
 	EventDateFilter,
-	getAnalyticsParamsFromSelection,
 	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
-import { getEventById } from "@/lib/api/event";
 import {
+	getHourlyBreakdownByDay,
 	getTimeSeries,
 	getTotalScannedVisitors,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
 } from "@/lib/api/event/analytics";
+import type { Event } from "@/lib/api/event/response";
 
 interface EventDetailsVisitorStatsProps {
-	eventId: string;
+	event: Event;
 }
 
 export function EventDetailsVisitorStats({
-	eventId,
+	event,
 }: EventDetailsVisitorStatsProps) {
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
-	const eventIdNum = Number.parseInt(eventId, 10);
-
-	// Fetch event to get start/end dates
-	const { data: event, isLoading: eventLoading } = useQuery({
-		queryKey: ["event", eventIdNum],
-		queryFn: () => getEventById(eventId),
-	});
+	const eventIdNum = event.id;
 
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
@@ -69,12 +65,17 @@ export function EventDetailsVisitorStats({
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),
-		enabled: !!event,
 	});
 
 	// Fetch visitor scans time series
 	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
-		queryKey: ["event", eventIdNum, "analytics", "visitor_scans", dateSelection],
+		queryKey: [
+			"event",
+			eventIdNum,
+			"analytics",
+			"visitor_scans",
+			dateSelection,
+		],
 		queryFn: () =>
 			getTimeSeries({
 				eventId: eventIdNum,
@@ -84,19 +85,81 @@ export function EventDetailsVisitorStats({
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 			}),
-		enabled: !!event,
+	});
+
+	// Determine if event spans multiple days (for hourly breakdown)
+	const isMultiDayEvent = useMemo(() => {
+		const start = new Date(event.start_date);
+		const end = new Date(event.end_date);
+		return start.toDateString() !== end.toDateString();
+	}, [event.start_date, event.end_date]);
+
+	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	const shouldFetchHourlyBreakdown =
+		isMultiDayEvent &&
+		(dateSelection.type === "all_time" ||
+			dateSelection.type === "pre_event" ||
+			dateSelection.type === "event_duration");
+
+	const { data: hourlyRegistrations } = useQuery({
+		queryKey: [
+			"event",
+			eventIdNum,
+			"hourly_breakdown",
+			"visitors",
+			dateSelection,
+		],
+		queryFn: () =>
+			getHourlyBreakdownByDay(eventIdNum, "visitors", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: shouldFetchHourlyBreakdown,
+	});
+
+	const { data: hourlyScans } = useQuery({
+		queryKey: [
+			"event",
+			eventIdNum,
+			"hourly_breakdown",
+			"visitor_scans",
+			dateSelection,
+		],
+		queryFn: () =>
+			getHourlyBreakdownByDay(eventIdNum, "visitor_scans", {
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+		enabled: shouldFetchHourlyBreakdown,
 	});
 
 	// Transform visitor data for charts
 	const transformData = (data?: { period: string; value: number }[]) =>
 		data?.map((d) => ({ date: d.period, value: d.value })) ?? [];
 
+	const dateFilterLabel = useMemo(
+		() => getDateFilterLabelFromSelection(dateSelection, event.start_date),
+		[dateSelection, event.start_date],
+	);
+
 	// Prepare report data for PDF export
 	const pdfReportData = useMemo(() => {
-		if (!event || !totalVisitors || !scannedVisitors || !unscannedVisitors) return null;
+		if (!totalVisitors || !scannedVisitors || !unscannedVisitors) return null;
+
+		// Include hourly breakdown for multi-day events
+		const hourlyBreakdown =
+			shouldFetchHourlyBreakdown && (hourlyRegistrations || hourlyScans)
+				? {
+						registrations: hourlyRegistrations,
+						scans: hourlyScans,
+					}
+				: undefined;
+
 		return prepareVisitorReportData(
 			{
-				id: eventId,
+				id: event.id.toString(),
 				name: event.title,
 				start_date: event.start_date,
 				end_date: event.end_date,
@@ -110,25 +173,36 @@ export function EventDetailsVisitorStats({
 				registrations: transformData(visitorsData?.data),
 				scans: transformData(visitorScansData?.data),
 			},
+			hourlyBreakdown,
+			dateFilterLabel,
 		);
-	}, [event, totalVisitors, scannedVisitors, unscannedVisitors, visitorsData, visitorScansData, eventId]);
+	}, [
+		event,
+		totalVisitors,
+		scannedVisitors,
+		unscannedVisitors,
+		visitorsData,
+		visitorScansData,
+		shouldFetchHourlyBreakdown,
+		hourlyRegistrations,
+		hourlyScans,
+		dateFilterLabel,
+	]);
 
 	const statsLoading = totalLoading || scannedLoading || unscannedLoading;
-	const isLoading = eventLoading || statsLoading || visitorsLoading || visitorScansLoading;
+	const isLoading = statsLoading || visitorsLoading || visitorScansLoading;
 
 	return (
 		<div className="mb-8 space-y-4 border-y border-dashed">
 			<div className="flex items-center justify-between px-4 pt-4">
 				<h3 className="font-medium text-sm">Analytics Trends</h3>
 				<div className="flex items-center gap-2">
-					{event && (
-						<EventDateFilter
-							eventStartDate={event.start_date}
-							eventEndDate={event.end_date}
-							value={dateSelection}
-							onChange={setDateSelection}
-						/>
-					)}
+					<EventDateFilter
+						eventStartDate={event.start_date}
+						eventEndDate={event.end_date}
+						value={dateSelection}
+						onChange={setDateSelection}
+					/>
 					<ExportPdfButton
 						data={pdfReportData}
 						size="sm"

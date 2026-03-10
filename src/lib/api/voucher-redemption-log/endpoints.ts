@@ -21,16 +21,19 @@ function transformVoucherType(
 
 /**
  * Transform backend redeemer type to frontend format
- * Backend sends polymorphic type like "User" or "Visitor"
- * We normalize to "user_redeemer" or "visitor_redeemer"
+ * Backend sends polymorphic type like "User", "Visitor" or "Ticket"
+ * We normalize to "user_redeemer", "visitor_redeemer" or "ticket_redeemer"
  */
 function transformRedeemerType(
 	backendType: string,
-): "user_redeemer" | "visitor_redeemer" {
+): "user_redeemer" | "visitor_redeemer" | "ticket_redeemer" {
 	// Handle both possible formats from backend
 	const normalized = backendType.toLowerCase();
 	if (normalized === "user" || normalized === "user_redeemer") {
 		return "user_redeemer";
+	}
+	if (normalized === "ticket" || normalized === "ticket_redeemer") {
+		return "ticket_redeemer";
 	}
 	return "visitor_redeemer";
 }
@@ -75,6 +78,7 @@ function transformRedemptionLog(
 		notes: backendLog.notes,
 		createdAt: backendLog.created_at,
 		updatedAt: backendLog.updated_at,
+		redeemerName: backendLog.redeemer_name,
 		voucher: backendLog.voucher
 			? {
 					id: backendLog.voucher.id,
@@ -87,9 +91,12 @@ function transformRedemptionLog(
 		redeemer: backendLog.redeemer
 			? {
 					id: backendLog.redeemer.id,
-					fullName: backendLog.redeemer.full_name,
-					email: backendLog.redeemer.email,
-					phone: backendLog.redeemer.phone,
+					fullName:
+						backendLog.redeemer.full_name ||
+						backendLog.redeemer.attendee_name ||
+						backendLog.redeemer_name,
+					email: backendLog.redeemer.email || backendLog.redeemer.attendee_email,
+					phone: backendLog.redeemer.phone || backendLog.redeemer.attendee_phone,
 					publicId: backendLog.redeemer.public_id,
 				}
 			: undefined,

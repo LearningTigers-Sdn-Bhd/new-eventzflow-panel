@@ -41,8 +41,8 @@ export function BaseTable<TData>({
 	const columnCount = table.getAllColumns().length;
 
 	return (
-		<div className="flex min-h-[calc(100vh-320px)] flex-col overflow-x-auto border">
-			<div className="h-full flex-1">
+		<div className="min-h-[calc(100vh-320px)] w-full overflow-x-auto border">
+			<div className="h-full w-full">
 				<Table
 					className={cn(
 						table.getRowModel().rows.length === 0 ? "w-full" : "min-w-max",

@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, ExternalLink, FileText, Hash, Mail, Phone, Ruler, Tag, User } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -54,12 +55,33 @@ interface ExhibitorKitSectionProps {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	form: FormWithExhibitorKitFields | any;
 	guidelinesPdfUrl?: string | null;
+	customBoothTypes?: string[];
 }
 
 export function ExhibitorKitSection({
 	form,
 	guidelinesPdfUrl,
+	customBoothTypes = [],
 }: ExhibitorKitSectionProps) {
+	const boothTypeOptions = useMemo(() => {
+		const defaults = [
+			{ value: "shell_scheme", label: "Shell Scheme" },
+			{ value: "raw_space", label: "Raw Space" },
+		];
+		for (const type of customBoothTypes) {
+			if (!defaults.some((o) => o.value === type)) {
+				defaults.push({
+					value: type,
+					label: type
+						.split("_")
+						.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+						.join(" "),
+				});
+			}
+		}
+		return defaults;
+	}, [customBoothTypes]);
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between sm:pb-2">
@@ -138,8 +160,11 @@ export function ExhibitorKitSection({
 										<SelectValue placeholder="Select booth type" />
 									</SelectTrigger>
 									<SelectContent className="rounded-none">
-										<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
-										<SelectItem value="raw_space">Raw Space</SelectItem>
+										{boothTypeOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
+											</SelectItem>
+										))}
 									</SelectContent>
 								</Select>
 							</div>

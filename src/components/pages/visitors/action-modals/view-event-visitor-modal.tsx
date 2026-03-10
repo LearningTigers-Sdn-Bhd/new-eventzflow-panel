@@ -3,26 +3,59 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
-	Clock,
 	Hash,
 	Info,
+	type LucideIcon,
 	Mail,
 	Phone,
-	Tag,
 	Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import QRCode from "react-qr-code";
-import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { getEventById } from "@/lib/api/event";
 import type { Visitor } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
+import { buildVisitorLabelsData } from "../wedding-custom-field";
 
 interface VisitorViewModalProps {
 	visitor: Visitor;
 }
+
+const InfoItem = ({
+	label,
+	value,
+	icon: Icon,
+	capitalize = false,
+	className,
+}: {
+	label: string;
+	value: string;
+	icon: LucideIcon;
+	capitalize?: boolean;
+	className?: string;
+}) => {
+	return (
+		<div className={cn("flex flex-col gap-1.5", className)}>
+			<div className="flex items-center gap-2 text-muted-foreground">
+				<Icon className="size-3.5" />
+				<span className="font-medium text-[10px] uppercase tracking-wider">
+					{label}
+				</span>
+			</div>
+			<p
+				className={cn(
+					"font-semibold text-sm leading-tight",
+					capitalize && "capitalize",
+				)}
+			>
+				{value || "-"}
+			</p>
+		</div>
+	);
+};
 
 const formatGender = (gender?: string) => {
 	if (!gender) return "Not provided";
@@ -41,19 +74,18 @@ export default function ViewEventVisitorModal({
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const createdDate = new Date(visitor.created_at);
-	const updatedDate = new Date(visitor.updated_at);
 
-	// Fetch event details to get labels_data for custom fields
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
 		enabled: !!eventId,
 	});
 
-	// Prepare custom labels
+	const labelsData = buildVisitorLabelsData(eventData);
+
 	const customLabels =
-		eventData?.labels_data && Object.keys(eventData.labels_data).length > 0
-			? Object.entries(eventData.labels_data).map(([key, labelName]) => {
+		Object.keys(labelsData).length > 0
+			? Object.entries(labelsData).map(([key, labelName]) => {
 					const rawValue = visitor.custom_fields_data?.[key];
 					return {
 						name: labelName as string,
@@ -63,175 +95,132 @@ export default function ViewEventVisitorModal({
 			: [];
 
 	return (
-		<ScrollArea className="h-[80vh]">
-			<div className="flex flex-col gap-0">
-				{/* Header Section with QR Code */}
-				<div className="flex flex-col items-center gap-4 border-b border-dashed p-6 md:flex-row md:items-start">
-					{/* QR Code */}
-					<div className="shrink-0 border bg-white p-3">
-						<QRCode value={visitor.public_id} size={120} />
+		<div className="flex h-full w-full flex-col gap-0 p-0">
+			<ScrollArea className="max-h-[85vh]">
+				<div className="flex flex-col gap-6 p-6">
+					{/* Header Status Section */}
+					<div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
+						<div className="space-y-1">
+							<div className="flex items-center gap-2">
+								<Hash className="size-4 text-muted-foreground" />
+								<span className="font-mono font-semibold text-lg">
+									{visitor.public_id}
+								</span>
+							</div>
+							<p className="text-muted-foreground text-xs">
+								Registered on {createdDate.toLocaleDateString()} at{" "}
+								{createdDate.toLocaleTimeString()}
+							</p>
+						</div>
+						<Badge
+							variant={visitor.checked_in ? "default" : "destructive"}
+							className={cn(
+								"w-fit rounded-none px-4 py-1.5 font-bold font-mono text-xs uppercase tracking-widest",
+								visitor.checked_in
+									? "bg-green-500 text-white hover:bg-green-600"
+									: "bg-amber-500 text-white hover:bg-amber-600",
+							)}
+						>
+							{visitor.checked_in ? "Visitor Scanned" : "Not Scanned Yet"}
+						</Badge>
 					</div>
 
-					{/* Basic Info */}
-					<div className="flex flex-1 flex-col items-center gap-2 md:items-start">
-						<div className="space-y-1 text-center md:text-left">
-							<p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-								Visitor
-							</p>
-							<h2 className="font-bold text-2xl tracking-tight">
-								{visitor.full_name}
-							</h2>
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+						{/* Visitor Information Card */}
+						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
+							<div className="border-b-2 bg-muted px-4 py-3">
+								<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+									<Users className="size-4" />
+									Visitor Information
+								</h3>
+							</div>
+							<CardContent className="grid gap-6 p-6">
+								<InfoItem
+									label="Full Name"
+									value={visitor.full_name}
+									icon={Users}
+									capitalize
+								/>
+								<InfoItem
+									label="Gender"
+									value={formatGender(visitor.gender)}
+									icon={Users}
+								/>
+								<InfoItem
+									label="Age"
+									value={
+										visitor.age ? `${visitor.age} years old` : "Not provided"
+									}
+									icon={Calendar}
+								/>
+							</CardContent>
+						</Card>
+
+						{/* Contact Information Card */}
+						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
+							<div className="border-b-2 bg-muted px-4 py-3">
+								<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+									<Mail className="size-4" />
+									Contact Details
+								</h3>
+							</div>
+							<CardContent className="grid gap-6 p-6">
+								<InfoItem
+									label="Email Address"
+									value={visitor.email || "No email provided"}
+									icon={Mail}
+								/>
+								<InfoItem
+									label="Phone Number"
+									value={visitor.phone || "No phone provided"}
+									icon={Phone}
+								/>
+								<InfoItem
+									label="Registration Date"
+									value={createdDate.toLocaleDateString(undefined, {
+										dateStyle: "long",
+									})}
+									icon={Calendar}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* Custom Information Section */}
+					<div className="space-y-4">
+						<div className="flex items-center gap-2">
+							<Info className="size-4 text-primary" />
+							<h3 className="font-bold text-sm uppercase tracking-tight">
+								Additional Information
+							</h3>
 						</div>
-						<Badge variant="outline" className="rounded-none font-mono text-xs">
-							<Hash className="mr-1 h-3 w-3" />
-							{visitor.public_id}
-						</Badge>
-						{(visitor.gender || visitor.age) && (
-							<div className="flex items-center gap-2 text-muted-foreground text-sm">
-								<Users className="h-4 w-4" />
-								<span>
-									{formatGender(visitor.gender)}
-									{visitor.age && ` - ${visitor.age} years old`}
-								</span>
+						<Separator />
+
+						{customLabels.length > 0 ? (
+							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
+								<CardContent className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
+									{customLabels.map((label, index) => (
+										<InfoItem
+											key={`${label.name}-${index}`}
+											label={label.name}
+											value={label.value}
+											icon={Info}
+											capitalize={true}
+										/>
+									))}
+								</CardContent>
+							</Card>
+						) : (
+							<div className="flex flex-col items-center justify-center rounded-none border border-dashed p-8 text-center">
+								<Info className="mb-2 size-8 text-muted-foreground/50" />
+								<p className="font-medium text-muted-foreground text-sm">
+									No custom fields found for this visitor.
+								</p>
 							</div>
 						)}
 					</div>
 				</div>
-
-				{/* Contact Information */}
-				<div className="border-b border-dashed p-6">
-					<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-						Contact Information
-					</p>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<div className="flex items-start gap-3">
-							<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
-							<div className="min-w-0 flex-1">
-								<p className="font-medium text-muted-foreground text-xs uppercase">
-									Email
-								</p>
-								<p
-									className={cn(
-										"truncate text-sm",
-										!visitor.email && "text-muted-foreground/60 italic",
-									)}
-								>
-									{visitor.email || "Not provided"}
-								</p>
-							</div>
-						</div>
-						<div className="flex items-start gap-3">
-							<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-							<div className="min-w-0 flex-1">
-								<p className="font-medium text-muted-foreground text-xs uppercase">
-									Phone
-								</p>
-								<p
-									className={cn(
-										"truncate text-sm",
-										!visitor.phone && "text-muted-foreground/60 italic",
-									)}
-								>
-									{visitor.phone || "Not provided"}
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Custom Labels Section */}
-				{customLabels.length > 0 && (
-					<div className="border-b border-dashed p-6">
-						<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-							Additional Information
-						</p>
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							{customLabels.map((label, index) => (
-								<div
-									key={`${label.name}-${index}`}
-									className="flex items-start gap-3"
-								>
-									<Tag className="mt-0.5 h-4 w-4 text-muted-foreground" />
-									<div className="min-w-0 flex-1">
-										<p className="font-medium text-muted-foreground text-xs uppercase">
-											{label.name}
-										</p>
-										<p
-											className={cn(
-												"text-sm",
-												!label.value && "text-muted-foreground/60 italic",
-											)}
-										>
-											{label.value || "Not provided"}
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-
-				{customLabels.length === 0 &&
-					eventData?.labels_data &&
-					Object.keys(eventData.labels_data).length === 0 && (
-						<div className="border-b border-dashed p-6">
-							<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-								Additional Information
-							</p>
-							<EmptyState
-								title="No custom labels"
-								description="No custom labels have been configured for this event."
-								icon={<Info className="size-8" />}
-								height="h-auto"
-							/>
-						</div>
-					)}
-
-				{/* Timestamps */}
-				<div className="bg-muted/30 p-6">
-					<p className="mb-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-						Record Information
-					</p>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<div className="flex items-start gap-3">
-							<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
-							<div>
-								<p className="font-medium text-muted-foreground text-xs uppercase">
-									Created At
-								</p>
-								<p className="text-sm">
-									{createdDate.toLocaleDateString("en-US", {
-										dateStyle: "medium",
-									})}
-								</p>
-								<p className="text-muted-foreground text-xs">
-									{createdDate.toLocaleTimeString("en-US", {
-										timeStyle: "short",
-									})}
-								</p>
-							</div>
-						</div>
-						<div className="flex items-start gap-3">
-							<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-							<div>
-								<p className="font-medium text-muted-foreground text-xs uppercase">
-									Last Updated
-								</p>
-								<p className="text-sm">
-									{updatedDate.toLocaleDateString("en-US", {
-										dateStyle: "medium",
-									})}
-								</p>
-								<p className="text-muted-foreground text-xs">
-									{updatedDate.toLocaleTimeString("en-US", {
-										timeStyle: "short",
-									})}
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</ScrollArea>
+			</ScrollArea>
+		</div>
 	);
 }

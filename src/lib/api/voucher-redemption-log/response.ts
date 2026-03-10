@@ -22,6 +22,7 @@ export type BackendRedemptionLog = {
 	notes: string | null;
 	created_at: string;
 	updated_at: string;
+	redeemer_name?: string;
 	// Associations
 	voucher?: {
 		id: number;
@@ -36,6 +37,10 @@ export type BackendRedemptionLog = {
 		email?: string;
 		phone?: string;
 		public_id?: string; // For visitors
+		// For tickets
+		attendee_name?: string;
+		attendee_email?: string;
+		attendee_phone?: string;
 	};
 	redeemer_staff?: {
 		id: number;
@@ -50,7 +55,7 @@ export type BackendRedemptionLog = {
 export type RedemptionLog = {
 	id: number;
 	voucherId: number;
-	redeemerType: "user_redeemer" | "visitor_redeemer"; // Match backend polymorphic type
+	redeemerType: "user_redeemer" | "visitor_redeemer" | "ticket_redeemer"; // Match backend polymorphic type
 	redeemerId: number;
 	redeemerStaffId: number | null;
 	redemptionTimestamp: string;
@@ -64,6 +69,7 @@ export type RedemptionLog = {
 	notes: string | null;
 	createdAt: string;
 	updatedAt: string;
+	redeemerName?: string;
 	// Associations
 	voucher?: {
 		id: number;

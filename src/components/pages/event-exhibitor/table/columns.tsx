@@ -15,8 +15,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { cn } from "@/lib/utils";
 import { ExhibitorActionsMenu } from "./action-menu";
 
 export type ExhibitorMember = EventVendor;
@@ -27,7 +27,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		size: 50,
 		header: () => null,
 		cell: ({ row, table }) => {
-			const isExpanded = (table.options.meta as any)?.expandedRows?.[row.id] || false;
+			const isExpanded =
+				(table.options.meta as any)?.expandedRows?.[row.id] || false;
 			return (
 				<Button
 					variant="ghost"
@@ -129,10 +130,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			return row.original.exhibitor_kit?.booth_type === value;
 		},
 		header: ({ column }) => {
-			const filterType = column.getFilterValue() as
-				| "shell_scheme"
-				| "raw_space"
-				| undefined;
+			const filterType = column.getFilterValue() as string | undefined;
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
@@ -144,7 +142,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 										variant="secondary"
 										className="ml-2 bg-transparent text-xs capitalize underline"
 									>
-										{filterType.replace("_", " ")}
+										{filterType.replace(/_/g, " ")}
 									</Badge>
 								)}
 							</p>
@@ -187,13 +185,14 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 					variant="outline"
 					className={cn(
 						"rounded-none font-medium capitalize",
-						kit.booth_type === "shell_scheme" &&
-							"border-purple-500 text-purple-500",
-						kit.booth_type === "raw_space" &&
-							"border-orange-500 text-orange-500",
+						kit.booth_type === "shell_scheme"
+							? "border-purple-500 text-purple-500"
+							: kit.booth_type === "raw_space"
+								? "border-orange-500 text-orange-500"
+								: "border-teal-500 text-teal-500",
 					)}
 				>
-					{kit.booth_type.replace("_", " ")}
+					{kit.booth_type.replace(/_/g, " ")}
 				</Badge>
 			);
 		},
@@ -347,7 +346,9 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 							<div className="flex items-center gap-1">
 								<span className="font-medium text-sm">{totalCount}</span>
 								{limit && (
-									<span className="text-muted-foreground text-xs">/ {limit}</span>
+									<span className="text-muted-foreground text-xs">
+										/ {limit}
+									</span>
 								)}
 							</div>
 							{excessCount > 0 && extraCharges && (
@@ -420,6 +421,9 @@ const actionsColumn: ColumnDef<ExhibitorMember> = {
 	id: "actions",
 	size: 80,
 	enableHiding: false,
+	meta: {
+		sticky: "right",
+	},
 	header: () => <div className="text-center">Actions</div>,
 	cell: ({ row }) => {
 		const exhibitor = row.original;

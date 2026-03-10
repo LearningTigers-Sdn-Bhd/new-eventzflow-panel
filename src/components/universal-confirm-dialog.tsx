@@ -1,7 +1,7 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import { AlertTriangle, CheckCircle2, Info, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, Info, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import { useConfirmDialogStore } from "@/stores/confirm-dialog-store";
 const iconMap = {
 	alert: AlertTriangle,
 	check: CheckCircle2,
+	copy: Copy,
 	delete: Trash2,
 	info: Info,
 };

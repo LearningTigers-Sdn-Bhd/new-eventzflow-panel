@@ -34,7 +34,8 @@ export default function PublicLayout({
 		pathname.startsWith("/auth") ||
 		pathname.startsWith("/forget-password") ||
 		pathname.startsWith("/event") ||
-		pathname.startsWith("/vendor-signup");
+		pathname.startsWith("/vendor-signup") ||
+		pathname.startsWith("/payment");
 
 	// Redirect authenticated users away from auth pages
 	if (user && pathname.startsWith("/auth")) {

@@ -15,7 +15,7 @@ interface TicketQRModalProps {
 // QR Code component using react-qr-code library with enhanced design
 function QRCode({ value }: { value: string }) {
 	return (
-		<div className="inline-block rounded-xl border-4 border-primary bg-white p-3 shadow-lg md:p-4">
+		<div className="inline-block rounded-none border-4 border-primary bg-white p-3 shadow-lg md:p-4">
 			<QRCodeSVG
 				value={value}
 				size={200}
@@ -162,8 +162,8 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 					</h3>
 
 					<div className="space-y-1.5 md:space-y-2">
-						<div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2 md:gap-3 md:p-2.5">
-							<div className="rounded-full bg-primary/10 p-1.5">
+						<div className="flex items-center gap-2 rounded-none border bg-muted/30 p-2 md:gap-3 md:p-2.5">
+							<div className="rounded-none bg-primary/10 p-1.5">
 								<User className="size-3.5 text-primary md:size-4" />
 							</div>
 							<div className="min-w-0 flex-1">
@@ -176,8 +176,8 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 							</div>
 						</div>
 
-						<div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2 md:gap-3 md:p-2.5">
-							<div className="rounded-full bg-primary/10 p-1.5">
+						<div className="flex items-center gap-2 rounded-none border bg-muted/30 p-2 md:gap-3 md:p-2.5">
+							<div className="rounded-none bg-primary/10 p-1.5">
 								<Mail className="size-3.5 text-primary md:size-4" />
 							</div>
 							<div className="min-w-0 flex-1">
@@ -191,8 +191,8 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 						</div>
 
 						{ticket.phone && (
-							<div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2 md:gap-3 md:p-2.5">
-								<div className="rounded-full bg-primary/10 p-1.5">
+							<div className="flex items-center gap-2 rounded-none border bg-muted/30 p-2 md:gap-3 md:p-2.5">
+								<div className="rounded-none bg-primary/10 p-1.5">
 									<Phone className="size-3.5 text-primary md:size-4" />
 								</div>
 								<div className="min-w-0 flex-1">
@@ -207,8 +207,8 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 						)}
 
 						{ticket.ticketTypeName && (
-							<div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2 md:gap-3 md:p-2.5">
-								<div className="rounded-full bg-primary/10 p-1.5">
+							<div className="flex items-center gap-2 rounded-none border bg-muted/30 p-2 md:gap-3 md:p-2.5">
+								<div className="rounded-none bg-primary/10 p-1.5">
 									<Ticket className="size-3.5 text-primary md:size-4" />
 								</div>
 								<div className="min-w-0 flex-1">
@@ -224,7 +224,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 					</div>
 
 					{/* Status Badge */}
-					<div className="flex items-center justify-between rounded-lg border bg-muted/30 p-2 md:p-3">
+					<div className="flex items-center justify-between rounded-none border bg-muted/30 p-2 md:p-3">
 						<span className="font-medium text-xs md:text-sm">Status:</span>
 						<Badge
 							variant={ticket.status === "scanned" ? "default" : "secondary"}
@@ -253,7 +253,7 @@ export default function TicketQRModal({ ticket }: TicketQRModalProps) {
 					</Button>
 
 					{/* Footer Note - Hidden on mobile */}
-					<div className="hidden rounded-lg bg-muted/50 p-2.5 text-center md:block">
+					<div className="hidden rounded-none bg-muted/50 p-2.5 text-center md:block">
 						<p className="text-muted-foreground text-xs">
 							💡 Save this QR code or show it at the event entrance
 						</p>

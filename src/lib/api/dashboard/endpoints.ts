@@ -9,8 +9,10 @@ import type {
 	BackendScannedTicketsResponse,
 	BackendTicket,
 	BackendUnscannedTicketsResponse,
+	DailyHourlyBreakdown,
 	EventAnalytics,
 	EventOverview,
+	HourlyBreakdownByDayResponse,
 	RecentScan,
 } from "./response";
 
@@ -218,4 +220,32 @@ export async function getEventAnalytics(
 			value: centsToDollars(d.value),
 		})),
 	};
+}
+
+/**
+ * Get hourly breakdown by day for a specific event metric
+ * Returns hourly data grouped by day - useful for multi-day event reports
+ */
+export async function getHourlyBreakdownByDay(
+	eventId: string,
+	metric: "tickets" | "scans" | "visitors" | "visitor_scans" | "stamps" | "redemptions",
+	options?: {
+		startDate?: string;
+		endDate?: string;
+		dateMode?: "all_time" | "pre_event";
+	},
+): Promise<DailyHourlyBreakdown[]> {
+	const eventIdNum = Number.parseInt(eventId, 10);
+
+	const params = new URLSearchParams();
+	params.set("metric", metric);
+	if (options?.dateMode) params.set("date_mode", options.dateMode);
+	if (options?.startDate) params.set("start_date", options.startDate);
+	if (options?.endDate) params.set("end_date", options.endDate);
+
+	const response = await restClient.get<HourlyBreakdownByDayResponse>(
+		`v1/events/${eventIdNum}/metrics/hourly_breakdown_by_day?${params.toString()}`,
+	);
+
+	return response.data ?? [];
 }

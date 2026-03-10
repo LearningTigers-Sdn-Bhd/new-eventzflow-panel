@@ -55,6 +55,8 @@ export function LuckyDrawHeader() {
 								open={sheetState.giftInvalidList.open}
 								onOpenChange={sheetState.giftInvalidList.onOpenChange}
 								luckyDraw={luckyDraw}
+								eventId={eventId}
+								sessionId={session.id}
 							/>
 						</>
 					) : (

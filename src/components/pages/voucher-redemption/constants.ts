@@ -17,7 +17,7 @@ export const SUCCESS_MESSAGES = {
 	CAMERA_READY: "Point your camera at a QR code to scan",
 	CAMERA_STOPPED: "Camera Stopped",
 	VOUCHER_SCANNED: "Voucher Scanned",
-	VISITOR_SCANNED: "Visitor Scanned",
+	VISITOR_SCANNED: "Attendee Scanned",
 	REDEMPTION_SUCCESS: "Voucher Redeemed Successfully",
 };
 
@@ -31,7 +31,7 @@ export const ERROR_MESSAGES = {
 
 export const STEP_LABELS = {
 	voucher: "Scan Voucher",
-	visitor: "Scan Visitor",
+	visitor: "Scan Attendee",
 	review: "Review Details",
 	amount: "Enter Amount",
 };

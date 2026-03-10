@@ -6,6 +6,7 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
+import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ModeToggle } from "@/components/mode-toggle";
 
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,9 @@ export function ContentLayout({
 	return (
 		<ResponsiveLayout>
 			<DesktopView>
-				<div className="relative flex w-full h-full overflow-hidden bg-background">
+				<div className="relative flex h-full w-full overflow-hidden bg-background">
 					{/* Top Left Corner */}
-					<div className="absolute top-0 left-0 z-20 flex h-12 w-12 items-center justify-center border-b border-r border-dashed border-border bg-background">
+					<div className="absolute top-0 left-0 z-50 flex h-12 w-12 items-center justify-center border-border border-r border-b border-dashed bg-background">
 						{hasDoubleSidebar && (
 							<Button
 								variant="ghost"
@@ -50,40 +51,45 @@ export function ContentLayout({
 						)}
 					</div>
 
+					{/* Top Header Bar (Breadcrumbs) */}
+					<div className="absolute top-0 right-12 left-12 z-40 flex h-12 items-center border-border border-b border-dashed bg-background px-4">
+						<BreadcrumbNav />
+					</div>
+
 					{/* Top Right Corner */}
-					<div className="absolute top-0 right-0 z-20 flex h-12 w-12 items-center justify-center border-b border-l border-dashed border-border bg-background">
+					<div className="absolute top-0 right-0 z-50 flex h-12 w-12 items-center justify-center border-border border-b border-l border-dashed bg-background">
 						<ModeToggle />
 					</div>
 
 					{/* Bottom Left Corner */}
-					<div className="absolute bottom-0 left-0 z-20 h-12 w-12 border-t border-r border-dashed border-border bg-background" />
+					<div className="absolute bottom-0 left-0 z-50 h-12 w-12 border-border border-t border-r border-dashed bg-background" />
 
 					{/* Bottom Right Corner */}
-					<div className="absolute bottom-0 right-0 z-20 h-12 w-12 border-t border-l border-dashed border-border bg-background" />
+					<div className="absolute right-0 bottom-0 z-50 h-12 w-12 border-border border-t border-l border-dashed bg-background" />
 
 					{/* Left Rail Pattern */}
-					<div className="absolute top-12 bottom-12 left-0 z-10 w-12 opacity-4 bg-[repeating-linear-gradient(45deg,currentColor_0,currentColor_2px,transparent_0,transparent_6px)]" />
+					<div className="absolute top-12 bottom-12 left-0 z-10 w-12 bg-[repeating-linear-gradient(45deg,currentColor_0,currentColor_2px,transparent_0,transparent_6px)] opacity-4" />
 
 					{/* Right Rail Pattern */}
-					<div className="absolute top-12 bottom-12 right-0 z-10 w-12 opacity-4 bg-[repeating-linear-gradient(45deg,currentColor_0,currentColor_2px,transparent_0,transparent_6px)]" />
+					<div className="absolute top-12 right-0 bottom-12 z-10 w-12 bg-[repeating-linear-gradient(45deg,currentColor_0,currentColor_2px,transparent_0,transparent_6px)] opacity-4" />
 
 					{/* Blueprint Grid Lines (Remaining borders) */}
-					<div className="absolute inset-0 z-0 pointer-events-none">
-						<div className="absolute top-12 left-12 right-12 border-b border-dashed border-border" />
-						<div className="absolute bottom-12 left-12 right-12 border-t border-dashed border-border" />
-						<div className="absolute left-12 top-12 bottom-12 border-r border-dashed border-border" />
-						<div className="absolute right-12 top-12 bottom-12 border-l border-dashed border-border" />
+					<div className="pointer-events-none absolute inset-0 z-0">
+						<div className="absolute top-12 right-12 left-12 border-border border-b border-dashed" />
+						<div className="absolute right-12 bottom-12 left-12 border-border border-t border-dashed" />
+						<div className="absolute top-12 bottom-12 left-12 border-border border-r border-dashed" />
+						<div className="absolute top-12 right-12 bottom-12 border-border border-l border-dashed" />
 					</div>
 
 					{/* Content Area */}
-					<div className="relative z-10 flex flex-col w-full h-full pt-12 pb-12 pl-12 pr-12">
-						<div className="w-full h-full overflow-auto">{children}</div>
+					<div className="relative z-10 flex h-full w-full min-w-0 flex-col pt-12 pr-12 pb-12 pl-12">
+						<div className="h-full w-full overflow-auto">{children}</div>
 					</div>
 				</div>
 			</DesktopView>
 
 			<MobileTabletView>
-				<div className="flex flex-col w-full h-full overflow-auto bg-background p-4">
+				<div className="flex h-full w-full flex-col overflow-auto bg-background p-4">
 					{children}
 				</div>
 			</MobileTabletView>

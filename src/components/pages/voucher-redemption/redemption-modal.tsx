@@ -7,6 +7,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import { getVisitorByPublicId } from "@/lib/api/visitor";
 import { getVoucherByUuid } from "@/lib/api/voucher";
 import { redeemVoucher } from "@/lib/api/voucher-redemption";
+import { restClient } from "@/utils/rest-api";
 import { AmountForm } from "./amount-form";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "./constants";
 import { RedemptionResultCard } from "./redemption-result";
@@ -91,7 +92,7 @@ export function VoucherRedemptionModal({
 			}));
 
 			toast.success(SUCCESS_MESSAGES.VOUCHER_SCANNED, {
-				description: "Now scan the visitor's QR code",
+				description: "Now scan the attendee's QR code",
 			});
 		} catch (error) {
 			const errorMessage =
@@ -114,7 +115,8 @@ export function VoucherRedemptionModal({
 	};
 
 	/**
-	 * Handle visitor QR scan success
+	 * Handle visitor/ticket QR scan success
+	 * Tries visitor lookup first, then ticket if visitor not found
 	 */
 	const handleVisitorScan = async (decodedText: string) => {
 		// Prevent duplicate scans of the same code
@@ -140,7 +142,7 @@ export function VoucherRedemptionModal({
 			return;
 		}
 
-		// Fetch visitor details by public_id
+		// Fetch visitor/ticket details by public_id
 		setRedemptionState((prev) => ({
 			...prev,
 			visitorId: decodedText,
@@ -148,6 +150,7 @@ export function VoucherRedemptionModal({
 		}));
 
 		try {
+			// Try visitor lookup first
 			const visitorData = await getVisitorByPublicId(eventId, decodedText);
 
 			setRedemptionState((prev) => ({
@@ -159,31 +162,63 @@ export function VoucherRedemptionModal({
 					email: visitorData.email,
 					phone: visitorData.phone,
 					eventId: visitorData.event_id,
+					redeemerType: "visitor",
 				},
 				isLoadingVisitor: false,
-				currentStep: "review", // Move to review step
+				currentStep: "review",
 			}));
 
 			toast.success(SUCCESS_MESSAGES.VISITOR_SCANNED, {
 				description: "Review the details below",
 			});
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "Failed to fetch visitor details";
+		} catch {
+			// Visitor not found, try ticket lookup
+			try {
+				const ticketData = await restClient.get<{
+					id: number;
+					public_id: string;
+					attendee_name: string;
+					attendee_email: string;
+					attendee_phone: string | null;
+					event_id: number;
+				}>(`v1/events/${eventId}/tickets/${decodedText}`);
 
-			setRedemptionState((prev) => ({
-				...prev,
-				isLoadingVisitor: false,
-			}));
+				setRedemptionState((prev) => ({
+					...prev,
+					visitorDetails: {
+						id: ticketData.id,
+						publicId: ticketData.public_id,
+						fullName: ticketData.attendee_name,
+						email: ticketData.attendee_email,
+						phone: ticketData.attendee_phone || "",
+						eventId: ticketData.event_id,
+						redeemerType: "ticket",
+					},
+					isLoadingVisitor: false,
+					currentStep: "review",
+				}));
 
-			toast.error("Invalid Visitor", {
-				description: errorMessage,
-			});
+				toast.success("Ticket Scanned", {
+					description: "Review the details below",
+				});
+			} catch (ticketError) {
+				const errorMessage =
+					ticketError instanceof Error
+						? ticketError.message
+						: "No visitor or ticket found with this QR code";
 
-			// Reset to allow rescan
-			lastScannedRef.current = null;
+				setRedemptionState((prev) => ({
+					...prev,
+					isLoadingVisitor: false,
+				}));
+
+				toast.error("Invalid QR Code", {
+					description: errorMessage,
+				});
+
+				// Reset to allow rescan
+				lastScannedRef.current = null;
+			}
 		}
 	};
 
@@ -210,12 +245,16 @@ export function VoucherRedemptionModal({
 		setIsProcessing(true);
 
 		try {
+			const isTicket = redemptionState.visitorDetails?.redeemerType === "ticket";
+
 			// Pass the final price as net_amount
 			// The backend will calculate the original price (gross_amount)
 			const response = await redeemVoucher({
 				voucher_uuid: redemptionState.voucherUuid,
 				net_amount: finalPrice,
-				visitor_id: redemptionState.visitorId,
+				...(isTicket
+					? { ticket_id: redemptionState.visitorId }
+					: { visitor_id: redemptionState.visitorId }),
 			});
 
 			setResult({

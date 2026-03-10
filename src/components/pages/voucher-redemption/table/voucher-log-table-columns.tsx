@@ -5,6 +5,7 @@ import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import type { RedemptionLog } from "@/lib/api/voucher-redemption-log";
+import { cn } from "@/lib/utils";
 
 // Re-export RedemptionLog as BaseRedemptionLog for consistency with event-ticket pattern
 export type BaseRedemptionLog = RedemptionLog;
@@ -13,6 +14,7 @@ export type BaseRedemptionLog = RedemptionLog;
 const REDEEMER_TYPE_OPTIONS = [
 	{ label: "User", value: "user_redeemer" },
 	{ label: "Visitor", value: "visitor_redeemer" },
+	{ label: "Ticket", value: "ticket_redeemer" },
 ];
 
 // Filter options for redemptionStatus
@@ -77,13 +79,16 @@ export function generateColumns(): ColumnDef<BaseRedemptionLog>[] {
 		{
 			id: "redeemer",
 			size: 200,
-			accessorFn: (row) => row.redeemer?.fullName,
+			accessorFn: (row) => row.redeemer?.fullName || row.redeemerName,
 			header: () => <p className="font-medium">Redeemer</p>,
 			cell: ({ row }) => {
 				const redeemer = row.original.redeemer;
+				const fallbackName = row.original.redeemerName;
 				return (
 					<div className="space-y-0.5">
-						<div className="font-medium">{redeemer?.fullName || "-"}</div>
+						<div className="font-medium">
+							{redeemer?.fullName || fallbackName || "-"}
+						</div>
 						<div className="text-muted-foreground text-xs">
 							{redeemer?.email || redeemer?.phone || "-"}
 						</div>
@@ -105,14 +110,19 @@ export function generateColumns(): ColumnDef<BaseRedemptionLog>[] {
 			cell: ({ row }) => {
 				const type = row.getValue("redeemerType") as
 					| "user_redeemer"
-					| "visitor_redeemer";
+					| "visitor_redeemer"
+					| "ticket_redeemer";
 				const isUser = type === "user_redeemer";
+				const isTicket = type === "ticket_redeemer";
 				return (
 					<Badge
-						variant={isUser ? "default" : "secondary"}
-						className="rounded-none capitalize"
+						variant={isUser ? "default" : isTicket ? "outline" : "secondary"}
+						className={cn(
+							"rounded-none capitalize",
+							isTicket && "border-purple-500 text-purple-500",
+						)}
 					>
-						{isUser ? "User" : "Visitor"}
+						{isUser ? "User" : isTicket ? "Ticket" : "Visitor"}
 					</Badge>
 				);
 			},

@@ -10,6 +10,8 @@ import * as z from "zod";
 import DateTimePickerField from "@/components/admin-ui/form/date-time-picker";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
+import { RadioGroupCard } from "@/components/admin-ui/form/radio-group-card";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { SwitchStateCardInput } from "@/components/admin-ui/form/switch-state-card-input";
@@ -23,6 +25,11 @@ import {
 } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
+import {
+	guestPolicyLimitToValue,
+	guestPolicyValueFromLimit,
+	type GuestPolicyMode,
+} from "@/lib/api/event/guest-policy";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
@@ -32,6 +39,10 @@ const formSchema = z.object({
 	status: z.enum(["draft", "published", "cancelled", "completed"]),
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
+	useWedding: z.boolean(),
+	guestPolicy: z.enum(["unlimited", "none", "limited"]),
+	guestLimit: z.number().int().min(1),
+	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
@@ -103,6 +114,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			status: "draft" as "draft" | "published" | "cancelled" | "completed",
 			visibility: true,
 			useTicket: true,
+			useWedding: false,
+			guestPolicy: "unlimited" as GuestPolicyMode,
+			guestLimit: 1,
+			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
@@ -118,6 +133,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			onSubmit: formSchema,
 		},
 		onSubmit: async ({ value }) => {
+			const useWedding = !value.useTicket && value.useWedding;
 			await updateEventMutation.mutateAsync({
 				id: eventId,
 				data: {
@@ -125,6 +141,11 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
+					use_wedding: useWedding,
+					extra_guest_limit: useWedding
+						? guestPolicyLimitToValue(value.guestPolicy, value.guestLimit)
+						: undefined,
+					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
@@ -146,6 +167,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 		if (event && hasInitialized.current !== event.id) {
 			// Use setTimeout to ensure form fields are ready before setting values
 			setTimeout(() => {
+				const guestPolicy = guestPolicyValueFromLimit(event.extra_guest_limit);
 				form.setFieldValue("title", event.title || "");
 				form.setFieldValue(
 					"status",
@@ -153,16 +175,29 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				);
 				form.setFieldValue("visibility", event.visibility ?? true);
 				form.setFieldValue("useTicket", event.use_ticket ?? true);
+				form.setFieldValue("useWedding", event.use_wedding ?? false);
+				form.setFieldValue("guestPolicy", guestPolicy.mode);
+				form.setFieldValue("guestLimit", guestPolicy.limit);
+				form.setFieldValue(
+					"useSeatTicketing",
+					event.use_seat_ticketing ?? false,
+				);
 				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
 				form.setFieldValue(
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
 				);
-				form.setFieldValue("useBusinessMatching", event.use_business_matching ?? false);
+				form.setFieldValue(
+					"useBusinessMatching",
+					event.use_business_matching ?? false,
+				);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
-				form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
+				form.setFieldValue(
+					"businessMatchingWebhookUrl",
+					event.business_matching_webhook_url || "",
+				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
 					"startDate",
@@ -384,60 +419,53 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							description: "Configure the event settings and options.",
 						}}
 					>
-						<div
-							className={cn(
-								"grid grid-cols-1 gap-4",
-								!isOrgOwner ? "xl:grid-cols-2" : "xl:grid-cols-3",
-							)}
-						>
-							{/* Only show visibility for org_owner */}
-							{isOrgOwner && (
-								<div className="flex flex-col gap-6 md:gap-4">
-									{/* Visibility Section */}
-									<FieldContent className="flex w-full flex-none flex-col gap-1">
-										<FieldLabel>Event Visibility</FieldLabel>
-										<FieldDescription className="text-balance">
-											Select the visibility of your event.
-										</FieldDescription>
-									</FieldContent>
-									<form.Field name="visibility">
-										{(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-											return (
-												<SwitchStateCardInput
-													states={{
-														checked: {
-															label: "Visible",
-															description:
-																"The event will be visible to the public.",
-															color: "green",
-														},
-														unchecked: {
-															label: "Hidden",
-															description:
-																"The event will not be visible to the public.",
-															color: "red",
-														},
-													}}
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													onBlur={field.handleBlur}
-													errors={field.state.meta.errors}
-													isInvalid={isInvalid}
-													disabled={updateEventMutation.isPending}
-													variant="no-rounded"
-												/>
-											);
-										}}
-									</form.Field>
-								</div>
-							)}
-							{/* Left Column: Visibility (if org_owner) and Event Types */}
+						<div className={cn("grid grid-cols-1 gap-4", "xl:grid-cols-2")}>
 							<div className="flex flex-col gap-6 md:gap-4">
-								{/* Exhibitor Kit Section */}
+								{isOrgOwner && (
+									<>
+										<FieldContent className="flex w-full flex-none flex-col gap-1">
+											<FieldLabel>Event Visibility</FieldLabel>
+											<FieldDescription className="text-balance">
+												Select the visibility of your event.
+											</FieldDescription>
+										</FieldContent>
+										<form.Field name="visibility">
+											{(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+												return (
+													<SwitchStateCardInput
+														states={{
+															checked: {
+																label: "Visible",
+																description:
+																	"The event will be visible to the public.",
+																color: "green",
+															},
+															unchecked: {
+																label: "Hidden",
+																description:
+																	"The event will not be visible to the public.",
+																color: "red",
+															},
+														}}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														onBlur={field.handleBlur}
+														errors={field.state.meta.errors}
+														isInvalid={isInvalid}
+														disabled={updateEventMutation.isPending}
+														variant="no-rounded"
+													/>
+												);
+											}}
+										</form.Field>
+									</>
+								)}
+
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Event Types</FieldLabel>
+									<FieldLabel>Event Type</FieldLabel>
 									<FieldDescription className="text-balance">
 										Select the type of event to be held.
 									</FieldDescription>
@@ -447,42 +475,132 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										const isInvalid =
 											field.state.meta.isTouched && !field.state.meta.isValid;
 										return (
-											<SwitchStateCardInput
-												states={{
-													checked: {
-														label: "Ticket System",
-														description:
-															"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
-														color: "cyan",
-													},
-													unchecked: {
-														label: "Visitor System",
-														description:
-															"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
-														color: "amber",
-													},
-												}}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												disabled={updateEventMutation.isPending}
-												variant="no-rounded"
-											/>
+											<div className="flex flex-col gap-4">
+												<SwitchStateCardInput
+													states={{
+														checked: {
+															label: "Ticket System",
+															description:
+																"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
+															color: "cyan",
+														},
+														unchecked: {
+															label: "Visitor System",
+															description:
+																"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
+															color: "amber",
+														},
+													}}
+													checked={field.state.value}
+													onCheckedChange={(checked) => {
+														field.handleChange(checked);
+														if (checked) {
+															form.setFieldValue("useWedding", false);
+														}
+													}}
+													onBlur={field.handleBlur}
+													errors={field.state.meta.errors}
+													isInvalid={isInvalid}
+													disabled={updateEventMutation.isPending}
+													variant="no-rounded"
+												/>
+
+						{!field.state.value && (
+							<form.Field name="useWedding">
+								{(weddingField) => (
+									<div className="flex flex-col gap-4">
+										<SwitchCardInput
+											label="Wedding System"
+											description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
+											htmlFor={weddingField.name}
+											variant="no-rounded"
+											border={true}
+											checked={weddingField.state.value}
+											onCheckedChange={weddingField.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+
+										{weddingField.state.value && (
+											<>
+												<form.Field name="guestPolicy">
+													{(guestPolicyField) => (
+														<RadioGroupCard
+															label="Guest Allowance"
+															description="Control how many extra guests wedding invitees may bring."
+															value={guestPolicyField.state.value}
+															onChange={guestPolicyField.handleChange}
+															onBlur={guestPolicyField.handleBlur}
+															errors={guestPolicyField.state.meta.errors}
+															isInvalid={
+																guestPolicyField.state.meta.isTouched &&
+																!guestPolicyField.state.meta.isValid
+															}
+															disabled={updateEventMutation.isPending}
+															options={[
+																{
+																	value: "unlimited",
+																	label: "Unlimited",
+																	description: "Invitees can bring as many extra guests as needed.",
+																},
+																{
+																	value: "none",
+																	label: "No extra guests",
+																	description: "Invitees can only RSVP for themselves.",
+																},
+																{
+																	value: "limited",
+																	label: "Set a limit",
+																	description: "Choose the maximum number of extra guests allowed.",
+																},
+															]}
+															variant="no-rounded"
+														/>
+													)}
+												</form.Field>
+
+												<form.Subscribe selector={(state) => state.values.guestPolicy}>
+													{(guestPolicy) =>
+														guestPolicy === "limited" ? (
+															<form.Field name="guestLimit">
+																{(guestLimitField) => (
+																	<NumberInputLabel
+																		label="Guest Limit"
+																		value={guestLimitField.state.value}
+																		onChange={guestLimitField.handleChange}
+																		errors={guestLimitField.state.meta.errors}
+																		isInvalid={
+																			guestLimitField.state.meta.isTouched &&
+																			!guestLimitField.state.meta.isValid
+																		}
+																		description="Maximum number of additional guests allowed per invitation."
+																		min={1}
+																		disabled={updateEventMutation.isPending}
+																		required
+																		variant="no-rounded"
+																	/>
+																)}
+															</form.Field>
+														) : null
+													}
+												</form.Subscribe>
+											</>
+										)}
+									</div>
+								)}
+							</form.Field>
+						)}
+											</div>
 										);
 									}}
 								</form.Field>
 							</div>
 							<div className="flex flex-col gap-4">
-								{/* Exhibitor Kit Section */}
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
 									<FieldLabel>Option Flags</FieldLabel>
 									<FieldDescription className="text-balance">
 										Select the options for your event.
 									</FieldDescription>
 								</FieldContent>
-								{/* Multiple Scans */}
 								<form.Field name="multipleScans">
 									{(field) => (
 										<SwitchCardInput
@@ -497,7 +615,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
-								{/* Business Matching */}
 								<form.Field name="useBusinessMatching">
 									{(field) => (
 										<div className="flex flex-col gap-4">
@@ -536,12 +653,25 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										</div>
 									)}
 								</form.Field>
-								{/* Sponsorships */}
 								<form.Field name="useSponsorship">
 									{(field) => (
 										<SwitchCardInput
 											label="Sponsorships"
 											description="Enable sponsorship management for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								<form.Field name="useSeatTicketing">
+									{(field) => (
+										<SwitchCardInput
+											label="Seat Ticketing System"
+											description="Enable reserved seat sessions and seat maps for this event."
 											htmlFor={field.name}
 											variant="no-rounded"
 											border={true}

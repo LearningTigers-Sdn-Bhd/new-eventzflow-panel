@@ -29,11 +29,11 @@ const galleryImages = [
 
 const GallerySection: React.FC = () => {
 	return (
-		<section className="bg-white-background px-4 py-16 text-neutral-900 md:py-24 md:px-8 border border-black">
+		<section className="border border-black bg-white-background px-4 py-16 text-neutral-900 md:px-8 md:py-24">
 			<div className="mx-auto max-w-[1400px]">
 				{/* Swiss Header */}
-				<div className="mb-2 flex flex-col items-start justify-between border-neutral-900 border-t-4 pt-4 pb-8 md:items-end md:pt-6 md:pb-12 md:flex-row">
-					<h2 className="mb-4 font-black text-3xl uppercase leading-none tracking-tighter sm:text-5xl md:text-7xl md:mb-0">
+				<div className="mb-2 flex flex-col items-start justify-between border-neutral-900 border-t-4 pt-4 pb-8 md:flex-row md:items-end md:pt-6 md:pb-12">
+					<h2 className="mb-4 font-black text-3xl uppercase leading-none tracking-tighter sm:text-5xl md:mb-0 md:text-7xl">
 						See Eventzflow <br /> In Action
 					</h2>
 				</div>
@@ -55,6 +55,7 @@ const GallerySection: React.FC = () => {
 									src={item.src}
 									alt={item.title}
 									fill
+									sizes="(max-width: 768px) 100vw, 50vw"
 									priority={index === 0}
 									className="object-cover opacity-100 transition-all duration-500 md:opacity-90 md:grayscale md:group-hover:opacity-100 md:group-hover:grayscale-0"
 								/>

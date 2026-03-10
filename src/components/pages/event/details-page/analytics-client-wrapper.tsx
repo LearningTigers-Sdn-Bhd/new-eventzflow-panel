@@ -98,9 +98,9 @@ export function AnalyticsClientWrapper({
 
 						<TabsContent value="time-series-stats" className="mt-2">
 							{isTicketEvent ? (
-								<EventDetailsTicketStats eventId={event.id.toString()} />
+								<EventDetailsTicketStats event={event} />
 							) : (
-								<EventDetailsVisitorStats eventId={event.id.toString()} />
+								<EventDetailsVisitorStats event={event} />
 							)}
 						</TabsContent>
 
@@ -139,9 +139,9 @@ export function AnalyticsClientWrapper({
 
 					{/* Analytics */}
 					{isTicketEvent ? (
-						<EventDetailsTicketStats eventId={event.id.toString()} />
+						<EventDetailsTicketStats event={event} />
 					) : (
-						<EventDetailsVisitorStats eventId={event.id.toString()} />
+						<EventDetailsVisitorStats event={event} />
 					)}
 
 					{/* Quick Info */}

@@ -13,6 +13,7 @@ export type BaseTicket = {
 	role?: string | null;
 	name: string;
 	email: string | null;
+	registeredByEmail?: string;
 	phone: string;
 	value: number | string;
 	status: "scanned" | "not_scanned";
@@ -198,9 +199,8 @@ export function generateColumns(
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {
-					const customLabel = row.customLabels?.find(
-						(l) => l.name === labelName,
-					);
+					// Match by key, not display name
+					const customLabel = row.customLabels?.find((l) => l.name === key);
 					return customLabel?.value || "";
 				},
 				size: 180,
@@ -208,8 +208,9 @@ export function generateColumns(
 					<SortableHeader column={column} label={labelName} />
 				),
 				cell: ({ row }) => {
+					// Match by key, not display name
 					const customLabel = row.original.customLabels?.find(
-						(l) => l.name === labelName,
+						(l) => l.name === key,
 					);
 					const value = customLabel?.value || "";
 					return (

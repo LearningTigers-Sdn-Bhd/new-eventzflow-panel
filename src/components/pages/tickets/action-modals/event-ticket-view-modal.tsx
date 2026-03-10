@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
-	Check,
 	DollarSign,
 	FileText,
 	Hash,
@@ -8,13 +8,16 @@ import {
 	type LucideIcon,
 	Mail,
 	Phone,
+	Tag,
 	User,
 } from "lucide-react";
-import { IconHeading } from "@/components/admin-ui/icon-heading";
-import { EmptyState } from "@/components/data-state";
+import { useParams } from "next/navigation";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { getEventById } from "@/lib/api/event";
 import { cn } from "../../../../lib/utils";
 import type { BaseTicket } from "../event-ticket-table-columns";
 
@@ -23,153 +26,210 @@ interface TicketViewModalProps {
 	onClose?: () => void;
 }
 
-const InfoLabel = ({
+const InfoItem = ({
 	label,
 	value,
 	icon: Icon,
-	ticket,
 	capitalize = false,
+	className,
 }: {
 	label: string;
 	value: string;
 	icon: LucideIcon;
-	ticket: BaseTicket;
 	capitalize?: boolean;
+	className?: string;
 }) => {
 	return (
-		<div className="flex items-center gap-2">
-			<Icon className="mr-2 size-5" />
-			<div>
-				<Label className="font-medium text-muted-foreground text-xs">
+		<div className={cn("flex flex-col gap-1.5", className)}>
+			<div className="flex items-center gap-2 text-muted-foreground">
+				<Icon className="size-3.5" />
+				<span className="font-medium text-[10px] uppercase tracking-wider">
 					{label}
-				</Label>
-				{label === "Status" ? (
-					<Badge
-						variant={ticket.status === "scanned" ? "default" : "destructive"}
-						className={cn(
-							"rounded-none font-bold font-mono text-xs uppercase",
-							ticket.status === "scanned"
-								? "bg-green-500 text-white hover:bg-green-500"
-								: "bg-destructive text-white hover:bg-destructive",
-						)}
-					>
-						{ticket.status === "scanned" ? "Scanned" : "Not Scanned"}
-					</Badge>
-				) : (
-					<p className={cn("font-medium text-sm", capitalize && "capitalize")}>
-						{value}
-					</p>
-				)}
+				</span>
 			</div>
+			<p
+				className={cn(
+					"font-semibold text-sm leading-tight",
+					capitalize && "capitalize",
+				)}
+			>
+				{value || "-"}
+			</p>
 		</div>
 	);
 };
 
 export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 	const date = new Date(ticket.createdAt);
+	const params = useParams();
+	const eventId = params.event_id as string;
+
+	const { data: eventData } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+
+	// Merge event labels_data with any custom labels injected directly into the ticket
+	const mergedLabelsMap = React.useMemo(() => {
+		const map: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
+		ticket.customLabels?.forEach(({ name }) => {
+			if (!(name in map)) {
+				// Prettify raw key: ic_no -> Ic No, t_shirt_size -> T Shirt Size
+				map[name] = name
+					.replace(/_/g, " ")
+					.replace(/\b\w/g, (c) => c.toUpperCase());
+			}
+		});
+		return map;
+	}, [eventData?.labels_data, ticket.customLabels]);
+
+	const customLabels =
+		Object.keys(mergedLabelsMap).length > 0
+			? Object.entries(mergedLabelsMap).map(([key, labelName]) => {
+					const rawValue = ticket.customLabels?.find(
+						(l) => l.name === key,
+					)?.value;
+					return {
+						name: labelName as string,
+						value: typeof rawValue === "string" ? rawValue : "",
+					};
+				})
+			: [];
+
+	const registeredByEmail = ticket.registeredByEmail?.trim();
+	const hasAdditionalInfo =
+		Boolean(registeredByEmail) || customLabels.length > 0;
 
 	return (
-		<div className="flex h-full w-full flex-col gap-6 p-0 md:p-4">
-			<ScrollArea className="h-[80vh]">
-				<div className="grid grid-cols-1 gap-y-8">
-					{/* Basic Information */}
-					<div className="space-y-4">
-						<IconHeading
-							icon={FileText}
-							title="Ticket Details and Basic Information"
-							description="Ticket details and basic information about the buyer."
-						/>
-						<div className="flex flex-col gap-3 px-2">
-							<div className="grid grid-cols-2">
-								<InfoLabel
-									label="Ticket ID"
-									value={ticket.id}
-									icon={Hash}
-									ticket={ticket}
-								/>
-								<InfoLabel
-									label="Status"
-									value={ticket.status}
-									icon={Check}
-									ticket={ticket}
-								/>
+		<div className="flex h-full w-full flex-col gap-0 p-0">
+			<ScrollArea className="max-h-[85vh]">
+				<div className="flex flex-col gap-6 p-6">
+					{/* Header Status Section */}
+					<div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
+						<div className="space-y-1">
+							<div className="flex items-center gap-2">
+								<Hash className="size-4 text-muted-foreground" />
+								<span className="font-mono font-semibold text-lg">
+									{ticket.publicId}
+								</span>
 							</div>
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
-								<InfoLabel
-									label="Name"
-									value={ticket.name}
-									icon={User}
-									ticket={ticket}
-								/>
-								<InfoLabel
-									label="Email"
-									value={ticket.email ?? ""}
-									icon={Mail}
-									ticket={ticket}
-								/>
-							</div>
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-0">
-								{ticket.phone && (
-									<InfoLabel
-										label="Phone Number"
-										value={ticket.phone}
-										icon={Phone}
-										ticket={ticket}
-									/>
-								)}
-								{ticket.ticketTypeName && (
-									<InfoLabel
-										label="Ticket Type"
-										value={ticket.ticketTypeName}
-										icon={FileText}
-										ticket={ticket}
-									/>
-								)}
-							</div>
-							<div className="grid grid-cols-2">
-								<InfoLabel
-									label="Ticket Price"
-									value={`RM${(typeof ticket.value === "number" ? ticket.value : Number.parseFloat(ticket.value as string) || 0).toFixed(2)}`}
-									icon={DollarSign}
-									ticket={ticket}
-								/>
-								<InfoLabel
-									label="Created At"
-									value={date.toLocaleDateString()}
-									icon={Calendar}
-									ticket={ticket}
-								/>
-							</div>
+							<p className="text-muted-foreground text-xs">
+								Registered on {date.toLocaleDateString()} at{" "}
+								{date.toLocaleTimeString()}
+							</p>
 						</div>
+						<Badge
+							variant={ticket.status === "scanned" ? "default" : "destructive"}
+							className={cn(
+								"w-fit rounded-none px-4 py-1.5 font-bold font-mono text-xs uppercase tracking-widest",
+								ticket.status === "scanned"
+									? "bg-green-500 text-white hover:bg-green-600"
+									: "bg-amber-500 text-white hover:bg-amber-600",
+							)}
+						>
+							{ticket.status === "scanned"
+								? "Ticket Scanned"
+								: "Not Scanned Yet"}
+						</Badge>
 					</div>
 
-					{/* Additional Information - Custom Labels */}
-					<div className="space-y-4">
-						<IconHeading
-							icon={FileText}
-							title="Custom Labels"
-							description="Custom labels configured for this event."
-						/>
-						{ticket.customLabels && ticket.customLabels.length > 0 ? (
-							<div className="grid grid-cols-1 gap-x-4 gap-y-3 px-2 sm:grid-cols-2 md:gap-y-6 md:px-2">
-								{ticket.customLabels.map((label, index) => (
-									<InfoLabel
-										key={`${label.name}-${index}`}
-										label={label.name}
-										value={label.value}
-										icon={Info}
-										ticket={ticket}
-										capitalize={true}
-									/>
-								))}
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+						{/* Buyer Information Card */}
+						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
+							<div className="border-b-2 bg-muted px-4 py-3">
+								<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+									<User className="size-4" />
+									Buyer Information
+								</h3>
 							</div>
+							<CardContent className="grid gap-6 p-6">
+								<InfoItem
+									label="Full Name"
+									value={ticket.name}
+									icon={User}
+									capitalize
+								/>
+								<InfoItem
+									label="Email Address"
+									value={ticket.email || "No email provided"}
+									icon={Mail}
+								/>
+								<InfoItem
+									label="Phone Number"
+									value={ticket.phone || "No phone provided"}
+									icon={Phone}
+								/>
+							</CardContent>
+						</Card>
+
+						{/* Ticket Information Card */}
+						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
+							<div className="border-b-2 bg-muted px-4 py-3">
+								<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+									<Tag className="size-4" />
+									Ticket Details
+								</h3>
+							</div>
+							<CardContent className="grid gap-6 p-6">
+								<InfoItem
+									label="Ticket Type"
+									value={ticket.ticketTypeName || "Standard"}
+									icon={FileText}
+								/>
+								<InfoItem
+									label="Price"
+									value={`RM${(typeof ticket.value === "number" ? ticket.value : Number.parseFloat(ticket.value as string) || 0).toFixed(2)}`}
+									icon={DollarSign}
+								/>
+								<InfoItem
+									label="Purchase Date"
+									value={date.toLocaleDateString(undefined, {
+										dateStyle: "long",
+									})}
+									icon={Calendar}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* Custom Information Section */}
+					<div className="space-y-4">
+						<div className="flex items-center gap-2">
+							<Info className="size-4 text-primary" />
+							<h3 className="font-bold text-sm uppercase tracking-tight">
+								Additional Information
+							</h3>
+						</div>
+						<Separator />
+
+						{hasAdditionalInfo ? (
+							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
+								<CardContent className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
+									{registeredByEmail && (
+										<InfoItem
+											label="Register By"
+											value={registeredByEmail}
+											icon={Mail}
+										/>
+									)}
+									{customLabels.map((label, index) => (
+										<InfoItem
+											key={`${label.name}-${index}`}
+											label={label.name}
+											value={label.value}
+											icon={Info}
+											capitalize={true}
+										/>
+									))}
+								</CardContent>
+							</Card>
 						) : (
-							<EmptyState
-								title="No custom labels"
-								description="No custom labels have been configured for this event"
-								icon={<Info className="size-8" />}
-								height="h-auto"
-							/>
+							<div className="flex flex-col items-center justify-center rounded-none border border-dashed p-8 text-center">
+								<Info className="mb-2 size-8 text-muted-foreground/50" />
+								<p className="font-medium text-muted-foreground text-sm">
+									No additional information found for this ticket.
+								</p>
+							</div>
 						)}
 					</div>
 				</div>
