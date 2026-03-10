@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ImageIcon, VideoIcon, X, Monitor, Megaphone, Clock } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { ImageIcon, VideoIcon, X, Monitor, Megaphone, Clock, Search } from "lucide-react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,12 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { NameAnimation } from "@/components/welcome-screen/name-animation";
 import {
 	DEFAULT_VOICE,
@@ -42,10 +48,12 @@ import {
 	fetchCheckInDisplay,
 	updateCheckInDisplay,
 } from "@/lib/api/check-in-display";
-import { getPlans } from "@/lib/api/plan";
+import { getPlans, getPlan } from "@/lib/api/plan";
+import type { Plan, TableAssignment } from "@/lib/api/plan";
 import { DEFAULT_FONT, getFontNames, getGoogleFontsUrl } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { API_BASE_URL, queryClient } from "@/utils/rest-api";
+import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
 
 const FONT_SIZES = [24, 32, 48, 56, 64, 72, 84, 96, 120, 144, 168, 200];
 
@@ -87,6 +95,7 @@ export default function WelcomeScreenForm({
 	const [isBold, setIsBold] = useState(false);
 	const [nameColor, setNameColor] = useState("#FFFFFF");
 	const [welcomeText, setWelcomeText] = useState("Welcome");
+	const [seatingAnnouncementTemplate, setSeatingAnnouncementTemplate] = useState("Welcome, #{name}. You are at #{table_label}.");
 	
 	// Modes
 	const [idleMode, setIdleMode] = useState<DisplayMode>("image");
@@ -96,7 +105,11 @@ export default function WelcomeScreenForm({
 	// Seating Plan
 	const [showSeatingPlan, setShowSeatingPlan] = useState(false);
 	const [seatingPlanSidebarPosition, setSeatingPlanSidebarPosition] = useState<"left" | "right">("left");
+	const [seatingPlanDuration, setSeatingPlanDuration] = useState(8000);
 	const [activePlanId, setActivePlanId] = useState<number | null>(null);
+
+	// Seating Plan Test Data
+	const [selectedTestAssignmentId, setSelectedTestAssignmentId] = useState<string>("none");
 
 	// Fetch plans for active session selection
 	const { data: plans } = useQuery({
@@ -104,6 +117,45 @@ export default function WelcomeScreenForm({
 		queryFn: () => getPlans(eventId.toString()),
 		enabled: showSeatingPlan,
 	});
+
+	// Fetch detailed plan for test data and preview
+	const { data: activePlan } = useQuery({
+		queryKey: ["plan", activePlanId],
+		queryFn: () => getPlan(activePlanId!.toString()),
+		enabled: !!activePlanId && showSeatingPlan,
+	});
+
+	// Extract all assignments for testing
+	const testAssignments = useMemo(() => {
+		if (!activePlan?.plan_objects) return [];
+		const assignments: { id: string; name: string; table: string; tableId: number; assignment: TableAssignment }[] = [];
+		
+		for (const obj of activePlan.plan_objects) {
+			if (obj.object_type === 'table' && obj.table_assignments) {
+				for (const assignment of obj.table_assignments) {
+					const name = assignment.ticket?.attendee_name || assignment.visitor?.full_name || "Unknown Guest";
+					assignments.push({
+						id: assignment.id.toString(),
+						name,
+						table: obj.label || `Table ${obj.id}`,
+						tableId: obj.id,
+						assignment
+					});
+				}
+			}
+		}
+		return assignments;
+	}, [activePlan]);
+
+	// Auto-set preview name when test assignment changes
+	useEffect(() => {
+		if (selectedTestAssignmentId !== "none") {
+			const found = testAssignments.find(a => a.id === selectedTestAssignmentId);
+			if (found) {
+				setPreviewName(found.name);
+			}
+		}
+	}, [selectedTestAssignmentId, testAssignments]);
 
 	// Idle Assets
 	const [selectedIdleImage, setSelectedIdleImage] = useState<File | null>(null);
@@ -153,6 +205,7 @@ export default function WelcomeScreenForm({
 			setIsBold(displaySettings.is_bold || false);
 			setNameColor(displaySettings.name_color || "#FFFFFF");
 			setWelcomeText(displaySettings.welcome_text || "Welcome");
+			setSeatingAnnouncementTemplate(displaySettings.seating_announcement_template || "Welcome, #{name}. You are at #{table_label}.");
 			
 			setIdleMode(displaySettings.idle_mode || "image");
 			setAnnouncementMode(displaySettings.announcement_mode || "image");
@@ -160,6 +213,7 @@ export default function WelcomeScreenForm({
 
 			setShowSeatingPlan(displaySettings.show_seating_plan || false);
 			setSeatingPlanSidebarPosition(displaySettings.seating_plan_sidebar_position || "left");
+			setSeatingPlanDuration(displaySettings.seating_plan_duration || 8000);
 			setActivePlanId(displaySettings.active_plan_id || null);
 
 			setExistingIdleImageUrl(displaySettings.background_image_url);
@@ -207,11 +261,13 @@ export default function WelcomeScreenForm({
 			voice_enabled: voiceEnabled,
 			voice_type: voiceId,
 			welcome_text: welcomeText,
+			seating_announcement_template: seatingAnnouncementTemplate,
 			idle_mode: idleMode,
 			announcement_mode: announcementMode,
 			announcement_duration: announcementDuration,
 			show_seating_plan: showSeatingPlan,
 			seating_plan_sidebar_position: seatingPlanSidebarPosition,
+			seating_plan_duration: seatingPlanDuration,
 			active_plan_id: activePlanId,
 			remove_background_image: removeIdleImage,
 			remove_idle_video: removeIdleVideo,
@@ -230,12 +286,42 @@ export default function WelcomeScreenForm({
 	const triggerPreviewAnimation = () => {
 		setIsPreviewingAnnouncement(true);
 		setPreviewKey((prev) => prev + 1);
-		speak(`${welcomeText}, ${previewName}`);
+		
+		let textToSpeak = "";
+		if (showSeatingPlan && testSeatingContext) {
+			textToSpeak = seatingAnnouncementTemplate
+				.replace("#{name}", previewName)
+				.replace("#{table_label}", testSeatingContext.table_label);
+		} else {
+			textToSpeak = `${welcomeText}, ${previewName}`;
+		}
+		
+		speak(textToSpeak);
 		
 		setTimeout(() => {
 			setIsPreviewingAnnouncement(false);
 		}, announcementDuration);
 	};
+
+	const testSeatingContext = useMemo(() => {
+		if (selectedTestAssignmentId === "none" || !activePlan) return null;
+		const found = testAssignments.find(a => a.id === selectedTestAssignmentId);
+		if (!found) return null;
+
+		// Find all guests at the same table
+		const tableObj = activePlan.plan_objects?.find(o => o.id === found.tableId);
+		const tableGuests = tableObj?.table_assignments?.map(ta => ({
+			name: ta.ticket?.attendee_name || ta.visitor?.full_name || "Unknown Guest",
+			is_checked_in: true
+		})) || [];
+
+		return {
+			plan_id: activePlan.id,
+			table_id: found.tableId,
+			table_label: found.table,
+			table_guests: tableGuests
+		};
+	}, [selectedTestAssignmentId, activePlan, testAssignments]);
 
 	if (isLoading) return <LoadingState title="Loading..." description="Fetching settings" />;
 	if (error) return <div className="text-destructive">Failed to load settings.</div>;
@@ -262,45 +348,74 @@ export default function WelcomeScreenForm({
 				<FieldSeparator />
 
 				<div className="space-y-6 py-4">
-					{/* Text Style Toolbar */}
-					<div className="grid grid-cols-2 gap-4 md:grid-cols-5 bg-slate-50 p-4 border">
-						<FieldGroup>
-							<FieldLabel>Font</FieldLabel>
-							<Select value={fontFamily} onValueChange={setFontFamily}>
-								<SelectTrigger className="rounded-none h-8 text-xs">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									{getFontNames().map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-								</SelectContent>
-							</Select>
-						</FieldGroup>
-						<FieldGroup>
-							<FieldLabel>Size</FieldLabel>
-							<Select value={fontSize.toString()} onValueChange={(v) => setFontSize(Number(v))}>
-								<SelectTrigger className="rounded-none h-8 text-xs"><SelectValue /></SelectTrigger>
-								<SelectContent>{FONT_SIZES.map((s) => <SelectItem key={s} value={s.toString()}>{s}px</SelectItem>)}</SelectContent>
-							</Select>
-						</FieldGroup>
-						<FieldGroup>
-							<FieldLabel>Animation</FieldLabel>
-							<Select value={animationType} onValueChange={(v) => setAnimationType(v as AnimationType)}>
-								<SelectTrigger className="rounded-none h-8 text-xs"><SelectValue /></SelectTrigger>
-								<SelectContent>{ANIMATION_TYPES.map((a) => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}</SelectContent>
-							</Select>
-						</FieldGroup>
-						<FieldGroup>
-							<FieldLabel>Color</FieldLabel>
-							<Select value={nameColor} onValueChange={setNameColor}>
-								<SelectTrigger className="rounded-none h-8 text-xs"><SelectValue /></SelectTrigger>
-								<SelectContent>{NAME_COLORS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-							</Select>
-						</FieldGroup>
-						<FieldGroup>
-							<FieldLabel>Bold</FieldLabel>
-							<div className="flex h-8 items-center"><Switch checked={isBold} onCheckedChange={setIsBold} /></div>
-						</FieldGroup>
-					</div>
+					{/* Text Style Toolbar - Condensed & Breathable */}
+					<TooltipProvider delayDuration={0}>
+						<div className="flex flex-wrap items-center gap-6 bg-slate-50 p-4 border border-slate-200">
+							<div className="flex items-center gap-5 pr-6 border-r border-slate-200">
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Font</label>
+									<Select value={fontFamily} onValueChange={setFontFamily}>
+										<SelectTrigger className="rounded-none h-9 text-[13px] w-[180px] bg-white border-slate-200 shadow-sm px-3">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{getFontNames().map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Size</label>
+									<Select value={fontSize.toString()} onValueChange={(v) => setFontSize(Number(v))}>
+										<SelectTrigger className="rounded-none h-9 text-[13px] w-[90px] bg-white border-slate-200 shadow-sm px-3"><SelectValue /></SelectTrigger>
+										<SelectContent>{FONT_SIZES.map((s) => <SelectItem key={s} value={s.toString()}>{s}px</SelectItem>)}</SelectContent>
+									</Select>
+								</div>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="flex items-center gap-3 pl-2 cursor-help border-l border-slate-100 ml-2">
+											<Switch checked={isBold} onCheckedChange={setIsBold} className="scale-90" />
+											<span className={cn("text-xs font-bold uppercase", isBold ? "text-primary" : "text-slate-500")}>Bold</span>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent side="top">Toggle Bold Weight</TooltipContent>
+								</Tooltip>
+							</div>
+
+							<div className="flex items-center gap-6">
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Animation</label>
+									<div className="w-[150px]">
+										<Select value={animationType} onValueChange={(v) => setAnimationType(v as AnimationType)}>
+											<SelectTrigger className="rounded-none h-9 text-[13px] bg-white border-slate-200 shadow-sm px-3">
+												<SelectValue placeholder="Animation" />
+											</SelectTrigger>
+											<SelectContent>{ANIMATION_TYPES.map((a) => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}</SelectContent>
+										</Select>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Color</label>
+									<div className="w-[130px]">
+										<Select value={nameColor} onValueChange={setNameColor}>
+											<SelectTrigger className="rounded-none h-9 text-[13px] bg-white border-slate-200 shadow-sm px-3">
+												<SelectValue placeholder="Color" />
+											</SelectTrigger>
+											<SelectContent>{NAME_COLORS.map((c) => (
+												<SelectItem key={c.value} value={c.value}>
+													<div className="flex items-center gap-2">
+														<div className="size-3 border border-slate-200" style={{ backgroundColor: c.value }} />
+														<span>{c.label}</span>
+													</div>
+												</SelectItem>
+											))}
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</TooltipProvider>
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 						{/* Configuration Column */}
@@ -357,12 +472,14 @@ export default function WelcomeScreenForm({
 											</Select>
 										</FieldGroup>
 										<FieldGroup>
-											<FieldLabel>Duration (ms)</FieldLabel>
+											<FieldLabel>Display Duration (Seconds)</FieldLabel>
 											<Input 
 												type="number" 
-												value={announcementDuration} 
-												onChange={(e) => setAnnouncementDuration(Number(e.target.value))}
+												value={announcementDuration / 1000} 
+												onChange={(e) => setAnnouncementDuration(Number(e.target.value) * 1000)}
 												className="rounded-none h-9"
+												min={1}
+												step={0.5}
 											/>
 										</FieldGroup>
 									</div>
@@ -388,60 +505,76 @@ export default function WelcomeScreenForm({
 								</TabsContent>
 							</Tabs>
 
-							<div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 border">
-								<FieldGroup>
-									<FieldLabel>Voice Announcement</FieldLabel>
-									<Switch checked={voiceEnabled} onCheckedChange={setVoiceEnabled} />
-								</FieldGroup>
-								{voiceEnabled && (
-									<FieldGroup>
-										<FieldLabel>Voice Language</FieldLabel>
-										<Select value={voiceId} onValueChange={(v) => setVoiceId(v as VoiceId)}>
-											<SelectTrigger className="rounded-none h-8 text-xs"><SelectValue /></SelectTrigger>
-											<SelectContent>
-												{getVoicesByCategory().malay.map((v) => <SelectItem key={v.id} value={v.id}>{v.label}</SelectItem>)}
-											</SelectContent>
-										</Select>
-									</FieldGroup>
-								)}
-							</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<div className="flex items-center justify-between">
+										<FieldLabel className="mb-0 text-[10px] uppercase font-bold text-slate-500">Voice Announcement</FieldLabel>
+										<Switch checked={voiceEnabled} onCheckedChange={setVoiceEnabled} className="scale-75" />
+									</div>
+									{voiceEnabled && (
+										<FieldGroup className="space-y-1">
+											<Select value={voiceId} onValueChange={(v) => setVoiceId(v as VoiceId)}>
+												<SelectTrigger className="rounded-none h-8 text-xs bg-white"><SelectValue /></SelectTrigger>
+												<SelectContent>
+													{getVoicesByCategory().malay.map((v) => <SelectItem key={v.id} value={v.id}>{v.label}</SelectItem>)}
+												</SelectContent>
+											</Select>
+										</FieldGroup>
+									)}
+								</div>
 
-							{/* Seating Plan Settings */}
-							<div className="grid grid-cols-1 gap-4 bg-slate-50 p-4 border">
-								<div className="grid grid-cols-2 gap-4">
-									<FieldGroup>
-										<FieldLabel>Show Seating Plan</FieldLabel>
+								{/* Seating Plan Settings */}
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<div className="flex items-center justify-between">
+										<FieldLabel className="mb-0 text-[10px] uppercase font-bold text-slate-500">Show Seating Plan</FieldLabel>
 										<Switch 
 											checked={showSeatingPlan} 
 											onCheckedChange={(checked) => {
 												setShowSeatingPlan(checked);
 												if (!checked) setActivePlanId(null);
 											}} 
+											className="scale-75"
 										/>
-									</FieldGroup>
+									</div>
 									{showSeatingPlan && (
-										<FieldGroup>
-											<FieldLabel>Sidebar Position</FieldLabel>
+										<div className="flex items-center gap-2">
 											<Select value={seatingPlanSidebarPosition} onValueChange={(v) => setSeatingPlanSidebarPosition(v as "left" | "right")}>
-												<SelectTrigger className="rounded-none h-8 text-xs"><SelectValue /></SelectTrigger>
+												<SelectTrigger className="rounded-none h-8 text-xs bg-white flex-1"><SelectValue /></SelectTrigger>
 												<SelectContent>
-													<SelectItem value="left">Left Side</SelectItem>
-													<SelectItem value="right">Right Side</SelectItem>
+													<SelectItem value="left">Left</SelectItem>
+													<SelectItem value="right">Right</SelectItem>
 												</SelectContent>
 											</Select>
-										</FieldGroup>
+											<div className="flex items-center gap-2">
+												<span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap">Duration (Sec)</span>
+												<Input 
+													type="number" 
+													value={seatingPlanDuration / 1000} 
+													onChange={(e) => setSeatingPlanDuration(Number(e.target.value) * 1000)}
+													className="rounded-none h-8 w-[80px] text-xs"
+													placeholder="sec"
+													min={1}
+													step={0.5}
+												/>
+											</div>
+										</div>
 									)}
 								</div>
-								
-								{showSeatingPlan && (
-									<FieldGroup className="border-t pt-4">
-										<FieldLabel>Current Live Seating Session</FieldLabel>
+							</div>
+							
+							{showSeatingPlan && (
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<FieldGroup className="space-y-2">
+										<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Active Seating Session</FieldLabel>
 										<Select 
 											value={activePlanId?.toString() || "none"} 
-											onValueChange={(v) => setActivePlanId(v === "none" ? null : Number(v))}
+											onValueChange={(v) => {
+												setActivePlanId(v === "none" ? null : Number(v));
+												setSelectedTestAssignmentId("none");
+											}}
 										>
-											<SelectTrigger className="rounded-none h-10">
-												<SelectValue placeholder="Select active session (e.g. Dinner, Morning Ceremony)" />
+											<SelectTrigger className="rounded-none h-9 bg-white text-xs">
+												<SelectValue placeholder="Select active session" />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="none">No active plan (Hide map)</SelectItem>
@@ -452,12 +585,61 @@ export default function WelcomeScreenForm({
 												))}
 											</SelectContent>
 										</Select>
-										<FieldDescription className="text-[10px]">
-											Announcements will only show seats assigned in this specific plan.
-										</FieldDescription>
 									</FieldGroup>
-								)}
-							</div>
+
+									{activePlanId && (
+										<FieldGroup className="border-t pt-3 space-y-2">
+											<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Seating Voice Template</FieldLabel>
+											<Input 
+												value={seatingAnnouncementTemplate} 
+												onChange={(e) => setSeatingAnnouncementTemplate(e.target.value)}
+												placeholder="Welcome, #{name}. You are at #{table_label}."
+												className="rounded-none h-9 bg-white text-xs"
+											/>
+											<p className="text-[9px] text-slate-400 italic">
+												Use <span className="font-bold">#{'{name}'}</span> and <span className="font-bold">#{'{table_label}'}</span> as variables.
+											</p>
+										</FieldGroup>
+									)}
+
+									{activePlanId && (
+										<FieldGroup className="border-t pt-3 space-y-2">
+											<div className="flex items-center justify-between">
+												<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Select Guest to Test</FieldLabel>
+												{selectedTestAssignmentId !== "none" && (
+													<Button 
+														variant="ghost" 
+														size="sm" 
+														className="h-5 text-[9px] uppercase font-bold text-primary hover:text-primary/80 px-1"
+														onClick={() => setSelectedTestAssignmentId("none")}
+													>
+														Reset
+													</Button>
+												)}
+											</div>
+											<Select 
+												value={selectedTestAssignmentId} 
+												onValueChange={setSelectedTestAssignmentId}
+											>
+												<SelectTrigger className="rounded-none h-9 bg-white text-xs">
+													<SelectValue placeholder="Pick a guest from this plan" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="none">Manual Preview (Name Only)</SelectItem>
+													<SelectGroup>
+														<SelectLabel>Assigned Guests ({testAssignments.length})</SelectLabel>
+														{testAssignments.map((a) => (
+															<SelectItem key={a.id} value={a.id}>
+																{a.name} ({a.table})
+															</SelectItem>
+														))}
+													</SelectGroup>
+												</SelectContent>
+											</Select>
+										</FieldGroup>
+									)}
+								</div>
+							)}
 						</div>
 
 						{/* Preview Column */}
@@ -466,40 +648,31 @@ export default function WelcomeScreenForm({
 								<FieldLabel className="mb-0">Live Preview</FieldLabel>
 								<Button size="sm" variant="outline" className="h-7 rounded-none text-xs" onClick={triggerPreviewAnimation}>Test Animation</Button>
 							</div>
-							<div className="aspect-video relative bg-slate-900 border overflow-hidden flex items-center justify-center">
-								{idleMode === 'video' && !isPreviewingAnnouncement && previewIdleUrl && (
-									<video src={previewIdleUrl} autoPlay loop muted className="absolute inset-0 w-full h-full object-cover" />
-								)}
-								{idleMode === 'image' && !isPreviewingAnnouncement && previewIdleUrl && (
-									<img src={previewIdleUrl} className="absolute inset-0 w-full h-full object-cover" />
-								)}
-								{isPreviewingAnnouncement && announcementMode === 'video' && previewAnnUrl && (
-									<video src={previewAnnUrl} autoPlay muted className="absolute inset-0 w-full h-full object-cover z-10" />
-								)}
-								{isPreviewingAnnouncement && announcementMode === 'image' && previewAnnUrl && (
-									<img src={previewAnnUrl} className="absolute inset-0 w-full h-full object-cover z-10" />
-								)}
-								
-								<div className="absolute inset-0 bg-black/20 z-20" />
-								
-								<div className="relative z-30 text-center px-4">
-									{isPreviewingAnnouncement ? (
-										<>
-											<p className="uppercase tracking-widest text-white text-[10px] mb-1">{welcomeText}</p>
-											<NameAnimation
-												key={previewKey}
-												name={previewName}
-												animationType={animationType}
-												fontFamily={fontFamily}
-												fontSize={fontSize / 3}
-												isBold={isBold}
-												nameColor={nameColor}
-											/>
-										</>
-									) : (
-										<p className="text-white/40 text-[10px] uppercase font-bold tracking-tighter">Waiting for Check-In...</p>
-									)}
-								</div>
+							<div className="aspect-video relative bg-slate-900 border overflow-hidden">
+								<WelcomeScreenView 
+									eventTitle="Event Preview"
+									latestCheckIn={isPreviewingAnnouncement ? {
+										id: 0,
+										name: previewName,
+										seating_context: testSeatingContext
+									} : null}
+									activePlan={activePlan}
+									fontFamily={fontFamily}
+									fontSize={fontSize / 2.5}
+									animationType={animationType}
+									isBold={isBold}
+									nameColor={nameColor}
+									welcomeText={welcomeText}
+									showSeatingPlan={showSeatingPlan}
+									seatingPlanSidebarPosition={seatingPlanSidebarPosition}
+									idleMode={idleMode}
+									announcementMode={announcementMode}
+									idleImageUrl={previewIdleUrl}
+									idleVideoUrl={previewIdleUrl}
+									announcementImageUrl={previewAnnUrl}
+									announcementVideoUrl={previewAnnUrl}
+									isAnnouncing={isPreviewingAnnouncement}
+								/>
 							</div>
 							<div className="space-y-2">
 								<FieldLabel className="text-[10px] uppercase font-bold text-slate-400">Preview Data</FieldLabel>

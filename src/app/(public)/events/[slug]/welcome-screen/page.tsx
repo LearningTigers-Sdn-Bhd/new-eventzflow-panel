@@ -9,6 +9,7 @@ import { DEFAULT_VOICE, useTTS, type VoiceId } from "@/hooks/use-tts";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
 import { fetchPublicCheckInDisplay } from "@/lib/api/check-in-display";
 import type { CheckInBroadcast } from "@/lib/api/check-in-display/types";
+import { getPublicPlan } from "@/lib/api/plan";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
 import { getVoiceById } from "@/lib/tts";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,15 @@ export default function WelcomeScreenPage() {
 		queryKey: ["public-check-in-display", slug],
 		queryFn: () => fetchPublicCheckInDisplay(slug),
 		retry: 3,
+		staleTime: STALE_TIME_MS,
+	});
+
+	// Pre-fetch active plan if seating plan is enabled
+	const activePlanId = settings?.active_plan_id;
+	const { data: activePlan } = useQuery({
+		queryKey: ["public-plan", activePlanId],
+		queryFn: () => getPublicPlan(activePlanId!.toString()),
+		enabled: !!activePlanId && settings?.show_seating_plan,
 		staleTime: STALE_TIME_MS,
 	});
 
@@ -106,9 +116,18 @@ export default function WelcomeScreenPage() {
 			setActiveCheckIn(nextCheckIn);
 			setIsAnnouncing(true);
 
+			let textToSpeak = "";
 			const welcomeText = settings?.welcome_text || "Welcome";
-			const tableSuffix = nextCheckIn.table_label ? `. ${nextCheckIn.table_label}` : "";
-			const textToSpeak = `${welcomeText}, ${nextCheckIn.name}${tableSuffix}`;
+			
+			if (settings?.show_seating_plan && nextCheckIn.seating_context && nextCheckIn.seating_context.table_label) {
+				const template = settings?.seating_announcement_template || "Welcome, #{name}. You are at #{table_label}.";
+				textToSpeak = template
+					.replace("#{name}", nextCheckIn.name)
+					.replace("#{table_label}", nextCheckIn.seating_context.table_label);
+			} else {
+				const tableSuffix = nextCheckIn.table_label ? `. ${nextCheckIn.table_label}` : "";
+				textToSpeak = `${welcomeText}, ${nextCheckIn.name}${tableSuffix}`;
+			}
 			
 			// 2. TRIGGER MEDIA
 			if (settings?.announcement_mode === 'video' && annVideoRef.current) {
@@ -122,8 +141,12 @@ export default function WelcomeScreenPage() {
 			}
 
 			// 4. HOLD STATE FOR DURATION
-			const duration = settings?.announcement_duration || 5000;
-			await wait(duration);
+			const hasSeatingPlan = settings?.show_seating_plan && nextCheckIn.seating_context;
+			const defaultDuration = hasSeatingPlan 
+				? (settings?.seating_plan_duration || 8000) 
+				: (settings?.announcement_duration || 5000);
+			
+			await wait(defaultDuration);
 
 			// 5. CLEANUP & RESET TO IDLE
 			setIsAnnouncing(false);
@@ -176,6 +199,7 @@ export default function WelcomeScreenPage() {
 			<WelcomeScreenView
 				eventTitle={settings.event.title}
 				latestCheckIn={activeCheckIn || latestCheckIn}
+				activePlan={activePlan}
 				fontFamily={settings.font_family || DEFAULT_FONT}
 				fontSize={settings.font_size || 72}
 				animationType={settings.animation_type || "fade_in"}

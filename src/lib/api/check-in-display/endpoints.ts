@@ -84,6 +84,23 @@ export async function updateCheckInDisplay(
 			formData.append("check_in_display[announcement_duration]", data.announcement_duration.toString());
 		}
 
+		// Seating Plan
+		if (data.show_seating_plan !== undefined) {
+			formData.append("check_in_display[show_seating_plan]", data.show_seating_plan.toString());
+		}
+		if (data.seating_plan_sidebar_position) {
+			formData.append("check_in_display[seating_plan_sidebar_position]", data.seating_plan_sidebar_position);
+		}
+		if (data.seating_plan_duration) {
+			formData.append("check_in_display[seating_plan_duration]", data.seating_plan_duration.toString());
+		}
+		if (data.active_plan_id !== undefined) {
+			formData.append("check_in_display[active_plan_id]", data.active_plan_id ? data.active_plan_id.toString() : "");
+		}
+		if (data.seating_announcement_template) {
+			formData.append("check_in_display[seating_announcement_template]", data.seating_announcement_template);
+		}
+
 		// Idle Assets
 		if (data.background_image) {
 			formData.append("check_in_display[background_image]", data.background_image);

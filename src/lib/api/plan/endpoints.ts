@@ -1,4 +1,4 @@
-import { restClient } from "@/utils/rest-api";
+import { restClient, publicRestClient } from "@/utils/rest-api";
 import type {
 	CreateAssignmentRequest,
 	CreatePlanObjectRequest,
@@ -20,6 +20,10 @@ export async function getPlans(eventId: string): Promise<Plan[]> {
 
 export async function getPlan(planId: string): Promise<Plan> {
 	return restClient.get<Plan>(`v1/plans/${planId}`);
+}
+
+export async function getPublicPlan(planId: string): Promise<Plan> {
+	return publicRestClient.get<Plan>(`v1/public/plans/${planId}`);
 }
 
 export async function createPlan(
@@ -66,7 +70,16 @@ export async function createPlanObject(
 export async function deletePlanObject(
 	objectId: number | string,
 ): Promise<void> {
-	return restClient.delete(`v1/plan_objects/${objectId}`);
+	return restClient.delete(`v1/plan_objects/${objectId}`, undefined);
+}
+
+export async function batchDeletePlanObjects(
+	plan_id: string,
+	objectIds: number[],
+): Promise<void> {
+	return restClient.delete(`v1/plans/${plan_id}/plan_objects/batch_destroy`, {
+		ids: objectIds,
+	});
 }
 
 export async function batchUpdatePlanObjects(
@@ -75,6 +88,16 @@ export async function batchUpdatePlanObjects(
 ): Promise<PlanObject[]> {
 	return restClient.patch<PlanObject[]>(
 		`v1/plans/${planId}/plan_objects/batch`,
+		{ plan_objects: objects },
+	);
+}
+
+export async function batchCreatePlanObjects(
+	plan_id: string,
+	objects: CreatePlanObjectRequest[],
+): Promise<PlanObject[]> {
+	return restClient.post<PlanObject[]>(
+		`v1/plans/${plan_id}/plan_objects/batch_create`,
 		{ plan_objects: objects },
 	);
 }

@@ -15,6 +15,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getPlans, createPlan, deletePlan } from "@/lib/api/plan";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
@@ -121,18 +132,44 @@ export default function PlansPage({ params }: PageProps) {
                   Edit Plan
                 </Link>
               </Button>
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this plan?")) {
-                    deleteMutation.mutate(plan.id);
-                  }
-                }}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-2">
+                      <p>
+                        This action cannot be undone. Deleting the seating plan <strong>"{plan.name}"</strong> will permanently remove:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-sm font-medium">
+                        <li>All plan objects (tables, stages, labels, etc.)</li>
+                        <li>All guest-to-table assignments associated with this plan</li>
+                        <li>Seating plan layout and background images</li>
+                      </ul>
+                      <p className="text-destructive font-semibold">
+                        All attached data inside this seating plan will be lost forever.
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteMutation.mutate(plan.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete Plan
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardFooter>
           </Card>
         ))}

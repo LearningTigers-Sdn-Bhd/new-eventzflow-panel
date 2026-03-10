@@ -90,6 +90,9 @@ import {
 } from "@/components/ui/tooltip";
 import {
 	autoDistribute,
+	batchCreatePlanObjects,
+	batchDeletePlanObjects,
+	batchUpdatePlanObjects,
 	createAssignment,
 	createPlanObject,
 	deleteAssignment,
@@ -166,13 +169,16 @@ export function PlanWorkshop({
 
 	const {
 		plan,
-		selectedObjectId,
+		selectedObjectIds,
+		selectedObjects,
 		selectedObject,
-		setSelectedObjectId,
+		setSelectedObjectIds,
 		updateObjectPosition,
 		updateObject,
+		updateObjects,
+		addObjects,
 		updatePlanSettings,
-		savePendingChanges, // We will add this to ensure position is saved before duplicate
+		savePendingChanges,
 		isSaving,
 		undo,
 		redo,
@@ -286,13 +292,54 @@ export function PlanWorkshop({
 		},
 	});
 
-	const deleteObjectMutation = useMutation({
-		mutationFn: (id: number) => deletePlanObject(id.toString()),
+	const deleteObjectsMutation = useMutation({
+		mutationFn: (ids: number[]) => batchDeletePlanObjects(plan.id.toString(), ids),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
-			setSelectedObjectId(null);
-			toast.success("Object deleted");
+			setSelectedObjectIds([]);
+			toast.success("Objects deleted");
 		},
+	});
+
+	const duplicateObjectsMutation = useMutation({
+		mutationFn: async (objects: PlanObject[]) => {
+			await savePendingChanges();
+			const duplicates = objects.map(obj => ({
+				object_type: obj.object_type,
+				layer: obj.layer,
+				x: obj.x + 20,
+				y: obj.y + 20,
+				rotation: obj.rotation || 0,
+				width: obj.width,
+				height: obj.height,
+				path: obj.path,
+				label: obj.label ? `${obj.label} (Copy)` : undefined,
+				capacity: obj.capacity,
+				locked: false,
+				z_index: obj.z_index || 0,
+			}));
+			console.log("[PlanWorkshop] Duplicating objects:", duplicates);
+			return batchCreatePlanObjects(plan.id.toString(), duplicates);
+		},
+		onSuccess: (newObjects) => {
+			console.log("[PlanWorkshop] Duplication success:", newObjects);
+			
+			// Select the newly created objects
+			if (newObjects && newObjects.length > 0) {
+				addObjects(newObjects); // Inject into local state immediately
+				setSelectedObjectIds(newObjects.map(obj => obj.id));
+			} else {
+				setSelectedObjectIds([]);
+			}
+			
+			// Background refetch to ensure everything is perfect
+			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
+			toast.success("Objects duplicated");
+		},
+		onError: (error: any) => {
+			console.error("[PlanWorkshop] Duplication failed:", error.response?.data || error.message);
+			toast.error("Duplication failed: " + (error.response?.data?.message || error.message));
+		}
 	});
 
 	const autoDistributeMutation = useMutation({
@@ -503,7 +550,7 @@ export function PlanWorkshop({
 		onSuccess: (newObj: any) => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			toast.success("Object added");
-			if (newObj?.id) setSelectedObjectId(newObj.id);
+			if (newObj?.id) setSelectedObjectIds([newObj.id]);
 		},
 	});
 
@@ -539,9 +586,27 @@ export function PlanWorkshop({
 
 	const handleDeleteObject = useCallback(
 		(id: number) => {
-			deleteObjectMutation.mutate(id);
+			deleteObjectsMutation.mutate([id]);
 		},
-		[deleteObjectMutation],
+		[deleteObjectsMutation],
+	);
+
+	const handleDeleteObjects = useCallback(
+		() => {
+			if (selectedObjectIds.length > 0) {
+				deleteObjectsMutation.mutate(selectedObjectIds);
+			}
+		},
+		[deleteObjectsMutation, selectedObjectIds],
+	);
+
+	const handleDuplicateObjects = useCallback(
+		() => {
+			if (selectedObjects.length > 0) {
+				duplicateObjectsMutation.mutate(selectedObjects);
+			}
+		},
+		[duplicateObjectsMutation, selectedObjects],
 	);
 
 	const handleDeleteAssignment = useCallback(
@@ -621,30 +686,21 @@ export function PlanWorkshop({
 				return;
 			}
 
-			if (!selectedObject) return;
+			if (selectedObjectIds.length === 0) return;
 
 			if ((e.metaKey || e.ctrlKey) && e.key === "d") {
 				e.preventDefault();
-				addObjectMutation.mutate({
-					type: selectedObject.object_type,
-					overrides: {
-						...selectedObject,
-						id: undefined,
-						x: selectedObject.x + 20,
-						y: selectedObject.y + 20,
-						table_assignments: [],
-					},
-				});
+				handleDuplicateObjects();
 				return;
 			}
 
 			if (e.key === "Backspace" || e.key === "Delete") {
 				e.preventDefault();
-				handleDeleteObject(selectedObject.id);
+				handleDeleteObjects();
 				return;
 			}
 
-			if (!selectedObject.locked) {
+			if (selectedObject && !selectedObject.locked) {
 				const step = e.shiftKey ? 10 : 1;
 				let newX = selectedObject.x;
 				let newY = selectedObject.y;
@@ -673,22 +729,24 @@ export function PlanWorkshop({
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [
+		selectedObjectIds,
 		selectedObject,
+		selectedObjects,
 		undo,
 		redo,
-		addObjectMutation,
-		handleDeleteObject,
+		handleDeleteObjects,
+		handleDuplicateObjects,
 		updateObjectPosition,
 	]);
 
 	// Auto-switch to inspector tab when an object is selected
 	useEffect(() => {
-		if (selectedObjectId) {
+		if (selectedObjectIds.length > 0) {
 			setActiveTab("inspector");
 		} else if (activeTab === "inspector") {
 			setActiveTab("elements");
 		}
-	}, [selectedObjectId]);
+	}, [selectedObjectIds, activeTab]);
 
 	const sensors = useSensors(
 		useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
@@ -1153,12 +1211,15 @@ export function PlanWorkshop({
 												onUnassign={handleDeleteAssignment}
 											/>
 										)}
-										{activeTab === "inspector" && selectedObject && (
+										{activeTab === "inspector" && (selectedObject || selectedObjects.length > 1) && (
 											<Inspector
 												plan={plan}
+												selectedObjects={selectedObjects}
 												object={selectedObject}
 												onUpdate={handleUpdateObject}
 												onDelete={handleDeleteObject}
+												onBulkDelete={handleDeleteObjects}
+												onBulkDuplicate={handleDuplicateObjects}
 												onUpdatePlan={handleUpdatePlan}
 												onUploadObjectImage={handleUploadObjectImage}
 												onDeleteAssignment={handleDeleteAssignment}
@@ -1189,10 +1250,10 @@ export function PlanWorkshop({
 												{plan.plan_objects?.map((obj: PlanObject) => (
 													<button
 														key={obj.id}
-														onClick={() => setSelectedObjectId(obj.id)}
+														onClick={() => setSelectedObjectIds([obj.id])}
 														className={cn(
 															"group flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-all",
-															selectedObjectId === obj.id
+															selectedObjectIds.includes(obj.id)
 																? "border-primary bg-primary/5 ring-1 ring-primary dark:bg-primary/10 dark:ring-primary/40"
 																: "border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50",
 														)}
@@ -1321,51 +1382,57 @@ export function PlanWorkshop({
 							<div
 								className={cn(
 									"z-20 flex h-12 shrink-0 items-center gap-2 border-b bg-white px-4 transition-all duration-300 dark:border-slate-800 dark:bg-slate-900",
-									selectedObject && !isCalibrating
+									(selectedObject || selectedObjectIds.length > 1) && !isCalibrating
 										? "translate-y-0 opacity-100"
 										: "pointer-events-none absolute w-full -translate-y-full opacity-0",
 								)}
 							>
-								{selectedObject && (
+								{selectedObjectIds.length > 0 && (
 									<>
 										<div className="mr-2 flex items-center gap-2 border-r pr-4 dark:border-slate-800">
 											<Shapes className="h-4 w-4 text-slate-400 dark:text-slate-500" />
 											<span className="font-black text-[10px] text-slate-500 uppercase tracking-widest dark:text-slate-400">
-												{selectedObject.label || selectedObject.object_type}
+												{selectedObjectIds.length > 1 
+													? `${selectedObjectIds.length} Objects Selected` 
+													: (selectedObject?.label || selectedObject?.object_type)}
 											</span>
 										</div>
 
-										<div className="flex items-center gap-1.5 rounded-md border bg-slate-50 px-2 py-1 font-bold text-[10px] text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
-											<Hash className="h-3 w-3" />
-											<span>{selectedObject.id}</span>
-										</div>
+										{selectedObjectIds.length === 1 && selectedObject && (
+											<div className="flex items-center gap-1.5 rounded-md border bg-slate-50 px-2 py-1 font-bold text-[10px] text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+												<Hash className="h-3 w-3" />
+												<span>{selectedObject.id}</span>
+											</div>
+										)}
 
 										<div className="flex-1" />
 
 										<div className="flex items-center gap-1">
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<Button
-														variant="ghost"
-														size="icon"
-														className="h-8 w-8 rounded-md dark:text-slate-400 dark:hover:bg-slate-800"
-														onClick={() =>
-															handleUpdateObject(selectedObject.id, {
-																locked: !selectedObject.locked,
-															})
-														}
-													>
-														{selectedObject.locked ? (
-															<Lock className="h-4 w-4 text-orange-500 dark:text-orange-400" />
-														) : (
-															<Unlock className="h-4 w-4" />
-														)}
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													{selectedObject.locked ? "Unlock" : "Lock"}
-												</TooltipContent>
-											</Tooltip>
+											{selectedObjectIds.length === 1 && selectedObject && (
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Button
+															variant="ghost"
+															size="icon"
+															className="h-8 w-8 rounded-md dark:text-slate-400 dark:hover:bg-slate-800"
+															onClick={() =>
+																handleUpdateObject(selectedObject.id, {
+																	locked: !selectedObject.locked,
+																})
+															}
+														>
+															{selectedObject.locked ? (
+																<Lock className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+															) : (
+																<Unlock className="h-4 w-4" />
+															)}
+														</Button>
+													</TooltipTrigger>
+													<TooltipContent>
+														{selectedObject.locked ? "Unlock" : "Lock"}
+													</TooltipContent>
+												</Tooltip>
+											)}
 
 											<Tooltip>
 												<TooltipTrigger asChild>
@@ -1373,18 +1440,7 @@ export function PlanWorkshop({
 														variant="ghost"
 														size="icon"
 														className="h-8 w-8 rounded-md dark:text-slate-400 dark:hover:bg-slate-800"
-														onClick={() =>
-															addObjectMutation.mutate({
-																type: selectedObject.object_type,
-																overrides: {
-																	...selectedObject,
-																	id: undefined,
-																	x: selectedObject.x + 20,
-																	y: selectedObject.y + 20,
-																	table_assignments: [],
-																},
-															})
-														}
+														onClick={handleDuplicateObjects}
 													>
 														<Copy className="h-4 w-4" />
 													</Button>
@@ -1398,9 +1454,7 @@ export function PlanWorkshop({
 														variant="ghost"
 														size="icon"
 														className="h-8 w-8 rounded-md text-slate-400 hover:bg-destructive/5 hover:text-destructive dark:text-slate-500 dark:hover:bg-destructive/10"
-														onClick={() =>
-															handleDeleteObject(selectedObject.id)
-														}
+														onClick={handleDeleteObjects}
 													>
 														<Trash2 className="h-4 w-4" />
 													</Button>
@@ -1423,17 +1477,30 @@ export function PlanWorkshop({
 
 								<PlanCanvas
 									plan={plan}
-									selectedObjectId={selectedObjectId}
+									selectedObjectIds={selectedObjectIds}
 									activeTool={activeTool}
 									isCalibrating={isCalibrating}
-									onSelectObject={(id) => {
-										if (activeTool === "eraser" && id) handleDeleteObject(id);
-										else setSelectedObjectId(id);
+									onSelectObject={(ids) => {
+										if (activeTool === "eraser" && ids.length > 0) {
+											deleteObjectsMutation.mutate(ids);
+										} else {
+											setSelectedObjectIds(ids);
+										}
 									}}
 									onUpdateObjectPosition={updateObjectPosition}
+									onUpdateMultiplePositions={(updates) => {
+										batchUpdatePlanObjects(plan.id.toString(), updates);
+										// Also update local state for immediate feedback
+										updateObjects(updates.map(u => ({ id: u.id, updates: { x: u.x, y: u.y } })));
+									}}
 									onResizeObject={(id, width, height, x, y) =>
 										handleUpdateObject(id, { width, height, x, y })
 									}
+									onDuplicateObjects={(ids) => {
+										const objectsToDuplicate = plan.plan_objects.filter(obj => ids.includes(obj.id));
+										duplicateObjectsMutation.mutate(objectsToDuplicate);
+									}}
+									onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 									onUpdatePlan={(updates) => handleUpdatePlan(updates)}
 									onUpdateObject={handleUpdateObject}
 									onDeleteObject={handleDeleteObject}

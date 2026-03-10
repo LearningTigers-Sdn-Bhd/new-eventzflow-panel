@@ -27,7 +27,9 @@ export interface CheckInDisplay {
 	// Seating Plan
 	show_seating_plan: boolean;
 	seating_plan_sidebar_position: "left" | "right";
+	seating_plan_duration: number; // in milliseconds
 	active_plan_id?: number | null;
+	seating_announcement_template?: string | null;
 
 	// URLs
 	background_image_url: string | null;
@@ -58,7 +60,9 @@ export interface CheckInDisplayFormData {
 
 	show_seating_plan?: boolean;
 	seating_plan_sidebar_position?: "left" | "right";
+	seating_plan_duration?: number;
 	active_plan_id?: number | null;
+	seating_announcement_template?: string;
 
 	// Files
 	background_image?: File;

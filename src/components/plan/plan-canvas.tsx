@@ -14,35 +14,48 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
+interface AlignmentGuide {
+  type: 'h' | 'v';
+  pos: number;
+}
+
 interface PlanCanvasProps {
   plan: Plan;
-  selectedObjectId?: number | null;
+  selectedObjectIds?: number[];
   highlightObjectId?: number | null;
   isReadOnly?: boolean;
+  hideCapacity?: boolean;
   activeTool?: 'select' | 'floor' | 'eraser';
   isCalibrating?: boolean;
-  onSelectObject?: (id: number | null) => void;
+  onSelectObject?: (ids: number[]) => void;
   onUpdateObjectPosition?: (id: number, x: number, y: number) => void;
+  onUpdateMultiplePositions?: (updates: { id: number, x: number, y: number }[]) => void;
   onResizeObject?: (id: number, width: number, height: number, x?: number, y?: number) => void;
   onUpdatePlan?: (updates: Partial<Plan>) => void;
   onCreateObject?: (data: { object_type: string, x: number, y: number, width: number, height: number, label?: string, capacity?: number }) => void;
+  onDuplicateObjects?: (ids: number[]) => void;
   onDeleteObject?: (id: number) => void;
+  onBulkDelete?: (ids: number[]) => void;
   onUpdateObject?: (id: number, updates: Partial<PlanObject>) => void;
 }
 
 export function PlanCanvas({
   plan,
-  selectedObjectId,
+  selectedObjectIds = [],
   highlightObjectId,
   isReadOnly,
+  hideCapacity,
   activeTool = 'select',
   isCalibrating,
   onSelectObject,
   onUpdateObjectPosition,
+  onUpdateMultiplePositions,
   onResizeObject,
   onUpdatePlan,
   onCreateObject,
+  onDuplicateObjects,
   onDeleteObject,
+  onBulkDelete,
   onUpdateObject,
 }: PlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -50,6 +63,7 @@ export function PlanCanvas({
   const bgRef = useRef<SVGGElement>(null);
   const ghostRef = useRef<SVGGElement>(null);
   const [zoomTransform, setZoomTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
+  const [activeGuides, setActiveGuides] = useState<AlignmentGuide[]>([]);
 
   // Calibration State
   const [calibState, setCalibState] = useState({
@@ -96,6 +110,7 @@ export function PlanCanvas({
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 5])
       .filter((event) => {
+          if (isReadOnly) return false; // Disable panning/zooming entirely in read-only mode
           if (isCalibrating) return false; 
           if (activeTool === 'floor') return false;
           if (activeTool === 'eraser' && event.type === 'mousedown') return false;
@@ -107,7 +122,28 @@ export function PlanCanvas({
       });
 
     svg.call(zoom);
-  }, [activeTool, isCalibrating]);
+
+    // Auto-fit to screen logic on first render or when plan size changes
+    const svgNode = svgRef.current;
+    if (svgNode && plan.canvas_width > 0 && plan.canvas_height > 0) {
+      const { width: viewWidth, height: viewHeight } = svgNode.getBoundingClientRect();
+      if (viewWidth > 0 && viewHeight > 0) {
+        // Less padding in read-only mode to maximize size
+        const padding = isReadOnly ? 20 : 60; 
+        const scaleX = (viewWidth - padding * 2) / plan.canvas_width;
+        const scaleY = (viewHeight - padding * 2) / plan.canvas_height;
+        // In read-only mode, allow it to scale up as much as needed to fit the container
+        const maxScale = isReadOnly ? Math.min(scaleX, scaleY) : Math.min(scaleX, scaleY, 2);
+
+        const currentTransform = d3.zoomTransform(svgNode);
+        if (maxScale > 0 && currentTransform.k === 1 && currentTransform.x === 0 && currentTransform.y === 0) {
+          const tx = (viewWidth - plan.canvas_width * maxScale) / 2;
+          const ty = (viewHeight - plan.canvas_height * maxScale) / 2;
+          svg.call(zoom.transform as any, d3.zoomIdentity.translate(tx, ty).scale(maxScale));
+        }
+      }
+    }
+  }, [activeTool, isCalibrating, isReadOnly, plan.canvas_width, plan.canvas_height]);
 
   // Calibration D3 logic
   useEffect(() => {
@@ -157,19 +193,50 @@ export function PlanCanvas({
 
   return (
     <div className={cn(
-        "w-full h-full relative overflow-hidden bg-[#f0f2f5] dark:bg-slate-950",
+        "w-full h-full relative overflow-hidden bg-transparent",
         isCalibrating && "bg-slate-950"
     )}>
       <svg
         ref={svgRef}
         className="w-full h-full"
-        onClick={() => !isCalibrating && onSelectObject?.(null)}
+        onClick={() => !isCalibrating && onSelectObject?.([])}
       >
+        <defs>
+          <filter id="elegant-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+            <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.0  0 0 0 0 0.77  0 0 0 0 0.8  0 0 0 1.5 0" result="cyan-glow"/>
+            <feMerge>
+              <feMergeNode in="cyan-glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <rect width="100%" height="100%" fill="transparent" />
         <g ref={containerRef}>
+          {/* Alignment Guides */}
+          {activeGuides.map((guide, i) => (
+            <line
+              key={i}
+              x1={guide.type === 'v' ? guide.pos : -5000}
+              y1={guide.type === 'h' ? guide.pos : -5000}
+              x2={guide.type === 'v' ? guide.pos : 10000}
+              y2={guide.type === 'h' ? guide.pos : 10000}
+              className="stroke-[#00C4CC] stroke-[1px] stroke-dasharray-4 pointer-events-none"
+              style={{ filter: "drop-shadow(0 0 2px rgba(0, 196, 204, 0.5))" }}
+            />
+          ))}
+
           {/* Background */}
           <g transform={`translate(${calibState.bgX}, ${calibState.bgY})`} ref={bgRef} className={cn(isCalibrating ? "cursor-move" : "pointer-events-none")}>
-              {plan.background_image_url && <image href={plan.background_image_url} width={calibState.width} height={calibState.height} preserveAspectRatio="none" style={{ opacity: isCalibrating ? 0.5 : 0.8 }} />}
+              {plan.background_image_url && (
+                <image 
+                  href={plan.background_image_url} 
+                  width={calibState.width} 
+                  height={calibState.height} 
+                  preserveAspectRatio="xMidYMid meet" 
+                  style={{ opacity: isCalibrating ? 0.5 : 0.8 }} 
+                />
+              )}
               {isCalibrating && <rect width={calibState.width} height={calibState.height} fill="none" className="stroke-[#00C4CC] stroke-2 stroke-dasharray-4" />}
           </g>
 
@@ -218,32 +285,130 @@ export function PlanCanvas({
                         <svg width={obj.width} height={obj.height} className="overflow-visible">
                             <PlanObjectRenderer
                                 object={obj}
-                                isSelected={selectedObjectId === obj.id}
+                                plan={plan}
+                                containerRef={containerRef}
+                                isSelected={selectedObjectIds.includes(obj.id)}
+                                selectedObjectIds={selectedObjectIds}
                                 isHighlighted={highlightObjectId === obj.id}
                                 isReadOnly={isReadOnly}
+                                hideCapacity={hideCapacity}
                                 onClick={(e: any) => { 
                                     if (isReadOnly) return;
                                     e.stopPropagation(); 
-                                    onSelectObject?.(obj.id); 
+                                    
+                                    if (e.shiftKey) {
+                                      const isAlreadySelected = selectedObjectIds.includes(obj.id);
+                                      if (isAlreadySelected) {
+                                        onSelectObject?.(selectedObjectIds.filter(id => id !== obj.id));
+                                      } else {
+                                        onSelectObject?.([...selectedObjectIds, obj.id]);
+                                      }
+                                    } else {
+                                      onSelectObject?.([obj.id]); 
+                                    }
                                 }}
-                                onDragEnd={(x: number, y: number) => onUpdateObjectPosition?.(obj.id, x, y)}
+                                onDragStart={() => setActiveGuides([])}
+                                onDragging={(x: number, y: number) => {
+                                  const SNAP_THRESHOLD = 5;
+                                  const guides: AlignmentGuide[] = [];
+                                  let snappedX = x;
+                                  let snappedY = y;
+
+                                  // Coordinates of the object being dragged
+                                  const dragEdges = {
+                                    v: [snappedX, snappedX + obj.width / 2, snappedX + obj.width],
+                                    h: [snappedY, snappedY + obj.height / 2, snappedY + obj.height]
+                                  };
+
+                                  // Compare with every OTHER object
+                                  plan.plan_objects?.forEach(other => {
+                                    if (other.id === obj.id || selectedObjectIds.includes(other.id)) return;
+
+                                    const otherEdges = {
+                                      v: [other.x, other.x + other.width / 2, other.x + other.width],
+                                      h: [other.y, other.y + other.height / 2, other.y + other.height]
+                                    };
+
+                                    // Check Vertical Alignment (Aligning X)
+                                    dragEdges.v.forEach((dv, dragIdx) => {
+                                      otherEdges.v.forEach(ov => {
+                                        if (Math.abs(dv - ov) < SNAP_THRESHOLD) {
+                                          if (dragIdx === 0) snappedX = ov;
+                                          if (dragIdx === 1) snappedX = ov - obj.width / 2;
+                                          if (dragIdx === 2) snappedX = ov - obj.width;
+                                          guides.push({ type: 'v', pos: ov });
+                                        }
+                                      });
+                                    });
+
+                                    // Check Horizontal Alignment (Aligning Y)
+                                    dragEdges.h.forEach((dh, dragIdx) => {
+                                      otherEdges.h.forEach(oh => {
+                                        if (Math.abs(dh - oh) < SNAP_THRESHOLD) {
+                                          if (dragIdx === 0) snappedY = oh;
+                                          if (dragIdx === 1) snappedY = oh - obj.height / 2;
+                                          if (dragIdx === 2) snappedY = oh - obj.height;
+                                          guides.push({ type: 'h', pos: oh });
+                                        }
+                                      });
+                                    });
+                                  });
+
+                                  setActiveGuides(guides);
+                                  return { x: snappedX, y: snappedY };
+                                }}
+                                onDragEnd={(x: number, y: number) => {
+                                  setActiveGuides([]);
+                                  if (selectedObjectIds.length > 1 && selectedObjectIds.includes(obj.id)) {
+                                    const dx = x - obj.x;
+                                    const dy = y - obj.y;
+                                    const updates = plan.plan_objects
+                                      ?.filter(o => selectedObjectIds.includes(o.id) && !o.locked)
+                                      .map(o => ({
+                                        id: o.id,
+                                        x: o.x + dx,
+                                        y: o.y + dy
+                                      })) || [];
+                                    onUpdateMultiplePositions?.(updates);
+                                  } else {
+                                    onUpdateObjectPosition?.(obj.id, x, y);
+                                  }
+                                }}
                                 zoomScale={zoomTransform.k}
                             />
                         </svg>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-48 shadow-2xl border-slate-200 dark:border-slate-800 dark:bg-slate-900">
-                        <ContextMenuItem onClick={() => onCreateObject?.({ ...obj, id: undefined, x: obj.x + 20, y: obj.y + 20, table_assignments: [] })} className="gap-2 font-bold text-xs dark:focus:bg-slate-800">
+                        <ContextMenuItem 
+                          onClick={() => {
+                            if (selectedObjectIds.includes(obj.id)) {
+                              onDuplicateObjects?.(selectedObjectIds);
+                            } else {
+                              onDuplicateObjects?.([obj.id]);
+                            }
+                          }} 
+                          className="gap-2 font-bold text-xs dark:focus:bg-slate-800"
+                        >
                             <Copy className="h-3.5 w-3.5" />
-                            Duplicate (Cmd+D)
+                            {selectedObjectIds.length > 1 && selectedObjectIds.includes(obj.id) ? "Duplicate Selected" : "Duplicate (Cmd+D)"}
                         </ContextMenuItem>
                         <ContextMenuItem onClick={() => onUpdateObject?.(obj.id, { locked: !obj.locked })} className="gap-2 font-bold text-xs dark:focus:bg-slate-800">
                             {obj.locked ? <Unlock className="h-3.5 w-3.5 text-orange-500" /> : <Lock className="h-3.5 w-3.5" />}
                             {obj.locked ? 'Unlock Element' : 'Lock Element'}
                         </ContextMenuItem>
                         <ContextMenuSeparator className="dark:bg-slate-800" />
-                        <ContextMenuItem onClick={() => onDeleteObject?.(obj.id)} className="gap-2 font-bold text-xs text-destructive focus:bg-destructive/5 focus:text-destructive dark:focus:bg-destructive/10">
+                        <ContextMenuItem 
+                          onClick={() => {
+                            if (selectedObjectIds.includes(obj.id)) {
+                              onBulkDelete?.(selectedObjectIds);
+                            } else {
+                              onDeleteObject?.(obj.id);
+                            }
+                          }} 
+                          className="gap-2 font-bold text-xs text-destructive focus:bg-destructive/5 focus:text-destructive dark:focus:bg-destructive/10"
+                        >
                             <Trash2 className="h-3.5 w-3.5" />
-                            Delete Element
+                            {selectedObjectIds.length > 1 && selectedObjectIds.includes(obj.id) ? "Delete Selected" : "Delete Element"}
                         </ContextMenuItem>
                     </ContextMenuContent>
                 </ContextMenu>
@@ -255,7 +420,7 @@ export function PlanCanvas({
   );
 }
 
-function PlanObjectRenderer({ object, isSelected, isHighlighted, isReadOnly, onClick, onDragEnd, zoomScale }: any) {
+function PlanObjectRenderer({ object, plan, containerRef, isSelected, selectedObjectIds, isHighlighted, isReadOnly, hideCapacity, onClick, onDragging, onDragStart, onDragEnd, zoomScale }: any) {
   const gRef = useRef<SVGGElement>(null);
   const deltaPos = useRef({ x: 0, y: 0 });
 
@@ -267,17 +432,49 @@ function PlanObjectRenderer({ object, isSelected, isHighlighted, isReadOnly, onC
       .on("start", () => {
           if (object.locked) return;
           deltaPos.current = { x: 0, y: 0 };
+          onDragStart?.();
       })
       .on("drag", (event) => {
           if (object.locked) return;
-          deltaPos.current.x += event.dx / zoomScale;
-          deltaPos.current.y += event.dy / zoomScale;
-          g.attr("transform", `translate(${deltaPos.current.x}, ${deltaPos.current.y})`);
+          const dx = event.dx / zoomScale;
+          const dy = event.dy / zoomScale;
+          deltaPos.current.x += dx;
+          deltaPos.current.y += dy;
+          
+          let drawX = deltaPos.current.x;
+          let drawY = deltaPos.current.y;
+
+          // Apply Snapping
+          if (onDragging) {
+            const snapped = onDragging(object.x + drawX, object.y + drawY);
+            drawX = snapped.x - object.x;
+            drawY = snapped.y - object.y;
+            // Update delta to keep the snap sticky
+            deltaPos.current.x = drawX;
+            deltaPos.current.y = drawY;
+          }
+
+          // Move all selected objects together visually
+          if (selectedObjectIds.includes(object.id)) {
+            d3.select(containerRef.current)
+              .selectAll<SVGGElement, any>("g.plan-object-group")
+              .filter((d, i, nodes) => {
+                const nodeId = d3.select(nodes[i]).attr("data-id");
+                return selectedObjectIds.includes(Number(nodeId));
+              })
+              .attr("transform", `translate(${drawX}, ${drawY})`);
+          } else {
+            g.attr("transform", `translate(${drawX}, ${drawY})`);
+          }
       })
       .on("end", () => {
           if (object.locked) return;
           onDragEnd(object.x + deltaPos.current.x, object.y + deltaPos.current.y);
-          g.attr("transform", `translate(0,0)`);
+          
+          // Reset all transforms for all plan object groups
+          d3.select(containerRef.current)
+            .selectAll("g.plan-object-group")
+            .attr("transform", "translate(0,0)");
       });
 
     g.call(drag);
@@ -291,25 +488,36 @@ function PlanObjectRenderer({ object, isSelected, isHighlighted, isReadOnly, onC
   });
 
   const commonClass = cn(isSelected && "stroke-[#00C4CC] stroke-[3px]");
-  const showCapacity = object.object_type === 'table' && object.capacity !== null;
+  const showCapacity = !hideCapacity && object.object_type === 'table' && object.capacity !== null;
   const isOverCapacity = showCapacity && (object.table_assignments?.length || 0) > object.capacity;
 
   return (
     <g 
         ref={(node) => { gRef.current = node; setDropRef(node as any); }}
+        data-id={object.id}
         onClick={onClick} 
         transform={`translate(0,0)`}
-        className={cn((object.locked || isReadOnly) ? "cursor-default" : "cursor-move")}
+        className={cn("plan-object-group", (object.locked || isReadOnly) ? "cursor-default" : "cursor-move")}
     >
       {isOver && <rect width={object.width + 10} height={object.height + 10} x={-5} y={-5} rx={8} className="fill-primary/20 stroke-primary stroke-2 animate-pulse" />}
       {isHighlighted && (
-          <rect 
-            width={object.width + 20} 
-            height={object.height + 20} 
-            x={-10} y={-10} 
-            rx={12} 
-            className="fill-primary/30 stroke-primary stroke-[4px] animate-pulse" 
-          />
+          <g filter="url(#elegant-glow)">
+            {object.object_type === 'table' && object.width === object.height ? (
+              <circle 
+                cx={object.width / 2} cy={object.height / 2} 
+                r={(object.width / 2) + 8} 
+                className="fill-primary/30 stroke-primary stroke-[4px] animate-pulse" 
+              />
+            ) : (
+              <rect 
+                width={object.width + 16} 
+                height={object.height + 16} 
+                x={-8} y={-8} 
+                rx={12} 
+                className="fill-primary/30 stroke-primary stroke-[4px] animate-pulse" 
+              />
+            )}
+          </g>
       )}
       {object.object_type === 'table' ? (
           object.width === object.height 

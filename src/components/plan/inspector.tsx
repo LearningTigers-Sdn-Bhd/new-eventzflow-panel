@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Copy,
 	ImageIcon,
 	Info,
 	Lock,
@@ -24,9 +25,12 @@ import { cn } from "@/lib/utils";
 
 interface InspectorProps {
 	plan: Plan;
+	selectedObjects?: PlanObject[];
 	object: PlanObject | null;
 	onUpdate: (id: number, updates: Partial<PlanObject>) => void;
 	onDelete: (id: number) => void;
+	onBulkDelete?: () => void;
+	onBulkDuplicate?: () => void;
 	onDeleteAssignment?: (ids: { ticketId?: number; visitorId?: number }) => void;
 	onUpdateAssignmentNote?: (data: {
 		ticketId?: number;
@@ -47,9 +51,12 @@ interface InspectorProps {
 
 export function Inspector({
 	plan,
+	selectedObjects = [],
 	object,
 	onUpdate,
 	onDelete,
+	onBulkDelete,
+	onBulkDuplicate,
 	onDeleteAssignment,
 	onUpdateAssignmentNote,
 	onUpdateAssignmentStatus,
@@ -59,6 +66,54 @@ export function Inspector({
 	onEnterCalibration,
 	unit,
 }: InspectorProps) {
+	if (selectedObjects.length > 1) {
+		return (
+			<div className="fade-in slide-in-from-right-4 animate-in space-y-8 p-6 duration-300">
+				<div className="space-y-1">
+					<h3 className="flex items-center gap-2 font-black text-slate-400 text-sm uppercase tracking-widest dark:text-slate-500">
+						<Users className="h-3 w-3" />
+						Bulk Actions
+					</h3>
+					<p className="text-xs text-slate-400 dark:text-slate-500">
+						{selectedObjects.length} objects selected.
+					</p>
+				</div>
+
+				<div className="space-y-3">
+					<Button
+						variant="outline"
+						className="h-10 w-full gap-2 rounded-xl border-slate-200 font-bold text-xs transition-all hover:bg-primary/5 dark:border-slate-800 dark:hover:bg-primary/10"
+						onClick={onBulkDuplicate}
+					>
+						<Copy className="h-4 w-4" />
+						Duplicate Selected
+					</Button>
+					
+					<Button
+						variant="ghost"
+						className="h-10 w-full gap-2 rounded-xl font-bold text-slate-400 text-xs hover:bg-destructive/5 hover:text-destructive dark:text-slate-500 dark:hover:bg-destructive/10"
+						onClick={onBulkDelete}
+					>
+						<Trash2 className="h-4 w-4" />
+						Delete Selected
+					</Button>
+				</div>
+
+				<div className="flex gap-3 rounded-xl border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
+					<Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+					<div className="space-y-1">
+						<p className="font-bold text-[11px] text-primary uppercase tracking-tight">
+							Selection Tip
+						</p>
+						<p className="text-xs text-slate-600 leading-relaxed dark:text-slate-400">
+							You can use Shift + Click to select multiple items. Use Cmd+D to duplicate or Delete to remove.
+						</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	if (!object) {
 		return (
 			<div className="fade-in slide-in-from-right-4 animate-in space-y-8 p-6 duration-300">

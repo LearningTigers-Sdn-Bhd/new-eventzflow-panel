@@ -32,7 +32,7 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AssetSidebar } from "@/components/plan/asset-sidebar";
 import { GuestSidebar } from "@/components/plan/guest-sidebar";
@@ -44,12 +44,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	autoDistribute,
+	batchCreatePlanObjects,
+	batchDeletePlanObjects,
+	batchUpdatePlanObjects,
 	createAssignment,
 	createPlanObject,
 	deleteAssignment,
 	deletePlanObject,
 	exportPlanPdf,
 	getPlan,
+	updateAssignment,
 } from "@/lib/api/plan";
 import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
@@ -87,11 +91,13 @@ export function PlanEditorContent({
 
 	const {
 		plan,
-		selectedObjectId,
+		selectedObjectIds,
+		selectedObjects,
 		selectedObject,
-		setSelectedObjectId,
+		setSelectedObjectIds,
 		updateObjectPosition,
 		updateObject,
+		updateObjects,
 		updatePlanSettings,
 		isSaving,
 		undo,
@@ -248,8 +254,8 @@ export function PlanEditorContent({
 		},
 	});
 
-	const deleteObjectMutation = useMutation({
-		mutationFn: (id: number) => deletePlanObject(id.toString()),
+	const deleteObjectsMutation = useMutation({
+		mutationFn: (ids: number[]) => batchDeletePlanObjects(plan.id.toString(), ids),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			queryClient.invalidateQueries({
@@ -258,10 +264,66 @@ export function PlanEditorContent({
 			queryClient.invalidateQueries({
 				queryKey: ["visitors", "unassigned", eventId],
 			});
-			setSelectedObjectId(null);
-			toast.success("Object deleted");
+			setSelectedObjectIds([]);
+			toast.success("Objects deleted");
 		},
 	});
+
+	const duplicateObjectsMutation = useMutation({
+		mutationFn: async (objects: PlanObject[]) => {
+			await savePendingChanges();
+			const duplicates = objects.map(obj => ({
+				object_type: obj.object_type,
+				layer: obj.layer,
+				x: obj.x + 20,
+				y: obj.y + 20,
+				rotation: obj.rotation || 0,
+				width: obj.width,
+				height: obj.height,
+				path: obj.path,
+				label: obj.label ? `${obj.label} (Copy)` : undefined,
+				capacity: obj.capacity,
+				locked: false,
+				z_index: obj.z_index || 0,
+			}));
+			return batchCreatePlanObjects(plan.id.toString(), duplicates);
+		},
+		onSuccess: (newObjects) => {
+			// Select the newly created objects immediately
+			if (newObjects && newObjects.length > 0) {
+				addObjects(newObjects);
+				setSelectedObjectIds(newObjects.map(obj => obj.id));
+			} else {
+				setSelectedObjectIds([]);
+			}
+			
+			// Background refetch
+			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
+			toast.success("Objects duplicated");
+		},
+	});
+
+	// Keyboard shortcuts
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.metaKey || e.ctrlKey) {
+				if (e.key === "d" && selectedObjectIds.length > 0) {
+					e.preventDefault();
+					duplicateObjectsMutation.mutate(selectedObjects);
+				}
+			}
+			if ((e.key === "Delete" || e.key === "Backspace") && selectedObjectIds.length > 0) {
+				// Only if not typing in an input
+				if (document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+					e.preventDefault();
+					deleteObjectsMutation.mutate(selectedObjectIds);
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [selectedObjectIds, selectedObjects, duplicateObjectsMutation, deleteObjectsMutation]);
 
 	const exportMutation = useMutation({
 		mutationFn: () => exportPlanPdf(plan.id.toString()),
@@ -499,19 +561,29 @@ export function PlanEditorContent({
 					<div className="relative flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950">
 						<PlanCanvas
 							plan={plan}
-							selectedObjectId={selectedObjectId}
+							selectedObjectIds={selectedObjectIds}
 							activeTool={activeTool}
-							onSelectObject={(id) => {
-								if (activeTool === "eraser" && id) {
-									deleteObjectMutation.mutate(id);
+							onSelectObject={(ids) => {
+								if (activeTool === "eraser" && ids.length > 0) {
+									deleteObjectsMutation.mutate(ids);
 								} else {
-									setSelectedObjectId(id);
+									setSelectedObjectIds(ids);
 								}
 							}}
 							onUpdateObjectPosition={updateObjectPosition}
+							onUpdateMultiplePositions={(updates) => {
+								batchUpdatePlanObjects(plan.id.toString(), updates);
+								// Also update local state for immediate feedback
+								updateObjects(updates.map(u => ({ id: u.id, updates: { x: u.x, y: u.y } })));
+							}}
 							onResizeObject={(id, width, height, x, y) => {
 								updateObject(id, { width, height, x, y });
 							}}
+							onDuplicateObjects={(ids) => {
+								const objectsToDuplicate = plan.plan_objects.filter(obj => ids.includes(obj.id));
+								duplicateObjectsMutation.mutate(objectsToDuplicate);
+							}}
+							onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 							onCreateObject={(data) =>
 								addObjectMutation.mutate({
 									type: data.object_type,
@@ -550,10 +622,13 @@ export function PlanEditorContent({
 							<div className="flex-1 overflow-y-auto">
 								<Inspector
 									plan={plan}
+									selectedObjects={selectedObjects}
 									object={selectedObject}
 									onUpdate={updateObject}
 									onUpdatePlan={updatePlanSettings}
-									onDelete={(id) => deleteObjectMutation.mutate(id)}
+									onDelete={(id) => deleteObjectsMutation.mutate([id])}
+									onBulkDelete={() => deleteObjectsMutation.mutate(selectedObjectIds)}
+									onBulkDuplicate={() => duplicateObjectsMutation.mutate(selectedObjects)}
 									onDeleteAssignment={(ids) =>
 										deleteAssignmentMutation.mutate({
 											ticket_id: ids.ticketId,

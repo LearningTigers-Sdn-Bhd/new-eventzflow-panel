@@ -11,26 +11,43 @@ export function usePlanEditor(initialPlan: Plan) {
   const [historyIndex, setHistoryIndex] = useState(0);
   const plan = history[historyIndex];
 
-  const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
+  const [selectedObjectIds, setSelectedObjectIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
   const pendingUpdates = useRef<Map<number, Partial<PlanObject>>>(new Map());
 
-  const setPlan = (newPlan: Plan | ((p: Plan) => Plan)) => {
-    const nextPlan = typeof newPlan === 'function' ? newPlan(plan) : newPlan;
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(nextPlan);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
+  const setPlan = useCallback((newPlan: Plan | ((p: Plan) => Plan)) => {
+    setHistory(prevHistory => {
+      const currentPlan = prevHistory[historyIndex];
+      const nextPlan = typeof newPlan === 'function' ? newPlan(currentPlan) : newPlan;
+      const newHistory = prevHistory.slice(0, historyIndex + 1);
+      newHistory.push(nextPlan);
+      return newHistory;
+    });
+    setHistoryIndex(prev => prev + 1);
+  }, [historyIndex]);
   
   useEffect(() => {
-    setHistory([initialPlan]);
+    setHistory(prev => {
+      // Only reset history if the plan ID actually changed
+      if (prev[0]?.id !== initialPlan.id) {
+        setSelectedObjectIds([]);
+        setHistoryIndex(0);
+        return [initialPlan];
+      }
+      // If it's the same plan, just update the current state with new data from server
+      // to avoid losing local un-saved state, we should ideally merge, but for now
+      // let's just update the base. To be safe, we will just replace the history.
+      // But we MUST NOT clear the selection.
+      return [initialPlan];
+    });
     setHistoryIndex(0);
   }, [initialPlan]);
 
-  const selectedObject = useMemo(() => 
-    plan.plan_objects?.find(o => o.id === selectedObjectId) || null
-  , [plan.plan_objects, selectedObjectId]);
+  const selectedObjects = useMemo(() => 
+    plan.plan_objects?.filter(o => selectedObjectIds.includes(o.id)) || []
+  , [plan.plan_objects, selectedObjectIds]);
+
+  const selectedObject = selectedObjects.length === 1 ? selectedObjects[0] : null;
 
   const batchMutation = useMutation({
     mutationFn: (objects: Partial<PlanObject>[]) => batchUpdatePlanObjects(plan.id.toString(), objects),
@@ -74,38 +91,36 @@ export function usePlanEditor(initialPlan: Plan) {
       }
   }, [debouncedSync, batchMutation.isPending]);
 
-  const updateObject = useCallback((id: number, updates: Partial<PlanObject>) => {
+  const updateObjects = useCallback((updates: { id: number, updates: Partial<PlanObject> }[]) => {
     setPlan(prev => {
-        const updatedObjects = prev.plan_objects?.map(obj => 
-            obj.id === id ? { ...obj, ...updates } : obj
-        );
-
-        let newCanvasWidth = prev.canvas_width;
-        let newCanvasHeight = prev.canvas_height;
-
-        const updatedObj = updatedObjects?.find(o => o.id === id);
-        if (updatedObj?.object_type === 'floor') {
-            const floorObjects = updatedObjects?.filter(o => o.object_type === 'floor') || [];
-            newCanvasWidth = Math.max(...floorObjects.map(o => (o.x || 0) + (o.width || 0)), 0);
-            newCanvasHeight = Math.max(...floorObjects.map(o => (o.y || 0) + (o.height || 0)), 0);
-        }
-
-        if (newCanvasWidth !== prev.canvas_width || newCanvasHeight !== prev.canvas_height) {
-            debouncedPlanUpdate({ canvas_width: newCanvasWidth, canvas_height: newCanvasHeight });
-        }
-
-        return {
-          ...prev,
-          plan_objects: updatedObjects,
-          canvas_width: newCanvasWidth,
-          canvas_height: newCanvasHeight
-        };
+      const updatedObjects = prev.plan_objects?.map(obj => {
+        const update = updates.find(u => u.id === obj.id);
+        return update ? { ...obj, ...update.updates } : obj;
       });
-  
+
+      return {
+        ...prev,
+        plan_objects: updatedObjects,
+      };
+    });
+
+    updates.forEach(({ id, updates: u }) => {
       const current = pendingUpdates.current.get(id) || {};
-      pendingUpdates.current.set(id, { ...current, ...updates });
-      debouncedSync();
-  }, [debouncedSync, debouncedPlanUpdate]);
+      pendingUpdates.current.set(id, { ...current, ...u });
+    });
+    debouncedSync();
+  }, [setPlan, debouncedSync]);
+
+  const updateObject = useCallback((id: number, updates: Partial<PlanObject>) => {
+    updateObjects([{ id, updates }]);
+  }, [updateObjects]);
+
+  const addObjects = useCallback((newObjects: PlanObject[]) => {
+    setPlan(prev => ({
+      ...prev,
+      plan_objects: [...(prev.plan_objects || []), ...newObjects]
+    }));
+  }, [setPlan]);
 
   const updateObjectPosition = useCallback((id: number, x: number, y: number) => {
     updateObject(id, { x, y });
@@ -137,11 +152,14 @@ export function usePlanEditor(initialPlan: Plan) {
 
   return {
     plan,
-    selectedObjectId,
+    selectedObjectIds,
+    selectedObjects,
     selectedObject,
-    setSelectedObjectId,
+    setSelectedObjectIds,
     updateObjectPosition,
     updateObject,
+    updateObjects,
+    addObjects,
     updatePlanSettings,
     savePendingChanges,
     isSaving: batchMutation.isPending || planSettingsMutation.isPending,
