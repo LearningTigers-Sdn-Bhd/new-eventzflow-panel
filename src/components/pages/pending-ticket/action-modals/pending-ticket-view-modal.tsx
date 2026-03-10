@@ -200,7 +200,7 @@ export default function PendingTicketViewModal({
 									{ticket.customLabels.map((label, index) => (
 										<InfoItem
 											key={`${label.name}-${index}`}
-											label={label.name}
+											label={label.name.includes("_") ? label.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : label.name}
 											value={label.value}
 											icon={Info}
 											capitalize={true}

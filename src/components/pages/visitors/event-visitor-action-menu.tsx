@@ -1,16 +1,20 @@
 "use client";
 
-import { Eye, Pencil, QrCode, Trash2 } from "lucide-react";
+import { Eye, Link2, Pencil, QrCode, RotateCcw, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Visitor } from "@/lib/api/visitor";
+import { getEventById } from "@/lib/api/event";
 import { DeleteVisitorDialog } from "./action-modals/delete-visitor-dialog";
 import EditEventVisitorForm from "./action-modals/edit-event-visitor-form";
 import VisitorQRModal from "./action-modals/qr-modal";
+import { RsvpLinkModal } from "./action-modals/rsvp-link-modal";
+import UnscanVisitorModal from "./action-modals/unscan-visitor-modal";
 import ViewEventVisitorModal from "./action-modals/view-event-visitor-modal";
 
 interface VisitorActionsMenuProps {
@@ -23,6 +27,29 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { isEventAdmin } = useEventPermissions(eventId);
+
+	const { data: eventData } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!eventId,
+	});
+
+	const isWeddingEvent = eventData?.use_wedding === true;
+	const isPrimaryInvitee = !visitor.added_by_id;
+
+	const openRsvpLinkModal = () => {
+		if (!eventData?.slug) return;
+		openDialog({
+			component: RsvpLinkModal,
+			config: {
+				title: "RSVP Link",
+				size: "lg",
+				showCloseButton: true,
+				className: "rounded-none",
+			},
+			props: { visitor, eventSlug: eventData.slug },
+		});
+	};
 
 	// Only org_owner, organizer, and event_admin can edit/delete
 	const canEditDelete =
@@ -50,6 +77,7 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 				description: "Update the visitor information",
 				size: "full",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { visitor },
 		});
@@ -62,6 +90,7 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 				title: "Visitor QR Code",
 				size: "lg",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { visitor },
 		});
@@ -74,10 +103,27 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 				title: "Delete Visitor",
 				size: "md",
 				showCloseButton: true,
+				className: "rounded-none",
 			},
 			props: { visitor },
 		});
 	};
+
+	const openUnscanModal = () => {
+		openDialog({
+			component: UnscanVisitorModal,
+			config: {
+				title: "Unscan Visitor",
+				description: "Reset this visitor to not checked in status.",
+				size: "lg",
+				showCloseButton: true,
+				className: "rounded-none",
+			},
+			props: { visitor },
+		});
+	};
+
+	const showUnscanButton = user?.role === "org_owner" && visitor.checked_in;
 
 	return (
 		<ButtonGroup>
@@ -110,6 +156,28 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 			>
 				<QrCode className="size-4" />
 			</Button>
+			{isWeddingEvent && isPrimaryInvitee && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-teal-500 hover:bg-teal-50 hover:text-teal-600 [&_svg]:text-teal-500 hover:[&_svg]:text-teal-600"
+					onClick={openRsvpLinkModal}
+					title="Copy RSVP Link"
+				>
+					<Link2 className="size-4" />
+				</Button>
+			)}
+			{showUnscanButton && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
+					onClick={openUnscanModal}
+					title="Unscan Visitor"
+				>
+					<RotateCcw className="size-4" />
+				</Button>
+			)}
 			{canEditDelete && (
 				<Button
 					size="icon-sm"

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,18 +22,20 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { getEventById } from "@/lib/api/event";
+import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManageKitsInfoFormProps {
 	vendor: EventVendor;
 	onClose?: () => void;
 }
 
-export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps) {
+export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 	const params = useParams();
 	const eventId = Number(params.event_id);
 	const kit = vendor.exhibitor_kit;
+	const kitId = kit?.id;
 
 	// Form field IDs
 	const boothNumberField = useId();
@@ -45,6 +47,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 	const picFullNameField = useId();
 	const picContactNumberField = useId();
 	const picEmailField = useId();
+	const countryField = useId();
 	const specialRequirementsField = useId();
 	const paymentStatusField = useId();
 	const amountPaidField = useId();
@@ -70,6 +73,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 	const [companyAddress, setCompanyAddress] = useState(
 		kit?.company_address || "",
 	);
+	const [country, setCountry] = useState(kit?.country || "");
 	const [picFullName, setPicFullName] = useState(kit?.pic_full_name || "");
 	const [picContactNumber, setPicContactNumber] = useState(
 		kit?.pic_contact_number || "",
@@ -86,9 +90,39 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 
 	const queryClient = useQueryClient();
 
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId.toString()),
+	});
+
+	const boothTypeOptions = useMemo(() => {
+		const defaults = [
+			{ value: "shell_scheme", label: "Shell Scheme" },
+			{ value: "raw_space", label: "Raw Space" },
+		];
+		const customTypes = event?.booth_types || [];
+		for (const type of customTypes) {
+			if (!defaults.some((o) => o.value === type)) {
+				defaults.push({
+					value: type,
+					label: type
+						.split("_")
+						.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+						.join(" "),
+				});
+			}
+		}
+		return defaults;
+	}, [event?.booth_types]);
+
 	const updateKitMutation = useMutation({
-		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) =>
-			updateExhibitorKit(eventId, kit!.id, data),
+		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) => {
+			if (!kitId) {
+				throw new Error("No exhibitor kit found");
+			}
+
+			return updateExhibitorKit(eventId, kitId, data);
+		},
 		onSuccess: () => {
 			toast.success("Exhibitor kit updated successfully!");
 			queryClient.invalidateQueries({
@@ -110,7 +144,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 
 		await updateKitMutation.mutateAsync({
 			booth_number: boothNumber || undefined,
-			booth_type: boothType as "shell_scheme" | "raw_space" | undefined,
+			booth_type: boothType || undefined,
 			booth_dimensions: boothDimensions || undefined,
 			side_wall_left_required: sideWallLeftRequired,
 			side_wall_right_required: sideWallRightRequired,
@@ -118,6 +152,7 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 			fascia_upgrade_required: fasciaUpgradeRequired,
 			company_name: companyName || undefined,
 			company_address: companyAddress || undefined,
+			country: country || undefined,
 			pic_full_name: picFullName || undefined,
 			pic_contact_number: picContactNumber || undefined,
 			pic_email_address: picEmail || undefined,
@@ -148,7 +183,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 					<p className="font-medium text-xs md:text-sm">Booth Information</p>
 					<div className="grid grid-cols-2 items-start gap-3 md:grid-cols-4 md:gap-4">
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={boothNumberField} className="text-xs md:text-sm">Booth Number</FieldLabel>
+							<FieldLabel
+								htmlFor={boothNumberField}
+								className="text-xs md:text-sm"
+							>
+								Booth Number
+							</FieldLabel>
 							<Input
 								id={boothNumberField}
 								value={boothNumber}
@@ -159,23 +199,39 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={boothTypeField} className="text-xs md:text-sm">Booth Type</FieldLabel>
+							<FieldLabel
+								htmlFor={boothTypeField}
+								className="text-xs md:text-sm"
+							>
+								Booth Type
+							</FieldLabel>
 							<Select
 								value={boothType}
 								onValueChange={setBoothType}
 								disabled={updateKitMutation.isPending}
 							>
-								<SelectTrigger id={boothTypeField} className="rounded-none text-sm">
+								<SelectTrigger
+									id={boothTypeField}
+									className="rounded-none text-sm"
+								>
 									<SelectValue placeholder="Select type" />
 								</SelectTrigger>
 								<SelectContent className="rounded-none">
-									<SelectItem value="shell_scheme">Shell Scheme</SelectItem>
-									<SelectItem value="raw_space">Raw Space</SelectItem>
+									{boothTypeOptions.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
 								</SelectContent>
 							</Select>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={boothDimensionsField} className="text-xs md:text-sm">Dimensions</FieldLabel>
+							<FieldLabel
+								htmlFor={boothDimensionsField}
+								className="text-xs md:text-sm"
+							>
+								Dimensions
+							</FieldLabel>
 							<Input
 								id={boothDimensionsField}
 								value={boothDimensions}
@@ -214,7 +270,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 					<p className="font-medium text-xs md:text-sm">Fascia & Company</p>
 					<div className="grid grid-cols-2 items-start gap-3 md:grid-cols-4 md:gap-4">
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={nameOnFasciaField} className="text-xs md:text-sm">Name on Fascia</FieldLabel>
+							<FieldLabel
+								htmlFor={nameOnFasciaField}
+								className="text-xs md:text-sm"
+							>
+								Name on Fascia
+							</FieldLabel>
 							<Input
 								id={nameOnFasciaField}
 								value={nameOnFascia}
@@ -229,7 +290,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							</FieldDescription>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={companyNameField} className="text-xs md:text-sm">Company Name</FieldLabel>
+							<FieldLabel
+								htmlFor={companyNameField}
+								className="text-xs md:text-sm"
+							>
+								Company Name
+							</FieldLabel>
 							<Input
 								id={companyNameField}
 								value={companyName}
@@ -240,7 +306,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={companyAddressField} className="text-xs md:text-sm">Company Address</FieldLabel>
+							<FieldLabel
+								htmlFor={companyAddressField}
+								className="text-xs md:text-sm"
+							>
+								Company Address
+							</FieldLabel>
 							<Input
 								id={companyAddressField}
 								value={companyAddress}
@@ -251,14 +322,18 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel className="text-xs md:text-sm">Fascia Upgrade</FieldLabel>
+							<FieldLabel className="text-xs md:text-sm">
+								Fascia Upgrade
+							</FieldLabel>
 							<div className="flex h-9 items-center gap-2 rounded-none border border-dashed bg-accent px-2 py-2 md:px-3">
 								<Switch
 									checked={fasciaUpgradeRequired}
 									onCheckedChange={setFasciaUpgradeRequired}
 									disabled={updateKitMutation.isPending}
 								/>
-								<span className="text-xs md:text-sm">{fasciaUpgradeRequired ? "Yes" : "No"}</span>
+								<span className="text-xs md:text-sm">
+									{fasciaUpgradeRequired ? "Yes" : "No"}
+								</span>
 							</div>
 						</Field>
 					</div>
@@ -266,10 +341,17 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 					<FieldSeparator />
 
 					{/* PIC Information */}
-					<p className="font-medium text-xs md:text-sm">Person In Charge (PIC)</p>
-					<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
+					<p className="font-medium text-xs md:text-sm">
+						Person In Charge (PIC)
+					</p>
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-4 md:gap-4">
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={picFullNameField} className="text-xs md:text-sm">Full Name</FieldLabel>
+							<FieldLabel
+								htmlFor={picFullNameField}
+								className="text-xs md:text-sm"
+							>
+								Full Name
+							</FieldLabel>
 							<Input
 								id={picFullNameField}
 								value={picFullName}
@@ -280,7 +362,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={picContactNumberField} className="text-xs md:text-sm">Contact Number</FieldLabel>
+							<FieldLabel
+								htmlFor={picContactNumberField}
+								className="text-xs md:text-sm"
+							>
+								Contact Number
+							</FieldLabel>
 							<Input
 								id={picContactNumberField}
 								type="tel"
@@ -292,7 +379,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={picEmailField} className="text-xs md:text-sm">Email</FieldLabel>
+							<FieldLabel
+								htmlFor={picEmailField}
+								className="text-xs md:text-sm"
+							>
+								Email
+							</FieldLabel>
 							<Input
 								id={picEmailField}
 								type="email"
@@ -303,9 +395,27 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 								className="rounded-none text-sm"
 							/>
 						</Field>
+						<Field orientation="vertical">
+							<FieldLabel htmlFor={countryField} className="text-xs md:text-sm">
+								Country
+							</FieldLabel>
+							<Input
+								id={countryField}
+								value={country}
+								onChange={(e) => setCountry(e.target.value)}
+								placeholder="Country"
+								disabled={updateKitMutation.isPending}
+								className="rounded-none text-sm"
+							/>
+						</Field>
 					</div>
 					<Field orientation="vertical">
-						<FieldLabel htmlFor={specialRequirementsField} className="text-xs md:text-sm">Special Requirements</FieldLabel>
+						<FieldLabel
+							htmlFor={specialRequirementsField}
+							className="text-xs md:text-sm"
+						>
+							Special Requirements
+						</FieldLabel>
 						<Textarea
 							id={specialRequirementsField}
 							value={specialRequirements}
@@ -315,20 +425,27 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							className="min-h-[60px] rounded-none text-sm md:min-h-[80px]"
 						/>
 					</Field>
-
 					<FieldSeparator />
 
 					{/* Payment Information */}
 					<p className="font-medium text-xs md:text-sm">Payment</p>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={paymentStatusField} className="text-xs md:text-sm">Status</FieldLabel>
+							<FieldLabel
+								htmlFor={paymentStatusField}
+								className="text-xs md:text-sm"
+							>
+								Status
+							</FieldLabel>
 							<Select
 								value={paymentStatus}
 								onValueChange={setPaymentStatus}
 								disabled={updateKitMutation.isPending}
 							>
-								<SelectTrigger id={paymentStatusField} className="rounded-none text-sm">
+								<SelectTrigger
+									id={paymentStatusField}
+									className="rounded-none text-sm"
+								>
 									<SelectValue placeholder="Status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-none">
@@ -340,7 +457,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							</Select>
 						</Field>
 						<Field orientation="vertical">
-							<FieldLabel htmlFor={amountPaidField} className="text-xs md:text-sm">Amount Paid</FieldLabel>
+							<FieldLabel
+								htmlFor={amountPaidField}
+								className="text-xs md:text-sm"
+							>
+								Amount Paid
+							</FieldLabel>
 							<Input
 								id={amountPaidField}
 								type="number"
@@ -352,7 +474,12 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 							/>
 						</Field>
 						<Field orientation="vertical" className="col-span-2 sm:col-span-1">
-							<FieldLabel htmlFor={paymentNoteField} className="text-xs md:text-sm">Note</FieldLabel>
+							<FieldLabel
+								htmlFor={paymentNoteField}
+								className="text-xs md:text-sm"
+							>
+								Note
+							</FieldLabel>
 							<Textarea
 								id={paymentNoteField}
 								value={paymentNote}
@@ -368,7 +495,11 @@ export function ManageKitsInfoForm({ vendor, onClose }: ManageKitsInfoFormProps)
 
 					{/* Buttons */}
 					<div className="flex justify-end">
-						<Button type="submit" disabled={updateKitMutation.isPending} className="w-full sm:w-auto">
+						<Button
+							type="submit"
+							disabled={updateKitMutation.isPending}
+							className="w-full sm:w-auto"
+						>
 							{updateKitMutation.isPending ? "Saving..." : "Save Changes"}
 						</Button>
 					</div>

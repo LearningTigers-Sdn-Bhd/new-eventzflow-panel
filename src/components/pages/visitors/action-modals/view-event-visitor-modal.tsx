@@ -3,18 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
-	Clock,
 	Hash,
 	Info,
 	type LucideIcon,
 	Mail,
 	Phone,
-	Tag,
 	Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import QRCode from "react-qr-code";
-import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { getEventById } from "@/lib/api/event";
 import type { Visitor } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
+import { buildVisitorLabelsData } from "../wedding-custom-field";
 
 interface VisitorViewModalProps {
 	visitor: Visitor;
@@ -84,9 +81,11 @@ export default function ViewEventVisitorModal({
 		enabled: !!eventId,
 	});
 
+	const labelsData = buildVisitorLabelsData(eventData);
+
 	const customLabels =
-		eventData?.labels_data && Object.keys(eventData.labels_data).length > 0
-			? Object.entries(eventData.labels_data).map(([key, labelName]) => {
+		Object.keys(labelsData).length > 0
+			? Object.entries(labelsData).map(([key, labelName]) => {
 					const rawValue = visitor.custom_fields_data?.[key];
 					return {
 						name: labelName as string,

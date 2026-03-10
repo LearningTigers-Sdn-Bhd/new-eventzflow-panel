@@ -29,7 +29,11 @@ export const exhibitorKitPrintingSchema = z.object({
 });
 
 // Custom request status enum
-export const customRequestStatusEnum = z.enum(["pending", "approved", "rejected"]);
+export const customRequestStatusEnum = z.enum([
+	"pending",
+	"approved",
+	"rejected",
+]);
 
 // Custom request schema for nested attributes
 export const customRequestSchema = z
@@ -43,31 +47,45 @@ export const customRequestSchema = z
 		_destroy: z.boolean().optional(),
 	})
 	.refine(
-		(data) => data._destroy === true || (data.description && data.description.length >= 1),
-		{ message: "Description is required", path: ["description"] }
+		(data) =>
+			data._destroy === true ||
+			(data.description && data.description.length >= 1),
+		{ message: "Description is required", path: ["description"] },
 	);
 
-// Booth type enum
-export const boothTypeEnum = z.enum(["shell_scheme", "raw_space"]);
+// Booth type validation
+export const boothTypeEnum = z.string().optional();
 
 // Payment status enum
-export const paymentStatusEnum = z.enum(["unpaid", "paid", "waived", "sponsored"]);
+export const paymentStatusEnum = z.enum([
+	"unpaid",
+	"paid",
+	"waived",
+	"sponsored",
+]);
 
 // Create exhibitor kit schema
 export const createExhibitorKitSchema = z.object({
 	event_vendor_id: z.number().optional(), // Required when creating directly via exhibitor_kits endpoint
 	booth_number: z.string().optional(),
-	booth_type: boothTypeEnum.optional(),
+	booth_type: z.string().optional(),
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),
-	name_on_fascia: z.string().max(25, "Name on fascia must be 25 characters or less").optional(),
+	name_on_fascia: z
+		.string()
+		.max(25, "Name on fascia must be 25 characters or less")
+		.optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
 	company_address: z.string().optional(),
+	country: z.string().optional(),
 	pic_full_name: z.string().optional(),
 	pic_contact_number: z.string().optional(),
-	pic_email_address: z.string().email("Must be a valid email address").optional(),
+	pic_email_address: z
+		.string()
+		.email("Must be a valid email address")
+		.optional(),
 	special_requirements: z.string().optional(),
 	digital_brochure_link: z.string().url().optional().or(z.literal("")),
 	indemnity_signed: z.boolean().optional(),
@@ -76,9 +94,14 @@ export const createExhibitorKitSchema = z.object({
 	amount_paid: z.string().optional(),
 	payment_note: z.string().optional(),
 	indemnity_link: z.string().url().optional().or(z.literal("")),
-	exhibitor_team_members_attributes: z.array(exhibitorTeamMemberSchema).optional(),
+	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	exhibitor_team_members_attributes: z
+		.array(exhibitorTeamMemberSchema)
+		.optional(),
 	exhibitor_kit_items_attributes: z.array(exhibitorKitItemSchema).optional(),
-	exhibitor_kit_printings_attributes: z.array(exhibitorKitPrintingSchema).optional(),
+	exhibitor_kit_printings_attributes: z
+		.array(exhibitorKitPrintingSchema)
+		.optional(),
 	custom_requests_attributes: z.array(customRequestSchema).optional(),
 });
 
@@ -86,7 +109,7 @@ export const createExhibitorKitSchema = z.object({
 export const updateExhibitorKitSchema = z.object({
 	event_vendor_id: z.number().optional(),
 	booth_number: z.string().optional(),
-	booth_type: boothTypeEnum.optional(),
+	booth_type: z.string().optional(),
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),
@@ -94,6 +117,7 @@ export const updateExhibitorKitSchema = z.object({
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
 	company_address: z.string().optional(),
+	country: z.string().optional(),
 	pic_full_name: z.string().optional(),
 	pic_contact_number: z.string().optional(),
 	pic_email_address: z.string().email().optional(),
@@ -105,17 +129,30 @@ export const updateExhibitorKitSchema = z.object({
 	amount_paid: z.string().optional(),
 	payment_note: z.string().optional(),
 	indemnity_link: z.string().url().optional().or(z.literal("")),
-	exhibitor_team_members_attributes: z.array(exhibitorTeamMemberSchema).optional(),
+	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	exhibitor_team_members_attributes: z
+		.array(exhibitorTeamMemberSchema)
+		.optional(),
 	exhibitor_kit_items_attributes: z.array(exhibitorKitItemSchema).optional(),
-	exhibitor_kit_printings_attributes: z.array(exhibitorKitPrintingSchema).optional(),
+	exhibitor_kit_printings_attributes: z
+		.array(exhibitorKitPrintingSchema)
+		.optional(),
 	custom_requests_attributes: z.array(customRequestSchema).optional(),
 });
 
 // Export types for form data
-export type CreateExhibitorKitRequest = z.infer<typeof createExhibitorKitSchema>;
-export type UpdateExhibitorKitRequest = z.infer<typeof updateExhibitorKitSchema>;
-export type ExhibitorTeamMemberInput = z.infer<typeof exhibitorTeamMemberSchema>;
+export type CreateExhibitorKitRequest = z.infer<
+	typeof createExhibitorKitSchema
+>;
+export type UpdateExhibitorKitRequest = z.infer<
+	typeof updateExhibitorKitSchema
+>;
+export type ExhibitorTeamMemberInput = z.infer<
+	typeof exhibitorTeamMemberSchema
+>;
 export type ExhibitorKitItemInput = z.infer<typeof exhibitorKitItemSchema>;
-export type ExhibitorKitPrintingInput = z.infer<typeof exhibitorKitPrintingSchema>;
+export type ExhibitorKitPrintingInput = z.infer<
+	typeof exhibitorKitPrintingSchema
+>;
 export type CustomRequestInput = z.infer<typeof customRequestSchema>;
 export type CustomRequestStatus = z.infer<typeof customRequestStatusEnum>;

@@ -31,6 +31,7 @@ export interface VerifyInviteTokenResponse {
 			description: string | null;
 			start_date: string | null;
 			end_date: string | null;
+			booth_types: string[];
 		};
 		group?: {
 			id: number;

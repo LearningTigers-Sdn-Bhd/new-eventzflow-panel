@@ -10,6 +10,8 @@ export const createEventSchema = z.object({
 		.default("draft"),
 	visibility: z.boolean().optional().default(true),
 	use_ticket: z.boolean().optional().default(true),
+	use_wedding: z.boolean().optional().default(false),
+	extra_guest_limit: z.number().int().min(0).nullable().optional(),
 	use_seat_ticketing: z.boolean().optional().default(false),
 	use_exhibitor_kit: z.boolean().optional().default(false),
 	allow_contractor_printing_services: z.boolean().optional().default(false),
@@ -33,17 +35,49 @@ export const updateEventSchema = z.object({
 	status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),
 	visibility: z.boolean().optional(),
 	use_ticket: z.boolean().optional(),
+	use_wedding: z.boolean().optional(),
+	extra_guest_limit: z.number().int().min(0).nullable().optional(),
 	use_seat_ticketing: z.boolean().optional(),
 	use_exhibitor_kit: z.boolean().optional(),
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
+	payment_receipt_email: z
+		.string()
+		.email()
+		.optional()
+		.or(z.literal(""))
+		.or(z.null()),
 	start_date: z.string().optional(),
 	end_date: z.string().optional(),
 	multiple_scans: z.boolean().optional(),
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
+	booth_types: z.array(z.string()).optional(),
+	event_email_setting_attributes: z
+		.object({
+			sender_name: z.string().optional().or(z.literal("")).or(z.null()),
+			sender_address: z
+				.string()
+				.email()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			contact_email: z
+				.string()
+				.email()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			payment_receipt_email: z
+				.string()
+				.email()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+		})
+		.optional(),
 });
 
 // Export types for form data

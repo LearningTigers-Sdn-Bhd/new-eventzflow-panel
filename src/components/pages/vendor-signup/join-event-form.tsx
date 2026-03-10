@@ -24,6 +24,7 @@ interface EventInfo {
 	description: string | null;
 	start_date: string | null;
 	end_date: string | null;
+	booth_types: string[];
 }
 
 interface GroupInfo {
@@ -288,6 +289,7 @@ export function JoinEventForm({
 						<ExhibitorKitSection
 							form={form}
 							guidelinesPdfUrl={guidelinesPdfUrl}
+							customBoothTypes={event?.booth_types}
 						/>
 					</div>
 				)}

@@ -6,6 +6,7 @@ export * from "./event-staff";
 export * from "./export-log";
 // Re-export all sub-modules
 export * from "./location";
+export * from "./payment-gateway";
 export * from "./pending";
 export * from "./request";
 export * from "./response";

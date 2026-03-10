@@ -1,42 +1,53 @@
 "use client";
 
-import { useState } from "react";
 import {
 	Building2,
 	CreditCard,
-	Package,
 	Edit,
+	Package,
 	Printer,
 	Users,
 } from "lucide-react";
+import { useState } from "react";
+import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
+import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { useAuth } from "@/hooks/auth/use-auth";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
+import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
-import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
-import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
-import { useAuth } from "@/hooks/auth/use-auth";
 
-function ExpandableText({ text, className }: { text: string; className?: string }) {
+function ExpandableText({
+	text,
+	className,
+}: {
+	text: string;
+	className?: string;
+}) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
 				<p
 					className={cn(
-						"text-muted-foreground text-xs cursor-pointer hover:text-foreground transition-colors line-clamp-2",
-						className
+						"line-clamp-2 cursor-pointer text-muted-foreground text-xs transition-colors hover:text-foreground",
+						className,
 					)}
 					title="Click to view full text"
 				>
 					{text}
 				</p>
 			</PopoverTrigger>
-			<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
-				<p className="text-xs break-words">{text}</p>
+			<PopoverContent className="max-h-80 w-72 overflow-y-auto p-3">
+				<p className="break-words text-xs">{text}</p>
 			</PopoverContent>
 		</Popover>
 	);
@@ -56,8 +67,11 @@ export function ExhibitorKitDetailsSection({
 	const { user } = useAuth();
 	const isOrgOwner = user?.role === "org_owner";
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
-	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
-	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
+	const [selectedPayment, setSelectedPayment] =
+		useState<ExhibitorKitPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">(
+		"verify",
+	);
 
 	if (!kit) {
 		return null;
@@ -79,21 +93,11 @@ export function ExhibitorKitDetailsSection({
 	const items = kit.exhibitor_kit_items || [];
 	const printings = kit.exhibitor_kit_printings || [];
 	const teamMembers = kit.exhibitor_team_members || [];
-	const customRequests = kit.custom_requests || [];
+	const customFieldsEntries = formatCustomFieldEntries(kit.custom_fields_data);
 
 	// Merge items and printings with same IDs
 	const mergedItems = mergeKitItems(items);
 	const mergedPrintings = mergeKitPrintings(printings);
-
-	const pendingRequests = customRequests.filter(
-		(req) => req.status === "pending",
-	).length;
-	const approvedRequests = customRequests.filter(
-		(req) => req.status === "approved",
-	).length;
-	const rejectedRequests = customRequests.filter(
-		(req) => req.status === "rejected",
-	).length;
 
 	return (
 		<section className="space-y-2 border-t border-dashed">
@@ -118,7 +122,7 @@ export function ExhibitorKitDetailsSection({
 					)}
 					{kit.booth_type && (
 						<Badge variant="outline" className="rounded-none capitalize">
-							{kit.booth_type.replace("_", " ")}
+							{kit.booth_type.replace(/_/g, " ")}
 						</Badge>
 					)}
 					<Button
@@ -147,12 +151,14 @@ export function ExhibitorKitDetailsSection({
 						<div className="space-y-2 text-sm">
 							<div className="flex justify-between">
 								<span className="font-medium">Booth Number</span>
-								<span className="text-muted-foreground">{kit.booth_number || "-"}</span>
+								<span className="text-muted-foreground">
+									{kit.booth_number || "-"}
+								</span>
 							</div>
 							<div className="flex justify-between">
 								<span className="font-medium">Type</span>
 								<Badge variant="outline" className="rounded-none capitalize">
-									{kit.booth_type?.replace("_", " ") || "-"}
+									{kit.booth_type?.replace(/_/g, " ") || "-"}
 								</Badge>
 							</div>
 							<div className="flex justify-between">
@@ -173,7 +179,9 @@ export function ExhibitorKitDetailsSection({
 							</div>
 							<div className="flex justify-between">
 								<span className="font-medium">Fascia</span>
-								<span className="text-muted-foreground">{kit.name_on_fascia || "-"}</span>
+								<span className="text-muted-foreground">
+									{kit.name_on_fascia || "-"}
+								</span>
 							</div>
 							{kit.fascia_upgrade_required && (
 								<Badge
@@ -182,6 +190,20 @@ export function ExhibitorKitDetailsSection({
 								>
 									Fascia Upgrade Required
 								</Badge>
+							)}
+							{customFieldsEntries.length > 0 && (
+								<div className="space-y-1 border-t pt-2">
+									<div className="space-y-1">
+										{customFieldsEntries.map((entry) => (
+											<div key={entry.key} className="space-y-0.5 py-0.5">
+												<span className="block font-medium">{entry.label}</span>
+												<span className="block whitespace-pre-wrap break-words text-muted-foreground">
+													{entry.value}
+												</span>
+											</div>
+										))}
+									</div>
+								</div>
 							)}
 						</div>
 					</div>
@@ -196,22 +218,28 @@ export function ExhibitorKitDetailsSection({
 						</div>
 						<div className="space-y-2 text-sm">
 							<div>
-								<span className="mb-1 block font-medium">
-									Company
+								<span className="mb-1 block font-medium">Company</span>
+								<span className="text-muted-foreground">
+									{kit.company_name || "-"}
 								</span>
-								<span className="text-muted-foreground">{kit.company_name || "-"}</span>
 							</div>
 							<div>
-								<span className="mb-1 block font-medium">
-									Address
+								<span className="mb-1 block font-medium">Address</span>
+								<span className="text-muted-foreground text-sm">
+									{kit.company_address || "-"}
 								</span>
-								<span className="text-muted-foreground text-sm">{kit.company_address || "-"}</span>
+							</div>
+							<div>
+								<span className="mb-1 block font-medium">Country</span>
+								<span className="text-muted-foreground text-sm">
+									{kit.country || "-"}
+								</span>
 							</div>
 							<div className="border-t pt-2">
-								<span className="mb-1 block font-medium">
-									Person In Charge
-								</span>
-								<p className="text-muted-foreground">{kit.pic_full_name || "-"}</p>
+								<span className="mb-1 block font-medium">Person In Charge</span>
+								<p className="text-muted-foreground">
+									{kit.pic_full_name || "-"}
+								</p>
 								<p className="text-muted-foreground text-sm">
 									{kit.pic_contact_number || "-"}
 								</p>
@@ -260,9 +288,7 @@ export function ExhibitorKitDetailsSection({
 							</div>
 							{kit.payment_note && (
 								<div className="border-t pt-2">
-									<span className="mb-1 block font-medium">
-										Note
-									</span>
+									<span className="mb-1 block font-medium">Note</span>
 									<ExpandableText text={kit.payment_note} />
 								</div>
 							)}
@@ -292,13 +318,19 @@ export function ExhibitorKitDetailsSection({
 								<div className="flex items-center gap-2 text-xs">
 									<span>
 										<span className="font-medium">Limit</span>{" "}
-										<span className="text-muted-foreground">{kit.team_member_limit}</span>
+										<span className="text-muted-foreground">
+											{kit.team_member_limit}
+										</span>
 									</span>
-									{kit.has_unpaid_excess_team_members && kit.extra_team_member_charges && (
-										<Badge variant="outline" className="rounded-none border-amber-500 text-amber-600">
-											+RM {kit.extra_team_member_charges}
-										</Badge>
-									)}
+									{kit.has_unpaid_excess_team_members &&
+										kit.extra_team_member_charges && (
+											<Badge
+												variant="outline"
+												className="rounded-none border-amber-500 text-amber-600"
+											>
+												+RM {kit.extra_team_member_charges}
+											</Badge>
+										)}
 								</div>
 							)}
 						</div>
@@ -309,53 +341,66 @@ export function ExhibitorKitDetailsSection({
 								{/* Free Team Members */}
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
-										<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+										<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 											Free Team Members
 										</p>
-										<span className="text-xs font-medium text-green-600 dark:text-green-400">
-											{Math.min(teamMembers.length, kit.team_member_limit)} / {kit.team_member_limit}
+										<span className="font-medium text-green-600 text-xs dark:text-green-400">
+											{Math.min(teamMembers.length, kit.team_member_limit)} /{" "}
+											{kit.team_member_limit}
 										</span>
 									</div>
 									<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-										{teamMembers.slice(0, kit.team_member_limit).map((member, idx) => (
-											<div
-												key={member.id || idx}
-												className="flex items-center gap-2 rounded-none border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20 p-2"
-											>
-												<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
-												<span className="text-sm">{member.full_name}</span>
-											</div>
-										))}
+										{teamMembers
+											.slice(0, kit.team_member_limit)
+											.map((member, idx) => (
+												<div
+													key={member.id || idx}
+													className="flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
+												>
+													<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
+													<span className="text-sm">{member.full_name}</span>
+												</div>
+											))}
 									</div>
 								</div>
 
 								{/* Paid Team Members */}
-								{kit.excess_team_member_count != null && kit.excess_team_member_count > 0 && (
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-												Additional Team Members (Paid)
-											</p>
-											<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-												{kit.excess_team_member_count} × RM {kit.extra_team_member_fee} = RM {kit.extra_team_member_charges}
-											</span>
+								{kit.excess_team_member_count != null &&
+									kit.excess_team_member_count > 0 && (
+										<div className="space-y-2">
+											<div className="flex items-center justify-between">
+												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+													Additional Team Members (Paid)
+												</p>
+												<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
+													{kit.excess_team_member_count} × RM{" "}
+													{kit.extra_team_member_fee} = RM{" "}
+													{kit.extra_team_member_charges}
+												</span>
+											</div>
+											<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+												{teamMembers
+													.slice(kit.team_member_limit)
+													.map((member, idx) => (
+														<div
+															key={member.id || idx}
+															className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
+														>
+															<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
+															<span className="flex-1 text-sm">
+																{member.full_name}
+															</span>
+															<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
+																+RM{" "}
+																{Number(kit.extra_team_member_fee || 0).toFixed(
+																	2,
+																)}
+															</span>
+														</div>
+													))}
+											</div>
 										</div>
-										<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-											{teamMembers.slice(kit.team_member_limit).map((member, idx) => (
-												<div
-													key={member.id || idx}
-													className="flex items-center gap-2 rounded-none border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-2"
-												>
-													<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-													<span className="flex-1 text-sm">{member.full_name}</span>
-													<span className="text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
-														+RM {Number(kit.extra_team_member_fee || 0).toFixed(2)}
-													</span>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
+									)}
 							</div>
 						) : (
 							// Show simple grid when no limit
@@ -400,18 +445,21 @@ export function ExhibitorKitDetailsSection({
 								Ordered Items ({mergedItems.length})
 							</h3>
 						</div>
-						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
 							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 								{mergedItems.map((item) => (
 									<div
 										key={item.rentable_item_id}
 										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
 									>
-										<p className="font-medium text-sm truncate">
+										<p className="truncate font-medium text-sm">
 											{item.rentable_item?.name ||
 												`Item #${item.rentable_item_id}`}
 										</p>
-										<Badge variant="secondary" className="rounded-none shrink-0">
+										<Badge
+											variant="secondary"
+											className="shrink-0 rounded-none"
+										>
 											x{item.quantity}
 										</Badge>
 									</div>
@@ -430,18 +478,21 @@ export function ExhibitorKitDetailsSection({
 								Printing Services ({mergedPrintings.length})
 							</h3>
 						</div>
-						<div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
 							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 								{mergedPrintings.map((printing) => (
 									<div
 										key={printing.printing_service_id}
 										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
 									>
-										<p className="font-medium text-sm truncate">
+										<p className="truncate font-medium text-sm">
 											{printing.printing_service?.name ||
 												`Service #${printing.printing_service_id}`}
 										</p>
-										<Badge variant="secondary" className="rounded-none shrink-0">
+										<Badge
+											variant="secondary"
+											className="shrink-0 rounded-none"
+										>
 											x{printing.quantity}
 										</Badge>
 									</div>

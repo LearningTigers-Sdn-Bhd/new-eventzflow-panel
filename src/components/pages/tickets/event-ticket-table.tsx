@@ -78,16 +78,32 @@ export function DataTable<TData>({
 			phone: false, // Hide phone column as it's only used for search
 		});
 
-	// Generate visibility state for custom columns when eventData is available
+	// Merge labels_data keys with any custom label keys found in ticket data
+	const mergedLabelsData = React.useMemo(() => {
+		const base: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
+		(data as BaseTicket[]).forEach((ticket) => {
+			ticket.customLabels?.forEach(({ name }) => {
+				if (!(name in base)) {
+					// Prettify raw key: ic_no -> Ic No, t_shirt_size -> T Shirt Size
+					base[name] = name
+						.replace(/_/g, " ")
+						.replace(/\b\w/g, (c) => c.toUpperCase());
+				}
+			});
+		});
+		return Object.keys(base).length > 0 ? base : undefined;
+	}, [eventData?.labels_data, data]);
+
+	// Generate visibility state for custom columns when mergedLabelsData is available
 	// Show first 3 labels by default, hide the rest if there are more than 3
 	React.useEffect(() => {
-		if (!eventData?.labels_data) return;
+		if (!mergedLabelsData) return;
 
 		const visibility: VisibilityState = {
 			phone: false, // Hide phone column as it's only used for search
 		};
 
-		const labelKeys = Object.keys(eventData.labels_data);
+		const labelKeys = Object.keys(mergedLabelsData);
 		const totalLabels = labelKeys.length;
 
 		labelKeys.forEach((key, index) => {
@@ -100,11 +116,11 @@ export function DataTable<TData>({
 		});
 
 		setColumnVisibility(visibility);
-	}, [eventData?.labels_data]);
+	}, [mergedLabelsData]);
 
 	const columns = React.useMemo(
-		() => generateColumns(eventData?.labels_data) as ColumnDef<TData>[],
-		[eventData?.labels_data],
+		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
+		[mergedLabelsData],
 	);
 
 	const table = useReactTable({
@@ -128,7 +144,7 @@ export function DataTable<TData>({
 		<div className="w-full">
 			<DataControl
 				table={table}
-				labelsData={eventData?.labels_data}
+				labelsData={mergedLabelsData}
 				ticketFilter={ticketFilter}
 				onTicketFilterChange={onTicketFilterChange}
 			/>
@@ -156,7 +172,7 @@ export function DataTable<TData>({
 										<TicketItem
 											key={row.id}
 											ticket={row.original as BaseTicket}
-											labelsData={eventData?.labels_data}
+											labelsData={mergedLabelsData}
 										/>
 									))
 							) : (
@@ -177,7 +193,7 @@ export function DataTable<TData>({
 									<div key={row.id} className="col-span-1">
 										<TicketItem
 											ticket={row.original as BaseTicket}
-											labelsData={eventData?.labels_data}
+											labelsData={mergedLabelsData}
 										/>
 									</div>
 								))

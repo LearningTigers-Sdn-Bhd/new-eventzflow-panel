@@ -159,6 +159,7 @@ export async function getMyScannedTickets(
 				id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
 				name: ticket.attendee_name,
 				email: ticket.attendee_email,
+				registeredByEmail: ticket.registered_by_email || undefined,
 				phone: ticket.attendee_phone || undefined,
 				ticketTypeName: ticket.ticket_type?.name || "Unknown",
 				ticketTypeId: ticket.ticket_type_id,
@@ -199,6 +200,7 @@ function transformBackendTicket(
 
 	let name = "";
 	let email = "";
+	let registeredByEmail: string | undefined;
 	let phone: string | undefined;
 	let ticketTypeName = "Unknown";
 	let ticketTypeId = 0;
@@ -210,6 +212,7 @@ function transformBackendTicket(
 		const bt = ticket as BackendTicket;
 		name = bt.attendee_name;
 		email = bt.attendee_email;
+		registeredByEmail = bt.registered_by_email || undefined;
 		phone = bt.attendee_phone || undefined;
 		ticketTypeId = bt.ticket_type_id;
 		ticketTypeName = bt.ticket_type?.name || "Unknown";
@@ -226,6 +229,7 @@ function transformBackendTicket(
 		const btt = ticket as BackendTicketTransformed;
 		name = btt.attendee_name;
 		email = btt.attendee_email;
+		registeredByEmail = btt.registered_by_email || undefined;
 		phone = btt.attendee_phone || undefined;
 		ticketTypeId = btt.ticket_type_id;
 		ticketTypeName = btt.ticket_type_name || "Unknown";
@@ -242,6 +246,7 @@ function transformBackendTicket(
 		role,
 		name,
 		email,
+		registeredByEmail,
 		phone,
 		ticketTypeName,
 		ticketTypeId,

@@ -1,3 +1,4 @@
+import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
 	type CreateVisitorRequest,
@@ -87,4 +88,17 @@ export async function deleteVisitor(
 	visitorId: number,
 ): Promise<void> {
 	await restClient.delete<void>(`v1/events/${eventId}/visitors/${visitorId}`);
+}
+
+/**
+ * Unscan a visitor (org_owner only)
+ * Resets checked_in, check_in_at, and scanned_by_id
+ */
+export async function unscanVisitor(visitorId: string | number): Promise<void> {
+	try {
+		await restClient.patch(`v1/visitors/${visitorId}/unscan`, {});
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
 }

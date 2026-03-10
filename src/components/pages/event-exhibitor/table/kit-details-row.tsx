@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
+import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
 
 function ExpandableText({
@@ -54,6 +55,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 	const printings = kit.exhibitor_kit_printings || [];
 	const teamMembers = kit.exhibitor_team_members || [];
 	const customRequests = kit.custom_requests || [];
+	const customFieldsEntries = formatCustomFieldEntries(kit.custom_fields_data);
 
 	// Merge items and printings with same IDs
 	const mergedItems = mergeKitItems(items);
@@ -92,7 +94,7 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							variant="outline"
 							className="h-5 shrink-0 rounded-none text-xs capitalize"
 						>
-							{kit.booth_type?.replace("_", " ") || "-"}
+							{kit.booth_type?.replace(/_/g, " ") || "-"}
 						</Badge>
 					</div>
 					<div className="flex justify-between gap-2 py-0.5">
@@ -125,6 +127,20 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							Fascia Upgrade
 						</Badge>
 					)}
+					{customFieldsEntries.length > 0 && (
+						<div className="space-y-1 border-t pt-2">
+							<div className="space-y-1">
+								{customFieldsEntries.map((entry) => (
+									<div key={entry.key} className="space-y-0.5 py-0.5 text-xs">
+										<span className="block font-medium">{entry.label}</span>
+										<span className="block whitespace-pre-wrap break-words text-muted-foreground">
+											{entry.value}
+										</span>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
 				</div>
 
 				{/* Company & PIC */}
@@ -148,6 +164,12 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 						) : (
 							<span className="block text-muted-foreground text-xs">-</span>
 						)}
+					</div>
+					<div className="py-0.5">
+						<span className="mb-0.5 block font-medium text-xs">Country</span>
+						<span className="block break-words text-muted-foreground text-xs">
+							{kit.country || "-"}
+						</span>
 					</div>
 					<div className="border-t pt-1.5">
 						<span className="mb-0.5 block font-medium text-xs">

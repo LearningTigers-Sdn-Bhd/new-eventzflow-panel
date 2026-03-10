@@ -26,7 +26,7 @@ export function PriceTierButton({ ticketType }: PriceTierButtonProps) {
 			config: {
 				title: `Price Tiers: ${ticketType.name}`,
 				description: "Configure time-based pricing tiers for this ticket type",
-				size: "xl",
+				size: "3xl",
 				className: "rounded-none",
 			},
 		});

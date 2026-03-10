@@ -49,6 +49,7 @@ interface InputLabelProps
 
 	// Input type
 	type?: "input" | "textarea";
+	inputType?: React.ComponentProps<"input">["type"];
 	variant?: VariantProps<typeof inputVariants>["variant"];
 
 	// Values & handlers (supports both TanStack Form and generic usage)
@@ -77,6 +78,7 @@ export function InputLabel({
 	htmlFor,
 	description,
 	type = "input",
+	inputType = "text",
 	variant = "no-rounded",
 	value,
 	onChange,
@@ -124,6 +126,7 @@ export function InputLabel({
 			) : (
 				<Input
 					id={htmlFor}
+					type={inputType}
 					placeholder={placeholder}
 					value={value}
 					onBlur={onBlur}

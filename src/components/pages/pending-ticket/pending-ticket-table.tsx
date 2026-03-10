@@ -52,6 +52,21 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		queryFn: () => getEventById(eventId),
 	});
 
+	// Merge labels_data keys with any custom label keys found in ticket data
+	const mergedLabelsData = React.useMemo(() => {
+		const base: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
+		(data as PendingTicket[]).forEach((ticket) => {
+			ticket.customLabels?.forEach(({ name }) => {
+				if (!(name in base)) {
+					base[name] = name
+						.replace(/_/g, " ")
+						.replace(/\b\w/g, (c) => c.toUpperCase());
+				}
+			});
+		});
+		return Object.keys(base).length > 0 ? base : undefined;
+	}, [eventData?.labels_data, data]);
+
 	// Generate initial visibility state for custom columns
 	// Show first 3 labels by default, hide the rest if there are more than 3
 	const initialVisibility = React.useMemo(() => {
@@ -59,8 +74,8 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 			phone: false, // Hide phone column as it's only used for search
 		};
 
-		if (eventData?.labels_data) {
-			const labelKeys = Object.keys(eventData.labels_data);
+		if (mergedLabelsData) {
+			const labelKeys = Object.keys(mergedLabelsData);
 			const totalLabels = labelKeys.length;
 
 			labelKeys.forEach((key, index) => {
@@ -74,7 +89,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		}
 
 		return visibility;
-	}, [eventData?.labels_data]);
+	}, [mergedLabelsData]);
 
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>(initialVisibility);
@@ -85,8 +100,8 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 	}, [initialVisibility]);
 
 	const columns = React.useMemo(
-		() => generateColumns(eventData?.labels_data) as ColumnDef<TData>[],
-		[eventData?.labels_data],
+		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
+		[mergedLabelsData],
 	);
 
 	const openPendingTicketCreate = () => {
@@ -120,7 +135,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} labelsData={eventData?.labels_data} />
+			<DataControl table={table} labelsData={mergedLabelsData} />
 
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
@@ -149,7 +164,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 										<PendingTicketItem
 											key={row.id}
 											ticket={row.original as PendingTicket}
-											labelsData={eventData?.labels_data}
+											labelsData={mergedLabelsData}
 										/>
 									))
 							) : (
@@ -174,7 +189,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 									<div key={row.id} className="col-span-1">
 										<PendingTicketItem
 											ticket={row.original as PendingTicket}
-											labelsData={eventData?.labels_data}
+											labelsData={mergedLabelsData}
 										/>
 									</div>
 								))
