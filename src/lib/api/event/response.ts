@@ -17,6 +17,7 @@ export type Event = {
 	multiple_scans: boolean;
 	use_ticket: boolean;
 	use_wedding: boolean;
+	extra_guest_limit: number | null;
 	use_seat_ticketing: boolean;
 	use_exhibitor_kit: boolean;
 	allow_contractor_printing_services: boolean;

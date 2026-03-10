@@ -10,6 +10,8 @@ import * as z from "zod";
 import DateTimePickerField from "@/components/admin-ui/form/date-time-picker";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
+import { RadioGroupCard } from "@/components/admin-ui/form/radio-group-card";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { SwitchStateCardInput } from "@/components/admin-ui/form/switch-state-card-input";
@@ -23,6 +25,11 @@ import {
 } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
+import {
+	guestPolicyLimitToValue,
+	guestPolicyValueFromLimit,
+	type GuestPolicyMode,
+} from "@/lib/api/event/guest-policy";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
@@ -33,6 +40,8 @@ const formSchema = z.object({
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
 	useWedding: z.boolean(),
+	guestPolicy: z.enum(["unlimited", "none", "limited"]),
+	guestLimit: z.number().int().min(1),
 	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	allowPrintingServices: z.boolean(),
@@ -106,6 +115,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			visibility: true,
 			useTicket: true,
 			useWedding: false,
+			guestPolicy: "unlimited" as GuestPolicyMode,
+			guestLimit: 1,
 			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
@@ -122,6 +133,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			onSubmit: formSchema,
 		},
 		onSubmit: async ({ value }) => {
+			const useWedding = !value.useTicket && value.useWedding;
 			await updateEventMutation.mutateAsync({
 				id: eventId,
 				data: {
@@ -129,7 +141,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
-					use_wedding: value.useTicket ? false : value.useWedding,
+					use_wedding: useWedding,
+					extra_guest_limit: useWedding
+						? guestPolicyLimitToValue(value.guestPolicy, value.guestLimit)
+						: undefined,
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
@@ -152,6 +167,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 		if (event && hasInitialized.current !== event.id) {
 			// Use setTimeout to ensure form fields are ready before setting values
 			setTimeout(() => {
+				const guestPolicy = guestPolicyValueFromLimit(event.extra_guest_limit);
 				form.setFieldValue("title", event.title || "");
 				form.setFieldValue(
 					"status",
@@ -160,6 +176,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("visibility", event.visibility ?? true);
 				form.setFieldValue("useTicket", event.use_ticket ?? true);
 				form.setFieldValue("useWedding", event.use_wedding ?? false);
+				form.setFieldValue("guestPolicy", guestPolicy.mode);
+				form.setFieldValue("guestLimit", guestPolicy.limit);
 				form.setFieldValue(
 					"useSeatTicketing",
 					event.use_seat_ticketing ?? false,
@@ -487,22 +505,90 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 													variant="no-rounded"
 												/>
 
-												{!field.state.value && (
-													<form.Field name="useWedding">
-														{(weddingField) => (
-															<SwitchCardInput
-																label="Wedding System"
-																description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
-																htmlFor={weddingField.name}
-																variant="no-rounded"
-																border={true}
-																checked={weddingField.state.value}
-																onCheckedChange={weddingField.handleChange}
-																disabled={updateEventMutation.isPending}
-															/>
-														)}
-													</form.Field>
-												)}
+						{!field.state.value && (
+							<form.Field name="useWedding">
+								{(weddingField) => (
+									<div className="flex flex-col gap-4">
+										<SwitchCardInput
+											label="Wedding System"
+											description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
+											htmlFor={weddingField.name}
+											variant="no-rounded"
+											border={true}
+											checked={weddingField.state.value}
+											onCheckedChange={weddingField.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+
+										{weddingField.state.value && (
+											<>
+												<form.Field name="guestPolicy">
+													{(guestPolicyField) => (
+														<RadioGroupCard
+															label="Guest Allowance"
+															description="Control how many extra guests wedding invitees may bring."
+															value={guestPolicyField.state.value}
+															onChange={guestPolicyField.handleChange}
+															onBlur={guestPolicyField.handleBlur}
+															errors={guestPolicyField.state.meta.errors}
+															isInvalid={
+																guestPolicyField.state.meta.isTouched &&
+																!guestPolicyField.state.meta.isValid
+															}
+															disabled={updateEventMutation.isPending}
+															options={[
+																{
+																	value: "unlimited",
+																	label: "Unlimited",
+																	description: "Invitees can bring as many extra guests as needed.",
+																},
+																{
+																	value: "none",
+																	label: "No extra guests",
+																	description: "Invitees can only RSVP for themselves.",
+																},
+																{
+																	value: "limited",
+																	label: "Set a limit",
+																	description: "Choose the maximum number of extra guests allowed.",
+																},
+															]}
+															variant="no-rounded"
+														/>
+													)}
+												</form.Field>
+
+												<form.Subscribe selector={(state) => state.values.guestPolicy}>
+													{(guestPolicy) =>
+														guestPolicy === "limited" ? (
+															<form.Field name="guestLimit">
+																{(guestLimitField) => (
+																	<NumberInputLabel
+																		label="Guest Limit"
+																		value={guestLimitField.state.value}
+																		onChange={guestLimitField.handleChange}
+																		errors={guestLimitField.state.meta.errors}
+																		isInvalid={
+																			guestLimitField.state.meta.isTouched &&
+																			!guestLimitField.state.meta.isValid
+																		}
+																		description="Maximum number of additional guests allowed per invitation."
+																		min={1}
+																		disabled={updateEventMutation.isPending}
+																		required
+																		variant="no-rounded"
+																	/>
+																)}
+															</form.Field>
+														) : null
+													}
+												</form.Subscribe>
+											</>
+										)}
+									</div>
+								)}
+							</form.Field>
+						)}
 											</div>
 										);
 									}}

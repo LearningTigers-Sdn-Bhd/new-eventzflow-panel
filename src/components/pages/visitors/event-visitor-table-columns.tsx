@@ -115,6 +115,58 @@ export function generateColumns(
 			},
 		},
 		{
+			accessorKey: "rsvp_status",
+			size: 130,
+			header: ({ column }) => <SortableHeader column={column} label="RSVP" />,
+			cell: ({ row }) => {
+				const status = row.getValue("rsvp_status") as string | undefined;
+				if (!status || status === "pending") {
+					return (
+						<Badge
+							variant="outline"
+							className="w-fit rounded-none border-gray-300/50 bg-gray-100/50 text-gray-600"
+						>
+							Pending
+						</Badge>
+					);
+				}
+				if (status === "attending") {
+					return (
+						<Badge
+							variant="outline"
+							className="w-fit rounded-none border-green-500/20 bg-green-500/10 text-green-700"
+						>
+							Attending
+						</Badge>
+					);
+				}
+				return (
+					<Badge
+						variant="outline"
+						className="w-fit rounded-none border-red-500/20 bg-red-500/10 text-red-700"
+					>
+						Declined
+					</Badge>
+				);
+			},
+		},
+		{
+			accessorKey: "added_by_name",
+			size: 150,
+			header: ({ column }) => (
+				<SortableHeader column={column} label="Added By" />
+			),
+			cell: ({ row }) => {
+				const addedBy = row.getValue("added_by_name") as string | undefined;
+				if (!addedBy) return <span className="text-muted-foreground">-</span>;
+				return (
+					<span className="text-muted-foreground text-sm">
+						{addedBy}
+					</span>
+				);
+			},
+		},
+		{
 			accessorKey: "created_at",
 			size: 180,
 			header: ({ column }) => (
