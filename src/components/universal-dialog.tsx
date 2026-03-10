@@ -69,7 +69,7 @@ export function UniversalDialog() {
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-0 px-4 pt-4 pb-0 md:items-start",
+								"flex flex-col items-center gap-1 px-6 pt-6 pb-4 md:items-start",
 							)}
 						>
 							{config.title ? (
@@ -101,7 +101,7 @@ export function UniversalDialog() {
 				<DesktopView>
 					<DialogContent
 						className={cn(
-							"gap-0 p-4",
+							"gap-0 p-6",
 							sizeClass,
 							isFullScreen && "rounded-none border-0 p-0",
 							config.className,
@@ -110,8 +110,8 @@ export function UniversalDialog() {
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-0 pt-4 pb-0 md:items-start",
-								isFullScreen ? "px-6" : "px-4",
+								"flex flex-col items-center gap-1 pb-4 md:items-start",
+								isFullScreen ? "px-6 pt-6" : "px-0",
 							)}
 						>
 							{config.title ? (

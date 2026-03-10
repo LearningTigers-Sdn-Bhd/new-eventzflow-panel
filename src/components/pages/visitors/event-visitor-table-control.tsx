@@ -4,6 +4,7 @@ import type { Table } from "@tanstack/react-table";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import type { Visitor } from "@/lib/api/visitor";
+import { visitorSearchColumns } from "./event-visitor-search-config";
 
 interface DataControlProps {
 	table: Table<Visitor>;
@@ -59,7 +60,7 @@ export function DataControl({
 				searchConfig: {
 					placeholder: "Search visitors...",
 					enableCustomSearch: false,
-					columns: ["full_name", "email", "phone", "public_id"],
+					columns: [...visitorSearchColumns],
 				},
 			}}
 			desktopConfig={{

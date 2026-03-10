@@ -7,7 +7,9 @@
 	--font-sans:
 		"Inter", "Geist", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-	--font-serif: var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+	--font-serif:
+		var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", Times,
+		serif;
 	--breakpoint-3xl: 120rem;
 
 	/* Brand colors */
@@ -22,6 +24,11 @@
 	--color-blue-background: #f0f8ff;
 	--color-blue-background-dark: #1e40af;
 	--color-white-background: #fdfdfd;
+
+	/* RSVP colors */
+	--color-rsvp-canvas: #faf9f6;
+	--color-rsvp-mist: #f3f0e9;
+	--color-rsvp-ink: #1a1a1a;
 }
 
 html,

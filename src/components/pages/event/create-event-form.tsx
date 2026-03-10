@@ -20,7 +20,6 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { cn } from "@/lib/utils";
 import { createEvent } from "@/lib/api/event";
 import { getTeamMembers } from "@/lib/api/team";
 import { queryClient } from "@/utils/rest-api";
@@ -124,9 +123,10 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			const payload = {
 				title: value.title.trim(),
 				visibility: value.visibility ?? true,
-			use_ticket: value.useTicket ?? true,
-			use_seat_ticketing: value.useSeatTicketing ?? false,
-			use_exhibitor_kit: value.useExhibitorKit ?? false,
+				use_ticket: value.useTicket ?? true,
+				use_wedding: false,
+				use_seat_ticketing: value.useSeatTicketing ?? false,
+				use_exhibitor_kit: value.useExhibitorKit ?? false,
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
 				use_business_matching: value.useBusinessMatching ?? false,

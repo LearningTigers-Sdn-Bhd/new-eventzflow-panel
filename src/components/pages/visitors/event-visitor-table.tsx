@@ -29,6 +29,7 @@ import type { Visitor } from "@/lib/api/visitor";
 import { VisitorItem } from "./event-visitor-item";
 import { generateColumns } from "./event-visitor-table-columns";
 import { DataControl } from "./event-visitor-table-control";
+import { buildVisitorLabelsData } from "./wedding-custom-field";
 
 interface DataTableProps {
 	eventId: number;
@@ -57,16 +58,21 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 			phone: false, // Hide phone column by default
 		});
 
+	const visitorLabelsData = React.useMemo(
+		() => buildVisitorLabelsData(eventData),
+		[eventData],
+	);
+
 	// Generate visibility state for custom columns when eventData is available
 	// Show first 3 labels by default, hide the rest if there are more than 3
 	React.useEffect(() => {
-		if (!eventData?.labels_data) return;
+		if (Object.keys(visitorLabelsData).length === 0) return;
 
 		const visibility: VisibilityState = {
 			phone: false, // Hide phone column as it's only used for search
 		};
 
-		const labelKeys = Object.keys(eventData.labels_data);
+		const labelKeys = Object.keys(visitorLabelsData);
 		const totalLabels = labelKeys.length;
 
 		labelKeys.forEach((key, index) => {
@@ -79,11 +85,11 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 		});
 
 		setColumnVisibility(visibility);
-	}, [eventData?.labels_data]);
+	}, [visitorLabelsData]);
 
 	const columns = React.useMemo(
-		() => generateColumns(eventData?.labels_data) as ColumnDef<Visitor>[],
-		[eventData?.labels_data],
+		() => generateColumns(visitorLabelsData) as ColumnDef<Visitor>[],
+		[visitorLabelsData],
 	);
 
 	const table = useReactTable({
@@ -108,7 +114,7 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 			<DataControl
 				table={table}
 				eventId={eventId}
-				labelsData={eventData?.labels_data}
+				labelsData={visitorLabelsData}
 			/>
 
 			{/* Data Table */}
@@ -133,7 +139,7 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 										<VisitorItem
 											key={row.id}
 											visitor={row.original as Visitor}
-											labelsData={eventData?.labels_data}
+											labelsData={visitorLabelsData}
 										/>
 									))
 							) : (
@@ -153,7 +159,7 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 									<div key={row.id} className="col-span-1">
 										<VisitorItem
 											visitor={row.original as Visitor}
-											labelsData={eventData?.labels_data}
+											labelsData={visitorLabelsData}
 										/>
 									</div>
 								))
