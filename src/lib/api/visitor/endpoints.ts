@@ -11,8 +11,14 @@ import type { Visitor } from "./response";
 /**
  * Get all visitors for an event
  */
-export async function getVisitors(eventId: number): Promise<Visitor[]> {
-	return restClient.get<Visitor[]>(`v1/events/${eventId}/visitors`);
+export async function getVisitors(eventId: number | string, options?: { unassigned?: boolean }): Promise<Visitor[]> {
+    const params = new URLSearchParams();
+    if (options?.unassigned) {
+        params.append("unassigned", "true");
+    }
+    const queryString = params.toString();
+    const url = queryString ? `v1/events/${eventId}/visitors?${queryString}` : `v1/events/${eventId}/visitors`;
+	return restClient.get<Visitor[]>(url);
 }
 
 /**

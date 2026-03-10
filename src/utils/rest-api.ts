@@ -371,16 +371,18 @@ export const restClient = {
 	/**
 	 * Make a DELETE request
 	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
 	 * @param token - Optional token to override the default auth token
 	 * @returns Promise resolving to the response data
 	 */
-	delete: <T>(url: string, token?: string): Promise<T> => {
+	delete: <T>(url: string, data?: unknown, token?: string): Promise<T> => {
 		const headers = token ? { Authorization: `Bearer ${token}` } : {};
 		logger.debug("🔍 HTTP Client Debug (DELETE):");
 		logger.debug("  - URL:", url);
 		logger.debug("  - Token:", token);
 		logger.debug("  - Headers:", headers);
-		return kyClient.delete(url, { headers }).json<T>();
+		logger.debug("  - Data:", data);
+		return kyClient.delete(url, { json: data, headers }).json<T>();
 	},
 
 	/**

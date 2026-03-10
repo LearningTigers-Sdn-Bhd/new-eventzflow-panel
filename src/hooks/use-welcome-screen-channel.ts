@@ -21,6 +21,7 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 					setLatestCheckIn({
 						name: data.name,
 						table_label: data.table_label ?? null,
+						seating_context: data.seating_context,
 						checked_in_at: new Date().toISOString(),
 					});
 				} else {
@@ -33,6 +34,7 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 				setLatestCheckIn({
 					name: data.name,
 					table_label: data.table_label ?? null,
+					seating_context: data.seating_context,
 					checked_in_at: data.checked_in_at,
 				});
 				break;

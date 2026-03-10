@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ImageIcon, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ImageIcon, VideoIcon, X, Monitor, Megaphone, Clock, Search } from "lucide-react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { NameAnimation } from "@/components/welcome-screen/name-animation";
 import {
 	DEFAULT_VOICE,
@@ -36,13 +43,17 @@ import {
 import { useFileUpload } from "@/hooks/use-file-upload";
 import {
 	type AnimationType,
+	type DisplayMode,
 	type CheckInDisplayFormData,
 	fetchCheckInDisplay,
 	updateCheckInDisplay,
 } from "@/lib/api/check-in-display";
+import { getPlans, getPlan } from "@/lib/api/plan";
+import type { Plan, TableAssignment } from "@/lib/api/plan";
 import { DEFAULT_FONT, getFontNames, getGoogleFontsUrl } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { API_BASE_URL, queryClient } from "@/utils/rest-api";
+import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
 
 const FONT_SIZES = [24, 32, 48, 56, 64, 72, 84, 96, 120, 144, 168, 200];
 
@@ -77,19 +88,97 @@ export default function WelcomeScreenForm({
 	eventId,
 	onClose,
 }: WelcomeScreenFormProps) {
+	// Text Settings
 	const [fontFamily, setFontFamily] = useState(DEFAULT_FONT);
 	const [fontSize, setFontSize] = useState(72);
 	const [animationType, setAnimationType] = useState<AnimationType>("fade_in");
 	const [isBold, setIsBold] = useState(false);
 	const [nameColor, setNameColor] = useState("#FFFFFF");
-	const [selectedImage, setSelectedImage] = useState<File | null>(null);
-	const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-	const [removeBackgroundImage, setRemoveBackgroundImage] = useState(false);
+	const [welcomeText, setWelcomeText] = useState("Welcome");
+	const [seatingAnnouncementTemplate, setSeatingAnnouncementTemplate] = useState("Welcome, #{name}. You are at #{table_label}.");
+	
+	// Modes
+	const [idleMode, setIdleMode] = useState<DisplayMode>("image");
+	const [announcementMode, setAnnouncementMode] = useState<DisplayMode>("image");
+	const [announcementDuration, setAnnouncementDuration] = useState(5000);
+
+	// Seating Plan
+	const [showSeatingPlan, setShowSeatingPlan] = useState(false);
+	const [seatingPlanSidebarPosition, setSeatingPlanSidebarPosition] = useState<"left" | "right">("left");
+	const [seatingPlanDuration, setSeatingPlanDuration] = useState(8000);
+	const [activePlanId, setActivePlanId] = useState<number | null>(null);
+
+	// Seating Plan Test Data
+	const [selectedTestAssignmentId, setSelectedTestAssignmentId] = useState<string>("none");
+
+	// Fetch plans for active session selection
+	const { data: plans } = useQuery({
+		queryKey: ["plans", eventId],
+		queryFn: () => getPlans(eventId.toString()),
+		enabled: showSeatingPlan,
+	});
+
+	// Fetch detailed plan for test data and preview
+	const { data: activePlan } = useQuery({
+		queryKey: ["plan", activePlanId],
+		queryFn: () => getPlan(activePlanId!.toString()),
+		enabled: !!activePlanId && showSeatingPlan,
+	});
+
+	// Extract all assignments for testing
+	const testAssignments = useMemo(() => {
+		if (!activePlan?.plan_objects) return [];
+		const assignments: { id: string; name: string; table: string; tableId: number; assignment: TableAssignment }[] = [];
+		
+		for (const obj of activePlan.plan_objects) {
+			if (obj.object_type === 'table' && obj.table_assignments) {
+				for (const assignment of obj.table_assignments) {
+					const name = assignment.ticket?.attendee_name || assignment.visitor?.full_name || "Unknown Guest";
+					assignments.push({
+						id: assignment.id.toString(),
+						name,
+						table: obj.label || `Table ${obj.id}`,
+						tableId: obj.id,
+						assignment
+					});
+				}
+			}
+		}
+		return assignments;
+	}, [activePlan]);
+
+	// Auto-set preview name when test assignment changes
+	useEffect(() => {
+		if (selectedTestAssignmentId !== "none") {
+			const found = testAssignments.find(a => a.id === selectedTestAssignmentId);
+			if (found) {
+				setPreviewName(found.name);
+			}
+		}
+	}, [selectedTestAssignmentId, testAssignments]);
+
+	// Idle Assets
+	const [selectedIdleImage, setSelectedIdleImage] = useState<File | null>(null);
+	const [existingIdleImageUrl, setExistingIdleImageUrl] = useState<string | null>(null);
+	const [removeIdleImage, setRemoveIdleImage] = useState(false);
+	const [selectedIdleVideo, setSelectedIdleVideo] = useState<File | null>(null);
+	const [existingIdleVideoUrl, setExistingIdleVideoUrl] = useState<string | null>(null);
+	const [removeIdleVideo, setRemoveIdleVideo] = useState(false);
+
+	// Announcement Assets
+	const [selectedAnnImage, setSelectedAnnImage] = useState<File | null>(null);
+	const [existingAnnImageUrl, setExistingAnnImageUrl] = useState<string | null>(null);
+	const [removeAnnImage, setRemoveAnnImage] = useState(false);
+	const [selectedAnnVideo, setSelectedAnnVideo] = useState<File | null>(null);
+	const [existingAnnVideoUrl, setExistingAnnVideoUrl] = useState<string | null>(null);
+	const [removeAnnVideo, setRemoveAnnVideo] = useState(false);
+
+	// Preview & Voice
 	const [previewKey, setPreviewKey] = useState(0);
 	const [voiceEnabled, setVoiceEnabled] = useState(true);
 	const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE);
 	const [previewName, setPreviewName] = useState("Dato' Ahmad bin Ismail");
-	const [welcomeText, setWelcomeText] = useState("Welcome");
+	const [isPreviewingAnnouncement, setIsPreviewingAnnouncement] = useState(false);
 
 	// TTS hook for preview
 	const { speak, error: ttsError } = useTTS({
@@ -107,32 +196,6 @@ export default function WelcomeScreenForm({
 		queryFn: () => fetchCheckInDisplay(eventId.toString()),
 	});
 
-	// File upload hook
-	const [
-		{ isDragging, errors },
-		{
-			handleDrop,
-			handleDragOver,
-			handleDragEnter,
-			handleDragLeave,
-			getInputProps,
-			clearFiles,
-		},
-	] = useFileUpload({
-		accept: "image/*",
-		maxSize: 5 * 1024 * 1024, // 5MB
-		multiple: false,
-		onFilesChange: (files) => {
-			if (files.length > 0 && files[0].file instanceof File) {
-				setSelectedImage(files[0].file);
-				setRemoveBackgroundImage(false);
-			}
-		},
-		onError: (errors) => {
-			errors.forEach((err) => toast.error(err));
-		},
-	});
-
 	// Load existing settings
 	useEffect(() => {
 		if (displaySettings) {
@@ -141,9 +204,24 @@ export default function WelcomeScreenForm({
 			setAnimationType(displaySettings.animation_type || "fade_in");
 			setIsBold(displaySettings.is_bold || false);
 			setNameColor(displaySettings.name_color || "#FFFFFF");
-			setExistingImageUrl(displaySettings.background_image_url);
-			setVoiceEnabled(displaySettings.voice_enabled ?? true);
 			setWelcomeText(displaySettings.welcome_text || "Welcome");
+			setSeatingAnnouncementTemplate(displaySettings.seating_announcement_template || "Welcome, #{name}. You are at #{table_label}.");
+			
+			setIdleMode(displaySettings.idle_mode || "image");
+			setAnnouncementMode(displaySettings.announcement_mode || "image");
+			setAnnouncementDuration(displaySettings.announcement_duration || 5000);
+
+			setShowSeatingPlan(displaySettings.show_seating_plan || false);
+			setSeatingPlanSidebarPosition(displaySettings.seating_plan_sidebar_position || "left");
+			setSeatingPlanDuration(displaySettings.seating_plan_duration || 8000);
+			setActivePlanId(displaySettings.active_plan_id || null);
+
+			setExistingIdleImageUrl(displaySettings.background_image_url);
+			setExistingIdleVideoUrl(displaySettings.idle_video_url);
+			setExistingAnnImageUrl(displaySettings.announcement_image_url);
+			setExistingAnnVideoUrl(displaySettings.announcement_video_url);
+
+			setVoiceEnabled(displaySettings.voice_enabled ?? true);
 			const savedVoiceId = localStorage.getItem(`tts_voice_${eventId}`);
 			const isValidVoice = (id: string | null): id is VoiceId =>
 				id !== null && VOICES.some((v) => v.id === id);
@@ -153,7 +231,6 @@ export default function WelcomeScreenForm({
 			} else if (isValidVoice(displaySettings.voice_type ?? null)) {
 				setVoiceId(displaySettings.voice_type as VoiceId);
 			}
-			// If neither is valid, keep the DEFAULT_VOICE from initial state
 		}
 	}, [displaySettings, eventId]);
 
@@ -164,9 +241,7 @@ export default function WelcomeScreenForm({
 		},
 		onSuccess: () => {
 			toast.success("Welcome screen settings saved successfully!");
-			queryClient.invalidateQueries({
-				queryKey: ["check-in-display", eventId],
-			});
+			queryClient.invalidateQueries({ queryKey: ["check-in-display", eventId] });
 			onClose?.();
 		},
 		onError: (error: Error) => {
@@ -186,448 +261,470 @@ export default function WelcomeScreenForm({
 			voice_enabled: voiceEnabled,
 			voice_type: voiceId,
 			welcome_text: welcomeText,
+			seating_announcement_template: seatingAnnouncementTemplate,
+			idle_mode: idleMode,
+			announcement_mode: announcementMode,
+			announcement_duration: announcementDuration,
+			show_seating_plan: showSeatingPlan,
+			seating_plan_sidebar_position: seatingPlanSidebarPosition,
+			seating_plan_duration: seatingPlanDuration,
+			active_plan_id: activePlanId,
+			remove_background_image: removeIdleImage,
+			remove_idle_video: removeIdleVideo,
+			remove_announcement_image: removeAnnImage,
+			remove_announcement_video: removeAnnVideo,
 		};
 
-		if (selectedImage) {
-			data.background_image = selectedImage;
-		}
-
-		if (removeBackgroundImage) {
-			data.remove_background_image = true;
-		}
+		if (selectedIdleImage) data.background_image = selectedIdleImage;
+		if (selectedIdleVideo) data.idle_video = selectedIdleVideo;
+		if (selectedAnnImage) data.announcement_image = selectedAnnImage;
+		if (selectedAnnVideo) data.announcement_video = selectedAnnVideo;
 
 		await updateMutation.mutateAsync(data);
-		setRemoveBackgroundImage(false);
-	};
-
-	const handleRestoreDefaults = () => {
-		setFontFamily(DEFAULT_FONT);
-		setFontSize(72);
-		setAnimationType("fade_in");
-		setIsBold(false);
-		setNameColor("#FFFFFF");
-		setSelectedImage(null);
-		setExistingImageUrl(null);
-		setRemoveBackgroundImage(true);
-		clearFiles();
-		setVoiceEnabled(true);
-		setVoiceId(DEFAULT_VOICE);
-		setPreviewName("Dato' Ahmad bin Ismail");
-		setWelcomeText("Welcome");
-		toast.info("Restored to defaults");
-	};
-
-	const handleRemoveImage = () => {
-		setSelectedImage(null);
-		setExistingImageUrl(null);
-		setRemoveBackgroundImage(true);
-		clearFiles();
 	};
 
 	const triggerPreviewAnimation = () => {
+		setIsPreviewingAnnouncement(true);
 		setPreviewKey((prev) => prev + 1);
-		speak(`${welcomeText}, ${previewName}`);
+		
+		let textToSpeak = "";
+		if (showSeatingPlan && testSeatingContext) {
+			textToSpeak = seatingAnnouncementTemplate
+				.replace("#{name}", previewName)
+				.replace("#{table_label}", testSeatingContext.table_label);
+		} else {
+			textToSpeak = `${welcomeText}, ${previewName}`;
+		}
+		
+		speak(textToSpeak);
+		
+		setTimeout(() => {
+			setIsPreviewingAnnouncement(false);
+		}, announcementDuration);
 	};
 
-	if (isLoading) {
-		return (
-			<LoadingState
-				title="Loading welcome screen settings..."
-				description="Please wait while we fetch the settings"
-			/>
-		);
-	}
+	const testSeatingContext = useMemo(() => {
+		if (selectedTestAssignmentId === "none" || !activePlan) return null;
+		const found = testAssignments.find(a => a.id === selectedTestAssignmentId);
+		if (!found) return null;
 
-	if (error) {
-		return (
-			<div className="text-destructive">
-				Failed to load welcome screen settings. Please try again.
-			</div>
-		);
-	}
+		// Find all guests at the same table
+		const tableObj = activePlan.plan_objects?.find(o => o.id === found.tableId);
+		const tableGuests = tableObj?.table_assignments?.map(ta => ({
+			name: ta.ticket?.attendee_name || ta.visitor?.full_name || "Unknown Guest",
+			is_checked_in: true
+		})) || [];
 
-	// Build preview URL - for selectedImage use blob URL, for existing API URL prepend API_BASE_URL
-	const previewImageUrl = selectedImage
-		? URL.createObjectURL(selectedImage)
-		: existingImageUrl
-			? `${API_BASE_URL}${existingImageUrl}`
-			: null;
-	const previewNameFontSize = Math.round(
-		16 + ((fontSize - 24) * (48 - 16)) / (200 - 24),
-	);
-	const previewWelcomeTextFontSize = Math.max(
-		10,
-		Math.round(previewNameFontSize * 0.55),
-	);
+		return {
+			plan_id: activePlan.id,
+			table_id: found.tableId,
+			table_label: found.table,
+			table_guests: tableGuests
+		};
+	}, [selectedTestAssignmentId, activePlan, testAssignments]);
+
+	if (isLoading) return <LoadingState title="Loading..." description="Fetching settings" />;
+	if (error) return <div className="text-destructive">Failed to load settings.</div>;
+
+	const previewIdleUrl = idleMode === 'video' 
+		? (selectedIdleVideo ? URL.createObjectURL(selectedIdleVideo) : (existingIdleVideoUrl ? `${API_BASE_URL}${existingIdleVideoUrl}` : null))
+		: (selectedIdleImage ? URL.createObjectURL(selectedIdleImage) : (existingIdleImageUrl ? `${API_BASE_URL}${existingIdleImageUrl}` : null));
+
+	const previewAnnUrl = announcementMode === 'video' 
+		? (selectedAnnVideo ? URL.createObjectURL(selectedAnnVideo) : (existingAnnVideoUrl ? `${API_BASE_URL}${existingAnnVideoUrl}` : null))
+		: (selectedAnnImage ? URL.createObjectURL(selectedAnnImage) : (existingAnnImageUrl ? `${API_BASE_URL}${existingAnnImageUrl}` : null));
+
+	const currentPreviewUrl = isPreviewingAnnouncement ? previewAnnUrl : previewIdleUrl;
 
 	return (
-		<>
-			{/* Load Google Fonts for preview */}
-			{/* eslint-disable-next-line @next/next/no-page-custom-font */}
-			<link rel="stylesheet" href={getGoogleFontsUrl()} />
-
-			<section className="h-full w-full">
-				<FieldSet className="h-full w-full gap-1">
-					<div className="flex flex-col items-start justify-between gap-2 pb-2">
-						<div className="flex-1">
-							<FieldLegend className="font-bold text-xl!">
-								Welcome Screen
-							</FieldLegend>
-							<FieldDescription>
-								Configure the check-in welcome display that shows attendee names
-								when they check in.
-							</FieldDescription>
-						</div>
+		<section className="h-full w-full">
+			<FieldSet className="h-full w-full gap-1">
+				<div className="flex flex-col items-start justify-between gap-2 pb-2">
+					<div className="flex-1">
+						<FieldLegend className="font-bold text-xl!">Welcome Screen</FieldLegend>
+						<FieldDescription>Configure idle and check-in display states.</FieldDescription>
 					</div>
-					<FieldSeparator />
+				</div>
+				<FieldSeparator />
 
-					<div className="space-y-6 py-4">
-						{/* Settings Row - Font Family, Font Size, Animation, Bold, Name Color */}
-						<div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-							{/* Font Family */}
-							<FieldGroup>
-								<FieldLabel>Font Family</FieldLabel>
-								<Select value={fontFamily} onValueChange={setFontFamily}>
-									<SelectTrigger className="w-full rounded-none">
-										<SelectValue placeholder="Select font" />
-									</SelectTrigger>
-									<SelectContent>
-										{getFontNames().map((font) => (
-											<SelectItem key={font} value={font}>
-												<span style={{ fontFamily: font }}>{font}</span>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FieldGroup>
-
-							{/* Font Size */}
-							<FieldGroup>
-								<FieldLabel>Font Size (px)</FieldLabel>
-								<Select
-									value={fontSize.toString()}
-									onValueChange={(v) => setFontSize(Number(v))}
-								>
-									<SelectTrigger className="w-full rounded-none">
-										<SelectValue placeholder="Select size" />
-									</SelectTrigger>
-									<SelectContent>
-										{FONT_SIZES.map((size) => (
-											<SelectItem key={size} value={size.toString()}>
-												{size}px
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FieldGroup>
-
-							{/* Animation Type */}
-							<FieldGroup>
-								<FieldLabel>Animation</FieldLabel>
-								<Select
-									value={animationType}
-									onValueChange={(v) => setAnimationType(v as AnimationType)}
-								>
-									<SelectTrigger className="w-full rounded-none">
-										<SelectValue placeholder="Select animation" />
-									</SelectTrigger>
-									<SelectContent>
-										{ANIMATION_TYPES.map((anim) => (
-											<SelectItem key={anim.value} value={anim.value}>
-												{anim.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FieldGroup>
-
-							{/* Name Color */}
-							<FieldGroup>
-								<FieldLabel>Name Color</FieldLabel>
-								<Select value={nameColor} onValueChange={setNameColor}>
-									<SelectTrigger className="w-full rounded-none">
-										<SelectValue placeholder="Select color">
-											<div className="flex items-center gap-2">
-												<div
-													className="h-4 w-4 border border-input"
-													style={{ backgroundColor: nameColor }}
-												/>
-												<span>
-													{NAME_COLORS.find((c) => c.value === nameColor)
-														?.label || "Select color"}
-												</span>
-											</div>
-										</SelectValue>
-									</SelectTrigger>
-									<SelectContent>
-										{NAME_COLORS.map((color) => (
-											<SelectItem key={color.value} value={color.value}>
-												<div className="flex items-center gap-2">
-													<div
-														className="h-4 w-4 border border-input"
-														style={{ backgroundColor: color.value }}
-													/>
-													<span>{color.label}</span>
-												</div>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FieldGroup>
-
-							{/* Bold Toggle */}
-							<FieldGroup>
-								<FieldLabel>Bold Text</FieldLabel>
-								<div className="flex h-9 items-center border border-input px-3">
-									<Switch checked={isBold} onCheckedChange={setIsBold} />
-									<span className="ml-2 text-muted-foreground text-sm">
-										{isBold ? "On" : "Off"}
-									</span>
-								</div>
-							</FieldGroup>
-						</div>
-
-						{/* Background Image and Live Preview - Side by Side */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-							{/* Background Image Upload */}
-							<FieldGroup>
-								<div className="flex h-7 items-center">
-									<FieldLabel className="mb-0">Background Image</FieldLabel>
-								</div>
-								<div
-									className={cn(
-										"relative flex h-[280px] cursor-pointer flex-col items-center justify-center border-2 border-dashed p-4 transition-colors",
-										isDragging
-											? "border-primary bg-primary/5"
-											: "border-muted-foreground/25 hover:border-primary/50",
-									)}
-									onDrop={handleDrop}
-									onDragOver={handleDragOver}
-									onDragEnter={handleDragEnter}
-									onDragLeave={handleDragLeave}
-									onClick={() =>
-										document
-											.getElementById("welcome-screen-image-input")
-											?.click()
-									}
-								>
-									<input
-										{...getInputProps()}
-										id="welcome-screen-image-input"
-										className="hidden"
-									/>
-
-									{previewImageUrl ? (
-										<div className="relative h-full w-full">
-											<img
-												src={previewImageUrl}
-												alt="Background preview"
-												className="h-full w-full object-contain"
-											/>
-											<Button
-												type="button"
-												variant="destructive"
-												size="icon"
-												className="absolute top-1 right-1 size-6 rounded-none"
-												onClick={(e) => {
-													e.stopPropagation();
-													handleRemoveImage();
-												}}
-											>
-												<X className="size-3" />
-											</Button>
-										</div>
-									) : (
-										<>
-											<ImageIcon className="mb-2 size-8 text-muted-foreground" />
-											<p className="text-center text-muted-foreground text-xs">
-												Click or drag to upload
-												<br />
-												(PNG, JPG, GIF up to 5MB)
-											</p>
-										</>
-									)}
-								</div>
-								{errors.length > 0 && (
-									<p className="mt-1 text-destructive text-sm">{errors[0]}</p>
-								)}
-							</FieldGroup>
-
-							{/* Live Preview */}
-							<FieldGroup>
-								<div className="flex h-7 items-center justify-between">
-									<FieldLabel className="mb-0">Live Preview</FieldLabel>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										onClick={triggerPreviewAnimation}
-										className="h-7 rounded-none text-xs"
-									>
-										Preview Animation
-									</Button>
-								</div>
-								<div
-									className="relative flex h-[280px] items-center justify-center overflow-hidden border"
-									style={{
-										backgroundColor: "#1a1a2e",
-									}}
-								>
-									{/* Background Image */}
-									{previewImageUrl && (
-										<div
-											className="absolute inset-0 bg-center bg-cover bg-no-repeat"
-											style={{
-												backgroundImage: `url(${previewImageUrl})`,
-											}}
-										>
-											<div className="absolute inset-0 bg-black/20" />
-										</div>
-									)}
-
-									{/* Preview Content */}
-									<div className="relative z-10 px-4 text-center text-black">
-										<p
-											className="mb-2 uppercase tracking-widest opacity-80"
-											style={{
-												color: nameColor,
-												fontWeight: isBold ? "bold" : "normal",
-												fontSize: `${previewWelcomeTextFontSize}px`,
-												lineHeight: 1.2,
-											}}
-										>
-											{welcomeText}
-										</p>
-										<NameAnimation
-											key={previewKey}
-											name={previewName}
-											animationType={animationType}
-											fontFamily={fontFamily}
-											fontSize={previewNameFontSize}
-											isBold={isBold}
-											nameColor={nameColor}
-										/>
-									</div>
-								</div>
-								{/* Editable Preview Fields */}
-								<div className="mt-2 grid grid-cols-2 gap-2">
-									<div>
-										<FieldLabel className="text-xs">Welcome Text</FieldLabel>
-										<Input
-											value={welcomeText}
-											onChange={(e) => setWelcomeText(e.target.value)}
-											placeholder="Welcome"
-											className="h-8 rounded-none text-sm"
-										/>
-									</div>
-									<div>
-										<FieldLabel className="text-xs">Preview Name</FieldLabel>
-										<Input
-											value={previewName}
-											onChange={(e) => setPreviewName(e.target.value)}
-											placeholder="John Doe"
-											className="h-8 rounded-none text-sm"
-										/>
-									</div>
-								</div>
-							</FieldGroup>
-						</div>
-
-						{/* Voice Settings */}
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<FieldGroup>
-								<FieldLabel>Voice Announcement</FieldLabel>
-								<div className="flex h-9 items-center border border-input px-3">
-									<Switch
-										checked={voiceEnabled}
-										onCheckedChange={setVoiceEnabled}
-									/>
-									<span className="ml-2 text-muted-foreground text-sm">
-										{voiceEnabled ? "Enabled" : "Disabled"}
-									</span>
-								</div>
-								<FieldDescription>
-									Announce visitor names using text-to-speech when they check in
-								</FieldDescription>
-							</FieldGroup>
-
-							{voiceEnabled && (
-								<FieldGroup>
-									<FieldLabel>Voice</FieldLabel>
-									<Select
-										value={voiceId}
-										onValueChange={(v) => setVoiceId(v as VoiceId)}
-									>
-										<SelectTrigger className="w-full rounded-none">
-											<SelectValue placeholder="Select voice" />
+				<div className="space-y-6 py-4">
+					{/* Text Style Toolbar - Condensed & Breathable */}
+					<TooltipProvider delayDuration={0}>
+						<div className="flex flex-wrap items-center gap-6 bg-slate-50 p-4 border border-slate-200">
+							<div className="flex items-center gap-5 pr-6 border-r border-slate-200">
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Font</label>
+									<Select value={fontFamily} onValueChange={setFontFamily}>
+										<SelectTrigger className="rounded-none h-9 text-[13px] w-[180px] bg-white border-slate-200 shadow-sm px-3">
+											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											{/* Malay voices - Best for Malaysian names */}
-											<SelectGroup>
-												<SelectLabel>Malay (Recommended)</SelectLabel>
-												{getVoicesByCategory().malay.map((voice) => (
-													<SelectItem key={voice.id} value={voice.id}>
-														{voice.label}
-													</SelectItem>
-												))}
-											</SelectGroup>
-											{/* English voices */}
-											<SelectGroup>
-												<SelectLabel>English</SelectLabel>
-												{getVoicesByCategory().english.map((voice) => (
-													<SelectItem key={voice.id} value={voice.id}>
-														{voice.label}
-													</SelectItem>
-												))}
-											</SelectGroup>
-
-											{/* Chinese voices */}
-											<SelectGroup>
-												<SelectLabel>Chinese</SelectLabel>
-												{getVoicesByCategory().chinese.map((voice) => (
-													<SelectItem key={voice.id} value={voice.id}>
-														{voice.label}
-													</SelectItem>
-												))}
-											</SelectGroup>
+											{getFontNames().map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
 										</SelectContent>
 									</Select>
-									<FieldDescription>
-										Use Malay voices for Malaysian names (Dato&apos;, Tan Sri,
-										Puan, Encik, etc.)
-										{ttsError && (
-											<span className="mt-1 block text-destructive">
-												{ttsError}
-											</span>
-										)}
-									</FieldDescription>
-								</FieldGroup>
+								</div>
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Size</label>
+									<Select value={fontSize.toString()} onValueChange={(v) => setFontSize(Number(v))}>
+										<SelectTrigger className="rounded-none h-9 text-[13px] w-[90px] bg-white border-slate-200 shadow-sm px-3"><SelectValue /></SelectTrigger>
+										<SelectContent>{FONT_SIZES.map((s) => <SelectItem key={s} value={s.toString()}>{s}px</SelectItem>)}</SelectContent>
+									</Select>
+								</div>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="flex items-center gap-3 pl-2 cursor-help border-l border-slate-100 ml-2">
+											<Switch checked={isBold} onCheckedChange={setIsBold} className="scale-90" />
+											<span className={cn("text-xs font-bold uppercase", isBold ? "text-primary" : "text-slate-500")}>Bold</span>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent side="top">Toggle Bold Weight</TooltipContent>
+								</Tooltip>
+							</div>
+
+							<div className="flex items-center gap-6">
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Animation</label>
+									<div className="w-[150px]">
+										<Select value={animationType} onValueChange={(v) => setAnimationType(v as AnimationType)}>
+											<SelectTrigger className="rounded-none h-9 text-[13px] bg-white border-slate-200 shadow-sm px-3">
+												<SelectValue placeholder="Animation" />
+											</SelectTrigger>
+											<SelectContent>{ANIMATION_TYPES.map((a) => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}</SelectContent>
+										</Select>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3">
+									<label className="text-xs uppercase font-bold text-slate-500 whitespace-nowrap">Color</label>
+									<div className="w-[130px]">
+										<Select value={nameColor} onValueChange={setNameColor}>
+											<SelectTrigger className="rounded-none h-9 text-[13px] bg-white border-slate-200 shadow-sm px-3">
+												<SelectValue placeholder="Color" />
+											</SelectTrigger>
+											<SelectContent>{NAME_COLORS.map((c) => (
+												<SelectItem key={c.value} value={c.value}>
+													<div className="flex items-center gap-2">
+														<div className="size-3 border border-slate-200" style={{ backgroundColor: c.value }} />
+														<span>{c.label}</span>
+													</div>
+												</SelectItem>
+											))}
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</TooltipProvider>
+
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						{/* Configuration Column */}
+						<div className="lg:col-span-2 space-y-6">
+							<Tabs defaultValue="idle">
+								<TabsList className="w-full rounded-none h-12 bg-slate-100 p-1">
+									<TabsTrigger value="idle" className="flex-1 gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm">
+										<Monitor className="h-4 w-4" /> Idle State
+									</TabsTrigger>
+									<TabsTrigger value="announcement" className="flex-1 gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm">
+										<Megaphone className="h-4 w-4" /> Announcement State
+									</TabsTrigger>
+								</TabsList>
+
+								<TabsContent value="idle" className="p-4 border border-t-0 space-y-4">
+									<FieldGroup>
+										<FieldLabel>Idle Display Mode</FieldLabel>
+										<div className="flex gap-4">
+											<Button variant={idleMode === 'image' ? 'default' : 'outline'} size="sm" className="rounded-none flex-1" onClick={() => setIdleMode('image')}>Image</Button>
+											<Button variant={idleMode === 'video' ? 'default' : 'outline'} size="sm" className="rounded-none flex-1" onClick={() => setIdleMode('video')}>Video Loop</Button>
+										</div>
+									</FieldGroup>
+
+									{idleMode === 'image' ? (
+										<AssetUpload
+											label="Background Image"
+											preview={selectedIdleImage ? URL.createObjectURL(selectedIdleImage) : (existingIdleImageUrl ? `${API_BASE_URL}${existingIdleImageUrl}` : null)}
+											onFileSelect={(file) => { setSelectedIdleImage(file); setRemoveIdleImage(false); }}
+											onRemove={() => { setSelectedIdleImage(null); setExistingIdleImageUrl(null); setRemoveIdleImage(true); }}
+											accept="image/*"
+										/>
+									) : (
+										<AssetUpload
+											label="Background Video"
+											preview={selectedIdleVideo ? URL.createObjectURL(selectedIdleVideo) : (existingIdleVideoUrl ? `${API_BASE_URL}${existingIdleVideoUrl}` : null)}
+											onFileSelect={(file) => { setSelectedIdleVideo(file); setRemoveIdleVideo(false); }}
+											onRemove={() => { setSelectedIdleVideo(null); setExistingIdleVideoUrl(null); setRemoveIdleVideo(true); }}
+											accept="video/*"
+											isVideo
+										/>
+									)}
+								</TabsContent>
+
+								<TabsContent value="announcement" className="p-4 border border-t-0 space-y-4">
+									<div className="grid grid-cols-2 gap-4">
+										<FieldGroup>
+											<FieldLabel>Display Mode</FieldLabel>
+											<Select value={announcementMode} onValueChange={(v) => setAnnouncementMode(v as DisplayMode)}>
+												<SelectTrigger className="rounded-none h-9"><SelectValue /></SelectTrigger>
+												<SelectContent>
+													<SelectItem value="image">Image</SelectItem>
+													<SelectItem value="video">Video Animation</SelectItem>
+												</SelectContent>
+											</Select>
+										</FieldGroup>
+										<FieldGroup>
+											<FieldLabel>Display Duration (Seconds)</FieldLabel>
+											<Input 
+												type="number" 
+												value={announcementDuration / 1000} 
+												onChange={(e) => setAnnouncementDuration(Number(e.target.value) * 1000)}
+												className="rounded-none h-9"
+												min={1}
+												step={0.5}
+											/>
+										</FieldGroup>
+									</div>
+
+									{announcementMode === 'image' ? (
+										<AssetUpload
+											label="Check-In Image"
+											preview={selectedAnnImage ? URL.createObjectURL(selectedAnnImage) : (existingAnnImageUrl ? `${API_BASE_URL}${existingAnnImageUrl}` : null)}
+											onFileSelect={(file) => { setSelectedAnnImage(file); setRemoveAnnImage(false); }}
+											onRemove={() => { setSelectedAnnImage(null); setExistingAnnImageUrl(null); setRemoveAnnImage(true); }}
+											accept="image/*"
+										/>
+									) : (
+										<AssetUpload
+											label="Check-In Video"
+											preview={selectedAnnVideo ? URL.createObjectURL(selectedAnnVideo) : (existingAnnVideoUrl ? `${API_BASE_URL}${existingAnnVideoUrl}` : null)}
+											onFileSelect={(file) => { setSelectedAnnVideo(file); setRemoveAnnVideo(false); }}
+											onRemove={() => { setSelectedAnnVideo(null); setExistingAnnVideoUrl(null); setRemoveAnnVideo(true); }}
+											accept="video/*"
+											isVideo
+										/>
+									)}
+								</TabsContent>
+							</Tabs>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<div className="flex items-center justify-between">
+										<FieldLabel className="mb-0 text-[10px] uppercase font-bold text-slate-500">Voice Announcement</FieldLabel>
+										<Switch checked={voiceEnabled} onCheckedChange={setVoiceEnabled} className="scale-75" />
+									</div>
+									{voiceEnabled && (
+										<FieldGroup className="space-y-1">
+											<Select value={voiceId} onValueChange={(v) => setVoiceId(v as VoiceId)}>
+												<SelectTrigger className="rounded-none h-8 text-xs bg-white"><SelectValue /></SelectTrigger>
+												<SelectContent>
+													{getVoicesByCategory().malay.map((v) => <SelectItem key={v.id} value={v.id}>{v.label}</SelectItem>)}
+												</SelectContent>
+											</Select>
+										</FieldGroup>
+									)}
+								</div>
+
+								{/* Seating Plan Settings */}
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<div className="flex items-center justify-between">
+										<FieldLabel className="mb-0 text-[10px] uppercase font-bold text-slate-500">Show Seating Plan</FieldLabel>
+										<Switch 
+											checked={showSeatingPlan} 
+											onCheckedChange={(checked) => {
+												setShowSeatingPlan(checked);
+												if (!checked) setActivePlanId(null);
+											}} 
+											className="scale-75"
+										/>
+									</div>
+									{showSeatingPlan && (
+										<div className="flex items-center gap-2">
+											<Select value={seatingPlanSidebarPosition} onValueChange={(v) => setSeatingPlanSidebarPosition(v as "left" | "right")}>
+												<SelectTrigger className="rounded-none h-8 text-xs bg-white flex-1"><SelectValue /></SelectTrigger>
+												<SelectContent>
+													<SelectItem value="left">Left</SelectItem>
+													<SelectItem value="right">Right</SelectItem>
+												</SelectContent>
+											</Select>
+											<div className="flex items-center gap-2">
+												<span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap">Duration (Sec)</span>
+												<Input 
+													type="number" 
+													value={seatingPlanDuration / 1000} 
+													onChange={(e) => setSeatingPlanDuration(Number(e.target.value) * 1000)}
+													className="rounded-none h-8 w-[80px] text-xs"
+													placeholder="sec"
+													min={1}
+													step={0.5}
+												/>
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
+							
+							{showSeatingPlan && (
+								<div className="flex flex-col gap-3 bg-slate-50 p-3 border border-slate-200">
+									<FieldGroup className="space-y-2">
+										<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Active Seating Session</FieldLabel>
+										<Select 
+											value={activePlanId?.toString() || "none"} 
+											onValueChange={(v) => {
+												setActivePlanId(v === "none" ? null : Number(v));
+												setSelectedTestAssignmentId("none");
+											}}
+										>
+											<SelectTrigger className="rounded-none h-9 bg-white text-xs">
+												<SelectValue placeholder="Select active session" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="none">No active plan (Hide map)</SelectItem>
+												{plans?.map((p) => (
+													<SelectItem key={p.id} value={p.id.toString()}>
+														{p.name} ({p.tables_count || 0} Tables)
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FieldGroup>
+
+									{activePlanId && (
+										<FieldGroup className="border-t pt-3 space-y-2">
+											<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Seating Voice Template</FieldLabel>
+											<Input 
+												value={seatingAnnouncementTemplate} 
+												onChange={(e) => setSeatingAnnouncementTemplate(e.target.value)}
+												placeholder="Welcome, #{name}. You are at #{table_label}."
+												className="rounded-none h-9 bg-white text-xs"
+											/>
+											<p className="text-[9px] text-slate-400 italic">
+												Use <span className="font-bold">#{'{name}'}</span> and <span className="font-bold">#{'{table_label}'}</span> as variables.
+											</p>
+										</FieldGroup>
+									)}
+
+									{activePlanId && (
+										<FieldGroup className="border-t pt-3 space-y-2">
+											<div className="flex items-center justify-between">
+												<FieldLabel className="text-[10px] uppercase font-bold text-slate-500">Select Guest to Test</FieldLabel>
+												{selectedTestAssignmentId !== "none" && (
+													<Button 
+														variant="ghost" 
+														size="sm" 
+														className="h-5 text-[9px] uppercase font-bold text-primary hover:text-primary/80 px-1"
+														onClick={() => setSelectedTestAssignmentId("none")}
+													>
+														Reset
+													</Button>
+												)}
+											</div>
+											<Select 
+												value={selectedTestAssignmentId} 
+												onValueChange={setSelectedTestAssignmentId}
+											>
+												<SelectTrigger className="rounded-none h-9 bg-white text-xs">
+													<SelectValue placeholder="Pick a guest from this plan" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="none">Manual Preview (Name Only)</SelectItem>
+													<SelectGroup>
+														<SelectLabel>Assigned Guests ({testAssignments.length})</SelectLabel>
+														{testAssignments.map((a) => (
+															<SelectItem key={a.id} value={a.id}>
+																{a.name} ({a.table})
+															</SelectItem>
+														))}
+													</SelectGroup>
+												</SelectContent>
+											</Select>
+										</FieldGroup>
+									)}
+								</div>
 							)}
 						</div>
-					</div>
 
-					{/* Action Buttons */}
-					<FieldGroup className="flex flex-col items-stretch justify-end gap-2 pt-4 md:flex-row md:items-end">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={handleRestoreDefaults}
-							disabled={updateMutation.isPending}
-							className="w-full rounded-none py-6 md:w-auto md:py-2"
-						>
-							Restore Defaults
+						{/* Preview Column */}
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<FieldLabel className="mb-0">Live Preview</FieldLabel>
+								<Button size="sm" variant="outline" className="h-7 rounded-none text-xs" onClick={triggerPreviewAnimation}>Test Animation</Button>
+							</div>
+							<div className="aspect-video relative bg-slate-900 border overflow-hidden">
+								<WelcomeScreenView 
+									eventTitle="Event Preview"
+									latestCheckIn={isPreviewingAnnouncement ? {
+										id: 0,
+										name: previewName,
+										seating_context: testSeatingContext
+									} : null}
+									activePlan={activePlan}
+									fontFamily={fontFamily}
+									fontSize={fontSize / 2.5}
+									animationType={animationType}
+									isBold={isBold}
+									nameColor={nameColor}
+									welcomeText={welcomeText}
+									showSeatingPlan={showSeatingPlan}
+									seatingPlanSidebarPosition={seatingPlanSidebarPosition}
+									idleMode={idleMode}
+									announcementMode={announcementMode}
+									idleImageUrl={previewIdleUrl}
+									idleVideoUrl={previewIdleUrl}
+									announcementImageUrl={previewAnnUrl}
+									announcementVideoUrl={previewAnnUrl}
+									isAnnouncing={isPreviewingAnnouncement}
+								/>
+							</div>
+							<div className="space-y-2">
+								<FieldLabel className="text-[10px] uppercase font-bold text-slate-400">Preview Data</FieldLabel>
+								<Input value={welcomeText} onChange={(e) => setWelcomeText(e.target.value)} placeholder="Welcome" className="h-8 rounded-none text-xs" />
+								<Input value={previewName} onChange={(e) => setPreviewName(e.target.value)} placeholder="Name" className="h-8 rounded-none text-xs" />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className="flex justify-end gap-3 pt-6 border-t mt-auto">
+					<Button variant="outline" className="rounded-none" onClick={onClose}>Cancel</Button>
+					<Button className="rounded-none px-8" onClick={handleSave} disabled={updateMutation.isPending}>
+						{updateMutation.isPending ? "Saving..." : "Save Configuration"}
+					</Button>
+				</div>
+			</FieldSet>
+		</section>
+	);
+}
+
+function AssetUpload({ label, preview, onFileSelect, onRemove, accept, isVideo = false }: any) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	return (
+		<div className="space-y-2">
+			<FieldLabel className="text-xs">{label}</FieldLabel>
+			<div 
+				className="h-32 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors relative bg-slate-50/50 overflow-hidden group"
+				onClick={() => inputRef.current?.click()}
+			>
+				{preview ? (
+					<>
+						{isVideo ? (
+							<video src={preview} className="h-full w-full object-cover" />
+						) : (
+							<img src={preview} className="h-full w-full object-cover" />
+						)}
+						<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+							<p className="text-white text-[10px] font-bold uppercase">Change File</p>
+						</div>
+						<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 rounded-none z-20" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
+							<X className="h-3 w-3" />
 						</Button>
-						<Button
-							type="button"
-							onClick={handleSave}
-							disabled={updateMutation.isPending}
-							className="w-full rounded-none py-6 md:w-auto md:py-2"
-						>
-							{updateMutation.isPending ? "Saving..." : "Save Changes"}
-						</Button>
-					</FieldGroup>
-				</FieldSet>
-			</section>
-		</>
+					</>
+				) : (
+					<div className="text-center p-4">
+						{isVideo ? <VideoIcon className="h-6 w-6 text-slate-300 mx-auto mb-1" /> : <ImageIcon className="h-6 w-6 text-slate-300 mx-auto mb-1" />}
+						<p className="text-[10px] text-slate-400 font-bold uppercase">Click to Upload</p>
+					</div>
+				)}
+				<input type="file" ref={inputRef} className="hidden" accept={accept} onChange={(e) => e.target.files?.[0] && onFileSelect(e.target.files[0])} />
+			</div>
+		</div>
 	);
 }
