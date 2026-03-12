@@ -14,7 +14,7 @@ const exhibitorKitAttributesSchema = z.object({
 	side_wall_right_required: z.boolean().optional(),
 	name_on_fascia: z
 		.string()
-		.max(25, "Name on fascia must be 25 characters or less")
+		.max(30, "Name on fascia must be 30 characters or less")
 		.optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	// Optional company info

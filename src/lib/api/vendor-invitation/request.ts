@@ -50,7 +50,7 @@ export const registerInvitedVendorSchema = z
 				booth_dimensions: z.string().optional(),
 				side_wall_left_required: z.boolean().optional(),
 				side_wall_right_required: z.boolean().optional(),
-				name_on_fascia: z.string().max(25, "Max 25 characters").optional(),
+				name_on_fascia: z.string().max(30, "Max 30 characters").optional(),
 				fascia_upgrade_required: z.boolean().optional(),
 				company_name: z.string().optional(),
 				company_address: z.string().optional(),

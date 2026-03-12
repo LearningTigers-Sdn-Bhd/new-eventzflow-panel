@@ -74,7 +74,7 @@ export const createExhibitorKitSchema = z.object({
 	side_wall_right_required: z.boolean().optional(),
 	name_on_fascia: z
 		.string()
-		.max(25, "Name on fascia must be 25 characters or less")
+		.max(30, "Name on fascia must be 30 characters or less")
 		.optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
@@ -113,7 +113,7 @@ export const updateExhibitorKitSchema = z.object({
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),
-	name_on_fascia: z.string().max(25).optional(),
+	name_on_fascia: z.string().max(30).optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
 	company_address: z.string().optional(),
