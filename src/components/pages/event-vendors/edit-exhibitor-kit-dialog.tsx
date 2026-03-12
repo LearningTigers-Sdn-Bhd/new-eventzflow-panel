@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
-import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { Building2, FileText, Loader2, MapPin, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -12,19 +13,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import {
-	Building2,
-	FileText,
-	MapPin,
-	User,
-	Loader2,
-} from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 interface EditExhibitorKitDialogProps {
 	eventId: number;
@@ -42,23 +36,41 @@ export function EditExhibitorKitDialog({
 	const queryClient = useQueryClient();
 
 	// Booth information
-	const [boothDimensions, setBoothDimensions] = useState(kit.booth_dimensions || "");
-	const [sideWallLeftRequired, setSideWallLeftRequired] = useState(kit.side_wall_left_required || false);
-	const [sideWallRightRequired, setSideWallRightRequired] = useState(kit.side_wall_right_required || false);
+	const [boothDimensions, setBoothDimensions] = useState(
+		kit.booth_dimensions || "",
+	);
+	const [sideWallLeftRequired, setSideWallLeftRequired] = useState(
+		kit.side_wall_left_required || false,
+	);
+	const [sideWallRightRequired, setSideWallRightRequired] = useState(
+		kit.side_wall_right_required || false,
+	);
 	const [nameOnFascia, setNameOnFascia] = useState(kit.name_on_fascia || "");
-	const [fasciaUpgradeRequired, setFasciaUpgradeRequired] = useState(kit.fascia_upgrade_required || false);
+	const [fasciaUpgradeRequired, setFasciaUpgradeRequired] = useState(
+		kit.fascia_upgrade_required || false,
+	);
 
 	// Company information
-	const [companyAddress, setCompanyAddress] = useState(kit.company_address || "");
+	const [companyAddress, setCompanyAddress] = useState(
+		kit.company_address || "",
+	);
 
 	// PIC information
 	const [picFullName, setPicFullName] = useState(kit.pic_full_name || "");
-	const [picContactNumber, setPicContactNumber] = useState(kit.pic_contact_number || "");
-	const [picEmailAddress, setPicEmailAddress] = useState(kit.pic_email_address || "");
+	const [picContactNumber, setPicContactNumber] = useState(
+		kit.pic_contact_number || "",
+	);
+	const [picEmailAddress, setPicEmailAddress] = useState(
+		kit.pic_email_address || "",
+	);
 
 	// Other
-	const [specialRequirements, setSpecialRequirements] = useState(kit.special_requirements || "");
-	const [digitalBrochureLink, setDigitalBrochureLink] = useState(kit.digital_brochure_link || "");
+	const [specialRequirements, setSpecialRequirements] = useState(
+		kit.special_requirements || "",
+	);
+	const [digitalBrochureLink, setDigitalBrochureLink] = useState(
+		kit.digital_brochure_link || "",
+	);
 
 	// Reset form when dialog opens
 	useEffect(() => {
@@ -81,7 +93,12 @@ export function EditExhibitorKitDialog({
 		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) =>
 			updateExhibitorKit(eventId, kit.id, data),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["event", String(eventId), "vendors"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors", kit.event_vendor_id],
+			});
 			toast.success("Exhibitor kit updated successfully");
 			onOpenChange(false);
 		},
@@ -110,8 +127,8 @@ export function EditExhibitorKitDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[600px] rounded-none">
-				<DialogHeader className="p-6 pb-4 border-b">
+			<DialogContent className="flex max-h-[90vh] flex-col gap-0 rounded-none p-0 sm:max-w-[600px]">
+				<DialogHeader className="border-b p-6 pb-4">
 					<DialogTitle>Edit Exhibitor Kit</DialogTitle>
 					<DialogDescription>
 						Update your booth setup and contact information.
@@ -119,7 +136,11 @@ export function EditExhibitorKitDialog({
 				</DialogHeader>
 
 				<div className="flex-1 overflow-y-auto p-6">
-					<form id="edit-kit-form" onSubmit={handleSubmit} className="space-y-6">
+					<form
+						id="edit-kit-form"
+						onSubmit={handleSubmit}
+						className="space-y-6"
+					>
 						{/* Booth Information Section */}
 						<div className="space-y-4 rounded-none border bg-background p-4">
 							<div className="flex items-center gap-2 border-b pb-2">
@@ -149,11 +170,11 @@ export function EditExhibitorKitDialog({
 											value={nameOnFascia}
 											onChange={(e) => setNameOnFascia(e.target.value)}
 											placeholder="Company name on booth"
-											maxLength={25}
+											maxLength={30}
 											className="rounded-none"
 										/>
-										<p className="text-xs text-muted-foreground">
-											{nameOnFascia.length}/25 characters
+										<p className="text-muted-foreground text-xs">
+											{nameOnFascia.length}/30 characters
 										</p>
 									</div>
 								</div>
@@ -162,10 +183,13 @@ export function EditExhibitorKitDialog({
 								<div className="space-y-3 border-t pt-4">
 									<div className="flex items-center justify-between">
 										<div className="space-y-0.5">
-											<Label htmlFor="sideWallLeft" className="font-medium cursor-pointer">
+											<Label
+												htmlFor="sideWallLeft"
+												className="cursor-pointer font-medium"
+											>
 												Left Side Wall
 											</Label>
-											<p className="text-xs text-muted-foreground">
+											<p className="text-muted-foreground text-xs">
 												Request a panel on the left side
 											</p>
 										</div>
@@ -178,10 +202,13 @@ export function EditExhibitorKitDialog({
 
 									<div className="flex items-center justify-between">
 										<div className="space-y-0.5">
-											<Label htmlFor="sideWallRight" className="font-medium cursor-pointer">
+											<Label
+												htmlFor="sideWallRight"
+												className="cursor-pointer font-medium"
+											>
 												Right Side Wall
 											</Label>
-											<p className="text-xs text-muted-foreground">
+											<p className="text-muted-foreground text-xs">
 												Request a panel on the right side
 											</p>
 										</div>
@@ -194,10 +221,13 @@ export function EditExhibitorKitDialog({
 
 									<div className="flex items-center justify-between">
 										<div className="space-y-0.5">
-											<Label htmlFor="fasciaUpgrade" className="font-medium cursor-pointer">
+											<Label
+												htmlFor="fasciaUpgrade"
+												className="cursor-pointer font-medium"
+											>
 												Fascia Upgrade
 											</Label>
-											<p className="text-xs text-muted-foreground">
+											<p className="text-muted-foreground text-xs">
 												Upgrade to premium fascia signage
 											</p>
 										</div>
@@ -226,7 +256,7 @@ export function EditExhibitorKitDialog({
 								onChange={(e) => setCompanyAddress(e.target.value)}
 								placeholder="Enter your full company address..."
 								rows={3}
-								className="rounded-none resize-none"
+								className="resize-none rounded-none"
 							/>
 						</div>
 
@@ -288,7 +318,9 @@ export function EditExhibitorKitDialog({
 
 							<div className="space-y-4">
 								<div className="space-y-2">
-									<Label htmlFor="digitalBrochureLink">Digital Brochure Link</Label>
+									<Label htmlFor="digitalBrochureLink">
+										Digital Brochure Link
+									</Label>
 									<Input
 										id="digitalBrochureLink"
 										type="url"
@@ -300,14 +332,16 @@ export function EditExhibitorKitDialog({
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="specialRequirements">Special Requirements</Label>
+									<Label htmlFor="specialRequirements">
+										Special Requirements
+									</Label>
 									<Textarea
 										id="specialRequirements"
 										value={specialRequirements}
 										onChange={(e) => setSpecialRequirements(e.target.value)}
 										placeholder="Any special requirements or notes..."
 										rows={3}
-										className="rounded-none resize-none"
+										className="resize-none rounded-none"
 									/>
 								</div>
 							</div>
@@ -333,7 +367,7 @@ export function EditExhibitorKitDialog({
 					>
 						{updateMutation.isPending ? (
 							<>
-								<Loader2 className="size-4 animate-spin mr-2" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								Saving...
 							</>
 						) : (
