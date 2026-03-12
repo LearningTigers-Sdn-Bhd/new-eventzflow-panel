@@ -2,27 +2,24 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	AlertCircle,
+	DollarSign,
+	Info,
+	Loader2,
 	Plus,
 	Trash2,
 	Users,
-	AlertCircle,
-	Info,
-	DollarSign,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-	FieldDescription,
-	FieldGroup,
-	FieldSeparator,
-	FieldSet,
-} from "@/components/ui/field";
+import { FieldGroup, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import type { EventVendor } from "@/lib/api/event-vendor";
+import { getEventVendors } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
-import type { EventVendor } from "@/lib/api/event-vendor";
 import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 
 interface ManageTeamMembersFormProps {
@@ -38,22 +35,198 @@ interface TeamMemberInput {
 	_destroy?: boolean;
 }
 
+interface VisibleTeamMemberEntry {
+	member: TeamMemberInput;
+	index: number;
+	displayIndex: number;
+}
+
+interface VisibleTeamMemberSections {
+	visibleMembers: TeamMemberInput[];
+	freeMembers: VisibleTeamMemberEntry[];
+	paidMembers: VisibleTeamMemberEntry[];
+}
+
+interface TeamMemberSyncOptions {
+	isDirty: boolean;
+	currentMembers: TeamMemberInput[];
+	incomingMembers: TeamMemberInput[];
+}
+
+interface RawTeamMemberInput {
+	id?: number;
+	full_name?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	_destroy?: boolean;
+}
+
+export function normalizeTeamMemberInput(
+	member: RawTeamMemberInput,
+): TeamMemberInput {
+	return {
+		id: member.id,
+		full_name: member.full_name ?? "",
+		email: member.email ?? "",
+		phone: member.phone ?? "",
+		_destroy: member._destroy ?? false,
+	};
+}
+
+export function buildTeamMemberPayload(members: RawTeamMemberInput[]) {
+	return members.map((member) => {
+		const normalized = normalizeTeamMemberInput(member);
+
+		return {
+			id: normalized.id,
+			full_name: normalized.full_name.trim(),
+			email: normalized.email.trim(),
+			phone: normalized.phone.trim(),
+			_destroy: normalized._destroy,
+		};
+	});
+}
+
+export function getEventVendorsQueryKey(eventId: number) {
+	return ["event", eventId.toString(), "vendors"] as const;
+}
+
+export function getInvalidActiveMemberIndexes(members: RawTeamMemberInput[]) {
+	return members.reduce<number[]>((indexes, member, index) => {
+		const normalized = normalizeTeamMemberInput(member);
+
+		if (normalized._destroy) return indexes;
+
+		const isComplete =
+			normalized.full_name.trim().length > 0 &&
+			normalized.email.trim().length > 0 &&
+			normalized.phone.trim().length > 0;
+
+		if (!isComplete) indexes.push(index);
+
+		return indexes;
+	}, []);
+}
+
+export function getVisibleTeamMemberSections(
+	members: TeamMemberInput[],
+	limit: number | null,
+): VisibleTeamMemberSections {
+	const visibleEntries = members.reduce<VisibleTeamMemberEntry[]>(
+		(entries, member, index) => {
+			if (member._destroy) return entries;
+
+			entries.push({
+				member,
+				index,
+				displayIndex: entries.length + 1,
+			});
+
+			return entries;
+		},
+		[],
+	);
+
+	const freeCount = limit ?? visibleEntries.length;
+
+	return {
+		visibleMembers: visibleEntries.map((entry) => entry.member),
+		freeMembers: visibleEntries.filter(
+			(entry) => entry.displayIndex <= freeCount,
+		),
+		paidMembers: visibleEntries.filter(
+			(entry) => entry.displayIndex > freeCount,
+		),
+	};
+}
+
+export function shouldSyncTeamMembers({
+	isDirty,
+	currentMembers,
+	incomingMembers,
+}: TeamMemberSyncOptions) {
+	if (!isDirty) return true;
+
+	if (currentMembers.length === 0 && incomingMembers.length === 0) return true;
+
+	return false;
+}
+
+export function hasConfiguredTeamMemberLimit(limit: number | null | undefined) {
+	return limit !== null && limit !== undefined;
+}
+
+export function resolveCurrentVendor(
+	initialVendor: EventVendor,
+	vendors?: EventVendor[],
+) {
+	const freshVendor = vendors?.find((vendor) => vendor.id === initialVendor.id);
+
+	if (!freshVendor) return initialVendor;
+
+	const initialMembers =
+		initialVendor.exhibitor_kit?.exhibitor_team_members?.length ?? 0;
+	const freshMembers =
+		freshVendor.exhibitor_kit?.exhibitor_team_members?.length ?? 0;
+	const initialUpdatedAt = initialVendor.updated_at
+		? Date.parse(initialVendor.updated_at)
+		: Number.NaN;
+	const freshUpdatedAt = freshVendor.updated_at
+		? Date.parse(freshVendor.updated_at)
+		: Number.NaN;
+	const hasNewerFreshVendor =
+		Number.isFinite(initialUpdatedAt) &&
+		Number.isFinite(freshUpdatedAt) &&
+		freshUpdatedAt > initialUpdatedAt;
+
+	if (initialMembers > 0 && freshMembers === 0 && !hasNewerFreshVendor) {
+		return initialVendor;
+	}
+
+	return freshVendor;
+}
+
 export function ManageTeamMembersForm({
-	vendor,
+	vendor: initialVendor,
 	onClose,
 }: ManageTeamMembersFormProps) {
 	const params = useParams();
 	const eventId = Number(params.event_id);
+	const vendorsQueryKey = getEventVendorsQueryKey(eventId);
+	const { data: vendors } = useQuery({
+		queryKey: vendorsQueryKey,
+		queryFn: () => getEventVendors(initialVendor.event_id),
+		refetchOnMount: "always",
+		refetchOnWindowFocus: true,
+	});
+	const vendor = resolveCurrentVendor(initialVendor, vendors);
 	const kit = vendor.exhibitor_kit;
 
-	const [teamMembers, setTeamMembers] = useState<TeamMemberInput[]>(
-		kit?.exhibitor_team_members?.map((m: ExhibitorTeamMember) => ({
-			id: m.id,
-			full_name: m.full_name,
-			email: m.email,
-			phone: m.phone,
-		})) || [],
+	const [teamMembers, setTeamMembers] = useState<TeamMemberInput[]>([]);
+	const [hasLocalChanges, setHasLocalChanges] = useState(false);
+	const hydratedKitIdRef = useRef<number | undefined>(undefined);
+	const serverTeamMembers = useMemo(
+		() =>
+			kit?.exhibitor_team_members?.map((member: ExhibitorTeamMember) =>
+				normalizeTeamMemberInput(member),
+			) || [],
+		[kit?.exhibitor_team_members],
 	);
+
+	useEffect(() => {
+		const kitIdChanged = hydratedKitIdRef.current !== kit?.id;
+
+		if (kitIdChanged) {
+			hydratedKitIdRef.current = kit?.id;
+			setTeamMembers(serverTeamMembers);
+			setHasLocalChanges(false);
+			return;
+		}
+
+		if (!hasLocalChanges) {
+			setTeamMembers(serverTeamMembers);
+		}
+	}, [hasLocalChanges, kit?.id, serverTeamMembers]);
 	const [newMemberName, setNewMemberName] = useState("");
 	const [newMemberEmail, setNewMemberEmail] = useState("");
 	const [newMemberPhone, setNewMemberPhone] = useState("");
@@ -61,19 +234,23 @@ export function ManageTeamMembersForm({
 	const queryClient = useQueryClient();
 
 	// Fetch team member limit settings
-	const { data: limitSettings } = useQuery({
+	const { data: limitSettings, isLoading: isLimitLoading } = useQuery({
 		queryKey: ["exhibitor-team-member-limit", eventId],
 		queryFn: () => getExhibitorTeamMemberLimit(eventId),
 		retry: false,
 	});
 
 	const updateKitMutation = useMutation({
-		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) =>
-			updateExhibitorKit(eventId, kit!.id, data),
+		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) => {
+			if (!kit?.id) throw new Error("No exhibitor kit found");
+
+			return updateExhibitorKit(eventId, kit.id, data);
+		},
 		onSuccess: () => {
+			setHasLocalChanges(false);
 			toast.success("Team members updated successfully!");
 			queryClient.invalidateQueries({
-				queryKey: ["event", eventId.toString(), "vendors"],
+				queryKey: vendorsQueryKey,
 			});
 			onClose?.();
 		},
@@ -83,10 +260,15 @@ export function ManageTeamMembersForm({
 	});
 
 	const handleAddMember = () => {
-		if (!newMemberName.trim() || !newMemberEmail.trim() || !newMemberPhone.trim()) {
+		if (
+			!newMemberName.trim() ||
+			!newMemberEmail.trim() ||
+			!newMemberPhone.trim()
+		) {
 			toast.error("Please enter name, email, and phone number");
 			return;
 		}
+		setHasLocalChanges(true);
 		setTeamMembers([
 			...teamMembers,
 			{
@@ -102,6 +284,7 @@ export function ManageTeamMembersForm({
 
 	const handleRemoveMember = (index: number) => {
 		const member = teamMembers[index];
+		setHasLocalChanges(true);
 		if (member.id) {
 			setTeamMembers(
 				teamMembers.map((m, i) => (i === index ? { ...m, _destroy: true } : m)),
@@ -116,6 +299,7 @@ export function ManageTeamMembersForm({
 		field: keyof TeamMemberInput,
 		value: string,
 	) => {
+		setHasLocalChanges(true);
 		setTeamMembers(
 			teamMembers.map((member, i) =>
 				i === index ? { ...member, [field]: value } : member,
@@ -131,20 +315,28 @@ export function ManageTeamMembersForm({
 			return;
 		}
 
-		const validMembers = teamMembers.filter(
-			(member) =>
-				(member.full_name.trim() && member.email.trim() && member.phone.trim()) ||
-				member._destroy,
-		);
+		const invalidIndexes = getInvalidActiveMemberIndexes(teamMembers);
+
+		if (invalidIndexes.length > 0) {
+			const rows = invalidIndexes.map((index) => index + 1).join(", ");
+			toast.error(
+				`Please complete full name, email, and phone for row(s): ${rows}`,
+			);
+			return;
+		}
+
+		const payloadMembers = teamMembers
+			.map((member) => normalizeTeamMemberInput(member))
+			.filter(
+				(member) =>
+					member._destroy ||
+					member.full_name.trim().length > 0 ||
+					member.email.trim().length > 0 ||
+					member.phone.trim().length > 0,
+			);
 
 		await updateKitMutation.mutateAsync({
-			exhibitor_team_members_attributes: validMembers.map((m) => ({
-				id: m.id,
-				full_name: m.full_name.trim(),
-				email: m.email.trim(),
-				phone: m.phone.trim(),
-				_destroy: m._destroy,
-			})),
+			exhibitor_team_members_attributes: buildTeamMemberPayload(payloadMembers),
 		});
 	};
 
@@ -156,24 +348,94 @@ export function ManageTeamMembersForm({
 		);
 	}
 
-	const visibleMembers = teamMembers.filter((m) => !m._destroy);
+	if (isLimitLoading) {
+		return (
+			<section className="w-full px-8">
+				<div className="flex items-center justify-center py-12">
+					<Loader2 className="size-5 animate-spin text-muted-foreground" />
+				</div>
+			</section>
+		);
+	}
+
+	const { visibleMembers, freeMembers, paidMembers } =
+		getVisibleTeamMemberSections(
+			teamMembers,
+			limitSettings?.team_member_limit ?? null,
+		);
 	const currentCount = visibleMembers.length;
 
-	// Calculate limit status
-	const hasLimit = limitSettings && limitSettings.team_member_limit;
-	const limit = limitSettings?.team_member_limit || null;
+	// Calculate limit status (only derive limit once it's loaded to prevent grey→green flash)
+	const limit = isLimitLoading ? null : (limitSettings?.team_member_limit ?? null);
+	const hasLimit = !isLimitLoading && hasConfiguredTeamMemberLimit(limit);
 	const fee = limitSettings?.extra_team_member_fee
 		? Number.parseFloat(limitSettings.extra_team_member_fee)
 		: 0;
 
 	const freeSlots = hasLimit ? Math.max((limit || 0) - currentCount, 0) : null;
-	const excessCount = hasLimit
-		? Math.max(currentCount - (limit || 0), 0)
-		: 0;
+	const excessCount = hasLimit ? Math.max(currentCount - (limit || 0), 0) : 0;
 	const extraCharges = excessCount * fee;
 	const isOverLimit = hasLimit && currentCount > (limit || 0);
 	const isAtLimit = hasLimit && currentCount === limit;
 	const canAddMore = !hasLimit || currentCount < (limit || 0) || fee > 0;
+
+	const renderMemberCard = (
+		entry: VisibleTeamMemberEntry,
+		options: {
+			containerClassName: string;
+			indexClassName: string;
+			feeLabel?: string;
+		},
+	) => (
+		<div
+			key={entry.member.id || `new-${entry.index}`}
+			className={options.containerClassName}
+		>
+			<span className={options.indexClassName}>#{entry.displayIndex}</span>
+			<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
+				<Input
+					value={entry.member.full_name}
+					onChange={(e) =>
+						handleUpdateMember(entry.index, "full_name", e.target.value)
+					}
+					disabled={updateKitMutation.isPending}
+					className="min-w-0 rounded-none"
+				/>
+				<Input
+					type="email"
+					value={entry.member.email}
+					onChange={(e) =>
+						handleUpdateMember(entry.index, "email", e.target.value)
+					}
+					disabled={updateKitMutation.isPending}
+					className="min-w-0 rounded-none"
+				/>
+				<Input
+					value={entry.member.phone}
+					onChange={(e) =>
+						handleUpdateMember(entry.index, "phone", e.target.value)
+					}
+					disabled={updateKitMutation.isPending}
+					className="min-w-0 rounded-none"
+				/>
+			</div>
+			{options.feeLabel ? (
+				<span className="shrink-0 whitespace-nowrap font-medium text-amber-600 text-xs dark:text-amber-400">
+					{options.feeLabel}
+				</span>
+			) : null}
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon-sm"
+				onClick={() => handleRemoveMember(entry.index)}
+				disabled={updateKitMutation.isPending}
+				className="shrink-0 rounded-none text-red-500 hover:bg-red-50 hover:text-red-600"
+			>
+				<Trash2 className="size-4" />
+			</Button>
+		</div>
+	);
 
 	return (
 		<section className="w-full px-8">
@@ -198,7 +460,9 @@ export function ManageTeamMembersForm({
 											</p>
 										</div>
 										<div className="flex-1 sm:border-l sm:pl-4">
-											<p className="font-medium text-sm">Current: {currentCount}</p>
+											<p className="font-medium text-sm">
+												Current: {currentCount}
+											</p>
 											{fee > 0 && (
 												<p className="text-muted-foreground text-xs">
 													Extra fee: RM {fee.toFixed(2)}/member
@@ -213,7 +477,8 @@ export function ManageTeamMembersForm({
 											<DollarSign className="size-4 shrink-0 text-amber-600 dark:text-amber-300" />
 											<div className="min-w-0 flex-1">
 												<p className="font-semibold text-amber-900 text-xs dark:text-amber-100">
-													{excessCount} excess member{excessCount !== 1 ? "s" : ""}
+													{excessCount} excess member
+													{excessCount !== 1 ? "s" : ""}
 												</p>
 												<p className="text-amber-900 text-xs dark:text-amber-100">
 													Additional charge: RM {extraCharges.toFixed(2)}
@@ -241,8 +506,8 @@ export function ManageTeamMembersForm({
 						<div className="space-y-2">
 							<p className="font-medium text-sm">Add New Team Member</p>
 							<p className="text-muted-foreground text-xs">
-								Use the member&apos;s real email address so they can receive their
-								QR code.
+								Use the member&apos;s real email address so they can receive
+								their QR code.
 							</p>
 							<div className="grid gap-2 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
 								<Input
@@ -320,63 +585,19 @@ export function ManageTeamMembersForm({
 											</span>
 										</div>
 										<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-											{teamMembers.map((member, index) => {
-												if (member._destroy) return null;
-												const isFree = index < (limit || 0);
-												if (!isFree) return null;
-												return (
-													<div
-														key={member.id || `new-${index}`}
-														className="flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
-													>
-														<span className="shrink-0 font-medium text-green-600 text-xs dark:text-green-400">
-															#{index + 1}
-														</span>
-									<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
-										<Input
-											value={member.full_name}
-											onChange={(e) =>
-												handleUpdateMember(index, "full_name", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-										<Input
-											type="email"
-											value={member.email}
-											onChange={(e) =>
-												handleUpdateMember(index, "email", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-										<Input
-											value={member.phone}
-											onChange={(e) =>
-												handleUpdateMember(index, "phone", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-									</div>
-														<Button
-															type="button"
-															variant="ghost"
-															size="icon-sm"
-															onClick={() => handleRemoveMember(index)}
-															disabled={updateKitMutation.isPending}
-															className="shrink-0 rounded-none text-red-500 hover:bg-red-50 hover:text-red-600"
-														>
-															<Trash2 className="size-4" />
-														</Button>
-													</div>
-												);
-											})}
+											{freeMembers.map((entry) =>
+												renderMemberCard(entry, {
+													containerClassName:
+														"flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20",
+													indexClassName:
+														"shrink-0 font-medium text-green-600 text-xs dark:text-green-400",
+												}),
+											)}
 										</div>
 									</div>
 
 									{/* Paid Team Members Section */}
-									{excessCount > 0 && (
+									{paidMembers.length > 0 && (
 										<div className="space-y-2">
 											<div className="flex items-center justify-between">
 												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
@@ -388,61 +609,15 @@ export function ManageTeamMembersForm({
 												</span>
 											</div>
 											<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-												{teamMembers.map((member, index) => {
-													if (member._destroy) return null;
-													const isPaid = index >= (limit || 0);
-													if (!isPaid) return null;
-													return (
-														<div
-															key={member.id || `new-${index}`}
-															className="flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
-														>
-															<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
-																#{index + 1}
-															</span>
-									<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
-										<Input
-											value={member.full_name}
-											onChange={(e) =>
-												handleUpdateMember(index, "full_name", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-										<Input
-											type="email"
-											value={member.email}
-											onChange={(e) =>
-												handleUpdateMember(index, "email", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-										<Input
-											value={member.phone}
-											onChange={(e) =>
-												handleUpdateMember(index, "phone", e.target.value)
-											}
-											disabled={updateKitMutation.isPending}
-											className="min-w-0 rounded-none"
-										/>
-									</div>
-															<span className="shrink-0 whitespace-nowrap font-medium text-amber-600 text-xs dark:text-amber-400">
-																+{fee.toFixed(0)}
-															</span>
-															<Button
-																type="button"
-																variant="ghost"
-																size="icon-sm"
-																onClick={() => handleRemoveMember(index)}
-																disabled={updateKitMutation.isPending}
-																className="shrink-0 rounded-none text-red-500 hover:bg-red-50 hover:text-red-600"
-															>
-																<Trash2 className="size-4" />
-															</Button>
-														</div>
-													);
-												})}
+												{paidMembers.map((entry) =>
+													renderMemberCard(entry, {
+														containerClassName:
+															"flex items-center gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20",
+														indexClassName:
+															"shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400",
+														feeLabel: `+${fee.toFixed(0)}`,
+													}),
+												)}
 											</div>
 										</div>
 									)}
@@ -450,56 +625,14 @@ export function ManageTeamMembersForm({
 							) : (
 								// Show simple grid when no limit
 								<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-									{teamMembers.map((member, index) => {
-										if (member._destroy) return null;
-										return (
-											<div
-												key={member.id || `new-${index}`}
-												className="flex items-center gap-2 rounded-none border bg-muted/30 p-2"
-											>
-												<span className="shrink-0 font-medium text-muted-foreground text-xs">
-													#{index + 1}
-												</span>
-								<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
-									<Input
-										value={member.full_name}
-										onChange={(e) =>
-											handleUpdateMember(index, "full_name", e.target.value)
-										}
-										disabled={updateKitMutation.isPending}
-										className="min-w-0 rounded-none"
-									/>
-									<Input
-										type="email"
-										value={member.email}
-										onChange={(e) =>
-											handleUpdateMember(index, "email", e.target.value)
-										}
-										disabled={updateKitMutation.isPending}
-										className="min-w-0 rounded-none"
-									/>
-									<Input
-										value={member.phone}
-										onChange={(e) =>
-											handleUpdateMember(index, "phone", e.target.value)
-										}
-										disabled={updateKitMutation.isPending}
-										className="min-w-0 rounded-none"
-									/>
-								</div>
-												<Button
-													type="button"
-													variant="ghost"
-													size="icon-sm"
-													onClick={() => handleRemoveMember(index)}
-													disabled={updateKitMutation.isPending}
-													className="shrink-0 rounded-none text-red-500 hover:bg-red-50 hover:text-red-600"
-												>
-													<Trash2 className="size-4" />
-												</Button>
-											</div>
-										);
-									})}
+									{freeMembers.map((entry) =>
+										renderMemberCard(entry, {
+											containerClassName:
+												"flex items-center gap-2 rounded-none border bg-muted/30 p-2",
+											indexClassName:
+												"shrink-0 font-medium text-muted-foreground text-xs",
+										}),
+									)}
 								</div>
 							)}
 						</div>
