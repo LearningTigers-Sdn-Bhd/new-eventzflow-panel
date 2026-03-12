@@ -25,15 +25,15 @@ export function SessionDrawArea({
 	return (
 		<div className={className} style={backgroundStyle}>
 			{session.logo_url && (
-				<div className="relative h-16 w-full max-w-xs overflow-hidden">
-					<Image
-						src={session.logo_url}
-						alt={session.title}
-						layout="fullWidth"
-						background="auto"
-						className="h-full w-full object-cover"
-						suppressHydrationWarning
-					/>
+			<div className="relative h-16 w-full max-w-xs">
+				<Image
+					src={session.logo_url}
+					alt={session.title}
+					layout="fullWidth"
+					background="auto"
+					className="h-full w-full object-contain"
+					suppressHydrationWarning
+				/>
 				</div>
 			)}
 			<div className="z-10 flex h-full w-full flex-col items-center justify-center overflow-hidden">
