@@ -62,7 +62,13 @@ export const registerInvitedVendorSchema = z
 					.optional()
 					.or(z.literal("")),
 				exhibitor_team_members_attributes: z
-					.array(z.object({ full_name: z.string() }))
+					.array(
+						z.object({
+							full_name: z.string().min(1, "Full name is required"),
+							email: z.string().email("Valid email is required"),
+							phone: z.string().min(1, "Phone number is required"),
+						}),
+					)
 					.optional(),
 			})
 			.optional(),

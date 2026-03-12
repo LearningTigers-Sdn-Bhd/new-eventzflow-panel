@@ -4,6 +4,10 @@ export interface ExhibitorTeamMember {
 	id?: number;
 	exhibitor_kit_id?: number;
 	full_name: string;
+	email: string;
+	phone: string;
+	attendee_type?: string;
+	attendee_id?: number;
 	created_at?: string;
 	updated_at?: string;
 	_destroy?: boolean;

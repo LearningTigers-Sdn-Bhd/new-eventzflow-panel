@@ -216,6 +216,14 @@ export async function registerInvitedVendor(
 							`exhibitor_kit[exhibitor_team_members_attributes][${index}][full_name]`,
 							member.full_name,
 						);
+						formData.append(
+							`exhibitor_kit[exhibitor_team_members_attributes][${index}][email]`,
+							member.email,
+						);
+						formData.append(
+							`exhibitor_kit[exhibitor_team_members_attributes][${index}][phone]`,
+							member.phone,
+						);
 					},
 				);
 			}
@@ -278,7 +286,7 @@ export async function registerInvitedVendor(
 
 	// Add exhibitor_kit if provided (for exhibitor events)
 	if (validated.exhibitor_kit) {
-		const exhibitorKit: Record<string, string | boolean> = {};
+		const exhibitorKit: Record<string, string | boolean | unknown[]> = {};
 		if (validated.exhibitor_kit.booth_number)
 			exhibitorKit.booth_number = validated.exhibitor_kit.booth_number;
 		if (validated.exhibitor_kit.booth_type)
@@ -305,6 +313,10 @@ export async function registerInvitedVendor(
 		if (validated.exhibitor_kit.pic_email_address)
 			exhibitorKit.pic_email_address =
 				validated.exhibitor_kit.pic_email_address;
+		if (validated.exhibitor_kit.exhibitor_team_members_attributes?.length) {
+			exhibitorKit.exhibitor_team_members_attributes =
+				validated.exhibitor_kit.exhibitor_team_members_attributes;
+		}
 
 		if (Object.keys(exhibitorKit).length > 0) {
 			payload.exhibitor_kit = exhibitorKit;

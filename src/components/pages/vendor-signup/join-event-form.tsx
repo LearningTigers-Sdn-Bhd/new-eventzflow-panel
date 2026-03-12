@@ -58,7 +58,11 @@ interface ExhibitorKitData {
 	pic_full_name: string;
 	pic_contact_number: string;
 	pic_email_address?: string;
-	exhibitor_team_members_attributes?: { full_name: string }[];
+	exhibitor_team_members_attributes?: {
+		full_name: string;
+		email: string;
+		phone: string;
+	}[];
 }
 
 async function joinEventAsVendor(
@@ -109,7 +113,9 @@ export function JoinEventForm({
 	onSuccess,
 }: JoinEventFormProps) {
 	// Team members state for exhibitor kit
-	const [teamMembers, setTeamMembers] = useState<{ full_name: string }[]>([]);
+	const [teamMembers, setTeamMembers] = useState<
+		{ full_name: string; email: string; phone: string }[]
+	>([]);
 
 	const joinMutation = useMutation({
 		mutationFn: (data: {

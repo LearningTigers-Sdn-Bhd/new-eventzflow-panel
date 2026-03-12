@@ -4,6 +4,8 @@ import { z } from "zod";
 export const exhibitorTeamMemberSchema = z.object({
 	id: z.number().optional(),
 	full_name: z.string().min(1, "Full name is required"),
+	email: z.string().email("Valid email is required"),
+	phone: z.string().min(1, "Phone number is required"),
 	_destroy: z.boolean().optional(),
 });
 

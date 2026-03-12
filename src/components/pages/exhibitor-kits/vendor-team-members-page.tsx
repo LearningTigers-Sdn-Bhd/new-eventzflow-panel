@@ -39,8 +39,16 @@ interface VendorTeamMembersPageProps {
 interface TeamMemberInput {
 	id?: number;
 	full_name: string;
+	email: string;
+	phone: string;
 	created_at?: string;
 	_destroy?: boolean;
+}
+
+interface NewMemberFormState {
+	full_name: string;
+	email: string;
+	phone: string;
 }
 
 export function VendorTeamMembersPage({
@@ -75,6 +83,8 @@ export function VendorTeamMembersPage({
 				kit.exhibitor_team_members.map((m: ExhibitorTeamMember) => ({
 					id: m.id,
 					full_name: m.full_name,
+					email: m.email,
+					phone: m.phone,
 					created_at: m.created_at,
 					_destroy: false,
 				})),
@@ -109,26 +119,45 @@ export function VendorTeamMembersPage({
 	});
 
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-	const [newMemberName, setNewMemberName] = useState("");
+	const [newMemberForm, setNewMemberForm] = useState<NewMemberFormState>({
+		full_name: "",
+		email: "",
+		phone: "",
+	});
 
 	const handleAddMember = () => {
 		setIsAddDialogOpen(true);
-		setNewMemberName("");
+		setNewMemberForm({ full_name: "", email: "", phone: "" });
 	};
 
 	const handleConfirmAdd = async () => {
-		if (!newMemberName.trim()) {
-			toast.error("Please enter a name");
+		if (!newMemberForm.full_name.trim()) {
+			toast.error("Please enter a full name");
+			return;
+		}
+
+		if (!newMemberForm.email.trim()) {
+			toast.error("Please enter an email address");
+			return;
+		}
+
+		if (!newMemberForm.phone.trim()) {
+			toast.error("Please enter a phone number");
 			return;
 		}
 
 		const updatedMembers = [
 			...teamMembers,
-			{ full_name: newMemberName.trim(), _destroy: false },
+			{
+				full_name: newMemberForm.full_name.trim(),
+				email: newMemberForm.email.trim(),
+				phone: newMemberForm.phone.trim(),
+				_destroy: false,
+			},
 		];
 		setTeamMembers(updatedMembers);
 		setIsAddDialogOpen(false);
-		setNewMemberName("");
+		setNewMemberForm({ full_name: "", email: "", phone: "" });
 
 		// Auto-save the new member
 		try {
@@ -138,6 +167,8 @@ export function VendorTeamMembersPage({
 					.map((m) => ({
 						id: m.id,
 						full_name: m.full_name.trim(),
+						email: m.email.trim(),
+						phone: m.phone.trim(),
 						_destroy: m._destroy,
 					})),
 			});
@@ -170,11 +201,13 @@ export function VendorTeamMembersPage({
 					updateKitMutation.mutate({
 						exhibitor_team_members_attributes: updatedMembers
 							.filter((m) => m.id || !m._destroy)
-							.map((m) => ({
-								id: m.id,
-								full_name: m.full_name.trim(),
-								_destroy: m._destroy,
-							})),
+						.map((m) => ({
+							id: m.id,
+							full_name: m.full_name.trim(),
+							email: m.email.trim(),
+							phone: m.phone.trim(),
+							_destroy: m._destroy,
+						})),
 					});
 				} else {
 					// Remove new member from list (not yet saved)
@@ -348,7 +381,7 @@ export function VendorTeamMembersPage({
 
 			{/* Add Member Dialog */}
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="rounded-none sm:max-w-[425px]">
 					<DialogHeader>
 						<DialogTitle>Add Team Member</DialogTitle>
 						<DialogDescription>
@@ -369,9 +402,49 @@ export function VendorTeamMembersPage({
 							<Label htmlFor="member-name">Full Name</Label>
 							<Input
 								id="member-name"
-								value={newMemberName}
-								onChange={(e) => setNewMemberName(e.target.value)}
+								value={newMemberForm.full_name}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										full_name: e.target.value,
+									}))
+								}
 								placeholder="Enter full name"
+								className="rounded-none"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="member-email">Email Address</Label>
+							<Input
+								id="member-email"
+								type="email"
+								value={newMemberForm.email}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										email: e.target.value,
+									}))
+								}
+								placeholder="name@example.com"
+								className="rounded-none"
+							/>
+							<p className="text-muted-foreground text-xs">
+								Use the member&apos;s real email address. Their QR code will be
+								sent to this email.
+							</p>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="member-phone">Phone Number</Label>
+							<Input
+								id="member-phone"
+								value={newMemberForm.phone}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										phone: e.target.value,
+									}))
+								}
+								placeholder="Enter phone number"
 								className="rounded-none"
 								onKeyDown={(e) => {
 									if (e.key === "Enter") {

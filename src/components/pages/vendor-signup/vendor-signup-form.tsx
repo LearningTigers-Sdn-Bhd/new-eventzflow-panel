@@ -65,7 +65,9 @@ export function VendorSignupForm({
 	);
 
 	// Team members state for exhibitor kit
-	const [teamMembers, setTeamMembers] = useState<{ full_name: string }[]>([]);
+	const [teamMembers, setTeamMembers] = useState<
+		{ full_name: string; email: string; phone: string }[]
+	>([]);
 
 	// Vendor profile image state
 	const [profileImage, setProfileImage] = useState<File | null>(null);
