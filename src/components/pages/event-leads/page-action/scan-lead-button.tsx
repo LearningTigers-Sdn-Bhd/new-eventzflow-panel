@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { ScanModal } from "../scan-modal";
 
-interface ScanStampButtonProps {
+interface ScanLeadButtonProps {
 	eventId: string;
 	onRefetch?: () => void;
 }
 
-export function ScanStampButton({ eventId, onRefetch }: ScanStampButtonProps) {
+export function ScanLeadButton({ eventId, onRefetch }: ScanLeadButtonProps) {
 	const [scanModalOpen, setScanModalOpen] = useState(false);
 	const { isVendor } = useCurrentUserEventVendorId(Number(eventId));
 
@@ -34,7 +34,7 @@ export function ScanStampButton({ eventId, onRefetch }: ScanStampButtonProps) {
 					className="w-full gap-2 rounded-none py-6 md:py-4 lg:w-auto"
 				>
 					<QrCode className="h-4 w-4" />
-					Scan Visitor
+					Scan Attendee
 				</Button>
 			</div>
 		</>
