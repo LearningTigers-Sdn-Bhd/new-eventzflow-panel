@@ -220,12 +220,12 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "voucher-redemption",
 	},
 	{
-		id: "visitor-stamps",
-		label: "Stamp Scanner",
-		title: "Visitor Stamp Scanner",
-		description: "Scan visitor QR codes to create stamps.",
+		id: "event-leads",
+		label: "Event Leads",
+		title: "Event Leads",
+		description: "Scan attendee QR codes to capture leads.",
 		icon: ScanQrCode,
-		route: "visitor-stamps",
+		route: "event-leads",
 	},
 	{
 		id: "voucher-analytics",
@@ -244,12 +244,12 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "voucher-logs",
 	},
 	{
-		id: "stamp-logs",
-		label: "Stamp Logs",
-		title: "Stamp Logs",
-		description: "View all visitor stamp logs for this event.",
+		id: "lead-logs",
+		label: "Lead Logs",
+		title: "Lead Logs",
+		description: "View all event lead logs for this event.",
 		icon: Logs,
-		route: "stamp-logs",
+		route: "lead-logs",
 	},
 	{
 		id: "ticket-analytics",
@@ -301,7 +301,7 @@ export const ANALYTICS_TAB_IDS = [
 	"voucher-analytics",
 	"mall-live-feed",
 ];
-export const LOGS_TAB_IDS = ["voucher-logs", "stamp-logs", "export-logs"];
+export const LOGS_TAB_IDS = ["voucher-logs", "lead-logs", "export-logs"];
 export const EXHIBITOR_KIT_TAB_IDS = [
 	"my-team-members",
 	"my-items",

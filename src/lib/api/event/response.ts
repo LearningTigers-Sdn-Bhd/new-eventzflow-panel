@@ -25,6 +25,7 @@ export type Event = {
 	use_business_matching: boolean;
 	use_sponsorship: boolean;
 	// photo_booth_enabled: boolean;
+	use_event_leads: boolean;
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
 	start_date: string;

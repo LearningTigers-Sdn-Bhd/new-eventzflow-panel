@@ -22,10 +22,10 @@ import {
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
-import { VisitorStampItem } from "./stamp-log-item";
-import { generateColumns } from "./stamp-log-table-columns";
-import { DataControl } from "./stamp-log-table-control";
+import type { EventLeadWithDetails } from "@/lib/api/event-lead";
+import { EventLeadItem } from "./lead-log-item";
+import { generateColumns } from "./lead-log-table-columns";
+import { DataControl } from "./lead-log-table-control";
 
 interface DataTableProps<TData> {
 	data: TData[];
@@ -73,8 +73,8 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 						<BaseTable
 							table={table}
 							emptyStateConfig={{
-								title: "No visitor stamps found",
-								desc: "No visitor stamp records available yet",
+								title: "No event leads found",
+								desc: "No lead records available yet",
 								icon: <Users />,
 							}}
 						/>
@@ -85,15 +85,15 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 								table
 									.getRowModel()
 									.rows.map((row) => (
-										<VisitorStampItem
+										<EventLeadItem
 											key={row.id}
-											stamp={row.original as VisitorStampWithDetails}
+											lead={row.original as EventLeadWithDetails}
 										/>
 									))
 							) : (
 								<EmptyState
-									title="No visitor stamps found"
-									description="No visitor stamp records available yet"
+									title="No event leads found"
+									description="No lead records available yet"
 									icon={<Users />}
 									height="h-auto"
 								/>
@@ -105,16 +105,16 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => (
 									<div key={row.id} className="col-span-1">
-										<VisitorStampItem
-											stamp={row.original as VisitorStampWithDetails}
+										<EventLeadItem
+											lead={row.original as EventLeadWithDetails}
 										/>
 									</div>
 								))
 							) : (
 								<div className="col-span-2">
 									<EmptyState
-										title="No visitor stamps found"
-										description="No visitor stamp records available yet"
+										title="No event leads found"
+										description="No lead records available yet"
 										icon={<Users />}
 										height="h-auto"
 									/>

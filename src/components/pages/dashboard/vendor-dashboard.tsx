@@ -5,7 +5,7 @@ import {
 	Calendar,
 	ChevronRight,
 	ShoppingBag,
-	Stamp,
+	Speech,
 	Ticket,
 } from "lucide-react";
 import type { Route } from "next";
@@ -80,10 +80,10 @@ export function VendorDashboard() {
 						Icon={Calendar}
 					/>
 					<StatsCard
-						label="Total Stamps"
-						value={summary.total_stamps.toLocaleString()}
+						label="Total Leads"
+						value={summary.total_leads.toLocaleString()}
 						subtitle="Across all events"
-						Icon={Stamp}
+						Icon={Speech}
 					/>
 					<StatsCard
 						label="Total Vouchers"
@@ -194,16 +194,16 @@ function VendorEventCard({
 						isTicketEvent ? "grid-cols-2" : "grid-cols-3",
 					)}
 				>
-					{/* Stamp count - only for non-ticket events */}
+					{/* Lead count */}
 					{!isTicketEvent && (
 						<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-							<Stamp className="size-4 text-muted-foreground sm:size-5" />
+							<Speech className="size-4 text-muted-foreground sm:size-5" />
 							<div>
 								<p className="text-[10px] text-muted-foreground sm:text-xs">
-									Your Stamps
+									Your Leads
 								</p>
 								<p className="font-bold text-base sm:text-lg">
-									{event.stamp_count}
+									{event.lead_count}
 								</p>
 							</div>
 						</div>

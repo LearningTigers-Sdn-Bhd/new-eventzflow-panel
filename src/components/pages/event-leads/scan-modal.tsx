@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { useScanner } from "@/hooks/use-scanner";
-import { useCreateStamp } from "@/hooks/use-visitor-stamps";
+import { useCreateLead } from "@/hooks/use-event-leads";
 import { cn } from "@/lib/utils";
 
 interface ScanModalProps {
@@ -42,7 +42,7 @@ export function ScanModal({
 	const [isScanning, setIsScanning] = useState(false);
 	const [isTransitioning, setIsTransitioning] = useState(false);
 	const recentScansRef = useRef<Map<string, number>>(new Map());
-	const createStamp = useCreateStamp();
+	const createLead = useCreateLead(eventId);
 
 	// Get the current user's event vendor ID for this event
 	const {
@@ -56,7 +56,7 @@ export function ScanModal({
 	 */
 	const handleScanSuccess = async (decodedText: string) => {
 		// Prevent processing if already creating a stamp
-		if (createStamp.isPending) {
+		if (createLead.isPending) {
 			return;
 		}
 
@@ -87,28 +87,38 @@ export function ScanModal({
 				return;
 			}
 
-			await createStamp.mutateAsync({
-				publicId: decodedText,
-				data: { event_vendor_id: eventVendorId },
+			const result = await createLead.mutateAsync({
+				public_id: decodedText,
+				event_vendor_id: eventVendorId,
 			});
 
-			toast.success("Stamp created successfully!");
-
-			// Play success sound
-			playBeep(800, 100);
+			if (result.already_captured) {
+				toast.warning("This attendee has already been captured as a lead.");
+				playBeep(400, 200);
+			} else {
+				toast.success("Lead captured successfully!");
+				playBeep(800, 100);
+			}
 
 			// Refetch data
 			if (onRefetch) {
 				onRefetch();
 			}
 		} catch (error: any) {
-			const errorMsg = error?.message || "Failed to create stamp";
+			const errorMsg =
+				error?.response?.data?.message ||
+				error?.message ||
+				"Something went wrong. Please try again.";
 
-			// Handle backend duplicate error
-			if (errorMsg.includes("duplicate") || errorMsg.includes("already")) {
-				toast.error("This visitor has already been stamped by you.");
+			// Show user-friendly error messages
+			if (errorMsg.includes("not found") || errorMsg.includes("Not Found")) {
+				toast.error("Attendee not found", {
+					description: "The scanned QR code does not match any attendee in this event.",
+				});
 			} else {
-				toast.error(errorMsg);
+				toast.error("Failed to capture lead", {
+					description: errorMsg,
+				});
 			}
 
 			// Play error sound
@@ -203,9 +213,9 @@ export function ScanModal({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
 				<DialogHeader>
-					<DialogTitle>Scan Visitor QR Code</DialogTitle>
+					<DialogTitle>Scan Attendee QR Code</DialogTitle>
 					<DialogDescription>
-						Point your camera at a visitor's QR code to create a stamp
+						Point your camera at an attendee's QR code to capture them as a lead
 					</DialogDescription>
 				</DialogHeader>
 

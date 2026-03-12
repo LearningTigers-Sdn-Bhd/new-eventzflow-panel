@@ -104,7 +104,7 @@ export async function getEventsOverviewServer(
 		totalRevenue: centsToDollars(event.total_revenue),
 		pendingTickets: event.unscanned_tickets,
 		totalVisitors: event.total_visitors,
-		totalStamps: event.total_stamps,
+		totalLeads: event.total_leads,
 		lastActivity: event.last_activity,
 	}));
 }
