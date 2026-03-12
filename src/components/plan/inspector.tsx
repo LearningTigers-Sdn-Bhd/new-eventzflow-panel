@@ -436,8 +436,8 @@ export function Inspector({
 												)}
 												onClick={() =>
 													onDeleteAssignment?.({
-														ticketId: assignment.ticket_id,
-														visitorId: assignment.visitor_id,
+														ticketId: assignment.ticket_id ?? undefined,
+														visitorId: assignment.visitor_id ?? undefined,
 													})
 												}
 											>

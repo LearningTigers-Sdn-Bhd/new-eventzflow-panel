@@ -24,6 +24,7 @@ export type Event = {
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
 	use_sponsorship: boolean;
+	// photo_booth_enabled: boolean;
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
 	start_date: string;

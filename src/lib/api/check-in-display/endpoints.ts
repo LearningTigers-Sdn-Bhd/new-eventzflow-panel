@@ -57,11 +57,22 @@ export async function updateCheckInDisplay(
 ): Promise<CheckInDisplay> {
 	try {
 		const formData = new FormData();
-		formData.append("check_in_display[font_family]", data.font_family);
-		formData.append("check_in_display[font_size]", data.font_size.toString());
-		formData.append("check_in_display[animation_type]", data.animation_type);
-		formData.append("check_in_display[is_bold]", data.is_bold.toString());
-		formData.append("check_in_display[name_color]", data.name_color);
+		
+		if (data.font_family) {
+			formData.append("check_in_display[font_family]", data.font_family);
+		}
+		if (data.font_size !== undefined) {
+			formData.append("check_in_display[font_size]", data.font_size.toString());
+		}
+		if (data.animation_type) {
+			formData.append("check_in_display[animation_type]", data.animation_type);
+		}
+		if (data.is_bold !== undefined) {
+			formData.append("check_in_display[is_bold]", data.is_bold.toString());
+		}
+		if (data.name_color) {
+			formData.append("check_in_display[name_color]", data.name_color);
+		}
 
 		if (data.voice_enabled !== undefined) {
 			formData.append("check_in_display[voice_enabled]", data.voice_enabled.toString());
@@ -101,6 +112,17 @@ export async function updateCheckInDisplay(
 			formData.append("check_in_display[seating_announcement_template]", data.seating_announcement_template);
 		}
 
+		// // Photo Booth
+		// if (data.photo_booth_enabled !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_enabled]", data.photo_booth_enabled.toString());
+		// }
+		// if (data.photo_booth_countdown !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_countdown]", data.photo_booth_countdown.toString());
+		// }
+		// if (data.photo_booth_webhook_url !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_webhook_url]", data.photo_booth_webhook_url);
+		// }
+
 		// Idle Assets
 		if (data.background_image) {
 			formData.append("check_in_display[background_image]", data.background_image);
@@ -128,6 +150,14 @@ export async function updateCheckInDisplay(
 		if (data.remove_announcement_video) {
 			formData.append("check_in_display[remove_announcement_video]", "true");
 		}
+
+		// // Photo Booth Assets
+		// if (data.branding_frame) {
+		// 	formData.append("check_in_display[branding_frame]", data.branding_frame);
+		// }
+		// if (data.remove_branding_frame) {
+		// 	formData.append("check_in_display[remove_branding_frame]", "true");
+		// }
 
 		const response = await restClient.patchFormData<CheckInDisplay>(
 			`v1/events/${eventId}/check_in_display`,

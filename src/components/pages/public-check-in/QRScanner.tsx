@@ -4,14 +4,16 @@ import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface QRScannerProps {
 	onScan: (value: string) => void;
+	facingMode?: "user" | "environment";
 }
 
 const SCANNER_ID = "event-checkin-qr-reader";
 
-export function QRScanner({ onScan }: QRScannerProps) {
+export function QRScanner({ onScan, facingMode = "environment" }: QRScannerProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const scannerRef = useRef<Html5Qrcode | null>(null);
 	const lastScannedRef = useRef<string>("");
@@ -21,6 +23,7 @@ export function QRScanner({ onScan }: QRScannerProps) {
 
 	const handleScanSuccess = useCallback(
 		(decodedText: string) => {
+			console.log("🔍 QR Scanner Success:", decodedText);
 			const now = Date.now();
 			if (
 				decodedText === lastScannedRef.current &&
@@ -36,6 +39,7 @@ export function QRScanner({ onScan }: QRScannerProps) {
 	);
 
 	const startScanner = useCallback(async () => {
+		console.log("🚀 Starting QR Scanner with facingMode:", facingMode);
 		if (isTransitioningRef.current) return;
 		if (scannerRef.current) {
 			const state = scannerRef.current.getState();
@@ -51,27 +55,34 @@ export function QRScanner({ onScan }: QRScannerProps) {
 			}
 
 			await scannerRef.current.start(
-				{ facingMode: "environment" },
+				{ facingMode: facingMode },
 				{
 					fps: 10,
-					qrbox: { width: 250, height: 250 },
+					qrbox: (viewfinderWidth, viewfinderHeight) => {
+						const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+						const size = Math.floor(minEdge * 0.6);
+						return { width: size, height: size };
+					},
 					aspectRatio: 1.0,
 				},
 				handleScanSuccess,
-				() => {},
+				(errorMessage) => {
+					// Silent error for no QR code found in frame
+				},
 			);
+			console.log("✅ QR Scanner started successfully");
 		} catch (err: unknown) {
-			console.error("Error starting scanner:", err);
+			console.error("❌ Error starting scanner:", err);
 			const message =
 				err instanceof Error ? err.message : "Failed to start camera";
 			if (!message.includes("transition")) {
-				toast.error("Camera access denied");
+				toast.error(`Camera error: ${message}`);
 			}
 		} finally {
 			isTransitioningRef.current = false;
 			if (mountedRef.current) setIsLoading(false);
 		}
-	}, [handleScanSuccess]);
+	}, [handleScanSuccess, facingMode]);
 
 	useEffect(() => {
 		mountedRef.current = true;
@@ -97,7 +108,13 @@ export function QRScanner({ onScan }: QRScannerProps) {
 
 	return (
 		<div className="group relative h-full w-full">
-			<div id={SCANNER_ID} className="h-full w-full bg-neutral-950" />
+			<div 
+				id={SCANNER_ID} 
+				className={cn(
+					"h-full w-full bg-neutral-950",
+					facingMode === "user" && "[&_video]:scale-x-[-1]"
+				)} 
+			/>
 
 			{/* Loading State */}
 			{isLoading && (

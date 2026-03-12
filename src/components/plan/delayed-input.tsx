@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-interface DelayedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface DelayedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'onSubmit'> {
     value: string | number;
     onSubmit: (value: string) => void;
     className?: string;

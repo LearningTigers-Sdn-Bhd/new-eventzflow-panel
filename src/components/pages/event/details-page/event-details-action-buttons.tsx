@@ -2,6 +2,7 @@
 
 import {
 	Activity,
+	Camera,
 	ChevronDown,
 	ExternalLink,
 	Megaphone,

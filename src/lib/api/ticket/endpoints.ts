@@ -170,6 +170,7 @@ export async function getMyScannedTickets(
 				eventId: ticket.eventId.toString(),
 				createdAt: ticket.created_at,
 				customLabels: customLabels.length > 0 ? customLabels : undefined,
+				custom_fields_data: ticket.custom_fields_data,
 			};
 		});
 	} catch (error) {
@@ -259,6 +260,7 @@ function transformBackendTicket(
 		createdAt,
 		deletedAt,
 		customLabels: customLabels.length > 0 ? customLabels : undefined,
+		custom_fields_data: ("custom_fields_data" in ticket) ? (ticket as BackendTicket).custom_fields_data : undefined,
 	};
 }
 
