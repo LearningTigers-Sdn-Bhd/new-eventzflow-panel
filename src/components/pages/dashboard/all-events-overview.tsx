@@ -5,7 +5,7 @@ import {
 	ChevronRight,
 	Clock,
 	ScanFace,
-	Stamp,
+	Speech,
 	Tickets,
 	TrendingUp,
 	Users,
@@ -172,7 +172,7 @@ function VisitorEventCard({
 }): ReactElement {
 	const engagementRate =
 		event.totalVisitors > 0
-			? Math.round((event.totalStamps / event.totalVisitors) * 100)
+			? Math.round((event.totalLeads / event.totalVisitors) * 100)
 			: 0;
 
 	return (
@@ -193,9 +193,9 @@ function VisitorEventCard({
 						count={event.totalVisitors}
 					/>
 					<CompactStatsCard
-						icon={Stamp}
-						label="Stamps"
-						count={event.totalStamps}
+						icon={Speech}
+						label="Leads"
+						count={event.totalLeads}
 						variant="sky"
 					/>
 				</div>
@@ -213,7 +213,7 @@ function VisitorEventCard({
 						/>
 					</div>
 					<p className="mt-1 text-right text-muted-foreground text-xs">
-						{event.totalStamps} stamps / {event.totalVisitors} visitors
+						{event.totalLeads} leads / {event.totalVisitors} visitors
 					</p>
 				</div>
 			</CardContent>

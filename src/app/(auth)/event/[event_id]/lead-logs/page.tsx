@@ -3,29 +3,29 @@
 import { Stamp } from "lucide-react";
 import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
-import { ScanStampButton } from "@/components/pages/visitor-stamps/page-action/scan-stamp-button";
-import { DataTable } from "@/components/pages/visitor-stamps/stamp-log-table";
+import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
+import { DataTable } from "@/components/pages/event-leads/lead-log-table";
 import { Button } from "@/components/ui/button";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { useEventStamps } from "@/hooks/use-visitor-stamps";
+import { useEventLeads } from "@/hooks/use-event-leads";
 
-interface StampLogsPageProps {
+interface LeadLogsPageProps {
 	params: Promise<{ event_id: string }>;
 }
 
-export default function StampLogsPage({ params }: StampLogsPageProps) {
+export default function LeadLogsPage({ params }: LeadLogsPageProps) {
 	const { event_id } = use(params);
 
 	// Check permissions - only org_owner, organizer, event_admin can view
 	const permissions = useEventPermissions(event_id);
 
-	const { data: stamps, isLoading, error, refetch } = useEventStamps(event_id);
+	const { data: leads, isLoading, error, refetch } = useEventLeads(event_id);
 
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-				<ScanStampButton eventId={event_id} onRefetch={refetch} />
+				<ScanLeadButton eventId={event_id} onRefetch={refetch} />
 			</div>
 		),
 		[event_id, refetch],
@@ -38,7 +38,7 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 		return (
 			<EmptyState
 				title="Access Denied"
-				description="You don't have permission to view stamp logs."
+				description="You don't have permission to view lead logs."
 				icon={<Stamp />}
 				height="h-[50vh]"
 			/>
@@ -48,8 +48,8 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading stamp logs..."
-				description="Please wait while we fetch stamp logs..."
+				title="Loading lead logs..."
+				description="Please wait while we fetch lead logs..."
 			/>
 		);
 	}
@@ -57,8 +57,8 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 	if (error) {
 		return (
 			<ErrorState
-				title="Failed to load stamp logs"
-				description="We couldn't load stamp logs. Please try again."
+				title="Failed to load lead logs"
+				description="We couldn't load lead logs. Please try again."
 				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
@@ -66,7 +66,7 @@ export default function StampLogsPage({ params }: StampLogsPageProps) {
 
 	return (
 		<div className="space-y-4">
-			<DataTable data={stamps || []} />
+			<DataTable data={leads || []} />
 		</div>
 	);
 }

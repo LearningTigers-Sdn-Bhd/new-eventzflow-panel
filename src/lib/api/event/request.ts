@@ -18,6 +18,7 @@ export const createEventSchema = z.object({
 	use_business_matching: z.boolean().optional().default(true),
 	use_sponsorship: z.boolean().optional().default(false),
 	// photo_booth_enabled: z.boolean().optional().default(false),
+	use_event_leads: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
 	end_date: z.string(), // ISO date string
 	multiple_scans: z.boolean().optional().default(false),
@@ -44,6 +45,7 @@ export const updateEventSchema = z.object({
 	use_business_matching: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
 	// photo_booth_enabled: z.boolean().optional(),
+	use_event_leads: z.boolean().optional(),
 	payment_receipt_email: z
 		.string()
 		.email()

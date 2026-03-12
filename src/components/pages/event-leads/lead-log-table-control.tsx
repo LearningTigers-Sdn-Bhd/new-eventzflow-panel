@@ -10,10 +10,11 @@ interface DataControlProps<TData> {
 
 function getColumnLabel(columnId: string): string {
 	const standardLabels: Record<string, string> = {
-		visitor_name: "Visitor",
+		lead_name: "Attendee",
+		leadable_type: "Type",
 		contact: "Contact",
-		vendor_name: "Stamped By",
-		created_at: "Stamped At",
+		vendor_name: "Captured By",
+		created_at: "Captured At",
 	};
 
 	return standardLabels[columnId] || columnId;
@@ -31,9 +32,9 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	];
 
 	const mobileControlConfigs: ControlConfig[] = [
-		{ label: "Visitor", columnId: "visitor_name", type: "sort" },
-		{ label: "Stamped By", columnId: "vendor_name", type: "sort" },
-		{ label: "Stamped At", columnId: "created_at", type: "sort" },
+		{ label: "Attendee", columnId: "lead_name", type: "sort" },
+		{ label: "Captured By", columnId: "vendor_name", type: "sort" },
+		{ label: "Captured At", columnId: "created_at", type: "sort" },
 	];
 
 	return (
@@ -44,9 +45,9 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					placeholder: "Search by name, email, phone...",
 					enableCustomSearch: true,
 					columns: [
-						"visitor_name",
-						"visitor_email",
-						"visitor_phone",
+						"lead_name",
+						"lead_email",
+						"lead_phone",
 						"vendor_name",
 					],
 				},

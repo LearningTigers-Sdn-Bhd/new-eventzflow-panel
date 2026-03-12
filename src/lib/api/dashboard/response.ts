@@ -30,7 +30,7 @@ export type EventOverview = {
 	pendingTickets: number;
 	// Non-ticket event stats
 	totalVisitors: number;
-	totalStamps: number;
+	totalLeads: number;
 	lastActivity: string;
 };
 
@@ -95,7 +95,7 @@ export type BackendEventOverview = {
 	unscanned_tickets: number;
 	// Non-ticket event stats
 	total_visitors: number;
-	total_stamps: number;
+	total_leads: number;
 	last_activity: string;
 };
 

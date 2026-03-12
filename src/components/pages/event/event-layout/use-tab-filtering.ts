@@ -41,7 +41,7 @@ export function useTabFiltering(
 					"vouchers",
 					"voucher-redemption",
 					"voucher-analytics",
-					"visitor-stamps",
+					...(currentEvent?.use_event_leads ? ["event-leads"] : []),
 				].includes(tab.id);
 			}
 
@@ -149,12 +149,12 @@ export function useTabFiltering(
 				);
 			}
 
-			// Stamp logs - only for event admins and staff, only for non-ticket events
-			if (tab.id === "stamp-logs") {
+			// Lead logs - only for event admins and staff, only for non-ticket events
+			if (tab.id === "lead-logs") {
 				return (
 					(permissions.canManageEventVendors ||
 						permissions.canManageEventStaff) &&
-					currentEvent?.use_ticket === false
+					currentEvent?.use_event_leads === true
 				);
 			}
 
@@ -163,12 +163,12 @@ export function useTabFiltering(
 				return permissions.canViewVisitorsTab;
 			}
 
-			// Stamp scanner - only for vendors (handled above)
-			if (tab.id === "visitor-stamps") {
+			// Lead scanner - only for vendors (handled above)
+			if (tab.id === "event-leads") {
 				return false;
 			}
 
 			return true;
 		});
-	}, [currentEvent?.use_ticket, currentEvent?.use_exhibitor_kit, permissions]);
+	}, [currentEvent?.use_ticket, currentEvent?.use_exhibitor_kit, currentEvent?.use_event_leads, permissions]);
 }

@@ -48,6 +48,7 @@ const formSchema = z.object({
 	useBusinessMatching: z.boolean(),
 	useSponsorship: z.boolean(),
 	// photoBoothEnabled: z.boolean(),
+	useEventLeads: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -124,6 +125,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useBusinessMatching: false,
 			useSponsorship: false,
 			// photoBoothEnabled: false,
+			useEventLeads: false,
 			description: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
@@ -150,6 +152,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_sponsorship: value.useSponsorship,
+					use_event_leads: value.useEventLeads,
 					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
@@ -193,6 +196,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.use_business_matching ?? false,
 				);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
+				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
@@ -660,6 +664,20 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<SwitchCardInput
 											label="Sponsorships"
 											description="Enable sponsorship management for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								<form.Field name="useEventLeads">
+									{(field) => (
+										<SwitchCardInput
+											label="Event Leads"
+											description="Allow vendors to scan attendee QR codes to capture leads."
 											htmlFor={field.name}
 											variant="no-rounded"
 											border={true}

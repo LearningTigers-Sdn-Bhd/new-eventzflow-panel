@@ -8,20 +8,24 @@ import { toast } from "sonner";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import type { VisitorStampWithDetails } from "@/lib/api/visitor-stamp";
+import type { EventLeadWithDetails } from "@/lib/api/event-lead";
 
-const VisitorStampViewModal = ({
+const LeadViewModal = ({
 	name,
 	email,
 	phone,
 	publicId,
 	vendorName,
+	leadableType,
+	notes,
 }: {
-	name: string;
-	email: string;
-	phone: string;
-	publicId: string;
+	name: string | null;
+	email: string | null;
+	phone: string | null;
+	publicId: string | null;
 	vendorName: string;
+	leadableType: string;
+	notes: string | null;
 }) => {
 	const copyToClipboard = (text: string) => {
 		navigator.clipboard.writeText(text);
@@ -42,14 +46,14 @@ const VisitorStampViewModal = ({
 							{name}
 						</h3>
 						<p className="mt-0.5 text-muted-foreground text-xs">
-							Visitor Details
+							{leadableType === "Ticket" ? "Ticket Holder" : "Visitor"} Details
 						</p>
 					</div>
 				</div>
 				<Button
 					variant="outline"
 					size="icon"
-					onClick={() => copyToClipboard(name)}
+					onClick={() => copyToClipboard(name ?? "")}
 					className="rounded-none"
 				>
 					<Copy className="size-4 text-muted-foreground" />
@@ -131,7 +135,7 @@ const VisitorStampViewModal = ({
 				<Button
 					variant="outline"
 					size="icon"
-					onClick={() => copyToClipboard(publicId)}
+					onClick={() => copyToClipboard(publicId ?? "")}
 					className="rounded-none"
 				>
 					<Copy className="size-4 text-muted-foreground" />
@@ -146,7 +150,7 @@ const VisitorStampViewModal = ({
 					</div>
 					<div className="flex min-w-0 flex-col gap-1">
 						<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-							Stamped By
+							Captured By
 						</Label>
 						<p className="mt-1 font-medium text-foreground text-sm">
 							{vendorName}
@@ -154,28 +158,59 @@ const VisitorStampViewModal = ({
 					</div>
 				</div>
 			</div>
+
+			{/* Notes */}
+			{notes && (
+				<div className="flex items-start gap-3 border border-border bg-muted p-3.5">
+					<div className="flex min-w-0 flex-col gap-1">
+						<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+							Notes
+						</Label>
+						<p className="mt-1 font-medium text-foreground text-sm whitespace-pre-wrap">
+							{notes}
+						</p>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
 
 // Searchable content for global search
-export const getSearchableContent = (row: VisitorStampWithDetails) =>
-	`${row.visitor_name} ${row.visitor_email} ${row.visitor_phone} ${row.visitor_public_id} ${row.vendor_name}`;
+export const getSearchableContent = (row: EventLeadWithDetails) =>
+	`${row.lead_name} ${row.lead_email} ${row.lead_phone} ${row.lead_public_id} ${row.vendor_name}`;
 
-export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
+export function generateColumns(): ColumnDef<EventLeadWithDetails>[] {
 	return [
 		{
-			accessorKey: "visitor_name",
+			accessorKey: "lead_name",
 			size: 250,
 			header: ({ column }) => (
-				<SortableHeader column={column} label="Visitor" />
+				<SortableHeader column={column} label="Attendee" />
 			),
 			cell: ({ row }) => {
-				const stamp = row.original;
+				const lead = row.original;
 				return (
 					<div className="flex flex-col">
-						<h3 className="font-medium">{stamp.visitor_name}</h3>
+						<h3 className="font-medium">{lead.lead_name}</h3>
 					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "leadable_type",
+			size: 100,
+			header: "Type",
+			cell: ({ row }) => {
+				const type = row.getValue("leadable_type") as string;
+				return (
+					<span className={`inline-flex items-center rounded-none px-2 py-0.5 text-xs font-medium ${
+						type === "Visitor"
+							? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+							: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+					}`}>
+						{type}
+					</span>
 				);
 			},
 		},
@@ -186,22 +221,24 @@ export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
 			header: "",
 			cell: ({ row }) => {
 				const { openDialog } = useDialog();
-				const stamp = row.original;
+				const lead = row.original;
 				const openViewModal = () => {
 					openDialog({
-						component: VisitorStampViewModal,
+						component: LeadViewModal,
 						config: {
-							title: "Visitor Stamp Details",
-							description: "View the details of the stamp",
+							title: "Lead Details",
+							description: "View the details of the captured lead",
 							size: "2xl",
 							showCloseButton: true,
 						},
 						props: {
-							name: stamp.visitor_name,
-							email: stamp.visitor_email,
-							phone: stamp.visitor_phone,
-							publicId: stamp.visitor_public_id,
-							vendorName: stamp.vendor_name,
+							name: lead.lead_name,
+							email: lead.lead_email,
+							phone: lead.lead_phone,
+							publicId: lead.lead_public_id,
+							vendorName: lead.vendor_name,
+							leadableType: lead.leadable_type,
+							notes: lead.notes,
 						},
 					});
 				};
@@ -231,9 +268,9 @@ export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
 				);
 			},
 			cell: ({ row }) => {
-				const stamp = row.original;
-				const phone = stamp.visitor_phone;
-				const email = stamp.visitor_email;
+				const lead = row.original;
+				const phone = lead.lead_phone;
+				const email = lead.lead_email;
 
 				return (
 					<div className="flex min-w-0 flex-col gap-1">
@@ -264,7 +301,7 @@ export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
 			accessorKey: "vendor_name",
 			size: 200,
 			header: ({ column }) => (
-				<SortableHeader column={column} label="Stamped By" />
+				<SortableHeader column={column} label="Captured By" />
 			),
 			cell: ({ row }) => {
 				return <div className="font-medium">{row.getValue("vendor_name")}</div>;
@@ -274,7 +311,7 @@ export function generateColumns(): ColumnDef<VisitorStampWithDetails>[] {
 			accessorKey: "created_at",
 			size: 200,
 			header: ({ column }) => (
-				<SortableHeader column={column} label="Stamped At" />
+				<SortableHeader column={column} label="Captured At" />
 			),
 			cell: ({ row }) => {
 				const createdAt = row.getValue("created_at") as string;
