@@ -1,13 +1,44 @@
 import { z } from "zod";
 
 // Team member schema for nested attributes
-export const exhibitorTeamMemberSchema = z.object({
-	id: z.number().optional(),
-	full_name: z.string().min(1, "Full name is required"),
-	email: z.string().email("Valid email is required"),
-	phone: z.string().min(1, "Phone number is required"),
-	_destroy: z.boolean().optional(),
-});
+export const exhibitorTeamMemberSchema = z
+	.object({
+		id: z.number().optional(),
+		full_name: z.string(),
+		email: z.string(),
+		phone: z.string(),
+		_destroy: z.boolean().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (data._destroy === true) return;
+
+		if (data.full_name.trim().length === 0) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["full_name"],
+				message: "Full name is required",
+			});
+		}
+
+		if (
+			data.email.trim().length === 0 ||
+			!z.email().safeParse(data.email).success
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["email"],
+				message: "Valid email is required",
+			});
+		}
+
+		if (data.phone.trim().length === 0) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["phone"],
+				message: "Phone number is required",
+			});
+		}
+	});
 
 // Exhibitor kit item schema for nested attributes
 export const exhibitorKitItemSchema = z.object({

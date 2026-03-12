@@ -51,6 +51,42 @@ interface NewMemberFormState {
 	phone: string;
 }
 
+interface RawTeamMemberInput {
+	id?: number;
+	full_name?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	created_at?: string;
+	_destroy?: boolean;
+}
+
+export function normalizeTeamMemberInput(
+	member: RawTeamMemberInput,
+): TeamMemberInput {
+	return {
+		id: member.id,
+		full_name: member.full_name ?? "",
+		email: member.email ?? "",
+		phone: member.phone ?? "",
+		created_at: member.created_at,
+		_destroy: member._destroy ?? false,
+	};
+}
+
+export function buildSingleTeamMemberPayload(member: TeamMemberInput) {
+	const normalized = normalizeTeamMemberInput(member);
+
+	return [
+		{
+			id: normalized.id,
+			full_name: normalized.full_name.trim(),
+			email: normalized.email.trim(),
+			phone: normalized.phone.trim(),
+			_destroy: normalized._destroy,
+		},
+	];
+}
+
 export function VendorTeamMembersPage({
 	eventId,
 	eventVendorId,
@@ -80,14 +116,9 @@ export function VendorTeamMembersPage({
 	useEffect(() => {
 		if (kit?.exhibitor_team_members) {
 			setTeamMembers(
-				kit.exhibitor_team_members.map((m: ExhibitorTeamMember) => ({
-					id: m.id,
-					full_name: m.full_name,
-					email: m.email,
-					phone: m.phone,
-					created_at: m.created_at,
-					_destroy: false,
-				})),
+				kit.exhibitor_team_members.map((m: ExhibitorTeamMember) =>
+					normalizeTeamMemberInput(m),
+				),
 			);
 		}
 	}, [kit?.exhibitor_team_members]);
@@ -162,15 +193,9 @@ export function VendorTeamMembersPage({
 		// Auto-save the new member
 		try {
 			await updateKitMutation.mutateAsync({
-				exhibitor_team_members_attributes: updatedMembers
-					.filter((m) => !m._destroy)
-					.map((m) => ({
-						id: m.id,
-						full_name: m.full_name.trim(),
-						email: m.email.trim(),
-						phone: m.phone.trim(),
-						_destroy: m._destroy,
-					})),
+				exhibitor_team_members_attributes: buildSingleTeamMemberPayload(
+					updatedMembers[updatedMembers.length - 1],
+				),
 			});
 		} catch (_error) {
 			// Revert on error
@@ -199,15 +224,9 @@ export function VendorTeamMembersPage({
 
 					// Auto-save the deletion
 					updateKitMutation.mutate({
-						exhibitor_team_members_attributes: updatedMembers
-							.filter((m) => m.id || !m._destroy)
-						.map((m) => ({
-							id: m.id,
-							full_name: m.full_name.trim(),
-							email: m.email.trim(),
-							phone: m.phone.trim(),
-							_destroy: m._destroy,
-						})),
+						exhibitor_team_members_attributes: buildSingleTeamMemberPayload(
+							updatedMembers[actualIndex],
+						),
 					});
 				} else {
 					// Remove new member from list (not yet saved)
