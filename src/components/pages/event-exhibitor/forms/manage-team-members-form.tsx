@@ -33,6 +33,8 @@ interface ManageTeamMembersFormProps {
 interface TeamMemberInput {
 	id?: number;
 	full_name: string;
+	email: string;
+	phone: string;
 	_destroy?: boolean;
 }
 
@@ -48,9 +50,13 @@ export function ManageTeamMembersForm({
 		kit?.exhibitor_team_members?.map((m: ExhibitorTeamMember) => ({
 			id: m.id,
 			full_name: m.full_name,
+			email: m.email,
+			phone: m.phone,
 		})) || [],
 	);
 	const [newMemberName, setNewMemberName] = useState("");
+	const [newMemberEmail, setNewMemberEmail] = useState("");
+	const [newMemberPhone, setNewMemberPhone] = useState("");
 
 	const queryClient = useQueryClient();
 
@@ -77,12 +83,21 @@ export function ManageTeamMembersForm({
 	});
 
 	const handleAddMember = () => {
-		if (!newMemberName.trim()) {
-			toast.error("Please enter a name");
+		if (!newMemberName.trim() || !newMemberEmail.trim() || !newMemberPhone.trim()) {
+			toast.error("Please enter name, email, and phone number");
 			return;
 		}
-		setTeamMembers([...teamMembers, { full_name: newMemberName.trim() }]);
+		setTeamMembers([
+			...teamMembers,
+			{
+				full_name: newMemberName.trim(),
+				email: newMemberEmail.trim(),
+				phone: newMemberPhone.trim(),
+			},
+		]);
 		setNewMemberName("");
+		setNewMemberEmail("");
+		setNewMemberPhone("");
 	};
 
 	const handleRemoveMember = (index: number) => {
@@ -96,9 +111,15 @@ export function ManageTeamMembersForm({
 		}
 	};
 
-	const handleUpdateMemberName = (index: number, name: string) => {
+	const handleUpdateMember = (
+		index: number,
+		field: keyof TeamMemberInput,
+		value: string,
+	) => {
 		setTeamMembers(
-			teamMembers.map((m, i) => (i === index ? { ...m, full_name: name } : m)),
+			teamMembers.map((member, i) =>
+				i === index ? { ...member, [field]: value } : member,
+			),
 		);
 	};
 
@@ -111,13 +132,17 @@ export function ManageTeamMembersForm({
 		}
 
 		const validMembers = teamMembers.filter(
-			(m) => m.full_name.trim() || m._destroy,
+			(member) =>
+				(member.full_name.trim() && member.email.trim() && member.phone.trim()) ||
+				member._destroy,
 		);
 
 		await updateKitMutation.mutateAsync({
 			exhibitor_team_members_attributes: validMembers.map((m) => ({
 				id: m.id,
 				full_name: m.full_name.trim(),
+				email: m.email.trim(),
+				phone: m.phone.trim(),
 				_destroy: m._destroy,
 			})),
 		});
@@ -215,13 +240,32 @@ export function ManageTeamMembersForm({
 						{/* Add Member Input */}
 						<div className="space-y-2">
 							<p className="font-medium text-sm">Add New Team Member</p>
-							<div className="flex gap-2">
+							<p className="text-muted-foreground text-xs">
+								Use the member&apos;s real email address so they can receive their
+								QR code.
+							</p>
+							<div className="grid gap-2 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
 								<Input
 									value={newMemberName}
 									onChange={(e) => setNewMemberName(e.target.value)}
 									placeholder="Enter team member name"
 									disabled={updateKitMutation.isPending || !canAddMore}
 									className="flex-1 rounded-none"
+								/>
+								<Input
+									type="email"
+									value={newMemberEmail}
+									onChange={(e) => setNewMemberEmail(e.target.value)}
+									placeholder="Email address"
+									disabled={updateKitMutation.isPending || !canAddMore}
+									className="rounded-none"
+								/>
+								<Input
+									value={newMemberPhone}
+									onChange={(e) => setNewMemberPhone(e.target.value)}
+									placeholder="Phone number"
+									disabled={updateKitMutation.isPending || !canAddMore}
+									className="rounded-none"
 									onKeyDown={(e) => {
 										if (e.key === "Enter") {
 											e.preventDefault();
@@ -288,14 +332,33 @@ export function ManageTeamMembersForm({
 														<span className="shrink-0 font-medium text-green-600 text-xs dark:text-green-400">
 															#{index + 1}
 														</span>
-														<Input
-															value={member.full_name}
-															onChange={(e) =>
-																handleUpdateMemberName(index, e.target.value)
-															}
-															disabled={updateKitMutation.isPending}
-															className="min-w-0 flex-1 rounded-none"
-														/>
+									<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
+										<Input
+											value={member.full_name}
+											onChange={(e) =>
+												handleUpdateMember(index, "full_name", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+										<Input
+											type="email"
+											value={member.email}
+											onChange={(e) =>
+												handleUpdateMember(index, "email", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+										<Input
+											value={member.phone}
+											onChange={(e) =>
+												handleUpdateMember(index, "phone", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+									</div>
 														<Button
 															type="button"
 															variant="ghost"
@@ -337,14 +400,33 @@ export function ManageTeamMembersForm({
 															<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
 																#{index + 1}
 															</span>
-															<Input
-																value={member.full_name}
-																onChange={(e) =>
-																	handleUpdateMemberName(index, e.target.value)
-																}
-																disabled={updateKitMutation.isPending}
-																className="min-w-0 flex-1 rounded-none"
-															/>
+									<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
+										<Input
+											value={member.full_name}
+											onChange={(e) =>
+												handleUpdateMember(index, "full_name", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+										<Input
+											type="email"
+											value={member.email}
+											onChange={(e) =>
+												handleUpdateMember(index, "email", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+										<Input
+											value={member.phone}
+											onChange={(e) =>
+												handleUpdateMember(index, "phone", e.target.value)
+											}
+											disabled={updateKitMutation.isPending}
+											className="min-w-0 rounded-none"
+										/>
+									</div>
 															<span className="shrink-0 whitespace-nowrap font-medium text-amber-600 text-xs dark:text-amber-400">
 																+{fee.toFixed(0)}
 															</span>
@@ -378,14 +460,33 @@ export function ManageTeamMembersForm({
 												<span className="shrink-0 font-medium text-muted-foreground text-xs">
 													#{index + 1}
 												</span>
-												<Input
-													value={member.full_name}
-													onChange={(e) =>
-														handleUpdateMemberName(index, e.target.value)
-													}
-													disabled={updateKitMutation.isPending}
-													className="min-w-0 flex-1 rounded-none"
-												/>
+								<div className="grid min-w-0 flex-1 gap-2 lg:grid-cols-3">
+									<Input
+										value={member.full_name}
+										onChange={(e) =>
+											handleUpdateMember(index, "full_name", e.target.value)
+										}
+										disabled={updateKitMutation.isPending}
+										className="min-w-0 rounded-none"
+									/>
+									<Input
+										type="email"
+										value={member.email}
+										onChange={(e) =>
+											handleUpdateMember(index, "email", e.target.value)
+										}
+										disabled={updateKitMutation.isPending}
+										className="min-w-0 rounded-none"
+									/>
+									<Input
+										value={member.phone}
+										onChange={(e) =>
+											handleUpdateMember(index, "phone", e.target.value)
+										}
+										disabled={updateKitMutation.isPending}
+										className="min-w-0 rounded-none"
+									/>
+								</div>
 												<Button
 													type="button"
 													variant="ghost"
