@@ -58,7 +58,7 @@ export type GuestItem = {
 	role?: string;
 	ticketTypeName?: string;
 	check_in_at?: string;
-	custom_fields_data?: Record<string, unknown>;
+	custom_fields_data?: Record<string, string> | null;
 };
 
 interface GuestSidebarProps {
@@ -121,8 +121,8 @@ export function GuestSidebar({
 		return map;
 	}, [plan]);
 
-	const mergedList = useMemo(() => {
-		const list = [
+	const mergedList: GuestItem[] = useMemo(() => {
+		const list: GuestItem[] = [
 			...(tickets || []).map((t) => ({ ...t, type: "ticket" as const })),
 			...(visitors || []).map((v) => ({
 				...v,
@@ -251,9 +251,7 @@ export function GuestSidebar({
 									}}
 									onUnassign={() =>
 										onUnassign(
-											item.type === "ticket"
-												? { ticketId: item.id }
-												: { visitorId: item.id },
+										    item.type === "ticket" ? { ticketId: Number(item.id) } : { visitorId: Number(item.id) },
 										)
 									}
 								/>

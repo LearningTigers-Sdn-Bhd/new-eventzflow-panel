@@ -102,7 +102,7 @@ import {
 	updateAssignment,
 	updatePlan,
 } from "@/lib/api/plan";
-import type { PlanObject } from "@/lib/api/plan/response";
+import type { Plan, PlanObject } from "@/lib/api/plan/response";
 import type { SeatingGroup } from "@/lib/api/seating-group";
 import {
 	addSeatingGroupMember,
@@ -124,7 +124,7 @@ export function PlanWorkshop({
 	initialPlan,
 	eventId,
 }: {
-	initialPlan: Record<string, unknown>;
+	initialPlan: Plan;
 	eventId: string;
 }) {
 	const queryClient = useQueryClient();
@@ -413,7 +413,7 @@ export function PlanWorkshop({
 					plan.id,
 					data.existingGroupId,
 					data.existingMemberId,
-				);
+				).then(() => {});
 			}
 
 			if (!data.targetGroupId) return Promise.resolve();
@@ -422,7 +422,7 @@ export function PlanWorkshop({
 				participant_type:
 					data.participantType === "ticket" ? "Ticket" : "Visitor",
 				participant_id: data.participantId,
-			});
+			}).then(() => {});
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["seating-groups", plan.id] });
@@ -538,8 +538,8 @@ export function PlanWorkshop({
 				width,
 				height,
 				label:
-					overrides?.label ||
-					(type === "floor" ? null : type.replace("_", " ")),
+					(overrides?.label as string) ||
+					(type === "floor" ? undefined : type.replace("_", " ")),
 				capacity: object_type === "table" ? 10 : null,
 				rotation: 0,
 				locked: false,
@@ -1497,10 +1497,9 @@ export function PlanWorkshop({
 										handleUpdateObject(id, { width, height, x, y })
 									}
 									onDuplicateObjects={(ids) => {
-										const objectsToDuplicate = plan.plan_objects.filter(obj => ids.includes(obj.id));
+										const objectsToDuplicate = (plan.plan_objects || []).filter(obj => ids.includes(obj.id));
 										duplicateObjectsMutation.mutate(objectsToDuplicate);
-									}}
-									onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
+									}}									onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 									onUpdatePlan={(updates) => handleUpdatePlan(updates)}
 									onUpdateObject={handleUpdateObject}
 									onDeleteObject={handleDeleteObject}
@@ -1633,10 +1632,9 @@ export function PlanWorkshop({
 					{activeDragItem?.__dragType === "group" ? (
 						<div className="z-[100] scale-105 cursor-grabbing transition-transform">
 							<DraggableGroup
-								item={activeDragItem as SeatingGroup & { __dragType?: string }}
+								item={activeDragItem as unknown as SeatingGroup & { __dragType?: string }}
 								isOverlay
-							/>
-						</div>
+							/>						</div>
 					) : activeDragItem ? (
 						<div className="z-[100] scale-105 cursor-grabbing transition-transform">
 							<DraggableGuest item={activeDragItem as GuestItem} isOverlay />

@@ -23,6 +23,7 @@ export type Ticket = {
 		name: string;
 		value: string;
 	}>;
+	custom_fields_data?: Record<string, string> | null;
 };
 
 export type ScannedTicket = {
@@ -44,6 +45,7 @@ export type ScannedTicket = {
 		name: string;
 		value: string;
 	}>;
+	custom_fields_data?: Record<string, string> | null;
 };
 
 export type CheckInResponse = {

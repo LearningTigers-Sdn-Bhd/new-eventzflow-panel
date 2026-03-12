@@ -47,6 +47,7 @@ const formSchema = z.object({
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
 	useSponsorship: z.boolean(),
+	// photoBoothEnabled: z.boolean(),
 	description: z.string(),
 	webhookUrl: z
 		.string()
@@ -122,6 +123,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useSponsorship: false,
+			// photoBoothEnabled: false,
 			description: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
@@ -142,14 +144,13 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
 					use_wedding: useWedding,
-					extra_guest_limit: useWedding
-						? guestPolicyLimitToValue(value.guestPolicy, value.guestLimit)
-						: undefined,
+					extra_guest_limit: guestPolicyLimitToValue(value.guestPolicy, value.guestLimit),
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_sponsorship: value.useSponsorship,
+					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
@@ -192,6 +193,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.use_business_matching ?? false,
 				);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
+				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue(
@@ -667,6 +669,20 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
+{/*								<form.Field name="photoBoothEnabled">
+									{(field) => (
+										<SwitchCardInput
+											label="Photo Booth"
+											description="Enable dedicated photo booth feature for this event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>*/}
 								<form.Field name="useSeatTicketing">
 									{(field) => (
 										<SwitchCardInput

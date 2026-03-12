@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ImageIcon, VideoIcon, X, Monitor, Megaphone, Clock, Search } from "lucide-react";
+import { ImageIcon, VideoIcon, X, Monitor, Megaphone, Clock, Search, Camera } from "lucide-react";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
@@ -283,6 +283,7 @@ export default function WelcomeScreenForm({
 		await updateMutation.mutateAsync(data);
 	};
 
+
 	const triggerPreviewAnimation = () => {
 		setIsPreviewingAnnouncement(true);
 		setPreviewKey((prev) => prev + 1);
@@ -304,9 +305,9 @@ export default function WelcomeScreenForm({
 	};
 
 	const testSeatingContext = useMemo(() => {
-		if (selectedTestAssignmentId === "none" || !activePlan) return null;
+		if (selectedTestAssignmentId === "none" || !activePlan) return undefined;
 		const found = testAssignments.find(a => a.id === selectedTestAssignmentId);
-		if (!found) return null;
+		if (!found) return undefined;
 
 		// Find all guests at the same table
 		const tableObj = activePlan.plan_objects?.find(o => o.id === found.tableId);
@@ -443,7 +444,7 @@ export default function WelcomeScreenForm({
 										<AssetUpload
 											label="Background Image"
 											preview={selectedIdleImage ? URL.createObjectURL(selectedIdleImage) : (existingIdleImageUrl ? `${API_BASE_URL}${existingIdleImageUrl}` : null)}
-											onFileSelect={(file) => { setSelectedIdleImage(file); setRemoveIdleImage(false); }}
+											onFileSelect={(file: File | null) => { setSelectedIdleImage(file); setRemoveIdleImage(false); }}
 											onRemove={() => { setSelectedIdleImage(null); setExistingIdleImageUrl(null); setRemoveIdleImage(true); }}
 											accept="image/*"
 										/>
@@ -451,7 +452,7 @@ export default function WelcomeScreenForm({
 										<AssetUpload
 											label="Background Video"
 											preview={selectedIdleVideo ? URL.createObjectURL(selectedIdleVideo) : (existingIdleVideoUrl ? `${API_BASE_URL}${existingIdleVideoUrl}` : null)}
-											onFileSelect={(file) => { setSelectedIdleVideo(file); setRemoveIdleVideo(false); }}
+											onFileSelect={(file: File | null) => { setSelectedIdleVideo(file); setRemoveIdleVideo(false); }}
 											onRemove={() => { setSelectedIdleVideo(null); setExistingIdleVideoUrl(null); setRemoveIdleVideo(true); }}
 											accept="video/*"
 											isVideo
@@ -488,7 +489,7 @@ export default function WelcomeScreenForm({
 										<AssetUpload
 											label="Check-In Image"
 											preview={selectedAnnImage ? URL.createObjectURL(selectedAnnImage) : (existingAnnImageUrl ? `${API_BASE_URL}${existingAnnImageUrl}` : null)}
-											onFileSelect={(file) => { setSelectedAnnImage(file); setRemoveAnnImage(false); }}
+											onFileSelect={(file: File | null) => { setSelectedAnnImage(file); setRemoveAnnImage(false); }}
 											onRemove={() => { setSelectedAnnImage(null); setExistingAnnImageUrl(null); setRemoveAnnImage(true); }}
 											accept="image/*"
 										/>
@@ -496,7 +497,7 @@ export default function WelcomeScreenForm({
 										<AssetUpload
 											label="Check-In Video"
 											preview={selectedAnnVideo ? URL.createObjectURL(selectedAnnVideo) : (existingAnnVideoUrl ? `${API_BASE_URL}${existingAnnVideoUrl}` : null)}
-											onFileSelect={(file) => { setSelectedAnnVideo(file); setRemoveAnnVideo(false); }}
+											onFileSelect={(file: File | null) => { setSelectedAnnVideo(file); setRemoveAnnVideo(false); }}
 											onRemove={() => { setSelectedAnnVideo(null); setExistingAnnVideoUrl(null); setRemoveAnnVideo(true); }}
 											accept="video/*"
 											isVideo
@@ -652,9 +653,9 @@ export default function WelcomeScreenForm({
 								<WelcomeScreenView 
 									eventTitle="Event Preview"
 									latestCheckIn={isPreviewingAnnouncement ? {
-										id: 0,
 										name: previewName,
-										seating_context: testSeatingContext
+										seating_context: testSeatingContext,
+										checked_in_at: new Date().toISOString()
 									} : null}
 									activePlan={activePlan}
 									fontFamily={fontFamily}

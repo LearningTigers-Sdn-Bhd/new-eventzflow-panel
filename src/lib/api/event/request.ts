@@ -17,6 +17,7 @@ export const createEventSchema = z.object({
 	allow_contractor_printing_services: z.boolean().optional().default(false),
 	use_business_matching: z.boolean().optional().default(true),
 	use_sponsorship: z.boolean().optional().default(false),
+	// photo_booth_enabled: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
 	end_date: z.string(), // ISO date string
 	multiple_scans: z.boolean().optional().default(false),
@@ -42,6 +43,7 @@ export const updateEventSchema = z.object({
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
+	// photo_booth_enabled: z.boolean().optional(),
 	payment_receipt_email: z
 		.string()
 		.email()
@@ -81,5 +83,5 @@ export const updateEventSchema = z.object({
 });
 
 // Export types for form data
-export type CreateEventRequest = z.infer<typeof createEventSchema>;
-export type UpdateEventRequest = z.infer<typeof updateEventSchema>;
+export type CreateEventRequest = z.input<typeof createEventSchema>;
+export type UpdateEventRequest = z.input<typeof updateEventSchema>;

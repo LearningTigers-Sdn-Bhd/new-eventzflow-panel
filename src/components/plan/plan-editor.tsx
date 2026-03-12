@@ -54,12 +54,14 @@ import {
 	exportPlanPdf,
 	getPlan,
 	updateAssignment,
+	type PlanObject,
 } from "@/lib/api/plan";
 import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
 import { restClient } from "@/utils/rest-api";
 import { DraggableGuest } from "./guest-sidebar";
+import type { Unit } from "./unit-conversion";
 
 export function PlanEditorContent({
 	initialPlan,
@@ -75,6 +77,7 @@ export function PlanEditorContent({
 		"select",
 	);
 	const [activeDragItem, setActiveDragItem] = useState<any | null>(null);
+	const [unit, setUnit] = useState<Unit>("m");
 
 	const { data: unassignedTickets } = useQuery({
 		queryKey: ["tickets", "unassigned", eventId],
@@ -98,7 +101,9 @@ export function PlanEditorContent({
 		updateObjectPosition,
 		updateObject,
 		updateObjects,
+		addObjects,
 		updatePlanSettings,
+		savePendingChanges,
 		isSaving,
 		undo,
 		redo,
@@ -580,10 +585,9 @@ export function PlanEditorContent({
 								updateObject(id, { width, height, x, y });
 							}}
 							onDuplicateObjects={(ids) => {
-								const objectsToDuplicate = plan.plan_objects.filter(obj => ids.includes(obj.id));
+								const objectsToDuplicate = (plan.plan_objects || []).filter(obj => ids.includes(obj.id));
 								duplicateObjectsMutation.mutate(objectsToDuplicate);
-							}}
-							onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
+							}}							onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 							onCreateObject={(data) =>
 								addObjectMutation.mutate({
 									type: data.object_type,
@@ -659,6 +663,7 @@ export function PlanEditorContent({
 												}),
 											);
 									}}
+									unit={unit}
 								/>
 							</div>
 						</div>

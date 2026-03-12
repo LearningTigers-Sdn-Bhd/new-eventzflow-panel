@@ -31,16 +31,23 @@ export interface CheckInDisplay {
 	active_plan_id?: number | null;
 	seating_announcement_template?: string | null;
 
+	// // Photo Booth
+	// photo_booth_enabled: boolean;
+	// photo_booth_countdown: number;
+	// photo_booth_webhook_url: string | null;
+
 	// URLs
 	background_image_url: string | null;
 	idle_video_url: string | null;
 	announcement_image_url: string | null;
 	announcement_video_url: string | null;
+	// branding_frame_url: string | null;
 
 	event: {
 		id: string;
 		title: string;
 		slug: string;
+		webhook_url?: string | null;
 	};
 }
 
@@ -64,17 +71,24 @@ export interface CheckInDisplayFormData {
 	active_plan_id?: number | null;
 	seating_announcement_template?: string;
 
+	// // Photo Booth
+	// photo_booth_enabled?: boolean;
+	// photo_booth_countdown?: number;
+	// photo_booth_webhook_url?: string;
+
 	// Files
 	background_image?: File;
 	idle_video?: File;
 	announcement_image?: File;
 	announcement_video?: File;
+	// branding_frame?: File;
 
 	// Removal flags
 	remove_background_image?: boolean;
 	remove_idle_video?: boolean;
 	remove_announcement_image?: boolean;
 	remove_announcement_video?: boolean;
+	// remove_branding_frame?: boolean;
 }
 
 export interface SeatingContext {

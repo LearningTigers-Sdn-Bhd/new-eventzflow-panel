@@ -39,6 +39,15 @@ interface PlanCanvasProps {
   onUpdateObject?: (id: number, updates: Partial<PlanObject>) => void;
 }
 
+interface CalibState {
+  width: number;
+  height: number;
+  bgX: number;
+  bgY: number;
+  ghostX: number;
+  ghostY: number;
+}
+
 export function PlanCanvas({
   plan,
   selectedObjectIds = [],
@@ -66,13 +75,13 @@ export function PlanCanvas({
   const [activeGuides, setActiveGuides] = useState<AlignmentGuide[]>([]);
 
   // Calibration State
-  const [calibState, setCalibState] = useState({
+  const [calibState, setCalibState] = useState<CalibState>({
       width: plan.canvas_width,
       height: plan.canvas_height,
-      bgX: plan.settings_json?.bgX || 0,
-      bgY: plan.settings_json?.bgY || 0,
-      ghostX: plan.settings_json?.ghostX || 0,
-      ghostY: plan.settings_json?.ghostY || 0
+      bgX: (plan.settings_json?.bgX as any) || 0,
+      bgY: (plan.settings_json?.bgY as any) || 0,
+      ghostX: (plan.settings_json?.ghostX as any) || 0,
+      ghostY: (plan.settings_json?.ghostY as any) || 0
   });
 
   useEffect(() => {
@@ -80,15 +89,15 @@ export function PlanCanvas({
           setCalibState({
               width: plan.canvas_width,
               height: plan.canvas_height,
-              bgX: plan.settings_json?.bgX || 0,
-              bgY: plan.settings_json?.bgY || 0,
-              ghostX: plan.settings_json?.ghostX || 0,
-              ghostY: plan.settings_json?.ghostY || 0
+              bgX: (plan.settings_json?.bgX as any) || 0,
+              bgY: (plan.settings_json?.bgY as any) || 0,
+              ghostX: (plan.settings_json?.ghostX as any) || 0,
+              ghostY: (plan.settings_json?.ghostY as any) || 0
           });
       }
   }, [plan.canvas_width, plan.canvas_height, plan.settings_json, isCalibrating]);
 
-  const pushCalibUpdate = useCallback((newState: typeof calibState) => {
+  const pushCalibUpdate = useCallback((newState: CalibState) => {
       onUpdatePlan?.({
           canvas_width: newState.width,
           canvas_height: newState.height,

@@ -13,6 +13,7 @@
 import {
 	Briefcase,
 	Building2,
+	Camera,
 	ChartBar,
 	ClipboardList,
 	CreditCard,
@@ -130,6 +131,9 @@ const visible = {
 		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
+	// photoBoothAccess: (p: Permissions, e?: Event) =>
+	// 	e?.photo_booth_enabled === true &&
+	// 	(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
 };
 
 // ============================================================================
@@ -173,6 +177,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Briefcase,
 			visible: visible.businessMatchingAccess,
 		},
+		// {
+		// 	route: "photo-booth",
+		// 	label: "Photo Booth",
+		// 	description: "Manage photo booth settings and gallery.",
+		// 	icon: Camera,
+		// 	visible: visible.photoBoothAccess,
+		// },
 		{
 			route: "plans",
 			label: "Seating Plans",
