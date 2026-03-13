@@ -17,6 +17,9 @@ export interface BackendExhibitorTeamMemberPayment {
 	payment_source: "manual_bank_in" | "payment_gateway" | null;
 	payment_proof_url: string | null;
 	external_ref: string | null;
+	gateway: string | null;
+	gateway_payment_id: string | null;
+	payment_method: string | null;
 	note: string | null;
 	paid_at: string | null;
 	created_at: string;
@@ -50,6 +53,9 @@ export interface ExhibitorTeamMemberPayment {
 	paymentSource: "manual_bank_in" | "payment_gateway" | null;
 	paymentProofUrl: string | null;
 	externalRef: string | null;
+	gateway: string | null;
+	gatewayPaymentId: string | null;
+	paymentMethod: string | null;
 	note: string | null;
 	paidAt: string | null;
 	createdAt: string;
@@ -67,3 +73,24 @@ export interface ExhibitorTeamMemberPayment {
 // Response types for operations
 export type CreateExhibitorTeamMemberPaymentResponse = ExhibitorTeamMemberPayment;
 export type UpdateExhibitorTeamMemberPaymentResponse = ExhibitorTeamMemberPayment;
+
+export interface CreateRazorpayOrderResponse {
+	success: boolean;
+	data: {
+		payment_id: number;
+		key_id: string;
+		order_id: string;
+		amount: number;
+		currency: string;
+		callback_url?: string;
+	};
+}
+
+export interface VerifyRazorpayPaymentResponse {
+	success: boolean;
+	data: {
+		payment_id: number;
+		status: string;
+		already_verified?: boolean;
+	};
+}

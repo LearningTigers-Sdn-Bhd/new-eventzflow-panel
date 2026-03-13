@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Clock,
 	CheckCircle2,
@@ -12,15 +12,71 @@ import {
 	Users,
 	CreditCard,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+	createExtraTeamMemberPaymentOrder,
+	type CreateRazorpayOrderResponse,
 	getExhibitorTeamMemberPayments,
 	type ExhibitorTeamMemberPayment,
+	verifyExtraTeamMemberPayment,
 } from "@/lib/api/exhibitor-team-member-payment";
 import { cn } from "@/lib/utils";
 import { SubmitTeamMemberPaymentDialog } from "./submit-team-member-payment-dialog";
+
+type RazorpayInstance = {
+	open: () => void;
+	on?: (event: string, callback: () => void) => void;
+};
+
+type RazorpayConstructor = new (options: Record<string, unknown>) => RazorpayInstance;
+
+async function loadRazorpayCheckoutScript() {
+	if ((window as Window & { Razorpay?: RazorpayConstructor }).Razorpay) {
+		return true;
+	}
+
+	return new Promise<boolean>((resolve) => {
+		const script = document.createElement("script");
+		script.src = "https://checkout.razorpay.com/v1/checkout.js";
+		script.async = true;
+		script.onload = () => resolve(true);
+		script.onerror = () => resolve(false);
+		document.body.appendChild(script);
+	});
+}
+
+export function usesGatewayPaymentMode(
+	paymentMode?: "manual_bank_in" | "payment_gateway" | null,
+) {
+	return paymentMode === "payment_gateway";
+}
+
+export function showsPendingGatewayAction(payment: {
+	status: ExhibitorTeamMemberPayment["status"];
+	paymentSource: ExhibitorTeamMemberPayment["paymentSource"];
+}) {
+	return payment.status === "pending" && payment.paymentSource === "payment_gateway";
+}
+
+export function getRazorpayRedirectOptions(
+	order: CreateRazorpayOrderResponse["data"],
+) {
+	if (!order.callback_url) {
+		return {};
+	}
+
+	return {
+		callback_url: order.callback_url,
+		redirect: true,
+	};
+}
+
+function isValidRazorpayOrder(order: CreateRazorpayOrderResponse["data"]) {
+	return Boolean(order.key_id && order.order_id && order.amount);
+}
 
 interface TeamMemberPaymentSectionProps {
 	eventId: string;
@@ -29,6 +85,7 @@ interface TeamMemberPaymentSectionProps {
 	excessCount: number;
 	feePerMember: number;
 	totalCharges: number;
+	paymentMode?: "manual_bank_in" | "payment_gateway";
 }
 
 const getStatusConfig = (status: ExhibitorTeamMemberPayment["status"]) => {
@@ -66,10 +123,13 @@ export function TeamMemberPaymentSection({
 	excessCount,
 	feePerMember,
 	totalCharges,
+	paymentMode,
 }: TeamMemberPaymentSectionProps) {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<ExhibitorTeamMemberPayment | null>(null);
+	const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
+	const queryClient = useQueryClient();
 
 	const {
 		data: payments,
@@ -84,14 +144,119 @@ export function TeamMemberPaymentSection({
 			}),
 	});
 
-	const handlePayNow = () => {
+	const hasPaymentGateway = usesGatewayPaymentMode(paymentMode);
+
+	const handlePayNow = async () => {
+		if (hasPaymentGateway) {
+			await handleRazorpayPayment();
+			return;
+		}
+
 		setSelectedPayment(null);
 		setDialogOpen(true);
+	};
+
+	const handleRazorpayPayment = async () => {
+		try {
+			setIsRazorpayLoading(true);
+
+			const order = await createExtraTeamMemberPaymentOrder({
+				eventId,
+				exhibitorKitId: kitId,
+			});
+
+			if (!isValidRazorpayOrder(order)) {
+				throw new Error("Payment order response is incomplete.");
+			}
+
+			const isScriptLoaded = await loadRazorpayCheckoutScript();
+			const Razorpay = (window as Window & { Razorpay?: RazorpayConstructor })
+				.Razorpay;
+
+			if (!isScriptLoaded || !Razorpay) {
+				throw new Error("Unable to load Razorpay checkout script.");
+			}
+
+			const razorpay = new Razorpay({
+				key: order.key_id,
+				amount: order.amount,
+				currency: order.currency || "MYR",
+				name: "Extra Team Member Payment",
+				description: "Payment for extra team members",
+				order_id: order.order_id,
+				...getRazorpayRedirectOptions(order),
+				handler: async (response: {
+					razorpay_order_id: string;
+					razorpay_payment_id: string;
+					razorpay_signature: string;
+				}) => {
+					try {
+						await verifyExtraTeamMemberPayment({
+							eventId,
+							exhibitorKitId: kitId,
+							paymentId: order.payment_id,
+							razorpayOrderId: response.razorpay_order_id,
+							razorpayPaymentId: response.razorpay_payment_id,
+							razorpaySignature: response.razorpay_signature,
+						});
+						toast.success(
+							"Payment successful! Your extra team members have been confirmed.",
+						);
+						await Promise.all([
+							queryClient.invalidateQueries({
+								queryKey: ["exhibitor-team-member-payments", eventId, kitId],
+							}),
+							queryClient.invalidateQueries({
+								queryKey: ["event", eventId, "vendors"],
+							}),
+						]);
+					} catch {
+						toast.error(
+							"Payment verification failed. Please contact the organizer if you were charged.",
+						);
+					} finally {
+						setIsRazorpayLoading(false);
+					}
+				},
+				modal: {
+					ondismiss: () => {
+						setIsRazorpayLoading(false);
+					},
+				},
+				theme: {
+					color: "#000000",
+				},
+			});
+
+			razorpay.on?.("payment.failed", () => {
+				toast.error("Payment failed. Please try again.");
+				setIsRazorpayLoading(false);
+			});
+
+			razorpay.open();
+		} catch (error) {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Failed to initiate payment",
+			);
+			setIsRazorpayLoading(false);
+		}
 	};
 
 	const handleResubmit = (payment: ExhibitorTeamMemberPayment) => {
 		setSelectedPayment(payment);
 		setDialogOpen(true);
+	};
+
+	const handleContinueGatewayPayment = async (
+		payment: ExhibitorTeamMemberPayment,
+	) => {
+		if (!usesGatewayPaymentMode(payment.paymentSource)) {
+			return;
+		}
+
+		await handleRazorpayPayment();
 	};
 
 	if (isLoading) {
@@ -142,9 +307,23 @@ export function TeamMemberPaymentSection({
 								RM {feePerMember.toFixed(2)})
 							</p>
 						</div>
-						<Button onClick={handlePayNow} className="rounded-none">
-							<Upload className="mr-2 size-4" />
-							Pay Now
+						<Button
+							onClick={handlePayNow}
+							className="rounded-none"
+							disabled={isRazorpayLoading}
+						>
+							{isRazorpayLoading ? (
+								"Processing..."
+							) : (
+								<>
+									{hasPaymentGateway ? (
+										<CreditCard className="mr-2 size-4" />
+									) : (
+										<Upload className="mr-2 size-4" />
+									)}
+									Pay Now
+								</>
+							)}
 						</Button>
 					</div>
 				</div>
@@ -157,6 +336,7 @@ export function TeamMemberPaymentSection({
 						const config = getStatusConfig(payment.status);
 						const StatusIcon = config.icon;
 						const canResubmit = payment.status === "rejected";
+						const canContinueGatewayPayment = showsPendingGatewayAction(payment);
 
 						return (
 							<div
@@ -200,17 +380,28 @@ export function TeamMemberPaymentSection({
 											</Button>
 										)}
 
-										{canResubmit && (
-											<Button
-												className="gap-2 rounded-none"
-												onClick={() => handleResubmit(payment)}
-											>
-												<Upload className="size-4" />
-												Resubmit
-											</Button>
-										)}
+									{canResubmit && (
+										<Button
+											className="gap-2 rounded-none"
+											onClick={() => handleResubmit(payment)}
+										>
+											<Upload className="size-4" />
+											Resubmit
+										</Button>
+									)}
 
-										{payment.status === "verified" && (
+									{canContinueGatewayPayment && (
+										<Button
+											className="gap-2 rounded-none"
+											onClick={() => handleContinueGatewayPayment(payment)}
+											disabled={isRazorpayLoading}
+										>
+											<CreditCard className="size-4" />
+											{isRazorpayLoading ? "Processing..." : "Continue Payment"}
+										</Button>
+									)}
+
+									{payment.status === "verified" && (
 											<Badge className="rounded-none bg-green-600">
 												<CheckCircle2 className="mr-1 size-3" />
 												Paid

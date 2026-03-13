@@ -127,6 +127,7 @@ export interface ExhibitorKit {
 	has_unpaid_excess_team_members?: boolean;
 	extra_team_member_fee?: string;
 	extra_team_member_charges?: string;
+	extra_team_member_payment_mode?: "manual_bank_in" | "payment_gateway";
 	created_at?: string;
 	updated_at?: string;
 }
