@@ -124,7 +124,10 @@ export function CelebrationDialogContent({
 	};
 
 	return (
-		<div className="flex h-full w-full flex-col bg-background text-foreground">
+		<div
+			className="flex h-full w-full cursor-pointer flex-col bg-background text-foreground"
+			onClick={onClose}
+		>
 			<div className="relative flex flex-1 flex-col items-center justify-center p-8 sm:p-12">
 				<div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center">
 					{/* Trophy/Prize Section */}
