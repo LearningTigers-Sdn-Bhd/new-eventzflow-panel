@@ -13,6 +13,7 @@ import {
 	useCelebrationDialog,
 } from "@/components/pages/surprise-mechanics/shared/celebration-dialog/celebration-dialog-provider";
 import { useCelebration } from "@/hooks/surprise/shared/use-celebration";
+import { useFullscreen } from "@/hooks/surprise/shared/use-fullscreen";
 import { useSessionBackground } from "@/hooks/surprise/shared/use-session-background";
 import { useSessionSheets } from "@/hooks/surprise/shared/use-session-sheets";
 import { useLuckyDraw } from "@/hooks/use-lucky-draw";
@@ -29,6 +30,8 @@ interface LuckyDrawSessionContextValue {
 	// UI State
 	isDisplayMode: boolean;
 	toggleDisplayMode: () => void;
+	isFullscreen: boolean;
+	toggleFullscreen: () => void;
 	sheetState: ReturnType<typeof useSessionSheets>;
 
 	// Draw State
@@ -74,6 +77,7 @@ function LuckyDrawSessionProviderInner({
 }: LuckyDrawSessionProviderProps) {
 	const [isDisplayMode, setIsDisplayMode] = useState(false);
 	const { showCelebration } = useCelebrationDialog();
+	const { isFullscreen, toggleFullscreen } = useFullscreen();
 
 	// Sheet state management
 	const sheetState = useSessionSheets();
@@ -197,6 +201,8 @@ function LuckyDrawSessionProviderInner({
 			// UI State
 			isDisplayMode,
 			toggleDisplayMode: () => setIsDisplayMode((prev) => !prev),
+			isFullscreen,
+			toggleFullscreen,
 			sheetState,
 
 			// Draw State
@@ -226,6 +232,8 @@ function LuckyDrawSessionProviderInner({
 			session,
 			eventName,
 			isDisplayMode,
+			isFullscreen,
+			toggleFullscreen,
 			sheetState,
 			isDrawing,
 			canDraw,

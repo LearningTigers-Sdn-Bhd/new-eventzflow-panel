@@ -1,10 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft, Download, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Download, Eye, EyeOff, Maximize, Minimize } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * Main container for session header
@@ -93,6 +94,46 @@ export function SessionDisplayModeToggle({
 				<>
 					<Eye className="h-4 w-4" />
 					<span className="text-sm">Show Controls</span>
+				</>
+			)}
+		</Button>
+	);
+}
+
+/**
+ * Fullscreen toggle button
+ */
+interface SessionFullscreenToggleProps {
+	isFullscreen: boolean;
+	onToggle: () => void;
+	isOverlay?: boolean;
+}
+
+export function SessionFullscreenToggle({
+	isFullscreen,
+	onToggle,
+	isOverlay = false,
+}: SessionFullscreenToggleProps) {
+	return (
+		<Button
+			variant={isOverlay ? "ghost" : "outline"}
+			size="sm"
+			onClick={onToggle}
+			className={cn(
+				"gap-2 rounded-none",
+				isOverlay &&
+					"bg-background/20 opacity-0 backdrop-blur-sm transition-all duration-300 hover:bg-background/40 hover:opacity-100",
+			)}
+		>
+			{isFullscreen ? (
+				<>
+					<Minimize className="h-4 w-4" />
+					{!isOverlay && <span className="text-sm">Exit Fullscreen</span>}
+				</>
+			) : (
+				<>
+					<Maximize className="h-4 w-4" />
+					{!isOverlay && <span className="text-sm">Fullscreen</span>}
 				</>
 			)}
 		</Button>

@@ -25,6 +25,8 @@ export function RouletteHeader() {
 		eventName,
 		isDisplayMode,
 		toggleDisplayMode,
+		isFullscreen,
+		toggleFullscreen,
 		sheetState,
 		canDraw,
 		isDrawing,
