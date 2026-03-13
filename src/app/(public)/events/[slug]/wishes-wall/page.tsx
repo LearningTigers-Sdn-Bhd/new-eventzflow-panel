@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { WishesGrid } from "@/components/pages/wishes-wall/wishes-grid";
 import { getPublicEventById } from "@/lib/api/event";
@@ -16,6 +17,14 @@ export default function WishesWallPage() {
 		enabled: !!slug,
 		retry: 2,
 	});
+
+	useEffect(() => {
+		if (data?.title) {
+			document.title = `Live Wishes Wall - ${data.title}`;
+		} else {
+			document.title = "Live Wishes Wall";
+		}
+	}, [data?.title]);
 
 	if (isLoading) {
 		return (
@@ -32,7 +41,11 @@ export default function WishesWallPage() {
 		return (
 			<ErrorState
 				title="Unable to load the wishes wall"
-				description={error instanceof Error ? error.message : "Please check the event link and try again."}
+				description={
+					error instanceof Error
+						? error.message
+						: "Please check the event link and try again."
+				}
 				height="min-h-screen"
 				className="bg-[#120f0c] text-white"
 			/>
@@ -40,10 +53,6 @@ export default function WishesWallPage() {
 	}
 
 	return (
-		<WishesGrid
-			eventId={String(data.id)}
-			eventTitle={data.title}
-			slug={slug}
-		/>
+		<WishesGrid eventId={String(data.id)} eventTitle={data.title} slug={slug} />
 	);
 }

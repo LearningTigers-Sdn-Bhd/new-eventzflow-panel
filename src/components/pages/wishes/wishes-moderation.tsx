@@ -1,24 +1,21 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquareHeart, RefreshCw } from "lucide-react";
-import { useState } from "react";
-import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { ExternalLink, Info, MonitorPlay, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getEventById, updateEvent } from "@/lib/api/event";
-import { approveWish, deleteWish, listWishes, rejectWish } from "@/lib/api/wishes";
-import { WishModerationCard } from "./wish-moderation-card";
+import { listWishes } from "@/lib/api/wishes";
+import { DataTable } from "./table/wishes-table";
+import { getWishesColumns } from "./table/wishes-table-columns";
 
 type WishesModerationProps = {
 	eventId: string;
 };
 
-type WishStatus = "pending" | "approved" | "rejected";
-
 export function WishesModeration({ eventId }: WishesModerationProps) {
-	const [activeTab, setActiveTab] = useState<WishStatus>("pending");
 	const queryClient = useQueryClient();
 
 	const { data: event } = useQuery({
@@ -27,35 +24,10 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 		enabled: !!eventId,
 	});
 
-	const {
-		data,
-		isLoading,
-		error,
-		refetch,
-		isFetching,
-	} = useQuery({
-		queryKey: ["wishes", eventId, activeTab],
-		queryFn: () => listWishes(eventId, activeTab),
+	const { data, isLoading, error, refetch } = useQuery({
+		queryKey: ["wishes", eventId],
+		queryFn: () => listWishes(eventId),
 		enabled: !!eventId,
-	});
-
-	const invalidateWishes = async () => {
-		await queryClient.invalidateQueries({ queryKey: ["wishes", eventId] });
-	};
-
-	const approveMutation = useMutation({
-		mutationFn: (wishId: number) => approveWish(eventId, wishId),
-		onSuccess: invalidateWishes,
-	});
-
-	const rejectMutation = useMutation({
-		mutationFn: (wishId: number) => rejectWish(eventId, wishId),
-		onSuccess: invalidateWishes,
-	});
-
-	const deleteMutation = useMutation({
-		mutationFn: (wishId: number) => deleteWish(eventId, wishId),
-		onSuccess: invalidateWishes,
 	});
 
 	const autoApproveMutation = useMutation({
@@ -80,7 +52,9 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 		return (
 			<ErrorState
 				title="Unable to load wishes"
-				description={error instanceof Error ? error.message : "Please try again."}
+				description={
+					error instanceof Error ? error.message : "Please try again."
+				}
 				action={
 					<Button onClick={() => refetch()} variant="outline">
 						Try Again
@@ -91,96 +65,73 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 		);
 	}
 
+	const columns = getWishesColumns(eventId);
 	const wishes = data?.wishes ?? [];
 
 	return (
-		<div className="space-y-6 px-4 py-6 sm:px-6">
-			<div className="flex flex-col gap-4 rounded-[1.75rem] border border-stone-200/70 bg-gradient-to-br from-white to-stone-50 p-6 shadow-[0_25px_70px_-45px_rgba(0,0,0,0.35)] sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<p className="flex items-center gap-2 font-semibold text-[11px] text-stone-500 uppercase tracking-[0.3em]">
-						<MessageSquareHeart className="h-4 w-4" />
-						Wedding Guestbook
-					</p>
-					<h1 className="mt-3 font-serif text-3xl text-stone-900 italic sm:text-4xl">
-						{event?.title ?? "Guestbook moderation"}
-					</h1>
-					<p className="mt-3 max-w-2xl text-stone-500 leading-relaxed">
-						Approve heartfelt blessings for the live wishes wall, or keep unsuitable messages out of the venue display.
-					</p>
-					<div className="mt-5 flex max-w-xl items-start gap-4 rounded-[1.25rem] border border-stone-200 bg-white/80 px-4 py-4">
+		<div className="space-y-4">
+			<div className="flex flex-1 items-start gap-3 rounded-none border border-dashed bg-muted/30 p-4">
+				<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+				<div className="flex-1 space-y-1">
+					<div className="flex items-center justify-between">
+						<p className="font-medium text-sm">Auto-approve wishes</p>
 						<Switch
 							checked={event?.auto_approve_wishes ?? false}
 							onCheckedChange={(checked) => autoApproveMutation.mutate(checked)}
 							disabled={autoApproveMutation.isPending}
 							aria-label="Auto-approve wishes"
 						/>
-						<div>
-							<p className="font-semibold text-sm text-stone-900">Auto-approve wishes</p>
-							<p className="mt-1 text-sm text-stone-500 leading-relaxed">
-								New guestbook submissions appear on the wishes wall immediately without manual approval.
-							</p>
-						</div>
 					</div>
+					<p className="text-muted-foreground text-sm">
+						New guestbook submissions appear on the wishes wall immediately
+						without manual approval.
+					</p>
 				</div>
-				<Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-					<RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+			</div>
+
+			<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+				<Button
+					variant="outline"
+					onClick={() => refetch()}
+					disabled={isLoading}
+					className="w-full rounded-none sm:w-auto sm:shrink-0"
+				>
+					<RefreshCw
+						className={isLoading ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"}
+					/>
 					Refresh
+				</Button>
+				<Button
+					variant="outline"
+					asChild
+					className="w-full rounded-none sm:w-auto sm:shrink-0"
+				>
+					<Link
+						href={`/events/${event?.slug}/guestbook`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						View Form
+						<ExternalLink className="ml-2 h-4 w-4" />
+					</Link>
+				</Button>
+				<Button
+					variant="outline"
+					asChild
+					className="w-full rounded-none sm:w-auto sm:shrink-0"
+				>
+					<Link
+						href={`/events/${event?.slug}/wishes-wall`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Live Wall
+						<MonitorPlay className="ml-2 h-4 w-4" />
+					</Link>
 				</Button>
 			</div>
 
-			<Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as WishStatus)}>
-				<TabsList className="grid w-full grid-cols-3 rounded-full border border-stone-200 bg-white p-1 sm:w-[420px]">
-					<TabsTrigger value="pending" className="rounded-full">
-						Pending
-					</TabsTrigger>
-					<TabsTrigger value="approved" className="rounded-full">
-						Approved
-					</TabsTrigger>
-					<TabsTrigger value="rejected" className="rounded-full">
-						Rejected
-					</TabsTrigger>
-				</TabsList>
-			</Tabs>
-
-			{wishes.length === 0 ? (
-				<EmptyState
-					title={`No ${activeTab} wishes yet`}
-					description="New guestbook messages will appear here once they match this moderation state."
-					height="h-[45vh]"
-				/>
-			) : (
-				<div className="grid gap-4 xl:grid-cols-2">
-					{wishes.map((wish) => {
-						const busy =
-							approveMutation.isPending ||
-							rejectMutation.isPending ||
-							deleteMutation.isPending;
-
-						return (
-							<WishModerationCard
-								key={wish.id}
-								wish={wish}
-								busy={busy}
-								onApprove={
-									wish.status === "pending"
-										? () => approveMutation.mutate(wish.id)
-										: undefined
-								}
-								onReject={
-									wish.status === "pending"
-										? () => rejectMutation.mutate(wish.id)
-										: undefined
-								}
-								onDelete={
-									wish.status !== "pending"
-										? () => deleteMutation.mutate(wish.id)
-										: undefined
-								}
-							/>
-						);
-					})}
-				</div>
-			)}
+			<DataTable columns={columns} data={wishes} />
 		</div>
 	);
 }

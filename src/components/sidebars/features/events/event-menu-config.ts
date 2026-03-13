@@ -204,7 +204,8 @@ export const eventMenuConfig: EventMenuConfig = {
 		{
 			route: "wishes",
 			label: "Guestbook",
-			description: "Moderate guest blessings and wishes wall.",
+			description:
+				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
 			icon: MessageSquareHeart,
 			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
 		},
@@ -305,8 +306,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "seat-ticketing",
 			label: "Seat Reservation",
 			icon: Ticket,
-			visible: (p, e) =>
-				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+			visible: (p, e) => visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
 			tabs: [
 				{
 					route: "seat-ticketing/sessions",
@@ -461,7 +461,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: ScanQrCode,
 					visible: visible.vendor,
 				},
-
 			],
 		},
 

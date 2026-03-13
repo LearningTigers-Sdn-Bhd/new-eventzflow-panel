@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 import type { Wish } from "@/lib/api/wishes";
 
 type WishCardProps = {
@@ -8,22 +9,45 @@ type WishCardProps = {
 };
 
 export function WishCard({ wish }: WishCardProps) {
+	// Generate a stable random rotation between -2 and +2 degrees for a "scattered polaroid" feel
+	const rotation = useMemo(() => {
+		const hash = wish.guest_name.length + wish.message.length;
+		return (hash % 5) - 2;
+	}, [wish.guest_name, wish.message]);
+
 	return (
 		<motion.article
 			layout
-			initial={{ opacity: 0, y: 24, scale: 0.96 }}
-			animate={{ opacity: 1, y: 0, scale: 1 }}
-			exit={{ opacity: 0, y: -24, scale: 0.96 }}
-			transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-			className="flex min-h-[220px] flex-col justify-between rounded-[1.75rem] border border-amber-100/15 bg-white/8 p-6 shadow-[0_25px_60px_-30px_rgba(0,0,0,0.7)] backdrop-blur-md"
+			initial={{ opacity: 0, y: 30, scale: 0.9 }}
+			animate={{ opacity: 1, y: 0, scale: 1, rotate: rotation }}
+			exit={{ opacity: 0, scale: 0.9 }}
+			transition={{ type: "spring", stiffness: 200, damping: 20 }}
+			whileHover={{
+				scale: 1.02,
+				rotate: 0,
+				zIndex: 10,
+				boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+			}}
+			className="relative flex min-h-[260px] flex-col justify-center bg-[#FFFCF8] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-900/5 sm:p-10"
+			style={{
+				// Creates a subtle paper texture effect
+				backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
+			}}
 		>
-			<p className="font-serif text-xl text-stone-100 leading-relaxed lg:text-2xl">
-				{wish.message}
-			</p>
-			<div className="mt-6 border-amber-200/20 border-t pt-4">
-				<p className="font-semibold text-[11px] text-amber-200 uppercase tracking-[0.32em]">
-					{wish.guest_name}
+			{/* Top pin/tape illusion */}
+			<div className="absolute top-0 left-1/2 h-3 w-12 -translate-x-1/2 -translate-y-1/2 rotate-[-2deg] border border-stone-200/50 bg-white/40 shadow-sm backdrop-blur-sm" />
+
+			<div className="relative z-10 flex h-full flex-col items-center justify-center space-y-8 text-center">
+				<p className="whitespace-pre-wrap font-serif text-stone-700 text-xl leading-[1.8] tracking-wide lg:text-2xl">
+					"{wish.message}"
 				</p>
+
+				<div className="flex flex-col items-center gap-2">
+					<div className="mb-2 h-px w-12 bg-stone-300" />
+					<p className="font-serif text-2xl text-stone-900 italic">
+						{wish.guest_name}
+					</p>
+				</div>
 			</div>
 		</motion.article>
 	);
