@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	buildSingleTeamMemberPayload,
+	getExtraSlotSummary,
 	getExtraTeamMemberPaymentFeedback,
 	normalizeTeamMemberInput,
 } from "./vendor-team-members-page";
@@ -96,5 +97,27 @@ describe("vendor team member payload helpers", () => {
 		);
 
 		expect(feedback).toBeNull();
+	});
+
+	test("builds paid extra slot summary from backend counters", () => {
+		const summary = getExtraSlotSummary({
+			paid_extra_member_count: 4,
+			used_paid_extra_member_count: 3,
+		});
+
+		expect(summary).toEqual({
+			paid: 4,
+			inUse: 3,
+			label: "3 / 4 in use",
+		});
+	});
+
+	test("returns null extra slot summary when no paid slots exist", () => {
+		const summary = getExtraSlotSummary({
+			paid_extra_member_count: 0,
+			used_paid_extra_member_count: 0,
+		});
+
+		expect(summary).toBeNull();
 	});
 });
