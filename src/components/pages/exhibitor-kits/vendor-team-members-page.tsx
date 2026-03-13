@@ -61,6 +61,11 @@ interface RawTeamMemberInput {
 	_destroy?: boolean;
 }
 
+interface ExtraSlotSummaryInput {
+	paid_extra_member_count?: number | null;
+	used_paid_extra_member_count?: number | null;
+}
+
 export function normalizeTeamMemberInput(
 	member: RawTeamMemberInput,
 ): TeamMemberInput {
@@ -113,6 +118,22 @@ export function getExtraTeamMemberPaymentFeedback(
 	}
 
 	return null;
+}
+
+export function getExtraSlotSummary({
+	paid_extra_member_count,
+	used_paid_extra_member_count,
+}: ExtraSlotSummaryInput) {
+	const paid = paid_extra_member_count ?? 0;
+	if (paid <= 0) return null;
+
+	const inUse = Math.min(used_paid_extra_member_count ?? 0, paid);
+
+	return {
+		paid,
+		inUse,
+		label: `${inUse} / ${paid} in use`,
+	};
 }
 
 export function VendorTeamMembersPage({
@@ -287,6 +308,10 @@ export function VendorTeamMembersPage({
 	// Total excess for display purposes (regardless of payment status)
 	const totalExcessCount = limit && currentCount > limit ? currentCount - limit : 0;
 	const totalCharges = totalExcessCount * fee;
+	const extraSlotSummary = getExtraSlotSummary({
+		paid_extra_member_count: kit?.paid_extra_member_count,
+		used_paid_extra_member_count: kit?.used_paid_extra_member_count,
+	});
 
 	const canAddMore = !limit || fee > 0 || currentCount < limit;
 	const paymentFeedback = getExtraTeamMemberPaymentFeedback(
@@ -377,7 +402,7 @@ export function VendorTeamMembersPage({
 
 			{/* Summary Cards - Only show when there's a limit */}
 			{limit && (
-				<div className="grid gap-4 md:grid-cols-3">
+				<div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
 					<div className="border p-4">
 						<div className="mb-3">
 							<h3 className="font-medium text-sm">Total Members</h3>
@@ -408,6 +433,18 @@ export function VendorTeamMembersPage({
 							</div>
 							<p className="text-muted-foreground text-xs">
 								{totalExcessCount} × RM {fee.toFixed(2)}
+							</p>
+						</div>
+					)}
+
+					{extraSlotSummary && (
+						<div className="border p-4">
+							<div className="mb-3">
+								<h3 className="font-medium text-sm">Paid Extra Slots</h3>
+							</div>
+							<div className="font-bold text-2xl">{extraSlotSummary.paid}</div>
+							<p className="text-muted-foreground text-xs">
+								{extraSlotSummary.label}
 							</p>
 						</div>
 					)}
