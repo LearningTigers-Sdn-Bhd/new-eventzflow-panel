@@ -3,8 +3,10 @@ export {
 	getExhibitorTeamMemberPayments,
 	getExhibitorTeamMemberPayment,
 	createExhibitorTeamMemberPayment,
+	createExtraTeamMemberPaymentOrder,
 	updateExhibitorTeamMemberPayment,
 	resubmitTeamMemberPaymentProof,
+	verifyExtraTeamMemberPayment,
 } from "./endpoints";
 
 // Request types and schemas
@@ -24,5 +26,7 @@ export type {
 	BackendExhibitorTeamMemberPayment,
 	ExhibitorTeamMemberPayment,
 	CreateExhibitorTeamMemberPaymentResponse,
+	CreateRazorpayOrderResponse,
 	UpdateExhibitorTeamMemberPaymentResponse,
+	VerifyRazorpayPaymentResponse,
 } from "./response";

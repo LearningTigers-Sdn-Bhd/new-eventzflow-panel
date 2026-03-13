@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	buildSingleTeamMemberPayload,
+	getExtraTeamMemberPaymentFeedback,
 	normalizeTeamMemberInput,
 } from "./vendor-team-members-page";
 
@@ -61,5 +62,39 @@ describe("vendor team member payload helpers", () => {
 				_destroy: false,
 			},
 		]);
+	});
+
+	test("builds success feedback from redirect params", () => {
+		const feedback = getExtraTeamMemberPaymentFeedback(
+			new URLSearchParams("payment=success&source=extra-team-member"),
+		);
+
+		expect(feedback).toEqual({
+			variant: "success",
+			title: "Payment successful",
+			message: "Your extra team member payment was completed successfully.",
+		});
+	});
+
+	test("builds error feedback from redirect params", () => {
+		const feedback = getExtraTeamMemberPaymentFeedback(
+			new URLSearchParams(
+				"payment=error&source=extra-team-member&reason=invalid_signature",
+			),
+		);
+
+		expect(feedback).toEqual({
+			variant: "error",
+			title: "Payment not completed",
+			message: "We could not confirm the payment. Please try again from the pending payment card.",
+		});
+	});
+
+	test("ignores unrelated search params", () => {
+		const feedback = getExtraTeamMemberPaymentFeedback(
+			new URLSearchParams("payment=success&source=other"),
+		);
+
+		expect(feedback).toBeNull();
 	});
 });

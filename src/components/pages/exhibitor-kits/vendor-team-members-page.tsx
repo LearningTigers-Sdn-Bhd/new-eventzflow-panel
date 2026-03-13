@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Info, Plus, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -87,12 +88,40 @@ export function buildSingleTeamMemberPayload(member: TeamMemberInput) {
 	];
 }
 
+export function getExtraTeamMemberPaymentFeedback(
+	searchParams: URLSearchParams,
+) {
+	if (searchParams.get("source") !== "extra-team-member") {
+		return null;
+	}
+
+	if (searchParams.get("payment") === "success") {
+		return {
+			variant: "success" as const,
+			title: "Payment successful",
+			message: "Your extra team member payment was completed successfully.",
+		};
+	}
+
+	if (searchParams.get("payment") === "error") {
+		return {
+			variant: "error" as const,
+			title: "Payment not completed",
+			message:
+				"We could not confirm the payment. Please try again from the pending payment card.",
+		};
+	}
+
+	return null;
+}
+
 export function VendorTeamMembersPage({
 	eventId,
 	eventVendorId,
 }: VendorTeamMembersPageProps) {
 	const queryClient = useQueryClient();
 	const { openConfirm, closeDialog } = useConfirmDialog();
+	const searchParams = useSearchParams();
 
 	// Fetch vendor data
 	const { data: vendors, isLoading: isLoadingVendor } = useQuery({
@@ -260,6 +289,9 @@ export function VendorTeamMembersPage({
 	const totalCharges = totalExcessCount * fee;
 
 	const canAddMore = !limit || fee > 0 || currentCount < limit;
+	const paymentFeedback = getExtraTeamMemberPaymentFeedback(
+		new URLSearchParams(searchParams.toString()),
+	);
 
 	// Transform active members to table rows
 	const tableData: TeamMemberRow[] = useMemo(() => {
@@ -315,6 +347,34 @@ export function VendorTeamMembersPage({
 
 	return (
 		<div className="space-y-6 p-0">
+			{paymentFeedback && (
+				<Alert
+					className={
+						paymentFeedback.variant === "success"
+							? "rounded-none border-green-500 bg-green-50"
+							: "rounded-none border-red-500 bg-red-50"
+					}
+				>
+					<AlertCircle
+						className={
+							paymentFeedback.variant === "success"
+								? "h-4 w-4 text-green-600"
+								: "h-4 w-4 text-red-600"
+						}
+					/>
+					<AlertDescription
+						className={
+							paymentFeedback.variant === "success"
+								? "text-green-700"
+								: "text-red-700"
+						}
+					>
+						<span className="block font-medium">{paymentFeedback.title}</span>
+						<span>{paymentFeedback.message}</span>
+					</AlertDescription>
+				</Alert>
+			)}
+
 			{/* Summary Cards - Only show when there's a limit */}
 			{limit && (
 				<div className="grid gap-4 md:grid-cols-3">
@@ -373,6 +433,7 @@ export function VendorTeamMembersPage({
 				excessCount={unpaidExcessCount}
 				feePerMember={fee}
 				totalCharges={unpaidCharges}
+				paymentMode={kit.extra_team_member_payment_mode}
 			/>
 
 			{/* Info about limit */}
