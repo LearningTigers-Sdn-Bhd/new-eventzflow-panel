@@ -22,6 +22,8 @@ export function LuckyDrawHeader() {
 		eventName,
 		isDisplayMode,
 		toggleDisplayMode,
+		isFullscreen,
+		toggleFullscreen,
 		sheetState,
 		canDraw,
 		isDrawing,

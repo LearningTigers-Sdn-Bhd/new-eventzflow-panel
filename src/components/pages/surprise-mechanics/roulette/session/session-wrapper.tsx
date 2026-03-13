@@ -1,15 +1,30 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import type { RouletteSession } from "@/lib/api/roulette/response";
 import { RouletteDrawArea } from "./components/roulette-draw-area";
 import { RouletteHeader } from "./components/roulette-header";
-import { RouletteSessionProvider } from "./session-provider";
+import { RouletteSessionProvider, useRouletteSession } from "./session-provider";
 
 interface SessionWrapperProps {
 	eventId: string;
 	sessionId: number;
 	session: RouletteSession;
 	eventName: string;
+}
+
+function RouletteContent() {
+	const { isFullscreen } = useRouletteSession();
+
+	return (
+		<div className={cn(
+			"mx-auto flex min-h-screen w-full flex-col gap-6 transition-all duration-300",
+			isFullscreen ? "max-w-none gap-0 p-0" : "max-w-7xl"
+		)}>
+			{!isFullscreen && <RouletteHeader />}
+			<RouletteDrawArea />
+		</div>
+	);
 }
 
 export function SessionWrapper({
@@ -25,10 +40,7 @@ export function SessionWrapper({
 			session={session}
 			eventName={eventName}
 		>
-			<div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6">
-				<RouletteHeader />
-				<RouletteDrawArea />
-			</div>
+			<RouletteContent />
 		</RouletteSessionProvider>
 	);
 }
