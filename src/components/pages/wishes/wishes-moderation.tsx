@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import { listWishes } from "@/lib/api/wishes";
+import { getAutoRefreshQueryOptions } from "@/lib/query/auto-refresh";
 import { DataTable } from "./table/wishes-table";
 import { getWishesColumns } from "./table/wishes-table-columns";
 
@@ -28,6 +29,7 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 		queryKey: ["wishes", eventId],
 		queryFn: () => listWishes(eventId),
 		enabled: !!eventId,
+		...getAutoRefreshQueryOptions(),
 	});
 
 	const autoApproveMutation = useMutation({

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { getAutoRefreshQueryOptions } from "@/lib/query/auto-refresh";
 import { CustomRequestsForm } from "./custom-requests-form";
 
 interface CustomRequestsPageProps {
@@ -46,7 +47,7 @@ export function CustomRequestsPage({
 			return getExhibitorKit(eventId, exhibitorKitId);
 		},
 		enabled: !!exhibitorKitId,
-		refetchInterval: 10000,
+		...getAutoRefreshQueryOptions(10_000),
 	});
 
 	const isLoading = isLoadingVendors || isLoadingKit;

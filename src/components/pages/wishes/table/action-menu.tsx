@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import type { Wish } from "@/lib/api/wishes";
 import { approveWish, deleteWish, rejectWish } from "@/lib/api/wishes";
 
@@ -14,6 +15,7 @@ interface WishesActionMenuProps {
 
 export function WishesActionMenu({ wish, eventId }: WishesActionMenuProps) {
 	const queryClient = useQueryClient();
+	const { openConfirm, closeDialog } = useConfirmDialog();
 
 	const invalidateWishes = async () => {
 		await queryClient.invalidateQueries({ queryKey: ["wishes", eventId] });
@@ -39,6 +41,22 @@ export function WishesActionMenu({ wish, eventId }: WishesActionMenuProps) {
 		rejectMutation.isPending ||
 		deleteMutation.isPending;
 	const isPending = wish.status === "pending";
+
+	const handleDeleteClick = () => {
+		openConfirm({
+			title: "Delete Wish",
+			message:
+				"Are you sure you want to delete this wish? This action cannot be undone.",
+			confirmLabel: "Delete",
+			type: "destructive",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				deleteMutation.mutate(wish.id);
+			},
+			onCancel: closeDialog,
+		});
+	};
 
 	return (
 		<ButtonGroup>
@@ -70,7 +88,7 @@ export function WishesActionMenu({ wish, eventId }: WishesActionMenuProps) {
 				size="icon-sm"
 				variant="outline"
 				className="rounded-none text-stone-600 hover:bg-red-50 hover:text-red-600 [&_svg]:text-stone-600 hover:[&_svg]:text-red-600"
-				onClick={() => deleteMutation.mutate(wish.id)}
+				onClick={handleDeleteClick}
 				disabled={busy}
 				title="Delete"
 			>

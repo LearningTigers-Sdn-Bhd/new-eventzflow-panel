@@ -13,4 +13,13 @@ describe("WishesModeration", () => {
 		expect(content).toContain("updateEvent(eventId");
 		expect(content).toContain("Switch");
 	});
+
+	test("auto refreshes the moderation list on an interval", () => {
+		const content = readFileSync(
+			new URL("./wishes-moderation.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("getAutoRefreshQueryOptions");
+	});
 });
