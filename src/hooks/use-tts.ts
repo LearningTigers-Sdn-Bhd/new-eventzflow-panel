@@ -14,12 +14,13 @@ export {
 interface UseTTSOptions {
 	enabled: boolean;
 	voiceId: VoiceId;
+	eventId?: number;
 	speakingRate?: number;
 	debug?: boolean;
 }
 
 interface UseTTSReturn {
-	speak: (text: string) => Promise<void>;
+	speak: (text: string, overrideVoiceId?: VoiceId | VoiceId[]) => Promise<void>;
 	isSpeaking: boolean;
 	isSupported: boolean;
 	error: string | null;
@@ -28,7 +29,8 @@ interface UseTTSReturn {
 
 export function useTTS({
 	enabled,
-	voiceId,
+	voiceId: defaultVoiceId,
+	eventId,
 	speakingRate = 0.88,
 	debug = false,
 }: UseTTSOptions): UseTTSReturn {
@@ -58,7 +60,7 @@ export function useTTS({
 	}, []);
 
 	const speak = useCallback(
-		async (text: string) => {
+		async (text: string, overrideVoiceId?: VoiceId | VoiceId[]) => {
 			if (!enabled || !isSupported) {
 				return;
 			}
@@ -71,18 +73,33 @@ export function useTTS({
 			setIsSpeaking(true);
 			setError(null);
 
-			try {
-				const result = await synthesizeSpeech({
-					text: trimmedText,
-					voiceId,
-					speakingRate,
-				});
+			const currentVoiceIds = overrideVoiceId 
+				? (Array.isArray(overrideVoiceId) ? overrideVoiceId : [overrideVoiceId])
+				: [defaultVoiceId];
 
-				if (!result.success || !result.audioContent) {
-					throw new Error(result.error ?? "Speech synthesis failed");
+			try {
+				const synthesisPromises = currentVoiceIds.map(vid => 
+					synthesizeSpeech({
+						text: trimmedText,
+						voiceId: vid,
+						eventId,
+						speakingRate,
+					})
+				);
+
+				const results = await Promise.all(synthesisPromises);
+				
+				const validAudioContents = results
+					.filter(r => r.success && r.audioContent)
+					.map(r => r.audioContent!);
+
+				if (validAudioContents.length === 0) {
+					const firstError = results.find(r => r.error)?.error;
+					throw new Error(firstError ?? "Speech synthesis failed");
 				}
 
-				await playBase64Audio(result.audioContent);
+				// Play all synced voices together
+				await Promise.all(validAudioContents.map(playBase64Audio));
 			} catch (err) {
 				const message =
 					err instanceof Error ? err.message : "Unknown text-to-speech error";
@@ -97,7 +114,7 @@ export function useTTS({
 				}
 			}
 		},
-		[enabled, isSupported, log, speakingRate, voiceId],
+		[enabled, isSupported, log, speakingRate, defaultVoiceId],
 	);
 
 	const clearError = useCallback(() => {

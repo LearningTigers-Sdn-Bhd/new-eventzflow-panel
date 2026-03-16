@@ -5,7 +5,8 @@
  * Supports Malay, English, and Chinese names.
  */
 
-export type VoiceCategory = "malay" | "english" | "chinese";
+export type VoiceCategory = "malay" | "english" | "chinese" | "cloned";
+export type VoiceProvider = "google" | "elevenlabs";
 
 export interface Voice {
 	/** Voice ID used in API calls (e.g., "ms-MY-Wavenet-A") */
@@ -20,6 +21,8 @@ export interface Voice {
 	locale: string;
 	/** Category for grouping in UI */
 	category: VoiceCategory;
+	/** Provider for the voice */
+	provider: VoiceProvider;
 }
 
 /**
@@ -34,6 +37,7 @@ export const VOICES = [
 		gender: "female",
 		locale: "ms-MY",
 		category: "malay",
+		provider: "google",
 	},
 	{
 		id: "ms-MY-Wavenet-B",
@@ -42,6 +46,7 @@ export const VOICES = [
 		gender: "male",
 		locale: "ms-MY",
 		category: "malay",
+		provider: "google",
 	},
 	{
 		id: "ms-MY-Wavenet-C",
@@ -50,6 +55,7 @@ export const VOICES = [
 		gender: "female",
 		locale: "ms-MY",
 		category: "malay",
+		provider: "google",
 	},
 	{
 		id: "ms-MY-Wavenet-D",
@@ -58,6 +64,7 @@ export const VOICES = [
 		gender: "male",
 		locale: "ms-MY",
 		category: "malay",
+		provider: "google",
 	},
 
 	// ENGLISH
@@ -68,6 +75,7 @@ export const VOICES = [
 		gender: "female",
 		locale: "en-US",
 		category: "english",
+		provider: "google",
 	},
 	{
 		id: "en-US-Wavenet-D",
@@ -76,6 +84,7 @@ export const VOICES = [
 		gender: "male",
 		locale: "en-US",
 		category: "english",
+		provider: "google",
 	},
 	{
 		id: "en-GB-Wavenet-A",
@@ -84,6 +93,7 @@ export const VOICES = [
 		gender: "female",
 		locale: "en-GB",
 		category: "english",
+		provider: "google",
 	},
 	{
 		id: "en-GB-Wavenet-B",
@@ -92,6 +102,7 @@ export const VOICES = [
 		gender: "male",
 		locale: "en-GB",
 		category: "english",
+		provider: "google",
 	},
 
 	// CHINESE (Mandarin)
@@ -102,6 +113,7 @@ export const VOICES = [
 		gender: "female",
 		locale: "cmn-CN",
 		category: "chinese",
+		provider: "google",
 	},
 	{
 		id: "cmn-CN-Wavenet-B",
@@ -110,10 +122,11 @@ export const VOICES = [
 		gender: "male",
 		locale: "cmn-CN",
 		category: "chinese",
+		provider: "google",
 	},
 ] as const satisfies readonly Voice[];
 
-export type VoiceId = (typeof VOICES)[number]["id"];
+export type VoiceId = (typeof VOICES)[number]["id"] | string;
 
 export const DEFAULT_VOICE: VoiceId = "ms-MY-Wavenet-A";
 
@@ -126,7 +139,32 @@ export function getVoicesByCategory(): Record<VoiceCategory, Voice[]> {
 }
 
 export function getVoiceById(voiceId: string): Voice | undefined {
-	return VOICES.find((voice) => voice.id === voiceId);
+	const voice = VOICES.find((v) => v.id === voiceId);
+	if (voice) return voice;
+
+	// If it looks like an ElevenLabs ID (premium), return a minimal Voice object
+	// Standard IDs in this app start with 'ms-MY-', 'en-US-', etc.
+	const isStandard = voiceId.includes("-") && (
+		voiceId.startsWith("ms-") || 
+		voiceId.startsWith("en-") || 
+		voiceId.startsWith("cmn-") ||
+		voiceId.startsWith("ja-") ||
+		voiceId.startsWith("ko-")
+	);
+
+	if (voiceId && !isStandard) {
+		return {
+			id: voiceId,
+			name: "Premium Voice",
+			label: "Premium Voice",
+			gender: "female", // Default assumption
+			locale: "en-US",
+			category: "cloned",
+			provider: "elevenlabs",
+		};
+	}
+
+	return undefined;
 }
 
 export function getVoiceLocale(voiceId: string): string {

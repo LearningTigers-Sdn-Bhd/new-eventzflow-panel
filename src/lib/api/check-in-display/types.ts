@@ -30,6 +30,20 @@ export interface CheckInDisplay {
 	seating_plan_duration: number; // in milliseconds
 	active_plan_id?: number | null;
 	seating_announcement_template?: string | null;
+  elevenlabs_settings?: {
+    stability: number;
+    similarity_boost: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+  voice_rules?: Array<{
+    id: string;
+    field: string;
+    operator: string;
+    value: string;
+    voice_id?: string;
+    voice_ids?: string[];
+  }>;
 
 	// // Photo Booth
 	// photo_booth_enabled: boolean;
@@ -70,6 +84,20 @@ export interface CheckInDisplayFormData {
 	seating_plan_duration?: number;
 	active_plan_id?: number | null;
 	seating_announcement_template?: string;
+  elevenlabs_settings?: {
+    stability: number;
+    similarity_boost: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+  voice_rules?: Array<{
+    id: string;
+    field: string;
+    operator: string;
+    value: string;
+    voice_id?: string;
+    voice_ids?: string[];
+  }>;
 
 	// // Photo Booth
 	// photo_booth_enabled?: boolean;

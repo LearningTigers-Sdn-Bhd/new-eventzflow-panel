@@ -6,6 +6,7 @@
  * @see https://cloud.google.com/text-to-speech/docs/reference/rest
  */
 
+import { API_BASE_URL, restClient } from "@/utils/rest-api";
 import { prepareTtsText } from "./pronunciation";
 import type { VoiceId } from "./voices";
 
@@ -15,10 +16,11 @@ import type { VoiceId } from "./voices";
 
 /**
  * TTS configuration from environment.
- * Client calls our internal API route.
+ * Local proxy for Google, Rails proxy for ElevenLabs.
  */
 export const ttsConfig = {
-	endpoint: "/api/tts/synthesize",
+	localEndpoint: "/api/tts/synthesize",
+	railsEndpoint: "v1/tts/synthesize",
 } as const;
 
 // ─────────────────────────────────────────────────────────────
@@ -30,6 +32,8 @@ export interface TTSRequest {
 	text: string;
 	/** Voice ID to use */
 	voiceId: VoiceId;
+	/** Optional event ID for authorization/assignment check (Required for premium) */
+	eventId?: number;
 	/** Normalize Malaysian abbreviations before synth */
 	normalizeText?: boolean;
 	/** Speaking rate (0.25 to 4.0, default 1.0) */
@@ -86,6 +90,7 @@ export async function synthesizeSpeech(
 	const {
 		text,
 		voiceId,
+		eventId,
 		normalizeText = true,
 		speakingRate = 1.0,
 		pitch = 0,
@@ -103,44 +108,59 @@ export async function synthesizeSpeech(
 
 	const normalizedText = prepareTtsText(trimmedText, normalizeText);
 
-	try {
-		const response = await fetch(ttsConfig.endpoint, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				text: normalizedText,
-				voiceId,
-				normalizeText: false,
-				speakingRate: clamp(speakingRate, 0.5, 1.5),
-				pitch: clamp(pitch, -10, 10),
-			}),
-		});
+	// 1. Determine Provider
+	const isPremium = !voiceId.startsWith("ms-MY-") && !voiceId.startsWith("en-US-");
 
-		if (!response.ok) {
-			const errorData = await response.json().catch(() => ({}));
-			const errorCode = response.status === 429 ? "RATE_LIMIT" : "API_ERROR";
-			return {
-				success: false,
-				error: parseApiError(response.status, errorData),
-				errorCode,
-			};
+	try {
+		let responseData: any;
+
+		if (isPremium) {
+			// Premium voices must go through Rails proxy for security and credits
+			responseData = await restClient.post(ttsConfig.railsEndpoint, {
+				text: normalizedText,
+				voice_id: voiceId,
+				event_id: eventId,
+			});
+		} else {
+			// Standard voices go through local Next.js proxy
+			const response = await fetch(ttsConfig.localEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					text: normalizedText,
+					voiceId,
+					normalizeText: false,
+					speakingRate: clamp(speakingRate, 0.5, 1.5),
+					pitch: clamp(pitch, -10, 10),
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				const errorCode = response.status === 429 ? "RATE_LIMIT" : "API_ERROR";
+				return {
+					success: false,
+					error: parseApiError(response.status, errorData),
+					errorCode,
+				};
+			}
+
+			responseData = await response.json();
 		}
 
-		const data = await response.json();
-
-		if (!data.success) {
+		if (!responseData.success) {
 			return {
 				success: false,
-				error: data.error ?? "Speech synthesis failed",
-				errorCode: data.errorCode ?? "API_ERROR",
+				error: responseData.error ?? responseData.message ?? "Speech synthesis failed",
+				errorCode: responseData.errorCode ?? "API_ERROR",
 			};
 		}
 
 		return {
 			success: true,
-			audioContent: data.audioContent,
+			audioContent: responseData.audioContent,
 		};
 	} catch (err) {
 		return {

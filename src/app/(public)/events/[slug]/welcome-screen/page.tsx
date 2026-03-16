@@ -74,6 +74,7 @@ export default function WelcomeScreenPage() {
 	const { speak } = useTTS({
 		enabled: voiceEnabled && isStarted,
 		voiceId: resolvedVoiceId,
+		eventId: settings?.event?.id,
 	});
 
 	const handleStart = async () => {
@@ -137,7 +138,11 @@ export default function WelcomeScreenPage() {
 
 			// 3. SPEAK
 			if (voiceEnabled) {
-				await speak(textToSpeak).catch(() => {});
+				const voiceToUse = (nextCheckIn as any).voice_ids?.length > 0 
+					? (nextCheckIn as any).voice_ids as VoiceId[]
+					: (nextCheckIn as any).voice_id as VoiceId;
+
+				await speak(textToSpeak, voiceToUse).catch(() => {});
 			}
 
 			// 4. HOLD STATE FOR DURATION
