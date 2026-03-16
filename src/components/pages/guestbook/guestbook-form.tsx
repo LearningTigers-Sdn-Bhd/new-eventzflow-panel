@@ -12,7 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPublicEventById } from "@/lib/api/event";
 import { getRsvpData } from "@/lib/api/rsvp";
 import { submitWish } from "@/lib/api/wishes";
+import type { Wish } from "@/lib/api/wishes/response";
 import { API_BASE_URL } from "@/utils/rest-api";
+import { getGuestbookSubmissionFeedback } from "./guestbook-feedback";
 
 const greatVibes = Great_Vibes({
 	subsets: ["latin"],
@@ -34,7 +36,9 @@ const PAGE_TRANSITION = {
 export function GuestbookForm({ slug, visitorPublicId }: GuestbookFormProps) {
 	const [guestName, setGuestName] = useState("");
 	const [message, setMessage] = useState("");
-	const [submitted, setSubmitted] = useState(false);
+	const [submittedStatus, setSubmittedStatus] = useState<Wish["status"] | null>(
+		null,
+	);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const { data: eventInfo } = useQuery({
@@ -70,26 +74,29 @@ export function GuestbookForm({ slug, visitorPublicId }: GuestbookFormProps) {
 				message,
 				visitor_public_id: visitorPublicId,
 			}),
-		onSuccess: () => {
-			setSubmitted(true);
+		onSuccess: ({ wish }) => {
+			setSubmittedStatus(wish.status);
 			setMessage("");
 			setGuestName("");
 			setErrorMessage(null);
 		},
 		onError: (error: Error) => {
-			setSubmitted(false);
+			setSubmittedStatus(null);
 			setErrorMessage(error.message || "Unable to send your blessing.");
 		},
 	});
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		setSubmitted(false);
+		setSubmittedStatus(null);
 		setErrorMessage(null);
 		mutation.mutate();
 	};
 
 	const eventTitle = eventInfo?.title?.trim() || "This Event";
+	const submissionFeedback = submittedStatus
+		? getGuestbookSubmissionFeedback(submittedStatus)
+		: null;
 
 	return (
 		<div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-rsvp-canvas px-6 py-12 sm:px-4 sm:py-16 lg:py-20">
@@ -246,21 +253,27 @@ export function GuestbookForm({ slug, visitorPublicId }: GuestbookFormProps) {
 						</div>
 
 						<AnimatePresence mode="wait">
-							{submitted ? (
+							{submissionFeedback ? (
 								<motion.div
-									key="success"
+									key={submittedStatus}
 									initial={{ opacity: 0, height: 0, marginTop: 0 }}
 									animate={{ opacity: 1, height: "auto", marginTop: 16 }}
 									exit={{ opacity: 0, height: 0, marginTop: 0 }}
 									className="overflow-hidden"
 								>
-									<div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-5 text-emerald-800">
+									<div
+										className={`rounded-xl border p-5 ${submissionFeedback.accentClassName}`}
+									>
 										<div className="flex items-start gap-3">
 											<Heart className="mt-0.5 h-5 w-5 shrink-0 fill-current" />
-											<p className="font-serif text-sm italic leading-relaxed sm:text-base">
-												Your message has been sent with love! It may appear on
-												the event display screen soon.
-											</p>
+											<div className="space-y-1">
+												<p className="font-semibold text-sm sm:text-base">
+													{submissionFeedback.title}
+												</p>
+												<p className="font-serif text-sm italic leading-relaxed sm:text-base">
+													{submissionFeedback.body}
+												</p>
+											</div>
 										</div>
 									</div>
 								</motion.div>

@@ -3,11 +3,16 @@
 import { AnimatePresence } from "framer-motion";
 import { Great_Vibes } from "next/font/google";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchApprovedWishes, type Wish } from "@/lib/api/wishes";
 import { cable } from "@/lib/cable";
 import { WishCard } from "./wish-card";
-import { mergeIncomingWish } from "./wishes-grid-state";
+import {
+	getRotationPageCount,
+	getVisibleWishes,
+	mergeIncomingWish,
+	normalizeRotationPage,
+} from "./wishes-grid-state";
 
 const greatVibes = Great_Vibes({
 	subsets: ["latin"],
@@ -25,8 +30,20 @@ type WishesWallMessage =
 	| { type: "new_wish"; wish: Wish }
 	| { type: "remove_wish"; wish_id: number };
 
+const PAGE_ROTATION_INTERVAL_MS = 8000;
+
 export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 	const [wishes, setWishes] = useState<Wish[]>([]);
+	const [page, setPage] = useState(0);
+	const pageCount = useMemo(() => getRotationPageCount(wishes), [wishes]);
+	const pageNumbers = useMemo(
+		() => Array.from({ length: pageCount }, (_, index) => index),
+		[pageCount],
+	);
+	const visibleWishes = useMemo(
+		() => getVisibleWishes(wishes, page),
+		[page, wishes],
+	);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -63,6 +80,22 @@ export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 			subscription.unsubscribe();
 		};
 	}, [eventId, slug]);
+
+	useEffect(() => {
+		setPage((current) => normalizeRotationPage(current, wishes));
+	}, [wishes]);
+
+	useEffect(() => {
+		if (pageCount <= 1) {
+			return;
+		}
+
+		const intervalId = window.setInterval(() => {
+			setPage((current) => (current + 1) % pageCount);
+		}, PAGE_ROTATION_INTERVAL_MS);
+
+		return () => window.clearInterval(intervalId);
+	}, [pageCount]);
 
 	return (
 		<div className="relative min-h-screen overflow-hidden bg-rsvp-canvas px-6 py-12 sm:px-10 lg:px-14">
@@ -173,12 +206,27 @@ export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 						</div>
 					</div>
 				) : (
-					<div className="grid flex-1 auto-rows-max gap-6 pb-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						<AnimatePresence mode="popLayout">
-							{wishes.map((wish) => (
-								<WishCard key={wish.id} wish={wish} />
-							))}
-						</AnimatePresence>
+					<div className="space-y-6 pb-12">
+						{pageCount > 1 ? (
+							<div className="flex items-center justify-center gap-2 text-stone-500 text-xs uppercase tracking-[0.3em]">
+								<div className="flex items-center gap-2 tracking-normal">
+									{pageNumbers.map((pageNumber) => (
+										<span
+											key={pageNumber}
+											className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${pageNumber === page ? "w-4 bg-stone-500" : "bg-stone-300"}`}
+										/>
+									))}
+								</div>
+							</div>
+						) : null}
+
+						<div className="grid flex-1 auto-rows-max gap-6 md:grid-cols-2 xl:grid-cols-4 [perspective:2000px]">
+							<AnimatePresence mode="popLayout">
+								{visibleWishes.map((wish, index) => (
+									<WishCard key={wish.id} wish={wish} index={index} />
+								))}
+							</AnimatePresence>
+						</div>
 					</div>
 				)}
 			</div>

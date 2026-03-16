@@ -59,7 +59,7 @@ export function DataTable<TData>({
 		<div className="w-full">
 			<DataControl table={table} />
 
-			<div className="min-h-[calc(100vh-320px)]">
+			<div className="w-full">
 				{!isTablet ? (
 					<BaseTable
 						table={table}
