@@ -15,14 +15,22 @@ import { MessageSquareHeart } from "lucide-react";
 import * as React from "react";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { WishesCardGrid } from "./wishes-card-grid";
 import { DataControl } from "./wishes-table-control";
 
 interface DataTableProps<TData> {
 	columns: ColumnDef<TData>[];
 	data: TData[];
+	eventId: string;
 }
 
-export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+	columns,
+	data,
+	eventId,
+}: DataTableProps<TData>) {
+	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -52,16 +60,22 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 			<DataControl table={table} />
 
 			<div className="min-h-[calc(100vh-320px)]">
-				<BaseTable
-					table={table}
-					emptyStateConfig={{
-						title: "No wishes yet",
-						desc: "New guestbook messages will appear here.",
-						icon: <MessageSquareHeart />,
-					}}
-				/>
+				{!isTablet ? (
+					<BaseTable
+						table={table}
+						emptyStateConfig={{
+							title: "No wishes yet",
+							desc: "New guestbook messages will appear here.",
+							icon: <MessageSquareHeart />,
+						}}
+					/>
+				) : (
+					<WishesCardGrid table={table} eventId={eventId} />
+				)}
 			</div>
-			<DataPagination table={table} />
+			<div className="mt-4">
+				<DataPagination table={table} />
+			</div>
 		</div>
 	);
 }

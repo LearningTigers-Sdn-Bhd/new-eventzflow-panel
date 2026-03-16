@@ -94,17 +94,6 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 			<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
 				<Button
 					variant="outline"
-					onClick={() => refetch()}
-					disabled={isLoading}
-					className="w-full rounded-none sm:w-auto sm:shrink-0"
-				>
-					<RefreshCw
-						className={isLoading ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"}
-					/>
-					Refresh
-				</Button>
-				<Button
-					variant="outline"
 					asChild
 					className="w-full rounded-none sm:w-auto sm:shrink-0"
 				>
@@ -133,7 +122,7 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 				</Button>
 			</div>
 
-			<DataTable columns={columns} data={wishes} />
+			<DataTable columns={columns} data={wishes} eventId={eventId} view="table" />
 		</div>
 	);
 }
