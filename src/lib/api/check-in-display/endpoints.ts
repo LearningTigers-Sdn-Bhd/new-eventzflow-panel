@@ -83,6 +83,9 @@ export async function updateCheckInDisplay(
 		if (data.welcome_text !== undefined) {
 			formData.append("check_in_display[welcome_text]", data.welcome_text);
 		}
+		if (data.script_tone) {
+			formData.append("check_in_display[script_tone]", data.script_tone);
+		}
 
 		// Modes & Duration
 		if (data.idle_mode) {
@@ -110,6 +113,14 @@ export async function updateCheckInDisplay(
 		}
 		if (data.seating_announcement_template) {
 			formData.append("check_in_display[seating_announcement_template]", data.seating_announcement_template);
+		}
+
+		if (data.elevenlabs_settings) {
+			formData.append("check_in_display[elevenlabs_settings]", JSON.stringify(data.elevenlabs_settings));
+		}
+
+		if (data.voice_rules) {
+			formData.append("check_in_display[voice_rules]", JSON.stringify(data.voice_rules));
 		}
 
 		// // Photo Booth

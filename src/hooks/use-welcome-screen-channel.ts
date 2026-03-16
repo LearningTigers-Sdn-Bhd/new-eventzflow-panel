@@ -23,6 +23,8 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 						table_label: data.table_label ?? null,
 						seating_context: data.seating_context,
 						checked_in_at: new Date().toISOString(),
+						voice_id: data.voice_id,
+						voice_ids: data.voice_ids,
 					});
 				} else {
 					setLatestCheckIn(null);
@@ -36,6 +38,8 @@ export function useWelcomeScreenChannel(eventId: string | number | null) {
 					table_label: data.table_label ?? null,
 					seating_context: data.seating_context,
 					checked_in_at: data.checked_in_at,
+					voice_id: data.voice_id,
+					voice_ids: data.voice_ids,
 				});
 				break;
 

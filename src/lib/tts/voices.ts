@@ -135,6 +135,7 @@ export function getVoicesByCategory(): Record<VoiceCategory, Voice[]> {
 		malay: VOICES.filter((voice) => voice.category === "malay"),
 		english: VOICES.filter((voice) => voice.category === "english"),
 		chinese: VOICES.filter((voice) => voice.category === "chinese"),
+		cloned: [], // Cloned voices are fetched dynamically via API
 	};
 }
 

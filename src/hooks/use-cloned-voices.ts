@@ -40,7 +40,7 @@ export function useClonedVoices(ownerId?: number) {
     const subscription = cable.subscriptions.create(
       { channel: "UserVoicesChannel", user_id: targetId },
       {
-        received(data) {
+        received(data: any) {
           handleVoiceUpdate(data);
         },
       }

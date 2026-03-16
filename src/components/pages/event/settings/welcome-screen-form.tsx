@@ -117,6 +117,30 @@ export default function WelcomeScreenForm({
 	const [nameColor, setNameColor] = useState("#FFFFFF");
 	const [welcomeText, setWelcomeText] = useState("Welcome");
 	const [seatingAnnouncementTemplate, setSeatingAnnouncementTemplate] = useState("Welcome, #{name}. You are at #{table_label}.");
+	const [scriptTone, setScriptTone] = useState("neutral");
+
+  const SCRIPT_TONE_PRESETS = {
+    neutral: {
+      label: "Standard Neutral",
+      welcome: "Welcome",
+      template: "Welcome, #{name}. You are at #{table_label}."
+    },
+    happy: {
+      label: "Happy & Excited",
+      welcome: "We're so glad you're here!",
+      template: "We're so thrilled to have you here, #{name}! You are at #{table_label}. Enjoy the event!"
+    },
+    formal: {
+      label: "Formal & Professional",
+      welcome: "Welcome",
+      template: "Good evening #{name}. Your assigned seating is at #{table_label}. We wish you a pleasant evening."
+    },
+    warm: {
+      label: "Warm & Welcoming",
+      welcome: "Welcome home",
+      template: "It is wonderful to see you, #{name}. Please make yourself comfortable at #{table_label}."
+    }
+  };
 	
 	// Modes
 	const [idleMode, setIdleMode] = useState<DisplayMode>("image");
@@ -214,6 +238,8 @@ export default function WelcomeScreenForm({
 			setExistingAnnImageUrl(displaySettings.announcement_image_url);
 			setExistingAnnVideoUrl(displaySettings.announcement_video_url);
 
+			setScriptTone(displaySettings.script_tone || "neutral");
+
       if (displaySettings.elevenlabs_settings) {
         setStability(displaySettings.elevenlabs_settings.stability ?? 0.5);
         setSimilarityBoost(displaySettings.elevenlabs_settings.similarity_boost ?? 0.75);
@@ -264,6 +290,7 @@ export default function WelcomeScreenForm({
 			voice_enabled: voiceEnabled,
 			voice_type: voiceId,
 			welcome_text: welcomeText,
+			script_tone: scriptTone,
 			seating_announcement_template: seatingAnnouncementTemplate,
 			idle_mode: idleMode,
 			announcement_mode: announcementMode,
@@ -297,7 +324,8 @@ export default function WelcomeScreenForm({
       field: 'role',
       operator: 'equals',
       value: '',
-      voice_id: voiceId
+      voice_id: '',
+      voice_ids: []
     }]);
   };
 
@@ -309,10 +337,24 @@ export default function WelcomeScreenForm({
     setVoiceRules(voiceRules.map(r => r.id === id ? { ...r, ...updates } : r));
   };
 
+  const handleScriptToneChange = (tone: string) => {
+    setScriptTone(tone);
+    const preset = SCRIPT_TONE_PRESETS[tone as keyof typeof SCRIPT_TONE_PRESETS];
+    if (preset) {
+      setWelcomeText(preset.welcome);
+      setSeatingAnnouncementTemplate(preset.template);
+    }
+  };
+
 	if (isLoading) return <LoadingState title="Loading..." description="Fetching settings" />;
 	if (error) return <div className="text-destructive">Failed to load settings.</div>;
 
+  const currentVoiceLabel = VOICES.find(v => v.id === voiceId)?.label || 
+                           clonedVoices?.find(v => v.elevenlabs_id === voiceId)?.name || 
+                           "Global Voice";
+
   const availableVoices = [
+    { id: 'default', label: `Global Voice: ${currentVoiceLabel}`, category: 'System' },
     ...VOICES.map(v => ({ id: v.id, label: v.label, category: 'Standard' })),
     ...(clonedVoices?.filter(v => v.status === 'ready').map(v => ({ id: v.elevenlabs_id!, label: v.name, category: 'Premium' })) || [])
   ];
@@ -387,7 +429,7 @@ export default function WelcomeScreenForm({
                 </FieldSet>
 
                 <FieldSet>
-                  <FieldLegend className="text-xs uppercase font-black tracking-widest text-primary mb-4">Branding</FieldLegend>
+                  <FieldLegend className="text-xs uppercase font-black tracking-widest text-primary mb-4">Branding & Tone</FieldLegend>
                   <div className="grid grid-cols-2 gap-4">
                     <FieldGroup>
                       <FieldLabel>Name Color</FieldLabel>
@@ -407,12 +449,34 @@ export default function WelcomeScreenForm({
                       </Select>
                     </FieldGroup>
                     <FieldGroup>
+                      <FieldLabel>Announcement Script Style</FieldLabel>
+                      <Select value={scriptTone} onValueChange={handleScriptToneChange}>
+                        <SelectTrigger className="rounded-none h-10 bg-slate-50"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(SCRIPT_TONE_PRESETS).map(([key, p]) => (
+                            <SelectItem key={key} value={key}>{p.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FieldGroup>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <FieldGroup>
                       <FieldLabel>Welcome Label</FieldLabel>
                       <Input 
                         value={welcomeText} 
                         onChange={(e) => setWelcomeText(e.target.value)} 
                         className="rounded-none h-10 bg-slate-50" 
                         placeholder="Welcome"
+                      />
+                    </FieldGroup>
+                    <FieldGroup>
+                      <FieldLabel>Seating Template</FieldLabel>
+                      <Input 
+                        value={seatingAnnouncementTemplate} 
+                        onChange={(e) => setSeatingAnnouncementTemplate(e.target.value)} 
+                        className="rounded-none h-10 bg-slate-50" 
+                        placeholder="Welcome, #{name}. You are at #{table_label}."
                       />
                     </FieldGroup>
                   </div>
@@ -641,15 +705,21 @@ export default function WelcomeScreenForm({
                                  <Label className="text-[10px] font-black uppercase text-slate-400">Then Use Voice(s)</Label>
                                  <Popover>
                                     <PopoverTrigger asChild>
-                                       <Button variant="outline" className="w-full rounded-none h-9 justify-start text-xs font-normal border-slate-200">
-                                          {rule.voice_ids && rule.voice_ids.length > 1 
-                                            ? `${rule.voice_ids.length} Voices Mixed` 
-                                            : availableVoices.find(v => v.id === (rule.voice_ids?.[0] || rule.voice_id))?.label || 'Select Voice'}
+                                       <Button variant="outline" className={cn(
+                                         "w-full rounded-none h-9 justify-start text-xs font-normal border-slate-200 overflow-hidden",
+                                         (!rule.voice_ids || rule.voice_ids.length === 0) && "text-slate-400 italic"
+                                       )}>
+                                          {rule.voice_ids && rule.voice_ids.length > 0 
+                                            ? (rule.voice_ids.length > 2 
+                                                ? `${rule.voice_ids.length} Voices Mixed` 
+                                                : rule.voice_ids.map(id => availableVoices.find(v => v.id === id)?.label).join(", "))
+                                            : 'Select Voice(s)...'}
                                        </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[300px] p-0 rounded-none" align="end">
                                        <div className="p-3 border-b bg-slate-50">
-                                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Select Multiple for Mixed Audio</p>
+                                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Mixed Audio (Sequential)</p>
+                                          <p className="text-[9px] text-slate-400">Voices will play one after another.</p>
                                        </div>
                                        <div className="max-h-[300px] overflow-y-auto p-1">
                                           {availableVoices.map(v => (
@@ -657,23 +727,35 @@ export default function WelcomeScreenForm({
                                                 key={v.id} 
                                                 className={cn(
                                                   "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-50 text-xs",
-                                                  (rule.voice_ids?.includes(v.id) || rule.voice_id === v.id) && "bg-primary/5 text-primary font-bold"
+                                                  rule.voice_ids?.includes(v.id) && "bg-primary/5 text-primary font-bold"
                                                 )}
                                                 onClick={() => {
-                                                  const current = rule.voice_ids || [rule.voice_id || ''];
+                                                  const current = rule.voice_ids || [];
                                                   const next = current.includes(v.id) 
                                                     ? current.filter(id => id !== v.id) 
-                                                    : [...current, v.id].filter(id => id);
-                                                  updateVoiceRule(rule.id, { voice_ids: next, voice_id: next[0] });
+                                                    : [...current, v.id];
+                                                  updateVoiceRule(rule.id, { voice_ids: next, voice_id: next[0] || '' });
                                                 }}
                                              >
-                                                <span>{v.label}</span>
+                                                <div className="flex flex-col">
+                                                  <span>{v.label}</span>
+                                                  {rule.voice_ids?.includes(v.id) && (
+                                                    <span className="text-[8px] uppercase text-primary"># {rule.voice_ids.indexOf(v.id) + 1} in sequence</span>
+                                                  )}
+                                                </div>
                                                 <Badge className="text-[9px] h-4 px-1 rounded-none font-black tracking-tighter" variant={v.category === 'Premium' ? 'default' : 'outline'}>
                                                   {v.category}
                                                 </Badge>
                                              </div>
                                           ))}
                                        </div>
+                                       {rule.voice_ids && rule.voice_ids.length > 0 && (
+                                         <div className="p-2 border-t bg-slate-50 flex justify-center">
+                                           <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase" onClick={() => updateVoiceRule(rule.id, { voice_ids: [], voice_id: '' })}>
+                                             Clear All
+                                           </Button>
+                                         </div>
+                                       )}
                                     </PopoverContent>
                                  </Popover>
                               </div>

@@ -18,6 +18,7 @@ export interface CheckInDisplay {
 	voice_enabled: boolean;
 	voice_type: string; // Google Cloud TTS voice ID
 	welcome_text: string;
+	script_tone?: string;
 	
 	// Modes
 	idle_mode: DisplayMode;
@@ -45,17 +46,17 @@ export interface CheckInDisplay {
     voice_ids?: string[];
   }>;
 
-	// // Photo Booth
-	// photo_booth_enabled: boolean;
-	// photo_booth_countdown: number;
-	// photo_booth_webhook_url: string | null;
+	// Photo Booth
+	photo_booth_enabled?: boolean;
+	photo_booth_countdown?: number;
+	photo_booth_webhook_url?: string | null;
 
 	// URLs
 	background_image_url: string | null;
 	idle_video_url: string | null;
 	announcement_image_url: string | null;
 	announcement_video_url: string | null;
-	// branding_frame_url: string | null;
+	branding_frame_url: string | null;
 
 	event: {
 		id: string;
@@ -74,6 +75,7 @@ export interface CheckInDisplayFormData {
 	voice_enabled?: boolean;
 	voice_type?: string;
 	welcome_text?: string;
+	script_tone?: string;
 
 	idle_mode?: string;
 	announcement_mode?: string;
@@ -99,24 +101,24 @@ export interface CheckInDisplayFormData {
     voice_ids?: string[];
   }>;
 
-	// // Photo Booth
-	// photo_booth_enabled?: boolean;
-	// photo_booth_countdown?: number;
-	// photo_booth_webhook_url?: string;
+	// Photo Booth
+	photo_booth_enabled?: boolean;
+	photo_booth_countdown?: number;
+	photo_booth_webhook_url?: string;
 
 	// Files
 	background_image?: File;
 	idle_video?: File;
 	announcement_image?: File;
 	announcement_video?: File;
-	// branding_frame?: File;
+	branding_frame?: File;
 
 	// Removal flags
 	remove_background_image?: boolean;
 	remove_idle_video?: boolean;
 	remove_announcement_image?: boolean;
 	remove_announcement_video?: boolean;
-	// remove_branding_frame?: boolean;
+	remove_branding_frame?: boolean;
 }
 
 export interface SeatingContext {
@@ -129,8 +131,12 @@ export interface SeatingContext {
 export interface CheckInBroadcast {
 	name: string;
 	table_label?: string | null;
+	role?: string | null;
 	seating_context?: SeatingContext;
+	custom_fields_data?: Record<string, any>;
 	checked_in_at: string;
+	voice_id?: string;
+	voice_ids?: string[];
 }
 
 export interface AnnounceGuestResponse {
@@ -142,18 +148,26 @@ export interface WelcomeScreenStateMessage {
 	type: "state";
 	name: string | null;
 	table_label?: string | null;
+	role?: string | null;
 	seating_context?: SeatingContext;
+	custom_fields_data?: Record<string, any>;
 	remaining_ms: number;
 	queue_size: number;
+	voice_id?: string;
+	voice_ids?: string[];
 }
 
 export interface WelcomeScreenDisplayMessage {
 	type: "display";
 	name: string;
 	table_label?: string | null;
+	role?: string | null;
 	seating_context?: SeatingContext;
+	custom_fields_data?: Record<string, any>;
 	display_duration_ms: number;
 	checked_in_at: string;
+	voice_id?: string;
+	voice_ids?: string[];
 }
 
 export interface WelcomeScreenQueueUpdateMessage {

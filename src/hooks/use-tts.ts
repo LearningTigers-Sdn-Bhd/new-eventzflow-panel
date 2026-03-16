@@ -98,8 +98,10 @@ export function useTTS({
 					throw new Error(firstError ?? "Speech synthesis failed");
 				}
 
-				// Play all synced voices together
-				await Promise.all(validAudioContents.map(playBase64Audio));
+				// Play voices one after another (Sequential Mixed Audio)
+				for (const audioContent of validAudioContents) {
+					await playBase64Audio(audioContent);
+				}
 			} catch (err) {
 				const message =
 					err instanceof Error ? err.message : "Unknown text-to-speech error";

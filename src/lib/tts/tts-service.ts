@@ -63,7 +63,7 @@ export interface TTSResponse {
  * Check if TTS is properly configured.
  */
 export function isConfigured(): boolean {
-	return Boolean(ttsConfig.endpoint);
+	return Boolean(ttsConfig.localEndpoint || ttsConfig.railsEndpoint);
 }
 
 /**
