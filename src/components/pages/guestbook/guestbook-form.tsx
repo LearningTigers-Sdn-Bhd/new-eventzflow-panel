@@ -225,6 +225,10 @@ export function GuestbookForm({ slug, visitorPublicId }: GuestbookFormProps) {
 								className="h-14 rounded-xl border-stone-200 bg-white/60 px-5 text-base text-stone-800 transition-colors placeholder:text-stone-300 focus-visible:border-stone-400 focus-visible:ring-stone-400"
 								required
 							/>
+							<p className="text-[11px] text-stone-400 italic">
+								Prefer to use your nickname or short name — it looks nicer on
+								the wishes wall.
+							</p>
 						</div>
 
 						<div className="space-y-2">

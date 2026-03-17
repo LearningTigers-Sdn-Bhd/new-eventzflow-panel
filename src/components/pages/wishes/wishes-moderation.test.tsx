@@ -22,4 +22,21 @@ describe("WishesModeration", () => {
 
 		expect(content).toContain("getAutoRefreshQueryOptions");
 	});
+
+	test("renders a configuration dropdown for wishes wall actions", () => {
+		const content = readFileSync(
+			new URL("./wishes-moderation.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("Configuration");
+		expect(content).toContain("DropdownMenu");
+		expect(content).toContain("DropdownMenuItem");
+		expect(content).toContain("Open Form");
+		expect(content).toContain("Wall Configuration");
+		expect(content).toContain("Live Wall");
+		expect(content).toContain("WishWallSettingsDialogContent");
+		expect(content).toContain("openDialog({");
+		expect(content).toContain('size: "full"');
+	});
 });

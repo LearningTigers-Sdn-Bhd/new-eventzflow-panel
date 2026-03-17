@@ -1,28 +1,25 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
-import { Great_Vibes } from "next/font/google";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { fetchApprovedWishes, type Wish } from "@/lib/api/wishes";
 import { cable } from "@/lib/cable";
-import { WishCard } from "./wish-card";
+import { AnimatedWallRenderer } from "./animated-wall-renderer";
+import { CardWallRenderer } from "./card-wall-renderer";
+import type { NormalizedWallSettings } from "./wall-settings";
 import {
 	getRotationPageCount,
 	getVisibleWishes,
 	mergeIncomingWish,
 	normalizeRotationPage,
 } from "./wishes-grid-state";
-
-const greatVibes = Great_Vibes({
-	subsets: ["latin"],
-	weight: ["400"],
-});
+import { WishesWallShell } from "./wishes-wall-shell";
 
 type WishesGridProps = {
 	eventId: string;
 	eventTitle: string;
 	slug: string;
+	wallSettings: NormalizedWallSettings;
 };
 
 type WishesWallMessage =
@@ -32,7 +29,12 @@ type WishesWallMessage =
 
 const PAGE_ROTATION_INTERVAL_MS = 8000;
 
-export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
+export function WishesGrid({
+	eventId,
+	eventTitle,
+	slug,
+	wallSettings,
+}: WishesGridProps) {
 	const [wishes, setWishes] = useState<Wish[]>([]);
 	const [page, setPage] = useState(0);
 	const pageCount = useMemo(() => getRotationPageCount(wishes), [wishes]);
@@ -44,6 +46,8 @@ export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 		() => getVisibleWishes(wishes, page),
 		[page, wishes],
 	);
+	const liveCardStageClassName =
+		"h-[calc(100vh-20rem)] overflow-hidden min-h-[32rem] px-4 sm:px-6 lg:px-10";
 
 	useEffect(() => {
 		let isMounted = true;
@@ -98,13 +102,7 @@ export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 	}, [pageCount]);
 
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-rsvp-canvas px-6 py-12 sm:px-10 lg:px-14">
-			{/* Subtle Decorative Background Elements */}
-			<div className="pointer-events-none fixed inset-0 z-0">
-				<div className="absolute top-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-rsvp-mist opacity-40 blur-[120px]" />
-				<div className="absolute right-[-10%] bottom-[-10%] h-[50%] w-[50%] rounded-full bg-rsvp-mist opacity-40 blur-[120px]" />
-			</div>
-
+		<div className="relative min-h-screen overflow-hidden bg-rsvp-canvas">
 			{/* Corner Floral Decorations */}
 			<div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-80">
 				{/* Top Left */}
@@ -150,86 +148,21 @@ export function WishesGrid({ eventId, eventTitle, slug }: WishesGridProps) {
 				</div>
 			</div>
 
-			<div className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-[100rem] flex-col">
-				<div className="mb-12 flex flex-col items-center justify-center text-center">
-					<div className="flex flex-col items-center">
-						<p className="mb-4 font-semibold text-[11px] text-stone-500 uppercase tracking-[0.4em]">
-							Live Wishes Wall
-						</p>
-						<h1
-							className={`${greatVibes.className} mb-6 max-w-4xl text-6xl text-stone-900 sm:text-7xl lg:text-8xl`}
-						>
-							{eventTitle}
-						</h1>
-						<div className="relative w-full max-w-[16rem] py-2">
-							<div
-								className="absolute inset-0 flex items-center"
-								aria-hidden="true"
-							>
-								<div className="w-full border-stone-300 border-t" />
-							</div>
-							<div className="relative flex justify-center">
-								<span className="bg-transparent px-3 text-stone-400">
-									<div className="h-1.5 w-1.5 rotate-45 border border-stone-400 bg-rsvp-canvas" />
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{wishes.length === 0 ? (
-					<div className="flex flex-1 items-center justify-center">
-						<div className="max-w-lg rounded-[2rem] border border-stone-200/50 bg-white/60 p-12 text-center backdrop-blur-sm">
-							<div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
-								<svg
-									aria-hidden="true"
-									className="h-6 w-6 text-stone-400"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={1.5}
-										d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-									/>
-								</svg>
-							</div>
-							<h3 className="mb-3 font-serif text-2xl text-stone-800">
-								Waiting for the first blessing
-							</h3>
-							<p className="font-serif text-lg text-stone-500 italic leading-relaxed">
-								Approved wishes will appear here in real time during the
-								celebration.
-							</p>
-						</div>
-					</div>
+			<WishesWallShell settings={wallSettings} eventTitle={eventTitle}>
+				{wallSettings.mode === "animation" ? (
+					<AnimatedWallRenderer wishes={wishes} settings={wallSettings} />
 				) : (
-					<div className="space-y-6 pb-12">
-						{pageCount > 1 ? (
-							<div className="flex items-center justify-center gap-2 text-stone-500 text-xs uppercase tracking-[0.3em]">
-								<div className="flex items-center gap-2 tracking-normal">
-									{pageNumbers.map((pageNumber) => (
-										<span
-											key={pageNumber}
-											className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${pageNumber === page ? "w-4 bg-stone-500" : "bg-stone-300"}`}
-										/>
-									))}
-								</div>
-							</div>
-						) : null}
-
-						<div className="grid flex-1 auto-rows-max gap-6 md:grid-cols-2 xl:grid-cols-4 [perspective:2000px]">
-							<AnimatePresence mode="popLayout">
-								{visibleWishes.map((wish, index) => (
-									<WishCard key={wish.id} wish={wish} index={index} />
-								))}
-							</AnimatePresence>
-						</div>
+					<div className={liveCardStageClassName}>
+						<CardWallRenderer
+							visibleWishes={visibleWishes}
+							page={page}
+							pageNumbers={pageNumbers}
+							wishesCount={wishes.length}
+							settings={wallSettings}
+						/>
 					</div>
 				)}
-			</div>
+			</WishesWallShell>
 		</div>
 	);
 }

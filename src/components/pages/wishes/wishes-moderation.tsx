@@ -1,16 +1,25 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Info, MonitorPlay, RefreshCw } from "lucide-react";
+import { ChevronDown, ExternalLink, Info, MonitorPlay, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
+import { useDialog } from "@/hooks/use-dialog";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import { listWishes } from "@/lib/api/wishes";
 import { getAutoRefreshQueryOptions } from "@/lib/query/auto-refresh";
 import { DataTable } from "./table/wishes-table";
 import { getWishesColumns } from "./table/wishes-table-columns";
+import { WishWallSettingsDialogContent } from "./wall-settings-dialog";
 
 type WishesModerationProps = {
 	eventId: string;
@@ -18,6 +27,7 @@ type WishesModerationProps = {
 
 export function WishesModeration({ eventId }: WishesModerationProps) {
 	const queryClient = useQueryClient();
+	const { openDialog, closeDialog } = useDialog();
 
 	const { data: event } = useQuery({
 		queryKey: ["event", eventId],
@@ -70,6 +80,24 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 	const columns = getWishesColumns(eventId);
 	const wishes = data?.wishes ?? [];
 
+	const openWallSettings = () => {
+		openDialog({
+			component: WishWallSettingsDialogContent,
+			config: {
+				title: "Wishes Wall Settings",
+				description:
+					"Choose how approved wishes appear on the live venue screen.",
+				size: "full",
+				showCloseButton: true,
+			},
+			props: {
+				eventId,
+				event,
+				onClose: closeDialog,
+			},
+		});
+	};
+
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-1 items-start gap-3 rounded-none border border-dashed bg-muted/30 p-4">
@@ -92,37 +120,54 @@ export function WishesModeration({ eventId }: WishesModerationProps) {
 			</div>
 
 			<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-				<Button
-					variant="outline"
-					asChild
-					className="w-full rounded-none sm:w-auto sm:shrink-0"
-				>
-					<Link
-						href={`/events/${event?.slug}/guestbook`}
-						target="_blank"
-						rel="noopener noreferrer"
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							className="w-full rounded-none sm:w-auto sm:shrink-0"
+						>
+							Configuration
+							<Settings2 className="ml-2 h-4 w-4" />
+							<ChevronDown className="ml-2 h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						className="w-56 rounded-none bg-background"
 					>
-						View Form
-						<ExternalLink className="ml-2 h-4 w-4" />
-					</Link>
-				</Button>
-				<Button
-					variant="outline"
-					asChild
-					className="w-full rounded-none sm:w-auto sm:shrink-0"
-				>
-					<Link
-						href={`/events/${event?.slug}/wishes-wall`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Live Wall
-						<MonitorPlay className="ml-2 h-4 w-4" />
-					</Link>
-				</Button>
+						<DropdownMenuItem asChild className="rounded-none">
+							<Link
+								href={`/events/${event?.slug}/guestbook`}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<ExternalLink className="h-4 w-4" />
+								<span>Open Form</span>
+							</Link>
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={openWallSettings}
+							className="rounded-none"
+						>
+							<Settings2 className="h-4 w-4" />
+							<span>Wall Configuration</span>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator className="rounded-none" />
+						<DropdownMenuItem asChild className="rounded-none">
+							<Link
+								href={`/events/${event?.slug}/wishes-wall`}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<MonitorPlay className="h-4 w-4" />
+								<span>Live Wall</span>
+							</Link>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 
-			<DataTable columns={columns} data={wishes} eventId={eventId} view="table" />
+			<DataTable columns={columns} data={wishes} eventId={eventId} />
 		</div>
 	);
 }

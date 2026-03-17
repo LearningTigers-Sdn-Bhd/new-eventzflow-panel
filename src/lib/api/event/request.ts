@@ -83,6 +83,19 @@ export const updateEventSchema = z.object({
 				.or(z.null()),
 		})
 		.optional(),
+	wish_wall_setting_attributes: z
+		.object({
+			display_mode: z.enum(["cards", "animation"]),
+			animation_shape: z
+				.enum(["heart", "names", "infinity", "butterfly"])
+				.nullable()
+				.optional(),
+			animation_text: z.string().max(24).nullable().optional(),
+			accent_color: z.string().nullable().optional(),
+			header_text_color: z.string().nullable().optional(),
+			card_background_color: z.string().nullable().optional(),
+		})
+		.optional(),
 });
 
 // Export types for form data

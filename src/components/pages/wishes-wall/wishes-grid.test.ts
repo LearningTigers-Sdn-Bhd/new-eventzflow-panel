@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Wish } from "@/lib/api/wishes";
 import {
@@ -65,5 +66,44 @@ describe("mergeIncomingWish", () => {
 		expect(getRotationPageCount(Array.from({ length: 17 }))).toBe(3);
 		expect(normalizeRotationPage(2, Array.from({ length: 7 }))).toBe(0);
 		expect(normalizeRotationPage(5, Array.from({ length: 10 }))).toBe(1);
+	});
+
+	it("switches between the card and animated wall renderers", () => {
+		const content = readFileSync(
+			new URL("./wishes-grid.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("CardWallRenderer");
+		expect(content).toContain("AnimatedWallRenderer");
+		expect(content).toContain("wallSettings");
+		expect(content).toContain("WishesWallShell");
+		expect(content).toContain("settings={wallSettings}");
+		expect(content).toContain("eventTitle={eventTitle}");
+		expect(content).toContain("px-4 sm:px-6 lg:px-10");
+		expect(content).toContain("h-[calc(100vh-20rem)] overflow-hidden");
+	});
+
+	it("passes normalized style settings into the card wall renderer", () => {
+		const content = readFileSync(
+			new URL("./card-wall-renderer.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("settings: NormalizedWallSettings");
+		expect(content).toContain("settings.style.accentColor");
+		expect(content).toContain("<WishCard");
+		expect(content).toContain("settings={settings}");
+	});
+
+	it("applies card background and readable text colors on each wish card", () => {
+		const content = readFileSync(
+			new URL("./wish-card.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("settings.style.cardBackgroundColor");
+		expect(content).toContain("settings.style.cardTextColor");
+		expect(content).not.toContain("backgroundImage:");
 	});
 });

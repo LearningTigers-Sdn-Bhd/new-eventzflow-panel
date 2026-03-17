@@ -7,6 +7,21 @@ export type EventEmailSetting = {
 	payment_receipt_email: string | null;
 };
 
+export type WishWallSetting = {
+	display_mode: "cards" | "animation";
+	animation_shape:
+		| "heart"
+		| "names"
+		| "infinity"
+		| "butterfly"
+		| null;
+	animation_text: string | null;
+	accent_color: string | null;
+	header_text_color: string | null;
+	card_background_color: string | null;
+	background_image_url: string | null;
+};
+
 export type Event = {
 	id: number;
 	title: string;
@@ -28,6 +43,7 @@ export type Event = {
 	use_event_leads: boolean;
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
+	wish_wall_setting: WishWallSetting;
 	start_date: string;
 	end_date: string;
 	webhook_url: string | null;

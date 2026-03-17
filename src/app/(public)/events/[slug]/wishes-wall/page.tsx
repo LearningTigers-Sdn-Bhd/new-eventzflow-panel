@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { WishesGrid } from "@/components/pages/wishes-wall/wishes-grid";
+import { normalizeWallSettings } from "@/components/pages/wishes-wall/wall-settings";
 import { getPublicEventById } from "@/lib/api/event";
 
 export default function WishesWallPage() {
@@ -53,6 +54,11 @@ export default function WishesWallPage() {
 	}
 
 	return (
-		<WishesGrid eventId={String(data.id)} eventTitle={data.title} slug={slug} />
+		<WishesGrid
+			eventId={String(data.id)}
+			eventTitle={data.title}
+			slug={slug}
+			wallSettings={normalizeWallSettings(data.wish_wall_setting)}
+		/>
 	);
 }

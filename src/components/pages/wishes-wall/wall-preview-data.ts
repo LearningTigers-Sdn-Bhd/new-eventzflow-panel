@@ -1,0 +1,68 @@
+import type { Wish } from "@/lib/api/wishes";
+
+export const wallPreviewWishes: Wish[] = [
+	{
+		id: 1,
+		guest_name: "Aunt Maya",
+		message: "So happy for both of you.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 2,
+		guest_name: "Farid",
+		message: "Wishing you endless laughter together.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 3,
+		guest_name: "Nadia",
+		message: "A beautiful start to forever.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 4,
+		guest_name: "Hakim",
+		message: "May your home be full of barakah.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 5,
+		guest_name: "Sofia",
+		message: "Love this moment for you two.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 6,
+		guest_name: "Danish",
+		message: "Congrats lovebirds.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 7,
+		guest_name: "Lina",
+		message: "A lifetime of joy and tenderness.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+	{
+		id: 8,
+		guest_name: "Iman",
+		message: "May this love grow stronger every year.",
+		status: "approved",
+		approved_at: null,
+		created_at: "2026-03-16T00:00:00Z",
+	},
+];

@@ -5,7 +5,7 @@ import {
 	type UpdateEventRequest,
 	updateEventSchema,
 } from "./request";
-import type { BackendEvent, Event, EventDetails } from "./response";
+import type { BackendEvent, Event, EventDetails, WishWallSetting } from "./response";
 
 /**
  * Get all events
@@ -57,10 +57,9 @@ export async function updateEvent(
 ): Promise<Event> {
 	const validated = updateEventSchema.parse(data); // Validate form data
 
-	const response = await restClient.put<BackendEvent>(
-		`v1/events/${eventId}`,
-		{ event: validated },
-	);
+	const response = await restClient.put<BackendEvent>(`v1/events/${eventId}`, {
+		event: validated,
+	});
 
 	// Return full event data without transformation
 	return response;
@@ -161,6 +160,7 @@ export interface PublicEventInfo {
 	venue_address: string | null;
 	status: string;
 	logo_url: string | null;
+	wish_wall_setting: WishWallSetting;
 }
 
 /**
