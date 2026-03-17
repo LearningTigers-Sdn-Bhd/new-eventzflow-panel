@@ -38,6 +38,7 @@ export const updateEventSchema = z.object({
 	visibility: z.boolean().optional(),
 	use_ticket: z.boolean().optional(),
 	use_wedding: z.boolean().optional(),
+	auto_approve_wishes: z.boolean().optional(),
 	extra_guest_limit: z.number().int().min(0).nullable().optional(),
 	use_seat_ticketing: z.boolean().optional(),
 	use_exhibitor_kit: z.boolean().optional(),
@@ -80,6 +81,19 @@ export const updateEventSchema = z.object({
 				.optional()
 				.or(z.literal(""))
 				.or(z.null()),
+		})
+		.optional(),
+	wish_wall_setting_attributes: z
+		.object({
+			display_mode: z.enum(["cards", "animation"]),
+			animation_shape: z
+				.enum(["heart", "names", "infinity", "butterfly"])
+				.nullable()
+				.optional(),
+			animation_text: z.string().max(24).nullable().optional(),
+			accent_color: z.string().nullable().optional(),
+			header_text_color: z.string().nullable().optional(),
+			card_background_color: z.string().nullable().optional(),
 		})
 		.optional(),
 });

@@ -26,6 +26,7 @@ import {
 	Logs,
 	type LucideIcon,
 	MapPin,
+	MessageSquareHeart,
 	Package,
 	Printer,
 	ScanQrCode,
@@ -201,6 +202,14 @@ export const eventMenuConfig: EventMenuConfig = {
 			visible: visible.eventAdmin,
 		},
 		{
+			route: "wishes",
+			label: "Guestbook",
+			description:
+				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
+			icon: MessageSquareHeart,
+			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
+		},
+		{
 			route: "location",
 			label: "Location",
 			description: "View event location details and map.",
@@ -297,8 +306,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "seat-ticketing",
 			label: "Seat Reservation",
 			icon: Ticket,
-			visible: (p, e) =>
-				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+			visible: (p, e) => visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
 			tabs: [
 				{
 					route: "seat-ticketing/sessions",
@@ -453,7 +461,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: ScanQrCode,
 					visible: visible.vendor,
 				},
-
 			],
 		},
 

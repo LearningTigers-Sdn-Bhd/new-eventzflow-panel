@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	type FileWithPreview,
@@ -27,14 +27,12 @@ export default function ImageUpload({
 	maxSize = 5 * 1024 * 1024, // 5MB
 	fillHeight = false,
 }: ImageUploadProps) {
-	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-	const prevValueRef = useRef<string | File | undefined>(undefined);
+	const [externalPreviewUrl, setExternalPreviewUrl] = useState<string | null>(null);
 
 	// Initialize file upload hook
 	const [
 		{ files, isDragging, errors },
 		{
-			addFiles,
 			clearFiles,
 			handleDragEnter,
 			handleDragLeave,
@@ -62,30 +60,33 @@ export default function ImageUpload({
 
 	// Sync value prop with internal state
 	useEffect(() => {
-		if (prevValueRef.current === value) {
-			return;
-		}
-
-		prevValueRef.current = value;
-
 		if (typeof value === "string" && value) {
-			setPreviewUrl(value);
+			setExternalPreviewUrl(value);
 		} else if (value instanceof File) {
+			const matchingHookFile = files.find(
+				(fileEntry) => fileEntry.file instanceof File && fileEntry.file === value,
+			);
+
+			if (matchingHookFile?.preview) {
+				setExternalPreviewUrl(null);
+				return;
+			}
+
 			const preview = URL.createObjectURL(value);
-			setPreviewUrl(preview);
+			setExternalPreviewUrl(preview);
 			return () => URL.revokeObjectURL(preview);
 		} else if (!value) {
-			setPreviewUrl(null);
+			setExternalPreviewUrl(null);
 		}
-	}, [value]);
+	}, [files, value]);
 
 	// Hook's files take precedence for preview if a new file is selected
 	const currentFile = files[0];
-	const displayPreview = currentFile?.preview || previewUrl;
+	const displayPreview = currentFile?.preview || externalPreviewUrl;
 
 	const handleRemove = () => {
 		clearFiles();
-		setPreviewUrl(null);
+		setExternalPreviewUrl(null);
 		onChange?.(null);
 	};
 
