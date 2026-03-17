@@ -27,18 +27,22 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
+import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
 import type { ExhibitorMember } from "./columns";
 import { DataControl } from "./data-control";
 import { ExhibitorItem } from "./exhibitor-item";
 import { KitDetailsRow } from "./kit-details-row";
-import type { EventVendor } from "@/lib/api/event-vendor";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	canManageVendors?: boolean;
 }
+
+type StickyColumnMeta = {
+	sticky?: "left" | "right";
+};
 
 export function DataTable<TData, TValue>({
 	columns,
@@ -51,7 +55,9 @@ export function DataTable<TData, TValue>({
 	);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
-	const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
+	const [expandedRows, setExpandedRows] = React.useState<
+		Record<string, boolean>
+	>({});
 
 	const toggleRow = React.useCallback((rowId: string) => {
 		setExpandedRows((prev) => ({
@@ -93,11 +99,20 @@ export function DataTable<TData, TValue>({
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id}>
 										{headerGroup.headers.map((header) => {
+											const meta = header.column.columnDef.meta as
+												| StickyColumnMeta
+												| undefined;
 											return (
 												<TableHead
 													key={header.id}
 													style={{ width: `${header.getSize()}px` }}
-													className={cn(header.index === 0 && "ps-3")}
+													className={cn(
+														header.index === 0 && "ps-3",
+														meta?.sticky === "left" &&
+															"sticky left-0 z-10 bg-background",
+														meta?.sticky === "right" &&
+															"sticky right-0 z-10 bg-background shadow-[-1px_0_0_hsl(var(--border))]",
+													)}
 												>
 													{header.isPlaceholder
 														? null
@@ -116,27 +131,37 @@ export function DataTable<TData, TValue>({
 									table.getRowModel().rows.map((row) => (
 										<React.Fragment key={row.id}>
 											<TableRow data-state={row.getIsSelected() && "selected"}>
-												{row.getVisibleCells().map((cell) => (
-													<TableCell
-														key={cell.id}
-														style={{ width: `${cell.column.getSize()}px` }}
-														className={cn(
-															table.getVisibleLeafColumns()[0]?.id ===
-																cell.column.id && "ps-4",
-														)}
-													>
-														{flexRender(
-															cell.column.columnDef.cell,
-															cell.getContext(),
-														)}
-													</TableCell>
-												))}
+												{row.getVisibleCells().map((cell) => {
+													const meta = cell.column.columnDef.meta as
+														| StickyColumnMeta
+														| undefined;
+
+													return (
+														<TableCell
+															key={cell.id}
+															style={{ width: `${cell.column.getSize()}px` }}
+															className={cn(
+																table.getVisibleLeafColumns()[0]?.id ===
+																	cell.column.id && "ps-4",
+																meta?.sticky === "left" &&
+																	"sticky left-0 z-10 bg-background",
+																meta?.sticky === "right" &&
+																	"sticky right-0 z-10 bg-background shadow-[-1px_0_0_hsl(var(--border))]",
+															)}
+														>
+															{flexRender(
+																cell.column.columnDef.cell,
+																cell.getContext(),
+															)}
+														</TableCell>
+													);
+												})}
 											</TableRow>
 											{expandedRows[row.id] && (
 												<TableRow className="hover:bg-transparent">
 													<TableCell colSpan={columns.length} className="p-0">
-														<KitDetailsRow 
-															vendor={row.original as EventVendor} 
+														<KitDetailsRow
+															vendor={row.original as EventVendor}
 															isExpanded={expandedRows[row.id]}
 														/>
 													</TableCell>

@@ -21,6 +21,25 @@ import { ExhibitorActionsMenu } from "./action-menu";
 
 export type ExhibitorMember = EventVendor;
 
+function formatCreatedAt(dateString?: string | null): {
+	timePart: string;
+	datePart: string;
+} {
+	if (!dateString) {
+		return { timePart: "-", datePart: "-" };
+	}
+
+	const date = new Date(dateString);
+	if (Number.isNaN(date.getTime())) {
+		return { timePart: "Invalid date", datePart: "Invalid date" };
+	}
+
+	return {
+		timePart: date.toLocaleString("en-US", { timeStyle: "medium" }),
+		datePart: date.toLocaleString("en-US", { dateStyle: "medium" }),
+	};
+}
+
 const baseColumns: ColumnDef<ExhibitorMember>[] = [
 	{
 		id: "expand",
@@ -411,6 +430,41 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 						</div>
 					</PopoverContent>
 				</Popover>
+			);
+		},
+	},
+	{
+		accessorKey: "created_at",
+		id: "created_at",
+		size: 150,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center gap-2">
+					<p className="font-medium">Created At</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="rounded-none"
+					>
+						<ArrowDown
+							className={cn(
+								"size-4 transition-transform",
+								column.getIsSorted() === "asc" && "-rotate-180",
+							)}
+						/>
+					</Button>
+				</div>
+			);
+		},
+		cell: ({ row }) => {
+			const { timePart, datePart } = formatCreatedAt(row.original.created_at);
+
+			return (
+				<div className="flex flex-col">
+					<div className="font-medium text-sm">{timePart}</div>
+					<div className="text-muted-foreground text-xs">{datePart}</div>
+				</div>
 			);
 		},
 	},
