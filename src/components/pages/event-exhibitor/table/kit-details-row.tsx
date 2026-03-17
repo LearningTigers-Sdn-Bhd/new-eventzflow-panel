@@ -160,7 +160,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					<div className="py-0.5">
 						<span className="mb-0.5 block font-medium text-xs">Address</span>
 						{kit.company_address ? (
-							<ExpandableText text={kit.company_address} />
+							<span className="block whitespace-pre-wrap break-words text-muted-foreground text-xs">
+								{kit.company_address}
+							</span>
 						) : (
 							<span className="block text-muted-foreground text-xs">-</span>
 						)}

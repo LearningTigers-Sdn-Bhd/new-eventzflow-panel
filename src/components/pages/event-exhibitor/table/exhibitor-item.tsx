@@ -17,6 +17,8 @@ import {
 	ItemContent,
 	ItemTitle,
 } from "@/components/ui/item";
+
+import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { ExhibitorActionsMenu } from "./action-menu";
 import type { ExhibitorMember } from "./columns";
@@ -105,9 +107,9 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 								variant="ghost"
 								size="sm"
 								className="h-auto rounded-none p-0 hover:bg-transparent"
-								onClick={() =>
-									(window.location.href = `mailto:${kit.pic_email_address}`)
-								}
+								onClick={() => {
+									window.location.href = `mailto:${kit.pic_email_address}`;
+								}}
 							>
 								<span className="text-sm group-hover:underline">
 									{kit.pic_email_address}
@@ -129,6 +131,13 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 						<span className="text-sm">
 							{kit?.exhibitor_team_members?.length || 0} team member
 							{(kit?.exhibitor_team_members?.length || 0) !== 1 ? "s" : ""}
+						</span>
+					</div>
+
+					<div className="flex items-center gap-2">
+						<Building2 className="size-4 shrink-0" />
+						<span className="text-sm">
+							Created on {formatDateTime(exhibitor.created_at)}
 						</span>
 					</div>
 				</div>
