@@ -26,13 +26,17 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import {
+	type GuestPolicyMode,
 	guestPolicyLimitToValue,
 	guestPolicyValueFromLimit,
-	type GuestPolicyMode,
 } from "@/lib/api/event/guest-policy";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
+import {
+	canConfigureAdvancedEventOptions,
+	canConfigureExhibitorKit,
+} from "./access";
 
 const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
@@ -44,6 +48,7 @@ const formSchema = z.object({
 	guestLimit: z.number().int().min(1),
 	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
+	enableExhibitorManagement: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
 	useSponsorship: z.boolean(),
@@ -77,6 +82,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 
 	// Check if user is org_owner
 	const isOrgOwner = user?.role === "org_owner";
+	const canManageAdvancedEventOptions = canConfigureAdvancedEventOptions(
+		user?.role,
+	);
+	const canManageExhibitorKit = canConfigureExhibitorKit(user?.role);
 
 	// Fetch event data
 	const {
@@ -121,6 +130,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			guestLimit: 1,
 			useSeatTicketing: false,
 			useExhibitorKit: false,
+			enableExhibitorManagement: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useSponsorship: false,
@@ -146,9 +156,13 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
 					use_wedding: useWedding,
-					extra_guest_limit: guestPolicyLimitToValue(value.guestPolicy, value.guestLimit),
+					extra_guest_limit: guestPolicyLimitToValue(
+						value.guestPolicy,
+						value.guestLimit,
+					),
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
+					enable_exhibitor_management: value.enableExhibitorManagement,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_sponsorship: value.useSponsorship,
@@ -187,6 +201,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.use_seat_ticketing ?? false,
 				);
 				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
+				form.setFieldValue(
+					"enableExhibitorManagement",
+					event.enable_exhibitor_management ?? false,
+				);
 				form.setFieldValue(
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
@@ -511,90 +529,115 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 													variant="no-rounded"
 												/>
 
-						{!field.state.value && (
-							<form.Field name="useWedding">
-								{(weddingField) => (
-									<div className="flex flex-col gap-4">
-										<SwitchCardInput
-											label="Wedding System"
-											description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
-											htmlFor={weddingField.name}
-											variant="no-rounded"
-											border={true}
-											checked={weddingField.state.value}
-											onCheckedChange={weddingField.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
+												{!field.state.value && (
+													<form.Field name="useWedding">
+														{(weddingField) => (
+															<div className="flex flex-col gap-4">
+																<SwitchCardInput
+																	label="Wedding System"
+																	description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
+																	htmlFor={weddingField.name}
+																	variant="no-rounded"
+																	border={true}
+																	checked={weddingField.state.value}
+																	onCheckedChange={weddingField.handleChange}
+																	disabled={updateEventMutation.isPending}
+																/>
 
-										{weddingField.state.value && (
-											<>
-												<form.Field name="guestPolicy">
-													{(guestPolicyField) => (
-														<RadioGroupCard
-															label="Guest Allowance"
-															description="Control how many extra guests wedding invitees may bring."
-															value={guestPolicyField.state.value}
-															onChange={guestPolicyField.handleChange}
-															onBlur={guestPolicyField.handleBlur}
-															errors={guestPolicyField.state.meta.errors}
-															isInvalid={
-																guestPolicyField.state.meta.isTouched &&
-																!guestPolicyField.state.meta.isValid
-															}
-															disabled={updateEventMutation.isPending}
-															options={[
-																{
-																	value: "unlimited",
-																	label: "Unlimited",
-																	description: "Invitees can bring as many extra guests as needed.",
-																},
-																{
-																	value: "none",
-																	label: "No extra guests",
-																	description: "Invitees can only RSVP for themselves.",
-																},
-																{
-																	value: "limited",
-																	label: "Set a limit",
-																	description: "Choose the maximum number of extra guests allowed.",
-																},
-															]}
-															variant="no-rounded"
-														/>
-													)}
-												</form.Field>
+																{weddingField.state.value && (
+																	<>
+																		<form.Field name="guestPolicy">
+																			{(guestPolicyField) => (
+																				<RadioGroupCard
+																					label="Guest Allowance"
+																					description="Control how many extra guests wedding invitees may bring."
+																					value={guestPolicyField.state.value}
+																					onChange={
+																						guestPolicyField.handleChange
+																					}
+																					onBlur={guestPolicyField.handleBlur}
+																					errors={
+																						guestPolicyField.state.meta.errors
+																					}
+																					isInvalid={
+																						guestPolicyField.state.meta
+																							.isTouched &&
+																						!guestPolicyField.state.meta.isValid
+																					}
+																					disabled={
+																						updateEventMutation.isPending
+																					}
+																					options={[
+																						{
+																							value: "unlimited",
+																							label: "Unlimited",
+																							description:
+																								"Invitees can bring as many extra guests as needed.",
+																						},
+																						{
+																							value: "none",
+																							label: "No extra guests",
+																							description:
+																								"Invitees can only RSVP for themselves.",
+																						},
+																						{
+																							value: "limited",
+																							label: "Set a limit",
+																							description:
+																								"Choose the maximum number of extra guests allowed.",
+																						},
+																					]}
+																					variant="no-rounded"
+																				/>
+																			)}
+																		</form.Field>
 
-												<form.Subscribe selector={(state) => state.values.guestPolicy}>
-													{(guestPolicy) =>
-														guestPolicy === "limited" ? (
-															<form.Field name="guestLimit">
-																{(guestLimitField) => (
-																	<NumberInputLabel
-																		label="Guest Limit"
-																		value={guestLimitField.state.value}
-																		onChange={guestLimitField.handleChange}
-																		errors={guestLimitField.state.meta.errors}
-																		isInvalid={
-																			guestLimitField.state.meta.isTouched &&
-																			!guestLimitField.state.meta.isValid
-																		}
-																		description="Maximum number of additional guests allowed per invitation."
-																		min={1}
-																		disabled={updateEventMutation.isPending}
-																		required
-																		variant="no-rounded"
-																	/>
+																		<form.Subscribe
+																			selector={(state) =>
+																				state.values.guestPolicy
+																			}
+																		>
+																			{(guestPolicy) =>
+																				guestPolicy === "limited" ? (
+																					<form.Field name="guestLimit">
+																						{(guestLimitField) => (
+																							<NumberInputLabel
+																								label="Guest Limit"
+																								value={
+																									guestLimitField.state.value
+																								}
+																								onChange={
+																									guestLimitField.handleChange
+																								}
+																								errors={
+																									guestLimitField.state.meta
+																										.errors
+																								}
+																								isInvalid={
+																									guestLimitField.state.meta
+																										.isTouched &&
+																									!guestLimitField.state.meta
+																										.isValid
+																								}
+																								description="Maximum number of additional guests allowed per invitation."
+																								min={1}
+																								disabled={
+																									updateEventMutation.isPending
+																								}
+																								required
+																								variant="no-rounded"
+																							/>
+																						)}
+																					</form.Field>
+																				) : null
+																			}
+																		</form.Subscribe>
+																	</>
 																)}
-															</form.Field>
-														) : null
-													}
-												</form.Subscribe>
-											</>
-										)}
-									</div>
-								)}
-							</form.Field>
-						)}
+															</div>
+														)}
+													</form.Field>
+												)}
 											</div>
 										);
 									}}
@@ -621,44 +664,46 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
-								<form.Field name="useBusinessMatching">
-									{(field) => (
-										<div className="flex flex-col gap-4">
-											<SwitchCardInput
-												label="Business Matching"
-												description="Allow business matching for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-											{field.state.value && (
-												<form.Field name="businessMatchingWebhookUrl">
-													{(urlField) => {
-														const isInvalid =
-															urlField.state.meta.isTouched &&
-															!urlField.state.meta.isValid;
-														return (
-															<InputLabel
-																label="Business Matching Webhook URL"
-																htmlFor={urlField.name}
-																value={urlField.state.value}
-																onChange={urlField.handleChange}
-																onBlur={urlField.handleBlur}
-																errors={urlField.state.meta.errors}
-																isInvalid={isInvalid}
-																placeholder="https://webhook.example.com/bm"
-																disabled={updateEventMutation.isPending}
-															/>
-														);
-													}}
-												</form.Field>
-											)}
-										</div>
-									)}
-								</form.Field>
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useBusinessMatching">
+										{(field) => (
+											<div className="flex flex-col gap-4">
+												<SwitchCardInput
+													label="Business Matching"
+													description="Allow business matching for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={updateEventMutation.isPending}
+												/>
+												{field.state.value && (
+													<form.Field name="businessMatchingWebhookUrl">
+														{(urlField) => {
+															const isInvalid =
+																urlField.state.meta.isTouched &&
+																!urlField.state.meta.isValid;
+															return (
+																<InputLabel
+																	label="Business Matching Webhook URL"
+																	htmlFor={urlField.name}
+																	value={urlField.state.value}
+																	onChange={urlField.handleChange}
+																	onBlur={urlField.handleBlur}
+																	errors={urlField.state.meta.errors}
+																	isInvalid={isInvalid}
+																	placeholder="https://webhook.example.com/bm"
+																	disabled={updateEventMutation.isPending}
+																/>
+															);
+														}}
+													</form.Field>
+												)}
+											</div>
+										)}
+									</form.Field>
+								)}
 								<form.Field name="useSponsorship">
 									{(field) => (
 										<SwitchCardInput
@@ -673,21 +718,23 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
-								<form.Field name="useEventLeads">
-									{(field) => (
-										<SwitchCardInput
-											label="Event Leads"
-											description="Allow vendors to scan attendee QR codes to capture leads."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-{/*								<form.Field name="photoBoothEnabled">
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useEventLeads">
+										{(field) => (
+											<SwitchCardInput
+												label="Event Leads"
+												description="Allow vendors to scan attendee QR codes to capture leads."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
+								{/*								<form.Field name="photoBoothEnabled">
 									{(field) => (
 										<SwitchCardInput
 											label="Photo Booth"
@@ -701,83 +748,125 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>*/}
-								<form.Field name="useSeatTicketing">
-									{(field) => (
-										<SwitchCardInput
-											label="Seat Ticketing System"
-											description="Enable reserved seat sessions and seat maps for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useSeatTicketing">
+										{(field) => (
+											<SwitchCardInput
+												label="Seat Ticketing System"
+												description="Enable reserved seat sessions and seat maps for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
 							</div>
 						</div>
 					</FormGroupContainer>
 
 					{/* Exhibitor Kit */}
-					<FormGroupContainer
-						title={{
-							icon: Box,
-							label: "Exhibitor Kit",
-							description:
-								"Configure the event with full exhibitor kit features.",
-						}}
-					>
-						<FieldContent className="flex flex-none flex-col gap-1">
-							<FieldLabel>Exhibitor Kit</FieldLabel>
-							<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
-						</FieldContent>
-						<form.Field name="useExhibitorKit">
-							{(exhibitorKitField) => {
-								const useExhibitorKitValue = exhibitorKitField.state.value;
-
-								return (
-									<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-										{/* Enable Exhibitor Kit */}
-										<SwitchCardInput
-											label="Enable Exhibitor Kit"
-											description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
-											htmlFor={exhibitorKitField.name}
-											variant="no-rounded"
-											border={true}
-											checked={exhibitorKitField.state.value}
-											onCheckedChange={(checked) => {
-												exhibitorKitField.handleChange(checked);
-												// Reset printing services when exhibitor kit is disabled
-												if (!checked) {
-													form.setFieldValue("allowPrintingServices", false);
-												}
-											}}
-											disabled={updateEventMutation.isPending}
-										/>
-
-										{/* Allow Printing Services - only show when exhibitor kit is enabled */}
-										{useExhibitorKitValue && (
-											<form.Field name="allowPrintingServices">
-												{(field) => (
-													<SwitchCardInput
-														label="Allow Printing Services"
-														description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-														htmlFor={field.name}
-														variant="no-rounded"
-														border={true}
-														checked={field.state.value}
-														onCheckedChange={field.handleChange}
-														disabled={updateEventMutation.isPending}
-													/>
-												)}
-											</form.Field>
-										)}
-									</div>
-								);
+					{canManageExhibitorKit && (
+						<FormGroupContainer
+							title={{
+								icon: Box,
+								label: "Exhibitor Kit",
+								description:
+									"Configure the event with full exhibitor kit features.",
 							}}
-						</form.Field>
-					</FormGroupContainer>
+						>
+							<FieldContent className="flex flex-none flex-col gap-1">
+								<FieldLabel>Exhibitor Kit</FieldLabel>
+								<FieldDescription>
+									Event Exhibitor Kit options.
+								</FieldDescription>
+							</FieldContent>
+							<form.Field name="useExhibitorKit">
+								{(exhibitorKitField) => {
+									const useExhibitorKitValue = exhibitorKitField.state.value;
+
+									return (
+										<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+											<SwitchCardInput
+												label="Enable Exhibitor Kit"
+												description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
+												htmlFor={exhibitorKitField.name}
+												variant="no-rounded"
+												border={true}
+												checked={exhibitorKitField.state.value}
+												onCheckedChange={(checked) => {
+													exhibitorKitField.handleChange(checked);
+													if (!checked) {
+														form.setFieldValue(
+															"enableExhibitorManagement",
+															false,
+														);
+														form.setFieldValue("allowPrintingServices", false);
+													}
+												}}
+												disabled={updateEventMutation.isPending}
+											/>
+
+											{useExhibitorKitValue && (
+												<>
+													<form.Field name="enableExhibitorManagement">
+														{(field) => (
+															<SwitchCardInput
+																label="Enable Exhibitor Management"
+																description="Allow exhibitors and contractors to access exhibitor management features for this event."
+																htmlFor={field.name}
+																variant="no-rounded"
+																border={true}
+																checked={field.state.value}
+																onCheckedChange={(checked) => {
+																	field.handleChange(checked);
+																	if (!checked) {
+																		form.setFieldValue(
+																			"allowPrintingServices",
+																			false,
+																		);
+																	}
+																}}
+																disabled={updateEventMutation.isPending}
+															/>
+														)}
+													</form.Field>
+
+													<form.Subscribe
+														selector={(state) =>
+															state.values.enableExhibitorManagement
+														}
+													>
+														{(enableExhibitorManagement) =>
+															enableExhibitorManagement ? (
+																<form.Field name="allowPrintingServices">
+																	{(field) => (
+																		<SwitchCardInput
+																			label="Allow Printing Services"
+																			description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+																			htmlFor={field.name}
+																			variant="no-rounded"
+																			border={true}
+																			checked={field.state.value}
+																			onCheckedChange={field.handleChange}
+																			disabled={updateEventMutation.isPending}
+																		/>
+																	)}
+																</form.Field>
+															) : null
+														}
+													</form.Subscribe>
+												</>
+											)}
+										</div>
+									);
+								}}
+							</form.Field>
+						</FormGroupContainer>
+					)}
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe

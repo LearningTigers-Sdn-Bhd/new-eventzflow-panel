@@ -1,10 +1,24 @@
 "use client";
 
-import { CreditCard, ImageIcon, InfoIcon, Mail, Monitor, TagIcon } from "lucide-react";
+import {
+	CreditCard,
+	ImageIcon,
+	InfoIcon,
+	Mail,
+	Monitor,
+	TagIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { canAccessBrandingSettings } from "./access";
 
-export type SettingsTab = "event-information" | "email-settings" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
+export type SettingsTab =
+	| "event-information"
+	| "email-settings"
+	| "custom-labels"
+	| "welcome-screen"
+	| "branding"
+	| "payment-gateway";
 
 interface NavigationItem {
 	id: SettingsTab;
@@ -55,9 +69,17 @@ export default function SettingsNavigation({
 	activeTab,
 	onTabChange,
 }: SettingsNavigationProps) {
+	const visibleNavigationItems = navigationItems.filter((item) => {
+		if (item.id === "branding") {
+			return canAccessBrandingSettings();
+		}
+
+		return true;
+	});
+
 	return (
-		<div className="sticky top-0 flex w-full flex-row gap-2 overflow-x-auto self-start md:flex-col">
-			{navigationItems.map((item) => {
+		<div className="sticky top-0 flex w-full flex-row gap-2 self-start overflow-x-auto md:flex-col">
+			{visibleNavigationItems.map((item) => {
 				const Icon = item.icon;
 				const isActive = activeTab === item.id;
 

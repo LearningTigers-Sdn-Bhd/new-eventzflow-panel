@@ -3,8 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, FileText, Package } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { getEventById } from "@/lib/api/event";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
+import { isExhibitorManagementEnabled } from "../event/exhibitor-management-access";
 
 interface ContractorGuidelinesViewProps {
 	eventId: number;
@@ -13,6 +17,15 @@ interface ContractorGuidelinesViewProps {
 export function ContractorGuidelinesView({
 	eventId,
 }: ContractorGuidelinesViewProps) {
+	const { user } = useAuth();
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(String(eventId)),
+	});
+	const canAccessExhibitorManagement = isExhibitorManagementEnabled(
+		user?.role,
+		eventDetails,
+	);
 	const {
 		data: contractor,
 		isLoading,
@@ -20,8 +33,21 @@ export function ContractorGuidelinesView({
 	} = useQuery({
 		queryKey: ["event-exhibition-contractor", eventId],
 		queryFn: () => getEventExhibitionContractor(eventId),
-		enabled: !!eventId,
+		enabled: !!eventId && canAccessExhibitorManagement,
 	});
+
+	if (isLoadingEvent) {
+		return (
+			<LoadingState
+				title="Loading feature access..."
+				description="Checking event access for exhibitor guidelines..."
+			/>
+		);
+	}
+
+	if (!canAccessExhibitorManagement) {
+		return <FeatureLockedState isEventVendor />;
+	}
 
 	if (isLoading) {
 		return (
@@ -75,42 +101,45 @@ export function ContractorGuidelinesView({
 
 			{profile?.guidelines_pdf_url && (
 				<div className="border bg-background/60 p-6">
-				<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-					<div className="flex items-start gap-4">
-						<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-muted">
-							<FileText className="h-8 w-8 text-muted-foreground" />
-						</div>
-						<div className="space-y-1">
-							<p className="font-medium">
-								{profile.guidelines_pdf_filename || "Guidelines Document"}
-							</p>
-							<p className="text-muted-foreground text-sm">
-								Exhibitor rules, terms & conditions
-							</p>
-							{contractorUser && (
-								<p className="text-muted-foreground text-xs">
-									By <span className="font-semibold">{contractorUser.full_name}</span>
+					<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+						<div className="flex items-start gap-4">
+							<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-muted">
+								<FileText className="h-8 w-8 text-muted-foreground" />
+							</div>
+							<div className="space-y-1">
+								<p className="font-medium">
+									{profile.guidelines_pdf_filename || "Guidelines Document"}
 								</p>
-							)}
+								<p className="text-muted-foreground text-sm">
+									Exhibitor rules, terms & conditions
+								</p>
+								{contractorUser && (
+									<p className="text-muted-foreground text-xs">
+										By{" "}
+										<span className="font-semibold">
+											{contractorUser.full_name}
+										</span>
+									</p>
+								)}
+							</div>
 						</div>
-					</div>
 
-					<a
-						href={profile.guidelines_pdf_url}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="inline-flex items-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-					>
-						<ExternalLink className="h-4 w-4" />
-						View PDF
-					</a>
+						<a
+							href={profile.guidelines_pdf_url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="inline-flex items-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
+						>
+							<ExternalLink className="h-4 w-4" />
+							View PDF
+						</a>
+					</div>
 				</div>
-			</div>
 			)}
 
 			{profile?.standard_package_info && (
 				<div className="border bg-background/60 p-6">
-					<div className="flex items-start gap-4 mb-4">
+					<div className="mb-4 flex items-start gap-4">
 						<div className="flex h-14 w-14 shrink-0 items-center justify-center bg-muted">
 							<Package className="h-8 w-8 text-muted-foreground" />
 						</div>
@@ -122,7 +151,7 @@ export function ContractorGuidelinesView({
 						</div>
 					</div>
 					<div className="max-h-180 overflow-y-auto border border-dashed bg-muted/30 p-4">
-						<pre className="whitespace-pre-wrap break-words font-sans text-sm text-foreground">
+						<pre className="whitespace-pre-wrap break-words font-sans text-foreground text-sm">
 							{profile.standard_package_info}
 						</pre>
 					</div>

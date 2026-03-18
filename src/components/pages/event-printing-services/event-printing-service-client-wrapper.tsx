@@ -1,22 +1,27 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Info, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import {
-	getEventPrintingServices,
 	createEventPrintingService,
 	deleteEventPrintingService,
+	getEventPrintingServices,
 } from "@/lib/api/event-printing-service";
-import { UnlinkServiceDialog } from "./unlink-service-dialog";
+import {
+	isExhibitorManagementEnabled,
+	shouldLoadExhibitorManagementData,
+} from "../event/exhibitor-management-access";
 import { LinkServiceDialog } from "./link-service-dialog";
-import { DataTable } from "./table/data-table";
 import { getColumns } from "./table/columns";
+import { DataTable } from "./table/data-table";
+import { UnlinkServiceDialog } from "./unlink-service-dialog";
 
 interface EventPrintingServiceClientWrapperProps {
 	eventId: number;
@@ -32,13 +37,14 @@ export default function EventPrintingServiceClientWrapper({
 	const isOrgOwner = user?.role === "org_owner";
 
 	// Fetch event details to check allow_contractor_printing_services flag
-	const {
-		data: eventDetails,
-		isLoading: isLoadingEvent,
-	} = useQuery({
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
 	});
+	const shouldLoadLinkedServices = shouldLoadExhibitorManagementData(
+		user?.role,
+		eventDetails,
+	);
 
 	// Fetch linked services
 	const {
@@ -48,6 +54,7 @@ export default function EventPrintingServiceClientWrapper({
 	} = useQuery({
 		queryKey: ["event-printing-services", eventId],
 		queryFn: () => getEventPrintingServices(eventId),
+		enabled: shouldLoadLinkedServices,
 	});
 
 	// Link service mutation
@@ -118,7 +125,10 @@ export default function EventPrintingServiceClientWrapper({
 		});
 	};
 
-	const handleUnlink = (eventPrintingServiceId: number, serviceName: string) => {
+	const handleUnlink = (
+		eventPrintingServiceId: number,
+		serviceName: string,
+	) => {
 		openDialog({
 			component: UnlinkServiceDialog,
 			props: {
@@ -139,13 +149,20 @@ export default function EventPrintingServiceClientWrapper({
 		});
 	};
 
-	if (isLoadingLinked || isLoadingEvent) {
+	if (isLoadingEvent || (shouldLoadLinkedServices && isLoadingLinked)) {
 		return (
 			<LoadingState
 				title="Loading event printing services..."
 				description="Please wait while we fetch the linked services..."
 			/>
 		);
+	}
+
+	if (
+		!isLoadingEvent &&
+		!isExhibitorManagementEnabled(user?.role, eventDetails)
+	) {
+		return <FeatureLockedState isEventVendor={user?.role === "vendor"} />;
 	}
 
 	if (linkedError) {
@@ -159,7 +176,8 @@ export default function EventPrintingServiceClientWrapper({
 	}
 
 	// Check if contractor printing is enabled
-	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+	const allowContractorPrinting =
+		eventDetails?.allow_contractor_printing_services ?? false;
 
 	const columns = getColumns({
 		onUnlink: handleUnlink,
@@ -174,9 +192,12 @@ export default function EventPrintingServiceClientWrapper({
 					<div className="flex items-start gap-3">
 						<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 						<div className="space-y-1">
-							<p className="font-medium text-sm">Printing services for this event</p>
+							<p className="font-medium text-sm">
+								Printing services for this event
+							</p>
 							<p className="text-muted-foreground text-sm">
-								Services are automatically linked when the contractor is assigned. Manage your catalog to add new services.
+								Services are automatically linked when the contractor is
+								assigned. Manage your catalog to add new services.
 							</p>
 						</div>
 					</div>
