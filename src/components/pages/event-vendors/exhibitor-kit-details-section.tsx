@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
 	Building2,
 	CreditCard,
@@ -19,11 +20,13 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
+import { shouldShowEmbeddedExhibitorManagementSections } from "../event/exhibitor-management-access";
 import { EditExhibitorKitDialog } from "./edit-exhibitor-kit-dialog";
 
 function ExpandableText({
@@ -72,6 +75,10 @@ export function ExhibitorKitDetailsSection({
 	const [dialogAction, setDialogAction] = useState<"verify" | "reject">(
 		"verify",
 	);
+	const { data: event } = useQuery({
+		queryKey: ["event", eventVendor.event_id],
+		queryFn: () => getEventById(String(eventVendor.event_id)),
+	});
 
 	if (!kit) {
 		return null;
@@ -98,6 +105,10 @@ export function ExhibitorKitDetailsSection({
 	// Merge items and printings with same IDs
 	const mergedItems = mergeKitItems(items);
 	const mergedPrintings = mergeKitPrintings(printings);
+	const showPaidSections = shouldShowEmbeddedExhibitorManagementSections(
+		user?.role,
+		event,
+	);
 
 	return (
 		<section className="space-y-2 border-t border-dashed">
@@ -419,87 +430,88 @@ export function ExhibitorKitDetailsSection({
 					</div>
 				)}
 
-				{/* Order Payments */}
-				<div className="rounded-none border bg-background p-4">
-					<div className="mb-3 flex items-center gap-2 border-b pb-3">
-						<CreditCard className="size-4 text-primary" />
-						<h3 className="font-semibold text-sm uppercase tracking-wide">
-							Order Payments
-						</h3>
-					</div>
-					<PaymentList
-						eventId={String(eventVendor.event_id)}
-						kitId={String(kit.id)}
-						currentUserId={isOrgOwner ? user?.id : undefined}
-						onVerifyPayment={isOrgOwner ? handleVerifyPayment : undefined}
-						onRejectPayment={isOrgOwner ? handleRejectPayment : undefined}
-					/>
-				</div>
-
-				{/* Ordered Items */}
-				{mergedItems.length > 0 && (
-					<div className="rounded-none border bg-background p-4">
-						<div className="mb-3 flex items-center gap-2 border-b pb-3">
-							<Package className="size-4 text-primary" />
-							<h3 className="font-semibold text-sm uppercase tracking-wide">
-								Ordered Items ({mergedItems.length})
-							</h3>
-						</div>
-						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
-							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-								{mergedItems.map((item) => (
-									<div
-										key={item.rentable_item_id}
-										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
-									>
-										<p className="truncate font-medium text-sm">
-											{item.rentable_item?.name ||
-												`Item #${item.rentable_item_id}`}
-										</p>
-										<Badge
-											variant="secondary"
-											className="shrink-0 rounded-none"
-										>
-											x{item.quantity}
-										</Badge>
-									</div>
-								))}
+				{showPaidSections && (
+					<>
+						<div className="rounded-none border bg-background p-4">
+							<div className="mb-3 flex items-center gap-2 border-b pb-3">
+								<CreditCard className="size-4 text-primary" />
+								<h3 className="font-semibold text-sm uppercase tracking-wide">
+									Order Payments
+								</h3>
 							</div>
+							<PaymentList
+								eventId={String(eventVendor.event_id)}
+								kitId={String(kit.id)}
+								currentUserId={isOrgOwner ? user?.id : undefined}
+								onVerifyPayment={isOrgOwner ? handleVerifyPayment : undefined}
+								onRejectPayment={isOrgOwner ? handleRejectPayment : undefined}
+							/>
 						</div>
-					</div>
-				)}
 
-				{/* Printing Services */}
-				{mergedPrintings.length > 0 && (
-					<div className="rounded-none border bg-background p-4">
-						<div className="mb-3 flex items-center gap-2 border-b pb-3">
-							<Printer className="size-4 text-primary" />
-							<h3 className="font-semibold text-sm uppercase tracking-wide">
-								Printing Services ({mergedPrintings.length})
-							</h3>
-						</div>
-						<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
-							<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-								{mergedPrintings.map((printing) => (
-									<div
-										key={printing.printing_service_id}
-										className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
-									>
-										<p className="truncate font-medium text-sm">
-											{printing.printing_service?.name ||
-												`Service #${printing.printing_service_id}`}
-										</p>
-										<Badge
-											variant="secondary"
-											className="shrink-0 rounded-none"
-										>
-											x{printing.quantity}
-										</Badge>
+						{mergedItems.length > 0 && (
+							<div className="rounded-none border bg-background p-4">
+								<div className="mb-3 flex items-center gap-2 border-b pb-3">
+									<Package className="size-4 text-primary" />
+									<h3 className="font-semibold text-sm uppercase tracking-wide">
+										Ordered Items ({mergedItems.length})
+									</h3>
+								</div>
+								<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
+									<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+										{mergedItems.map((item) => (
+											<div
+												key={item.rentable_item_id}
+												className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
+											>
+												<p className="truncate font-medium text-sm">
+													{item.rentable_item?.name ||
+														`Item #${item.rentable_item_id}`}
+												</p>
+												<Badge
+													variant="secondary"
+													className="shrink-0 rounded-none"
+												>
+													x{item.quantity}
+												</Badge>
+											</div>
+										))}
 									</div>
-								))}
+								</div>
 							</div>
-						</div>
-					</div>
+						)}
+
+						{mergedPrintings.length > 0 && (
+							<div className="rounded-none border bg-background p-4">
+								<div className="mb-3 flex items-center gap-2 border-b pb-3">
+									<Printer className="size-4 text-primary" />
+									<h3 className="font-semibold text-sm uppercase tracking-wide">
+										Printing Services ({mergedPrintings.length})
+									</h3>
+								</div>
+								<div className="scrollbar-thin scrollbar-track-transparent max-h-80 overflow-y-auto">
+									<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+										{mergedPrintings.map((printing) => (
+											<div
+												key={printing.printing_service_id}
+												className="flex items-center justify-between gap-2 rounded-none border bg-muted/30 p-3"
+											>
+												<p className="truncate font-medium text-sm">
+													{printing.printing_service?.name ||
+														`Service #${printing.printing_service_id}`}
+												</p>
+												<Badge
+													variant="secondary"
+													className="shrink-0 rounded-none"
+												>
+													x{printing.quantity}
+												</Badge>
+											</div>
+										))}
+									</div>
+								</div>
+							</div>
+						)}
+					</>
 				)}
 
 				{/* HIDDEN: Custom Requests feature temporarily disabled */}

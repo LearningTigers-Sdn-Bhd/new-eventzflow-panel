@@ -4,21 +4,38 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
+import { canManageExhibitorContractorAction } from "../../event/exhibitor-management-access";
 import { AssignContractorDialog } from "../assign-contractor-dialog";
 import { RemoveContractorDialog } from "../remove-contractor-dialog";
 
 export function ExhibitorContractorPageButton() {
 	const params = useParams();
 	const eventId = params.event_id as string;
+	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
+	const { data: eventDetails } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+	const canManageContractor = canManageExhibitorContractorAction(
+		user?.role,
+		eventDetails,
+	);
 
 	// Fetch the assigned contractor for this event
 	const { data: eventContractor } = useQuery({
 		queryKey: ["event", eventId, "exhibition-contractor"],
 		queryFn: () => getEventExhibitionContractor(Number(eventId)),
+		enabled: canManageContractor,
 	});
+
+	if (!canManageContractor) {
+		return null;
+	}
 
 	const handleAssignContractor = () => {
 		openDialog({
@@ -52,7 +69,7 @@ export function ExhibitorContractorPageButton() {
 	};
 
 	// Show remove button if contractor is assigned, otherwise show assign button
-	if (eventContractor && eventContractor.contractor) {
+	if (eventContractor?.contractor) {
 		return (
 			<Button
 				variant="destructive"

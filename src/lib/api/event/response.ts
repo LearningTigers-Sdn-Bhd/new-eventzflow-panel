@@ -9,12 +9,7 @@ export type EventEmailSetting = {
 
 export type WishWallSetting = {
 	display_mode: "cards" | "animation";
-	animation_shape:
-		| "heart"
-		| "names"
-		| "infinity"
-		| "butterfly"
-		| null;
+	animation_shape: "heart" | "names" | "infinity" | "butterfly" | null;
 	animation_text: string | null;
 	accent_color: string | null;
 	header_text_color: string | null;
@@ -36,6 +31,7 @@ export type Event = {
 	extra_guest_limit: number | null;
 	use_seat_ticketing: boolean;
 	use_exhibitor_kit: boolean;
+	enable_exhibitor_management: boolean;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
 	use_sponsorship: boolean;

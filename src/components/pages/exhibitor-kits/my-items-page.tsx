@@ -4,13 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Package, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ErrorState } from "@/components/data-state";
+import { ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
+import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import { isExhibitorManagementEnabled } from "../event/exhibitor-management-access";
 import { ExhibitorPaymentList } from "./exhibitor-payment-list";
 import { DataTable } from "./my-items/data-table";
 import { itemsColumns } from "./my-items/items-columns";
@@ -22,8 +26,17 @@ interface MyItemsPageProps {
 }
 
 export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
+	const { user } = useAuth();
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("items");
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(String(eventId)),
+	});
+	const canAccessExhibitorManagement = isExhibitorManagementEnabled(
+		user?.role,
+		eventDetails,
+	);
 
 	const {
 		data: eventVendors,
@@ -32,6 +45,7 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 	} = useQuery({
 		queryKey: ["events", eventId, "vendors"],
 		queryFn: () => getEventVendors(eventId),
+		enabled: canAccessExhibitorManagement,
 	});
 
 	// Find the current vendor and get their exhibitor kit
@@ -44,10 +58,25 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 
 	// Set the "Add More Items" button in the header
 	useSetEventActions(
-		<Button onClick={handleAddMoreItems} className="rounded-none">
-			Add More Items
-		</Button>,
+		canAccessExhibitorManagement ? (
+			<Button onClick={handleAddMoreItems} className="rounded-none">
+				Add More Items
+			</Button>
+		) : null,
 	);
+
+	if (isLoadingEvent) {
+		return (
+			<LoadingState
+				title="Loading feature access..."
+				description="Checking event access for exhibitor kits..."
+			/>
+		);
+	}
+
+	if (!canAccessExhibitorManagement) {
+		return <FeatureLockedState isEventVendor />;
+	}
 
 	if (isLoading) {
 		return (

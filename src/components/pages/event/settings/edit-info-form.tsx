@@ -48,6 +48,7 @@ const formSchema = z.object({
 	guestLimit: z.number().int().min(1),
 	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
+	enableExhibitorManagement: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
 	useSponsorship: z.boolean(),
@@ -129,6 +130,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			guestLimit: 1,
 			useSeatTicketing: false,
 			useExhibitorKit: false,
+			enableExhibitorManagement: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useSponsorship: false,
@@ -160,6 +162,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					),
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
+					enable_exhibitor_management: value.enableExhibitorManagement,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_sponsorship: value.useSponsorship,
@@ -198,6 +201,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.use_seat_ticketing ?? false,
 				);
 				form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
+				form.setFieldValue(
+					"enableExhibitorManagement",
+					event.enable_exhibitor_management ?? false,
+				);
 				form.setFieldValue(
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
@@ -793,6 +800,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												onCheckedChange={(checked) => {
 													exhibitorKitField.handleChange(checked);
 													if (!checked) {
+														form.setFieldValue(
+															"enableExhibitorManagement",
+															false,
+														);
 														form.setFieldValue("allowPrintingServices", false);
 													}
 												}}
@@ -800,20 +811,55 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											/>
 
 											{useExhibitorKitValue && (
-												<form.Field name="allowPrintingServices">
-													{(field) => (
-														<SwitchCardInput
-															label="Allow Printing Services"
-															description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-															htmlFor={field.name}
-															variant="no-rounded"
-															border={true}
-															checked={field.state.value}
-															onCheckedChange={field.handleChange}
-															disabled={updateEventMutation.isPending}
-														/>
-													)}
-												</form.Field>
+												<>
+													<form.Field name="enableExhibitorManagement">
+														{(field) => (
+															<SwitchCardInput
+																label="Enable Exhibitor Management"
+																description="Allow exhibitors and contractors to access exhibitor management features for this event."
+																htmlFor={field.name}
+																variant="no-rounded"
+																border={true}
+																checked={field.state.value}
+																onCheckedChange={(checked) => {
+																	field.handleChange(checked);
+																	if (!checked) {
+																		form.setFieldValue(
+																			"allowPrintingServices",
+																			false,
+																		);
+																	}
+																}}
+																disabled={updateEventMutation.isPending}
+															/>
+														)}
+													</form.Field>
+
+													<form.Subscribe
+														selector={(state) =>
+															state.values.enableExhibitorManagement
+														}
+													>
+														{(enableExhibitorManagement) =>
+															enableExhibitorManagement ? (
+																<form.Field name="allowPrintingServices">
+																	{(field) => (
+																		<SwitchCardInput
+																			label="Allow Printing Services"
+																			description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+																			htmlFor={field.name}
+																			variant="no-rounded"
+																			border={true}
+																			checked={field.state.value}
+																			onCheckedChange={field.handleChange}
+																			disabled={updateEventMutation.isPending}
+																		/>
+																	)}
+																</form.Field>
+															) : null
+														}
+													</form.Subscribe>
+												</>
 											)}
 										</div>
 									);

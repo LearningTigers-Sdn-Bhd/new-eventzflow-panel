@@ -51,6 +51,7 @@ const formSchema = z
 		guestLimit: z.number().int().min(1),
 		useSeatTicketing: z.boolean(),
 		useExhibitorKit: z.boolean(),
+		enableExhibitorManagement: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
 		useSponsorship: z.boolean(),
@@ -132,6 +133,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			guestLimit: 1,
 			useSeatTicketing: false,
 			useExhibitorKit: false,
+			enableExhibitorManagement: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useSponsorship: false,
@@ -159,6 +161,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				),
 				use_seat_ticketing: value.useSeatTicketing ?? false,
 				use_exhibitor_kit: value.useExhibitorKit ?? false,
+				enable_exhibitor_management: value.enableExhibitorManagement ?? false,
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
 				use_business_matching: value.useBusinessMatching ?? false,
@@ -757,6 +760,10 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 												onCheckedChange={(checked) => {
 													exhibitorKitField.handleChange(checked);
 													if (!checked) {
+														form.setFieldValue(
+															"enableExhibitorManagement",
+															false,
+														);
 														form.setFieldValue("allowPrintingServices", false);
 													}
 												}}
@@ -764,20 +771,55 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 											/>
 
 											{useExhibitorKitValue && (
-												<form.Field name="allowPrintingServices">
-													{(field) => (
-														<SwitchCardInput
-															label="Allow Printing Services"
-															description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-															htmlFor={field.name}
-															variant="no-rounded"
-															border={true}
-															checked={field.state.value}
-															onCheckedChange={field.handleChange}
-															disabled={createEventMutation.isPending}
-														/>
-													)}
-												</form.Field>
+												<>
+													<form.Field name="enableExhibitorManagement">
+														{(field) => (
+															<SwitchCardInput
+																label="Enable Exhibitor Management"
+																description="Allow exhibitors and contractors to access exhibitor management features for this event."
+																htmlFor={field.name}
+																variant="no-rounded"
+																border={true}
+																checked={field.state.value}
+																onCheckedChange={(checked) => {
+																	field.handleChange(checked);
+																	if (!checked) {
+																		form.setFieldValue(
+																			"allowPrintingServices",
+																			false,
+																		);
+																	}
+																}}
+																disabled={createEventMutation.isPending}
+															/>
+														)}
+													</form.Field>
+
+													<form.Subscribe
+														selector={(state) =>
+															state.values.enableExhibitorManagement
+														}
+													>
+														{(enableExhibitorManagement) =>
+															enableExhibitorManagement ? (
+																<form.Field name="allowPrintingServices">
+																	{(field) => (
+																		<SwitchCardInput
+																			label="Allow Printing Services"
+																			description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+																			htmlFor={field.name}
+																			variant="no-rounded"
+																			border={true}
+																			checked={field.state.value}
+																			onCheckedChange={field.handleChange}
+																			disabled={createEventMutation.isPending}
+																		/>
+																	)}
+																</form.Field>
+															) : null
+														}
+													</form.Subscribe>
+												</>
 											)}
 										</div>
 									);
