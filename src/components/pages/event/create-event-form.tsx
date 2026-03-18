@@ -9,6 +9,8 @@ import { z } from "zod";
 import DateTimePickerField from "@/components/admin-ui/form/date-time-picker";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { NumberInputLabel } from "@/components/admin-ui/form/number-input-label";
+import { RadioGroupCard } from "@/components/admin-ui/form/radio-group-card";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { SwitchStateCardInput } from "@/components/admin-ui/form/switch-state-card-input";
@@ -21,8 +23,18 @@ import {
 } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { createEvent } from "@/lib/api/event";
+import {
+	type GuestPolicyMode,
+	guestPolicyLimitToValue,
+} from "@/lib/api/event/guest-policy";
 import { getTeamMembers } from "@/lib/api/team";
+import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
+import {
+	canConfigureAdvancedEventOptions,
+	canConfigureEventVisibility,
+	canConfigureExhibitorKit,
+} from "./settings/access";
 
 interface CreateEventFormProps {
 	onClose: () => void;
@@ -34,12 +46,16 @@ const formSchema = z
 		title: z.string().min(3, "Event name must be at least 3 characters"),
 		visibility: z.boolean(),
 		useTicket: z.boolean(),
+		useWedding: z.boolean(),
+		guestPolicy: z.enum(["unlimited", "none", "limited"]),
+		guestLimit: z.number().int().min(1),
 		useSeatTicketing: z.boolean(),
 		useExhibitorKit: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
 		useSponsorship: z.boolean(),
-	useEventLeads: z.boolean(),
+		useEventLeads: z.boolean(),
+		multipleScans: z.boolean(),
 		status: z.enum(["draft", "published", "cancelled"]),
 		eventAdminId: z.union([z.string(), z.undefined()]),
 		description: z.string(),
@@ -72,6 +88,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
 	// Only org_owner can assign event admin
 	const canAssignEventAdmin = user?.role === "org_owner";
+	const canManageEventVisibility = canConfigureEventVisibility(user?.role);
+	const canManageAdvancedEventOptions = canConfigureAdvancedEventOptions(
+		user?.role,
+	);
+	const canManageExhibitorKit = canConfigureExhibitorKit(user?.role);
 
 	// Fetch team members for event admin selection (only members with role "member")
 	// Only fetch if user is org_owner
@@ -106,12 +127,16 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			title: "",
 			visibility: true,
 			useTicket: true,
+			useWedding: false,
+			guestPolicy: "unlimited" as GuestPolicyMode,
+			guestLimit: 1,
 			useSeatTicketing: false,
 			useExhibitorKit: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useSponsorship: false,
 			useEventLeads: false,
+			multipleScans: false,
 			status: "draft" as "draft" | "published" | "cancelled",
 			eventAdminId: undefined as string | undefined,
 			description: "",
@@ -122,11 +147,16 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			onSubmit: formSchema,
 		},
 		onSubmit: async ({ value }) => {
+			const useWedding = !value.useTicket && value.useWedding;
 			const payload = {
 				title: value.title.trim(),
 				visibility: value.visibility ?? true,
 				use_ticket: value.useTicket ?? true,
-				use_wedding: false,
+				use_wedding: useWedding,
+				extra_guest_limit: guestPolicyLimitToValue(
+					value.guestPolicy,
+					value.guestLimit,
+				),
 				use_seat_ticketing: value.useSeatTicketing ?? false,
 				use_exhibitor_kit: value.useExhibitorKit ?? false,
 				allow_contractor_printing_services:
@@ -138,7 +168,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				description: value.description.trim() || undefined,
 				start_date: value.startDate?.toISOString() || "",
 				end_date: value.endDate?.toISOString() || "",
-				multiple_scans: false,
+				multiple_scans: value.multipleScans ?? false,
 				...(value.eventAdminId && {
 					event_admin_id: Number(value.eventAdminId),
 				}),
@@ -401,51 +431,52 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 							description: "Configure the event settings and options.",
 						}}
 					>
-						<div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-							{/* Visibility */}
+						<div className={cn("grid grid-cols-1 gap-4", "xl:grid-cols-2")}>
 							<div className="flex flex-col gap-6 md:gap-4">
+								{canManageEventVisibility && (
+									<>
+										<FieldContent className="flex w-full flex-none flex-col gap-1">
+											<FieldLabel>Event Visibility</FieldLabel>
+											<FieldDescription className="text-balance">
+												Select the visibility of your event.
+											</FieldDescription>
+										</FieldContent>
+										<form.Field name="visibility">
+											{(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+												return (
+													<SwitchStateCardInput
+														states={{
+															checked: {
+																label: "Visible",
+																description:
+																	"The event will be visible to the public.",
+																color: "green",
+															},
+															unchecked: {
+																label: "Hidden",
+																description:
+																	"The event will not be visible to the public.",
+																color: "red",
+															},
+														}}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														onBlur={field.handleBlur}
+														errors={field.state.meta.errors}
+														isInvalid={isInvalid}
+														disabled={createEventMutation.isPending}
+														variant="no-rounded"
+													/>
+												);
+											}}
+										</form.Field>
+									</>
+								)}
 								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Event Visibility</FieldLabel>
-									<FieldDescription className="text-balance">
-										Select the visibility of your event.
-									</FieldDescription>
-								</FieldContent>
-								<form.Field name="visibility">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-										return (
-											<SwitchStateCardInput
-												states={{
-													checked: {
-														label: "Visible",
-														description:
-															"The event will be visible to the public.",
-														color: "green",
-													},
-													unchecked: {
-														label: "Hidden",
-														description:
-															"The event will not be visible to the public.",
-														color: "red",
-													},
-												}}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												disabled={createEventMutation.isPending}
-												variant="no-rounded"
-											/>
-										);
-									}}
-								</form.Field>
-							</div>
-							{/* Event Types */}
-							<div className="flex flex-col gap-6 md:gap-4">
-								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Event Types</FieldLabel>
+									<FieldLabel>Event Type</FieldLabel>
 									<FieldDescription className="text-balance">
 										Select the type of event to be held.
 									</FieldDescription>
@@ -455,49 +486,172 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 										const isInvalid =
 											field.state.meta.isTouched && !field.state.meta.isValid;
 										return (
-											<SwitchStateCardInput
-												states={{
-													checked: {
-														label: "Ticket System",
-														description:
-															"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
-														color: "cyan",
-													},
-													unchecked: {
-														label: "Visitor System",
-														description:
-															"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
-														color: "amber",
-													},
-												}}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												disabled={createEventMutation.isPending}
-												variant="no-rounded"
-											/>
+											<div className="flex flex-col gap-4">
+												<SwitchStateCardInput
+													states={{
+														checked: {
+															label: "Ticket System",
+															description:
+																"The event will be using the ticketing system. (Suitable for conferences, expos, workshops, etc.)",
+															color: "cyan",
+														},
+														unchecked: {
+															label: "Visitor System",
+															description:
+																"The event will be using the visitor system. (Suitable for trade shows, mall exhibitions, etc.)",
+															color: "amber",
+														},
+													}}
+													checked={field.state.value}
+													onCheckedChange={(checked) => {
+														field.handleChange(checked);
+														if (checked) {
+															form.setFieldValue("useWedding", false);
+														}
+													}}
+													onBlur={field.handleBlur}
+													errors={field.state.meta.errors}
+													isInvalid={isInvalid}
+													disabled={createEventMutation.isPending}
+													variant="no-rounded"
+												/>
+
+												{!field.state.value && (
+													<form.Field name="useWedding">
+														{(weddingField) => (
+															<div className="flex flex-col gap-4">
+																<SwitchCardInput
+																	label="Wedding System"
+																	description="Enable invitation-based RSVP and wedding-specific guest flows for visitor events."
+																	htmlFor={weddingField.name}
+																	variant="no-rounded"
+																	border={true}
+																	checked={weddingField.state.value}
+																	onCheckedChange={weddingField.handleChange}
+																	disabled={createEventMutation.isPending}
+																/>
+
+																{weddingField.state.value && (
+																	<>
+																		<form.Field name="guestPolicy">
+																			{(guestPolicyField) => (
+																				<RadioGroupCard
+																					label="Guest Allowance"
+																					description="Control how many extra guests wedding invitees may bring."
+																					value={guestPolicyField.state.value}
+																					onChange={
+																						guestPolicyField.handleChange
+																					}
+																					onBlur={guestPolicyField.handleBlur}
+																					errors={
+																						guestPolicyField.state.meta.errors
+																					}
+																					isInvalid={
+																						guestPolicyField.state.meta
+																							.isTouched &&
+																						!guestPolicyField.state.meta.isValid
+																					}
+																					disabled={
+																						createEventMutation.isPending
+																					}
+																					options={[
+																						{
+																							value: "unlimited",
+																							label: "Unlimited",
+																							description:
+																								"Invitees can bring as many extra guests as needed.",
+																						},
+																						{
+																							value: "none",
+																							label: "No extra guests",
+																							description:
+																								"Invitees can only RSVP for themselves.",
+																						},
+																						{
+																							value: "limited",
+																							label: "Set a limit",
+																							description:
+																								"Choose the maximum number of extra guests allowed.",
+																						},
+																					]}
+																					variant="no-rounded"
+																				/>
+																			)}
+																		</form.Field>
+
+																		<form.Subscribe
+																			selector={(state) =>
+																				state.values.guestPolicy
+																			}
+																		>
+																			{(guestPolicy) =>
+																				guestPolicy === "limited" ? (
+																					<form.Field name="guestLimit">
+																						{(guestLimitField) => (
+																							<NumberInputLabel
+																								label="Guest Limit"
+																								value={
+																									guestLimitField.state.value
+																								}
+																								onChange={
+																									guestLimitField.handleChange
+																								}
+																								errors={
+																									guestLimitField.state.meta
+																										.errors
+																								}
+																								isInvalid={
+																									guestLimitField.state.meta
+																										.isTouched &&
+																									!guestLimitField.state.meta
+																										.isValid
+																								}
+																								description="Maximum number of additional guests allowed per invitation."
+																								min={1}
+																								disabled={
+																									createEventMutation.isPending
+																								}
+																								required
+																								variant="no-rounded"
+																							/>
+																						)}
+																					</form.Field>
+																				) : null
+																			}
+																		</form.Subscribe>
+																	</>
+																)}
+															</div>
+														)}
+													</form.Field>
+												)}
+											</div>
 										);
 									}}
 								</form.Field>
-								<div className="flex flex-col gap-4">
-									<form.Field name="useSeatTicketing">
-										{(field) => {
-											return (
-												<SwitchCardInput
-													label="Seat Ticketing System"
-													description="Enable reserved seat sessions and seat maps for this event."
-													htmlFor={field.name}
-													variant="no-rounded"
-													border={true}
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													disabled={createEventMutation.isPending}
-												/>
-											);
-										}}
-									</form.Field>
+							</div>
+							<div className="flex flex-col gap-4">
+								<FieldContent className="flex w-full flex-none flex-col gap-1">
+									<FieldLabel>Option Flags</FieldLabel>
+									<FieldDescription className="text-balance">
+										Select the options for your event.
+									</FieldDescription>
+								</FieldContent>
+								<form.Field name="multipleScans">
+									{(field) => (
+										<SwitchCardInput
+											label="Multiple Scans"
+											description="Allow tickets or visitors to be scanned multiple times during the event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={createEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								{canManageAdvancedEventOptions && (
 									<form.Field name="useBusinessMatching">
 										{(field) => {
 											return (
@@ -514,22 +668,24 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 											);
 										}}
 									</form.Field>
-									<form.Field name="useSponsorship">
-										{(field) => {
-											return (
-												<SwitchCardInput
-													label="Sponsorships"
-													description="Enable sponsorship management for this event."
-													htmlFor={field.name}
-													variant="no-rounded"
-													border={true}
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													disabled={createEventMutation.isPending}
-												/>
-											);
-										}}
-									</form.Field>
+								)}
+								<form.Field name="useSponsorship">
+									{(field) => {
+										return (
+											<SwitchCardInput
+												label="Sponsorships"
+												description="Enable sponsorship management for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={createEventMutation.isPending}
+											/>
+										);
+									}}
+								</form.Field>
+								{canManageAdvancedEventOptions && (
 									<form.Field name="useEventLeads">
 										{(field) => {
 											return (
@@ -546,70 +702,89 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 											);
 										}}
 									</form.Field>
-								</div>
+								)}
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useSeatTicketing">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Seat Ticketing System"
+													description="Enable reserved seat sessions and seat maps for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
+								)}
 							</div>
 						</div>
 					</FormGroupContainer>
 
 					{/* Exhibitor Kit */}
-					<FormGroupContainer
-						title={{
-							icon: Box,
-							label: "Exhibitor Kit",
-							description:
-								"Configure the event with full exhibitor kit features.",
-						}}
-					>
-						<FieldContent className="flex flex-none flex-col gap-1">
-							<FieldLabel>Exhibitor Kit</FieldLabel>
-							<FieldDescription>Event Exhibitor Kit options.</FieldDescription>
-						</FieldContent>
-						<form.Field name="useExhibitorKit">
-							{(exhibitorKitField) => {
-								const useExhibitorKitValue = exhibitorKitField.state.value;
-
-								return (
-									<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-										{/* Enable Exhibitor Kit */}
-										<SwitchCardInput
-											label="Enable Exhibitor Kit"
-											description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
-											htmlFor={exhibitorKitField.name}
-											variant="no-rounded"
-											border={true}
-											checked={exhibitorKitField.state.value}
-											onCheckedChange={(checked) => {
-												exhibitorKitField.handleChange(checked);
-												// Reset printing services when exhibitor kit is disabled
-												if (!checked) {
-													form.setFieldValue("allowPrintingServices", false);
-												}
-											}}
-											disabled={createEventMutation.isPending}
-										/>
-
-										{/* Allow Printing Services - only show when exhibitor kit is enabled */}
-										{useExhibitorKitValue && (
-											<form.Field name="allowPrintingServices">
-												{(field) => (
-													<SwitchCardInput
-														label="Allow Printing Services"
-														description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
-														htmlFor={field.name}
-														variant="no-rounded"
-														border={true}
-														checked={field.state.value}
-														onCheckedChange={field.handleChange}
-														disabled={createEventMutation.isPending}
-													/>
-												)}
-											</form.Field>
-										)}
-									</div>
-								);
+					{canManageExhibitorKit && (
+						<FormGroupContainer
+							title={{
+								icon: Box,
+								label: "Exhibitor Kit",
+								description:
+									"Configure the event with full exhibitor kit features.",
 							}}
-						</form.Field>
-					</FormGroupContainer>
+						>
+							<FieldContent className="flex flex-none flex-col gap-1">
+								<FieldLabel>Exhibitor Kit</FieldLabel>
+								<FieldDescription>
+									Event Exhibitor Kit options.
+								</FieldDescription>
+							</FieldContent>
+							<form.Field name="useExhibitorKit">
+								{(exhibitorKitField) => {
+									const useExhibitorKitValue = exhibitorKitField.state.value;
+
+									return (
+										<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+											<SwitchCardInput
+												label="Enable Exhibitor Kit"
+												description="Allow exhibitor contractors to manage kits for exhibitors under their contractorships."
+												htmlFor={exhibitorKitField.name}
+												variant="no-rounded"
+												border={true}
+												checked={exhibitorKitField.state.value}
+												onCheckedChange={(checked) => {
+													exhibitorKitField.handleChange(checked);
+													if (!checked) {
+														form.setFieldValue("allowPrintingServices", false);
+													}
+												}}
+												disabled={createEventMutation.isPending}
+											/>
+
+											{useExhibitorKitValue && (
+												<form.Field name="allowPrintingServices">
+													{(field) => (
+														<SwitchCardInput
+															label="Allow Printing Services"
+															description="By enabling this, you will be able to let your exhibitor contractors to provide printing services to exhibitors."
+															htmlFor={field.name}
+															variant="no-rounded"
+															border={true}
+															checked={field.state.value}
+															onCheckedChange={field.handleChange}
+															disabled={createEventMutation.isPending}
+														/>
+													)}
+												</form.Field>
+											)}
+										</div>
+									);
+								}}
+							</form.Field>
+						</FormGroupContainer>
+					)}
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<Button
