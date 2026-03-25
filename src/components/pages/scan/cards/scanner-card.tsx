@@ -1,9 +1,10 @@
 "use client";
 
-import { Camera, CameraOff, QrCode } from "lucide-react";
+import { Camera, CameraOff, QrCode, Scan } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
 import { useDuplicateDetection } from "@/hooks/use-duplicate-detection";
 import { useScanner } from "@/hooks/use-scanner";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
@@ -34,7 +35,7 @@ export function ScannerCard({
 	const { validateTicket, isProcessing } = useTicketValidation();
 
 	/**
-	 * Handle successful QR code scan
+	 * Handle successful scan (both camera and physical scanner)
 	 */
 	const handleScanSuccess = async (decodedText: string) => {
 		// Prevent processing multiple tickets simultaneously
@@ -42,22 +43,31 @@ export function ScannerCard({
 			return;
 		}
 
+		// Normalize input (trim whitespace)
+		const normalizedText = decodedText.trim();
+
 		// Check for rapid duplicate scan (debounce)
-		if (checkAndMark(decodedText)) {
+		if (checkAndMark(normalizedText)) {
 			return;
 		}
 
 		// Validate ticket and handle result
-		const result = await validateTicket(decodedText, scannedTicketIds);
+		const result = await validateTicket(normalizedText, scannedTicketIds);
 		onScanResult(result);
 	};
 
-	// Scanner hook
+	// Camera scanner hook
 	const { startScanner: startScannerHook, stopScanner: stopScannerHook } =
 		useScanner({
 			scannerId: SCANNER_CONFIG.SCANNER_DIV_ID,
 			onScanSuccess: handleScanSuccess,
 		});
+
+	// Physical hardware barcode scanner hook
+	// This remains active as long as the component is mounted
+	useBarcodeScanner({
+		onScanSuccess: handleScanSuccess,
+	});
 
 	/**
 	 * Start scanner with state management
@@ -111,7 +121,7 @@ export function ScannerCard({
 
 					{/* Camera Off State */}
 					{!isScanning && (
-						<div className="absolute inset-0 flex items-center justify-center rounded-none border border-primary/30 border-dashed">
+						<div className="absolute inset-0 flex flex-col items-center justify-center rounded-none border border-primary/30 border-dashed">
 							<div className="max-w-sm space-y-4 px-3 text-center sm:space-y-6 sm:px-4">
 								{/* Icon */}
 								<div className="inline-flex rounded-none border border-primary/10 bg-primary/5 p-4 sm:p-6">
@@ -121,11 +131,11 @@ export function ScannerCard({
 								{/* Text */}
 								<div className="space-y-1 sm:space-y-2">
 									<h3 className="font-semibold text-foreground text-lg sm:text-xl">
-										Ready to Scan
+										Scanner Ready
 									</h3>
 									<p className="text-muted-foreground text-xs leading-relaxed sm:text-sm">
-										Click the button below to activate your camera and start
-										scanning tickets
+										Activate your camera to scan OR simply scan with your
+										physical hardware scanner anytime
 									</p>
 								</div>
 
@@ -137,8 +147,14 @@ export function ScannerCard({
 									disabled={isTransitioning}
 								>
 									<Camera className="h-4 w-4" />
-									Activate Scanner
+									Activate Camera
 								</Button>
+							</div>
+
+							{/* Hardware Scanner Status */}
+							<div className="absolute bottom-4 flex items-center gap-2 text-muted-foreground text-xs italic">
+								<Scan className="h-3 w-3" />
+								Hardware scanner active
 							</div>
 						</div>
 					)}
