@@ -264,6 +264,14 @@ function transformBackendTicket(
 	};
 }
 
+function isPaidTicketPaymentStatus(paymentStatus: BackendTicket["payment_status"]) {
+	if (typeof paymentStatus === "number") {
+		return paymentStatus === 1;
+	}
+
+	return paymentStatus === "paid";
+}
+
 /**
  * Get tickets for a specific event
  * @param eventId - The event ID
@@ -303,9 +311,11 @@ export async function getEventTickets(
 	]);
 
 	// Transform backend response to frontend format
-	return response.map((ticket) =>
+	return response
+		.filter((ticket) => isPaidTicketPaymentStatus(ticket.payment_status))
+		.map((ticket) =>
 		transformBackendTicket(ticket, event.title, eventId),
-	);
+		);
 }
 
 /**

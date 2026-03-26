@@ -25,6 +25,7 @@ export const createEventSchema = z.object({
 	multiple_scans: z.boolean().optional().default(false),
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
+	public_registration_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	event_admin_id: z.number().optional(),
 });
@@ -60,6 +61,7 @@ export const updateEventSchema = z.object({
 	multiple_scans: z.boolean().optional(),
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
+	public_registration_url: z.string().url().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	booth_types: z.array(z.string()).optional(),
 	event_email_setting_attributes: z

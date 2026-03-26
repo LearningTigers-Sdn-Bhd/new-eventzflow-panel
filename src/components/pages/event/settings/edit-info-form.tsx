@@ -65,6 +65,11 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	publicRegistrationUrl: z
+		.string()
+		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
+			message: "Please enter a valid URL",
+		}),
 	multipleScans: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -139,6 +144,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			description: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
+			publicRegistrationUrl: "",
 			multipleScans: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -171,6 +177,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					description: value.description,
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
+					public_registration_url: value.publicRegistrationUrl || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -221,6 +228,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue(
 					"businessMatchingWebhookUrl",
 					event.business_matching_webhook_url || "",
+				);
+				form.setFieldValue(
+					"publicRegistrationUrl",
+					event.public_registration_url || "",
 				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
@@ -283,7 +294,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								"Fill in required fields to update the event information.",
 						}}
 					>
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<form.Field name="title">
 								{(field) => {
 									const isInvalid =
@@ -300,26 +311,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											placeholder="Summer Festival 2024"
 											disabled={updateEventMutation.isPending}
 											required
-										/>
-									);
-								}}
-							</form.Field>
-
-							<form.Field name="webhookUrl">
-								{(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-									return (
-										<InputLabel
-											label="Webhook URL"
-											htmlFor={field.name}
-											value={field.state.value}
-											onChange={field.handleChange}
-											onBlur={field.handleBlur}
-											errors={field.state.meta.errors}
-											isInvalid={isInvalid}
-											placeholder="https://example.com/webhook"
-											disabled={updateEventMutation.isPending}
 										/>
 									);
 								}}
@@ -360,6 +351,49 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								}}
 							</form.Field>
 						</div>
+
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<form.Field name="webhookUrl">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Webhook URL"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="https://example.com/webhook"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="publicRegistrationUrl">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Public Registration URL"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="https://forms.example.com"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<form.Field name="startDate">
 								{(field) => {
