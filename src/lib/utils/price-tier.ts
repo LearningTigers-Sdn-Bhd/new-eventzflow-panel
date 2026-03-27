@@ -1,5 +1,11 @@
 import type { EventRentableItemPriceTier } from "@/lib/api/event-rentable-item";
 import type { EventPrintingServicePriceTier } from "@/lib/api/event-printing-service";
+import type { ExhibitorBoothPriceTier } from "@/lib/api/exhibitor-booth-price-tier";
+
+type PriceTierLike =
+	| EventRentableItemPriceTier
+	| EventPrintingServicePriceTier
+	| ExhibitorBoothPriceTier;
 
 /**
  * Calculate the current price for an item based on price tiers
@@ -7,7 +13,7 @@ import type { EventPrintingServicePriceTier } from "@/lib/api/event-printing-ser
  * Falls back to default price if no tier matches
  */
 export function getCurrentPrice(
-	priceTiers: EventRentableItemPriceTier[] | EventPrintingServicePriceTier[] | undefined,
+	priceTiers: PriceTierLike[] | undefined,
 	defaultPrice: number,
 ): number {
 	if (!priceTiers || priceTiers.length === 0) {
@@ -34,7 +40,7 @@ export function getCurrentPrice(
  * Get the label of the current active price tier
  */
 export function getCurrentPriceTierLabel(
-	priceTiers: EventRentableItemPriceTier[] | EventPrintingServicePriceTier[] | undefined,
+	priceTiers: PriceTierLike[] | undefined,
 ): string | null {
 	if (!priceTiers || priceTiers.length === 0) {
 		return null;
