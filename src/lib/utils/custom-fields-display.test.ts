@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { formatCustomFieldEntries } from "./custom-fields-display";
 
 describe("formatCustomFieldEntries", () => {
-	test("humanizes snake_case keys and stringifies non-string values", () => {
+	test("humanizes snake_case keys and stringifies non-string values while dropping empty entries", () => {
 		const formatted = formatCustomFieldEntries({
 			company_profile: "Energy solutions provider",
 			booth_setup_time: "9:00 AM",
@@ -32,7 +32,6 @@ describe("formatCustomFieldEntries", () => {
 				value: "- Advertising Opportunities\n- Non-Official Contractor",
 			},
 			{ key: "details", label: "Details", value: '{"hall":"A"}' },
-			{ key: "nullable_note", label: "Nullable Note", value: "-" },
 		]);
 	});
 
@@ -49,5 +48,25 @@ describe("formatCustomFieldEntries", () => {
 		expect(formatted[0]?.value).toBe(
 			"- Advertising Opportunities\n- Non-Official Contractor",
 		);
+	});
+
+	test("hides internal and effectively empty custom fields", () => {
+		const formatted = formatCustomFieldEntries({
+			zone: null,
+			payment_option: "later",
+			is_booth_manager: true,
+			product_category: "",
+			preferred_booth_location: "   ",
+			other_services: [],
+			booth_note: "Corner request",
+			visible_array: ["Shell Scheme"],
+			dash_value: "-",
+			stringified_empty_array: " [] ",
+		});
+
+		expect(formatted).toEqual([
+			{ key: "booth_note", label: "Booth Note", value: "Corner request" },
+			{ key: "visible_array", label: "Visible Array", value: "Shell Scheme" },
+		]);
 	});
 });
