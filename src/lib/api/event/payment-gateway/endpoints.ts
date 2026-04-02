@@ -1,11 +1,25 @@
-import { restClient } from "@/utils/rest-api";
+import { API_BASE_URL, restClient } from "@/utils/rest-api";
 import {
 	type CreatePaymentGatewayRequest,
-	type UpdatePaymentGatewayRequest,
 	createPaymentGatewaySchema,
+	type UpdatePaymentGatewayRequest,
 	updatePaymentGatewaySchema,
 } from "./request";
 import type { EventPaymentGatewayResponse } from "./response";
+
+const SHARED_WEBHOOK_PATH = "v1/public/payments/webhook";
+
+export function getSharedPaymentGatewayWebhookUrl(): string {
+	const baseUrl = new URL(API_BASE_URL);
+	const normalizedBasePath = baseUrl.pathname.endsWith("/")
+		? baseUrl.pathname
+		: `${baseUrl.pathname}/`;
+
+	return new URL(
+		SHARED_WEBHOOK_PATH,
+		`${baseUrl.origin}${normalizedBasePath}`,
+	).toString();
+}
 
 /**
  * Get payment gateway settings for an event
