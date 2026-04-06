@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { FileDigit } from "lucide-react";
+import { ExternalLink, Eye, FileDigit } from "lucide-react";
 import { toast } from "sonner";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
@@ -158,29 +158,51 @@ export function generateColumns(
 			cell: ({ row }) => {
 				const ticket = row.original;
 				const status = ticket.paymentStatus;
-				const hasPaymentInfo =
-					ticket.paymentScreenshotUrl || ticket.transactionId;
+				const hasScreenshot = !!ticket.paymentScreenshotUrl;
+				const hasTransactionId = !!ticket.transactionId;
 
 				return (
-					<div className="flex items-center justify-between gap-2">
-						{hasPaymentInfo && (
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => showPaymentInfoToast(ticket)}
-								className="h-6 w-6"
-							>
-								<FileDigit className="h-3 w-3" />
-							</Button>
-						)}
-						<div className="flex w-full items-center justify-start gap-2">
+					<div className="flex flex-col gap-1.5">
+						<div className="flex items-center gap-2">
 							<Badge
 								variant="secondary"
-								className={cn(getPaymentStatusColor(status), "rounded-none")}
+								className={cn(getPaymentStatusColor(status), "rounded-none shrink-0")}
 							>
 								{getPaymentStatusText(status)}
 							</Badge>
+
+							{hasTransactionId && !hasScreenshot && (
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => showPaymentInfoToast(ticket)}
+									className="h-6 w-6"
+									title="View Payment Info"
+								>
+									<FileDigit className="h-3.5 w-3.5" />
+								</Button>
+							)}
 						</div>
+
+						{hasScreenshot && (
+							<Button
+								variant="link"
+								size="sm"
+								asChild
+								className="h-auto w-fit p-0 text-[11px] text-blue-600 font-medium transition-colors hover:text-blue-700"
+							>
+								<a
+									href={ticket.paymentScreenshotUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center gap-1"
+								>
+									<Eye className="h-3 w-3" />
+									View Payment Info
+									<ExternalLink className="h-2.5 w-2.5 opacity-40" />
+								</a>
+							</Button>
+						)}
 					</div>
 				);
 			},

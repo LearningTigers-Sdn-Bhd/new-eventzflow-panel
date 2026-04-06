@@ -19,6 +19,9 @@ export type Ticket = {
 	status: "scanned" | "not_scanned";
 	createdAt: string;
 	deletedAt?: string | null;
+	paymentMethod?: string;
+	transactionId?: string;
+	paymentScreenshotUrl?: string;
 	customLabels?: Array<{
 		name: string;
 		value: string;
@@ -107,6 +110,9 @@ export type BackendTicket = {
 	created_at: string;
 	updated_at: string;
 	deleted_at: string | null;
+	payment_method?: string;
+	transaction_id?: string;
+	payment_screenshot_url?: string;
 	ticket_type?: {
 		id: number;
 		name: string;

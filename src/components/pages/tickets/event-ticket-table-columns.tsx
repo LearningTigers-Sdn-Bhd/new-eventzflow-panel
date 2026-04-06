@@ -24,6 +24,9 @@ export type BaseTicket = {
 	checkedIn?: boolean;
 	checkInAt?: string | null;
 	deletedAt?: string | null;
+	paymentMethod?: string;
+	transactionId?: string;
+	paymentScreenshotUrl?: string;
 };
 
 // Status filter options
