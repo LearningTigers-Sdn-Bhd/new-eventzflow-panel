@@ -207,6 +207,9 @@ function transformBackendTicket(
 	let ticketTypeId = 0;
 	let value = 0;
 	let deletedAt: string | null = null;
+	let paymentMethod: string | undefined;
+	let transactionId: string | undefined;
+	let paymentScreenshotUrl: string | undefined;
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -219,6 +222,9 @@ function transformBackendTicket(
 		ticketTypeName = bt.ticket_type?.name || "Unknown";
 		value = bt.ticket_type?.price || 0;
 		deletedAt = bt.deleted_at || null;
+		paymentMethod = bt.payment_method;
+		transactionId = bt.transaction_id;
+		paymentScreenshotUrl = bt.payment_screenshot_url;
 
 		if (bt.custom_fields_data) {
 			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
@@ -259,6 +265,9 @@ function transformBackendTicket(
 		status,
 		createdAt,
 		deletedAt,
+		paymentMethod,
+		transactionId,
+		paymentScreenshotUrl,
 		customLabels: customLabels.length > 0 ? customLabels : undefined,
 		custom_fields_data: ("custom_fields_data" in ticket) ? (ticket as BackendTicket).custom_fields_data : undefined,
 	};

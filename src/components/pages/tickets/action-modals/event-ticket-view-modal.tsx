@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Calendar,
+	CreditCard,
 	DollarSign,
+	ExternalLink,
+	Eye,
+	FileDigit,
 	FileText,
 	Hash,
 	Info,
@@ -190,6 +194,56 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 								/>
 							</CardContent>
 						</Card>
+
+						{/* Payment Information Card (if available) */}
+						{(ticket.paymentMethod ||
+							ticket.transactionId ||
+							ticket.paymentScreenshotUrl) && (
+							<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
+								<div className="border-b-2 bg-muted px-4 py-3">
+									<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+										<CreditCard className="size-4" />
+										Payment Information
+									</h3>
+								</div>
+								<CardContent className="grid gap-6 p-6">
+									{ticket.paymentMethod && (
+										<InfoItem
+											label="Payment Method"
+											value={ticket.paymentMethod}
+											icon={CreditCard}
+											capitalize
+										/>
+									)}
+									{ticket.transactionId && (
+										<InfoItem
+											label="Transaction ID"
+											value={ticket.transactionId}
+											icon={FileDigit}
+										/>
+									)}
+									{ticket.paymentScreenshotUrl && (
+										<div className="flex flex-col gap-1.5">
+											<div className="flex items-center gap-2 text-muted-foreground">
+												<Eye className="size-3.5" />
+												<span className="font-medium text-[10px] uppercase tracking-wider">
+													Payment Screenshot
+												</span>
+											</div>
+											<a
+												href={ticket.paymentScreenshotUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="flex items-center gap-1.5 font-semibold text-blue-600 text-sm transition-colors hover:text-blue-700"
+											>
+												View Screenshot
+												<ExternalLink className="size-3" />
+											</a>
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						)}
 					</div>
 
 					{/* Custom Information Section */}
