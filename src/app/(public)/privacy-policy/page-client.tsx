@@ -529,12 +529,12 @@ export default function PrivacyPolicyPageClient() {
 									<p>
 										<span className="font-bold text-black">Phone:</span>{" "}
 										<a
-											href="https://wa.me/60177268130"
+											href="https://wa.me/60166236511"
 											target="_blank"
 											rel="noopener noreferrer"
 											className="text-black underline hover:no-underline"
 										>
-											+6017-7268130
+											+6016-6236511
 										</a>
 									</p>
 								</div>

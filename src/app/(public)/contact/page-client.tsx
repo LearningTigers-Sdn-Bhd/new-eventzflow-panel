@@ -9,8 +9,8 @@ const contactMethods = [
 	{
 		icon: MessageCircle,
 		label: "WhatsApp",
-		value: "+60 17-726 8130",
-		href: "https://wa.me/60177268130",
+		value: "+60 16-623 6511",
+		href: "https://wa.me/60166236511",
 		description: "Chat with us directly",
 	},
 	{
@@ -23,8 +23,8 @@ const contactMethods = [
 	{
 		icon: Phone,
 		label: "Phone",
-		value: "+60 17-726 8130",
-		href: "tel:+60177268130",
+		value: "+60 16-623 6511",
+		href: "tel:+60166236511",
 		description: "Give us a call",
 	},
 	{
@@ -40,6 +40,27 @@ const contactMethods = [
 		value: "8AM - 5PM",
 		href: null,
 		description: "Monday to Friday",
+	},
+];
+
+const steps = [
+	{
+		number: "01",
+		title: "Connect",
+		description:
+			"Reach out via WhatsApp or Email. Our team typically responds within 30 minutes during business hours.",
+	},
+	{
+		number: "02",
+		title: "Consult",
+		description:
+			"We'll have a quick 10-minute chat to understand your event's scale, attendee count, and specific requirements.",
+	},
+	{
+		number: "03",
+		title: "Go Live",
+		description:
+			"We'll set up your personalized event environment and help you go live with confidence.",
 	},
 ];
 
@@ -187,7 +208,7 @@ export default function ContactPageClient() {
 				</div>
 			</section>
 
-			{/* Location Section */}
+			{/* What Happens Next Section */}
 			<section className="border border-black bg-green-background px-6 py-16 md:py-24">
 				<div className="mx-auto max-w-7xl">
 					<motion.div
@@ -195,42 +216,41 @@ export default function ContactPageClient() {
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-						className="mb-8"
+						className="mb-16"
 					>
 						<div className="mb-4 flex items-center gap-4">
 							<div className="h-[2px] w-10 bg-black" />
 							<p className="font-bold text-black text-xs uppercase tracking-[0.4em]">
-								Find Us
+								The Process
 							</p>
 						</div>
 						<h2 className="font-black text-3xl text-black uppercase tracking-tighter md:text-4xl">
-							Our Location
+							What Happens Next?
 						</h2>
-						<p className="mt-4 max-w-xl text-base text-black/50 leading-relaxed md:text-lg">
-							Lot 9, 1st Floor, Blok B, Damai Plaza Phase 4, Jalan Pokok Kayu
-							Manis 2, 88200 Kota Kinabalu, Sabah (Above Aroma Italy Restaurant)
-						</p>
 					</motion.div>
 
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						transition={{ duration: 0.6, delay: 0.2, ease: SMOOTH_EASE }}
-						className="relative aspect-[4/3] w-full overflow-hidden border border-2 border-black md:aspect-[21/9] md:min-h-[500px]"
-					>
-						<iframe
-							src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3968.2301173092237!2d116.08780927599177!3d5.963007229420742!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x323b69190b59313b%3A0x3af9da7fef01d207!2sAroma%20Italy%20%40Kimbins!5e0!3m2!1sen!2smy!4v1767763606188!5m2!1sen!2smy"
-							width="100%"
-							height="100%"
-							style={{ border: 0 }}
-							allowFullScreen
-							loading="lazy"
-							referrerPolicy="no-referrer-when-downgrade"
-							title="EventzFlow Office Location"
-							className="absolute inset-0"
-						/>
-					</motion.div>
+					<div className="grid gap-8 md:grid-cols-3">
+						{steps.map((step, index) => (
+							<motion.div
+								key={step.number}
+								initial={{ opacity: 0, y: 20 }}
+								whileInView={{ opacity: 1, y: 0 }}
+								viewport={{ once: true }}
+								transition={{ duration: 0.5, delay: index * 0.1 }}
+								className="group relative border-2 border-black bg-white p-8 transition-all hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#000]"
+							>
+								<span className="mb-6 block font-black text-5xl text-black/10 transition-colors group-hover:text-brand-green/30">
+									{step.number}
+								</span>
+								<h3 className="mb-4 font-black text-2xl text-black uppercase tracking-tighter">
+									{step.title}
+								</h3>
+								<p className="text-base text-black/60 leading-relaxed">
+									{step.description}
+								</p>
+							</motion.div>
+						))}
+					</div>
 				</div>
 			</section>
 		</main>

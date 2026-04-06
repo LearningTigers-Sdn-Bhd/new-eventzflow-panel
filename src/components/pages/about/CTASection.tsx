@@ -28,7 +28,7 @@ export default function CTASection() {
 
 					<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 						<a
-							href="https://wa.me/60177268130"
+							href="https://wa.me/60166236511"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="w-full sm:w-auto border border-black bg-brand-green px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] hover:text-white"
