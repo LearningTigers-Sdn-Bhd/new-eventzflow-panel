@@ -14,6 +14,7 @@ describe("exhibitor booth price request schemas", () => {
 			label: "Shell Scheme Booth (3m x 3m)",
 			price: 2000,
 			quota: 30,
+			conferences_included: false,
 		});
 
 		expect(parsed.success).toBe(true);
@@ -27,6 +28,7 @@ describe("exhibitor booth price request schemas", () => {
 			label: "Raw Booth",
 			price: 0,
 			quota: null,
+			conferences_included: false,
 		});
 
 		expect(parsed.success).toBe(true);
@@ -51,9 +53,24 @@ describe("exhibitor booth price request schemas", () => {
 			exhibitor_zone_id: 12,
 			label: "Corner Booth (3m x 3m)",
 			price: 4000,
+			conferences_included: false,
 		});
 
 		expect(parsed.success).toBe(true);
+	});
+
+	test("accepts conferences included flag", () => {
+		const parsed = createExhibitorBoothPriceSchema.safeParse({
+			event_id: 10,
+			booth_type: "shell_scheme",
+			exhibitor_zone_id: 12,
+			label: "Conference Booth",
+			price: 2500,
+			conferences_included: true,
+		});
+
+		expect(parsed.success).toBe(true);
+		expect(parsed.success && parsed.data.conferences_included).toBe(true);
 	});
 
 	test("rejects negative price on update", () => {
@@ -77,6 +94,7 @@ describe("exhibitor booth price request schemas", () => {
 			label: "International",
 			price: 3200,
 			quota: 0,
+			conferences_included: false,
 		});
 
 		expect(parsed.success).toBe(true);

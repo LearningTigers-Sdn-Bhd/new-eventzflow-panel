@@ -6,6 +6,7 @@ export const boothPricePayloadSchema = z.object({
 	label: z.string().trim().min(1, "Label is required").max(255),
 	price: z.number().min(0, "Price must be 0 or greater"),
 	quota: z.number().int().min(0, "Quota must be 0 or greater").nullable().optional(),
+	conferences_included: z.boolean(),
 });
 
 export const createExhibitorBoothPriceSchema = z.object({

@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
 	Dialog,
 	DialogContent,
@@ -54,6 +55,7 @@ type FormState = {
 	label: string;
 	price: string;
 	quota: string;
+	conferencesIncluded: boolean;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -62,6 +64,7 @@ const DEFAULT_FORM: FormState = {
 	label: "",
 	price: "",
 	quota: "",
+	conferencesIncluded: false,
 };
 
 const BOOTH_TYPE_OPTIONS: Array<{
@@ -299,6 +302,7 @@ export function BoothPricingDialog({
 				label: form.label.trim(),
 				price: parsedPrice,
 				quota: parsedQuota,
+				conferences_included: form.conferencesIncluded,
 			});
 			return;
 		}
@@ -310,6 +314,7 @@ export function BoothPricingDialog({
 			label: form.label.trim(),
 			price: parsedPrice,
 			quota: parsedQuota,
+			conferences_included: form.conferencesIncluded,
 		});
 	};
 
@@ -324,6 +329,7 @@ export function BoothPricingDialog({
 			label: item.label,
 			price: item.price.toString(),
 			quota: item.quota === null ? "" : String(item.quota),
+			conferencesIncluded: item.conferencesIncluded,
 		});
 	};
 
@@ -366,290 +372,257 @@ export function BoothPricingDialog({
 					<div className="w-full flex-none overflow-y-auto border-r p-6 lg:w-[420px]">
 						<form onSubmit={onSubmit} className="space-y-6">
 							<div>
-								<h3 className="mb-4 text-base font-semibold">{editingItem ? "Edit Booth Price" : "Add New Booth Price"}</h3>
+								<h3 className="mb-4 text-base font-semibold">
+									{editingItem ? "Edit Booth Price" : "Add New Booth Price"}
+								</h3>
 								<div className="flex flex-col gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="booth-type">Booth Type</Label>
-							<Select
-								value={form.boothType}
-								onValueChange={(value) =>
-									setForm((prev) => ({
-										...prev,
-										boothType: value,
-									}))
-								}
-							>
-								<SelectTrigger
-									id="booth-type"
-									className="h-9 w-full rounded-none"
-								>
-									<SelectValue placeholder="Select booth type" />
-								</SelectTrigger>
-								<SelectContent className="rounded-none">
-									{boothTypeOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											{option.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						{hasZoneOptions && (
-							<div className="space-y-2">
-								<Label htmlFor="booth-zone">Zone</Label>
-								<Select
-									value={form.exhibitorZoneId}
-									onValueChange={(value) =>
-										setForm((prev) => ({ ...prev, exhibitorZoneId: value }))
-									}
-								>
-									<SelectTrigger
-										id="booth-zone"
-										className="h-9 w-full rounded-none"
-									>
-										<SelectValue placeholder="Select zone" />
-									</SelectTrigger>
-									<SelectContent className="rounded-none">
-										{zoneOptions.map((zoneOption) => (
-											<SelectItem key={zoneOption.id} value={String(zoneOption.id)}>
-												{zoneOption.zone}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-						)}
-						<div className="space-y-2">
-							<Label htmlFor="booth-label">Label</Label>
-							<Input
-								id="booth-label"
-								placeholder="e.g. Corner Booth (3m x 3m)"
-								value={form.label}
-								onChange={(e) =>
-									setForm((prev) => ({ ...prev, label: e.target.value }))
-								}
-								required
-								className="h-9 rounded-none"
-							/>
-						</div>
-						<div className="space-y-2">
-							<div className="space-y-1">
-								<Label htmlFor="booth-price">Base Rate (RM)</Label>
-								<p className="text-muted-foreground text-xs">
-									Used as the fallback price when no active tier is running.
-								</p>
-							</div>
-							<Input
-								id="booth-price"
-								type="number"
-								step="0.01"
-								min="0"
-								placeholder="0.00"
-								value={form.price}
-								onChange={(e) =>
-									setForm((prev) => ({ ...prev, price: e.target.value }))
-								}
-								required
-								className="h-9 rounded-none"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="booth-quota">Quota</Label>
-							<Input
-								id="booth-quota"
-								type="number"
-								step="1"
-								min="0"
-								placeholder="Unlimited"
-								value={form.quota}
-								onChange={(e) =>
-									setForm((prev) => ({ ...prev, quota: e.target.value }))
-								}
-								className="h-9 rounded-none"
-							/>
-						</div>
-								</div>
-							</div>
+									<div className="space-y-2">
+										<Label htmlFor="booth-type">Booth Type</Label>
+										<Select
+											value={form.boothType}
+											onValueChange={(value) =>
+												setForm((prev) => ({ ...prev, boothType: value }))
+											}
+										>
+											<SelectTrigger id="booth-type" className="h-9 w-full rounded-none">
+												<SelectValue placeholder="Select booth type" />
+											</SelectTrigger>
+											<SelectContent className="rounded-none">
+												{boothTypeOptions.map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</div>
 
-							{selectedZoneOption && selectedZoneMetrics && (
-								<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-									<p className="font-semibold">
-										{selectedZoneOption.zone} quota
-									</p>
-									<p className="mt-1 font-medium">
-										Total: {selectedZoneMetrics.totalQuota} | Allocated: {selectedZoneMetrics.totalAllocated} | Remaining: {selectedZoneMetrics.totalRemaining}
-									</p>
-									{editingItem && (
-										<p className="mt-1">
-											Available for this edit: {selectedZoneMetrics.availableForSelection}
-										</p>
+									{hasZoneOptions && (
+										<div className="space-y-2">
+											<Label htmlFor="booth-zone">Zone</Label>
+											<Select
+												value={form.exhibitorZoneId}
+												onValueChange={(value) =>
+													setForm((prev) => ({ ...prev, exhibitorZoneId: value }))
+												}
+											>
+												<SelectTrigger id="booth-zone" className="h-9 w-full rounded-none">
+													<SelectValue placeholder="Select zone" />
+												</SelectTrigger>
+												<SelectContent className="rounded-none">
+													{zoneOptions.map((zoneOption) => (
+														<SelectItem key={zoneOption.id} value={String(zoneOption.id)}>
+															{zoneOption.zone}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
 									)}
-								</div>
-							)}
 
-							<div className="flex flex-col gap-3 pt-2 sm:flex-row">
-								{editingItem && (
-									<Button
-										type="button"
-										variant="outline"
-										className="w-full rounded-none sm:w-auto"
-										onClick={onCancelEdit}
-									>
-										Cancel Edit
-									</Button>
-								)}
-								<Button type="submit" className="w-full flex-1 rounded-none sm:w-auto" disabled={isSaving}>
-									{isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-									{editingItem ? "Update Booth Price" : "Add Booth Price"}
-								</Button>
+									<div className="space-y-2">
+										<Label htmlFor="booth-label">Label</Label>
+										<Input
+											id="booth-label"
+											placeholder="e.g. Corner Booth (3m x 3m)"
+											value={form.label}
+											onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
+											required
+											className="h-9 rounded-none"
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<div className="space-y-1">
+											<Label htmlFor="booth-price">Base Rate (RM)</Label>
+											<p className="text-muted-foreground text-xs">
+												Used as the fallback price when no active tier is running.
+											</p>
+										</div>
+										<Input
+											id="booth-price"
+											type="number"
+											step="0.01"
+											min="0"
+											placeholder="0.00"
+											value={form.price}
+											onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+											required
+											className="h-9 rounded-none"
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="booth-quota">Quota</Label>
+										<Input
+											id="booth-quota"
+											type="number"
+											step="1"
+											min="0"
+											placeholder="Unlimited"
+											value={form.quota}
+											onChange={(e) => setForm((prev) => ({ ...prev, quota: e.target.value }))}
+											className="h-9 rounded-none"
+										/>
+									</div>
+
+									<div className="flex items-center justify-between gap-4 rounded-none border bg-muted/30 px-4 py-3">
+										<div className="space-y-1">
+											<Label htmlFor="booth-conferences-included" className="text-sm font-medium">
+												Conference access included
+											</Label>
+											<p className="text-muted-foreground text-xs">
+												Enable this when the booth package includes conference passes.
+											</p>
+										</div>
+										<Switch
+											id="booth-conferences-included"
+											checked={form.conferencesIncluded}
+											onCheckedChange={(checked) => setForm((prev) => ({ ...prev, conferencesIncluded: checked }))}
+										/>
+									</div>
+
+									{selectedZoneOption && selectedZoneMetrics && (
+										<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+											<p className="font-semibold">{selectedZoneOption.zone} quota</p>
+											<p className="mt-1 font-medium">
+												Total: {selectedZoneMetrics.totalQuota} | Allocated: {selectedZoneMetrics.totalAllocated} | Remaining: {selectedZoneMetrics.totalRemaining}
+											</p>
+											{editingItem && <p className="mt-1">Available for this edit: {selectedZoneMetrics.availableForSelection}</p>}
+										</div>
+									)}
+
+									<div className="flex flex-col gap-3 pt-2 sm:flex-row">
+										{editingItem && (
+											<Button type="button" variant="outline" className="w-full rounded-none sm:w-auto" onClick={onCancelEdit}>
+												Cancel Edit
+											</Button>
+										)}
+										<Button type="submit" className="w-full flex-1 rounded-none sm:w-auto" disabled={isSaving}>
+											{isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+											{editingItem ? "Update Booth Price" : "Add Booth Price"}
+										</Button>
+									</div>
+								</div>
 							</div>
 						</form>
 					</div>
 
 					<div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-muted/10 p-6 lg:p-8">
 						{recentlyCreatedBoothPrice && (
-						<div className="flex flex-col gap-3 rounded-none border bg-muted/35 p-4 sm:flex-row sm:items-center sm:justify-between">
-							<div className="min-w-0">
-								<p className="flex items-center gap-2 font-medium text-sm">
-									<CheckCircle2 className="h-4 w-4 text-emerald-600" />
-									{recentlyCreatedBoothPrice.label} is ready for pricing tiers
-								</p>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Base rate RM {recentlyCreatedBoothPrice.price.toFixed(2)}. Add a timed tier like Early Bird next.
-								</p>
+							<div className="flex flex-col gap-3 rounded-none border bg-muted/35 p-4 sm:flex-row sm:items-center sm:justify-between">
+								<div className="min-w-0">
+									<p className="flex items-center gap-2 font-medium text-sm">
+										<CheckCircle2 className="h-4 w-4 text-emerald-600" />
+										{recentlyCreatedBoothPrice.label} is ready for pricing tiers
+									</p>
+									<p className="mt-1 text-muted-foreground text-sm">
+										Base rate RM {recentlyCreatedBoothPrice.price.toFixed(2)}. Add a timed tier like Early Bird next.
+									</p>
+									{recentlyCreatedBoothPrice.conferencesIncluded && (
+										<Badge className="w-fit rounded-none border-emerald-200 bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100/70">
+											Included
+										</Badge>
+									)}
+								</div>
+								<div className="flex gap-2">
+									<Button type="button" className="rounded-none" onClick={() => { setTierBoothPrice(recentlyCreatedBoothPrice); setRecentlyCreatedBoothPrice(null); }}>
+										<CalendarRange className="mr-2 h-4 w-4" />
+										Add First Tier
+									</Button>
+									<Button type="button" variant="outline" className="rounded-none" onClick={() => setRecentlyCreatedBoothPrice(null)}>
+										Later
+									</Button>
+								</div>
 							</div>
-							<div className="flex gap-2">
-								<Button
-									type="button"
-									className="rounded-none"
-									onClick={() => {
-										setTierBoothPrice(recentlyCreatedBoothPrice);
-										setRecentlyCreatedBoothPrice(null);
-									}}
-								>
-									<CalendarRange className="mr-2 h-4 w-4" />
-									Add First Tier
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									className="rounded-none"
-									onClick={() => setRecentlyCreatedBoothPrice(null)}
-								>
-									Later
-								</Button>
-							</div>
-						</div>
-					)}
+						)}
 
 						<div className="rounded-none border bg-background shadow-sm">
 							<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Booth Type</TableHead>
-								{hasZoneOptions && <TableHead>Zone</TableHead>}
-								<TableHead>Label</TableHead>
-								<TableHead>Rate</TableHead>
-								<TableHead>Quota</TableHead>
-								<TableHead>Price Tier</TableHead>
-								<TableHead className="w-[100px]">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{isLoading ? (
-								<TableRow>
-									<TableCell colSpan={hasZoneOptions ? 7 : 6} className="py-8 text-center">
-										<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
-									</TableCell>
-								</TableRow>
-							) : boothPrices.length === 0 ? (
-								<TableRow>
-									<TableCell
-										colSpan={hasZoneOptions ? 7 : 6}
-										className="py-8 text-center text-muted-foreground"
-									>
-										No booth prices configured yet.
-									</TableCell>
-								</TableRow>
-							) : (
-								boothPrices.map((item) => (
-									<TableRow key={item.id}>
-										<TableCell className="font-medium">
-											{formatBoothType(item.boothType)}
-										</TableCell>
-										{hasZoneOptions && <TableCell>{item.zone || "-"}</TableCell>}
-										<TableCell>{item.label}</TableCell>
-										<TableCell>
-											<div className="space-y-1">
-												{item.activePriceTierLabel ? (
-													<div className="flex flex-col gap-1">
-														<div className="flex items-center gap-2">
-															<span className="font-medium text-emerald-600">
-																RM {item.currentPrice.toFixed(2)}
-															</span>
-															<Badge variant="secondary" className="rounded-none bg-emerald-100/80 text-emerald-800 hover:bg-emerald-100/80 border-emerald-200">
-																{item.activePriceTierLabel}
-															</Badge>
-														</div>
-														<p className="text-muted-foreground text-xs">
-															Normal Rate : RM {item.price.toFixed(2)}
-														</p>
-													</div>
-												) : (
-													<div className="font-medium">RM {item.price.toFixed(2)}</div>
-												)}
-											</div>
-										</TableCell>
-										<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
-										<TableCell>
-											<BoothPriceTierDialog
-												boothPrice={item}
-												trigger={
-													<Button
-														type="button"
-														variant="outline"
-														size="sm"
-														className="h-8 rounded-none px-2 text-xs font-normal"
-													>
-														<CalendarRange className="mr-2 h-3.5 w-3.5" />
-														<span>Price Tiers</span>
-													</Button>
-												}
-											/>
-										</TableCell>
-										<TableCell>
-											<div className="flex items-center gap-1">
-												<Button
-													type="button"
-													variant="ghost"
-													size="sm"
-													onClick={() => onStartEdit(item)}
-													className="h-8 w-8 rounded-none p-0"
-												>
-													<Edit2 className="h-4 w-4" />
-												</Button>
-												<Button
-													type="button"
-													variant="ghost"
-													size="sm"
-													onClick={() => deleteMutation.mutate({ id: item.id })}
-													disabled={deleteMutation.isPending}
-													className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Booth Type</TableHead>
+										{hasZoneOptions && <TableHead>Zone</TableHead>}
+										<TableHead>Label</TableHead>
+										<TableHead>Rate</TableHead>
+										<TableHead>Quota</TableHead>
+										<TableHead>Conferences</TableHead>
+										<TableHead>Price Tier</TableHead>
+										<TableHead className="w-[100px]">Actions</TableHead>
 									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{isLoading ? (
+										<TableRow>
+											<TableCell colSpan={hasZoneOptions ? 7 : 6} className="py-8 text-center">
+												<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
+											</TableCell>
+										</TableRow>
+									) : boothPrices.length === 0 ? (
+										<TableRow>
+											<TableCell colSpan={hasZoneOptions ? 7 : 6} className="py-8 text-center text-muted-foreground">
+												No booth prices configured yet.
+											</TableCell>
+										</TableRow>
+									) : (
+										boothPrices.map((item) => (
+											<TableRow key={item.id}>
+												<TableCell className="font-medium">{formatBoothType(item.boothType)}</TableCell>
+												{hasZoneOptions && <TableCell>{item.zone || "-"}</TableCell>}
+												<TableCell>{item.label}</TableCell>
+												<TableCell>
+													<div className="space-y-1">
+														{item.activePriceTierLabel ? (
+															<div className="flex flex-col gap-1">
+																<div className="flex items-center gap-2">
+																	<span className="font-medium text-emerald-600">RM {item.currentPrice.toFixed(2)}</span>
+																	<Badge variant="secondary" className="rounded-none bg-emerald-100/80 text-emerald-800 hover:bg-emerald-100/80 border-emerald-200">{item.activePriceTierLabel}</Badge>
+																</div>
+																<p className="text-muted-foreground text-xs">Normal Rate : RM {item.price.toFixed(2)}</p>
+															</div>
+														) : (
+															<div className="font-medium">RM {item.price.toFixed(2)}</div>
+														)}
+													</div>
+												</TableCell>
+												<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
+												<TableCell>
+													{item.conferencesIncluded ? (
+														<Badge className="rounded-none border-emerald-200 bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100/70">Included</Badge>
+													) : (
+														<span className="text-muted-foreground text-sm">Not included</span>
+													)}
+												</TableCell>
+												<TableCell>
+													<BoothPriceTierDialog
+														boothPrice={item}
+														trigger={
+															<Button type="button" variant="outline" size="sm" className="h-8 rounded-none px-2 text-xs font-normal">
+																<CalendarRange className="mr-2 h-3.5 w-3.5" />
+																<span>Price Tiers</span>
+															</Button>
+														}
+													/>
+												</TableCell>
+												<TableCell>
+													<div className="flex items-center gap-1">
+														<Button type="button" variant="ghost" size="sm" onClick={() => onStartEdit(item)} className="h-8 w-8 rounded-none p-0">
+															<Edit2 className="h-4 w-4" />
+														</Button>
+														<Button type="button" variant="ghost" size="sm" onClick={() => deleteMutation.mutate({ id: item.id })} disabled={deleteMutation.isPending} className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive">
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
 										))
-								)}
-							</TableBody>
-						</Table>
-							</div>
+									)}
+								</TableBody>
+							</Table>
 						</div>
 					</div>
-
-					{tierBoothPrice && (
+					</div>
+{tierBoothPrice && (
 						<BoothPriceTierDialog
 							boothPrice={tierBoothPrice}
 							open={true}

@@ -29,6 +29,7 @@ function transformBoothPrice(
 		currentPrice: Number(backend.current_price ?? backend.price),
 		activePriceTierLabel: backend.active_price_tier_label ?? null,
 		quota: backend.quota,
+		conferencesIncluded: backend.conferences_included,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};
@@ -58,6 +59,7 @@ export async function createExhibitorBoothPrice(
 				label: validated.label,
 				price: validated.price,
 				quota: validated.quota ?? null,
+				conferences_included: validated.conferences_included ?? false,
 			},
 		},
 	);
@@ -82,6 +84,7 @@ export async function updateExhibitorBoothPrice(
 				label: validated.label,
 				price: validated.price,
 				quota: validated.quota ?? null,
+				conferences_included: validated.conferences_included ?? false,
 			},
 		},
 	);
