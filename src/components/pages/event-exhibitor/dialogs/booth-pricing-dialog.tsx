@@ -6,7 +6,6 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
 	Dialog,
 	DialogContent,
@@ -55,7 +54,6 @@ type FormState = {
 	label: string;
 	price: string;
 	quota: string;
-	conferencesIncluded: boolean;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -64,7 +62,6 @@ const DEFAULT_FORM: FormState = {
 	label: "",
 	price: "",
 	quota: "",
-	conferencesIncluded: false,
 };
 
 const BOOTH_TYPE_OPTIONS: Array<{
@@ -302,7 +299,6 @@ export function BoothPricingDialog({
 				label: form.label.trim(),
 				price: parsedPrice,
 				quota: parsedQuota,
-				conferences_included: form.conferencesIncluded,
 			});
 			return;
 		}
@@ -314,7 +310,6 @@ export function BoothPricingDialog({
 			label: form.label.trim(),
 			price: parsedPrice,
 			quota: parsedQuota,
-			conferences_included: form.conferencesIncluded,
 		});
 	};
 
@@ -329,7 +324,6 @@ export function BoothPricingDialog({
 			label: item.label,
 			price: item.price.toString(),
 			quota: item.quota === null ? "" : String(item.quota),
-			conferencesIncluded: item.conferencesIncluded,
 		});
 	};
 
@@ -466,23 +460,7 @@ export function BoothPricingDialog({
 										/>
 									</div>
 
-									<div className="flex items-center justify-between gap-4 rounded-none border bg-muted/30 px-4 py-3">
-										<div className="space-y-1">
-											<Label htmlFor="booth-conferences-included" className="text-sm font-medium">
-												Conference access included
-											</Label>
-											<p className="text-muted-foreground text-xs">
-												Enable this when the booth package includes conference passes.
-											</p>
-										</div>
-										<Switch
-											id="booth-conferences-included"
-											checked={form.conferencesIncluded}
-											onCheckedChange={(checked) => setForm((prev) => ({ ...prev, conferencesIncluded: checked }))}
-										/>
-									</div>
-
-									{selectedZoneOption && selectedZoneMetrics && (
+							{selectedZoneOption && selectedZoneMetrics && (
 										<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
 											<p className="font-semibold">{selectedZoneOption.zone} quota</p>
 											<p className="mt-1 font-medium">
@@ -519,12 +497,7 @@ export function BoothPricingDialog({
 									<p className="mt-1 text-muted-foreground text-sm">
 										Base rate RM {recentlyCreatedBoothPrice.price.toFixed(2)}. Add a timed tier like Early Bird next.
 									</p>
-									{recentlyCreatedBoothPrice.conferencesIncluded && (
-										<Badge className="w-fit rounded-none border-emerald-200 bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100/70">
-											Included
-										</Badge>
-									)}
-								</div>
+										</div>
 								<div className="flex gap-2">
 									<Button type="button" className="rounded-none" onClick={() => { setTierBoothPrice(recentlyCreatedBoothPrice); setRecentlyCreatedBoothPrice(null); }}>
 										<CalendarRange className="mr-2 h-4 w-4" />
@@ -546,7 +519,6 @@ export function BoothPricingDialog({
 										<TableHead>Label</TableHead>
 										<TableHead>Rate</TableHead>
 										<TableHead>Quota</TableHead>
-										<TableHead>Conferences</TableHead>
 										<TableHead>Price Tier</TableHead>
 										<TableHead className="w-[100px]">Actions</TableHead>
 									</TableRow>
@@ -585,14 +557,7 @@ export function BoothPricingDialog({
 														)}
 													</div>
 												</TableCell>
-												<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
-												<TableCell>
-													{item.conferencesIncluded ? (
-														<Badge className="rounded-none border-emerald-200 bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100/70">Included</Badge>
-													) : (
-														<span className="text-muted-foreground text-sm">Not included</span>
-													)}
-												</TableCell>
+											<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
 												<TableCell>
 													<BoothPriceTierDialog
 														boothPrice={item}

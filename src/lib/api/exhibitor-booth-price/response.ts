@@ -9,7 +9,6 @@ export type BackendExhibitorBoothPrice = {
 	current_price?: number | string;
 	active_price_tier_label?: string | null;
 	quota: number | null;
-	conferences_included: boolean;
 	created_at: string;
 	updated_at: string;
 };
@@ -25,7 +24,6 @@ export type ExhibitorBoothPrice = {
 	currentPrice: number;
 	activePriceTierLabel: string | null;
 	quota: number | null;
-	conferencesIncluded: boolean;
 	createdAt: string;
 	updatedAt: string;
 };

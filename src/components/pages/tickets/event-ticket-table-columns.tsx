@@ -206,7 +206,7 @@ export function generateColumns(
 					const customLabel = row.customLabels?.find((l) => l.name === key);
 					return customLabel?.value || "";
 				},
-				size: key === "conferences_included" ? 220 : 180,
+				size: 180,
 				header: ({ column }) => (
 					<SortableHeader column={column} label={labelName} />
 				),
@@ -216,27 +216,6 @@ export function generateColumns(
 						(l) => l.name === key,
 					);
 					const value = customLabel?.value || "";
-
-					if (key === "conferences_included") {
-						if (!value) {
-							return <div className="text-muted-foreground italic">Not provided</div>;
-						}
-
-						const isIncluded = value.toLowerCase() === "true";
-						return (
-							<Badge
-								variant="outline"
-								className={cn(
-									"rounded-none",
-									isIncluded
-										? "border-green-200 bg-green-100/70 text-green-800 hover:bg-green-100/70"
-										: "border-red-200 bg-red-100/70 text-red-800 hover:bg-red-100/70",
-								)}
-							>
-								{isIncluded ? "True" : "False"}
-							</Badge>
-						);
-					}
 
 					return (
 						<div
