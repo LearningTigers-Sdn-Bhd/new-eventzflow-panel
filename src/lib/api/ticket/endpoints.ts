@@ -210,6 +210,7 @@ function transformBackendTicket(
 	let paymentMethod: string | undefined;
 	let transactionId: string | undefined;
 	let paymentScreenshotUrl: string | undefined;
+	let passBundle: Ticket["passBundle"] = null;
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -225,6 +226,7 @@ function transformBackendTicket(
 		paymentMethod = bt.payment_method;
 		transactionId = bt.transaction_id;
 		paymentScreenshotUrl = bt.payment_screenshot_url;
+		passBundle = bt.pass_bundle ?? null;
 
 		if (bt.custom_fields_data) {
 			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
@@ -268,12 +270,18 @@ function transformBackendTicket(
 		paymentMethod,
 		transactionId,
 		paymentScreenshotUrl,
+		passBundle,
 		customLabels: customLabels.length > 0 ? customLabels : undefined,
-		custom_fields_data: ("custom_fields_data" in ticket) ? (ticket as BackendTicket).custom_fields_data : undefined,
+		custom_fields_data:
+			"custom_fields_data" in ticket
+				? (ticket as BackendTicket).custom_fields_data
+				: undefined,
 	};
 }
 
-function isPaidTicketPaymentStatus(paymentStatus: BackendTicket["payment_status"]) {
+function isPaidTicketPaymentStatus(
+	paymentStatus: BackendTicket["payment_status"],
+) {
 	if (typeof paymentStatus === "number") {
 		return paymentStatus === 1;
 	}
@@ -322,9 +330,7 @@ export async function getEventTickets(
 	// Transform backend response to frontend format
 	return response
 		.filter((ticket) => isPaidTicketPaymentStatus(ticket.payment_status))
-		.map((ticket) =>
-		transformBackendTicket(ticket, event.title, eventId),
-		);
+		.map((ticket) => transformBackendTicket(ticket, event.title, eventId));
 }
 
 /**

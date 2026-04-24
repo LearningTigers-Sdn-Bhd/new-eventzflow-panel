@@ -22,6 +22,10 @@ export type Ticket = {
 	paymentMethod?: string;
 	transactionId?: string;
 	paymentScreenshotUrl?: string;
+	passBundle?: {
+		id: number;
+		name: string;
+	} | null;
 	customLabels?: Array<{
 		name: string;
 		value: string;
@@ -113,6 +117,10 @@ export type BackendTicket = {
 	payment_method?: string;
 	transaction_id?: string;
 	payment_screenshot_url?: string;
+	pass_bundle?: {
+		id: number;
+		name: string;
+	} | null;
 	ticket_type?: {
 		id: number;
 		name: string;

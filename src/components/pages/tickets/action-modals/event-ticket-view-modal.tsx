@@ -181,6 +181,11 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 									icon={FileText}
 								/>
 								<InfoItem
+									label="Pass Bundle"
+									value={ticket.passBundle?.name || "-"}
+									icon={Tag}
+								/>
+								<InfoItem
 									label="Price"
 									value={`RM${(typeof ticket.value === "number" ? ticket.value : Number.parseFloat(ticket.value as string) || 0).toFixed(2)}`}
 									icon={DollarSign}

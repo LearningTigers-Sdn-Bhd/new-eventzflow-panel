@@ -27,6 +27,10 @@ export type BaseTicket = {
 	paymentMethod?: string;
 	transactionId?: string;
 	paymentScreenshotUrl?: string;
+	passBundle?: {
+		id: number;
+		name: string;
+	} | null;
 };
 
 // Status filter options
@@ -123,6 +127,17 @@ export function generateColumns(
 					return value.includes(row.getValue(id));
 				}
 				return row.getValue(id) === value;
+			},
+		},
+		{
+			accessorKey: "passBundle",
+			size: 140,
+			header: "Pass Bundle",
+			cell: ({ row }) => {
+				const passBundle = row.original.passBundle;
+				return (
+					<div className="truncate font-medium">{passBundle?.name || "-"}</div>
+				);
 			},
 		},
 		{
