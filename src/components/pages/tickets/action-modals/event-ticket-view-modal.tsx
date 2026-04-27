@@ -181,7 +181,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 									icon={FileText}
 								/>
 								<InfoItem
-									label="Pass Bundle"
+									label="Bundle Pass"
 									value={ticket.passBundle?.name || "-"}
 									icon={Tag}
 								/>

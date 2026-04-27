@@ -132,7 +132,7 @@ export function generateColumns(
 		{
 			accessorKey: "passBundle",
 			size: 140,
-			header: "Pass Bundle",
+			header: "Bundle Pass",
 			cell: ({ row }) => {
 				const passBundle = row.original.passBundle;
 				return (

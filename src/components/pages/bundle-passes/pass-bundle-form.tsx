@@ -110,14 +110,14 @@ export function PassBundleForm({
 			return createPassBundle(payload);
 		},
 		onSuccess: () => {
-			toast.success(passBundle ? "Pass Bundle updated" : "Pass Bundle created");
+			toast.success(passBundle ? "Bundle Pass updated" : "Bundle Pass created");
 			queryClient.invalidateQueries({
-				queryKey: ["event", eventId, "pass-bundles"],
+				queryKey: ["event", eventId, "bundle-passes"],
 			});
 			onClose();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Unable to save Pass Bundle");
+			toast.error(error.message || "Unable to save Bundle Pass");
 		},
 	});
 
@@ -288,7 +288,7 @@ export function PassBundleForm({
 						disabled={!canSubmit || mutation.isPending}
 						className="rounded-none py-6 md:py-4"
 					>
-						{passBundle ? "Save Pass Bundle" : "Create Pass Bundle"}
+						{passBundle ? "Save Bundle Pass" : "Create Bundle Pass"}
 					</Button>
 				</div>
 			</form>

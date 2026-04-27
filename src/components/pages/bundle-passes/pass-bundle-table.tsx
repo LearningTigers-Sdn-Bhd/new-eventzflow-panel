@@ -54,7 +54,7 @@ export function PassBundleTable({
 			component: PassBundleForm,
 			props: { eventId, onClose: closeDialog },
 			config: {
-				title: "Create Pass Bundle",
+				title: "Create Bundle Pass",
 				description: "Create a private bundle link for an invited entity.",
 				size: "2xl",
 				className: "rounded-none",
@@ -68,7 +68,7 @@ export function PassBundleTable({
 				component: PassBundleForm,
 				props: { eventId, passBundle: bundle, onClose: closeDialog },
 				config: {
-					title: "Edit Pass Bundle",
+					title: "Edit Bundle Pass",
 					description: "Update this bundle details.",
 					size: "2xl",
 					className: "rounded-none",
@@ -128,11 +128,11 @@ export function PassBundleTable({
 						<BaseTable
 							table={table}
 							emptyStateConfig={{
-								title: "No pass bundles found",
-								desc: "Create your first pass bundle to get started",
+								title: "No bundle passes found",
+								desc: "Create your first bundle pass to get started",
 								icon: <PackageOpen />,
 								action: (
-									<Button onClick={openCreate}>Create Pass Bundle</Button>
+									<Button onClick={openCreate}>Create Bundle Pass</Button>
 								),
 							}}
 						/>
@@ -153,12 +153,12 @@ export function PassBundleTable({
 									))
 							) : (
 								<EmptyState
-									title="No pass bundles found"
-									description="Create your first pass bundle to get started"
+									title="No bundle passes found"
+									description="Create your first bundle pass to get started"
 									icon={<PackageOpen />}
 									height="h-auto"
 									action={
-										<Button onClick={openCreate}>Create Pass Bundle</Button>
+										<Button onClick={openCreate}>Create Bundle Pass</Button>
 									}
 								/>
 							)}
@@ -179,12 +179,12 @@ export function PassBundleTable({
 								))
 							) : (
 								<EmptyState
-									title="No pass bundles found"
-									description="Create your first pass bundle to get started"
+									title="No bundle passes found"
+									description="Create your first bundle pass to get started"
 									icon={<PackageOpen />}
 									height="h-auto"
 									action={
-										<Button onClick={openCreate}>Create Pass Bundle</Button>
+										<Button onClick={openCreate}>Create Bundle Pass</Button>
 									}
 								/>
 							)}

@@ -3,8 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { PassBundlePageButton } from "@/components/pages/pass-bundles/page-action/button";
-import { PassBundleTable } from "@/components/pages/pass-bundles/pass-bundle-table";
+import { PassBundlePageButton } from "@/components/pages/bundle-passes/page-action/button";
+import { PassBundleTable } from "@/components/pages/bundle-passes/pass-bundle-table";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import {
@@ -28,7 +28,7 @@ export default function PassBundlesPage({
 	);
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ["event", event_id, "pass-bundles"],
+		queryKey: ["event", event_id, "bundle-passes"],
 		queryFn: () => getEventPassBundles({ eventId: event_id }),
 	});
 
@@ -37,7 +37,7 @@ export default function PassBundlesPage({
 			deletePassBundle({ eventId: event_id, passBundleId: bundle.id }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["event", event_id, "pass-bundles"],
+				queryKey: ["event", event_id, "bundle-passes"],
 			});
 		},
 	});
@@ -46,12 +46,12 @@ export default function PassBundlesPage({
 		<div className="space-y-4">
 			{isLoading ? (
 				<LoadingState
-					title="Loading Pass Bundles..."
-					description="Please wait while we fetch your Pass Bundles."
+					title="Loading Bundle Passes..."
+					description="Please wait while we fetch your Bundle Passes."
 				/>
 			) : error ? (
 				<ErrorState
-					title="Failed to load Pass Bundles"
+					title="Failed to load Bundle Passes"
 					description={error.message || "Please try again."}
 					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
@@ -60,7 +60,7 @@ export default function PassBundlesPage({
 					eventId={event_id}
 					data={data || []}
 					onDelete={(bundle) => {
-						if (window.confirm(`Delete Pass Bundle "${bundle.name}"?`)) {
+						if (window.confirm(`Delete Bundle Pass "${bundle.name}"?`)) {
 							deleteMutation.mutate(bundle);
 						}
 					}}

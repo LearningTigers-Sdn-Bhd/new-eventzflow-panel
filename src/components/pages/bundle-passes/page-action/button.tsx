@@ -20,7 +20,7 @@ export function PassBundlePageButton({ eventId }: PassBundlePageButtonProps) {
 				onClose: closeDialog,
 			},
 			config: {
-				title: "Create Pass Bundle",
+				title: "Create Bundle Pass",
 				description: "Create a private bundle link for an invited entity.",
 				size: "2xl",
 				className: "rounded-none",
@@ -34,7 +34,7 @@ export function PassBundlePageButton({ eventId }: PassBundlePageButtonProps) {
 			className="w-full gap-2 rounded-none lg:w-auto"
 		>
 			<Plus className="h-4 w-4" />
-			Add Pass Bundle
+			Add Bundle Pass
 		</Button>
 	);
 }

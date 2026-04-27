@@ -99,7 +99,7 @@ export function PassBundleTableControl<TData>({
 			table={table}
 			searchConfig={{
 				searchConfig: {
-					placeholder: "Search pass bundles...",
+					placeholder: "Search bundle passes...",
 					enableCustomSearch: true,
 					columns: ["name", "registrationFormName", "ticketTypeName"],
 				},

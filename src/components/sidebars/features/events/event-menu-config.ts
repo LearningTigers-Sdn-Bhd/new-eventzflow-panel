@@ -296,9 +296,9 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: ClipboardList,
 				},
 				{
-					route: "pass-bundles",
-					label: "Pass Bundles",
-					description: "Create private pass bundle links for invited entities.",
+					route: "bundle-passes",
+					label: "Bundle Passes",
+					description: "Create private bundle pass links for invited entities.",
 					icon: PackageOpen,
 				},
 			],
