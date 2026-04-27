@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, QrCode, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -14,12 +14,14 @@ import type { PassBundle } from "@/lib/api/pass-bundle";
 interface PassBundleActionsMenuProps {
 	bundle: PassBundle;
 	onEdit: (bundle: PassBundle) => void;
+	onQr: (bundle: PassBundle) => void;
 	onDelete: (bundle: PassBundle) => void;
 }
 
 export function PassBundleActionsMenu({
 	bundle,
 	onEdit,
+	onQr,
 	onDelete,
 }: PassBundleActionsMenuProps) {
 	return (
@@ -37,6 +39,19 @@ export function PassBundleActionsMenu({
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="bottom">Edit</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="rounded-none"
+							onClick={() => onQr(bundle)}
+						>
+							<QrCode className="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">QR Code</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>

@@ -15,11 +15,13 @@ import {
 
 interface ColumnActions {
 	onEdit: (bundle: PassBundle) => void;
+	onQr: (bundle: PassBundle) => void;
 	onDelete: (bundle: PassBundle) => void;
 }
 
 export function generatePassBundleColumns({
 	onEdit,
+	onQr,
 	onDelete,
 }: ColumnActions): ColumnDef<PassBundle>[] {
 	return [
@@ -102,6 +104,7 @@ export function generatePassBundleColumns({
 				<PassBundleActionsMenu
 					bundle={row.original}
 					onEdit={onEdit}
+					onQr={onQr}
 					onDelete={onDelete}
 				/>
 			),

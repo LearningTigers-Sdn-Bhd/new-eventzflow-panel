@@ -27,6 +27,7 @@ import type { PassBundle } from "@/lib/api/pass-bundle";
 import { generatePassBundleColumns } from "./pass-bundle-columns";
 import { PassBundleForm } from "./pass-bundle-form";
 import { PassBundleItem } from "./pass-bundle-item";
+import PassBundleQRModal from "./pass-bundle-qr-modal";
 import { PassBundleTableControl } from "./pass-bundle-table-control";
 
 interface PassBundleTableProps {
@@ -77,9 +78,27 @@ export function PassBundleTable({
 		[closeDialog, eventId, openDialog],
 	);
 
+	const openQr = React.useCallback(
+		(bundle: PassBundle) => {
+			openDialog({
+				component: PassBundleQRModal,
+				props: { bundle },
+				config: {
+					title: "Bundle QR Code",
+					description:
+						"Scan or share this QR to open the bundle registration link.",
+					size: "lg",
+					className: "rounded-none",
+				},
+			});
+		},
+		[openDialog],
+	);
+
 	const columns = React.useMemo(
-		() => generatePassBundleColumns({ onEdit: openEdit, onDelete }),
-		[onDelete, openEdit],
+		() =>
+			generatePassBundleColumns({ onEdit: openEdit, onQr: openQr, onDelete }),
+		[onDelete, openEdit, openQr],
 	);
 
 	const table = useReactTable({
@@ -128,6 +147,7 @@ export function PassBundleTable({
 											key={row.id}
 											bundle={row.original}
 											onEdit={openEdit}
+											onQr={openQr}
 											onDelete={onDelete}
 										/>
 									))
@@ -152,6 +172,7 @@ export function PassBundleTable({
 										<PassBundleItem
 											bundle={row.original}
 											onEdit={openEdit}
+											onQr={openQr}
 											onDelete={onDelete}
 										/>
 									</div>

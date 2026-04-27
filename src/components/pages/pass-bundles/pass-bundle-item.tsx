@@ -16,12 +16,14 @@ import {
 interface PassBundleItemProps {
 	bundle: PassBundle;
 	onEdit: (bundle: PassBundle) => void;
+	onQr: (bundle: PassBundle) => void;
 	onDelete: (bundle: PassBundle) => void;
 }
 
 export function PassBundleItem({
 	bundle,
 	onEdit,
+	onQr,
 	onDelete,
 }: PassBundleItemProps) {
 	return (
@@ -36,6 +38,7 @@ export function PassBundleItem({
 				<PassBundleActionsMenu
 					bundle={bundle}
 					onEdit={onEdit}
+					onQr={onQr}
 					onDelete={onDelete}
 				/>
 			</CardHeader>
