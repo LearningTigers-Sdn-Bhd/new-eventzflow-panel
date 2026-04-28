@@ -31,6 +31,22 @@ function transformRegistrationForm(
 		customLabelsData: backend.custom_labels_data ?? [],
 		status: backend.status,
 		position: backend.position,
+		rsvpSetting: backend.registration_form_rsvp_setting
+			? {
+					id: backend.registration_form_rsvp_setting.id,
+					registrationFormId:
+						backend.registration_form_rsvp_setting.registration_form_id,
+					enabled: backend.registration_form_rsvp_setting.enabled,
+					rsvpRequired: backend.registration_form_rsvp_setting.rsvp_required,
+					rsvpExpiresInHours:
+						backend.registration_form_rsvp_setting.rsvp_expires_in_hours,
+					reviewSlaHours:
+						backend.registration_form_rsvp_setting.review_sla_hours,
+					notifyByDate: backend.registration_form_rsvp_setting.notify_by_date,
+					createdAt: backend.registration_form_rsvp_setting.created_at,
+					updatedAt: backend.registration_form_rsvp_setting.updated_at,
+				}
+			: null,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 		ticketTypes: backend.ticket_types.map((tt) => ({

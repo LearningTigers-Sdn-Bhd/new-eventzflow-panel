@@ -1,6 +1,5 @@
 import {
 	AlertCircle,
-	Calendar,
 	Check,
 	Clock,
 	CreditCard,
@@ -14,10 +13,8 @@ import {
 	Tag,
 	User,
 } from "lucide-react";
-import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "../../../../lib/utils";
@@ -25,6 +22,10 @@ import {
 	formatTicketPrice,
 	getPaymentStatusColor,
 	getPaymentStatusText,
+	getReviewStatusColor,
+	getReviewStatusText,
+	getRsvpStatusColor,
+	getRsvpStatusText,
 } from "../constants";
 import type { PendingTicket } from "../pending-ticket-table-columns";
 
@@ -153,6 +154,46 @@ export default function PendingTicketViewModal({
 								</h3>
 							</div>
 							<CardContent className="grid gap-6 p-6">
+								<InfoItem label="Review Status" icon={Check}>
+									<Badge
+										className={cn(
+											"w-fit rounded-none font-bold",
+											getReviewStatusColor(
+												ticket.ticketApplication?.reviewStatus,
+											),
+										)}
+									>
+										{getReviewStatusText(
+											ticket.ticketApplication?.reviewStatus,
+										)}
+									</Badge>
+								</InfoItem>
+								<InfoItem label="RSVP Status" icon={Tag}>
+									<Badge
+										className={cn(
+											"w-fit rounded-none font-bold",
+											getRsvpStatusColor(ticket.ticketApplication?.rsvpStatus),
+										)}
+									>
+										{getRsvpStatusText(ticket.ticketApplication?.rsvpStatus)}
+									</Badge>
+								</InfoItem>
+								{ticket.ticketApplication?.rejectionReason && (
+									<InfoItem
+										label="Rejection Reason"
+										value={ticket.ticketApplication.rejectionReason}
+										icon={AlertCircle}
+									/>
+								)}
+								{ticket.ticketApplication?.rsvpExpiresAt && (
+									<InfoItem
+										label="RSVP Expires At"
+										value={new Date(
+											ticket.ticketApplication.rsvpExpiresAt,
+										).toLocaleString()}
+										icon={Clock}
+									/>
+								)}
 								<InfoItem label="Payment Status" icon={AlertCircle}>
 									<Badge
 										className={cn(
@@ -200,7 +241,13 @@ export default function PendingTicketViewModal({
 									{ticket.customLabels.map((label, index) => (
 										<InfoItem
 											key={`${label.name}-${index}`}
-											label={label.name.includes("_") ? label.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : label.name}
+											label={
+												label.name.includes("_")
+													? label.name
+															.replace(/_/g, " ")
+															.replace(/\b\w/g, (c) => c.toUpperCase())
+													: label.name
+											}
 											value={label.value}
 											icon={Info}
 											capitalize={true}

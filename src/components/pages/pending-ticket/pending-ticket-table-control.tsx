@@ -11,6 +11,7 @@ import { getEventTicketTypes } from "@/lib/api/ticket-type";
 interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
+	hasApplicationWorkflow?: boolean;
 }
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -22,12 +23,30 @@ const PAYMENT_STATUS_OPTIONS = [
 	{ value: "rejected", label: "Rejected" },
 ] as const;
 
+const REVIEW_STATUS_OPTIONS = [
+	{ value: "all", label: "All" },
+	{ value: "pending_review", label: "Pending Review" },
+	{ value: "approved", label: "Approved" },
+	{ value: "rejected", label: "Rejected" },
+] as const;
+
+const RSVP_STATUS_OPTIONS = [
+	{ value: "all", label: "All" },
+	{ value: "not_sent", label: "Not Sent" },
+	{ value: "sent", label: "Sent" },
+	{ value: "confirmed", label: "Confirmed" },
+	{ value: "declined", label: "Declined" },
+	{ value: "expired", label: "Expired" },
+] as const;
+
 const SEARCH_COLUMNS = [
 	"name",
 	"email",
 	"phone",
 	"ticketTypeName",
 	"transactionId",
+	"reviewStatus",
+	"rsvpStatus",
 ];
 
 function getColumnLabel(
@@ -44,6 +63,8 @@ function getColumnLabel(
 		email: "Email",
 		ticketTypeName: "Ticket Type",
 		paymentStatus: "Payment Status",
+		reviewStatus: "Review Status",
+		rsvpStatus: "RSVP Status",
 		transactionId: "Transaction ID",
 		createdAt: "Created At",
 	};
@@ -54,6 +75,7 @@ function getColumnLabel(
 export function DataControl<TData>({
 	table,
 	labelsData,
+	hasApplicationWorkflow = true,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -117,6 +139,70 @@ export function DataControl<TData>({
 		},
 	};
 
+	const getReviewStatusFilterValue = () => {
+		if (!hasApplicationWorkflow) return "all";
+		const reviewStatusFilter =
+			(table.getColumn("reviewStatus")?.getFilterValue() as string[]) ?? [];
+		return reviewStatusFilter.length === 0 ? "all" : reviewStatusFilter[0];
+	};
+
+	const reviewStatusFilterControl: ControlConfig = {
+		label: "Review Status",
+		columnId: "reviewStatus",
+		type: "filter",
+		data: REVIEW_STATUS_OPTIONS.map((option) => ({
+			label: option.label,
+			value: option.value,
+		})),
+		customFilter: {
+			value: getReviewStatusFilterValue(),
+			onChange: (value: string) => {
+				if (!hasApplicationWorkflow) return;
+				const column = table.getColumn("reviewStatus");
+				if (!column) return;
+
+				if (value === "all") {
+					column.setFilterValue(undefined);
+					return;
+				}
+
+				column.setFilterValue([value]);
+			},
+		},
+	};
+
+	const getRsvpStatusFilterValue = () => {
+		if (!hasApplicationWorkflow) return "all";
+		const rsvpStatusFilter =
+			(table.getColumn("rsvpStatus")?.getFilterValue() as string[]) ?? [];
+		return rsvpStatusFilter.length === 0 ? "all" : rsvpStatusFilter[0];
+	};
+
+	const rsvpStatusFilterControl: ControlConfig = {
+		label: "RSVP Status",
+		columnId: "rsvpStatus",
+		type: "filter",
+		data: RSVP_STATUS_OPTIONS.map((option) => ({
+			label: option.label,
+			value: option.value,
+		})),
+		customFilter: {
+			value: getRsvpStatusFilterValue(),
+			onChange: (value: string) => {
+				if (!hasApplicationWorkflow) return;
+				const column = table.getColumn("rsvpStatus");
+				if (!column) return;
+
+				if (value === "all") {
+					column.setFilterValue(undefined);
+					return;
+				}
+
+				column.setFilterValue([value]);
+			},
+		},
+	};
+
 	const ticketTypeFilterControl: ControlConfig = {
 		label: "Ticket Type",
 		columnId: "ticketTypeName",
@@ -146,6 +232,9 @@ export function DataControl<TData>({
 
 	const desktopControlConfigs: ControlConfig[] = [
 		paymentStatusFilterControl,
+		...(hasApplicationWorkflow
+			? [reviewStatusFilterControl, rsvpStatusFilterControl]
+			: []),
 		ticketTypeFilterControl,
 		{
 			label: "Columns",
@@ -159,6 +248,12 @@ export function DataControl<TData>({
 	const baseMobileSortConfigs: ControlConfig[] = [
 		{ label: "Name", columnId: "name", type: "sort" },
 		{ label: "Email", columnId: "email", type: "sort" },
+		...(hasApplicationWorkflow
+			? [
+					{ label: "Review Status", columnId: "reviewStatus", type: "sort" as const },
+					{ label: "RSVP Status", columnId: "rsvpStatus", type: "sort" as const },
+				]
+			: []),
 		{ label: "Payment Status", columnId: "paymentStatus", type: "sort" },
 		{ label: "Created", columnId: "createdAt", type: "sort" },
 	];
@@ -181,6 +276,12 @@ export function DataControl<TData>({
 
 	const mobileControlConfigs: ControlConfig[] = [
 		{ ...paymentStatusFilterControl, topPriority: true },
+		...(hasApplicationWorkflow
+			? [
+					{ ...reviewStatusFilterControl, topPriority: true },
+					{ ...rsvpStatusFilterControl, topPriority: true },
+				]
+			: []),
 		{ ...ticketTypeFilterControl, topPriority: true },
 		...baseMobileSortConfigs,
 		...customMobileSortConfigs,
@@ -193,7 +294,12 @@ export function DataControl<TData>({
 				searchConfig: {
 					placeholder: "Search pending tickets...",
 					enableCustomSearch: true,
-					columns: SEARCH_COLUMNS,
+					columns: hasApplicationWorkflow
+						? SEARCH_COLUMNS
+						: SEARCH_COLUMNS.filter(
+								(column) =>
+									column !== "reviewStatus" && column !== "rsvpStatus",
+							),
 				},
 			}}
 			desktopConfig={{

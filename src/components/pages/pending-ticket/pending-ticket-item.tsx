@@ -114,8 +114,7 @@ export function PendingTicketItem({
 						<div className="grid grid-cols-1 gap-2">
 							{Object.entries(labelsData).map(([key, labelName]) => {
 								const value =
-									ticket.customLabels?.find((l) => l.name === labelName)
-										?.value || "";
+									ticket.customLabels?.find((l) => l.name === key)?.value || "";
 								return (
 									<div key={key} className="space-y-0.5">
 										<p className="font-medium text-muted-foreground text-xs">
