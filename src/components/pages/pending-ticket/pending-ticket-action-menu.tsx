@@ -1,11 +1,19 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, Pencil, Send, X } from "lucide-react";
+import { Check, Eye, MoreHorizontal, Pencil, Send, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	approveTicketApplication,
@@ -108,40 +116,6 @@ export function PendingTicketActionsMenu({
 
 	return (
 		<ButtonGroup>
-			{hasTicketApplication && (
-				<>
-					<Button
-						size="icon-sm"
-						variant="outline"
-						className="rounded-none text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-						onClick={() => approveMutation.mutate()}
-						title="Approve Application"
-						disabled={!canReview || approveMutation.isPending}
-					>
-						<Check className="size-4" />
-					</Button>
-					<Button
-						size="icon-sm"
-						variant="outline"
-						className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600"
-						onClick={openRejectModal}
-						title="Reject Application"
-						disabled={!canReview}
-					>
-						<X className="size-4" />
-					</Button>
-					<Button
-						size="icon-sm"
-						variant="outline"
-						className="rounded-none text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
-						onClick={() => resendMutation.mutate()}
-						title="Resend RSVP"
-						disabled={!canResend || resendMutation.isPending}
-					>
-						<Send className="size-4" />
-					</Button>
-				</>
-			)}
 			<Button
 				size="icon-sm"
 				variant="outline"
@@ -160,6 +134,47 @@ export function PendingTicketActionsMenu({
 			>
 				<Eye className="size-4" />
 			</Button>
+
+			{hasTicketApplication && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button size="icon-sm" variant="outline" className="rounded-none">
+							<span className="sr-only">Open application actions</span>
+							<MoreHorizontal className="h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="rounded-none">
+						<DropdownMenuLabel className="rounded-none">
+							Application Actions
+						</DropdownMenuLabel>
+						<DropdownMenuSeparator className="rounded-none" />
+						<DropdownMenuItem
+							onClick={() => approveMutation.mutate()}
+							disabled={!canReview || approveMutation.isPending}
+							className="rounded-none"
+						>
+							<Check className="mr-2 h-4 w-4 text-emerald-600" />
+							Approve Application
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={openRejectModal}
+							disabled={!canReview}
+							className="rounded-none"
+						>
+							<X className="mr-2 h-4 w-4 text-red-600" />
+							Reject Application
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => resendMutation.mutate()}
+							disabled={!canResend || resendMutation.isPending}
+							className="rounded-none"
+						>
+							<Send className="mr-2 h-4 w-4 text-indigo-600" />
+							Resend RSVP
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
 		</ButtonGroup>
 	);
 }
