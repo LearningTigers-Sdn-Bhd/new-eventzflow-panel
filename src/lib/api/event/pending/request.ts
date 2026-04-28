@@ -40,6 +40,22 @@ export const updatePendingTicketSchema = z.object({
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 
+export const approveTicketApplicationSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+});
+
+export const rejectTicketApplicationSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+	reason: z.string().optional(),
+});
+
+export const resendTicketRsvpSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+});
+
 // Type exports for request data
 export type GetPendingTicketsRequest = z.infer<typeof getPendingTicketsSchema>;
 export type CreatePendingTicketRequest = z.infer<
@@ -48,3 +64,10 @@ export type CreatePendingTicketRequest = z.infer<
 export type UpdatePendingTicketRequest = z.infer<
 	typeof updatePendingTicketSchema
 >;
+export type ApproveTicketApplicationRequest = z.infer<
+	typeof approveTicketApplicationSchema
+>;
+export type RejectTicketApplicationRequest = z.infer<
+	typeof rejectTicketApplicationSchema
+>;
+export type ResendTicketRsvpRequest = z.infer<typeof resendTicketRsvpSchema>;

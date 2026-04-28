@@ -1,9 +1,15 @@
 import { restClient } from "@/utils/rest-api";
 import {
+	type ApproveTicketApplicationRequest,
+	approveTicketApplicationSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
 	type GetPendingTicketsRequest,
 	getPendingTicketsSchema,
+	type RejectTicketApplicationRequest,
+	type ResendTicketRsvpRequest,
+	rejectTicketApplicationSchema,
+	resendTicketRsvpSchema,
 	type UpdatePendingTicketRequest,
 	updatePendingTicketSchema,
 } from "./request";
@@ -13,6 +19,10 @@ import type {
 	PendingTicket,
 	UpdatePendingTicketResponse,
 } from "./response";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+	return error instanceof Error && error.message ? error.message : fallback;
+}
 
 // Transform backend ticket to frontend PendingTicket format
 function transformPendingTicket(
@@ -45,6 +55,8 @@ function transformPendingTicket(
 		paymentStatus = statusMap[backendTicket.payment_status] || "pending";
 	}
 
+	const application = backendTicket.ticket_application;
+
 	return {
 		id: backendTicket.public_id,
 		publicId: backendTicket.public_id,
@@ -62,6 +74,17 @@ function transformPendingTicket(
 		paymentMethod: backendTicket.payment_method || undefined,
 		ticketTypeName: backendTicket.ticket_type?.name,
 		ticketTypeId: backendTicket.ticket_type?.id,
+		ticketApplication: application
+			? {
+					reviewStatus: application.review_status,
+					rsvpStatus: application.rsvp_status,
+					reviewedAt: application.reviewed_at,
+					rejectionReason: application.rejection_reason,
+					rsvpSentAt: application.rsvp_sent_at,
+					rsvpConfirmedAt: application.rsvp_confirmed_at,
+					rsvpExpiresAt: application.rsvp_expires_at,
+				}
+			: undefined,
 	};
 }
 
@@ -108,9 +131,9 @@ export async function getPendingTickets(
 		});
 
 		return pendingTickets.map(transformPendingTicket);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error fetching pending tickets:", error);
-		throw new Error(error.message || "Failed to fetch pending tickets");
+		throw new Error(getErrorMessage(error, "Failed to fetch pending tickets"));
 	}
 }
 
@@ -130,9 +153,9 @@ export async function createPendingTicket(
 		);
 
 		return transformPendingTicket(response);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error creating pending ticket:", error);
-		throw new Error(error.message || "Failed to create pending ticket");
+		throw new Error(getErrorMessage(error, "Failed to create pending ticket"));
 	}
 }
 
@@ -152,8 +175,39 @@ export async function updatePendingTicket(
 		);
 
 		return transformPendingTicket(response);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error updating pending ticket:", error);
-		throw new Error(error.message || "Failed to update pending ticket");
+		throw new Error(getErrorMessage(error, "Failed to update pending ticket"));
 	}
+}
+
+export async function approveTicketApplication(
+	data: ApproveTicketApplicationRequest,
+): Promise<PendingTicket> {
+	const validated = approveTicketApplicationSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/approve`,
+	);
+	return transformPendingTicket(response);
+}
+
+export async function rejectTicketApplication(
+	data: RejectTicketApplicationRequest,
+): Promise<PendingTicket> {
+	const validated = rejectTicketApplicationSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/reject`,
+		{ reason: validated.reason },
+	);
+	return transformPendingTicket(response);
+}
+
+export async function resendTicketRsvp(
+	data: ResendTicketRsvpRequest,
+): Promise<PendingTicket> {
+	const validated = resendTicketRsvpSchema.parse(data);
+	const response = await restClient.post<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/resend_rsvp`,
+	);
+	return transformPendingTicket(response);
 }

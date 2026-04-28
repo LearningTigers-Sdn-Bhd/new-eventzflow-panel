@@ -8,7 +8,7 @@ export interface BackendPendingTicket {
 	role?: string | null;
 	ticket_type_id: number;
 	event_id: number;
-	status: "purchased" | "scanned" | "refunded" | "canceled";
+	status: "purchased" | "scanned" | "refunded" | "canceled" | "pending_payment";
 	payment_status: "pending" | "paid" | "failed" | "refunded_payment" | number; // Can be string or number
 	payment_screenshot_url?: string | null;
 	transaction_id?: string | null;
@@ -23,6 +23,25 @@ export interface BackendPendingTicket {
 		name: string;
 		price: number;
 	};
+	ticket_application?: BackendTicketApplication | null;
+}
+
+export type ReviewStatus = "pending_review" | "approved" | "rejected";
+export type RsvpStatus =
+	| "not_sent"
+	| "sent"
+	| "confirmed"
+	| "declined"
+	| "expired";
+
+export interface BackendTicketApplication {
+	review_status: ReviewStatus;
+	rsvp_status: RsvpStatus;
+	reviewed_at: string | null;
+	rejection_reason: string | null;
+	rsvp_sent_at: string | null;
+	rsvp_confirmed_at: string | null;
+	rsvp_expires_at: string | null;
 }
 
 // Frontend pending ticket type
@@ -43,6 +62,15 @@ export type PendingTicket = {
 	paymentMethod?: string;
 	ticketTypeName?: string;
 	ticketTypeId?: number;
+	ticketApplication?: {
+		reviewStatus: ReviewStatus;
+		rsvpStatus: RsvpStatus;
+		reviewedAt: string | null;
+		rejectionReason: string | null;
+		rsvpSentAt: string | null;
+		rsvpConfirmedAt: string | null;
+		rsvpExpiresAt: string | null;
+	};
 };
 
 // Response types for operations

@@ -99,9 +99,18 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		setColumnVisibility(initialVisibility);
 	}, [initialVisibility]);
 
+	const hasApplicationWorkflow = React.useMemo(
+		() =>
+			(data as PendingTicket[]).some(
+				(ticket) => ticket.ticketApplication != null,
+			),
+		[data],
+	);
+
 	const columns = React.useMemo(
-		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
-		[mergedLabelsData],
+		() =>
+			generateColumns(mergedLabelsData, hasApplicationWorkflow) as ColumnDef<TData>[],
+		[mergedLabelsData, hasApplicationWorkflow],
 	);
 
 	const openPendingTicketCreate = () => {
@@ -135,7 +144,11 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} labelsData={mergedLabelsData} />
+			<DataControl
+				table={table}
+				labelsData={mergedLabelsData}
+				hasApplicationWorkflow={hasApplicationWorkflow}
+			/>
 
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>

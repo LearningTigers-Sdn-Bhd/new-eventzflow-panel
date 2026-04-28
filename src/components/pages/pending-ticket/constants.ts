@@ -21,6 +21,14 @@ export type PaymentStatusString =
 	| "approval_pending"
 	| "rejected";
 
+export type ReviewStatus = "pending_review" | "approved" | "rejected";
+export type RsvpStatus =
+	| "not_sent"
+	| "sent"
+	| "confirmed"
+	| "declined"
+	| "expired";
+
 /**
  * Maps string payment status to numeric value
  */
@@ -67,6 +75,50 @@ export function getPaymentStatusColor(status: PaymentStatusString): string {
 		rejected: "bg-gray-100 text-gray-800 hover:bg-gray-100",
 	};
 	return mapping[status] ?? "bg-gray-100 text-gray-800 hover:bg-gray-100";
+}
+
+export function getReviewStatusText(status?: ReviewStatus): string {
+	const mapping: Record<ReviewStatus, string> = {
+		pending_review: "Pending Review",
+		approved: "Approved",
+		rejected: "Rejected",
+	};
+	return status ? mapping[status] : "No Application";
+}
+
+export function getReviewStatusColor(status?: ReviewStatus): string {
+	const mapping: Record<ReviewStatus, string> = {
+		pending_review: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+		approved: "bg-green-100 text-green-800 hover:bg-green-100",
+		rejected: "bg-red-100 text-red-800 hover:bg-red-100",
+	};
+	return status
+		? mapping[status]
+		: "bg-gray-100 text-gray-800 hover:bg-gray-100";
+}
+
+export function getRsvpStatusText(status?: RsvpStatus): string {
+	const mapping: Record<RsvpStatus, string> = {
+		not_sent: "Not Sent",
+		sent: "Sent",
+		confirmed: "Confirmed",
+		declined: "Declined",
+		expired: "Expired",
+	};
+	return status ? mapping[status] : "No RSVP";
+}
+
+export function getRsvpStatusColor(status?: RsvpStatus): string {
+	const mapping: Record<RsvpStatus, string> = {
+		not_sent: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+		sent: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100",
+		confirmed: "bg-green-100 text-green-800 hover:bg-green-100",
+		declined: "bg-amber-100 text-amber-800 hover:bg-amber-100",
+		expired: "bg-red-100 text-red-800 hover:bg-red-100",
+	};
+	return status
+		? mapping[status]
+		: "bg-gray-100 text-gray-800 hover:bg-gray-100";
 }
 
 /**
