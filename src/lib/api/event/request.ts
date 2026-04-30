@@ -35,6 +35,14 @@ export const updateEventSchema = z.object({
 		.string()
 		.min(3, "Event name must be at least 3 characters")
 		.optional(),
+	slug: z
+		.string()
+		.min(3, "Slug must be at least 3 characters")
+		.regex(
+			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+			"Slug can only contain lowercase letters, numbers, and hyphens",
+		)
+		.optional(),
 	description: z.string().optional(),
 	status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),
 	visibility: z.boolean().optional(),

@@ -40,6 +40,13 @@ import {
 
 const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
+	slug: z
+		.string()
+		.min(3, "Slug must be at least 3 characters")
+		.regex(
+			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+			"Use lowercase letters, numbers, and hyphens only",
+		),
 	status: z.enum(["draft", "published", "cancelled", "completed"]),
 	visibility: z.boolean(),
 	useTicket: z.boolean(),
@@ -127,6 +134,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 	const form = useForm({
 		defaultValues: {
 			title: "",
+			slug: "",
 			status: "draft" as "draft" | "published" | "cancelled" | "completed",
 			visibility: true,
 			useTicket: true,
@@ -158,6 +166,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				id: eventId,
 				data: {
 					title: value.title,
+					slug: isOrgOwner ? value.slug : undefined,
 					status: value.status,
 					visibility: value.visibility,
 					use_ticket: value.useTicket,
@@ -194,6 +203,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			setTimeout(() => {
 				const guestPolicy = guestPolicyValueFromLimit(event.extra_guest_limit);
 				form.setFieldValue("title", event.title || "");
+				form.setFieldValue("slug", event.slug || "");
 				form.setFieldValue(
 					"status",
 					event.status as "draft" | "published" | "cancelled" | "completed",
@@ -294,27 +304,53 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								"Fill in required fields to update the event information.",
 						}}
 					>
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
 							<form.Field name="title">
 								{(field) => {
 									const isInvalid =
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
-										<InputLabel
-											label="Event Title"
-											htmlFor={field.name}
-											value={field.state.value}
-											onChange={field.handleChange}
-											onBlur={field.handleBlur}
-											errors={field.state.meta.errors}
-											isInvalid={isInvalid}
-											placeholder="Summer Festival 2024"
-											disabled={updateEventMutation.isPending}
-											required
-										/>
+										<div className="md:col-span-2">
+											<InputLabel
+												label="Event Title"
+												htmlFor={field.name}
+												value={field.state.value}
+												onChange={field.handleChange}
+												onBlur={field.handleBlur}
+												errors={field.state.meta.errors}
+												isInvalid={isInvalid}
+												placeholder="Summer Festival 2024"
+												disabled={updateEventMutation.isPending}
+												required
+											/>
+										</div>
 									);
 								}}
 							</form.Field>
+
+							{isOrgOwner ? (
+								<form.Field name="slug">
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched &&
+											!field.state.meta.isValid;
+										return (
+											<InputLabel
+												label="Event Slug"
+												htmlFor={field.name}
+												value={field.state.value}
+												onChange={field.handleChange}
+												onBlur={field.handleBlur}
+												errors={field.state.meta.errors}
+												isInvalid={isInvalid}
+												placeholder="my-event-2026"
+												disabled={updateEventMutation.isPending}
+												required
+											/>
+										);
+									}}
+								</form.Field>
+							) : null}
 
 							<form.Field name="status">
 								{(field) => {
