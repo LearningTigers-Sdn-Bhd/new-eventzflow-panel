@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSafeInitialSettingsTab } from "./access";
+import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import EmailSettingsForm from "./email-settings-form";
@@ -44,6 +45,9 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "welcome-screen" && (
 					<WelcomeScreenForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "poster" && (
+					<BrandingForm eventId={eventId} onClose={onClose} />
 				)}
 				{activeTab === "payment-gateway" && (
 					<PaymentGatewayForm eventId={eventId} onClose={onClose} />

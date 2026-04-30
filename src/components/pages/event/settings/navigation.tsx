@@ -10,14 +10,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { canAccessBrandingSettings } from "./access";
+import { canAccessPosterSettings } from "./access";
 
 export type SettingsTab =
 	| "event-information"
 	| "email-settings"
 	| "custom-labels"
 	| "welcome-screen"
-	| "branding"
+	| "poster"
 	| "payment-gateway";
 
 interface NavigationItem {
@@ -54,8 +54,8 @@ const navigationItems: NavigationItem[] = [
 		icon: Monitor,
 	},
 	{
-		id: "branding",
-		label: "Branding",
+		id: "poster",
+		label: "Poster",
 		icon: ImageIcon,
 	},
 	{
@@ -70,8 +70,8 @@ export default function SettingsNavigation({
 	onTabChange,
 }: SettingsNavigationProps) {
 	const visibleNavigationItems = navigationItems.filter((item) => {
-		if (item.id === "branding") {
-			return canAccessBrandingSettings();
+		if (item.id === "poster") {
+			return canAccessPosterSettings();
 		}
 
 		return true;

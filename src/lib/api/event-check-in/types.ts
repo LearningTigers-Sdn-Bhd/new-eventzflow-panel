@@ -9,6 +9,7 @@ export interface PublicEventInfo {
 	title: string;
 	slug: string;
 	use_ticket: boolean;
+	poster_url?: string | null;
 }
 
 export interface AttendeePreview {

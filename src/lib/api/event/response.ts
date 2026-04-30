@@ -54,6 +54,7 @@ export type Event = {
 	updated_at: string;
 	deleted_at: string | null;
 	logo_url: string | null;
+	poster_url: string | null;
 };
 
 export type EventDetails = Event;

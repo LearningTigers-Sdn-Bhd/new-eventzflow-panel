@@ -19,6 +19,11 @@ import { submitGroupRegistrations } from "@/lib/api/public-registration/submit";
 import { getStatusCopy } from "@/lib/constants/public-registration";
 
 type FormValues = SimpleFormValues;
+type SubmitResult = {
+	success: boolean;
+	paymentStatuses: string[];
+	publicIds: string[];
+};
 
 function compactCustomFields(fields: Record<string, string | undefined>) {
 	return Object.entries(fields).reduce<Record<string, string>>(
@@ -76,7 +81,7 @@ export function usePublicRegistrationForm({
 			selectedTicketTypeId?: number;
 			leaderEmail?: string;
 		},
-	): Promise<boolean> {
+	): Promise<SubmitResult> {
 		setIsSubmitting(true);
 		setStatusMessage(null);
 		setSingleResult(null);
@@ -150,14 +155,16 @@ export function usePublicRegistrationForm({
 				}
 
 				const successfulRows = summary.rows.filter((row) => row.ok && row.data);
+				const publicIds = successfulRows.flatMap((row) =>
+					row.data?.public_id ? [row.data.public_id] : [],
+				);
+				const paymentStatuses = successfulRows.flatMap((row) =>
+					row.data?.payment_status ? [row.data.payment_status] : [],
+				);
 				setGroupResult({
 					successCount: summary.successCount,
-					publicIds: successfulRows
-						.map((row) => row.data?.public_id)
-						.filter((id): id is string => Boolean(id)),
-					paymentStatuses: successfulRows
-						.map((row) => row.data?.payment_status)
-						.filter((status): status is NonNullable<typeof status> => Boolean(status)),
+					publicIds,
+					paymentStatuses,
 				});
 
 				setStatusMessage(
@@ -166,7 +173,11 @@ export function usePublicRegistrationForm({
 				toast.success(
 					`Group registration submitted for ${summary.successCount} attendees.`,
 				);
-				return true;
+				return {
+					success: true,
+					paymentStatuses,
+					publicIds,
+				};
 			}
 
 			const attendee = parsed.attendees[0];
@@ -190,12 +201,16 @@ export function usePublicRegistrationForm({
 			});
 			setStatusMessage(getStatusCopy(data.payment_status));
 			toast.success("Registration submitted successfully");
-			return true;
+			return {
+				success: true,
+				paymentStatuses: [data.payment_status],
+				publicIds: [data.public_id],
+			};
 		} catch (error: unknown) {
 			const message =
 				error instanceof Error ? error.message : "Submission failed";
 			toast.error(message);
-			return false;
+			return { success: false, paymentStatuses: [], publicIds: [] };
 		} finally {
 			setIsSubmitting(false);
 		}

@@ -1,6 +1,7 @@
 interface BuildPublicRegistrationStepsOptions {
 	hasMultipleTicketTypes: boolean;
-	paymentSuccess: boolean;
+	requiresPayment: boolean;
+	showCompleteStep: boolean;
 }
 
 export interface PublicRegistrationStep {
@@ -10,7 +11,8 @@ export interface PublicRegistrationStep {
 
 export function buildPublicRegistrationSteps({
 	hasMultipleTicketTypes,
-	paymentSuccess,
+	requiresPayment,
+	showCompleteStep,
 }: BuildPublicRegistrationStepsOptions): PublicRegistrationStep[] {
 	const steps: PublicRegistrationStep[] = [];
 
@@ -22,10 +24,13 @@ export function buildPublicRegistrationSteps({
 		{ id: 2, label: "Email" },
 		{ id: 3, label: "Details" },
 		{ id: 4, label: "Confirm" },
-		{ id: 5, label: "Payment" },
 	);
 
-	if (paymentSuccess) {
+	if (requiresPayment) {
+		steps.push({ id: 5, label: "Payment" });
+	}
+
+	if (showCompleteStep) {
 		steps.push({ id: 6, label: "Complete" });
 	}
 

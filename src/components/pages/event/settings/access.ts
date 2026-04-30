@@ -2,8 +2,8 @@ import type { SettingsTab } from "./navigation";
 
 type EventSettingsRole = string | undefined;
 
-export function canAccessBrandingSettings(_role?: EventSettingsRole) {
-	return false;
+export function canAccessPosterSettings(_role?: EventSettingsRole) {
+	return true;
 }
 
 export function canConfigureAdvancedEventOptions(role?: EventSettingsRole) {
@@ -21,5 +21,5 @@ export function canConfigureExhibitorKit(role?: EventSettingsRole) {
 export function getSafeInitialSettingsTab(
 	initialTab: SettingsTab,
 ): SettingsTab {
-	return initialTab === "branding" ? "event-information" : initialTab;
+	return initialTab === "poster" ? "event-information" : initialTab;
 }

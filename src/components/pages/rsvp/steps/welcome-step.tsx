@@ -1,14 +1,8 @@
 "use client";
 
 import { Calendar } from "lucide-react";
-import { Great_Vibes } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import { formatDateRange } from "@/lib/date-utils";
-
-const greatVibes = Great_Vibes({
-	subsets: ["latin"],
-	weight: ["400"],
-});
 
 interface WelcomeStepProps {
 	visitorName: string;
@@ -39,7 +33,10 @@ export function WelcomeStep({
 				</p>
 				<div className="space-y-0.5 sm:space-y-1">
 					<h1
-						className={`${greatVibes.className} text-5xl text-stone-800 leading-none sm:text-6xl lg:text-7xl`}
+						className="text-5xl text-stone-800 leading-none sm:text-6xl lg:text-7xl"
+						style={{
+							fontFamily: '"Brush Script MT", "Lucida Handwriting", cursive',
+						}}
 					>
 						Celebrate with us,
 					</h1>
@@ -69,7 +66,10 @@ export function WelcomeStep({
 						We would be honored to have you join us for
 					</p>
 					<h2
-						className={`${greatVibes.className} break-words text-4xl text-stone-900 sm:text-6xl lg:text-7xl`}
+						className="break-words text-4xl text-stone-900 sm:text-6xl lg:text-7xl"
+						style={{
+							fontFamily: '"Brush Script MT", "Lucida Handwriting", cursive',
+						}}
 					>
 						{eventTitle}
 					</h2>

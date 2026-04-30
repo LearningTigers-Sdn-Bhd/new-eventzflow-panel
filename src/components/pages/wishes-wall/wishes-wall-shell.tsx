@@ -1,11 +1,5 @@
-import { Great_Vibes } from "next/font/google";
 import type { PropsWithChildren } from "react";
 import type { NormalizedWallSettings } from "./wall-settings";
-
-const greatVibes = Great_Vibes({
-	subsets: ["latin"],
-	weight: ["400"],
-});
 
 type WishesWallShellProps = PropsWithChildren<{
 	settings: NormalizedWallSettings;
@@ -92,8 +86,11 @@ export function WishesWallShell({
 							Blessings & Wishes for
 						</p>
 						<h1
-							className={`${greatVibes.className} mb-8 max-w-4xl text-6xl sm:text-7xl lg:text-8xl`}
-							style={headerTextStyle}
+							className="mb-8 max-w-4xl text-6xl sm:text-7xl lg:text-8xl"
+							style={{
+								...headerTextStyle,
+								fontFamily: '"Brush Script MT", "Lucida Handwriting", cursive',
+							}}
 						>
 							{eventTitle}
 						</h1>

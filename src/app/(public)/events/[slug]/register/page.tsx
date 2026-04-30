@@ -80,133 +80,129 @@ export default function EventRegistrationLandingPage({
 	}, [eventQuery.data?.title]);
 
 	return (
-		<section className="relative min-h-screen overflow-hidden bg-white-background">
+		<section className="relative min-h-screen overflow-hidden bg-slate-50/50">
 			{/* Background texture layers */}
 			<div aria-hidden className="pointer-events-none absolute inset-0">
-				<div className="absolute inset-0 bg-[linear-gradient(155deg,#f8faf9_0%,#ffffff_38%,#f4f6f5_100%)]" />
-				<div className="absolute inset-0 bg-[radial-gradient(120%_72%_at_16%_0%,rgba(34,197,94,0.08),transparent_54%),radial-gradient(90%_60%_at_100%_100%,rgba(15,23,42,0.08),transparent_60%)]" />
-				<div className="absolute inset-x-0 top-0 h-56 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),transparent)]" />
-				<div className="absolute inset-0 opacity-[0.16] [background-image:linear-gradient(to_right,rgba(15,23,42,0.06)_1px,transparent_1px)] [background-size:58px_58px]" />
+				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-brand-green/5 blur-[120px]" />
+				<div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/5 blur-[100px]" />
+				<div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(to_right,rgba(15,23,42,1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,1)_1px,transparent_1px)] [background-size:40px_40px]" />
 			</div>
 
-			{/* Left vertical accent line */}
-			<motion.div
-				initial={{ scaleY: 0 }}
-				animate={{ scaleY: 1 }}
-				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
-				className="absolute top-0 left-6 hidden h-[60%] w-[3px] origin-top bg-brand-green md:left-12 md:block lg:left-16"
-			/>
-
-			<main className="relative z-10 mx-auto max-w-[100rem] px-6 py-20 lg:px-16 lg:py-32">
-				{/* Logo — top right corner */}
-				{eventQuery.data?.logo_url && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-						className="absolute top-8 right-6 lg:top-12 lg:right-16"
-					>
-						<Image
-							src={`${API_BASE_URL}${eventQuery.data.logo_url}`}
-							alt={`${eventTitle} logo`}
-							width={160}
-							height={80}
-							className="h-16 w-auto object-contain"
-							unoptimized
-						/>
-					</motion.div>
-				)}
-
-				{/* Header Section */}
-				<div className="mb-16 md:mb-24">
-					{/* Eyebrow */}
-					<motion.p
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 1, ease: SMOOTH_EASE }}
-						className="mb-6 font-medium text-black/60 text-xs uppercase tracking-[0.4em]"
-					>
-						Event Registration
-					</motion.p>
-
-					{/* Main headline */}
-					<motion.h1
-						initial={{ opacity: 0, y: 40 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 1, delay: 0.2, ease: SMOOTH_EASE }}
-						className="font-black text-[clamp(2.5rem,6vw,5rem)] text-black leading-[0.95] tracking-tighter"
-					>
-						REGISTER FOR
-						<br />
-						<span className="text-brand-green">{eventTitle}</span>
-					</motion.h1>
-
-					{/* Description */}
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 1, delay: 0.5, ease: SMOOTH_EASE }}
-						className="mt-8 max-w-3xl"
-					>
-						<div className="mb-6 h-px w-full bg-brand-green" />
-						{eventDate && (
-							<p className="mb-3 font-semibold text-black/70 text-sm uppercase tracking-[0.18em]">
-								Event Date: {eventDate}
-							</p>
-						)}
-						<p className="text-black/70 text-lg leading-relaxed">
-							Pick the registration option that fits you best, then complete
-							your details to secure your spot.
-						</p>
-					</motion.div>
+			<main className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
+				{/* Top Navigation / Logo area */}
+				<div className="flex items-center justify-between mb-12">
+					{eventQuery.data?.logo_url ? (
+						<motion.div
+							initial={{ opacity: 0, x: -20 }}
+							animate={{ opacity: 1, x: 0 }}
+							transition={{ duration: 0.8, ease: SMOOTH_EASE }}
+						>
+							<Image
+								src={`${API_BASE_URL}${eventQuery.data.logo_url}`}
+								alt={`${eventTitle} logo`}
+								width={160}
+								height={80}
+								className="h-12 w-auto object-contain"
+								unoptimized
+							/>
+						</motion.div>
+					) : (
+						<div />
+					)}
 				</div>
 
-				{/* Content */}
-				<div className="relative border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(255,255,255,0.7)_45%,rgba(255,255,255,0.88)_100%)] p-4 md:p-6 lg:p-8">
-					{formsQuery.isLoading ? (
-						<div className="py-20 text-center">
-							<div className="inline-flex items-center gap-3 text-black/60">
-								<div className="h-5 w-5 animate-spin border-2 border-black/20 border-t-brand-green" />
-								<span className="text-sm uppercase tracking-wider">
-									Loading registration options...
+				{/* Hero Section */}
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20">
+					<div className="lg:col-span-7">
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 1, ease: SMOOTH_EASE }}
+						>
+							<span className="inline-block px-4 py-1.5 bg-brand-green text-white font-bold text-xs sm:text-sm uppercase tracking-widest mb-6">
+								{eventDate || "Upcoming Event"}
+							</span>
+							
+							<h1 className="font-black text-4xl sm:text-6xl text-slate-900 leading-[1.1] tracking-tight mb-8">
+								Welcome to
+								<br />
+								<span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
+									{eventTitle}
 								</span>
+							</h1>
+
+							<p className="text-slate-600 text-lg sm:text-xl leading-relaxed max-w-2xl">
+								Please select your preferred registration option below to begin. 
+								Ensure all information provided is accurate to secure your attendance.
+							</p>
+						</motion.div>
+					</div>
+
+					{eventQuery.data?.poster_url && (
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ duration: 1, delay: 0.2, ease: SMOOTH_EASE }}
+							className="lg:col-span-5"
+						>
+							<div className="relative group">
+								<div className="absolute -inset-1 bg-gradient-to-r from-brand-green/20 to-blue-500/20 opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+								<div className="relative overflow-hidden border border-slate-200 bg-white shadow-2xl">
+									<Image
+										src={`${API_BASE_URL}${eventQuery.data.poster_url}`}
+										alt={`${eventTitle} poster`}
+										width={800}
+										height={1000}
+										className="h-auto w-full object-cover transition-transform duration-700 group-hover:scale-105"
+										unoptimized
+									/>
+								</div>
 							</div>
+						</motion.div>
+					)}
+				</div>
+
+				{/* Options Section */}
+				<div className="relative">
+					<div className="flex items-center gap-4 mb-10">
+						<h2 className="font-bold text-slate-900 text-sm uppercase tracking-widest whitespace-nowrap">
+							Registration Options
+						</h2>
+						<div className="h-px w-full bg-slate-200" />
+					</div>
+
+					{formsQuery.isLoading ? (
+						<div className="py-20 flex justify-center">
+							<div className="h-8 w-8 animate-spin rounded-full border-3 border-slate-200 border-t-brand-green" />
 						</div>
 					) : formsQuery.isError ? (
-						<div className="border border-black/20 bg-red-50 p-6 text-red-800 text-sm">
-							Unable to load registration options for this event.
+						<div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
+							<p className="text-red-600 font-medium">Unable to load registration options.</p>
+							<p className="text-red-400 text-sm mt-1">Please refresh the page or contact support.</p>
 						</div>
 					) : formsQuery.data && formsQuery.data.length > 0 ? (
 						<RegistrationOptionCards eventSlug={slug} forms={formsQuery.data} />
 					) : (
-						<div className="border border-black/20 p-10 py-20 text-center text-black/60">
-							<p className="text-lg">
-								No registration forms are available for this event.
+						<div className="rounded-3xl border-2 border-dashed border-slate-200 p-20 text-center bg-white/50">
+							<p className="text-slate-500 text-lg">
+								No registration forms are currently available.
 							</p>
 						</div>
 					)}
 				</div>
 
-				{/* Bottom note */}
+				{/* Footer Area */}
 				<motion.div
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					transition={{ duration: 1, delay: 1 }}
-					className="mt-20 border-black/10 border-t pt-8"
+					transition={{ duration: 1, delay: 0.8 }}
+					className="mt-24 pt-12 border-t border-slate-200 text-center"
 				>
-					<p className="text-center text-black/50 text-sm uppercase tracking-wider">
-						Need help? Contact our support team for assistance
+					<p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+						Event Powered by Eventzflow
 					</p>
 				</motion.div>
 			</main>
-
-			{/* Bottom right accent line */}
-			<motion.div
-				initial={{ scaleY: 0 }}
-				animate={{ scaleY: 1 }}
-				transition={{ duration: 1.5, delay: 0.3, ease: SMOOTH_EASE }}
-				className="absolute right-[10%] bottom-0 hidden h-[30%] w-px origin-bottom bg-black/10 lg:block"
-			/>
 		</section>
 	);
 }

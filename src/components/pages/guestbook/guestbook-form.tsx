@@ -3,7 +3,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Loader2, Send } from "lucide-react";
-import { Great_Vibes } from "next/font/google";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +14,6 @@ import { submitWish } from "@/lib/api/wishes";
 import type { Wish } from "@/lib/api/wishes/response";
 import { API_BASE_URL } from "@/utils/rest-api";
 import { getGuestbookSubmissionFeedback } from "./guestbook-feedback";
-
-const greatVibes = Great_Vibes({
-	subsets: ["latin"],
-	weight: ["400"],
-});
 
 type GuestbookFormProps = {
 	slug: string;
@@ -183,7 +177,10 @@ export function GuestbookForm({ slug, visitorPublicId }: GuestbookFormProps) {
 							Guestbook
 						</p>
 						<h1
-							className={`${greatVibes.className} mb-4 text-5xl text-stone-800 leading-none sm:text-6xl lg:text-7xl`}
+							className="mb-4 text-5xl text-stone-800 leading-none sm:text-6xl lg:text-7xl"
+							style={{
+								fontFamily: '"Brush Script MT", "Lucida Handwriting", cursive',
+							}}
 						>
 							Share Your Wishes
 						</h1>

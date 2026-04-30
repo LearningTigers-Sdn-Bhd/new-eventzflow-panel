@@ -1,9 +1,9 @@
 export function getStatusCopy(status: string) {
   if (status === "paid") {
-    return "Registration confirmed. Your QR ticket has been generated.";
+    return "Registration confirmed. Your QR ticket is ready.";
   }
   if (status === "pending") {
-    return "Registration received. Payment instructions will follow from the organizer.";
+    return "Registration received. Please complete payment to confirm your ticket.";
   }
-  return "Registration submitted. Our team will contact you with next steps.";
+  return "Registration submitted. We will contact you with next steps.";
 }
