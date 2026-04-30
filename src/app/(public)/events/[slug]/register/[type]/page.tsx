@@ -17,14 +17,14 @@ export default async function PublicRegistrationTypePage({
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/5 blur-[100px]" />
       </div>
 
-      <main className="relative z-10 mx-auto max-w-3xl px-6 py-12 lg:px-8 lg:py-20">
+      <main className="relative z-10 mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8 lg:py-20">
         {/* Back button */}
-        <div className="mb-8">
+        <div className="mb-5 sm:mb-8">
           <Link
             href={`/events/${encodeURIComponent(slug)}/register`}
             className="inline-flex items-center gap-2 font-medium text-slate-500 text-sm transition-all hover:text-black group"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 transition-transform group-hover:-translate-x-1">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 transition-transform group-hover:-translate-x-1 sm:h-8 sm:w-8">
               <ArrowLeft className="h-4 w-4" />
             </div>
             Back to registration options
@@ -32,7 +32,7 @@ export default async function PublicRegistrationTypePage({
         </div>
 
         <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-1 shadow-2xl shadow-slate-200/50 backdrop-blur-xl">
-          <div className="rounded-[22px] bg-white px-4 py-10 sm:px-8 md:p-12">
+          <div className="rounded-[22px] bg-white px-3 py-6 sm:px-6 sm:py-8 md:p-12">
             <PublicRegistrationForm
               eventSlug={slug}
               formSlug={type}

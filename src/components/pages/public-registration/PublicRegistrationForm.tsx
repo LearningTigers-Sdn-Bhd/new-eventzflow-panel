@@ -592,14 +592,14 @@ export function PublicRegistrationForm({
 	return (
 		<div className="mx-auto w-full max-w-2xl">
 			{/* Stepper */}
-			<div className="mb-12">
+			<div className="mb-8 sm:mb-12">
 				<div className="relative mx-auto w-full max-w-[500px]">
-					<div className="absolute inset-x-0 top-5 h-[2px] bg-slate-100" />
+					<div className="absolute top-4 right-4 left-4 h-[2px] bg-slate-100 sm:top-5" />
 					<motion.div
-						className="absolute top-5 left-0 h-[2px] bg-brand-green shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+						className="absolute top-4 left-4 h-[2px] bg-brand-green shadow-[0_0_8px_rgba(34,197,94,0.3)] sm:top-5"
 						initial={{ width: 0 }}
 						animate={{
-							width: `calc(100% * ${connectorProgress / 100})`,
+							width: `calc((100% - 2rem) * ${connectorProgress / 100})`,
 						}}
 						transition={{ duration: 0.5, ease: SMOOTH_EASE }}
 					/>
@@ -629,14 +629,14 @@ export function PublicRegistrationForm({
 														: "rgb(241, 245, 249)", // slate-100
 												color: isCompleted || isActive ? "rgb(255, 255, 255)" : "rgb(148, 163, 184)",
 											}}
-											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-xs transition-shadow duration-200 ${
+											className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs transition-shadow duration-200 sm:h-10 sm:w-10 ${
 												isActive ? "shadow-lg shadow-black/10 ring-4 ring-white" : ""
 											}`}
 										>
 											{isCompleted ? (
-												<Check className="h-5 w-5" strokeWidth={3} />
+												<Check className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={3} />
 											) : (
-												<Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+												<Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={isActive ? 2.5 : 2} />
 											)}
 										</motion.div>
 
@@ -645,7 +645,7 @@ export function PublicRegistrationForm({
 												color: isActive || isCompleted ? "rgb(0, 0, 0)" : "rgb(148, 163, 184)",
 												fontWeight: isActive || isCompleted ? 600 : 400,
 											}}
-											className="absolute top-12 whitespace-nowrap text-[11px] uppercase tracking-wider"
+											className="absolute top-10 whitespace-nowrap text-[10px] uppercase tracking-wider sm:top-12 sm:text-[11px]"
 										>
 											{step.label}
 										</motion.p>
@@ -666,10 +666,10 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
+							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
 								Select your ticket
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -677,7 +677,7 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-10 space-y-4">
+						<div className="mt-6 space-y-3 sm:mt-10 sm:space-y-4">
 							{ticketTypes.map((tt) => {
 								const isSelected = selectedTicketTypeId === tt.id;
 								const isUnavailable = !tt.available;
@@ -690,7 +690,7 @@ export function PublicRegistrationForm({
 											setSelectedTicketTypeId(tt.id);
 										}}
 										disabled={isUnavailable}
-										className={`group relative w-full rounded-2xl border-2 p-6 text-left transition-all duration-300 ${
+										className={`group relative w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 sm:p-6 ${
 											isSelected
 												? "border-black bg-black text-white shadow-xl shadow-black/10"
 												: isUnavailable
@@ -701,7 +701,7 @@ export function PublicRegistrationForm({
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
 												<div className="flex items-center gap-2">
-													<h3 className="font-bold text-lg leading-tight">
+													<h3 className="font-bold text-base leading-tight sm:text-lg">
 														{tt.name}
 													</h3>
 													{isUnavailable && (
@@ -728,7 +728,7 @@ export function PublicRegistrationForm({
 												)}
 											</div>
 											<div className="ml-4 text-right">
-												<p className="font-bold text-2xl tracking-tight">
+												<p className="font-bold text-xl tracking-tight sm:text-2xl">
 													{formatTicketPrice(tt.price)}
 												</p>
 												{tt.current_tier && (
@@ -752,11 +752,11 @@ export function PublicRegistrationForm({
 							})}
 						</div>
 
-						<div className="mt-10">
+						<div className="mt-6 sm:mt-10">
 							<Button
 								onClick={goToNextStep}
 								disabled={!canProceedStep1 || !canProceedStep1WithAvailability}
-								className="h-14 w-full rounded-xl bg-black px-8 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30"
+								className="h-12 w-full rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:px-8 disabled:opacity-30"
 							>
 								Continue to details
 								<ArrowRight className="ml-2 h-5 w-5" />
@@ -772,10 +772,10 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
+							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
 								Enter your email
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -783,7 +783,7 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-10 space-y-6">
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
 							<div className="space-y-2">
 								<label htmlFor="registration-email" className="block font-semibold text-slate-700 text-sm">
 									Email Address
@@ -799,7 +799,7 @@ export function PublicRegistrationForm({
 											setEmail(e.target.value);
 											setExistingRegistrationStatus(null);
 										}}
-										className="h-14 rounded-xl border-slate-200 bg-slate-50/50 pl-12 text-lg transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
+										className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pl-12 text-base transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10 sm:h-14 sm:text-lg"
 										autoFocus
 									/>
 								</div>
@@ -878,12 +878,12 @@ export function PublicRegistrationForm({
 							) : null}
 						</div>
 
-						<div className="mt-10 flex flex-col gap-3 sm:flex-row">
+						<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 							{hasMultipleTicketTypes && (
 								<Button
 									onClick={goToPreviousStep}
-									variant="ghost"
-									className="h-14 rounded-xl px-8 font-semibold text-slate-600 hover:bg-slate-50 sm:w-auto"
+									variant="outline"
+									className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 								>
 									<ArrowLeft className="mr-2 h-5 w-5" />
 									Back
@@ -897,7 +897,7 @@ export function PublicRegistrationForm({
 									Boolean(existingRegistrationStatus?.blocked_exhibitor_upgrade) ||
 									Boolean(existingRegistrationStatus?.has_rejected_application)
 								}
-								className="h-14 flex-1 rounded-xl bg-black px-8 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30"
+								className="h-12 flex-1 rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:px-8 disabled:opacity-30"
 							>
 								{isCheckingEmail ? "Verifying..." : "Continue"}
 								<ArrowRight className="ml-2 h-5 w-5" />
@@ -913,11 +913,11 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<form onSubmit={goToConfirmationStep}>
 							<div className="text-center">
-								<h2 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
+								<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
 									Attendee details
 								</h2>
 								<p className="mt-2 text-slate-500">
@@ -925,7 +925,7 @@ export function PublicRegistrationForm({
 								</p>
 							</div>
 
-							<div className="mt-10 space-y-8">
+							<div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
 								{registrationMode === "group" && (
 									<div className="flex items-center gap-3 rounded-2xl bg-blue-50/50 p-4 text-blue-900 border border-blue-100">
 										<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
@@ -938,14 +938,16 @@ export function PublicRegistrationForm({
 									</div>
 								)}
 
-								<div className="space-y-12">
+								<div className="space-y-8 sm:space-y-12">
 									{attendees.map((attendee, index) => (
 										<div key={attendee.row_id} className="relative">
 											<div className="mb-6 flex items-center justify-between">
 												<h3 className="flex items-center gap-2 font-bold text-slate-900 uppercase tracking-widest text-xs">
-													<span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-[10px]">
-														{index + 1}
-													</span>
+													{registrationMode === "group" && (
+														<span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-[10px]">
+															{index + 1}
+														</span>
+													)}
 													Attendee Information
 												</h3>
 												{registrationMode === "group" && attendees.length > minAttendees && (
@@ -961,7 +963,7 @@ export function PublicRegistrationForm({
 												)}
 											</div>
 
-											<div className="grid gap-6 sm:grid-cols-2">
+											<div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
 												<div className="space-y-2 sm:col-span-2">
 													<label
 														htmlFor={`attendee-name-${attendee.row_id}`}
@@ -1032,7 +1034,7 @@ export function PublicRegistrationForm({
 												</div>
 
 												{customLabelEntries.map(([labelKey, labelName]) => (
-													<div key={`${attendee.row_id}-${labelKey}`} className="space-y-2 sm:col-span-2">
+													<div key={`${attendee.row_id}-${labelKey}`} className="space-y-2">
 														<label
 															htmlFor={`attendee-${attendee.row_id}-${labelKey}`}
 															className="block font-semibold text-slate-700 text-sm"
@@ -1077,12 +1079,12 @@ export function PublicRegistrationForm({
 								)}
 							</div>
 
-							<div className="mt-10 flex flex-col gap-3 sm:flex-row">
+							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 								<Button
 									type="button"
 									onClick={goToPreviousStep}
-									variant="ghost"
-									className="h-14 rounded-xl px-8 font-semibold text-slate-600 hover:bg-slate-50 sm:w-auto"
+									variant="outline"
+									className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 								>
 									<ArrowLeft className="mr-2 h-5 w-5" />
 									Back
@@ -1090,7 +1092,7 @@ export function PublicRegistrationForm({
 								<Button
 									type="submit"
 									disabled={!selectedTicketType}
-									className="h-14 flex-1 rounded-xl bg-black px-8 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30"
+									className="h-12 w-full rounded-xl border border-black bg-black px-6 text-base font-bold leading-none text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:flex-1 sm:px-8 disabled:opacity-30"
 								>
 									Confirm Registration
 									<ArrowRight className="ml-2 h-5 w-5" />
@@ -1107,10 +1109,10 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
+							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
 								Review information
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -1118,16 +1120,16 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-10 space-y-6">
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
 							<div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-								<div className="border-b border-slate-50 bg-slate-50/50 px-6 py-4">
+								<div className="border-b border-slate-50 bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4">
 									<h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
 										Registration Summary
 									</h3>
 								</div>
 								
 								<div className="divide-y divide-slate-50">
-									<div className="p-6">
+									<div className="p-4 sm:p-6">
 										<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
 											Selected Ticket
 										</p>
@@ -1141,16 +1143,18 @@ export function PublicRegistrationForm({
 										</div>
 									</div>
 
-									<div className="p-6">
+									<div className="p-4 sm:p-6">
 										<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
 											Contact Email
 										</p>
 										<p className="mt-2 font-medium text-slate-900">{email}</p>
 									</div>
 
-									<div className="p-6">
+									<div className="p-4 sm:p-6">
 										<p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-											Attendees ({attendees.length})
+											{registrationMode === "group"
+												? `Attendees (${attendees.length})`
+												: "Attendee"}
 										</p>
 										<div className="space-y-4">
 											{attendees.map((attendee, index) => (
@@ -1159,9 +1163,11 @@ export function PublicRegistrationForm({
 													className="rounded-xl border border-slate-100 bg-slate-50/30 p-4"
 												>
 													<div className="flex items-center gap-3">
-														<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm font-bold text-slate-500 text-xs">
-															{index + 1}
-														</div>
+														{registrationMode === "group" && (
+															<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm font-bold text-slate-500 text-xs">
+																{index + 1}
+															</div>
+														)}
 														<div>
 															<p className="font-bold text-slate-900 text-sm">
 																{attendee.attendee_name || "-"}
@@ -1198,13 +1204,13 @@ export function PublicRegistrationForm({
 							</div>
 						</div>
 
-						<div className="mt-10 flex flex-col gap-3 sm:flex-row">
+							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 							<Button
 								type="button"
 								onClick={goToPreviousStep}
-								variant="ghost"
+								variant="outline"
 								disabled={isSubmitting}
-								className="h-14 rounded-xl px-8 font-semibold text-slate-600 hover:bg-slate-50 sm:w-auto"
+								className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 							>
 								<ArrowLeft className="mr-2 h-5 w-5" />
 								Back
@@ -1213,7 +1219,7 @@ export function PublicRegistrationForm({
 								type="button"
 								onClick={confirmInformation}
 								disabled={isSubmitting || !selectedTicketType}
-								className="h-14 flex-1 rounded-xl bg-brand-green px-8 font-bold text-white shadow-lg shadow-brand-green/20 transition-all hover:bg-brand-green/90 hover:shadow-xl disabled:opacity-30"
+								className="h-12 w-full rounded-xl border border-brand-green bg-brand-green px-6 text-base font-bold leading-none text-white shadow-lg shadow-brand-green/20 transition-all hover:bg-brand-green/90 hover:shadow-xl sm:h-14 sm:flex-1 sm:px-8 disabled:opacity-30"
 							>
 								{isSubmitting
 									? "Processing..."
@@ -1231,10 +1237,10 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
+							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
 								Secure payment
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -1242,9 +1248,9 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-10 space-y-6">
-							<div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-								<div className="flex items-center justify-between">
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
+							<div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6">
+								<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 									<div className="flex items-center gap-4">
 										<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-green/10">
 											<CreditCard className="h-6 w-6 text-brand-green" />
@@ -1311,7 +1317,7 @@ export function PublicRegistrationForm({
 									isPaymentProcessing ||
 									paymentSuccess
 								}
-								className="h-16 w-full rounded-2xl bg-black px-8 font-bold text-white shadow-xl shadow-black/10 transition-all hover:bg-slate-800 hover:shadow-2xl disabled:opacity-30"
+								className="h-12 w-full rounded-2xl bg-black px-6 font-bold text-white shadow-xl shadow-black/10 transition-all hover:bg-slate-800 hover:shadow-2xl sm:h-16 sm:px-8 disabled:opacity-30"
 							>
 								{isPaymentProcessing
 									? "Initializing..."
@@ -1331,19 +1337,19 @@ export function PublicRegistrationForm({
 						animate={{ opacity: 1, scale: 1 }}
 						exit={{ opacity: 0, scale: 0.95 }}
 						transition={{ duration: 0.5, ease: SMOOTH_EASE }}
-						className="mt-8"
+						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10">
+							<div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-green/10 sm:mb-6 sm:h-20 sm:w-20">
 								<motion.div
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
 									transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
 								>
-									<Check className="h-10 w-10 text-brand-green" strokeWidth={3} />
+									<Check className="h-8 w-8 text-brand-green sm:h-10 sm:w-10" strokeWidth={3} />
 								</motion.div>
 							</div>
-							<h2 className="font-bold text-3xl text-slate-900 tracking-tight">
+							<h2 className="font-bold text-2xl text-slate-900 tracking-tight sm:text-3xl">
 								{isExistingPaidRegistration
 									? "You are already registered"
 									: requiresPayment
@@ -1363,8 +1369,8 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-10 space-y-6">
-							<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-6 text-center">
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
+							<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
 								<p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
 									Registration Reference
 								</p>
