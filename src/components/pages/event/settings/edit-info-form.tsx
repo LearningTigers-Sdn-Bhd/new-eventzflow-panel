@@ -62,6 +62,8 @@ const formSchema = z.object({
 	// photoBoothEnabled: z.boolean(),
 	useEventLeads: z.boolean(),
 	description: z.string(),
+	venueName: z.string(),
+	venueAddress: z.string(),
 	webhookUrl: z
 		.string()
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
@@ -150,6 +152,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			// photoBoothEnabled: false,
 			useEventLeads: false,
 			description: "",
+			venueName: "",
+			venueAddress: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
 			publicRegistrationUrl: "",
@@ -184,6 +188,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_event_leads: value.useEventLeads,
 					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
+					venue_name: value.venueName || "",
+					venue_address: value.venueAddress || "",
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
 					public_registration_url: value.publicRegistrationUrl || "",
@@ -234,6 +240,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
+				form.setFieldValue("venueName", event.venue_name || "");
+				form.setFieldValue("venueAddress", event.venue_address || "");
 				form.setFieldValue("webhookUrl", event.webhook_url || "");
 				form.setFieldValue(
 					"businessMatchingWebhookUrl",
@@ -382,6 +390,48 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											placeholder="Select status"
 											disabled={updateEventMutation.isPending}
 											required
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<form.Field name="venueName">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Venue Name"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Sabah International Convention Centre"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="venueAddress">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Venue Address"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="Kota Kinabalu, Sabah"
+											disabled={updateEventMutation.isPending}
 										/>
 									);
 								}}

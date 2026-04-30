@@ -50,6 +50,28 @@ function formatEventDateRange(
 	return null;
 }
 
+function formatEventTimeRange(
+	startDate: string | null | undefined,
+	endDate: string | null | undefined,
+) {
+	const start = parseEventDate(startDate);
+	const end = parseEventDate(endDate);
+
+	if (start && end) {
+		return `${format(start, "h:mm a")} - ${format(end, "h:mm a")}`;
+	}
+
+	if (start) {
+		return format(start, "h:mm a");
+	}
+
+	if (end) {
+		return format(end, "h:mm a");
+	}
+
+	return null;
+}
+
 export default function EventRegistrationLandingPage({
 	params,
 }: {
@@ -72,6 +94,14 @@ export default function EventRegistrationLandingPage({
 		eventQuery.data?.start_date,
 		eventQuery.data?.end_date,
 	);
+	const eventTime = formatEventTimeRange(
+		eventQuery.data?.start_date,
+		eventQuery.data?.end_date,
+	);
+	const venue = eventQuery.data?.venue_name?.trim() || null;
+	const eventDescription =
+		eventQuery.data?.description?.trim() ||
+		"Please select your preferred registration option below to begin. Ensure all information provided is accurate to secure your attendance.";
 
 	useEffect(() => {
 		document.title = buildPublicRegistrationLandingTitle(
@@ -113,16 +143,12 @@ export default function EventRegistrationLandingPage({
 
 				{/* Hero Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20">
-					<div className="lg:col-span-7">
+					<div className="order-2 lg:order-1 lg:col-span-7">
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 1, ease: SMOOTH_EASE }}
 						>
-							<span className="inline-block px-4 py-1.5 bg-brand-green text-white font-bold text-xs sm:text-sm uppercase tracking-widest mb-6">
-								{eventDate || "Upcoming Event"}
-							</span>
-							
 							<h1 className="font-black text-4xl sm:text-6xl text-slate-900 leading-[1.1] tracking-tight mb-8">
 								Welcome to
 								<br />
@@ -131,9 +157,29 @@ export default function EventRegistrationLandingPage({
 								</span>
 							</h1>
 
-							<p className="text-slate-600 text-lg sm:text-xl leading-relaxed max-w-2xl">
-								Please select your preferred registration option below to begin. 
-								Ensure all information provided is accurate to secure your attendance.
+							<div className="mb-8 space-y-1 text-sm sm:text-base text-slate-700">
+								{eventDate ? (
+									<p>
+										<span className="font-semibold text-slate-900">Date:</span>{" "}
+										{eventDate}
+									</p>
+								) : null}
+								{eventTime ? (
+									<p>
+										<span className="font-semibold text-slate-900">Time:</span>{" "}
+										{eventTime}
+									</p>
+								) : null}
+								{venue ? (
+									<p>
+										<span className="font-semibold text-slate-900">Venue:</span>{" "}
+										{venue}
+									</p>
+								) : null}
+							</div>
+
+							<p className="max-w-2xl whitespace-pre-line text-justify text-lg text-slate-600 leading-relaxed sm:text-xl">
+								{eventDescription}
 							</p>
 						</motion.div>
 					</div>
@@ -143,7 +189,7 @@ export default function EventRegistrationLandingPage({
 							initial={{ opacity: 0, scale: 0.95 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ duration: 1, delay: 0.2, ease: SMOOTH_EASE }}
-							className="lg:col-span-5"
+							className="order-1 lg:order-2 lg:col-span-5"
 						>
 							<div className="relative group">
 								<div className="absolute -inset-1 bg-gradient-to-r from-brand-green/20 to-blue-500/20 opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
@@ -199,7 +245,7 @@ export default function EventRegistrationLandingPage({
 					className="mt-24 pt-12 border-t border-slate-200 text-center"
 				>
 					<p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-						Event Powered by Eventzflow
+						Powered by Eventzflow
 					</p>
 				</motion.div>
 			</main>

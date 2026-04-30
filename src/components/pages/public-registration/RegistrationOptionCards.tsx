@@ -31,11 +31,9 @@ export function RegistrationOptionCards({
             href={`/events/${encodeURIComponent(eventSlug)}/register/${encodeURIComponent(form.slug)}`}
             className="group relative flex flex-col h-full min-h-[300px] bg-white border border-slate-200 rounded-[32px] p-8 transition-all duration-300 hover:border-brand-green hover:shadow-2xl hover:shadow-brand-green/5 hover:-translate-y-1"
           >
-            {/* Header: Label & Arrow */}
+            {/* Header: Arrow */}
             <div className="flex items-start justify-between mb-8">
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors duration-300">
-                Option 0{index + 1}
-              </span>
+              <div />
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition-all duration-300 group-hover:bg-brand-green group-hover:text-white group-hover:rotate-[-45deg]">
                 <ArrowRight className="h-5 w-5" />
               </div>

@@ -42,6 +42,8 @@ export type Event = {
 	wish_wall_setting: WishWallSetting;
 	start_date: string;
 	end_date: string;
+	venue_name: string | null;
+	venue_address: string | null;
 	webhook_url: string | null;
 	business_matching_webhook_url: string | null;
 	public_registration_url: string | null;
