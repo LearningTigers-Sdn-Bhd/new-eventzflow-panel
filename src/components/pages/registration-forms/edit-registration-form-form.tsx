@@ -12,7 +12,15 @@ import { toast } from "sonner";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	type RegistrationForm,
 	updateRegistrationForm,
@@ -75,6 +83,7 @@ export function EditRegistrationFormForm({
 		name: registrationForm.name,
 		slug: registrationForm.slug,
 		description: registrationForm.description || "",
+		status: registrationForm.status.toString(),
 	});
 	const [selectedTicketTypeIds, setSelectedTicketTypeIds] = useState<number[]>(
 		registrationForm.ticketTypes.map((tt) => tt.id),
@@ -139,6 +148,7 @@ export function EditRegistrationFormForm({
 			name: formData.name,
 			slug: formData.slug,
 			description: formData.description || undefined,
+			status: Number.parseInt(formData.status, 10),
 			custom_labels_data: buildCustomLabelsData(customLabels),
 			ticket_type_ids: selectedTicketTypeIds,
 			ticket_type_rules: selectedTicketTypeIds.map((ticketTypeId) => {
@@ -273,7 +283,7 @@ export function EditRegistrationFormForm({
 			<form onSubmit={handleSubmit} className="h-full">
 				<div className="flex h-full flex-col justify-between gap-8">
 					<div className="space-y-6">
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 							<InputLabel
 								label="Name"
 								htmlFor={nameId}
@@ -297,6 +307,27 @@ export function EditRegistrationFormForm({
 								required
 								disabled={updateMutation.isPending}
 							/>
+
+							<Field orientation="vertical">
+								<FieldLabel htmlFor="status">Status</FieldLabel>
+								<Select
+									value={formData.status}
+									onValueChange={(value) => handleChange("status", value)}
+									disabled={updateMutation.isPending}
+								>
+									<SelectTrigger id="status" className="w-full rounded-none">
+										<SelectValue placeholder="Select status" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="0" className="rounded-none">
+											Active
+										</SelectItem>
+										<SelectItem value="1" className="rounded-none">
+											Inactive
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</Field>
 						</div>
 
 						<InputLabel

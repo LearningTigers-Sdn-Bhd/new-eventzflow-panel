@@ -21,7 +21,7 @@ export interface BackendRegistrationForm {
 	slug: string;
 	description: string | null;
 	custom_labels_data: CustomLabelEntry[];
-	status: number;
+	status: number | "active" | "inactive";
 	position: number | null;
 	registration_form_rsvp_setting?: {
 		id: number;

@@ -19,6 +19,13 @@ import type {
 	UpdateRegistrationFormResponse,
 } from "./response";
 
+function normalizeRegistrationFormStatus(
+	status: BackendRegistrationForm["status"],
+): number {
+	if (typeof status === "number") return status;
+	return status === "active" ? 0 : 1;
+}
+
 function transformRegistrationForm(
 	backend: BackendRegistrationForm,
 ): RegistrationForm {
@@ -29,7 +36,7 @@ function transformRegistrationForm(
 		slug: backend.slug,
 		description: backend.description,
 		customLabelsData: backend.custom_labels_data ?? [],
-		status: backend.status,
+		status: normalizeRegistrationFormStatus(backend.status),
 		position: backend.position,
 		rsvpSetting: backend.registration_form_rsvp_setting
 			? {
