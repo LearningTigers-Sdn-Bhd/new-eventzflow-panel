@@ -33,6 +33,7 @@ function transformTicketType(backendType: BackendTicketType): TicketType {
 		status: backendType.status,
 		hidden: backendType.hidden,
 		customFieldsData: backendType.custom_fields_data,
+		validDayIndexes: backendType.valid_day_indexes,
 		createdAt: backendType.created_at,
 		updatedAt: backendType.updated_at,
 	};

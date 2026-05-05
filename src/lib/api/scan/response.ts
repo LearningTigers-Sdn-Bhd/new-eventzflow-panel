@@ -2,6 +2,11 @@
 
 // The type of scanned entity
 export type ScanType = "ticket" | "visitor";
+export type ScanInvalidReason =
+	| "wrong_event"
+	| "outside_event_days"
+	| "wrong_day"
+	| "already_checked_in_today";
 
 // Backend response from PATCH /v1/scan/:public_id/check_in
 export interface BackendScanCheckInResponse {
@@ -34,6 +39,9 @@ export interface BackendScanCheckInResponse {
 	phone?: string;
 	gender?: string;
 	age?: number;
+	invalid_reason?: ScanInvalidReason;
+	current_day_index?: number;
+	allowed_day_indexes?: number[];
 }
 
 // Frontend-friendly response format
@@ -99,11 +107,25 @@ export interface BackendRecentCheckInsResponse {
 // Custom error class for check-in errors that includes the scan type
 export class ScanCheckInError extends Error {
 	type: ScanType | null;
+	invalidReason?: ScanInvalidReason;
+	currentDayIndex?: number;
+	allowedDayIndexes?: number[];
 
-	constructor(message: string, type: ScanType | null = null) {
+	constructor(
+		message: string,
+		type: ScanType | null = null,
+		options?: {
+			invalidReason?: ScanInvalidReason;
+			currentDayIndex?: number;
+			allowedDayIndexes?: number[];
+		},
+	) {
 		super(message);
 		this.name = "ScanCheckInError";
 		this.type = type;
+		this.invalidReason = options?.invalidReason;
+		this.currentDayIndex = options?.currentDayIndex;
+		this.allowedDayIndexes = options?.allowedDayIndexes;
 	}
 }
 

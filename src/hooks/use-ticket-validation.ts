@@ -10,10 +10,11 @@ import {
 	ERROR_MESSAGES,
 	SUCCESS_MESSAGES,
 } from "@/components/pages/scan/constants";
+import { mapScanInvalidReason } from "@/components/pages/scan/status-helpers";
 import type { ScanResult } from "@/components/pages/scan/types";
 import { playBeep } from "@/components/pages/scan/utils";
-import { checkIn, ScanCheckInError } from "@/lib/api/scan";
 import type { ScanType } from "@/lib/api/scan";
+import { checkIn, ScanCheckInError } from "@/lib/api/scan";
 import { useOfflineTicketValidation } from "./use-offline-ticket-validation";
 
 export function useTicketValidation() {
@@ -58,10 +59,7 @@ export function useTicketValidation() {
 	);
 
 	const validateTicket = useCallback(
-		async (
-			scanId: string,
-			scannedIds: Set<string>,
-		): Promise<ScanResult> => {
+		async (scanId: string, scannedIds: Set<string>): Promise<ScanResult> => {
 			const duplicateResult = checkLocalDuplicate(scanId, scannedIds);
 			if (duplicateResult) {
 				toast.error("Duplicate Scan", {
@@ -77,7 +75,8 @@ export function useTicketValidation() {
 						scanId,
 						timestamp: new Date(),
 						status: "error",
-						message: "No internet connection and no offline data. Please sync when online.",
+						message:
+							"No internet connection and no offline data. Please sync when online.",
 						type: "ticket",
 					};
 					toast.error("Offline Mode", {
@@ -104,9 +103,10 @@ export function useTicketValidation() {
 
 				const isTicket = response.type === "ticket";
 				const typeLabel = isTicket ? "Ticket" : "Visitor";
-				const detailLabel = isTicket && response.ticketType
-					? response.ticketType.name
-					: response.type;
+				const detailLabel =
+					isTicket && response.ticketType
+						? response.ticketType.name
+						: response.type;
 
 				const result: ScanResult = {
 					scanId,
@@ -136,8 +136,20 @@ export function useTicketValidation() {
 
 				return result;
 			} catch (error: unknown) {
-				const errorMessage = error instanceof Error ? error.message : "Unknown error";
-				const scanType: ScanType = error instanceof ScanCheckInError && error.type ? error.type : "ticket";
+				const errorMessage =
+					error instanceof Error ? error.message : "Unknown error";
+				const scanType: ScanType =
+					error instanceof ScanCheckInError && error.type
+						? error.type
+						: "ticket";
+				const mappedReasonMessage =
+					error instanceof ScanCheckInError
+						? mapScanInvalidReason(error.invalidReason, {
+								currentDayIndex: error.currentDayIndex,
+								allowedDayIndexes: error.allowedDayIndexes,
+							})
+						: null;
+				const displayMessage = mappedReasonMessage || errorMessage;
 				const typeLabel = scanType === "visitor" ? "Visitor" : "Ticket";
 
 				const isNetworkError =
@@ -156,13 +168,15 @@ export function useTicketValidation() {
 
 				const isDuplicateError =
 					errorMessage.toLowerCase().includes("already") ||
-					errorMessage.toLowerCase().includes("checked in");
+					errorMessage.toLowerCase().includes("checked in") ||
+					(error instanceof ScanCheckInError &&
+						error.invalidReason === "already_checked_in_today");
 
 				const result: ScanResult = {
 					scanId,
 					timestamp: new Date(),
 					status: isDuplicateError ? "duplicate" : "error",
-					message: errorMessage || ERROR_MESSAGES.INVALID_TICKET,
+					message: displayMessage || ERROR_MESSAGES.INVALID_TICKET,
 					type: scanType,
 				};
 
@@ -172,7 +186,7 @@ export function useTicketValidation() {
 					});
 				} else {
 					toast.error("Invalid QR Code", {
-						description: errorMessage || "Record not found. Invalid QR code.",
+						description: displayMessage || "Record not found. Invalid QR code.",
 					});
 				}
 

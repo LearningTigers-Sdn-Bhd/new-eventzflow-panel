@@ -1,11 +1,15 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getEventById } from "@/lib/api/event";
 import { createTicketType } from "@/lib/api/ticket-type";
 
 interface CreateTicketTypeFormProps {
@@ -22,6 +26,7 @@ export function CreateTicketTypeForm({
 	const quantityId = useId();
 	const maxPerOrderId = useId();
 	const statusId = useId();
+	const dayMappingModeId = useId();
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -30,8 +35,20 @@ export function CreateTicketTypeForm({
 		max_per_order: "10",
 		status: "draft" as "draft" | "published" | "archived",
 	});
+	const [dayMappingMode, setDayMappingMode] = useState<"all" | "specific">(
+		"specific",
+	);
+	const [selectedDayIndexes, setSelectedDayIndexes] = useState<string[]>(["1"]);
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const { data: eventDetails } = useQuery({
+		queryKey: ["event", eventId, "details", "ticket-day-mapping"],
+		queryFn: () => getEventById(eventId),
+	});
+	const dayOptions = getEventDayOptions(
+		eventDetails?.start_date ?? null,
+		eventDetails?.end_date ?? null,
+	);
 
 	const queryClient = useQueryClient();
 	const createMutation = useMutation({
@@ -63,18 +80,23 @@ export function CreateTicketTypeForm({
 			newErrors.price = "Price must be a valid positive number";
 		}
 
-		const quantityNum = Number.parseInt(formData.quantity) || 0;
+		const quantityNum = Number.parseInt(formData.quantity, 10) || 0;
 		if (quantityNum < 0) {
 			newErrors.quantity = "Quantity must be a valid positive number";
 		}
 
-		const maxPerOrderNum = Number.parseInt(formData.max_per_order) || 1;
+		const maxPerOrderNum = Number.parseInt(formData.max_per_order, 10) || 1;
 		if (maxPerOrderNum < 1) {
 			newErrors.max_per_order = "Max per order must be at least 1";
 		}
 
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors);
+			return;
+		}
+
+		if (dayMappingMode === "specific" && selectedDayIndexes.length === 0) {
+			setErrors({ valid_day_indexes: "Select at least one valid day" });
 			return;
 		}
 
@@ -85,6 +107,12 @@ export function CreateTicketTypeForm({
 			quantity: quantityNum,
 			max_per_order: maxPerOrderNum,
 			status: formData.status,
+			valid_day_indexes:
+				dayMappingMode === "specific"
+					? selectedDayIndexes
+							.map((dayIndex) => Number.parseInt(dayIndex, 10))
+							.sort((a, b) => a - b)
+					: undefined,
 		});
 	};
 
@@ -182,6 +210,48 @@ export function CreateTicketTypeForm({
 								disabled={createMutation.isPending}
 							/>
 						</div>
+
+						<div className="space-y-3">
+							<Label htmlFor={dayMappingModeId}>Day Access</Label>
+							<RadioGroup
+								id={dayMappingModeId}
+								value={dayMappingMode}
+								onValueChange={(value) =>
+									setDayMappingMode(value as "all" | "specific")
+								}
+								className="gap-2"
+							>
+								<div className="flex items-center gap-2">
+									<RadioGroupItem value="all" id={`${dayMappingModeId}-all`} />
+									<Label htmlFor={`${dayMappingModeId}-all`}>All days</Label>
+								</div>
+								<div className="flex items-center gap-2">
+									<RadioGroupItem
+										value="specific"
+										id={`${dayMappingModeId}-specific`}
+									/>
+									<Label htmlFor={`${dayMappingModeId}-specific`}>
+										Specific days
+									</Label>
+								</div>
+							</RadioGroup>
+							{dayMappingMode === "specific" ? (
+								<div className="space-y-2">
+									<MultiSelectLegacy
+										selected={selectedDayIndexes}
+										onChange={setSelectedDayIndexes}
+										options={dayOptions}
+										placeholder="Select valid days"
+										className="rounded-none"
+									/>
+									{errors.valid_day_indexes ? (
+										<p className="text-destructive text-sm">
+											{errors.valid_day_indexes}
+										</p>
+									) : null}
+								</div>
+							) : null}
+						</div>
 					</div>
 					<div className="flex w-full flex-col gap-2 md:flex-row md:justify-end">
 						<Button
@@ -205,4 +275,27 @@ export function CreateTicketTypeForm({
 			</form>
 		</div>
 	);
+}
+
+function getEventDayOptions(startDate: string | null, endDate: string | null) {
+	if (!startDate || !endDate) return [];
+
+	const start = new Date(startDate);
+	const end = new Date(endDate);
+	const startUtc = Date.UTC(
+		start.getUTCFullYear(),
+		start.getUTCMonth(),
+		start.getUTCDate(),
+	);
+	const endUtc = Date.UTC(
+		end.getUTCFullYear(),
+		end.getUTCMonth(),
+		end.getUTCDate(),
+	);
+	const totalDays = Math.max(1, Math.floor((endUtc - startUtc) / 86400000) + 1);
+
+	return Array.from({ length: totalDays }, (_, i) => {
+		const day = i + 1;
+		return { value: String(day), label: `Day ${day}` };
+	});
 }

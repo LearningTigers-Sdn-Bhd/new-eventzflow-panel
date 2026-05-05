@@ -1,11 +1,12 @@
 // Unified scan API
 export { checkIn, getRecentCheckIns } from "./endpoints";
-export { ScanCheckInError } from "./response";
 export type {
 	BackendRecentCheckIn,
 	BackendRecentCheckInsResponse,
 	BackendScanCheckInResponse,
 	RecentCheckIn,
 	ScanCheckInResponse,
+	ScanInvalidReason,
 	ScanType,
 } from "./response";
+export { ScanCheckInError } from "./response";

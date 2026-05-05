@@ -11,6 +11,7 @@ export interface BackendTicketType {
 	status: "draft" | "published" | "archived";
 	hidden: boolean;
 	custom_fields_data: Record<string, unknown>;
+	valid_day_indexes: number[] | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -28,6 +29,7 @@ export interface TicketType {
 	status: "draft" | "published" | "archived";
 	hidden: boolean;
 	customFieldsData: Record<string, unknown>;
+	validDayIndexes: number[] | null;
 	createdAt: string;
 	updatedAt: string;
 }

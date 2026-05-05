@@ -62,6 +62,29 @@ const columns: ColumnDef<TicketType>[] = [
 		),
 	},
 	{
+		accessorKey: "validDayIndexes",
+		size: 180,
+		header: () => <p className="font-medium">Day Access</p>,
+		cell: ({ row }) => {
+			const validDayIndexes = row.getValue("validDayIndexes") as
+				| number[]
+				| null
+				| undefined;
+			if (!validDayIndexes || validDayIndexes.length === 0) {
+				return <span className="text-muted-foreground">All days</span>;
+			}
+			return (
+				<div className="text-sm">
+					{validDayIndexes
+						.slice()
+						.sort((a, b) => a - b)
+						.map((day) => `Day ${day}`)
+						.join(", ")}
+				</div>
+			);
+		},
+	},
+	{
 		accessorKey: "status",
 		size: 120,
 		filterFn: (row, id, value) => row.getValue(id) === value,

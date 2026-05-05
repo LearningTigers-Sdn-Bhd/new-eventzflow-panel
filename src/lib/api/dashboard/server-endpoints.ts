@@ -19,13 +19,23 @@ import type {
 	RecentScan,
 } from "./response";
 
+type TimeSeriesData = Array<{ period: string; value: number }> | Record<string, number> | null | undefined;
+
+function normalizeTimeSeriesData(data: TimeSeriesData): Array<{ period: string; value: number }> {
+	if (Array.isArray(data)) return data;
+	return Object.entries(data ?? {}).map(([period, value]) => ({
+		period,
+		value: Number(value) || 0,
+	}));
+}
+
 // Time series response type
 type TimeSeriesResponse = {
 	metric: string;
 	group_by: string;
 	start_date: string;
 	end_date: string;
-	data: Array<{ period: string; value: number }>;
+	data: Array<{ period: string; value: number }> | Record<string, number>;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -235,15 +245,15 @@ export async function getEventAnalyticsServer(
 		pendingTickets: unscannedTickets.totalUnscannedTickets,
 		locations: locations.length,
 		recentScans,
-		registrationData: ticketsTimeSeries.data.map((d) => ({
+		registrationData: normalizeTimeSeriesData(ticketsTimeSeries.data).map((d) => ({
 			date: d.period,
 			value: d.value,
 		})),
-		scanData: scansTimeSeries.data.map((d) => ({
+		scanData: normalizeTimeSeriesData(scansTimeSeries.data).map((d) => ({
 			date: d.period,
 			value: d.value,
 		})),
-		revenueData: revenueTimeSeries.data.map((d) => ({
+		revenueData: normalizeTimeSeriesData(revenueTimeSeries.data).map((d) => ({
 			date: d.period,
 			value: centsToDollars(d.value),
 		})),

@@ -11,7 +11,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 // --- Context ---
@@ -185,9 +184,9 @@ const MultiSelectContent = React.forwardRef<
 			align="start"
 			{...props}
 		>
-			<ScrollArea className="max-h-60">
+			<div className="max-h-60 overflow-auto">
 				<div className="space-y-1 p-2">{children}</div>
-			</ScrollArea>
+			</div>
 		</PopoverContent>
 	);
 });

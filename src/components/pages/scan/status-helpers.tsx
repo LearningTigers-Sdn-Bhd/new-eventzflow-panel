@@ -3,31 +3,63 @@
  * Shared utilities for rendering scan status indicators
  */
 
-import { AlertCircle, CheckCircle2, Ticket, UserRound, XCircle } from "lucide-react";
+import {
+	AlertCircle,
+	CheckCircle2,
+	Ticket,
+	UserRound,
+	XCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ScanInvalidReason, ScanType } from "@/lib/api/scan";
 import { cn } from "@/lib/utils";
-import { STATUS_VARIANTS } from "./constants";
+import { SCAN_INVALID_REASON_MESSAGES, STATUS_VARIANTS } from "./constants";
 import type { ScanStatus } from "./types";
-import type { ScanType } from "@/lib/api/scan";
 
 // Type variants for Ticket/Visitor badges
 const TYPE_VARIANTS = {
 	ticket: {
-		badgeBg: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+		badgeBg:
+			"bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
 		text: "text-blue-600",
 		label: "Ticket",
 	},
 	visitor: {
-		badgeBg: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+		badgeBg:
+			"bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
 		text: "text-purple-600",
 		label: "Visitor",
 	},
 } as const;
+
+interface MapInvalidReasonContext {
+	currentDayIndex?: number;
+	allowedDayIndexes?: number[];
+}
+
+export function mapScanInvalidReason(
+	reason?: ScanInvalidReason,
+	context?: MapInvalidReasonContext,
+) {
+	if (!reason) return null;
+
+	if (reason === "wrong_day") {
+		const allowed = context?.allowedDayIndexes ?? [];
+		const currentDay = context?.currentDayIndex;
+
+		if (allowed.length > 0 && typeof currentDay === "number") {
+			const days = allowed.map((day) => `Day ${day}`).join(", ");
+			return `Today is Day ${currentDay}. This ticket is valid for ${days}.`;
+		}
+	}
+
+	return SCAN_INVALID_REASON_MESSAGES[reason];
+}
 
 /**
  * Get status icon component based on scan status
@@ -109,7 +141,11 @@ export function StatusBadge({ status, message, className }: StatusBadgeProps) {
 /**
  * Get type icon component based on scan type
  */
-export function getTypeIcon(type: ScanType, role?: string | null, className?: string) {
+export function getTypeIcon(
+	type: ScanType,
+	role?: string | null,
+	className?: string,
+) {
 	const defaultClassName = "h-4 w-4";
 	const combinedClassName = cn(defaultClassName, className);
 
@@ -117,7 +153,12 @@ export function getTypeIcon(type: ScanType, role?: string | null, className?: st
 	if (role) {
 		return (
 			<UserRound
-				className={cn(combinedClassName, type === 'ticket' ? TYPE_VARIANTS.ticket.text : TYPE_VARIANTS.visitor.text)}
+				className={cn(
+					combinedClassName,
+					type === "ticket"
+						? TYPE_VARIANTS.ticket.text
+						: TYPE_VARIANTS.visitor.text,
+				)}
 			/>
 		);
 	}
@@ -125,9 +166,7 @@ export function getTypeIcon(type: ScanType, role?: string | null, className?: st
 	switch (type) {
 		case "ticket":
 			return (
-				<Ticket
-					className={cn(combinedClassName, TYPE_VARIANTS.ticket.text)}
-				/>
+				<Ticket className={cn(combinedClassName, TYPE_VARIANTS.ticket.text)} />
 			);
 		case "visitor":
 			return (

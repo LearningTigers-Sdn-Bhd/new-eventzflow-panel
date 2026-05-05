@@ -5,6 +5,7 @@ import type {
 	BackendScanCheckInResponse,
 	RecentCheckIn,
 	ScanCheckInResponse,
+	ScanInvalidReason,
 	ScanType,
 } from "./response";
 import { ScanCheckInError } from "./response";
@@ -20,7 +21,10 @@ export async function checkIn(publicId: string): Promise<ScanCheckInResponse> {
 	const url = `v1/scan/${publicId}/check_in`;
 
 	try {
-		const response = await restClient.patch<BackendScanCheckInResponse>(url, {});
+		const response = await restClient.patch<BackendScanCheckInResponse>(
+			url,
+			{},
+		);
 
 		// Normalize the response based on type
 		const isTicket = response.type === "ticket";
@@ -58,12 +62,29 @@ export async function checkIn(publicId: string): Promise<ScanCheckInResponse> {
 	} catch (error) {
 		// Try to extract type from error response (backend sends it for duplicate errors)
 		let scanType: ScanType | null = null;
+		let invalidReason: ScanInvalidReason | undefined;
+		let currentDayIndex: number | undefined;
+		let allowedDayIndexes: number[] | undefined;
 		if (error && typeof error === "object" && "response" in error) {
-			const response = error.response as { data?: { type?: ScanType } };
+			const response = error.response as {
+				data?: {
+					type?: ScanType;
+					invalid_reason?: ScanInvalidReason;
+					current_day_index?: number;
+					allowed_day_indexes?: number[];
+				};
+			};
 			scanType = response?.data?.type ?? null;
+			invalidReason = response?.data?.invalid_reason;
+			currentDayIndex = response?.data?.current_day_index;
+			allowedDayIndexes = response?.data?.allowed_day_indexes;
 		}
 		const message = await extractErrorMessage(error);
-		throw new ScanCheckInError(message, scanType);
+		throw new ScanCheckInError(message, scanType, {
+			invalidReason,
+			currentDayIndex,
+			allowedDayIndexes,
+		});
 	}
 }
 

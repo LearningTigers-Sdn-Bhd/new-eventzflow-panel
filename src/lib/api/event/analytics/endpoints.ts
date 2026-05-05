@@ -25,9 +25,16 @@ import type {
  * Convert time series response to legacy DateCountColumn format
  */
 function toDateCountFormat(data: TimeSeriesResponse["data"]): DateCountColumn[] {
-	return data.map((d) => ({
-		date: d.period,
-		count: d.value,
+	if (Array.isArray(data)) {
+		return data.map((d) => ({
+			date: d.period,
+			count: d.value,
+		}));
+	}
+
+	return Object.entries(data ?? {}).map(([period, value]) => ({
+		date: period,
+		count: Number(value) || 0,
 	}));
 }
 

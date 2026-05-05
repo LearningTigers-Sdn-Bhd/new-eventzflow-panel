@@ -3,6 +3,8 @@
  * Centralized configuration for all magic numbers and hardcoded values
  */
 
+import type { ScanInvalidReason } from "@/lib/api/scan";
+
 // Scanner Configuration
 export const SCANNER_CONFIG = {
 	SCANNER_DIV_ID: "qr-reader",
@@ -79,6 +81,13 @@ export const ERROR_MESSAGES = {
 	NO_DATA_TO_EXPORT: "No data to export",
 	SYNC_DATA_FAILED: "Failed to sync data",
 	CLEAR_DATA_FAILED: "Failed to clear data",
+} as const;
+
+export const SCAN_INVALID_REASON_MESSAGES: Record<ScanInvalidReason, string> = {
+	wrong_event: "This ticket belongs to a different event.",
+	outside_event_days: "This event is not active today.",
+	wrong_day: "This ticket is not valid for today.",
+	already_checked_in_today: "This ticket has already been checked in today.",
 } as const;
 
 // Success Messages

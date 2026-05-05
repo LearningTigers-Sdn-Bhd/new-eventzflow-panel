@@ -41,7 +41,7 @@ export type TimeSeriesResponse = {
 	group_by: string;
 	start_date: string;
 	end_date: string;
-	data: TimeSeriesDataPoint[];
+	data: TimeSeriesDataPoint[] | Record<string, number>;
 };
 
 // Legacy format for backward compatibility with charts
