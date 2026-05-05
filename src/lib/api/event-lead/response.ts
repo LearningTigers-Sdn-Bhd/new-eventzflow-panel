@@ -18,6 +18,7 @@ export interface EventLead {
 		id: number;
 		vendor_id: number;
 		event_id: number;
+		event_name?: string | null;
 	};
 	already_captured?: boolean;
 }
@@ -31,6 +32,8 @@ export interface EventLeadWithDetails {
 	lead_phone: string | null;
 	lead_public_id: string | null;
 	event_vendor_id: number;
+	event_id: number;
+	event_name: string | null;
 	vendor_name: string;
 	notes: string | null;
 	scanned_by_id: number | null;

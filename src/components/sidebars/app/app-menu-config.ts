@@ -103,6 +103,13 @@ export const navigationData = {
 			allowBottomNavigation: true,
 		},
 		{
+			name: "Lead Scan",
+			url: "/lead-scan" as Route,
+			icon: BiQrScan,
+			roleAllowed: [USER_ROLES.VENDOR, USER_ROLES.EXHIBITOR],
+			allowBottomNavigation: true,
+		},
+		{
 			name: "Scans",
 			url: "/scan" as Route,
 			icon: BiQrScan,

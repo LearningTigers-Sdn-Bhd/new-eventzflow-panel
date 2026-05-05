@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	type CreateLeadRequest,
-	type UpdateLeadRequest,
 	createLead,
 	getEventLeads,
+	type UpdateLeadRequest,
 	updateLead,
 } from "@/lib/api/event-lead";
 
@@ -41,8 +41,13 @@ export const useUpdateLead = (eventId: string) => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ leadId, data }: { leadId: number; data: UpdateLeadRequest }) =>
-			updateLead(eventId, leadId, data),
+		mutationFn: ({
+			leadId,
+			data,
+		}: {
+			leadId: number;
+			data: UpdateLeadRequest;
+		}) => updateLead(eventId, leadId, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["event-leads", eventId] });
 		},

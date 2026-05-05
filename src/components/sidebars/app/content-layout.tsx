@@ -89,7 +89,7 @@ export function ContentLayout({
 			</DesktopView>
 
 			<MobileTabletView>
-				<div className="flex h-full w-full flex-col overflow-auto bg-background p-4">
+				<div className="flex w-full flex-col bg-background p-4 pb-24">
 					{children}
 				</div>
 			</MobileTabletView>

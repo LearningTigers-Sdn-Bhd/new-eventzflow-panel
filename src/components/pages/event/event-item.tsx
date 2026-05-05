@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy } from "lucide-react";
+import { useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,38 @@ export function EventItem({ event, onClick }: EventItemProps) {
 	});
 	const { formatDate } = useFormatDate();
 	const isMobile = useIsMobile();
+	const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+	const isTouchScrollingRef = useRef(false);
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		const touch = e.touches[0];
+		touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+		isTouchScrollingRef.current = false;
+	};
+
+	const handleTouchMove = (e: React.TouchEvent) => {
+		if (!touchStartRef.current) return;
+		const touch = e.touches[0];
+		const deltaX = Math.abs(touch.clientX - touchStartRef.current.x);
+		const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+		if (deltaX > 8 || deltaY > 8) {
+			isTouchScrollingRef.current = true;
+		}
+	};
+
+	const handleTouchEnd = () => {
+		// Reset after click phase completes
+		setTimeout(() => {
+			isTouchScrollingRef.current = false;
+			touchStartRef.current = null;
+		}, 0);
+	};
+
+	const handleItemClick = () => {
+		if (isTouchScrollingRef.current) return;
+		onClick?.();
+	};
+
 	const handleCopyId = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		copyToClipboard(event.id.toString());
@@ -42,7 +75,10 @@ export function EventItem({ event, onClick }: EventItemProps) {
 				"h-full w-full rounded-none",
 				onClick && "cursor-pointer transition-colors hover:bg-accent/50",
 			)}
-			onClick={onClick}
+			onClick={onClick ? handleItemClick : undefined}
+			onTouchStart={onClick ? handleTouchStart : undefined}
+			onTouchMove={onClick ? handleTouchMove : undefined}
+			onTouchEnd={onClick ? handleTouchEnd : undefined}
 		>
 			<ItemHeader className="flex flex-col gap-2">
 				<ItemTitle className="min-h-12 w-full justify-between gap-12">
@@ -77,10 +113,7 @@ export function EventItem({ event, onClick }: EventItemProps) {
 							{event.status}
 						</Badge>
 					)}
-					<div
-						className="flex items-center gap-2"
-						onClick={(e) => e.stopPropagation()}
-					>
+					<div className="flex items-center gap-2">
 						<span className="bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
 							ID: {event.id}
 						</span>
