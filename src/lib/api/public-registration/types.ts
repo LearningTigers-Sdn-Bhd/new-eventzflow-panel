@@ -133,3 +133,27 @@ export interface CreatePublicRegistrationResponse {
 	success: boolean;
 	data: CreatedPublicRegistration;
 }
+
+export interface PublicTicketDetails {
+	public_id: string;
+	attendee_name: string;
+	attendee_email: string | null;
+	attendee_phone: string | null;
+	role: string | null;
+	ticket_type: string;
+	price: number;
+	event: {
+		title: string;
+		start_date: string | null;
+		end_date: string | null;
+		venue_name: string | null;
+		logo_url: string | null;
+	};
+	custom_fields_data: Record<string, string>;
+	qr_code_base64: string;
+}
+
+export interface PublicTicketDetailsResponse {
+	success: boolean;
+	data: PublicTicketDetails;
+}

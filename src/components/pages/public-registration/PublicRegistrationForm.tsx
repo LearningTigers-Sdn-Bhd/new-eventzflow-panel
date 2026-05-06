@@ -26,6 +26,8 @@ import {
 } from "@/lib/public-registration/attendee-state";
 import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
 import { buildPublicRegistrationTypeTitle } from "@/lib/public-registration/title";
+import { TicketDownloadButton } from "./TicketDownloadButton";
+import { TicketVisual } from "./TicketVisual";
 
 interface AttendeeFormRow {
 	row_id: string;
@@ -240,6 +242,32 @@ export function PublicRegistrationForm({
 		selectedTicketTypeId !== null && selectedTicketType?.available,
 	);
 	const canProceedStep2 = email.trim().length > 0 && email.includes("@");
+	const duplicateAttendeeEmailIndexes = useMemo(() => {
+		if (registrationMode !== "group" || attendees.length <= 1) {
+			return new Set<number>();
+		}
+
+		const seen = new Map<string, number[]>();
+		const duplicates = new Set<number>();
+		attendees.forEach((attendee, index) => {
+			const attendeeEmail = attendee.attendee_email.trim().toLowerCase();
+			if (!attendeeEmail) return;
+			const indexes = seen.get(attendeeEmail) ?? [];
+			indexes.push(index);
+			seen.set(attendeeEmail, indexes);
+		});
+
+		seen.forEach((indexes) => {
+			if (indexes.length > 1) {
+				indexes.forEach((index) => {
+					duplicates.add(index);
+				});
+			}
+		});
+
+		return duplicates;
+	}, [attendees, registrationMode]);
+	const hasDuplicateAttendeeEmail = duplicateAttendeeEmailIndexes.size > 0;
 	const hasPendingRegistration = Boolean(
 		singleResult ||
 			groupResult ||
@@ -287,12 +315,12 @@ export function PublicRegistrationForm({
 
 	function goToNextStep() {
 		if (currentStep < 5) {
-			// When going to step 3, pre-fill attendee emails with the email from step 2
+			// When going to step 3, lock only the first attendee email to step 2 email.
 			if (currentStep === 2) {
 				setAttendees((current) =>
-					current.map((attendee) => ({
+					current.map((attendee, index) => ({
 						...attendee,
-						attendee_email: attendee.attendee_email || email,
+						attendee_email: index === 0 ? email : attendee.attendee_email,
 					})),
 				);
 			}
@@ -414,6 +442,10 @@ export function PublicRegistrationForm({
 
 	function goToConfirmationStep(event: FormEvent) {
 		event.preventDefault();
+		if (hasDuplicateAttendeeEmail) {
+			toast.error("Each attendee must use a unique email address.");
+			return;
+		}
 		setCurrentStep(4);
 	}
 
@@ -999,6 +1031,8 @@ export function PublicRegistrationForm({
 														type="email"
 														placeholder="email@example.com"
 														value={attendee.attendee_email}
+														disabled={index === 0}
+														readOnly={index === 0}
 														onChange={(e) =>
 															updateAttendee(
 																index,
@@ -1009,6 +1043,11 @@ export function PublicRegistrationForm({
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 														required
 													/>
+														{duplicateAttendeeEmailIndexes.has(index) && (
+															<p className="text-red-500 text-xs">
+																This email is already used by another attendee.
+															</p>
+														)}
 												</div>
 
 												<div className="space-y-2">
@@ -1091,7 +1130,7 @@ export function PublicRegistrationForm({
 								</Button>
 								<Button
 									type="submit"
-									disabled={!selectedTicketType}
+									disabled={!selectedTicketType || hasDuplicateAttendeeEmail}
 									className="h-12 w-full rounded-xl border border-black bg-black px-6 text-base font-bold leading-none text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:flex-1 sm:px-8 disabled:opacity-30"
 								>
 									Confirm Registration
@@ -1369,34 +1408,45 @@ export function PublicRegistrationForm({
 							</p>
 						</div>
 
-						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
-							<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
-								<p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-									Registration Reference
-								</p>
-								<p className="mt-2 font-mono text-lg font-bold text-slate-900">
-									{paymentTicketPublicId ?? finalPublicIds[0]}
-								</p>
-								<p className="mt-6 text-slate-500 text-sm">
-									A confirmation email has been sent to <br />
-									<span className="font-semibold text-slate-900">{email}</span>
-								</p>
-							</div>
+						<div className="mt-8">
+							<div className="space-y-4 sm:space-y-6">
+								<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
+									<p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+										Registration Reference
+									</p>
+									<p className="mt-2 font-mono text-lg font-bold text-slate-900">
+										{paymentTicketPublicId ?? finalPublicIds[0]}
+									</p>
+									<p className="mt-6 text-slate-500 text-sm">
+										A confirmation email has been sent to <br />
+										<span className="font-semibold text-slate-900">{email}</span>
+									</p>
 
-							<div className="flex flex-col gap-3">
-								{isExistingPaidRegistration && (
-									<Button
-										type="button"
-										onClick={registerWithAnotherEmail}
-										variant="outline"
-										className="h-11 rounded-xl border-slate-200 px-4 font-semibold text-slate-700 hover:bg-slate-50"
-									>
-										Register with another email
-									</Button>
-								)}
-								<p className="text-center text-slate-400 text-xs">
-									Need help? Contact the event organizer.
-								</p>
+									{!hasPendingApprovalRegistration && (
+										<div className="mt-8 pt-6 border-t border-slate-100">
+											<TicketDownloadButton 
+												eventSlug={eventSlug} 
+												publicIds={finalPublicIds.length > 0 ? finalPublicIds : (paymentTicketPublicId ? [paymentTicketPublicId] : [])} 
+											/>
+										</div>
+									)}
+								</div>
+
+								<div className="flex flex-col gap-3">
+									{isExistingPaidRegistration && (
+										<Button
+											type="button"
+											onClick={registerWithAnotherEmail}
+											variant="outline"
+											className="h-11 rounded-xl border-slate-200 px-4 font-semibold text-slate-700 hover:bg-slate-50"
+										>
+											Register with another email
+										</Button>
+									)}
+									<p className="text-center text-slate-400 text-xs">
+										Need help? Contact the event organizer.
+									</p>
+								</div>
 							</div>
 						</div>
 					</motion.div>
