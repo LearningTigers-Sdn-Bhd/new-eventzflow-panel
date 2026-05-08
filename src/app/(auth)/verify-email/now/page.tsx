@@ -188,6 +188,9 @@ export default function VerifyEmailPage() {
 													: "Resend code"}
 										</button>
 									</div>
+									<div className="mt-4 w-full rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 text-center text-sm">
+										Can’t find the email? It may be in your spam or junk mail.
+									</div>
 								</FieldSet>
 							</FieldGroup>
 						)}
