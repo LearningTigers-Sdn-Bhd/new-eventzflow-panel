@@ -9,7 +9,8 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { getApiKeys } from "@/lib/api/api-keys";
 
 export default function ApiPage() {
-	const { isInitialized } = useAuth();
+	const { user, isInitialized } = useAuth();
+	const isOrganizer = user?.role === "organizer";
 
 	const {
 		data: apiKeys,
@@ -18,8 +19,17 @@ export default function ApiPage() {
 	} = useQuery({
 		queryKey: ["api-keys"],
 		queryFn: getApiKeys,
-		enabled: isInitialized, // Only fetch when store is hydrated
+		enabled: isInitialized && !isOrganizer, // Only fetch when store is hydrated and user can access
 	});
+
+	if (isOrganizer) {
+		return (
+			<ErrorState
+				title="Access denied"
+				description="You don't have permission to access API keys."
+			/>
+		);
+	}
 
 	return (
 		<div className="space-y-6 p-0">

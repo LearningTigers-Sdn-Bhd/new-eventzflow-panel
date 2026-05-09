@@ -179,7 +179,7 @@ export const navigationData = {
 			name: "API Keys",
 			url: "/api" as Route,
 			icon: Key,
-			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
+			roleAllowed: [USER_ROLES.ORG_OWNER],
 			allowBottomNavigation: false,
 		},
 		{
