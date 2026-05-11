@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from "framer-motion";
 import { Calendar, ChevronDown, Clock, MapPin, Scan } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -145,14 +146,14 @@ function EventCheckInContent() {
 				<div className="relative z-10 mx-auto w-full max-w-lg lg:mx-0">
 					{/* Logo Area */}
 					<div className="mb-6 flex items-center gap-3 sm:mb-6 lg:mb-8 lg:gap-4">
-						<span
-							className="font-bold text-2xl leading-tight sm:text-xl lg:text-2xl"
-							style={{ fontFamily: "Times New Roman, serif" }}
-						>
-							<span style={{ color: "#23c460" }}>Event</span>
-							<span style={{ color: "#2766ec" }}>z</span>
-							<span style={{ color: "#23c460" }}>Flow</span>
-						</span>
+						<Image
+							src="/logo/Logo.png"
+							alt="EventzFlow logo"
+							width={907}
+							height={73}
+							priority
+							className="h-auto w-[165px] sm:w-[175px] lg:w-[210px]"
+						/>
 					</div>
 
 					{/* Title Area */}
