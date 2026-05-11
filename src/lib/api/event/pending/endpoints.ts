@@ -103,15 +103,10 @@ export async function getPendingTickets(
 		);
 
 		// Filter tickets:
-		// 1. Include all tickets where payment_status is NOT paid (0, 2, 3 or "pending", "failed", "refunded_payment")
-		// 2. Include paid tickets (1 or "paid") ONLY if transaction_id is NOT NULL
+		// Pending Tickets should only show non-paid payment states.
 		const pendingTickets = response.filter((ticket) => {
 			// Handle both number and string payment status
 			if (typeof ticket.payment_status === "number") {
-				// If paid (1), only include if transaction_id exists
-				if (ticket.payment_status === 1) {
-					return ticket.transaction_id != null && ticket.transaction_id !== "";
-				}
 				// Include pending (0), failed (2), refunded_payment (3)
 				return (
 					ticket.payment_status === 0 ||
@@ -120,9 +115,6 @@ export async function getPendingTickets(
 				);
 			}
 			// Handle string payment status
-			if (ticket.payment_status === "paid") {
-				return ticket.transaction_id != null && ticket.transaction_id !== "";
-			}
 			return (
 				ticket.payment_status === "pending" ||
 				ticket.payment_status === "failed" ||
