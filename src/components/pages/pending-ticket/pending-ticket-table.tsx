@@ -25,6 +25,7 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import PendingTicketForm from "./page-action/create-pending-ticket-form";
@@ -169,29 +170,33 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 						/>
 					</DesktopView>
 					<MobileView>
-						<div className="space-y-2">
+						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
 								table
 									.getRowModel()
 									.rows.map((row) => (
-										<PendingTicketItem
-											key={row.id}
-											ticket={row.original as PendingTicket}
-											labelsData={mergedLabelsData}
-										/>
+										<React.Fragment key={row.id}>
+											<PendingTicketItem
+												ticket={row.original as PendingTicket}
+												labelsData={mergedLabelsData}
+											/>
+											<ItemSeparator className="opacity-50" />
+										</React.Fragment>
 									))
 							) : (
-								<EmptyState
-									title="No pending tickets found"
-									description="Create your first pending ticket to get started"
-									icon={<Calendar />}
-									height="h-auto"
-									action={
-										<Button onClick={openPendingTicketCreate}>
-											Create Pending Ticket
-										</Button>
-									}
-								/>
+								<div className="p-4">
+									<EmptyState
+										title="No pending tickets found"
+										description="Create your first pending ticket to get started"
+										icon={<Calendar />}
+										height="h-auto"
+										action={
+											<Button onClick={openPendingTicketCreate}>
+												Create Pending Ticket
+											</Button>
+										}
+									/>
+								</div>
 							)}
 						</div>
 					</MobileView>

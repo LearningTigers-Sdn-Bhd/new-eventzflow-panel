@@ -42,17 +42,17 @@ interface TicketActionsMenuProps {
 	deletedAt?: string | null;
 }
 
-export function TicketActionsMenu({
-	ticket,
-	deletedAt,
-}: TicketActionsMenuProps) {
+interface UseTicketActionsProps {
+	ticket: BaseTicket;
+	eventId?: string;
+}
+
+export function useTicketActions({ ticket, eventId: eventIdProp }: UseTicketActionsProps) {
 	const params = useParams();
-	const eventId = params.event_id as string;
+	const eventId = eventIdProp || (params.event_id as string);
 	const { openDialog, closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
-	const { user } = useAuth();
 	const queryClient = useQueryClient();
-	const isArchived = !!deletedAt;
 
 	const openEditModal = () => {
 		openDialog({
@@ -107,11 +107,6 @@ export function TicketActionsMenu({
 			props: { ticket },
 		});
 	};
-
-	// Check if unscan button should be shown
-	// Only for org_owner and when ticket status is "scanned"
-	const showUnscanButton =
-		user?.role === "org_owner" && ticket.status === "scanned";
 
 	const archiveTicketMutation = useMutation({
 		mutationFn: () => archiveTicket(eventId, ticket.publicId),
@@ -205,6 +200,39 @@ export function TicketActionsMenu({
 			onCancel: closeDialog,
 		});
 	};
+
+	return {
+		openEditModal,
+		openViewModal,
+		openQRModal,
+		openUnscanModal,
+		handleArchiveClick,
+		handleDeleteClick,
+		handleRestoreClick,
+	};
+}
+
+export function TicketActionsMenu({
+	ticket,
+	deletedAt,
+}: TicketActionsMenuProps) {
+	const { user } = useAuth();
+	const isArchived = !!deletedAt;
+
+	const {
+		openEditModal,
+		openViewModal,
+		openQRModal,
+		openUnscanModal,
+		handleArchiveClick,
+		handleDeleteClick,
+		handleRestoreClick,
+	} = useTicketActions({ ticket });
+
+	// Check if unscan button should be shown
+	// Only for org_owner and when ticket status is "scanned"
+	const showUnscanButton =
+		user?.role === "org_owner" && ticket.status === "scanned";
 
 	// Determine which actions to show based on role and archive status
 	const showArchive =

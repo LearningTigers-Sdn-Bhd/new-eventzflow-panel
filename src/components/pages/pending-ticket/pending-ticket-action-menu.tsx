@@ -28,12 +28,15 @@ interface PendingTicketActionsMenuProps {
 	ticket: PendingTicket;
 }
 
-export function PendingTicketActionsMenu({
-	ticket,
-}: PendingTicketActionsMenuProps) {
-	const { openDialog } = useDialog();
+interface UsePendingTicketActionsProps {
+	ticket: PendingTicket;
+	eventId?: string;
+}
+
+export function usePendingTicketActions({ ticket, eventId: eventIdProp }: UsePendingTicketActionsProps) {
 	const params = useParams();
-	const eventId = params.event_id as string;
+	const eventId = eventIdProp || (params.event_id as string);
+	const { openDialog } = useDialog();
 	const queryClient = useQueryClient();
 
 	const approveMutation = useMutation({
@@ -104,6 +107,26 @@ export function PendingTicketActionsMenu({
 			props: { ticket },
 		});
 	};
+
+	return {
+		approveMutation,
+		resendMutation,
+		openEditModal,
+		openViewModal,
+		openRejectModal,
+	};
+}
+
+export function PendingTicketActionsMenu({
+	ticket,
+}: PendingTicketActionsMenuProps) {
+	const {
+		approveMutation,
+		resendMutation,
+		openEditModal,
+		openViewModal,
+		openRejectModal,
+	} = usePendingTicketActions({ ticket });
 
 	const canReview =
 		(ticket.ticketApplication?.reviewStatus || "pending_review") ===

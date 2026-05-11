@@ -24,6 +24,7 @@ import {
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
+import { ItemSeparator } from "@/components/ui/item";
 import { getEventById } from "@/lib/api/event";
 import type { Visitor } from "@/lib/api/visitor";
 import { VisitorItem } from "./event-visitor-item";
@@ -131,24 +132,28 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 						/>
 					</DesktopView>
 					<MobileView>
-						<div className="grid grid-cols-1 gap-4">
+						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
 								table
 									.getRowModel()
 									.rows.map((row) => (
-										<VisitorItem
-											key={row.id}
-											visitor={row.original as Visitor}
-											labelsData={visitorLabelsData}
-										/>
+										<React.Fragment key={row.id}>
+											<VisitorItem
+												visitor={row.original as Visitor}
+												labelsData={visitorLabelsData}
+											/>
+											<ItemSeparator className="opacity-50" />
+										</React.Fragment>
 									))
 							) : (
-								<EmptyState
-									title="No visitors found"
-									description="Add your first visitor to get started"
-									icon={<Users />}
-									height="h-auto"
-								/>
+								<div className="p-4">
+									<EmptyState
+										title="No visitors found"
+										description="Add your first visitor to get started"
+										icon={<Users />}
+										height="h-auto"
+									/>
+								</div>
 							)}
 						</div>
 					</MobileView>

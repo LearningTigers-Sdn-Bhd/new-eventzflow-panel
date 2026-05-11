@@ -25,6 +25,7 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { TicketItem } from "./event-ticket-item";
@@ -164,25 +165,29 @@ export function DataTable<TData>({
 						/>
 					</DesktopView>
 					<MobileView>
-						<div className="space-y-2">
+						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
 								table
 									.getRowModel()
 									.rows.map((row) => (
-										<TicketItem
-											key={row.id}
-											ticket={row.original as BaseTicket}
-											labelsData={mergedLabelsData}
-										/>
+										<React.Fragment key={row.id}>
+											<TicketItem
+												ticket={row.original as BaseTicket}
+												labelsData={mergedLabelsData}
+											/>
+											<ItemSeparator className="opacity-50" />
+										</React.Fragment>
 									))
 							) : (
-								<EmptyState
-									title="No tickets found"
-									description="Create your first ticket to get started"
-									icon={<Calendar />}
-									height="h-auto"
-									action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
-								/>
+								<div className="p-4">
+									<EmptyState
+										title="No tickets found"
+										description="Create your first ticket to get started"
+										icon={<Calendar />}
+										height="h-auto"
+										action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
+									/>
+								</div>
 							)}
 						</div>
 					</MobileView>
