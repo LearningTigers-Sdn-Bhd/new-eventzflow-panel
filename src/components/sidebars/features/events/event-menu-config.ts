@@ -110,6 +110,7 @@ const visible = {
 		e?.use_exhibitor_kit === true,
 	hasSeatTicketing: (_p: Permissions, e?: Event) =>
 		e?.use_seat_ticketing === true,
+	hasVouchers: (_p: Permissions, e?: Event) => e?.use_voucher === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
 
 	// Special access

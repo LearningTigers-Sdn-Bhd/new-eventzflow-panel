@@ -54,6 +54,7 @@ const formSchema = z
 		enableExhibitorManagement: z.boolean(),
 		allowPrintingServices: z.boolean(),
 		useBusinessMatching: z.boolean(),
+		useVoucher: z.boolean(),
 		useSponsorship: z.boolean(),
 		useEventLeads: z.boolean(),
 		multipleScans: z.boolean(),
@@ -136,6 +137,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			enableExhibitorManagement: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			useVoucher: true,
 			useSponsorship: false,
 			useEventLeads: false,
 			multipleScans: false,
@@ -165,6 +167,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				allow_contractor_printing_services:
 					value.allowPrintingServices ?? false,
 				use_business_matching: value.useBusinessMatching ?? false,
+				use_voucher: value.useVoucher ?? true,
 				use_sponsorship: value.useSponsorship ?? false,
 				use_event_leads: value.useEventLeads ?? false,
 				status: value.status ?? "draft",
@@ -688,6 +691,24 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 										);
 									}}
 								</form.Field>
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useVoucher">
+										{(field) => {
+											return (
+												<SwitchCardInput
+													label="Vouchers"
+													description="Enable voucher creation, redemption, and analytics for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={createEventMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
+								)}
 								{canManageAdvancedEventOptions && (
 									<form.Field name="useEventLeads">
 										{(field) => {

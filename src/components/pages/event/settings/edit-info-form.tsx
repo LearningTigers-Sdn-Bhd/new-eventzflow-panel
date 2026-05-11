@@ -58,6 +58,7 @@ const formSchema = z.object({
 	enableExhibitorManagement: z.boolean(),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
+	useVoucher: z.boolean(),
 	useSponsorship: z.boolean(),
 	// photoBoothEnabled: z.boolean(),
 	useEventLeads: z.boolean(),
@@ -148,6 +149,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			enableExhibitorManagement: false,
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			useVoucher: true,
 			useSponsorship: false,
 			// photoBoothEnabled: false,
 			useEventLeads: false,
@@ -184,6 +186,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					enable_exhibitor_management: value.enableExhibitorManagement,
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
+					use_voucher: value.useVoucher,
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
 					// photo_booth_enabled: value.photoBoothEnabled,
@@ -236,6 +239,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					"useBusinessMatching",
 					event.use_business_matching ?? false,
 				);
+				form.setFieldValue("useVoucher", event.use_voucher ?? true);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
@@ -838,6 +842,22 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										/>
 									)}
 								</form.Field>
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useVoucher">
+										{(field) => (
+											<SwitchCardInput
+												label="Vouchers"
+												description="Enable voucher creation, redemption, and analytics for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
 								{canManageAdvancedEventOptions && (
 									<form.Field name="useEventLeads">
 										{(field) => (

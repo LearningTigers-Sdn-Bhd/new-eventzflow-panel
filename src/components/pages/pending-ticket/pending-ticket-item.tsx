@@ -39,7 +39,8 @@ function getInitials(name: string) {
 export function PendingTicketItem({
 	ticket,
 }: PendingTicketItemProps) {
-	const isPaid = ticket.paymentStatus === "paid" || ticket.paymentStatus === "approved";
+	const isPaid =
+		ticket.paymentStatus === "paid" || ticket.paymentStatus === "completed";
 	const { openViewModal } = usePendingTicketActions({ ticket });
 
 	return (

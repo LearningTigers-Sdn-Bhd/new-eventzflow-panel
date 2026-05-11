@@ -34,6 +34,7 @@ export type Event = {
 	enable_exhibitor_management: boolean;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
+	use_voucher: boolean;
 	use_sponsorship: boolean;
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;

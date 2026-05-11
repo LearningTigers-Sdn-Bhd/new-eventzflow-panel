@@ -14,6 +14,7 @@ import {
 	YAxis,
 } from "recharts";
 import { StatsCard } from "@/components/admin-ui/analytic";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import {
 	ExportPdfButton,
 	prepareVoucherReportData,
@@ -91,6 +92,7 @@ export default function VoucherAnalyticsPage({
 			}),
 		enabled:
 			!Number.isNaN(eventId) &&
+			event?.use_voucher === true &&
 			(!permissions.isEventVendor || !!currentUserVendorId) &&
 			!!event,
 	});
@@ -148,6 +150,15 @@ export default function VoucherAnalyticsPage({
 			<div className="flex h-64 items-center justify-center">
 				<p className="text-muted-foreground">Invalid event ID</p>
 			</div>
+		);
+	}
+
+	if (!eventLoading && event?.use_voucher !== true) {
+		return (
+			<FeatureLockedState
+				isEventVendor={permissions.isEventVendor}
+				featureName="Vouchers"
+			/>
 		);
 	}
 

@@ -50,10 +50,15 @@ export default function EventDetailsPage({
 			},
 			{
 				queryKey: ["voucher-analytics", event_id],
-				queryFn: () =>
-					getVoucherAnalytics({
+				queryFn: async () => {
+					const eventDetails = await getEventById(event_id);
+					if (eventDetails.use_voucher !== true) {
+						return null;
+					}
+					return getVoucherAnalytics({
 						event_id: Number.parseInt(event_id, 10),
-					}),
+					});
+				},
 				enabled: shouldFetchAnalytics,
 			},
 		],
@@ -124,7 +129,7 @@ export default function EventDetailsPage({
 					event={event}
 					ticketAnalytics={analytics as EventAnalyticsType | undefined}
 					mallData={mallData}
-					voucherAnalytics={voucherAnalytics}
+					voucherAnalytics={voucherAnalytics ?? undefined}
 				/>
 			)}
 		</div>

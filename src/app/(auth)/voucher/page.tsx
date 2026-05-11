@@ -4,6 +4,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { VendorVouchersPageButton } from "@/components/pages/vendor-vouchers/page-action/button";
 import { VendorVoucherTable } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table";
 import type { VendorVoucher } from "@/components/pages/vendor-vouchers/table/vendor-voucher-table-columns";
@@ -42,6 +43,10 @@ export default function VendorVouchersPage() {
 
 	const isLoading = isLoadingVouchers || isLoadingEvents;
 	const error = vouchersError;
+	const hasVoucherEnabledEvent = useMemo(
+		() => (events ?? []).some((event) => event.use_voucher === true),
+		[events],
+	);
 
 	// Map event names to vouchers
 	const vouchersWithEvent: VendorVoucher[] = useMemo(() => {
@@ -77,6 +82,8 @@ export default function VendorVouchersPage() {
 					title="Loading vouchers..."
 					description="Please wait while we fetch your vouchers..."
 				/>
+			) : !hasVoucherEnabledEvent ? (
+				<FeatureLockedState isVendor featureName="Vouchers" />
 			) : error ? (
 				<ErrorState
 					title="Failed to load vouchers"
