@@ -52,11 +52,11 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 	return (
 		<Item
 			variant="default"
-			className="h-auto w-full flex-col items-stretch border-none px-4 py-4 transition-colors hover:bg-muted/30"
+			className="h-auto w-full flex-col items-stretch border-none px-3 py-3 transition-colors hover:bg-muted/30"
 		>
-			<div className="flex w-full items-start">
-				<ItemMedia variant="image" className="mt-0.5 size-10 shrink-0">
-					<Avatar className="size-10 rounded-none border shadow-sm">
+			<div className="flex w-full items-start gap-2">
+				<ItemMedia variant="image" className="mt-0.5 size-9 shrink-0">
+					<Avatar className="size-9 rounded-none border shadow-sm">
 						<AvatarFallback
 							className={cn(
 								"rounded-none font-bold text-xs",
@@ -69,45 +69,53 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 						</AvatarFallback>
 					</Avatar>
 				</ItemMedia>
-				<ItemContent className="ml-3 flex-1 min-w-0">
-					<ItemTitle
-						className="cursor-pointer text-wrap break-words font-bold text-base leading-tight transition-colors hover:text-primary"
-						onClick={openViewModal}
-					>
-						{visitor.full_name}
-					</ItemTitle>
-					<ItemDescription className="mt-2 flex items-center gap-1.5">
-						<User className="size-3.5 shrink-0 text-muted-foreground/70" />
-						<span className="truncate font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
-							{visitor.public_id}
-						</span>
+				<ItemContent className="ml-2.5 min-w-0 flex-1">
+					<div className="flex items-start justify-between gap-2">
+						<div className="min-w-0 flex-1">
+							<ItemTitle
+								className="line-clamp-2 cursor-pointer break-words font-bold text-[15px] leading-tight transition-colors hover:text-primary"
+								onClick={openViewModal}
+							>
+								{visitor.full_name}
+							</ItemTitle>
+						</div>
+						<div className="shrink-0 self-start pt-0.5">
+							{isCheckedIn ? (
+								<Badge
+									variant="outline"
+									className="h-6 gap-1 rounded-none border-green-200 bg-green-50 px-2 font-bold text-[10px] text-green-700 uppercase"
+								>
+									<CheckCircle2 className="size-3" />
+									Checked In
+								</Badge>
+							) : (
+								<Badge
+									variant="outline"
+									className="h-6 gap-1 rounded-none border-gray-200 bg-gray-50 px-2 font-bold text-[10px] text-gray-500 uppercase"
+								>
+									<Clock className="size-3" />
+									Not Scanned
+								</Badge>
+							)}
+						</div>
+					</div>
+					<ItemDescription className="mt-1.5 flex flex-col gap-1">
+						<div className="min-w-0 flex items-start gap-1.5">
+							<User className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" />
+							<span
+								className="block break-words font-semibold text-[11px] text-muted-foreground uppercase tracking-wider"
+								title={visitor.public_id}
+							>
+								{visitor.public_id}
+							</span>
+						</div>
+						<div className="flex justify-end">
+							<ItemActions className="shrink-0">
+								<VisitorActionsMenu visitor={visitor} />
+							</ItemActions>
+						</div>
 					</ItemDescription>
 				</ItemContent>
-			</div>
-
-			<div className="mt-4 flex w-full items-center justify-between gap-2">
-				<div className="flex-1">
-					{isCheckedIn ? (
-						<Badge
-							variant="outline"
-							className="h-7 gap-1.5 rounded-none border-green-200 bg-green-50 px-2.5 font-bold text-[10px] text-green-700 uppercase"
-						>
-							<CheckCircle2 className="size-3.5" />
-							Checked In
-						</Badge>
-					) : (
-						<Badge
-							variant="outline"
-							className="h-7 gap-1.5 rounded-none border-gray-200 bg-gray-50 px-2.5 font-bold text-[10px] text-gray-500 uppercase"
-						>
-							<Clock className="size-3.5" />
-							Pending
-						</Badge>
-					)}
-				</div>
-				<ItemActions className="shrink-0">
-					<VisitorActionsMenu visitor={visitor} />
-				</ItemActions>
 			</div>
 		</Item>
 	);

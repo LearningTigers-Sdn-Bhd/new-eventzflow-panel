@@ -34,7 +34,7 @@ type FeatureLockedStateProps = FeatureLockedAudience & {
 
 export function FeatureLockedState({
 	action,
-	featureName,
+	featureName: _featureName,
 	...audience
 }: FeatureLockedStateProps) {
 	const message = getFeatureLockedMessage(audience);
@@ -43,11 +43,7 @@ export function FeatureLockedState({
 		<EmptyState
 			icon={<Lock className="h-10 w-10" />}
 			title={message.title}
-			description={
-				featureName
-					? `${featureName} is currently locked. ${message.description}`
-					: message.description
-			}
+			description={message.description}
 			action={action}
 			height="h-[50vh]"
 		/>

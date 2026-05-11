@@ -247,7 +247,7 @@ export function TicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+				className="h-8 w-8 rounded-none p-0 text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
 				onClick={openEditModal}
 				title="Edit Ticket"
 			>
@@ -256,7 +256,7 @@ export function TicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
+				className="h-8 w-8 rounded-none p-0 text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 				onClick={openViewModal}
 				title="View Ticket"
 			>
@@ -265,7 +265,7 @@ export function TicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
+				className="h-8 w-8 rounded-none p-0 text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
 				onClick={openQRModal}
 				title="Generate QR Code"
 			>
@@ -275,7 +275,7 @@ export function TicketActionsMenu({
 				<Button
 					size="icon-sm"
 					variant="outline"
-					className="rounded-none text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
+					className="h-8 w-8 rounded-none p-0 text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
 					onClick={openUnscanModal}
 					title="Unscan Ticket"
 				>
@@ -288,7 +288,7 @@ export function TicketActionsMenu({
 						<Button
 							size="icon-sm"
 							variant="outline"
-							className="rounded-none"
+							className="h-8 w-8 rounded-none p-0"
 							title="More Actions"
 						>
 							<MoreHorizontal className="size-4" />
