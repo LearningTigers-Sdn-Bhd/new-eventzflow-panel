@@ -29,6 +29,8 @@ import {
 import { getPlans, createPlan, deletePlan } from "@/lib/api/plan";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
+import { getEventById } from "@/lib/api/event";
 
 interface PageProps {
   params: Promise<{ event_id: string }>;
@@ -37,10 +39,15 @@ interface PageProps {
 export default function PlansPage({ params }: PageProps) {
   const { event_id } = use(params);
   const queryClient = useQueryClient();
+  const { data: event, isLoading: isLoadingEvent } = useQuery({
+    queryKey: ["event", event_id],
+    queryFn: () => getEventById(event_id),
+  });
 
   const { data: plans, isLoading, error, refetch } = useQuery({
     queryKey: ["plans", event_id],
     queryFn: () => getPlans(event_id),
+    enabled: event?.use_seat_ticketing === true,
   });
 
   const createMutation = useMutation({
@@ -71,8 +78,12 @@ export default function PlansPage({ params }: PageProps) {
     }
   });
 
-  if (isLoading) {
+  if (isLoading || isLoadingEvent) {
     return <PlansSkeleton />;
+  }
+
+  if (event?.use_seat_ticketing !== true) {
+    return <FeatureLockedState featureName="Seat Ticketing System" />;
   }
 
   if (error) {
