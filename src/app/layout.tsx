@@ -18,6 +18,12 @@ const getBaseUrl = () => {
 
 export const metadata: Metadata = {
 	metadataBase: new URL(getBaseUrl()),
+	icons: {
+		icon: "/favicon/kaamatan-logo.png",
+		shortcut: "/favicon/kaamatan-logo.png",
+		apple: "/favicon/kaamatan-logo.png",
+	},
+	manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
