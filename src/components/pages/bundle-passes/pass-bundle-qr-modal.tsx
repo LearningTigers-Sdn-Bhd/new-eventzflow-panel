@@ -31,15 +31,24 @@ export default function PassBundleQRModal({ bundle }: PassBundleQRModalProps) {
 		img.onload = () => {
 			const qrSize = 420;
 			const padding = 46;
-			const totalSize = qrSize + padding * 2;
+			const labelHeight = 60;
+			const canvasWidth = qrSize + padding * 2;
+			const canvasHeight = qrSize + padding * 2 + labelHeight;
 
-			canvas.width = totalSize;
-			canvas.height = totalSize;
+			canvas.width = canvasWidth;
+			canvas.height = canvasHeight;
 
 			if (ctx) {
 				ctx.fillStyle = "white";
-				ctx.fillRect(0, 0, totalSize, totalSize);
-				ctx.drawImage(img, padding, padding, qrSize, qrSize);
+				ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+				// Draw bundle owner name above the QR code
+				ctx.fillStyle = "#000000";
+				ctx.font = "bold 28px sans-serif";
+				ctx.textAlign = "center";
+				ctx.fillText(bundle.name, canvasWidth / 2, padding + labelHeight / 2);
+
+				ctx.drawImage(img, padding, padding + labelHeight, qrSize, qrSize);
 			}
 
 			const pngFile = canvas.toDataURL("image/png");
@@ -58,7 +67,8 @@ export default function PassBundleQRModal({ bundle }: PassBundleQRModalProps) {
 
 	return (
 		<div className="space-y-4 py-2">
-			<div className="flex justify-center">
+			<div className="flex flex-col items-center gap-3">
+				<p className="font-semibold text-base">{bundle.name}</p>
 				<div className="rounded-none border border-dashed bg-white p-4">
 					<QRCode
 						id="pass-bundle-qr-code"
