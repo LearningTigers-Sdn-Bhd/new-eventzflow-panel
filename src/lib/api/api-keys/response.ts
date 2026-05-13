@@ -5,6 +5,7 @@ export type BackendApiKey = {
 	last_used_at: string | null;
 	created_at: string;
 	is_active: boolean;
+	event_id: number | null;
 };
 
 // Backend API response type for API Key creation (POST /v1/api_keys)
@@ -22,6 +23,7 @@ export type ApiKey = {
 	lastUsedAt: string | null;
 	createdAt: string;
 	isActive: boolean;
+	eventId?: number | null;
 };
 
 // Frontend API key creation response

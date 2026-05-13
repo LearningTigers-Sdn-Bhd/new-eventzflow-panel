@@ -3,8 +3,11 @@
 // API endpoints
 export {
 	createApiKey,
+	createEventApiKey,
 	deleteApiKey,
+	deleteEventApiKey,
 	getApiKeys,
+	getEventApiKeys,
 } from "./endpoints";
 export {
 	type CreateApiKeyRequest,

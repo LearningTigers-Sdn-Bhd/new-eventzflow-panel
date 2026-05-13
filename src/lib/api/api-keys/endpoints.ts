@@ -17,11 +17,12 @@ import type {
 // Transform backend response to frontend format (list)
 function transformApiKey(backendKey: BackendApiKey): ApiKey {
 	return {
-		id: String(backendKey.id), // Ensure ID is always a string
+		id: String(backendKey.id),
 		name: backendKey.name,
 		lastUsedAt: backendKey.last_used_at,
 		createdAt: backendKey.created_at,
 		isActive: backendKey.is_active,
+		eventId: backendKey.event_id ?? null,
 	};
 }
 
@@ -35,6 +36,45 @@ function transformApiKeyCreation(
 		rawKey: backendKey.raw_key,
 		message: backendKey.message,
 	};
+}
+
+/**
+ * Get all API keys for a specific event
+ */
+export async function getEventApiKeys(eventId: number): Promise<ApiKey[]> {
+	try {
+		const response = await restClient.get<BackendApiKey[]>(`v1/events/${eventId}/api_keys`);
+		return response.map(transformApiKey);
+	} catch (error: any) {
+		throw new Error(error.message || "Failed to fetch event API keys");
+	}
+}
+
+/**
+ * Create a new API key scoped to a specific event
+ */
+export async function createEventApiKey(eventId: number, name: string): Promise<CreateApiKeyResponse> {
+	try {
+		const response = await restClient.post<BackendApiKeyCreation>(
+			`v1/events/${eventId}/api_keys`,
+			{ name },
+		);
+		return { success: true, apiKey: transformApiKeyCreation(response) };
+	} catch (error: any) {
+		throw new Error(error.message || "Failed to create event API key");
+	}
+}
+
+/**
+ * Revoke an event-scoped API key
+ */
+export async function deleteEventApiKey(eventId: number, keyId: string): Promise<DeleteApiKeyResponse> {
+	try {
+		await restClient.delete(`v1/events/${eventId}/api_keys/${keyId}`);
+		return { success: true, message: "API key revoked successfully" };
+	} catch (error: any) {
+		throw new Error(error.message || "Failed to delete event API key");
+	}
 }
 
 /**
@@ -61,9 +101,7 @@ export async function createApiKey(
 
 		const response = await restClient.post<BackendApiKeyCreation>(
 			"v1/api_keys",
-			{
-				name: validated.name,
-			},
+			{ name: validated.name },
 		);
 
 		return {

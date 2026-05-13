@@ -22,6 +22,7 @@ import {
 	Handshake,
 	HardHat,
 	Import,
+	Key,
 	Logs,
 	type LucideIcon,
 	MapPin,
@@ -224,6 +225,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Import visitors from Excel or CSV files.",
 			icon: Import,
 			visible: (p, e) => visible.mallEvent(p, e) && visible.organizerOrOwner(p),
+		},
+		{
+			route: "api-keys",
+			label: "API Keys",
+			description: "Manage API keys for external integrations with this event.",
+			icon: Key,
+			visible: (p, e) => e?.use_api_access === true && visible.organizerOrOwner(p),
 		},
 	],
 

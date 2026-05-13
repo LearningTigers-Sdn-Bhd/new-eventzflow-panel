@@ -57,6 +57,7 @@ const formSchema = z
 		useVoucher: z.boolean(),
 		useSponsorship: z.boolean(),
 		useEventLeads: z.boolean(),
+		useApiAccess: z.boolean(),
 		multipleScans: z.boolean(),
 		status: z.enum(["draft", "published", "cancelled"]),
 		eventAdminId: z.union([z.string(), z.undefined()]),
@@ -140,6 +141,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 			useVoucher: true,
 			useSponsorship: false,
 			useEventLeads: false,
+			useApiAccess: false,
 			multipleScans: false,
 			status: "draft" as "draft" | "published" | "cancelled",
 			eventAdminId: undefined as string | undefined,
@@ -170,6 +172,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 				use_voucher: value.useVoucher ?? true,
 				use_sponsorship: value.useSponsorship ?? false,
 				use_event_leads: value.useEventLeads ?? false,
+				use_api_access: value.useApiAccess ?? false,
 				status: value.status ?? "draft",
 				description: value.description.trim() || undefined,
 				start_date: value.startDate?.toISOString() || "",
@@ -725,6 +728,22 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 												/>
 											);
 										}}
+									</form.Field>
+								)}
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useApiAccess">
+										{(field) => (
+											<SwitchCardInput
+												label="API Access"
+												description="Allow API keys to be scoped to this event for external integrations."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={createEventMutation.isPending}
+											/>
+										)}
 									</form.Field>
 								)}
 								{canManageAdvancedEventOptions && (

@@ -14,6 +14,7 @@ export type BaseApiKey = {
 	isActive: boolean;
 	lastUsedAt: string | null;
 	createdAt: string;
+	eventId?: number | null;
 };
 
 // Status filter options

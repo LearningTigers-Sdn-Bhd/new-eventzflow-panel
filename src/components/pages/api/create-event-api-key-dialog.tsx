@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,35 +8,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { createApiKey, getApiKeys } from "@/lib/api/api-keys";
+import { createEventApiKey } from "@/lib/api/api-keys";
 
-interface CreateApiKeyDialogProps {
+interface CreateEventApiKeyDialogProps {
+	eventId: number;
 	onClose: () => void;
 }
 
-export default function CreateApiKeyDialog({
+export default function CreateEventApiKeyDialog({
+	eventId,
 	onClose,
-}: CreateApiKeyDialogProps) {
+}: CreateEventApiKeyDialogProps) {
 	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
 	const [keyName, setKeyName] = useState("");
 	const queryClient = useQueryClient();
 
-	const { data: existingApiKeys, isLoading: loadingKeys } = useQuery({
-		queryKey: ["api-keys"],
-		queryFn: getApiKeys,
-	});
-
-	const hasExistingKey = (existingApiKeys?.length ?? 0) > 0;
-
 	const createMutation = useMutation({
-		mutationFn: createApiKey,
+		mutationFn: (name: string) => createEventApiKey(eventId, name),
 		onSuccess: (data) => {
 			setCreatedKey(data.apiKey.rawKey);
 			toast.success("API Key Created", {
 				description: data.apiKey.message || "Your API key has been created successfully.",
 			});
-			queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+			queryClient.invalidateQueries({ queryKey: ["event", String(eventId), "api-keys"] });
 		},
 		onError: (error: Error) => {
 			toast.error("Failed to create API key", {
@@ -50,7 +45,9 @@ export default function CreateApiKeyDialog({
 			try {
 				await navigator.clipboard.writeText(createdKey);
 				setCopied(true);
-				toast.success("Copied to clipboard");
+				toast.success("Copied to clipboard", {
+					description: "API key has been copied to your clipboard.",
+				});
 				setTimeout(() => setCopied(false), 2000);
 			} catch {
 				toast.error("Failed to copy", { description: "Please copy the key manually." });
@@ -60,10 +57,12 @@ export default function CreateApiKeyDialog({
 
 	const handleCreate = () => {
 		if (!keyName.trim()) {
-			toast.error("API Key name is required");
+			toast.error("API Key name is required", {
+				description: "Please enter a name for your API key.",
+			});
 			return;
 		}
-		createMutation.mutate({ name: keyName.trim() });
+		createMutation.mutate(keyName.trim());
 	};
 
 	return (
@@ -87,7 +86,7 @@ export default function CreateApiKeyDialog({
 						<Input
 							id="keyName"
 							type="text"
-							placeholder="e.g., Production API Key, Mobile App Key"
+							placeholder="e.g., Ticketing Integration, CRM Sync"
 							value={keyName}
 							onChange={(e) => setKeyName(e.target.value)}
 							maxLength={255}
@@ -98,31 +97,13 @@ export default function CreateApiKeyDialog({
 						</p>
 					</div>
 
-					{hasExistingKey && (
-						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-950/40">
-							<div className="flex gap-3">
-								<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
-								<div className="space-y-1">
-									<p className="font-semibold text-amber-900 text-sm dark:text-amber-100">Active API Key Exists</p>
-									<p className="text-amber-800 text-sm dark:text-amber-200">
-										You already have an active API key. Creating a new one will not revoke your existing key.
-									</p>
-								</div>
-							</div>
-						</div>
-					)}
-
 					<Separator />
 
 					<div className="flex justify-end gap-3">
 						<Button type="button" variant="outline" onClick={onClose} disabled={createMutation.isPending}>
 							Cancel
 						</Button>
-						<Button
-							type="button"
-							onClick={handleCreate}
-							disabled={createMutation.isPending || loadingKeys || !keyName.trim()}
-						>
+						<Button type="button" onClick={handleCreate} disabled={createMutation.isPending || !keyName.trim()}>
 							{createMutation.isPending ? "Creating..." : "Generate API Key"}
 						</Button>
 					</div>

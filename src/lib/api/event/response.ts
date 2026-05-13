@@ -38,6 +38,7 @@ export type Event = {
 	use_sponsorship: boolean;
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
+	use_api_access: boolean;
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
 	wish_wall_setting: WishWallSetting;
