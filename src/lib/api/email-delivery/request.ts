@@ -12,6 +12,7 @@ export const emailDeliveryStatusSchema = z.enum([
 ]);
 
 export const getEmailDeliveriesSchema = z.object({
+	eventId: z.number().int().positive().optional(),
 	status: emailDeliveryStatusSchema.optional(),
 	recipient: z.string().optional(),
 	subject: z.string().optional(),

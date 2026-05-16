@@ -15,7 +15,7 @@ function getColumnLabel(columnId: string): string {
 		mailerName: "Mailer",
 		providerMessageId: "Provider ID",
 		lastError: "Last Error",
-		createdAt: "Created",
+		createdAt: "Created At",
 		actions: "Actions",
 	};
 
@@ -64,7 +64,7 @@ export function EmailLogTableControl<TData>({
 		{ ...statusFilterControl, topPriority: true },
 		{ label: "Recipient", columnId: "recipient", type: "sort" },
 		{ label: "Status", columnId: "status", type: "sort" },
-		{ label: "Created", columnId: "createdAt", type: "sort" },
+		{ label: "Created At", columnId: "createdAt", type: "sort" },
 	];
 
 	return (

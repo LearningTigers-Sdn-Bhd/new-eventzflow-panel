@@ -1,9 +1,12 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { Eye, Loader2, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { EmailDelivery } from "@/lib/api/email-delivery";
+import { cn } from "@/lib/utils";
 
 export interface EmailDeliveriesTableMeta {
 	onView: (delivery: EmailDelivery) => void;
@@ -12,15 +15,19 @@ export interface EmailDeliveriesTableMeta {
 }
 
 const statusTone: Record<EmailDelivery["status"], string> = {
-	queued: "border-slate-400 text-slate-700",
-	sending: "border-blue-400 text-blue-700",
-	sent: "border-cyan-400 text-cyan-700",
-	delivered: "border-green-500 text-green-700",
-	failed: "border-red-500 text-red-700",
-	bounced: "border-orange-500 text-orange-700",
-	complained: "border-yellow-500 text-yellow-700",
-	suppressed: "border-zinc-500 text-zinc-700",
+	queued: "bg-slate-500 text-white border-transparent",
+	sending: "bg-blue-500 text-white border-transparent",
+	sent: "bg-cyan-500 text-white border-transparent",
+	delivered: "bg-green-500 text-white border-transparent",
+	failed: "bg-red-500 text-white border-transparent",
+	bounced: "bg-orange-500 text-white border-transparent",
+	complained: "bg-yellow-600 text-white border-transparent",
+	suppressed: "bg-zinc-500 text-white border-transparent",
 };
+
+function formatStatusLabel(status: EmailDelivery["status"]): string {
+	return status.charAt(0).toUpperCase() + status.slice(1);
+}
 
 export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 	{
@@ -39,8 +46,14 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 		accessorKey: "status",
 		header: "Status",
 		cell: ({ row }) => (
-			<Badge variant="outline" className={statusTone[row.original.status]}>
-				{row.original.status}
+			<Badge
+				variant="outline"
+				className={cn(
+					"rounded-none px-2 py-0.5 font-bold text-xs",
+					statusTone[row.original.status],
+				)}
+			>
+				{formatStatusLabel(row.original.status)}
 			</Badge>
 		),
 	},
@@ -73,12 +86,20 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 	},
 	{
 		accessorKey: "createdAt",
-		header: "Created",
-		cell: ({ row }) => (
-			<span className="text-muted-foreground text-xs">
-				{new Date(row.original.createdAt).toLocaleString()}
-			</span>
-		),
+		header: "Created At",
+		cell: ({ row }) => {
+			const createdAt = new Date(row.original.createdAt);
+			return (
+				<div className="font-medium">
+					<p className="font-semibold">
+						{createdAt.toLocaleString("en-US", { timeStyle: "medium" })}
+					</p>
+					<p className="text-gray-500 text-sm">
+						{createdAt.toLocaleString("en-US", { dateStyle: "medium" })}
+					</p>
+				</div>
+			);
+		},
 	},
 	{
 		id: "actions",
@@ -92,36 +113,58 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 
 			if (!allowedToResend || !meta) {
 				return (
-					<Button
-						size="sm"
-						variant="outline"
-						className="rounded-none"
-						onClick={() => meta?.onView(delivery)}
-					>
-						View
-					</Button>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="icon"
+								variant="ghost"
+								className="h-8 w-8 rounded-none border border-border text-green-600 hover:text-green-700"
+								onClick={() => meta?.onView(delivery)}
+								aria-label="View email log"
+							>
+								<Eye className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent className="rounded-none">View Email Log</TooltipContent>
+					</Tooltip>
 				);
 			}
 
 			return (
-				<div className="flex items-center gap-2">
-					<Button
-						size="sm"
-						variant="outline"
-						className="rounded-none"
-						onClick={() => meta.onView(delivery)}
-					>
-						View
-					</Button>
-					<Button
-						size="sm"
-						variant="outline"
-						className="rounded-none"
-						onClick={() => meta.onResend(delivery)}
-						disabled={meta.pendingResendId === delivery.id}
-					>
-						{meta.pendingResendId === delivery.id ? "Resending..." : "Resend"}
-					</Button>
+				<div className="inline-flex items-center border border-border bg-white">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="icon"
+								variant="ghost"
+								className="h-8 w-8 rounded-none border-r border-border text-green-600 hover:text-green-700"
+								onClick={() => meta.onView(delivery)}
+								aria-label="View email log"
+							>
+								<Eye className="h-4 w-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent className="rounded-none">View Email Log</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="icon"
+								variant="ghost"
+								className="h-8 w-8 rounded-none text-orange-500 hover:text-orange-600"
+								onClick={() => meta.onResend(delivery)}
+								disabled={meta.pendingResendId === delivery.id}
+								aria-label="Resend email"
+							>
+								{meta.pendingResendId === delivery.id ? (
+									<Loader2 className="h-4 w-4 animate-spin" />
+								) : (
+									<Send className="h-4 w-4" />
+								)}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent className="rounded-none">Resend Email</TooltipContent>
+					</Tooltip>
 				</div>
 			);
 		},
