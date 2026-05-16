@@ -554,9 +554,11 @@ export async function archiveTicket(
 ): Promise<void> {
 	try {
 		await restClient.delete<void>(`v1/events/${eventId}/tickets/${publicId}`);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error archiving ticket:", error);
-		throw new Error(error.message || "Failed to archive ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to archive ticket";
+		throw new Error(message);
 	}
 }
 
@@ -571,9 +573,11 @@ export async function forceDeleteTicket(
 		await restClient.delete<void>(
 			`v1/events/${eventId}/tickets/${publicId}/force_delete`,
 		);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error force deleting ticket:", error);
-		throw new Error(error.message || "Failed to force delete ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to force delete ticket";
+		throw new Error(message);
 	}
 }
 
@@ -608,8 +612,32 @@ export async function restoreTicket(
 			deletedAt: null,
 			customLabels: response.custom_labels,
 		};
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error restoring ticket:", error);
-		throw new Error(error.message || "Failed to restore ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to restore ticket";
+		throw new Error(message);
+	}
+}
+
+/**
+ * Resend ticket confirmation email (org_owner only)
+ */
+export async function resendTicketConfirmationEmail(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.post<void>(
+			`v1/events/${eventId}/tickets/${publicId}/resend_confirmation_email`,
+			{},
+		);
+	} catch (error: unknown) {
+		console.error("Error resending ticket confirmation email:", error);
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to resend ticket confirmation email";
+		throw new Error(message);
 	}
 }

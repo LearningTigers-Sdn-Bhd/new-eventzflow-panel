@@ -11,6 +11,7 @@ import {
 	Import,
 	Key,
 	LayoutDashboard,
+	Mail,
 	Package,
 	Printer,
 	Store,
@@ -174,6 +175,13 @@ export const navigationData = {
 			allowBottomNavigation: false,
 			requiresPermission: "has_writer_permission",
 			isActive: (pathname: string) => pathname.startsWith("/manage-resources/"),
+		},
+		{
+			name: "Email Log",
+			url: "/email-log" as Route,
+			icon: Mail,
+			roleAllowed: [USER_ROLES.ORG_OWNER],
+			allowBottomNavigation: false,
 		},
 		{
 			name: "API Keys",

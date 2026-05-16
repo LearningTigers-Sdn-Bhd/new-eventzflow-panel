@@ -8,6 +8,7 @@ import {
 	Pencil,
 	QrCode,
 	RotateCcw,
+	Send,
 	Trash2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -28,6 +29,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import {
 	archiveTicket,
 	forceDeleteTicket,
+	resendTicketConfirmationEmail,
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
@@ -47,7 +49,10 @@ interface UseTicketActionsProps {
 	eventId?: string;
 }
 
-export function useTicketActions({ ticket, eventId: eventIdProp }: UseTicketActionsProps) {
+export function useTicketActions({
+	ticket,
+	eventId: eventIdProp,
+}: UseTicketActionsProps) {
 	const params = useParams();
 	const eventId = eventIdProp || (params.event_id as string);
 	const { openDialog, closeDialog } = useDialog();
@@ -150,6 +155,21 @@ export function useTicketActions({ ticket, eventId: eventIdProp }: UseTicketActi
 		},
 	});
 
+	const resendConfirmationEmailMutation = useMutation({
+		mutationFn: () => resendTicketConfirmationEmail(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Ticket confirmation email has been queued for resend.");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error(
+				error.message || "Failed to resend ticket confirmation email",
+			);
+		},
+	});
+
 	const handleArchiveClick = () => {
 		openConfirm({
 			title: "Archive Ticket",
@@ -201,6 +221,23 @@ export function useTicketActions({ ticket, eventId: eventIdProp }: UseTicketActi
 		});
 	};
 
+	const handleResendConfirmationEmailClick = () => {
+		openConfirm({
+			title: "Resend Ticket Confirmation Email",
+			message:
+				"Resend the ticket confirmation email with QR code to this attendee?",
+			confirmLabel: "Resend Email",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				resendConfirmationEmailMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	return {
 		openEditModal,
 		openViewModal,
@@ -209,6 +246,7 @@ export function useTicketActions({ ticket, eventId: eventIdProp }: UseTicketActi
 		handleArchiveClick,
 		handleDeleteClick,
 		handleRestoreClick,
+		handleResendConfirmationEmailClick,
 	};
 }
 
@@ -227,6 +265,7 @@ export function TicketActionsMenu({
 		handleArchiveClick,
 		handleDeleteClick,
 		handleRestoreClick,
+		handleResendConfirmationEmailClick,
 	} = useTicketActions({ ticket });
 
 	// Check if unscan button should be shown
@@ -238,9 +277,12 @@ export function TicketActionsMenu({
 	const showArchive =
 		!isArchived && ["org_owner", "organizer"].includes(user?.role || "");
 	const showDelete = user?.role === "org_owner";
+	const showResendConfirmationEmail =
+		user?.role === "org_owner" || user?.role === "organizer";
 	const showRestore =
 		isArchived && ["org_owner", "organizer"].includes(user?.role || "");
-	const showMoreMenu = showArchive || showDelete || showRestore;
+	const showMoreMenu =
+		showArchive || showDelete || showRestore || showResendConfirmationEmail;
 
 	return (
 		<ButtonGroup>
@@ -317,6 +359,15 @@ export function TicketActionsMenu({
 							>
 								<RotateCcw className="mr-2 h-4 w-4" />
 								Restore Ticket
+							</DropdownMenuItem>
+						)}
+						{showResendConfirmationEmail && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleResendConfirmationEmailClick}
+							>
+								<Send className="mr-2 h-4 w-4" />
+								Resend Ticket Email
 							</DropdownMenuItem>
 						)}
 						{showDelete && (
