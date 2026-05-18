@@ -7,6 +7,7 @@ import {
 	ChevronDown,
 	ChevronRight,
 	Copy,
+	Info,
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -111,6 +112,20 @@ function ApiEndpointCard({
 						<p className="text-muted-foreground text-xs sm:text-sm">
 							{endpoint.description}
 						</p>
+
+						{endpoint.notes && endpoint.notes.length > 0 && (
+							<div className="space-y-2">
+								{endpoint.notes.map((note, i) => (
+									<div
+										key={i}
+										className="flex items-start gap-2 rounded-none border border-sky-200 bg-sky-50 p-3 dark:border-sky-900/40 dark:bg-sky-950/30"
+									>
+										<Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+										<p className="text-sky-800 text-xs dark:text-sky-200">{note}</p>
+									</div>
+								))}
+							</div>
+						)}
 
 						<div className="group space-y-2">
 							<h4 className="font-medium text-xs sm:text-sm">Endpoint</h4>
@@ -298,6 +313,11 @@ export function EventApiDocumentation({
 							desc: "Succeeded with no body (e.g. delete).",
 						},
 						{
+							code: "400",
+							label: "Bad Request",
+							desc: "Malformed parameters (e.g. invalid `updated_since` timestamp).",
+						},
+						{
 							code: "401",
 							label: "Unauthorized",
 							desc: "Missing or invalid API key.",
@@ -317,16 +337,197 @@ export function EventApiDocumentation({
 							label: "Unprocessable",
 							desc: "Validation failed — check the errors field.",
 						},
+						{
+							code: "429",
+							label: "Too Many Requests",
+							desc: "Rate limit hit (300 requests/minute per IP).",
+						},
 					].map(({ code, label, desc }) => (
 						<div key={code} className="flex items-start gap-3 px-3 py-2">
-							<code className="w-8 shrink-0 font-mono font-semibold text-xs">
+							<code className="w-10 shrink-0 font-mono font-semibold text-xs">
 								{code}
 							</code>
-							<span className="w-24 shrink-0 font-medium text-xs">{label}</span>
+							<span className="w-28 shrink-0 font-medium text-xs">{label}</span>
 							<span className="text-muted-foreground text-xs">{desc}</span>
 						</div>
 					))}
 				</div>
+			</div>
+
+			{/* Error response shape */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Error Response Shape
+				</h3>
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					When a request fails, the API returns a JSON body with a stable shape so you can handle errors uniformly.
+				</p>
+				<CodeBlock
+					code={`{
+  "success": false,
+  "message": "Validation Error",
+  "errors": [
+    { "field": "attendee_email", "message": "is invalid" }
+  ]
+}`}
+				/>
+			</div>
+
+			{/* Enum reference */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Enum Reference
+				</h3>
+				<div className="space-y-3 text-xs sm:text-sm">
+					<div>
+						<p className="font-medium">
+							<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+								ticket.status
+							</code>
+						</p>
+						<p className="text-muted-foreground">
+							<code>purchased</code> · <code>scanned</code> · <code>refunded</code> · <code>canceled</code> · <code>pending_payment</code>
+						</p>
+					</div>
+					<div>
+						<p className="font-medium">
+							<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+								ticket.payment_status
+							</code>
+						</p>
+						<p className="text-muted-foreground">
+							<code>pending</code> · <code>paid</code> · <code>failed</code> · <code>refunded_payment</code>
+						</p>
+					</div>
+					{!event.use_ticket && (
+						<div>
+							<p className="font-medium">
+								<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+									visitor.rsvp_status
+								</code>
+							</p>
+							<p className="text-muted-foreground">
+								<code>pending</code> · <code>attending</code> · <code>declined</code>
+							</p>
+						</div>
+					)}
+					<div>
+						<p className="font-medium">
+							<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+								vendor.type
+							</code>
+						</p>
+						<p className="text-muted-foreground">
+							<code>Exhibitor</code> (when Exhibitor Kit enabled) · <code>Merchant</code> (otherwise)
+						</p>
+					</div>
+				</div>
+			</div>
+
+			{/* Pagination example */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Paginating Through All Tickets
+				</h3>
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					For large events, fetch tickets in pages. Read the totals from the response headers and stop when
+					{" "}<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">X-Page</code>
+					{" "}equals{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">X-Total-Pages</code>.
+				</p>
+				<CodeBlock
+					code={`# Fetch the first page (100 rows)
+curl -i '${API_BASE_URL}/v1/events/${eventId}/tickets?page=1&per_page=100' \\
+  -H 'Authorization: YOUR_EVENT_API_KEY'
+
+# Response headers include:
+#   X-Total-Count: 4170
+#   X-Page: 1
+#   X-Per-Page: 100
+#   X-Total-Pages: 42
+
+# Loop until X-Page == X-Total-Pages, incrementing page each call.`}
+				/>
+			</div>
+
+			{/* Incremental sync example */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Incremental Sync
+				</h3>
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					Save the timestamp of your last successful sync and pass it as
+					{" "}<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">updated_since</code>
+					{" "}on the next call. Only tickets changed since then are returned — much faster than re-pulling
+					the full set.
+				</p>
+				<CodeBlock
+					code={`curl '${API_BASE_URL}/v1/events/${eventId}/tickets?updated_since=2026-05-17T00:00:00+08:00&per_page=100&page=1' \\
+  -H 'Authorization: YOUR_EVENT_API_KEY'`}
+				/>
+			</div>
+
+			{/* QR generation */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Generating QR Codes
+				</h3>
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					Each ticket and visitor has a{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">public_id</code>{" "}
+					— that string is what gets encoded in the QR code, nothing more. Use any standard QR library:
+				</p>
+				<ul className="ml-4 list-disc space-y-1 text-muted-foreground text-xs sm:text-sm">
+					<li>
+						Node.js — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode</code>
+					</li>
+					<li>
+						Python — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode</code>
+					</li>
+					<li>
+						PHP — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">endroid/qr-code</code>
+					</li>
+					<li>
+						Browser — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode.js</code>
+					</li>
+				</ul>
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					When the QR is scanned, you'll get back the{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">public_id</code>
+					{" "}— pass it to the Check-In endpoint.
+				</p>
+			</div>
+
+			{/* Conventions */}
+			<div className="space-y-2 px-2 sm:px-4">
+				<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide sm:text-sm">
+					Conventions
+				</h3>
+				<ul className="ml-4 list-disc space-y-1 text-muted-foreground text-xs sm:text-sm">
+					<li>
+						All timestamps are ISO 8601 in Malaysia Time (MYT, UTC+8). Example:{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">2026-08-01T09:00:00.000+08:00</code>
+						. When passing timestamps as query params (e.g. <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">updated_since</code>), both{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">+08:00</code> and{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">Z</code> (UTC) are accepted.
+					</li>
+					<li>
+						Money fields (e.g.{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">price</code>,{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">amount_paid</code>
+						) are returned as decimal strings (e.g.{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">"99.00"</code>
+						) to avoid floating-point loss.
+					</li>
+					<li>
+						Rate limit: 300 requests / minute per IP across the whole API. A 429 response means you've
+						exceeded that — back off and retry.
+					</li>
+					<li>
+						This key is scoped to <strong>this event only</strong>. Calls referencing a different event
+						are rejected with a 403.
+					</li>
+				</ul>
 			</div>
 		</div>
 	);

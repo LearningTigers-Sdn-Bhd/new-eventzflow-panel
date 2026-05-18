@@ -12,6 +12,7 @@ export interface ApiEndpoint {
 	requestBody?: object;
 	response?: object;
 	visible?: (event: Event) => boolean;
+	notes?: string[];
 }
 
 export const API_BASE_URL = "https://api.eventzflow.com";
@@ -70,12 +71,14 @@ const TICKET_ENDPOINTS: ApiEndpoint[] = [
 		category: "Tickets",
 		visible: (e) => e.use_ticket,
 		description:
-			"Retrieve all tickets for your event. Each ticket includes attendee info, payment status, and check-in state. The `public_id` field is the value encoded in each attendee's QR code — use it with the Check-In endpoint or generate a QR image from it using any standard QR library.",
+			"Retrieve all tickets for your event. Each ticket includes attendee info, payment status, and check-in state. The `public_id` is the value encoded in each attendee's QR code — use it with the Check-In endpoint or generate a QR image from it using any standard QR library.",
 		headers: AUTH_HEADER,
 		queryParams: {
-			page: "Page number (default: 1)",
-			per_page: "Results per page (default: 25, max: 100)",
-			archived: "Set to 'true' to list only archived tickets",
+			page: "Page number, starts at 1. Defaults to 1 when omitted. Send with `per_page` to paginate through results.",
+			per_page: "Results per page (max 100). When present, activates pagination and returns totals via response headers (`X-Total-Count`, `X-Page`, `X-Per-Page`, `X-Total-Pages`).",
+			updated_since: "ISO8601 timestamp (e.g. `2026-05-17T00:00:00+08:00`). Returns only tickets updated at or after this time. Use for incremental sync.",
+			archived: "Set to 'true' to list only archived (soft-deleted) tickets for this event.",
+			full: "Set to 'true' to include archived tickets alongside active ones. Use only for reconciliation / audit.",
 		},
 		response: [
 			{
@@ -89,6 +92,10 @@ const TICKET_ENDPOINTS: ApiEndpoint[] = [
 				checked_in: false,
 				ticket_type: { id: 1, name: "Early Bird", price: "99.00" },
 			},
+		],
+		notes: [
+			"Multiple tickets per attendee: an attendee who buys two passes (e.g. Conference + Golf) gets two separate ticket records — each with its own `public_id` and QR code. Treat each ticket independently.",
+			"Exhibitor staff tickets: when Exhibitor Kit is enabled, every exhibitor team member is auto-issued a ticket of type `Exhibitor` (price 0). They appear here alongside regular attendees with their own emails and `public_id`. The same person also appears under /vendors inside `exhibitor_kit.exhibitor_team_members`.",
 		],
 	},
 	{
@@ -209,7 +216,7 @@ const CHECKIN_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/scan/{public_id}/check_in",
 		category: "Check-In",
 		description:
-			"The main check-in endpoint. Scan a QR code to get the `public_id`, then pass it here — works for both tickets and visitors. Returns the attendee's full details on success. Perfect for building a custom check-in kiosk or mobile scanner.",
+			"The main check-in endpoint. Scan a QR code to get the `public_id`, then pass it here — works for both tickets and visitors. Returns the attendee's full details on success. Perfect for building a custom check-in kiosk or mobile scanner. The `public_id` must belong to this event; keys scoped to a different event are rejected.",
 		headers: AUTH_HEADER,
 		response: {
 			type: "ticket",
@@ -221,37 +228,6 @@ const CHECKIN_ENDPOINTS: ApiEndpoint[] = [
 			ticket_type: { id: 1, name: "Early Bird", price: 99.0 },
 			event: { id: 42, title: "Tech Summit 2026" },
 			scanned_by: { id: 5, full_name: "Ahmad Organizer" },
-		},
-	},
-	{
-		id: "recent-check-ins",
-		title: "Recent Check-Ins",
-		method: "GET",
-		endpoint: "/v1/scan/recent_check_ins",
-		category: "Check-In",
-		description:
-			"Retrieve the most recent check-ins scanned by the authenticated user. Useful for a live check-in feed or audit log. Returns both ticket and visitor check-ins combined.",
-		headers: AUTH_HEADER,
-		queryParams: {
-			event_id: "Filter to a specific event (optional)",
-			limit: "Number of records to return (default: 50, max: 100)",
-		},
-		response: {
-			check_ins: [
-				{
-					type: "ticket",
-					scan_id: "abc123-def456",
-					name: "Amirah Binti Hassan",
-					email: "amirah@example.com",
-					ticket_type: "Early Bird",
-					event_id: 42,
-					event_name: "Tech Summit 2026",
-					checked_in: true,
-					check_in_at: "2026-08-01T09:15:00Z",
-				},
-			],
-			total: 1,
-			limit: 50,
 		},
 	},
 ];
@@ -412,7 +388,7 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 		category: "Vouchers",
 		visible: (e) => e.use_voucher,
 		description:
-			"Retrieve all vouchers scoped to this event. This is the recommended way to list vouchers for a specific event.",
+			"Retrieve all vouchers scoped to this event. Voucher creation, edits, and deletion are managed from the EventzFlow dashboard — they are not exposed to event-level API keys.",
 		headers: AUTH_HEADER,
 		response: [
 			{
@@ -425,63 +401,6 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 			},
 		],
 	},
-	{
-		id: "create-voucher",
-		title: "Create Voucher",
-		method: "POST",
-		endpoint: "/v1/vouchers",
-		category: "Vouchers",
-		visible: (e) => e.use_voucher,
-		description:
-			"Create a new voucher for your event. Supports percentage discounts, fixed amount discounts, and free items.",
-		headers: JSON_HEADERS,
-		requestBody: {
-			title: "Early Bird Discount",
-			voucher_code: "EARLY20",
-			voucher_type: "percentage",
-			voucher_value: 20,
-			event_id: 42,
-			start_date: "2026-06-01",
-			end_date: "2026-07-31",
-		},
-		response: {
-			success: true,
-			data: {
-				id: 3,
-				title: "Early Bird Discount",
-				voucher_code: "EARLY20",
-				status: "active",
-			},
-		},
-	},
-	{
-		id: "update-voucher",
-		title: "Update Voucher",
-		method: "PATCH",
-		endpoint: "/v1/vouchers/{id}",
-		category: "Vouchers",
-		visible: (e) => e.use_voucher,
-		description:
-			"Update an existing voucher's details or toggle its active/inactive status.",
-		headers: JSON_HEADERS,
-		requestBody: {
-			status: "inactive",
-		},
-		response: {
-			success: true,
-			data: { id: 3, status: "inactive" },
-		},
-	},
-	{
-		id: "delete-voucher",
-		title: "Delete Voucher",
-		method: "DELETE",
-		endpoint: "/v1/vouchers/{id}",
-		category: "Vouchers",
-		visible: (e) => e.use_voucher,
-		description: "Permanently delete a voucher.",
-		headers: AUTH_HEADER,
-	},
 ];
 
 // ============ VENDORS ============
@@ -493,7 +412,7 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/vendors",
 		category: "Vendors",
 		description:
-			'Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `"Exhibitor"` and each entry includes booth/kit details. When disabled, the `type` is `"Merchant"` with no kit data.',
+			"Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `\"Exhibitor\"` and each entry includes booth/kit details — including the booth's staff under `exhibitor_kit.exhibitor_team_members` (note: nested inside `exhibitor_kit`, not at the top level). When Exhibitor Kit is disabled, the `type` is `\"Merchant\"` and no kit/team data is returned.",
 		headers: AUTH_HEADER,
 		response: [
 			{
@@ -510,8 +429,25 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 					booth_type: "shell_scheme",
 					company_name: "TechCorp Sdn Bhd",
 					payment_status: "paid",
+					exhibitor_team_members: [
+						{
+							id: 21,
+							exhibitor_kit_id: 5,
+							full_name: "Ahmad Ali",
+							email: "ahmad@techcorp.com",
+							phone: "+60123456789",
+							attendee_type: "Ticket",
+							attendee_id: 412,
+						},
+					],
+					team_member_count: 1,
+					team_member_limit: 4,
 				},
 			},
+		],
+		notes: [
+			"Team members are nested inside `exhibitor_kit.exhibitor_team_members` — NOT at the top level of the vendor object. Reading `vendor.team_members` will always return empty/null.",
+			"Team members only appear when the event has Exhibitor Kit enabled AND the vendor type is `Exhibitor`. Merchants have no kit and no team members.",
 		],
 	},
 	{
@@ -558,6 +494,44 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		category: "Vendors",
 		description: "Remove a vendor from your event.",
 		headers: AUTH_HEADER,
+	},
+	{
+		id: "list-exhibitor-team-members",
+		title: "Exhibitor Team Members",
+		method: "GET",
+		endpoint: "/v1/events/{event_id}/vendors",
+		category: "Vendors",
+		visible: (e) => e.use_exhibitor_kit,
+		description:
+			"Exhibitor team members are the booth staff registered under each exhibitor. They are not a separate endpoint — they are returned nested inside each vendor's `exhibitor_kit.exhibitor_team_members` array when you call List Event Vendors.",
+		headers: AUTH_HEADER,
+		notes: [
+			"Access path: `vendor.exhibitor_kit.exhibitor_team_members[]` — NOT `vendor.team_members` (that field does not exist).",
+			"Each team member is auto-issued a ticket of type `Exhibitor` (price 0). Their ticket `id` is available via `attendee_id` on the team member object — use it to look up their ticket in /tickets.",
+			"Fields per team member: `id`, `exhibitor_kit_id`, `full_name`, `email`, `phone`, `attendee_type`, `attendee_id`, `created_at`, `updated_at`.",
+		],
+		response: {
+			id: 1,
+			type: "Exhibitor",
+			vendor: { id: 10, full_name: "TechCorp Sdn Bhd", email: "booth@techcorp.com" },
+			exhibitor_kit: {
+				id: 5,
+				booth_number: "A101",
+				exhibitor_team_members: [
+					{
+						id: 21,
+						exhibitor_kit_id: 5,
+						full_name: "Ahmad Ali",
+						email: "ahmad@techcorp.com",
+						phone: "+60123456789",
+						attendee_type: "Ticket",
+						attendee_id: 412,
+					},
+				],
+				team_member_count: 1,
+				team_member_limit: 4,
+			},
+		},
 	},
 ];
 
