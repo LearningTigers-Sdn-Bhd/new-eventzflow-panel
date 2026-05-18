@@ -138,7 +138,7 @@ export const teamMembersColumns: ColumnDef<TeamMemberRow>[] = [
 						onClick={() => meta?.onRemoveMember?.(member)}
 						size="sm"
 						variant="ghost"
-						className="text-destructive hover:bg-destructive/10 hover:text-destructive rounded-none"
+						className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 					>
 						<Trash2 className="size-4" />
 					</Button>

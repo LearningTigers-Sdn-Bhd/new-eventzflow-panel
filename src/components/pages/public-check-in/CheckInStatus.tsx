@@ -57,8 +57,8 @@ export function CheckInStatus({
 					transition={{ delay: 0.2 }}
 					className="mb-8 font-medium text-lg uppercase tracking-wider sm:mb-12 sm:text-xl"
 				>
-					{status === "success" 
-						? "Welcome to the event! Please proceed." 
+					{status === "success"
+						? "Welcome to the event! Please proceed."
 						: "This ticket has been scanned. Please approach event staff if you need assistance."}
 				</motion.p>
 
@@ -76,11 +76,11 @@ export function CheckInStatus({
 							Details
 						</div>
 						<div className="space-y-0.5 text-base sm:space-y-1 sm:text-xl md:text-2xl">
-							{attendee.type_name && (
-								<div>{attendee.type_name}</div>
-							)}
+							{attendee.type_name && <div>{attendee.type_name}</div>}
 							{attendee.email && (
-								<div className="break-all opacity-90 text-sm sm:text-xl md:text-2xl">{attendee.email}</div>
+								<div className="break-all text-sm opacity-90 sm:text-xl md:text-2xl">
+									{attendee.email}
+								</div>
 							)}
 							{attendee.phone && (
 								<div className="opacity-90">{attendee.phone}</div>

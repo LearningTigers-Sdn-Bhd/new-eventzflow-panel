@@ -5,7 +5,7 @@ import {
 	usesGatewayPaymentMode,
 } from "./team-member-payment-section";
 
-	describe("usesGatewayPaymentMode", () => {
+describe("usesGatewayPaymentMode", () => {
 	test("returns true for payment_gateway mode", () => {
 		expect(usesGatewayPaymentMode("payment_gateway")).toBe(true);
 	});

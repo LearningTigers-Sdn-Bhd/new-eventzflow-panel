@@ -1,12 +1,12 @@
-import { useMemo } from "react";
 import { ChartBar, Logs, Package, Users } from "lucide-react";
+import { useMemo } from "react";
 import { HiTicket } from "react-icons/hi2";
 import type { TabItem } from "./tab-config";
 import {
-	TICKET_TAB_IDS,
 	ANALYTICS_TAB_IDS,
-	LOGS_TAB_IDS,
 	EXHIBITOR_KIT_TAB_IDS,
+	LOGS_TAB_IDS,
+	TICKET_TAB_IDS,
 	USER_MANAGEMENT_TAB_IDS,
 } from "./tab-config";
 
@@ -48,7 +48,9 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 
 		const result = [...filtered];
 		const locationIndex = result.findIndex((tab) => tab.id === "location");
-		const vendorProfileIndex = result.findIndex((tab) => tab.id === "vendor-profile");
+		const vendorProfileIndex = result.findIndex(
+			(tab) => tab.id === "vendor-profile",
+		);
 		let insertIndex = locationIndex !== -1 ? locationIndex + 1 : 0;
 
 		// Add tickets group
@@ -66,11 +68,14 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 		// Add exhibitor kit group AFTER vendor-profile if it exists
 		if (exhibitorKitTabs.length > 0) {
 			// Find vendor-profile position after previous insertions
-			const currentVendorProfileIndex = result.findIndex((tab) => tab.id === "vendor-profile");
-			const exhibitorKitInsertIndex = currentVendorProfileIndex !== -1 
-				? currentVendorProfileIndex + 1 
-				: insertIndex;
-			
+			const currentVendorProfileIndex = result.findIndex(
+				(tab) => tab.id === "vendor-profile",
+			);
+			const exhibitorKitInsertIndex =
+				currentVendorProfileIndex !== -1
+					? currentVendorProfileIndex + 1
+					: insertIndex;
+
 			result.splice(exhibitorKitInsertIndex, 0, {
 				id: "exhibitor-kit-group",
 				label: "Exhibitor Kit",
@@ -100,7 +105,8 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 				id: "analytics-group",
 				label: "Analytics",
 				title: "Analytics & Insights",
-				description: "View ticket analytics, voucher insights, and mall live feed",
+				description:
+					"View ticket analytics, voucher insights, and mall live feed",
 				icon: ChartBar,
 				route: analyticsTabs[0]?.route || "analytics/ticket",
 			});
@@ -119,7 +125,14 @@ export function useTabGrouping(visibleTabs: TabItem[]) {
 		}
 
 		return result;
-	}, [visibleTabs, ticketTabs, analyticsTabs, logsTabs, exhibitorKitTabs, userManagementTabs]);
+	}, [
+		visibleTabs,
+		ticketTabs,
+		analyticsTabs,
+		logsTabs,
+		exhibitorKitTabs,
+		userManagementTabs,
+	]);
 
 	return {
 		mainTabs,

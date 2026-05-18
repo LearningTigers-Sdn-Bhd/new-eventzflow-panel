@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, type Transition, motion } from "framer-motion";
+import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { useEffect, useState } from "react";
 import type { AnimationType } from "@/lib/api/check-in-display/types";
 
@@ -102,8 +102,7 @@ export function NameAnimation({
 	};
 
 	const variants = getAnimationVariants();
-	const textToDisplay =
-		animationType === "typewriter" ? displayedText : name;
+	const textToDisplay = animationType === "typewriter" ? displayedText : name;
 
 	return (
 		<AnimatePresence mode="wait">

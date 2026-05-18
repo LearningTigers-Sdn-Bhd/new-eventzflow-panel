@@ -255,8 +255,7 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "ticket-analytics",
 		label: "Ticket Analytics",
 		title: "Ticket Analytics",
-		description:
-			"View ticket registrations, scans, and revenue analytics.",
+		description: "View ticket registrations, scans, and revenue analytics.",
 		icon: ChartBar,
 		route: "analytics/ticket",
 	},
@@ -264,8 +263,7 @@ export const TAB_ITEMS: TabItem[] = [
 		id: "visitor-analytics",
 		label: "Visitor Analytics",
 		title: "Visitor Analytics",
-		description:
-			"View visitor registrations and check-in analytics.",
+		description: "View visitor registrations and check-in analytics.",
 		icon: ChartBar,
 		route: "analytics/visitor",
 	},

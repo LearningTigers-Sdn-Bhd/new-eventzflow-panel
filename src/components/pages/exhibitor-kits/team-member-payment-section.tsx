@@ -1,26 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	Clock,
-	CheckCircle2,
-	XCircle,
 	AlertCircle,
-	Upload,
-	ExternalLink,
-	Users,
+	CheckCircle2,
+	Clock,
 	CreditCard,
+	ExternalLink,
+	Upload,
+	Users,
+	XCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	createExtraTeamMemberPaymentOrder,
 	type CreateRazorpayOrderResponse,
-	getExhibitorTeamMemberPayments,
+	createExtraTeamMemberPaymentOrder,
 	type ExhibitorTeamMemberPayment,
+	getExhibitorTeamMemberPayments,
 	verifyExtraTeamMemberPayment,
 } from "@/lib/api/exhibitor-team-member-payment";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,9 @@ type RazorpayInstance = {
 	on?: (event: string, callback: () => void) => void;
 };
 
-type RazorpayConstructor = new (options: Record<string, unknown>) => RazorpayInstance;
+type RazorpayConstructor = new (
+	options: Record<string, unknown>,
+) => RazorpayInstance;
 
 async function loadRazorpayCheckoutScript() {
 	if ((window as Window & { Razorpay?: RazorpayConstructor }).Razorpay) {
@@ -58,7 +60,9 @@ export function showsPendingGatewayAction(payment: {
 	status: ExhibitorTeamMemberPayment["status"];
 	paymentSource: ExhibitorTeamMemberPayment["paymentSource"];
 }) {
-	return payment.status === "pending" && payment.paymentSource === "payment_gateway";
+	return (
+		payment.status === "pending" && payment.paymentSource === "payment_gateway"
+	);
 }
 
 export function getRazorpayRedirectOptions(
@@ -236,9 +240,7 @@ export function TeamMemberPaymentSection({
 			razorpay.open();
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Failed to initiate payment",
+				error instanceof Error ? error.message : "Failed to initiate payment",
 			);
 			setIsRazorpayLoading(false);
 		}
@@ -336,7 +338,8 @@ export function TeamMemberPaymentSection({
 						const config = getStatusConfig(payment.status);
 						const StatusIcon = config.icon;
 						const canResubmit = payment.status === "rejected";
-						const canContinueGatewayPayment = showsPendingGatewayAction(payment);
+						const canContinueGatewayPayment =
+							showsPendingGatewayAction(payment);
 
 						return (
 							<div
@@ -380,28 +383,30 @@ export function TeamMemberPaymentSection({
 											</Button>
 										)}
 
-									{canResubmit && (
-										<Button
-											className="gap-2 rounded-none"
-											onClick={() => handleResubmit(payment)}
-										>
-											<Upload className="size-4" />
-											Resubmit
-										</Button>
-									)}
+										{canResubmit && (
+											<Button
+												className="gap-2 rounded-none"
+												onClick={() => handleResubmit(payment)}
+											>
+												<Upload className="size-4" />
+												Resubmit
+											</Button>
+										)}
 
-									{canContinueGatewayPayment && (
-										<Button
-											className="gap-2 rounded-none"
-											onClick={() => handleContinueGatewayPayment(payment)}
-											disabled={isRazorpayLoading}
-										>
-											<CreditCard className="size-4" />
-											{isRazorpayLoading ? "Processing..." : "Continue Payment"}
-										</Button>
-									)}
+										{canContinueGatewayPayment && (
+											<Button
+												className="gap-2 rounded-none"
+												onClick={() => handleContinueGatewayPayment(payment)}
+												disabled={isRazorpayLoading}
+											>
+												<CreditCard className="size-4" />
+												{isRazorpayLoading
+													? "Processing..."
+													: "Continue Payment"}
+											</Button>
+										)}
 
-									{payment.status === "verified" && (
+										{payment.status === "verified" && (
 											<Badge className="rounded-none bg-green-600">
 												<CheckCircle2 className="mr-1 size-3" />
 												Paid

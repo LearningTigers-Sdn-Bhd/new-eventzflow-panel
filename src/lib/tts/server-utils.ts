@@ -56,7 +56,7 @@ export async function synthesizeViaGoogle(
 	const apiKey =
 		process.env.GOOGLE_CLOUD_TTS_API_KEY ??
 		process.env.NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY;
-	
+
 	if (!apiKey) {
 		console.warn("TTS API Key is missing. Skipping synthesis.");
 		return {

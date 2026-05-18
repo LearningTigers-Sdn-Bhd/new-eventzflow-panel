@@ -25,7 +25,7 @@ export function InsertImageToolbarButton() {
 				const currentSizeMB = (file.size / (1024 * 1024)).toFixed(2);
 				toast.error(
 					`File size (${currentSizeMB}MB) exceeds maximum allowed size of ${maxSizeMB}MB`,
-					{ duration: 5000 }
+					{ duration: 5000 },
 				);
 				// Reset file input
 				if (fileInputRef.current) {

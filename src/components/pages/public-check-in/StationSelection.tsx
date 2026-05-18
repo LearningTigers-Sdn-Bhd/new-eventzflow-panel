@@ -9,7 +9,10 @@ interface StationSelectionProps {
 
 const STATIONS = ["1", "2", "3"];
 
-export function StationSelection({ onSelect, currentStation }: StationSelectionProps) {
+export function StationSelection({
+	onSelect,
+	currentStation,
+}: StationSelectionProps) {
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -29,7 +32,7 @@ export function StationSelection({ onSelect, currentStation }: StationSelectionP
 					<h2 className="mb-1.5 font-black text-2xl text-neutral-900 uppercase tracking-tight sm:mb-2 sm:text-3xl md:text-4xl">
 						Select Station
 					</h2>
-					<p className="max-w-sm font-medium text-xs text-neutral-500 leading-relaxed sm:text-sm">
+					<p className="max-w-sm font-medium text-neutral-500 text-xs leading-relaxed sm:text-sm">
 						Choose which check-in station you are using.
 					</p>
 				</div>

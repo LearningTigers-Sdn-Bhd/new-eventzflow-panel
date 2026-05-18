@@ -383,7 +383,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.exhibitor_booth_price_label && (
 						<div className="flex justify-between gap-2 py-0.5">
-							<span className="shrink-0 font-medium text-xs">Booth Package</span>
+							<span className="shrink-0 font-medium text-xs">
+								Booth Package
+							</span>
 							<span className="break-words text-right text-muted-foreground text-xs">
 								{kit.exhibitor_booth_price_label}
 							</span>

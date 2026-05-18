@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import type { ChatMessage } from "@/components/devices/apps/WhatsApp";
 import WhatsApp from "@/components/devices/apps/WhatsApp";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -226,10 +226,7 @@ export default function EventRegistrationPageClient() {
 				subtitle="Designed for performance. Our registration modules are built to handle scale while maintaining precision."
 				features={features}
 			/>
-			<ServiceHowItWorksSection
-				title="Three simple steps"
-				steps={steps}
-			/>
+			<ServiceHowItWorksSection title="Three simple steps" steps={steps} />
 			<ServiceShowcaseSection
 				label="Live Demo"
 				title="Registration via WhatsApp"

@@ -1,19 +1,19 @@
 import { restClient } from "@/utils/rest-api";
 import {
-	type GetExhibitorTeamMemberPaymentsRequest,
-	type GetExhibitorTeamMemberPaymentRequest,
 	type CreateExhibitorTeamMemberPaymentRequest,
-	type UpdateExhibitorTeamMemberPaymentRequest,
-	getExhibitorTeamMemberPaymentsSchema,
-	getExhibitorTeamMemberPaymentSchema,
 	createExhibitorTeamMemberPaymentSchema,
+	type GetExhibitorTeamMemberPaymentRequest,
+	type GetExhibitorTeamMemberPaymentsRequest,
+	getExhibitorTeamMemberPaymentSchema,
+	getExhibitorTeamMemberPaymentsSchema,
+	type UpdateExhibitorTeamMemberPaymentRequest,
 	updateExhibitorTeamMemberPaymentSchema,
 } from "./request";
 import type {
 	BackendExhibitorTeamMemberPayment,
-	ExhibitorTeamMemberPayment,
 	CreateExhibitorTeamMemberPaymentResponse,
 	CreateRazorpayOrderResponse,
+	ExhibitorTeamMemberPayment,
 	UpdateExhibitorTeamMemberPaymentResponse,
 	VerifyRazorpayPaymentResponse,
 } from "./response";
@@ -168,11 +168,10 @@ export async function updateExhibitorTeamMemberPayment(
 		const validated = updateExhibitorTeamMemberPaymentSchema.parse(data);
 		const { eventId, exhibitorKitId, paymentId, ...updateData } = validated;
 
-		const response =
-			await restClient.patch<BackendExhibitorTeamMemberPayment>(
-				`v1/events/${eventId}/exhibitor_kits/${exhibitorKitId}/exhibitor_team_member_payments/${paymentId}`,
-				{ exhibitor_team_member_payment: updateData },
-			);
+		const response = await restClient.patch<BackendExhibitorTeamMemberPayment>(
+			`v1/events/${eventId}/exhibitor_kits/${exhibitorKitId}/exhibitor_team_member_payments/${paymentId}`,
+			{ exhibitor_team_member_payment: updateData },
+		);
 
 		return transformPayment(response);
 	} catch (error: unknown) {
@@ -195,8 +194,14 @@ export async function resubmitTeamMemberPaymentProof(data: {
 	note?: string;
 }): Promise<UpdateExhibitorTeamMemberPaymentResponse> {
 	try {
-		const { eventId, exhibitorKitId, paymentId, paymentProof, externalRef, note } =
-			data;
+		const {
+			eventId,
+			exhibitorKitId,
+			paymentId,
+			paymentProof,
+			externalRef,
+			note,
+		} = data;
 
 		const formData = new FormData();
 		formData.append(
@@ -227,7 +232,9 @@ export async function resubmitTeamMemberPaymentProof(data: {
 	} catch (error: unknown) {
 		console.error("Error resubmitting payment proof:", error);
 		const message =
-			error instanceof Error ? error.message : "Failed to resubmit payment proof";
+			error instanceof Error
+				? error.message
+				: "Failed to resubmit payment proof";
 		throw new Error(message);
 	}
 }

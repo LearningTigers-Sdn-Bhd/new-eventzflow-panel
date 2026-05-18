@@ -59,63 +59,65 @@ export function RichEditorOutline({
 
 	// Pure Cursor Detection approach:
 	// Listen to selection changes via editor update listener.
-	
+
 	useEffect(() => {
 		if (!editor || toc.length === 0) return;
 
 		// Cursor Detection Logic
-		const removeUpdateListener = editor.registerUpdateListener(({ editorState }) => {
-			editorState.read(() => {
-				// Only update if we have a selection
-				const selection = $getSelection();
-				if (!$isRangeSelection(selection)) return;
+		const removeUpdateListener = editor.registerUpdateListener(
+			({ editorState }) => {
+				editorState.read(() => {
+					// Only update if we have a selection
+					const selection = $getSelection();
+					if (!$isRangeSelection(selection)) return;
 
-				const anchorNode = selection.anchor.getNode();
-				
-				// Optimization: we want the heading that belongs to this section.
-				// We can iterate backwards through TOC.
-				// The first TOC item that is 'before' or 'contains' the anchor node is our active section.
-				
-				// We need node keys.
-				// Lexical nodes don't have a simple "index" we can compare easily without traversal,
-				// but we can check $isBefore.
-				
-				// However, comparing every TOC item with $isBefore is O(N).
-				// Since N (headings) is small, this is fine.
-				
-				let foundId: string | null = null;
+					const anchorNode = selection.anchor.getNode();
 
-				// 1. Containment Check: Are we inside a heading?
-				const tocIds = new Set(toc.map((t) => t.id));
-				let curr = anchorNode;
-				while (curr) {
-					if (tocIds.has(curr.getKey())) {
-						foundId = curr.getKey();
-						break;
-					}
-					const parent = curr.getParent();
-					if (!parent) break;
-					curr = parent;
-				}
+					// Optimization: we want the heading that belongs to this section.
+					// We can iterate backwards through TOC.
+					// The first TOC item that is 'before' or 'contains' the anchor node is our active section.
 
-				// 2. Precedence Check: Find the last heading before the anchor
-				if (!foundId) {
-					for (let i = toc.length - 1; i >= 0; i--) {
-						const tocItem = toc[i];
-						const headingNode = $getNodeByKey(tocItem.id);
+					// We need node keys.
+					// Lexical nodes don't have a simple "index" we can compare easily without traversal,
+					// but we can check $isBefore.
 
-						if (headingNode?.isBefore(anchorNode)) {
-							foundId = tocItem.id;
+					// However, comparing every TOC item with $isBefore is O(N).
+					// Since N (headings) is small, this is fine.
+
+					let foundId: string | null = null;
+
+					// 1. Containment Check: Are we inside a heading?
+					const tocIds = new Set(toc.map((t) => t.id));
+					let curr = anchorNode;
+					while (curr) {
+						if (tocIds.has(curr.getKey())) {
+							foundId = curr.getKey();
 							break;
 						}
+						const parent = curr.getParent();
+						if (!parent) break;
+						curr = parent;
 					}
-				}
-				
-				if (foundId) {
-					setActiveId(foundId);
-				}
-			});
-		});
+
+					// 2. Precedence Check: Find the last heading before the anchor
+					if (!foundId) {
+						for (let i = toc.length - 1; i >= 0; i--) {
+							const tocItem = toc[i];
+							const headingNode = $getNodeByKey(tocItem.id);
+
+							if (headingNode?.isBefore(anchorNode)) {
+								foundId = tocItem.id;
+								break;
+							}
+						}
+					}
+
+					if (foundId) {
+						setActiveId(foundId);
+					}
+				});
+			},
+		);
 
 		return () => {
 			removeUpdateListener();

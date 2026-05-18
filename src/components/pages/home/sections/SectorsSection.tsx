@@ -119,13 +119,13 @@ const SectorsSection: React.FC = () => {
 					{/* Decorative lines with text */}
 					<div className="mb-4 flex items-center justify-center gap-4 md:mb-6 md:gap-6">
 						<div className="h-px w-8 bg-black/30 md:w-16" />
-						<span className="text-xs tracking-[0.2em] text-black/60 sm:text-sm sm:tracking-[0.3em]">
+						<span className="text-black/60 text-xs tracking-[0.2em] sm:text-sm sm:tracking-[0.3em]">
 							BUILT FOR EVERY SECTOR
 						</span>
 						<div className="h-px w-8 bg-black/30 md:w-16" />
 					</div>
 
-					<h2 className="font-black text-3xl tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+					<h2 className="font-black text-3xl text-black tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
 						INDUSTRIES WE SERVE
 					</h2>
 				</motion.div>

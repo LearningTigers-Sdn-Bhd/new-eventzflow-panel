@@ -115,7 +115,9 @@ export function RegistrationFormActionsMenu({
 							<CalendarClock className="h-4 w-4" />
 						</Button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">Delegate Approval & RSVP</TooltipContent>
+					<TooltipContent side="bottom">
+						Delegate Approval & RSVP
+					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>

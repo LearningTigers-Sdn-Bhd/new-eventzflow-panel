@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -13,9 +13,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { updateExhibitorKitPayment, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	type ExhibitorKitPayment,
+	updateExhibitorKitPayment,
+} from "@/lib/api/exhibitor-kit-payment";
 
 interface VerifyRejectPaymentDialogProps {
 	open: boolean;
@@ -54,7 +57,7 @@ export function VerifyRejectPaymentDialog({
 			toast.success(
 				action === "verify"
 					? "Payment verified successfully"
-					: "Payment rejected"
+					: "Payment rejected",
 			);
 			queryClient.invalidateQueries({
 				queryKey: ["exhibitor-kit-payments", eventId, kitId],
@@ -99,10 +102,12 @@ export function VerifyRejectPaymentDialog({
 				{payment && (
 					<form onSubmit={handleSubmit} className="space-y-4">
 						{/* Payment Summary */}
-						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+						<div className="space-y-2 rounded-none border bg-muted/30 p-4">
 							<div className="flex justify-between">
 								<span className="text-muted-foreground text-sm">Amount:</span>
-								<span className="font-bold">RM {payment.amount.toFixed(2)}</span>
+								<span className="font-bold">
+									RM {payment.amount.toFixed(2)}
+								</span>
 							</div>
 							{payment.paymentSource && (
 								<div className="flex justify-between">
@@ -115,7 +120,7 @@ export function VerifyRejectPaymentDialog({
 								</div>
 							)}
 							{payment.paymentProofUrl && (
-								<div className="pt-2 border-t">
+								<div className="border-t pt-2">
 									<a
 										href={payment.paymentProofUrl}
 										target="_blank"
@@ -128,7 +133,9 @@ export function VerifyRejectPaymentDialog({
 							)}
 							{payment.externalRef && (
 								<div className="flex justify-between">
-									<span className="text-muted-foreground text-sm">Reference:</span>
+									<span className="text-muted-foreground text-sm">
+										Reference:
+									</span>
 									<span className="text-sm">{payment.externalRef}</span>
 								</div>
 							)}

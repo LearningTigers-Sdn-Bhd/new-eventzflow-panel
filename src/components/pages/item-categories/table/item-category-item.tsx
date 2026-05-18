@@ -10,8 +10,8 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
-import { cn } from "@/lib/utils";
 import type { ItemCategory } from "@/lib/api/item-category";
+import { cn } from "@/lib/utils";
 import { CategoryActionsMenu } from "./action-menu";
 
 interface ItemCategoryItemProps {

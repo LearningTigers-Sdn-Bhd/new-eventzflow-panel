@@ -54,7 +54,8 @@ export async function POST(request: Request): Promise<Response> {
 		return Response.json(
 			{
 				success: false,
-				error: error?.message || "Internal server error during speech synthesis",
+				error:
+					error?.message || "Internal server error during speech synthesis",
 				errorCode: "SERVER_ERROR",
 			},
 			{ status: 500 },

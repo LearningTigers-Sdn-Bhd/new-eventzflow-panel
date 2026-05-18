@@ -43,7 +43,10 @@ export function ItemCard({ item }: ItemCardProps) {
 							<h3 className="font-semibold text-base leading-tight">
 								{item.rentable_item?.name || "Unknown Item"}
 							</h3>
-							<Badge variant="outline" className="shrink-0 rounded-none text-xs">
+							<Badge
+								variant="outline"
+								className="shrink-0 rounded-none text-xs"
+							>
 								{item.rentable_item?.unit_of_measure || "-"}
 							</Badge>
 						</div>
@@ -85,13 +88,13 @@ export function ItemCard({ item }: ItemCardProps) {
 									<PopoverTrigger asChild>
 										<div className="cursor-pointer">
 											<p className="text-muted-foreground text-xs">Notes</p>
-											<p className="text-sm line-clamp-2 hover:text-primary transition-colors">
+											<p className="line-clamp-2 text-sm transition-colors hover:text-primary">
 												{item.notes}
 											</p>
 										</div>
 									</PopoverTrigger>
-									<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
-										<p className="text-sm break-words">{item.notes}</p>
+									<PopoverContent className="max-h-80 w-72 overflow-y-auto p-3">
+										<p className="break-words text-sm">{item.notes}</p>
 									</PopoverContent>
 								</Popover>
 							</div>

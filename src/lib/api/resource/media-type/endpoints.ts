@@ -39,7 +39,8 @@ export async function getResourceMediaTypes(options?: {
 		: "v1/resources/media_types";
 
 	const response = await publicRestClient.get<
-		BackendResourceMediaType[] | { data: BackendResourceMediaType[]; pagination?: any }
+		| BackendResourceMediaType[]
+		| { data: BackendResourceMediaType[]; pagination?: any }
 	>(url);
 
 	if (Array.isArray(response)) {

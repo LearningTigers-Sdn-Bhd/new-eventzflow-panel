@@ -1,5 +1,5 @@
-import type { EventRentableItemPriceTier } from "@/lib/api/event-rentable-item";
 import type { EventPrintingServicePriceTier } from "@/lib/api/event-printing-service";
+import type { EventRentableItemPriceTier } from "@/lib/api/event-rentable-item";
 import type { ExhibitorBoothPriceTier } from "@/lib/api/exhibitor-booth-price-tier";
 
 type PriceTierLike =

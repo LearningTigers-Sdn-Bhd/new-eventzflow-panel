@@ -110,7 +110,10 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
 	const columns = React.useMemo(
 		() =>
-			generateColumns(mergedLabelsData, hasApplicationWorkflow) as ColumnDef<TData>[],
+			generateColumns(
+				mergedLabelsData,
+				hasApplicationWorkflow,
+			) as ColumnDef<TData>[],
 		[mergedLabelsData, hasApplicationWorkflow],
 	);
 
@@ -172,17 +175,15 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 					<MobileView>
 						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
-								table
-									.getRowModel()
-									.rows.map((row) => (
-										<React.Fragment key={row.id}>
-											<PendingTicketItem
-												ticket={row.original as PendingTicket}
-												labelsData={mergedLabelsData}
-											/>
-											<ItemSeparator className="opacity-50" />
-										</React.Fragment>
-									))
+								table.getRowModel().rows.map((row) => (
+									<React.Fragment key={row.id}>
+										<PendingTicketItem
+											ticket={row.original as PendingTicket}
+											labelsData={mergedLabelsData}
+										/>
+										<ItemSeparator className="opacity-50" />
+									</React.Fragment>
+								))
 							) : (
 								<div className="p-4">
 									<EmptyState

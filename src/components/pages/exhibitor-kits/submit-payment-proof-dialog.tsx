@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Building2, CreditCard, Pencil, Upload, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Upload, Pencil, Building2, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -15,7 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { submitPaymentProof, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
+import {
+	type ExhibitorKitPayment,
+	submitPaymentProof,
+} from "@/lib/api/exhibitor-kit-payment";
 import PaymentReceiptUpload from "./payment-receipt-upload";
 
 interface SubmitPaymentProofDialogProps {
@@ -95,20 +98,23 @@ export function SubmitPaymentProofDialog({
 			return {
 				icon: Pencil,
 				title: "Edit Payment Proof",
-				description: "Update your payment proof. The contractor will review your updated submission.",
+				description:
+					"Update your payment proof. The contractor will review your updated submission.",
 			};
 		}
 		if (isResubmit) {
 			return {
 				icon: Upload,
 				title: "Resubmit Payment Proof",
-				description: "Your previous submission was rejected. Please upload a new payment proof.",
+				description:
+					"Your previous submission was rejected. Please upload a new payment proof.",
 			};
 		}
 		return {
 			icon: Upload,
 			title: "Submit Payment Proof",
-			description: "Upload your payment proof to complete this payment. Once submitted, the contractor will verify your payment.",
+			description:
+				"Upload your payment proof to complete this payment. Once submitted, the contractor will verify your payment.",
 		};
 	};
 
@@ -123,9 +129,7 @@ export function SubmitPaymentProofDialog({
 						<DialogIcon className="size-5" />
 						{dialogContent.title}
 					</DialogTitle>
-					<DialogDescription>
-						{dialogContent.description}
-					</DialogDescription>
+					<DialogDescription>{dialogContent.description}</DialogDescription>
 				</DialogHeader>
 
 				{payment && (
@@ -133,13 +137,17 @@ export function SubmitPaymentProofDialog({
 						{/* Payment Amount */}
 						<div className="rounded-none border bg-muted/30 p-4 text-center">
 							<p className="text-muted-foreground text-sm">Amount to Pay</p>
-							<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
+							<p className="font-bold text-2xl">
+								RM {payment.amount.toFixed(2)}
+							</p>
 						</div>
 
 						{/* Payee Bank Details */}
 						{payment.payeePaymentDetail ? (
-							<div className="rounded-none border bg-muted/30 p-4 space-y-2">
-								<p className="text-muted-foreground text-sm font-medium">Transfer to:</p>
+							<div className="space-y-2 rounded-none border bg-muted/30 p-4">
+								<p className="font-medium text-muted-foreground text-sm">
+									Transfer to:
+								</p>
 								<div className="space-y-1.5">
 									<div className="flex items-center gap-2 text-sm">
 										<Building2 className="size-4 text-muted-foreground" />
@@ -147,7 +155,9 @@ export function SubmitPaymentProofDialog({
 									</div>
 									<div className="flex items-center gap-2 text-sm">
 										<CreditCard className="size-4 text-muted-foreground" />
-										<span className="font-mono">{payment.payeePaymentDetail.accountNumber}</span>
+										<span className="font-mono">
+											{payment.payeePaymentDetail.accountNumber}
+										</span>
 									</div>
 									<div className="flex items-center gap-2 text-sm">
 										<User className="size-4 text-muted-foreground" />
@@ -156,8 +166,11 @@ export function SubmitPaymentProofDialog({
 								</div>
 							</div>
 						) : (
-							<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
-								<p>Payment details are not yet available. Please contact {payment.payeeName} for bank transfer information.</p>
+							<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-amber-700 text-sm dark:bg-amber-950/20 dark:text-amber-400">
+								<p>
+									Payment details are not yet available. Please contact{" "}
+									{payment.payeeName} for bank transfer information.
+								</p>
 							</div>
 						)}
 
@@ -202,8 +215,7 @@ export function SubmitPaymentProofDialog({
 									? "Submitting..."
 									: isEdit
 										? "Update Proof"
-										: "Submit Proof"
-								}
+										: "Submit Proof"}
 							</Button>
 						</DialogFooter>
 					</form>

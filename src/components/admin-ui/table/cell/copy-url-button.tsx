@@ -31,27 +31,24 @@ export function CopyUrlButton({ slug }: CopyUrlButtonProps) {
 	};
 
 	return (
-		<div
-			className="space-y-1.5 pt-2"
-			onClick={(e) => e.stopPropagation()}
-		>
+		<div className="space-y-1.5 pt-2" onClick={(e) => e.stopPropagation()}>
 			<Label className="text-[10px] text-muted-foreground uppercase tracking-wider">
 				Public URL
 			</Label>
 			<div className="flex items-center gap-2">
 				<div className="relative flex-1">
-					<Globe className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Globe className="absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={url}
 						readOnly
 						onClick={(e) => e.stopPropagation()}
-						className="h-8 rounded-none border-dashed pl-8 text-xs font-mono"
+						className="h-8 rounded-none border-dashed pl-8 font-mono text-xs"
 					/>
 				</div>
 				<Button
 					size="icon"
 					variant="outline"
-					className="h-8 w-8 rounded-none shrink-0"
+					className="h-8 w-8 shrink-0 rounded-none"
 					onClick={handleCopy}
 					title="Copy URL"
 				>

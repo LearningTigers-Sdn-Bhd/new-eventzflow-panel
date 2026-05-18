@@ -8,8 +8,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useDialog } from "@/hooks/use-dialog";
 import { useResourceMutations } from "@/hooks/resources/use-resource-mutations";
+import { useDialog } from "@/hooks/use-dialog";
 import type { ResourcePermission } from "@/lib/api/resource/permission";
 import { deleteResourcePermission } from "@/lib/api/resource/permission";
 import EditPermissionForm from "./action-modals/edit-permission-form";

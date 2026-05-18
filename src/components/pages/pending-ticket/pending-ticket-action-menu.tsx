@@ -33,7 +33,10 @@ interface UsePendingTicketActionsProps {
 	eventId?: string;
 }
 
-export function usePendingTicketActions({ ticket, eventId: eventIdProp }: UsePendingTicketActionsProps) {
+export function usePendingTicketActions({
+	ticket,
+	eventId: eventIdProp,
+}: UsePendingTicketActionsProps) {
 	const params = useParams();
 	const eventId = eventIdProp || (params.event_id as string);
 	const { openDialog } = useDialog();

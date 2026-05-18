@@ -23,9 +23,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 			disableTransitionOnChange
 		>
 			<QueryClientProvider client={queryClient}>
-				<AuthProvider>
-					{children}
-				</AuthProvider>
+				<AuthProvider>{children}</AuthProvider>
 				{enableDevtools && <ReactQueryDevtools />}
 			</QueryClientProvider>
 			<Toaster richColors position={isTablet ? "top-center" : "bottom-right"} />

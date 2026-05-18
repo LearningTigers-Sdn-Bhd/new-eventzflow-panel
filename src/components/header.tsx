@@ -143,7 +143,7 @@ export default function Header() {
 				</div>
 
 				{/* Desktop Navigation - Centered */}
-				<div className="lg:-translate-x-1/2 hidden lg:absolute lg:left-1/2 lg:flex">
+				<div className="hidden lg:absolute lg:left-1/2 lg:flex lg:-translate-x-1/2">
 					<NavigationMenu viewport={false}>
 						<NavigationMenuList>
 							{navigationLinks.map((link, index) => (

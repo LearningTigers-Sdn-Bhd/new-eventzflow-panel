@@ -25,8 +25,8 @@ import { SortableHeader } from "@/components/admin-ui/table/header/sortable-head
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import type { ApiKey } from "@/lib/api/api-keys";
+import { cn } from "@/lib/utils";
 import { ApiKeyItem } from "./api-key-item";
 import { ApiKeyTableControl } from "./api-key-table-control";
 import { EventApiKeyActionsMenu } from "./event-api-key-action-menu";
@@ -41,7 +41,10 @@ const STATUS_OPTIONS = [
 	{ label: "Revoked", value: false },
 ];
 
-function formatDateTime(dateString: string): { timePart: string; datePart: string } {
+function formatDateTime(dateString: string): {
+	timePart: string;
+	datePart: string;
+} {
 	const date = new Date(dateString);
 	return {
 		timePart: date.toLocaleString("en-US", { timeStyle: "medium" }),
@@ -58,8 +61,11 @@ function formatDate(dateString: string | null): string {
 
 export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
 
 	const columns = React.useMemo<ColumnDef<ApiKey>[]>(
 		() => [
@@ -67,14 +73,21 @@ export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 				accessorKey: "name",
 				size: 200,
 				header: ({ column }) => <SortableHeader column={column} label="Name" />,
-				cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+				cell: ({ row }) => (
+					<div className="font-medium">{row.getValue("name")}</div>
+				),
 			},
 			{
 				accessorKey: "isActive",
 				size: 120,
 				filterFn: (row, id, value) => row.getValue(id) === value,
 				header: ({ column }) => (
-					<FilterableHeader column={column} label="Status" options={STATUS_OPTIONS} allOptionLabel="All Status" />
+					<FilterableHeader
+						column={column}
+						label="Status"
+						options={STATUS_OPTIONS}
+						allOptionLabel="All Status"
+					/>
 				),
 				cell: ({ row }) => {
 					const isActive = row.getValue("isActive") as boolean;
@@ -95,19 +108,33 @@ export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 			{
 				accessorKey: "lastUsedAt",
 				size: 180,
-				header: ({ column }) => <SortableHeader column={column} label="Last Used" />,
+				header: ({ column }) => (
+					<SortableHeader column={column} label="Last Used" />
+				),
 				cell: ({ row }) => {
 					const lastUsedAt = row.getValue("lastUsedAt") as string | null;
-					if (!lastUsedAt) return <Badge variant="outline" className="rounded-none text-muted-foreground">Never Used</Badge>;
+					if (!lastUsedAt)
+						return (
+							<Badge
+								variant="outline"
+								className="rounded-none text-muted-foreground"
+							>
+								Never Used
+							</Badge>
+						);
 					return <div className="text-sm">{formatDate(lastUsedAt)}</div>;
 				},
 			},
 			{
 				accessorKey: "createdAt",
 				size: 200,
-				header: ({ column }) => <SortableHeader column={column} label="Created At" />,
+				header: ({ column }) => (
+					<SortableHeader column={column} label="Created At" />
+				),
 				cell: ({ row }) => {
-					const { timePart, datePart } = formatDateTime(row.getValue("createdAt"));
+					const { timePart, datePart } = formatDateTime(
+						row.getValue("createdAt"),
+					);
 					return (
 						<div className="font-medium">
 							<div className="font-semibold">{timePart}</div>
@@ -164,11 +191,18 @@ export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 					<MobileView>
 						<div className="space-y-2">
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<ApiKeyItem key={row.id} apiKey={row.original as any} />
-								))
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<ApiKeyItem key={row.id} apiKey={row.original as any} />
+									))
 							) : (
-								<EmptyState title="No API keys found" description="Generate your first API key to get started" icon={<Key />} height="h-auto" />
+								<EmptyState
+									title="No API keys found"
+									description="Generate your first API key to get started"
+									icon={<Key />}
+									height="h-auto"
+								/>
 							)}
 						</div>
 					</MobileView>
@@ -182,7 +216,12 @@ export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 								))
 							) : (
 								<div className="col-span-2">
-									<EmptyState title="No API keys found" description="Generate your first API key to get started" icon={<Key />} height="h-auto" />
+									<EmptyState
+										title="No API keys found"
+										description="Generate your first API key to get started"
+										icon={<Key />}
+										height="h-auto"
+									/>
 								</div>
 							)}
 						</div>

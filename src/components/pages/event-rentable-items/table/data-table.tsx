@@ -25,8 +25,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { cn } from "@/lib/utils";
 import type { EventRentableItem } from "@/lib/api/event-rentable-item";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { EventRentableItemCard } from "./event-rentable-item-card";
 
@@ -41,8 +41,11 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
 
 	const table = useReactTable({
 		data,
@@ -103,17 +106,24 @@ export function DataTable<TData, TValue>({
 													key={cell.id}
 													style={{ width: `${cell.column.getSize()}px` }}
 													className={cn(
-														table.getVisibleLeafColumns()[0]?.id === cell.column.id && "ps-4",
+														table.getVisibleLeafColumns()[0]?.id ===
+															cell.column.id && "ps-4",
 													)}
 												>
-													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
 												</TableCell>
 											))}
 										</TableRow>
 									))
 								) : (
 									<TableRow>
-										<TableCell colSpan={columns.length} className="h-24 text-center">
+										<TableCell
+											colSpan={columns.length}
+											className="h-24 text-center"
+										>
 											<EmptyState
 												title="No items linked"
 												description="Items are automatically linked when the contractor is assigned to this event."
@@ -129,12 +139,14 @@ export function DataTable<TData, TValue>({
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<EventRentableItemCard
-									key={row.id}
-									item={row.original as EventRentableItem}
-								/>
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<EventRentableItemCard
+										key={row.id}
+										item={row.original as EventRentableItem}
+									/>
+								))
 						) : (
 							<EmptyState
 								title="No items linked"

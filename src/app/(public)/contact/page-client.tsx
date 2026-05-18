@@ -94,7 +94,7 @@ export default function ContactPageClient() {
 			</section>
 
 			{/* Contact Methods Section */}
-			<section className="bg-white-background px-6 py-12 md:py-20 border border-black">
+			<section className="border border-black bg-white-background px-6 py-12 md:py-20">
 				<div className="mx-auto max-w-7xl">
 					{/* Header */}
 					<motion.div

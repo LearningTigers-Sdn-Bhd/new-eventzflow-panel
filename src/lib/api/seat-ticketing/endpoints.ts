@@ -1,13 +1,14 @@
 import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	BulkUpdateSeatSessionRequest,
+	CheckoutRequest,
+	ClearCheckoutSessionLocksRequest,
 	CreateEventTicketSeatRequest,
 	CreateSeatSectionRequest,
 	CreateSeatSessionRequest,
 	CreateSeatVenueRequest,
-	ClearCheckoutSessionLocksRequest,
-	GetEventTicketSeatsRequest,
 	GetCheckoutSessionRequest,
+	GetEventTicketSeatsRequest,
 	GetPublicSeatSessionRequest,
 	GetPublicSeatSessionsRequest,
 	GetPublicSectionSeatsRequest,
@@ -16,17 +17,16 @@ import type {
 	GetSeatSessionsRequest,
 	GetSeatVenuesRequest,
 	LockSeatRequest,
-	CheckoutRequest,
 	UpdateEventTicketSeatRequest,
 	UpdateSeatSectionRequest,
 	UpdateSeatSessionRequest,
 	UpdateSeatVenueRequest,
 } from "./request";
 import type {
+	EventSeatCheckoutSession,
 	EventSeatSection,
 	EventSeatSession,
 	EventSeatVenue,
-	EventSeatCheckoutSession,
 	EventTicketSeat,
 } from "./response";
 
@@ -104,7 +104,10 @@ export async function getPublicSession(
 export async function getPublicSectionSeats(
 	data: GetPublicSectionSeatsRequest,
 ): Promise<{ section_id: number; seats: EventTicketSeat[] }> {
-	return await publicRestClient.get<{ section_id: number; seats: EventTicketSeat[] }>(
+	return await publicRestClient.get<{
+		section_id: number;
+		seats: EventTicketSeat[];
+	}>(
 		`v1/seat_ticketing/public_sessions/${data.sessionId}/section_seats?section_id=${data.sectionId}`,
 	);
 }
@@ -481,7 +484,9 @@ export async function deleteEventTicketSeat(
 	);
 }
 
-export async function lockSeat(data: LockSeatRequest): Promise<EventTicketSeat> {
+export async function lockSeat(
+	data: LockSeatRequest,
+): Promise<EventTicketSeat> {
 	return await publicRestClient.post<EventTicketSeat>(
 		`v1/seat_ticketing/sessions/${data.sessionId}/venues/${data.venueId}/sections/${data.sectionId}/ticket-seats/${data.seatId}/lock`,
 		{ checkout_session_uuid: data.checkout_session_uuid },

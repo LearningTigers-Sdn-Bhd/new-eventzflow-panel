@@ -4,7 +4,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, Loader2, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { EmailDelivery } from "@/lib/api/email-delivery";
 import { cn } from "@/lib/utils";
 
@@ -125,7 +129,9 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 								<Eye className="h-4 w-4" />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent className="rounded-none">View Email Log</TooltipContent>
+						<TooltipContent className="rounded-none">
+							View Email Log
+						</TooltipContent>
 					</Tooltip>
 				);
 			}
@@ -137,14 +143,16 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 							<Button
 								size="icon"
 								variant="ghost"
-								className="h-8 w-8 rounded-none border-r border-border text-green-600 hover:text-green-700"
+								className="h-8 w-8 rounded-none border-border border-r text-green-600 hover:text-green-700"
 								onClick={() => meta.onView(delivery)}
 								aria-label="View email log"
 							>
 								<Eye className="h-4 w-4" />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent className="rounded-none">View Email Log</TooltipContent>
+						<TooltipContent className="rounded-none">
+							View Email Log
+						</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -163,7 +171,9 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 								)}
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent className="rounded-none">Resend Email</TooltipContent>
+						<TooltipContent className="rounded-none">
+							Resend Email
+						</TooltipContent>
 					</Tooltip>
 				</div>
 			);

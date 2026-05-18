@@ -71,8 +71,10 @@ export interface ExhibitorTeamMemberPayment {
 }
 
 // Response types for operations
-export type CreateExhibitorTeamMemberPaymentResponse = ExhibitorTeamMemberPayment;
-export type UpdateExhibitorTeamMemberPaymentResponse = ExhibitorTeamMemberPayment;
+export type CreateExhibitorTeamMemberPaymentResponse =
+	ExhibitorTeamMemberPayment;
+export type UpdateExhibitorTeamMemberPaymentResponse =
+	ExhibitorTeamMemberPayment;
 
 export interface CreateRazorpayOrderResponse {
 	success: boolean;

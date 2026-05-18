@@ -56,8 +56,15 @@ export function RegistrationFormRsvpSettingsForm({
 	const hasInitialized = React.useRef<number | null>(null);
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["event", eventId, "registration-form", registrationFormId, "rsvp-setting"],
-		queryFn: () => getRegistrationFormRsvpSetting({ eventId, registrationFormId }),
+		queryKey: [
+			"event",
+			eventId,
+			"registration-form",
+			registrationFormId,
+			"rsvp-setting",
+		],
+		queryFn: () =>
+			getRegistrationFormRsvpSetting({ eventId, registrationFormId }),
 	});
 
 	const mutation = useMutation({
@@ -65,7 +72,13 @@ export function RegistrationFormRsvpSettingsForm({
 		onSuccess: () => {
 			toast.success("Delegate approval & RSVP settings updated");
 			queryClient.invalidateQueries({
-				queryKey: ["event", eventId, "registration-form", registrationFormId, "rsvp-setting"],
+				queryKey: [
+					"event",
+					eventId,
+					"registration-form",
+					registrationFormId,
+					"rsvp-setting",
+				],
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "registration-forms"],
@@ -95,9 +108,13 @@ export function RegistrationFormRsvpSettingsForm({
 				registrationFormId,
 				enabled: value.enabled,
 				rsvp_required: value.rsvpRequired,
-				rsvp_expires_in_hours: value.neverExpires ? null : Number(value.rsvpExpiresInHours),
+				rsvp_expires_in_hours: value.neverExpires
+					? null
+					: Number(value.rsvpExpiresInHours),
 				review_sla_hours: Number(value.reviewSlaHours),
-				notify_by_date: value.notifyByDate ? value.notifyByDate.toISOString() : null,
+				notify_by_date: value.notifyByDate
+					? value.notifyByDate.toISOString()
+					: null,
 			});
 		},
 	});
@@ -110,7 +127,10 @@ export function RegistrationFormRsvpSettingsForm({
 		form.setFieldValue("enabled", data.enabled);
 		form.setFieldValue("rsvpRequired", data.rsvp_required);
 		form.setFieldValue("neverExpires", data.rsvp_expires_in_hours === null);
-		form.setFieldValue("rsvpExpiresInHours", String(data.rsvp_expires_in_hours ?? 72));
+		form.setFieldValue(
+			"rsvpExpiresInHours",
+			String(data.rsvp_expires_in_hours ?? 72),
+		);
 		form.setFieldValue("reviewSlaHours", String(data.review_sla_hours));
 		form.setFieldValue(
 			"notifyByDate",
@@ -129,9 +149,7 @@ export function RegistrationFormRsvpSettingsForm({
 	}
 
 	if (error) {
-		return (
-			<div className="text-destructive">Failed to load settings.</div>
-		);
+		return <div className="text-destructive">Failed to load settings.</div>;
 	}
 
 	return (
@@ -170,7 +188,9 @@ export function RegistrationFormRsvpSettingsForm({
 													label="Enable delegate approval"
 													description="New registrations from this form enter pending review before they are accepted."
 													checked={field.state.value}
-													onCheckedChange={(value) => field.handleChange(Boolean(value))}
+													onCheckedChange={(value) =>
+														field.handleChange(Boolean(value))
+													}
 													onBlur={field.handleBlur}
 													disabled={mutation.isPending}
 													variant="no-rounded"
@@ -190,7 +210,10 @@ export function RegistrationFormRsvpSettingsForm({
 													min={1}
 													step={1}
 													description="Shown in acknowledgement email (example: 48 hours)."
-													isInvalid={field.state.meta.isTouched && !field.state.meta.isValid}
+													isInvalid={
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid
+													}
 													errors={field.state.meta.errors}
 												/>
 											)}
@@ -201,7 +224,9 @@ export function RegistrationFormRsvpSettingsForm({
 												<DateTimePickerField
 													label="Decision notice date (optional)"
 													value={field.state.value ?? undefined}
-													onChange={(value) => field.handleChange(value ?? null)}
+													onChange={(value) =>
+														field.handleChange(value ?? null)
+													}
 													disabled={mutation.isPending || !values.enabled}
 													placeholder="Optional"
 												/>
@@ -229,7 +254,9 @@ export function RegistrationFormRsvpSettingsForm({
 													label="Require RSVP confirmation"
 													description="If on, approved delegates must confirm RSVP before getting QR ticket."
 													checked={field.state.value}
-													onCheckedChange={(value) => field.handleChange(Boolean(value))}
+													onCheckedChange={(value) =>
+														field.handleChange(Boolean(value))
+													}
 													onBlur={field.handleBlur}
 													disabled={mutation.isPending || !values.enabled}
 													variant="no-rounded"
@@ -243,9 +270,15 @@ export function RegistrationFormRsvpSettingsForm({
 													label="RSVP link never expires"
 													description="Turn off to set RSVP link expiry in hours."
 													checked={field.state.value}
-													onCheckedChange={(value) => field.handleChange(Boolean(value))}
+													onCheckedChange={(value) =>
+														field.handleChange(Boolean(value))
+													}
 													onBlur={field.handleBlur}
-													disabled={mutation.isPending || !values.enabled || !values.rsvpRequired}
+													disabled={
+														mutation.isPending ||
+														!values.enabled ||
+														!values.rsvpRequired
+													}
 													variant="no-rounded"
 												/>
 											)}
@@ -259,12 +292,19 @@ export function RegistrationFormRsvpSettingsForm({
 														value={field.state.value}
 														onChange={field.handleChange}
 														onBlur={field.handleBlur}
-														disabled={mutation.isPending || !values.enabled || !values.rsvpRequired}
+														disabled={
+															mutation.isPending ||
+															!values.enabled ||
+															!values.rsvpRequired
+														}
 														inputType="number"
 														min={1}
 														step={1}
 														description="How long approved delegates can use the RSVP link."
-														isInvalid={field.state.meta.isTouched && !field.state.meta.isValid}
+														isInvalid={
+															field.state.meta.isTouched &&
+															!field.state.meta.isValid
+														}
 														errors={field.state.meta.errors}
 													/>
 												)}
@@ -278,7 +318,11 @@ export function RegistrationFormRsvpSettingsForm({
 				</FieldGroup>
 
 				<div className="mt-6 flex w-full justify-end">
-					<Button type="submit" className="rounded-none" disabled={mutation.isPending}>
+					<Button
+						type="submit"
+						className="rounded-none"
+						disabled={mutation.isPending}
+					>
 						{mutation.isPending ? "Saving..." : "Save Settings"}
 					</Button>
 				</div>

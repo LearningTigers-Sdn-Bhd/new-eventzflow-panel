@@ -69,7 +69,7 @@ export function useSlot({
 					// Let's check SlotItem type again.
 					prize: p,
 				}));
-		  })
+			})
 		: (participants || []).map((p) => ({
 				name: p.name,
 				id: p.publicId,

@@ -65,7 +65,11 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 	// Debounced live search as user types (only for name and phone)
 	useEffect(() => {
 		// Only do live search when in input step, not scanning, and not email (email requires exact match)
-		if (inputStep !== "input" || searchMethod === "scan" || searchMethod === "email") {
+		if (
+			inputStep !== "input" ||
+			searchMethod === "scan" ||
+			searchMethod === "email"
+		) {
 			return;
 		}
 
@@ -91,7 +95,12 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 			setIsSearching(true);
 
 			try {
-				const response = await checkIn(slug, searchMethod, currentSearchValue, checkInUrl);
+				const response = await checkIn(
+					slug,
+					searchMethod,
+					currentSearchValue,
+					checkInUrl,
+				);
 
 				// Only update if this is still the latest search
 				if (lastSearchRef.current === currentSearchValue) {
@@ -132,7 +141,12 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		setIsSearching(true);
 		setSearchError(null);
 		try {
-			const response = await checkIn(slug, searchMethod, searchValue.trim(), checkInUrl);
+			const response = await checkIn(
+				slug,
+				searchMethod,
+				searchValue.trim(),
+				checkInUrl,
+			);
 
 			if (response.action === "select") {
 				setSearchResults(response.attendees);
@@ -145,9 +159,10 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 			const message = error instanceof Error ? error.message : "Search failed";
 			// For email search, show inline error instead of toast
 			if (searchMethod === "email") {
-				setSearchError(message.includes("not found")
-					? "No registration found with this email address. Please check and try again."
-					: message
+				setSearchError(
+					message.includes("not found")
+						? "No registration found with this email address. Please check and try again."
+						: message,
 				);
 			} else {
 				toast.error(message);
@@ -173,7 +188,11 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 
 		setIsConfirming(true);
 		try {
-			const response = await confirmCheckIn(slug, selectedAttendee.public_id, checkInUrl);
+			const response = await confirmCheckIn(
+				slug,
+				selectedAttendee.public_id,
+				checkInUrl,
+			);
 
 			if (response.action === "checked_in") {
 				setSelectedAttendee(response.attendee);

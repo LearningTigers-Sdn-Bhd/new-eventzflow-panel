@@ -3,12 +3,12 @@
 import { Stamp } from "lucide-react";
 import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
-import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
 import { DataTable } from "@/components/pages/event-leads/lead-log-table";
+import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
 import { Button } from "@/components/ui/button";
+import { useEventLeads } from "@/hooks/use-event-leads";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { useEventLeads } from "@/hooks/use-event-leads";
 
 interface LeadLogsPageProps {
 	params: Promise<{ event_id: string }>;

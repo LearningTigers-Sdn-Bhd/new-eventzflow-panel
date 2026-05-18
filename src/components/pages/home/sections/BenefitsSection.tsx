@@ -22,7 +22,7 @@ const BenefitsSection: React.FC = () => {
 	return (
 		<section id="benefits" className="relative overflow-hidden">
 			{/* Marquee content */}
-			<div className="relative overflow-hidden bg-white py-6 border border-black">
+			<div className="relative overflow-hidden border border-black bg-white py-6">
 				<div className="flex">
 					<motion.div
 						className="flex shrink-0 whitespace-nowrap"
@@ -32,7 +32,7 @@ const BenefitsSection: React.FC = () => {
 							shouldReduceMotion
 								? undefined
 								: {
-										repeat: Infinity,
+										repeat: Number.POSITIVE_INFINITY,
 										repeatType: "loop",
 										duration: 40,
 										ease: "linear",
@@ -42,7 +42,7 @@ const BenefitsSection: React.FC = () => {
 						{tripleItems.map((item, index) => (
 							<span
 								key={index}
-								className="flex shrink-0 items-center font-black text-xl tracking-tight text-black sm:text-2xl md:text-4xl lg:text-5xl"
+								className="flex shrink-0 items-center font-black text-black text-xl tracking-tight sm:text-2xl md:text-4xl lg:text-5xl"
 							>
 								<span className="mx-6">{item}</span>
 								<span className="mx-6 text-brand-green">•</span>

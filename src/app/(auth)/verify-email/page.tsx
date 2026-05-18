@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/auth/use-auth";
-import type { Route } from "next";
 
 export default function VerifyEmailLandingPage() {
 	const router = useRouter();
@@ -23,7 +23,11 @@ export default function VerifyEmailLandingPage() {
 	}
 
 	const handleVerifyNow = () => {
-		router.push(redirectPath ? `/verify-email/now?redirect=${encodeURIComponent(redirectPath)}` : "/verify-email/now" as Route);
+		router.push(
+			redirectPath
+				? `/verify-email/now?redirect=${encodeURIComponent(redirectPath)}`
+				: ("/verify-email/now" as Route),
+		);
 	};
 
 	return (

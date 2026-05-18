@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import { getEventById } from "@/lib/api/event";
-import type { ImportResponse } from "@/lib/api/imports/response";
 import { importVisitors } from "@/lib/api/imports";
+import type { ImportResponse } from "@/lib/api/imports/response";
 
 type EventImportVisitorsFormProps = {
 	eventId: number;
@@ -151,10 +151,15 @@ export function EventImportVisitorsForm({
 
 			// Get custom field labels from event's labels_data
 			const customFieldLabels: string[] = [];
-			if (eventData?.labels_data && Object.keys(eventData.labels_data).length > 0) {
+			if (
+				eventData?.labels_data &&
+				Object.keys(eventData.labels_data).length > 0
+			) {
 				// labels_data format: { "role": "Role", "company": "Company" }
 				// We use the values (display names) as column headers
-				customFieldLabels.push(...Object.values(eventData.labels_data) as string[]);
+				customFieldLabels.push(
+					...(Object.values(eventData.labels_data) as string[]),
+				);
 			}
 
 			// Create template with base columns + custom field columns
@@ -244,7 +249,7 @@ export function EventImportVisitorsForm({
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6 pb-8">
 			{/* Download Template Button */}
-			<div className="flex justify-start px-2 md:px-4 pt-4">
+			<div className="flex justify-start px-2 pt-4 md:px-4">
 				<Button
 					type="button"
 					variant="outline"

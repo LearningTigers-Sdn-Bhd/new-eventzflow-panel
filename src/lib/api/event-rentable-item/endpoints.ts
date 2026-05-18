@@ -6,9 +6,9 @@ import {
 import type {
 	BackendEventRentableItem,
 	BackendEventRentableItemPriceTier,
+	DeleteEventRentableItemResponse,
 	EventRentableItem,
 	EventRentableItemPriceTier,
-	DeleteEventRentableItemResponse,
 } from "./response";
 
 // Transform backend price tier to frontend format
@@ -59,9 +59,8 @@ function transformEventRentableItem(
 					updatedAt: backend.rentable_item.updated_at,
 				}
 			: undefined,
-		eventRentableItemPriceTiers: backend.event_rentable_item_price_tiers?.map(
-			transformPriceTier,
-		),
+		eventRentableItemPriceTiers:
+			backend.event_rentable_item_price_tiers?.map(transformPriceTier),
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};

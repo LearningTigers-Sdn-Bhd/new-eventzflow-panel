@@ -53,8 +53,8 @@ import { AssetSidebar } from "@/components/plan/asset-sidebar";
 import {
 	DraggableGroup,
 	DraggableGuest,
-	GuestSidebar,
 	type GuestItem,
+	GuestSidebar,
 } from "@/components/plan/guest-sidebar";
 import { Inspector } from "@/components/plan/inspector";
 import { PlanCanvas } from "@/components/plan/plan-canvas";
@@ -69,6 +69,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -77,8 +79,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -283,8 +283,13 @@ export function PlanWorkshop({
 
 	const deleteAssignmentMutation = useMutation({
 		mutationFn: (data: { ticketId?: number; visitorId?: number }) => {
-			if (data.ticketId) return deleteAssignment(data.ticketId.toString(), plan.id.toString());
-			return deleteAssignment(data.visitorId!.toString(), plan.id.toString(), data.visitorId);
+			if (data.ticketId)
+				return deleteAssignment(data.ticketId.toString(), plan.id.toString());
+			return deleteAssignment(
+				data.visitorId!.toString(),
+				plan.id.toString(),
+				data.visitorId,
+			);
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
@@ -293,7 +298,8 @@ export function PlanWorkshop({
 	});
 
 	const deleteObjectsMutation = useMutation({
-		mutationFn: (ids: number[]) => batchDeletePlanObjects(plan.id.toString(), ids),
+		mutationFn: (ids: number[]) =>
+			batchDeletePlanObjects(plan.id.toString(), ids),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			setSelectedObjectIds([]);
@@ -304,7 +310,7 @@ export function PlanWorkshop({
 	const duplicateObjectsMutation = useMutation({
 		mutationFn: async (objects: PlanObject[]) => {
 			await savePendingChanges();
-			const duplicates = objects.map(obj => ({
+			const duplicates = objects.map((obj) => ({
 				object_type: obj.object_type,
 				layer: obj.layer,
 				x: obj.x + 20,
@@ -323,23 +329,29 @@ export function PlanWorkshop({
 		},
 		onSuccess: (newObjects) => {
 			console.log("[PlanWorkshop] Duplication success:", newObjects);
-			
+
 			// Select the newly created objects
 			if (newObjects && newObjects.length > 0) {
 				addObjects(newObjects); // Inject into local state immediately
-				setSelectedObjectIds(newObjects.map(obj => obj.id));
+				setSelectedObjectIds(newObjects.map((obj) => obj.id));
 			} else {
 				setSelectedObjectIds([]);
 			}
-			
+
 			// Background refetch to ensure everything is perfect
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			toast.success("Objects duplicated");
 		},
 		onError: (error: any) => {
-			console.error("[PlanWorkshop] Duplication failed:", error.response?.data || error.message);
-			toast.error("Duplication failed: " + (error.response?.data?.message || error.message));
-		}
+			console.error(
+				"[PlanWorkshop] Duplication failed:",
+				error.response?.data || error.message,
+			);
+			toast.error(
+				"Duplication failed: " +
+					(error.response?.data?.message || error.message),
+			);
+		},
 	});
 
 	const autoDistributeMutation = useMutation({
@@ -455,9 +467,14 @@ export function PlanWorkshop({
 			notes: string;
 		}) => {
 			if (data.ticketId)
-				return updateAssignment(data.ticketId, {
-					notes: data.notes,
-				}, undefined, plan.id.toString());
+				return updateAssignment(
+					data.ticketId,
+					{
+						notes: data.notes,
+					},
+					undefined,
+					plan.id.toString(),
+				);
 			if (data.visitorId)
 				return updateAssignment(
 					data.visitorId,
@@ -591,28 +608,24 @@ export function PlanWorkshop({
 		[deleteObjectsMutation],
 	);
 
-	const handleDeleteObjects = useCallback(
-		() => {
-			if (selectedObjectIds.length > 0) {
-				deleteObjectsMutation.mutate(selectedObjectIds);
-			}
-		},
-		[deleteObjectsMutation, selectedObjectIds],
-	);
+	const handleDeleteObjects = useCallback(() => {
+		if (selectedObjectIds.length > 0) {
+			deleteObjectsMutation.mutate(selectedObjectIds);
+		}
+	}, [deleteObjectsMutation, selectedObjectIds]);
 
-	const handleDuplicateObjects = useCallback(
-		() => {
-			if (selectedObjects.length > 0) {
-				duplicateObjectsMutation.mutate(selectedObjects);
-			}
-		},
-		[duplicateObjectsMutation, selectedObjects],
-	);
+	const handleDuplicateObjects = useCallback(() => {
+		if (selectedObjects.length > 0) {
+			duplicateObjectsMutation.mutate(selectedObjects);
+		}
+	}, [duplicateObjectsMutation, selectedObjects]);
 
 	const handleDeleteAssignment = useCallback(
 		(ids: { ticketId?: number; visitorId?: number }) => {
 			// Find the table this guest is assigned to
-			const key = ids.ticketId ? `ticket-${ids.ticketId}` : `visitor-${ids.visitorId}`;
+			const key = ids.ticketId
+				? `ticket-${ids.ticketId}`
+				: `visitor-${ids.visitorId}`;
 			const table = assignmentsMap.get(key);
 
 			if (table?.locked) {
@@ -873,7 +886,9 @@ export function PlanWorkshop({
 							<div
 								className={cn(
 									"mx-1 h-6 w-px",
-									isCalibrating ? "bg-slate-700" : "bg-slate-200 dark:bg-slate-800",
+									isCalibrating
+										? "bg-slate-700"
+										: "bg-slate-200 dark:bg-slate-800",
 								)}
 							/>
 
@@ -882,7 +897,9 @@ export function PlanWorkshop({
 									<h1
 										className={cn(
 											"max-w-[200px] truncate font-bold text-sm",
-											isCalibrating ? "text-white" : "text-slate-900 dark:text-slate-100",
+											isCalibrating
+												? "text-white"
+												: "text-slate-900 dark:text-slate-100",
 										)}
 									>
 										{plan.name}
@@ -903,7 +920,9 @@ export function PlanWorkshop({
 												<span
 													className={cn(
 														"font-bold text-[10px] uppercase tracking-tighter",
-														isCalibrating ? "text-slate-400" : "text-blue-700 dark:text-blue-400",
+														isCalibrating
+															? "text-slate-400"
+															: "text-blue-700 dark:text-blue-400",
 													)}
 												>
 													Syncing
@@ -1068,7 +1087,10 @@ export function PlanWorkshop({
 												Export
 											</Button>
 										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end" className="w-56 rounded-xl dark:border-slate-800 dark:bg-slate-900">
+										<DropdownMenuContent
+											align="end"
+											className="w-56 rounded-xl dark:border-slate-800 dark:bg-slate-900"
+										>
 											<DropdownMenuLabel className="font-black text-[10px] text-slate-400 uppercase tracking-widest dark:text-slate-500">
 												Reporting & Printing
 											</DropdownMenuLabel>
@@ -1211,28 +1233,29 @@ export function PlanWorkshop({
 												onUnassign={handleDeleteAssignment}
 											/>
 										)}
-										{activeTab === "inspector" && (selectedObject || selectedObjects.length > 1) && (
-											<Inspector
-												plan={plan}
-												selectedObjects={selectedObjects}
-												object={selectedObject}
-												onUpdate={handleUpdateObject}
-												onDelete={handleDeleteObject}
-												onBulkDelete={handleDeleteObjects}
-												onBulkDuplicate={handleDuplicateObjects}
-												onUpdatePlan={handleUpdatePlan}
-												onUploadObjectImage={handleUploadObjectImage}
-												onDeleteAssignment={handleDeleteAssignment}
-												onUpdateAssignmentNote={(data) =>
-													updateAssignmentNoteMutation.mutate(data)
-												}
-												onUpdateAssignmentStatus={(data) =>
-													updateAssignmentStatusMutation.mutate(data)
-												}
-												onEnterCalibration={() => setIsCalibrating(true)}
-												unit={unit}
-											/>
-										)}
+										{activeTab === "inspector" &&
+											(selectedObject || selectedObjects.length > 1) && (
+												<Inspector
+													plan={plan}
+													selectedObjects={selectedObjects}
+													object={selectedObject}
+													onUpdate={handleUpdateObject}
+													onDelete={handleDeleteObject}
+													onBulkDelete={handleDeleteObjects}
+													onBulkDuplicate={handleDuplicateObjects}
+													onUpdatePlan={handleUpdatePlan}
+													onUploadObjectImage={handleUploadObjectImage}
+													onDeleteAssignment={handleDeleteAssignment}
+													onUpdateAssignmentNote={(data) =>
+														updateAssignmentNoteMutation.mutate(data)
+													}
+													onUpdateAssignmentStatus={(data) =>
+														updateAssignmentStatusMutation.mutate(data)
+													}
+													onEnterCalibration={() => setIsCalibrating(true)}
+													unit={unit}
+												/>
+											)}
 										{activeTab === "settings" && (
 											<Inspector
 												plan={plan}
@@ -1382,7 +1405,8 @@ export function PlanWorkshop({
 							<div
 								className={cn(
 									"z-20 flex h-12 shrink-0 items-center gap-2 border-b bg-white px-4 transition-all duration-300 dark:border-slate-800 dark:bg-slate-900",
-									(selectedObject || selectedObjectIds.length > 1) && !isCalibrating
+									(selectedObject || selectedObjectIds.length > 1) &&
+										!isCalibrating
 										? "translate-y-0 opacity-100"
 										: "pointer-events-none absolute w-full -translate-y-full opacity-0",
 								)}
@@ -1392,9 +1416,10 @@ export function PlanWorkshop({
 										<div className="mr-2 flex items-center gap-2 border-r pr-4 dark:border-slate-800">
 											<Shapes className="h-4 w-4 text-slate-400 dark:text-slate-500" />
 											<span className="font-black text-[10px] text-slate-500 uppercase tracking-widest dark:text-slate-400">
-												{selectedObjectIds.length > 1 
-													? `${selectedObjectIds.length} Objects Selected` 
-													: (selectedObject?.label || selectedObject?.object_type)}
+												{selectedObjectIds.length > 1
+													? `${selectedObjectIds.length} Objects Selected`
+													: selectedObject?.label ||
+														selectedObject?.object_type}
 											</span>
 										</div>
 
@@ -1491,15 +1516,23 @@ export function PlanWorkshop({
 									onUpdateMultiplePositions={(updates) => {
 										batchUpdatePlanObjects(plan.id.toString(), updates);
 										// Also update local state for immediate feedback
-										updateObjects(updates.map(u => ({ id: u.id, updates: { x: u.x, y: u.y } })));
+										updateObjects(
+											updates.map((u) => ({
+												id: u.id,
+												updates: { x: u.x, y: u.y },
+											})),
+										);
 									}}
 									onResizeObject={(id, width, height, x, y) =>
 										handleUpdateObject(id, { width, height, x, y })
 									}
 									onDuplicateObjects={(ids) => {
-										const objectsToDuplicate = (plan.plan_objects || []).filter(obj => ids.includes(obj.id));
+										const objectsToDuplicate = (plan.plan_objects || []).filter(
+											(obj) => ids.includes(obj.id),
+										);
 										duplicateObjectsMutation.mutate(objectsToDuplicate);
-									}}									onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
+									}}
+									onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 									onUpdatePlan={(updates) => handleUpdatePlan(updates)}
 									onUpdateObject={handleUpdateObject}
 									onDeleteObject={handleDeleteObject}
@@ -1632,9 +1665,14 @@ export function PlanWorkshop({
 					{activeDragItem?.__dragType === "group" ? (
 						<div className="z-[100] scale-105 cursor-grabbing transition-transform">
 							<DraggableGroup
-								item={activeDragItem as unknown as SeatingGroup & { __dragType?: string }}
+								item={
+									activeDragItem as unknown as SeatingGroup & {
+										__dragType?: string;
+									}
+								}
 								isOverlay
-							/>						</div>
+							/>{" "}
+						</div>
 					) : activeDragItem ? (
 						<div className="z-[100] scale-105 cursor-grabbing transition-transform">
 							<DraggableGuest item={activeDragItem as GuestItem} isOverlay />

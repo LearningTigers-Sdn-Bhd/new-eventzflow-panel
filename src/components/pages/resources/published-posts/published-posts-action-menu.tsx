@@ -17,7 +17,9 @@ interface PublishedPostsActionMenuProps {
 	post: Resource;
 }
 
-export function PublishedPostsActionMenu({ post }: PublishedPostsActionMenuProps) {
+export function PublishedPostsActionMenu({
+	post,
+}: PublishedPostsActionMenuProps) {
 	const { handleArchive, handleDelete, handleRestore } = useResourceMutations({
 		resourceName: "Post",
 		queryKey: ["resources-owner"],

@@ -49,7 +49,8 @@ export async function getEmailDeliveries(
 	const validated = getEmailDeliveriesSchema.parse(data);
 	const searchParams = new URLSearchParams();
 
-	if (validated.eventId) searchParams.set("event_id", String(validated.eventId));
+	if (validated.eventId)
+		searchParams.set("event_id", String(validated.eventId));
 	if (validated.status) searchParams.set("status", validated.status);
 	if (validated.recipient) searchParams.set("recipient", validated.recipient);
 	if (validated.subject) searchParams.set("subject", validated.subject);

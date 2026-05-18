@@ -1,10 +1,7 @@
 import { CalendarIcon, MapPinIcon } from "lucide-react";
 import type { PublicEventInfo } from "@/lib/api/event/endpoints";
 import type { EventSeatSession } from "@/lib/api/seat-ticketing/response";
-import {
-	formatEventDateRange,
-	getUniqueLocations,
-} from "./utils";
+import { formatEventDateRange, getUniqueLocations } from "./utils";
 
 interface EventSeatReservationsHeaderProps {
 	event: PublicEventInfo | null;
@@ -19,13 +16,13 @@ export default function EventSeatReservationsHeader({
 	const locations = getUniqueLocations(sessions);
 
 	return (
-		<header className="w-full min-h-[220px] bg-brand-green px-4 py-10 text-white">
+		<header className="min-h-[220px] w-full bg-brand-green px-4 py-10 text-white">
 			<div className="container mx-auto max-w-7xl space-y-4">
-				<p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70 underline decoration-white/50 underline-offset-4">
+				<p className="font-semibold text-white/70 text-xs uppercase tracking-[0.2em] underline decoration-white/50 underline-offset-4">
 					Event Seat Reservations
 				</p>
 				<div className="space-y-2">
-					<h1 className="text-3xl font-black text-white uppercase tracking-tight md:text-4xl">
+					<h1 className="font-black text-3xl text-white uppercase tracking-tight md:text-4xl">
 						{event?.title ?? "Seat Reservations"}
 					</h1>
 					{event?.description && (
@@ -39,26 +36,26 @@ export default function EventSeatReservationsHeader({
 						<div className="flex flex-col gap-1">
 							<div className="flex items-end gap-2">
 								<CalendarIcon className="h-4 w-4" />
-								<span className="text-xs font-semibold uppercase text-white/70 leading-none">
+								<span className="font-semibold text-white/70 text-xs uppercase leading-none">
 									Dates
 								</span>
 							</div>
-							<span className="text-sm font-mono uppercase">{dateRange}</span>
+							<span className="font-mono text-sm uppercase">{dateRange}</span>
 						</div>
 					)}
-				{locations.length > 0 && (
-					<div className="flex flex-col gap-1">
-						<div className="flex items-end gap-2">
-							<MapPinIcon className="h-4 w-4" />
-							<span className="text-xs font-semibold uppercase text-white/70 leading-none">
-								Locations
+					{locations.length > 0 && (
+						<div className="flex flex-col gap-1">
+							<div className="flex items-end gap-2">
+								<MapPinIcon className="h-4 w-4" />
+								<span className="font-semibold text-white/70 text-xs uppercase leading-none">
+									Locations
+								</span>
+							</div>
+							<span className="font-mono text-sm uppercase">
+								{locations.join(", ")}
 							</span>
 						</div>
-						<span className="text-sm font-mono uppercase">
-							{locations.join(", ")}
-						</span>
-					</div>
-				)}
+					)}
 				</div>
 			</div>
 		</header>

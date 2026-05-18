@@ -4,8 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { CopyCell } from "@/components/admin-ui/table/cell/copy-cell";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 import { SeatSessionActionMenu } from "./seat-session-action-menu";
 import { getSessionStatusConfig } from "./utils";
 
@@ -34,9 +34,7 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 	{
 		accessorKey: "location",
 		size: 200,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Location" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="Location" />,
 		cell: ({ row }) => {
 			const location = row.getValue("location") as string | null | undefined;
 			return (
@@ -54,9 +52,7 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 	{
 		accessorKey: "start_datetime",
 		size: 200,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Start" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="Start" />,
 		cell: ({ row }) => (
 			<div className="font-medium">
 				{formatDateTime(row.getValue("start_datetime"))}
@@ -66,9 +62,7 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 	{
 		accessorKey: "end_datetime",
 		size: 200,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="End" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="End" />,
 		cell: ({ row }) => (
 			<div className="font-medium">
 				{formatDateTime(row.getValue("end_datetime"))}
@@ -78,9 +72,7 @@ export const columns: ColumnDef<SeatSessionRow>[] = [
 	{
 		id: "status",
 		size: 160,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Status" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="Status" />,
 		accessorFn: (row) => row.status,
 		cell: ({ row }) => {
 			const statusConfig = getSessionStatusConfig(row.original.status);

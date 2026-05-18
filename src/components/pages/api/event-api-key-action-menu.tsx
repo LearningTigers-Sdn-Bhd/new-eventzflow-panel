@@ -20,7 +20,10 @@ interface EventApiKeyActionsMenuProps {
 	apiKey: ApiKey;
 }
 
-export function EventApiKeyActionsMenu({ eventId, apiKey }: EventApiKeyActionsMenuProps) {
+export function EventApiKeyActionsMenu({
+	eventId,
+	apiKey,
+}: EventApiKeyActionsMenuProps) {
 	const { openDialog, closeDialog } = useDialog();
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -31,7 +34,8 @@ export function EventApiKeyActionsMenu({ eventId, apiKey }: EventApiKeyActionsMe
 			props: { eventId, apiKey, onClose: closeDialog },
 			config: {
 				title: "Revoke API Key",
-				description: "Are you sure you want to revoke this API key? This action cannot be undone.",
+				description:
+					"Are you sure you want to revoke this API key? This action cannot be undone.",
 				size: "md",
 			},
 		});
@@ -48,7 +52,10 @@ export function EventApiKeyActionsMenu({ eventId, apiKey }: EventApiKeyActionsMe
 			<DropdownMenuContent align="end">
 				<DropdownMenuLabel>Actions</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600">
+				<DropdownMenuItem
+					onClick={handleDelete}
+					className="text-red-600 focus:text-red-600"
+				>
 					<Trash2 className="mr-2 h-4 w-4" />
 					Revoke Key
 				</DropdownMenuItem>

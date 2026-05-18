@@ -28,7 +28,10 @@ import { useDialog } from "@/hooks/use-dialog";
 import SeatSessionCreateModal from "./form-modals/seat-session-create-modal";
 import { SeatSessionItem } from "./seat-session-items";
 import type { SeatSessionRow } from "./seat-session-table-columns";
-import { DataControl, type SeatSessionFilter } from "./seat-session-table-control";
+import {
+	DataControl,
+	type SeatSessionFilter,
+} from "./seat-session-table-control";
 
 interface ClickableRowConfig<TData> {
 	isEnabled: boolean;
@@ -132,17 +135,19 @@ export function SeatSessionTable<TData, TValue>({
 					<MobileView>
 						<div className="space-y-2">
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<SeatSessionItem
-										key={row.id}
-										session={row.original as SeatSessionRow}
-										onClick={
-											clickableRowConfig?.isEnabled
-												? () => clickableRowConfig.onRowClick?.(row.original)
-												: undefined
-										}
-									/>
-								))
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<SeatSessionItem
+											key={row.id}
+											session={row.original as SeatSessionRow}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
+										/>
+									))
 							) : (
 								<EmptyState
 									title="No seat sessions found"

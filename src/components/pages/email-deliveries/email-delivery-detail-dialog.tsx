@@ -9,12 +9,12 @@ import {
 	Copy,
 	ExternalLink,
 	Hash,
+	type LucideIcon,
 	Mail,
 	RefreshCcw,
 	Send,
 	ShieldAlert,
 	User,
-	type LucideIcon,
 } from "lucide-react";
 import { LoadingState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
@@ -37,10 +37,7 @@ interface EmailDeliveryDetailDialogProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-const statusConfig: Record<
-	string,
-	{ color: string; label: string }
-> = {
+const statusConfig: Record<string, { color: string; label: string }> = {
 	queued: {
 		color: "bg-slate-500 text-white border-transparent",
 		label: "Queued",
@@ -95,13 +92,13 @@ export function EmailDeliveryDetailDialog({
 	) => {
 		const Icon = icon;
 		return (
-		<div className="flex flex-col gap-1">
-			<span className="flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
-				{Icon && <Icon className="h-3 w-3" />}
-				{label}
-			</span>
-			<div className="text-sm font-medium">{value || "-"}</div>
-		</div>
+			<div className="flex flex-col gap-1">
+				<span className="flex items-center gap-1.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+					{Icon && <Icon className="h-3 w-3" />}
+					{label}
+				</span>
+				<div className="font-medium text-sm">{value || "-"}</div>
+			</div>
 		);
 	};
 
@@ -109,10 +106,12 @@ export function EmailDeliveryDetailDialog({
 		if (!date) return null;
 		const d = new Date(date);
 		return (
-			<div className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-				<span className="text-muted-foreground text-xs font-medium">{label}</span>
+			<div className="flex items-center justify-between border-border/50 border-b py-2 last:border-0">
+				<span className="font-medium text-muted-foreground text-xs">
+					{label}
+				</span>
 				<div className="text-right">
-					<div className="text-xs font-semibold">{d.toLocaleDateString()}</div>
+					<div className="font-semibold text-xs">{d.toLocaleDateString()}</div>
 					<div className="text-[10px] text-muted-foreground">
 						{d.toLocaleTimeString()}
 					</div>
@@ -123,8 +122,8 @@ export function EmailDeliveryDetailDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl p-0 gap-0 rounded-none">
-				<DialogHeader className="p-6 pb-4 border-b">
+			<DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-none p-0 sm:max-w-3xl">
+				<DialogHeader className="border-b p-6 pb-4">
 					<div className="flex items-center justify-between pr-8">
 						<div className="space-y-1">
 							<div className="flex items-center gap-2">
@@ -168,43 +167,43 @@ export function EmailDeliveryDetailDialog({
 						/>
 					</div>
 				) : (
-					<div className="p-6 space-y-8">
+					<div className="space-y-8 p-6">
 						{/* Error Section */}
 						{(data.lastError || data.failureReason) && (
-							<div className="bg-red-50 border border-red-200 rounded-none p-4 flex gap-3">
-								<AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+							<div className="flex gap-3 rounded-none border border-red-200 bg-red-50 p-4">
+								<AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
 								<div className="space-y-1">
-									<h4 className="text-sm font-bold text-red-800">
+									<h4 className="font-bold text-red-800 text-sm">
 										Delivery Error
 									</h4>
-									<p className="text-sm text-red-700 font-mono break-all">
+									<p className="break-all font-mono text-red-700 text-sm">
 										{data.lastError || data.failureReason}
 									</p>
 								</div>
 							</div>
 						)}
 
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+						<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
 							{/* Left Column: Metadata & Details */}
-							<div className="md:col-span-2 space-y-8">
+							<div className="space-y-8 md:col-span-2">
 								<section className="space-y-4">
-									<h3 className="text-sm font-bold flex items-center gap-2">
+									<h3 className="flex items-center gap-2 font-bold text-sm">
 										<Hash className="h-4 w-4 text-primary" />
 										Metadata
 									</h3>
-									<div className="grid grid-cols-2 gap-6 bg-muted/30 p-4 rounded-none border border-border/50">
+									<div className="grid grid-cols-2 gap-6 rounded-none border border-border/50 bg-muted/30 p-4">
 										{renderInfoRow("Provider", data.provider)}
 										{renderInfoRow(
 											"Provider ID",
-											<div className="flex items-center gap-2 group">
-												<span className="truncate max-w-[150px] font-mono text-xs">
+											<div className="group flex items-center gap-2">
+												<span className="max-w-[150px] truncate font-mono text-xs">
 													{data.providerMessageId}
 												</span>
 												{data.providerMessageId && (
 													<Button
 														variant="ghost"
 														size="icon"
-														className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+														className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
 														onClick={() =>
 															copyToClipboard(data.providerMessageId || "")
 														}
@@ -217,7 +216,7 @@ export function EmailDeliveryDetailDialog({
 										{renderInfoRow(
 											"Related To",
 											data.relatedType && (
-												<div className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
+												<div className="flex cursor-pointer items-center gap-1 text-primary hover:underline">
 													<span>
 														{data.relatedType} #{data.relatedId}
 													</span>
@@ -230,7 +229,7 @@ export function EmailDeliveryDetailDialog({
 											<div className="flex flex-col">
 												<span>Count: {data.retryCount}</span>
 												{data.nextRetryAt && (
-													<span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+													<span className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
 														<Clock className="h-3 w-3" />
 														Next: {new Date(data.nextRetryAt).toLocaleString()}
 													</span>
@@ -241,28 +240,28 @@ export function EmailDeliveryDetailDialog({
 								</section>
 
 								<section className="space-y-4">
-									<h3 className="text-sm font-bold flex items-center gap-2">
+									<h3 className="flex items-center gap-2 font-bold text-sm">
 										<Mail className="h-4 w-4 text-primary" />
 										Content & Recipients
 									</h3>
 									<div className="space-y-4">
 										<div className="space-y-1">
-											<span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
+											<span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 												Subject
 											</span>
-											<p className="text-base font-medium leading-tight">
+											<p className="font-medium text-base leading-tight">
 												{data.subject || "(No Subject)"}
 											</p>
 										</div>
 
 										<div className="grid grid-cols-1 gap-4">
 											<div className="flex items-start gap-3">
-												<div className="mt-1 bg-primary/10 p-1.5 rounded-full">
+												<div className="mt-1 rounded-full bg-primary/10 p-1.5">
 													<User className="h-3.5 w-3.5 text-primary" />
 												</div>
 												<div className="flex-1 space-y-2">
 													<div>
-														<span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">
+														<span className="mb-0.5 block font-bold text-[10px] text-muted-foreground uppercase">
 															To
 														</span>
 														<div className="flex flex-wrap gap-1.5">
@@ -270,13 +269,13 @@ export function EmailDeliveryDetailDialog({
 																<Badge
 																	key={email}
 																	variant="secondary"
-																	className="font-normal text-xs rounded-none"
+																	className="rounded-none font-normal text-xs"
 																>
 																	{email}
 																</Badge>
 															))}
 															{data.recipients.to.length === 0 && (
-																<span className="text-xs text-muted-foreground italic">
+																<span className="text-muted-foreground text-xs italic">
 																	None
 																</span>
 															)}
@@ -285,7 +284,7 @@ export function EmailDeliveryDetailDialog({
 
 													{data.recipients.cc.length > 0 && (
 														<div>
-															<span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">
+															<span className="mb-0.5 block font-bold text-[10px] text-muted-foreground uppercase">
 																Cc
 															</span>
 															<div className="flex flex-wrap gap-1.5">
@@ -293,7 +292,7 @@ export function EmailDeliveryDetailDialog({
 																	<Badge
 																		key={email}
 																		variant="outline"
-																		className="font-normal text-xs rounded-none"
+																		className="rounded-none font-normal text-xs"
 																	>
 																		{email}
 																	</Badge>
@@ -304,15 +303,15 @@ export function EmailDeliveryDetailDialog({
 
 													{data.recipients.bcc.length > 0 && (
 														<div>
-															<span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">
-															Bcc
+															<span className="mb-0.5 block font-bold text-[10px] text-muted-foreground uppercase">
+																Bcc
 															</span>
 															<div className="flex flex-wrap gap-1.5">
 																{data.recipients.bcc.map((email) => (
 																	<Badge
 																		key={email}
 																		variant="outline"
-																		className="font-normal text-xs italic rounded-none"
+																		className="rounded-none font-normal text-xs italic"
 																	>
 																		{email}
 																	</Badge>
@@ -329,8 +328,8 @@ export function EmailDeliveryDetailDialog({
 
 							{/* Right Column: Timeline */}
 							<div className="space-y-6">
-								<section className="bg-muted/30 rounded-none border p-4 space-y-4">
-									<h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+								<section className="space-y-4 rounded-none border bg-muted/30 p-4">
+									<h3 className="flex items-center gap-2 font-bold text-muted-foreground text-xs uppercase tracking-widest">
 										<Calendar className="h-3.5 w-3.5" />
 										Timeline
 									</h3>
@@ -346,14 +345,14 @@ export function EmailDeliveryDetailDialog({
 
 									<Separator className="my-4" />
 
-									<div className="flex items-center justify-between text-[10px] text-muted-foreground font-medium">
+									<div className="flex items-center justify-between font-medium text-[10px] text-muted-foreground">
 										<span>Last Updated</span>
 										<span>{new Date(data.updatedAt).toLocaleString()}</span>
 									</div>
 								</section>
 
 								{data.resendOfId && (
-									<div className="bg-orange-50/50 border border-orange-100 rounded-none p-3 flex items-center gap-2 text-xs">
+									<div className="flex items-center gap-2 rounded-none border border-orange-100 bg-orange-50/50 p-3 text-xs">
 										<RefreshCcw className="h-3.5 w-3.5 text-orange-500" />
 										<span className="text-orange-700">
 											Resend of <strong>#{data.resendOfId}</strong>
@@ -367,5 +366,4 @@ export function EmailDeliveryDetailDialog({
 			</DialogContent>
 		</Dialog>
 	);
-
 }

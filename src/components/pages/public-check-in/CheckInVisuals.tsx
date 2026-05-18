@@ -12,21 +12,22 @@ export const NoiseTexture = () => (
 export const GridBackground = () => (
 	<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
 		{/* Secondary Large Grid */}
-		<div 
-			className="absolute inset-0 opacity-[0.05]" 
-			style={{ 
-				backgroundImage: `linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)`,
-				backgroundSize: '128px 128px'
-			}} 
+		<div
+			className="absolute inset-0 opacity-[0.05]"
+			style={{
+				backgroundImage:
+					"linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)",
+				backgroundSize: "128px 128px",
+			}}
 		/>
 
 		{/* Primary Blueprint Dotted Grid */}
-		<div 
-			className="absolute inset-0 opacity-[0.15]" 
-			style={{ 
-				backgroundImage: `radial-gradient(#000 0.5px, transparent 0.5px)`,
-				backgroundSize: '32px 32px'
-			}} 
+		<div
+			className="absolute inset-0 opacity-[0.15]"
+			style={{
+				backgroundImage: "radial-gradient(#000 0.5px, transparent 0.5px)",
+				backgroundSize: "32px 32px",
+			}}
 		/>
 
 		{/* Technical Text Fragments */}
@@ -45,11 +46,11 @@ export const GridBackground = () => (
 		<div className="absolute top-0 left-1/2 h-full w-px bg-neutral-200/40" />
 
 		{/* Animated Scan Line */}
-		<div 
+		<div
 			className="absolute left-0 h-[2px] w-full bg-brand-green/10 blur-sm"
 			style={{
-				animation: 'scan 8s linear infinite',
-				top: '-10%'
+				animation: "scan 8s linear infinite",
+				top: "-10%",
 			}}
 		/>
 		<style jsx global>{`

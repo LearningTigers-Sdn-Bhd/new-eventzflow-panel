@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Volume2, Play, Activity } from "lucide-react";
+import { Activity, Loader2, Play, Volume2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { WelcomeScreenView } from "@/components/welcome-screen/welcome-screen-view";
 import { DEFAULT_VOICE, useTTS, type VoiceId } from "@/hooks/use-tts";
 import { useWelcomeScreenChannel } from "@/hooks/use-welcome-screen-channel";
@@ -12,7 +13,6 @@ import type { CheckInBroadcast } from "@/lib/api/check-in-display/types";
 import { getPublicPlan } from "@/lib/api/plan";
 import { DEFAULT_FONT, getGoogleFontsUrl } from "@/lib/fonts";
 import { getVoiceById } from "@/lib/tts";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const STALE_TIME_MS = 1000 * 60 * 5;
@@ -29,14 +29,18 @@ function getCheckInId(checkIn: CheckInBroadcast): string {
 export default function WelcomeScreenPage() {
 	const params = useParams();
 	const slug = params.slug as string;
-	
-	const [announcementQueue, setAnnouncementQueue] = useState<CheckInBroadcast[]>([]);
-	const [activeCheckIn, setActiveCheckIn] = useState<CheckInBroadcast | null>(null);
-	
+
+	const [announcementQueue, setAnnouncementQueue] = useState<
+		CheckInBroadcast[]
+	>([]);
+	const [activeCheckIn, setActiveCheckIn] = useState<CheckInBroadcast | null>(
+		null,
+	);
+
 	const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 	const [isStarted, setIsStarted] = useState(false);
 	const [isAnnouncing, setIsAnnouncing] = useState(false);
-	
+
 	const seenAnnouncementIdsRef = useRef(new Set<string>());
 	const isMountedRef = useRef(true);
 	const annVideoRef = useRef<HTMLVideoElement>(null);
@@ -63,9 +67,11 @@ export default function WelcomeScreenPage() {
 	});
 
 	const eventId = settings?.event?.id ?? null;
-	const { latestCheckIn, queueSize, isConnected } = useWelcomeScreenChannel(eventId);
+	const { latestCheckIn, queueSize, isConnected } =
+		useWelcomeScreenChannel(eventId);
 
-	const resolvedVoiceId: VoiceId = settings?.voice_type && getVoiceById(settings.voice_type)
+	const resolvedVoiceId: VoiceId =
+		settings?.voice_type && getVoiceById(settings.voice_type)
 			? (settings.voice_type as VoiceId)
 			: DEFAULT_VOICE;
 
@@ -79,11 +85,13 @@ export default function WelcomeScreenPage() {
 	const handleStart = async () => {
 		setIsStarted(true);
 		try {
-			if ('wakeLock' in navigator) {
-				wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+			if ("wakeLock" in navigator) {
+				wakeLockRef.current = await (navigator as any).wakeLock.request(
+					"screen",
+				);
 			}
 		} catch (e) {}
-		
+
 		// Unlock Audio Context
 		if (voiceEnabled) speak("").catch(() => {});
 	};
@@ -106,31 +114,40 @@ export default function WelcomeScreenPage() {
 
 	// Process the queue
 	useEffect(() => {
-		if (!isStarted || isProcessingQueue || announcementQueue.length === 0) return;
-		
+		if (!isStarted || isProcessingQueue || announcementQueue.length === 0)
+			return;
+
 		const processAnnouncement = async () => {
 			setIsProcessingQueue(true);
 			const nextCheckIn = announcementQueue[0];
-			
+
 			// 1. START ANNOUNCEMENT STATE
 			setActiveCheckIn(nextCheckIn);
 			setIsAnnouncing(true);
 
 			let textToSpeak = "";
 			const welcomeText = settings?.welcome_text || "Welcome";
-			
-			if (settings?.show_seating_plan && nextCheckIn.seating_context && nextCheckIn.seating_context.table_label) {
-				const template = settings?.seating_announcement_template || "Welcome, #{name}. You are at #{table_label}.";
+
+			if (
+				settings?.show_seating_plan &&
+				nextCheckIn.seating_context &&
+				nextCheckIn.seating_context.table_label
+			) {
+				const template =
+					settings?.seating_announcement_template ||
+					"Welcome, #{name}. You are at #{table_label}.";
 				textToSpeak = template
 					.replace("#{name}", nextCheckIn.name)
 					.replace("#{table_label}", nextCheckIn.seating_context.table_label);
 			} else {
-				const tableSuffix = nextCheckIn.table_label ? `. ${nextCheckIn.table_label}` : "";
+				const tableSuffix = nextCheckIn.table_label
+					? `. ${nextCheckIn.table_label}`
+					: "";
 				textToSpeak = `${welcomeText}, ${nextCheckIn.name}${tableSuffix}`;
 			}
-			
+
 			// 2. TRIGGER MEDIA
-			if (settings?.announcement_mode === 'video' && annVideoRef.current) {
+			if (settings?.announcement_mode === "video" && annVideoRef.current) {
 				annVideoRef.current.currentTime = 0;
 				annVideoRef.current.play().catch(() => {});
 			}
@@ -141,17 +158,18 @@ export default function WelcomeScreenPage() {
 			}
 
 			// 4. HOLD STATE FOR DURATION
-			const hasSeatingPlan = settings?.show_seating_plan && nextCheckIn.seating_context;
-			const defaultDuration = hasSeatingPlan 
-				? (settings?.seating_plan_duration || 8000) 
-				: (settings?.announcement_duration || 5000);
-			
+			const hasSeatingPlan =
+				settings?.show_seating_plan && nextCheckIn.seating_context;
+			const defaultDuration = hasSeatingPlan
+				? settings?.seating_plan_duration || 8000
+				: settings?.announcement_duration || 5000;
+
 			await wait(defaultDuration);
 
 			// 5. CLEANUP & RESET TO IDLE
 			setIsAnnouncing(false);
 			await wait(800); // Wait for fade-out transition
-			
+
 			if (isMountedRef.current) {
 				setAnnouncementQueue((prev) => prev.slice(1));
 				setIsProcessingQueue(false);
@@ -160,11 +178,28 @@ export default function WelcomeScreenPage() {
 		};
 
 		void processAnnouncement();
-	}, [announcementQueue, settings, isProcessingQueue, isStarted, speak, voiceEnabled]);
+	}, [
+		announcementQueue,
+		settings,
+		isProcessingQueue,
+		isStarted,
+		speak,
+		voiceEnabled,
+	]);
 
-	if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-[#1a1a2e]"><Loader2 className="h-12 w-12 animate-spin text-white" /></div>;
+	if (isLoading)
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-[#1a1a2e]">
+				<Loader2 className="h-12 w-12 animate-spin text-white" />
+			</div>
+		);
 
-	if (error || !settings) return <div className="flex min-h-screen items-center justify-center bg-[#1a1a2e] text-white">Error loading screen.</div>;
+	if (error || !settings)
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-[#1a1a2e] text-white">
+				Error loading screen.
+			</div>
+		);
 
 	return (
 		<div className="h-full w-full">
@@ -174,13 +209,21 @@ export default function WelcomeScreenPage() {
 				<div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1a2e]/95 backdrop-blur-md">
 					<div className="max-w-md p-8 text-center text-white">
 						<div className="mb-6 flex justify-center">
-							<div className="relative h-20 w-20 flex items-center justify-center rounded-full bg-primary animate-pulse">
-								<Play className="h-8 w-8 fill-white ml-1" />
+							<div className="relative flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-primary">
+								<Play className="ml-1 h-8 w-8 fill-white" />
 							</div>
 						</div>
-						<h2 className="mb-2 font-black text-3xl tracking-tight uppercase">Ready for Check-In</h2>
-						<p className="mb-8 font-medium text-slate-400">Activate the premium welcome display for this event.</p>
-						<Button size="lg" onClick={handleStart} className="h-14 w-full rounded-full bg-white font-black text-black hover:bg-slate-100 shadow-2xl">
+						<h2 className="mb-2 font-black text-3xl uppercase tracking-tight">
+							Ready for Check-In
+						</h2>
+						<p className="mb-8 font-medium text-slate-400">
+							Activate the premium welcome display for this event.
+						</p>
+						<Button
+							size="lg"
+							onClick={handleStart}
+							className="h-14 w-full rounded-full bg-white font-black text-black shadow-2xl hover:bg-slate-100"
+						>
 							Initialize Screen
 						</Button>
 					</div>
@@ -189,11 +232,18 @@ export default function WelcomeScreenPage() {
 
 			<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
 				{isAnnouncing && (
-					<div className="flex items-center gap-2 rounded-full bg-[#00C4CC]/80 px-3 py-1 text-white text-[10px] font-bold uppercase animate-pulse">
+					<div className="flex animate-pulse items-center gap-2 rounded-full bg-[#00C4CC]/80 px-3 py-1 font-bold text-[10px] text-white uppercase">
 						<Activity className="h-3 w-3" /> <span>Announcing</span>
 					</div>
 				)}
-				<div className={cn("h-3 w-3 rounded-full shadow-[0_0_8px]", isConnected ? "bg-green-500 shadow-green-500/50" : "bg-red-500 shadow-red-500/50")} />
+				<div
+					className={cn(
+						"h-3 w-3 rounded-full shadow-[0_0_8px]",
+						isConnected
+							? "bg-green-500 shadow-green-500/50"
+							: "bg-red-500 shadow-red-500/50",
+					)}
+				/>
 			</div>
 
 			<WelcomeScreenView
@@ -206,18 +256,14 @@ export default function WelcomeScreenPage() {
 				isBold={settings.is_bold || false}
 				nameColor={settings.name_color || "#FFFFFF"}
 				welcomeText={settings.welcome_text || "Welcome"}
-				
 				showSeatingPlan={settings.show_seating_plan}
 				seatingPlanSidebarPosition={settings.seating_plan_sidebar_position}
-
 				idleMode={settings.idle_mode as any}
 				announcementMode={settings.announcement_mode as any}
-				
 				idleImageUrl={settings.background_image_url}
 				idleVideoUrl={settings.idle_video_url}
 				announcementImageUrl={settings.announcement_image_url}
 				announcementVideoUrl={settings.announcement_video_url}
-				
 				isAnnouncing={isAnnouncing}
 				announcementVideoRef={annVideoRef}
 			/>

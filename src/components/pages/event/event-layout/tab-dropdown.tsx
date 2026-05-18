@@ -15,7 +15,12 @@ interface TabDropdownProps {
 	onTabChange: (route: string) => void;
 }
 
-export function TabDropdown({ item, isActive, tabs, onTabChange }: TabDropdownProps) {
+export function TabDropdown({
+	item,
+	isActive,
+	tabs,
+	onTabChange,
+}: TabDropdownProps) {
 	const IconComponent = item.icon;
 
 	return (
@@ -27,7 +32,8 @@ export function TabDropdown({ item, isActive, tabs, onTabChange }: TabDropdownPr
 						"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1 whitespace-nowrap border border-transparent px-2 py-1 font-medium text-foreground text-sm lg:gap-1.5",
 						"focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 						"dark:text-muted-foreground",
-						isActive && "bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
+						isActive &&
+							"bg-background shadow-sm dark:border-input dark:bg-input/30 dark:text-foreground",
 					)}
 				>
 					<IconComponent className="size-5 lg:size-4" />

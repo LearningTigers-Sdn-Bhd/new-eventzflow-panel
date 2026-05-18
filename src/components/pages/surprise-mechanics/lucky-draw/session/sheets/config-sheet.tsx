@@ -4,7 +4,6 @@ import { useForm } from "@tanstack/react-form";
 import { Save, Settings } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { FaGift } from "react-icons/fa";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MdCasino } from "react-icons/md";
 import { RxColorWheel } from "react-icons/rx";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Select,
 	SelectContent,
@@ -35,7 +36,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import type { DrawStyle } from "@/stores/lucky-draw-store";
-import { FieldGroup } from "@/components/ui/field";
 
 interface ConfigSheetProps {
 	open: boolean;
@@ -238,71 +238,75 @@ export function ConfigSheet({
 				>
 					<ScrollArea className="h-[calc(100vh-180px)] px-4 pb-4">
 						<div className="flex flex-col gap-6">
-						<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
-							<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
-								<CardTitle className="text-base">Draw Configuration</CardTitle>
-								<CardDescription className="text-sm">
-									Control how winners are selected.
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6 bg-background py-4">
-								<form.Field name="drawStyle">
-									{(field) => (
-										<div className="grid grid-cols-3 gap-4">
-											<div className="col-span-2">
-												<p className="font-semibold">Draw Style</p>
-												<p className="text-balance text-muted-foreground text-sm">
-													Choose the animation for the draw screen.
-												</p>
+							<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
+								<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
+									<CardTitle className="text-base">
+										Draw Configuration
+									</CardTitle>
+									<CardDescription className="text-sm">
+										Control how winners are selected.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6 bg-background py-4">
+									<form.Field name="drawStyle">
+										{(field) => (
+											<div className="grid grid-cols-3 gap-4">
+												<div className="col-span-2">
+													<p className="font-semibold">Draw Style</p>
+													<p className="text-balance text-muted-foreground text-sm">
+														Choose the animation for the draw screen.
+													</p>
+												</div>
+												<div className="col-span-1 flex items-center justify-end">
+													<Select
+														value={field.state.value}
+														onValueChange={(value) => {
+															const newStyle = value as DrawStyle;
+															field.handleChange(newStyle);
+															// Reset theme to wireframe when switching to box style if current theme is colorful or cartoon
+															const currentTheme = form.state.values.drawTheme;
+															if (false) {
+																// Box now supports all themes - no reset needed
+															}
+														}}
+														disabled={isLoadingConfig}
+													>
+														<SelectTrigger className="w-full rounded-none bg-background">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent className="rounded-none border-none">
+															<SelectItem
+																value="wheel"
+																className="rounded-none"
+															>
+																<div className="flex items-center gap-2">
+																	<RxColorWheel className="h-4 w-4" />
+																	<span>Wheel</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="slot" className="rounded-none">
+																<div className="flex items-center gap-2">
+																	<MdCasino className="h-4 w-4" />
+																	<span>Slot Machine</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="box" className="rounded-none">
+																<div className="flex items-center gap-2">
+																	<FaGift className="h-4 w-4" />
+																	<span>Mystery Box</span>
+																</div>
+															</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
 											</div>
-											<div className="col-span-1 flex items-center justify-end">
-												<Select
-													value={field.state.value}
-													onValueChange={(value) => {
-														const newStyle = value as DrawStyle;
-														field.handleChange(newStyle);
-														// Reset theme to wireframe when switching to box style if current theme is colorful or cartoon
-														const currentTheme = form.state.values.drawTheme;
-														if (
-															false) {
-															// Box now supports all themes - no reset needed
-														}
-													}}
-													disabled={isLoadingConfig}
-												>
-													<SelectTrigger className="w-full rounded-none bg-background">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent className="rounded-none border-none">
-														<SelectItem value="wheel" className="rounded-none">
-															<div className="flex items-center gap-2">
-																<RxColorWheel className="h-4 w-4" />
-																<span>Wheel</span>
-															</div>
-														</SelectItem>
-														<SelectItem value="slot" className="rounded-none">
-															<div className="flex items-center gap-2">
-																<MdCasino className="h-4 w-4" />
-																<span>Slot Machine</span>
-															</div>
-														</SelectItem>
-														<SelectItem value="box" className="rounded-none">
-															<div className="flex items-center gap-2">
-																<FaGift className="h-4 w-4" />
-																<span>Mystery Box</span>
-															</div>
-														</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-										</div>
-									)}
-								</form.Field>
-								<form.Subscribe selector={(state) => state.values.drawStyle}>
-									{(drawStyleValue) => (
-										<form.Field name="drawTheme">
-											{(field) => (
-												<div className="grid grid-cols-3 gap-4">
+										)}
+									</form.Field>
+									<form.Subscribe selector={(state) => state.values.drawStyle}>
+										{(drawStyleValue) => (
+											<form.Field name="drawTheme">
+												{(field) => (
+													<div className="grid grid-cols-3 gap-4">
 														<div className="col-span-2">
 															<p className="font-semibold">Draw Theme</p>
 															<p className="text-balance text-muted-foreground text-sm">
@@ -347,218 +351,221 @@ export function ConfigSheet({
 																</SelectContent>
 															</Select>
 														</div>
+													</div>
+												)}
+											</form.Field>
+										)}
+									</form.Subscribe>
+									<form.Field name="useGifts">
+										{(field) => (
+											<div className="grid grid-cols-3 gap-4">
+												<div className="col-span-2">
+													<p className="font-semibold">Use Gifts</p>
+													<p className="text-balance text-muted-foreground text-sm">
+														Assign winners sequentially to gifts when enabled.
+													</p>
 												</div>
-											)}
-										</form.Field>
-									)}
-								</form.Subscribe>
-								<form.Field name="useGifts">
-									{(field) => (
-										<div className="grid grid-cols-3 gap-4">
-											<div className="col-span-2">
-												<p className="font-semibold">Use Gifts</p>
-												<p className="text-balance text-muted-foreground text-sm">
-													Assign winners sequentially to gifts when enabled.
-												</p>
+												<div className="col-span-1 flex items-center justify-end">
+													<Switch
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														disabled={isLoadingConfig}
+														className="border-primary/20 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+													/>
+												</div>
 											</div>
-											<div className="col-span-1 flex items-center justify-end">
-												<Switch
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													disabled={isLoadingConfig}
-													className="border-primary/20 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-												/>
+										)}
+									</form.Field>
+								</CardContent>
+							</Card>
+							<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
+								<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
+									<CardTitle className="text-base">
+										Background Configuration
+									</CardTitle>
+									<CardDescription className="text-sm">
+										Configure the background for the draw wrapper.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6 bg-background py-4">
+									<form.Field name="wrapperBackground.useImage">
+										{(field) => (
+											<div className="grid grid-cols-3 gap-4">
+												<div className="col-span-2">
+													<p className="font-semibold">Use Image Background</p>
+													<p className="text-balance text-muted-foreground text-sm">
+														Use an image URL for the background instead of a
+														color.
+													</p>
+												</div>
+												<div className="col-span-1 flex items-center justify-end">
+													<Switch
+														checked={field.state.value}
+														onCheckedChange={(checked) => {
+															field.handleChange(checked);
+															// Clear the image file input when switching to color mode
+															// (backgroundColor is preserved by backend, so we don't clear it)
+															if (!checked) {
+																// Switching to color mode - clear image file input
+																form.setFieldValue(
+																	"wrapperBackground.backgroundImage",
+																	null,
+																);
+															}
+														}}
+														disabled={isLoadingConfig}
+														className="border-primary/20 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+													/>
+												</div>
 											</div>
-										</div>
-									)}
-								</form.Field>
-							</CardContent>
-						</Card>
-						<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
-							<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
-								<CardTitle className="text-base">
-									Background Configuration
-								</CardTitle>
-								<CardDescription className="text-sm">
-									Configure the background for the draw wrapper.
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6 bg-background py-4">
-								<form.Field name="wrapperBackground.useImage">
-									{(field) => (
-										<div className="grid grid-cols-3 gap-4">
-											<div className="col-span-2">
-												<p className="font-semibold">Use Image Background</p>
-												<p className="text-balance text-muted-foreground text-sm">
-													Use an image URL for the background instead of a
-													color.
-												</p>
-											</div>
-											<div className="col-span-1 flex items-center justify-end">
-												<Switch
-													checked={field.state.value}
-													onCheckedChange={(checked) => {
-														field.handleChange(checked);
-														// Clear the image file input when switching to color mode
-														// (backgroundColor is preserved by backend, so we don't clear it)
-														if (!checked) {
-															// Switching to color mode - clear image file input
-															form.setFieldValue(
-																"wrapperBackground.backgroundImage",
-																null,
-															);
-														}
-													}}
-													disabled={isLoadingConfig}
-													className="border-primary/20 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-												/>
-											</div>
-										</div>
-									)}
-								</form.Field>
-								<form.Subscribe
-									selector={(state) => state.values.wrapperBackground.useImage}
-								>
-									{(useImage) => (
-										<>
-											{useImage ? (
-												<form.Field name="wrapperBackground.backgroundImage">
-													{(field) => (
-														<div className="space-y-2">
-															<label
-																htmlFor="backgroundImage"
-																className="font-semibold text-sm"
-															>
-																Background Image
-															</label>
-															{wrapperBackground.backgroundImgUrl && (
-																<div className="mb-2">
-																	<p className="mb-1 text-muted-foreground text-xs">
-																		Current image:
+										)}
+									</form.Field>
+									<form.Subscribe
+										selector={(state) =>
+											state.values.wrapperBackground.useImage
+										}
+									>
+										{(useImage) => (
+											<>
+												{useImage ? (
+													<form.Field name="wrapperBackground.backgroundImage">
+														{(field) => (
+															<div className="space-y-2">
+																<label
+																	htmlFor="backgroundImage"
+																	className="font-semibold text-sm"
+																>
+																	Background Image
+																</label>
+																{wrapperBackground.backgroundImgUrl && (
+																	<div className="mb-2">
+																		<p className="mb-1 text-muted-foreground text-xs">
+																			Current image:
+																		</p>
+																		<img
+																			src={wrapperBackground.backgroundImgUrl}
+																			alt="Current background"
+																			className="h-20 w-full rounded border object-cover"
+																		/>
+																	</div>
+																)}
+																<input
+																	type="file"
+																	accept="image/*"
+																	onChange={(e) => {
+																		const file = e.target.files?.[0] || null;
+																		field.handleChange(file);
+																		// Ensure useImage is true when setting image file
+																		if (
+																			!form.state.values.wrapperBackground
+																				.useImage
+																		) {
+																			form.setFieldValue(
+																				"wrapperBackground.useImage",
+																				true,
+																			);
+																		}
+																	}}
+																	disabled={isLoadingConfig}
+																	className="h-9 w-full min-w-0 rounded-none border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:ring-destructive/40"
+																/>
+																{field.state.value && (
+																	<p className="text-muted-foreground text-xs">
+																		Selected: {field.state.value.name}
 																	</p>
-																	<img
-																		src={wrapperBackground.backgroundImgUrl}
-																		alt="Current background"
-																		className="h-20 w-full rounded border object-cover"
+																)}
+																<p className="text-muted-foreground text-xs">
+																	Max file size: 10MB. Supported formats: JPEG,
+																	PNG, GIF, WebP
+																</p>
+															</div>
+														)}
+													</form.Field>
+												) : (
+													<form.Field name="wrapperBackground.backgroundColor">
+														{(field) => (
+															<div className="space-y-2">
+																<label
+																	htmlFor="backgroundColor"
+																	className="font-semibold text-sm"
+																>
+																	Background Color
+																</label>
+																<div className="flex gap-2">
+																	<Input
+																		type="color"
+																		value={field.state.value || "#ffffff"}
+																		onChange={(e) => {
+																			field.handleChange(e.target.value);
+																			// Ensure useImage is false when setting color
+																			if (
+																				form.state.values.wrapperBackground
+																					.useImage
+																			) {
+																				form.setFieldValue(
+																					"wrapperBackground.useImage",
+																					false,
+																				);
+																			}
+																		}}
+																		disabled={isLoadingConfig}
+																		className="h-10 w-20 rounded-none"
+																	/>
+																	<Input
+																		type="text"
+																		value={field.state.value || ""}
+																		onChange={(e) => {
+																			field.handleChange(e.target.value);
+																			// Ensure useImage is false when setting color
+																			if (
+																				form.state.values.wrapperBackground
+																					.useImage
+																			) {
+																				form.setFieldValue(
+																					"wrapperBackground.useImage",
+																					false,
+																				);
+																			}
+																		}}
+																		placeholder="#ffffff or rgb(255,255,255)"
+																		disabled={isLoadingConfig}
+																		className="flex-1 rounded-none"
 																	/>
 																</div>
-															)}
-															<input
-																type="file"
-																accept="image/*"
-																onChange={(e) => {
-																	const file = e.target.files?.[0] || null;
-																	field.handleChange(file);
-																	// Ensure useImage is true when setting image file
-																	if (
-																		!form.state.values.wrapperBackground
-																			.useImage
-																	) {
-																		form.setFieldValue(
-																			"wrapperBackground.useImage",
-																			true,
-																		);
-																	}
-																}}
-																disabled={isLoadingConfig}
-																className="h-9 w-full min-w-0 rounded-none border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:ring-destructive/40"
-															/>
-															{field.state.value && (
-																<p className="text-muted-foreground text-xs">
-																	Selected: {field.state.value.name}
-																</p>
-															)}
-															<p className="text-muted-foreground text-xs">
-																Max file size: 10MB. Supported formats: JPEG, PNG, GIF, WebP
-																</p>
-														</div>
-													)}
-												</form.Field>
-											) : (
-												<form.Field name="wrapperBackground.backgroundColor">
-													{(field) => (
-														<div className="space-y-2">
-															<label
-																htmlFor="backgroundColor"
-																className="font-semibold text-sm"
-															>
-																Background Color
-															</label>
-															<div className="flex gap-2">
-																<Input
-																	type="color"
-																	value={field.state.value || "#ffffff"}
-																	onChange={(e) => {
-																		field.handleChange(e.target.value);
-																		// Ensure useImage is false when setting color
-																		if (
-																			form.state.values.wrapperBackground
-																				.useImage
-																		) {
-																			form.setFieldValue(
-																				"wrapperBackground.useImage",
-																				false,
-																			);
-																		}
-																	}}
-																	disabled={isLoadingConfig}
-																	className="h-10 w-20 rounded-none"
-																/>
-																<Input
-																	type="text"
-																	value={field.state.value || ""}
-																	onChange={(e) => {
-																		field.handleChange(e.target.value);
-																		// Ensure useImage is false when setting color
-																		if (
-																			form.state.values.wrapperBackground
-																				.useImage
-																		) {
-																			form.setFieldValue(
-																				"wrapperBackground.useImage",
-																				false,
-																			);
-																		}
-																	}}
-																	placeholder="#ffffff or rgb(255,255,255)"
-																	disabled={isLoadingConfig}
-																	className="flex-1 rounded-none"
-																/>
 															</div>
-														</div>
-													)}
-												</form.Field>
-											)}
-										</>
-									)}
-								</form.Subscribe>
-							</CardContent>
-						</Card>
+														)}
+													</form.Field>
+												)}
+											</>
+										)}
+									</form.Subscribe>
+								</CardContent>
+							</Card>
 						</div>
 					</ScrollArea>
 					<FieldGroup className="px-4 py-4">
-					<form.Subscribe selector={(state) => state.values}>
-						{(formValues) => {
-							const hasChanges = checkHasChanges(formValues);
-							if (!hasChanges) return null;
-							return (
-								<SheetFooter className="border-t px-4 py-4">
-									<form.Subscribe selector={(state) => state.isSubmitting}>
-										{(isSubmitting) => (
-											<Button
-												type="submit"
-												disabled={isLoadingConfig || isSubmitting}
-												className="w-full gap-2 rounded-none"
-											>
-												<Save className="size-4" />
-												Save Changes
-											</Button>
-										)}
-									</form.Subscribe>
-								</SheetFooter>
-							);
-						}}
-					</form.Subscribe>
+						<form.Subscribe selector={(state) => state.values}>
+							{(formValues) => {
+								const hasChanges = checkHasChanges(formValues);
+								if (!hasChanges) return null;
+								return (
+									<SheetFooter className="border-t px-4 py-4">
+										<form.Subscribe selector={(state) => state.isSubmitting}>
+											{(isSubmitting) => (
+												<Button
+													type="submit"
+													disabled={isLoadingConfig || isSubmitting}
+													className="w-full gap-2 rounded-none"
+												>
+													<Save className="size-4" />
+													Save Changes
+												</Button>
+											)}
+										</form.Subscribe>
+									</SheetFooter>
+								);
+							}}
+						</form.Subscribe>
 					</FieldGroup>
 				</form>
 			</SheetContent>

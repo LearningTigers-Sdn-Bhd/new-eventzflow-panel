@@ -64,61 +64,64 @@ export const FeaturedCard = React.memo(function FeaturedCard({
 			>
 				<CarouselContent>
 					{resources.map((resource) => {
-						const displayImage = getResourceImage(resource.headerImgUrl, "large");
+						const displayImage = getResourceImage(
+							resource.headerImgUrl,
+							"large",
+						);
 						return (
-						<CarouselItem key={resource.id}>
-							<Link
-								href={`/resources/${resource.slug}`}
-								prefetch={true}
-								className="relative block h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]"
-							>
-								{displayImage ? (
-									<Image
-										src={displayImage}
-										alt={resource.title}
-										layout="fullWidth"
-										background="auto"
-										fetchpriority="high"
-										loading="eager"
-										className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover/card:scale-105"
-										suppressHydrationWarning
-									/>
-								) : (
-									<div className="flex h-full w-full items-center justify-center text-gray-400">
-										No Image
+							<CarouselItem key={resource.id}>
+								<Link
+									href={`/resources/${resource.slug}`}
+									prefetch={true}
+									className="relative block h-[400px] w-full overflow-hidden rounded-none bg-gray-100 md:h-[500px]"
+								>
+									{displayImage ? (
+										<Image
+											src={displayImage}
+											alt={resource.title}
+											layout="fullWidth"
+											background="auto"
+											fetchpriority="high"
+											loading="eager"
+											className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover/card:scale-105"
+											suppressHydrationWarning
+										/>
+									) : (
+										<div className="flex h-full w-full items-center justify-center text-gray-400">
+											No Image
+										</div>
+									)}
+									<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-300 will-change-opacity group-hover/card:opacity-100 md:p-8">
+										<div className="mb-3 flex flex-wrap items-center gap-2">
+											{resource.topic && (
+												<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
+													{resource.topic.name}
+												</Badge>
+											)}
+											{resource.category && (
+												<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
+													{resource.category.name}
+												</Badge>
+											)}
+											{resource.mediaType && (
+												<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
+													{resource.mediaType.name}
+												</Badge>
+											)}
+										</div>
+										<div className="flex flex-col gap-2">
+											<h3 className="line-clamp-2 font-bold text-2xl text-white uppercase md:text-3xl">
+												{resource.title}
+											</h3>
+											{resource.metaDescription && (
+												<p className="line-clamp-2 text-sm text-white/80 md:text-base">
+													{resource.metaDescription}
+												</p>
+											)}
+										</div>
 									</div>
-								)}
-								<div className="absolute inset-0 flex flex-col justify-end bg-linear-to-tr from-black/90 via-black/50 to-transparent p-6 opacity-0 transition-opacity duration-300 will-change-opacity group-hover/card:opacity-100 md:p-8">
-									<div className="mb-3 flex flex-wrap items-center gap-2">
-										{resource.topic && (
-											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
-												{resource.topic.name}
-											</Badge>
-										)}
-										{resource.category && (
-											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
-												{resource.category.name}
-											</Badge>
-										)}
-										{resource.mediaType && (
-											<Badge className="rounded-none border border-white bg-transparent text-white shadow-none hover:bg-white/10">
-												{resource.mediaType.name}
-											</Badge>
-										)}
-									</div>
-									<div className="flex flex-col gap-2">
-										<h3 className="line-clamp-2 font-bold text-2xl text-white uppercase md:text-3xl">
-											{resource.title}
-										</h3>
-										{resource.metaDescription && (
-											<p className="line-clamp-2 text-sm text-white/80 md:text-base">
-												{resource.metaDescription}
-											</p>
-										)}
-									</div>
-								</div>
-							</Link>
-						</CarouselItem>
+								</Link>
+							</CarouselItem>
 						);
 					})}
 				</CarouselContent>

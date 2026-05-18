@@ -43,7 +43,8 @@ export async function getResourceCategories(options?: {
 		: "v1/resources/categories";
 
 	const response = await publicRestClient.get<
-		BackendResourceCategory[] | { data: BackendResourceCategory[]; pagination?: any }
+		| BackendResourceCategory[]
+		| { data: BackendResourceCategory[]; pagination?: any }
 	>(url);
 
 	if (Array.isArray(response)) {

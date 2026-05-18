@@ -1,4 +1,4 @@
-import { describe, expect, test, spyOn } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import { getGlobeTargets, getShapeTargets } from "./shape-layout";
 
 describe("getShapeTargets", () => {
@@ -35,7 +35,9 @@ describe("getGlobeTargets", () => {
 
 		expect(targets).toHaveLength(150);
 		expect(Math.min(...targets.map((target) => target.z))).toBeLessThan(-0.25);
-		expect(Math.max(...targets.map((target) => target.z))).toBeGreaterThan(0.25);
+		expect(Math.max(...targets.map((target) => target.z))).toBeGreaterThan(
+			0.25,
+		);
 	});
 
 	test("keeps the intro cluster compact enough to read as a globe", () => {

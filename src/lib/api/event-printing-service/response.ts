@@ -1,4 +1,7 @@
-import type { BackendPrintingService, PrintingService } from "../printing-service";
+import type {
+	BackendPrintingService,
+	PrintingService,
+} from "../printing-service";
 
 // Backend API response type (matches backend snake_case)
 export type BackendEventPrintingServicePriceTier = {

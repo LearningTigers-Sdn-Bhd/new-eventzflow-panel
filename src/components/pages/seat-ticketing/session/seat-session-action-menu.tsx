@@ -32,10 +32,14 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 	const isVendor = user?.role === "vendor";
 	const isArchived = session.archived ?? !!session.deleted_at;
 
-	const { archiveMutation, restoreMutation, forceDeleteMutation, duplicateMutation } =
-		useSeatSessionMutation({
-			queryKey: ["seat-ticketing", "sessions", eventId],
-		});
+	const {
+		archiveMutation,
+		restoreMutation,
+		forceDeleteMutation,
+		duplicateMutation,
+	} = useSeatSessionMutation({
+		queryKey: ["seat-ticketing", "sessions", eventId],
+	});
 
 	const openView = () => {
 		openDialog({
@@ -129,7 +133,7 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 							<Button
 								variant="outline"
 								size="icon"
-								className="rounded-none text-blue-600 hover:text-blue-600 hover:bg-blue-50"
+								className="rounded-none text-blue-600 hover:bg-blue-50 hover:text-blue-600"
 								onClick={openView}
 							>
 								<Eye className="h-4 w-4" />
@@ -140,34 +144,34 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 
 					{!isVendor && (
 						<>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="outline"
-								size="icon"
-								className="rounded-none text-indigo-600 hover:text-indigo-600 hover:bg-indigo-50"
-								onClick={openEdit}
-							>
-								<Pencil className="h-4 w-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="bottom">Edit Session</TooltipContent>
-					</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className="rounded-none text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600"
+										onClick={openEdit}
+									>
+										<Pencil className="h-4 w-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom">Edit Session</TooltipContent>
+							</Tooltip>
 
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="outline"
-								size="icon"
-								className="rounded-none text-slate-600 hover:text-slate-600 hover:bg-slate-50"
-								disabled={duplicateMutation.isPending}
-								onClick={confirmDuplicate}
-							>
-								<Copy className="h-4 w-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="bottom">Duplicate Session</TooltipContent>
-					</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className="rounded-none text-slate-600 hover:bg-slate-50 hover:text-slate-600"
+										disabled={duplicateMutation.isPending}
+										onClick={confirmDuplicate}
+									>
+										<Copy className="h-4 w-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom">Duplicate Session</TooltipContent>
+							</Tooltip>
 
 							<Tooltip>
 								<TooltipTrigger asChild>
@@ -177,8 +181,8 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 										className={cn(
 											"rounded-none",
 											isArchived
-												? "text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
-												: "text-amber-600 hover:text-amber-600 hover:bg-amber-50",
+												? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-600"
+												: "text-amber-600 hover:bg-amber-50 hover:text-amber-600",
 										)}
 										onClick={isArchived ? confirmRestore : confirmArchive}
 									>
@@ -199,7 +203,7 @@ export function SeatSessionActionMenu({ session }: SeatSessionActionMenuProps) {
 									<Button
 										variant="outline"
 										size="icon"
-										className="rounded-none text-red-600 hover:text-red-600 hover:bg-red-50"
+										className="rounded-none text-red-600 hover:bg-red-50 hover:text-red-600"
 										onClick={confirmForceDelete}
 									>
 										<Trash2 className="h-4 w-4" />

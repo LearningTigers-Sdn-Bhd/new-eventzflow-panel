@@ -270,7 +270,7 @@ export default function TableUpload({
 														<div className="relative">
 															{/* Circular progress background */}
 															<svg
-																className="-rotate-90 size-8"
+																className="size-8 -rotate-90"
 																viewBox="0 0 32 32"
 																aria-label={`Uploading ${fileItem.file.name}: ${Math.round(fileItem.progress)}%`}
 															>

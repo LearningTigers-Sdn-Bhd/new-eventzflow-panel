@@ -5,12 +5,10 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { getSessionDateDisplay } from "../utils";
 import { CountdownTimer } from "../session-page/components/countdown-timer";
-import {
-	usePublicSeatLifecycleState,
-} from "../session-page/hooks/use-public-seat-reservation";
+import { usePublicSeatLifecycleState } from "../session-page/hooks/use-public-seat-reservation";
 import { usePublicSeatStore } from "../session-page/stores/public-seat-store";
+import { getSessionDateDisplay } from "../utils";
 
 interface ReservationCheckoutHeaderProps {
 	eventTitle?: string | null;

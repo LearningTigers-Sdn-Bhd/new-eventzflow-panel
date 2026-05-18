@@ -1,25 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-	CreditCard,
-	Clock,
-	CheckCircle2,
-	XCircle,
 	AlertCircle,
-	Upload,
+	CheckCircle2,
+	Clock,
+	CreditCard,
 	ExternalLink,
 	Package,
-	Printer,
 	Pencil,
+	Printer,
+	Upload,
+	XCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { getExhibitorKitPayments, type ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+	type ExhibitorKitPayment,
+	getExhibitorKitPayments,
+} from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { SubmitPaymentProofDialog } from "./submit-payment-proof-dialog";
 
@@ -57,9 +60,13 @@ const getStatusConfig = (status: ExhibitorKitPayment["status"]) => {
 	}
 };
 
-export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListProps) {
+export function ExhibitorPaymentList({
+	eventId,
+	kitId,
+}: ExhibitorPaymentListProps) {
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
-	const [selectedPayment, setSelectedPayment] = useState<ExhibitorKitPayment | null>(null);
+	const [selectedPayment, setSelectedPayment] =
+		useState<ExhibitorKitPayment | null>(null);
 
 	const {
 		data: payments,
@@ -110,9 +117,14 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 
 	// Calculate payment summaries
 	const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
-	const paidAmount = payments.filter((p) => p.status === "verified").reduce((sum, p) => sum + p.amount, 0);
-	const pendingAmount = payments.filter((p) => p.status !== "verified" && p.status !== "rejected").reduce((sum, p) => sum + p.amount, 0);
-	const progressPercent = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+	const paidAmount = payments
+		.filter((p) => p.status === "verified")
+		.reduce((sum, p) => sum + p.amount, 0);
+	const pendingAmount = payments
+		.filter((p) => p.status !== "verified" && p.status !== "rejected")
+		.reduce((sum, p) => sum + p.amount, 0);
+	const progressPercent =
+		totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
 
 	return (
 		<div className="space-y-4">
@@ -121,9 +133,14 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 				<div className="mb-4 space-y-2">
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-muted-foreground">Payment Progress</span>
-						<span className="font-medium">{progressPercent.toFixed(0)}% Complete</span>
+						<span className="font-medium">
+							{progressPercent.toFixed(0)}% Complete
+						</span>
 					</div>
-					<Progress value={progressPercent} className="h-2 [&>div]:bg-green-500" />
+					<Progress
+						value={progressPercent}
+						className="h-2 [&>div]:bg-green-500"
+					/>
 				</div>
 				<div className="grid grid-cols-3 gap-3 text-sm">
 					<div className="rounded-none border bg-muted/30 p-3 text-center">
@@ -132,11 +149,15 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 					</div>
 					<div className="rounded-none border border-green-200 bg-green-50 p-3 text-center">
 						<p className="text-green-600 text-xs">Paid</p>
-						<p className="font-bold text-green-700">RM {paidAmount.toFixed(2)}</p>
+						<p className="font-bold text-green-700">
+							RM {paidAmount.toFixed(2)}
+						</p>
 					</div>
 					<div className="rounded-none border border-amber-200 bg-amber-50 p-3 text-center">
 						<p className="text-amber-600 text-xs">Pending</p>
-						<p className="font-bold text-amber-700">RM {pendingAmount.toFixed(2)}</p>
+						<p className="font-bold text-amber-700">
+							RM {pendingAmount.toFixed(2)}
+						</p>
 					</div>
 				</div>
 			</div>
@@ -145,7 +166,8 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 			{payments.map((payment) => {
 				const config = getStatusConfig(payment.status);
 				const StatusIcon = config.icon;
-				const needsAction = payment.status === "pending" || payment.status === "rejected";
+				const needsAction =
+					payment.status === "pending" || payment.status === "rejected";
 				const hasItems = payment.items && payment.items.length > 0;
 				const hasPrintings = payment.printings && payment.printings.length > 0;
 
@@ -155,15 +177,23 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 						className="rounded-none border bg-background p-4"
 					>
 						{/* Header: Status, Amount & Action */}
-						<div className="flex items-start justify-between gap-4 mb-4">
+						<div className="mb-4 flex items-start justify-between gap-4">
 							<div className="space-y-1">
-								<Badge variant="outline" className={cn("gap-1 rounded-none", config.badgeStyle)}>
+								<Badge
+									variant="outline"
+									className={cn("gap-1 rounded-none", config.badgeStyle)}
+								>
 									<StatusIcon className="size-3" />
 									{config.label}
 								</Badge>
-								<p className="font-bold text-2xl">RM {payment.amount.toFixed(2)}</p>
+								<p className="font-bold text-2xl">
+									RM {payment.amount.toFixed(2)}
+								</p>
 								<p className="text-muted-foreground text-sm">
-									Pay to: <span className="font-medium text-foreground">{payment.payeeName}</span>
+									Pay to:{" "}
+									<span className="font-medium text-foreground">
+										{payment.payeeName}
+									</span>
 								</p>
 							</div>
 
@@ -219,11 +249,15 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 						{/* Rejection Notice */}
 						{payment.status === "rejected" && (
 							<div className="mb-4 rounded-none border border-red-200 bg-red-50 p-3 text-sm">
-								<p className="font-medium text-red-600 mb-1">Payment Rejected</p>
+								<p className="mb-1 font-medium text-red-600">
+									Payment Rejected
+								</p>
 								{payment.note ? (
 									<p className="text-red-600">Reason: {payment.note}</p>
 								) : (
-									<p className="text-red-500">Please resubmit with a valid payment proof.</p>
+									<p className="text-red-500">
+										Please resubmit with a valid payment proof.
+									</p>
 								)}
 							</div>
 						)}
@@ -235,7 +269,7 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									{/* Rentable Items - Left Column */}
 									<div className="rounded-none border bg-muted/20 p-3">
-										<div className="flex items-center gap-2 mb-3 text-muted-foreground text-xs font-medium uppercase border-b pb-2">
+										<div className="mb-3 flex items-center gap-2 border-b pb-2 font-medium text-muted-foreground text-xs uppercase">
 											<Package className="size-3" />
 											Items
 										</div>
@@ -247,8 +281,12 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 														className="flex items-center justify-between text-sm"
 													>
 														<span>
-															{item.rentableItem?.name || `Item #${item.rentableItemId}`}
-															<span className="text-muted-foreground"> x{item.quantity}</span>
+															{item.rentableItem?.name ||
+																`Item #${item.rentableItemId}`}
+															<span className="text-muted-foreground">
+																{" "}
+																x{item.quantity}
+															</span>
 														</span>
 														<span className="font-medium">
 															RM {(item.agreedPrice * item.quantity).toFixed(2)}
@@ -257,13 +295,15 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 												))}
 											</div>
 										) : (
-											<p className="text-muted-foreground text-sm text-center py-2">No items</p>
+											<p className="py-2 text-center text-muted-foreground text-sm">
+												No items
+											</p>
 										)}
 									</div>
 
 									{/* Printing Services - Right Column */}
 									<div className="rounded-none border bg-muted/20 p-3">
-										<div className="flex items-center gap-2 mb-3 text-muted-foreground text-xs font-medium uppercase border-b pb-2">
+										<div className="mb-3 flex items-center gap-2 border-b pb-2 font-medium text-muted-foreground text-xs uppercase">
 											<Printer className="size-3" />
 											Printing Services
 										</div>
@@ -275,17 +315,26 @@ export function ExhibitorPaymentList({ eventId, kitId }: ExhibitorPaymentListPro
 														className="flex items-center justify-between text-sm"
 													>
 														<span>
-															{printing.printingService?.name || `Service #${printing.printingServiceId}`}
-															<span className="text-muted-foreground"> x{printing.quantity}</span>
+															{printing.printingService?.name ||
+																`Service #${printing.printingServiceId}`}
+															<span className="text-muted-foreground">
+																{" "}
+																x{printing.quantity}
+															</span>
 														</span>
 														<span className="font-medium">
-															RM {(printing.agreedPrice * printing.quantity).toFixed(2)}
+															RM{" "}
+															{(
+																printing.agreedPrice * printing.quantity
+															).toFixed(2)}
 														</span>
 													</div>
 												))}
 											</div>
 										) : (
-											<p className="text-muted-foreground text-sm text-center py-2">No printing services</p>
+											<p className="py-2 text-center text-muted-foreground text-sm">
+												No printing services
+											</p>
 										)}
 									</div>
 								</div>

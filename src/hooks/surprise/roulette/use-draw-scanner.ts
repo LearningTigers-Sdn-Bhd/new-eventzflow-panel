@@ -31,8 +31,9 @@ export function useDrawScanner({
 }: UseDrawScannerOptions) {
 	const [isScanning, setIsScanning] = useState(false);
 	const [isTransitioning, setIsTransitioning] = useState(false);
-	const [scannedParticipants, setScannedParticipants] =
-		useState<RouletteParticipant[]>([]);
+	const [scannedParticipants, setScannedParticipants] = useState<
+		RouletteParticipant[]
+	>([]);
 	const scannedParticipantsRef = useRef<RouletteParticipant[]>([]);
 
 	// Sync ref with state

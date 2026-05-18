@@ -1,11 +1,23 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, FileSpreadsheet, Info, Upload } from "lucide-react";
+import {
+	AlertCircle,
+	CheckCircle2,
+	FileSpreadsheet,
+	Info,
+	Upload,
+} from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { EmptyState } from "@/components/data-state";
+import { EventImportVisitorsForm } from "@/components/pages/import/event-import-visitors-form";
 import { ImportedItem } from "@/components/pages/import/imported-item";
 import Banner from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
 	Select,
 	SelectContent,
@@ -13,13 +25,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { type FilterType, useImportResults } from "@/hooks/use-import-results";
-import { EventImportVisitorsForm } from "@/components/pages/import/event-import-visitors-form";
 
 export default function ImportVisitorsPage({
 	params,
@@ -72,7 +78,8 @@ export default function ImportVisitorsPage({
 							<div>
 								<h3 className="font-semibold text-sm">Import Guidelines</h3>
 								<p className="text-muted-foreground text-xs">
-									Click to {isGuideOpen ? "hide" : "view"} step-by-step instructions for importing visitors
+									Click to {isGuideOpen ? "hide" : "view"} step-by-step
+									instructions for importing visitors
 								</p>
 							</div>
 						</div>
@@ -85,31 +92,35 @@ export default function ImportVisitorsPage({
 					<div className="space-y-4 border-x border-dashed bg-muted/20 p-4">
 						{/* Step 1: Download Template */}
 						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
 								1
 							</div>
 							<div>
 								<h4 className="font-medium text-sm">Download the Template</h4>
-								<p className="text-muted-foreground text-xs mt-1">
-									Click the "Download Template" button to get an Excel file with the correct column headers.
-									The template includes pre-filled event title and any custom fields configured for this event.
+								<p className="mt-1 text-muted-foreground text-xs">
+									Click the "Download Template" button to get an Excel file with
+									the correct column headers. The template includes pre-filled
+									event title and any custom fields configured for this event.
 								</p>
 							</div>
 						</div>
 
 						{/* Step 2: Fill in Data */}
 						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
 								2
 							</div>
 							<div>
 								<h4 className="font-medium text-sm">Fill in Visitor Data</h4>
-								<p className="text-muted-foreground text-xs mt-1">
-									Add your visitor information to the template. Required and optional columns:
+								<p className="mt-1 text-muted-foreground text-xs">
+									Add your visitor information to the template. Required and
+									optional columns:
 								</p>
 								<div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
 									<div className="rounded border bg-background p-2">
-										<p className="font-medium text-xs text-green-600">Required</p>
+										<p className="font-medium text-green-600 text-xs">
+											Required
+										</p>
 										<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs">
 											<li className="flex items-center gap-1">
 												<CheckCircle2 className="h-3 w-3 text-green-600" />
@@ -122,7 +133,9 @@ export default function ImportVisitorsPage({
 										</ul>
 									</div>
 									<div className="rounded border bg-background p-2">
-										<p className="font-medium text-xs text-blue-600">Optional</p>
+										<p className="font-medium text-blue-600 text-xs">
+											Optional
+										</p>
 										<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs">
 											<li>Email (recommended for duplicate detection)</li>
 											<li>Phone</li>
@@ -137,14 +150,15 @@ export default function ImportVisitorsPage({
 
 						{/* Step 3: Upload */}
 						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
 								3
 							</div>
 							<div>
 								<h4 className="font-medium text-sm">Upload and Import</h4>
-								<p className="text-muted-foreground text-xs mt-1">
-									Drag and drop your file or click to browse. Supported formats: .xlsx, .xls, .csv (max 10MB).
-									Click "Import Visitors" to process the file.
+								<p className="mt-1 text-muted-foreground text-xs">
+									Drag and drop your file or click to browse. Supported formats:
+									.xlsx, .xls, .csv (max 10MB). Click "Import Visitors" to
+									process the file.
 								</p>
 							</div>
 						</div>
@@ -156,11 +170,22 @@ export default function ImportVisitorsPage({
 								Tips for Successful Import
 							</h4>
 							<ul className="mt-2 space-y-1 text-muted-foreground text-xs">
-								<li>• Keep the header row exactly as provided in the template</li>
-								<li>• Event Title must match your event name exactly (case-sensitive)</li>
+								<li>
+									• Keep the header row exactly as provided in the template
+								</li>
+								<li>
+									• Event Title must match your event name exactly
+									(case-sensitive)
+								</li>
 								<li>• Provide email or phone for better duplicate detection</li>
-								<li>• Matching visitors will be updated with new data (including name)</li>
-								<li>• Check the "Import Results" section after upload to see details</li>
+								<li>
+									• Matching visitors will be updated with new data (including
+									name)
+								</li>
+								<li>
+									• Check the "Import Results" section after upload to see
+									details
+								</li>
 							</ul>
 						</div>
 					</div>

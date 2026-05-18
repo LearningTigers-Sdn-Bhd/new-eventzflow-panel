@@ -33,7 +33,7 @@ export default function HelpPage() {
 		<div className="size-full overflow-hidden">
 			<iframe
 				src={embedUrl}
-				className="w-full h-[calc(100%+52px)] -mt-[52px] border-0"
+				className="-mt-[52px] h-[calc(100%+52px)] w-full border-0"
 				title="EventzFlow Documentation"
 			/>
 		</div>

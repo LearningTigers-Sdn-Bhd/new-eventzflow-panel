@@ -26,7 +26,9 @@ function transformZone(backend: BackendExhibitorZone): ExhibitorZone {
 	};
 }
 
-export async function getExhibitorZones(eventId: number): Promise<ExhibitorZone[]> {
+export async function getExhibitorZones(
+	eventId: number,
+): Promise<ExhibitorZone[]> {
 	const response = await restClient.get<BackendExhibitorZone[]>(
 		`v1/events/${eventId}/exhibitor_zones`,
 	);

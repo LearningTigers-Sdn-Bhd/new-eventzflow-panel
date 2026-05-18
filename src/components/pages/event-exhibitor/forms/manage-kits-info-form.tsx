@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { EventVendor } from "@/lib/api/event-vendor";
 import { getEventById } from "@/lib/api/event";
+import type { EventVendor } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManageKitsInfoFormProps {

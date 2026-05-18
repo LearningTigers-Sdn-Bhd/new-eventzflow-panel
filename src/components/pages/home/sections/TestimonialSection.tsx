@@ -47,7 +47,7 @@ const TestimonialSection: React.FC = () => {
 	};
 
 	return (
-		<section className="bg-green-background px-4 py-16 text-black md:py-24 md:px-8 border border-black">
+		<section className="border border-black bg-green-background px-4 py-16 text-black md:px-8 md:py-24">
 			<div className="mx-auto max-w-[1400px]">
 				{/* Top Header */}
 				<div className="mb-10 md:mb-20">
@@ -80,7 +80,7 @@ const TestimonialSection: React.FC = () => {
 								<span className="mb-[-0.75rem] block select-none font-black text-3xl opacity-20 sm:mb-[-1rem] md:mb-[-1.5rem] md:text-6xl">
 									"
 								</span>
-								<h3 className="font-bold text-xl text-black uppercase leading-[0.95] tracking-tight sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
+								<h3 className="font-bold text-black text-xl uppercase leading-[0.95] tracking-tight sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
 									{testimonials[currentIndex].quote}
 								</h3>
 							</motion.div>

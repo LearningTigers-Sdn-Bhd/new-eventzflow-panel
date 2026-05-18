@@ -34,13 +34,15 @@ export default function CreateApiKeyDialog({
 		onSuccess: (data) => {
 			setCreatedKey(data.apiKey.rawKey);
 			toast.success("API Key Created", {
-				description: data.apiKey.message || "Your API key has been created successfully.",
+				description:
+					data.apiKey.message || "Your API key has been created successfully.",
 			});
 			queryClient.invalidateQueries({ queryKey: ["api-keys"] });
 		},
 		onError: (error: Error) => {
 			toast.error("Failed to create API key", {
-				description: error.message || "An error occurred while creating the API key.",
+				description:
+					error.message || "An error occurred while creating the API key.",
 			});
 		},
 	});
@@ -53,7 +55,9 @@ export default function CreateApiKeyDialog({
 				toast.success("Copied to clipboard");
 				setTimeout(() => setCopied(false), 2000);
 			} catch {
-				toast.error("Failed to copy", { description: "Please copy the key manually." });
+				toast.error("Failed to copy", {
+					description: "Please copy the key manually.",
+				});
 			}
 		}
 	};
@@ -72,12 +76,16 @@ export default function CreateApiKeyDialog({
 				<>
 					<div className="flex flex-col items-center gap-4 py-4">
 						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/40">
-							<AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-300" strokeWidth={2} />
+							<AlertTriangle
+								className="h-6 w-6 text-amber-600 dark:text-amber-300"
+								strokeWidth={2}
+							/>
 						</div>
 						<div className="space-y-2 text-center">
 							<h4 className="font-semibold text-sm">Important</h4>
 							<p className="text-muted-foreground text-sm">
-								Once created, the API key will only be shown once. Make sure to copy and store it securely.
+								Once created, the API key will only be shown once. Make sure to
+								copy and store it securely.
 							</p>
 						</div>
 					</div>
@@ -103,9 +111,12 @@ export default function CreateApiKeyDialog({
 							<div className="flex gap-3">
 								<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
 								<div className="space-y-1">
-									<p className="font-semibold text-amber-900 text-sm dark:text-amber-100">Active API Key Exists</p>
+									<p className="font-semibold text-amber-900 text-sm dark:text-amber-100">
+										Active API Key Exists
+									</p>
 									<p className="text-amber-800 text-sm dark:text-amber-200">
-										You already have an active API key. Creating a new one will not revoke your existing key.
+										You already have an active API key. Creating a new one will
+										not revoke your existing key.
 									</p>
 								</div>
 							</div>
@@ -115,13 +126,20 @@ export default function CreateApiKeyDialog({
 					<Separator />
 
 					<div className="flex justify-end gap-3">
-						<Button type="button" variant="outline" onClick={onClose} disabled={createMutation.isPending}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onClose}
+							disabled={createMutation.isPending}
+						>
 							Cancel
 						</Button>
 						<Button
 							type="button"
 							onClick={handleCreate}
-							disabled={createMutation.isPending || loadingKeys || !keyName.trim()}
+							disabled={
+								createMutation.isPending || loadingKeys || !keyName.trim()
+							}
 						>
 							{createMutation.isPending ? "Creating..." : "Generate API Key"}
 						</Button>
@@ -131,11 +149,18 @@ export default function CreateApiKeyDialog({
 				<>
 					<div className="flex flex-col items-center gap-4 py-4">
 						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/40">
-							<Check className="h-6 w-6 text-emerald-600 dark:text-emerald-300" strokeWidth={2} />
+							<Check
+								className="h-6 w-6 text-emerald-600 dark:text-emerald-300"
+								strokeWidth={2}
+							/>
 						</div>
 						<div className="space-y-2 text-center">
-							<h4 className="font-semibold text-sm">API Key Created Successfully</h4>
-							<p className="text-muted-foreground text-sm">Copy this key now. You won't be able to see it again!</p>
+							<h4 className="font-semibold text-sm">
+								API Key Created Successfully
+							</h4>
+							<p className="text-muted-foreground text-sm">
+								Copy this key now. You won't be able to see it again!
+							</p>
 						</div>
 					</div>
 
@@ -145,8 +170,18 @@ export default function CreateApiKeyDialog({
 							<div className="flex-1 break-all rounded-md border bg-muted p-3 font-mono text-sm">
 								{createdKey}
 							</div>
-							<Button type="button" variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
-								{copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								onClick={handleCopy}
+								className="shrink-0"
+							>
+								{copied ? (
+									<Check className="h-4 w-4 text-green-600" />
+								) : (
+									<Copy className="h-4 w-4" />
+								)}
 							</Button>
 						</div>
 					</div>
@@ -155,9 +190,12 @@ export default function CreateApiKeyDialog({
 						<div className="flex gap-3">
 							<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
 							<div className="space-y-1">
-								<p className="font-semibold text-red-900 text-sm dark:text-red-100">Warning</p>
+								<p className="font-semibold text-red-900 text-sm dark:text-red-100">
+									Warning
+								</p>
 								<p className="text-red-800 text-sm dark:text-red-200">
-									This is the only time you will see this key. Make sure to copy it now and store it securely.
+									This is the only time you will see this key. Make sure to copy
+									it now and store it securely.
 								</p>
 							</div>
 						</div>
@@ -166,7 +204,9 @@ export default function CreateApiKeyDialog({
 					<Separator />
 
 					<div className="flex justify-end">
-						<Button type="button" onClick={onClose}>Done</Button>
+						<Button type="button" onClick={onClose}>
+							Done
+						</Button>
 					</div>
 				</>
 			)}

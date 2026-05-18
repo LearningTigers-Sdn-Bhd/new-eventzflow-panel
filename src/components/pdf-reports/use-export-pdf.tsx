@@ -3,8 +3,6 @@
 import { pdf } from "@react-pdf/renderer";
 import { useCallback, useRef, useState } from "react";
 import { TicketAnalyticsReport } from "./ticket-report";
-import { VisitorAnalyticsReport } from "./visitor-report";
-import { VoucherAnalyticsReport } from "./voucher-report";
 import type {
 	AnalyticsReportData,
 	DailyHourlyBreakdown,
@@ -12,6 +10,8 @@ import type {
 	VisitorReportData,
 	VoucherReportData,
 } from "./types";
+import { VisitorAnalyticsReport } from "./visitor-report";
+import { VoucherAnalyticsReport } from "./voucher-report";
 
 export type ExportStatus = "idle" | "generating" | "success" | "error";
 
@@ -37,7 +37,7 @@ function createPdfDocument(data: AnalyticsReportData) {
 function isMobileDevice(): boolean {
 	if (typeof navigator === "undefined") return false;
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-		navigator.userAgent
+		navigator.userAgent,
 	);
 }
 
@@ -47,11 +47,16 @@ function isIOSDevice(): boolean {
 }
 
 function canUseWebShare(): boolean {
-	return typeof navigator !== "undefined" && !!navigator.share && !!navigator.canShare;
+	return (
+		typeof navigator !== "undefined" &&
+		!!navigator.share &&
+		!!navigator.canShare
+	);
 }
 
 function generateFilename(data: AnalyticsReportData): string {
-	const reportTypeLabel = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+	const reportTypeLabel =
+		data.type.charAt(0).toUpperCase() + data.type.slice(1);
 	const eventName = data.event.name
 		.replace(/[^a-zA-Z0-9\s]/g, "")
 		.trim()

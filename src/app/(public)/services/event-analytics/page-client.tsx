@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const features = [
@@ -84,35 +84,35 @@ const highlights = [
 function DashboardDemo() {
 	return (
 		<motion.div
-			className="relative border-2 border-black bg-white shadow-2xl w-full max-w-[400px]"
+			className="relative w-full max-w-[400px] border-2 border-black bg-white shadow-2xl"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
 			{/* Dashboard Header */}
-			<div className="border-b-2 border-black bg-black px-6 py-4">
-				<p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+			<div className="border-black border-b-2 bg-black px-6 py-4">
+				<p className="font-bold text-white/60 text-xs uppercase tracking-[0.3em]">
 					Event Dashboard
 				</p>
-				<p className="mt-1 text-lg font-bold text-white">AI Summit 2025</p>
+				<p className="mt-1 font-bold text-lg text-white">AI Summit 2025</p>
 			</div>
 
 			{/* Stats Row */}
-			<div className="grid grid-cols-3 border-b border-black/10">
-				<div className="border-r border-black/10 p-4 text-center">
-					<p className="text-2xl font-black text-black">1,247</p>
-					<p className="text-xs font-medium uppercase tracking-widest text-black/40">
+			<div className="grid grid-cols-3 border-black/10 border-b">
+				<div className="border-black/10 border-r p-4 text-center">
+					<p className="font-black text-2xl text-black">1,247</p>
+					<p className="font-medium text-black/40 text-xs uppercase tracking-widest">
 						Registered
 					</p>
 				</div>
-				<div className="border-r border-black/10 p-4 text-center">
-					<p className="text-2xl font-black text-black">892</p>
-					<p className="text-xs font-medium uppercase tracking-widest text-black/40">
+				<div className="border-black/10 border-r p-4 text-center">
+					<p className="font-black text-2xl text-black">892</p>
+					<p className="font-medium text-black/40 text-xs uppercase tracking-widest">
 						Checked In
 					</p>
 				</div>
 				<div className="p-4 text-center">
-					<p className="text-2xl font-black text-black">71%</p>
-					<p className="text-xs font-medium uppercase tracking-widest text-black/40">
+					<p className="font-black text-2xl text-black">71%</p>
+					<p className="font-medium text-black/40 text-xs uppercase tracking-widest">
 						Attendance
 					</p>
 				</div>
@@ -120,11 +120,11 @@ function DashboardDemo() {
 
 			{/* Chart Area */}
 			<div className="p-6">
-				<p className="mb-4 text-xs font-bold uppercase tracking-widest text-black/40">
+				<p className="mb-4 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Check-ins Today
 				</p>
 				{/* Simple Bar Chart */}
-				<div className="flex items-end justify-between gap-2 h-24">
+				<div className="flex h-24 items-end justify-between gap-2">
 					{[40, 65, 85, 70, 90, 75, 60].map((height, i) => (
 						<motion.div
 							key={i}
@@ -152,8 +152,8 @@ function DashboardDemo() {
 			</div>
 
 			{/* Location Stats */}
-			<div className="border-t border-black/10 p-6">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+			<div className="border-black/10 border-t p-6">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Top Locations
 				</p>
 				<div className="space-y-2">
@@ -163,8 +163,8 @@ function DashboardDemo() {
 						{ name: "Workshop Room", count: 156 },
 					].map((loc) => (
 						<div key={loc.name} className="flex items-center justify-between">
-							<span className="text-sm font-medium text-black">{loc.name}</span>
-							<span className="text-sm text-black/60">{loc.count}</span>
+							<span className="font-medium text-black text-sm">{loc.name}</span>
+							<span className="text-black/60 text-sm">{loc.count}</span>
 						</div>
 					))}
 				</div>

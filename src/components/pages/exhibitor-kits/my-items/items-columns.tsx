@@ -9,8 +9,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { ExhibitorKitItem } from "@/lib/api/exhibitor-kit";
+import { cn } from "@/lib/utils";
 
 export const itemsColumns: ColumnDef<ExhibitorKitItem>[] = [
 	{
@@ -147,14 +147,14 @@ export const itemsColumns: ColumnDef<ExhibitorKitItem>[] = [
 				<Popover>
 					<PopoverTrigger asChild>
 						<p
-							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm hover:text-foreground transition-colors"
+							className="max-w-[200px] cursor-pointer truncate text-muted-foreground text-sm transition-colors hover:text-foreground"
 							title="Click to view full text"
 						>
 							{notes}
 						</p>
 					</PopoverTrigger>
-					<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
-						<p className="text-sm break-words">{notes}</p>
+					<PopoverContent className="max-h-80 w-72 overflow-y-auto p-3">
+						<p className="break-words text-sm">{notes}</p>
 					</PopoverContent>
 				</Popover>
 			);

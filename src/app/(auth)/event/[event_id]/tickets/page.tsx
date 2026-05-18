@@ -3,10 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { JsonSampleTool } from "@/components/json-sample-tool";
 import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
-import { JsonSampleTool } from "@/components/json-sample-tool";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTickets } from "@/lib/api/ticket";
@@ -33,10 +33,10 @@ export default function TicketsPage({
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-				<JsonSampleTool 
-					resourceName="Ticket" 
-					eventId={event_id} 
-					baseFields={TICKET_BASE_FIELDS} 
+				<JsonSampleTool
+					resourceName="Ticket"
+					eventId={event_id}
+					baseFields={TICKET_BASE_FIELDS}
 				/>
 				<ImportTicketButton />
 				<TicketPageButton />

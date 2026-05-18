@@ -41,7 +41,7 @@ export default function SeatReservationsPage() {
 				event={context?.publicEvent ?? null}
 				sessions={sessions}
 			/>
-			<div className="container mx-auto max-w-7xl px-2 md:px-0 py-8">
+			<div className="container mx-auto max-w-7xl px-2 py-8 md:px-0">
 				<EventSeatReservationsTicketing
 					event={context?.publicEvent ?? null}
 					sessions={sessions}

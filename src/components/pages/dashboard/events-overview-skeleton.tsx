@@ -5,7 +5,7 @@ export function EventsOverviewSkeleton() {
 	return (
 		<div className="space-y-4">
 			{/* Banner skeleton */}
-			<div className="flex items-center gap-3 rounded-none border border-dashed border-primary/20 bg-primary/5 px-4 py-3">
+			<div className="flex items-center gap-3 rounded-none border border-primary/20 border-dashed bg-primary/5 px-4 py-3">
 				<Skeleton className="h-4 w-4 shrink-0" />
 				<div className="flex-1 space-y-1">
 					<Skeleton className="h-4 w-32" />
@@ -17,10 +17,7 @@ export function EventsOverviewSkeleton() {
 			{/* Event cards skeleton */}
 			<div className="grid gap-4 lg:grid-cols-2">
 				{[1, 2].map((i) => (
-					<Card
-						key={i}
-						className="rounded-none border-dashed p-0"
-					>
+					<Card key={i} className="rounded-none border-dashed p-0">
 						<CardHeader className="space-y-2 px-4 pt-4">
 							<div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between md:gap-2">
 								<div className="flex flex-col items-start gap-2">

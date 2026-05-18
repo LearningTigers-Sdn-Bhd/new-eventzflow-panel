@@ -56,7 +56,7 @@ const ProblemSection: React.FC = () => {
 							</h2>
 						</div>
 						<div className="flex flex-col justify-end border-black/10 pb-2 lg:col-span-4 lg:border-l lg:pl-8">
-							<p className="font-medium text-lg text-black leading-relaxed md:text-xl">
+							<p className="font-medium text-black text-lg leading-relaxed md:text-xl">
 								Good events are{" "}
 								<span className="border-brand-green/50 border-b-2 font-bold text-zinc-900">
 									memorable

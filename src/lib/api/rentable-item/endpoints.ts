@@ -2,17 +2,17 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type CreateRentableItemRequest,
 	createRentableItemSchema,
-	type UpdateRentableItemRequest,
-	updateRentableItemSchema,
 	type DeleteRentableItemRequest,
 	deleteRentableItemSchema,
+	type UpdateRentableItemRequest,
+	updateRentableItemSchema,
 } from "./request";
 import type {
 	BackendRentableItem,
-	RentableItem,
 	CreateRentableItemResponse,
-	UpdateRentableItemResponse,
 	DeleteRentableItemResponse,
+	RentableItem,
+	UpdateRentableItemResponse,
 } from "./response";
 
 // Transform backend response to frontend format
@@ -46,7 +46,8 @@ function transformRentableItem(backend: BackendRentableItem): RentableItem {
  */
 export async function getRentableItems(): Promise<RentableItem[]> {
 	try {
-		const response = await restClient.get<BackendRentableItem[]>("v1/rentable_items");
+		const response =
+			await restClient.get<BackendRentableItem[]>("v1/rentable_items");
 		return response.map(transformRentableItem);
 	} catch (error: unknown) {
 		console.error("Error fetching rentable items:", error);
@@ -61,7 +62,9 @@ export async function getRentableItems(): Promise<RentableItem[]> {
  */
 export async function getRentableItem(id: number): Promise<RentableItem> {
 	try {
-		const response = await restClient.get<BackendRentableItem>(`v1/rentable_items/${id}`);
+		const response = await restClient.get<BackendRentableItem>(
+			`v1/rentable_items/${id}`,
+		);
 		return transformRentableItem(response);
 	} catch (error: unknown) {
 		console.error("Error fetching rentable item:", error);
@@ -85,10 +88,19 @@ export async function createRentableItem(
 		if (validated.description) {
 			formData.append("rentable_item[description]", validated.description);
 		}
-		formData.append("rentable_item[unit_of_measure]", validated.unit_of_measure);
-		formData.append("rentable_item[default_price]", String(validated.default_price));
+		formData.append(
+			"rentable_item[unit_of_measure]",
+			validated.unit_of_measure,
+		);
+		formData.append(
+			"rentable_item[default_price]",
+			String(validated.default_price),
+		);
 		formData.append("rentable_item[status]", validated.status);
-		formData.append("rentable_item[item_category_id]", String(validated.item_category_id));
+		formData.append(
+			"rentable_item[item_category_id]",
+			String(validated.item_category_id),
+		);
 		if (validated.image) {
 			formData.append("rentable_item[image]", validated.image);
 		}
@@ -124,10 +136,19 @@ export async function updateRentableItem(
 		if (validated.description) {
 			formData.append("rentable_item[description]", validated.description);
 		}
-		formData.append("rentable_item[unit_of_measure]", validated.unit_of_measure);
-		formData.append("rentable_item[default_price]", String(validated.default_price));
+		formData.append(
+			"rentable_item[unit_of_measure]",
+			validated.unit_of_measure,
+		);
+		formData.append(
+			"rentable_item[default_price]",
+			String(validated.default_price),
+		);
 		formData.append("rentable_item[status]", validated.status);
-		formData.append("rentable_item[item_category_id]", String(validated.item_category_id));
+		formData.append(
+			"rentable_item[item_category_id]",
+			String(validated.item_category_id),
+		);
 		if (validated.image) {
 			formData.append("rentable_item[image]", validated.image);
 		}

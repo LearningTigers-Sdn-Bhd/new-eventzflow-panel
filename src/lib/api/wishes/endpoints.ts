@@ -17,7 +17,9 @@ export async function fetchApprovedWishes(slug: string) {
 
 export async function listWishes(eventId: string, status?: string) {
 	const suffix = status ? `?status=${status}` : "";
-	return restClient.get<WishListResponse>(`v1/events/${eventId}/wishes${suffix}`);
+	return restClient.get<WishListResponse>(
+		`v1/events/${eventId}/wishes${suffix}`,
+	);
 }
 
 export async function approveWish(eventId: string, wishId: number) {

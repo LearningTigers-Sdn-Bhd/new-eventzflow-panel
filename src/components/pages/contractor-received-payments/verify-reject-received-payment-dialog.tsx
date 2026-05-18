@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -13,8 +13,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { updateExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import type { ReceivedPayment } from "@/lib/api/received-payment";
 
@@ -53,7 +53,7 @@ export function VerifyRejectReceivedPaymentDialog({
 			toast.success(
 				action === "verify"
 					? "Payment verified successfully"
-					: "Payment rejected"
+					: "Payment rejected",
 			);
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "received-payments"],
@@ -95,9 +95,11 @@ export function VerifyRejectReceivedPaymentDialog({
 				{payment && (
 					<form onSubmit={handleSubmit} className="space-y-4">
 						{/* Payment Summary */}
-						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+						<div className="space-y-2 rounded-none border bg-muted/30 p-4">
 							<div className="flex justify-between">
-								<span className="text-muted-foreground text-sm">Exhibitor:</span>
+								<span className="text-muted-foreground text-sm">
+									Exhibitor:
+								</span>
 								<span className="font-medium">
 									{payment.exhibitorInfo.companyName ||
 										payment.exhibitorInfo.vendorName}
@@ -105,7 +107,9 @@ export function VerifyRejectReceivedPaymentDialog({
 							</div>
 							<div className="flex justify-between">
 								<span className="text-muted-foreground text-sm">Amount:</span>
-								<span className="font-bold">RM {payment.amount.toFixed(2)}</span>
+								<span className="font-bold">
+									RM {payment.amount.toFixed(2)}
+								</span>
 							</div>
 							{payment.items && payment.items.length > 0 && (
 								<div className="flex justify-between">
@@ -117,7 +121,9 @@ export function VerifyRejectReceivedPaymentDialog({
 							)}
 							{payment.printings && payment.printings.length > 0 && (
 								<div className="flex justify-between">
-									<span className="text-muted-foreground text-sm">Printing:</span>
+									<span className="text-muted-foreground text-sm">
+										Printing:
+									</span>
 									<span className="text-sm">
 										{payment.printings.length} printing service(s)
 									</span>
@@ -134,7 +140,7 @@ export function VerifyRejectReceivedPaymentDialog({
 								</div>
 							)}
 							{payment.paymentProofUrl && (
-								<div className="pt-2 border-t">
+								<div className="border-t pt-2">
 									<a
 										href={payment.paymentProofUrl}
 										target="_blank"
@@ -147,7 +153,9 @@ export function VerifyRejectReceivedPaymentDialog({
 							)}
 							{payment.externalRef && (
 								<div className="flex justify-between">
-									<span className="text-muted-foreground text-sm">Reference:</span>
+									<span className="text-muted-foreground text-sm">
+										Reference:
+									</span>
 									<span className="text-sm">{payment.externalRef}</span>
 								</div>
 							)}

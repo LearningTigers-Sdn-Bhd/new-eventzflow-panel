@@ -250,8 +250,16 @@ export function DataControl<TData>({
 		{ label: "Email", columnId: "email", type: "sort" },
 		...(hasApplicationWorkflow
 			? [
-					{ label: "Review Status", columnId: "reviewStatus", type: "sort" as const },
-					{ label: "RSVP Status", columnId: "rsvpStatus", type: "sort" as const },
+					{
+						label: "Review Status",
+						columnId: "reviewStatus",
+						type: "sort" as const,
+					},
+					{
+						label: "RSVP Status",
+						columnId: "rsvpStatus",
+						type: "sort" as const,
+					},
 				]
 			: []),
 		{ label: "Payment Status", columnId: "paymentStatus", type: "sort" },

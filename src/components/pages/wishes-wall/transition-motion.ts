@@ -8,7 +8,7 @@ function clamp(value: number, min: number, max: number) {
 function easeInOutCubic(value: number) {
 	return value < 0.5
 		? 4 * value * value * value
-		: 1 - Math.pow(-2 * value + 2, 3) / 2;
+		: 1 - (-2 * value + 2) ** 3 / 2;
 }
 
 export function buildTransitionSnapshot(input: {
@@ -36,7 +36,7 @@ export function buildTransitionSnapshot(input: {
 		x: input.globeTarget.x + dx * eased + swirlX,
 		y: input.globeTarget.y + dy * eased + swirlY,
 		// More dramatic scale for globe (stronger 3D depth)
-		scale: 1 + (depth * 0.35) * (1 - eased),
+		scale: 1 + depth * 0.35 * (1 - eased),
 		// More pronounced opacity: back elements fade more while front ones shine
 		opacity: clamp(0.35 + (depth + 1) * 0.32 + eased * 0.22, 0.2, 1),
 		depth,

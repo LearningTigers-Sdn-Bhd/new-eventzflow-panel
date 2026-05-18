@@ -16,7 +16,9 @@ export async function getVendorProfile(): Promise<VendorProfile> {
  * Get vendor profile by vendor_id
  * Uses the endpoint: GET /v1/vendors/:vendor_id/profile
  */
-export async function getVendorProfileById(vendorId: number): Promise<VendorProfile> {
+export async function getVendorProfileById(
+	vendorId: number,
+): Promise<VendorProfile> {
 	return restClient.get<VendorProfile>(`v1/vendors/${vendorId}/profile`);
 }
 
@@ -52,7 +54,10 @@ export async function updateVendorProfile(
 			}
 		});
 
-		return restClient.patchFormData<VendorProfile>("v1/vendor_profile", formData);
+		return restClient.patchFormData<VendorProfile>(
+			"v1/vendor_profile",
+			formData,
+		);
 	}
 
 	// JSON request for text-only updates (no image changes)

@@ -7,6 +7,7 @@ export default function EmailDeliveriesPage() {
 	const router = useRouter();
 
 	useEffect(() => {
+		// @ts-ignore
 		router.replace("/email-log");
 	}, [router]);
 

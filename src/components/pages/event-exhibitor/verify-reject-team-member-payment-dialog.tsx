@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -13,8 +13,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { updateExhibitorTeamMemberPayment } from "@/lib/api/exhibitor-team-member-payment";
 import type { TeamMemberPaymentWithVendor } from "./extra-team-member-payments-columns";
 
@@ -53,7 +53,7 @@ export function VerifyRejectTeamMemberPaymentDialog({
 			toast.success(
 				action === "verify"
 					? "Payment verified successfully"
-					: "Payment rejected"
+					: "Payment rejected",
 			);
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "vendors"],
@@ -95,19 +95,26 @@ export function VerifyRejectTeamMemberPaymentDialog({
 				{payment && (
 					<form onSubmit={handleSubmit} className="space-y-4">
 						{/* Payment Summary */}
-						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
+						<div className="space-y-2 rounded-none border bg-muted/30 p-4">
 							<div className="flex justify-between">
-								<span className="text-muted-foreground text-sm">Exhibitor:</span>
+								<span className="text-muted-foreground text-sm">
+									Exhibitor:
+								</span>
 								<span className="font-medium">{payment.vendor_name}</span>
 							</div>
 							<div className="flex justify-between">
 								<span className="text-muted-foreground text-sm">Amount:</span>
-								<span className="font-bold">RM {Number(payment.amount).toFixed(2)}</span>
+								<span className="font-bold">
+									RM {Number(payment.amount).toFixed(2)}
+								</span>
 							</div>
 							<div className="flex justify-between">
-								<span className="text-muted-foreground text-sm">Extra Members:</span>
+								<span className="text-muted-foreground text-sm">
+									Extra Members:
+								</span>
 								<span className="text-sm">
-									{payment.extra_member_count} × RM {Number(payment.fee_per_member).toFixed(2)}
+									{payment.extra_member_count} × RM{" "}
+									{Number(payment.fee_per_member).toFixed(2)}
 								</span>
 							</div>
 							{payment.payment_source && (
@@ -121,7 +128,7 @@ export function VerifyRejectTeamMemberPaymentDialog({
 								</div>
 							)}
 							{payment.payment_proof_url && (
-								<div className="pt-2 border-t">
+								<div className="border-t pt-2">
 									<a
 										href={payment.payment_proof_url}
 										target="_blank"
@@ -134,7 +141,9 @@ export function VerifyRejectTeamMemberPaymentDialog({
 							)}
 							{payment.external_ref && (
 								<div className="flex justify-between">
-									<span className="text-muted-foreground text-sm">Reference:</span>
+									<span className="text-muted-foreground text-sm">
+										Reference:
+									</span>
 									<span className="text-sm">{payment.external_ref}</span>
 								</div>
 							)}

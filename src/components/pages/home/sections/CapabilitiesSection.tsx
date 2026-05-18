@@ -38,7 +38,8 @@ const capabilities = [
 		id: "05",
 		title: "Lucky Draw",
 		subtitle: "Engagement",
-		description: "Engage your audience with interactive lucky draw and giveaways.",
+		description:
+			"Engage your audience with interactive lucky draw and giveaways.",
 		isBlue: true,
 	},
 	{
@@ -82,19 +83,19 @@ const CapabilitiesSection: React.FC = () => {
 			<div className="mx-auto max-w-[1600px] px-4 md:px-8">
 				<div className="flex flex-col lg:flex-row">
 					{/* ------------------- SIDEBAR ------------------- */}
-					<div className="relative flex w-full flex-col border-black border-4 lg:border-0 lg:w-48 lg:border-r-4">
+					<div className="relative flex w-full flex-col border-4 border-black lg:w-48 lg:border-0 lg:border-r-4">
 						{/* Top Thick Line (Accent) */}
 						<div className="h-4 w-32 bg-black" />
 
 						{/* Rotated Text */}
 						<div className="flex h-full items-center justify-center p-6 lg:items-start lg:justify-center lg:p-0 lg:pt-[500px]">
-							<h2 className="whitespace-nowrap font-black text-4xl sm:text-5xl tracking-tighter text-black lg:origin-center lg:-rotate-90 lg:text-8xl xl:text-9xl">
+							<h2 className="whitespace-nowrap font-black text-4xl text-black tracking-tighter sm:text-5xl lg:origin-center lg:-rotate-90 lg:text-8xl xl:text-9xl">
 								OUR SOLUTIONS
 							</h2>
 						</div>
 
 						{/* Diagonal Stripes (Bottom) */}
-						<div className="mt-auto h-32 w-full border-t-4 border-black lg:h-64">
+						<div className="mt-auto h-32 w-full border-black border-t-4 lg:h-64">
 							<Stripes />
 						</div>
 					</div>
@@ -102,12 +103,11 @@ const CapabilitiesSection: React.FC = () => {
 					{/* ------------------- MAIN GRID ------------------- */}
 					<div className="flex-1">
 						{/* Top Border for the whole grid area */}
-						<div className="hidden h-4 w-full border-b-4 border-black lg:block" />
+						<div className="hidden h-4 w-full border-black border-b-4 lg:block" />
 
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 							{capabilities.map((item, i) => {
 								const isMain = item.isMain;
-								// @ts-ignore
 								const isBlue = item.isBlue;
 
 								// Layout Logic:
@@ -137,11 +137,11 @@ const CapabilitiesSection: React.FC = () => {
 										<div className="relative z-10 flex items-start justify-between">
 											<div>
 												<span
-													className={`block font-black text-6xl sm:text-7xl tracking-tighter text-black md:text-8xl transition-colors duration-300 ${!isBlue && !isMain ? "group-hover:text-brand-green" : ""}`}
+													className={`block font-black text-6xl text-black tracking-tighter transition-colors duration-300 sm:text-7xl md:text-8xl ${!isBlue && !isMain ? "group-hover:text-brand-green" : ""}`}
 												>
 													{item.id}
 												</span>
-												<h3 className="mt-2 font-bold text-lg sm:text-xl uppercase leading-none tracking-tight text-black md:text-2xl">
+												<h3 className="mt-2 font-bold text-black text-lg uppercase leading-none tracking-tight sm:text-xl md:text-2xl">
 													{item.title}
 												</h3>
 											</div>
@@ -165,17 +165,17 @@ const CapabilitiesSection: React.FC = () => {
 										<div className="relative mt-auto">
 											{isMain ? (
 												// Main Card Content (The "Red Block" equivalent)
-												<div className="mt-8 relative h-64 w-full overflow-hidden bg-brand-green md:h-96">
+												<div className="relative mt-8 h-64 w-full overflow-hidden bg-brand-green md:h-96">
 													{/* Decorative "Cuts" or Shapes */}
-													<div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
+													<div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
 
 													<div className="relative flex h-full flex-col justify-end p-6 md:p-10">
 														<MessageCircle className="mb-4 h-12 w-12 text-white" />
-														<p className="max-w-lg font-bold text-xl sm:text-2xl text-white md:text-4xl leading-tight">
+														<p className="max-w-lg font-bold text-white text-xl leading-tight sm:text-2xl md:text-4xl">
 															{item.description}
 														</p>
-														<div className="mt-6 flex items-center gap-2 font-mono text-sm uppercase text-white/80">
-															<div className="h-2 w-2 bg-white animate-pulse" />
+														<div className="mt-6 flex items-center gap-2 font-mono text-sm text-white/80 uppercase">
+															<div className="h-2 w-2 animate-pulse bg-white" />
 															Flagship Solution
 														</div>
 													</div>
@@ -184,7 +184,7 @@ const CapabilitiesSection: React.FC = () => {
 												// Standard Card Content
 												<div className="flex flex-col gap-4">
 													<p
-														className={`font-medium text-sm md:text-base leading-relaxed ${isBlue ? "text-black/80" : "text-gray-500"}`}
+														className={`font-medium text-sm leading-relaxed md:text-base ${isBlue ? "text-black/80" : "text-gray-500"}`}
 													>
 														{item.description}
 													</p>
@@ -199,7 +199,7 @@ const CapabilitiesSection: React.FC = () => {
 															SOLUTION. {item.id}
 														</span>
 														<ArrowUpRight
-															className={`h-6 w-6 text-black transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 ${!isBlue ? "group-hover:text-brand-green" : ""}`}
+															className={`h-6 w-6 text-black transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 ${!isBlue ? "group-hover:text-brand-green" : ""}`}
 														/>
 													</div>
 												</div>
@@ -210,7 +210,7 @@ const CapabilitiesSection: React.FC = () => {
 							})}
 
 							{/* Filler/Decorative Block to close the grid if needed */}
-							<div className="border-b-4 border-r-4 border-l-4 lg:border-l-0 border-black bg-gray-50 p-6 flex flex-col justify-end">
+							<div className="flex flex-col justify-end border-black border-r-4 border-b-4 border-l-4 bg-gray-50 p-6 lg:border-l-0">
 								<span className="font-black text-9xl text-brand-blue/20">
 									///
 								</span>

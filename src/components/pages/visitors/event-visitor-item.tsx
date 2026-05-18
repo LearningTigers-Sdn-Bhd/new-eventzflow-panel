@@ -100,7 +100,7 @@ export function VisitorItem({ visitor }: VisitorItemProps) {
 						</div>
 					</div>
 					<ItemDescription className="mt-1.5 flex flex-col gap-1">
-						<div className="min-w-0 flex items-start gap-1.5">
+						<div className="flex min-w-0 items-start gap-1.5">
 							<User className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" />
 							<span
 								className="block break-words font-semibold text-[11px] text-muted-foreground uppercase tracking-wider"

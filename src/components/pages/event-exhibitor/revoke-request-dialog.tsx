@@ -74,7 +74,8 @@ export function RevokeRequestDialog({
 				<DialogHeader>
 					<DialogTitle>Revoke to Pending?</DialogTitle>
 					<DialogDescription>
-						This will revert the request back to pending status and clear the price and notes so you can review it again.
+						This will revert the request back to pending status and clear the
+						price and notes so you can review it again.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-2 rounded border bg-muted/30 p-3">

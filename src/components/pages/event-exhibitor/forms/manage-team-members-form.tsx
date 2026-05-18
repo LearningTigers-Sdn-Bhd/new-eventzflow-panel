@@ -366,7 +366,9 @@ export function ManageTeamMembersForm({
 	const currentCount = visibleMembers.length;
 
 	// Calculate limit status (only derive limit once it's loaded to prevent grey→green flash)
-	const limit = isLimitLoading ? null : (limitSettings?.team_member_limit ?? null);
+	const limit = isLimitLoading
+		? null
+		: (limitSettings?.team_member_limit ?? null);
 	const hasLimit = !isLimitLoading && hasConfiguredTeamMemberLimit(limit);
 	const fee = limitSettings?.extra_team_member_fee
 		? Number.parseFloat(limitSettings.extra_team_member_fee)

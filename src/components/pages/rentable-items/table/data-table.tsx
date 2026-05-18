@@ -26,8 +26,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { RentableItem } from "@/lib/api/rentable-item";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { RentableItemCard } from "./rentable-item-card";
 

@@ -2,8 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Info, Plus, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -24,13 +24,13 @@ import { getEventVendors } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
+import { TeamMemberPaymentSection } from "./team-member-payment-section";
 import { DataTable } from "./team-members/data-table";
 import {
 	type TeamMemberRow,
 	type TeamMembersTableMeta,
 	teamMembersColumns,
 } from "./team-members/team-members-columns";
-import { TeamMemberPaymentSection } from "./team-member-payment-section";
 
 interface VendorTeamMembersPageProps {
 	eventId: number;
@@ -306,7 +306,8 @@ export function VendorTeamMembersPage({
 		: 0;
 
 	// Total excess for display purposes (regardless of payment status)
-	const totalExcessCount = limit && currentCount > limit ? currentCount - limit : 0;
+	const totalExcessCount =
+		limit && currentCount > limit ? currentCount - limit : 0;
 	const totalCharges = totalExcessCount * fee;
 	const extraSlotSummary = getExtraSlotSummary({
 		paid_extra_member_count: kit?.paid_extra_member_count,
@@ -456,9 +457,9 @@ export function VendorTeamMembersPage({
 				<Alert className="rounded-none border-amber-500 bg-amber-50 dark:bg-amber-950/20">
 					<AlertCircle className="h-4 w-4 text-amber-600" />
 					<AlertDescription className="text-amber-600">
-						You have {totalExcessCount} team member{totalExcessCount !== 1 ? "s" : ""}{" "}
-						exceeding the free limit. Additional charges of RM{" "}
-						{totalCharges.toFixed(2)} will apply.
+						You have {totalExcessCount} team member
+						{totalExcessCount !== 1 ? "s" : ""} exceeding the free limit.
+						Additional charges of RM {totalCharges.toFixed(2)} will apply.
 					</AlertDescription>
 				</Alert>
 			)}

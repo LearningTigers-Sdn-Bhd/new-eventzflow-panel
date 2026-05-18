@@ -8,7 +8,9 @@ interface PageProps {
 	}>;
 }
 
-export default async function SeatReservationCheckoutRoute({ params }: PageProps) {
+export default async function SeatReservationCheckoutRoute({
+	params,
+}: PageProps) {
 	const { slug } = await params;
 	const event = await getPublicEventById(slug);
 

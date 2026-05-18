@@ -1,18 +1,18 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DollarSign, Loader2, Plus, Tag } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, DollarSign, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
 import type { EventPrintingService } from "@/lib/api/event-printing-service";
 import {
-	getPrintingServicePriceTiers,
 	createPrintingServicePriceTier,
 	deletePrintingServicePriceTier,
+	getPrintingServicePriceTiers,
 } from "@/lib/api/event-printing-service-price";
 import { PriceTierTable } from "./price-tier-table";
 
@@ -20,7 +20,9 @@ interface PriceTierDialogProps {
 	eventPrintingService: EventPrintingService;
 }
 
-export function PriceTierDialog({ eventPrintingService }: PriceTierDialogProps) {
+export function PriceTierDialog({
+	eventPrintingService,
+}: PriceTierDialogProps) {
 	const queryClient = useQueryClient();
 	const [isAdding, setIsAdding] = useState(false);
 	const [formData, setFormData] = useState({
@@ -52,7 +54,12 @@ export function PriceTierDialog({ eventPrintingService }: PriceTierDialogProps) 
 			});
 			toast.success("Price tier created successfully");
 			setIsAdding(false);
-			setFormData({ label: "", price: "", start_date: undefined, end_date: undefined });
+			setFormData({
+				label: "",
+				price: "",
+				start_date: undefined,
+				end_date: undefined,
+			});
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create price tier");
@@ -126,10 +133,14 @@ export function PriceTierDialog({ eventPrintingService }: PriceTierDialogProps) 
 					{eventPrintingService.printingService?.name}
 				</h4>
 				<div className="flex items-center gap-4 text-muted-foreground text-sm">
-					<span>Unit: {eventPrintingService.printingService?.unitOfMeasure}</span>
+					<span>
+						Unit: {eventPrintingService.printingService?.unitOfMeasure}
+					</span>
 					<span>
 						Default Price: RM{" "}
-						{Number(eventPrintingService.printingService?.defaultPrice).toFixed(2)}
+						{Number(eventPrintingService.printingService?.defaultPrice).toFixed(
+							2,
+						)}
 					</span>
 				</div>
 			</div>
@@ -149,7 +160,10 @@ export function PriceTierDialog({ eventPrintingService }: PriceTierDialogProps) 
 
 			{/* Add New Tier Form */}
 			{isAdding ? (
-				<form onSubmit={handleSubmit} className="space-y-4 rounded-none border p-4">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4 rounded-none border p-4"
+				>
 					<h4 className="font-medium">Add New Price Tier</h4>
 
 					<div className="space-y-2">
@@ -219,7 +233,12 @@ export function PriceTierDialog({ eventPrintingService }: PriceTierDialogProps) 
 							variant="outline"
 							onClick={() => {
 								setIsAdding(false);
-								setFormData({ label: "", price: "", start_date: undefined, end_date: undefined });
+								setFormData({
+									label: "",
+									price: "",
+									start_date: undefined,
+									end_date: undefined,
+								});
 							}}
 							className="rounded-none"
 						>

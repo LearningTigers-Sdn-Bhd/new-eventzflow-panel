@@ -31,7 +31,9 @@ export function RichEditorToolbar({
 	);
 
 	return (
-		<div className={cn("sticky top-0 z-10 border-b bg-background p-2", className)}>
+		<div
+			className={cn("sticky top-0 z-10 border-b bg-background p-2", className)}
+		>
 			<div className="flex items-center gap-1">
 				{leftSlot}
 				<ToolbarPlugin>

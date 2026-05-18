@@ -303,8 +303,7 @@ export function generateColumns(
 			},
 			{
 				id: "rsvpStatus",
-				accessorFn: (row) =>
-					row.ticketApplication?.rsvpStatus ?? "not_sent",
+				accessorFn: (row) => row.ticketApplication?.rsvpStatus ?? "not_sent",
 				size: 130,
 				header: "RSVP Status",
 				cell: ({ row }) => {

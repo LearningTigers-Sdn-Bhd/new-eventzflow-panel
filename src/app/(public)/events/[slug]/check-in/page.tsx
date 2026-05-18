@@ -302,7 +302,9 @@ function EventCheckInContent() {
 						<CheckInStatus
 							status={view}
 							attendee={selectedAttendee}
-							onClose={searchMethod === "scan" ? handleResetToScan : handleReset}
+							onClose={
+								searchMethod === "scan" ? handleResetToScan : handleReset
+							}
 						/>
 					)}
 			</AnimatePresence>

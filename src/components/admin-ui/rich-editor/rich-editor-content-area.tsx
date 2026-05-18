@@ -66,24 +66,23 @@ export function RichEditorContentArea({
 					</div>
 				)}
 
-				                <div className="relative">
-				                    <RichTextPlugin
-				                        contentEditable={
-				                            <ContentEditable
-				                                className={cn(
-				                                    "ContentEditable__root prose prose-sm dark:prose-invert min-h-[150px] max-w-none resize-none outline-none",
-				                                    `min-h-[${minHeight}]`,
-				                                )}
-				                                style={{ minHeight }}
-				                            />
-				                        }
-				                        placeholder={
-				                            <div className="editor-placeholder">
-				                                {placeholder}
-				                            </div>
-				                        }
-				                        ErrorBoundary={LexicalErrorBoundary}
-				                    />					<HistoryPlugin />
+				<div className="relative">
+					<RichTextPlugin
+						contentEditable={
+							<ContentEditable
+								className={cn(
+									"ContentEditable__root prose prose-sm dark:prose-invert min-h-[150px] max-w-none resize-none outline-none",
+									`min-h-[${minHeight}]`,
+								)}
+								style={{ minHeight }}
+							/>
+						}
+						placeholder={
+							<div className="editor-placeholder">{placeholder}</div>
+						}
+						ErrorBoundary={LexicalErrorBoundary}
+					/>{" "}
+					<HistoryPlugin />
 					<AutoFocusPlugin />
 					<ListPlugin />
 					<CheckListPlugin />

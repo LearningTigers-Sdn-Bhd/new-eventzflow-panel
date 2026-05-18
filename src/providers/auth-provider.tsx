@@ -1,12 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import {
-	createContext,
-	useContext,
-	useEffect,
-	useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { logout as authLogout, refreshToken } from "@/lib/api/auth";
 import { type User, useUserSessionStore } from "@/stores/new-auth-store";
 

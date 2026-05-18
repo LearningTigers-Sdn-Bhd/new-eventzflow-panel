@@ -18,7 +18,7 @@ export interface CheckInDisplay {
 	voice_enabled: boolean;
 	voice_type: string; // Google Cloud TTS voice ID
 	welcome_text: string;
-	
+
 	// Modes
 	idle_mode: DisplayMode;
 	announcement_mode: DisplayMode;

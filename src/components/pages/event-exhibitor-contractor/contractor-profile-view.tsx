@@ -1,7 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Mail, Pencil, Phone, Save, Upload, User2 } from "lucide-react";
+import {
+	FileText,
+	Loader2,
+	Mail,
+	Pencil,
+	Phone,
+	Save,
+	Upload,
+	User2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -12,7 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
-import { getContractor, updateContractorProfile, uploadContractorGuidelinesPdf } from "@/lib/api/contractor";
+import {
+	getContractor,
+	updateContractorProfile,
+	uploadContractorGuidelinesPdf,
+} from "@/lib/api/contractor";
 import { cn } from "@/lib/utils";
 import { ContractorEditProfileContent } from "./contractor-edit-profile-dialog";
 
@@ -28,8 +41,10 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 	const queryClient = useQueryClient();
 	const [isUploading, setIsUploading] = useState(false);
 	const [standardPackageInfo, setStandardPackageInfo] = useState<string>("");
-	const [isStandardPackageInitialized, setIsStandardPackageInitialized] = useState(false);
-	const [isEditingStandardPackage, setIsEditingStandardPackage] = useState(false);
+	const [isStandardPackageInitialized, setIsStandardPackageInitialized] =
+		useState(false);
+	const [isEditingStandardPackage, setIsEditingStandardPackage] =
+		useState(false);
 
 	const {
 		data: contractor,
@@ -43,7 +58,10 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 
 	const uploadPdfMutation = useMutation({
 		mutationFn: (file: File) =>
-			uploadContractorGuidelinesPdf(contractor!.exhibition_contractor_profile!.id, file),
+			uploadContractorGuidelinesPdf(
+				contractor!.exhibition_contractor_profile!.id,
+				file,
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["contractor", user?.id] });
 			toast.success("Guidelines PDF uploaded successfully");
@@ -76,8 +94,13 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 	});
 
 	// Initialize standard package info when contractor data loads
-	if (contractor?.exhibition_contractor_profile?.standard_package_info && !isStandardPackageInitialized) {
-		setStandardPackageInfo(contractor.exhibition_contractor_profile.standard_package_info);
+	if (
+		contractor?.exhibition_contractor_profile?.standard_package_info &&
+		!isStandardPackageInitialized
+	) {
+		setStandardPackageInfo(
+			contractor.exhibition_contractor_profile.standard_package_info,
+		);
 		setIsStandardPackageInitialized(true);
 	}
 
@@ -268,7 +291,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 							Guidelines & Rules Document
 						</p>
 						<p className="mb-3 text-muted-foreground">
-							Upload a PDF containing rules, terms & conditions, and guidelines for exhibitors. This document will be visible to all exhibitors assigned to your events.
+							Upload a PDF containing rules, terms & conditions, and guidelines
+							for exhibitors. This document will be visible to all exhibitors
+							assigned to your events.
 						</p>
 
 						{profile?.guidelines_pdf_url ? (
@@ -278,8 +303,8 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									<div className="flex h-14 w-14 items-center justify-center bg-muted">
 										<FileText className="h-8 w-8 text-muted-foreground" />
 									</div>
-									<div className="flex-1 min-w-0">
-										<p className="font-medium text-sm truncate">
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium text-sm">
 											{profile.guidelines_pdf_filename || "Guidelines PDF"}
 										</p>
 										<p className="text-muted-foreground text-xs">
@@ -311,7 +336,11 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 										isUploading && "pointer-events-none opacity-60",
 									)}
 								>
-									<input {...getInputProps()} disabled={isUploading} className="sr-only" />
+									<input
+										{...getInputProps()}
+										disabled={isUploading}
+										className="sr-only"
+									/>
 									<div className="flex items-center justify-center gap-3">
 										{isUploading ? (
 											<Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -319,7 +348,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 											<Upload className="h-5 w-5 text-muted-foreground" />
 										)}
 										<p className="text-muted-foreground text-sm">
-											{isUploading ? "Uploading..." : "Drag & drop or click to replace PDF"}
+											{isUploading
+												? "Uploading..."
+												: "Drag & drop or click to replace PDF"}
 										</p>
 									</div>
 								</div>
@@ -340,7 +371,11 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									isUploading && "pointer-events-none opacity-60",
 								)}
 							>
-								<input {...getInputProps()} disabled={isUploading} className="sr-only" />
+								<input
+									{...getInputProps()}
+									disabled={isUploading}
+									className="sr-only"
+								/>
 								<div className="flex flex-col items-center gap-3">
 									<div
 										className={cn(
@@ -356,7 +391,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									</div>
 									<div className="space-y-1">
 										<p className="font-medium text-sm">
-											{isUploading ? "Uploading..." : "Drag & drop your PDF here"}
+											{isUploading
+												? "Uploading..."
+												: "Drag & drop your PDF here"}
 										</p>
 										<p className="text-muted-foreground text-xs">
 											or click to browse
@@ -421,8 +458,14 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 										onClick={() => {
 											setIsEditingStandardPackage(false);
 											// Reset to original value
-											if (contractor?.exhibition_contractor_profile?.standard_package_info) {
-												setStandardPackageInfo(contractor.exhibition_contractor_profile.standard_package_info);
+											if (
+												contractor?.exhibition_contractor_profile
+													?.standard_package_info
+											) {
+												setStandardPackageInfo(
+													contractor.exhibition_contractor_profile
+														.standard_package_info,
+												);
 											} else {
 												setStandardPackageInfo("");
 											}
@@ -434,7 +477,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 									<Button
 										size="sm"
 										className="rounded-none"
-										onClick={() => updateStandardPackageMutation.mutate(standardPackageInfo)}
+										onClick={() =>
+											updateStandardPackageMutation.mutate(standardPackageInfo)
+										}
 										disabled={updateStandardPackageMutation.isPending}
 									>
 										{updateStandardPackageMutation.isPending ? (
@@ -453,8 +498,9 @@ export function ContractorProfileView({ eventId }: ContractorProfileViewProps) {
 										{profile.standard_package_info}
 									</pre>
 								) : (
-									<p className="text-muted-foreground text-base italic">
-										No standard package information defined yet. Click Edit to add.
+									<p className="text-base text-muted-foreground italic">
+										No standard package information defined yet. Click Edit to
+										add.
 									</p>
 								)}
 							</div>

@@ -5,8 +5,8 @@ import { ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFormatDate } from "@/hooks/use-format-date";
-import { cn } from "@/lib/utils";
 import type { RentableItem } from "@/lib/api/rentable-item";
+import { cn } from "@/lib/utils";
 import { RentableItemActionsMenu } from "./action-menu";
 
 export const columns: ColumnDef<RentableItem>[] = [

@@ -24,7 +24,11 @@ export default function BrandingForm({ eventId, onClose }: BrandingFormProps) {
 	const [selectedPoster, setSelectedPoster] = useState<File | null>(null);
 	const [removePoster, setRemovePoster] = useState(false);
 
-	const { data: event, isLoading, error } = useQuery({
+	const {
+		data: event,
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
 	});

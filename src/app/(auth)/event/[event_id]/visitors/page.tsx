@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { JsonSampleTool } from "@/components/json-sample-tool";
 import { VisitorsDataTable } from "@/components/pages/visitors/event-visitor-table";
 import { CreateEventVisitorButton } from "@/components/pages/visitors/page-action/create-event-visitor-button";
-import { JsonSampleTool } from "@/components/json-sample-tool";
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getVisitors } from "@/lib/api/visitor";
@@ -30,10 +30,10 @@ export default function VisitorsPage({
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-				<JsonSampleTool 
-					resourceName="Visitor" 
-					eventId={event_id} 
-					baseFields={VISITOR_BASE_FIELDS} 
+				<JsonSampleTool
+					resourceName="Visitor"
+					eventId={event_id}
+					baseFields={VISITOR_BASE_FIELDS}
 				/>
 				<CreateEventVisitorButton eventId={eventId} />
 			</div>

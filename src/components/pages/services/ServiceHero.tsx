@@ -54,7 +54,7 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
 				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
-				className="absolute left-6 top-0 z-10 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
+				className="absolute top-0 left-6 z-10 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 			/>
 
 			{/* Main Title */}
@@ -68,7 +68,7 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 						animate={{ y: 0 }}
 						transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
 						style={{ y: y1 }}
-						className="mb-2 font-black text-[12vw] uppercase leading-[0.85] tracking-tighter text-white sm:text-[15vw] md:text-[12vw]"
+						className="mb-2 font-black text-[12vw] text-white uppercase leading-[0.85] tracking-tighter sm:text-[15vw] md:text-[12vw]"
 					>
 						{title}
 					</motion.h1>
@@ -101,10 +101,10 @@ const ServiceHero: React.FC<ServiceHeroProps> = ({
 				transition={{ delay: 1, duration: 0.8 }}
 				className="absolute bottom-12 left-6 max-w-md md:bottom-16 md:left-12 lg:left-16"
 			>
-				<p className="mb-3 font-bold text-xs uppercase tracking-[0.3em] text-white/50">
+				<p className="mb-3 font-bold text-white/50 text-xs uppercase tracking-[0.3em]">
 					{tagline}
 				</p>
-				<p className="text-base leading-relaxed text-white/60 md:text-lg">
+				<p className="text-base text-white/60 leading-relaxed md:text-lg">
 					{description}
 				</p>
 			</motion.div>

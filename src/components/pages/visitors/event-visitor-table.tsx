@@ -134,17 +134,15 @@ export function VisitorsDataTable({ eventId, data }: DataTableProps) {
 					<MobileView>
 						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
-								table
-									.getRowModel()
-									.rows.map((row) => (
-										<React.Fragment key={row.id}>
-											<VisitorItem
-												visitor={row.original as Visitor}
-												labelsData={visitorLabelsData}
-											/>
-											<ItemSeparator className="opacity-50" />
-										</React.Fragment>
-									))
+								table.getRowModel().rows.map((row) => (
+									<React.Fragment key={row.id}>
+										<VisitorItem
+											visitor={row.original as Visitor}
+											labelsData={visitorLabelsData}
+										/>
+										<ItemSeparator className="opacity-50" />
+									</React.Fragment>
+								))
 							) : (
 								<div className="p-4">
 									<EmptyState

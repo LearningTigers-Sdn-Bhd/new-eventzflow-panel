@@ -25,10 +25,10 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { Event } from "@/lib/api/event";
-import { DataControl } from "./data-control";
+import { cn } from "@/lib/utils";
 import type { ExhibitorKitWithEventAndVendor } from "./columns";
+import { DataControl } from "./data-control";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -146,38 +146,39 @@ export function DataTable<TData, TValue>({
 				) : (
 					<div className="space-y-2">
 						{table.getRowModel().rows?.length ? (
-							table
-								.getRowModel()
-								.rows.map((row) => (
-									<div
-										key={row.id}
-										className="rounded-none border border-primary/20 bg-card p-4 shadow-sm"
-									>
-										{row.getVisibleCells().map((cell) => {
-											// Handle actions column specially for mobile
-											if (cell.column.id === "actions") {
-												return (
-													<div key={cell.id} className="mt-4 border-t border-dashed pt-2">
-														<div className="w-full">
-															{flexRender(
-																cell.column.columnDef.cell,
-																cell.getContext(),
-															)}
-														</div>
-													</div>
-												);
-											}
+							table.getRowModel().rows.map((row) => (
+								<div
+									key={row.id}
+									className="rounded-none border border-primary/20 bg-card p-4 shadow-sm"
+								>
+									{row.getVisibleCells().map((cell) => {
+										// Handle actions column specially for mobile
+										if (cell.column.id === "actions") {
 											return (
-												<div key={cell.id} className="mb-2">
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext(),
-													)}
+												<div
+													key={cell.id}
+													className="mt-4 border-t border-dashed pt-2"
+												>
+													<div className="w-full">
+														{flexRender(
+															cell.column.columnDef.cell,
+															cell.getContext(),
+														)}
+													</div>
 												</div>
 											);
-										})}
-									</div>
-								))
+										}
+										return (
+											<div key={cell.id} className="mb-2">
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</div>
+										);
+									})}
+								</div>
+							))
 						) : (
 							<EmptyState
 								title="No exhibitor kits found"

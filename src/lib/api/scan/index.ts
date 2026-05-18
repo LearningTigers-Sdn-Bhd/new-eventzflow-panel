@@ -1,6 +1,5 @@
 // Unified scan API
 export { checkIn, getRecentCheckIns } from "./endpoints";
-export { ScanCheckInError } from "./response";
 export type {
 	BackendRecentCheckIn,
 	BackendRecentCheckInsResponse,
@@ -9,3 +8,4 @@ export type {
 	ScanCheckInResponse,
 	ScanType,
 } from "./response";
+export { ScanCheckInError } from "./response";

@@ -5,11 +5,7 @@ import {
 } from "./shape-maps";
 import { getTextShapePoints } from "./text-shape";
 
-type ShapeKind =
-	| "heart"
-	| "names"
-	| "infinity"
-	| "butterfly";
+type ShapeKind = "heart" | "names" | "infinity" | "butterfly";
 
 function sampleTargets(
 	baseTargets: Array<{ x: number; y: number }>,

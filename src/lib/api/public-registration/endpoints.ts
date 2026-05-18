@@ -7,10 +7,10 @@ import type {
 	CreatePublicRegistrationResponse,
 	ExistingRegistrationStatusResponse,
 	PublicRegistrationFormsResponse,
+	PublicTicketDetailsResponse,
 	PublicTicketTypesResponse,
 	VerifyPaymentPayload,
 	VerifyPaymentResponse,
-	PublicTicketDetailsResponse,
 } from "./types";
 
 export async function getPublicRegistrationForms(eventSlug: string) {

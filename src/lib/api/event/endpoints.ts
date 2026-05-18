@@ -5,7 +5,12 @@ import {
 	type UpdateEventRequest,
 	updateEventSchema,
 } from "./request";
-import type { BackendEvent, Event, EventDetails, WishWallSetting } from "./response";
+import type {
+	BackendEvent,
+	Event,
+	EventDetails,
+	WishWallSetting,
+} from "./response";
 
 /**
  * Get all events

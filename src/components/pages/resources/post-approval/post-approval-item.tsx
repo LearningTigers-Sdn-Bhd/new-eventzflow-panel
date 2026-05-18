@@ -33,9 +33,7 @@ export function PostApprovalItem({ post, onClick }: PostApprovalItemProps) {
 					<div className="flex size-8 items-center justify-center border bg-muted">
 						<FileText className="h-4 w-4 text-muted-foreground" />
 					</div>
-					<span className="line-clamp-2 font-medium">
-						{post.title}
-					</span>
+					<span className="line-clamp-2 font-medium">{post.title}</span>
 				</ItemTitle>
 			</ItemHeader>
 			<ItemContent className="space-y-2">

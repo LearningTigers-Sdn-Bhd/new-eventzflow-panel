@@ -1,4 +1,4 @@
-import { restClient, publicRestClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import type {
 	CreateAssignmentRequest,
 	CreatePlanObjectRequest,
@@ -122,10 +122,10 @@ export async function deleteAssignment(
 	const params = new URLSearchParams();
 	if (planId) params.append("plan_id", planId);
 	if (visitorId) params.append("visitor_id", String(visitorId));
-	
+
 	const queryString = params.toString();
 	if (queryString) path += `?${queryString}`;
-	
+
 	return restClient.delete(path);
 }
 
@@ -139,10 +139,10 @@ export async function updateAssignment(
 	const params = new URLSearchParams();
 	if (planId) params.append("plan_id", planId);
 	if (visitorId) params.append("visitor_id", String(visitorId));
-	
+
 	const queryString = params.toString();
 	if (queryString) path += `?${queryString}`;
-	
+
 	return restClient.patch<TableAssignment>(path, { assignment: data });
 }
 

@@ -24,8 +24,8 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { EventStaffItem } from "./event-staff-item";
 import type { EventStaffMember } from "@/lib/api/event/event-staff";
+import { EventStaffItem } from "./event-staff-item";
 import { DataControl } from "./event-staff-table-control";
 
 interface DataTableProps<TData, TValue> {

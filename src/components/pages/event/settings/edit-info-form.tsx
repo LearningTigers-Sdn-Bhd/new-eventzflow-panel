@@ -348,8 +348,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								<form.Field name="slug">
 									{(field) => {
 										const isInvalid =
-											field.state.meta.isTouched &&
-											!field.state.meta.isValid;
+											field.state.meta.isTouched && !field.state.meta.isValid;
 										return (
 											<InputLabel
 												label="Event Slug"

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, CreditCard, Upload, User, Users } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Upload, Users, Building2, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,8 +18,8 @@ import { Label } from "@/components/ui/label";
 import { getOrganizerPaymentDetail } from "@/lib/api/event";
 import {
 	createExhibitorTeamMemberPayment,
-	resubmitTeamMemberPaymentProof,
 	type ExhibitorTeamMemberPayment,
+	resubmitTeamMemberPaymentProof,
 } from "@/lib/api/exhibitor-team-member-payment";
 import PaymentReceiptUpload from "./payment-receipt-upload";
 
@@ -145,7 +145,9 @@ export function SubmitTeamMemberPaymentDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Users className="size-5" />
-						{isResubmit ? "Resubmit Payment Proof" : "Pay for Extra Team Members"}
+						{isResubmit
+							? "Resubmit Payment Proof"
+							: "Pay for Extra Team Members"}
 					</DialogTitle>
 					<DialogDescription>
 						{isResubmit
@@ -159,7 +161,9 @@ export function SubmitTeamMemberPaymentDialog({
 					<div className="rounded-none border bg-muted/30 p-4">
 						<div className="mb-2 text-center">
 							<p className="text-muted-foreground text-sm">Amount to Pay</p>
-							<p className="font-bold text-2xl">RM {displayAmount.toFixed(2)}</p>
+							<p className="font-bold text-2xl">
+								RM {displayAmount.toFixed(2)}
+							</p>
 						</div>
 						<div className="border-t pt-2 text-center text-muted-foreground text-xs">
 							{displayCount} extra member{displayCount !== 1 ? "s" : ""} × RM{" "}
@@ -169,8 +173,10 @@ export function SubmitTeamMemberPaymentDialog({
 
 					{/* Organizer Bank Details */}
 					{organizerPaymentDetail ? (
-						<div className="rounded-none border bg-muted/30 p-4 space-y-2">
-							<p className="text-muted-foreground text-sm font-medium">Transfer to:</p>
+						<div className="space-y-2 rounded-none border bg-muted/30 p-4">
+							<p className="font-medium text-muted-foreground text-sm">
+								Transfer to:
+							</p>
 							<div className="space-y-1.5">
 								<div className="flex items-center gap-2 text-sm">
 									<Building2 className="size-4 text-muted-foreground" />
@@ -178,7 +184,9 @@ export function SubmitTeamMemberPaymentDialog({
 								</div>
 								<div className="flex items-center gap-2 text-sm">
 									<CreditCard className="size-4 text-muted-foreground" />
-									<span className="font-mono">{organizerPaymentDetail.account_number}</span>
+									<span className="font-mono">
+										{organizerPaymentDetail.account_number}
+									</span>
 								</div>
 								<div className="flex items-center gap-2 text-sm">
 									<User className="size-4 text-muted-foreground" />
@@ -187,8 +195,11 @@ export function SubmitTeamMemberPaymentDialog({
 							</div>
 						</div>
 					) : (
-						<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
-							<p>Payment details are not yet available. Please contact the organizer for bank transfer information.</p>
+						<div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-amber-700 text-sm dark:bg-amber-950/20 dark:text-amber-400">
+							<p>
+								Payment details are not yet available. Please contact the
+								organizer for bank transfer information.
+							</p>
 						</div>
 					)}
 

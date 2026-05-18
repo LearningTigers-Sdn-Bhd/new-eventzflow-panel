@@ -17,11 +17,12 @@ export function WishesWallShell({
 	contentClassName,
 	children,
 }: WishesWallShellProps) {
-	const wallSurfaceStyle = !settings.style.backgroundImageUrl && settings.style.wallOverlay
-		? {
-				background: settings.style.wallOverlay,
-			}
-		: undefined;
+	const wallSurfaceStyle =
+		!settings.style.backgroundImageUrl && settings.style.wallOverlay
+			? {
+					background: settings.style.wallOverlay,
+				}
+			: undefined;
 	const wallBackgroundLayerStyle = settings.style.backgroundImageUrl
 		? {
 				backgroundImage: `${settings.style.wallOverlay}, url("${settings.style.backgroundImageUrl}")`,

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Shield, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useId } from "react";
@@ -134,7 +134,8 @@ export default function CreatePermissionForm({
 					title={{
 						icon: Shield,
 						label: "Permission Details",
-						description: "Select a team member and define their resource access level.",
+						description:
+							"Select a team member and define their resource access level.",
 					}}
 				>
 					<div className="flex flex-col gap-4">

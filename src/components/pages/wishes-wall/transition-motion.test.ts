@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
+	buildTransitionSnapshot,
 	GLOBE_INTRO_DURATION_MS,
 	SHAPE_SETTLE_DURATION_MS,
-	buildTransitionSnapshot,
 } from "./transition-motion";
 
 describe("buildTransitionSnapshot", () => {

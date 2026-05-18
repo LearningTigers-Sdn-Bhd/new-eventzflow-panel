@@ -32,7 +32,7 @@ export function useColorfulBox({
 				const count = p.remaining ?? p.quantity ?? 1;
 				const safeCount = Math.max(1, count);
 				return Array(safeCount).fill(p);
-		  })
+			})
 		: participants || [];
 
 	const prevIsDrawingRef = useRef(false);

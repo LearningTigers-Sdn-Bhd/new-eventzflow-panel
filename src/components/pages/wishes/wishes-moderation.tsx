@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ExternalLink, Info, MonitorPlay, Settings2 } from "lucide-react";
+import {
+	ChevronDown,
+	ExternalLink,
+	Info,
+	MonitorPlay,
+	Settings2,
+} from "lucide-react";
 import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";

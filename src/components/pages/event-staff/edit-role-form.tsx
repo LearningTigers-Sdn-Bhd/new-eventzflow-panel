@@ -19,8 +19,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { updateStaffRole } from "@/lib/api/event/event-staff";
 import type { EventStaffMember } from "@/lib/api/event/event-staff";
+import { updateStaffRole } from "@/lib/api/event/event-staff";
 
 interface EditRoleFormProps {
 	member: EventStaffMember;
@@ -36,9 +36,7 @@ export default function EditRoleForm({
 	const roleId = useId();
 	const [role, setRole] = useState<
 		"event_admin" | "event_team_member" | "business_host"
-	>(
-		member.eventRole as "event_admin" | "event_team_member" | "business_host",
-	);
+	>(member.eventRole as "event_admin" | "event_team_member" | "business_host");
 
 	const queryClient = useQueryClient();
 	const updateRoleMutation = useMutation({
@@ -93,7 +91,10 @@ export default function EditRoleForm({
 								value={role}
 								onValueChange={(value) =>
 									setRole(
-										value as "event_admin" | "event_team_member" | "business_host",
+										value as
+											| "event_admin"
+											| "event_team_member"
+											| "business_host",
 									)
 								}
 								disabled={updateRoleMutation.isPending}

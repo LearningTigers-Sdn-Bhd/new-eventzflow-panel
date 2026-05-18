@@ -17,10 +17,10 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScanHistory } from "@/hooks/use-scan-history";
 import { ActivityFeed } from "./activity-feed";
-import { UI_TIMING } from "./constants";
 import { ScannerCard } from "./cards/scanner-card";
 import { StatsGrid } from "./cards/stats-grid";
 import { StorageStatus } from "./cards/storage-status";
+import { UI_TIMING } from "./constants";
 import type { FilterType, ScanResult, SortType, TypeFilter } from "./types";
 import { exportToCSV } from "./utils";
 

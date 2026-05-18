@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 import { SeatSessionActionMenu } from "./seat-session-action-menu";
 import type { SeatSessionRow } from "./seat-session-table-columns";
 import { getSessionStatusConfig } from "./utils";
@@ -45,18 +45,14 @@ export function SeatSessionItem({ session, onClick }: SeatSessionItemProps) {
 			<ItemHeader className="flex flex-col gap-2">
 				{!isMobile ? (
 					<ItemTitle className="min-h-12 w-full justify-between">
-						<h3 className="text-balance font-bold text-xl">
-							{session.name}
-						</h3>
+						<h3 className="text-balance font-bold text-xl">{session.name}</h3>
 					</ItemTitle>
 				) : (
 					<ItemTitle className="min-h-12 w-full justify-start">
 						<div className="flex items-center gap-2 rounded-md border bg-muted p-2">
 							<MapPin className="size-4 text-muted-foreground" />
 						</div>
-						<h3 className="text-balance font-bold text-xl">
-							{session.name}
-						</h3>
+						<h3 className="text-balance font-bold text-xl">{session.name}</h3>
 					</ItemTitle>
 				)}
 				<ItemDescription className="flex w-full justify-start gap-2">
@@ -86,23 +82,23 @@ export function SeatSessionItem({ session, onClick }: SeatSessionItemProps) {
 						{formatDateTime(session.start_datetime)}
 					</h4>
 				</div>
-			<div className="flex flex-wrap items-center gap-2">
-				<Badge
-					variant="outline"
-					className={cn("rounded-none", statusConfig.className)}
-				>
-					{statusConfig.label}
-				</Badge>
-				{isArchived && (
+				<div className="flex flex-wrap items-center gap-2">
 					<Badge
 						variant="outline"
-						className="rounded-none border-amber-500 bg-amber-50 text-amber-700"
+						className={cn("rounded-none", statusConfig.className)}
 					>
-						Archived
+						{statusConfig.label}
 					</Badge>
-				)}
-			</div>
-		</ItemContent>
+					{isArchived && (
+						<Badge
+							variant="outline"
+							className="rounded-none border-amber-500 bg-amber-50 text-amber-700"
+						>
+							Archived
+						</Badge>
+					)}
+				</div>
+			</ItemContent>
 			<ItemFooter className="flex justify-end">
 				<ItemActions>
 					<SeatSessionActionMenu session={session} />

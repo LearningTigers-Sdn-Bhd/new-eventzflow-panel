@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react";
+import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
 import {
+	type PaymentsTableMeta,
 	paymentsColumns,
 	type TeamMemberPaymentWithVendor,
-	type PaymentsTableMeta,
 } from "./extra-team-member-payments-columns";
 import { VerifyRejectTeamMemberPaymentDialog } from "./verify-reject-team-member-payment-dialog";
 
@@ -24,7 +24,9 @@ export function ExtraTeamMemberPaymentsView({
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<TeamMemberPaymentWithVendor | null>(null);
-	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">(
+		"verify",
+	);
 
 	const {
 		data: vendors,

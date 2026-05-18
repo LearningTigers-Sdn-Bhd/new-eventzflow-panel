@@ -159,17 +159,23 @@ export default function PendingTicketViewModal({
 											<Badge
 												className={cn(
 													"w-fit rounded-none font-bold",
-													getReviewStatusColor(ticket.ticketApplication.reviewStatus),
+													getReviewStatusColor(
+														ticket.ticketApplication.reviewStatus,
+													),
 												)}
 											>
-												{getReviewStatusText(ticket.ticketApplication.reviewStatus)}
+												{getReviewStatusText(
+													ticket.ticketApplication.reviewStatus,
+												)}
 											</Badge>
 										</InfoItem>
 										<InfoItem label="RSVP Status" icon={Tag}>
 											<Badge
 												className={cn(
 													"w-fit rounded-none font-bold",
-													getRsvpStatusColor(ticket.ticketApplication.rsvpStatus),
+													getRsvpStatusColor(
+														ticket.ticketApplication.rsvpStatus,
+													),
 												)}
 											>
 												{getRsvpStatusText(ticket.ticketApplication.rsvpStatus)}
@@ -185,7 +191,9 @@ export default function PendingTicketViewModal({
 										{ticket.ticketApplication.rsvpExpiresAt && (
 											<InfoItem
 												label="RSVP Expires At"
-												value={new Date(ticket.ticketApplication.rsvpExpiresAt).toLocaleString()}
+												value={new Date(
+													ticket.ticketApplication.rsvpExpiresAt,
+												).toLocaleString()}
 												icon={Clock}
 											/>
 										)}

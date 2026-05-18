@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
 import EventRentableItemClientWrapper from "@/components/pages/event-rentable-items/event-rentable-item-client-wrapper";
 
 export default async function EventRentableItemsPage({

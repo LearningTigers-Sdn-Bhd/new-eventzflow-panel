@@ -28,16 +28,20 @@ export function CheckInResults({
 		>
 			<div className="flex items-end justify-between border-neutral-100 border-b-2 pb-3 sm:pb-4">
 				<div>
-					<span className="font-bold font-mono text-[9px] text-brand-green uppercase tracking-[0.2em] sm:text-[10px]">Match Found</span>
+					<span className="font-bold font-mono text-[9px] text-brand-green uppercase tracking-[0.2em] sm:text-[10px]">
+						Match Found
+					</span>
 					<h2 className="mt-0.5 font-black text-2xl text-black uppercase tracking-tight sm:mt-1 sm:text-3xl">
 						Results
 					</h2>
 				</div>
 				<div className="flex flex-col items-end">
-					<span className="font-black text-xl text-brand-green sm:text-2xl">
+					<span className="font-black text-brand-green text-xl sm:text-2xl">
 						{results.length}
 					</span>
-					<span className="font-bold font-mono text-[7px] text-neutral-400 uppercase tracking-widest sm:text-[8px]">Profiles</span>
+					<span className="font-bold font-mono text-[7px] text-neutral-400 uppercase tracking-widest sm:text-[8px]">
+						Profiles
+					</span>
 				</div>
 			</div>
 
@@ -62,7 +66,9 @@ export function CheckInResults({
 										{attendee.type_name || "ADMISSION"}
 									</span>
 									{attendee.email && (
-										<span className="hidden opacity-60 sm:inline">{attendee.email}</span>
+										<span className="hidden opacity-60 sm:inline">
+											{attendee.email}
+										</span>
 									)}
 								</div>
 							</div>

@@ -3,9 +3,14 @@
 import type { Table as TanStackTable } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MessageSquareHeart, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/data-state";
+import { Badge } from "@/components/ui/badge";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+} from "@/components/ui/card";
 import type { Wish } from "@/lib/api/wishes";
 import { cn } from "@/lib/utils";
 import { WishesActionMenu } from "./action-menu";
@@ -27,7 +32,9 @@ export function WishesCardGrid<TData>({
 				<EmptyState
 					title="No wishes yet"
 					description="New guestbook messages will appear here."
-					icon={<MessageSquareHeart className="size-12 text-muted-foreground/50" />}
+					icon={
+						<MessageSquareHeart className="size-12 text-muted-foreground/50" />
+					}
 					height="h-auto"
 				/>
 			</div>
@@ -41,7 +48,10 @@ export function WishesCardGrid<TData>({
 				const status = wish.status;
 
 				return (
-					<Card key={row.id} className="flex flex-col rounded-none border-dashed bg-muted/5 transition-all hover:border-primary/50 hover:bg-muted/10">
+					<Card
+						key={row.id}
+						className="flex flex-col rounded-none border-dashed bg-muted/5 transition-all hover:border-primary/50 hover:bg-muted/10"
+					>
 						<CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
 							<div className="flex items-center gap-2 overflow-hidden">
 								<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -66,15 +76,17 @@ export function WishesCardGrid<TData>({
 								}
 								className={cn(
 									"h-5 rounded-none px-1.5 font-bold text-[10px] uppercase tracking-wider",
-									status === "approved" && "bg-emerald-500 text-white hover:bg-emerald-600",
-									status === "pending" && "bg-amber-500 text-white hover:bg-amber-600",
+									status === "approved" &&
+										"bg-emerald-500 text-white hover:bg-emerald-600",
+									status === "pending" &&
+										"bg-amber-500 text-white hover:bg-amber-600",
 								)}
 							>
 								{status}
 							</Badge>
 						</CardHeader>
 						<CardContent className="flex-1 p-4 pt-2">
-							<p className="whitespace-pre-wrap font-medium text-muted-foreground text-sm leading-relaxed italic">
+							<p className="whitespace-pre-wrap font-medium text-muted-foreground text-sm italic leading-relaxed">
 								"{wish.message}"
 							</p>
 						</CardContent>

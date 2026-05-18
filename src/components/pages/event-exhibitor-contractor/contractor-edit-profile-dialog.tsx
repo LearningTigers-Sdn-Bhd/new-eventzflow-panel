@@ -46,7 +46,9 @@ export function ContractorEditProfileContent({
 		mutationFn: (data: Parameters<typeof updateContractor>[1]) =>
 			updateContractor(contractor.id, data),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["contractor", contractor.id] });
+			queryClient.invalidateQueries({
+				queryKey: ["contractor", contractor.id],
+			});
 			toast.success("Profile updated successfully");
 			closeDialog();
 		},
@@ -67,7 +69,10 @@ export function ContractorEditProfileContent({
 		}
 
 		// Optional field validations (only validate format if provided)
-		if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+		if (
+			contactEmail.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)
+		) {
 			newErrors.contact_email = "Must be a valid email address";
 		}
 
@@ -140,9 +145,7 @@ export function ContractorEditProfileContent({
 						disabled={isPending}
 					/>
 					{errors.contact_person && (
-						<p className="text-destructive text-sm">
-							{errors.contact_person}
-						</p>
+						<p className="text-destructive text-sm">{errors.contact_person}</p>
 					)}
 				</div>
 

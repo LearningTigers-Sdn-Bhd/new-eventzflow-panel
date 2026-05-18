@@ -27,12 +27,15 @@ export default function DeleteEventApiKeyDialog({
 			toast.success("API Key Revoked", {
 				description: "The API key has been successfully revoked.",
 			});
-			queryClient.invalidateQueries({ queryKey: ["event", String(eventId), "api-keys"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", String(eventId), "api-keys"],
+			});
 			onClose();
 		},
 		onError: (error: Error) => {
 			toast.error("Failed to revoke API key", {
-				description: error.message || "An error occurred while revoking the API key.",
+				description:
+					error.message || "An error occurred while revoking the API key.",
 			});
 		},
 	});
@@ -41,12 +44,16 @@ export default function DeleteEventApiKeyDialog({
 		<div className="space-y-6">
 			<div className="flex flex-col items-center gap-4 py-4">
 				<div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/40">
-					<AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-300" strokeWidth={2} />
+					<AlertTriangle
+						className="h-6 w-6 text-red-600 dark:text-red-300"
+						strokeWidth={2}
+					/>
 				</div>
 				<div className="space-y-2 text-center">
 					<h4 className="font-semibold text-sm">Warning</h4>
 					<p className="text-muted-foreground text-sm">
-						This action cannot be undone. Any applications using this API key will lose access to this event.
+						This action cannot be undone. Any applications using this API key
+						will lose access to this event.
 					</p>
 				</div>
 			</div>
@@ -61,10 +68,22 @@ export default function DeleteEventApiKeyDialog({
 			<Separator />
 
 			<div className="flex gap-3">
-				<Button type="button" variant="outline" onClick={onClose} disabled={deleteMutation.isPending} className="flex-1">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={onClose}
+					disabled={deleteMutation.isPending}
+					className="flex-1"
+				>
 					Cancel
 				</Button>
-				<Button type="button" variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending} className="flex-1">
+				<Button
+					type="button"
+					variant="destructive"
+					onClick={() => deleteMutation.mutate()}
+					disabled={deleteMutation.isPending}
+					className="flex-1"
+				>
 					{deleteMutation.isPending ? "Revoking..." : "Revoke API Key"}
 				</Button>
 			</div>

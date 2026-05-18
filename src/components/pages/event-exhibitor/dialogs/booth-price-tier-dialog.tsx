@@ -26,13 +26,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import type { ExhibitorBoothPrice } from "@/lib/api/exhibitor-booth-price";
 import {
 	createExhibitorBoothPriceTier,
 	deleteExhibitorBoothPriceTier,
-	getExhibitorBoothPriceTiers,
 	type ExhibitorBoothPriceTier,
+	getExhibitorBoothPriceTiers,
 } from "@/lib/api/exhibitor-booth-price-tier";
-import type { ExhibitorBoothPrice } from "@/lib/api/exhibitor-booth-price";
 
 interface BoothPriceTierDialogProps {
 	boothPrice: ExhibitorBoothPrice;
@@ -175,13 +175,18 @@ export function BoothPriceTierDialog({
 
 				<div className="rounded-none border bg-muted/40 p-4 text-sm">
 					<div className="flex flex-wrap items-center gap-2">
-						<span className="font-medium">Current rate: RM {boothPrice.currentPrice.toFixed(2)}</span>
+						<span className="font-medium">
+							Current rate: RM {boothPrice.currentPrice.toFixed(2)}
+						</span>
 						{boothPrice.activePriceTierLabel && (
-							<Badge className="rounded-none">{boothPrice.activePriceTierLabel}</Badge>
+							<Badge className="rounded-none">
+								{boothPrice.activePriceTierLabel}
+							</Badge>
 						)}
 					</div>
 					<p className="mt-1 text-muted-foreground">
-						Use tiers for promos like Early Bird while keeping the base rate as fallback.
+						Use tiers for promos like Early Bird while keeping the base rate as
+						fallback.
 					</p>
 				</div>
 
@@ -218,10 +223,14 @@ export function BoothPriceTierDialog({
 										<TableCell>
 											<div className="flex items-center gap-2">
 												<span className="font-medium">{tier.label}</span>
-												{tier.active && <Badge className="rounded-none">Active</Badge>}
+												{tier.active && (
+													<Badge className="rounded-none">Active</Badge>
+												)}
 											</div>
 										</TableCell>
-										<TableCell className="font-medium">RM {tier.price.toFixed(2)}</TableCell>
+										<TableCell className="font-medium">
+											RM {tier.price.toFixed(2)}
+										</TableCell>
 										<TableCell>
 											<div className="text-sm">
 												{format(new Date(tier.startDate), "MMM d, yyyy")}
@@ -239,7 +248,9 @@ export function BoothPriceTierDialog({
 													</div>
 												</div>
 											) : (
-												<span className="text-muted-foreground text-sm">No end date</span>
+												<span className="text-muted-foreground text-sm">
+													No end date
+												</span>
 											)}
 										</TableCell>
 										<TableCell>
@@ -261,7 +272,10 @@ export function BoothPriceTierDialog({
 				)}
 
 				{isAdding ? (
-					<form onSubmit={handleSubmit} className="space-y-4 rounded-none border p-4">
+					<form
+						onSubmit={handleSubmit}
+						className="space-y-4 rounded-none border p-4"
+					>
 						<h4 className="font-medium">Add New Price Tier</h4>
 
 						<div className="space-y-2">
@@ -326,10 +340,19 @@ export function BoothPriceTierDialog({
 						</div>
 
 						<div className="flex justify-end gap-2">
-							<Button type="button" variant="outline" onClick={resetForm} className="rounded-none">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={resetForm}
+								className="rounded-none"
+							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={createMutation.isPending} className="rounded-none">
+							<Button
+								type="submit"
+								disabled={createMutation.isPending}
+								className="rounded-none"
+							>
 								{createMutation.isPending ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -342,7 +365,11 @@ export function BoothPriceTierDialog({
 						</div>
 					</form>
 				) : (
-					<Button onClick={() => setIsAdding(true)} variant="outline" className="w-full rounded-none">
+					<Button
+						onClick={() => setIsAdding(true)}
+						variant="outline"
+						className="w-full rounded-none"
+					>
 						<Plus className="mr-2 h-4 w-4" />
 						Add Price Tier
 					</Button>

@@ -78,7 +78,7 @@ export default function PublicCheckInQrDialog({
 	return (
 		<div className="w-full space-y-4">
 			{/* Event Title */}
-			<div className="text-center mt-6">
+			<div className="mt-6 text-center">
 				<h3 className="font-semibold text-base leading-tight">{eventTitle}</h3>
 			</div>
 

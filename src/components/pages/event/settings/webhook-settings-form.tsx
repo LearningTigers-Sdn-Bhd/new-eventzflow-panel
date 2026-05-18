@@ -12,26 +12,22 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { MultiURLInput } from "@/components/admin-ui/form/multi-url-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	FieldGroup,
-} from "@/components/ui/field";
+import { FieldGroup } from "@/components/ui/field";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { queryClient } from "@/utils/rest-api";
 
 const formSchema = z.object({
-	webhookUrl: z
-		.string()
-		.refine(
-			(val) => {
-				if (val === "") return true;
-				const urls = val.split(",").map((s) => s.trim());
-				return urls.every((url) => z.string().url().safeParse(url).success);
-			},
-			{
-				message: "Please enter valid URLs separated by commas",
-			},
-		),
+	webhookUrl: z.string().refine(
+		(val) => {
+			if (val === "") return true;
+			const urls = val.split(",").map((s) => s.trim());
+			return urls.every((url) => z.string().url().safeParse(url).success);
+		},
+		{
+			message: "Please enter valid URLs separated by commas",
+		},
+	),
 	businessMatchingWebhookUrl: z
 		.string()
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
@@ -44,7 +40,10 @@ interface WebhookSettingsFormProps {
 	onClose?: () => void;
 }
 
-export default function WebhookSettingsForm({ eventId, onClose }: WebhookSettingsFormProps) {
+export default function WebhookSettingsForm({
+	eventId,
+	onClose,
+}: WebhookSettingsFormProps) {
 	const formId = useId();
 	const sectionId = useId();
 
@@ -98,7 +97,10 @@ export default function WebhookSettingsForm({ eventId, onClose }: WebhookSetting
 	React.useEffect(() => {
 		if (event) {
 			form.setFieldValue("webhookUrl", event.webhook_url || "");
-			form.setFieldValue("businessMatchingWebhookUrl", event.business_matching_webhook_url || "");
+			form.setFieldValue(
+				"businessMatchingWebhookUrl",
+				event.business_matching_webhook_url || "",
+			);
 		}
 	}, [event, form]);
 
@@ -135,7 +137,8 @@ export default function WebhookSettingsForm({ eventId, onClose }: WebhookSetting
 						title={{
 							icon: Webhook,
 							label: "Webhook Notifications",
-							description: "Configure one or more URLs to receive real-time event notifications.",
+							description:
+								"Configure one or more URLs to receive real-time event notifications.",
 						}}
 					>
 						<div className="grid grid-cols-1 gap-4">
@@ -166,7 +169,8 @@ export default function WebhookSettingsForm({ eventId, onClose }: WebhookSetting
 							title={{
 								icon: InfoIcon,
 								label: "Business Matching Integration",
-								description: "Configure the dedicated webhook for external business matching services.",
+								description:
+									"Configure the dedicated webhook for external business matching services.",
 							}}
 						>
 							<div className="grid grid-cols-1 gap-4">

@@ -25,7 +25,9 @@ import { useEventSidebarContext } from "./event-sidebar-provider";
 export function EventMenuHeader() {
 	const router = useRouter();
 	const { events, currentEvent, isLoading } = useEventSidebarContext();
-	const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
+	const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+		null,
+	);
 	const setScrollRef = useCallback((node: HTMLDivElement | null) => {
 		setScrollElement(node);
 	}, []);
@@ -137,95 +139,95 @@ export function EventMenuHeader() {
 								</div>
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="start"
-						side="bottom"
-						className="w-[250px] rounded-none overflow-hidden p-0"
-					>
-						<div
-							ref={setScrollRef}
-							className="h-[300px] overflow-y-auto overflow-x-hidden"
+						<DropdownMenuContent
+							align="start"
+							side="bottom"
+							className="w-[250px] overflow-hidden rounded-none p-0"
 						>
 							<div
-								className="relative w-full"
-								style={{ height: virtualizer.getTotalSize() }}
+								ref={setScrollRef}
+								className="h-[300px] overflow-y-auto overflow-x-hidden"
 							>
-								{virtualizer.getVirtualItems().map((virtualRow) => {
-									const event = sortedEvents[virtualRow.index];
-									if (!event) return null;
-									const isLast = virtualRow.index === sortedEvents.length - 1;
-									return (
-										<div
-											key={event.id}
-											className="absolute left-0 top-0 w-full"
-											style={{
-												transform: `translateY(${virtualRow.start}px)`,
-												height: rowHeight,
-												contentVisibility: "auto",
-												containIntrinsicSize: `${rowHeight}px`,
-											}}
-										>
-											<DropdownMenuItem
-												onClick={() => handleEventSelect(event.id.toString())}
-												className={cn(
-													"h-full cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
-													!isLast && "border-b border-border",
-													currentEvent.id === event.id &&
-														"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
-												)}
+								<div
+									className="relative w-full"
+									style={{ height: virtualizer.getTotalSize() }}
+								>
+									{virtualizer.getVirtualItems().map((virtualRow) => {
+										const event = sortedEvents[virtualRow.index];
+										if (!event) return null;
+										const isLast = virtualRow.index === sortedEvents.length - 1;
+										return (
+											<div
+												key={event.id}
+												className="absolute top-0 left-0 w-full"
+												style={{
+													transform: `translateY(${virtualRow.start}px)`,
+													height: rowHeight,
+													contentVisibility: "auto",
+													containIntrinsicSize: `${rowHeight}px`,
+												}}
 											>
-												<div className="flex flex-1 flex-col gap-1">
-													<div className="flex flex-col items-start justify-start gap-2">
-														<h3
-															className={cn(
-																"line-clamp-2 truncate text-balance font-semibold text-sm",
-																currentEvent.id === event.id &&
-																	"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
-															)}
-														>
-															{event.title}
-														</h3>
-														<div className="flex items-center gap-2">
-															<Badge
+												<DropdownMenuItem
+													onClick={() => handleEventSelect(event.id.toString())}
+													className={cn(
+														"h-full cursor-pointer rounded-none py-4 hover:bg-sidebar-accent",
+														!isLast && "border-border border-b",
+														currentEvent.id === event.id &&
+															"bg-sidebar-accent hover:bg-sidebar-accent-foreground/30",
+													)}
+												>
+													<div className="flex flex-1 flex-col gap-1">
+														<div className="flex flex-col items-start justify-start gap-2">
+															<h3
 																className={cn(
-																	"h-4 rounded-none text-[10px] capitalize",
-																	event.status === "published" &&
-																		"bg-green-500 text-white",
-																	event.status === "draft" &&
-																		"bg-yellow-500 text-white",
-																	event.status === "cancelled" &&
-																		"bg-red-500 text-white",
-																	event.status === "completed" &&
-																		"bg-blue-500 text-white",
+																	"line-clamp-2 truncate text-balance font-semibold text-sm",
+																	currentEvent.id === event.id &&
+																		"font-bold text-sidebar-accent-foreground hover:text-sidebar-accent-foreground",
 																)}
 															>
-																{event.status}
-															</Badge>
-															<Badge
-																className={cn(
-																	"h-4 rounded-none text-[10px] capitalize",
-																	event.use_ticket !== false
-																		? "bg-purple-500 text-white"
-																		: "bg-cyan-500 text-white",
-																)}
-															>
-																{event.use_ticket !== false
-																	? "Ticket Event"
-																	: "Visitor Event"}
-															</Badge>
+																{event.title}
+															</h3>
+															<div className="flex items-center gap-2">
+																<Badge
+																	className={cn(
+																		"h-4 rounded-none text-[10px] capitalize",
+																		event.status === "published" &&
+																			"bg-green-500 text-white",
+																		event.status === "draft" &&
+																			"bg-yellow-500 text-white",
+																		event.status === "cancelled" &&
+																			"bg-red-500 text-white",
+																		event.status === "completed" &&
+																			"bg-blue-500 text-white",
+																	)}
+																>
+																	{event.status}
+																</Badge>
+																<Badge
+																	className={cn(
+																		"h-4 rounded-none text-[10px] capitalize",
+																		event.use_ticket !== false
+																			? "bg-purple-500 text-white"
+																			: "bg-cyan-500 text-white",
+																	)}
+																>
+																	{event.use_ticket !== false
+																		? "Ticket Event"
+																		: "Visitor Event"}
+																</Badge>
+															</div>
 														</div>
 													</div>
-												</div>
-											</DropdownMenuItem>
-										</div>
-									);
-								})}
+												</DropdownMenuItem>
+											</div>
+										);
+									})}
+								</div>
 							</div>
-						</div>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</SidebarMenuItem>
-		</SidebarMenu>
-	</SidebarHeader>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		</SidebarHeader>
 	);
 }

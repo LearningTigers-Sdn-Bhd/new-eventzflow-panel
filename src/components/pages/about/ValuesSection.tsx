@@ -33,7 +33,7 @@ const values = [
 
 export default function ValuesSection() {
 	return (
-		<section className="bg-blue-background px-6 py-24 md:py-32 border border-black">
+		<section className="border border-black bg-blue-background px-6 py-24 md:py-32">
 			<div className="mx-auto max-w-7xl">
 				<div className="grid gap-12 lg:grid-cols-3 lg:gap-8">
 					{/* Left - Header */}
@@ -45,14 +45,14 @@ export default function ValuesSection() {
 					>
 						<div className="mb-6 flex items-center gap-4">
 							<div className="h-[2px] w-10 bg-black" />
-							<p className="text-xs font-bold uppercase tracking-[0.4em] text-black">
+							<p className="font-bold text-black text-xs uppercase tracking-[0.4em]">
 								Our Values
 							</p>
 						</div>
-						<h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
+						<h2 className="mb-6 font-black text-3xl text-black uppercase tracking-tighter sm:text-4xl md:text-5xl">
 							What we stand for
 						</h2>
-						<p className="text-lg leading-relaxed text-black/70 md:text-xl">
+						<p className="text-black/70 text-lg leading-relaxed md:text-xl">
 							These aren't just words on a wall. They guide every decision we
 							make, every feature we ship, and every conversation we have with
 							our customers.
@@ -60,7 +60,7 @@ export default function ValuesSection() {
 					</motion.div>
 
 					{/* Right - Values Grid */}
-					<div className="lg:col-span-2 grid sm:grid-cols-2">
+					<div className="grid sm:grid-cols-2 lg:col-span-2">
 						{values.map((value, index) => {
 							const IconComponent = value.icon;
 							return (
@@ -74,15 +74,17 @@ export default function ValuesSection() {
 										delay: index * 0.1,
 										ease: SMOOTH_EASE,
 									}}
-									className="p-8 border border-black/70 bg-white transition-all duration-300 hover:bg-white/90"
+									className="border border-black/70 bg-white p-8 transition-all duration-300 hover:bg-white/90"
 								>
 									<div className="mb-4 flex h-12 w-12 items-center justify-center border border-black/70 text-black">
 										<IconComponent className="h-5 w-5" />
 									</div>
-									<h3 className="mb-3 font-bold text-lg text-black">
+									<h3 className="mb-3 font-bold text-black text-lg">
 										{value.title}
 									</h3>
-									<p className="text-base text-black/70 md:text-lg">{value.description}</p>
+									<p className="text-base text-black/70 md:text-lg">
+										{value.description}
+									</p>
 								</motion.div>
 							);
 						})}

@@ -11,7 +11,7 @@ export default function HeroSection() {
 				initial={{ scaleY: 0 }}
 				animate={{ scaleY: 1 }}
 				transition={{ duration: 1.5, ease: SMOOTH_EASE }}
-				className="absolute left-6 top-0 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
+				className="absolute top-0 left-6 hidden h-[70%] w-[2px] origin-top bg-white md:left-12 md:block lg:left-16"
 			/>
 
 			{/* Content */}
@@ -19,18 +19,18 @@ export default function HeroSection() {
 				initial={{ opacity: 0, y: 30 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-				className="text-center max-w-4xl"
+				className="max-w-4xl text-center"
 			>
-				<p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-white/60">
+				<p className="mb-4 font-medium text-sm text-white/60 uppercase tracking-[0.3em]">
 					About Us
 				</p>
-				<h1 className="font-black text-3xl uppercase tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+				<h1 className="font-black text-3xl text-white uppercase tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
 					The Future of Event Management
 				</h1>
-				<p className="mt-6 text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
-					At EventzFlow, we're building the next generation of event
-					technology. Our mission is to empower organizers with tools that are
-					not only powerful but also a joy to use.
+				<p className="mx-auto mt-6 max-w-2xl text-lg text-white/60 leading-relaxed">
+					At EventzFlow, we're building the next generation of event technology.
+					Our mission is to empower organizers with tools that are not only
+					powerful but also a joy to use.
 				</p>
 			</motion.div>
 		</section>

@@ -53,8 +53,8 @@ import {
 	deletePlanObject,
 	exportPlanPdf,
 	getPlan,
-	updateAssignment,
 	type PlanObject,
+	updateAssignment,
 } from "@/lib/api/plan";
 import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
@@ -145,8 +145,13 @@ export function PlanEditorContent({
 
 	const deleteAssignmentMutation = useMutation({
 		mutationFn: (data: { ticket_id?: number; visitor_id?: number }) => {
-			if (data.ticket_id) return deleteAssignment(data.ticket_id.toString(), plan.id.toString());
-			return deleteAssignment(data.visitor_id!.toString(), plan.id.toString(), data.visitor_id);
+			if (data.ticket_id)
+				return deleteAssignment(data.ticket_id.toString(), plan.id.toString());
+			return deleteAssignment(
+				data.visitor_id!.toString(),
+				plan.id.toString(),
+				data.visitor_id,
+			);
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
@@ -260,7 +265,8 @@ export function PlanEditorContent({
 	});
 
 	const deleteObjectsMutation = useMutation({
-		mutationFn: (ids: number[]) => batchDeletePlanObjects(plan.id.toString(), ids),
+		mutationFn: (ids: number[]) =>
+			batchDeletePlanObjects(plan.id.toString(), ids),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			queryClient.invalidateQueries({
@@ -277,7 +283,7 @@ export function PlanEditorContent({
 	const duplicateObjectsMutation = useMutation({
 		mutationFn: async (objects: PlanObject[]) => {
 			await savePendingChanges();
-			const duplicates = objects.map(obj => ({
+			const duplicates = objects.map((obj) => ({
 				object_type: obj.object_type,
 				layer: obj.layer,
 				x: obj.x + 20,
@@ -297,11 +303,11 @@ export function PlanEditorContent({
 			// Select the newly created objects immediately
 			if (newObjects && newObjects.length > 0) {
 				addObjects(newObjects);
-				setSelectedObjectIds(newObjects.map(obj => obj.id));
+				setSelectedObjectIds(newObjects.map((obj) => obj.id));
 			} else {
 				setSelectedObjectIds([]);
 			}
-			
+
 			// Background refetch
 			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 			toast.success("Objects duplicated");
@@ -317,9 +323,15 @@ export function PlanEditorContent({
 					duplicateObjectsMutation.mutate(selectedObjects);
 				}
 			}
-			if ((e.key === "Delete" || e.key === "Backspace") && selectedObjectIds.length > 0) {
+			if (
+				(e.key === "Delete" || e.key === "Backspace") &&
+				selectedObjectIds.length > 0
+			) {
 				// Only if not typing in an input
-				if (document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+				if (
+					document.activeElement?.tagName !== "INPUT" &&
+					document.activeElement?.tagName !== "TEXTAREA"
+				) {
 					e.preventDefault();
 					deleteObjectsMutation.mutate(selectedObjectIds);
 				}
@@ -328,7 +340,12 @@ export function PlanEditorContent({
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [selectedObjectIds, selectedObjects, duplicateObjectsMutation, deleteObjectsMutation]);
+	}, [
+		selectedObjectIds,
+		selectedObjects,
+		duplicateObjectsMutation,
+		deleteObjectsMutation,
+	]);
 
 	const exportMutation = useMutation({
 		mutationFn: () => exportPlanPdf(plan.id.toString()),
@@ -579,15 +596,23 @@ export function PlanEditorContent({
 							onUpdateMultiplePositions={(updates) => {
 								batchUpdatePlanObjects(plan.id.toString(), updates);
 								// Also update local state for immediate feedback
-								updateObjects(updates.map(u => ({ id: u.id, updates: { x: u.x, y: u.y } })));
+								updateObjects(
+									updates.map((u) => ({
+										id: u.id,
+										updates: { x: u.x, y: u.y },
+									})),
+								);
 							}}
 							onResizeObject={(id, width, height, x, y) => {
 								updateObject(id, { width, height, x, y });
 							}}
 							onDuplicateObjects={(ids) => {
-								const objectsToDuplicate = (plan.plan_objects || []).filter(obj => ids.includes(obj.id));
+								const objectsToDuplicate = (plan.plan_objects || []).filter(
+									(obj) => ids.includes(obj.id),
+								);
 								duplicateObjectsMutation.mutate(objectsToDuplicate);
-							}}							onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
+							}}
+							onBulkDelete={(ids) => deleteObjectsMutation.mutate(ids)}
 							onCreateObject={(data) =>
 								addObjectMutation.mutate({
 									type: data.object_type,
@@ -631,8 +656,12 @@ export function PlanEditorContent({
 									onUpdate={updateObject}
 									onUpdatePlan={updatePlanSettings}
 									onDelete={(id) => deleteObjectsMutation.mutate([id])}
-									onBulkDelete={() => deleteObjectsMutation.mutate(selectedObjectIds)}
-									onBulkDuplicate={() => duplicateObjectsMutation.mutate(selectedObjects)}
+									onBulkDelete={() =>
+										deleteObjectsMutation.mutate(selectedObjectIds)
+									}
+									onBulkDuplicate={() =>
+										duplicateObjectsMutation.mutate(selectedObjects)
+									}
 									onDeleteAssignment={(ids) =>
 										deleteAssignmentMutation.mutate({
 											ticket_id: ids.ticketId,

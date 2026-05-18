@@ -5,10 +5,7 @@ import {
 	type UpdateResourcePermissionRequest,
 	updateResourcePermissionSchema,
 } from "./request";
-import type {
-	BackendResourcePermission,
-	ResourcePermission,
-} from "./response";
+import type { BackendResourcePermission, ResourcePermission } from "./response";
 
 function transformResourcePermission(
 	backend: BackendResourcePermission,

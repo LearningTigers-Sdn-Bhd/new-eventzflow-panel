@@ -6,7 +6,7 @@ import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 export default function CTASection() {
 	return (
-		<section className="bg-white-background px-6 py-12 md:py-20 border border-black">
+		<section className="border border-black bg-white-background px-6 py-12 md:py-20">
 			<div className="mx-auto max-w-4xl text-center">
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
@@ -14,30 +14,30 @@ export default function CTASection() {
 					viewport={{ once: true }}
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
 				>
-					<p className="mb-4 text-xs font-bold uppercase tracking-[0.4em] text-black/40">
+					<p className="mb-4 font-bold text-black/40 text-xs uppercase tracking-[0.4em]">
 						Let's Connect
 					</p>
-					<h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl">
+					<h2 className="mb-6 font-black text-3xl text-black uppercase tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
 						Want to learn more?
 					</h2>
-					<p className="mb-10 text-lg text-black/70 max-w-2xl mx-auto leading-relaxed md:text-xl">
-						Whether you're planning your first event or managing many, we'd
-						love to hear from you. No pressure, no sales pitch—just real
+					<p className="mx-auto mb-10 max-w-2xl text-black/70 text-lg leading-relaxed md:text-xl">
+						Whether you're planning your first event or managing many, we'd love
+						to hear from you. No pressure, no sales pitch—just real
 						conversation.
 					</p>
 
-					<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+					<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
 						<a
 							href="https://wa.me/60166236511"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="w-full sm:w-auto border border-black bg-brand-green px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#23c460] hover:border-[#23c460] hover:text-white"
+							className="w-full border border-black bg-brand-green px-8 py-4 text-center font-bold text-black text-xs tracking-widest transition-all duration-300 hover:border-[#23c460] hover:bg-[#23c460] hover:text-white sm:w-auto"
 						>
 							CHAT ON WHATSAPP
 						</a>
 						<Link
 							href="/contact"
-							className="w-full sm:w-auto border border-black bg-brand-blue px-8 py-4 text-center text-xs font-bold tracking-widest text-black transition-all duration-300 hover:bg-[#2766ec] hover:border-[#2766ec] hover:text-white"
+							className="w-full border border-black bg-brand-blue px-8 py-4 text-center font-bold text-black text-xs tracking-widest transition-all duration-300 hover:border-[#2766ec] hover:bg-[#2766ec] hover:text-white sm:w-auto"
 						>
 							CONTACT US
 						</Link>

@@ -24,9 +24,9 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import type { Vendor } from "@/lib/api/vendor";
+import { VendorItem } from "./vendor-item";
 import { generateColumns } from "./vendors-table-columns";
 import { DataControl } from "./vendors-table-control";
-import { VendorItem } from "./vendor-item";
 
 interface DataTableProps<TData> {
 	data: TData[];

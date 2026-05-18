@@ -32,9 +32,9 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import type { ScanResult, TypeFilter } from "../types";
 import { ScanItem } from "./scan-item";
 import { DataControl } from "./scan-table-control";
-import type { ScanResult, TypeFilter } from "../types";
 
 interface DataTableProps {
 	columns: ColumnDef<ScanResult>[];

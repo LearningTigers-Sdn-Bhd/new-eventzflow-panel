@@ -1,20 +1,20 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DollarSign, Loader2, Plus, Tag } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, DollarSign, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
 import type { EventRentableItem } from "@/lib/api/event-rentable-item";
 import {
-	getPriceTiers,
 	createPriceTier,
-	updatePriceTier,
 	deletePriceTier,
 	type EventRentableItemPriceTier,
+	getPriceTiers,
+	updatePriceTier,
 } from "@/lib/api/event-rentable-item-price";
 import { PriceTierTable } from "./price-tier-table";
 
@@ -54,7 +54,12 @@ export function PriceTierDialog({ eventRentableItem }: PriceTierDialogProps) {
 			});
 			toast.success("Price tier created successfully");
 			setIsAdding(false);
-			setFormData({ label: "", price: "", start_date: undefined, end_date: undefined });
+			setFormData({
+				label: "",
+				price: "",
+				start_date: undefined,
+				end_date: undefined,
+			});
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create price tier");
@@ -131,7 +136,9 @@ export function PriceTierDialog({ eventRentableItem }: PriceTierDialogProps) {
 					<span>Unit: {eventRentableItem.rentableItem?.unitOfMeasure}</span>
 					<span>
 						Default Price: RM{" "}
-						{eventRentableItem.rentableItem?.defaultPrice != null ? Number(eventRentableItem.rentableItem.defaultPrice).toFixed(2) : "0.00"}
+						{eventRentableItem.rentableItem?.defaultPrice != null
+							? Number(eventRentableItem.rentableItem.defaultPrice).toFixed(2)
+							: "0.00"}
 					</span>
 				</div>
 			</div>
@@ -151,7 +158,10 @@ export function PriceTierDialog({ eventRentableItem }: PriceTierDialogProps) {
 
 			{/* Add New Tier Form */}
 			{isAdding ? (
-				<form onSubmit={handleSubmit} className="space-y-4 rounded-none border p-4">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4 rounded-none border p-4"
+				>
 					<h4 className="font-medium">Add New Price Tier</h4>
 
 					<div className="space-y-2">
@@ -221,7 +231,12 @@ export function PriceTierDialog({ eventRentableItem }: PriceTierDialogProps) {
 							variant="outline"
 							onClick={() => {
 								setIsAdding(false);
-								setFormData({ label: "", price: "", start_date: undefined, end_date: undefined });
+								setFormData({
+									label: "",
+									price: "",
+									start_date: undefined,
+									end_date: undefined,
+								});
 							}}
 							className="rounded-none"
 						>

@@ -2,21 +2,23 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type CreatePrintingServiceRequest,
 	createPrintingServiceSchema,
-	type UpdatePrintingServiceRequest,
-	updatePrintingServiceSchema,
 	type DeletePrintingServiceRequest,
 	deletePrintingServiceSchema,
+	type UpdatePrintingServiceRequest,
+	updatePrintingServiceSchema,
 } from "./request";
 import type {
 	BackendPrintingService,
-	PrintingService,
 	CreatePrintingServiceResponse,
-	UpdatePrintingServiceResponse,
 	DeletePrintingServiceResponse,
+	PrintingService,
+	UpdatePrintingServiceResponse,
 } from "./response";
 
 // Transform backend response to frontend format
-function transformPrintingService(backend: BackendPrintingService): PrintingService {
+function transformPrintingService(
+	backend: BackendPrintingService,
+): PrintingService {
 	return {
 		id: backend.id,
 		name: backend.name,
@@ -46,12 +48,16 @@ function transformPrintingService(backend: BackendPrintingService): PrintingServ
  */
 export async function getPrintingServices(): Promise<PrintingService[]> {
 	try {
-		const response = await restClient.get<BackendPrintingService[]>("v1/printing_services");
+		const response = await restClient.get<BackendPrintingService[]>(
+			"v1/printing_services",
+		);
 		return response.map(transformPrintingService);
 	} catch (error: unknown) {
 		console.error("Error fetching printing services:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to fetch printing services";
+			error instanceof Error
+				? error.message
+				: "Failed to fetch printing services";
 		throw new Error(errorMessage);
 	}
 }
@@ -61,12 +67,16 @@ export async function getPrintingServices(): Promise<PrintingService[]> {
  */
 export async function getPrintingService(id: number): Promise<PrintingService> {
 	try {
-		const response = await restClient.get<BackendPrintingService>(`v1/printing_services/${id}`);
+		const response = await restClient.get<BackendPrintingService>(
+			`v1/printing_services/${id}`,
+		);
 		return transformPrintingService(response);
 	} catch (error: unknown) {
 		console.error("Error fetching printing service:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to fetch printing service";
+			error instanceof Error
+				? error.message
+				: "Failed to fetch printing service";
 		throw new Error(errorMessage);
 	}
 }
@@ -85,10 +95,19 @@ export async function createPrintingService(
 		if (validated.description) {
 			formData.append("printing_service[description]", validated.description);
 		}
-		formData.append("printing_service[unit_of_measure]", validated.unit_of_measure);
-		formData.append("printing_service[default_price]", String(validated.default_price));
+		formData.append(
+			"printing_service[unit_of_measure]",
+			validated.unit_of_measure,
+		);
+		formData.append(
+			"printing_service[default_price]",
+			String(validated.default_price),
+		);
 		formData.append("printing_service[status]", validated.status);
-		formData.append("printing_service[item_category_id]", String(validated.item_category_id));
+		formData.append(
+			"printing_service[item_category_id]",
+			String(validated.item_category_id),
+		);
 		if (validated.image) {
 			formData.append("printing_service[image]", validated.image);
 		}
@@ -105,7 +124,9 @@ export async function createPrintingService(
 	} catch (error: unknown) {
 		console.error("Error creating printing service:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to create printing service";
+			error instanceof Error
+				? error.message
+				: "Failed to create printing service";
 		throw new Error(errorMessage);
 	}
 }
@@ -124,10 +145,19 @@ export async function updatePrintingService(
 		if (validated.description) {
 			formData.append("printing_service[description]", validated.description);
 		}
-		formData.append("printing_service[unit_of_measure]", validated.unit_of_measure);
-		formData.append("printing_service[default_price]", String(validated.default_price));
+		formData.append(
+			"printing_service[unit_of_measure]",
+			validated.unit_of_measure,
+		);
+		formData.append(
+			"printing_service[default_price]",
+			String(validated.default_price),
+		);
 		formData.append("printing_service[status]", validated.status);
-		formData.append("printing_service[item_category_id]", String(validated.item_category_id));
+		formData.append(
+			"printing_service[item_category_id]",
+			String(validated.item_category_id),
+		);
 		if (validated.image) {
 			formData.append("printing_service[image]", validated.image);
 		}
@@ -147,7 +177,9 @@ export async function updatePrintingService(
 	} catch (error: unknown) {
 		console.error("Error updating printing service:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to update printing service";
+			error instanceof Error
+				? error.message
+				: "Failed to update printing service";
 		throw new Error(errorMessage);
 	}
 }
@@ -172,7 +204,9 @@ export async function deletePrintingService(
 	} catch (error: unknown) {
 		console.error("Error deleting printing service:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to delete printing service";
+			error instanceof Error
+				? error.message
+				: "Failed to delete printing service";
 		throw new Error(errorMessage);
 	}
 }

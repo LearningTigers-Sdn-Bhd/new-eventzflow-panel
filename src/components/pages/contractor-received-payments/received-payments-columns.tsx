@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
-	CheckCircle2,
-	Clock,
 	AlertCircle,
-	XCircle,
-	ExternalLink,
+	CheckCircle2,
 	ChevronDown,
+	Clock,
+	ExternalLink,
+	XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import type { ReceivedPayment } from "@/lib/api/received-payment";
+import { cn } from "@/lib/utils";
 
 const getStatusConfig = (status: ReceivedPayment["status"]) => {
 	switch (status) {
@@ -80,9 +80,7 @@ export const receivedPaymentsColumns: ColumnDef<ReceivedPayment>[] = [
 		accessorKey: "amount",
 		header: "Amount",
 		cell: ({ row }) => (
-			<span className="font-bold">
-				RM {row.original.amount.toFixed(2)}
-			</span>
+			<span className="font-bold">RM {row.original.amount.toFixed(2)}</span>
 		),
 	},
 	{
@@ -99,9 +97,7 @@ export const receivedPaymentsColumns: ColumnDef<ReceivedPayment>[] = [
 
 			return (
 				<div className="text-sm">
-					{items.length > 0 && (
-						<p>{items.length} rentable item(s)</p>
-					)}
+					{items.length > 0 && <p>{items.length} rentable item(s)</p>}
 					{printings.length > 0 && (
 						<p>{printings.length} printing service(s)</p>
 					)}
@@ -295,9 +291,7 @@ export const receivedPaymentsColumns: ColumnDef<ReceivedPayment>[] = [
 
 			// pending status - exhibitor hasn't submitted payment yet
 			return (
-				<span className="text-muted-foreground text-sm">
-					Awaiting payment
-				</span>
+				<span className="text-muted-foreground text-sm">Awaiting payment</span>
 			);
 		},
 	},

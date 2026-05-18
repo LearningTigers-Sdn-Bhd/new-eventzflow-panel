@@ -2,8 +2,8 @@ import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
 	type CreatePaymentDetailRequest,
-	type UpdatePaymentDetailRequest,
 	createPaymentDetailRequestSchema,
+	type UpdatePaymentDetailRequest,
 	updatePaymentDetailRequestSchema,
 } from "./request";
 import {
@@ -13,8 +13,9 @@ import {
 
 export async function getPaymentDetail(): Promise<PaymentDetailResponse | null> {
 	try {
-		const response =
-			await restClient.get<PaymentDetailResponse>("v1/payment_detail/me");
+		const response = await restClient.get<PaymentDetailResponse>(
+			"v1/payment_detail/me",
+		);
 		return paymentDetailResponseSchema.parse(response);
 	} catch (error) {
 		if (error instanceof Error && error.message.includes("404")) {

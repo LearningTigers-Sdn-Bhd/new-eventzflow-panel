@@ -47,10 +47,14 @@ export function ContractorEditContent({
 		email: contractor.email ?? "",
 		phone: contractor.phone ?? "",
 		new_password: "",
-		contact_person: contractor.exhibition_contractor_profile?.contact_person ?? "",
-		contact_email: contractor.exhibition_contractor_profile?.contact_email ?? "",
-		contact_phone: contractor.exhibition_contractor_profile?.contact_phone ?? "",
-		allow_printing_services: contractor.exhibition_contractor_profile?.allow_printing_services ?? true,
+		contact_person:
+			contractor.exhibition_contractor_profile?.contact_person ?? "",
+		contact_email:
+			contractor.exhibition_contractor_profile?.contact_email ?? "",
+		contact_phone:
+			contractor.exhibition_contractor_profile?.contact_phone ?? "",
+		allow_printing_services:
+			contractor.exhibition_contractor_profile?.allow_printing_services ?? true,
 		created_by_id: contractor.created_by_id?.toString() ?? "",
 	});
 
@@ -67,10 +71,17 @@ export function ContractorEditContent({
 	// Filter to only show org_owner and organizer roles
 	const organizerOptions = [
 		...(user && !teamMembers.some((m) => m.id === user.id?.toString())
-			? [{ value: user.id?.toString() ?? "", label: `${user.full_name} (${user.role})` }]
+			? [
+					{
+						value: user.id?.toString() ?? "",
+						label: `${user.full_name} (${user.role})`,
+					},
+				]
 			: []),
 		...teamMembers
-			.filter((member) => member.role === "org_owner" || member.role === "organizer")
+			.filter(
+				(member) => member.role === "org_owner" || member.role === "organizer",
+			)
 			.map((member) => ({
 				value: member.id,
 				label: `${member.full_name} (${member.role})`,
@@ -119,7 +130,10 @@ export function ContractorEditContent({
 		if (formData.new_password && formData.new_password.length < 6) {
 			newErrors.new_password = "Password must be at least 6 characters";
 		}
-		if (formData.contact_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
+		if (
+			formData.contact_email.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)
+		) {
 			newErrors.contact_email = "Must be a valid email address";
 		}
 
@@ -181,7 +195,9 @@ export function ContractorEditContent({
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.full_name}
-								errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+								errors={
+									errors.full_name ? [{ message: errors.full_name }] : undefined
+								}
 							/>
 							<InputLabel
 								htmlFor={emailId}
@@ -218,7 +234,11 @@ export function ContractorEditContent({
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.new_password}
-								errors={errors.new_password ? [{ message: errors.new_password }] : undefined}
+								errors={
+									errors.new_password
+										? [{ message: errors.new_password }]
+										: undefined
+								}
 								onAction={() => setShowPassword(!showPassword)}
 								actionIcon={showPassword ? <EyeOff /> : <Eye />}
 								actionLabel={showPassword ? "Hide password" : "Show password"}
@@ -253,7 +273,11 @@ export function ContractorEditContent({
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.contact_email}
-								errors={errors.contact_email ? [{ message: errors.contact_email }] : undefined}
+								errors={
+									errors.contact_email
+										? [{ message: errors.contact_email }]
+										: undefined
+								}
 							/>
 							<InputLabel
 								htmlFor={contactPhoneId}
@@ -281,7 +305,9 @@ export function ContractorEditContent({
 									label="Printing Services"
 									description="Allow contractor to access printing services"
 									checked={formData.allow_printing_services}
-									onCheckedChange={(checked) => handleChange("allow_printing_services", checked)}
+									onCheckedChange={(checked) =>
+										handleChange("allow_printing_services", checked)
+									}
 									disabled={isPending}
 									variant="no-rounded"
 								/>

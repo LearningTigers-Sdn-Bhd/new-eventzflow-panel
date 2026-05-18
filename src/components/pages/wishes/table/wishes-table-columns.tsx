@@ -30,8 +30,8 @@ export const getWishesColumns = (eventId: string): ColumnDef<Wish>[] => [
 		header: "Message",
 		size: 500,
 		cell: ({ row }) => (
-			<div className="max-w-[600px] border-l-2 border-primary/20 py-2 pl-4">
-				<p className="whitespace-pre-wrap font-medium text-foreground text-sm leading-relaxed italic">
+			<div className="max-w-[600px] border-primary/20 border-l-2 py-2 pl-4">
+				<p className="whitespace-pre-wrap font-medium text-foreground text-sm italic leading-relaxed">
 					"{row.getValue("message")}"
 				</p>
 			</div>

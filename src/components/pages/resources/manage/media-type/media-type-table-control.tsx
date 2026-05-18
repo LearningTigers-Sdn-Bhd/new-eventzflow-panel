@@ -18,51 +18,62 @@ export function MediaTypeTableControl<TData>({
 	filter = "active",
 	onFilterChange,
 }: MediaTypeTableControlProps<TData>) {
-	const filterControl = useMemo(() => (onFilterChange
-		? {
-				label: "Filter",
-				columnId: "filter",
-				customFilter: {
-					value: filter,
-					onChange: (value: string) => onFilterChange(value as MediaTypeFilter),
-				},
-				type: "filter" as const,
-				data: [
-					{ label: "Active", value: "active" },
-					{ label: "Archived", value: "archived" },
-					{ label: "All", value: "all" },
-				],
-			}
-		: null), [filter, onFilterChange]);
+	const filterControl = useMemo(
+		() =>
+			onFilterChange
+				? {
+						label: "Filter",
+						columnId: "filter",
+						customFilter: {
+							value: filter,
+							onChange: (value: string) =>
+								onFilterChange(value as MediaTypeFilter),
+						},
+						type: "filter" as const,
+						data: [
+							{ label: "Active", value: "active" },
+							{ label: "Archived", value: "archived" },
+							{ label: "All", value: "all" },
+						],
+					}
+				: null,
+		[filter, onFilterChange],
+	);
 
-	const desktopControlConfigs: ControlConfig[] = useMemo(() => [
-		...(filterControl ? [filterControl] : []),
-		{
-			label: "Sort by Name",
-			columnId: "name",
-			type: "sort",
-		},
-		{
-			label: "Sort by Date",
-			columnId: "createdAt",
-			type: "sort",
-		},
-	], [filterControl]);
+	const desktopControlConfigs: ControlConfig[] = useMemo(
+		() => [
+			...(filterControl ? [filterControl] : []),
+			{
+				label: "Sort by Name",
+				columnId: "name",
+				type: "sort",
+			},
+			{
+				label: "Sort by Date",
+				columnId: "createdAt",
+				type: "sort",
+			},
+		],
+		[filterControl],
+	);
 
-	const mobileControlConfigs: ControlConfig[] = useMemo(() => [
-		...(filterControl ? [{ ...filterControl, topPriority: true }] : []),
-		{
-			label: "Sort by Name",
-			columnId: "name",
-			type: "sort",
-			topPriority: true,
-		},
-		{
-			label: "Sort by Date",
-			columnId: "createdAt",
-			type: "sort",
-		},
-	], [filterControl]);
+	const mobileControlConfigs: ControlConfig[] = useMemo(
+		() => [
+			...(filterControl ? [{ ...filterControl, topPriority: true }] : []),
+			{
+				label: "Sort by Name",
+				columnId: "name",
+				type: "sort",
+				topPriority: true,
+			},
+			{
+				label: "Sort by Date",
+				columnId: "createdAt",
+				type: "sort",
+			},
+		],
+		[filterControl],
+	);
 
 	return (
 		<BaseTableControl
