@@ -159,11 +159,7 @@ export function generateColumns(
 			cell: ({ row }) => {
 				const addedBy = row.getValue("added_by_name") as string | undefined;
 				if (!addedBy) return <span className="text-muted-foreground">-</span>;
-				return (
-					<span className="text-muted-foreground text-sm">
-						{addedBy}
-					</span>
-				);
+				return <span className="text-muted-foreground text-sm">{addedBy}</span>;
 			},
 		},
 		{

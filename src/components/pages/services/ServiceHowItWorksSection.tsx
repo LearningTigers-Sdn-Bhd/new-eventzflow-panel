@@ -21,7 +21,7 @@ export default function ServiceHowItWorksSection({
 	steps,
 }: ServiceHowItWorksSectionProps) {
 	return (
-		<section className="bg-green-background px-6 py-24 md:py-32 border border-black">
+		<section className="border border-black bg-green-background px-6 py-24 md:py-32">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-16 text-center md:mb-20">

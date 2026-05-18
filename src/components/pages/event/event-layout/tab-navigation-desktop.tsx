@@ -1,13 +1,13 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TabDropdown } from "./tab-dropdown";
 import type { TabItem } from "./tab-config";
 import {
-	TICKET_TAB_IDS,
 	ANALYTICS_TAB_IDS,
-	LOGS_TAB_IDS,
 	EXHIBITOR_KIT_TAB_IDS,
+	LOGS_TAB_IDS,
+	TICKET_TAB_IDS,
 	USER_MANAGEMENT_TAB_IDS,
 } from "./tab-config";
+import { TabDropdown } from "./tab-dropdown";
 
 interface TabNavigationDesktopProps {
 	currentTab: string;
@@ -58,7 +58,10 @@ export function TabNavigationDesktop({
 								<TabDropdown
 									key={item.id}
 									item={item}
-									isActive={isGroupActive("user-management-group", USER_MANAGEMENT_TAB_IDS)}
+									isActive={isGroupActive(
+										"user-management-group",
+										USER_MANAGEMENT_TAB_IDS,
+									)}
 									tabs={userManagementTabs}
 									onTabChange={onTabChange}
 								/>
@@ -70,7 +73,10 @@ export function TabNavigationDesktop({
 								<TabDropdown
 									key={item.id}
 									item={item}
-									isActive={isGroupActive("exhibitor-kit-group", EXHIBITOR_KIT_TAB_IDS)}
+									isActive={isGroupActive(
+										"exhibitor-kit-group",
+										EXHIBITOR_KIT_TAB_IDS,
+									)}
 									tabs={exhibitorKitTabs}
 									onTabChange={onTabChange}
 								/>

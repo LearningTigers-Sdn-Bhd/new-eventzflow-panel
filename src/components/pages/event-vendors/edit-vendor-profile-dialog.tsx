@@ -1,14 +1,8 @@
 "use client";
 
+import { Building2, FileText, ImageIcon, Loader2, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-	Building2,
-	FileText,
-	ImageIcon,
-	Loader2,
-	MapPin,
-} from "lucide-react";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,7 +84,9 @@ export function EditVendorProfileDialog({
 
 			// Check if current category is in the list or custom
 			const currentCategory = profile.category || "";
-			const isPresetCategory = VENDOR_CATEGORIES.includes(currentCategory as typeof VENDOR_CATEGORIES[number]);
+			const isPresetCategory = VENDOR_CATEGORIES.includes(
+				currentCategory as (typeof VENDOR_CATEGORIES)[number],
+			);
 
 			if (isPresetCategory) {
 				setCategory(currentCategory);
@@ -127,9 +123,8 @@ export function EditVendorProfileDialog({
 		e.preventDefault();
 
 		// Determine final category value
-		const finalCategory = category === "Others" && customCategory
-			? customCategory
-			: category;
+		const finalCategory =
+			category === "Others" && customCategory ? customCategory : category;
 
 		try {
 			await updateProfile.mutateAsync({
@@ -163,8 +158,8 @@ export function EditVendorProfileDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[600px] rounded-none">
-				<DialogHeader className="p-6 pb-4 border-b">
+			<DialogContent className="flex max-h-[90vh] flex-col gap-0 rounded-none p-0 sm:max-w-[600px]">
+				<DialogHeader className="border-b p-6 pb-4">
 					<DialogTitle>Edit Vendor Profile</DialogTitle>
 					<DialogDescription>
 						Update your business information and marketing details.
@@ -190,7 +185,10 @@ export function EditVendorProfileDialog({
 								<div className="grid gap-4 sm:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="category">Business Category</Label>
-										<Select value={category} onValueChange={handleCategoryChange}>
+										<Select
+											value={category}
+											onValueChange={handleCategoryChange}
+										>
 											<SelectTrigger className="h-10 w-full rounded-none">
 												<SelectValue placeholder="Select a category" />
 											</SelectTrigger>
@@ -206,7 +204,9 @@ export function EditVendorProfileDialog({
 
 									{showCustomCategory && (
 										<div className="space-y-2">
-											<Label htmlFor="customCategory">Custom Category Name</Label>
+											<Label htmlFor="customCategory">
+												Custom Category Name
+											</Label>
 											<Input
 												id="customCategory"
 												value={customCategory}
@@ -230,16 +230,19 @@ export function EditVendorProfileDialog({
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="description">Business Information / Products / Projects / Services to be Exhibited</Label>
+									<Label htmlFor="description">
+										Business Information / Products / Projects / Services to be
+										Exhibited
+									</Label>
 									<div className="relative">
-										<FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+										<FileText className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
 										<Textarea
 											id="description"
 											value={description}
 											onChange={(e) => setDescription(e.target.value)}
 											placeholder="Describe the products, projects, or services you will be exhibiting..."
 											rows={3}
-											className="rounded-none resize-none pl-10"
+											className="resize-none rounded-none pl-10"
 										/>
 									</div>
 								</div>
@@ -264,34 +267,36 @@ export function EditVendorProfileDialog({
 										onChange={(e) => setCompanyProfile(e.target.value)}
 										placeholder="Brief description of your company, history, and expertise..."
 										rows={3}
-										className="rounded-none resize-none"
+										className="resize-none rounded-none"
 									/>
 								</div>
 
 								<div className="space-y-2">
 									<Label htmlFor="address">Business Address</Label>
 									<div className="relative">
-										<MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+										<MapPin className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
 										<Textarea
 											id="address"
 											value={address}
 											onChange={(e) => setAddress(e.target.value)}
 											placeholder="Your business address"
 											rows={2}
-											className="rounded-none resize-none pl-10"
+											className="resize-none rounded-none pl-10"
 										/>
 									</div>
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="notes">Wishing to Connect With (Sector's) / Additional Notes</Label>
+									<Label htmlFor="notes">
+										Wishing to Connect With (Sector's) / Additional Notes
+									</Label>
 									<Textarea
 										id="notes"
 										value={notes}
 										onChange={(e) => setNotes(e.target.value)}
 										placeholder="Sectors or types of businesses you'd like to connect with, or any additional notes..."
 										rows={2}
-										className="rounded-none resize-none"
+										className="resize-none rounded-none"
 									/>
 								</div>
 							</div>
@@ -339,7 +344,7 @@ export function EditVendorProfileDialog({
 					>
 						{updateProfile.isPending ? (
 							<>
-								<Loader2 className="size-4 animate-spin mr-2" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								Saving...
 							</>
 						) : (

@@ -113,14 +113,14 @@ export default function EventRegistrationLandingPage({
 		<section className="relative min-h-screen overflow-hidden bg-slate-50/50">
 			{/* Background texture layers */}
 			<div aria-hidden className="pointer-events-none absolute inset-0">
-				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-brand-green/5 blur-[120px]" />
-				<div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/5 blur-[100px]" />
+				<div className="absolute -top-[10%] -left-[10%] h-[40%] w-[40%] rounded-full bg-brand-green/5 blur-[120px]" />
+				<div className="absolute top-[20%] -right-[10%] h-[30%] w-[30%] rounded-full bg-blue-500/5 blur-[100px]" />
 				<div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(to_right,rgba(15,23,42,1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,1)_1px,transparent_1px)] [background-size:40px_40px]" />
 			</div>
 
 			<main className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
 				{/* Top Navigation / Logo area */}
-				<div className="flex items-center justify-between mb-12">
+				<div className="mb-12 flex items-center justify-between">
 					{eventQuery.data?.logo_url ? (
 						<motion.div
 							initial={{ opacity: 0, x: -20 }}
@@ -142,22 +142,22 @@ export default function EventRegistrationLandingPage({
 				</div>
 
 				{/* Hero Section */}
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20">
+				<div className="mb-20 grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
 					<div className="order-2 lg:order-1 lg:col-span-7">
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 1, ease: SMOOTH_EASE }}
 						>
-							<h1 className="font-black text-4xl sm:text-6xl text-slate-900 leading-[1.1] tracking-tight mb-8">
+							<h1 className="mb-8 font-black text-4xl text-slate-900 leading-[1.1] tracking-tight sm:text-6xl">
 								Welcome to
 								<br />
-								<span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
+								<span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
 									{eventTitle}
 								</span>
 							</h1>
 
-							<div className="mb-8 space-y-1 text-sm sm:text-base text-slate-700">
+							<div className="mb-8 space-y-1 text-slate-700 text-sm sm:text-base">
 								{eventDate ? (
 									<p>
 										<span className="font-semibold text-slate-900">Date:</span>{" "}
@@ -191,8 +191,8 @@ export default function EventRegistrationLandingPage({
 							transition={{ duration: 1, delay: 0.2, ease: SMOOTH_EASE }}
 							className="order-1 lg:order-2 lg:col-span-5"
 						>
-							<div className="relative group">
-								<div className="absolute -inset-1 bg-gradient-to-r from-brand-green/20 to-blue-500/20 opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+							<div className="group relative">
+								<div className="absolute -inset-1 bg-gradient-to-r from-brand-green/20 to-blue-500/20 opacity-25 transition duration-1000 group-hover:opacity-50 group-hover:duration-200" />
 								<div className="relative overflow-hidden border border-slate-200 bg-white shadow-2xl">
 									<Image
 										src={`${API_BASE_URL}${eventQuery.data.poster_url}`}
@@ -210,27 +210,31 @@ export default function EventRegistrationLandingPage({
 
 				{/* Options Section */}
 				<div className="relative">
-					<div className="flex items-center gap-4 mb-10">
-						<h2 className="font-bold text-slate-900 text-sm uppercase tracking-widest whitespace-nowrap">
+					<div className="mb-10 flex items-center gap-4">
+						<h2 className="whitespace-nowrap font-bold text-slate-900 text-sm uppercase tracking-widest">
 							Registration Options
 						</h2>
 						<div className="h-px w-full bg-slate-200" />
 					</div>
 
 					{formsQuery.isLoading ? (
-						<div className="py-20 flex justify-center">
+						<div className="flex justify-center py-20">
 							<div className="h-8 w-8 animate-spin rounded-full border-3 border-slate-200 border-t-brand-green" />
 						</div>
 					) : formsQuery.isError ? (
 						<div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
-							<p className="text-red-600 font-medium">Unable to load registration options.</p>
-							<p className="text-red-400 text-sm mt-1">Please refresh the page or contact support.</p>
+							<p className="font-medium text-red-600">
+								Unable to load registration options.
+							</p>
+							<p className="mt-1 text-red-400 text-sm">
+								Please refresh the page or contact support.
+							</p>
 						</div>
 					) : formsQuery.data && formsQuery.data.length > 0 ? (
 						<RegistrationOptionCards eventSlug={slug} forms={formsQuery.data} />
 					) : (
-						<div className="rounded-3xl border-2 border-dashed border-slate-200 p-20 text-center bg-white/50">
-							<p className="text-slate-500 text-lg">
+						<div className="rounded-3xl border-2 border-slate-200 border-dashed bg-white/50 p-20 text-center">
+							<p className="text-lg text-slate-500">
 								No registration forms are currently available.
 							</p>
 						</div>
@@ -242,9 +246,9 @@ export default function EventRegistrationLandingPage({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ duration: 1, delay: 0.8 }}
-					className="mt-24 pt-12 border-t border-slate-200 text-center"
+					className="mt-24 border-slate-200 border-t pt-12 text-center"
 				>
-					<p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+					<p className="font-bold text-slate-400 text-xs uppercase tracking-widest">
 						Powered by Eventzflow
 					</p>
 				</motion.div>

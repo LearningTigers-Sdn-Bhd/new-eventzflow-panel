@@ -1,11 +1,11 @@
 import { restClient } from "@/utils/rest-api";
-import type { ExhibitorTeamMemberLimit } from "./response";
 import {
 	type CreateExhibitorTeamMemberLimitRequest,
 	createExhibitorTeamMemberLimitSchema,
 	type UpdateExhibitorTeamMemberLimitRequest,
 	updateExhibitorTeamMemberLimitSchema,
 } from "./request";
+import type { ExhibitorTeamMemberLimit } from "./response";
 
 /**
  * Get team member limit settings for an event

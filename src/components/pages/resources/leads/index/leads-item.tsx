@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, MapPin, Mail, Phone, FileText } from "lucide-react";
+import { Building2, FileText, Mail, MapPin, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Item,
@@ -95,9 +95,7 @@ export function LeadsItem({ lead, onClick }: LeadsItemProps) {
 				</div>
 			</ItemContent>
 			<ItemFooter className="flex items-center justify-between text-muted-foreground text-xs">
-				<span>
-					Submitted: {new Date(lead.createdAt).toLocaleDateString()}
-				</span>
+				<span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
 				<ItemActions>
 					<LeadsActionMenu lead={lead} />
 				</ItemActions>

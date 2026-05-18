@@ -13,7 +13,10 @@ interface QRScannerProps {
 
 const SCANNER_ID = "event-checkin-qr-reader";
 
-export function QRScanner({ onScan, facingMode = "environment" }: QRScannerProps) {
+export function QRScanner({
+	onScan,
+	facingMode = "environment",
+}: QRScannerProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const scannerRef = useRef<Html5Qrcode | null>(null);
 	const lastScannedRef = useRef<string>("");
@@ -108,12 +111,12 @@ export function QRScanner({ onScan, facingMode = "environment" }: QRScannerProps
 
 	return (
 		<div className="group relative h-full w-full">
-			<div 
-				id={SCANNER_ID} 
+			<div
+				id={SCANNER_ID}
 				className={cn(
 					"h-full w-full bg-neutral-950",
-					facingMode === "user" && "[&_video]:scale-x-[-1]"
-				)} 
+					facingMode === "user" && "[&_video]:scale-x-[-1]",
+				)}
 			/>
 
 			{/* Loading State */}

@@ -36,26 +36,26 @@ export default function EventSeatReservationsTicketingCard({
 
 	return (
 		<div className="relative flex flex-col gap-4 rounded-none border border-[color:var(--color-brand-green)] bg-white shadow-sm sm:flex-row">
-			<div className="w-full md:max-w-[180px] bg-brand-green p-4 text-white flex flex-col justify-center">
-				<div className="flex md:justify-center md:items-center items-start gap-2 text-xs uppercase tracking-[0.2em] text-emerald-50">
+			<div className="flex w-full flex-col justify-center bg-brand-green p-4 text-white md:max-w-[180px]">
+				<div className="flex items-start gap-2 text-emerald-50 text-xs uppercase tracking-[0.2em] md:items-center md:justify-center">
 					<CalendarIcon className="size-16" />
 				</div>
-				<div className="flex flex-col md:justify-center md:items-center items-start w-full">
-					<p className="mt-3 text-2xl font-black tracking-tight text-emerald-50">
+				<div className="flex w-full flex-col items-start md:items-center md:justify-center">
+					<p className="mt-3 font-black text-2xl text-emerald-50 tracking-tight">
 						{dayRange ?? "TBA"}
 					</p>
-					<p className="text-sm font-mono uppercase text-emerald-50">
+					<p className="font-mono text-emerald-50 text-sm uppercase">
 						{monthRange ?? "Date to be announced"}
 					</p>
 				</div>
 			</div>
-			<div className="w-full flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-				<div className="w-full flex flex-col justify-between items-start h-full px-2 py-0 md:py-3">
-					<span className="inline-flex uppercase text-lg font-semibold text-emerald-800">
+			<div className="flex w-full flex-col gap-4 md:flex-row md:items-center md:justify-between">
+				<div className="flex h-full w-full flex-col items-start justify-between px-2 py-0 md:py-3">
+					<span className="inline-flex font-semibold text-emerald-800 text-lg uppercase">
 						{session.name}
 					</span>
-					<div className="h-full flex flex-col justify-end items-start pb-2">
-						<div className="mt-2 flex flex-col gap-1 text-sm text-slate-500">
+					<div className="flex h-full flex-col items-start justify-end pb-2">
+						<div className="mt-2 flex flex-col gap-1 text-slate-500 text-sm">
 							{session.location && (
 								<span className="inline-flex items-center gap-1 text-emerald-500 uppercase">
 									<MapPinIcon className="h-4 w-4" />
@@ -71,7 +71,7 @@ export default function EventSeatReservationsTicketingCard({
 						</div>
 						{showPrices && prices.length > 0 && (
 							<div className="mt-1 flex flex-col items-start gap-1">
-								<span className="inline-flex items-center gap-1 text-sm uppercase text-emerald-500">
+								<span className="inline-flex items-center gap-1 text-emerald-500 text-sm uppercase">
 									<TicketIcon className="h-4 w-4" />
 									Prices
 								</span>
@@ -91,7 +91,7 @@ export default function EventSeatReservationsTicketingCard({
 				</div>
 				{availability.label && (
 					<Badge
-						className={`absolute left-1 top-0 min-w-[110px] -translate-y-1/2 rounded-none border uppercase ${
+						className={`absolute top-0 left-1 min-w-[110px] -translate-y-1/2 rounded-none border uppercase ${
 							availability.isFull
 								? "border-red-500 bg-red-300 text-red-800"
 								: "border-amber-500 bg-amber-300 text-amber-800"
@@ -100,19 +100,19 @@ export default function EventSeatReservationsTicketingCard({
 						{availability.label}
 					</Badge>
 				)}
-			<div className="w-full md:max-w-[200px] flex flex-col items-center gap-3">
-				{href ? (
-					<Button asChild variant="default" className={buttonClass}>
-						<Link href={href}>
+				<div className="flex w-full flex-col items-center gap-3 md:max-w-[200px]">
+					{href ? (
+						<Button asChild variant="default" className={buttonClass}>
+							<Link href={href}>
+								{availability.isFull ? "View Details" : "Book Now"}
+							</Link>
+						</Button>
+					) : (
+						<Button variant="default" disabled className={buttonClass}>
 							{availability.isFull ? "View Details" : "Book Now"}
-						</Link>
-					</Button>
-				) : (
-					<Button variant="default" disabled className={buttonClass}>
-						{availability.isFull ? "View Details" : "Book Now"}
-					</Button>
-				)}
-			</div>
+						</Button>
+					)}
+				</div>
 			</div>
 		</div>
 	);

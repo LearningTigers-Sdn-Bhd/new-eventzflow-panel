@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import LuckyDrawPageClient from "./page-client";
 
 export const metadata: Metadata = {

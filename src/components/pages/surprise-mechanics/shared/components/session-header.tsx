@@ -1,7 +1,14 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeft, Download, Eye, EyeOff, Maximize, Minimize } from "lucide-react";
+import {
+	ArrowLeft,
+	Download,
+	Eye,
+	EyeOff,
+	Maximize,
+	Minimize,
+} from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";

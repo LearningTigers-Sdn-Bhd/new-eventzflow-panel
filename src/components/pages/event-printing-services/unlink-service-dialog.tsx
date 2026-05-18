@@ -26,11 +26,12 @@ export function UnlinkServiceDialog({
 				<div className="space-y-2">
 					<p className="text-sm">
 						Are you sure you want to unlink{" "}
-						<span className="font-semibold">"{serviceName}"</span> from this event?
+						<span className="font-semibold">"{serviceName}"</span> from this
+						event?
 					</p>
 					<p className="text-muted-foreground text-sm">
-						The service will no longer be available for this event. Any configured
-						price tiers will also be removed.
+						The service will no longer be available for this event. Any
+						configured price tiers will also be removed.
 					</p>
 				</div>
 			</div>

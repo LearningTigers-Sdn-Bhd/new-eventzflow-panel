@@ -1,4 +1,4 @@
-import { restClient, publicRestClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 
 export interface BusinessMatchingEvent {
 	id: string;

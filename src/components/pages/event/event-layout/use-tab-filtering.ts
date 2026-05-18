@@ -33,7 +33,14 @@ export function useTabFiltering(
 			// Use isVendor (from user.role) for immediate check without async
 			if (permissions.isVendor) {
 				// Exhibitor kit tabs only available when enabled
-				if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
+				if (
+					[
+						"my-items",
+						"order-items",
+						"custom-requests",
+						"my-team-members",
+					].includes(tab.id)
+				) {
 					return currentEvent?.use_exhibitor_kit === true;
 				}
 				return [
@@ -59,7 +66,14 @@ export function useTabFiltering(
 			}
 
 			// Hide vendor-specific exhibitor kit tabs from non-vendors
-			if (["my-items", "order-items", "custom-requests", "my-team-members"].includes(tab.id)) {
+			if (
+				[
+					"my-items",
+					"order-items",
+					"custom-requests",
+					"my-team-members",
+				].includes(tab.id)
+			) {
 				return false;
 			}
 
@@ -170,5 +184,10 @@ export function useTabFiltering(
 
 			return true;
 		});
-	}, [currentEvent?.use_ticket, currentEvent?.use_exhibitor_kit, currentEvent?.use_event_leads, permissions]);
+	}, [
+		currentEvent?.use_ticket,
+		currentEvent?.use_exhibitor_kit,
+		currentEvent?.use_event_leads,
+		permissions,
+	]);
 }

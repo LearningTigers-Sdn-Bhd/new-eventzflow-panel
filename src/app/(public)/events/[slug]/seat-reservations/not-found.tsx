@@ -15,12 +15,12 @@ export default function SeatReservationNotFound() {
 		: ("/events" as Route);
 
 	return (
-		<main className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+		<main className="flex min-h-[80vh] flex-col items-center justify-center p-6 text-center">
 			<div className="mb-6 rounded-full bg-slate-100 p-6">
 				<TicketIcon className="h-12 w-12 text-slate-400" />
 			</div>
 
-			<h1 className="mb-2 text-3xl font-black uppercase tracking-tight text-slate-900 md:text-4xl">
+			<h1 className="mb-2 font-black text-3xl text-slate-900 uppercase tracking-tight md:text-4xl">
 				Session Not Found
 			</h1>
 
@@ -33,7 +33,7 @@ export default function SeatReservationNotFound() {
 				<Button
 					asChild
 					variant="outline"
-					className="h-12 rounded-none border-2 font-bold px-8 uppercase tracking-widest"
+					className="h-12 rounded-none border-2 px-8 font-bold uppercase tracking-widest"
 				>
 					<Link href={backHref}>
 						<ArrowLeftIcon className="mr-2 h-4 w-4" />
@@ -43,7 +43,7 @@ export default function SeatReservationNotFound() {
 
 				<Button
 					asChild
-					className="h-12 rounded-none bg-brand-green font-bold px-8 uppercase tracking-widest hover:bg-brand-green/90"
+					className="h-12 rounded-none bg-brand-green px-8 font-bold uppercase tracking-widest hover:bg-brand-green/90"
 				>
 					<Link href={"/events" as Route}>Browse Events</Link>
 				</Button>

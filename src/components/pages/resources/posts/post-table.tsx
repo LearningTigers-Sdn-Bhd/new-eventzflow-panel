@@ -26,7 +26,13 @@ import { PostItem } from "./post-item";
 import { columns } from "./post-table-columns";
 import { PostTableControl } from "./post-table-control";
 
-type PostFilter = "published" | "draft" | "pending_review" | "rejected" | "archived" | "all";
+type PostFilter =
+	| "published"
+	| "draft"
+	| "pending_review"
+	| "rejected"
+	| "archived"
+	| "all";
 
 interface ClickableRowConfig<TData> {
 	isEnabled: boolean;

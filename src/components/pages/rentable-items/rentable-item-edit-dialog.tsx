@@ -26,7 +26,9 @@ interface RentableItemEditContentProps {
 	item: RentableItem;
 }
 
-export function RentableItemEditContent({ item }: RentableItemEditContentProps) {
+export function RentableItemEditContent({
+	item,
+}: RentableItemEditContentProps) {
 	const { closeDialog } = useDialog();
 	const queryClient = useQueryClient();
 

@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { ChevronDownIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import {
 	Collapsible,
@@ -9,14 +9,16 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import {
-	usePublicSeatSectionState,
-} from "../hooks/use-public-seat-reservation";
+import { usePublicSeatSectionState } from "../hooks/use-public-seat-reservation";
 
-const loadAccessibleSeatPickerList = () => import("./accessible-seat-picker-list");
+const loadAccessibleSeatPickerList = () =>
+	import("./accessible-seat-picker-list");
 
 const AccessibleSeatPickerList = dynamic(
-	() => loadAccessibleSeatPickerList().then((module) => module.AccessibleSeatPickerList),
+	() =>
+		loadAccessibleSeatPickerList().then(
+			(module) => module.AccessibleSeatPickerList,
+		),
 	{
 		ssr: false,
 		loading: () => (
@@ -45,7 +47,8 @@ export function AccessibleSeatPicker({
 	const activeSection = activeSectionId ? sections[activeSectionId] : null;
 
 	const sectionSummary = useMemo(() => {
-		if (!activeSectionId || !activeSection) return "Open a section to browse seats";
+		if (!activeSectionId || !activeSection)
+			return "Open a section to browse seats";
 		return activeSection.name;
 	}, [activeSectionId, activeSection]);
 
@@ -62,7 +65,7 @@ export function AccessibleSeatPicker({
 					{active ? (
 						<AccessibleSeatPickerList variant="mobile" />
 					) : (
-						<p className="px-4 pb-4 pt-3 text-slate-500 text-xs">
+						<p className="px-4 pt-3 pb-4 text-slate-500 text-xs">
 							Open seat list to browse seats.
 						</p>
 					)}

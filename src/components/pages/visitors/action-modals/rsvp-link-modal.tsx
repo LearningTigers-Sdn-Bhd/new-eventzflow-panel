@@ -36,21 +36,23 @@ export function RsvpLinkModal({ visitor, eventSlug }: RsvpLinkModalProps) {
 			<div className="space-y-2">
 				<p className="text-muted-foreground text-sm leading-relaxed">
 					Share this link with{" "}
-					<span className="text-foreground font-medium">{visitor.full_name}</span>{" "}
+					<span className="font-medium text-foreground">
+						{visitor.full_name}
+					</span>{" "}
 					so they can respond to your invitation.
 				</p>
 			</div>
 
 			<div className="rounded-none border bg-muted/30 p-4">
-				<div className="space-y-2.5 min-w-0">
-					<p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+				<div className="min-w-0 space-y-2.5">
+					<p className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
 						Unique RSVP Link
 					</p>
 					<div className="flex gap-2">
 						<Input
 							readOnly
 							value={rsvpLink}
-							className="rounded-none font-mono text-xs h-9 bg-background"
+							className="h-9 rounded-none bg-background font-mono text-xs"
 							onFocus={(e) => e.target.select()}
 						/>
 						<div className="flex gap-1.5">

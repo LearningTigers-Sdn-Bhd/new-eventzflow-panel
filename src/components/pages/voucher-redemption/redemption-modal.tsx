@@ -245,7 +245,8 @@ export function VoucherRedemptionModal({
 		setIsProcessing(true);
 
 		try {
-			const isTicket = redemptionState.visitorDetails?.redeemerType === "ticket";
+			const isTicket =
+				redemptionState.visitorDetails?.redeemerType === "ticket";
 
 			// Pass the final price as net_amount
 			// The backend will calculate the original price (gross_amount)

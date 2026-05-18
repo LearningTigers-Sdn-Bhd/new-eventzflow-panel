@@ -20,7 +20,10 @@ export async function checkIn(publicId: string): Promise<ScanCheckInResponse> {
 	const url = `v1/scan/${publicId}/check_in`;
 
 	try {
-		const response = await restClient.patch<BackendScanCheckInResponse>(url, {});
+		const response = await restClient.patch<BackendScanCheckInResponse>(
+			url,
+			{},
+		);
 
 		// Normalize the response based on type
 		const isTicket = response.type === "ticket";

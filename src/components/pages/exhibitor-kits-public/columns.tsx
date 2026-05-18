@@ -5,10 +5,10 @@ import { ArrowDown, Eye, Package, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
-import type { EventVendor } from "@/lib/api/event-vendor/response";
 import type { Event } from "@/lib/api/event";
+import type { EventVendor } from "@/lib/api/event-vendor/response";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit/response";
+import { cn } from "@/lib/utils";
 
 export interface ExhibitorKitWithEventAndVendor extends ExhibitorKit {
 	vendor?: EventVendor;
@@ -122,8 +122,12 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			return (
 				<div>
 					<div className="font-medium">{kit.pic_full_name}</div>
-					<div className="text-muted-foreground text-sm">{kit.pic_email_address}</div>
-					<div className="text-muted-foreground text-sm">{kit.pic_contact_number}</div>
+					<div className="text-muted-foreground text-sm">
+						{kit.pic_email_address}
+					</div>
+					<div className="text-muted-foreground text-sm">
+						{kit.pic_contact_number}
+					</div>
 				</div>
 			);
 		},
@@ -137,7 +141,9 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			return (
 				<div className="flex items-center gap-2">
 					<Users className="h-4 w-4 text-muted-foreground" />
-					<span>{teamSize} member{teamSize !== 1 ? 's' : ''}</span>
+					<span>
+						{teamSize} member{teamSize !== 1 ? "s" : ""}
+					</span>
 				</div>
 			);
 		},
@@ -150,7 +156,8 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 			const itemsCount = kit.exhibitor_kit_items?.length || 0;
 			const printingsCount = kit.exhibitor_kit_printings?.length || 0;
 			// Only show printing services count when contractor printing is enabled for this event
-			const allowContractorPrinting = kit.event?.allow_contractor_printing_services ?? false;
+			const allowContractorPrinting =
+				kit.event?.allow_contractor_printing_services ?? false;
 
 			return (
 				<div className="space-y-1">
@@ -174,9 +181,12 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 		cell: ({ row }) => {
 			const kit = row.original;
 			return (
-				<Badge 
+				<Badge
 					variant="outline"
-					className={cn("rounded-none font-bold capitalize", getPaymentStatusStyle(kit.payment_status))}
+					className={cn(
+						"rounded-none font-bold capitalize",
+						getPaymentStatusStyle(kit.payment_status),
+					)}
 				>
 					{kit.payment_status}
 				</Badge>
@@ -188,7 +198,7 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 		header: () => <div className="text-center">Actions</div>,
 		cell: ({ row }) => {
 			const kit = row.original;
-			
+
 			return (
 				<div className="flex justify-center lg:justify-center">
 					<PublicViewDetailsButton kitId={kit.id} eventId={kit.event?.id} />
@@ -198,12 +208,20 @@ export const columns: ColumnDef<ExhibitorKitWithEventAndVendor>[] = [
 	},
 ];
 
-function PublicViewDetailsButton({ kitId, eventId }: { kitId: number; eventId?: number }) {
+function PublicViewDetailsButton({
+	kitId,
+	eventId,
+}: {
+	kitId: number;
+	eventId?: number;
+}) {
 	const router = useRouter();
 
 	const handleViewDetails = () => {
 		if (eventId) {
-			router.push(`/event/${eventId}/contractor-exhibitor-kits/${kitId}` as any);
+			router.push(
+				`/event/${eventId}/contractor-exhibitor-kits/${kitId}` as any,
+			);
 		}
 	};
 

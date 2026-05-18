@@ -2,11 +2,11 @@
 
 import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
 import { DataTable } from "@/components/pages/event-leads/lead-log-table";
+import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
 import { Button } from "@/components/ui/button";
-import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { useEventLeads } from "@/hooks/use-event-leads";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 
 interface EventLeadsPageProps {
 	params: Promise<{ event_id: string }>;
@@ -15,7 +15,12 @@ interface EventLeadsPageProps {
 export default function EventLeadsPage({ params }: EventLeadsPageProps) {
 	const { event_id } = use(params);
 
-	const { data: eventLeads, isLoading, error, refetch } = useEventLeads(event_id);
+	const {
+		data: eventLeads,
+		isLoading,
+		error,
+		refetch,
+	} = useEventLeads(event_id);
 
 	const eventActions = useMemo(
 		() => (

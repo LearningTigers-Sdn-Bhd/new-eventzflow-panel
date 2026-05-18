@@ -17,9 +17,9 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useFormatDate } from "@/hooks/use-format-date";
+import type { EventStaffMember } from "@/lib/api/event/event-staff";
 import { cn } from "@/lib/utils";
 import { EventStaffActionsMenu } from "./action-menu";
-import type { EventStaffMember } from "@/lib/api/event/event-staff";
 
 interface EventStaffItemProps {
 	member: EventStaffMember;

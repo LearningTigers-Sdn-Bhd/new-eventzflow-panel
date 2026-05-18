@@ -18,8 +18,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { Event } from "@/lib/api/event";
+import { cn } from "@/lib/utils";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -41,7 +41,8 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 					/>
 					<Select
 						value={
-							(table.getColumn("payment_status")?.getFilterValue() as string) || "all"
+							(table.getColumn("payment_status")?.getFilterValue() as string) ||
+							"all"
 						}
 						onValueChange={(value) =>
 							table
@@ -88,7 +89,11 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 								All Events
 							</SelectItem>
 							{events.map((event) => (
-								<SelectItem key={event.id} value={event.title} className="rounded-none">
+								<SelectItem
+									key={event.id}
+									value={event.title}
+									className="rounded-none"
+								>
 									{event.title}
 								</SelectItem>
 							))}
@@ -130,10 +135,10 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 			) : (
 				/* Mobile Control Panel */
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField 
-						table={table} 
+					<QuerySearchField
+						table={table}
 						columns={["event", "company_name", "booth_number", "pic_full_name"]}
-						placeholder="Search by event, company, or booth..." 
+						placeholder="Search by event, company, or booth..."
 					/>
 					<div className="grid grid-cols-2 gap-2">
 						<Button
@@ -158,7 +163,9 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 						</Button>
 						<Select
 							value={
-								(table.getColumn("payment_status")?.getFilterValue() as string) || "all"
+								(table
+									.getColumn("payment_status")
+									?.getFilterValue() as string) || "all"
 							}
 							onValueChange={(value) =>
 								table
@@ -206,7 +213,11 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 								All Events
 							</SelectItem>
 							{events.map((event) => (
-								<SelectItem key={event.id} value={event.title} className="rounded-none">
+								<SelectItem
+									key={event.id}
+									value={event.title}
+									className="rounded-none"
+								>
 									{event.title}
 								</SelectItem>
 							))}

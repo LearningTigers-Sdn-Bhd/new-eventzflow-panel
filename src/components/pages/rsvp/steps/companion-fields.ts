@@ -15,7 +15,7 @@ export function getCompanionFieldMeta(
 ): CompanionFieldMeta {
 	const prefix = `companion-${index + 1}`;
 
-		switch (field) {
+	switch (field) {
 		case "full_name":
 			return {
 				id: `${prefix}-full-name`,

@@ -1,4 +1,8 @@
-import { kyPublicClient, kyPublicClientForFormData, restClient } from "@/utils/rest-api";
+import {
+	kyPublicClient,
+	kyPublicClientForFormData,
+	restClient,
+} from "@/utils/rest-api";
 import type { RegisterInvitedVendorRequest } from "./request";
 import { registerInvitedVendorSchema } from "./request";
 import type {
@@ -127,7 +131,10 @@ export async function registerInvitedVendor(
 					validated.vendor_profile.company_profile,
 				);
 			if (validated.vendor_profile.image)
-				formData.append("vendor_profile[image]", validated.vendor_profile.image);
+				formData.append(
+					"vendor_profile[image]",
+					validated.vendor_profile.image,
+				);
 		}
 
 		// Add event_vendor fields
@@ -229,7 +236,7 @@ export async function registerInvitedVendor(
 			}
 		}
 
-			return kyPublicClientForFormData
+		return kyPublicClientForFormData
 			.post("v1/auth/register_invited_vendor", { body: formData })
 			.json<RegisterInvitedVendorResponse>();
 	}
@@ -261,8 +268,7 @@ export async function registerInvitedVendor(
 		if (validated.vendor_profile.notes)
 			vendorProfile.notes = validated.vendor_profile.notes;
 		if (validated.vendor_profile.company_profile)
-			vendorProfile.company_profile =
-				validated.vendor_profile.company_profile;
+			vendorProfile.company_profile = validated.vendor_profile.company_profile;
 
 		if (Object.keys(vendorProfile).length > 0) {
 			payload.vendor_profile = vendorProfile;
@@ -294,13 +300,16 @@ export async function registerInvitedVendor(
 		if (validated.exhibitor_kit.booth_dimensions)
 			exhibitorKit.booth_dimensions = validated.exhibitor_kit.booth_dimensions;
 		if (validated.exhibitor_kit.side_wall_left_required !== undefined)
-			exhibitorKit.side_wall_left_required = validated.exhibitor_kit.side_wall_left_required;
+			exhibitorKit.side_wall_left_required =
+				validated.exhibitor_kit.side_wall_left_required;
 		if (validated.exhibitor_kit.side_wall_right_required !== undefined)
-			exhibitorKit.side_wall_right_required = validated.exhibitor_kit.side_wall_right_required;
+			exhibitorKit.side_wall_right_required =
+				validated.exhibitor_kit.side_wall_right_required;
 		if (validated.exhibitor_kit.name_on_fascia)
 			exhibitorKit.name_on_fascia = validated.exhibitor_kit.name_on_fascia;
 		if (validated.exhibitor_kit.fascia_upgrade_required !== undefined)
-			exhibitorKit.fascia_upgrade_required = validated.exhibitor_kit.fascia_upgrade_required;
+			exhibitorKit.fascia_upgrade_required =
+				validated.exhibitor_kit.fascia_upgrade_required;
 		if (validated.exhibitor_kit.company_name)
 			exhibitorKit.company_name = validated.exhibitor_kit.company_name;
 		if (validated.exhibitor_kit.company_address)

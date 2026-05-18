@@ -37,7 +37,10 @@ interface ExhibitorCartState {
 	addPrinting: (printing: CartPrinting) => void;
 	updatePrintingQuantity: (printingServiceId: number, quantity: number) => void;
 	updatePrintingNotes: (printingServiceId: number, notes: string) => void;
-	updatePrintingFileReference: (printingServiceId: number, fileReference: string) => void;
+	updatePrintingFileReference: (
+		printingServiceId: number,
+		fileReference: string,
+	) => void;
 	removePrinting: (printingServiceId: number) => void;
 	clearPrintings: () => void;
 
@@ -86,9 +89,7 @@ export const useExhibitorCart = create<ExhibitorCartState>()(
 			updateItemNotes: (rentableItemId, notes) =>
 				set((state) => ({
 					items: state.items.map((item) =>
-						item.rentableItemId === rentableItemId
-							? { ...item, notes }
-							: item,
+						item.rentableItemId === rentableItemId ? { ...item, notes } : item,
 					),
 				})),
 

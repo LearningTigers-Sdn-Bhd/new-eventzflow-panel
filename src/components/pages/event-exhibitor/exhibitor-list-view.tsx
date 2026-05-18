@@ -3,12 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowRight,
+	CreditCard,
 	FileQuestion,
 	Info,
 	Package,
 	Printer,
 	Users,
-	CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";

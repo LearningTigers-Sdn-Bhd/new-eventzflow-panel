@@ -107,7 +107,9 @@ export function Section({
 }) {
 	return (
 		<View style={styles.mb4} break={breakOnPage}>
-			<Text style={styles.h2} minPresenceAhead={60}>{title}</Text>
+			<Text style={styles.h2} minPresenceAhead={60}>
+				{title}
+			</Text>
 			{children}
 		</View>
 	);

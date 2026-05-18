@@ -4,7 +4,9 @@ interface ShowResponseDebugProps {
 	resource: Resource;
 }
 
-export default function ShowResponseDebug({ resource }: ShowResponseDebugProps) {
+export default function ShowResponseDebug({
+	resource,
+}: ShowResponseDebugProps) {
 	return (
 		<div className="container mx-auto max-w-7xl px-4 py-16">
 			<div className="overflow-auto rounded-2xl border border-slate-800 bg-slate-950 p-8 shadow-2xl">

@@ -2,7 +2,13 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Image as ImageIcon, Layers, Loader2, Settings2 } from "lucide-react";
+import {
+	FileText,
+	Image as ImageIcon,
+	Layers,
+	Loader2,
+	Settings2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
@@ -12,8 +18,8 @@ import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
-import { useDialog } from "@/hooks/use-dialog";
 import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import { useDialog } from "@/hooks/use-dialog";
 import { createResource } from "@/lib/api/resource";
 import { getResourceCategories } from "@/lib/api/resource/category";
 import { getResourceMediaTypes } from "@/lib/api/resource/media-type";
@@ -135,7 +141,8 @@ export function CreatePostForm() {
 								name="title"
 								validators={{
 									onChange: ({ value }) => {
-										const result = createPostSchema.shape.title.safeParse(value);
+										const result =
+											createPostSchema.shape.title.safeParse(value);
 										if (!result.success) return result.error.issues[0].message;
 										return undefined;
 									},
@@ -353,7 +360,8 @@ export function CreatePostForm() {
 										onChange: ({ value }) => {
 											const result =
 												createPostSchema.shape.priority.safeParse(value);
-											if (!result.success) return result.error.issues[0].message;
+											if (!result.success)
+												return result.error.issues[0].message;
 											return undefined;
 										},
 									}}

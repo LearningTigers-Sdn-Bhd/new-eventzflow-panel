@@ -14,7 +14,7 @@ interface HourlyBarChartProps {
  * Format hour to 12-hour format with AM/PM
  */
 function formatHour(hourStr: string): string {
-	const hour = parseInt(hourStr.split(":")[0], 10);
+	const hour = Number.parseInt(hourStr.split(":")[0], 10);
 	if (hour === 0) return "12AM";
 	if (hour === 12) return "12PM";
 	if (hour < 12) return `${hour}AM`;
@@ -44,7 +44,7 @@ export function HourlyBarChart({
 	const innerHeight = height - paddingTop - paddingBottom;
 
 	const maxValue = Math.max(...data.map((d) => d.value), 1);
-	const barWidth = Math.max((innerWidth / data.length) - 1, 3);
+	const barWidth = Math.max(innerWidth / data.length - 1, 3);
 	const barGap = 1;
 
 	// Show hour labels at intervals (every 3 hours: 12AM, 3AM, 6AM, etc.)
@@ -64,7 +64,13 @@ export function HourlyBarChart({
 			wrap={false}
 		>
 			{/* Day label with total count */}
-			<View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+					marginBottom: 8,
+				}}
+			>
 				<Text
 					style={{
 						fontSize: 10,
@@ -86,7 +92,11 @@ export function HourlyBarChart({
 				)}
 			</View>
 
-			<Svg width={chartWidth} height={height} viewBox={`0 0 ${chartWidth} ${height}`}>
+			<Svg
+				width={chartWidth}
+				height={height}
+				viewBox={`0 0 ${chartWidth} ${height}`}
+			>
 				{/* Horizontal grid lines */}
 				{[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
 					const y = paddingTop + innerHeight * (1 - ratio);
@@ -135,8 +145,9 @@ export function HourlyBarChart({
 
 				{/* Bars */}
 				{data.map((d, i) => {
-					const barHeight = d.value > 0 ? Math.max((d.value / maxValue) * innerHeight, 2) : 0;
-					const x = paddingLeft + (i * (innerWidth / data.length)) + barGap;
+					const barHeight =
+						d.value > 0 ? Math.max((d.value / maxValue) * innerHeight, 2) : 0;
+					const x = paddingLeft + i * (innerWidth / data.length) + barGap;
 					const y = paddingTop + innerHeight - barHeight;
 
 					return (
@@ -170,10 +181,10 @@ export function HourlyBarChart({
 
 				{/* X-axis hour labels */}
 				{data.map((d, i) => {
-					const hour = parseInt(d.hour.split(":")[0], 10);
+					const hour = Number.parseInt(d.hour.split(":")[0], 10);
 					// Show label every 3 hours (0, 3, 6, 9, 12, 15, 18, 21)
 					if (hour % hourLabelInterval !== 0) return null;
-					const x = paddingLeft + (i * (innerWidth / data.length)) + barWidth / 2;
+					const x = paddingLeft + i * (innerWidth / data.length) + barWidth / 2;
 					return (
 						<Text
 							key={`hour-${i}`}

@@ -1,15 +1,15 @@
 "use client";
 
 import {
+	Circle,
 	Document,
 	Image,
+	Line,
 	Page,
 	StyleSheet,
+	Svg,
 	Text,
 	View,
-	Svg,
-	Line,
-	Circle,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import type { PublicTicketDetails } from "@/lib/api/public-registration/types";
@@ -234,9 +234,7 @@ export const TicketPdf = ({ tickets }: { tickets: PublicTicketDetails[] }) => (
 									) : (
 										<Text style={styles.ticketLabel}>EVENT TICKET</Text>
 									)}
-									<Text
-										style={[styles.ticketLabel, { color: colors.primary }]}
-									>
+									<Text style={[styles.ticketLabel, { color: colors.primary }]}>
 										{roleDisplay}
 									</Text>
 								</View>

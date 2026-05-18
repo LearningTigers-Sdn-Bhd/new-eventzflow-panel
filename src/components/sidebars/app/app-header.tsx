@@ -71,7 +71,7 @@ export function AppHeader() {
 					{/* Home button with icon and text */}
 					<SidebarMenuButton
 						size="lg"
-						className="flex-1 cursor-pointer border border-primary rounded-none data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+						className="flex-1 cursor-pointer rounded-none border border-primary data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						onClick={() => {
 							router.push("/");
 						}}

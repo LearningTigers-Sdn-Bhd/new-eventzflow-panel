@@ -28,22 +28,22 @@ const benefits = [
 
 const WhyChooseSection: React.FC = () => {
 	return (
-		<section className="bg-white-background px-6 py-16 md:py-30 md:px-12 border-black border-y">
+		<section className="border-black border-y bg-white-background px-6 py-16 md:px-12 md:py-30">
 			<div className="mx-auto max-w-7xl">
 				<div className="mb-12 flex flex-col gap-6 md:mb-24 md:flex-row md:items-end md:justify-between">
 					<div className="max-w-2xl">
-						<h2 className="mb-4 font-black text-4xl tracking-tighter text-black sm:text-5xl md:mb-8 md:text-6xl lg:text-8xl">
+						<h2 className="mb-4 font-black text-4xl text-black tracking-tighter sm:text-5xl md:mb-8 md:text-6xl lg:text-8xl">
 							WHY
 							<br />
 							CHOOSE US ?
 						</h2>
-						<p className="text-lg leading-relaxed text-black/70 md:text-xl">
+						<p className="text-black/70 text-lg leading-relaxed md:text-xl">
 							Less manual work. Lower costs. Happier attendees. EventzFlow
 							automates the tedious tasks so you can focus on creating
 							exceptional experiences.
 						</p>
 					</div>
-					<div className="hidden border-b border-black/40 pb-2 font-bold text-sm tracking-widest text-black/40 md:block">
+					<div className="hidden border-black/40 border-b pb-2 font-bold text-black/40 text-sm tracking-widest md:block">
 						01 — 04 / BENEFITS
 					</div>
 				</div>
@@ -77,21 +77,18 @@ const WhyChooseSection: React.FC = () => {
 								}`}
 							>
 								<div className="relative z-10">
-									<span className="font-bold text-xs tracking-widest text-black/40">
+									<span className="font-bold text-black/40 text-xs tracking-widest">
 										0{i + 1}
 									</span>
 									<h3 className="mt-8 font-black text-3xl leading-none tracking-tighter">
 										{benefit.title.split(" ").map((word, idx) => (
-											<span
-												key={idx}
-												className="block text-black"
-											>
+											<span key={idx} className="block text-black">
 												{word}
 											</span>
 										))}
 									</h3>
 								</div>
-								<p className="relative z-10 text-base leading-relaxed text-black/70 md:text-lg">
+								<p className="relative z-10 text-base text-black/70 leading-relaxed md:text-lg">
 									{benefit.description}
 								</p>
 							</motion.div>

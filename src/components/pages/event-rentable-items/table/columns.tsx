@@ -1,9 +1,9 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, DollarSign, Unlink, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpDown, DollarSign, MoreHorizontal, Unlink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,7 +19,10 @@ interface GetColumnsProps {
 	isContractor?: boolean;
 }
 
-export function getColumns({ onUnlink, isContractor = false }: GetColumnsProps): ColumnDef<EventRentableItem>[] {
+export function getColumns({
+	onUnlink,
+	isContractor = false,
+}: GetColumnsProps): ColumnDef<EventRentableItem>[] {
 	const baseColumns: ColumnDef<EventRentableItem>[] = [
 		{
 			id: "name",
@@ -80,7 +83,10 @@ export function getColumns({ onUnlink, isContractor = false }: GetColumnsProps):
 			header: "Default Price",
 			cell: ({ row }) => (
 				<span className="font-medium">
-					RM {row.original.rentableItem?.defaultPrice != null ? Number(row.original.rentableItem.defaultPrice).toFixed(2) : "0.00"}
+					RM{" "}
+					{row.original.rentableItem?.defaultPrice != null
+						? Number(row.original.rentableItem.defaultPrice).toFixed(2)
+						: "0.00"}
 				</span>
 			),
 			size: 120,
@@ -176,12 +182,17 @@ function ActionsCell({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="rounded-none">
-				<DropdownMenuItem onClick={handleManagePricing} className="rounded-none">
+				<DropdownMenuItem
+					onClick={handleManagePricing}
+					className="rounded-none"
+				>
 					<DollarSign className="mr-2 h-4 w-4" />
 					Manage Pricing
 				</DropdownMenuItem>
 				<DropdownMenuItem
-					onClick={() => onUnlink(item.id, item.rentableItem?.name || "this item")}
+					onClick={() =>
+						onUnlink(item.id, item.rentableItem?.name || "this item")
+					}
 					className="rounded-none text-destructive"
 				>
 					<Unlink className="mr-2 h-4 w-4" />

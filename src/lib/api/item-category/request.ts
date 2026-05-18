@@ -19,6 +19,12 @@ export const deleteItemCategorySchema = z.object({
 });
 
 // Type exports for request data
-export type CreateItemCategoryRequest = z.infer<typeof createItemCategorySchema>;
-export type UpdateItemCategoryRequest = z.infer<typeof updateItemCategorySchema>;
-export type DeleteItemCategoryRequest = z.infer<typeof deleteItemCategorySchema>;
+export type CreateItemCategoryRequest = z.infer<
+	typeof createItemCategorySchema
+>;
+export type UpdateItemCategoryRequest = z.infer<
+	typeof updateItemCategorySchema
+>;
+export type DeleteItemCategoryRequest = z.infer<
+	typeof deleteItemCategorySchema
+>;

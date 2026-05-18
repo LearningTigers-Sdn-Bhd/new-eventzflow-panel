@@ -91,8 +91,8 @@ export function ScanItem({ scanResult, isRecent = false }: ScanItemProps) {
 				<div className="flex items-center gap-2">
 					<Clock className="size-4 text-muted-foreground" />
 					<div className="flex flex-col">
-						<span className="text-sm font-medium">{timeStr}</span>
-						<span className="text-xs text-muted-foreground">{dateStr}</span>
+						<span className="font-medium text-sm">{timeStr}</span>
+						<span className="text-muted-foreground text-xs">{dateStr}</span>
 					</div>
 				</div>
 			</ItemContent>

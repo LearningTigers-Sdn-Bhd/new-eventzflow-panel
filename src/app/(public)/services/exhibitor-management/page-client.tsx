@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -83,46 +83,46 @@ const highlights = [
 function ExhibitorPortalDemo() {
 	return (
 		<motion.div
-			className="relative border-2 border-black bg-white shadow-2xl w-full max-w-[420px]"
+			className="relative w-full max-w-[420px] border-2 border-black bg-white shadow-2xl"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
 			{/* Header */}
-			<div className="border-b-2 border-black bg-black px-6 py-4">
-				<p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+			<div className="border-black border-b-2 bg-black px-6 py-4">
+				<p className="font-bold text-white/60 text-xs uppercase tracking-[0.3em]">
 					Exhibitor Portal
 				</p>
-				<p className="mt-1 text-lg font-bold text-white">Tech Expo 2025</p>
+				<p className="mt-1 font-bold text-lg text-white">Tech Expo 2025</p>
 			</div>
 
 			{/* Company Info */}
-			<div className="flex items-center gap-4 border-b border-black/10 p-4">
-				<div className="flex h-14 w-14 items-center justify-center bg-black text-xl font-bold text-white">
+			<div className="flex items-center gap-4 border-black/10 border-b p-4">
+				<div className="flex h-14 w-14 items-center justify-center bg-black font-bold text-white text-xl">
 					TS
 				</div>
 				<div>
 					<p className="font-bold text-black">Tech Solutions Inc.</p>
-					<p className="text-sm text-black/60">Software & Cloud</p>
+					<p className="text-black/60 text-sm">Software & Cloud</p>
 				</div>
 			</div>
 
 			{/* Booth Details */}
-			<div className="border-b border-black/10 p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+			<div className="border-black/10 border-b p-4">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Booth Information
 				</p>
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Booth No.</span>
-						<span className="text-sm font-medium text-black">A-101</span>
+						<span className="text-black/60 text-sm">Booth No.</span>
+						<span className="font-medium text-black text-sm">A-101</span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Type</span>
-						<span className="text-sm font-medium text-black">Shell Scheme</span>
+						<span className="text-black/60 text-sm">Type</span>
+						<span className="font-medium text-black text-sm">Shell Scheme</span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Fascia</span>
-						<span className="text-sm font-medium text-black">
+						<span className="text-black/60 text-sm">Fascia</span>
+						<span className="font-medium text-black text-sm">
 							Tech Solutions
 						</span>
 					</div>
@@ -131,36 +131,36 @@ function ExhibitorPortalDemo() {
 
 			{/* Team Members */}
 			<div className="p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Team Members (3/5)
 				</p>
 				<div className="space-y-2">
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center bg-black text-xs font-bold text-white">
+						<div className="flex h-8 w-8 items-center justify-center bg-black font-bold text-white text-xs">
 							JD
 						</div>
-						<span className="text-sm text-black">John Doe</span>
+						<span className="text-black text-sm">John Doe</span>
 					</div>
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center bg-black text-xs font-bold text-white">
+						<div className="flex h-8 w-8 items-center justify-center bg-black font-bold text-white text-xs">
 							SL
 						</div>
-						<span className="text-sm text-black">Sarah Lee</span>
+						<span className="text-black text-sm">Sarah Lee</span>
 					</div>
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center bg-black text-xs font-bold text-white">
+						<div className="flex h-8 w-8 items-center justify-center bg-black font-bold text-white text-xs">
 							MC
 						</div>
-						<span className="text-sm text-black">Mike Chen</span>
+						<span className="text-black text-sm">Mike Chen</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Stats */}
-			<div className="border-t-2 border-black p-4">
+			<div className="border-black border-t-2 p-4">
 				<div className="flex items-center justify-between">
-					<span className="text-sm font-medium text-black">Booth Visits</span>
-					<span className="bg-black px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+					<span className="font-medium text-black text-sm">Booth Visits</span>
+					<span className="bg-black px-3 py-1 font-bold text-white text-xs uppercase tracking-widest">
 						127 Stamps
 					</span>
 				</div>

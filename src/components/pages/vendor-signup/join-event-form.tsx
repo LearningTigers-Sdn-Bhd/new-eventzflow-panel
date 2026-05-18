@@ -80,17 +80,14 @@ async function joinEventAsVendor(
 		body.exhibitor_kit = exhibitorKit;
 	}
 
-	const response = await fetch(
-		`${API_BASE_URL}/v1/auth/join_event_as_vendor`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${accessToken}`,
-			},
-			body: JSON.stringify(body),
+	const response = await fetch(`${API_BASE_URL}/v1/auth/join_event_as_vendor`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
 		},
-	);
+		body: JSON.stringify(body),
+	});
 
 	if (!response.ok) {
 		const error = await response.json();
@@ -179,7 +176,8 @@ export function JoinEventForm({
 						booth_type: value.booth_type || undefined,
 						booth_dimensions: value.booth_dimensions || undefined,
 						side_wall_left_required: value.side_wall_left_required || undefined,
-						side_wall_right_required: value.side_wall_right_required || undefined,
+						side_wall_right_required:
+							value.side_wall_right_required || undefined,
 						name_on_fascia: value.name_on_fascia || undefined,
 						fascia_upgrade_required: value.fascia_upgrade_required || undefined,
 						company_name: value.company_name || undefined,
@@ -292,13 +290,13 @@ export function JoinEventForm({
 						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
 						{useExhibitorKit && (
 							<div className="rounded-none border bg-background p-5">
-						<ExhibitorKitSection
-							form={form}
-							guidelinesPdfUrl={guidelinesPdfUrl}
-							customBoothTypes={event?.booth_types}
-						/>
-					</div>
-				)}
+								<ExhibitorKitSection
+									form={form}
+									guidelinesPdfUrl={guidelinesPdfUrl}
+									customBoothTypes={event?.booth_types}
+								/>
+							</div>
+						)}
 
 						{/* Team Members Section - Only when event uses exhibitor kit */}
 						{useExhibitorKit && (

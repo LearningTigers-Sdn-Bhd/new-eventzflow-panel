@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { RentableItem } from "@/lib/api/rentable-item";
+import { RentableItemFormContent } from "./rentable-item-form-dialog";
 import { columns } from "./table/columns";
 import { DataTable } from "./table/data-table";
-import { RentableItemFormContent } from "./rentable-item-form-dialog";
 
 interface RentableItemClientWrapperProps {
 	items: RentableItem[];

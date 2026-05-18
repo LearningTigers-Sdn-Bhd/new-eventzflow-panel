@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
 import EventPrintingServiceClientWrapper from "@/components/pages/event-printing-services/event-printing-service-client-wrapper";
 
 export default async function EventPrintingServicesPage({

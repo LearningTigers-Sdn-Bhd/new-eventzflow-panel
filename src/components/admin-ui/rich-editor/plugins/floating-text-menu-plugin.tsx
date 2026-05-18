@@ -1,7 +1,11 @@
 "use client";
 
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
-import { $isMarkNode, $unwrapMarkNode, $wrapSelectionInMarkNode } from "@lexical/mark";
+import {
+	$isMarkNode,
+	$unwrapMarkNode,
+	$wrapSelectionInMarkNode,
+} from "@lexical/mark";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { LexicalEditor } from "lexical";
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from "lexical";
@@ -65,7 +69,11 @@ function FloatingMenuToolbar({
 						}
 					}
 				} else {
-					$wrapSelectionInMarkNode(selection, selection.isBackward(), "highlight");
+					$wrapSelectionInMarkNode(
+						selection,
+						selection.isBackward(),
+						"highlight",
+					);
 				}
 			}
 		});
@@ -95,7 +103,8 @@ function FloatingMenuToolbar({
 					popupCharStylesEditorElem.style.opacity = "1";
 					popupCharStylesEditorElem.style.position = "absolute";
 
-					const top = rangeRect.top - popupCharStylesEditorElem.offsetHeight - 8;
+					const top =
+						rangeRect.top - popupCharStylesEditorElem.offsetHeight - 8;
 					const left =
 						rangeRect.left +
 						rangeRect.width / 2 -
@@ -269,7 +278,7 @@ function useFloatingTextMenu(editor: LexicalEditor) {
 			} else {
 				setIsLink(false);
 			}
-			
+
 			// Check for Highlight (MarkNode)
 			// Simple check: see if we are inside a MarkNode
 			let hasMark = false;

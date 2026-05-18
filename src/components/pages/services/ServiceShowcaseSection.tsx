@@ -27,7 +27,7 @@ export default function ServiceShowcaseSection({
 	decorativeLabels,
 }: ServiceShowcaseSectionProps) {
 	return (
-		<section className="bg-white-background px-6 py-24 md:py-32 border border-black">
+		<section className="border border-black bg-white-background px-6 py-24 md:py-32">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<div className="mb-16 md:mb-20">
@@ -40,11 +40,11 @@ export default function ServiceShowcaseSection({
 					>
 						<div className="mb-6 flex items-center gap-4">
 							<div className="h-[2px] w-10 bg-black" />
-							<p className="text-xs font-bold uppercase tracking-[0.4em] text-black">
+							<p className="font-bold text-black text-xs uppercase tracking-[0.4em]">
 								{label}
 							</p>
 						</div>
-						<h2 className="font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+						<h2 className="font-black text-3xl text-black uppercase tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
 							{title}
 						</h2>
 					</motion.div>
@@ -63,17 +63,17 @@ export default function ServiceShowcaseSection({
 						<div className="relative w-full lg:ml-40">
 							{/* Decorative elements */}
 							{decorativeLabels?.top && (
-								<div className="absolute -left-32 top-1/4 hidden lg:block">
+								<div className="absolute top-1/4 -left-32 hidden lg:block">
 									<div className="mb-4 h-px w-20 bg-black/20" />
-									<p className="text-right text-xs font-medium uppercase tracking-widest text-black/40 whitespace-pre-line">
+									<p className="whitespace-pre-line text-right font-medium text-black/40 text-xs uppercase tracking-widest">
 										{decorativeLabels.top}
 									</p>
 								</div>
 							)}
 							{decorativeLabels?.bottom && (
-								<div className="absolute -left-32 bottom-1/4 hidden lg:block">
+								<div className="absolute bottom-1/4 -left-32 hidden lg:block">
 									<div className="mb-4 h-px w-20 bg-black/20" />
-									<p className="text-right text-xs font-medium uppercase tracking-widest text-black/40 whitespace-pre-line">
+									<p className="whitespace-pre-line text-right font-medium text-black/40 text-xs uppercase tracking-widest">
 										{decorativeLabels.bottom}
 									</p>
 								</div>
@@ -90,7 +90,7 @@ export default function ServiceShowcaseSection({
 						viewport={{ once: true }}
 						transition={{ duration: 0.8, delay: 0.2, ease: SMOOTH_EASE }}
 					>
-						<p className="mb-8 text-base leading-relaxed text-black/60 md:text-lg">
+						<p className="mb-8 text-base text-black/60 leading-relaxed md:text-lg">
 							{description}
 						</p>
 
@@ -109,10 +109,10 @@ export default function ServiceShowcaseSection({
 									}}
 									className="group flex items-center gap-4 border border-black/10 bg-black/[0.02] p-4 transition-all duration-300 hover:bg-brand-green md:p-5"
 								>
-									<span className="font-bold text-xs tracking-widest text-black/40 transition-colors group-hover:text-black/60">
+									<span className="font-bold text-black/40 text-xs tracking-widest transition-colors group-hover:text-black/60">
 										{item.number}
 									</span>
-									<span className="text-base font-medium text-black transition-colors">
+									<span className="font-medium text-base text-black transition-colors">
 										{item.text}
 									</span>
 								</motion.div>

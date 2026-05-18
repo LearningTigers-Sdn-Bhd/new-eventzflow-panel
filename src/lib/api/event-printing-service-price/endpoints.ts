@@ -2,17 +2,17 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type CreatePrintingServicePriceTierRequest,
 	createPrintingServicePriceTierSchema,
-	type UpdatePrintingServicePriceTierRequest,
-	updatePrintingServicePriceTierSchema,
 	type DeletePrintingServicePriceTierRequest,
 	deletePrintingServicePriceTierSchema,
+	type UpdatePrintingServicePriceTierRequest,
+	updatePrintingServicePriceTierSchema,
 } from "./request";
 import type {
 	BackendEventPrintingServicePriceTier,
-	EventPrintingServicePriceTier,
 	CreatePrintingServicePriceTierResponse,
-	UpdatePrintingServicePriceTierResponse,
 	DeletePrintingServicePriceTierResponse,
+	EventPrintingServicePriceTier,
+	UpdatePrintingServicePriceTierResponse,
 } from "./response";
 
 // Transform backend response to frontend format
@@ -38,7 +38,9 @@ export async function getPrintingServicePriceTiers(
 	eventPrintingServiceId: number,
 ): Promise<EventPrintingServicePriceTier[]> {
 	try {
-		const response = await restClient.get<BackendEventPrintingServicePriceTier[]>(
+		const response = await restClient.get<
+			BackendEventPrintingServicePriceTier[]
+		>(
 			`v1/event_printing_services/${eventPrintingServiceId}/event_printing_service_prices`,
 		);
 		return response.map(transformPriceTier);
@@ -79,17 +81,18 @@ export async function createPrintingServicePriceTier(
 	try {
 		const validated = createPrintingServicePriceTierSchema.parse(data);
 
-		const response = await restClient.post<BackendEventPrintingServicePriceTier>(
-			`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices`,
-			{
-				event_printing_service_price_tier: {
-					price: validated.price,
-					start_date: validated.start_date,
-					end_date: validated.end_date,
-					label: validated.label,
+		const response =
+			await restClient.post<BackendEventPrintingServicePriceTier>(
+				`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices`,
+				{
+					event_printing_service_price_tier: {
+						price: validated.price,
+						start_date: validated.start_date,
+						end_date: validated.end_date,
+						label: validated.label,
+					},
 				},
-			},
-		);
+			);
 
 		return {
 			success: true,
@@ -112,17 +115,18 @@ export async function updatePrintingServicePriceTier(
 	try {
 		const validated = updatePrintingServicePriceTierSchema.parse(data);
 
-		const response = await restClient.patch<BackendEventPrintingServicePriceTier>(
-			`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices/${validated.id}`,
-			{
-				event_printing_service_price_tier: {
-					price: validated.price,
-					start_date: validated.start_date,
-					end_date: validated.end_date,
-					label: validated.label,
+		const response =
+			await restClient.patch<BackendEventPrintingServicePriceTier>(
+				`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices/${validated.id}`,
+				{
+					event_printing_service_price_tier: {
+						price: validated.price,
+						start_date: validated.start_date,
+						end_date: validated.end_date,
+						label: validated.label,
+					},
 				},
-			},
-		);
+			);
 
 		return {
 			success: true,
@@ -145,9 +149,10 @@ export async function deletePrintingServicePriceTier(
 	try {
 		const validated = deletePrintingServicePriceTierSchema.parse(data);
 
-		const response = await restClient.delete<BackendEventPrintingServicePriceTier>(
-			`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices/${validated.id}`,
-		);
+		const response =
+			await restClient.delete<BackendEventPrintingServicePriceTier>(
+				`v1/event_printing_services/${validated.event_printing_service_id}/event_printing_service_prices/${validated.id}`,
+			);
 
 		return {
 			success: true,

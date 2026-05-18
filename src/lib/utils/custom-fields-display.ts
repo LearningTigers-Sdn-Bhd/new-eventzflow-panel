@@ -4,7 +4,10 @@ export interface CustomFieldDisplayEntry {
 	value: string;
 }
 
-const HIDDEN_CUSTOM_FIELD_KEYS = new Set(["is_booth_manager", "payment_option"]);
+const HIDDEN_CUSTOM_FIELD_KEYS = new Set([
+	"is_booth_manager",
+	"payment_option",
+]);
 
 function isEffectivelyEmptyCustomFieldValue(value: unknown): boolean {
 	if (value === null || value === undefined) {

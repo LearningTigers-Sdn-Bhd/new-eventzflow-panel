@@ -52,7 +52,7 @@ export default function CheckoutActions({ totalPrice }: CheckoutActionsProps) {
 
 	return (
 		<div className="flex flex-1 flex-col">
-			<div className="mb-8 border-b border-slate-200 pb-6 px-6 md:px-8">
+			<div className="mb-8 border-slate-200 border-b px-6 pb-6 md:px-8">
 				<h2 className="font-black text-2xl text-slate-900 uppercase tracking-tight">
 					Guest Details
 				</h2>
@@ -78,14 +78,17 @@ export default function CheckoutActions({ totalPrice }: CheckoutActionsProps) {
 								value={field.state.value}
 								onChange={field.handleChange}
 								onBlur={field.handleBlur}
-								isInvalid={field.state.meta.isTouched && field.state.meta.errors.length > 0}
+								isInvalid={
+									field.state.meta.isTouched &&
+									field.state.meta.errors.length > 0
+								}
 								errors={field.state.meta.errors.map((err) => ({
 									message: getErrorMessage(err),
 								}))}
 								placeholder="Enter your full name"
 								disabled={isProcessing}
 								required
-								className="rounded-none border-2 border-slate-200 focus-visible:ring-0 focus-visible:border-brand-green"
+								className="rounded-none border-2 border-slate-200 focus-visible:border-brand-green focus-visible:ring-0"
 							/>
 						)}
 					</form.Field>
@@ -98,14 +101,17 @@ export default function CheckoutActions({ totalPrice }: CheckoutActionsProps) {
 								value={field.state.value}
 								onChange={field.handleChange}
 								onBlur={field.handleBlur}
-								isInvalid={field.state.meta.isTouched && field.state.meta.errors.length > 0}
+								isInvalid={
+									field.state.meta.isTouched &&
+									field.state.meta.errors.length > 0
+								}
 								errors={field.state.meta.errors.map((err) => ({
 									message: getErrorMessage(err),
 								}))}
 								placeholder="you@example.com"
 								disabled={isProcessing}
 								required
-								className="rounded-none border-2 border-slate-200 focus-visible:ring-0 focus-visible:border-brand-green"
+								className="rounded-none border-2 border-slate-200 focus-visible:border-brand-green focus-visible:ring-0"
 							/>
 						)}
 					</form.Field>
@@ -118,14 +124,17 @@ export default function CheckoutActions({ totalPrice }: CheckoutActionsProps) {
 								value={field.state.value}
 								onChange={field.handleChange}
 								onBlur={field.handleBlur}
-								isInvalid={field.state.meta.isTouched && field.state.meta.errors.length > 0}
+								isInvalid={
+									field.state.meta.isTouched &&
+									field.state.meta.errors.length > 0
+								}
 								errors={field.state.meta.errors.map((err) => ({
 									message: getErrorMessage(err),
 								}))}
 								placeholder="+6012 345 6789"
 								disabled={isProcessing}
 								required
-								className="rounded-none border-2 border-slate-200 focus-visible:ring-0 focus-visible:border-brand-green"
+								className="rounded-none border-2 border-slate-200 focus-visible:border-brand-green focus-visible:ring-0"
 							/>
 						)}
 					</form.Field>
@@ -134,7 +143,7 @@ export default function CheckoutActions({ totalPrice }: CheckoutActionsProps) {
 				<div className="pt-12 pb-4">
 					<Button
 						type="submit"
-						className="h-16 w-full rounded-none bg-brand-green text-lg font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-green/20 transition-all hover:bg-brand-green/90 active:translate-y-[2px]"
+						className="h-16 w-full rounded-none bg-brand-green font-black text-lg uppercase tracking-[0.2em] shadow-brand-green/20 shadow-xl transition-all hover:bg-brand-green/90 active:translate-y-[2px]"
 						disabled={isProcessing || !hasSelection}
 					>
 						{isProcessing ? "Processing..." : "Confirm Reservation"}

@@ -7,13 +7,18 @@ import { Button } from "@/components/ui/button";
 import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
-import { getColumns, type ExhibitorKitWithVendor } from "./exhibitor-kits-table/columns";
+import {
+	type ExhibitorKitWithVendor,
+	getColumns,
+} from "./exhibitor-kits-table/columns";
 
 interface ContractorExhibitorKitsViewProps {
 	eventId: string;
 }
 
-export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKitsViewProps) {
+export function ContractorExhibitorKitsView({
+	eventId,
+}: ContractorExhibitorKitsViewProps) {
 	const {
 		data: vendors,
 		isLoading,
@@ -30,7 +35,8 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 	});
 
 	// Check if contractor printing is enabled
-	const allowContractorPrinting = eventDetails?.allow_contractor_printing_services ?? false;
+	const allowContractorPrinting =
+		eventDetails?.allow_contractor_printing_services ?? false;
 
 	if (isLoading || isLoadingEvent) {
 		return (
@@ -53,8 +59,8 @@ export function ContractorExhibitorKitsView({ eventId }: ContractorExhibitorKits
 
 	// Extract exhibitor kits from vendors (same approach as admin)
 	const kitsWithVendors: ExhibitorKitWithVendor[] = (vendors || [])
-		.filter(vendor => vendor.exhibitor_kit) // Only vendors with exhibitor kits
-		.map(vendor => ({
+		.filter((vendor) => vendor.exhibitor_kit) // Only vendors with exhibitor kits
+		.map((vendor) => ({
 			...vendor.exhibitor_kit!,
 			vendor: vendor,
 		}));

@@ -30,6 +30,12 @@ export const deleteRentableItemSchema = z.object({
 });
 
 // Type exports for request data
-export type CreateRentableItemRequest = z.infer<typeof createRentableItemSchema>;
-export type UpdateRentableItemRequest = z.infer<typeof updateRentableItemSchema>;
-export type DeleteRentableItemRequest = z.infer<typeof deleteRentableItemSchema>;
+export type CreateRentableItemRequest = z.infer<
+	typeof createRentableItemSchema
+>;
+export type UpdateRentableItemRequest = z.infer<
+	typeof updateRentableItemSchema
+>;
+export type DeleteRentableItemRequest = z.infer<
+	typeof deleteRentableItemSchema
+>;

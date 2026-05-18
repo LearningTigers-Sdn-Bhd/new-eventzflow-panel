@@ -218,7 +218,10 @@ export function GuestSidebar({
 					<div className="custom-scrollbar h-full space-y-3 overflow-y-auto p-4">
 						{isLoading ? (
 							Array.from({ length: 8 }).map((_, i) => (
-								<Skeleton key={i} className="h-20 w-full rounded-xl dark:bg-slate-800" />
+								<Skeleton
+									key={i}
+									className="h-20 w-full rounded-xl dark:bg-slate-800"
+								/>
 							))
 						) : filteredList.length === 0 ? (
 							<div className="space-y-2 px-4 py-12 text-center">
@@ -251,7 +254,9 @@ export function GuestSidebar({
 									}}
 									onUnassign={() =>
 										onUnassign(
-										    item.type === "ticket" ? { ticketId: Number(item.id) } : { visitorId: Number(item.id) },
+											item.type === "ticket"
+												? { ticketId: Number(item.id) }
+												: { visitorId: Number(item.id) },
 										)
 									}
 								/>
@@ -334,7 +339,7 @@ export function GuestSidebar({
 												}
 											/>
 											{selectedGroupId === group.id && (
-												<div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-4 pb-2 dark:border-slate-800">
+												<div className="ml-4 space-y-1 border-slate-200 border-l-2 pb-2 pl-4 dark:border-slate-800">
 													{group.members.length === 0 ? (
 														<p className="py-2 text-[10px] text-slate-400 italic dark:text-slate-500">
 															No members in this group.
@@ -494,7 +499,7 @@ function GroupModal({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
-			<DialogContent className="flex max-h-[90vh] flex-col rounded-3xl p-0 dark:bg-slate-900 md:max-w-2xl">
+			<DialogContent className="flex max-h-[90vh] flex-col rounded-3xl p-0 md:max-w-2xl dark:bg-slate-900">
 				<DialogHeader className="p-6 pb-0">
 					<DialogTitle className="font-black text-2xl tracking-tighter dark:text-slate-100">
 						{isNew ? "Create Seating Group" : `Manage ${group.name}`}
@@ -558,7 +563,7 @@ function GroupModal({
 
 					<Button
 						onClick={handleSave}
-						className="h-11 rounded-xl bg-primary font-black uppercase tracking-widest text-white hover:bg-primary/90 dark:text-slate-950"
+						className="h-11 rounded-xl bg-primary font-black text-white uppercase tracking-widest hover:bg-primary/90 dark:text-slate-950"
 					>
 						{isNew ? "CREATE GROUP" : "SAVE DETAILS"}
 					</Button>
@@ -686,7 +691,8 @@ export function DraggableGroup({
 			onClick={onClick}
 			className={cn(
 				"group relative cursor-grab overflow-hidden rounded-xl border bg-white p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md active:cursor-grabbing dark:border-slate-800 dark:bg-slate-900 dark:hover:border-primary/40",
-				isSelected && "border-primary ring-1 ring-primary/20 dark:border-primary dark:ring-primary/40",
+				isSelected &&
+					"border-primary ring-1 ring-primary/20 dark:border-primary dark:ring-primary/40",
 				isOverlay && "ring-2 ring-primary",
 			)}
 		>
@@ -837,7 +843,8 @@ export function DraggableGuest({
 							? "cursor-grabbing ring-2 ring-primary"
 							: "cursor-grab active:cursor-grabbing",
 						isDragging && !isOverlay && "opacity-0",
-						isPinned && "border-primary bg-primary/5 ring-1 ring-primary/20 dark:border-primary dark:bg-primary/10 dark:ring-primary/40",
+						isPinned &&
+							"border-primary bg-primary/5 ring-1 ring-primary/20 dark:border-primary dark:bg-primary/10 dark:ring-primary/40",
 					)}
 				>
 					<div className="flex items-center gap-3 p-3">

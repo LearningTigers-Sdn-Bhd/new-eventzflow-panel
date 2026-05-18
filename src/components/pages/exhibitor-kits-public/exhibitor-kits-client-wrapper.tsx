@@ -3,9 +3,9 @@
 import { Loader2, Package } from "lucide-react";
 import { IconTitle } from "@/components/ui/icon-heading";
 import type { Event } from "@/lib/api/event";
+import type { ExhibitorKitWithEventAndVendor } from "./columns";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import type { ExhibitorKitWithEventAndVendor } from "./columns";
 
 interface ExhibitorKitsClientWrapperProps {
 	kits: ExhibitorKitWithEventAndVendor[];
@@ -58,11 +58,7 @@ export default function ExhibitorKitsClientWrapper({
 					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 				</div>
 			) : (
-				<DataTable
-					columns={columns}
-					data={sortedKits}
-					events={events}
-				/>
+				<DataTable columns={columns} data={sortedKits} events={events} />
 			)}
 		</div>
 	);

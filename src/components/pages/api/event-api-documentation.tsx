@@ -1,7 +1,14 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import { AlertTriangle, Check, ChevronDown, ChevronRight, Copy, Zap } from "lucide-react";
+import {
+	AlertTriangle,
+	Check,
+	ChevronDown,
+	ChevronRight,
+	Copy,
+	Zap,
+} from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,13 +17,13 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 import type { Event } from "@/lib/api/event/response";
+import { cn } from "@/lib/utils";
 import {
 	API_BASE_URL,
+	type ApiEndpoint,
 	EVENT_API_CATEGORIES,
 	EVENT_API_ENDPOINTS,
-	type ApiEndpoint,
 } from "./event-api-endpoints-data";
 
 const methodVariants = cva("rounded-none text-white", {
@@ -51,14 +58,23 @@ function CodeBlock({ code }: { code: string }) {
 				className="absolute top-1 right-1 size-7 bg-muted/80 opacity-100 transition-opacity sm:top-2 sm:right-2 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100"
 				onClick={handleCopy}
 			>
-				{copied ? <Check className="size-3 text-green-500 sm:size-4" /> : <Copy className="size-3 sm:size-4" />}
+				{copied ? (
+					<Check className="size-3 text-green-500 sm:size-4" />
+				) : (
+					<Copy className="size-3 sm:size-4" />
+				)}
 			</Button>
 		</div>
 	);
 }
 
-
-function ApiEndpointCard({ endpoint, sub }: { endpoint: ApiEndpoint; sub: (s: string) => string }) {
+function ApiEndpointCard({
+	endpoint,
+	sub,
+}: {
+	endpoint: ApiEndpoint;
+	sub: (s: string) => string;
+}) {
 	const [isOpen, setIsOpen] = useState(false);
 	const resolvedEndpoint = sub(endpoint.endpoint);
 	return (
@@ -74,10 +90,17 @@ function ApiEndpointCard({ endpoint, sub }: { endpoint: ApiEndpoint; sub: (s: st
 						) : (
 							<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
 						)}
-						<Badge className={cn(methodVariants({ method: endpoint.method as any }), "w-full max-w-18 px-1.5 text-[10px] sm:px-2 sm:text-xs")}>
+						<Badge
+							className={cn(
+								methodVariants({ method: endpoint.method as any }),
+								"w-full max-w-18 px-1.5 text-[10px] sm:px-2 sm:text-xs",
+							)}
+						>
 							{endpoint.method}
 						</Badge>
-						<span className="font-medium text-sm sm:text-base">{endpoint.title}</span>
+						<span className="font-medium text-sm sm:text-base">
+							{endpoint.title}
+						</span>
 						<span className="ml-auto hidden truncate font-mono text-muted-foreground text-xs sm:text-sm md:block">
 							{resolvedEndpoint}
 						</span>
@@ -85,28 +108,42 @@ function ApiEndpointCard({ endpoint, sub }: { endpoint: ApiEndpoint; sub: (s: st
 				</CollapsibleTrigger>
 				<CollapsibleContent>
 					<div className="space-y-4 border-t border-dashed bg-card p-3 sm:space-y-6 sm:p-4">
-						<p className="text-muted-foreground text-xs sm:text-sm">{endpoint.description}</p>
+						<p className="text-muted-foreground text-xs sm:text-sm">
+							{endpoint.description}
+						</p>
 
 						<div className="group space-y-2">
 							<h4 className="font-medium text-xs sm:text-sm">Endpoint</h4>
-							<CodeBlock code={`${endpoint.method} ${API_BASE_URL}${resolvedEndpoint}`} />
+							<CodeBlock
+								code={`${endpoint.method} ${API_BASE_URL}${resolvedEndpoint}`}
+							/>
 						</div>
 
 						{endpoint.headers && (
 							<div className="group space-y-2">
 								<h4 className="font-medium text-xs sm:text-sm">Headers</h4>
-								<CodeBlock code={Object.entries(endpoint.headers).map(([k, v]) => `${k}: ${v}`).join("\n")} />
+								<CodeBlock
+									code={Object.entries(endpoint.headers)
+										.map(([k, v]) => `${k}: ${v}`)
+										.join("\n")}
+								/>
 							</div>
 						)}
 
 						{endpoint.queryParams && (
 							<div className="space-y-2">
-								<h4 className="font-medium text-xs sm:text-sm">Query Parameters</h4>
+								<h4 className="font-medium text-xs sm:text-sm">
+									Query Parameters
+								</h4>
 								<div className="divide-y rounded-none border text-sm">
 									{Object.entries(endpoint.queryParams).map(([param, desc]) => (
 										<div key={param} className="flex gap-3 px-3 py-2">
-											<code className="shrink-0 font-mono text-xs text-sky-600 dark:text-sky-400">{param}</code>
-											<span className="text-muted-foreground text-xs">{desc}</span>
+											<code className="shrink-0 font-mono text-sky-600 text-xs dark:text-sky-400">
+												{param}
+											</code>
+											<span className="text-muted-foreground text-xs">
+												{desc}
+											</span>
 										</div>
 									))}
 								</div>
@@ -116,25 +153,31 @@ function ApiEndpointCard({ endpoint, sub }: { endpoint: ApiEndpoint; sub: (s: st
 						{endpoint.requestBody && (
 							<div className="group space-y-2">
 								<h4 className="font-medium text-xs sm:text-sm">Request Body</h4>
-								<CodeBlock code={JSON.stringify(endpoint.requestBody, null, 2)} />
+								<CodeBlock
+									code={JSON.stringify(endpoint.requestBody, null, 2)}
+								/>
 							</div>
 						)}
 
 						<div className="group space-y-2">
 							<h4 className="font-medium text-xs sm:text-sm">cURL Example</h4>
-							<CodeBlock code={(() => {
-								const url = `${API_BASE_URL}${resolvedEndpoint}`;
-								let curl = `curl -X ${endpoint.method} '${url}'`;
-								if (endpoint.headers) {
-									for (const [key, value] of Object.entries(endpoint.headers)) {
-										curl += ` \\\n  -H '${key}: ${value}'`;
+							<CodeBlock
+								code={(() => {
+									const url = `${API_BASE_URL}${resolvedEndpoint}`;
+									let curl = `curl -X ${endpoint.method} '${url}'`;
+									if (endpoint.headers) {
+										for (const [key, value] of Object.entries(
+											endpoint.headers,
+										)) {
+											curl += ` \\\n  -H '${key}: ${value}'`;
+										}
 									}
-								}
-								if (endpoint.requestBody) {
-									curl += ` \\\n  -d '${JSON.stringify(endpoint.requestBody, null, 2)}'`;
-								}
-								return curl;
-							})()} />
+									if (endpoint.requestBody) {
+										curl += ` \\\n  -d '${JSON.stringify(endpoint.requestBody, null, 2)}'`;
+									}
+									return curl;
+								})()}
+							/>
 						</div>
 
 						{endpoint.response && (
@@ -150,7 +193,13 @@ function ApiEndpointCard({ endpoint, sub }: { endpoint: ApiEndpoint; sub: (s: st
 	);
 }
 
-export function EventApiDocumentation({ event, eventId }: { event: Event; eventId: number }) {
+export function EventApiDocumentation({
+	event,
+	eventId,
+}: {
+	event: Event;
+	eventId: number;
+}) {
 	const visibleEndpoints = EVENT_API_ENDPOINTS.filter(
 		(e) => !e.visible || e.visible(event),
 	);
@@ -163,11 +212,14 @@ export function EventApiDocumentation({ event, eventId }: { event: Event; eventI
 			<div className="flex items-start gap-3 border border-dashed bg-gradient-to-br from-primary/5 to-primary/10 p-4">
 				<Zap className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
 				<div className="space-y-1">
-					<p className="font-semibold text-sm">Welcome to the Eventzflow API 👋</p>
+					<p className="font-semibold text-sm">
+						Welcome to the Eventzflow API 👋
+					</p>
 					<p className="text-muted-foreground text-xs leading-relaxed sm:text-sm">
-						With your event API key, you can connect Eventzflow to your own systems — sync attendees,
-						automate registrations, build custom check-in apps, and more. Everything here is scoped
-						to <strong>this event only</strong>.
+						With your event API key, you can connect Eventzflow to your own
+						systems — sync attendees, automate registrations, build custom
+						check-in apps, and more. Everything here is scoped to{" "}
+						<strong>this event only</strong>.
 					</p>
 				</div>
 			</div>
@@ -178,22 +230,36 @@ export function EventApiDocumentation({ event, eventId }: { event: Event; eventI
 				<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">
 					Authorization
 				</code>{" "}
-				header — no <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">Bearer</code> prefix needed.
-				Your event ID is <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">{eventId}</code> — replace <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">{"{event_id}"}</code> with it in all endpoints.
+				header — no{" "}
+				<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">
+					Bearer
+				</code>{" "}
+				prefix needed. Your event ID is{" "}
+				<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">
+					{eventId}
+				</code>{" "}
+				— replace{" "}
+				<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:px-1.5 sm:text-sm">
+					{"{event_id}"}
+				</code>{" "}
+				with it in all endpoints.
 			</p>
 
 			{/* Security warning */}
-			<div className="flex items-start gap-3 border border-dashed border-amber-200 bg-amber-50 p-3 dark:border-amber-900/40 dark:bg-amber-950/30 px-2 sm:px-4">
+			<div className="flex items-start gap-3 border border-amber-200 border-dashed bg-amber-50 p-3 px-2 sm:px-4 dark:border-amber-900/40 dark:bg-amber-950/30">
 				<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
 				<p className="text-amber-800 text-xs dark:text-amber-200">
-					Keep your API key secret. Never expose it in client-side code or public repositories.
-					If compromised, revoke it immediately from the API Keys tab.
+					Keep your API key secret. Never expose it in client-side code or
+					public repositories. If compromised, revoke it immediately from the
+					API Keys tab.
 				</p>
 			</div>
 
 			{/* Endpoints by category */}
 			{EVENT_API_CATEGORIES.map((category) => {
-				const endpoints = visibleEndpoints.filter((e) => e.category === category);
+				const endpoints = visibleEndpoints.filter(
+					(e) => e.category === category,
+				);
 				if (endpoints.length === 0) return null;
 				return (
 					<div key={category} className="space-y-2 px-2 sm:px-4">
@@ -202,7 +268,11 @@ export function EventApiDocumentation({ event, eventId }: { event: Event; eventI
 						</h3>
 						<div className="space-y-2">
 							{endpoints.map((endpoint) => (
-								<ApiEndpointCard key={endpoint.id} endpoint={endpoint} sub={sub} />
+								<ApiEndpointCard
+									key={endpoint.id}
+									endpoint={endpoint}
+									sub={sub}
+								/>
 							))}
 						</div>
 					</div>
@@ -217,16 +287,42 @@ export function EventApiDocumentation({ event, eventId }: { event: Event; eventI
 				<div className="divide-y rounded-none border text-sm">
 					{[
 						{ code: "200", label: "OK", desc: "Request succeeded." },
-						{ code: "201", label: "Created", desc: "Resource was created successfully." },
-						{ code: "204", label: "No Content", desc: "Succeeded with no body (e.g. delete)." },
-						{ code: "401", label: "Unauthorized", desc: "Missing or invalid API key." },
-						{ code: "403", label: "Forbidden", desc: "Your key doesn't have access to this resource." },
-						{ code: "404", label: "Not Found", desc: "The requested resource doesn't exist." },
-						{ code: "422", label: "Unprocessable", desc: "Validation failed — check the errors field." },
+						{
+							code: "201",
+							label: "Created",
+							desc: "Resource was created successfully.",
+						},
+						{
+							code: "204",
+							label: "No Content",
+							desc: "Succeeded with no body (e.g. delete).",
+						},
+						{
+							code: "401",
+							label: "Unauthorized",
+							desc: "Missing or invalid API key.",
+						},
+						{
+							code: "403",
+							label: "Forbidden",
+							desc: "Your key doesn't have access to this resource.",
+						},
+						{
+							code: "404",
+							label: "Not Found",
+							desc: "The requested resource doesn't exist.",
+						},
+						{
+							code: "422",
+							label: "Unprocessable",
+							desc: "Validation failed — check the errors field.",
+						},
 					].map(({ code, label, desc }) => (
 						<div key={code} className="flex items-start gap-3 px-3 py-2">
-							<code className="w-8 shrink-0 font-mono text-xs font-semibold">{code}</code>
-							<span className="w-24 shrink-0 text-xs font-medium">{label}</span>
+							<code className="w-8 shrink-0 font-mono font-semibold text-xs">
+								{code}
+							</code>
+							<span className="w-24 shrink-0 font-medium text-xs">{label}</span>
 							<span className="text-muted-foreground text-xs">{desc}</span>
 						</div>
 					))}

@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/auth/use-auth";
 import {
 	type CreateEventVendorRequest,
 	createEventVendor,
 	deleteEventVendor,
 	getEventVendors,
 } from "@/lib/api/event-vendor";
-import { useAuth } from "@/hooks/auth/use-auth";
 
 /**
  * Hook to fetch all vendors for an event

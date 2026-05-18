@@ -31,7 +31,7 @@ export function DeleteVisitorDialog({ visitor }: DeleteVisitorDialogProps) {
 						description: error.message,
 					});
 				},
-			}
+			},
 		);
 	};
 
@@ -48,7 +48,8 @@ export function DeleteVisitorDialog({ visitor }: DeleteVisitorDialogProps) {
 					</p>
 					<p className="text-muted-foreground text-sm">
 						This action cannot be undone. This will permanently delete the
-						visitor and remove all associated data including stamps and scan logs.
+						visitor and remove all associated data including stamps and scan
+						logs.
 					</p>
 				</div>
 			</div>

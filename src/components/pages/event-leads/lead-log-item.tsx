@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Mail, Phone, Store, StickyNote } from "lucide-react";
+import { Calendar, Mail, Phone, StickyNote, Store } from "lucide-react";
 import {
 	Item,
 	ItemContent,
@@ -25,11 +25,13 @@ export function EventLeadItem({ lead }: EventLeadItemProps) {
 						<h3 className="font-bold text-lg leading-tight">
 							{lead.lead_name}
 						</h3>
-						<span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-							lead.leadable_type === "Visitor"
-								? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-								: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-						}`}>
+						<span
+							className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium text-xs ${
+								lead.leadable_type === "Visitor"
+									? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+									: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+							}`}
+						>
 							{lead.leadable_type}
 						</span>
 					</div>
@@ -71,7 +73,7 @@ export function EventLeadItem({ lead }: EventLeadItemProps) {
 				{lead.notes && (
 					<div className="flex items-center gap-2">
 						<StickyNote className="size-4 shrink-0 text-muted-foreground" />
-						<span className="font-medium text-muted-foreground text-sm line-clamp-2">
+						<span className="line-clamp-2 font-medium text-muted-foreground text-sm">
 							{lead.notes}
 						</span>
 					</div>

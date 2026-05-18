@@ -228,7 +228,13 @@ export async function getEventAnalytics(
  */
 export async function getHourlyBreakdownByDay(
 	eventId: string,
-	metric: "tickets" | "scans" | "visitors" | "visitor_scans" | "leads" | "redemptions",
+	metric:
+		| "tickets"
+		| "scans"
+		| "visitors"
+		| "visitor_scans"
+		| "leads"
+		| "redemptions",
 	options?: {
 		startDate?: string;
 		endDate?: string;

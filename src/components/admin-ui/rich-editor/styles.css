@@ -2,231 +2,233 @@
 
 /* Root and Content Styling */
 .ContentEditable__root {
-  outline: none;
-  font-size: 1rem;
-  line-height: 1.625;
+	outline: none;
+	font-size: 1rem;
+	line-height: 1.625;
 }
 
 .ContentEditable__root > * + * {
-  margin-top: 0.75em;
+	margin-top: 0.75em;
 }
 
 /* Placeholder */
 .editor-placeholder {
-  color: var(--muted-foreground);
-  overflow: hidden;
-  position: absolute;
-  text-overflow: ellipsis;
-  top: 1.5rem;
-  left: 1.5rem;
-  user-select: none;
-  white-space: nowrap;
-  display: inline-block;
-  pointer-events: none;
+	color: var(--muted-foreground);
+	overflow: hidden;
+	position: absolute;
+	text-overflow: ellipsis;
+	top: 1.5rem;
+	left: 1.5rem;
+	user-select: none;
+	white-space: nowrap;
+	display: inline-block;
+	pointer-events: none;
 }
 
 /* Headings */
 .editor-heading-h1,
 .editor-heading-h2,
 .editor-heading-h3 {
-  scroll-margin-top: 5rem;
+	scroll-margin-top: 5rem;
 }
 
 .editor-heading-h1 {
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+	font-size: 2.25rem;
+	font-weight: 800;
+	line-height: 1.2;
+	margin-top: 2rem;
+	margin-bottom: 1rem;
 }
 
 .editor-heading-h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.3;
+	margin-top: 1.5rem;
+	margin-bottom: 0.75rem;
 }
 
 .editor-heading-h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-top: 1.25rem;
+	font-size: 1.25rem;
+	font-weight: 600;
+	margin-top: 1.25rem;
 }
 
 /* Lists */
 .editor-list-ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
+	list-style-type: disc;
+	padding-left: 1.5rem;
 }
 
 .editor-list-ol {
-  list-style-type: decimal;
-  padding-left: 1.5rem;
+	list-style-type: decimal;
+	padding-left: 1.5rem;
 }
 
 .editor-listitem {
-  margin-bottom: 0.25rem;
+	margin-bottom: 0.25rem;
 }
 
 .editor-nested-listitem {
-  list-style-type: none;
+	list-style-type: none;
 }
 
 .editor-nested-listitem:before,
 .editor-nested-listitem:after {
-  display: none;
+	display: none;
 }
 
 /* Blockquote */
 .editor-quote {
-  border-left: 4px solid var(--primary);
-  padding-left: 1.25rem;
-  font-style: italic;
-  color: var(--muted-foreground);
-  margin: 1.5rem 0;
+	border-left: 4px solid var(--primary);
+	padding-left: 1.25rem;
+	font-style: italic;
+	color: var(--muted-foreground);
+	margin: 1.5rem 0;
 }
 
 /* Text formats */
 .editor-text-bold {
-  font-weight: 700;
+	font-weight: 700;
 }
 
 .editor-text-italic {
-  font-style: italic;
+	font-style: italic;
 }
 
 .editor-text-underline {
-  text-decoration: underline;
+	text-decoration: underline;
 }
 
 .editor-text-strikethrough {
-  text-decoration: line-through;
+	text-decoration: line-through;
 }
 
 .editor-text-underlineStrikethrough {
-  text-decoration: underline line-through;
+	text-decoration: underline line-through;
 }
 
 /* Code */
 .editor-text-code {
-  background-color: var(--muted);
-  color: var(--foreground);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+	background-color: var(--muted);
+	color: var(--foreground);
+	padding: 0.2rem 0.4rem;
+	border-radius: 0.25rem;
+	font-size: 0.875em;
+	font-family:
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
 }
 
 .editor-code {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin: 1.5rem 0;
-  overflow-x: auto;
+	background: #1e1e1e;
+	color: #d4d4d4;
+	font-family:
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	margin: 1.5rem 0;
+	overflow-x: auto;
 }
 
 .editor-code .editor-text-code {
-  background: none;
-  color: inherit;
-  padding: 0;
-  font-size: 0.875rem;
+	background: none;
+	color: inherit;
+	padding: 0;
+	font-size: 0.875rem;
 }
 
 /* Links */
 .editor-link {
-  color: #0ea5e9; /* sky-500 */
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  cursor: pointer;
+	color: #0ea5e9; /* sky-500 */
+	text-decoration: underline;
+	text-underline-offset: 4px;
+	cursor: pointer;
 }
 
 /* Images */
 .editor-image {
-  cursor: default;
-  display: block;
-  position: relative;
-  user-select: none;
-  width: 100%;
+	cursor: default;
+	display: block;
+	position: relative;
+	user-select: none;
+	width: 100%;
 }
 
 .editor-image img {
-  max-width: 100%;
-  cursor: default;
+	max-width: 100%;
+	cursor: default;
 }
 
 .editor-image.focused {
-  outline: 2px solid rgb(60, 132, 244);
+	outline: 2px solid rgb(60, 132, 244);
 }
 
 /* Mark/Highlight */
 .editor-mark {
-  background-color: #ffecad;
-  border-bottom: 2px solid #ffd5d2;
-  padding: 1px 0;
+	background-color: #ffecad;
+	border-bottom: 2px solid #ffd5d2;
+	padding: 1px 0;
 }
 
 /* CTA Block */
 .cta-block {
-  display: block;
+	display: block;
 }
 
 /* Table Styles */
 .editor-table {
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  overflow: hidden;
-  table-layout: fixed;
-  width: 100%;
+	border-collapse: collapse;
+	margin: 1.5rem 0;
+	overflow: hidden;
+	table-layout: fixed;
+	width: 100%;
 }
 
 .editor-tableCell,
 .editor-tableHeader {
-  border: 1px solid var(--border);
-  box-sizing: border-box;
-  min-width: 1em;
-  padding: 8px 12px;
-  position: relative;
-  vertical-align: top;
+	border: 1px solid var(--border);
+	box-sizing: border-box;
+	min-width: 1em;
+	padding: 8px 12px;
+	position: relative;
+	vertical-align: top;
 }
 
 .editor-tableHeader {
-  background-color: var(--muted);
-  font-weight: bold;
-  text-align: left;
+	background-color: var(--muted);
+	font-weight: bold;
+	text-align: left;
 }
 
 .ContentEditable__root table {
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  overflow: hidden;
-  table-layout: fixed;
-  width: 100%;
+	border-collapse: collapse;
+	margin: 1.5rem 0;
+	overflow: hidden;
+	table-layout: fixed;
+	width: 100%;
 }
 
 .ContentEditable__root td,
 .ContentEditable__root th {
-  border: 1px solid var(--border);
-  box-sizing: border-box;
-  min-width: 1em;
-  padding: 8px 12px;
-  position: relative;
-  vertical-align: top;
+	border: 1px solid var(--border);
+	box-sizing: border-box;
+	min-width: 1em;
+	padding: 8px 12px;
+	position: relative;
+	vertical-align: top;
 }
 
 .ContentEditable__root th {
-  background-color: var(--muted);
-  font-weight: bold;
-  text-align: left;
+	background-color: var(--muted);
+	font-weight: bold;
+	text-align: left;
 }
 
 /* HR */
 .ContentEditable__root hr {
-  border: none;
-  border-top: 2px solid var(--border);
-  margin: 2rem 0;
+	border: none;
+	border-top: 2px solid var(--border);
+	margin: 2rem 0;
 }

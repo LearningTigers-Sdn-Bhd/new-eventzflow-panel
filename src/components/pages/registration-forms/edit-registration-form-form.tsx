@@ -267,10 +267,7 @@ export function EditRegistrationFormForm({
 					...prev,
 					[ticketTypeId]: {
 						...rule,
-						custom_labels: reorderByDragEvent(
-							rule.custom_labels,
-							event,
-						),
+						custom_labels: reorderByDragEvent(rule.custom_labels, event),
 					},
 				};
 			});

@@ -28,19 +28,19 @@ export function EventNotFound() {
 			<div className="pointer-events-none fixed inset-0 overflow-hidden">
 				{/* Top right gradient orb */}
 				<div
-					className="-top-40 -right-40 absolute h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-primary/8 via-primary/4 to-transparent blur-3xl"
+					className="absolute -top-40 -right-40 h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-primary/8 via-primary/4 to-transparent blur-3xl"
 					style={{ animationDuration: "4s" }}
 				/>
 
 				{/* Bottom left gradient orb */}
 				<div
-					className="-bottom-40 -left-40 absolute h-96 w-96 animate-pulse rounded-full bg-gradient-to-tr from-primary/8 via-primary/4 to-transparent blur-3xl"
+					className="absolute -bottom-40 -left-40 h-96 w-96 animate-pulse rounded-full bg-gradient-to-tr from-primary/8 via-primary/4 to-transparent blur-3xl"
 					style={{ animationDuration: "4s", animationDelay: "2s" }}
 				/>
 
 				{/* Center accent orb */}
 				<div
-					className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-[600px] w-[600px] animate-pulse rounded-full bg-gradient-to-br from-primary/3 via-transparent to-primary/3 blur-3xl"
+					className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-br from-primary/3 via-transparent to-primary/3 blur-3xl"
 					style={{ animationDuration: "6s", animationDelay: "1s" }}
 				/>
 			</div>

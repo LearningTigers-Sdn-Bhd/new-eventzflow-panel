@@ -71,7 +71,7 @@ export function ColorPicker({
 						type="button"
 						onClick={() => onChange(color.name)}
 						className={cn(
-							"w-6 h-6 rounded-full border-2 transition-all hover:scale-110",
+							"h-6 w-6 rounded-full border-2 transition-all hover:scale-110",
 							value === color.name
 								? "border-primary ring-2 ring-primary ring-offset-1"
 								: "border-transparent",

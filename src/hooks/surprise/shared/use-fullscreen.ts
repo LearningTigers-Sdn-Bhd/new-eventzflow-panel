@@ -34,9 +34,18 @@ export function useFullscreen() {
 
 		return () => {
 			document.removeEventListener("fullscreenchange", handleFullscreenChange);
-			document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
-			document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
-			document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+			document.removeEventListener(
+				"webkitfullscreenchange",
+				handleFullscreenChange,
+			);
+			document.removeEventListener(
+				"mozfullscreenchange",
+				handleFullscreenChange,
+			);
+			document.removeEventListener(
+				"MSFullscreenChange",
+				handleFullscreenChange,
+			);
 		};
 	}, []);
 

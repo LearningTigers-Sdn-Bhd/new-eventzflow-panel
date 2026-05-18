@@ -35,7 +35,11 @@ export function TeamMembersSection({
 			: 0;
 
 	const handleAddMember = () => {
-		if (!newMemberName.trim() || !newMemberEmail.trim() || !newMemberPhone.trim()) {
+		if (
+			!newMemberName.trim() ||
+			!newMemberEmail.trim() ||
+			!newMemberPhone.trim()
+		) {
 			return;
 		}
 
@@ -107,11 +111,11 @@ export function TeamMembersSection({
 				</p>
 
 				{/* How to use guide */}
-				<div className="bg-blue-50 border border-blue-200 p-3">
+				<div className="border border-blue-200 bg-blue-50 p-3">
 					<p className="text-blue-800 text-xs">
-						<span className="font-medium">How to add:</span> Enter the full name,
-						real email address, and phone number for each team member, then click
-						"Add".
+						<span className="font-medium">How to add:</span> Enter the full
+						name, real email address, and phone number for each team member,
+						then click "Add".
 					</p>
 				</div>
 			</div>
@@ -230,8 +234,9 @@ export function TeamMembersSection({
 				extraTeamMemberFee > 0 && (
 					<div className="rounded border border-amber-200 bg-amber-50 p-3">
 						<p className="text-amber-800 text-sm">
-							You have <span className="font-semibold">{extraMembersCount}</span>{" "}
-							extra member{extraMembersCount > 1 ? "s" : ""} beyond the included
+							You have{" "}
+							<span className="font-semibold">{extraMembersCount}</span> extra
+							member{extraMembersCount > 1 ? "s" : ""} beyond the included
 							limit. Additional charge:{" "}
 							<span className="font-semibold">
 								{formatCurrency(extraMembersCount * extraTeamMemberFee)}

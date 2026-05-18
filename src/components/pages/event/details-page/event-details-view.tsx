@@ -14,10 +14,10 @@ interface EventDetailsViewProps {
 
 export function EventDetailsView({ event }: EventDetailsViewProps) {
 	const { formatDate } = useFormatDate();
-	const {
-		isVendor,
-		isExhibitionContractor,
-	} = useEventPermissions(event.id, event);
+	const { isVendor, isExhibitionContractor } = useEventPermissions(
+		event.id,
+		event,
+	);
 
 	const showWebhookUrl = !isVendor && !isExhibitionContractor;
 	const showColumn2 = !isVendor && !isExhibitionContractor;
@@ -37,163 +37,168 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 			<EventDetailsActionButtons event={event} />
 
 			<div
-				className={cn("grid grid-cols-1 gap-2", showColumn2 && "lg:grid-cols-2")}
+				className={cn(
+					"grid grid-cols-1 gap-2",
+					showColumn2 && "lg:grid-cols-2",
+				)}
 			>
-			{/* Column 1: Event Details Card */}
-			<BlankCard
-				title="Event Details"
-				icon={<List className="size-4" />}
-				contentClassName="p-0"
-			>
-				{/* Column 1: Event Description & Status */}
-				<div className="grid h-full grid-cols-1 divide-y divide-muted-foreground/20 rounded-none border">
-					<div className="flex flex-col gap-1 px-3 py-2">
-						<p className="font-medium text-muted-foreground text-sm">
-							Event Description
-						</p>
-						<p className="whitespace-pre-wrap text-sm italic leading-relaxed">
-							{event.description || "No description provided."}
-						</p>
-					</div>
-
-					{/* Status & Type */}
-					<div className="grid grid-cols-2 divide-x divide-muted-foreground/20">
-						<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
-							<p className="font-medium text-muted-foreground text-sm">
-								Status
-							</p>
-							<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-								{event.status}
-							</p>
-						</div>
-
-						<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
-							<p className="font-medium text-muted-foreground text-sm">Type</p>
-							<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-								{event.use_ticket ? "Ticket Event" : "Visitor Event"}
-							</p>
-						</div>
-					</div>
-
-					{/* Dates */}
-					<div className="grid grid-cols-2 divide-x divide-muted-foreground/20">
-						<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
-							<p className="font-medium text-muted-foreground text-sm">
-								Start Date
-							</p>
-							<p className="font-medium font-mono text-sm tracking-tight">
-								{formatDate(event.start_date)}
-							</p>
-						</div>
-						<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
-							<p className="font-medium text-muted-foreground text-sm">
-								End Date
-							</p>
-							<p className="font-medium font-mono text-sm tracking-tight">
-								{formatDate(event.end_date)}
-							</p>
-						</div>
-					</div>
-
-					{/* Webhook URL */}
-					{showWebhookUrl && (
-						<div className="flex flex-col gap-2 px-3 py-2">
-							<p className="font-medium text-muted-foreground text-sm">
-								Webhook URL
-							</p>
-							{event.webhook_url ? (
-								<a
-									href={event.webhook_url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-2 text-primary text-sm hover:underline"
-								>
-									{event.webhook_url}
-									<ExternalLink className="h-3 w-3" />
-								</a>
-							) : (
-								<p className="font-mono text-muted-foreground text-sm italic">
-									No webhook URL configured.
-								</p>
-							)}
-						</div>
-					)}
-				</div>
-			</BlankCard>
-
-			{/* Column 2: Event Configuration */}
-			{showColumn2 && (
+				{/* Column 1: Event Details Card */}
 				<BlankCard
-					title="Event Configuration"
-					icon={<Settings className="size-4" />}
+					title="Event Details"
+					icon={<List className="size-4" />}
 					contentClassName="p-0"
 				>
+					{/* Column 1: Event Description & Status */}
 					<div className="grid h-full grid-cols-1 divide-y divide-muted-foreground/20 rounded-none border">
-						{/* Labels Configuration Details */}
-						<div className="flex flex-col gap-2 p-3">
+						<div className="flex flex-col gap-1 px-3 py-2">
 							<p className="font-medium text-muted-foreground text-sm">
-								Labels Required
+								Event Description
 							</p>
-							{labels.length > 0 ? (
-								<div className="flex flex-wrap gap-2">
-									{labels.map((item) => (
-										<div
-											key={item.key}
-											className="flex items-center rounded-none border bg-background px-3 py-1.5 text-xs"
-										>
-											<span className="font-mono tracking-wide">
-												{item.label}
-											</span>
-										</div>
-									))}
-								</div>
-							) : (
-								<p className="text-muted-foreground text-sm italic">
-									No labels configured for this event.
-								</p>
-							)}
+							<p className="whitespace-pre-wrap text-sm italic leading-relaxed">
+								{event.description || "No description provided."}
+							</p>
 						</div>
-						{/* Event Options Configuration Details */}
-						<div className="flex flex-col gap-6 p-3">
-							<div className="space-y-4">
+
+						{/* Status & Type */}
+						<div className="grid grid-cols-2 divide-x divide-muted-foreground/20">
+							<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
 								<p className="font-medium text-muted-foreground text-sm">
-									Event Options
+									Status
 								</p>
-								<div className="grid grid-cols-1 divide-y divide-muted-foreground/20 rounded-none border">
-									<div className="flex items-center justify-between rounded-none p-3">
-										<span className="text-sm">Multiple Scans Allowed</span>
-										<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-											{event.multiple_scans ? "Yes" : "No"}
-										</p>
+								<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+									{event.status}
+								</p>
+							</div>
+
+							<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
+								<p className="font-medium text-muted-foreground text-sm">
+									Type
+								</p>
+								<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+									{event.use_ticket ? "Ticket Event" : "Visitor Event"}
+								</p>
+							</div>
+						</div>
+
+						{/* Dates */}
+						<div className="grid grid-cols-2 divide-x divide-muted-foreground/20">
+							<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
+								<p className="font-medium text-muted-foreground text-sm">
+									Start Date
+								</p>
+								<p className="font-medium font-mono text-sm tracking-tight">
+									{formatDate(event.start_date)}
+								</p>
+							</div>
+							<div className="flex flex-row items-center justify-between gap-1 px-3 py-2 md:flex-col md:items-start md:justify-start xl:flex-row xl:items-center xl:justify-between">
+								<p className="font-medium text-muted-foreground text-sm">
+									End Date
+								</p>
+								<p className="font-medium font-mono text-sm tracking-tight">
+									{formatDate(event.end_date)}
+								</p>
+							</div>
+						</div>
+
+						{/* Webhook URL */}
+						{showWebhookUrl && (
+							<div className="flex flex-col gap-2 px-3 py-2">
+								<p className="font-medium text-muted-foreground text-sm">
+									Webhook URL
+								</p>
+								{event.webhook_url ? (
+									<a
+										href={event.webhook_url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-2 text-primary text-sm hover:underline"
+									>
+										{event.webhook_url}
+										<ExternalLink className="h-3 w-3" />
+									</a>
+								) : (
+									<p className="font-mono text-muted-foreground text-sm italic">
+										No webhook URL configured.
+									</p>
+								)}
+							</div>
+						)}
+					</div>
+				</BlankCard>
+
+				{/* Column 2: Event Configuration */}
+				{showColumn2 && (
+					<BlankCard
+						title="Event Configuration"
+						icon={<Settings className="size-4" />}
+						contentClassName="p-0"
+					>
+						<div className="grid h-full grid-cols-1 divide-y divide-muted-foreground/20 rounded-none border">
+							{/* Labels Configuration Details */}
+							<div className="flex flex-col gap-2 p-3">
+								<p className="font-medium text-muted-foreground text-sm">
+									Labels Required
+								</p>
+								{labels.length > 0 ? (
+									<div className="flex flex-wrap gap-2">
+										{labels.map((item) => (
+											<div
+												key={item.key}
+												className="flex items-center rounded-none border bg-background px-3 py-1.5 text-xs"
+											>
+												<span className="font-mono tracking-wide">
+													{item.label}
+												</span>
+											</div>
+										))}
 									</div>
-									<div className="flex items-center justify-between rounded-none p-3">
-										<span className="text-sm">Exhibitor Kit</span>
-										<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-											{event.use_exhibitor_kit ? "Enabled" : "Disabled"}
-										</p>
-									</div>
-									<div className="flex items-center justify-between rounded-none p-3">
-										<span className="text-sm">Contractor Printing</span>
-										<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-											{event.allow_contractor_printing_services
-												? "Allowed"
-												: "Not Allowed"}
-										</p>
-									</div>
-									<div className="flex items-center justify-between rounded-none p-3">
-										<span className="text-sm">Sponsorships</span>
-										<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
-											{event.use_sponsorship ? "Enabled" : "Disabled"}
-										</p>
+								) : (
+									<p className="text-muted-foreground text-sm italic">
+										No labels configured for this event.
+									</p>
+								)}
+							</div>
+							{/* Event Options Configuration Details */}
+							<div className="flex flex-col gap-6 p-3">
+								<div className="space-y-4">
+									<p className="font-medium text-muted-foreground text-sm">
+										Event Options
+									</p>
+									<div className="grid grid-cols-1 divide-y divide-muted-foreground/20 rounded-none border">
+										<div className="flex items-center justify-between rounded-none p-3">
+											<span className="text-sm">Multiple Scans Allowed</span>
+											<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+												{event.multiple_scans ? "Yes" : "No"}
+											</p>
+										</div>
+										<div className="flex items-center justify-between rounded-none p-3">
+											<span className="text-sm">Exhibitor Kit</span>
+											<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+												{event.use_exhibitor_kit ? "Enabled" : "Disabled"}
+											</p>
+										</div>
+										<div className="flex items-center justify-between rounded-none p-3">
+											<span className="text-sm">Contractor Printing</span>
+											<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+												{event.allow_contractor_printing_services
+													? "Allowed"
+													: "Not Allowed"}
+											</p>
+										</div>
+										<div className="flex items-center justify-between rounded-none p-3">
+											<span className="text-sm">Sponsorships</span>
+											<p className="whitespace-pre-wrap text-sm capitalize italic leading-relaxed">
+												{event.use_sponsorship ? "Enabled" : "Disabled"}
+											</p>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</BlankCard>
-			)}
+					</BlankCard>
+				)}
 
-			{/* Column 3: Additional Information */}
+				{/* Column 3: Additional Information */}
 			</div>
 		</div>
 	);

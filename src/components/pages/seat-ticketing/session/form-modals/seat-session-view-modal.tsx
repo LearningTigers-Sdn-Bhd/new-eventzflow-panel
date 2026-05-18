@@ -87,7 +87,7 @@ export default function SeatSessionViewModal({
 				</div>
 			</div>
 
-			<div className="flex w-full mt-6">
+			<div className="mt-6 flex w-full">
 				<Button
 					className="w-full rounded-none"
 					onClick={() => {

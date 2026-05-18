@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { redirect } from "next/navigation";
 import ExhibitorKitsClientWrapper from "@/components/pages/exhibitor-kits-public/exhibitor-kits-client-wrapper";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { redirect } from "next/navigation";
 import { getEvents } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 
@@ -26,30 +26,35 @@ export default function PublicExhibitorKitsPage() {
 	});
 
 	// Fetch vendors for all events
-	const eventIds = events?.map(event => event.id) || [];
-	
+	const eventIds = events?.map((event) => event.id) || [];
+
 	const vendorQueries = useQuery({
 		queryKey: ["all-event-vendors", eventIds],
 		queryFn: async () => {
 			if (!events || events.length === 0) return [];
-			
+
 			const vendorPromises = events.map(async (event) => {
 				try {
 					const vendors = await getEventVendors(event.id);
-					return vendors.map(vendor => ({ 
-						...vendor, 
+					return vendors.map((vendor) => ({
+						...vendor,
 						event: event,
-						exhibitor_kit: vendor.exhibitor_kit ? {
-							...vendor.exhibitor_kit,
-							event: event
-						} : undefined
+						exhibitor_kit: vendor.exhibitor_kit
+							? {
+									...vendor.exhibitor_kit,
+									event: event,
+								}
+							: undefined,
 					}));
 				} catch (error) {
-					console.error(`Failed to fetch vendors for event ${event.id}:`, error);
+					console.error(
+						`Failed to fetch vendors for event ${event.id}:`,
+						error,
+					);
 					return [];
 				}
 			});
-			
+
 			const allVendorArrays = await Promise.all(vendorPromises);
 			return allVendorArrays.flat();
 		},
@@ -61,8 +66,8 @@ export default function PublicExhibitorKitsPage() {
 
 	// Extract exhibitor kits from all vendors across all events
 	const allKitsWithEventAndVendor = (vendorQueries.data || [])
-		.filter(vendor => vendor.exhibitor_kit)
-		.map(vendor => ({
+		.filter((vendor) => vendor.exhibitor_kit)
+		.map((vendor) => ({
 			...vendor.exhibitor_kit!,
 			vendor: vendor,
 			event: vendor.event,

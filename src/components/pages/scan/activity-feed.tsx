@@ -5,8 +5,8 @@
 
 import { ScanFace } from "lucide-react";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import { generateColumns } from "./table/scan-table-columns";
 import { DataTable } from "./table/scan-table";
+import { generateColumns } from "./table/scan-table-columns";
 import type { FilterType, ScanResult, SortType, TypeFilter } from "./types";
 
 interface ActivityFeedProps {

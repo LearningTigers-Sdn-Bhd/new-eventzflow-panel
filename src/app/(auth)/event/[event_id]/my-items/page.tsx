@@ -2,8 +2,8 @@
 
 import { use } from "react";
 import { MyItemsPage } from "@/components/pages/exhibitor-kits";
-import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface PageProps {
 	params: Promise<{
@@ -14,7 +14,7 @@ interface PageProps {
 export default function Page({ params }: PageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id);
-	
+
 	const { eventVendorId, isLoading } = useCurrentUserEventVendorId(eventId);
 
 	if (isLoading) {

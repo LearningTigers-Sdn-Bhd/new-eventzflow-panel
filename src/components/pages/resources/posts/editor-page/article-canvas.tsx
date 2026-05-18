@@ -115,29 +115,29 @@ export const ArticleCanvas = ({
 								Back
 							</Button>
 						</ToolbarLeftSlot>
-					<ToolbarRightSlot>
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							className="h-8 rounded-none px-3 font-medium text-muted-foreground text-xs hover:text-foreground"
-							onClick={handleClear}
-						>
-							<X className="mr-1 h-3 w-3" />
-							Clear
-						</Button>
-						<Button
-							type="button"
-							variant="default"
-							size="sm"
-							className="h-8 rounded-none px-3 font-medium text-xs"
-							onClick={handleSave}
-							disabled={!initialPost || updateMutation.isPending}
-						>
-							<Save className="mr-1 h-3 w-3" />
-							Save Article
-						</Button>
-					</ToolbarRightSlot>
+						<ToolbarRightSlot>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-8 rounded-none px-3 font-medium text-muted-foreground text-xs hover:text-foreground"
+								onClick={handleClear}
+							>
+								<X className="mr-1 h-3 w-3" />
+								Clear
+							</Button>
+							<Button
+								type="button"
+								variant="default"
+								size="sm"
+								className="h-8 rounded-none px-3 font-medium text-xs"
+								onClick={handleSave}
+								disabled={!initialPost || updateMutation.isPending}
+							>
+								<Save className="mr-1 h-3 w-3" />
+								Save Article
+							</Button>
+						</ToolbarRightSlot>
 					</RichEditorToolbar>
 
 					<RichEditorOutline style="block" side="left" />

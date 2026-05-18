@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -83,16 +83,16 @@ const highlights = [
 function BadgeDemo() {
 	return (
 		<motion.div
-			className="relative bg-white border-2 border-black shadow-2xl w-full max-w-[380px]"
+			className="relative w-full max-w-[380px] border-2 border-black bg-white shadow-2xl"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
 			{/* Badge Header */}
 			<div className="bg-black px-6 py-4">
-				<p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+				<p className="font-bold text-white/60 text-xs uppercase tracking-[0.3em]">
 					SME Expo 2025
 				</p>
-				<p className="mt-1 text-lg font-bold text-white">
+				<p className="mt-1 font-bold text-lg text-white">
 					Sabah International Convention Centre
 				</p>
 			</div>
@@ -101,28 +101,28 @@ function BadgeDemo() {
 			<div className="p-6">
 				{/* Avatar */}
 				<div className="mb-4 flex items-center gap-4">
-					<div className="flex h-16 w-16 items-center justify-center bg-black text-2xl font-bold text-white">
+					<div className="flex h-16 w-16 items-center justify-center bg-black font-bold text-2xl text-white">
 						JS
 					</div>
 					<div>
-						<p className="text-2xl font-black text-black">John Smith</p>
-						<p className="text-sm text-black/60">Executive</p>
+						<p className="font-black text-2xl text-black">John Smith</p>
+						<p className="text-black/60 text-sm">Executive</p>
 					</div>
 				</div>
 
 				{/* Details */}
-				<div className="space-y-2 border-t border-black/10 pt-4">
+				<div className="space-y-2 border-black/10 border-t pt-4">
 					<div className="flex justify-between">
-						<span className="text-xs font-medium uppercase tracking-widest text-black/40">
+						<span className="font-medium text-black/40 text-xs uppercase tracking-widest">
 							Company
 						</span>
-						<span className="text-sm font-medium text-black">Tech Corp</span>
+						<span className="font-medium text-black text-sm">Tech Corp</span>
 					</div>
 					<div className="flex justify-between">
-						<span className="text-xs font-medium uppercase tracking-widest text-black/40">
+						<span className="font-medium text-black/40 text-xs uppercase tracking-widest">
 							Ticket
 						</span>
-						<span className="text-sm font-medium text-black">VIP Pass</span>
+						<span className="font-medium text-black text-sm">VIP Pass</span>
 					</div>
 				</div>
 
@@ -146,9 +146,9 @@ function BadgeDemo() {
 			</div>
 
 			{/* Session Info */}
-			<div className="border-t-2 border-black bg-black/5 px-6 py-3">
+			<div className="border-black border-t-2 bg-black/5 px-6 py-3">
 				<div className="flex items-center justify-center gap-2">
-					<span className="text-xs font-bold uppercase tracking-widest text-black/60">
+					<span className="font-bold text-black/60 text-xs uppercase tracking-widest">
 						Day 1 - AI Summit
 					</span>
 				</div>

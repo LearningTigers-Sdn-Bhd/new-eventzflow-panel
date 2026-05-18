@@ -43,11 +43,14 @@ export function MultiURLInput({
 		return splitUrls.length > 0 ? splitUrls : [""];
 	}, [value]);
 
-	const handleUrlChange = React.useCallback((index: number, newUrl: string) => {
-		const newUrls = [...urls];
-		newUrls[index] = newUrl;
-		onChange(newUrls.join(", "));
-	}, [urls, onChange]);
+	const handleUrlChange = React.useCallback(
+		(index: number, newUrl: string) => {
+			const newUrls = [...urls];
+			newUrls[index] = newUrl;
+			onChange(newUrls.join(", "));
+		},
+		[urls, onChange],
+	);
 
 	const addUrlField = () => {
 		const newUrls = [...urls, ""];

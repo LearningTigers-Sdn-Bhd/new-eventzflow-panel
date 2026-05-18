@@ -1,6 +1,22 @@
 import { restClient } from "@/utils/rest-api";
-import type { BackendVendor, CreateVendorResponse, UpdateVendorResponse, ToggleVendorStatusResponse, DeleteVendorResponse, Vendor } from "./response";
-import { type CreateVendorRequest, createVendorSchema, type UpdateVendorRequest, updateVendorSchema, type ToggleVendorStatusRequest, toggleVendorStatusSchema, type DeleteVendorRequest, deleteVendorSchema } from "./request";
+import {
+	type CreateVendorRequest,
+	createVendorSchema,
+	type DeleteVendorRequest,
+	deleteVendorSchema,
+	type ToggleVendorStatusRequest,
+	toggleVendorStatusSchema,
+	type UpdateVendorRequest,
+	updateVendorSchema,
+} from "./request";
+import type {
+	BackendVendor,
+	CreateVendorResponse,
+	DeleteVendorResponse,
+	ToggleVendorStatusResponse,
+	UpdateVendorResponse,
+	Vendor,
+} from "./response";
 
 // Transform backend response to frontend format
 function transformVendor(backendVendor: BackendVendor): Vendor {
@@ -131,9 +147,9 @@ export async function updateVendor(
 		const validated = updateVendorSchema.parse(data);
 
 		// Check if we need FormData (image upload or image removal)
-		const hasImage =
-			validated.vendor_profile_attributes?.image instanceof File;
-		const hasRemoveImage = validated.vendor_profile_attributes?.remove_image === true;
+		const hasImage = validated.vendor_profile_attributes?.image instanceof File;
+		const hasRemoveImage =
+			validated.vendor_profile_attributes?.remove_image === true;
 
 		// Use FormData for file uploads OR image removal
 		if (hasImage || hasRemoveImage) {
@@ -150,11 +166,15 @@ export async function updateVendor(
 			}
 
 			if (validated.vendor_profile_attributes) {
-				const { image, remove_image, ...rest } = validated.vendor_profile_attributes;
+				const { image, remove_image, ...rest } =
+					validated.vendor_profile_attributes;
 
 				// Include profile id for updates (prevents destroy/recreate)
 				if (rest.id) {
-					formData.append("vendor[vendor_profile_attributes][id]", String(rest.id));
+					formData.append(
+						"vendor[vendor_profile_attributes][id]",
+						String(rest.id),
+					);
 				}
 
 				// Attach new image if provided
@@ -164,7 +184,10 @@ export async function updateVendor(
 
 				// Flag for image removal (only when no new image is uploaded)
 				if (remove_image && !(image instanceof File)) {
-					formData.append("vendor[vendor_profile_attributes][remove_image]", "true");
+					formData.append(
+						"vendor[vendor_profile_attributes][remove_image]",
+						"true",
+					);
 				}
 
 				Object.entries(rest).forEach(([key, value]) => {
@@ -207,13 +230,15 @@ export async function updateVendor(
 
 		// Include vendor_profile_attributes if provided
 		if (validated.vendor_profile_attributes) {
-			const { image, remove_image, ...rest } = validated.vendor_profile_attributes;
+			const { image, remove_image, ...rest } =
+				validated.vendor_profile_attributes;
 			// Filter out undefined values but keep empty strings (to clear fields)
 			// Keep id as number for Rails nested attributes
 			const filteredRest: Record<string, string | number> = {};
 			Object.entries(rest).forEach(([key, value]) => {
 				if (value !== undefined) {
-					filteredRest[key] = key === "id" ? (value as number) : (value as string);
+					filteredRest[key] =
+						key === "id" ? (value as number) : (value as string);
 				}
 			});
 			(payload.vendor as Record<string, unknown>).vendor_profile_attributes =

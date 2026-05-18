@@ -12,7 +12,10 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
-import { TicketActionsMenu, useTicketActions } from "./event-ticket-action-menu";
+import {
+	TicketActionsMenu,
+	useTicketActions,
+} from "./event-ticket-action-menu";
 import type { BaseTicket } from "./event-ticket-table-columns";
 
 interface TicketItemProps {
@@ -84,7 +87,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
 						</div>
 					</div>
 					<ItemDescription className="mt-1.5 flex flex-col gap-1">
-						<span className="font-mono text-[10px] text-muted-foreground truncate">
+						<span className="truncate font-mono text-[10px] text-muted-foreground">
 							{ticket.publicId}
 						</span>
 						<div className="flex items-start justify-between gap-2">
@@ -95,7 +98,10 @@ export function TicketItem({ ticket }: TicketItemProps) {
 								</span>
 							</div>
 							<ItemActions className="shrink-0 self-end">
-								<TicketActionsMenu ticket={ticket} deletedAt={ticket.deletedAt} />
+								<TicketActionsMenu
+									ticket={ticket}
+									deletedAt={ticket.deletedAt}
+								/>
 							</ItemActions>
 						</div>
 					</ItemDescription>

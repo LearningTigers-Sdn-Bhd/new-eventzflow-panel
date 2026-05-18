@@ -9,8 +9,8 @@ describe("BoothPricingDialog conferences column", () => {
 		);
 
 		expect(content).toContain("<TableHead>Conferences</TableHead>");
-		expect(content).toContain('>Included<');
-		expect(content).toContain('>Not included<');
+		expect(content).toContain(">Included<");
+		expect(content).toContain(">Not included<");
 		expect(content).not.toContain("<TableHead>Package</TableHead>");
 		expect(content).not.toContain("Conference passes included");
 	});

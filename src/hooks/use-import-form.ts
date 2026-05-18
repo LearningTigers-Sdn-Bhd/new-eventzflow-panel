@@ -5,13 +5,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useDialog } from "@/hooks/use-dialog";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { ImportResponse } from "@/lib/api/imports/response";
 import {
 	importTickets,
 	importTicketsDryRun,
 	importVisitors,
 	importVisitorsDryRun,
 } from "@/lib/api/imports";
+import type { ImportResponse } from "@/lib/api/imports/response";
 import type { ImportType } from "@/lib/api/imports/types";
 
 export interface UseImportFormOptions {

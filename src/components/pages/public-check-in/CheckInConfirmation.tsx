@@ -28,7 +28,7 @@ export function CheckInConfirmation({
 				<div className="mb-1.5 font-mono text-[10px] text-neutral-500 uppercase tracking-widest sm:mb-2 sm:text-xs">
 					Confirm Check-In
 				</div>
-				<h2 className="font-bold text-xl text-black uppercase sm:text-2xl lg:text-3xl">
+				<h2 className="font-bold text-black text-xl uppercase sm:text-2xl lg:text-3xl">
 					{attendee.name}
 				</h2>
 			</div>
@@ -56,7 +56,7 @@ export function CheckInConfirmation({
 				)}
 			</div>
 
-			<div className="mb-4 bg-amber-50 p-2.5 text-amber-800 text-[11px] leading-relaxed sm:mb-6 sm:p-3 sm:text-xs">
+			<div className="mb-4 bg-amber-50 p-2.5 text-[11px] text-amber-800 leading-relaxed sm:mb-6 sm:p-3 sm:text-xs">
 				Please verify your details are correct before checking in.
 			</div>
 
@@ -70,7 +70,7 @@ export function CheckInConfirmation({
 				<button
 					onClick={onConfirm}
 					disabled={isConfirming}
-					className="flex h-10 flex-1 items-center justify-center gap-1.5 bg-brand-green font-medium text-xs text-white transition-colors hover:bg-brand-green/90 disabled:opacity-50 sm:h-12 sm:gap-2 sm:text-sm"
+					className="flex h-10 flex-1 items-center justify-center gap-1.5 bg-brand-green font-medium text-white text-xs transition-colors hover:bg-brand-green/90 disabled:opacity-50 sm:h-12 sm:gap-2 sm:text-sm"
 				>
 					{isConfirming ? (
 						<Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />

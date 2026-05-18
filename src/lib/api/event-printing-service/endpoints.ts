@@ -8,9 +8,9 @@ import {
 import type {
 	BackendEventPrintingService,
 	BackendEventPrintingServicePriceTier,
+	DeleteEventPrintingServiceResponse,
 	EventPrintingService,
 	EventPrintingServicePriceTier,
-	DeleteEventPrintingServiceResponse,
 } from "./response";
 
 // Transform backend price tier to frontend format
@@ -61,9 +61,8 @@ function transformEventPrintingService(
 					updatedAt: backend.printing_service.updated_at,
 				}
 			: undefined,
-		eventPrintingServicePriceTiers: backend.event_printing_service_price_tiers?.map(
-			transformPriceTier,
-		),
+		eventPrintingServicePriceTiers:
+			backend.event_printing_service_price_tiers?.map(transformPriceTier),
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,
 	};
@@ -123,7 +122,11 @@ export async function createEventPrintingService(
 
 		const response = await restClient.post<BackendEventPrintingService>(
 			`v1/events/${validated.event_id}/event_printing_services`,
-			{ event_printing_service: { printing_service_id: validated.printing_service_id } },
+			{
+				event_printing_service: {
+					printing_service_id: validated.printing_service_id,
+				},
+			},
 		);
 
 		return transformEventPrintingService(response);

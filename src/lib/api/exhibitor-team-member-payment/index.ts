@@ -1,32 +1,32 @@
 // API endpoints
 export {
-	getExhibitorTeamMemberPayments,
-	getExhibitorTeamMemberPayment,
 	createExhibitorTeamMemberPayment,
 	createExtraTeamMemberPaymentOrder,
-	updateExhibitorTeamMemberPayment,
+	getExhibitorTeamMemberPayment,
+	getExhibitorTeamMemberPayments,
 	resubmitTeamMemberPaymentProof,
+	updateExhibitorTeamMemberPayment,
 	verifyExtraTeamMemberPayment,
 } from "./endpoints";
 
 // Request types and schemas
 export {
-	type GetExhibitorTeamMemberPaymentsRequest,
-	type GetExhibitorTeamMemberPaymentRequest,
 	type CreateExhibitorTeamMemberPaymentRequest,
-	type UpdateExhibitorTeamMemberPaymentRequest,
-	getExhibitorTeamMemberPaymentsSchema,
-	getExhibitorTeamMemberPaymentSchema,
 	createExhibitorTeamMemberPaymentSchema,
+	type GetExhibitorTeamMemberPaymentRequest,
+	type GetExhibitorTeamMemberPaymentsRequest,
+	getExhibitorTeamMemberPaymentSchema,
+	getExhibitorTeamMemberPaymentsSchema,
+	type UpdateExhibitorTeamMemberPaymentRequest,
 	updateExhibitorTeamMemberPaymentSchema,
 } from "./request";
 
 // Response types
 export type {
 	BackendExhibitorTeamMemberPayment,
-	ExhibitorTeamMemberPayment,
 	CreateExhibitorTeamMemberPaymentResponse,
 	CreateRazorpayOrderResponse,
+	ExhibitorTeamMemberPayment,
 	UpdateExhibitorTeamMemberPaymentResponse,
 	VerifyRazorpayPaymentResponse,
 } from "./response";

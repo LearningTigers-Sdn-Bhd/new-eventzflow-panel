@@ -31,7 +31,8 @@ import { EmailLogTable } from "./email-log-table";
 export function EmailDeliveriesView() {
 	const params = useParams();
 	const eventId = Number(params.event_id);
-	const activeEventId = Number.isFinite(eventId) && eventId > 0 ? eventId : undefined;
+	const activeEventId =
+		Number.isFinite(eventId) && eventId > 0 ? eventId : undefined;
 	const queryClient = useQueryClient();
 	const [selectedEventFilter, setSelectedEventFilter] = useState(
 		activeEventId ? String(activeEventId) : "all",

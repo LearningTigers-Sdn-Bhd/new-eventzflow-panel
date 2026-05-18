@@ -129,17 +129,16 @@ export async function login(
 		// Validate response
 		const validatedResponse = authResponseSchema.parse(response);
 
-		        const { access_token, expires_at, user } =
-		            validatedResponse.data;
-		        const expiresAtTimestamp = parseExpiresAt(expires_at);
-		
-		        // Update store with tokens and user data
-		        const state = useUserSessionStore.getState();
-		        state.setSessionCredentials({
-		            accessToken: access_token,
-		            expiresAt: expiresAtTimestamp,
-		        });
-		        state.setUser(user);
+		const { access_token, expires_at, user } = validatedResponse.data;
+		const expiresAtTimestamp = parseExpiresAt(expires_at);
+
+		// Update store with tokens and user data
+		const state = useUserSessionStore.getState();
+		state.setSessionCredentials({
+			accessToken: access_token,
+			expiresAt: expiresAtTimestamp,
+		});
+		state.setUser(user);
 		return validatedResponse;
 	} catch (error) {
 		// Handle validation errors
@@ -179,8 +178,7 @@ export async function register(
 			throw new Error(validatedResponse.message || "Registration failed");
 		}
 
-		const { access_token, expires_at, user } =
-			validatedResponse.data;
+		const { access_token, expires_at, user } = validatedResponse.data;
 		const expiresAtTimestamp = parseExpiresAt(expires_at);
 
 		// Update store with tokens and user data

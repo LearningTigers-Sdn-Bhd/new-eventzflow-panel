@@ -4,8 +4,8 @@ import { DrawComponent } from "@/components/pages/surprise-mechanics/shared/comp
 import { SessionDrawArea } from "@/components/pages/surprise-mechanics/shared/components/session-draw-area";
 import { SessionFullscreenToggle } from "@/components/pages/surprise-mechanics/shared/components/session-header";
 import { DrawProvider } from "@/components/pages/surprise-mechanics/shared/contexts/draw-context";
-import { cn } from "@/lib/utils";
 import type { Prize } from "@/components/pages/surprise-mechanics/shared/draw-styles/type";
+import { cn } from "@/lib/utils";
 import type { Participant } from "@/stores/lucky-draw-store";
 import { useRouletteSession } from "../session-provider";
 
@@ -40,10 +40,12 @@ export function RouletteDrawArea() {
 	};
 
 	return (
-		<div className={cn(
-			"lg:col-span-2",
-			isFullscreen ? "fixed inset-0 z-50 bg-background" : ""
-		)}>
+		<div
+			className={cn(
+				"lg:col-span-2",
+				isFullscreen ? "fixed inset-0 z-50 bg-background" : "",
+			)}
+		>
 			<DrawProvider
 				value={{
 					drawStyle,
@@ -61,8 +63,8 @@ export function RouletteDrawArea() {
 					session={session}
 					backgroundStyle={backgroundStyle}
 					className={cn(
-						"flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-0 md:p-6 transition-all duration-300",
-						isFullscreen ? "h-screen w-full" : "aspect-video w-full max-w-7xl"
+						"flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-0 transition-all duration-300 md:p-6",
+						isFullscreen ? "h-screen w-full" : "aspect-video w-full max-w-7xl",
 					)}
 					drawComponent={<DrawComponent />}
 					fullscreenToggle={

@@ -211,8 +211,7 @@ export function useEventPermissions(
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
 		const canViewVisitorsTab = !useTicket && canViewVisitors;
-		const canViewLeadScannerTab =
-			!useTicket && (canScanVisitorStamps ?? false);
+		const canViewLeadScannerTab = !useTicket && (canScanVisitorStamps ?? false);
 
 		return {
 			// Loading state

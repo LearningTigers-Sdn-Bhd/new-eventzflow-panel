@@ -110,7 +110,10 @@ const TICKET_ENDPOINTS: ApiEndpoint[] = [
 			status: "purchased",
 			payment_status: "paid",
 			checked_in: false,
-			custom_fields_data: { dietary_preference: "Vegetarian", t_shirt_size: "M" },
+			custom_fields_data: {
+				dietary_preference: "Vegetarian",
+				t_shirt_size: "M",
+			},
 			ticket_type: { id: 1, name: "Early Bird", price: "99.00" },
 		},
 	},
@@ -458,7 +461,8 @@ const VOUCHER_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/vouchers/{id}",
 		category: "Vouchers",
 		visible: (e) => e.use_voucher,
-		description: "Update an existing voucher's details or toggle its active/inactive status.",
+		description:
+			"Update an existing voucher's details or toggle its active/inactive status.",
 		headers: JSON_HEADERS,
 		requestBody: {
 			status: "inactive",
@@ -489,13 +493,17 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/vendors",
 		category: "Vendors",
 		description:
-			"Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `\"Exhibitor\"` and each entry includes booth/kit details. When disabled, the `type` is `\"Merchant\"` with no kit data.",
+			'Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `"Exhibitor"` and each entry includes booth/kit details. When disabled, the `type` is `"Merchant"` with no kit data.',
 		headers: AUTH_HEADER,
 		response: [
 			{
 				id: 1,
 				type: "Exhibitor",
-				vendor: { id: 10, full_name: "TechCorp Sdn Bhd", email: "booth@techcorp.com" },
+				vendor: {
+					id: 10,
+					full_name: "TechCorp Sdn Bhd",
+					email: "booth@techcorp.com",
+				},
 				exhibitor_kit: {
 					id: 5,
 					booth_number: "A101",
@@ -513,7 +521,7 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/vendors",
 		category: "Vendors",
 		description:
-			"Assign a new vendor to your event. When Exhibitor Kit is enabled, include `exhibitor_kit_attributes` to set up their booth at the same time — the vendor will automatically be created as type `\"Exhibitor\"`.",
+			'Assign a new vendor to your event. When Exhibitor Kit is enabled, include `exhibitor_kit_attributes` to set up their booth at the same time — the vendor will automatically be created as type `"Exhibitor"`.',
 		headers: JSON_HEADERS,
 		requestBody: {
 			vendor: {
@@ -535,7 +543,11 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		response: {
 			id: 2,
 			type: "Exhibitor",
-			vendor: { id: 11, full_name: "TechCorp Sdn Bhd", email: "booth@techcorp.com" },
+			vendor: {
+				id: 11,
+				full_name: "TechCorp Sdn Bhd",
+				email: "booth@techcorp.com",
+			},
 		},
 	},
 	{
@@ -582,7 +594,8 @@ const EXHIBITOR_KIT_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/exhibitor_kits/{id}",
 		category: "Exhibitor Kits",
 		visible: (e) => e.use_exhibitor_kit,
-		description: "Fetch a single exhibitor kit by its ID, including full booth details and team members.",
+		description:
+			"Fetch a single exhibitor kit by its ID, including full booth details and team members.",
 		headers: AUTH_HEADER,
 		response: {
 			id: 5,
@@ -687,7 +700,8 @@ const ANALYTICS_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/voucher_analytics",
 		category: "Analytics",
 		visible: (e) => e.use_voucher,
-		description: "Get voucher redemption stats for your event — total issued, redeemed, redemption rate, and discount value. Only available when the event has vouchers enabled.",
+		description:
+			"Get voucher redemption stats for your event — total issued, redeemed, redemption rate, and discount value. Only available when the event has vouchers enabled.",
 		headers: AUTH_HEADER,
 		response: {
 			total_vouchers_issued: 500,

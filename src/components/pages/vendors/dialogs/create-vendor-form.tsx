@@ -186,7 +186,11 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.full_name}
-										errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+										errors={
+											errors.full_name
+												? [{ message: errors.full_name }]
+												: undefined
+										}
 									/>
 									<InputLabel
 										htmlFor={emailId}
@@ -198,7 +202,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.email}
-										errors={errors.email ? [{ message: errors.email }] : undefined}
+										errors={
+											errors.email ? [{ message: errors.email }] : undefined
+										}
 									/>
 								</div>
 
@@ -225,9 +231,15 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 										variant="no-rounded"
 										onAction={() => setShowPassword(!showPassword)}
 										actionIcon={showPassword ? <EyeOff /> : <Eye />}
-										actionLabel={showPassword ? "Hide password" : "Show password"}
+										actionLabel={
+											showPassword ? "Hide password" : "Show password"
+										}
 										isInvalid={!!errors.password}
-										errors={errors.password ? [{ message: errors.password }] : undefined}
+										errors={
+											errors.password
+												? [{ message: errors.password }]
+												: undefined
+										}
 									/>
 									<InputActionLabel
 										htmlFor={confirmPasswordId}
@@ -239,11 +251,19 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 										required
 										disabled={isPending}
 										variant="no-rounded"
-										onAction={() => setShowConfirmPassword(!showConfirmPassword)}
+										onAction={() =>
+											setShowConfirmPassword(!showConfirmPassword)
+										}
 										actionIcon={showConfirmPassword ? <EyeOff /> : <Eye />}
-										actionLabel={showConfirmPassword ? "Hide password" : "Show password"}
+										actionLabel={
+											showConfirmPassword ? "Hide password" : "Show password"
+										}
 										isInvalid={!!errors.confirmPassword}
-										errors={errors.confirmPassword ? [{ message: errors.confirmPassword }] : undefined}
+										errors={
+											errors.confirmPassword
+												? [{ message: errors.confirmPassword }]
+												: undefined
+										}
 									/>
 								</div>
 							</div>
@@ -268,7 +288,9 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 							description: "Vendor business information and profile",
 						}}
 					>
-						<div className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+						<div
+							className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+						>
 							<SelectLabel
 								htmlFor={categoryId}
 								label="Business Category"

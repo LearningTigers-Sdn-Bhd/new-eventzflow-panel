@@ -8,9 +8,9 @@ import { useDialog } from "@/hooks/use-dialog";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import type { ApiKey } from "@/lib/api/api-keys";
 import type { Event } from "@/lib/api/event/response";
+import CreateEventApiKeyDialog from "./create-event-api-key-dialog";
 import { EventApiDocumentation } from "./event-api-documentation";
 import { EventApiKeyTable } from "./event-api-key-table";
-import CreateEventApiKeyDialog from "./create-event-api-key-dialog";
 
 interface EventApiKeysClientWrapperProps {
 	eventId: number;
@@ -31,8 +31,17 @@ function EventIdBanner({ eventId }: { eventId: number }) {
 				<p className="text-muted-foreground text-xs">Your Event ID</p>
 				<p className="font-mono font-semibold text-sm">{eventId}</p>
 			</div>
-			<Button variant="outline" size="sm" className="rounded-none gap-2" onClick={handleCopy}>
-				{copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+			<Button
+				variant="outline"
+				size="sm"
+				className="gap-2 rounded-none"
+				onClick={handleCopy}
+			>
+				{copied ? (
+					<Check className="h-3 w-3 text-green-600" />
+				) : (
+					<Copy className="h-3 w-3" />
+				)}
 				{copied ? "Copied" : "Copy"}
 			</Button>
 		</div>
@@ -61,7 +70,10 @@ export default function EventApiKeysClientWrapper({
 
 	useSetEventActions(
 		activeTab === "keys" ? (
-			<Button onClick={handleCreateApiKey} className="w-full shrink-0 rounded-none">
+			<Button
+				onClick={handleCreateApiKey}
+				className="w-full shrink-0 rounded-none"
+			>
 				Create API Key
 			</Button>
 		) : null,

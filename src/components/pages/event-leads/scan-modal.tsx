@@ -12,9 +12,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { useCreateLead } from "@/hooks/use-event-leads";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 import { useScanner } from "@/hooks/use-scanner";
-import { useCreateLead } from "@/hooks/use-event-leads";
 import { cn } from "@/lib/utils";
 
 interface ScanModalProps {
@@ -113,7 +113,8 @@ export function ScanModal({
 			// Show user-friendly error messages
 			if (errorMsg.includes("not found") || errorMsg.includes("Not Found")) {
 				toast.error("Attendee not found", {
-					description: "The scanned QR code does not match any attendee in this event.",
+					description:
+						"The scanned QR code does not match any attendee in this event.",
 				});
 			} else {
 				toast.error("Failed to capture lead", {
@@ -311,7 +312,7 @@ export function ScanModal({
 							{isScanning && (
 								<>
 									{/* Status Badge */}
-									<div className="-translate-x-1/2 absolute top-4 left-1/2 z-20">
+									<div className="absolute top-4 left-1/2 z-20 -translate-x-1/2">
 										<div className="flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 shadow-lg">
 											<span className="relative flex h-2 w-2">
 												<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
@@ -324,7 +325,7 @@ export function ScanModal({
 									</div>
 
 									{/* Stop Button */}
-									<div className="-translate-x-1/2 absolute bottom-4 left-1/2 z-20 w-full px-4">
+									<div className="absolute bottom-4 left-1/2 z-20 w-full -translate-x-1/2 px-4">
 										<Button
 											onClick={handleStopScanner}
 											variant="destructive"

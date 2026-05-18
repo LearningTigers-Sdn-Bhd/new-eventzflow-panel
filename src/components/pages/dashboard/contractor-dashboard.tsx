@@ -301,10 +301,7 @@ function ContractorDashboardSkeleton() {
 				</div>
 				<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
 					{[1, 2].map((i) => (
-						<div
-							key={i}
-							className="rounded-none border border-dashed p-0"
-						>
+						<div key={i} className="rounded-none border border-dashed p-0">
 							{/* Card Header */}
 							<div className="space-y-3 p-3 sm:p-4">
 								<div className="flex items-start justify-between gap-2">
@@ -338,7 +335,7 @@ function ContractorDashboardSkeleton() {
 									<Skeleton className="h-3 w-16" />
 								</div>
 								<Skeleton className="mt-2 h-1.5 w-full rounded-none" />
-								<Skeleton className="ml-auto mt-1 h-3 w-20" />
+								<Skeleton className="mt-1 ml-auto h-3 w-20" />
 							</div>
 						</div>
 					))}

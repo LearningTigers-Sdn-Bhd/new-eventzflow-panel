@@ -64,15 +64,19 @@ export function AreaChart({
 		? data.map((d, i) => {
 				const x =
 					paddingLeft +
-					(data.length === 1 ? innerWidth / 2 : (i / (data.length - 1)) * innerWidth);
-				const y = paddingTop + innerHeight - (d.value / adjustedMax) * innerHeight;
+					(data.length === 1
+						? innerWidth / 2
+						: (i / (data.length - 1)) * innerWidth);
+				const y =
+					paddingTop + innerHeight - (d.value / adjustedMax) * innerHeight;
 				return { x, y, value: d.value, date: d.date };
 			})
 		: [];
 
 	// Create paths - use monotone curve that doesn't overshoot
 	const baselineY = paddingTop + innerHeight;
-	const linePath = points.length >= 2 ? createSmoothPath(points, baselineY) : "";
+	const linePath =
+		points.length >= 2 ? createSmoothPath(points, baselineY) : "";
 	const areaPath =
 		points.length >= 2 ? createSmoothAreaPath(points, baselineY) : "";
 
@@ -88,7 +92,7 @@ export function AreaChart({
 			const timePart = dateStr.split(" ")[1];
 			if (timePart) {
 				const [hourStr] = timePart.split(":");
-				const hour = parseInt(hourStr, 10);
+				const hour = Number.parseInt(hourStr, 10);
 				if (hour === 0) return "12AM";
 				if (hour === 12) return "12PM";
 				if (hour < 12) return `${hour}AM`;
@@ -157,7 +161,9 @@ export function AreaChart({
 						</Text>
 					)}
 					{subtitle && (
-						<Text style={{ fontSize: 8, color: colors.textSecondary, marginTop: 2 }}>
+						<Text
+							style={{ fontSize: 8, color: colors.textSecondary, marginTop: 2 }}
+						>
 							{subtitle}
 						</Text>
 					)}
@@ -167,7 +173,11 @@ export function AreaChart({
 			{/* Chart area */}
 			<View style={{ backgroundColor: colors.background, padding: 8 }}>
 				{hasData && points.length >= 2 ? (
-					<Svg width={chartWidth} height={height} viewBox={`0 0 ${chartWidth} ${height}`}>
+					<Svg
+						width={chartWidth}
+						height={height}
+						viewBox={`0 0 ${chartWidth} ${height}`}
+					>
 						{/* Gradient */}
 						<Defs>
 							<LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -178,7 +188,8 @@ export function AreaChart({
 
 						{/* Horizontal grid lines */}
 						{yTicks.map((tick, i) => {
-							const y = paddingTop + innerHeight - (tick / adjustedMax) * innerHeight;
+							const y =
+								paddingTop + innerHeight - (tick / adjustedMax) * innerHeight;
 							return (
 								<G key={`grid-${i}`}>
 									<Line
@@ -207,7 +218,12 @@ export function AreaChart({
 						<Path d={areaPath} fill={`url(#${gradientId})`} />
 
 						{/* Line */}
-						<Path d={linePath} fill="none" stroke={areaColor} strokeWidth={1.5} />
+						<Path
+							d={linePath}
+							fill="none"
+							stroke={areaColor}
+							strokeWidth={1.5}
+						/>
 
 						{/* Data point labels */}
 						{points.map((point, i) => {
@@ -238,7 +254,9 @@ export function AreaChart({
 							if (i % labelInterval !== 0 && i !== data.length - 1) return null;
 							const x =
 								paddingLeft +
-								(data.length === 1 ? innerWidth / 2 : (i / (data.length - 1)) * innerWidth);
+								(data.length === 1
+									? innerWidth / 2
+									: (i / (data.length - 1)) * innerWidth);
 							return (
 								<Text
 									key={`x-${i}`}

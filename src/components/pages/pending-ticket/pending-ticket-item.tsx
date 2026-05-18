@@ -12,11 +12,11 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
+import { getPaymentStatusColor, getPaymentStatusText } from "./constants";
 import {
-	getPaymentStatusColor,
-	getPaymentStatusText,
-} from "./constants";
-import { PendingTicketActionsMenu, usePendingTicketActions } from "./pending-ticket-action-menu";
+	PendingTicketActionsMenu,
+	usePendingTicketActions,
+} from "./pending-ticket-action-menu";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 
 interface PendingTicketItemProps {
@@ -36,9 +36,7 @@ function getInitials(name: string) {
 /**
  * Mobile/Tablet view component for displaying a pending ticket card
  */
-export function PendingTicketItem({
-	ticket,
-}: PendingTicketItemProps) {
+export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
 	const isPaid =
 		ticket.paymentStatus === "paid" || ticket.paymentStatus === "completed";
 	const { openViewModal } = usePendingTicketActions({ ticket });
@@ -81,13 +79,17 @@ export function PendingTicketItem({
 									getPaymentStatusColor(ticket.paymentStatus),
 								)}
 							>
-								{isPaid ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
+								{isPaid ? (
+									<CheckCircle2 className="size-3" />
+								) : (
+									<Clock className="size-3" />
+								)}
 								{getPaymentStatusText(ticket.paymentStatus)}
 							</Badge>
 						</div>
 					</div>
 					<ItemDescription className="mt-1.5 flex flex-col gap-1">
-						<span className="font-mono text-[10px] text-muted-foreground truncate">
+						<span className="truncate font-mono text-[10px] text-muted-foreground">
 							{ticket.publicId}
 						</span>
 						<div className="flex items-start justify-between gap-2">

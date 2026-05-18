@@ -26,8 +26,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import type { PrintingService } from "@/lib/api/printing-service";
+import { cn } from "@/lib/utils";
 import { DataControl } from "./data-control";
 import { PrintingServiceCard } from "./printing-service-card";
 
@@ -167,7 +167,9 @@ export function DataTable<TData, TValue>({
 								icon={<Printer />}
 								height="h-auto"
 								action={
-									onAddService && <Button onClick={onAddService}>Add Service</Button>
+									onAddService && (
+										<Button onClick={onAddService}>Add Service</Button>
+									)
 								}
 							/>
 						)}

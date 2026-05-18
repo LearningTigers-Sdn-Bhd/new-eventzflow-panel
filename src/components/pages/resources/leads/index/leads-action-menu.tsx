@@ -38,7 +38,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 					<div className="space-y-6">
 						{/* Contact Information */}
 						<div className="space-y-3">
-							<h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+							<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
 								Contact Information
 							</h3>
 							<div className="grid gap-3">
@@ -64,7 +64,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 						{/* Company Information */}
 						{(lead.company || lead.jobTitle) && (
 							<div className="space-y-3">
-								<h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+								<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
 									Company Information
 								</h3>
 								<div className="grid gap-3">
@@ -91,7 +91,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 						{/* Location Information */}
 						{(lead.country || lead.state) && (
 							<div className="space-y-3">
-								<h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+								<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
 									Location
 								</h3>
 								<div className="grid gap-3">
@@ -118,7 +118,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 						{/* Resource Information */}
 						{lead.resource && (
 							<div className="space-y-3">
-								<h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+								<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
 									Resource
 								</h3>
 								<div className="grid gap-3">
@@ -129,9 +129,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 										<span className="text-sm">{lead.resource.title}</span>
 									</div>
 									<div className="grid grid-cols-[120px_1fr] items-start gap-2">
-										<span className="text-muted-foreground text-sm">
-											Slug:
-										</span>
+										<span className="text-muted-foreground text-sm">Slug:</span>
 										<span className="font-mono text-xs">
 											/{lead.resource.slug}
 										</span>
@@ -142,7 +140,7 @@ export function LeadsActionMenu({ lead }: LeadsActionMenuProps) {
 
 						{/* Submission Information */}
 						<div className="space-y-3">
-							<h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+							<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
 								Submission
 							</h3>
 							<div className="grid gap-3">

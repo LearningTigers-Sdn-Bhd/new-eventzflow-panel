@@ -160,24 +160,24 @@ export function DataTable<TData>({
 								title: "No tickets found",
 								desc: "Create your first ticket to get started",
 								icon: <Calendar />,
-								action: <Button onClick={openTicketCreate}>Create Ticket</Button>,
+								action: (
+									<Button onClick={openTicketCreate}>Create Ticket</Button>
+								),
 							}}
 						/>
 					</DesktopView>
 					<MobileView>
 						<div className="flex flex-col border-t">
 							{table.getRowModel().rows?.length ? (
-								table
-									.getRowModel()
-									.rows.map((row) => (
-										<React.Fragment key={row.id}>
-											<TicketItem
-												ticket={row.original as BaseTicket}
-												labelsData={mergedLabelsData}
-											/>
-											<ItemSeparator className="opacity-50" />
-										</React.Fragment>
-									))
+								table.getRowModel().rows.map((row) => (
+									<React.Fragment key={row.id}>
+										<TicketItem
+											ticket={row.original as BaseTicket}
+											labelsData={mergedLabelsData}
+										/>
+										<ItemSeparator className="opacity-50" />
+									</React.Fragment>
+								))
 							) : (
 								<div className="p-4">
 									<EmptyState
@@ -185,7 +185,9 @@ export function DataTable<TData>({
 										description="Create your first ticket to get started"
 										icon={<Calendar />}
 										height="h-auto"
-										action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
+										action={
+											<Button onClick={openTicketCreate}>Create Ticket</Button>
+										}
 									/>
 								</div>
 							)}
@@ -209,7 +211,9 @@ export function DataTable<TData>({
 										description="Create your first ticket to get started"
 										icon={<Calendar />}
 										height="h-auto"
-										action={<Button onClick={openTicketCreate}>Create Ticket</Button>}
+										action={
+											<Button onClick={openTicketCreate}>Create Ticket</Button>
+										}
 									/>
 								</div>
 							)}

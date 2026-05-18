@@ -16,11 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { $isImageNode } from "../nodes/image-node";
 import { INSERT_IMAGE_COMMAND } from "./images-plugin";
 
-function FloatingImageToolbar({
-	editor,
-}: {
-	editor: LexicalEditor;
-}) {
+function FloatingImageToolbar({ editor }: { editor: LexicalEditor }) {
 	const popupRef = useRef<HTMLDivElement | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +53,7 @@ function FloatingImageToolbar({
 
 			popupElem.style.opacity = "1";
 			popupElem.style.position = "absolute";
-			
+
 			// Center bottom
 			const top = rect.top + rect.height + 8;
 			const left = rect.left + rect.width / 2 - popupElem.offsetWidth / 2;
@@ -99,7 +95,7 @@ function FloatingImageToolbar({
 		const files = event.target.files;
 		if (files && files.length > 0) {
 			const file = files[0];
-            // The selection is already on the image, so inserting should replace it
+			// The selection is already on the image, so inserting should replace it
 			editor.dispatchCommand(INSERT_IMAGE_COMMAND, file);
 		}
 		if (fileInputRef.current) {
@@ -184,8 +180,5 @@ export function FloatingImageToolbarPlugin({
 		return null;
 	}
 
-	return createPortal(
-		<FloatingImageToolbar editor={editor} />,
-		anchorElem,
-	);
+	return createPortal(<FloatingImageToolbar editor={editor} />, anchorElem);
 }

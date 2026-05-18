@@ -25,7 +25,8 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
-	const { isVendor, isExhibitionContractor, canManageEvent } = useEventPermissions(event_id);
+	const { isVendor, isExhibitionContractor, canManageEvent } =
+		useEventPermissions(event_id);
 	const { openDialog, closeDialog } = useDialog();
 
 	const shouldFetchAnalytics =

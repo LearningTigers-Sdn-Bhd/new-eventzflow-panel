@@ -1,9 +1,9 @@
 // API endpoints
 export {
-	getEventPrintingServices,
-	getEventPrintingService,
 	createEventPrintingService,
 	deleteEventPrintingService,
+	getEventPrintingService,
+	getEventPrintingServices,
 } from "./endpoints";
 
 // Request types and schemas
@@ -16,9 +16,9 @@ export {
 
 // Response types
 export type {
-	BackendEventPrintingServicePriceTier,
 	BackendEventPrintingService,
-	EventPrintingServicePriceTier,
-	EventPrintingService,
+	BackendEventPrintingServicePriceTier,
 	DeleteEventPrintingServiceResponse,
+	EventPrintingService,
+	EventPrintingServicePriceTier,
 } from "./response";

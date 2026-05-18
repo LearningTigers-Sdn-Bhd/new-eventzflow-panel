@@ -1,7 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarRange, CheckCircle2, Edit2, Loader2, Tags, Trash2 } from "lucide-react";
+import {
+	CalendarRange,
+	CheckCircle2,
+	Edit2,
+	Loader2,
+	Tags,
+	Trash2,
+} from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +39,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { getEventById } from "@/lib/api/event";
 import {
 	createExhibitorBoothPrice,
 	deleteExhibitorBoothPrice,
@@ -39,7 +47,6 @@ import {
 	getExhibitorBoothPrices,
 	updateExhibitorBoothPrice,
 } from "@/lib/api/exhibitor-booth-price";
-import { getEventById } from "@/lib/api/event";
 import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
 import { BoothPriceTierDialog } from "./booth-price-tier-dialog";
 
@@ -167,10 +174,11 @@ export function BoothPricingDialog({
 			return null;
 		}
 
-		const totalAllocated = allocatedQuotaByZoneId.get(selectedZoneOption.id) ?? 0;
+		const totalAllocated =
+			allocatedQuotaByZoneId.get(selectedZoneOption.id) ?? 0;
 		const editingQuotaInZone =
 			editingItem && editingItem.exhibitorZoneId === selectedZoneOption.id
-				? editingItem.quota ?? 0
+				? (editingItem.quota ?? 0)
 				: 0;
 		const availableForSelection = Math.max(
 			selectedZoneOption.quota - (totalAllocated - editingQuotaInZone),
@@ -262,7 +270,9 @@ export function BoothPricingDialog({
 		const parsedQuota = normalizedQuota === "" ? null : Number(normalizedQuota);
 		if (
 			parsedQuota !== null &&
-			(Number.isNaN(parsedQuota) || parsedQuota < 0 || !Number.isInteger(parsedQuota))
+			(Number.isNaN(parsedQuota) ||
+				parsedQuota < 0 ||
+				!Number.isInteger(parsedQuota))
 		) {
 			toast.error("Quota must be a whole number greater than or equal to 0");
 			return;
@@ -318,9 +328,7 @@ export function BoothPricingDialog({
 		setEditingItem(item);
 		setForm({
 			boothType: item.boothType,
-			exhibitorZoneId: item.exhibitorZoneId
-				? String(item.exhibitorZoneId)
-				: "",
+			exhibitorZoneId: item.exhibitorZoneId ? String(item.exhibitorZoneId) : "",
 			label: item.label,
 			price: item.price.toString(),
 			quota: item.quota === null ? "" : String(item.quota),
@@ -352,7 +360,7 @@ export function BoothPricingDialog({
 					</Button>
 				)}
 			</DialogTrigger>
-			<DialogContent className="!max-w-none sm:!max-w-none !w-screen !h-[100dvh] shadow-none !rounded-none !border-0 !p-0 flex flex-col !gap-0 bg-background duration-200">
+			<DialogContent className="!max-w-none sm:!max-w-none !w-screen !h-[100dvh] !rounded-none !border-0 !p-0 !gap-0 flex flex-col bg-background shadow-none duration-200">
 				<div className="flex-none border-b px-6 py-4">
 					<DialogHeader className="sm:text-left">
 						<DialogTitle>Manage Exhibitor Booth Prices</DialogTitle>
@@ -366,7 +374,7 @@ export function BoothPricingDialog({
 					<div className="w-full flex-none overflow-y-auto border-r p-6 lg:w-[420px]">
 						<form onSubmit={onSubmit} className="space-y-6">
 							<div>
-								<h3 className="mb-4 text-base font-semibold">
+								<h3 className="mb-4 font-semibold text-base">
 									{editingItem ? "Edit Booth Price" : "Add New Booth Price"}
 								</h3>
 								<div className="flex flex-col gap-4">
@@ -378,7 +386,10 @@ export function BoothPricingDialog({
 												setForm((prev) => ({ ...prev, boothType: value }))
 											}
 										>
-											<SelectTrigger id="booth-type" className="h-9 w-full rounded-none">
+											<SelectTrigger
+												id="booth-type"
+												className="h-9 w-full rounded-none"
+											>
 												<SelectValue placeholder="Select booth type" />
 											</SelectTrigger>
 											<SelectContent className="rounded-none">
@@ -397,15 +408,24 @@ export function BoothPricingDialog({
 											<Select
 												value={form.exhibitorZoneId}
 												onValueChange={(value) =>
-													setForm((prev) => ({ ...prev, exhibitorZoneId: value }))
+													setForm((prev) => ({
+														...prev,
+														exhibitorZoneId: value,
+													}))
 												}
 											>
-												<SelectTrigger id="booth-zone" className="h-9 w-full rounded-none">
+												<SelectTrigger
+													id="booth-zone"
+													className="h-9 w-full rounded-none"
+												>
 													<SelectValue placeholder="Select zone" />
 												</SelectTrigger>
 												<SelectContent className="rounded-none">
 													{zoneOptions.map((zoneOption) => (
-														<SelectItem key={zoneOption.id} value={String(zoneOption.id)}>
+														<SelectItem
+															key={zoneOption.id}
+															value={String(zoneOption.id)}
+														>
 															{zoneOption.zone}
 														</SelectItem>
 													))}
@@ -420,7 +440,9 @@ export function BoothPricingDialog({
 											id="booth-label"
 											placeholder="e.g. Corner Booth (3m x 3m)"
 											value={form.label}
-											onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
+											onChange={(e) =>
+												setForm((prev) => ({ ...prev, label: e.target.value }))
+											}
 											required
 											className="h-9 rounded-none"
 										/>
@@ -430,7 +452,8 @@ export function BoothPricingDialog({
 										<div className="space-y-1">
 											<Label htmlFor="booth-price">Base Rate (RM)</Label>
 											<p className="text-muted-foreground text-xs">
-												Used as the fallback price when no active tier is running.
+												Used as the fallback price when no active tier is
+												running.
 											</p>
 										</div>
 										<Input
@@ -440,7 +463,9 @@ export function BoothPricingDialog({
 											min="0"
 											placeholder="0.00"
 											value={form.price}
-											onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+											onChange={(e) =>
+												setForm((prev) => ({ ...prev, price: e.target.value }))
+											}
 											required
 											className="h-9 rounded-none"
 										/>
@@ -455,29 +480,51 @@ export function BoothPricingDialog({
 											min="0"
 											placeholder="Unlimited"
 											value={form.quota}
-											onChange={(e) => setForm((prev) => ({ ...prev, quota: e.target.value }))}
+											onChange={(e) =>
+												setForm((prev) => ({ ...prev, quota: e.target.value }))
+											}
 											className="h-9 rounded-none"
 										/>
 									</div>
 
-							{selectedZoneOption && selectedZoneMetrics && (
-										<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-											<p className="font-semibold">{selectedZoneOption.zone} quota</p>
-											<p className="mt-1 font-medium">
-												Total: {selectedZoneMetrics.totalQuota} | Allocated: {selectedZoneMetrics.totalAllocated} | Remaining: {selectedZoneMetrics.totalRemaining}
+									{selectedZoneOption && selectedZoneMetrics && (
+										<div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-amber-950 text-sm">
+											<p className="font-semibold">
+												{selectedZoneOption.zone} quota
 											</p>
-											{editingItem && <p className="mt-1">Available for this edit: {selectedZoneMetrics.availableForSelection}</p>}
+											<p className="mt-1 font-medium">
+												Total: {selectedZoneMetrics.totalQuota} | Allocated:{" "}
+												{selectedZoneMetrics.totalAllocated} | Remaining:{" "}
+												{selectedZoneMetrics.totalRemaining}
+											</p>
+											{editingItem && (
+												<p className="mt-1">
+													Available for this edit:{" "}
+													{selectedZoneMetrics.availableForSelection}
+												</p>
+											)}
 										</div>
 									)}
 
 									<div className="flex flex-col gap-3 pt-2 sm:flex-row">
 										{editingItem && (
-											<Button type="button" variant="outline" className="w-full rounded-none sm:w-auto" onClick={onCancelEdit}>
+											<Button
+												type="button"
+												variant="outline"
+												className="w-full rounded-none sm:w-auto"
+												onClick={onCancelEdit}
+											>
 												Cancel Edit
 											</Button>
 										)}
-										<Button type="submit" className="w-full flex-1 rounded-none sm:w-auto" disabled={isSaving}>
-											{isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+										<Button
+											type="submit"
+											className="w-full flex-1 rounded-none sm:w-auto"
+											disabled={isSaving}
+										>
+											{isSaving && (
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											)}
 											{editingItem ? "Update Booth Price" : "Add Booth Price"}
 										</Button>
 									</div>
@@ -495,15 +542,28 @@ export function BoothPricingDialog({
 										{recentlyCreatedBoothPrice.label} is ready for pricing tiers
 									</p>
 									<p className="mt-1 text-muted-foreground text-sm">
-										Base rate RM {recentlyCreatedBoothPrice.price.toFixed(2)}. Add a timed tier like Early Bird next.
+										Base rate RM {recentlyCreatedBoothPrice.price.toFixed(2)}.
+										Add a timed tier like Early Bird next.
 									</p>
-										</div>
+								</div>
 								<div className="flex gap-2">
-									<Button type="button" className="rounded-none" onClick={() => { setTierBoothPrice(recentlyCreatedBoothPrice); setRecentlyCreatedBoothPrice(null); }}>
+									<Button
+										type="button"
+										className="rounded-none"
+										onClick={() => {
+											setTierBoothPrice(recentlyCreatedBoothPrice);
+											setRecentlyCreatedBoothPrice(null);
+										}}
+									>
 										<CalendarRange className="mr-2 h-4 w-4" />
 										Add First Tier
 									</Button>
-									<Button type="button" variant="outline" className="rounded-none" onClick={() => setRecentlyCreatedBoothPrice(null)}>
+									<Button
+										type="button"
+										variant="outline"
+										className="rounded-none"
+										onClick={() => setRecentlyCreatedBoothPrice(null)}
+									>
 										Later
 									</Button>
 								</div>
@@ -526,43 +586,71 @@ export function BoothPricingDialog({
 								<TableBody>
 									{isLoading ? (
 										<TableRow>
-											<TableCell colSpan={hasZoneOptions ? 7 : 6} className="py-8 text-center">
+											<TableCell
+												colSpan={hasZoneOptions ? 7 : 6}
+												className="py-8 text-center"
+											>
 												<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
 											</TableCell>
 										</TableRow>
 									) : boothPrices.length === 0 ? (
 										<TableRow>
-											<TableCell colSpan={hasZoneOptions ? 7 : 6} className="py-8 text-center text-muted-foreground">
+											<TableCell
+												colSpan={hasZoneOptions ? 7 : 6}
+												className="py-8 text-center text-muted-foreground"
+											>
 												No booth prices configured yet.
 											</TableCell>
 										</TableRow>
 									) : (
 										boothPrices.map((item) => (
 											<TableRow key={item.id}>
-												<TableCell className="font-medium">{formatBoothType(item.boothType)}</TableCell>
-												{hasZoneOptions && <TableCell>{item.zone || "-"}</TableCell>}
+												<TableCell className="font-medium">
+													{formatBoothType(item.boothType)}
+												</TableCell>
+												{hasZoneOptions && (
+													<TableCell>{item.zone || "-"}</TableCell>
+												)}
 												<TableCell>{item.label}</TableCell>
 												<TableCell>
 													<div className="space-y-1">
 														{item.activePriceTierLabel ? (
 															<div className="flex flex-col gap-1">
 																<div className="flex items-center gap-2">
-																	<span className="font-medium text-emerald-600">RM {item.currentPrice.toFixed(2)}</span>
-																	<Badge variant="secondary" className="rounded-none bg-emerald-100/80 text-emerald-800 hover:bg-emerald-100/80 border-emerald-200">{item.activePriceTierLabel}</Badge>
+																	<span className="font-medium text-emerald-600">
+																		RM {item.currentPrice.toFixed(2)}
+																	</span>
+																	<Badge
+																		variant="secondary"
+																		className="rounded-none border-emerald-200 bg-emerald-100/80 text-emerald-800 hover:bg-emerald-100/80"
+																	>
+																		{item.activePriceTierLabel}
+																	</Badge>
 																</div>
-																<p className="text-muted-foreground text-xs">Normal Rate : RM {item.price.toFixed(2)}</p>
+																<p className="text-muted-foreground text-xs">
+																	Normal Rate : RM {item.price.toFixed(2)}
+																</p>
 															</div>
 														) : (
-															<div className="font-medium">RM {item.price.toFixed(2)}</div>
+															<div className="font-medium">
+																RM {item.price.toFixed(2)}
+															</div>
 														)}
 													</div>
 												</TableCell>
-											<TableCell>{item.quota === null ? "Unlimited" : item.quota}</TableCell>
+												<TableCell>
+													{item.quota === null ? "Unlimited" : item.quota}
+												</TableCell>
 												<TableCell>
 													<BoothPriceTierDialog
 														boothPrice={item}
 														trigger={
-															<Button type="button" variant="outline" size="sm" className="h-8 rounded-none px-2 text-xs font-normal">
+															<Button
+																type="button"
+																variant="outline"
+																size="sm"
+																className="h-8 rounded-none px-2 font-normal text-xs"
+															>
 																<CalendarRange className="mr-2 h-3.5 w-3.5" />
 																<span>Price Tiers</span>
 															</Button>
@@ -571,10 +659,25 @@ export function BoothPricingDialog({
 												</TableCell>
 												<TableCell>
 													<div className="flex items-center gap-1">
-														<Button type="button" variant="ghost" size="sm" onClick={() => onStartEdit(item)} className="h-8 w-8 rounded-none p-0">
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() => onStartEdit(item)}
+															className="h-8 w-8 rounded-none p-0"
+														>
 															<Edit2 className="h-4 w-4" />
 														</Button>
-														<Button type="button" variant="ghost" size="sm" onClick={() => deleteMutation.mutate({ id: item.id })} disabled={deleteMutation.isPending} className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive">
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() =>
+																deleteMutation.mutate({ id: item.id })
+															}
+															disabled={deleteMutation.isPending}
+															className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
+														>
 															<Trash2 className="h-4 w-4" />
 														</Button>
 													</div>
@@ -586,21 +689,21 @@ export function BoothPricingDialog({
 							</Table>
 						</div>
 					</div>
-					</div>
-{tierBoothPrice && (
-						<BoothPriceTierDialog
-							boothPrice={tierBoothPrice}
-							open={true}
-							defaultAdding={true}
-							onOpenChange={(open) => {
-								if (!open) {
-									setTierBoothPrice(null);
-								}
-							}}
-							trigger={<span className="hidden" />}
-						/>
-					)}
-				</DialogContent>
-			</Dialog>
-		);
+				</div>
+				{tierBoothPrice && (
+					<BoothPriceTierDialog
+						boothPrice={tierBoothPrice}
+						open={true}
+						defaultAdding={true}
+						onOpenChange={(open) => {
+							if (!open) {
+								setTierBoothPrice(null);
+							}
+						}}
+						trigger={<span className="hidden" />}
+					/>
+				)}
+			</DialogContent>
+		</Dialog>
+	);
 }

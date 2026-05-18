@@ -35,7 +35,11 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 					<div className="flex shrink-0 items-start gap-2 self-start">
 						{canEditProfile && (
-							<Button className="rounded-none" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+							<Button
+								className="rounded-none"
+								size="sm"
+								onClick={() => setIsEditDialogOpen(true)}
+							>
 								<Edit className="mr-2 h-4 w-4" />
 								Edit
 							</Button>
@@ -46,28 +50,30 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 				{profile.category && (
 					<div className="border-y border-dashed px-4 py-3">
 						<p className="text-sm leading-relaxed">
-							<span className="font-medium text-muted-foreground">Category:</span>{" "}
+							<span className="font-medium text-muted-foreground">
+								Category:
+							</span>{" "}
 							<span>{profile.category}</span>
 						</p>
 					</div>
 				)}
 
-			<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-				<div className="space-y-4">
-					<div className="overflow-hidden border bg-muted/60">
-						{profile.image_url ? (
-							<img
-								src={profile.image_url}
-								alt={profile.vendor.full_name}
-								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-							/>
-						) : (
-							<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
-								No image been added yet.
-							</div>
-						)}
+				<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+					<div className="space-y-4">
+						<div className="overflow-hidden border bg-muted/60">
+							{profile.image_url ? (
+								<img
+									src={profile.image_url}
+									alt={profile.vendor.full_name}
+									className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+								/>
+							) : (
+								<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
+									No image been added yet.
+								</div>
+							)}
+						</div>
 					</div>
-				</div>
 
 					<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">

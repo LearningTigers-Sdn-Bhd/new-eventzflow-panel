@@ -1,9 +1,9 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, DollarSign, Unlink, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpDown, DollarSign, MoreHorizontal, Unlink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -20,7 +20,11 @@ interface GetColumnsProps {
 	currentUserId?: number;
 }
 
-export function getColumns({ onUnlink, isContractor = false, currentUserId }: GetColumnsProps): ColumnDef<EventPrintingService>[] {
+export function getColumns({
+	onUnlink,
+	isContractor = false,
+	currentUserId,
+}: GetColumnsProps): ColumnDef<EventPrintingService>[] {
 	const baseColumns: ColumnDef<EventPrintingService>[] = [
 		{
 			id: "name",
@@ -39,7 +43,9 @@ export function getColumns({ onUnlink, isContractor = false, currentUserId }: Ge
 				const service = row.original;
 				return (
 					<div>
-						<div className="font-medium">{service.printingService?.name || "-"}</div>
+						<div className="font-medium">
+							{service.printingService?.name || "-"}
+						</div>
 						{service.printingService?.description && (
 							<div className="line-clamp-1 text-muted-foreground text-sm">
 								{service.printingService.description}
@@ -81,7 +87,10 @@ export function getColumns({ onUnlink, isContractor = false, currentUserId }: Ge
 			header: "Default Price",
 			cell: ({ row }) => (
 				<span className="font-medium">
-					RM {row.original.printingService?.defaultPrice != null ? Number(row.original.printingService.defaultPrice).toFixed(2) : "0.00"}
+					RM{" "}
+					{row.original.printingService?.defaultPrice != null
+						? Number(row.original.printingService.defaultPrice).toFixed(2)
+						: "0.00"}
 				</span>
 			),
 			size: 120,
@@ -208,12 +217,20 @@ function ActionsCell({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="rounded-none">
-				<DropdownMenuItem onClick={handleManagePricing} className="rounded-none">
+				<DropdownMenuItem
+					onClick={handleManagePricing}
+					className="rounded-none"
+				>
 					<DollarSign className="mr-2 h-4 w-4" />
 					Manage Pricing
 				</DropdownMenuItem>
 				<DropdownMenuItem
-					onClick={() => onUnlink(service.id, service.printingService?.name || "this service")}
+					onClick={() =>
+						onUnlink(
+							service.id,
+							service.printingService?.name || "this service",
+						)
+					}
 					className="rounded-none text-destructive"
 				>
 					<Unlink className="mr-2 h-4 w-4" />

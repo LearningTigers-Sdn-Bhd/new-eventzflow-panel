@@ -27,7 +27,7 @@ export function ResourceMenuHeader() {
 						</div>
 						<div className="flex flex-col gap-0.5 leading-none">
 							<span className="font-semibold">Resources</span>
-							<span className="text-xs text-muted-foreground">
+							<span className="text-muted-foreground text-xs">
 								Manage content & leads
 							</span>
 						</div>

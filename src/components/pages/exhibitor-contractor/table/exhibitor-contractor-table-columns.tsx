@@ -87,7 +87,9 @@ const allowPrintingColumn: ColumnDef<ExhibitionContractor> = {
 	size: 120,
 	header: () => <div className="text-center">Allow Printing</div>,
 	cell: ({ row }) => {
-		const allowPrinting = row.original.exhibition_contractor_profile?.allow_printing_services ?? true;
+		const allowPrinting =
+			row.original.exhibition_contractor_profile?.allow_printing_services ??
+			true;
 		return (
 			<div className="flex justify-center">
 				<Badge
@@ -139,7 +141,9 @@ const commonColumns: ColumnDef<ExhibitionContractor>[] = [
 ];
 
 // Function to get columns based on user role
-export function getColumns(isOrgOwner: boolean): ColumnDef<ExhibitionContractor>[] {
+export function getColumns(
+	isOrgOwner: boolean,
+): ColumnDef<ExhibitionContractor>[] {
 	if (isOrgOwner) {
 		return [...baseColumns, allowPrintingColumn, ...commonColumns];
 	}

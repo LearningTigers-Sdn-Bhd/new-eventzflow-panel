@@ -43,7 +43,9 @@ function transformApiKeyCreation(
  */
 export async function getEventApiKeys(eventId: number): Promise<ApiKey[]> {
 	try {
-		const response = await restClient.get<BackendApiKey[]>(`v1/events/${eventId}/api_keys`);
+		const response = await restClient.get<BackendApiKey[]>(
+			`v1/events/${eventId}/api_keys`,
+		);
 		return response.map(transformApiKey);
 	} catch (error: any) {
 		throw new Error(error.message || "Failed to fetch event API keys");
@@ -53,7 +55,10 @@ export async function getEventApiKeys(eventId: number): Promise<ApiKey[]> {
 /**
  * Create a new API key scoped to a specific event
  */
-export async function createEventApiKey(eventId: number, name: string): Promise<CreateApiKeyResponse> {
+export async function createEventApiKey(
+	eventId: number,
+	name: string,
+): Promise<CreateApiKeyResponse> {
 	try {
 		const response = await restClient.post<BackendApiKeyCreation>(
 			`v1/events/${eventId}/api_keys`,
@@ -68,7 +73,10 @@ export async function createEventApiKey(eventId: number, name: string): Promise<
 /**
  * Revoke an event-scoped API key
  */
-export async function deleteEventApiKey(eventId: number, keyId: string): Promise<DeleteApiKeyResponse> {
+export async function deleteEventApiKey(
+	eventId: number,
+	keyId: string,
+): Promise<DeleteApiKeyResponse> {
 	try {
 		await restClient.delete(`v1/events/${eventId}/api_keys/${keyId}`);
 		return { success: true, message: "API key revoked successfully" };

@@ -12,7 +12,9 @@ interface CreateEventVisitorButtonProps {
 	eventId: number;
 }
 
-export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonProps) {
+export function CreateEventVisitorButton({
+	eventId,
+}: CreateEventVisitorButtonProps) {
 	const { openDialog } = useDialog();
 	const [isExporting, setIsExporting] = useState(false);
 	const [eventName, setEventName] = useState<string>("");
@@ -52,10 +54,13 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 			// Get custom label keys from the first visitor (if any)
 			const customLabelKeys: string[] = [];
 			const firstVisitorWithCustomFields = visitors.find(
-				(v) => v.custom_fields_data && Object.keys(v.custom_fields_data).length > 0,
+				(v) =>
+					v.custom_fields_data && Object.keys(v.custom_fields_data).length > 0,
 			);
 			if (firstVisitorWithCustomFields?.custom_fields_data) {
-				customLabelKeys.push(...Object.keys(firstVisitorWithCustomFields.custom_fields_data));
+				customLabelKeys.push(
+					...Object.keys(firstVisitorWithCustomFields.custom_fields_data),
+				);
 			}
 
 			// Export data matching import format: Name, Email, Phone, Gender, Age, Event Title, [Custom Labels...]
@@ -88,8 +93,9 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 
 			// Calculate total columns (6 fixed + custom labels)
 			const totalColumns = 6 + customLabelKeys.length;
-			const headerCells = Array.from({ length: totalColumns }, (_, i) =>
-				String.fromCharCode(65 + i) + "1",
+			const headerCells = Array.from(
+				{ length: totalColumns },
+				(_, i) => String.fromCharCode(65 + i) + "1",
 			);
 			for (const cell of headerCells) {
 				if (worksheet[cell]) {
@@ -119,7 +125,9 @@ export function CreateEventVisitorButton({ eventId }: CreateEventVisitorButtonPr
 					wch: Math.max(
 						15,
 						key.length + 2,
-						...visitors.map((v) => (v.custom_fields_data?.[key]?.length || 0) + 2),
+						...visitors.map(
+							(v) => (v.custom_fields_data?.[key]?.length || 0) + 2,
+						),
 					),
 				})),
 			];

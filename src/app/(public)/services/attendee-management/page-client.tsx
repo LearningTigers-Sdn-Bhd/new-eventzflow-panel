@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -83,45 +83,45 @@ const highlights = [
 function AttendeeProfileDemo() {
 	return (
 		<motion.div
-			className="relative border-2 border-black bg-white shadow-2xl w-full max-w-[420px]"
+			className="relative w-full max-w-[420px] border-2 border-black bg-white shadow-2xl"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
 			{/* Header */}
-			<div className="border-b-2 border-black bg-black px-6 py-4">
-				<p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+			<div className="border-black border-b-2 bg-black px-6 py-4">
+				<p className="font-bold text-white/60 text-xs uppercase tracking-[0.3em]">
 					Attendee Profile
 				</p>
-				<p className="mt-1 text-lg font-bold text-white">Tech Summit 2025</p>
+				<p className="mt-1 font-bold text-lg text-white">Tech Summit 2025</p>
 			</div>
 
 			{/* Attendee Info */}
-			<div className="flex items-center gap-4 border-b border-black/10 p-4">
-				<div className="flex h-14 w-14 items-center justify-center bg-black text-xl font-bold text-white">
+			<div className="flex items-center gap-4 border-black/10 border-b p-4">
+				<div className="flex h-14 w-14 items-center justify-center bg-black font-bold text-white text-xl">
 					JD
 				</div>
 				<div>
 					<p className="font-bold text-black">Jane Doe</p>
-					<p className="text-sm text-black/60">Senior Developer</p>
-					<p className="text-xs text-black/40">Acme Corporation</p>
+					<p className="text-black/60 text-sm">Senior Developer</p>
+					<p className="text-black/40 text-xs">Acme Corporation</p>
 				</div>
 			</div>
 
 			{/* Contact Details */}
 			<div className="p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Contact Details
 				</p>
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Email</span>
-						<span className="text-sm font-medium text-black">
+						<span className="text-black/60 text-sm">Email</span>
+						<span className="font-medium text-black text-sm">
 							jane@acme.com
 						</span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Phone</span>
-						<span className="text-sm font-medium text-black">
+						<span className="text-black/60 text-sm">Phone</span>
+						<span className="font-medium text-black text-sm">
 							+60 12-345 6789
 						</span>
 					</div>
@@ -129,29 +129,29 @@ function AttendeeProfileDemo() {
 			</div>
 
 			{/* Custom Fields */}
-			<div className="border-t border-black/10 p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+			<div className="border-black/10 border-t p-4">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Additional Info
 				</p>
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Company</span>
-						<span className="text-sm font-medium text-black">
+						<span className="text-black/60 text-sm">Company</span>
+						<span className="font-medium text-black text-sm">
 							Acme Corporation
 						</span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-black/60">Role</span>
-						<span className="text-sm font-medium text-black">Speaker</span>
+						<span className="text-black/60 text-sm">Role</span>
+						<span className="font-medium text-black text-sm">Speaker</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Status Badge */}
-			<div className="border-t-2 border-black p-4">
+			<div className="border-black border-t-2 p-4">
 				<div className="flex items-center justify-between">
-					<span className="text-sm font-medium text-black">Status</span>
-					<span className="bg-black px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+					<span className="font-medium text-black text-sm">Status</span>
+					<span className="bg-black px-3 py-1 font-bold text-white text-xs uppercase tracking-widest">
 						Checked In
 					</span>
 				</div>

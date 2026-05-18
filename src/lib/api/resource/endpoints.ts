@@ -81,7 +81,13 @@ function transformResource(backend: BackendResource): Resource {
 		if (typeof url === "string") return url;
 		// If it's an object with variants, preserve the full object
 		// This ensures all variant URLs are available for responsive images
-		if (typeof url === "object" && "thumbnail" in url && "medium" in url && "large" in url && "original" in url) {
+		if (
+			typeof url === "object" &&
+			"thumbnail" in url &&
+			"medium" in url &&
+			"large" in url &&
+			"original" in url
+		) {
 			return url;
 		}
 		// Fallback for any other object shape (shouldn't happen, but safe fallback)

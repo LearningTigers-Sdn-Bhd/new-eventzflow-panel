@@ -25,10 +25,10 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
+import AddVoucherForm from "../forms/add-voucher-form";
 import type { BaseVoucher } from "./event-voucher-table-columns";
 import { DataControl } from "./event-voucher-table-control";
 import { VoucherItem } from "./voucher-item";
-import AddVoucherForm from "../forms/add-voucher-form";
 
 interface DataTableProps<TData> {
 	columns: ColumnDef<TData>[];
@@ -114,7 +114,9 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 									description="Add vouchers to this event to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button onClick={handleAddVoucher}>Add Voucher</Button>}
+									action={
+										<Button onClick={handleAddVoucher}>Add Voucher</Button>
+									}
 								/>
 							)}
 						</div>
@@ -136,7 +138,9 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 									description="Add vouchers to this event to get started"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button onClick={handleAddVoucher}>Add Voucher</Button>}
+									action={
+										<Button onClick={handleAddVoucher}>Add Voucher</Button>
+									}
 								/>
 							)}
 						</div>

@@ -652,7 +652,11 @@ export default function EditVoucherForm({
 									<Field orientation="vertical">
 										<FieldLabel>Voucher Image - Optional</FieldLabel>
 										<ImageUpload
-											value={imageRemoved ? undefined : (image || voucher.imageUrl || undefined)}
+											value={
+												imageRemoved
+													? undefined
+													: image || voucher.imageUrl || undefined
+											}
 											onChange={(file) => {
 												if (file) {
 													setImage(file);

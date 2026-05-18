@@ -32,11 +32,7 @@ const CellView = React.forwardRef<HTMLDivElement, CellViewProps>(
 	({ className, children, ...props }, ref) => {
 		return (
 			<HoverCardTrigger asChild>
-				<div
-					ref={ref}
-					className={cn("cursor-help", className)}
-					{...props}
-				>
+				<div ref={ref} className={cn("cursor-help", className)} {...props}>
 					{children}
 				</div>
 			</HoverCardTrigger>

@@ -51,5 +51,3 @@ export const useSidebarStore = create<SidebarState & SidebarActions>()(
 		},
 	),
 );
-
-

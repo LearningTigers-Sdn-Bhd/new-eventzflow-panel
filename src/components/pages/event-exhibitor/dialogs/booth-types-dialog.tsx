@@ -196,7 +196,9 @@ export function BoothTypesDialog({ eventId, trigger }: BoothTypesDialogProps) {
 											key={type}
 											className="flex items-center justify-between border border-dashed px-3 py-2"
 										>
-											<span className="text-sm font-medium">{formatBoothType(type)}</span>
+											<span className="font-medium text-sm">
+												{formatBoothType(type)}
+											</span>
 											<button
 												type="button"
 												onClick={() => handleRemove(type)}

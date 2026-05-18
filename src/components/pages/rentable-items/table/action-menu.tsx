@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2, Power } from "lucide-react";
+import { MoreHorizontal, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +15,16 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import type { RentableItem } from "@/lib/api/rentable-item";
 import { updateRentableItem } from "@/lib/api/rentable-item";
-import { RentableItemEditContent } from "../rentable-item-edit-dialog";
 import { DeleteRentableItemContent } from "../delete-rentable-item-dialog";
+import { RentableItemEditContent } from "../rentable-item-edit-dialog";
 
 interface RentableItemActionsMenuProps {
 	item: RentableItem;
 }
 
-export function RentableItemActionsMenu({ item }: RentableItemActionsMenuProps) {
+export function RentableItemActionsMenu({
+	item,
+}: RentableItemActionsMenuProps) {
 	const { openDialog } = useDialog();
 	const queryClient = useQueryClient();
 

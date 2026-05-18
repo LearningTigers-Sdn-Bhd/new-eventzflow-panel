@@ -7,9 +7,9 @@
  * Merges exhibitor kit items with the same rentable_item_id,
  * summing their quantities.
  */
-export function mergeKitItems<T extends { rentable_item_id: number; quantity: number }>(
-	items: T[],
-): T[] {
+export function mergeKitItems<
+	T extends { rentable_item_id: number; quantity: number },
+>(items: T[]): T[] {
 	return items.reduce((acc, item) => {
 		const existingItem = acc.find(
 			(i) => i.rentable_item_id === item.rentable_item_id,
@@ -27,9 +27,9 @@ export function mergeKitItems<T extends { rentable_item_id: number; quantity: nu
  * Merges exhibitor kit printings with the same printing_service_id,
  * summing their quantities.
  */
-export function mergeKitPrintings<T extends { printing_service_id: number; quantity: number }>(
-	printings: T[],
-): T[] {
+export function mergeKitPrintings<
+	T extends { printing_service_id: number; quantity: number },
+>(printings: T[]): T[] {
 	return printings.reduce((acc, printing) => {
 		const existingPrinting = acc.find(
 			(p) => p.printing_service_id === printing.printing_service_id,

@@ -40,7 +40,9 @@ function normalizeBackgroundImageUrl(value: string | null | undefined) {
 		return normalized;
 	}
 
-	const cleanPath = normalized.startsWith("/") ? normalized.slice(1) : normalized;
+	const cleanPath = normalized.startsWith("/")
+		? normalized.slice(1)
+		: normalized;
 	return `${API_BASE_URL}/${cleanPath}`;
 }
 

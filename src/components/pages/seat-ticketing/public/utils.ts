@@ -30,13 +30,11 @@ function formatDayMonthYear(date: Date) {
 	return `${formatDayMonth(date)}, ${date.getFullYear()}`;
 }
 
-
 function toDate(value?: string | null) {
 	if (!value) return null;
 	const date = new Date(value);
 	return Number.isNaN(date.getTime()) ? null : date;
 }
-
 
 function formatOrdinal(day: number) {
 	if (day >= 11 && day <= 13) return `${day}th`;
@@ -68,7 +66,6 @@ export function formatEventDateRange(event: PublicEventInfo | null) {
 
 	return `${formatDayMonthYear(start)} - ${formatDayMonthYear(end)}`;
 }
-
 
 export function getUniqueLocations(sessions?: EventSeatSession[]) {
 	if (!sessions?.length) return [];
@@ -130,7 +127,11 @@ export function getSessionPrices(session: EventSeatSession) {
 	for (const venue of session.event_seat_venues ?? []) {
 		for (const section of venue.event_seat_sections ?? []) {
 			const priceValue = section.price;
-			if (priceValue === null || priceValue === undefined || priceValue === "") {
+			if (
+				priceValue === null ||
+				priceValue === undefined ||
+				priceValue === ""
+			) {
 				continue;
 			}
 			const normalized =

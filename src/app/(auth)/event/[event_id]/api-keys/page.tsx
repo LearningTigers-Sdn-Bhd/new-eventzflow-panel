@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
-import { ApiKeysSkeleton } from "@/components/pages/api/skeleton/api-keys-skeleton";
 import EventApiKeysClientWrapper from "@/components/pages/api/event-api-keys-client-wrapper";
+import { ApiKeysSkeleton } from "@/components/pages/api/skeleton/api-keys-skeleton";
 import { Button } from "@/components/ui/button";
 import { getEventApiKeys } from "@/lib/api/api-keys";
 import { getEventById } from "@/lib/api/event";
@@ -53,7 +53,11 @@ export default function EventApiKeysPage({
 
 	return (
 		<div className="space-y-6 p-0">
-			<EventApiKeysClientWrapper eventId={eventId} event={event!} apiKeys={apiKeys || []} />
+			<EventApiKeysClientWrapper
+				eventId={eventId}
+				event={event!}
+				apiKeys={apiKeys || []}
+			/>
 		</div>
 	);
 }

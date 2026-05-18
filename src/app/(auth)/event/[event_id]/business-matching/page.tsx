@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Briefcase, Download, LinkIcon, RefreshCw } from "lucide-react";
+import {
+	AlertTriangle,
+	Briefcase,
+	Download,
+	LinkIcon,
+	RefreshCw,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -10,7 +16,13 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
 	useBusinessMatchingEvents,
@@ -75,7 +87,10 @@ export default function BusinessMatchingPage() {
 		}
 	};
 
-	const { isBusinessHost, canManageEvent } = useEventPermissions(event_id, event);
+	const { isBusinessHost, canManageEvent } = useEventPermissions(
+		event_id,
+		event,
+	);
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
@@ -162,7 +177,9 @@ export default function BusinessMatchingPage() {
 			// instead of stale data.
 			queryClient.removeQueries({ queryKey: ["business-matching-events"] });
 			queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
-			queryClient.removeQueries({ queryKey: ["business-matching-availability"] });
+			queryClient.removeQueries({
+				queryKey: ["business-matching-availability"],
+			});
 			queryClient.removeQueries({
 				queryKey: ["business-matching-detailed-slots"],
 			});
@@ -264,13 +281,14 @@ export default function BusinessMatchingPage() {
 			{canManageEvent && event && !event.business_matching_webhook_url && (
 				<Card className="rounded-none border border-l-4 border-l-amber-500">
 					<CardHeader className="pb-3">
-						<CardTitle className="text-lg font-medium flex items-center gap-2">
+						<CardTitle className="flex items-center gap-2 font-medium text-lg">
 							<AlertTriangle className="h-5 w-5 text-amber-500" />
 							Setup Business Matching
 						</CardTitle>
 						<CardDescription>
-							To enable real-time data synchronization for Business Matching, please provide the Webhook URL.
-							(Contact your administrator if you don&apos;t have this URL).
+							To enable real-time data synchronization for Business Matching,
+							please provide the Webhook URL. (Contact your administrator if you
+							don&apos;t have this URL).
 						</CardDescription>
 					</CardHeader>
 					<CardContent>

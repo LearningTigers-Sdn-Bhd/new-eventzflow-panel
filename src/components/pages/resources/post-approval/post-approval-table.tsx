@@ -125,7 +125,9 @@ export function PostApprovalTable({
 							emptyStateConfig={{
 								title: "No pending posts",
 								desc: "There are no resource posts awaiting approval.",
-								icon: <CheckSquare className="h-10 w-10 text-muted-foreground" />,
+								icon: (
+									<CheckSquare className="h-10 w-10 text-muted-foreground" />
+								),
 							}}
 							clickableRowConfig={clickableConfig}
 						/>

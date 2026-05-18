@@ -231,7 +231,8 @@ export const eventMenuConfig: EventMenuConfig = {
 			label: "API Keys",
 			description: "Manage API keys for external integrations with this event.",
 			icon: Key,
-			visible: (p, e) => e?.use_api_access === true && visible.organizerOrOwner(p),
+			visible: (p, e) =>
+				e?.use_api_access === true && visible.organizerOrOwner(p),
 		},
 	],
 

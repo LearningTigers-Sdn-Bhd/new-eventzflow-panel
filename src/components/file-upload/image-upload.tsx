@@ -27,7 +27,9 @@ export default function ImageUpload({
 	maxSize = 5 * 1024 * 1024, // 5MB
 	fillHeight = false,
 }: ImageUploadProps) {
-	const [externalPreviewUrl, setExternalPreviewUrl] = useState<string | null>(null);
+	const [externalPreviewUrl, setExternalPreviewUrl] = useState<string | null>(
+		null,
+	);
 
 	// Initialize file upload hook
 	const [
@@ -55,7 +57,7 @@ export default function ImageUpload({
 				// Don't clear automatically if we have a value URL but no hook files
 				// Only clear if clearFiles was called
 			}
-		}
+		},
 	});
 
 	// Sync value prop with internal state
@@ -64,7 +66,8 @@ export default function ImageUpload({
 			setExternalPreviewUrl(value);
 		} else if (value instanceof File) {
 			const matchingHookFile = files.find(
-				(fileEntry) => fileEntry.file instanceof File && fileEntry.file === value,
+				(fileEntry) =>
+					fileEntry.file instanceof File && fileEntry.file === value,
 			);
 
 			if (matchingHookFile?.preview) {

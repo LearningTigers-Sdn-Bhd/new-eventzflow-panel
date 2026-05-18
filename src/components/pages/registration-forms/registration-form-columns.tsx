@@ -64,7 +64,7 @@ const columns: ColumnDef<RegistrationForm>[] = [
 		cell: ({ row }) => {
 			const status = row.getValue("status") as number;
 			return status === 0 ? (
-				<Badge className="bg-green-600 hover:bg-green-600 rounded-none">
+				<Badge className="rounded-none bg-green-600 hover:bg-green-600">
 					Active
 				</Badge>
 			) : (

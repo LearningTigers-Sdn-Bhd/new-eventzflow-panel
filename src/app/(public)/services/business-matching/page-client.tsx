@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -91,34 +91,32 @@ const timeSlots = [
 function BookingInterfaceDemo() {
 	return (
 		<motion.div
-			className="relative border-2 border-black bg-white shadow-2xl w-full max-w-[420px]"
+			className="relative w-full max-w-[420px] border-2 border-black bg-white shadow-2xl"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
 			{/* Header */}
-			<div className="border-b-2 border-black bg-black px-6 py-4">
-				<p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+			<div className="border-black border-b-2 bg-black px-6 py-4">
+				<p className="font-bold text-white/60 text-xs uppercase tracking-[0.3em]">
 					Book a Meeting
 				</p>
-				<p className="mt-1 text-lg font-bold text-white">
-					Tech Solutions Inc.
-				</p>
+				<p className="mt-1 font-bold text-lg text-white">Tech Solutions Inc.</p>
 			</div>
 
 			{/* Host Info */}
-			<div className="flex items-center gap-4 border-b border-black/10 p-4">
-				<div className="flex h-12 w-12 items-center justify-center bg-black text-lg font-bold text-white">
+			<div className="flex items-center gap-4 border-black/10 border-b p-4">
+				<div className="flex h-12 w-12 items-center justify-center bg-black font-bold text-lg text-white">
 					TS
 				</div>
 				<div>
 					<p className="font-bold text-black">David Wong</p>
-					<p className="text-sm text-black/60">Sales Director</p>
+					<p className="text-black/60 text-sm">Sales Director</p>
 				</div>
 			</div>
 
 			{/* Date Selector */}
-			<div className="border-b border-black/10 p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+			<div className="border-black/10 border-b p-4">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Select Date
 				</p>
 				<div className="flex gap-2">
@@ -126,7 +124,7 @@ function BookingInterfaceDemo() {
 						<button
 							key={day}
 							type="button"
-							className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
+							className={`flex-1 py-2 text-center font-medium text-sm transition-colors ${
 								i === 1
 									? "bg-black text-white"
 									: "border border-black/20 text-black hover:border-black"
@@ -140,7 +138,7 @@ function BookingInterfaceDemo() {
 
 			{/* Time Slots */}
 			<div className="p-4">
-				<p className="mb-3 text-xs font-bold uppercase tracking-widest text-black/40">
+				<p className="mb-3 font-bold text-black/40 text-xs uppercase tracking-widest">
 					Available Slots
 				</p>
 				<div className="space-y-2">
@@ -149,23 +147,23 @@ function BookingInterfaceDemo() {
 							key={slot.time}
 							className={`flex items-center justify-between p-3 ${
 								slot.status === "available"
-									? "border border-black/20 hover:border-black cursor-pointer"
+									? "cursor-pointer border border-black/20 hover:border-black"
 									: "bg-black/5"
 							}`}
 						>
 							<span
-								className={`text-sm font-medium ${
+								className={`font-medium text-sm ${
 									slot.status === "available" ? "text-black" : "text-black/40"
 								}`}
 							>
 								{slot.time}
 							</span>
 							{slot.status === "available" ? (
-								<span className="text-xs font-bold uppercase tracking-widest text-black/60">
+								<span className="font-bold text-black/60 text-xs uppercase tracking-widest">
 									Available
 								</span>
 							) : (
-								<span className="text-xs text-black/40">{slot.name}</span>
+								<span className="text-black/40 text-xs">{slot.name}</span>
 							)}
 						</div>
 					))}
@@ -173,10 +171,10 @@ function BookingInterfaceDemo() {
 			</div>
 
 			{/* Book Button */}
-			<div className="border-t-2 border-black p-4">
+			<div className="border-black border-t-2 p-4">
 				<button
 					type="button"
-					className="w-full bg-black py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-black/80"
+					className="w-full bg-black py-3 font-bold text-sm text-white uppercase tracking-widest transition-colors hover:bg-black/80"
 				>
 					Book Selected Slot
 				</button>

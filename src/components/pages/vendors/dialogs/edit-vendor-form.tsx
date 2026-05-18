@@ -83,7 +83,9 @@ export default function EditVendorForm({
 	});
 
 	const [image, setImage] = useState<File | null>(null);
-	const [imageUrl, setImageUrl] = useState(vendor.vendorProfile?.image_url || "");
+	const [imageUrl, setImageUrl] = useState(
+		vendor.vendorProfile?.image_url || "",
+	);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [showPassword, setShowPassword] = useState(false);
@@ -147,12 +149,16 @@ export default function EditVendorForm({
 
 		try {
 			// Determine final category value
-			const finalCategory = formData.category === "Others"
-				? formData.customCategory.trim()
-				: formData.category;
+			const finalCategory =
+				formData.category === "Others"
+					? formData.customCategory.trim()
+					: formData.category;
 
 			// Build profile attributes - send empty string to clear fields, undefined to keep unchanged
-			const profileAttributes: Record<string, string | number | File | boolean | undefined> = {};
+			const profileAttributes: Record<
+				string,
+				string | number | File | boolean | undefined
+			> = {};
 
 			// Include profile id for updates (prevents destroy/recreate)
 			if (vendor.vendorProfile?.id) {
@@ -166,7 +172,6 @@ export default function EditVendorForm({
 			profileAttributes.company_profile = formData.company_profile;
 			profileAttributes.address = formData.address;
 			profileAttributes.notes = formData.notes;
-
 
 			// Handle image
 			if (image) {
@@ -248,7 +253,11 @@ export default function EditVendorForm({
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.full_name}
-										errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+										errors={
+											errors.full_name
+												? [{ message: errors.full_name }]
+												: undefined
+										}
 									/>
 									<InputLabel
 										htmlFor={emailId}
@@ -260,7 +269,9 @@ export default function EditVendorForm({
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.email}
-										errors={errors.email ? [{ message: errors.email }] : undefined}
+										errors={
+											errors.email ? [{ message: errors.email }] : undefined
+										}
 									/>
 								</div>
 
@@ -286,7 +297,9 @@ export default function EditVendorForm({
 										variant="no-rounded"
 										onAction={() => setShowPassword(!showPassword)}
 										actionIcon={showPassword ? <EyeOff /> : <Eye />}
-										actionLabel={showPassword ? "Hide password" : "Show password"}
+										actionLabel={
+											showPassword ? "Hide password" : "Show password"
+										}
 									/>
 								</div>
 							</div>
@@ -311,7 +324,9 @@ export default function EditVendorForm({
 							description: "Vendor business information and profile",
 						}}
 					>
-						<div className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+						<div
+							className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+						>
 							<SelectLabel
 								htmlFor={categoryId}
 								label="Business Category"

@@ -101,7 +101,7 @@ export function useWheel(
 							type: "prize" as const,
 							prize: p,
 						}));
-				  })
+					})
 				: (participants || []).map((p) => ({
 						name: p.name,
 						id: p.publicId,

@@ -186,7 +186,8 @@ export function VendorSignupForm({
 						booth_type: value.booth_type || undefined,
 						booth_dimensions: value.booth_dimensions || undefined,
 						side_wall_left_required: value.side_wall_left_required || undefined,
-						side_wall_right_required: value.side_wall_right_required || undefined,
+						side_wall_right_required:
+							value.side_wall_right_required || undefined,
 						name_on_fascia: value.name_on_fascia || undefined,
 						fascia_upgrade_required: value.fascia_upgrade_required || undefined,
 						company_name: value.company_name || undefined,
@@ -283,85 +284,92 @@ export function VendorSignupForm({
 							</form.Field>
 						</div>
 
-
 						{/* Business Details Section - Show different sections based on exhibitor kit */}
 						{useExhibitorKit ? (
 							<div className="rounded-none border bg-background p-5">
-							<form.Field name="vendor_category">
-								{(categoryField) => (
-									<form.Field name="custom_category">
-										{(customCategoryField) => (
-											<form.Field name="vendor_description">
-												{(descriptionField) => (
-													<form.Field name="company_profile">
-														{(companyProfileField) => (
-															<form.Field name="vendor_notes">
-																{(notesField) => (
-																	<BusinessInformationSection
-																		categoryField={categoryField}
-																		customCategoryField={customCategoryField}
-																		descriptionField={descriptionField}
-																		companyProfileField={companyProfileField}
-																		notesField={notesField}
-																		image={profileImage}
-																		onImageChange={setProfileImage}
-																	/>
-																)}
-															</form.Field>
-														)}
-													</form.Field>
-												)}
-											</form.Field>
-										)}
-									</form.Field>
-								)}
-							</form.Field>
-						</div>
+								<form.Field name="vendor_category">
+									{(categoryField) => (
+										<form.Field name="custom_category">
+											{(customCategoryField) => (
+												<form.Field name="vendor_description">
+													{(descriptionField) => (
+														<form.Field name="company_profile">
+															{(companyProfileField) => (
+																<form.Field name="vendor_notes">
+																	{(notesField) => (
+																		<BusinessInformationSection
+																			categoryField={categoryField}
+																			customCategoryField={customCategoryField}
+																			descriptionField={descriptionField}
+																			companyProfileField={companyProfileField}
+																			notesField={notesField}
+																			image={profileImage}
+																			onImageChange={setProfileImage}
+																		/>
+																	)}
+																</form.Field>
+															)}
+														</form.Field>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
 						) : (
-						<div className="rounded-none border bg-background p-5">
-							<form.Field name="vendor_category">
-								{(categoryField) => (
-									<form.Field name="custom_category">
-										{(customCategoryField) => (
-											<form.Field name="person_in_charge">
-												{(personInChargeField) => (
-													<form.Field name="vendor_description">
-														{(descriptionField) => (
-															<form.Field name="company_profile">
-																{(companyProfileField) => (
-																	<form.Field name="vendor_address">
-																		{(addressField) => (
-																			<form.Field name="vendor_notes">
-																				{(notesField) => (
-																					<BusinessDetailsSection
-																						categoryField={categoryField}
-																						customCategoryField={customCategoryField}
-																						personInChargeField={personInChargeField}
-																						descriptionField={descriptionField}
-																						companyProfileField={companyProfileField}
-																						addressField={addressField}
-																						notesField={notesField}
-																						image={profileImage}
-																						onImageChange={setProfileImage}
-																					/>
-																				)}
-																			</form.Field>
-																		)}
-																	</form.Field>
-																)}
-															</form.Field>
-														)}
-													</form.Field>
-												)}
-											</form.Field>
-										)}
-									</form.Field>
-								)}
-							</form.Field>
-						</div>
+							<div className="rounded-none border bg-background p-5">
+								<form.Field name="vendor_category">
+									{(categoryField) => (
+										<form.Field name="custom_category">
+											{(customCategoryField) => (
+												<form.Field name="person_in_charge">
+													{(personInChargeField) => (
+														<form.Field name="vendor_description">
+															{(descriptionField) => (
+																<form.Field name="company_profile">
+																	{(companyProfileField) => (
+																		<form.Field name="vendor_address">
+																			{(addressField) => (
+																				<form.Field name="vendor_notes">
+																					{(notesField) => (
+																						<BusinessDetailsSection
+																							categoryField={categoryField}
+																							customCategoryField={
+																								customCategoryField
+																							}
+																							personInChargeField={
+																								personInChargeField
+																							}
+																							descriptionField={
+																								descriptionField
+																							}
+																							companyProfileField={
+																								companyProfileField
+																							}
+																							addressField={addressField}
+																							notesField={notesField}
+																							image={profileImage}
+																							onImageChange={setProfileImage}
+																						/>
+																					)}
+																				</form.Field>
+																			)}
+																		</form.Field>
+																	)}
+																</form.Field>
+															)}
+														</form.Field>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
 						)}
 						{/* Exhibitor Kit Section - Only when event uses exhibitor kit */}
-								{useExhibitorKit && (
+						{useExhibitorKit && (
 							<div className="rounded-none border bg-background p-5">
 								<ExhibitorKitSection
 									form={form}

@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
-	CheckCircle2,
-	Clock,
 	AlertCircle,
-	XCircle,
-	ExternalLink,
+	CheckCircle2,
 	ChevronDown,
+	Clock,
+	ExternalLink,
+	XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,11 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import type { ExhibitorTeamMemberPaymentInKit } from "@/lib/api/exhibitor-kit/response";
+import { cn } from "@/lib/utils";
 
-export interface TeamMemberPaymentWithVendor extends ExhibitorTeamMemberPaymentInKit {
+export interface TeamMemberPaymentWithVendor
+	extends ExhibitorTeamMemberPaymentInKit {
 	vendor_name: string;
 	vendor_email: string;
 	event_vendor_id: number;
@@ -67,7 +68,9 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 		cell: ({ row }) => (
 			<div>
 				<p className="font-medium">{row.original.vendor_name}</p>
-				<p className="text-muted-foreground text-xs">{row.original.vendor_email}</p>
+				<p className="text-muted-foreground text-xs">
+					{row.original.vendor_email}
+				</p>
 			</div>
 		),
 	},

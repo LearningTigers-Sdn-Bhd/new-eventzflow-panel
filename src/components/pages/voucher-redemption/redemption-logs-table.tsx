@@ -1,4 +1,4 @@
-import { RedemptionLog } from "@/lib/api/voucher-redemption-log";
+import type { RedemptionLog } from "@/lib/api/voucher-redemption-log";
 import { DataTable } from "./table/voucher-log-table";
 
 interface RedemptionLogsTableProps {

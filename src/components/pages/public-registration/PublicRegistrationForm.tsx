@@ -107,7 +107,9 @@ export function PublicRegistrationForm({
 	const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 	const [paymentError, setPaymentError] = useState<string | null>(null);
 	const [paymentSuccess, setPaymentSuccess] = useState(false);
-	const [finalPaymentStatuses, setFinalPaymentStatuses] = useState<string[]>([]);
+	const [finalPaymentStatuses, setFinalPaymentStatuses] = useState<string[]>(
+		[],
+	);
 	const [finalPublicIds, setFinalPublicIds] = useState<string[]>([]);
 	const [hydratedFromCallback, setHydratedFromCallback] = useState(false);
 
@@ -141,7 +143,8 @@ export function PublicRegistrationForm({
 	);
 
 	const customLabelEntries = useMemo(
-		() => mergedCustomLabelsData.map((entry) => [entry.key, entry.label] as const),
+		() =>
+			mergedCustomLabelsData.map((entry) => [entry.key, entry.label] as const),
 		[mergedCustomLabelsData],
 	);
 	const customLabelKeys = useMemo(
@@ -463,7 +466,8 @@ export function PublicRegistrationForm({
 			setPaymentSuccess(false);
 			setFinalPaymentStatuses(result.paymentStatuses);
 			setFinalPublicIds(result.publicIds);
-			const allPaid = result.paymentStatuses.length > 0 &&
+			const allPaid =
+				result.paymentStatuses.length > 0 &&
 				result.paymentStatuses.every((status) => status === "paid");
 			setCurrentStep(requiresPayment && !allPaid ? 5 : 6);
 		}
@@ -659,22 +663,36 @@ export function PublicRegistrationForm({
 													: isActive
 														? "rgb(0, 0, 0)"
 														: "rgb(241, 245, 249)", // slate-100
-												color: isCompleted || isActive ? "rgb(255, 255, 255)" : "rgb(148, 163, 184)",
+												color:
+													isCompleted || isActive
+														? "rgb(255, 255, 255)"
+														: "rgb(148, 163, 184)",
 											}}
 											className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs transition-shadow duration-200 sm:h-10 sm:w-10 ${
-												isActive ? "shadow-lg shadow-black/10 ring-4 ring-white" : ""
+												isActive
+													? "shadow-black/10 shadow-lg ring-4 ring-white"
+													: ""
 											}`}
 										>
 											{isCompleted ? (
-												<Check className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={3} />
+												<Check
+													className="h-4 w-4 sm:h-5 sm:w-5"
+													strokeWidth={3}
+												/>
 											) : (
-												<Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={isActive ? 2.5 : 2} />
+												<Icon
+													className="h-4 w-4 sm:h-5 sm:w-5"
+													strokeWidth={isActive ? 2.5 : 2}
+												/>
 											)}
 										</motion.div>
 
 										<motion.p
 											animate={{
-												color: isActive || isCompleted ? "rgb(0, 0, 0)" : "rgb(148, 163, 184)",
+												color:
+													isActive || isCompleted
+														? "rgb(0, 0, 0)"
+														: "rgb(148, 163, 184)",
 												fontWeight: isActive || isCompleted ? 600 : 400,
 											}}
 											className="absolute top-10 whitespace-nowrap text-[10px] uppercase tracking-wider sm:top-12 sm:text-[11px]"
@@ -701,7 +719,7 @@ export function PublicRegistrationForm({
 						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
 								Select your ticket
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -724,7 +742,7 @@ export function PublicRegistrationForm({
 										disabled={isUnavailable}
 										className={`group relative w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 sm:p-6 ${
 											isSelected
-												? "border-black bg-black text-white shadow-xl shadow-black/10"
+												? "border-black bg-black text-white shadow-black/10 shadow-xl"
 												: isUnavailable
 													? "cursor-not-allowed border-slate-100 bg-slate-50/50 text-slate-400"
 													: "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
@@ -742,37 +760,46 @@ export function PublicRegistrationForm({
 														</span>
 													)}
 												</div>
-												<p className={`mt-1.5 text-sm ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+												<p
+													className={`mt-1.5 text-sm ${isSelected ? "text-slate-300" : "text-slate-500"}`}
+												>
 													{tt.registration_mode === "group"
 														? "Ideal for teams and groups"
 														: "Single attendee registration"}
 												</p>
-												
-												{(tt.remaining_slots !== null && tt.remaining_slots !== undefined) && (
-													<div className="mt-3 flex items-center gap-1.5">
-														<div className={`h-1.5 w-1.5 rounded-full ${tt.remaining_slots > 0 ? "bg-brand-green" : "bg-red-400"}`} />
-														<p className={`text-xs ${isSelected ? "text-slate-400" : "text-slate-500"}`}>
-															{tt.remaining_slots > 0
-																? `${tt.remaining_slots} slots remaining`
-																: "No slots left"}
-														</p>
-													</div>
-												)}
+
+												{tt.remaining_slots !== null &&
+													tt.remaining_slots !== undefined && (
+														<div className="mt-3 flex items-center gap-1.5">
+															<div
+																className={`h-1.5 w-1.5 rounded-full ${tt.remaining_slots > 0 ? "bg-brand-green" : "bg-red-400"}`}
+															/>
+															<p
+																className={`text-xs ${isSelected ? "text-slate-400" : "text-slate-500"}`}
+															>
+																{tt.remaining_slots > 0
+																	? `${tt.remaining_slots} slots remaining`
+																	: "No slots left"}
+															</p>
+														</div>
+													)}
 											</div>
 											<div className="ml-4 text-right">
 												<p className="font-bold text-xl tracking-tight sm:text-2xl">
 													{formatTicketPrice(tt.price)}
 												</p>
 												{tt.current_tier && (
-													<p className={`mt-1 text-[10px] font-bold uppercase tracking-widest ${isSelected ? "text-slate-400" : "text-slate-500"}`}>
+													<p
+														className={`mt-1 font-bold text-[10px] uppercase tracking-widest ${isSelected ? "text-slate-400" : "text-slate-500"}`}
+													>
 														{tt.current_tier}
 													</p>
 												)}
 											</div>
 										</div>
-										
+
 										{isSelected && (
-											<motion.div 
+											<motion.div
 												layoutId="ticket-check"
 												className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-green shadow-sm"
 											>
@@ -788,7 +815,7 @@ export function PublicRegistrationForm({
 							<Button
 								onClick={goToNextStep}
 								disabled={!canProceedStep1 || !canProceedStep1WithAvailability}
-								className="h-12 w-full rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:px-8 disabled:opacity-30"
+								className="h-12 w-full rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:px-8"
 							>
 								Continue to details
 								<ArrowRight className="ml-2 h-5 w-5" />
@@ -807,7 +834,7 @@ export function PublicRegistrationForm({
 						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
 								Enter your email
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -817,7 +844,10 @@ export function PublicRegistrationForm({
 
 						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
 							<div className="space-y-2">
-								<label htmlFor="registration-email" className="block font-semibold text-slate-700 text-sm">
+								<label
+									htmlFor="registration-email"
+									className="block font-semibold text-slate-700 text-sm"
+								>
 									Email Address
 								</label>
 								<div className="relative">
@@ -845,7 +875,7 @@ export function PublicRegistrationForm({
 											<Ticket className="h-5 w-5 text-slate-900" />
 										</div>
 										<div>
-											<p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+											<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
 												Selected Ticket
 											</p>
 											<p className="font-bold text-slate-900">
@@ -862,7 +892,7 @@ export function PublicRegistrationForm({
 							)}
 
 							{existingRegistrationStatus?.has_pending_payment ? (
-								<motion.div 
+								<motion.div
 									initial={{ opacity: 0, scale: 0.95 }}
 									animate={{ opacity: 1, scale: 1 }}
 									className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-blue-900"
@@ -878,7 +908,7 @@ export function PublicRegistrationForm({
 							) : null}
 
 							{existingRegistrationStatus?.blocked_exhibitor_upgrade ? (
-								<motion.div 
+								<motion.div
 									initial={{ opacity: 0, scale: 0.95 }}
 									animate={{ opacity: 1, scale: 1 }}
 									className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-red-900"
@@ -888,13 +918,14 @@ export function PublicRegistrationForm({
 										Registration blocked
 									</p>
 									<p className="mt-1 text-red-800/80 text-sm">
-										{existingRegistrationStatus.blocked_message ?? "Please complete previous payment first."}
+										{existingRegistrationStatus.blocked_message ??
+											"Please complete previous payment first."}
 									</p>
 								</motion.div>
 							) : null}
 
 							{existingRegistrationStatus?.has_rejected_application ? (
-								<motion.div 
+								<motion.div
 									initial={{ opacity: 0, scale: 0.95 }}
 									animate={{ opacity: 1, scale: 1 }}
 									className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-red-900"
@@ -904,7 +935,8 @@ export function PublicRegistrationForm({
 										Application not approved
 									</p>
 									<p className="mt-1 text-red-800/80 text-sm">
-										{existingRegistrationStatus.rejected_message ?? "Thank you for your interest."}
+										{existingRegistrationStatus.rejected_message ??
+											"Thank you for your interest."}
 									</p>
 								</motion.div>
 							) : null}
@@ -926,10 +958,12 @@ export function PublicRegistrationForm({
 								disabled={
 									!canProceedStep2 ||
 									isCheckingEmail ||
-									Boolean(existingRegistrationStatus?.blocked_exhibitor_upgrade) ||
+									Boolean(
+										existingRegistrationStatus?.blocked_exhibitor_upgrade,
+									) ||
 									Boolean(existingRegistrationStatus?.has_rejected_application)
 								}
-								className="h-12 flex-1 rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:px-8 disabled:opacity-30"
+								className="h-12 flex-1 rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:px-8"
 							>
 								{isCheckingEmail ? "Verifying..." : "Continue"}
 								<ArrowRight className="ml-2 h-5 w-5" />
@@ -949,7 +983,7 @@ export function PublicRegistrationForm({
 					>
 						<form onSubmit={goToConfirmationStep}>
 							<div className="text-center">
-								<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
+								<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
 									Attendee details
 								</h2>
 								<p className="mt-2 text-slate-500">
@@ -959,7 +993,7 @@ export function PublicRegistrationForm({
 
 							<div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
 								{registrationMode === "group" && (
-									<div className="flex items-center gap-3 rounded-2xl bg-blue-50/50 p-4 text-blue-900 border border-blue-100">
+									<div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 text-blue-900">
 										<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
 											<UserCircle className="h-5 w-5 text-blue-600" />
 										</div>
@@ -974,7 +1008,7 @@ export function PublicRegistrationForm({
 									{attendees.map((attendee, index) => (
 										<div key={attendee.row_id} className="relative">
 											<div className="mb-6 flex items-center justify-between">
-												<h3 className="flex items-center gap-2 font-bold text-slate-900 uppercase tracking-widest text-xs">
+												<h3 className="flex items-center gap-2 font-bold text-slate-900 text-xs uppercase tracking-widest">
 													{registrationMode === "group" && (
 														<span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-[10px]">
 															{index + 1}
@@ -982,17 +1016,18 @@ export function PublicRegistrationForm({
 													)}
 													Attendee Information
 												</h3>
-												{registrationMode === "group" && attendees.length > minAttendees && (
-													<Button
-														type="button"
-														variant="ghost"
-														size="sm"
-														onClick={() => removeAttendee(index)}
-														className="h-8 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600"
-													>
-														Remove
-													</Button>
-												)}
+												{registrationMode === "group" &&
+													attendees.length > minAttendees && (
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() => removeAttendee(index)}
+															className="h-8 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600"
+														>
+															Remove
+														</Button>
+													)}
 											</div>
 
 											<div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
@@ -1024,7 +1059,8 @@ export function PublicRegistrationForm({
 														htmlFor={`attendee-email-${attendee.row_id}`}
 														className="block font-semibold text-slate-700 text-sm"
 													>
-														Email Address <span className="text-red-500">*</span>
+														Email Address{" "}
+														<span className="text-red-500">*</span>
 													</label>
 													<Input
 														id={`attendee-email-${attendee.row_id}`}
@@ -1043,11 +1079,11 @@ export function PublicRegistrationForm({
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 														required
 													/>
-														{duplicateAttendeeEmailIndexes.has(index) && (
-															<p className="text-red-500 text-xs">
-																This email is already used by another attendee.
-															</p>
-														)}
+													{duplicateAttendeeEmailIndexes.has(index) && (
+														<p className="text-red-500 text-xs">
+															This email is already used by another attendee.
+														</p>
+													)}
 												</div>
 
 												<div className="space-y-2">
@@ -1073,7 +1109,10 @@ export function PublicRegistrationForm({
 												</div>
 
 												{customLabelEntries.map(([labelKey, labelName]) => (
-													<div key={`${attendee.row_id}-${labelKey}`} className="space-y-2">
+													<div
+														key={`${attendee.row_id}-${labelKey}`}
+														className="space-y-2"
+													>
 														<label
 															htmlFor={`attendee-${attendee.row_id}-${labelKey}`}
 															className="block font-semibold text-slate-700 text-sm"
@@ -1100,7 +1139,7 @@ export function PublicRegistrationForm({
 											</div>
 
 											{index < attendees.length - 1 && (
-												<div className="mt-12 border-t border-slate-100" />
+												<div className="mt-12 border-slate-100 border-t" />
 											)}
 										</div>
 									))}
@@ -1111,7 +1150,7 @@ export function PublicRegistrationForm({
 										type="button"
 										variant="outline"
 										onClick={addAttendee}
-										className="w-full h-12 rounded-xl border-dashed border-slate-200 bg-slate-50/50 font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+										className="h-12 w-full rounded-xl border-slate-200 border-dashed bg-slate-50/50 font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50"
 									>
 										+ Add Another Attendee
 									</Button>
@@ -1131,7 +1170,7 @@ export function PublicRegistrationForm({
 								<Button
 									type="submit"
 									disabled={!selectedTicketType || hasDuplicateAttendeeEmail}
-									className="h-12 w-full rounded-xl border border-black bg-black px-6 text-base font-bold leading-none text-white transition-all hover:bg-slate-800 hover:shadow-lg sm:h-14 sm:flex-1 sm:px-8 disabled:opacity-30"
+									className="h-12 w-full rounded-xl border border-black bg-black px-6 font-bold text-base text-white leading-none transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 								>
 									Confirm Registration
 									<ArrowRight className="ml-2 h-5 w-5" />
@@ -1151,7 +1190,7 @@ export function PublicRegistrationForm({
 						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
 								Review information
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -1161,15 +1200,15 @@ export function PublicRegistrationForm({
 
 						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
 							<div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-								<div className="border-b border-slate-50 bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4">
+								<div className="border-slate-50 border-b bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4">
 									<h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
 										Registration Summary
 									</h3>
 								</div>
-								
+
 								<div className="divide-y divide-slate-50">
 									<div className="p-4 sm:p-6">
-										<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
 											Selected Ticket
 										</p>
 										<div className="mt-2 flex items-center justify-between">
@@ -1183,14 +1222,14 @@ export function PublicRegistrationForm({
 									</div>
 
 									<div className="p-4 sm:p-6">
-										<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
 											Contact Email
 										</p>
 										<p className="mt-2 font-medium text-slate-900">{email}</p>
 									</div>
 
 									<div className="p-4 sm:p-6">
-										<p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+										<p className="mb-4 font-bold text-[10px] text-slate-500 uppercase tracking-widest">
 											{registrationMode === "group"
 												? `Attendees (${attendees.length})`
 												: "Attendee"}
@@ -1203,7 +1242,7 @@ export function PublicRegistrationForm({
 												>
 													<div className="flex items-center gap-3">
 														{registrationMode === "group" && (
-															<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm font-bold text-slate-500 text-xs">
+															<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white font-bold text-slate-500 text-xs shadow-sm">
 																{index + 1}
 															</div>
 														)}
@@ -1216,23 +1255,35 @@ export function PublicRegistrationForm({
 															</p>
 														</div>
 													</div>
-													
-													{(attendee.attendee_phone || Object.entries(attendee.custom_fields_data).length > 0) && (
-														<div className="mt-4 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+
+													{(attendee.attendee_phone ||
+														Object.entries(attendee.custom_fields_data).length >
+															0) && (
+														<div className="mt-4 grid grid-cols-2 gap-4 border-slate-100 border-t pt-4">
 															{attendee.attendee_phone && (
 																<div>
-																	<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Phone</p>
-																	<p className="mt-1 text-slate-900 text-xs">{attendee.attendee_phone}</p>
+																	<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+																		Phone
+																	</p>
+																	<p className="mt-1 text-slate-900 text-xs">
+																		{attendee.attendee_phone}
+																	</p>
 																</div>
 															)}
-															{Object.entries(attendee.custom_fields_data).map(([key, value]) => (
-																<div key={`${attendee.row_id}-${key}`}>
-																	<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-																		{(customLabelsLookup[key] ?? key).toString().replaceAll("_", " ")}
-																	</p>
-																	<p className="mt-1 text-slate-900 text-xs">{value || "-"}</p>
-																</div>
-															))}
+															{Object.entries(attendee.custom_fields_data).map(
+																([key, value]) => (
+																	<div key={`${attendee.row_id}-${key}`}>
+																		<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+																			{(customLabelsLookup[key] ?? key)
+																				.toString()
+																				.replaceAll("_", " ")}
+																		</p>
+																		<p className="mt-1 text-slate-900 text-xs">
+																			{value || "-"}
+																		</p>
+																	</div>
+																),
+															)}
 														</div>
 													)}
 												</div>
@@ -1243,7 +1294,7 @@ export function PublicRegistrationForm({
 							</div>
 						</div>
 
-							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
+						<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 							<Button
 								type="button"
 								onClick={goToPreviousStep}
@@ -1258,11 +1309,9 @@ export function PublicRegistrationForm({
 								type="button"
 								onClick={confirmInformation}
 								disabled={isSubmitting || !selectedTicketType}
-								className="h-12 w-full rounded-xl border border-brand-green bg-brand-green px-6 text-base font-bold leading-none text-white shadow-lg shadow-brand-green/20 transition-all hover:bg-brand-green/90 hover:shadow-xl sm:h-14 sm:flex-1 sm:px-8 disabled:opacity-30"
+								className="h-12 w-full rounded-xl border border-brand-green bg-brand-green px-6 font-bold text-base text-white leading-none shadow-brand-green/20 shadow-lg transition-all hover:bg-brand-green/90 hover:shadow-xl disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 							>
-								{isSubmitting
-									? "Processing..."
-									: "Submit Registration"}
+								{isSubmitting ? "Processing..." : "Submit Registration"}
 								<ArrowRight className="ml-2 h-5 w-5" strokeWidth={3} />
 							</Button>
 						</div>
@@ -1279,7 +1328,7 @@ export function PublicRegistrationForm({
 						className="mt-6 sm:mt-8"
 					>
 						<div className="text-center">
-							<h2 className="font-bold text-xl text-slate-900 tracking-tight sm:text-2xl md:text-3xl">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
 								Secure payment
 							</h2>
 							<p className="mt-2 text-slate-500">
@@ -1295,18 +1344,19 @@ export function PublicRegistrationForm({
 											<CreditCard className="h-6 w-6 text-brand-green" />
 										</div>
 										<div>
-											<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+											<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
 												Status
 											</p>
 											<p className="font-bold text-slate-900">
 												{existingRegistrationStatus?.has_pending_payment
 													? "Complete payment to confirm your ticket"
-													: (statusMessage ?? "Please complete payment to secure your ticket.")}
+													: (statusMessage ??
+														"Please complete payment to secure your ticket.")}
 											</p>
 										</div>
 									</div>
 									<div className="text-right">
-										<p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
 											Amount
 										</p>
 										<p className="font-bold text-slate-900 text-xl tracking-tight">
@@ -1316,20 +1366,25 @@ export function PublicRegistrationForm({
 								</div>
 
 								<div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-4">
-									{(singleResult?.public_id || groupResult?.publicIds?.length || existingRegistrationStatus?.pending_tickets?.length) && (
+									{(singleResult?.public_id ||
+										groupResult?.publicIds?.length ||
+										existingRegistrationStatus?.pending_tickets?.length) && (
 										<div className="flex items-center justify-between text-xs">
-											<span className="text-slate-600 font-medium">Reference ID:</span>
-											<span className="font-mono font-bold text-slate-900">
-												{singleResult?.public_id ?? 
-												 (groupResult?.publicIds?.[0]) ?? 
-												 (existingRegistrationStatus?.pending_tickets?.[0]?.public_id)}
+											<span className="font-medium text-slate-600">
+												Reference ID:
+											</span>
+											<span className="font-bold font-mono text-slate-900">
+												{singleResult?.public_id ??
+													groupResult?.publicIds?.[0] ??
+													existingRegistrationStatus?.pending_tickets?.[0]
+														?.public_id}
 											</span>
 										</div>
 									)}
 								</div>
 
 								{paymentError && (
-									<motion.div 
+									<motion.div
 										initial={{ opacity: 0, height: 0 }}
 										animate={{ opacity: 1, height: "auto" }}
 										className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-red-600 text-sm"
@@ -1339,8 +1394,8 @@ export function PublicRegistrationForm({
 								)}
 							</div>
 
-							<div className="rounded-2xl border-2 border-dashed border-slate-100 p-6 text-center">
-								<p className="text-slate-600 text-sm font-medium">
+							<div className="rounded-2xl border-2 border-slate-100 border-dashed p-6 text-center">
+								<p className="font-medium text-slate-600 text-sm">
 									Payments are processed securely via Razorpay.
 								</p>
 							</div>
@@ -1356,7 +1411,7 @@ export function PublicRegistrationForm({
 									isPaymentProcessing ||
 									paymentSuccess
 								}
-								className="h-12 w-full rounded-2xl bg-black px-6 font-bold text-white shadow-xl shadow-black/10 transition-all hover:bg-slate-800 hover:shadow-2xl sm:h-16 sm:px-8 disabled:opacity-30"
+								className="h-12 w-full rounded-2xl bg-black px-6 font-bold text-white shadow-black/10 shadow-xl transition-all hover:bg-slate-800 hover:shadow-2xl disabled:opacity-30 sm:h-16 sm:px-8"
 							>
 								{isPaymentProcessing
 									? "Initializing..."
@@ -1385,48 +1440,59 @@ export function PublicRegistrationForm({
 									animate={{ scale: 1 }}
 									transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
 								>
-									<Check className="h-8 w-8 text-brand-green sm:h-10 sm:w-10" strokeWidth={3} />
+									<Check
+										className="h-8 w-8 text-brand-green sm:h-10 sm:w-10"
+										strokeWidth={3}
+									/>
 								</motion.div>
 							</div>
 							<h2 className="font-bold text-2xl text-slate-900 tracking-tight sm:text-3xl">
 								{isExistingPaidRegistration
 									? "You are already registered"
 									: requiresPayment
-									? "Payment Successful!"
-									: hasPendingApprovalRegistration
-										? "Registration Received"
-										: "Registration Complete!"}
+										? "Payment Successful!"
+										: hasPendingApprovalRegistration
+											? "Registration Received"
+											: "Registration Complete!"}
 							</h2>
 							<p className="mt-3 text-slate-500">
 								{isExistingPaidRegistration
 									? "We found an existing confirmed ticket for this email."
 									: requiresPayment
-									? "Your ticket has been purchased and is ready for use."
-									: hasPendingApprovalRegistration
-										? "We&apos;ve received your application and it&apos;s now pending review."
-										: "You are all set! Your registration has been confirmed."}
+										? "Your ticket has been purchased and is ready for use."
+										: hasPendingApprovalRegistration
+											? "We&apos;ve received your application and it&apos;s now pending review."
+											: "You are all set! Your registration has been confirmed."}
 							</p>
 						</div>
 
 						<div className="mt-8">
 							<div className="space-y-4 sm:space-y-6">
 								<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
-									<p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+									<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
 										Registration Reference
 									</p>
-									<p className="mt-2 font-mono text-lg font-bold text-slate-900">
+									<p className="mt-2 font-bold font-mono text-lg text-slate-900">
 										{paymentTicketPublicId ?? finalPublicIds[0]}
 									</p>
 									<p className="mt-6 text-slate-500 text-sm">
 										A confirmation email has been sent to <br />
-										<span className="font-semibold text-slate-900">{email}</span>
+										<span className="font-semibold text-slate-900">
+											{email}
+										</span>
 									</p>
 
 									{!hasPendingApprovalRegistration && (
-										<div className="mt-8 pt-6 border-t border-slate-100">
-											<TicketDownloadButton 
-												eventSlug={eventSlug} 
-												publicIds={finalPublicIds.length > 0 ? finalPublicIds : (paymentTicketPublicId ? [paymentTicketPublicId] : [])} 
+										<div className="mt-8 border-slate-100 border-t pt-6">
+											<TicketDownloadButton
+												eventSlug={eventSlug}
+												publicIds={
+													finalPublicIds.length > 0
+														? finalPublicIds
+														: paymentTicketPublicId
+															? [paymentTicketPublicId]
+															: []
+												}
 											/>
 										</div>
 									)}

@@ -6,7 +6,10 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
-import { printingsColumns, type ExhibitorKitPrintingWithVendor } from "./printings-columns";
+import {
+	type ExhibitorKitPrintingWithVendor,
+	printingsColumns,
+} from "./printings-columns";
 
 interface OrderedServicesViewProps {
 	eventId: string;

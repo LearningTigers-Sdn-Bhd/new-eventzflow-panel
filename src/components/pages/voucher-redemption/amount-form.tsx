@@ -119,7 +119,7 @@ export function AmountForm({
 				<div className="space-y-2">
 					<Label htmlFor="amount">Final Sale Price (After Discount)</Label>
 					<div className="relative">
-						<span className="-translate-y-1/2 absolute top-1/2 left-3 font-medium text-muted-foreground text-sm">
+						<span className="absolute top-1/2 left-3 -translate-y-1/2 font-medium text-muted-foreground text-sm">
 							RM
 						</span>
 						<Input

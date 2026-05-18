@@ -33,15 +33,13 @@ export function SessionDrawArea({
 			{/* Background Image Layer */}
 			{backgroundImage && (
 				<div
-					className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat shadow-inner"
+					className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat shadow-inner"
 					style={{ backgroundImage }}
 				/>
 			)}
 
 			{fullscreenToggle && (
-				<div className="absolute top-4 right-4 z-50">
-					{fullscreenToggle}
-				</div>
+				<div className="absolute top-4 right-4 z-50">{fullscreenToggle}</div>
 			)}
 			{session.logo_url && (
 				<div className="relative z-10 h-16 w-full max-w-xs">

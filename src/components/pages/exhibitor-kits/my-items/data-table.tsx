@@ -3,13 +3,13 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
-	type TableMeta,
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	type SortingState,
+	type TableMeta,
 	useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
@@ -32,8 +32,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type {
+	ExhibitorKitItem,
+	ExhibitorKitPrinting,
+} from "@/lib/api/exhibitor-kit";
 import { cn } from "@/lib/utils";
-import type { ExhibitorKitItem, ExhibitorKitPrinting } from "@/lib/api/exhibitor-kit";
 import { ItemCard } from "./item-card";
 import { PrintingCard } from "./printing-card";
 
@@ -213,10 +216,20 @@ export function DataTable<TData, TValue>({
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => {
 								if (cardType === "item") {
-									return <ItemCard key={row.id} item={row.original as ExhibitorKitItem} />;
+									return (
+										<ItemCard
+											key={row.id}
+											item={row.original as ExhibitorKitItem}
+										/>
+									);
 								}
 								if (cardType === "printing") {
-									return <PrintingCard key={row.id} printing={row.original as ExhibitorKitPrinting} />;
+									return (
+										<PrintingCard
+											key={row.id}
+											printing={row.original as ExhibitorKitPrinting}
+										/>
+									);
 								}
 								// Fallback to default card layout
 								return (

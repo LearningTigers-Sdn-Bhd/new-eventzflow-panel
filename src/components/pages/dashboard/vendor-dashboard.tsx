@@ -294,10 +294,7 @@ function VendorDashboardSkeleton() {
 				</div>
 				<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
 					{[1, 2].map((i) => (
-						<div
-							key={i}
-							className="rounded-none border border-dashed p-0"
-						>
+						<div key={i} className="rounded-none border border-dashed p-0">
 							{/* Card Header */}
 							<div className="space-y-3 p-3 sm:p-4">
 								<div className="flex items-start justify-between gap-2">
@@ -331,7 +328,7 @@ function VendorDashboardSkeleton() {
 									<Skeleton className="h-3 w-10" />
 								</div>
 								<Skeleton className="mt-2 h-1.5 w-full rounded-none" />
-								<Skeleton className="ml-auto mt-1 h-3 w-28" />
+								<Skeleton className="mt-1 ml-auto h-3 w-28" />
 							</div>
 						</div>
 					))}

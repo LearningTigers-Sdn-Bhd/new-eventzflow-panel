@@ -10,8 +10,8 @@ import { useScanner } from "@/hooks/use-scanner";
 import { useTicketValidation } from "@/hooks/use-ticket-validation";
 import { cn } from "@/lib/utils";
 import { SCANNER_CONFIG } from "../constants";
-import { RecentScanCard } from "./recent-scan-card";
 import type { ScanResult } from "../types";
+import { RecentScanCard } from "./recent-scan-card";
 
 interface ScannerCardProps {
 	isScanning: boolean;
@@ -163,7 +163,7 @@ export function ScannerCard({
 					{isScanning && (
 						<>
 							{/* Status Badge */}
-							<div className="-translate-x-1/2 absolute top-2 left-1/2 z-20 sm:top-4">
+							<div className="absolute top-2 left-1/2 z-20 -translate-x-1/2 sm:top-4">
 								<div className="flex items-center gap-1.5 rounded-none bg-primary px-2 py-1 shadow-lg sm:gap-2 sm:px-3 sm:py-1.5">
 									<span className="relative flex h-2 w-2">
 										<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
@@ -176,7 +176,7 @@ export function ScannerCard({
 							</div>
 
 							{/* Stop Button */}
-							<div className="-translate-x-1/2 absolute bottom-2 left-1/2 z-20 w-full px-4 sm:bottom-4 sm:w-auto sm:px-0">
+							<div className="absolute bottom-2 left-1/2 z-20 w-full -translate-x-1/2 px-4 sm:bottom-4 sm:w-auto sm:px-0">
 								<Button
 									onClick={handleStopScanner}
 									variant="destructive"
@@ -218,10 +218,7 @@ export function ScannerCard({
 									</div>
 								) : (
 									recentScans.map((scan, idx) => (
-										<RecentScanCard
-											key={`${scan.scanId}-${idx}`}
-											scan={scan}
-										/>
+										<RecentScanCard key={`${scan.scanId}-${idx}`} scan={scan} />
 									))
 								)}
 							</div>

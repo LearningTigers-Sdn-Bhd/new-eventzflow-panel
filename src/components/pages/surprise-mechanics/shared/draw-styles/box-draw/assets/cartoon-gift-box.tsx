@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
 interface CartoonGiftBoxProps {
@@ -12,7 +12,7 @@ const COMIC_WORDS = ["BOOM!", "WOW!", "WINNER!", "JACKPOT!", "YAY!", "YES!"];
 
 export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 	const [word, setWord] = useState("");
-	
+
 	// Pick a new word every time the box opens
 	useEffect(() => {
 		if (isOpen) {
@@ -25,12 +25,25 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 			{/* Shared SVG Defs for Comic Patterns */}
 			<svg width="0" height="0" className="absolute">
 				<defs>
-					<pattern id="comic-dots" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+					<pattern
+						id="comic-dots"
+						x="0"
+						y="0"
+						width="10"
+						height="10"
+						patternUnits="userSpaceOnUse"
+					>
 						<circle cx="2" cy="2" r="1.5" fill="black" opacity="0.1" />
 					</pattern>
 					<mask id="dots-mask">
 						<rect x="0" y="0" width="100%" height="100%" fill="white" />
-						<rect x="0" y="0" width="100%" height="100%" fill="url(#comic-dots)" />
+						<rect
+							x="0"
+							y="0"
+							width="100%"
+							height="100%"
+							fill="url(#comic-dots)"
+						/>
 					</mask>
 				</defs>
 			</svg>
@@ -45,14 +58,14 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 								y: [0, 0, 0, 0, -15, 0],
 								scaleY: [1, 1, 1, 0.92, 1.08, 1],
 								scaleX: [1, 1, 1, 1.04, 0.96, 1],
-						  }
+							}
 						: { rotate: 0, y: 0, scaleY: 1, scaleX: 1 }
 				}
 				transition={{
 					duration: 0.8,
 					repeat: isAnimating ? Number.POSITIVE_INFINITY : 0,
 					ease: "easeInOut",
-					times: [0, 0.2, 0.4, 0.6, 0.8, 1]
+					times: [0, 0.2, 0.4, 0.6, 0.8, 1],
 				}}
 			>
 				{/* Lid Layer - Rectangular & Boxy */}
@@ -64,9 +77,19 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 						rotate: isOpen ? -20 : 0,
 						x: isOpen ? -40 : 0,
 					}}
-					transition={{ duration: 0.4, type: "spring", stiffness: 120, damping: 15 }}
+					transition={{
+						duration: 0.4,
+						type: "spring",
+						stiffness: 120,
+						damping: 15,
+					}}
 				>
-					<svg width="400" height="140" viewBox="0 0 400 140" className="overflow-visible">
+					<svg
+						width="400"
+						height="140"
+						viewBox="0 0 400 140"
+						className="overflow-visible"
+					>
 						{/* Bow */}
 						<path
 							d="M200 50 C200 50 150 -10 120 30 C100 55 130 80 200 65 C270 80 300 55 280 30 C250 -10 200 50 200 50"
@@ -74,77 +97,148 @@ export function CartoonGiftBox({ isOpen, isAnimating }: CartoonGiftBoxProps) {
 							stroke="black"
 							strokeWidth="5"
 						/>
-						<circle cx="200" cy="65" r="22" fill="#FFC107" stroke="black" strokeWidth="5" />
-						
+						<circle
+							cx="200"
+							cy="65"
+							r="22"
+							fill="#FFC107"
+							stroke="black"
+							strokeWidth="5"
+						/>
+
 						{/* Lid Shape - Rectangle (Narrower Overhang) */}
-						<rect x="50" y="50" width="300" height="70" fill="#00BCD4" stroke="black" strokeWidth="5" />
-						
+						<rect
+							x="50"
+							y="50"
+							width="300"
+							height="70"
+							fill="#00BCD4"
+							stroke="black"
+							strokeWidth="5"
+						/>
+
 						{/* Lid Highlight */}
-						<rect x="70" y="60" width="260" height="20" fill="white" opacity="0.3" />
+						<rect
+							x="70"
+							y="60"
+							width="260"
+							height="20"
+							fill="white"
+							opacity="0.3"
+						/>
 
 						{/* Ribbon on Lid - Aligned with Body */}
-						<rect x="185" y="50" width="30" height="70" fill="#FFEB3B" stroke="black" strokeWidth="5" />
+						<rect
+							x="185"
+							y="50"
+							width="30"
+							height="70"
+							fill="#FFEB3B"
+							stroke="black"
+							strokeWidth="5"
+						/>
 					</svg>
 				</motion.div>
 
 				{/* Box Body Layer - Straight Rectangle */}
 				<div className="relative top-[20px] left-[15px] z-10">
-					<svg width="370" height="260" viewBox="0 0 370 260" className="overflow-visible">
+					<svg
+						width="370"
+						height="260"
+						viewBox="0 0 370 260"
+						className="overflow-visible"
+					>
 						{/* Main Body - Masked for dots */}
 						<mask id="body-mask">
 							<rect x="50" y="0" width="270" height="240" fill="white" />
 						</mask>
 
 						{/* Main Body Shape */}
-						<rect 
-							x="50" y="0" width="270" height="240" 
-							fill="#26C6DA" 
-							stroke="black" 
-							strokeWidth="5" 
+						<rect
+							x="50"
+							y="0"
+							width="270"
+							height="240"
+							fill="#26C6DA"
+							stroke="black"
+							strokeWidth="5"
 							filter="url(#body-shadow)"
 						/>
-						
+
 						{/* Halftone Dot Overlay */}
-						<rect x="0" y="0" width="370" height="260" fill="url(#comic-dots)" className="pointer-events-none opacity-20 mix-blend-multiply" mask="url(#body-mask)" />
+						<rect
+							x="0"
+							y="0"
+							width="370"
+							height="260"
+							fill="url(#comic-dots)"
+							className="pointer-events-none opacity-20 mix-blend-multiply"
+							mask="url(#body-mask)"
+						/>
 
 						{/* Ribbon on Body - Aligned with Lid */}
-						<rect x="170" y="0" width="30" height="240" fill="#FFEB3B" stroke="black" strokeWidth="5" />
-						
+						<rect
+							x="170"
+							y="0"
+							width="30"
+							height="240"
+							fill="#FFEB3B"
+							stroke="black"
+							strokeWidth="5"
+						/>
+
 						{/* Side Highlight (Straight bar) */}
-						<rect x="70" y="20" width="20" height="200" fill="white" opacity="0.4" />
+						<rect
+							x="70"
+							y="20"
+							width="20"
+							height="200"
+							fill="white"
+							opacity="0.4"
+						/>
 					</svg>
 
 					{/* Reveal Word - Pops out when open */}
 					<AnimatePresence>
 						{isOpen && (
 							<motion.div
-								className="-translate-x-1/2 absolute top-[100px] left-[185px] z-0"
+								className="absolute top-[100px] left-[185px] z-0 -translate-x-1/2"
 								style={{ rotate: -5 }}
 								initial={{ scale: 0, opacity: 0 }}
-								animate={{ 
-									scale: 1, 
+								animate={{
+									scale: 1,
 									opacity: 1,
 									rotate: [-5, 5, -5, 5],
 								}}
-								transition={{ 
+								transition={{
 									type: "spring",
 									duration: 0.6,
-									rotate: { repeat: Number.POSITIVE_INFINITY, duration: 2, ease: "easeInOut" }
+									rotate: {
+										repeat: Number.POSITIVE_INFINITY,
+										duration: 2,
+										ease: "easeInOut",
+									},
 								}}
 							>
 								{/* Jagged Burst Background */}
-								<svg width="280" height="220" viewBox="0 0 200 200" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2">
-									<path 
-										d="M100 10 L120 60 L170 50 L140 90 L190 120 L140 140 L160 190 L110 160 L90 200 L70 150 L20 180 L50 130 L10 100 L60 80 L30 30 L80 50 Z" 
-										fill="#FFFFFF" 
-										stroke="black" 
+								<svg
+									width="280"
+									height="220"
+									viewBox="0 0 200 200"
+									className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+								>
+									<path
+										d="M100 10 L120 60 L170 50 L140 90 L190 120 L140 140 L160 190 L110 160 L90 200 L70 150 L20 180 L50 130 L10 100 L60 80 L30 30 L80 50 Z"
+										fill="#FFFFFF"
+										stroke="black"
 										strokeWidth="4"
 									/>
 								</svg>
-								<div 
+								<div
 									className="relative min-w-[200px] text-center font-black text-5xl text-[#D50000] italic leading-tight"
-									style={{ 
-										fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif",
+									style={{
+										fontFamily:
+											"'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif",
 										textShadow: "2px 2px 0px #000",
 										WebkitTextStroke: "1.5px black",
 									}}

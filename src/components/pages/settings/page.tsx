@@ -16,7 +16,11 @@ import { PasswordForm } from "./password-form";
 import { PaymentDetailForm } from "./payment-detail-form";
 import { ThemeSettings } from "./theme-settings";
 
-const PAYMENT_DETAIL_ROLES = ["org_owner", "organizer", "exhibition_contractor"];
+const PAYMENT_DETAIL_ROLES = [
+	"org_owner",
+	"organizer",
+	"exhibition_contractor",
+];
 
 export function SettingsPage() {
 	const { data: profile } = useQuery({

@@ -44,12 +44,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				searchConfig: {
 					placeholder: "Search by name, email, phone...",
 					enableCustomSearch: true,
-					columns: [
-						"lead_name",
-						"lead_email",
-						"lead_phone",
-						"vendor_name",
-					],
+					columns: ["lead_name", "lead_email", "lead_phone", "vendor_name"],
 				},
 			}}
 			desktopConfig={{

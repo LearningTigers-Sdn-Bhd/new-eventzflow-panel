@@ -10,7 +10,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-export type ManageKitsTab = "exhibitor-info" | "rentable-items" | "printing-services" | "custom-requests";
+export type ManageKitsTab =
+	| "exhibitor-info"
+	| "rentable-items"
+	| "printing-services"
+	| "custom-requests";
 
 interface NavigationItem {
 	id: ManageKitsTab;
@@ -74,7 +78,10 @@ export function ManageKitsNavigation({
 		<>
 			{/* Mobile: Dropdown */}
 			<div className="w-full md:hidden">
-				<Select value={activeTab} onValueChange={(value) => onTabChange(value as ManageKitsTab)}>
+				<Select
+					value={activeTab}
+					onValueChange={(value) => onTabChange(value as ManageKitsTab)}
+				>
 					<SelectTrigger className="w-full rounded-none">
 						<SelectValue>
 							{activeItem && (
@@ -89,7 +96,11 @@ export function ManageKitsNavigation({
 						{navigationItems.map((item) => {
 							const Icon = item.icon;
 							return (
-								<SelectItem key={item.id} value={item.id} className="rounded-none">
+								<SelectItem
+									key={item.id}
+									value={item.id}
+									className="rounded-none"
+								>
 									<div className="flex items-center gap-2">
 										<Icon className="h-4 w-4" />
 										<span>{item.shortLabel}</span>

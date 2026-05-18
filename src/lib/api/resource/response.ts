@@ -55,14 +55,14 @@ export type BackendResource = {
 	rejection_reason: string | null;
 	published_at: string | null;
 	header_img_url: string | ResourceImageVariants | null;
-    min_read?: number;
+	min_read?: number;
 	priority?: number;
 
 	topic?: BackendResourceTopic;
 	category?: BackendResourceCategory;
 	media_type?: BackendResourceMediaType;
 	author?: ResourceBackendUser;
-    suggestions?: BackendResource[];
+	suggestions?: BackendResource[];
 
 	created_at: string;
 	updated_at: string;
@@ -82,14 +82,14 @@ export type Resource = {
 	rejectionReason: string | null;
 	publishedAt: string | null;
 	headerImgUrl: string | ResourceImageVariants | null;
-    minRead?: number;
+	minRead?: number;
 	priority?: number;
 
 	topic?: ResourceTopic;
 	category?: ResourceCategory;
 	mediaType?: ResourceMediaType;
 	author?: ResourceAuthor;
-    suggestions?: Resource[];
+	suggestions?: Resource[];
 
 	createdAt: string;
 	updatedAt: string;

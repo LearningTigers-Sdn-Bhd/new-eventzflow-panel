@@ -13,7 +13,9 @@ describe("AnimatedWallRenderer", () => {
 		expect(content).toContain("data-density");
 		expect(content).toContain("AnimatedWishNode");
 		expect(content).toContain("normalized.style.accentColor");
-		expect(content).not.toContain("backgroundColor: normalized.style.cardBackgroundColor");
+		expect(content).not.toContain(
+			"backgroundColor: normalized.style.cardBackgroundColor",
+		);
 		expect(content).not.toContain("color: normalized.style.cardTextColor");
 		expect(content).toContain("rgba(255, 248, 240, 0.92)");
 		expect(content).toContain("placeholderColor={nodePlaceholderColor}");

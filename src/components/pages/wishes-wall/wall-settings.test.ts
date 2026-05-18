@@ -3,20 +3,20 @@ import { normalizeWallSettings, resolveAnimationText } from "./wall-settings";
 
 describe("wall settings helpers", () => {
 	test("falls back to heart when animation shape is missing", () => {
-			expect(normalizeWallSettings({ display_mode: "animation" })).toEqual({
-				mode: "animation",
-				shape: "heart",
-				text: null,
-				style: {
-					accentColor: "#D4A373",
-					headerTextColor: "#2F241F",
-					cardBackgroundColor: "#FFF7ED",
-					cardTextColor: "#2F241F",
-					backgroundImageUrl: null,
-					wallOverlay: null,
-				},
-			});
+		expect(normalizeWallSettings({ display_mode: "animation" })).toEqual({
+			mode: "animation",
+			shape: "heart",
+			text: null,
+			style: {
+				accentColor: "#D4A373",
+				headerTextColor: "#2F241F",
+				cardBackgroundColor: "#FFF7ED",
+				cardTextColor: "#2F241F",
+				backgroundImageUrl: null,
+				wallOverlay: null,
+			},
 		});
+	});
 
 	test("falls back to Bride & Groom for names text", () => {
 		expect(
@@ -77,14 +77,14 @@ describe("wall settings helpers", () => {
 			mode: "cards",
 			shape: "heart",
 			text: null,
-				style: {
-					accentColor: "#D4A373",
-					headerTextColor: "#2F241F",
-					cardBackgroundColor: "#FFF7ED",
-					cardTextColor: "#2F241F",
-					backgroundImageUrl: null,
-					wallOverlay: null,
-				},
-			});
+			style: {
+				accentColor: "#D4A373",
+				headerTextColor: "#2F241F",
+				cardBackgroundColor: "#FFF7ED",
+				cardTextColor: "#2F241F",
+				backgroundImageUrl: null,
+				wallOverlay: null,
+			},
 		});
+	});
 });

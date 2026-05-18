@@ -87,7 +87,8 @@ describe("vendor team member payload helpers", () => {
 		expect(feedback).toEqual({
 			variant: "error",
 			title: "Payment not completed",
-			message: "We could not confirm the payment. Please try again from the pending payment card.",
+			message:
+				"We could not confirm the payment. Please try again from the pending payment card.",
 		});
 	});
 

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { WishesGrid } from "@/components/pages/wishes-wall/wishes-grid";
 import { normalizeWallSettings } from "@/components/pages/wishes-wall/wall-settings";
+import { WishesGrid } from "@/components/pages/wishes-wall/wishes-grid";
 import { getPublicEventById } from "@/lib/api/event";
 
 export default function WishesWallPage() {

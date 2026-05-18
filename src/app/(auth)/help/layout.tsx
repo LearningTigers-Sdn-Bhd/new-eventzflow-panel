@@ -9,9 +9,5 @@ export default function HelpLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	return (
-		<div className="h-svh w-full">
-			{children}
-		</div>
-	);
+	return <div className="h-svh w-full">{children}</div>;
 }

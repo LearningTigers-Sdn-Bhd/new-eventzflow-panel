@@ -166,7 +166,7 @@ const LeadViewModal = ({
 						<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 							Notes
 						</Label>
-						<p className="mt-1 font-medium text-foreground text-sm whitespace-pre-wrap">
+						<p className="mt-1 whitespace-pre-wrap font-medium text-foreground text-sm">
 							{notes}
 						</p>
 					</div>
@@ -204,11 +204,13 @@ export function generateColumns(): ColumnDef<EventLeadWithDetails>[] {
 			cell: ({ row }) => {
 				const type = row.getValue("leadable_type") as string;
 				return (
-					<span className={`inline-flex items-center rounded-none px-2 py-0.5 text-xs font-medium ${
-						type === "Visitor"
-							? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-							: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-					}`}>
+					<span
+						className={`inline-flex items-center rounded-none px-2 py-0.5 font-medium text-xs ${
+							type === "Visitor"
+								? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+								: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+						}`}
+					>
 						{type}
 					</span>
 				);

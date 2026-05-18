@@ -1,6 +1,13 @@
 "use client";
 
-import { Building2, FileText, Handshake, ImageIcon, Package, Tag } from "lucide-react";
+import {
+	Building2,
+	FileText,
+	Handshake,
+	ImageIcon,
+	Package,
+	Tag,
+} from "lucide-react";
 import { useState } from "react";
 import ImageUpload from "@/components/file-upload/image-upload";
 import {
@@ -141,7 +148,8 @@ export function BusinessInformationSection({
 				{/* Business Information / Products/Projects/Services to be Exhibited */}
 				<div className="space-y-2">
 					<Label htmlFor={descriptionField.name}>
-						Business Information / Products / Projects / Services to be Exhibited
+						Business Information / Products / Projects / Services to be
+						Exhibited
 					</Label>
 					<div className="relative">
 						<Package className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />

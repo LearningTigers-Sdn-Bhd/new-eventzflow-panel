@@ -6,8 +6,8 @@ import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
-import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { DataTable } from "@/components/pages/vouchers/table/event-voucher-table";
+import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
@@ -34,9 +34,9 @@ export default function VouchersPage({
 
 	// Only show action button for event admins and vendors
 	useSetEventActions(
-		(canManageEventVendors || isEventVendor) && event?.use_voucher === true
-			? <VouchersPageButton />
-			: null,
+		(canManageEventVendors || isEventVendor) && event?.use_voucher === true ? (
+			<VouchersPageButton />
+		) : null,
 	);
 
 	// Fetch vouchers from API
@@ -68,7 +68,12 @@ export default function VouchersPage({
 	const columns = getVoucherColumns(canManageEventVendors || isEventVendor);
 
 	if (!isLoadingEvent && event?.use_voucher !== true) {
-		return <FeatureLockedState isEventVendor={isEventVendor} featureName="Vouchers" />;
+		return (
+			<FeatureLockedState
+				isEventVendor={isEventVendor}
+				featureName="Vouchers"
+			/>
+		);
 	}
 
 	return (

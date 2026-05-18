@@ -270,7 +270,7 @@ export function DrawScannerDialog({
 						<CardContent className="flex-1 overflow-hidden p-0">
 							{/* Error State */}
 							{scanError && (
-								<div className="border-b border-destructive/50 bg-destructive/10 p-4">
+								<div className="border-destructive/50 border-b bg-destructive/10 p-4">
 									<div className="flex items-start gap-3">
 										<AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
 										<div className="flex-1">

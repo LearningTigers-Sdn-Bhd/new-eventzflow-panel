@@ -50,7 +50,10 @@ export const ResourcesCard = memo(function ResourcesCard({
 	// Memoize to ensure consistent rendering between server and client
 	const displayImage = useMemo(() => {
 		if (!headerImgUrl) return null;
-		return getResourceImage(headerImgUrl, layout === "grid" ? "thumbnail" : "medium");
+		return getResourceImage(
+			headerImgUrl,
+			layout === "grid" ? "thumbnail" : "medium",
+		);
 	}, [headerImgUrl, layout]);
 
 	// Memoize date to prevent hydration mismatches from timezone differences

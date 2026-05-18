@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ImageIcon, Minus, Package, Plus, Search, ShoppingCart } from "lucide-react";
+import {
+	ImageIcon,
+	Minus,
+	Package,
+	Plus,
+	Search,
+	ShoppingCart,
+} from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/data-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/data-state";
 import { getEventRentableItems } from "@/lib/api/event-rentable-item";
-import { getCurrentPrice, getCurrentPriceTierLabel } from "@/lib/utils/price-tier";
-import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 import { cn } from "@/lib/utils";
+import {
+	getCurrentPrice,
+	getCurrentPriceTierLabel,
+} from "@/lib/utils/price-tier";
+import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 
 interface ItemsCatalogProps {
 	eventId: number;
@@ -153,26 +163,26 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 										{/* Info */}
 										<div className="min-w-0 flex-1 space-y-2">
 											<div className="flex items-start justify-between gap-2">
-												<h3 className="font-semibold text-base leading-tight sm:text-sm line-clamp-2">
+												<h3 className="line-clamp-2 font-semibold text-base leading-tight sm:text-sm">
 													{eventItem.rentableItem.name}
 												</h3>
 												{priceTierLabel && (
 													<Badge
 														variant="secondary"
-														className="shrink-0 rounded-none text-[10px] px-1.5 py-0.5"
+														className="shrink-0 rounded-none px-1.5 py-0.5 text-[10px]"
 													>
 														{priceTierLabel}
 													</Badge>
 												)}
 											</div>
 											{eventItem.rentableItem.description && (
-												<p className="text-muted-foreground text-sm sm:text-xs line-clamp-2">
+												<p className="line-clamp-2 text-muted-foreground text-sm sm:text-xs">
 													{eventItem.rentableItem.description}
 												</p>
 											)}
 											<div className="flex items-center justify-between gap-2">
 												{eventItem.rentableItem.itemCategory && (
-													<p className="text-muted-foreground/70 text-[10px] uppercase tracking-wide">
+													<p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">
 														{eventItem.rentableItem.itemCategory.name}
 													</p>
 												)}
@@ -191,7 +201,7 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 										{/* Price Section */}
 										<div className="flex items-baseline justify-between">
 											<div>
-												<p className="text-muted-foreground text-[10px] uppercase tracking-wide">
+												<p className="text-[10px] text-muted-foreground uppercase tracking-wide">
 													{eventItem.rentableItem.unitOfMeasure}
 												</p>
 												<p className="font-bold text-2xl text-primary sm:text-xl">
@@ -201,7 +211,7 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 											{priceTierLabel && (
 												<Badge
 													variant="secondary"
-													className="sm:hidden shrink-0 rounded-none text-[10px] px-1.5 py-0.5"
+													className="shrink-0 rounded-none px-1.5 py-0.5 text-[10px] sm:hidden"
 												>
 													{priceTierLabel}
 												</Badge>
@@ -216,20 +226,20 @@ export function ItemsCatalog({ eventId }: ItemsCatalogProps) {
 													type="button"
 													variant="ghost"
 													size="icon"
-													className="h-10 w-10 rounded-none sm:h-9 sm:w-9 shrink-0"
+													className="h-10 w-10 shrink-0 rounded-none sm:h-9 sm:w-9"
 													onClick={() => handleQuantityChange(eventItem.id, -1)}
 													disabled={quantity <= 1}
 												>
 													<Minus className="h-4 w-4" />
 												</Button>
-												<span className="w-12 text-center text-base font-medium sm:w-10 sm:text-sm">
+												<span className="w-12 text-center font-medium text-base sm:w-10 sm:text-sm">
 													{quantity}
 												</span>
 												<Button
 													type="button"
 													variant="ghost"
 													size="icon"
-													className="h-10 w-10 rounded-none sm:h-9 sm:w-9 shrink-0"
+													className="h-10 w-10 shrink-0 rounded-none sm:h-9 sm:w-9"
 													onClick={() => handleQuantityChange(eventItem.id, 1)}
 												>
 													<Plus className="h-4 w-4" />

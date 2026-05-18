@@ -34,7 +34,9 @@ const logger = {
 // Client-side: NEXT_PUBLIC_API_URL (for browser)
 export const API_BASE_URL =
 	typeof window === "undefined"
-		? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+		? process.env.API_URL ||
+			process.env.NEXT_PUBLIC_API_URL ||
+			"http://localhost:3000"
 		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
@@ -54,7 +56,9 @@ export const queryClient = new QueryClient({
 			if (
 				Array.isArray(queryKey) &&
 				queryKey.some(
-					(k) => typeof k === "string" && suppressedKeys.some((sk) => k.includes(sk)),
+					(k) =>
+						typeof k === "string" &&
+						suppressedKeys.some((sk) => k.includes(sk)),
 				)
 			) {
 				return;
@@ -130,7 +134,7 @@ export const kyClient = ky.create({
 
 					if (!isAuthEndpoint) {
 						logger.warn("401 Unauthorized detected. Clearing session.");
-						
+
 						// Clear session
 						const state = useUserSessionStore.getState();
 						state.removeSessionCredentials();

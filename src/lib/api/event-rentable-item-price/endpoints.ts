@@ -2,17 +2,17 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type CreatePriceTierRequest,
 	createPriceTierSchema,
-	type UpdatePriceTierRequest,
-	updatePriceTierSchema,
 	type DeletePriceTierRequest,
 	deletePriceTierSchema,
+	type UpdatePriceTierRequest,
+	updatePriceTierSchema,
 } from "./request";
 import type {
 	BackendEventRentableItemPriceTier,
-	EventRentableItemPriceTier,
 	CreatePriceTierResponse,
-	UpdatePriceTierResponse,
 	DeletePriceTierResponse,
+	EventRentableItemPriceTier,
+	UpdatePriceTierResponse,
 } from "./response";
 
 // Transform backend response to frontend format
