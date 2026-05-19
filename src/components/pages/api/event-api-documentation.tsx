@@ -18,6 +18,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { ApiKey, ApiKeyScope } from "@/lib/api/api-keys";
 import type { Event } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +27,50 @@ import {
 	EVENT_API_CATEGORIES,
 	EVENT_API_ENDPOINTS,
 } from "./event-api-endpoints-data";
+
+// Mirrors ApiKey#allows_method? (eventz-flow-backend/app/models/api_key.rb).
+// Keep in sync — docs lying about backend gating breaks integrations.
+const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const CHECK_IN_PATH_RE = /\/(check_in|unscan)(\/|$)/;
+
+function isAllowed(
+	scope: ApiKeyScope,
+	method: ApiEndpoint["method"],
+	endpointPath: string,
+): boolean {
+	const m = method.toUpperCase();
+	switch (scope) {
+		case "read_only":
+			return !WRITE_METHODS.has(m);
+		case "check_in":
+			if (!WRITE_METHODS.has(m)) return true;
+			if (m === "POST") return true;
+			return m === "PATCH" && CHECK_IN_PATH_RE.test(endpointPath);
+		case "read_write":
+			return true;
+	}
+}
+
+const SCOPE_RANK: Record<ApiKeyScope, number> = {
+	read_only: 0,
+	check_in: 1,
+	read_write: 2,
+};
+
+function maxScope(apiKeys: ApiKey[]): ApiKeyScope | null {
+	const active = apiKeys.filter((k) => k.isActive);
+	if (active.length === 0) return null;
+	return active.reduce<ApiKeyScope>(
+		(acc, k) => (SCOPE_RANK[k.scope] > SCOPE_RANK[acc] ? k.scope : acc),
+		"read_only",
+	);
+}
+
+const SCOPE_LABELS: Record<ApiKeyScope, string> = {
+	read_only: "Read only",
+	check_in: "Check-in",
+	read_write: "Full access",
+};
 
 const methodVariants = cva("rounded-none text-white", {
 	variants: {
@@ -211,12 +256,18 @@ function ApiEndpointCard({
 export function EventApiDocumentation({
 	event,
 	eventId,
+	apiKeys,
 }: {
 	event: Event;
 	eventId: number;
+	apiKeys: ApiKey[];
 }) {
+	const effectiveScope: ApiKeyScope = maxScope(apiKeys) ?? "read_only";
+
 	const visibleEndpoints = EVENT_API_ENDPOINTS.filter(
-		(e) => !e.visible || e.visible(event),
+		(e) =>
+			(!e.visible || e.visible(event)) &&
+			isAllowed(effectiveScope, e.method, e.endpoint),
 	);
 
 	// Keep sub as identity — {event_id} stays as placeholder in docs
@@ -267,6 +318,15 @@ export function EventApiDocumentation({
 					Keep your API key secret. Never expose it in client-side code or
 					public repositories. If compromised, revoke it immediately from the
 					API Keys tab.
+				</p>
+			</div>
+
+			{/* Scope filter notice */}
+			<div className="flex items-start gap-3 border border-dashed bg-muted/40 p-3 px-2 sm:px-4">
+				<Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+				<p className="text-muted-foreground text-xs sm:text-sm">
+					Showing endpoints available for{" "}
+					<strong>{SCOPE_LABELS[effectiveScope]}</strong> permission.
 				</p>
 			</div>
 

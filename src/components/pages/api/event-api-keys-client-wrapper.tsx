@@ -107,7 +107,11 @@ export default function EventApiKeysClientWrapper({
 				</TabsContent>
 
 				<TabsContent value="docs" className="mt-0">
-					<EventApiDocumentation event={event} eventId={eventId} />
+					<EventApiDocumentation
+						event={event}
+						eventId={eventId}
+						apiKeys={apiKeys}
+					/>
 				</TabsContent>
 			</div>
 		</Tabs>

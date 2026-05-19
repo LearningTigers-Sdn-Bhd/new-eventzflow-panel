@@ -7,8 +7,20 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { createApiKey, getApiKeys } from "@/lib/api/api-keys";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import {
+	type ApiKeyScope,
+	createApiKey,
+	getApiKeys,
+} from "@/lib/api/api-keys";
 
 interface CreateApiKeyDialogProps {
 	onClose: () => void;
@@ -20,7 +32,9 @@ export default function CreateApiKeyDialog({
 	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
 	const [keyName, setKeyName] = useState("");
+	const [scope, setScope] = useState<ApiKeyScope>("read_only");
 	const queryClient = useQueryClient();
+	const { isOrgOwner } = useUserPermissions();
 
 	const { data: existingApiKeys, isLoading: loadingKeys } = useQuery({
 		queryKey: ["api-keys"],
@@ -67,7 +81,10 @@ export default function CreateApiKeyDialog({
 			toast.error("API Key name is required");
 			return;
 		}
-		createMutation.mutate({ name: keyName.trim() });
+		createMutation.mutate({
+			name: keyName.trim(),
+			scope: isOrgOwner ? scope : undefined,
+		});
 	};
 
 	return (
@@ -105,6 +122,40 @@ export default function CreateApiKeyDialog({
 							Give your API key a descriptive name to identify it later.
 						</p>
 					</div>
+
+					{isOrgOwner ? (
+						<div className="space-y-2">
+							<Label htmlFor="keyScope">Permission</Label>
+							<Select
+								value={scope}
+								onValueChange={(v) => setScope(v as ApiKeyScope)}
+								disabled={createMutation.isPending}
+							>
+								<SelectTrigger id="keyScope">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="read_only">
+										Read only — GET requests only
+									</SelectItem>
+									<SelectItem value="check_in">
+										Check-in — read + POST (scanner endpoints)
+									</SelectItem>
+									<SelectItem value="read_write">
+										Full access — all CRUD methods
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							<p className="text-muted-foreground text-xs">
+								Only org owners can grant write access. Default is read-only.
+							</p>
+						</div>
+					) : (
+						<div className="rounded-md border bg-muted/40 p-3 text-muted-foreground text-xs">
+							Keys you create are read-only (GET requests only). Contact your
+							organization owner if you need write access.
+						</div>
+					)}
 
 					{hasExistingKey && (
 						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-950/40">
