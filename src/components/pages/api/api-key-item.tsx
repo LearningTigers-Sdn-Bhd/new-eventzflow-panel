@@ -2,6 +2,7 @@
 
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { ApiKeyScope } from "@/lib/api/api-keys";
 import { cn } from "@/lib/utils";
 import { ApiKeyActionsMenu } from "./api-key-action-menu";
 import type { BaseApiKey } from "./api-key-table-columns";
@@ -9,6 +10,18 @@ import type { BaseApiKey } from "./api-key-table-columns";
 interface ApiKeyItemProps {
 	apiKey: BaseApiKey;
 }
+
+const SCOPE_LABELS: Record<ApiKeyScope, string> = {
+	read_only: "Read only",
+	check_in: "Check-in",
+	read_write: "Full access",
+};
+
+const SCOPE_BADGE_CLASS: Record<ApiKeyScope, string> = {
+	read_only: "border-slate-500/40 text-slate-600",
+	check_in: "border-blue-500/40 text-blue-600",
+	read_write: "border-amber-500/40 text-amber-600",
+};
 
 // Format date with time
 function formatDateTime(date: string | Date): string {
@@ -63,6 +76,15 @@ export function ApiKeyItem({ apiKey }: ApiKeyItemProps) {
 						)}
 					>
 						{apiKey.isActive ? "Active" : "Revoked"}
+					</Badge>
+					<Badge
+						variant="outline"
+						className={cn(
+							"shrink-0 rounded-none px-1.5 py-0 font-semibold text-[10px]",
+							SCOPE_BADGE_CLASS[apiKey.scope ?? "read_only"],
+						)}
+					>
+						{SCOPE_LABELS[apiKey.scope ?? "read_only"]}
 					</Badge>
 				</div>
 

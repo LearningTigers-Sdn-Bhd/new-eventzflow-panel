@@ -25,7 +25,7 @@ import { SortableHeader } from "@/components/admin-ui/table/header/sortable-head
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
-import type { ApiKey } from "@/lib/api/api-keys";
+import type { ApiKey, ApiKeyScope } from "@/lib/api/api-keys";
 import { cn } from "@/lib/utils";
 import { ApiKeyItem } from "./api-key-item";
 import { ApiKeyTableControl } from "./api-key-table-control";
@@ -40,6 +40,18 @@ const STATUS_OPTIONS = [
 	{ label: "Active", value: true },
 	{ label: "Revoked", value: false },
 ];
+
+const SCOPE_LABELS: Record<ApiKeyScope, string> = {
+	read_only: "Read only",
+	check_in: "Check-in",
+	read_write: "Full access",
+};
+
+const SCOPE_BADGE_CLASS: Record<ApiKeyScope, string> = {
+	read_only: "bg-slate-500 text-white",
+	check_in: "bg-blue-500 text-white",
+	read_write: "bg-amber-500 text-white",
+};
 
 function formatDateTime(dateString: string): {
 	timePart: string;
@@ -101,6 +113,26 @@ export function EventApiKeyTable({ eventId, data }: EventApiKeyTableProps) {
 							)}
 						>
 							{isActive ? "Active" : "Revoked"}
+						</Badge>
+					);
+				},
+			},
+			{
+				accessorKey: "scope",
+				size: 130,
+				header: ({ column }) => (
+					<SortableHeader column={column} label="Permission" />
+				),
+				cell: ({ row }) => {
+					const scope = (row.getValue("scope") as ApiKeyScope) ?? "read_only";
+					return (
+						<Badge
+							className={cn(
+								"min-w-20 rounded-none font-bold capitalize",
+								SCOPE_BADGE_CLASS[scope],
+							)}
+						>
+							{SCOPE_LABELS[scope]}
 						</Badge>
 					);
 				},

@@ -7,8 +7,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { createEventApiKey } from "@/lib/api/api-keys";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import { type ApiKeyScope, createEventApiKey } from "@/lib/api/api-keys";
 
 interface CreateEventApiKeyDialogProps {
 	eventId: number;
@@ -22,10 +30,13 @@ export default function CreateEventApiKeyDialog({
 	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
 	const [keyName, setKeyName] = useState("");
+	const [scope, setScope] = useState<ApiKeyScope>("read_only");
 	const queryClient = useQueryClient();
+	const { isOrgOwner } = useUserPermissions();
 
 	const createMutation = useMutation({
-		mutationFn: (name: string) => createEventApiKey(eventId, name),
+		mutationFn: ({ name, scope }: { name: string; scope?: ApiKeyScope }) =>
+			createEventApiKey(eventId, name, scope),
 		onSuccess: (data) => {
 			setCreatedKey(data.apiKey.rawKey);
 			toast.success("API Key Created", {
@@ -68,7 +79,13 @@ export default function CreateEventApiKeyDialog({
 			});
 			return;
 		}
-		createMutation.mutate(keyName.trim());
+		// Only org_owner can elevate; backend enforces too. Sending the field
+		// from a non-owner is harmless (server ignores it) but we omit it for
+		// clarity.
+		createMutation.mutate({
+			name: keyName.trim(),
+			scope: isOrgOwner ? scope : undefined,
+		});
 	};
 
 	return (
@@ -106,6 +123,40 @@ export default function CreateEventApiKeyDialog({
 							Give your API key a descriptive name to identify it later.
 						</p>
 					</div>
+
+					{isOrgOwner ? (
+						<div className="space-y-2">
+							<Label htmlFor="keyScope">Permission</Label>
+							<Select
+								value={scope}
+								onValueChange={(v) => setScope(v as ApiKeyScope)}
+								disabled={createMutation.isPending}
+							>
+								<SelectTrigger id="keyScope">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="read_only">
+										Read only — GET requests only
+									</SelectItem>
+									<SelectItem value="check_in">
+										Check-in — read + POST (scanner endpoints)
+									</SelectItem>
+									<SelectItem value="read_write">
+										Full access — all CRUD methods
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							<p className="text-muted-foreground text-xs">
+								Only org owners can grant write access. Default is read-only.
+							</p>
+						</div>
+					) : (
+						<div className="rounded-md border bg-muted/40 p-3 text-muted-foreground text-xs">
+							Keys you create are read-only (GET requests only). Contact your
+							organization owner if you need write access.
+						</div>
+					)}
 
 					<Separator />
 

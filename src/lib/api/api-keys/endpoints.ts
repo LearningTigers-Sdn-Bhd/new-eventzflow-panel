@@ -8,6 +8,7 @@ import {
 import type {
 	ApiKey,
 	ApiKeyCreation,
+	ApiKeyScope,
 	BackendApiKey,
 	BackendApiKeyCreation,
 	CreateApiKeyResponse,
@@ -19,6 +20,7 @@ function transformApiKey(backendKey: BackendApiKey): ApiKey {
 	return {
 		id: String(backendKey.id),
 		name: backendKey.name,
+		scope: backendKey.scope,
 		lastUsedAt: backendKey.last_used_at,
 		createdAt: backendKey.created_at,
 		isActive: backendKey.is_active,
@@ -33,6 +35,7 @@ function transformApiKeyCreation(
 	return {
 		id: String(backendKey.id), // Ensure ID is always a string
 		name: backendKey.name,
+		scope: backendKey.scope,
 		rawKey: backendKey.raw_key,
 		message: backendKey.message,
 	};
@@ -58,11 +61,14 @@ export async function getEventApiKeys(eventId: number): Promise<ApiKey[]> {
 export async function createEventApiKey(
 	eventId: number,
 	name: string,
+	scope?: ApiKeyScope,
 ): Promise<CreateApiKeyResponse> {
 	try {
+		const body: { name: string; scope?: ApiKeyScope } = { name };
+		if (scope) body.scope = scope;
 		const response = await restClient.post<BackendApiKeyCreation>(
 			`v1/events/${eventId}/api_keys`,
-			{ name },
+			body,
 		);
 		return { success: true, apiKey: transformApiKeyCreation(response) };
 	} catch (error: any) {
@@ -107,9 +113,14 @@ export async function createApiKey(
 	try {
 		const validated = createApiKeySchema.parse(data);
 
+		const body: { name: string; scope?: ApiKeyScope } = {
+			name: validated.name,
+		};
+		if (validated.scope) body.scope = validated.scope;
+
 		const response = await restClient.post<BackendApiKeyCreation>(
 			"v1/api_keys",
-			{ name: validated.name },
+			body,
 		);
 
 		return {
