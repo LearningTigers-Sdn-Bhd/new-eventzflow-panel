@@ -29,7 +29,8 @@ export default function ExportLogsPage({
 	});
 
 	const createExportMutation = useMutation({
-		mutationFn: () => createExportLog({ eventId: event_id }),
+		mutationFn: (params: { from?: string; to?: string }) =>
+			createExportLog({ eventId: event_id, ...params }),
 		onSuccess: (newExport) => {
 			// Invalidate and refetch the export logs
 			queryClient.invalidateQueries({
@@ -48,8 +49,8 @@ export default function ExportLogsPage({
 		},
 	});
 
-	const handleCreateExport = () => {
-		createExportMutation.mutate();
+	const handleCreateExport = (from?: string, to?: string) => {
+		createExportMutation.mutate({ from, to });
 	};
 
 	useSetEventActions(
