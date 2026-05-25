@@ -159,6 +159,9 @@ export async function updateVendor(
 			if (validated.phone) {
 				formData.append("vendor[phone]", validated.phone);
 			}
+			if (validated.created_by_id !== undefined) {
+				formData.append("vendor[created_by_id]", validated.created_by_id ?? "");
+			}
 
 			if (validated.newPassword) {
 				formData.append("vendor[password]", validated.newPassword);
@@ -217,6 +220,7 @@ export async function updateVendor(
 				full_name: validated.full_name,
 				email: validated.email,
 				phone: validated.phone,
+				...(validated.created_by_id !== undefined && { created_by_id: validated.created_by_id }),
 			},
 		};
 

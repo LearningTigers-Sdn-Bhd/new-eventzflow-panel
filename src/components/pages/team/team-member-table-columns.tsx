@@ -13,10 +13,11 @@ export type TeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "organizer" | "member" | "vendor";
+	role: "org_owner" | "organizer" | "member" | "vendor" | "exhibitor" | "exhibition_contractor";
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;
+	createdById?: string | null;
 	emailVerifiedAt?: string | null;
 };
 
@@ -26,6 +27,8 @@ const ROLE_OPTIONS = [
 	{ label: "Organizer", value: "organizer" },
 	{ label: "Member", value: "member" },
 	{ label: "Vendor", value: "vendor" },
+	{ label: "Exhibitor", value: "exhibitor" },
+	{ label: "Exhibition Contractor", value: "exhibition_contractor" },
 ];
 
 // Status filter options

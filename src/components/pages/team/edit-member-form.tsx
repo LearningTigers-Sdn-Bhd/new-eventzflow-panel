@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
@@ -12,13 +12,20 @@ import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { updateTeamMember } from "@/lib/api/team";
+import { getTeamMembers, updateTeamMember } from "@/lib/api/team";
 import type { TeamMember } from "./team-member-table-columns";
 
 interface EditMemberFormProps {
 	member: TeamMember;
 	onClose: () => void;
 }
+
+const ROLE_OPTIONS = [
+	{ value: "member", label: "Member" },
+	{ value: "organizer", label: "Organizer" },
+	{ value: "vendor", label: "Vendor" },
+	{ value: "exhibition_contractor", label: "Exhibition Contractor" },
+];
 
 export default function EditMemberForm({
 	member,
@@ -31,6 +38,7 @@ export default function EditMemberForm({
 	const passwordId = useId();
 	const roleId = useId();
 	const verifyId = useId();
+	const assignedToId = useId();
 
 	const [formData, setFormData] = useState({
 		full_name: member.full_name,
@@ -39,19 +47,35 @@ export default function EditMemberForm({
 		newPassword: "",
 		role: member.role,
 		emailVerifiedAt: member.emailVerifiedAt,
+		created_by_id: member.createdById || "none",
 	});
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const isEmailVerified = !!formData.emailVerifiedAt;
+	const isOrgOwner = user?.role === "org_owner";
+
+	const { data: allMembers = [] } = useQuery({
+		queryKey: ["team", "members"],
+		queryFn: () => getTeamMembers(),
+		enabled: isOrgOwner,
+	});
+
+	const assignedToOptions = [
+		{ value: "none", label: "None (unassigned)" },
+		...allMembers.map((m) => ({ value: m.id, label: `${m.full_name} (${m.email})` })),
+	];
+
+	const assignedToValue = formData.created_by_id && formData.created_by_id !== "none"
+		? formData.created_by_id
+		: undefined;
 
 	const queryClient = useQueryClient();
 	const updateMemberMutation = useMutation({
 		mutationFn: updateTeamMember,
 		onSuccess: () => {
 			toast.success("Team member updated successfully!");
-			// Invalidate and refetch team members queries
 			queryClient.invalidateQueries({ queryKey: ["team", "members"] });
 			queryClient.invalidateQueries({ queryKey: ["organizer-members"] });
 			onClose();
@@ -65,7 +89,6 @@ export default function EditMemberForm({
 		e.preventDefault();
 		setErrors({});
 
-		// Basic validation
 		const newErrors: Record<string, string> = {};
 
 		if (!formData.full_name || formData.full_name.length < 2) {
@@ -88,6 +111,7 @@ export default function EditMemberForm({
 				email: formData.email,
 				phone: formData.phone || undefined,
 				role: formData.role,
+				created_by_id: isOrgOwner ? (formData.created_by_id === "none" || formData.created_by_id === "" ? null : formData.created_by_id) : undefined,
 				newPassword: formData.newPassword || undefined,
 				email_verified_at: formData.emailVerifiedAt,
 			});
@@ -98,7 +122,6 @@ export default function EditMemberForm({
 
 	const handleChange = (field: string, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
-		// Clear error for this field when user starts typing
 		if (errors[field]) {
 			setErrors((prev) => {
 				const newErrors = { ...prev };
@@ -123,7 +146,6 @@ export default function EditMemberForm({
 								description: "Update the member's personal details",
 							}}
 						>
-							{/* Name - Full Width */}
 							<InputLabel
 								htmlFor={nameId}
 								label="Name"
@@ -140,7 +162,6 @@ export default function EditMemberForm({
 								}
 							/>
 
-							{/* Email and Phone - Two Columns */}
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 								<InputLabel
 									htmlFor={emailId}
@@ -173,8 +194,8 @@ export default function EditMemberForm({
 							</div>
 						</FormGroupContainer>
 
-						{/* Role and Verification - Only visible for org_owner */}
-						{user?.role === "org_owner" && member.role !== "org_owner" && (
+						{/* Role and Assignment - Only visible for org_owner */}
+						{isOrgOwner && member.role !== "org_owner" && (
 							<FormGroupContainer
 								title={{
 									icon: Shield,
@@ -189,10 +210,17 @@ export default function EditMemberForm({
 										label="Role"
 										value={formData.role}
 										onChange={(value) => handleChange("role", value)}
-										options={[
-											{ value: "member", label: "Member" },
-											{ value: "organizer", label: "Organizer" },
-										]}
+										options={ROLE_OPTIONS}
+										disabled={updateMemberMutation.isPending}
+										variant="no-rounded"
+									/>
+									<SelectLabel
+										htmlFor={assignedToId}
+										label="Assigned To"
+										placeholder="Select user"
+										value={assignedToValue}
+										onChange={(value) => handleChange("created_by_id", value)}
+										options={assignedToOptions}
 										disabled={updateMemberMutation.isPending}
 										variant="no-rounded"
 									/>
@@ -246,7 +274,6 @@ export default function EditMemberForm({
 					</FormGroupContainer>
 				</FieldSet>
 
-				{/* Buttons - Right Aligned */}
 				<FieldGroup className="flex flex-col gap-2 md:flex-row md:justify-end">
 					<Button
 						type="button"

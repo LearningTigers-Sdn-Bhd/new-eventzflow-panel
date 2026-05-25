@@ -4,6 +4,7 @@
 export {
 	createTeamMember,
 	deleteMember,
+	getOrganizers,
 	getOrganizerMembers,
 	getTeamMembers,
 	toggleMemberStatus,
