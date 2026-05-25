@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
+import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
@@ -123,7 +124,7 @@ export default function EventDetailsPage({
 
 	return (
 		<div className="space-y-6">
-			<EventDetailsView event={event} />
+			<EventDetailsActionButtons event={event} />
 
 			{shouldFetchAnalytics && (
 				<AnalyticsClientWrapper
@@ -133,6 +134,8 @@ export default function EventDetailsPage({
 					voucherAnalytics={voucherAnalytics ?? undefined}
 				/>
 			)}
+
+			<EventDetailsView event={event} />
 		</div>
 	);
 }

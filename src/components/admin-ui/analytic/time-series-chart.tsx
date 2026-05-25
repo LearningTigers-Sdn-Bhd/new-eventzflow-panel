@@ -148,7 +148,7 @@ export function TimeSeriesChart({
 							accessibilityLayer
 							data={data}
 							margin={{
-								left: -20,
+								left: -10,
 								right: 30,
 								top: 20,
 								bottom: 5,

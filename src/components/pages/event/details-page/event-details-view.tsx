@@ -33,9 +33,6 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 
 	return (
 		<div className="space-y-2">
-			{/* Action Buttons Row */}
-			<EventDetailsActionButtons event={event} />
-
 			<div
 				className={cn(
 					"grid grid-cols-1 gap-2",
@@ -111,7 +108,7 @@ export function EventDetailsView({ event }: EventDetailsViewProps) {
 										href={event.webhook_url}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-2 text-primary text-sm hover:underline"
+										className="flex items-center gap-2 break-all text-primary text-sm hover:underline"
 									>
 										{event.webhook_url}
 										<ExternalLink className="h-3 w-3" />

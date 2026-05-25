@@ -46,8 +46,8 @@ export function EventDetailsKeyMetrics({
 						Icon={Clock}
 					/>
 					<StatsCard
-						label="Total Amount"
-						value={ticketAnalytics?.totalRevenue.toLocaleString() ?? "0"}
+						label="Revenue"
+						value={formatCurrency(ticketAnalytics?.totalRevenue) ?? "0"}
 						Icon={TrendingUp}
 					/>
 				</>
