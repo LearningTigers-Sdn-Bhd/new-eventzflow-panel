@@ -245,16 +245,16 @@ export default function EmailSettingsForm({
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<InputLabel
-											label="Payment Receipt BCC Email"
+											label="Registration Notification BCC Email"
 											htmlFor={field.name}
 											value={field.state.value}
 											onChange={field.handleChange}
 											onBlur={field.handleBlur}
 											errors={field.state.meta.errors}
 											isInvalid={isInvalid}
-											placeholder="e.g. finance@yourdomain.com"
+											placeholder="e.g. info@yourdomain.com"
 											disabled={updateEventMutation.isPending}
-											description="Receives a BCC copy of all payment receipt emails. Ensure the email is valid."
+											description="Receives a BCC copy of all registration emails. Ensure the email is valid."
 										/>
 									);
 								}}
