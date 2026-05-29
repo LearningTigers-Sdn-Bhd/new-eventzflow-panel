@@ -177,7 +177,11 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 							<CardContent className="grid gap-6 p-6">
 								<InfoItem
 									label="Ticket Type"
-									value={ticket.ticketTypeName || "Standard"}
+									value={
+										ticket.ticketTypeName
+											? `${ticket.ticketTypeName} ${ticket.ticketTypeId ? `(#${ticket.ticketTypeId})` : ""}`
+											: "Standard"
+									}
 									icon={FileText}
 								/>
 								<InfoItem

@@ -165,8 +165,8 @@ export function TicketTypeFieldSection({
 								value: ticketType.id.toString(),
 								label:
 									ticketType.eventId === null
-										? `${ticketType.name} (Default)`
-										: ticketType.name,
+										? `${ticketType.name} (Default) (#${ticketType.id})`
+										: `${ticketType.name} (#${ticketType.id})`,
 							}))}
 							errors={
 								field.state.meta.errors.length > 0

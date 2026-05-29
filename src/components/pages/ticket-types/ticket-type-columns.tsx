@@ -16,9 +16,14 @@ const columns: ColumnDef<TicketType>[] = [
 		accessorKey: "name",
 		size: 200,
 		header: ({ column }) => <SortableHeader column={column} label="Name" />,
-		cell: ({ row }) => (
-			<div className="font-medium">{row.getValue("name")}</div>
-		),
+		cell: ({ row }) => {
+			const ticketType = row.original;
+			return (
+				<div className="font-medium">
+					{ticketType.name} <span className="text-muted-foreground text-xs">(#{ticketType.id})</span>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "price",

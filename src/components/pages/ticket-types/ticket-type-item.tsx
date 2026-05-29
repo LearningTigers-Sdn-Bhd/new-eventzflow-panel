@@ -42,7 +42,10 @@ export function TicketTypeItem({ ticketType }: TicketTypeItemProps) {
 		<Card className="rounded-none border-dashed">
 			<CardHeader className="flex flex-row items-center justify-between pb-2">
 				<CardTitle className="font-medium text-base">
-					{ticketType.name}
+					{ticketType.name}{" "}
+					<span className="text-muted-foreground text-xs font-normal">
+						(#{ticketType.id})
+					</span>
 				</CardTitle>
 				<TicketTypeActionsMenu ticketType={ticketType} />
 			</CardHeader>

@@ -108,7 +108,7 @@ export function EditTicketTypeForm({
 				<div className="flex h-full flex-col justify-between gap-8">
 					<div className="space-y-6">
 						<InputLabel
-							label="Name"
+							label={`Name (#${ticketType.id})`}
 							htmlFor={nameId}
 							value={formData.name}
 							onChange={(value) => handleChange("name", value)}

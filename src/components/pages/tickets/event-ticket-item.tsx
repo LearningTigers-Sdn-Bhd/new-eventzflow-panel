@@ -95,6 +95,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
 								<Ticket className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" />
 								<span className="line-clamp-2 break-words font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
 									{ticket.ticketTypeName || "General Admission"}
+									{ticket.ticketTypeId && ` (#${ticket.ticketTypeId})`}
 								</span>
 							</div>
 							<ItemActions className="shrink-0 self-end">

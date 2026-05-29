@@ -114,11 +114,19 @@ export function generateColumns(
 			accessorKey: "ticketTypeName",
 			size: 140,
 			header: "Ticket Type",
-			cell: ({ row }) => (
-				<div className="truncate font-medium">
-					{row.getValue("ticketTypeName") || "N/A"}
-				</div>
-			),
+			cell: ({ row }) => {
+				const ticket = row.original;
+				return (
+					<div className="truncate font-medium">
+						{ticket.ticketTypeName || "N/A"}{" "}
+						{ticket.ticketTypeId && (
+							<span className="text-muted-foreground text-xs font-normal">
+								(#{ticket.ticketTypeId})
+							</span>
+						)}
+					</div>
+				);
+			},
 			// Note: Ticket types are dynamic, so FilterableHeader cannot be used here
 			// Filtering is handled via filterFn for compatibility with existing filter logic
 			filterFn: (row, id, value) => {

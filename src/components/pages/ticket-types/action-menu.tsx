@@ -64,7 +64,7 @@ export function TicketTypeActionsMenu({
 	const handleDeleteClick = () => {
 		openConfirm({
 			title: "Delete Ticket Type",
-			message: `Are you sure you want to delete "${ticketType.name}"? This action cannot be undone.`,
+			message: `Are you sure you want to delete "${ticketType.name}" (#${ticketType.id})? This action cannot be undone.`,
 			confirmLabel: "Delete",
 			cancelLabel: "Cancel",
 			type: "destructive",
