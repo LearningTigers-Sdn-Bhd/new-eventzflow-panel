@@ -223,8 +223,11 @@ export default function ManualAddForm({
 			const trimmedBoothNumber = boothNumber.trim();
 			if (trimmedBoothNumber) kit.booth_number = trimmedBoothNumber;
 
+			const selectedVendor = vendors?.find(
+				(v) => v.id.toString() === vendorId,
+			);
 			const trimmedCompany = companyName.trim();
-			if (trimmedCompany) kit.company_name = trimmedCompany;
+			kit.company_name = trimmedCompany || selectedVendor?.full_name || "";
 
 			const trimmedPicEmail = picEmail.trim();
 			if (trimmedPicEmail) kit.pic_email_address = trimmedPicEmail;

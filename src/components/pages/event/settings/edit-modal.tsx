@@ -9,6 +9,7 @@ import EmailSettingsForm from "./email-settings-form";
 import type { SettingsTab } from "./navigation";
 import SettingsNavigation from "./navigation";
 import PaymentGatewayForm from "./payment-gateway-form";
+import ReminderSettingsForm from "./reminder-settings-form";
 import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
@@ -39,6 +40,9 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "email-settings" && (
 					<EmailSettingsForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "event-reminder" && (
+					<ReminderSettingsForm eventId={eventId} onClose={onClose} />
 				)}
 				{activeTab === "custom-labels" && (
 					<CustomLabelForm eventId={eventId} onClose={onClose} />

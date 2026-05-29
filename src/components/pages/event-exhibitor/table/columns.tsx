@@ -99,7 +99,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.company_name",
+		accessorFn: (row) =>
+			row.exhibitor_kit?.company_name || row.vendor.full_name,
 		id: "company_name",
 		size: 200,
 		header: ({ column }) => {

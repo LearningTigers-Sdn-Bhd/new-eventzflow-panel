@@ -39,6 +39,9 @@ export type Event = {
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
 	use_api_access: boolean;
+	reminders_enabled: boolean;
+	reminder_7_day: boolean;
+	reminder_1_day: boolean;
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
 	wish_wall_setting: WishWallSetting;

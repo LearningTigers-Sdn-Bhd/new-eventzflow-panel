@@ -64,6 +64,9 @@ export const updateEventSchema = z.object({
 	// photo_booth_enabled: z.boolean().optional(),
 	use_event_leads: z.boolean().optional(),
 	use_api_access: z.boolean().optional(),
+	reminders_enabled: z.boolean().optional(),
+	reminder_7_day: z.boolean().optional(),
+	reminder_1_day: z.boolean().optional(),
 	payment_receipt_email: z
 		.string()
 		.email()

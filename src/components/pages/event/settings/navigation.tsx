@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	BellRing,
 	CreditCard,
 	ImageIcon,
 	InfoIcon,
@@ -15,6 +16,7 @@ import { canAccessPosterSettings } from "./access";
 export type SettingsTab =
 	| "event-information"
 	| "email-settings"
+	| "event-reminder"
 	| "custom-labels"
 	| "welcome-screen"
 	| "poster"
@@ -42,6 +44,11 @@ const navigationItems: NavigationItem[] = [
 		id: "email-settings",
 		label: "Email Settings",
 		icon: Mail,
+	},
+	{
+		id: "event-reminder",
+		label: "Event Reminder",
+		icon: BellRing,
 	},
 	{
 		id: "custom-labels",

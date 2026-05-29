@@ -88,12 +88,16 @@ export default function GroupAddForm({ eventId, onClose }: GroupAddFormProps) {
 			// Assign exhibitors sequentially with default exhibitor kit
 			const results = [];
 			for (const vendorId of vendorIds) {
+				const affiliate = groupAffiliates?.find(
+					(a) => a.vendor_id === vendorId,
+				);
 				const result = await createEventVendor(eventId, {
 					vendor_id: vendorId,
 					// Create exhibitor kit with minimal required fields
 					exhibitor_kit_attributes: {
 						pic_full_name: "TBD",
 						pic_contact_number: "TBD",
+						company_name: affiliate?.vendor.full_name || "",
 					},
 				});
 				results.push(result);
