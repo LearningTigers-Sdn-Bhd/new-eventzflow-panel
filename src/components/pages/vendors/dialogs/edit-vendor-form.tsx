@@ -79,7 +79,10 @@ export default function EditVendorForm({
 
 	const organizerOptions = [
 		{ value: "none", label: "None (unassigned)" },
-		...organizers.map((o) => ({ value: o.id, label: `${o.full_name} (${o.email})` })),
+		...organizers.map((o) => ({
+			value: o.id,
+			label: `${o.full_name} (${o.email})`,
+		})),
 	];
 
 	const initialCategoryState = getCategoryState(vendor.vendorProfile?.category);
@@ -205,7 +208,11 @@ export default function EditVendorForm({
 				email: formData.email,
 				phone: formData.phone || undefined,
 				newPassword: formData.newPassword || undefined,
-				created_by_id: isOrgOwner ? (formData.created_by_id === "none" || formData.created_by_id === "" ? null : formData.created_by_id) : undefined,
+				created_by_id: isOrgOwner
+					? formData.created_by_id === "none" || formData.created_by_id === ""
+						? null
+						: formData.created_by_id
+					: undefined,
 				vendor_profile_attributes: profileAttributes,
 			});
 		} catch {
@@ -264,8 +271,8 @@ export default function EditVendorForm({
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<InputLabel
 										htmlFor={nameId}
-										label="Full Name"
-										placeholder="John Doe"
+										label="Full Entity Name (Company / Association / Institution)"
+										placeholder="Enter full entity name"
 										value={formData.full_name}
 										onChange={(value) => handleChange("full_name", value)}
 										required

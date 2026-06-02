@@ -178,8 +178,8 @@ export default function CreateVendorForm({ onClose }: CreateVendorFormProps) {
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<InputLabel
 										htmlFor={nameId}
-										label="Full Name"
-										placeholder="John Doe"
+										label="Full Entity Name (Company / Association / Institution)"
+										placeholder="Enter full entity name"
 										value={formData.full_name}
 										onChange={(value) => handleChange("full_name", value)}
 										required

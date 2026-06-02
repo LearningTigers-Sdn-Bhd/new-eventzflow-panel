@@ -223,9 +223,7 @@ export default function ManualAddForm({
 			const trimmedBoothNumber = boothNumber.trim();
 			if (trimmedBoothNumber) kit.booth_number = trimmedBoothNumber;
 
-			const selectedVendor = vendors?.find(
-				(v) => v.id.toString() === vendorId,
-			);
+			const selectedVendor = vendors?.find((v) => v.id.toString() === vendorId);
 			const trimmedCompany = companyName.trim();
 			kit.company_name = trimmedCompany || selectedVendor?.full_name || "";
 
@@ -336,6 +334,21 @@ export default function ManualAddForm({
 								onValueChange={(value) => {
 									setVendorId(value);
 									clearError("vendorId");
+									const selected = activeVendors.find(
+										(v) => v.id.toString() === value,
+									);
+									if (selected) {
+										setCompanyName(selected.full_name || "");
+										setPicFullName(
+											selected.vendorProfile?.person_in_charge ||
+												selected.full_name ||
+												"",
+										);
+										setPicContactNumber(selected.phone || "");
+										setPicEmail(selected.email || "");
+										clearError("picFullName");
+										clearError("picContactNumber");
+									}
 								}}
 								disabled={submitting}
 							>
