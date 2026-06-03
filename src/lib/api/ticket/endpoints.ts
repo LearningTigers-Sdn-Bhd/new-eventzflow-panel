@@ -61,7 +61,7 @@ export async function checkInTicket(
 }
 
 /**
- * Unscan a ticket (org_owner only)
+ * Unscan a ticket (org_owner and organizer only)
  * Resets checked_in, check_in_at, scanned_by_id, and status
  */
 export async function unscanTicket(ticketId: string): Promise<void> {

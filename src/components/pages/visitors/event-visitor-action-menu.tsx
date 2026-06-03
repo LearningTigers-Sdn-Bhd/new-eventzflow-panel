@@ -123,7 +123,9 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 		});
 	};
 
-	const showUnscanButton = user?.role === "org_owner" && visitor.checked_in;
+	const showUnscanButton =
+		(user?.role === "org_owner" || user?.role === "organizer") &&
+		visitor.checked_in;
 
 	return (
 		<ButtonGroup>

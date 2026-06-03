@@ -96,7 +96,7 @@ export async function deleteVisitor(
 }
 
 /**
- * Unscan a visitor (org_owner only)
+ * Unscan a visitor (org_owner and organizer only)
  * Resets checked_in, check_in_at, and scanned_by_id
  */
 export async function unscanVisitor(visitorId: string | number): Promise<void> {
