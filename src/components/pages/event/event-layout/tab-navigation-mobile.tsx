@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/select";
 import type { TabItem } from "./tab-config";
 import {
-	TICKET_TAB_IDS,
 	ANALYTICS_TAB_IDS,
-	LOGS_TAB_IDS,
 	EXHIBITOR_KIT_TAB_IDS,
+	LOGS_TAB_IDS,
+	TICKET_TAB_IDS,
 	USER_MANAGEMENT_TAB_IDS,
 } from "./tab-config";
 
@@ -56,7 +56,11 @@ export function TabNavigationMobile({
 		return tabs.map((tab) => {
 			const IconComponent = tab.icon;
 			return (
-				<SelectItem key={tab.id} value={tab.route} className="h-10! rounded-none">
+				<SelectItem
+					key={tab.id}
+					value={tab.route}
+					className="h-10! rounded-none"
+				>
 					<div className="flex items-center gap-2">
 						<IconComponent className="size-4" />
 						<span>{tab.label}</span>
@@ -85,14 +89,21 @@ export function TabNavigationMobile({
 				<SelectContent className="rounded-none bg-background">
 					{mainTabs.map((item) => {
 						if (item.id === "tickets-group") return renderTabItems(ticketTabs);
-						if (item.id === "analytics-group") return renderTabItems(analyticsTabs);
+						if (item.id === "analytics-group")
+							return renderTabItems(analyticsTabs);
 						if (item.id === "logs-group") return renderTabItems(logsTabs);
-						if (item.id === "exhibitor-kit-group") return renderTabItems(exhibitorKitTabs);
-						if (item.id === "user-management-group") return renderTabItems(userManagementTabs);
+						if (item.id === "exhibitor-kit-group")
+							return renderTabItems(exhibitorKitTabs);
+						if (item.id === "user-management-group")
+							return renderTabItems(userManagementTabs);
 
 						const IconComponent = item.icon;
 						return (
-							<SelectItem key={item.id} value={item.route} className="h-10! rounded-none">
+							<SelectItem
+								key={item.id}
+								value={item.route}
+								className="h-10! rounded-none"
+							>
 								<div className="flex items-center gap-2">
 									<IconComponent className="size-4" />
 									<span>{item.label}</span>

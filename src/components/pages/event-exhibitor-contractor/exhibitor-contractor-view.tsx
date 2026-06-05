@@ -12,6 +12,7 @@ import {
 	User,
 } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +22,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import { getEventExhibitionContractor } from "@/lib/api/event-exhibition-contractor";
+import {
+	isExhibitorManagementEnabled,
+	shouldLoadExhibitorManagementData,
+} from "../event/exhibitor-management-access";
 import { AssignContractorDialog } from "./assign-contractor-dialog";
 
 interface ExhibitorContractorViewProps {
@@ -32,7 +39,16 @@ interface ExhibitorContractorViewProps {
 export function ExhibitorContractorView({
 	eventId,
 }: ExhibitorContractorViewProps) {
+	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
+	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+	const shouldLoadContractorData = shouldLoadExhibitorManagementData(
+		user?.role,
+		eventDetails,
+	);
 
 	// Fetch the assigned contractor for this event
 	const {
@@ -42,6 +58,7 @@ export function ExhibitorContractorView({
 	} = useQuery({
 		queryKey: ["event", eventId, "exhibition-contractor"],
 		queryFn: () => getEventExhibitionContractor(Number(eventId)),
+		enabled: shouldLoadContractorData,
 	});
 
 	const handleAssignContractor = () => {
@@ -59,13 +76,20 @@ export function ExhibitorContractorView({
 		});
 	};
 
-	if (isLoading) {
+	if (isLoadingEvent || (shouldLoadContractorData && isLoading)) {
 		return (
 			<LoadingState
 				title="Loading main contractor..."
 				description="Please wait while we fetch the assigned contractor..."
 			/>
 		);
+	}
+
+	if (
+		!isLoadingEvent &&
+		!isExhibitorManagementEnabled(user?.role, eventDetails)
+	) {
+		return <FeatureLockedState isEventVendor={user?.role === "vendor"} />;
 	}
 
 	if (eventContractorError) {
@@ -171,8 +195,8 @@ export function ExhibitorContractorView({
 								<div className="flex h-12 w-12 shrink-0 items-center justify-center bg-muted">
 									<FileText className="h-6 w-6 text-muted-foreground" />
 								</div>
-								<div className="flex-1 min-w-0">
-									<p className="font-medium text-sm truncate">
+								<div className="min-w-0 flex-1">
+									<p className="truncate font-medium text-sm">
 										{profile.guidelines_pdf_filename || "Guidelines Document"}
 									</p>
 									<p className="text-muted-foreground text-xs">
@@ -200,8 +224,8 @@ export function ExhibitorContractorView({
 								<div className="flex h-12 w-12 shrink-0 items-center justify-center bg-muted">
 									<Package className="h-6 w-6 text-muted-foreground" />
 								</div>
-								<div className="flex-1 min-w-0 overflow-hidden">
-									<p className="text-sm whitespace-pre-wrap break-words">
+								<div className="min-w-0 flex-1 overflow-hidden">
+									<p className="whitespace-pre-wrap break-words text-sm">
 										{profile.standard_package_info}
 									</p>
 								</div>

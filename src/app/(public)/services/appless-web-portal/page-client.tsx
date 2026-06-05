@@ -1,11 +1,11 @@
 "use client";
 
 import Phone from "@/components/devices/Phone";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -84,7 +84,7 @@ function PWADemo() {
 	return (
 		<Phone>
 			{/* Browser Bar */}
-			<div className="border-b border-white/10 bg-[#1a1a1a] px-4 py-2">
+			<div className="border-white/10 border-b bg-[#1a1a1a] px-4 py-2">
 				<div className="flex items-center gap-2">
 					<div className="flex gap-1">
 						<div className="h-2 w-2 rounded-full bg-red-400/80" />
@@ -92,9 +92,7 @@ function PWADemo() {
 						<div className="h-2 w-2 rounded-full bg-green-400/80" />
 					</div>
 					<div className="flex-1 rounded bg-white/10 px-3 py-1">
-						<p className="truncate text-[10px] text-white/60">
-							eventzflow.com
-						</p>
+						<p className="truncate text-[10px] text-white/60">eventzflow.com</p>
 					</div>
 				</div>
 			</div>
@@ -103,26 +101,24 @@ function PWADemo() {
 			<div className="flex flex-1 flex-col bg-gradient-to-b from-[#0a1014] to-black">
 				<div className="flex flex-1 flex-col items-center justify-center px-5 py-6">
 					<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white">
-						<span className="text-2xl font-bold text-black">E</span>
+						<span className="font-bold text-2xl text-black">E</span>
 					</div>
-					<p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-white/50">
+					<p className="text-center font-bold text-white/50 text-xs uppercase tracking-[0.2em]">
 						Welcome to
 					</p>
-					<p className="mt-1 text-center text-xl font-bold text-white">
+					<p className="mt-1 text-center font-bold text-white text-xl">
 						EventzFlow
 					</p>
 				</div>
 
 				{/* Add to Home Screen Prompt */}
-				<div className="border-t border-white/10 bg-[#0a1014] p-4">
+				<div className="border-white/10 border-t bg-[#0a1014] p-4">
 					<div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3">
 						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
 							<span className="text-base">📲</span>
 						</div>
 						<div className="flex-1">
-							<p className="font-bold text-xs text-white">
-								Add to Home Screen
-							</p>
+							<p className="font-bold text-white text-xs">Add to Home Screen</p>
 							<p className="text-[10px] text-white/50">For quick access</p>
 						</div>
 					</div>

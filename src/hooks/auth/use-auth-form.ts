@@ -22,7 +22,7 @@ export function useAuthForm(): UseAuthFormReturn {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const redirectPath = searchParams.get("redirect");
-	
+
 	const [state, setState] = useState<AuthFormState>({
 		isLoading: false,
 		error: null,
@@ -71,7 +71,11 @@ export function useAuthForm(): UseAuthFormReturn {
 		try {
 			await register(userData);
 			toast.success("Sign up successful");
-			router.push((redirectPath ? `/verify-email?redirect=${encodeURIComponent(redirectPath)}` : "/verify-email") as Route);
+			router.push(
+				(redirectPath
+					? `/verify-email?redirect=${encodeURIComponent(redirectPath)}`
+					: "/verify-email") as Route,
+			);
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error

@@ -26,6 +26,8 @@ import {
 } from "@/lib/public-registration/attendee-state";
 import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
 import { buildPublicRegistrationTypeTitle } from "@/lib/public-registration/title";
+import { TicketDownloadButton } from "./TicketDownloadButton";
+import { TicketVisual } from "./TicketVisual";
 
 interface AttendeeFormRow {
 	row_id: string;
@@ -51,12 +53,19 @@ const emptyAttendee = (customLabelKeys: string[] = []): AttendeeFormRow => ({
 
 const SMOOTH_EASE = [0.16, 1, 0.3, 1] as const;
 
+function formatTicketPrice(price: number | null | undefined) {
+	const normalizedPrice = Number(price ?? 0);
+	if (normalizedPrice <= 0) return "Free";
+	return `RM ${normalizedPrice.toLocaleString()}`;
+}
+
 declare global {
 	interface Window {
 		Razorpay?: new (
 			options: Record<string, unknown>,
 		) => {
 			open: () => void;
+			on?: (event: string, callback: () => void) => void;
 		};
 	}
 }
@@ -98,6 +107,11 @@ export function PublicRegistrationForm({
 	const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 	const [paymentError, setPaymentError] = useState<string | null>(null);
 	const [paymentSuccess, setPaymentSuccess] = useState(false);
+	const [finalPaymentStatuses, setFinalPaymentStatuses] = useState<string[]>(
+		[],
+	);
+	const [finalPublicIds, setFinalPublicIds] = useState<string[]>([]);
+	const [hydratedFromCallback, setHydratedFromCallback] = useState(false);
 
 	const {
 		eventQuery,
@@ -129,7 +143,8 @@ export function PublicRegistrationForm({
 	);
 
 	const customLabelEntries = useMemo(
-		() => mergedCustomLabelsData.map((entry) => [entry.key, entry.label] as const),
+		() =>
+			mergedCustomLabelsData.map((entry) => [entry.key, entry.label] as const),
 		[mergedCustomLabelsData],
 	);
 	const customLabelKeys = useMemo(
@@ -142,6 +157,7 @@ export function PublicRegistrationForm({
 	);
 
 	const registrationMode = selectedTicketType?.registration_mode ?? "single";
+	const requiresPayment = (selectedTicketType?.price ?? 0) > 0;
 	const minAttendees = selectedTicketType?.min_attendees ?? 1;
 	const maxAttendees = selectedTicketType?.max_attendees ?? null;
 	const canAddAttendee =
@@ -183,6 +199,41 @@ export function PublicRegistrationForm({
 		);
 	}, [eventQuery.data?.title, selectedRegistrationFormName, formSlug]);
 
+	useEffect(() => {
+		if (hydratedFromCallback || typeof window === "undefined") return;
+
+		const search = new URLSearchParams(window.location.search);
+		const step = search.get("step");
+		const callbackEmail = search.get("email");
+		const callbackTicket = search.get("ticket");
+		const callbackError = search.get("error");
+
+		if (callbackEmail) {
+			setEmail(decodeURIComponent(callbackEmail));
+		}
+
+		if (callbackTicket) {
+			setFinalPublicIds([callbackTicket]);
+		}
+
+		if (step === "success") {
+			setPaymentSuccess(true);
+			setFinalPaymentStatuses(["paid"]);
+			setCurrentStep(6);
+		} else if (step === "payment") {
+			setPaymentSuccess(false);
+			if (callbackTicket) {
+				setFinalPaymentStatuses(["pending"]);
+			}
+			setCurrentStep(5);
+			if (callbackError) {
+				setPaymentError(decodeURIComponent(callbackError));
+			}
+		}
+
+		setHydratedFromCallback(true);
+	}, [hydratedFromCallback]);
+
 	const loading =
 		eventQuery.isLoading ||
 		ticketTypesQuery.isLoading ||
@@ -190,14 +241,62 @@ export function PublicRegistrationForm({
 
 	// Step validation
 	const canProceedStep1 = selectedTicketTypeId !== null;
+	const canProceedStep1WithAvailability = Boolean(
+		selectedTicketTypeId !== null && selectedTicketType?.available,
+	);
 	const canProceedStep2 = email.trim().length > 0 && email.includes("@");
+	const duplicateAttendeeEmailIndexes = useMemo(() => {
+		if (registrationMode !== "group" || attendees.length <= 1) {
+			return new Set<number>();
+		}
+
+		const seen = new Map<string, number[]>();
+		const duplicates = new Set<number>();
+		attendees.forEach((attendee, index) => {
+			const attendeeEmail = attendee.attendee_email.trim().toLowerCase();
+			if (!attendeeEmail) return;
+			const indexes = seen.get(attendeeEmail) ?? [];
+			indexes.push(index);
+			seen.set(attendeeEmail, indexes);
+		});
+
+		seen.forEach((indexes) => {
+			if (indexes.length > 1) {
+				indexes.forEach((index) => {
+					duplicates.add(index);
+				});
+			}
+		});
+
+		return duplicates;
+	}, [attendees, registrationMode]);
+	const hasDuplicateAttendeeEmail = duplicateAttendeeEmailIndexes.size > 0;
 	const hasPendingRegistration = Boolean(
 		singleResult ||
 			groupResult ||
 			existingRegistrationStatus?.has_pending_payment,
 	);
+	const hasCompletedFreeSingleRegistration =
+		!requiresPayment && finalPaymentStatuses[0] === "paid";
+	const hasCompletedFreeGroupRegistration =
+		!requiresPayment &&
+		Boolean(finalPaymentStatuses.length) &&
+		finalPaymentStatuses.every((status) => status === "paid");
+	const hasPendingApprovalRegistration =
+		!requiresPayment &&
+		Boolean(finalPaymentStatuses.length) &&
+		finalPaymentStatuses.some((status) => status === "pending");
+	const hasCompletedRegistration =
+		paymentSuccess ||
+		hasCompletedFreeSingleRegistration ||
+		hasCompletedFreeGroupRegistration;
+	const isExistingPaidRegistration = Boolean(
+		existingRegistrationStatus?.has_paid_ticket,
+	);
 
 	const paymentTicketPublicId = useMemo(() => {
+		if (finalPublicIds.length > 0) return finalPublicIds[0];
+
 		if (singleResult?.public_id) {
 			return singleResult.public_id;
 		}
@@ -219,12 +318,12 @@ export function PublicRegistrationForm({
 
 	function goToNextStep() {
 		if (currentStep < 5) {
-			// When going to step 3, pre-fill attendee emails with the email from step 2
+			// When going to step 3, lock only the first attendee email to step 2 email.
 			if (currentStep === 2) {
 				setAttendees((current) =>
-					current.map((attendee) => ({
+					current.map((attendee, index) => ({
 						...attendee,
-						attendee_email: attendee.attendee_email || email,
+						attendee_email: index === 0 ? email : attendee.attendee_email,
 					})),
 				);
 			}
@@ -238,6 +337,15 @@ export function PublicRegistrationForm({
 		}
 	}
 
+	function registerWithAnotherEmail() {
+		setExistingRegistrationStatus(null);
+		setFinalPaymentStatuses([]);
+		setFinalPublicIds([]);
+		setPaymentSuccess(false);
+		setPaymentError(null);
+		setCurrentStep(2);
+	}
+
 	async function handleEmailStepContinue() {
 		const normalizedEmail = email.trim().toLowerCase();
 		if (!normalizedEmail || !normalizedEmail.includes("@")) return;
@@ -247,12 +355,41 @@ export function PublicRegistrationForm({
 			const status = await checkExistingRegistration(normalizedEmail);
 			setExistingRegistrationStatus(status);
 
+			if (status.blocked_exhibitor_upgrade) {
+				return;
+			}
+
 			if (status.has_paid_ticket) {
+				setFinalPaymentStatuses(
+					status.paid_tickets.map((ticket) => ticket.payment_status),
+				);
+				setFinalPublicIds(
+					status.paid_tickets
+						.map((ticket) => ticket.public_id)
+						.filter((id): id is string => Boolean(id)),
+				);
+				setCurrentStep(6);
+				return;
+			}
+
+			if (status.has_rejected_application) {
 				return;
 			}
 
 			if (status.has_pending_payment) {
-				setCurrentStep(5);
+				if (requiresPayment) {
+					setCurrentStep(5);
+				} else {
+					setFinalPaymentStatuses(
+						status.pending_tickets.map((ticket) => ticket.payment_status),
+					);
+					setFinalPublicIds(
+						status.pending_tickets
+							.map((ticket) => ticket.public_id)
+							.filter((id): id is string => Boolean(id)),
+					);
+					setCurrentStep(6);
+				}
 				return;
 			}
 
@@ -308,6 +445,10 @@ export function PublicRegistrationForm({
 
 	function goToConfirmationStep(event: FormEvent) {
 		event.preventDefault();
+		if (hasDuplicateAttendeeEmail) {
+			toast.error("Each attendee must use a unique email address.");
+			return;
+		}
 		setCurrentStep(4);
 	}
 
@@ -318,12 +459,17 @@ export function PublicRegistrationForm({
 			leaderEmail: registrationMode === "group" ? email : undefined,
 		};
 
-		const success = await submit(payload);
-		if (success) {
+		const result = await submit(payload);
+		if (result.success) {
 			setExistingRegistrationStatus(null);
 			setPaymentError(null);
 			setPaymentSuccess(false);
-			setCurrentStep(5);
+			setFinalPaymentStatuses(result.paymentStatuses);
+			setFinalPublicIds(result.publicIds);
+			const allPaid =
+				result.paymentStatuses.length > 0 &&
+				result.paymentStatuses.every((status) => status === "paid");
+			setCurrentStep(requiresPayment && !allPaid ? 5 : 6);
 		}
 	}
 
@@ -365,6 +511,8 @@ export function PublicRegistrationForm({
 				name: eventQuery.data?.title || "Event Registration",
 				description: "Ticket payment",
 				order_id: order.order_id,
+				callback_url: order.callback_url,
+				redirect: true,
 				prefill: {
 					email,
 					name: attendees[0]?.attendee_name,
@@ -457,7 +605,11 @@ export function PublicRegistrationForm({
 
 	const steps = buildPublicRegistrationSteps({
 		hasMultipleTicketTypes,
-		paymentSuccess,
+		requiresPayment,
+		showCompleteStep:
+			currentStep === 6 ||
+			hasCompletedRegistration ||
+			hasPendingApprovalRegistration,
 	});
 
 	const stepIcons = {
@@ -474,18 +626,18 @@ export function PublicRegistrationForm({
 		steps.length > 1 ? (currentStepIndex / (steps.length - 1)) * 100 : 100;
 
 	return (
-		<div className="mx-auto max-w-2xl">
+		<div className="mx-auto w-full max-w-2xl">
 			{/* Stepper */}
-			<div className="mb-10 border border-black/10 bg-white/70 px-4 py-4 backdrop-blur-sm sm:px-6">
-				<div className="relative mx-auto w-full max-w-[720px]">
-					<div className="absolute inset-x-6 top-4 h-[2px] bg-black/15" />
+			<div className="mb-8 sm:mb-12">
+				<div className="relative mx-auto w-full max-w-[500px]">
+					<div className="absolute top-4 right-4 left-4 h-[2px] bg-slate-100 sm:top-5" />
 					<motion.div
-						className="absolute top-4 left-6 h-[2px] bg-brand-green"
+						className="absolute top-4 left-4 h-[2px] bg-brand-green shadow-[0_0_8px_rgba(34,197,94,0.3)] sm:top-5"
 						initial={{ width: 0 }}
 						animate={{
-							width: `calc((100% - 3rem) * ${connectorProgress / 100})`,
+							width: `calc((100% - 2rem) * ${connectorProgress / 100})`,
 						}}
-						transition={{ duration: 0.35, ease: SMOOTH_EASE }}
+						transition={{ duration: 0.5, ease: SMOOTH_EASE }}
 					/>
 
 					<div className="relative z-10 flex items-start justify-between">
@@ -497,34 +649,56 @@ export function PublicRegistrationForm({
 
 							return (
 								<div key={step.id} className="flex flex-col items-center">
-									<div className="w-14 text-center sm:w-16 md:w-20">
-										<div className="flex justify-center">
-											<div
-												className={`flex h-9 w-9 shrink-0 items-center justify-center border-2 text-xs transition-all duration-200 ${
-													isCompleted
-														? "border-brand-green bg-brand-green text-black"
-														: isActive
-															? "border-black bg-black text-white"
-															: "border-black/25 bg-white text-black/50"
-												}`}
-											>
-												{isCompleted ? (
-													<Check className="h-4 w-4" />
-												) : isUpcoming ? (
-													<span className="font-bold">{idx + 1}</span>
-												) : (
-													<Icon className="h-4 w-4" />
-												)}
-											</div>
-										</div>
-
-										<p
-											className={`mt-2 font-semibold text-[11px] uppercase tracking-[0.12em] sm:text-xs ${
-												isCompleted || isActive ? "text-black" : "text-black/45"
+									<div className="relative flex flex-col items-center">
+										<motion.div
+											initial={false}
+											animate={{
+												backgroundColor: isCompleted
+													? "rgb(34, 197, 94)" // brand-green
+													: isActive
+														? "rgb(0, 0, 0)"
+														: "rgb(255, 255, 255)",
+												borderColor: isCompleted
+													? "rgb(34, 197, 94)"
+													: isActive
+														? "rgb(0, 0, 0)"
+														: "rgb(241, 245, 249)", // slate-100
+												color:
+													isCompleted || isActive
+														? "rgb(255, 255, 255)"
+														: "rgb(148, 163, 184)",
+											}}
+											className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs transition-shadow duration-200 sm:h-10 sm:w-10 ${
+												isActive
+													? "shadow-black/10 shadow-lg ring-4 ring-white"
+													: ""
 											}`}
 										>
+											{isCompleted ? (
+												<Check
+													className="h-4 w-4 sm:h-5 sm:w-5"
+													strokeWidth={3}
+												/>
+											) : (
+												<Icon
+													className="h-4 w-4 sm:h-5 sm:w-5"
+													strokeWidth={isActive ? 2.5 : 2}
+												/>
+											)}
+										</motion.div>
+
+										<motion.p
+											animate={{
+												color:
+													isActive || isCompleted
+														? "rgb(0, 0, 0)"
+														: "rgb(148, 163, 184)",
+												fontWeight: isActive || isCompleted ? 600 : 400,
+											}}
+											className="absolute top-10 whitespace-nowrap text-[10px] uppercase tracking-wider sm:top-12 sm:text-[11px]"
+										>
 											{step.label}
-										</p>
+										</motion.p>
 									</div>
 								</div>
 							);
@@ -538,158 +712,261 @@ export function PublicRegistrationForm({
 				{currentStep === 1 && hasMultipleTicketTypes && (
 					<motion.div
 						key="step1"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
-						className="border-2 border-black bg-white p-8 md:p-10"
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-							SELECT TICKET
-						</h2>
-						<p className="mb-8 text-black/60">
-							Choose the ticket type that best suits your needs for this event.
-						</p>
+						<div className="text-center">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
+								Select your ticket
+							</h2>
+							<p className="mt-2 text-slate-500">
+								Choose the best option for your attendance.
+							</p>
+						</div>
 
-						<div className="space-y-3">
+						<div className="mt-6 space-y-3 sm:mt-10 sm:space-y-4">
 							{ticketTypes.map((tt) => {
 								const isSelected = selectedTicketTypeId === tt.id;
+								const isUnavailable = !tt.available;
 								return (
 									<button
 										key={tt.id}
 										type="button"
-										onClick={() => setSelectedTicketTypeId(tt.id)}
-										className={`w-full border-2 p-5 text-left transition-all duration-200 ${
+										onClick={() => {
+											if (isUnavailable) return;
+											setSelectedTicketTypeId(tt.id);
+										}}
+										disabled={isUnavailable}
+										className={`group relative w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 sm:p-6 ${
 											isSelected
-												? "border-black bg-black text-white"
-												: "border-black/20 hover:border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+												? "border-black bg-black text-white shadow-black/10 shadow-xl"
+												: isUnavailable
+													? "cursor-not-allowed border-slate-100 bg-slate-50/50 text-slate-400"
+													: "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
 										}`}
 									>
-										<div className="flex items-center justify-between">
-											<div>
-												<h3 className="font-bold text-lg">{tt.name}</h3>
-												<p className="mt-1 text-sm opacity-70">
+										<div className="flex items-start justify-between">
+											<div className="flex-1">
+												<div className="flex items-center gap-2">
+													<h3 className="font-bold text-base leading-tight sm:text-lg">
+														{tt.name}
+													</h3>
+													{isUnavailable && (
+														<span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-500 text-xs">
+															Sold Out
+														</span>
+													)}
+												</div>
+												<p
+													className={`mt-1.5 text-sm ${isSelected ? "text-slate-300" : "text-slate-500"}`}
+												>
 													{tt.registration_mode === "group"
-														? "Group registration"
-														: "Individual registration"}
+														? "Ideal for teams and groups"
+														: "Single attendee registration"}
 												</p>
+
+												{tt.remaining_slots !== null &&
+													tt.remaining_slots !== undefined && (
+														<div className="mt-3 flex items-center gap-1.5">
+															<div
+																className={`h-1.5 w-1.5 rounded-full ${tt.remaining_slots > 0 ? "bg-brand-green" : "bg-red-400"}`}
+															/>
+															<p
+																className={`text-xs ${isSelected ? "text-slate-400" : "text-slate-500"}`}
+															>
+																{tt.remaining_slots > 0
+																	? `${tt.remaining_slots} slots remaining`
+																	: "No slots left"}
+															</p>
+														</div>
+													)}
 											</div>
-											<div className="text-right">
-												<p className="font-black text-2xl">
-													RM {tt.price.toLocaleString()}
+											<div className="ml-4 text-right">
+												<p className="font-bold text-xl tracking-tight sm:text-2xl">
+													{formatTicketPrice(tt.price)}
 												</p>
 												{tt.current_tier && (
-													<p className="text-xs uppercase tracking-wider opacity-70">
+													<p
+														className={`mt-1 font-bold text-[10px] uppercase tracking-widest ${isSelected ? "text-slate-400" : "text-slate-500"}`}
+													>
 														{tt.current_tier}
 													</p>
 												)}
 											</div>
 										</div>
+
+										{isSelected && (
+											<motion.div
+												layoutId="ticket-check"
+												className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-green shadow-sm"
+											>
+												<Check className="h-4 w-4 text-white" strokeWidth={3} />
+											</motion.div>
+										)}
 									</button>
 								);
 							})}
 						</div>
 
-						<Button
-							onClick={goToNextStep}
-							disabled={!canProceedStep1}
-							className="mt-8 w-full rounded-none bg-black py-6 font-bold text-white uppercase tracking-[0.15em] hover:bg-black/80 disabled:opacity-50"
-						>
-							Continue
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
+						<div className="mt-6 sm:mt-10">
+							<Button
+								onClick={goToNextStep}
+								disabled={!canProceedStep1 || !canProceedStep1WithAvailability}
+								className="h-12 w-full rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:px-8"
+							>
+								Continue to details
+								<ArrowRight className="ml-2 h-5 w-5" />
+							</Button>
+						</div>
 					</motion.div>
 				)}
 
 				{currentStep === 2 && (
 					<motion.div
 						key="step2"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
-						className="border-2 border-black bg-white p-8 md:p-10"
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-							ENTER EMAIL
-						</h2>
-						<p className="mb-8 text-black/60">
-							We&apos;ll use this to check for any existing registrations and
-							send you confirmation details.
-						</p>
+						<div className="text-center">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
+								Enter your email
+							</h2>
+							<p className="mt-2 text-slate-500">
+								We&apos;ll use this to manage your registration.
+							</p>
+						</div>
 
-						<div className="space-y-4">
-							<label htmlFor="registration-email" className="block">
-								<span className="mb-2 block font-bold text-black/60 text-xs uppercase tracking-wider">
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
+							<div className="space-y-2">
+								<label
+									htmlFor="registration-email"
+									className="block font-semibold text-slate-700 text-sm"
+								>
 									Email Address
-								</span>
-								<Input
-									id="registration-email"
-									type="email"
-									placeholder="your@email.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									className="rounded-none border-2 border-black py-6 text-lg focus:border-black focus:ring-2 focus:ring-brand-green"
-									autoFocus
-								/>
-							</label>
+								</label>
+								<div className="relative">
+									<Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+									<Input
+										id="registration-email"
+										type="email"
+										placeholder="name@company.com"
+										value={email}
+										onChange={(e) => {
+											setEmail(e.target.value);
+											setExistingRegistrationStatus(null);
+										}}
+										className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pl-12 text-base transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10 sm:h-14 sm:text-lg"
+										autoFocus
+									/>
+								</div>
+							</div>
 
 							{/* Selected ticket summary */}
 							{selectedTicketType && (
-								<div className="mt-6 border border-black/10 bg-black/5 p-4">
-									<p className="mb-1 font-bold text-black/60 text-xs uppercase tracking-wider">
-										Selected Ticket
-									</p>
-									<p className="font-bold text-black">
-										{selectedTicketType.name}
-									</p>
-									<p className="text-black/70 text-sm">
-										RM {selectedTicketType.price.toLocaleString()}
-									</p>
+								<div className="group flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-slate-50">
+									<div className="flex items-center gap-3">
+										<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
+											<Ticket className="h-5 w-5 text-slate-900" />
+										</div>
+										<div>
+											<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
+												Selected Ticket
+											</p>
+											<p className="font-bold text-slate-900">
+												{selectedTicketType.name}
+											</p>
+										</div>
+									</div>
+									<div className="text-right">
+										<p className="font-bold text-slate-900">
+											{formatTicketPrice(selectedTicketType.price)}
+										</p>
+									</div>
 								</div>
 							)}
 
-							{existingRegistrationStatus?.has_paid_ticket ? (
-								<div className="border border-yellow-700/30 bg-yellow-50 p-4 text-yellow-900">
-									<p className="font-semibold text-sm">
-										We found an existing paid ticket for this email.
+							{existingRegistrationStatus?.has_pending_payment ? (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-blue-900"
+								>
+									<p className="flex items-center gap-2 font-semibold text-sm">
+										<span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+										Pending registration found
 									</p>
-									<p className="mt-1 text-sm text-yellow-900/80">
-										Please check your inbox or contact support if you need help.
+									<p className="mt-1 text-blue-800/80 text-sm">
+										Taking you directly to payment step.
 									</p>
-								</div>
+								</motion.div>
 							) : null}
 
-							{existingRegistrationStatus?.has_pending_payment ? (
-								<div className="border border-blue-700/30 bg-blue-50 p-4 text-blue-900">
-									<p className="font-semibold text-sm">
-										Pending registration found for this email.
+							{existingRegistrationStatus?.blocked_exhibitor_upgrade ? (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-red-900"
+								>
+									<p className="flex items-center gap-2 font-semibold text-sm">
+										<span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+										Registration blocked
 									</p>
-									<p className="mt-1 text-blue-900/80 text-sm">
-										We&apos;ll take you directly to payment.
+									<p className="mt-1 text-red-800/80 text-sm">
+										{existingRegistrationStatus.blocked_message ??
+											"Please complete previous payment first."}
 									</p>
-								</div>
+								</motion.div>
+							) : null}
+
+							{existingRegistrationStatus?.has_rejected_application ? (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-red-900"
+								>
+									<p className="flex items-center gap-2 font-semibold text-sm">
+										<span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+										Application not approved
+									</p>
+									<p className="mt-1 text-red-800/80 text-sm">
+										{existingRegistrationStatus.rejected_message ??
+											"Thank you for your interest."}
+									</p>
+								</motion.div>
 							) : null}
 						</div>
 
-						<div className="mt-8 flex gap-3">
+						<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 							{hasMultipleTicketTypes && (
 								<Button
 									onClick={goToPreviousStep}
 									variant="outline"
-									className="rounded-none border-2 border-black px-6 py-6 hover:bg-black hover:text-white"
+									className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 								>
-									<ArrowLeft className="mr-2 h-4 w-4" />
+									<ArrowLeft className="mr-2 h-5 w-5" />
 									Back
 								</Button>
 							)}
 							<Button
 								onClick={handleEmailStepContinue}
-								disabled={!canProceedStep2 || isCheckingEmail}
-								className="flex-1 rounded-none bg-black py-6 font-bold text-white uppercase tracking-[0.15em] hover:bg-black/80 disabled:opacity-50"
+								disabled={
+									!canProceedStep2 ||
+									isCheckingEmail ||
+									Boolean(
+										existingRegistrationStatus?.blocked_exhibitor_upgrade,
+									) ||
+									Boolean(existingRegistrationStatus?.has_rejected_application)
+								}
+								className="h-12 flex-1 rounded-xl bg-black px-6 font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:px-8"
 							>
-								{isCheckingEmail ? "Checking..." : "Continue"}
-								<ArrowRight className="ml-2 h-4 w-4" />
+								{isCheckingEmail ? "Verifying..." : "Continue"}
+								<ArrowRight className="ml-2 h-5 w-5" />
 							</Button>
 						</div>
 					</motion.div>
@@ -698,63 +975,72 @@ export function PublicRegistrationForm({
 				{currentStep === 3 && (
 					<motion.div
 						key="step3"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<form onSubmit={goToConfirmationStep} className="space-y-6">
-							<div className="border-2 border-black bg-white p-8 md:p-10">
-								<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-									ATTENDEE DETAILS
+						<form onSubmit={goToConfirmationStep}>
+							<div className="text-center">
+								<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
+									Attendee details
 								</h2>
-								<p className="mb-8 text-black/60">
-									Please complete all required fields below.
+								<p className="mt-2 text-slate-500">
+									Please provide information for all attendees.
 								</p>
+							</div>
 
+							<div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
 								{registrationMode === "group" && (
-									<div className="mb-8 border-black border-l-4 bg-brand-blue p-4">
-										<p className="font-medium text-black text-sm">
-											Group registration: Minimum {minAttendees} attendees
-											required
-											{maxAttendees ? ` (maximum ${maxAttendees})` : ""}
+									<div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 text-blue-900">
+										<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
+											<UserCircle className="h-5 w-5 text-blue-600" />
+										</div>
+										<p className="font-medium text-sm">
+											Group registration: {minAttendees} min
+											{maxAttendees ? ` / ${maxAttendees} max` : ""} attendees.
 										</p>
 									</div>
 								)}
 
-								<div className="space-y-8">
+								<div className="space-y-8 sm:space-y-12">
 									{attendees.map((attendee, index) => (
-										<div key={attendee.row_id}>
-											{registrationMode === "group" && (
-												<div className="mb-4 flex items-center justify-between border-black/10 border-b pb-2">
-													<h3 className="font-bold text-black text-sm uppercase tracking-wider">
-														Attendee {index + 1}
-													</h3>
-													{attendees.length > minAttendees && (
+										<div key={attendee.row_id} className="relative">
+											<div className="mb-6 flex items-center justify-between">
+												<h3 className="flex items-center gap-2 font-bold text-slate-900 text-xs uppercase tracking-widest">
+													{registrationMode === "group" && (
+														<span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 text-[10px]">
+															{index + 1}
+														</span>
+													)}
+													Attendee Information
+												</h3>
+												{registrationMode === "group" &&
+													attendees.length > minAttendees && (
 														<Button
 															type="button"
 															variant="ghost"
 															size="sm"
 															onClick={() => removeAttendee(index)}
-															className="text-red-600 text-xs uppercase tracking-wider hover:text-red-800"
+															className="h-8 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600"
 														>
 															Remove
 														</Button>
 													)}
-												</div>
-											)}
+											</div>
 
-											<div className="space-y-6">
-												<div>
+											<div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+												<div className="space-y-2 sm:col-span-2">
 													<label
 														htmlFor={`attendee-name-${attendee.row_id}`}
-														className="mb-2 block font-bold text-black/60 text-xs uppercase tracking-wider"
+														className="block font-semibold text-slate-700 text-sm"
 													>
-														Full Name <span className="text-red-600">*</span>
+														Full Name <span className="text-red-500">*</span>
 													</label>
 													<Input
 														id={`attendee-name-${attendee.row_id}`}
-														placeholder="e.g. John Doe"
+														placeholder="Enter full name"
 														value={attendee.attendee_name}
 														onChange={(e) =>
 															updateAttendee(
@@ -763,24 +1049,26 @@ export function PublicRegistrationForm({
 																e.target.value,
 															)
 														}
-														className="h-12 rounded-none border-2 border-black text-base placeholder:text-black/30 focus:border-black focus:ring-2 focus:ring-brand-green"
+														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 														required
 													/>
 												</div>
 
-												<div>
+												<div className="space-y-2">
 													<label
 														htmlFor={`attendee-email-${attendee.row_id}`}
-														className="mb-2 block font-bold text-black/60 text-xs uppercase tracking-wider"
+														className="block font-semibold text-slate-700 text-sm"
 													>
 														Email Address{" "}
-														<span className="text-red-600">*</span>
+														<span className="text-red-500">*</span>
 													</label>
 													<Input
 														id={`attendee-email-${attendee.row_id}`}
 														type="email"
-														placeholder="e.g. john@company.com"
+														placeholder="email@example.com"
 														value={attendee.attendee_email}
+														disabled={index === 0}
+														readOnly={index === 0}
 														onChange={(e) =>
 															updateAttendee(
 																index,
@@ -788,21 +1076,26 @@ export function PublicRegistrationForm({
 																e.target.value,
 															)
 														}
-														className="h-12 rounded-none border-2 border-black text-base placeholder:text-black/30 focus:border-black focus:ring-2 focus:ring-brand-green"
+														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 														required
 													/>
+													{duplicateAttendeeEmailIndexes.has(index) && (
+														<p className="text-red-500 text-xs">
+															This email is already used by another attendee.
+														</p>
+													)}
 												</div>
 
-												<div>
+												<div className="space-y-2">
 													<label
 														htmlFor={`attendee-phone-${attendee.row_id}`}
-														className="mb-2 block font-bold text-black/60 text-xs uppercase tracking-wider"
+														className="block font-semibold text-slate-700 text-sm"
 													>
 														Phone Number
 													</label>
 													<Input
 														id={`attendee-phone-${attendee.row_id}`}
-														placeholder="e.g. +60 12 345 6789"
+														placeholder="+60 12 345 6789"
 														value={attendee.attendee_phone}
 														onChange={(e) =>
 															updateAttendee(
@@ -811,21 +1104,24 @@ export function PublicRegistrationForm({
 																e.target.value,
 															)
 														}
-														className="h-12 rounded-none border-2 border-black text-base placeholder:text-black/30 focus:border-black focus:ring-2 focus:ring-brand-green"
+														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 													/>
 												</div>
 
 												{customLabelEntries.map(([labelKey, labelName]) => (
-													<div key={`${attendee.row_id}-${labelKey}`}>
+													<div
+														key={`${attendee.row_id}-${labelKey}`}
+														className="space-y-2"
+													>
 														<label
 															htmlFor={`attendee-${attendee.row_id}-${labelKey}`}
-															className="mb-2 block font-bold text-black/60 text-xs uppercase tracking-wider"
+															className="block font-semibold text-slate-700 text-sm"
 														>
 															{labelName}
 														</label>
 														<Input
 															id={`attendee-${attendee.row_id}-${labelKey}`}
-															placeholder={`e.g. ${labelName}`}
+															placeholder={`Enter ${labelName.toLowerCase()}`}
 															value={
 																attendee.custom_fields_data[labelKey] ?? ""
 															}
@@ -836,16 +1132,15 @@ export function PublicRegistrationForm({
 																	e.target.value,
 																)
 															}
-															className="h-12 rounded-none border-2 border-black text-base placeholder:text-black/30 focus:border-black focus:ring-2 focus:ring-brand-green"
+															className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
 														/>
 													</div>
 												))}
 											</div>
 
-											{registrationMode === "group" &&
-												index < attendees.length - 1 && (
-													<div className="mt-8 border-black/10 border-b" />
-												)}
+											{index < attendees.length - 1 && (
+												<div className="mt-12 border-slate-100 border-t" />
+											)}
 										</div>
 									))}
 								</div>
@@ -855,30 +1150,30 @@ export function PublicRegistrationForm({
 										type="button"
 										variant="outline"
 										onClick={addAttendee}
-										className="mt-8 w-full rounded-none rounded-none border-2 border-black py-5 font-bold uppercase tracking-wider hover:bg-black hover:text-white"
+										className="h-12 w-full rounded-xl border-slate-200 border-dashed bg-slate-50/50 font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50"
 									>
 										+ Add Another Attendee
 									</Button>
 								)}
 							</div>
 
-							<div className="flex gap-3">
+							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 								<Button
 									type="button"
 									onClick={goToPreviousStep}
 									variant="outline"
-									className="rounded-none border-2 border-black px-8 py-6 hover:bg-black hover:text-white"
+									className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 								>
-									<ArrowLeft className="mr-2 h-4 w-4" />
+									<ArrowLeft className="mr-2 h-5 w-5" />
 									Back
 								</Button>
 								<Button
 									type="submit"
-									disabled={!selectedTicketType}
-									className="flex-1 rounded-none border-2 border-black bg-brand-green py-6 font-bold text-black uppercase tracking-[0.15em] hover:bg-brand-green-dark disabled:opacity-50"
+									disabled={!selectedTicketType || hasDuplicateAttendeeEmail}
+									className="h-12 w-full rounded-xl border border-black bg-black px-6 font-bold text-base text-white leading-none transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 								>
 									Confirm Registration
-									<ArrowRight className="ml-2 h-4 w-4" />
+									<ArrowRight className="ml-2 h-5 w-5" />
 								</Button>
 							</div>
 						</form>
@@ -888,183 +1183,225 @@ export function PublicRegistrationForm({
 				{currentStep === 4 && (
 					<motion.div
 						key="step4"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
-						className="space-y-6"
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<div className="border-2 border-black bg-white p-8 md:p-10">
-							<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-								CONFIRM INFORMATION
+						<div className="text-center">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
+								Review information
 							</h2>
-							<p className="mb-8 text-black/60">
-								Please review your registration details before we create your
-								pending ticket.
+							<p className="mt-2 text-slate-500">
+								Please double-check your details before submitting.
 							</p>
+						</div>
 
-							<div className="space-y-5">
-								<div className="border border-black/15 bg-black/[0.03] p-4">
-									<p className="font-bold text-[11px] text-black/60 uppercase tracking-wider">
-										Selected Ticket
-									</p>
-									<p className="mt-1 font-semibold text-black">
-										{selectedTicketType?.name ?? "-"}
-									</p>
-									<p className="text-black/70 text-sm">
-										RM {selectedTicketType?.price?.toLocaleString() ?? "0"}
-									</p>
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
+							<div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+								<div className="border-slate-50 border-b bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4">
+									<h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+										Registration Summary
+									</h3>
 								</div>
 
-								<div className="border border-black/15 p-4">
-									<p className="font-bold text-[11px] text-black/60 uppercase tracking-wider">
-										Contact Email
-									</p>
-									<p className="mt-1 text-black">{email}</p>
-								</div>
+								<div className="divide-y divide-slate-50">
+									<div className="p-4 sm:p-6">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+											Selected Ticket
+										</p>
+										<div className="mt-2 flex items-center justify-between">
+											<p className="font-bold text-slate-900">
+												{selectedTicketType?.name ?? "-"}
+											</p>
+											<p className="font-bold text-slate-900">
+												{formatTicketPrice(selectedTicketType?.price)}
+											</p>
+										</div>
+									</div>
 
-								<div className="border border-black/15 p-4">
-									<p className="mb-4 font-bold text-[11px] text-black/60 uppercase tracking-wider">
-										Attendee Details
-									</p>
-									<div className="space-y-4">
-										{attendees.map((attendee, index) => (
-											<div
-												key={attendee.row_id}
-												className="border border-black/10 p-3"
-											>
-												<p className="font-semibold text-black text-sm">
-													Attendee {index + 1}: {attendee.attendee_name || "-"}
-												</p>
-												<p className="text-black/70 text-sm">
-													{attendee.attendee_email || "-"}
-												</p>
-												{attendee.attendee_phone ? (
-													<p className="text-black/70 text-sm">
-														{attendee.attendee_phone}
-													</p>
-												) : null}
-												{Object.entries(attendee.custom_fields_data).length >
-												0 ? (
-													<div className="mt-2 space-y-1 text-sm">
-														{Object.entries(attendee.custom_fields_data).map(
-															([key, value]) => (
-																<p key={`${attendee.row_id}-${key}`}>
-																	<span className="font-medium text-black/70">
-																		{(customLabelsLookup[key] ?? key)
-																			.toString()
-																			.replaceAll("_", " ")}
-																	</span>
-																	: {value}
-																</p>
-															),
+									<div className="p-4 sm:p-6">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+											Contact Email
+										</p>
+										<p className="mt-2 font-medium text-slate-900">{email}</p>
+									</div>
+
+									<div className="p-4 sm:p-6">
+										<p className="mb-4 font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+											{registrationMode === "group"
+												? `Attendees (${attendees.length})`
+												: "Attendee"}
+										</p>
+										<div className="space-y-4">
+											{attendees.map((attendee, index) => (
+												<div
+													key={attendee.row_id}
+													className="rounded-xl border border-slate-100 bg-slate-50/30 p-4"
+												>
+													<div className="flex items-center gap-3">
+														{registrationMode === "group" && (
+															<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white font-bold text-slate-500 text-xs shadow-sm">
+																{index + 1}
+															</div>
 														)}
+														<div>
+															<p className="font-bold text-slate-900 text-sm">
+																{attendee.attendee_name || "-"}
+															</p>
+															<p className="text-slate-500 text-xs">
+																{attendee.attendee_email || "-"}
+															</p>
+														</div>
 													</div>
-												) : null}
-											</div>
-										))}
+
+													{(attendee.attendee_phone ||
+														Object.entries(attendee.custom_fields_data).length >
+															0) && (
+														<div className="mt-4 grid grid-cols-2 gap-4 border-slate-100 border-t pt-4">
+															{attendee.attendee_phone && (
+																<div>
+																	<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+																		Phone
+																	</p>
+																	<p className="mt-1 text-slate-900 text-xs">
+																		{attendee.attendee_phone}
+																	</p>
+																</div>
+															)}
+															{Object.entries(attendee.custom_fields_data).map(
+																([key, value]) => (
+																	<div key={`${attendee.row_id}-${key}`}>
+																		<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+																			{(customLabelsLookup[key] ?? key)
+																				.toString()
+																				.replaceAll("_", " ")}
+																		</p>
+																		<p className="mt-1 text-slate-900 text-xs">
+																			{value || "-"}
+																		</p>
+																	</div>
+																),
+															)}
+														</div>
+													)}
+												</div>
+											))}
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						<div className="flex gap-3">
+						<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 							<Button
 								type="button"
 								onClick={goToPreviousStep}
 								variant="outline"
 								disabled={isSubmitting}
-								className="rounded-none border-2 border-black px-8 py-6 hover:bg-black hover:text-white"
+								className="h-12 w-full rounded-xl border-slate-200 bg-white px-6 font-bold text-slate-700 hover:bg-slate-50 sm:h-14 sm:w-auto sm:px-8"
 							>
-								<ArrowLeft className="mr-2 h-4 w-4" />
+								<ArrowLeft className="mr-2 h-5 w-5" />
 								Back
 							</Button>
 							<Button
 								type="button"
 								onClick={confirmInformation}
 								disabled={isSubmitting || !selectedTicketType}
-								className="flex-1 rounded-none border-2 border-black bg-brand-green py-6 font-bold text-black uppercase tracking-[0.15em] hover:bg-brand-green-dark disabled:opacity-50"
+								className="h-12 w-full rounded-xl border border-brand-green bg-brand-green px-6 font-bold text-base text-white leading-none shadow-brand-green/20 shadow-lg transition-all hover:bg-brand-green/90 hover:shadow-xl disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 							>
-								{isSubmitting
-									? "Creating Pending Ticket..."
-									: "Confirm Information"}
-								<ArrowRight className="ml-2 h-4 w-4" />
+								{isSubmitting ? "Processing..." : "Submit Registration"}
+								<ArrowRight className="ml-2 h-5 w-5" strokeWidth={3} />
 							</Button>
 						</div>
 					</motion.div>
 				)}
 
-				{currentStep === 5 && (
+				{currentStep === 5 && requiresPayment && (
 					<motion.div
 						key="step5"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
-						className="space-y-6"
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<div className="border-2 border-black bg-white p-8 md:p-10">
-							<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-								PAYMENT
+						<div className="text-center">
+							<h2 className="font-bold text-slate-900 text-xl tracking-tight sm:text-2xl md:text-3xl">
+								Secure payment
 							</h2>
-							<p className="mb-6 text-black/60">
-								Your ticket has been created with pending status. Next, proceed
-								to payment gateway integration.
+							<p className="mt-2 text-slate-500">
+								Complete your registration by making a payment.
 							</p>
+						</div>
 
-							<div className="space-y-4 border border-black/15 bg-black/[0.03] p-4">
-								<p className="font-bold text-[11px] text-black/60 uppercase tracking-wider">
-									Registration Status
-								</p>
-								<p className="font-semibold text-black">
-									{existingRegistrationStatus?.has_pending_payment
-										? "Pending payment found for this email."
-										: (statusMessage ?? "Pending payment")}
-								</p>
-								{singleResult?.public_id ? (
-									<p className="text-black/70 text-sm">
-										Ticket Reference: {singleResult.public_id}
-									</p>
-								) : null}
-								{groupResult?.publicIds?.length ? (
-									<p className="text-black/70 text-sm">
-										Created {groupResult.successCount} pending tickets.
-									</p>
-								) : null}
-								{existingRegistrationStatus?.pending_tickets?.length ? (
-									<div className="space-y-1 text-black/70 text-sm">
-										<p>Pending references:</p>
-										{existingRegistrationStatus.pending_tickets.map(
-											(ticket) => (
-												<p key={`pending-${ticket.id}`}>{ticket.public_id}</p>
-											),
-										)}
+						<div className="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
+							<div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6">
+								<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+									<div className="flex items-center gap-4">
+										<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-green/10">
+											<CreditCard className="h-6 w-6 text-brand-green" />
+										</div>
+										<div>
+											<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+												Status
+											</p>
+											<p className="font-bold text-slate-900">
+												{existingRegistrationStatus?.has_pending_payment
+													? "Complete payment to confirm your ticket"
+													: (statusMessage ??
+														"Please complete payment to secure your ticket.")}
+											</p>
+										</div>
 									</div>
-								) : null}
-								{paymentError ? (
-									<p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-red-700 text-sm">
+									<div className="text-right">
+										<p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">
+											Amount
+										</p>
+										<p className="font-bold text-slate-900 text-xl tracking-tight">
+											{formatTicketPrice(selectedTicketType?.price)}
+										</p>
+									</div>
+								</div>
+
+								<div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-4">
+									{(singleResult?.public_id ||
+										groupResult?.publicIds?.length ||
+										existingRegistrationStatus?.pending_tickets?.length) && (
+										<div className="flex items-center justify-between text-xs">
+											<span className="font-medium text-slate-600">
+												Reference ID:
+											</span>
+											<span className="font-bold font-mono text-slate-900">
+												{singleResult?.public_id ??
+													groupResult?.publicIds?.[0] ??
+													existingRegistrationStatus?.pending_tickets?.[0]
+														?.public_id}
+											</span>
+										</div>
+									)}
+								</div>
+
+								{paymentError && (
+									<motion.div
+										initial={{ opacity: 0, height: 0 }}
+										animate={{ opacity: 1, height: "auto" }}
+										className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-red-600 text-sm"
+									>
 										{paymentError}
-									</p>
-								) : null}
-								{paymentSuccess ? (
-									<p className="rounded border border-green-300 bg-green-50 px-3 py-2 text-green-700 text-sm">
-										Payment verified. Your ticket is now purchased.
-									</p>
-								) : null}
+									</motion.div>
+								)}
 							</div>
 
-							<div className="mt-6 border border-black/30 border-dashed bg-white p-5">
-								<p className="font-semibold text-black">
-									Razorpay Sandbox (Next)
-								</p>
-								<p className="mt-1 text-black/60 text-sm">
-									Foundation ready. Payment intent and Razorpay checkout wiring
-									will be integrated in the next phase.
+							<div className="rounded-2xl border-2 border-slate-100 border-dashed p-6 text-center">
+								<p className="font-medium text-slate-600 text-sm">
+									Payments are processed securely via Razorpay.
 								</p>
 							</div>
 						</div>
 
-						<div>
+						<div className="mt-10">
 							<Button
 								type="button"
 								onClick={handleProceedPayment}
@@ -1074,14 +1411,14 @@ export function PublicRegistrationForm({
 									isPaymentProcessing ||
 									paymentSuccess
 								}
-								className="w-full rounded-none border-2 border-black bg-black py-6 font-bold text-white uppercase tracking-[0.15em] hover:bg-black/80 disabled:opacity-50"
+								className="h-12 w-full rounded-2xl bg-black px-6 font-bold text-white shadow-black/10 shadow-xl transition-all hover:bg-slate-800 hover:shadow-2xl disabled:opacity-30 sm:h-16 sm:px-8"
 							>
 								{isPaymentProcessing
-									? "Opening Razorpay..."
+									? "Initializing..."
 									: paymentSuccess
-										? "Payment Completed"
-										: "Proceed to Razorpay Sandbox"}
-								<CreditCard className="ml-2 h-4 w-4" />
+										? "Payment Verified"
+										: `Pay ${formatTicketPrice(selectedTicketType?.price)}`}
+								<ArrowRight className="ml-2 h-5 w-5" />
 							</Button>
 						</div>
 					</motion.div>
@@ -1090,33 +1427,92 @@ export function PublicRegistrationForm({
 				{currentStep === 6 && (
 					<motion.div
 						key="step6"
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -20 }}
-						transition={{ duration: 0.3, ease: SMOOTH_EASE }}
-						className="space-y-6"
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						transition={{ duration: 0.5, ease: SMOOTH_EASE }}
+						className="mt-6 sm:mt-8"
 					>
-						<div className="border-2 border-black bg-white p-8 md:p-10">
-							<h2 className="mb-2 font-black text-2xl text-black tracking-tighter md:text-3xl">
-								PAYMENT COMPLETE
+						<div className="text-center">
+							<div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-green/10 sm:mb-6 sm:h-20 sm:w-20">
+								<motion.div
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+								>
+									<Check
+										className="h-8 w-8 text-brand-green sm:h-10 sm:w-10"
+										strokeWidth={3}
+									/>
+								</motion.div>
+							</div>
+							<h2 className="font-bold text-2xl text-slate-900 tracking-tight sm:text-3xl">
+								{isExistingPaidRegistration
+									? "You are already registered"
+									: requiresPayment
+										? "Payment Successful!"
+										: hasPendingApprovalRegistration
+											? "Registration Received"
+											: "Registration Complete!"}
 							</h2>
-							<p className="mb-6 text-black/60">
-								Your payment has been verified and your ticket is now marked as
-								purchased.
+							<p className="mt-3 text-slate-500">
+								{isExistingPaidRegistration
+									? "We found an existing confirmed ticket for this email."
+									: requiresPayment
+										? "Your ticket has been purchased and is ready for use."
+										: hasPendingApprovalRegistration
+											? "We&apos;ve received your application and it&apos;s now pending review."
+											: "You are all set! Your registration has been confirmed."}
 							</p>
+						</div>
 
-							<div className="space-y-4 border border-green-300 bg-green-50 p-4">
-								<p className="font-semibold text-green-800">
-									Payment successful.
-								</p>
-								{paymentTicketPublicId ? (
-									<p className="text-green-900/80 text-sm">
-										Reference: {paymentTicketPublicId}
+						<div className="mt-8">
+							<div className="space-y-4 sm:space-y-6">
+								<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
+									<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
+										Registration Reference
 									</p>
-								) : null}
-								<p className="text-green-900/80 text-sm">
-									A confirmation email will be sent to {email}.
-								</p>
+									<p className="mt-2 font-bold font-mono text-lg text-slate-900">
+										{paymentTicketPublicId ?? finalPublicIds[0]}
+									</p>
+									<p className="mt-6 text-slate-500 text-sm">
+										A confirmation email has been sent to <br />
+										<span className="font-semibold text-slate-900">
+											{email}
+										</span>
+									</p>
+
+									{!hasPendingApprovalRegistration && (
+										<div className="mt-8 border-slate-100 border-t pt-6">
+											<TicketDownloadButton
+												eventSlug={eventSlug}
+												publicIds={
+													finalPublicIds.length > 0
+														? finalPublicIds
+														: paymentTicketPublicId
+															? [paymentTicketPublicId]
+															: []
+												}
+											/>
+										</div>
+									)}
+								</div>
+
+								<div className="flex flex-col gap-3">
+									{isExistingPaidRegistration && (
+										<Button
+											type="button"
+											onClick={registerWithAnotherEmail}
+											variant="outline"
+											className="h-11 rounded-xl border-slate-200 px-4 font-semibold text-slate-700 hover:bg-slate-50"
+										>
+											Register with another email
+										</Button>
+									)}
+									<p className="text-center text-slate-400 text-xs">
+										Need help? Contact the event organizer.
+									</p>
+								</div>
 							</div>
 						</div>
 					</motion.div>

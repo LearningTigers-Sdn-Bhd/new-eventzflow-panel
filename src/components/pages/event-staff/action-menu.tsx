@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import { removeStaff } from "@/lib/api/event/event-staff";
 import type { EventStaffMember } from "@/lib/api/event/event-staff";
+import { removeStaff } from "@/lib/api/event/event-staff";
 import EditRoleForm from "./edit-role-form";
 
 interface EventStaffActionsMenuProps {

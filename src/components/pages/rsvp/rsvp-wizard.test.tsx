@@ -22,4 +22,20 @@ describe("RsvpWizard assets", () => {
 		expect(content).not.toContain(".png");
 		expect(content).not.toContain("<img");
 	});
+
+	test("wires the guestbook blessing link from confirmation step", () => {
+		const wizardContent = readFileSync(
+			new URL("./rsvp-wizard.tsx", import.meta.url),
+			"utf8",
+		);
+		const confirmationContent = readFileSync(
+			new URL("./steps/confirmation-step.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(wizardContent).toContain("eventSlug={slug}");
+		expect(wizardContent).toContain("visitorPublicId={publicId}");
+		expect(confirmationContent).toContain("Write a Blessing");
+		expect(confirmationContent).toContain("/guestbook?visitor=");
+	});
 });

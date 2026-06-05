@@ -3,8 +3,8 @@
  * Displays a single recent scan result in compact format
  */
 
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { getStatusIcon, getStatusVariant, TypeBadge } from "../status-helpers";
 import type { ScanResult } from "../types";
 
@@ -61,8 +61,8 @@ export function RecentScanCard({ scan }: RecentScanCardProps) {
 				{scan.scanId}
 			</p>
 			<div className="mt-1 flex flex-col">
-				<span className="text-sm font-medium">{timeStr}</span>
-				<span className="text-xs text-muted-foreground">{dateStr}</span>
+				<span className="font-medium text-sm">{timeStr}</span>
+				<span className="text-muted-foreground text-xs">{dateStr}</span>
 			</div>
 		</div>
 	);

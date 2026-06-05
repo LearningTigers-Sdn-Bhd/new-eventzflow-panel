@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { TabItem } from "./tab-config";
 import {
-	TICKET_TAB_IDS,
 	ANALYTICS_TAB_IDS,
-	LOGS_TAB_IDS,
 	EXHIBITOR_KIT_TAB_IDS,
+	LOGS_TAB_IDS,
+	TICKET_TAB_IDS,
 	USER_MANAGEMENT_TAB_IDS,
 } from "./tab-config";
 
@@ -24,7 +24,9 @@ export function useCurrentTab(
 
 		if (eventIdIndex !== -1) {
 			const remainingPath = segments.slice(eventIdIndex + 1).join("/");
-			const matchedTab = visibleTabs.find((tab) => remainingPath.startsWith(tab.route));
+			const matchedTab = visibleTabs.find((tab) =>
+				remainingPath.startsWith(tab.route),
+			);
 			if (matchedTab) {
 				return matchedTab.id;
 			}
@@ -37,7 +39,10 @@ export function useCurrentTab(
 			if (ANALYTICS_TAB_IDS.includes(segment)) return "analytics-group";
 			if (LOGS_TAB_IDS.includes(segment)) return "logs-group";
 			if (EXHIBITOR_KIT_TAB_IDS.includes(segment)) return "exhibitor-kit-group";
-			if (USER_MANAGEMENT_TAB_IDS.includes(segment) && !permissions.isExhibitionContractor) {
+			if (
+				USER_MANAGEMENT_TAB_IDS.includes(segment) &&
+				!permissions.isExhibitionContractor
+			) {
 				return "user-management-group";
 			}
 			if (visibleTabs.some((tab) => tab.route === segment)) {
@@ -54,7 +59,9 @@ export function useCurrentTab(
 
 		if (eventIdIndex !== -1) {
 			const remainingPath = segments.slice(eventIdIndex + 1).join("/");
-			const matchedTab = visibleTabs.find((tab) => remainingPath.startsWith(tab.route));
+			const matchedTab = visibleTabs.find((tab) =>
+				remainingPath.startsWith(tab.route),
+			);
 			if (matchedTab) return matchedTab;
 		}
 
@@ -67,7 +74,9 @@ export function useCurrentTab(
 				EXHIBITOR_KIT_TAB_IDS.includes(segment) ||
 				USER_MANAGEMENT_TAB_IDS.includes(segment)
 			) {
-				return visibleTabs.find((item) => item.route === segment) || visibleTabs[0];
+				return (
+					visibleTabs.find((item) => item.route === segment) || visibleTabs[0]
+				);
 			}
 		}
 

@@ -38,9 +38,9 @@ export const updateResourceSchema = z.object({
 });
 
 export const approvalResourceSchema = z.object({
-    id: z.string().min(1, "ID is required"),
-    status: z.enum(["published", "rejected"]),
-    rejection_reason: z.string().optional(),
+	id: z.string().min(1, "ID is required"),
+	status: z.enum(["published", "rejected"]),
+	rejection_reason: z.string().optional(),
 });
 
 export type CreateResourceRequest = z.infer<typeof createResourceSchema>;

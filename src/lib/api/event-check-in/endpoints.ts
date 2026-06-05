@@ -5,11 +5,7 @@
 
 import { extractErrorMessage } from "@/utils/error-handler";
 import { publicRestClient } from "@/utils/rest-api";
-import type {
-	CheckInMethod,
-	CheckInResponse,
-	PublicEventInfo,
-} from "./types";
+import type { CheckInMethod, CheckInResponse, PublicEventInfo } from "./types";
 
 /**
  * Get event info for check-in page

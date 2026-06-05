@@ -1,6 +1,16 @@
 "use client";
 
-import { Building2, ExternalLink, FileText, Hash, Mail, Phone, Ruler, Tag, User } from "lucide-react";
+import {
+	Building2,
+	ExternalLink,
+	FileText,
+	Hash,
+	Mail,
+	Phone,
+	Ruler,
+	Tag,
+	User,
+} from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -115,9 +125,10 @@ export function ExhibitorKitSection({
 			</p>
 
 			{guidelinesPdfUrl && (
-				<div className="bg-muted/50 border border-dashed p-3">
+				<div className="border border-dashed bg-muted/50 p-3">
 					<p className="text-muted-foreground text-sm">
-						Make sure to review the exhibitor guidelines before submitting your registration.
+						Make sure to review the exhibitor guidelines before submitting your
+						registration.
 					</p>
 				</div>
 			)}
@@ -129,7 +140,12 @@ export function ExhibitorKitSection({
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.Field name="booth_number">
-						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Booth Number</Label>
 								<InputGroup className="h-11">
@@ -149,7 +165,11 @@ export function ExhibitorKitSection({
 					</form.Field>
 
 					<form.Field name="booth_type">
-						{(field: { name: string; state: { value: string }; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Booth Type</Label>
 								<Select
@@ -174,7 +194,12 @@ export function ExhibitorKitSection({
 
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.Field name="booth_dimensions">
-						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Booth Dimensions</Label>
 								<InputGroup className="h-11">
@@ -194,7 +219,12 @@ export function ExhibitorKitSection({
 					</form.Field>
 
 					<form.Field name="name_on_fascia">
-						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Name on Fascia</Label>
 								<InputGroup className="h-11">
@@ -221,14 +251,21 @@ export function ExhibitorKitSection({
 				{/* Booth Options */}
 				<div className="space-y-3">
 					<div>
-						<Label className="text-muted-foreground text-sm">Booth Options</Label>
-						<p className="text-muted-foreground text-xs mt-1">
-							Tick the boxes below if you need any of these options for your booth
+						<Label className="text-muted-foreground text-sm">
+							Booth Options
+						</Label>
+						<p className="mt-1 text-muted-foreground text-xs">
+							Tick the boxes below if you need any of these options for your
+							booth
 						</p>
 					</div>
 					<div className="grid gap-3 sm:grid-cols-3">
 						<form.Field name="side_wall_left_required">
-							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+							{(field: {
+								name: string;
+								state: { value: boolean };
+								handleChange: (value: boolean) => void;
+							}) => (
 								<div className="flex items-center space-x-2 border bg-muted p-2">
 									<Checkbox
 										id={field.name}
@@ -240,7 +277,7 @@ export function ExhibitorKitSection({
 									/>
 									<Label
 										htmlFor={field.name}
-										className="font-normal text-sm cursor-pointer"
+										className="cursor-pointer font-normal text-sm"
 									>
 										Left Side Wall Required
 									</Label>
@@ -249,7 +286,11 @@ export function ExhibitorKitSection({
 						</form.Field>
 
 						<form.Field name="side_wall_right_required">
-							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+							{(field: {
+								name: string;
+								state: { value: boolean };
+								handleChange: (value: boolean) => void;
+							}) => (
 								<div className="flex items-center space-x-2 border bg-muted p-2">
 									<Checkbox
 										id={field.name}
@@ -261,7 +302,7 @@ export function ExhibitorKitSection({
 									/>
 									<Label
 										htmlFor={field.name}
-										className="font-normal text-sm cursor-pointer"
+										className="cursor-pointer font-normal text-sm"
 									>
 										Right Side Wall Required
 									</Label>
@@ -270,7 +311,11 @@ export function ExhibitorKitSection({
 						</form.Field>
 
 						<form.Field name="fascia_upgrade_required">
-							{(field: { name: string; state: { value: boolean }; handleChange: (value: boolean) => void }) => (
+							{(field: {
+								name: string;
+								state: { value: boolean };
+								handleChange: (value: boolean) => void;
+							}) => (
 								<div className="flex items-center space-x-2 border bg-muted p-2">
 									<Checkbox
 										id={field.name}
@@ -282,7 +327,7 @@ export function ExhibitorKitSection({
 									/>
 									<Label
 										htmlFor={field.name}
-										className="font-normal text-sm cursor-pointer"
+										className="cursor-pointer font-normal text-sm"
 									>
 										Fascia Upgrade Required
 									</Label>
@@ -300,7 +345,12 @@ export function ExhibitorKitSection({
 				</h4>
 				<div className="space-y-4">
 					<form.Field name="company_name">
-						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Company Name</Label>
 								<InputGroup className="h-11">
@@ -320,7 +370,12 @@ export function ExhibitorKitSection({
 					</form.Field>
 
 					<form.Field name="company_address">
-						{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: { value: string };
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>Company Address</Label>
 								<Textarea
@@ -344,7 +399,15 @@ export function ExhibitorKitSection({
 				</h4>
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.Field name="pic_full_name">
-						{(field: { name: string; state: { value: string; meta: { errors: (string | undefined)[] } }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: {
+								value: string;
+								meta: { errors: (string | undefined)[] };
+							};
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>
 									Full Name <span className="text-destructive">*</span>
@@ -372,7 +435,15 @@ export function ExhibitorKitSection({
 					</form.Field>
 
 					<form.Field name="pic_contact_number">
-						{(field: { name: string; state: { value: string; meta: { errors: (string | undefined)[] } }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+						{(field: {
+							name: string;
+							state: {
+								value: string;
+								meta: { errors: (string | undefined)[] };
+							};
+							handleBlur: () => void;
+							handleChange: (value: string) => void;
+						}) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>
 									Contact Number <span className="text-destructive">*</span>
@@ -386,9 +457,7 @@ export function ExhibitorKitSection({
 										placeholder="+60 12-345 6789"
 										value={field.state.value}
 										onBlur={field.handleBlur}
-										onChange={(e) =>
-											field.handleChange(e.target.value)
-										}
+										onChange={(e) => field.handleChange(e.target.value)}
 										required
 									/>
 								</InputGroup>
@@ -403,7 +472,12 @@ export function ExhibitorKitSection({
 				</div>
 
 				<form.Field name="pic_email_address">
-					{(field: { name: string; state: { value: string }; handleBlur: () => void; handleChange: (value: string) => void }) => (
+					{(field: {
+						name: string;
+						state: { value: string };
+						handleBlur: () => void;
+						handleChange: (value: string) => void;
+					}) => (
 						<div className="space-y-2">
 							<Label htmlFor={field.name}>Email Address</Label>
 							<InputGroup className="h-11">
@@ -416,9 +490,7 @@ export function ExhibitorKitSection({
 									placeholder="pic@company.com"
 									value={field.state.value}
 									onBlur={field.handleBlur}
-									onChange={(e) =>
-										field.handleChange(e.target.value)
-									}
+									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 							</InputGroup>
 						</div>

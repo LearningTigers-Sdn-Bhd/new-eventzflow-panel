@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { FileDigit } from "lucide-react";
+import { ExternalLink, Eye, FileDigit } from "lucide-react";
 import { toast } from "sonner";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,13 @@ import { cn } from "@/lib/utils";
 import {
 	getPaymentStatusColor,
 	getPaymentStatusText,
+	getReviewStatusColor,
+	getReviewStatusText,
+	getRsvpStatusColor,
+	getRsvpStatusText,
 	type PaymentStatusString,
+	type ReviewStatus,
+	type RsvpStatus,
 } from "./constants";
 import { PendingTicketActionsMenu } from "./pending-ticket-action-menu";
 
@@ -31,6 +37,15 @@ export type PendingTicket = {
 	paymentMethod?: string;
 	ticketTypeName?: string;
 	ticketTypeId?: number;
+	ticketApplication?: {
+		reviewStatus: ReviewStatus;
+		rsvpStatus: RsvpStatus;
+		reviewedAt: string | null;
+		rejectionReason: string | null;
+		rsvpSentAt: string | null;
+		rsvpConfirmedAt: string | null;
+		rsvpExpiresAt: string | null;
+	};
 };
 
 /**
@@ -78,6 +93,7 @@ function showPaymentInfoToast(ticket: PendingTicket) {
 
 export function generateColumns(
 	labelsData?: Record<string, string>,
+	hasApplicationWorkflow = true,
 ): ColumnDef<PendingTicket>[] {
 	const baseColumns: ColumnDef<PendingTicket>[] = [
 		{
@@ -158,29 +174,54 @@ export function generateColumns(
 			cell: ({ row }) => {
 				const ticket = row.original;
 				const status = ticket.paymentStatus;
-				const hasPaymentInfo =
-					ticket.paymentScreenshotUrl || ticket.transactionId;
+				const hasScreenshot = !!ticket.paymentScreenshotUrl;
+				const hasTransactionId = !!ticket.transactionId;
 
 				return (
-					<div className="flex items-center justify-between gap-2">
-						{hasPaymentInfo && (
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => showPaymentInfoToast(ticket)}
-								className="h-6 w-6"
-							>
-								<FileDigit className="h-3 w-3" />
-							</Button>
-						)}
-						<div className="flex w-full items-center justify-start gap-2">
+					<div className="flex flex-col gap-1.5">
+						<div className="flex items-center gap-2">
 							<Badge
 								variant="secondary"
-								className={cn(getPaymentStatusColor(status), "rounded-none")}
+								className={cn(
+									getPaymentStatusColor(status),
+									"shrink-0 rounded-none",
+								)}
 							>
 								{getPaymentStatusText(status)}
 							</Badge>
+
+							{hasTransactionId && !hasScreenshot && (
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => showPaymentInfoToast(ticket)}
+									className="h-6 w-6"
+									title="View Payment Info"
+								>
+									<FileDigit className="h-3.5 w-3.5" />
+								</Button>
+							)}
 						</div>
+
+						{hasScreenshot && (
+							<Button
+								variant="link"
+								size="sm"
+								asChild
+								className="h-auto w-fit p-0 font-medium text-[11px] text-blue-600 transition-colors hover:text-blue-700"
+							>
+								<a
+									href={ticket.paymentScreenshotUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center gap-1"
+								>
+									<Eye className="h-3 w-3" />
+									View Payment Info
+									<ExternalLink className="h-2.5 w-2.5 opacity-40" />
+								</a>
+							</Button>
+						)}
 					</div>
 				);
 			},
@@ -233,6 +274,60 @@ export function generateColumns(
 			},
 		},
 	];
+
+	if (hasApplicationWorkflow) {
+		const applicationColumns: ColumnDef<PendingTicket>[] = [
+			{
+				id: "reviewStatus",
+				accessorFn: (row) =>
+					row.ticketApplication?.reviewStatus ?? "pending_review",
+				size: 150,
+				header: "Review Status",
+				cell: ({ row }) => {
+					const status = row.original.ticketApplication?.reviewStatus;
+					if (!status) {
+						return <span className="text-muted-foreground">-</span>;
+					}
+					return (
+						<Badge
+							variant="secondary"
+							className={cn(getReviewStatusColor(status), "rounded-none")}
+						>
+							{getReviewStatusText(status)}
+						</Badge>
+					);
+				},
+				filterFn: (row, id, value) => {
+					return value.includes(row.getValue(id));
+				},
+			},
+			{
+				id: "rsvpStatus",
+				accessorFn: (row) => row.ticketApplication?.rsvpStatus ?? "not_sent",
+				size: 130,
+				header: "RSVP Status",
+				cell: ({ row }) => {
+					const status = row.original.ticketApplication?.rsvpStatus;
+					if (!status) {
+						return <span className="text-muted-foreground">-</span>;
+					}
+					return (
+						<Badge
+							variant="secondary"
+							className={cn(getRsvpStatusColor(status), "rounded-none")}
+						>
+							{getRsvpStatusText(status)}
+						</Badge>
+					);
+				},
+			},
+		];
+
+		const transactionIdIndex = baseColumns.findIndex(
+			(col) => "accessorKey" in col && col.accessorKey === "transactionId",
+		);
+		baseColumns.splice(transactionIdIndex, 0, ...applicationColumns);
+	}
 
 	// Generate dynamic columns for custom fields
 	const customColumns: ColumnDef<PendingTicket>[] = [];

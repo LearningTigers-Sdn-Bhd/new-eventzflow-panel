@@ -26,6 +26,7 @@ export const updateVendorSchema = z.object({
 	email: z.string().email("Must be a valid email"),
 	full_name: z.string().min(2, "Full name must be at least 2 characters"),
 	phone: z.string().optional(),
+	created_by_id: z.string().nullable().optional(),
 	newPassword: z
 		.string()
 		.min(8, "Password must be at least 8 characters")

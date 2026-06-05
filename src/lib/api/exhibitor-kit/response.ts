@@ -4,6 +4,10 @@ export interface ExhibitorTeamMember {
 	id?: number;
 	exhibitor_kit_id?: number;
 	full_name: string;
+	email: string;
+	phone: string;
+	attendee_type?: string;
+	attendee_id?: number;
 	created_at?: string;
 	updated_at?: string;
 	_destroy?: boolean;
@@ -109,6 +113,8 @@ export interface ExhibitorKit {
 	amount_paid?: string;
 	payment_note?: string;
 	indemnity_link?: string;
+	exhibitor_booth_price_id?: number;
+	exhibitor_booth_price_label?: string | null;
 	custom_fields_data?: Record<string, unknown>;
 	exhibitor_team_members: ExhibitorTeamMember[];
 	exhibitor_kit_items?: ExhibitorKitItem[];
@@ -119,10 +125,12 @@ export interface ExhibitorKit {
 	team_member_limit?: number | null;
 	excess_team_member_count?: number;
 	paid_extra_member_count?: number;
+	used_paid_extra_member_count?: number;
 	unpaid_excess_team_member_count?: number;
 	has_unpaid_excess_team_members?: boolean;
 	extra_team_member_fee?: string;
 	extra_team_member_charges?: string;
+	extra_team_member_payment_mode?: "manual_bank_in" | "payment_gateway";
 	created_at?: string;
 	updated_at?: string;
 }

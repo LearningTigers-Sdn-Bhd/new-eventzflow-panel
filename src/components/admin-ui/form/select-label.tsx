@@ -39,7 +39,7 @@ interface SelectLabelProps {
 	variant?: VariantProps<typeof selectTriggerVariants>["variant"];
 
 	// Values & handlers
-	value: string;
+	value: string | undefined;
 	onChange: (value: string) => void;
 	onBlur?: () => void;
 
@@ -97,7 +97,7 @@ export function SelectLabel({
 					<span className="ml-0.5 text-destructive">*</span>
 				)}
 			</FieldLabel>
-			<Select value={value} onValueChange={onChange} disabled={disabled}>
+			<Select value={value || undefined} onValueChange={onChange} disabled={disabled}>
 				<SelectTrigger
 					id={htmlFor}
 					className={cn(
@@ -107,7 +107,11 @@ export function SelectLabel({
 					)}
 					onBlur={onBlur}
 				>
-					<SelectValue placeholder={placeholder} />
+					{value && options.some((o) => o.value === value) ? (
+						<SelectValue />
+					) : (
+						<span className="text-muted-foreground text-sm">{placeholder}</span>
+					)}
 				</SelectTrigger>
 				<SelectContent
 					className={cn(

@@ -41,7 +41,7 @@ export function BaseTable<TData>({
 	const columnCount = table.getAllColumns().length;
 
 	return (
-		<div className="min-h-[calc(100vh-320px)] w-full overflow-x-auto border">
+		<div className="w-full overflow-x-auto border">
 			<div className="h-full w-full">
 				<Table
 					className={cn(
@@ -148,7 +148,7 @@ export function BaseTable<TData>({
 							<TableRow className="hover:bg-transparent">
 								<TableCell
 									colSpan={columnCount}
-									className="h-[calc(100vh-380px)] text-center"
+									className="h-[300px] text-center"
 								>
 									<EmptyState
 										title={emptyStateConfig.title}

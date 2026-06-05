@@ -52,11 +52,15 @@ export async function createExportLog(
 	try {
 		const validated = createExportLogSchema.parse(data);
 
+		const params = new URLSearchParams({ event_id: validated.eventId });
+		if (validated.from) params.append("from", validated.from);
+		if (validated.to) params.append("to", validated.to);
+
 		const response = await restClient.post<{
 			success: boolean;
 			message: string;
 			data: BackendExportLog;
-		}>(`v1/tickets/exports?event_id=${validated.eventId}`, {});
+		}>(`v1/tickets/exports?${params.toString()}`, {});
 
 		if (!response.success || !response.data) {
 			throw new Error(response.message || "Failed to create export");

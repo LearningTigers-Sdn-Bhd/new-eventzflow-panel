@@ -3,8 +3,8 @@
 import { Archive, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { useDialog } from "@/hooks/use-dialog";
 import { useResourceMutations } from "@/hooks/resources/use-resource-mutations";
+import { useDialog } from "@/hooks/use-dialog";
 import {
 	deleteResourceTopic,
 	forceDeleteResourceTopic,

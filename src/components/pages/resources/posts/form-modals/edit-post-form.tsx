@@ -2,7 +2,13 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Image as ImageIcon, Layers, Loader2, Settings2 } from "lucide-react";
+import {
+	FileText,
+	Image as ImageIcon,
+	Layers,
+	Loader2,
+	Settings2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
@@ -12,8 +18,8 @@ import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
-import { useDialog } from "@/hooks/use-dialog";
 import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import { useDialog } from "@/hooks/use-dialog";
 import { updateResource } from "@/lib/api/resource";
 import { getResourceCategories } from "@/lib/api/resource/category";
 import { getResourceMediaTypes } from "@/lib/api/resource/media-type";
@@ -91,7 +97,8 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 	const canSetOfficial = isOrgOwner || isOfficialWriter;
 
 	// Track if resource originally had an image
-	const hadOriginalImage = resource.headerImgUrl !== null && resource.headerImgUrl !== undefined;
+	const hadOriginalImage =
+		resource.headerImgUrl !== null && resource.headerImgUrl !== undefined;
 
 	const form = useForm({
 		defaultValues: {
@@ -105,8 +112,8 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 			priority: resource.priority ?? 10,
 			// Initialize with existing image URL if available, so we can track removal
 			headerImg: hadOriginalImage
-				? (getResourceImage(resource.headerImgUrl, "original") || null)
-				: null as File | string | null,
+				? getResourceImage(resource.headerImgUrl, "original") || null
+				: (null as File | string | null),
 		},
 		onSubmit: async ({ value }) => {
 			// Determine if image should be deleted
@@ -114,9 +121,8 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 			// Note: headerImg will be null if user clicked "Remove", or a File if they uploaded a new one
 			const headerImgValue = value.headerImg;
 			const isFile = headerImgValue instanceof File;
-			const shouldDeleteImage = hadOriginalImage &&
-				headerImgValue === null &&
-				!isFile;
+			const shouldDeleteImage =
+				hadOriginalImage && headerImgValue === null && !isFile;
 
 			updateMutation.mutate({
 				id: resource.id,
@@ -387,7 +393,8 @@ export function EditPostForm({ resource }: EditPostFormProps) {
 										onChange: ({ value }) => {
 											const result =
 												editPostSchema.shape.priority.safeParse(value);
-											if (!result.success) return result.error.issues[0].message;
+											if (!result.success)
+												return result.error.issues[0].message;
 											return undefined;
 										},
 									}}

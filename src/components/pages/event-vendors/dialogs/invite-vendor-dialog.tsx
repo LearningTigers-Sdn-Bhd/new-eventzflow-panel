@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link2, Copy, Check, Loader2 } from "lucide-react";
+import { Check, Copy, Link2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,17 +22,20 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { generateVendorInviteLink } from "@/lib/api/vendor-invitation";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { getGroups } from "@/lib/api/group";
 import { getTeamMembers } from "@/lib/api/team";
-import { useAuth } from "@/hooks/auth/use-auth";
+import { generateVendorInviteLink } from "@/lib/api/vendor-invitation";
 
 interface InviteVendorDialogProps {
 	eventId: number;
 	trigger?: React.ReactNode;
 }
 
-export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps) {
+export function InviteVendorDialog({
+	eventId,
+	trigger,
+}: InviteVendorDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 	const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -58,17 +61,19 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 
 	// Filter only organizers and the org_owner themselves
 	const organizers = teamMembers.filter(
-		(member) => member.role === "organizer" || member.role === "org_owner"
+		(member) => member.role === "organizer" || member.role === "org_owner",
 	);
 
 	const generateMutation = useMutation({
 		mutationFn: () => {
-			const groupId = selectedGroupId && selectedGroupId !== "none"
-				? Number.parseInt(selectedGroupId)
-				: undefined;
-			const organizerId = isOrgOwner && selectedOrganizerId && selectedOrganizerId !== "self"
-				? selectedOrganizerId
-				: undefined;
+			const groupId =
+				selectedGroupId && selectedGroupId !== "none"
+					? Number.parseInt(selectedGroupId)
+					: undefined;
+			const organizerId =
+				isOrgOwner && selectedOrganizerId && selectedOrganizerId !== "self"
+					? selectedOrganizerId
+					: undefined;
 			return generateVendorInviteLink(eventId, groupId, organizerId);
 		},
 		onSuccess: (response) => {
@@ -150,7 +155,13 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 										disabled={isLoadingOrganizers}
 									>
 										<SelectTrigger className="w-full">
-											<SelectValue placeholder={isLoadingOrganizers ? "Loading organizers..." : "Select organizer or yourself"} />
+											<SelectValue
+												placeholder={
+													isLoadingOrganizers
+														? "Loading organizers..."
+														: "Select organizer or yourself"
+												}
+											/>
 										</SelectTrigger>
 										<SelectContent>
 											<SelectItem value="self">Myself (Org Owner)</SelectItem>
@@ -164,7 +175,8 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 										</SelectContent>
 									</Select>
 									<p className="text-muted-foreground text-xs">
-										The vendor will be attached to the selected organizer or yourself.
+										The vendor will be attached to the selected organizer or
+										yourself.
 									</p>
 								</div>
 							)}
@@ -176,7 +188,11 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 									disabled={isLoadingGroups}
 								>
 									<SelectTrigger className="w-full">
-										<SelectValue placeholder={isLoadingGroups ? "Loading groups..." : "Select a group"} />
+										<SelectValue
+											placeholder={
+												isLoadingGroups ? "Loading groups..." : "Select a group"
+											}
+										/>
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="none">No group</SelectItem>
@@ -188,13 +204,17 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 									</SelectContent>
 								</Select>
 								<p className="text-muted-foreground text-xs">
-									The vendor will be automatically added to this group when they register.
+									The vendor will be automatically added to this group when they
+									register.
 								</p>
 							</div>
 
 							<Button
 								onClick={handleGenerateLink}
-								disabled={generateMutation.isPending || (isOrgOwner && !selectedOrganizerId)}
+								disabled={
+									generateMutation.isPending ||
+									(isOrgOwner && !selectedOrganizerId)
+								}
 								className="w-full"
 							>
 								{generateMutation.isPending ? (
@@ -250,9 +270,14 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 							{selectedGroupId && selectedGroupId !== "none" && (
 								<div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
 									<p className="text-sm">
-										<span className="text-muted-foreground">Will be assigned to group: </span>
+										<span className="text-muted-foreground">
+											Will be assigned to group:{" "}
+										</span>
 										<span className="font-medium">
-											{groups.find((g) => g.id.toString() === selectedGroupId)?.name}
+											{
+												groups.find((g) => g.id.toString() === selectedGroupId)
+													?.name
+											}
 										</span>
 									</p>
 								</div>
@@ -263,7 +288,9 @@ export function InviteVendorDialog({ eventId, trigger }: InviteVendorDialogProps
 								<ol className="list-inside list-decimal space-y-1 text-muted-foreground text-sm">
 									<li>Copy the invitation link above</li>
 									<li>Share it with the vendor (email, WhatsApp, etc.)</li>
-									<li>The vendor clicks the link and registers their account</li>
+									<li>
+										The vendor clicks the link and registers their account
+									</li>
 									<li>They will automatically be added to this event</li>
 								</ol>
 							</div>

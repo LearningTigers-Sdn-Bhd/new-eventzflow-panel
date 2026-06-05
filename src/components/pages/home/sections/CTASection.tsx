@@ -8,7 +8,7 @@ import type React from "react";
 
 const CTASection: React.FC = () => {
 	return (
-		<section className="relative overflow-hidden bg-green-background px-6 py-16 md:py-20 md:px-12 border border-black">
+		<section className="relative overflow-hidden border border-black bg-green-background px-6 py-16 md:px-12 md:py-20">
 			<div className="relative z-10 mx-auto max-w-7xl">
 				{/* Main Content */}
 				<div className="flex flex-col items-center text-center">
@@ -21,7 +21,7 @@ const CTASection: React.FC = () => {
 						className="mb-6 flex items-center gap-4 md:mb-8"
 					>
 						<div className="h-px w-8 bg-black/30 md:w-12" />
-						<span className="text-xs tracking-[0.2em] text-black/60 sm:text-sm sm:tracking-[0.3em]">
+						<span className="text-black/60 text-xs tracking-[0.2em] sm:text-sm sm:tracking-[0.3em]">
 							READY TO TRANSFORM YOUR EVENTS?
 						</span>
 						<div className="h-px w-8 bg-black/30 md:w-12" />
@@ -33,7 +33,7 @@ const CTASection: React.FC = () => {
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-						className="font-black text-4xl tracking-tighter text-black sm:text-5xl md:text-6xl lg:text-8xl xl:text-9xl"
+						className="font-black text-4xl text-black tracking-tighter sm:text-5xl md:text-6xl lg:text-8xl xl:text-9xl"
 					>
 						RUN BETTER
 						<br />
@@ -46,7 +46,7 @@ const CTASection: React.FC = () => {
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-						className="mt-8 max-w-xl text-lg leading-relaxed text-black/70 md:text-xl"
+						className="mt-8 max-w-xl text-black/70 text-lg leading-relaxed md:text-xl"
 					>
 						From registration to check-in to analytics. All in one platform.
 					</motion.p>
@@ -61,14 +61,14 @@ const CTASection: React.FC = () => {
 					>
 						<Link
 							href={"/auth?login" as Route}
-							className="group flex items-center justify-center gap-3 bg-black px-8 py-4 font-bold text-base tracking-wide text-white transition-all duration-300 hover:-translate-y-1 hover:bg-neutral-800 hover:shadow-xl sm:px-12 sm:py-5"
+							className="group flex items-center justify-center gap-3 bg-black px-8 py-4 font-bold text-base text-white tracking-wide transition-all duration-300 hover:-translate-y-1 hover:bg-neutral-800 hover:shadow-xl sm:px-12 sm:py-5"
 						>
 							GET STARTED
 							<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
 						</Link>
 						<Link
 							href={"/contact" as Route}
-							className="flex items-center justify-center border border-black/30 bg-brand-green px-8 py-4 font-bold text-base tracking-wide text-black backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white sm:px-12 sm:py-5"
+							className="flex items-center justify-center border border-black/30 bg-brand-green px-8 py-4 font-bold text-base text-black tracking-wide backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white sm:px-12 sm:py-5"
 						>
 							TALK TO SALES
 						</Link>
@@ -80,7 +80,7 @@ const CTASection: React.FC = () => {
 						whileInView={{ opacity: 1 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-						className="mt-6 flex flex-col gap-2 text-sm tracking-wide text-black/70 sm:flex-row sm:gap-4 md:mt-8 md:text-base"
+						className="mt-6 flex flex-col gap-2 text-black/70 text-sm tracking-wide sm:flex-row sm:gap-4 md:mt-8 md:text-base"
 					>
 						<span>✓ No credit card required</span>
 						<span className="hidden sm:inline">·</span>

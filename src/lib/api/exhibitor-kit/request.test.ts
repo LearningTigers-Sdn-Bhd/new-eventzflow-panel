@@ -20,4 +20,66 @@ describe("updateExhibitorKitSchema", () => {
 			booth_notes: "Near entrance",
 		});
 	});
+
+	test("accepts exhibitor team members with email and phone", () => {
+		const parsed = updateExhibitorKitSchema.safeParse({
+			exhibitor_team_members_attributes: [
+				{
+					full_name: "Jane Expo",
+					email: "jane@example.com",
+					phone: "+60123456789",
+				},
+			],
+		});
+
+		expect(parsed.success).toBe(true);
+		if (!parsed.success) return;
+
+		expect(parsed.data.exhibitor_team_members_attributes).toEqual([
+			{
+				full_name: "Jane Expo",
+				email: "jane@example.com",
+				phone: "+60123456789",
+			},
+		]);
+	});
+
+	test("rejects exhibitor team members without email and phone", () => {
+		const parsed = updateExhibitorKitSchema.safeParse({
+			exhibitor_team_members_attributes: [
+				{
+					full_name: "Jane Expo",
+				},
+			],
+		});
+
+		expect(parsed.success).toBe(false);
+	});
+
+	test("allows deleting legacy exhibitor team members with blank email and phone", () => {
+		const parsed = updateExhibitorKitSchema.safeParse({
+			exhibitor_team_members_attributes: [
+				{
+					id: 123,
+					full_name: "Legacy Member",
+					email: "",
+					phone: "",
+					_destroy: true,
+				},
+			],
+		});
+
+		expect(parsed.success).toBe(true);
+		if (!parsed.success) return;
+
+		expect(parsed.data.exhibitor_team_members_attributes).toEqual([
+			{
+				id: 123,
+				full_name: "Legacy Member",
+				email: "",
+				phone: "",
+				_destroy: true,
+			},
+		]);
+	});
 });

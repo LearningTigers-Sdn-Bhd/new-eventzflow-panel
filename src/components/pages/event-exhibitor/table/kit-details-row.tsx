@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Building2, CreditCard, Package, Printer, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -7,10 +8,16 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
+import {
+	shouldExpandEmbeddedTeamMembersSection,
+	shouldShowEmbeddedExhibitorManagementSections,
+} from "../../event/exhibitor-management-access";
 
 function ExpandableText({
 	text,
@@ -45,7 +52,13 @@ interface KitDetailsRowProps {
 }
 
 export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
+	const { user } = useAuth();
 	const kit = vendor.exhibitor_kit;
+	const { data: event } = useQuery({
+		queryKey: ["event", vendor.event_id],
+		queryFn: () => getEventById(String(vendor.event_id)),
+		enabled: isExpanded && !!kit,
+	});
 
 	if (!kit || !isExpanded) {
 		return null;
@@ -54,27 +67,173 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 	const items = kit.exhibitor_kit_items || [];
 	const printings = kit.exhibitor_kit_printings || [];
 	const teamMembers = kit.exhibitor_team_members || [];
-	const customRequests = kit.custom_requests || [];
 	const customFieldsEntries = formatCustomFieldEntries(kit.custom_fields_data);
-
-	// Merge items and printings with same IDs
 	const mergedItems = mergeKitItems(items);
 	const mergedPrintings = mergeKitPrintings(printings);
+	const showPaidSections = shouldShowEmbeddedExhibitorManagementSections(
+		user?.role,
+		event,
+	);
+	const expandTeamMembersSection = shouldExpandEmbeddedTeamMembersSection(
+		user?.role,
+		event,
+	);
 
-	const _pendingRequests = customRequests.filter(
-		(req) => req.status === "pending",
-	).length;
-	const _approvedRequests = customRequests.filter(
-		(req) => req.status === "approved",
-	).length;
-	const _rejectedRequests = customRequests.filter(
-		(req) => req.status === "rejected",
-	).length;
+	const teamMembersContent = (
+		<>
+			<div className="mb-2 flex items-center justify-between border-b pb-1.5">
+				<div className="flex items-center gap-1.5">
+					<Users className="size-3.5 text-primary" />
+					<h4 className="font-semibold text-xs uppercase tracking-wide">
+						Team Members ({teamMembers.length})
+					</h4>
+				</div>
+				{kit.team_member_limit && (
+					<span className="text-xs">
+						<span className="font-medium">Limit</span>{" "}
+						<span className="text-muted-foreground">
+							{kit.team_member_limit}
+						</span>
+					</span>
+				)}
+			</div>
+
+			{teamMembers.length > 0 ? (
+				kit.team_member_limit ? (
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+									Free Team Members
+								</p>
+								<span className="font-medium text-green-600 text-xs dark:text-green-400">
+									{Math.min(teamMembers.length, kit.team_member_limit)} /{" "}
+									{kit.team_member_limit}
+								</span>
+							</div>
+							<div
+								className={cn(
+									expandTeamMembersSection
+										? "grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3"
+										: "space-y-0.5",
+								)}
+							>
+								{teamMembers
+									.slice(0, kit.team_member_limit)
+									.map((member, idx) => (
+										<div
+											key={member.id || idx}
+											className={cn(
+												expandTeamMembersSection
+													? "flex items-center gap-2 rounded-none border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/20"
+													: "flex items-center gap-1.5 rounded-sm bg-green-50 px-1.5 py-0.5 dark:bg-green-950/20",
+											)}
+										>
+											<div className="size-2 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
+											<span
+												className={cn(
+													expandTeamMembersSection ? "text-sm" : "text-xs",
+												)}
+											>
+												{member.full_name}
+											</span>
+										</div>
+									))}
+							</div>
+						</div>
+
+						{kit.excess_team_member_count != null &&
+							kit.excess_team_member_count > 0 && (
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+											Additional Team Members (Paid)
+										</p>
+										<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
+											{kit.excess_team_member_count} x RM{" "}
+											{Number(kit.extra_team_member_fee || 0).toFixed(2)} = RM{" "}
+											{Number(kit.extra_team_member_charges || 0).toFixed(2)}
+										</span>
+									</div>
+									<div
+										className={cn(
+											expandTeamMembersSection
+												? "grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3"
+												: "space-y-0.5",
+										)}
+									>
+										{teamMembers
+											.slice(kit.team_member_limit)
+											.map((member, idx) => (
+												<div
+													key={member.id || idx}
+													className={cn(
+														expandTeamMembersSection
+															? "flex items-center justify-between gap-2 rounded-none border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/20"
+															: "flex items-center justify-between gap-1.5 rounded-sm bg-amber-50 px-1.5 py-0.5 dark:bg-amber-950/20",
+													)}
+												>
+													<div className="flex min-w-0 flex-1 items-center gap-1.5">
+														<div className="size-2 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
+														<span
+															className={cn(
+																"truncate",
+																expandTeamMembersSection
+																	? "text-sm"
+																	: "text-xs",
+															)}
+														>
+															{member.full_name}
+														</span>
+													</div>
+													<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
+														+RM{" "}
+														{Number(kit.extra_team_member_fee || 0).toFixed(2)}
+													</span>
+												</div>
+											))}
+									</div>
+								</div>
+							)}
+					</div>
+				) : (
+					<div
+						className={cn(
+							expandTeamMembersSection
+								? "grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3"
+								: "space-y-0.5",
+						)}
+					>
+						{teamMembers.map((member, idx) => (
+							<div
+								key={member.id || idx}
+								className={cn(
+									expandTeamMembersSection
+										? "flex items-center gap-2 rounded-none border bg-muted/30 p-2"
+										: "flex items-center gap-1.5 py-0.5",
+								)}
+							>
+								<div className="size-2 shrink-0 rounded-full bg-primary" />
+								<span
+									className={cn(
+										expandTeamMembersSection ? "text-sm" : "text-xs",
+									)}
+								>
+									{member.full_name}
+								</span>
+							</div>
+						))}
+					</div>
+				)
+			) : (
+				<p className="text-muted-foreground text-xs">No team members</p>
+			)}
+		</>
+	);
 
 	return (
 		<div className="border-t bg-muted/30 px-3 py-3">
 			<div className="grid min-w-0 gap-x-3 gap-y-3 text-sm md:grid-cols-2 lg:grid-cols-3">
-				{/* Booth Information */}
 				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
@@ -143,7 +302,6 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					)}
 				</div>
 
-				{/* Company & PIC */}
 				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<Building2 className="size-3.5 text-primary" />
@@ -160,7 +318,9 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					<div className="py-0.5">
 						<span className="mb-0.5 block font-medium text-xs">Address</span>
 						{kit.company_address ? (
-							<ExpandableText text={kit.company_address} />
+							<span className="block whitespace-pre-wrap break-words text-muted-foreground text-xs">
+								{kit.company_address}
+							</span>
 						) : (
 							<span className="block text-muted-foreground text-xs">-</span>
 						)}
@@ -187,7 +347,6 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 				</div>
 
-				{/* Payment Information */}
 				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
 					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
 						<CreditCard className="size-3.5 text-primary" />
@@ -222,6 +381,16 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 								: "-"}
 						</span>
 					</div>
+					{kit.exhibitor_booth_price_label && (
+						<div className="flex justify-between gap-2 py-0.5">
+							<span className="shrink-0 font-medium text-xs">
+								Booth Package
+							</span>
+							<span className="break-words text-right text-muted-foreground text-xs">
+								{kit.exhibitor_booth_price_label}
+							</span>
+						</div>
+					)}
 					{kit.payment_note && (
 						<div className="border-t pt-1.5">
 							<span className="mb-0.5 block font-medium text-xs">Note</span>
@@ -238,240 +407,90 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					)}
 				</div>
 
-				{/* Team Members */}
-				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
-					<div className="mb-2 flex items-center justify-between border-b pb-1.5">
-						<div className="flex items-center gap-1.5">
-							<Users className="size-3.5 text-primary" />
-							<h4 className="font-semibold text-xs uppercase tracking-wide">
-								Team Members ({teamMembers.length})
-							</h4>
-						</div>
-						{kit.team_member_limit && (
-							<span className="text-xs">
-								<span className="font-medium">Limit</span>{" "}
-								<span className="text-muted-foreground">
-									{kit.team_member_limit}
-								</span>
-							</span>
-						)}
-					</div>
-					{teamMembers.length > 0 ? (
-						<>
-							<div className="scrollbar-thin scrollbar-track-transparent max-h-32 overflow-y-auto pr-2">
-								{kit.team_member_limit ? (
-									// Show breakdown when limit exists
-									<div className="space-y-2">
-										{/* Free Members */}
-										<div className="space-y-0.5">
-											<p className="font-medium text-green-600 text-xs dark:text-green-400">
-												Free (
-												{Math.min(teamMembers.length, kit.team_member_limit)})
-											</p>
-											{teamMembers
-												.slice(0, kit.team_member_limit)
-												.map((member, idx) => (
-													<div
-														key={member.id || idx}
-														className="flex items-center gap-1.5 rounded-sm bg-green-50 px-1.5 py-0.5 dark:bg-green-950/20"
-													>
-														<div className="size-1.5 shrink-0 rounded-full bg-green-600 dark:bg-green-400" />
-														<span className="text-xs">{member.full_name}</span>
-													</div>
-												))}
-										</div>
-										{/* Paid Members */}
-										{kit.excess_team_member_count &&
-											kit.excess_team_member_count > 0 && (
-												<div className="space-y-0.5">
-													<p className="font-medium text-amber-600 text-xs dark:text-amber-400">
-														Paid ({kit.excess_team_member_count}) • RM{" "}
-														{kit.extra_team_member_charges}
-													</p>
-													{teamMembers
-														.slice(kit.team_member_limit)
-														.map((member, idx) => (
-															<div
-																key={member.id || idx}
-																className="flex items-center justify-between gap-1.5 rounded-sm bg-amber-50 px-1.5 py-0.5 dark:bg-amber-950/20"
-															>
-																<div className="flex min-w-0 flex-1 items-center gap-1.5">
-																	<div className="size-1.5 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-																	<span className="truncate text-xs">
-																		{member.full_name}
-																	</span>
-																</div>
-																<span className="shrink-0 font-medium text-amber-600 text-xs dark:text-amber-400">
-																	+RM {kit.extra_team_member_fee}
-																</span>
-															</div>
-														))}
-												</div>
-											)}
-									</div>
-								) : (
-									// Show simple list when no limit
-									<div className="space-y-0.5">
-										{teamMembers.map((member, idx) => (
-											<div
-												key={member.id || idx}
-												className="flex items-center gap-1.5 py-0.5"
-											>
-												<div className="size-1.5 shrink-0 rounded-full bg-primary" />
-												<span className="text-xs">{member.full_name}</span>
-											</div>
-										))}
-									</div>
-								)}
+				{showPaidSections && (
+					<>
+						<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
+							<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
+								<Package className="size-3.5 text-primary" />
+								<h4 className="font-semibold text-xs uppercase tracking-wide">
+									Ordered Items ({mergedItems.length})
+								</h4>
 							</div>
-							{/* Subtotal for extra team members */}
-							{kit.extra_team_member_charges &&
-								Number(kit.extra_team_member_charges) > 0 && (
-									<div className="flex justify-between border-t pt-1.5 text-xs">
-										<span className="font-medium">Subtotal</span>
-										<span className="text-muted-foreground">
-											RM {Number(kit.extra_team_member_charges).toFixed(2)}
-										</span>
-									</div>
-								)}
-						</>
-					) : (
-						<p className="text-muted-foreground text-xs">No team members</p>
-					)}
-				</div>
-
-				{/* Ordered Items */}
-				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
-					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
-						<Package className="size-3.5 text-primary" />
-						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Ordered Items ({mergedItems.length})
-						</h4>
-					</div>
-					{mergedItems.length > 0 ? (
-						<div className="scrollbar-thin scrollbar-track-transparent max-h-32 space-y-1 overflow-y-auto pr-2">
-							{mergedItems.map((item) => (
-								<div
-									key={item.rentable_item_id}
-									className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
-								>
-									<span className="truncate font-medium text-xs">
-										{item.rentable_item?.name ||
-											`Item #${item.rentable_item_id}`}
-									</span>
-									<Badge
-										variant="secondary"
-										className="h-5 shrink-0 rounded-none text-xs"
-									>
-										x{item.quantity}
-									</Badge>
-								</div>
-							))}
-						</div>
-					) : (
-						<p className="text-muted-foreground text-xs">No items ordered</p>
-					)}
-				</div>
-
-				{/* Ordered Services */}
-				<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
-					<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
-						<Printer className="size-3.5 text-primary" />
-						<h4 className="font-semibold text-xs uppercase tracking-wide">
-							Printing Services ({mergedPrintings.length})
-						</h4>
-					</div>
-					{mergedPrintings.length > 0 ? (
-						<div className="scrollbar-thin scrollbar-track-transparent max-h-32 space-y-1 overflow-y-auto pr-2">
-							{mergedPrintings.map((printing) => (
-								<div
-									key={printing.printing_service_id}
-									className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
-								>
-									<span className="truncate font-medium text-xs">
-										{printing.printing_service?.name ||
-											`Service #${printing.printing_service_id}`}
-									</span>
-									<Badge
-										variant="secondary"
-										className="h-5 shrink-0 rounded-none text-xs"
-									>
-										x{printing.quantity}
-									</Badge>
-								</div>
-							))}
-						</div>
-					) : (
-						<p className="text-muted-foreground text-xs">No services ordered</p>
-					)}
-				</div>
-
-				{/* HIDDEN: Custom Requests feature temporarily disabled */}
-				{/* {customRequests.length > 0 && (
-					<div className="space-y-1.5 md:col-span-2 lg:col-span-3 border p-3 bg-background">
-						<div className="flex items-center gap-2 mb-2 pb-1.5 border-b">
-							<FileQuestion className="size-3.5 text-primary" />
-							<h4 className="font-semibold text-xs uppercase tracking-wide">
-								Custom Requests ({customRequests.length})
-							</h4>
-							{pendingRequests > 0 && (
-								<Badge variant="outline" className="rounded-none text-xs border-yellow-500 text-yellow-500 h-5">
-									{pendingRequests} Pending
-								</Badge>
-							)}
-							{approvedRequests > 0 && (
-								<Badge variant="outline" className="rounded-none text-xs border-green-500 text-green-500 h-5">
-									{approvedRequests} Approved
-								</Badge>
-							)}
-							{rejectedRequests > 0 && (
-								<Badge variant="outline" className="rounded-none text-xs border-red-500 text-red-500 h-5">
-									{rejectedRequests} Rejected
-								</Badge>
-							)}
-						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-							{customRequests.map((request) => (
-								<div key={request.id} className="border rounded-sm p-2 space-y-1 bg-muted/30">
-									<div className="flex justify-between items-start gap-2">
-										<p className="text-xs flex-1 line-clamp-2">{request.description}</p>
-										<Badge
-											variant="outline"
-											className={cn(
-												"rounded-none text-xs shrink-0 h-5",
-												request.status === "pending" && "border-yellow-500 text-yellow-500",
-												request.status === "approved" && "border-green-500 text-green-500",
-												request.status === "rejected" && "border-red-500 text-red-500",
-											)}
+							{mergedItems.length > 0 ? (
+								<div className="scrollbar-thin scrollbar-track-transparent max-h-32 space-y-1 overflow-y-auto pr-2">
+									{mergedItems.map((item) => (
+										<div
+											key={item.rentable_item_id}
+											className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
 										>
-											{request.status}
-										</Badge>
-									</div>
-									<div className="flex justify-between text-xs text-muted-foreground">
-										<span>Qty: {request.quantity}</span>
-										{request.resolved_price && (
-											<span className="font-medium">
-												RM {(request.resolved_price * request.quantity).toFixed(2)}
+											<span className="truncate font-medium text-xs">
+												{item.rentable_item?.name ||
+													`Item #${item.rentable_item_id}`}
 											</span>
-										)}
-									</div>
-									{request.response_notes && (
-										<p className="text-xs text-muted-foreground border-t pt-1 line-clamp-2">
-											Response: {request.response_notes}
-										</p>
-									)}
+											<Badge
+												variant="secondary"
+												className="h-5 shrink-0 rounded-none text-xs"
+											>
+												x{item.quantity}
+											</Badge>
+										</div>
+									))}
 								</div>
-							))}
+							) : (
+								<p className="text-muted-foreground text-xs">
+									No items ordered
+								</p>
+							)}
 						</div>
-						{customRequestsTotal > 0 && (
-							<div className="flex justify-between pt-1.5 border-t font-semibold text-xs">
-								<span>Approved Total:</span>
-								<span>RM {customRequestsTotal.toFixed(2)}</span>
+
+						<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
+							<div className="mb-2 flex items-center gap-1.5 border-b pb-1.5">
+								<Printer className="size-3.5 text-primary" />
+								<h4 className="font-semibold text-xs uppercase tracking-wide">
+									Printing Services ({mergedPrintings.length})
+								</h4>
 							</div>
-						)}
+							{mergedPrintings.length > 0 ? (
+								<div className="scrollbar-thin scrollbar-track-transparent max-h-32 space-y-1 overflow-y-auto pr-2">
+									{mergedPrintings.map((printing) => (
+										<div
+											key={printing.printing_service_id}
+											className="flex items-center justify-between gap-2 border bg-muted/30 p-2"
+										>
+											<span className="truncate font-medium text-xs">
+												{printing.printing_service?.name ||
+													`Service #${printing.printing_service_id}`}
+											</span>
+											<Badge
+												variant="secondary"
+												className="h-5 shrink-0 rounded-none text-xs"
+											>
+												x{printing.quantity}
+											</Badge>
+										</div>
+									))}
+								</div>
+							) : (
+								<p className="text-muted-foreground text-xs">
+									No services ordered
+								</p>
+							)}
+						</div>
+					</>
+				)}
+
+				{!expandTeamMembersSection && (
+					<div className="min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
+						{teamMembersContent}
 					</div>
-				)} */}
+				)}
 			</div>
+
+			{expandTeamMembersSection && (
+				<div className="mt-3 min-w-0 space-y-1.5 overflow-hidden border bg-background p-3">
+					{teamMembersContent}
+				</div>
+			)}
 		</div>
 	);
 }

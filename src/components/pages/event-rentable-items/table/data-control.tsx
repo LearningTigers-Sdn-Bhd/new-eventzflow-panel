@@ -46,12 +46,16 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
-								{table.getAllColumns().filter((column) => column.getIsVisible()).length - 1}{" "}
+								{table.getAllColumns().filter((column) => column.getIsVisible())
+									.length - 1}{" "}
 								columns
 								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="rounded-none bg-background">
+						<DropdownMenuContent
+							align="end"
+							className="rounded-none bg-background"
+						>
 							{table
 								.getAllColumns()
 								.filter((column) => column.getCanHide())
@@ -60,7 +64,9 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 										key={column.id}
 										className="rounded-none capitalize"
 										checked={column.getIsVisible()}
-										onCheckedChange={(value) => column.toggleVisibility(!!value)}
+										onCheckedChange={(value) =>
+											column.toggleVisibility(!!value)
+										}
 									>
 										{column.id}
 									</DropdownMenuCheckboxItem>
@@ -103,7 +109,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 								table
 									.getColumn(secondarySortColumn)
 									?.toggleSorting(
-										table.getColumn(secondarySortColumn)?.getIsSorted() === "asc",
+										table.getColumn(secondarySortColumn)?.getIsSorted() ===
+											"asc",
 									)
 							}
 							className="rounded-none"
@@ -111,8 +118,8 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 							<ArrowDown
 								className={cn(
 									"mr-2 h-4 w-4 transition-transform",
-									table.getColumn(secondarySortColumn)?.getIsSorted() === "asc" &&
-										"-rotate-180",
+									table.getColumn(secondarySortColumn)?.getIsSorted() ===
+										"asc" && "-rotate-180",
 								)}
 							/>
 							{secondarySortLabel}

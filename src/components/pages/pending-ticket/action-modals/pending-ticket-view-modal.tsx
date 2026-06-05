@@ -1,6 +1,5 @@
 import {
 	AlertCircle,
-	Calendar,
 	Check,
 	Clock,
 	CreditCard,
@@ -14,10 +13,8 @@ import {
 	Tag,
 	User,
 } from "lucide-react";
-import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "../../../../lib/utils";
@@ -25,6 +22,10 @@ import {
 	formatTicketPrice,
 	getPaymentStatusColor,
 	getPaymentStatusText,
+	getReviewStatusColor,
+	getReviewStatusText,
+	getRsvpStatusColor,
+	getRsvpStatusText,
 } from "../constants";
 import type { PendingTicket } from "../pending-ticket-table-columns";
 
@@ -112,9 +113,9 @@ export default function PendingTicketViewModal({
 
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 						{/* Buyer Information Card */}
-						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
-							<div className="border-b-2 bg-muted px-4 py-3">
-								<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+						<Card className="gap-0 rounded-none border-2 border-primary/30 bg-primary/5 p-0 shadow-none transition-colors hover:border-primary/50">
+							<div className="border-primary/30 border-b-2 bg-primary/20 px-4 py-3">
+								<h3 className="flex items-center gap-2 font-bold text-primary text-xs uppercase tracking-wider">
 									<User className="size-4" />
 									Buyer Information
 								</h3>
@@ -144,44 +145,101 @@ export default function PendingTicketViewModal({
 							</CardContent>
 						</Card>
 
-						{/* Payment Information Card */}
-						<Card className="gap-0 rounded-none border-2 border-primary/30 bg-primary/5 p-0 shadow-none transition-colors hover:border-primary/50">
-							<div className="border-primary/30 border-b-2 bg-primary/20 px-4 py-3">
-								<h3 className="flex items-center gap-2 font-bold text-primary text-xs uppercase tracking-wider">
-									<CreditCard className="size-4" />
-									Payment Details
-								</h3>
-							</div>
-							<CardContent className="grid gap-6 p-6">
-								<InfoItem label="Payment Status" icon={AlertCircle}>
-									<Badge
-										className={cn(
-											"w-fit rounded-none font-bold",
-											getPaymentStatusColor(ticket.paymentStatus),
+						<div className="grid gap-6">
+							{ticket.ticketApplication && (
+								<Card className="gap-0 rounded-none border-2 border-primary/30 bg-primary/5 p-0 shadow-none transition-colors hover:border-primary/50">
+									<div className="border-primary/30 border-b-2 bg-primary/20 px-4 py-3">
+										<h3 className="flex items-center gap-2 font-bold text-primary text-xs uppercase tracking-wider">
+											<Check className="size-4" />
+											Application Review
+										</h3>
+									</div>
+									<CardContent className="grid gap-6 p-6">
+										<InfoItem label="Review Status" icon={Check}>
+											<Badge
+												className={cn(
+													"w-fit rounded-none font-bold",
+													getReviewStatusColor(
+														ticket.ticketApplication.reviewStatus,
+													),
+												)}
+											>
+												{getReviewStatusText(
+													ticket.ticketApplication.reviewStatus,
+												)}
+											</Badge>
+										</InfoItem>
+										<InfoItem label="RSVP Status" icon={Tag}>
+											<Badge
+												className={cn(
+													"w-fit rounded-none font-bold",
+													getRsvpStatusColor(
+														ticket.ticketApplication.rsvpStatus,
+													),
+												)}
+											>
+												{getRsvpStatusText(ticket.ticketApplication.rsvpStatus)}
+											</Badge>
+										</InfoItem>
+										{ticket.ticketApplication.rejectionReason && (
+											<InfoItem
+												label="Rejection Reason"
+												value={ticket.ticketApplication.rejectionReason}
+												icon={AlertCircle}
+											/>
 										)}
-									>
-										{getPaymentStatusText(ticket.paymentStatus)}
-									</Badge>
-								</InfoItem>
-								<InfoItem
-									label="Ticket Price"
-									value={formatTicketPrice(ticket.value)}
-									icon={DollarSign}
-								/>
-								<InfoItem
-									label="Payment Method"
-									value={ticket.paymentMethod || "Not specified"}
-									icon={CreditCard}
-								/>
-								{ticket.transactionId && (
+										{ticket.ticketApplication.rsvpExpiresAt && (
+											<InfoItem
+												label="RSVP Expires At"
+												value={new Date(
+													ticket.ticketApplication.rsvpExpiresAt,
+												).toLocaleString()}
+												icon={Clock}
+											/>
+										)}
+									</CardContent>
+								</Card>
+							)}
+
+							{/* Payment Information Card */}
+							<Card className="gap-0 rounded-none border-2 border-primary/30 bg-primary/5 p-0 shadow-none transition-colors hover:border-primary/50">
+								<div className="border-primary/30 border-b-2 bg-primary/20 px-4 py-3">
+									<h3 className="flex items-center gap-2 font-bold text-primary text-xs uppercase tracking-wider">
+										<CreditCard className="size-4" />
+										Payment Details
+									</h3>
+								</div>
+								<CardContent className="grid gap-6 p-6">
+									<InfoItem label="Payment Status" icon={AlertCircle}>
+										<Badge
+											className={cn(
+												"w-fit rounded-none font-bold",
+												getPaymentStatusColor(ticket.paymentStatus),
+											)}
+										>
+											{getPaymentStatusText(ticket.paymentStatus)}
+										</Badge>
+									</InfoItem>
 									<InfoItem
-										label="Transaction ID"
-										value={ticket.transactionId}
-										icon={FileText}
+										label="Ticket Price"
+										value={formatTicketPrice(ticket.value)}
+										icon={DollarSign}
 									/>
-								)}
-							</CardContent>
-						</Card>
+									<InfoItem
+										label="Payment Method"
+										value={ticket.paymentMethod || "Not specified"}
+										icon={CreditCard}
+									/>
+									{ticket.transactionId && (
+										<InfoItem
+											label="Transaction ID"
+											value={ticket.transactionId}
+											icon={FileText}
+										/>
+									)}
+								</CardContent>
+							</Card>
+						</div>
 					</div>
 
 					{/* Custom Information Section */}
@@ -200,7 +258,13 @@ export default function PendingTicketViewModal({
 									{ticket.customLabels.map((label, index) => (
 										<InfoItem
 											key={`${label.name}-${index}`}
-											label={label.name.includes("_") ? label.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : label.name}
+											label={
+												label.name.includes("_")
+													? label.name
+															.replace(/_/g, " ")
+															.replace(/\b\w/g, (c) => c.toUpperCase())
+													: label.name
+											}
 											value={label.value}
 											icon={Info}
 											capitalize={true}

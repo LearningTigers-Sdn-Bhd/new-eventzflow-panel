@@ -425,9 +425,7 @@ export default function LocationSettingsDialog({
 																variant="destructive"
 																onClick={() => {
 																	setCustomDetails(
-																		customDetails.filter(
-																			(_, i) => i !== index,
-																		),
+																		customDetails.filter((_, i) => i !== index),
 																	);
 																}}
 																className="rounded-none"

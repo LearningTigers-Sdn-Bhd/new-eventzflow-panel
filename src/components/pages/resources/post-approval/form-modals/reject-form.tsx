@@ -13,7 +13,9 @@ import { approveResource } from "@/lib/api/resource";
 import type { Resource } from "@/lib/api/resource/response";
 
 const rejectResourceSchema = z.object({
-	rejectionReason: z.string().min(5, "Rejection reason must be at least 5 characters"),
+	rejectionReason: z
+		.string()
+		.min(5, "Rejection reason must be at least 5 characters"),
 });
 
 interface RejectFormProps {

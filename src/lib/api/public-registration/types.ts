@@ -18,6 +18,7 @@ export interface PublicTicketTypeItem {
 	price: number;
 	current_tier: string | null;
 	available: boolean;
+	remaining_slots?: number | null;
 	registration_mode: "single" | "group";
 	min_attendees: number;
 	max_attendees?: number | null;
@@ -42,6 +43,18 @@ export interface ExistingRegistrationTicketItem {
 export interface ExistingRegistrationStatusData {
 	has_pending_payment: boolean;
 	has_paid_ticket: boolean;
+	has_rejected_application?: boolean;
+	rejected_message?: string | null;
+	upgrade_mode?: boolean;
+	upgrade_target?: string | null;
+	existing_ticket_public_id?: string | null;
+	existing_attendee_name?: string | null;
+	existing_attendee_email?: string | null;
+	existing_attendee_phone?: string | null;
+	existing_ticket_type?: string | null;
+	blocked_exhibitor_upgrade?: boolean;
+	blocked_reason?: string | null;
+	blocked_message?: string | null;
 	pending_tickets: ExistingRegistrationTicketItem[];
 	paid_tickets: ExistingRegistrationTicketItem[];
 }
@@ -64,6 +77,7 @@ export interface CreatePaymentOrderData {
 	order_id?: string;
 	amount?: number;
 	currency?: string;
+	callback_url?: string;
 }
 
 export interface CreatePaymentOrderResponse {
@@ -118,4 +132,28 @@ export interface CreatedPublicRegistration {
 export interface CreatePublicRegistrationResponse {
 	success: boolean;
 	data: CreatedPublicRegistration;
+}
+
+export interface PublicTicketDetails {
+	public_id: string;
+	attendee_name: string;
+	attendee_email: string | null;
+	attendee_phone: string | null;
+	role: string | null;
+	ticket_type: string;
+	price: number;
+	event: {
+		title: string;
+		start_date: string | null;
+		end_date: string | null;
+		venue_name: string | null;
+		logo_url: string | null;
+	};
+	custom_fields_data: Record<string, string>;
+	qr_code_base64: string;
+}
+
+export interface PublicTicketDetailsResponse {
+	success: boolean;
+	data: PublicTicketDetails;
 }

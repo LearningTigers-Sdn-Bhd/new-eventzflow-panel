@@ -142,8 +142,10 @@ export function generateColumns(): ColumnDef<ScanResult>[] {
 				});
 				return (
 					<div className="flex flex-col py-2 sm:py-3">
-						<span className="text-xs font-medium sm:text-sm">{timeStr}</span>
-						<span className="text-[10px] text-muted-foreground sm:text-xs">{dateStr}</span>
+						<span className="font-medium text-xs sm:text-sm">{timeStr}</span>
+						<span className="text-[10px] text-muted-foreground sm:text-xs">
+							{dateStr}
+						</span>
 					</div>
 				);
 			},

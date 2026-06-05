@@ -24,7 +24,9 @@ import type {
 /**
  * Convert time series response to legacy DateCountColumn format
  */
-function toDateCountFormat(data: TimeSeriesResponse["data"]): DateCountColumn[] {
+function toDateCountFormat(
+	data: TimeSeriesResponse["data"],
+): DateCountColumn[] {
 	return data.map((d) => ({
 		date: d.period,
 		count: d.value,
@@ -284,7 +286,9 @@ export async function getTotalUnscannedVisitors(
 			`❌ Failed to get total unscanned visitors for event ${data.id}:`,
 			error,
 		);
-		throw new Error(error.message || "Failed to fetch total unscanned visitors");
+		throw new Error(
+			error.message || "Failed to fetch total unscanned visitors",
+		);
 	}
 }
 
@@ -294,7 +298,13 @@ export async function getTotalUnscannedVisitors(
  */
 export async function getHourlyBreakdownByDay(
 	eventId: number | string,
-	metric: "tickets" | "scans" | "visitors" | "visitor_scans" | "stamps" | "redemptions",
+	metric:
+		| "tickets"
+		| "scans"
+		| "visitors"
+		| "visitor_scans"
+		| "stamps"
+		| "redemptions",
 	options?: {
 		startDate?: string;
 		endDate?: string;

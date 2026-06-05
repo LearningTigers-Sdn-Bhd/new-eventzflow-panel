@@ -4,11 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { QrCode } from "lucide-react";
 import { use, useCallback } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { RedemptionLogsTable } from "@/components/pages/voucher-redemption/redemption-logs-table";
 import { VoucherRedemptionModal } from "@/components/pages/voucher-redemption/redemption-modal";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
+import { getEventById } from "@/lib/api/event";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
 
 export default function VoucherRedemptionPage({
@@ -18,8 +21,13 @@ export default function VoucherRedemptionPage({
 }) {
 	const { event_id } = use(params);
 	const eventId = Number(event_id);
+	const permissions = useEventPermissions(event_id);
 
 	const { openDialog } = useDialog();
+	const { data: event, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+	});
 
 	const {
 		data: logs,
@@ -65,9 +73,18 @@ export default function VoucherRedemptionPage({
 
 	useSetEventActions(eventActions);
 
+	if (!isLoadingEvent && event?.use_voucher !== true) {
+		return (
+			<FeatureLockedState
+				isEventVendor={permissions.isEventVendor}
+				featureName="Vouchers"
+			/>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
-			{isLoading ? (
+			{isLoading || isLoadingEvent ? (
 				<LoadingState
 					title="Loading redemption logs..."
 					description="Please wait while we fetch your redemption logs..."

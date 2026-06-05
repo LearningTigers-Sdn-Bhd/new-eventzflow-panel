@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react";
+import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { getReceivedPayments, type ReceivedPayment } from "@/lib/api/received-payment";
+import {
+	getReceivedPayments,
+	type ReceivedPayment,
+} from "@/lib/api/received-payment";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
 import {
-	receivedPaymentsColumns,
 	type ReceivedPaymentsTableMeta,
+	receivedPaymentsColumns,
 } from "./received-payments-columns";
 import { VerifyRejectReceivedPaymentDialog } from "./verify-reject-received-payment-dialog";
 
@@ -21,8 +24,11 @@ export function ContractorReceivedPaymentsView({
 	eventId,
 }: ContractorReceivedPaymentsViewProps) {
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [selectedPayment, setSelectedPayment] = useState<ReceivedPayment | null>(null);
-	const [dialogAction, setDialogAction] = useState<"verify" | "reject">("verify");
+	const [selectedPayment, setSelectedPayment] =
+		useState<ReceivedPayment | null>(null);
+	const [dialogAction, setDialogAction] = useState<"verify" | "reject">(
+		"verify",
+	);
 
 	const {
 		data: payments,

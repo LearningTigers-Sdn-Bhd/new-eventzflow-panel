@@ -33,7 +33,7 @@ export default function VerifyEmailLayout({
 				</Button>
 			</div>
 			{/* Your Content/Components */}
-			<div className="relative z-10 flex h-full w-full items-center justify-center p-4">
+			<div className="relative z-10 flex min-h-screen w-full items-center justify-center p-4">
 				{children}
 			</div>
 		</div>

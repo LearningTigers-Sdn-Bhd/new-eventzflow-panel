@@ -252,7 +252,7 @@ function SortableGiftCard({
 											size="sm"
 											className="group w-full justify-start gap-1 rounded-none border-b"
 										>
-											<ChevronDown className="group-data-[state=open]:-rotate-180 size-4 transition-transform duration-300" />
+											<ChevronDown className="size-4 transition-transform duration-300 group-data-[state=open]:-rotate-180" />
 											{isWinnersOpen ? (
 												<div className="flex items-center gap-1">
 													<span className="text-xs">Hide</span>
@@ -289,7 +289,10 @@ function SortableGiftCard({
 													onNotifyWinner(winnerId);
 												}
 											}}
-											disabled={!winnerId || (winnerId ? notifyingWinnerIds.has(winnerId) : false)}
+											disabled={
+												!winnerId ||
+												(winnerId ? notifyingWinnerIds.has(winnerId) : false)
+											}
 											className="gap-2 rounded-none"
 										>
 											{winnerId && notifyingWinnerIds.has(winnerId) ? (
@@ -409,14 +412,16 @@ export function GiftInvalidListSheet({
 	} = luckyDraw;
 
 	const handleNotifyWinner = async (invalidParticipantId: number) => {
-		setNotifyingIds(prev => new Set(prev).add(invalidParticipantId));
+		setNotifyingIds((prev) => new Set(prev).add(invalidParticipantId));
 		try {
 			await notifyInvalidParticipant(eventId, sessionId, invalidParticipantId);
 			toast.success("Notification sent successfully");
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Failed to send notification");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to send notification",
+			);
 		} finally {
-			setNotifyingIds(prev => {
+			setNotifyingIds((prev) => {
 				const next = new Set(prev);
 				next.delete(invalidParticipantId);
 				return next;
@@ -425,22 +430,26 @@ export function GiftInvalidListSheet({
 	};
 
 	const handleNotifyGiftWinner = async (winnerId: number) => {
-		setNotifyingIds(prev => new Set(prev).add(winnerId));
+		setNotifyingIds((prev) => new Set(prev).add(winnerId));
 		try {
 			// Find the gift that contains this winner
-			const gift = giftsData?.find(g => g.winners.some(w => w.id === winnerId));
+			const gift = giftsData?.find((g) =>
+				g.winners.some((w) => w.id === winnerId),
+			);
 			if (!gift) {
 				throw new Error("Gift not found for winner");
 			}
-			
+
 			// Import the notify function
 			const { notifyGiftWinner } = await import("@/lib/api/lucky-draw");
 			await notifyGiftWinner(eventId, sessionId, gift.id, winnerId);
 			toast.success("Notification sent successfully");
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Failed to send notification");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to send notification",
+			);
 		} finally {
-			setNotifyingIds(prev => {
+			setNotifyingIds((prev) => {
 				const next = new Set(prev);
 				next.delete(winnerId);
 				return next;
@@ -664,8 +673,7 @@ export function GiftInvalidListSheet({
 			<div className="flex flex-col gap-3">
 				{invalidParticipants.length === 0 ? (
 					<div className="text-balance rounded-none border border-dashed p-6 text-center text-muted-foreground text-sm">
-						No winners yet. Winners will appear here when Use Gifts is
-						off.
+						No winners yet. Winners will appear here when Use Gifts is off.
 					</div>
 				) : (
 					invalidParticipants.map((participant) => {
@@ -695,9 +703,15 @@ export function GiftInvalidListSheet({
 													handleNotifyWinner(invalidParticipantId);
 												}
 											}}
-											disabled={!invalidParticipantId || (invalidParticipantId ? notifyingIds.has(invalidParticipantId) : false)}
+											disabled={
+												!invalidParticipantId ||
+												(invalidParticipantId
+													? notifyingIds.has(invalidParticipantId)
+													: false)
+											}
 										>
-											{invalidParticipantId && notifyingIds.has(invalidParticipantId) ? (
+											{invalidParticipantId &&
+											notifyingIds.has(invalidParticipantId) ? (
 												<Loader2 className="size-4 animate-spin" />
 											) : (
 												<Bell className="size-4" />
@@ -768,9 +782,7 @@ export function GiftInvalidListSheet({
 			</SheetTrigger>
 			<SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
 				<SheetHeader className="gap-0! border-b">
-					<SheetTitle>
-						{useGifts ? "List of Gifts" : "Winner List"}
-					</SheetTitle>
+					<SheetTitle>{useGifts ? "List of Gifts" : "Winner List"}</SheetTitle>
 					<SheetDescription>
 						{useGifts
 							? "Manage prizes and their winners."

@@ -1,6 +1,6 @@
 import { RiCalendarEventFill } from "react-icons/ri";
-import { IconTitle } from "@/components/ui/icon-heading";
 import { Badge } from "@/components/ui/badge";
+import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@/lib/api/event";
 

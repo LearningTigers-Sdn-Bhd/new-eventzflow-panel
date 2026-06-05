@@ -26,6 +26,8 @@ function transformBoothPrice(
 		zone: backend.zone,
 		label: backend.label,
 		price: Number(backend.price),
+		currentPrice: Number(backend.current_price ?? backend.price),
+		activePriceTierLabel: backend.active_price_tier_label ?? null,
 		quota: backend.quota,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,

@@ -57,17 +57,21 @@ export async function updateCheckInDisplay(
 ): Promise<CheckInDisplay> {
 	try {
 		const formData = new FormData();
-		formData.append("check_in_display[font_family]", data.font_family);
-		formData.append("check_in_display[font_size]", data.font_size.toString());
-		formData.append("check_in_display[animation_type]", data.animation_type);
-		formData.append("check_in_display[is_bold]", data.is_bold.toString());
-		formData.append("check_in_display[name_color]", data.name_color);
 
-		if (data.background_image) {
-			formData.append(
-				"check_in_display[background_image]",
-				data.background_image,
-			);
+		if (data.font_family) {
+			formData.append("check_in_display[font_family]", data.font_family);
+		}
+		if (data.font_size !== undefined) {
+			formData.append("check_in_display[font_size]", data.font_size.toString());
+		}
+		if (data.animation_type) {
+			formData.append("check_in_display[animation_type]", data.animation_type);
+		}
+		if (data.is_bold !== undefined) {
+			formData.append("check_in_display[is_bold]", data.is_bold.toString());
+		}
+		if (data.name_color) {
+			formData.append("check_in_display[name_color]", data.name_color);
 		}
 
 		if (data.voice_enabled !== undefined) {
@@ -76,18 +80,117 @@ export async function updateCheckInDisplay(
 				data.voice_enabled.toString(),
 			);
 		}
-
 		if (data.voice_type) {
 			formData.append("check_in_display[voice_type]", data.voice_type);
 		}
-
 		if (data.welcome_text !== undefined) {
 			formData.append("check_in_display[welcome_text]", data.welcome_text);
 		}
 
+		// Modes & Duration
+		if (data.idle_mode) {
+			formData.append("check_in_display[idle_mode]", data.idle_mode);
+		}
+		if (data.announcement_mode) {
+			formData.append(
+				"check_in_display[announcement_mode]",
+				data.announcement_mode,
+			);
+		}
+		if (data.announcement_duration) {
+			formData.append(
+				"check_in_display[announcement_duration]",
+				data.announcement_duration.toString(),
+			);
+		}
+
+		// Seating Plan
+		if (data.show_seating_plan !== undefined) {
+			formData.append(
+				"check_in_display[show_seating_plan]",
+				data.show_seating_plan.toString(),
+			);
+		}
+		if (data.seating_plan_sidebar_position) {
+			formData.append(
+				"check_in_display[seating_plan_sidebar_position]",
+				data.seating_plan_sidebar_position,
+			);
+		}
+		if (data.seating_plan_duration) {
+			formData.append(
+				"check_in_display[seating_plan_duration]",
+				data.seating_plan_duration.toString(),
+			);
+		}
+		if (data.active_plan_id !== undefined) {
+			formData.append(
+				"check_in_display[active_plan_id]",
+				data.active_plan_id ? data.active_plan_id.toString() : "",
+			);
+		}
+		if (data.seating_announcement_template) {
+			formData.append(
+				"check_in_display[seating_announcement_template]",
+				data.seating_announcement_template,
+			);
+		}
+
+		// // Photo Booth
+		// if (data.photo_booth_enabled !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_enabled]", data.photo_booth_enabled.toString());
+		// }
+		// if (data.photo_booth_countdown !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_countdown]", data.photo_booth_countdown.toString());
+		// }
+		// if (data.photo_booth_webhook_url !== undefined) {
+		// 	formData.append("check_in_display[photo_booth_webhook_url]", data.photo_booth_webhook_url);
+		// }
+
+		// Idle Assets
+		if (data.background_image) {
+			formData.append(
+				"check_in_display[background_image]",
+				data.background_image,
+			);
+		}
 		if (data.remove_background_image) {
 			formData.append("check_in_display[remove_background_image]", "true");
 		}
+		if (data.idle_video) {
+			formData.append("check_in_display[idle_video]", data.idle_video);
+		}
+		if (data.remove_idle_video) {
+			formData.append("check_in_display[remove_idle_video]", "true");
+		}
+
+		// Announcement Assets
+		if (data.announcement_image) {
+			formData.append(
+				"check_in_display[announcement_image]",
+				data.announcement_image,
+			);
+		}
+		if (data.remove_announcement_image) {
+			formData.append("check_in_display[remove_announcement_image]", "true");
+		}
+		if (data.announcement_video) {
+			formData.append(
+				"check_in_display[announcement_video]",
+				data.announcement_video,
+			);
+		}
+		if (data.remove_announcement_video) {
+			formData.append("check_in_display[remove_announcement_video]", "true");
+		}
+
+		// // Photo Booth Assets
+		// if (data.branding_frame) {
+		// 	formData.append("check_in_display[branding_frame]", data.branding_frame);
+		// }
+		// if (data.remove_branding_frame) {
+		// 	formData.append("check_in_display[remove_branding_frame]", "true");
+		// }
 
 		const response = await restClient.patchFormData<CheckInDisplay>(
 			`v1/events/${eventId}/check_in_display`,

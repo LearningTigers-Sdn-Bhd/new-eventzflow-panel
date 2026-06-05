@@ -21,22 +21,19 @@ const formSchema = z.object({
 	senderName: z.string(),
 	senderAddress: z
 		.string()
-		.refine(
-			(val) => val === "" || z.string().email().safeParse(val).success,
-			{ message: "Please enter a valid email address" },
-		),
+		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
+			message: "Please enter a valid email address",
+		}),
 	contactEmail: z
 		.string()
-		.refine(
-			(val) => val === "" || z.string().email().safeParse(val).success,
-			{ message: "Please enter a valid email address" },
-		),
+		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
+			message: "Please enter a valid email address",
+		}),
 	paymentReceiptEmail: z
 		.string()
-		.refine(
-			(val) => val === "" || z.string().email().safeParse(val).success,
-			{ message: "Please enter a valid email address" },
-		),
+		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
+			message: "Please enter a valid email address",
+		}),
 });
 
 interface EmailSettingsFormProps {
@@ -44,7 +41,10 @@ interface EmailSettingsFormProps {
 	onClose?: () => void;
 }
 
-export default function EmailSettingsForm({ eventId, onClose }: EmailSettingsFormProps) {
+export default function EmailSettingsForm({
+	eventId,
+	onClose,
+}: EmailSettingsFormProps) {
 	const formId = useId();
 	const sectionId = useId();
 
@@ -109,7 +109,10 @@ export default function EmailSettingsForm({ eventId, onClose }: EmailSettingsFor
 				form.setFieldValue("senderName", setting?.sender_name || "");
 				form.setFieldValue("senderAddress", setting?.sender_address || "");
 				form.setFieldValue("contactEmail", setting?.contact_email || "");
-				form.setFieldValue("paymentReceiptEmail", setting?.payment_receipt_email || event.payment_receipt_email || "");
+				form.setFieldValue(
+					"paymentReceiptEmail",
+					setting?.payment_receipt_email || event.payment_receipt_email || "",
+				);
 			}, 0);
 			hasInitialized.current = event.id;
 		}
@@ -242,16 +245,16 @@ export default function EmailSettingsForm({ eventId, onClose }: EmailSettingsFor
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
 										<InputLabel
-											label="Payment Receipt BCC Email"
+											label="Registration Notification BCC Email"
 											htmlFor={field.name}
 											value={field.state.value}
 											onChange={field.handleChange}
 											onBlur={field.handleBlur}
 											errors={field.state.meta.errors}
 											isInvalid={isInvalid}
-											placeholder="e.g. finance@yourdomain.com"
+											placeholder="e.g. info@yourdomain.com"
 											disabled={updateEventMutation.isPending}
-											description="Receives a BCC copy of all payment receipt emails. Ensure the email is valid."
+											description="Receives a BCC copy of all registration emails. Ensure the email is valid."
 										/>
 									);
 								}}

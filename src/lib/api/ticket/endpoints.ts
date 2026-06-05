@@ -61,7 +61,7 @@ export async function checkInTicket(
 }
 
 /**
- * Unscan a ticket (org_owner only)
+ * Unscan a ticket (org_owner and organizer only)
  * Resets checked_in, check_in_at, scanned_by_id, and status
  */
 export async function unscanTicket(ticketId: string): Promise<void> {
@@ -170,6 +170,7 @@ export async function getMyScannedTickets(
 				eventId: ticket.eventId.toString(),
 				createdAt: ticket.created_at,
 				customLabels: customLabels.length > 0 ? customLabels : undefined,
+				custom_fields_data: ticket.custom_fields_data,
 			};
 		});
 	} catch (error) {
@@ -206,6 +207,10 @@ function transformBackendTicket(
 	let ticketTypeId = 0;
 	let value = 0;
 	let deletedAt: string | null = null;
+	let paymentMethod: string | undefined;
+	let transactionId: string | undefined;
+	let paymentScreenshotUrl: string | undefined;
+	let passBundle: Ticket["passBundle"] = null;
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -218,6 +223,10 @@ function transformBackendTicket(
 		ticketTypeName = bt.ticket_type?.name || "Unknown";
 		value = bt.ticket_type?.price || 0;
 		deletedAt = bt.deleted_at || null;
+		paymentMethod = bt.payment_method;
+		transactionId = bt.transaction_id;
+		paymentScreenshotUrl = bt.payment_screenshot_url;
+		passBundle = bt.pass_bundle ?? null;
 
 		if (bt.custom_fields_data) {
 			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
@@ -258,8 +267,26 @@ function transformBackendTicket(
 		status,
 		createdAt,
 		deletedAt,
+		paymentMethod,
+		transactionId,
+		paymentScreenshotUrl,
+		passBundle,
 		customLabels: customLabels.length > 0 ? customLabels : undefined,
+		custom_fields_data:
+			"custom_fields_data" in ticket
+				? (ticket as BackendTicket).custom_fields_data
+				: undefined,
 	};
+}
+
+function isPaidTicketPaymentStatus(
+	paymentStatus: BackendTicket["payment_status"],
+) {
+	if (typeof paymentStatus === "number") {
+		return paymentStatus === 1;
+	}
+
+	return paymentStatus === "paid";
 }
 
 /**
@@ -268,12 +295,14 @@ function transformBackendTicket(
  * @param options - Query options for filtering tickets
  * @param options.archived - If true, returns only archived tickets. If false/undefined, returns only active tickets.
  * @param options.full - If true, returns all tickets (active + archived). Overrides archived parameter.
+ * @param options.unassigned - If true, returns only tickets that are not assigned to any table.
  */
 export async function getEventTickets(
 	eventId: string,
 	options?: {
 		archived?: boolean;
 		full?: boolean;
+		unassigned?: boolean;
 	},
 ): Promise<Ticket[]> {
 	// Build query parameters
@@ -282,6 +311,9 @@ export async function getEventTickets(
 		params.append("full", "true");
 	} else if (options?.archived) {
 		params.append("archived", "true");
+	}
+	if (options?.unassigned) {
+		params.append("unassigned", "true");
 	}
 
 	const queryString = params.toString();
@@ -296,9 +328,9 @@ export async function getEventTickets(
 	]);
 
 	// Transform backend response to frontend format
-	return response.map((ticket) =>
-		transformBackendTicket(ticket, event.title, eventId),
-	);
+	return response
+		.filter((ticket) => isPaidTicketPaymentStatus(ticket.payment_status))
+		.map((ticket) => transformBackendTicket(ticket, event.title, eventId));
 }
 
 /**
@@ -522,9 +554,11 @@ export async function archiveTicket(
 ): Promise<void> {
 	try {
 		await restClient.delete<void>(`v1/events/${eventId}/tickets/${publicId}`);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error archiving ticket:", error);
-		throw new Error(error.message || "Failed to archive ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to archive ticket";
+		throw new Error(message);
 	}
 }
 
@@ -539,9 +573,11 @@ export async function forceDeleteTicket(
 		await restClient.delete<void>(
 			`v1/events/${eventId}/tickets/${publicId}/force_delete`,
 		);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error force deleting ticket:", error);
-		throw new Error(error.message || "Failed to force delete ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to force delete ticket";
+		throw new Error(message);
 	}
 }
 
@@ -576,8 +612,32 @@ export async function restoreTicket(
 			deletedAt: null,
 			customLabels: response.custom_labels,
 		};
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error restoring ticket:", error);
-		throw new Error(error.message || "Failed to restore ticket");
+		const message =
+			error instanceof Error ? error.message : "Failed to restore ticket";
+		throw new Error(message);
+	}
+}
+
+/**
+ * Resend ticket confirmation email (org_owner only)
+ */
+export async function resendTicketConfirmationEmail(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.post<void>(
+			`v1/events/${eventId}/tickets/${publicId}/resend_confirmation_email`,
+			{},
+		);
+	} catch (error: unknown) {
+		console.error("Error resending ticket confirmation email:", error);
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to resend ticket confirmation email";
+		throw new Error(message);
 	}
 }

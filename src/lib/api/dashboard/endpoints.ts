@@ -76,7 +76,7 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 		pendingTickets: event.unscanned_tickets ?? 0,
 		// Non-ticket event stats
 		totalVisitors: event.total_visitors ?? 0,
-		totalStamps: event.total_stamps ?? 0,
+		totalLeads: event.total_leads ?? 0,
 		lastActivity: event.last_activity,
 	}));
 }
@@ -228,7 +228,13 @@ export async function getEventAnalytics(
  */
 export async function getHourlyBreakdownByDay(
 	eventId: string,
-	metric: "tickets" | "scans" | "visitors" | "visitor_scans" | "stamps" | "redemptions",
+	metric:
+		| "tickets"
+		| "scans"
+		| "visitors"
+		| "visitor_scans"
+		| "leads"
+		| "redemptions",
 	options?: {
 		startDate?: string;
 		endDate?: string;

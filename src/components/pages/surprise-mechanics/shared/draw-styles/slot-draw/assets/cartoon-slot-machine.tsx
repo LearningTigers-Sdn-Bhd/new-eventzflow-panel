@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface CartoonSlotMachineProps {
@@ -9,11 +9,11 @@ interface CartoonSlotMachineProps {
 	onSpin?: () => void;
 }
 
-export const CartoonSlotMachine = ({ 
-	children, 
-	isDrawing, 
+export const CartoonSlotMachine = ({
+	children,
+	isDrawing,
 	isCelebrating,
-	onSpin 
+	onSpin,
 }: CartoonSlotMachineProps) => {
 	const canSpin = Boolean(onSpin) && !isDrawing;
 	return (
@@ -47,29 +47,31 @@ export const CartoonSlotMachine = ({
 					<div className="min-w-0 flex-1 border-8 border-[#e9862d] bg-[#ffae07]">
 						<div className="flex h-full flex-col items-center justify-center overflow-hidden border-2 border-[#e9862d] bg-[#ffae07]">
 							<motion.span
-								key={isCelebrating ? "winner" : isDrawing ? "spinning" : "ready"}
+								key={
+									isCelebrating ? "winner" : isDrawing ? "spinning" : "ready"
+								}
 								initial={{ scale: 0.8, opacity: 0 }}
-								animate={{ 
+								animate={{
 									scale: isCelebrating ? [1, 1.1, 1] : 1,
 									opacity: 1,
-									textShadow: isCelebrating 
+									textShadow: isCelebrating
 										? [
-											"0 0 10px #ff0000, 0 0 20px #ff0000",
-											"0 0 20px #ffff00, 0 0 30px #ffff00",
-											"0 0 10px #ff0000, 0 0 20px #ff0000"
-										]
-										: "0 0 0px transparent"
+												"0 0 10px #ff0000, 0 0 20px #ff0000",
+												"0 0 20px #ffff00, 0 0 30px #ffff00",
+												"0 0 10px #ff0000, 0 0 20px #ff0000",
+											]
+										: "0 0 0px transparent",
 								}}
-								transition={{ 
+								transition={{
 									duration: isCelebrating ? 0.5 : 0.3,
 									repeat: isCelebrating ? Number.POSITIVE_INFINITY : 0,
-									repeatType: "reverse"
+									repeatType: "reverse",
 								}}
 								className={cn(
 									"font-black font-mono text-5xl uppercase tracking-wider",
 									isCelebrating && "text-red-700",
 									isDrawing && "animate-pulse text-orange-600",
-									!isDrawing && !isCelebrating && "text-black"
+									!isDrawing && !isCelebrating && "text-black",
 								)}
 							>
 								{isCelebrating ? "WINNER" : isDrawing ? "SPINNING" : "READY?"}
@@ -105,7 +107,7 @@ export const CartoonSlotMachine = ({
 					<div className="w-5 border-[#771f07] border-l-8 bg-[#e98628]" />
 				</div>
 				{/* The Machine Case Bottom */}
-				<div className="-mx-8 relative flex h-28 flex-row items-center justify-center border-8 border-[#530a1f] bg-[#d5191f] px-8 py-6">
+				<div className="relative -mx-8 flex h-28 flex-row items-center justify-center border-8 border-[#530a1f] bg-[#d5191f] px-8 py-6">
 					<div className="absolute inset-0 z-10 border-[#7d0e1e] border-b-8">
 						<div className="absolute inset-0 border-[#7d0e1e] border-b-2" />
 					</div>
@@ -123,7 +125,7 @@ export const CartoonSlotMachine = ({
 					<div className="z-20 flex flex-1 flex-row items-center justify-between gap-3 border-8 border-[#530b26] bg-[#7b0f24] px-6 py-4">
 						{/* Dashed Line */}
 						<div className="flex-1 border-[#e9862d] border-y-8 border-dashed" />
-						
+
 						{/* Info Text + Spin Button */}
 						<div className="flex items-center gap-3">
 							<p className="whitespace-nowrap font-bold text-xs text-yellow-200">
@@ -134,28 +136,26 @@ export const CartoonSlotMachine = ({
 										: "Press SPIN"}
 							</p>
 							<motion.button
-							type="button"
-							onClick={canSpin ? onSpin : undefined}
-							disabled={!canSpin}
-							whileHover={canSpin ? { scale: 1.05 } : undefined}
-							whileTap={canSpin ? { scale: 0.95 } : undefined}
-							className={cn(
-								"relative overflow-hidden whitespace-nowrap rounded-lg border-4 px-6 py-2 font-black text-sm uppercase tracking-wider transition-all",
-								canSpin
-									? "border-yellow-600 bg-gradient-to-b from-yellow-400 to-yellow-600 text-red-900 shadow-[0_4px_0_0_#854d0e] hover:from-yellow-300 hover:to-yellow-500 active:translate-y-[2px] active:shadow-[0_2px_0_0_#854d0e]"
-									: "cursor-not-allowed border-gray-600 bg-gray-700 text-gray-500"
-							)}
-							aria-disabled={!canSpin}
-							aria-busy={isDrawing}
-						>
-							{/* Button Shine Effect */}
-							{canSpin && (
-								<div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
-							)}
-							<span className="relative">
-								{isDrawing ? "..." : "SPIN"}
-							</span>
-						</motion.button>
+								type="button"
+								onClick={canSpin ? onSpin : undefined}
+								disabled={!canSpin}
+								whileHover={canSpin ? { scale: 1.05 } : undefined}
+								whileTap={canSpin ? { scale: 0.95 } : undefined}
+								className={cn(
+									"relative overflow-hidden whitespace-nowrap rounded-lg border-4 px-6 py-2 font-black text-sm uppercase tracking-wider transition-all",
+									canSpin
+										? "border-yellow-600 bg-gradient-to-b from-yellow-400 to-yellow-600 text-red-900 shadow-[0_4px_0_0_#854d0e] hover:from-yellow-300 hover:to-yellow-500 active:translate-y-[2px] active:shadow-[0_2px_0_0_#854d0e]"
+										: "cursor-not-allowed border-gray-600 bg-gray-700 text-gray-500",
+								)}
+								aria-disabled={!canSpin}
+								aria-busy={isDrawing}
+							>
+								{/* Button Shine Effect */}
+								{canSpin && (
+									<div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
+								)}
+								<span className="relative">{isDrawing ? "..." : "SPIN"}</span>
+							</motion.button>
 						</div>
 					</div>
 				</div>

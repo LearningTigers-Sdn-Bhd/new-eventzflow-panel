@@ -33,7 +33,9 @@ const baseColumns: ColumnDef<EventVendorMember>[] = [
 		accessorKey: "vendor.full_name",
 		id: "full_name",
 		size: 200,
-		header: ({ column }) => <SortableHeader column={column} label="Vendor Name" />,
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Vendor Name" />
+		),
 		cell: ({ row }) => (
 			<div className="max-w-[200px] truncate font-medium">
 				{row.original.vendor.full_name}
@@ -104,13 +106,9 @@ const baseColumns: ColumnDef<EventVendorMember>[] = [
 	{
 		accessorKey: "created_at",
 		size: 130,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="Added At" />
-		),
+		header: ({ column }) => <SortableHeader column={column} label="Added At" />,
 		cell: ({ row }) => {
-			const { timePart, datePart } = formatDateTime(
-				row.getValue("created_at"),
-			);
+			const { timePart, datePart } = formatDateTime(row.getValue("created_at"));
 			return (
 				<div className="flex flex-col">
 					<div className="text-sm">{datePart}</div>

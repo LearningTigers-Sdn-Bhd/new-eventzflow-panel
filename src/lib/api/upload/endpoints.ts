@@ -35,7 +35,7 @@ export async function uploadFile(
 		return response;
 	} catch (error) {
 		// Handle API errors with user-friendly messages
-		if (error && typeof error === 'object' && 'message' in error) {
+		if (error && typeof error === "object" && "message" in error) {
 			const apiError = error as { message?: string; status?: number };
 
 			// Extract error message from response if available
@@ -45,6 +45,8 @@ export async function uploadFile(
 		}
 
 		// Fallback error message
-		throw new Error("File upload failed. Please check your connection and try again.");
+		throw new Error(
+			"File upload failed. Please check your connection and try again.",
+		);
 	}
 }

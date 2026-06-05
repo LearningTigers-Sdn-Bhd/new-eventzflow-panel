@@ -11,8 +11,19 @@ import type { Visitor } from "./response";
 /**
  * Get all visitors for an event
  */
-export async function getVisitors(eventId: number): Promise<Visitor[]> {
-	return restClient.get<Visitor[]>(`v1/events/${eventId}/visitors`);
+export async function getVisitors(
+	eventId: number | string,
+	options?: { unassigned?: boolean },
+): Promise<Visitor[]> {
+	const params = new URLSearchParams();
+	if (options?.unassigned) {
+		params.append("unassigned", "true");
+	}
+	const queryString = params.toString();
+	const url = queryString
+		? `v1/events/${eventId}/visitors?${queryString}`
+		: `v1/events/${eventId}/visitors`;
+	return restClient.get<Visitor[]>(url);
 }
 
 /**
@@ -85,7 +96,7 @@ export async function deleteVisitor(
 }
 
 /**
- * Unscan a visitor (org_owner only)
+ * Unscan a visitor (org_owner and organizer only)
  * Resets checked_in, check_in_at, and scanned_by_id
  */
 export async function unscanVisitor(visitorId: string | number): Promise<void> {

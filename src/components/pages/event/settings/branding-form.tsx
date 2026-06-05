@@ -8,7 +8,11 @@ import { FormGroupContainer } from "@/components/admin-ui/form/form-group-contai
 import { LoadingState } from "@/components/data-state";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
-import { getEventById, removeEventLogo, uploadEventLogo } from "@/lib/api/event";
+import {
+	getEventById,
+	removeEventPoster,
+	uploadEventPoster,
+} from "@/lib/api/event";
 import { API_BASE_URL, queryClient } from "@/utils/rest-api";
 
 interface BrandingFormProps {
@@ -17,10 +21,14 @@ interface BrandingFormProps {
 }
 
 export default function BrandingForm({ eventId, onClose }: BrandingFormProps) {
-	const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
-	const [removeLogo, setRemoveLogo] = useState(false);
+	const [selectedPoster, setSelectedPoster] = useState<File | null>(null);
+	const [removePoster, setRemovePoster] = useState(false);
 
-	const { data: event, isLoading, error } = useQuery({
+	const {
+		data: event,
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
 	});
@@ -28,52 +36,52 @@ export default function BrandingForm({ eventId, onClose }: BrandingFormProps) {
 	// Reset local state when event data loads
 	useEffect(() => {
 		if (event) {
-			setSelectedLogo(null);
-			setRemoveLogo(false);
+			setSelectedPoster(null);
+			setRemovePoster(false);
 		}
 	}, [event?.id]);
 
 	const uploadMutation = useMutation({
-		mutationFn: (file: File) => uploadEventLogo(eventId.toString(), file),
+		mutationFn: (file: File) => uploadEventPoster(eventId.toString(), file),
 		onSuccess: () => {
-			toast.success("Logo saved successfully!");
+			toast.success("Poster saved successfully!");
 			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to save logo");
+			toast.error(error.message || "Failed to save poster");
 		},
 	});
 
 	const removeMutation = useMutation({
-		mutationFn: () => removeEventLogo(eventId.toString()),
+		mutationFn: () => removeEventPoster(eventId.toString()),
 		onSuccess: () => {
-			toast.success("Logo removed successfully!");
+			toast.success("Poster removed successfully!");
 			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
 			onClose?.();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to remove logo");
+			toast.error(error.message || "Failed to remove poster");
 		},
 	});
 
 	const handleSave = async () => {
-		if (selectedLogo) {
-			await uploadMutation.mutateAsync(selectedLogo);
-		} else if (removeLogo) {
+		if (selectedPoster) {
+			await uploadMutation.mutateAsync(selectedPoster);
+		} else if (removePoster) {
 			await removeMutation.mutateAsync();
 		}
 	};
 
 	const handleChange = (file: File | null) => {
-		setSelectedLogo(file);
-		setRemoveLogo(file === null && !!event?.logo_url);
+		setSelectedPoster(file);
+		setRemovePoster(file === null && !!event?.poster_url);
 	};
 
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading branding settings..."
+				title="Loading poster settings..."
 				description="Please wait while we fetch the event details"
 			/>
 		);
@@ -82,7 +90,7 @@ export default function BrandingForm({ eventId, onClose }: BrandingFormProps) {
 	if (error) {
 		return (
 			<div className="text-destructive">
-				Failed to load branding settings. Please try again.
+				Failed to load poster settings. Please try again.
 			</div>
 		);
 	}
@@ -92,27 +100,27 @@ export default function BrandingForm({ eventId, onClose }: BrandingFormProps) {
 	// Build the value passed to ImageUpload:
 	// - If user picked a new file, pass the File
 	// - If remove was requested, pass nothing (null → component shows empty)
-	// - Otherwise show the existing logo from API
-	const existingLogoUrl = event?.logo_url
-		? `${API_BASE_URL}${event.logo_url}`
+	// - Otherwise show the existing poster from API
+	const existingPosterUrl = event?.poster_url
+		? `${API_BASE_URL}${event.poster_url}`
 		: undefined;
 
-	const imageValue: string | File | undefined = selectedLogo
-		? selectedLogo
-		: removeLogo
+	const imageValue: string | File | undefined = selectedPoster
+		? selectedPoster
+		: removePoster
 			? undefined
-			: existingLogoUrl;
+			: existingPosterUrl;
 
-	const hasChanges = selectedLogo !== null || removeLogo;
+	const hasChanges = selectedPoster !== null || removePoster;
 
 	return (
 		<section className="h-full w-full px-0 pb-8 md:px-6">
 			<FormGroupContainer
 				title={{
 					icon: ImageIcon,
-					label: "Event Branding",
+					label: "Event Poster",
 					description:
-						"Upload your logo to display it on the public registration page.",
+						"Upload your poster to display it on the public registration page.",
 				}}
 			>
 				<div className="flex flex-col gap-6">

@@ -48,7 +48,7 @@ const FOOTER_SECTIONS: FooterSection[] = [
 const SOCIAL_LINKS = [
 	{
 		icon: MessageCircle,
-		href: "https://wa.me/60177268130",
+		href: "https://wa.me/60166236511",
 		label: "WhatsApp",
 		activeClass: "border-brand-green bg-brand-green text-black",
 		hoverClass: "hover:bg-brand-green-dark hover:border-brand-green-dark",

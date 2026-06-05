@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import type { Route } from "next"; // Import Route
 import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,12 +30,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
-import type { Route } from "next"; // Import Route
 
 export default function VerifyEmailPage() {
 	const router = useRouter();
-    const searchParams = useSearchParams(); // Get search params
-    const redirectPath = searchParams.get("redirect"); // Get redirect path
+	const searchParams = useSearchParams(); // Get search params
+	const redirectPath = searchParams.get("redirect"); // Get redirect path
 	const { user } = useAuth();
 	const [isResending, setIsResending] = useState(false);
 	const [cooldown, setCooldown] = useState(0);
@@ -187,6 +187,9 @@ export default function VerifyEmailPage() {
 													? `Resend in ${cooldown}s`
 													: "Resend code"}
 										</button>
+									</div>
+									<div className="mt-4 w-full rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-center text-amber-900 text-sm">
+										Can’t find the email? It may be in your spam or junk mail.
 									</div>
 								</FieldSet>
 							</FieldGroup>

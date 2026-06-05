@@ -53,8 +53,8 @@ export function VendorSignupEventSidebar({
 	return (
 		<div className="relative flex w-full flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground lg:sticky lg:top-0 lg:h-screen lg:w-[400px] lg:p-10 xl:w-[480px]">
 			{/* Decorative circles */}
-			<div className="-top-20 -right-20 pointer-events-none absolute h-64 w-64 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
-			<div className="-bottom-32 -left-32 pointer-events-none absolute h-80 w-80 rounded-full border border-primary-foreground/10 bg-primary-foreground/5" />
+			<div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
+			<div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full border border-primary-foreground/10 bg-primary-foreground/5" />
 			<div className="pointer-events-none absolute top-1/2 right-10 h-24 w-24 rounded-full border border-primary-foreground/20 bg-primary-foreground/10" />
 
 			<div className="relative z-10">

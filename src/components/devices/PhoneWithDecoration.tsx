@@ -58,7 +58,7 @@ const PhoneWithDecoration: React.FC<PhoneWithDecorationProps> = ({
 						<span className="font-medium text-sm">{time}</span>
 
 						{/* Dynamic Island */}
-						<div className="-translate-x-1/2 absolute top-2 left-1/2 flex h-6 w-32 transform items-center justify-center rounded-full bg-black" />
+						<div className="absolute top-2 left-1/2 flex h-6 w-32 -translate-x-1/2 transform items-center justify-center rounded-full bg-black" />
 
 						{/* Signal Indicators */}
 						<div className="flex items-center gap-1">
@@ -91,13 +91,13 @@ const PhoneWithDecoration: React.FC<PhoneWithDecorationProps> = ({
 					<div className="flex-1 pb-8">{layout}</div>
 
 					{/* Home Indicator */}
-					<div className="-translate-x-1/2 absolute bottom-3 left-1/2 h-1 w-32 transform rounded-full bg-white/30" />
+					<div className="absolute bottom-3 left-1/2 h-1 w-32 -translate-x-1/2 transform rounded-full bg-white/30" />
 				</div>
 			</motion.div>
 
 			{/* Floating Elements */}
 			<motion.div
-				className={`-top-4 -right-4 absolute h-12 w-12 rounded-full bg-gradient-to-br ${floatingElements.topRight.colors} opacity-20`}
+				className={`absolute -top-4 -right-4 h-12 w-12 rounded-full bg-gradient-to-br ${floatingElements.topRight.colors} opacity-20`}
 				animate={{
 					y: [0, -15, 0],
 					rotate: [0, 180, 360],
@@ -111,7 +111,7 @@ const PhoneWithDecoration: React.FC<PhoneWithDecorationProps> = ({
 				}}
 			/>
 			<motion.div
-				className={`-bottom-6 -left-6 absolute h-8 w-8 rounded-full bg-gradient-to-br ${floatingElements.bottomLeft.colors} opacity-30`}
+				className={`absolute -bottom-6 -left-6 h-8 w-8 rounded-full bg-gradient-to-br ${floatingElements.bottomLeft.colors} opacity-30`}
 				animate={{
 					y: [0, 20, 0],
 					scale: [1, 1.3, 1],

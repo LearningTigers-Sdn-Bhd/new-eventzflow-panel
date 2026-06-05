@@ -19,10 +19,18 @@ export type Ticket = {
 	status: "scanned" | "not_scanned";
 	createdAt: string;
 	deletedAt?: string | null;
+	paymentMethod?: string;
+	transactionId?: string;
+	paymentScreenshotUrl?: string;
+	passBundle?: {
+		id: number;
+		name: string;
+	} | null;
 	customLabels?: Array<{
 		name: string;
 		value: string;
 	}>;
+	custom_fields_data?: Record<string, string> | null;
 };
 
 export type ScannedTicket = {
@@ -44,6 +52,7 @@ export type ScannedTicket = {
 		name: string;
 		value: string;
 	}>;
+	custom_fields_data?: Record<string, string> | null;
 };
 
 export type CheckInResponse = {
@@ -105,6 +114,13 @@ export type BackendTicket = {
 	created_at: string;
 	updated_at: string;
 	deleted_at: string | null;
+	payment_method?: string;
+	transaction_id?: string;
+	payment_screenshot_url?: string;
+	pass_bundle?: {
+		id: number;
+		name: string;
+	} | null;
 	ticket_type?: {
 		id: number;
 		name: string;

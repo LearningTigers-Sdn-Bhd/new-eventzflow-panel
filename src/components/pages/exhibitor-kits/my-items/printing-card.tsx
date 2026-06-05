@@ -43,7 +43,10 @@ export function PrintingCard({ printing }: PrintingCardProps) {
 							<h3 className="font-semibold text-base leading-tight">
 								{printing.printing_service?.name || "Unknown Service"}
 							</h3>
-							<Badge variant="outline" className="shrink-0 rounded-none text-xs">
+							<Badge
+								variant="outline"
+								className="shrink-0 rounded-none text-xs"
+							>
 								{printing.printing_service?.unit_of_measure || "-"}
 							</Badge>
 						</div>
@@ -81,7 +84,9 @@ export function PrintingCard({ printing }: PrintingCardProps) {
 						{/* File Reference */}
 						{printing.file_reference && (
 							<div className="border-t pt-2">
-								<p className="text-muted-foreground text-xs mb-1">File Reference</p>
+								<p className="mb-1 text-muted-foreground text-xs">
+									File Reference
+								</p>
 								<a
 									href={printing.file_reference}
 									target="_blank"
@@ -101,13 +106,13 @@ export function PrintingCard({ printing }: PrintingCardProps) {
 									<PopoverTrigger asChild>
 										<div className="cursor-pointer">
 											<p className="text-muted-foreground text-xs">Notes</p>
-											<p className="text-sm line-clamp-2 hover:text-primary transition-colors">
+											<p className="line-clamp-2 text-sm transition-colors hover:text-primary">
 												{printing.notes}
 											</p>
 										</div>
 									</PopoverTrigger>
-									<PopoverContent className="w-72 max-h-80 overflow-y-auto p-3">
-										<p className="text-sm break-words">{printing.notes}</p>
+									<PopoverContent className="max-h-80 w-72 overflow-y-auto p-3">
+										<p className="break-words text-sm">{printing.notes}</p>
 									</PopoverContent>
 								</Popover>
 							</div>

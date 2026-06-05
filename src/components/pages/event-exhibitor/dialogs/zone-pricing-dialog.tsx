@@ -47,7 +47,10 @@ const DEFAULT_FORM: FormState = {
 	quota: "",
 };
 
-export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) {
+export function ZonePricingDialog({
+	eventId,
+	trigger,
+}: ZonePricingDialogProps) {
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [editingItem, setEditingItem] = React.useState<ExhibitorZone | null>(
@@ -123,8 +126,13 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 		}
 
 		const parsedQuota = form.quota.trim() === "" ? null : Number(form.quota);
-		if (parsedQuota !== null && (Number.isNaN(parsedQuota) || parsedQuota < 0)) {
-			toast.error("Zone quota must be empty or a valid value greater than or equal to 0");
+		if (
+			parsedQuota !== null &&
+			(Number.isNaN(parsedQuota) || parsedQuota < 0)
+		) {
+			toast.error(
+				"Zone quota must be empty or a valid value greater than or equal to 0",
+			);
 			return;
 		}
 
@@ -171,7 +179,8 @@ export function ZonePricingDialog({ eventId, trigger }: ZonePricingDialogProps) 
 				<DialogHeader>
 					<DialogTitle>Manage Exhibitor Zones</DialogTitle>
 					<DialogDescription>
-						Create zones and set quotas. Booth prices can then be assigned to these zones.
+						Create zones and set quotas. Booth prices can then be assigned to
+						these zones.
 					</DialogDescription>
 				</DialogHeader>
 

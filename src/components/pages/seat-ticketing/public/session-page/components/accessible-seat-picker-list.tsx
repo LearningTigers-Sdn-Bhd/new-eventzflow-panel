@@ -70,7 +70,11 @@ export function AccessibleSeatPickerList({
 	}
 
 	if (!isHydrated) {
-		return <p className="px-4 pb-4 text-slate-500 text-xs">Loading section seats...</p>;
+		return (
+			<p className="px-4 pb-4 text-slate-500 text-xs">
+				Loading section seats...
+			</p>
+		);
 	}
 
 	return (
@@ -91,8 +95,7 @@ export function AccessibleSeatPickerList({
 					const seat = sectionSeats[virtualItem.index];
 					if (!seat) return null;
 
-					const groupId =
-						seat.event_seat_group_assignment?.event_seat_group_id;
+					const groupId = seat.event_seat_group_assignment?.event_seat_group_id;
 					const group = groupId ? groupMap.get(groupId) : null;
 					const isSelected = selectedSeatIds.has(seat.id);
 					const isInteractive = seat.status === "available" || isSelected;

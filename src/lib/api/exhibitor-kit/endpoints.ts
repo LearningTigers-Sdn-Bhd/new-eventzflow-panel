@@ -1,17 +1,19 @@
-import { restClient } from "@/utils/rest-api";
-import type { ExhibitorKit } from "./response";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment/response";
+import { restClient } from "@/utils/rest-api";
 import {
 	type CreateExhibitorKitRequest,
-	type UpdateExhibitorKitRequest,
 	createExhibitorKitSchema,
+	type UpdateExhibitorKitRequest,
 	updateExhibitorKitSchema,
 } from "./request";
+import type { ExhibitorKit } from "./response";
 
 /**
  * Get all exhibitor kits for an event
  */
-export async function getExhibitorKits(eventId: number): Promise<ExhibitorKit[]> {
+export async function getExhibitorKits(
+	eventId: number,
+): Promise<ExhibitorKit[]> {
 	return restClient.get<ExhibitorKit[]>(`v1/events/${eventId}/exhibitor_kits`);
 }
 
@@ -22,7 +24,9 @@ export async function getExhibitorKit(
 	eventId: number,
 	kitId: number,
 ): Promise<ExhibitorKit> {
-	return restClient.get<ExhibitorKit>(`v1/events/${eventId}/exhibitor_kits/${kitId}`);
+	return restClient.get<ExhibitorKit>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}`,
+	);
 }
 
 /**
@@ -34,12 +38,9 @@ export async function createExhibitorKit(
 	data: CreateExhibitorKitRequest,
 ): Promise<ExhibitorKit> {
 	const validated = createExhibitorKitSchema.parse(data);
-	return restClient.post<ExhibitorKit>(
-		`v1/events/${eventId}/exhibitor_kits`,
-		{
-			exhibitor_kit: validated,
-		},
-	);
+	return restClient.post<ExhibitorKit>(`v1/events/${eventId}/exhibitor_kits`, {
+		exhibitor_kit: validated,
+	});
 }
 
 /**

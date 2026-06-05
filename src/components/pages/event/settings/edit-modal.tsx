@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getSafeInitialSettingsTab } from "./access";
 import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
@@ -8,6 +9,7 @@ import EmailSettingsForm from "./email-settings-form";
 import type { SettingsTab } from "./navigation";
 import SettingsNavigation from "./navigation";
 import PaymentGatewayForm from "./payment-gateway-form";
+import ReminderSettingsForm from "./reminder-settings-form";
 import WelcomeScreenForm from "./welcome-screen-form";
 
 interface EventSettingsDialogProps {
@@ -21,7 +23,9 @@ export default function EventSettingsDialog({
 	initialTab = "event-information",
 	onClose,
 }: EventSettingsDialogProps) {
-	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+	const [activeTab, setActiveTab] = useState<SettingsTab>(
+		getSafeInitialSettingsTab(initialTab),
+	);
 
 	return (
 		<div className="relative flex flex-col gap-4 px-4 md:grid md:grid-cols-[200px_1fr] md:items-start md:gap-6 md:px-6">
@@ -37,13 +41,16 @@ export default function EventSettingsDialog({
 				{activeTab === "email-settings" && (
 					<EmailSettingsForm eventId={eventId} onClose={onClose} />
 				)}
+				{activeTab === "event-reminder" && (
+					<ReminderSettingsForm eventId={eventId} onClose={onClose} />
+				)}
 				{activeTab === "custom-labels" && (
 					<CustomLabelForm eventId={eventId} onClose={onClose} />
 				)}
 				{activeTab === "welcome-screen" && (
 					<WelcomeScreenForm eventId={eventId} onClose={onClose} />
 				)}
-				{activeTab === "branding" && (
+				{activeTab === "poster" && (
 					<BrandingForm eventId={eventId} onClose={onClose} />
 				)}
 				{activeTab === "payment-gateway" && (

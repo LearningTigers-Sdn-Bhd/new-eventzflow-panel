@@ -22,7 +22,31 @@ import { cn } from "@/lib/utils";
 
 interface LogoFieldProps {
 	// biome-ignore lint/suspicious/noExplicitAny: FieldApi requires generic types for form fields
-	field: FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+	field: FieldApi<
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>;
 	isPending?: boolean;
 }
 
@@ -61,7 +85,31 @@ export function LogoField({ field, isPending = false }: LogoFieldProps) {
 
 interface TitleFieldProps {
 	// biome-ignore lint/suspicious/noExplicitAny: FieldApi requires generic types for form fields
-	field: FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+	field: FieldApi<
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>;
 	isPending?: boolean;
 	placeholder?: string;
 }
@@ -94,7 +142,31 @@ export function TitleField({
 
 interface DrawDateFieldProps {
 	// biome-ignore lint/suspicious/noExplicitAny: FieldApi requires generic types for form fields
-	field: FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+	field: FieldApi<
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>;
 	isPending?: boolean;
 }
 

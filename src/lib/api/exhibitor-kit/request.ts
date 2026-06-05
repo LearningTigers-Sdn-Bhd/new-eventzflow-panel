@@ -1,11 +1,44 @@
 import { z } from "zod";
 
 // Team member schema for nested attributes
-export const exhibitorTeamMemberSchema = z.object({
-	id: z.number().optional(),
-	full_name: z.string().min(1, "Full name is required"),
-	_destroy: z.boolean().optional(),
-});
+export const exhibitorTeamMemberSchema = z
+	.object({
+		id: z.number().optional(),
+		full_name: z.string(),
+		email: z.string(),
+		phone: z.string(),
+		_destroy: z.boolean().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (data._destroy === true) return;
+
+		if (data.full_name.trim().length === 0) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["full_name"],
+				message: "Full name is required",
+			});
+		}
+
+		if (
+			data.email.trim().length === 0 ||
+			!z.email().safeParse(data.email).success
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["email"],
+				message: "Valid email is required",
+			});
+		}
+
+		if (data.phone.trim().length === 0) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["phone"],
+				message: "Phone number is required",
+			});
+		}
+	});
 
 // Exhibitor kit item schema for nested attributes
 export const exhibitorKitItemSchema = z.object({
@@ -74,7 +107,7 @@ export const createExhibitorKitSchema = z.object({
 	side_wall_right_required: z.boolean().optional(),
 	name_on_fascia: z
 		.string()
-		.max(25, "Name on fascia must be 25 characters or less")
+		.max(30, "Name on fascia must be 30 characters or less")
 		.optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
@@ -113,7 +146,7 @@ export const updateExhibitorKitSchema = z.object({
 	booth_dimensions: z.string().optional(),
 	side_wall_left_required: z.boolean().optional(),
 	side_wall_right_required: z.boolean().optional(),
-	name_on_fascia: z.string().max(25).optional(),
+	name_on_fascia: z.string().max(30).optional(),
 	fascia_upgrade_required: z.boolean().optional(),
 	company_name: z.string().optional(),
 	company_address: z.string().optional(),

@@ -4,6 +4,40 @@ export interface CustomFieldDisplayEntry {
 	value: string;
 }
 
+const HIDDEN_CUSTOM_FIELD_KEYS = new Set([
+	"is_booth_manager",
+	"payment_option",
+]);
+
+function isEffectivelyEmptyCustomFieldValue(value: unknown): boolean {
+	if (value === null || value === undefined) {
+		return true;
+	}
+
+	if (Array.isArray(value)) {
+		return value.length === 0;
+	}
+
+	if (typeof value === "string") {
+		const trimmedValue = value.trim();
+
+		if (trimmedValue.startsWith("[") && trimmedValue.endsWith("]")) {
+			try {
+				const parsedValue = JSON.parse(trimmedValue);
+				if (Array.isArray(parsedValue) && parsedValue.length === 0) {
+					return true;
+				}
+			} catch {
+				// Ignore invalid JSON-like strings and treat them as normal strings below.
+			}
+		}
+
+		return trimmedValue === "" || trimmedValue === "-";
+	}
+
+	return false;
+}
+
 function formatPrimitiveArray(
 	value: Array<string | number | boolean>,
 	asBullets: boolean,
@@ -85,11 +119,19 @@ export function formatCustomFieldEntries(
 		return [];
 	}
 
-	return Object.entries(data).map(([key, value]) => ({
-		key,
-		label: humanizeCustomFieldKey(key),
-		value: formatCustomFieldValue(value, {
-			asBullets: key === "other_services",
-		}),
-	}));
+	return Object.entries(data)
+		.filter(([key, value]) => {
+			if (HIDDEN_CUSTOM_FIELD_KEYS.has(key)) {
+				return false;
+			}
+
+			return !isEffectivelyEmptyCustomFieldValue(value);
+		})
+		.map(([key, value]) => ({
+			key,
+			label: humanizeCustomFieldKey(key),
+			value: formatCustomFieldValue(value, {
+				asBullets: key === "other_services",
+			}),
+		}));
 }

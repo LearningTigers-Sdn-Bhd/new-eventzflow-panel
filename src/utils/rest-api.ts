@@ -34,7 +34,9 @@ const logger = {
 // Client-side: NEXT_PUBLIC_API_URL (for browser)
 export const API_BASE_URL =
 	typeof window === "undefined"
-		? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+		? process.env.API_URL ||
+			process.env.NEXT_PUBLIC_API_URL ||
+			"http://localhost:3000"
 		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const queryClient = new QueryClient({
@@ -54,7 +56,9 @@ export const queryClient = new QueryClient({
 			if (
 				Array.isArray(queryKey) &&
 				queryKey.some(
-					(k) => typeof k === "string" && suppressedKeys.some((sk) => k.includes(sk)),
+					(k) =>
+						typeof k === "string" &&
+						suppressedKeys.some((sk) => k.includes(sk)),
 				)
 			) {
 				return;
@@ -130,7 +134,7 @@ export const kyClient = ky.create({
 
 					if (!isAuthEndpoint) {
 						logger.warn("401 Unauthorized detected. Clearing session.");
-						
+
 						// Clear session
 						const state = useUserSessionStore.getState();
 						state.removeSessionCredentials();
@@ -371,16 +375,18 @@ export const restClient = {
 	/**
 	 * Make a DELETE request
 	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
 	 * @param token - Optional token to override the default auth token
 	 * @returns Promise resolving to the response data
 	 */
-	delete: <T>(url: string, token?: string): Promise<T> => {
+	delete: <T>(url: string, data?: unknown, token?: string): Promise<T> => {
 		const headers = token ? { Authorization: `Bearer ${token}` } : {};
 		logger.debug("🔍 HTTP Client Debug (DELETE):");
 		logger.debug("  - URL:", url);
 		logger.debug("  - Token:", token);
 		logger.debug("  - Headers:", headers);
-		return kyClient.delete(url, { headers }).json<T>();
+		logger.debug("  - Data:", data);
+		return kyClient.delete(url, { json: data, headers }).json<T>();
 	},
 
 	/**

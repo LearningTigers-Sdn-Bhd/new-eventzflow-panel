@@ -24,8 +24,12 @@ export async function getContractors(): Promise<ExhibitionContractor[]> {
  * Get all available exhibition contractors for assignment to events
  * (bypasses created_by scope - returns all active contractors)
  */
-export async function getAvailableContractors(): Promise<ExhibitionContractor[]> {
-	return restClient.get<ExhibitionContractor[]>("v1/exhibition_contractors/available");
+export async function getAvailableContractors(): Promise<
+	ExhibitionContractor[]
+> {
+	return restClient.get<ExhibitionContractor[]>(
+		"v1/exhibition_contractors/available",
+	);
 }
 
 /**
@@ -114,7 +118,12 @@ export async function updateContractorProfile(
 	data: Partial<
 		Omit<
 			ExhibitionContractorProfile,
-			"id" | "user_id" | "created_at" | "updated_at" | "guidelines_pdf_url" | "guidelines_pdf_filename"
+			| "id"
+			| "user_id"
+			| "created_at"
+			| "updated_at"
+			| "guidelines_pdf_url"
+			| "guidelines_pdf_filename"
 		>
 	>,
 ): Promise<ExhibitionContractorProfile> {

@@ -4,10 +4,10 @@ import { AlertTriangle, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
 
 interface DeleteConfirmationDialogProps {
@@ -52,8 +52,7 @@ export default function DeleteConfirmationDialog({
 					{title}
 				</DialogTitle>
 				<DialogDescription className="pt-2">
-					{description ||
-						"Are you sure you want to proceed with this action?"}
+					{description || "Are you sure you want to proceed with this action?"}
 					<br />
 					<br />
 					<span className="font-bold text-destructive">

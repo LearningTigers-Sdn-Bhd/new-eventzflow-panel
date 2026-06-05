@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import ServiceHero from "@/components/pages/services/ServiceHero";
+import Image from "next/image";
+import { useState } from "react";
+import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 import ServiceFeaturesSection from "@/components/pages/services/ServiceFeaturesSection";
+import ServiceHero from "@/components/pages/services/ServiceHero";
 import ServiceHowItWorksSection from "@/components/pages/services/ServiceHowItWorksSection";
 import ServiceShowcaseSection from "@/components/pages/services/ServiceShowcaseSection";
-import ServiceCTASection from "@/components/pages/services/ServiceCTASection";
 
 const features = [
 	{
@@ -108,7 +108,7 @@ function DrawStylesDemo() {
 
 	return (
 		<motion.div
-			className="flex flex-col items-center w-full"
+			className="flex w-full flex-col items-center"
 			whileHover={{ scale: 1.02 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
 		>
@@ -125,13 +125,13 @@ function DrawStylesDemo() {
 			</div>
 
 			{/* Style Selector */}
-			<div className="grid grid-cols-3 gap-2 w-full max-w-[500px]">
+			<div className="grid w-full max-w-[500px] grid-cols-3 gap-2">
 				{drawStyles.map((style) => (
 					<button
 						key={style.id}
 						type="button"
 						onClick={() => setSelectedStyle(style)}
-						className={`px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all text-center ${
+						className={`px-4 py-3 text-center font-bold text-sm uppercase tracking-wider transition-all ${
 							selectedStyle.id === style.id
 								? "bg-black text-white"
 								: "border border-black/20 bg-white text-black hover:border-black"

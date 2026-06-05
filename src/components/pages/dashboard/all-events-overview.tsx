@@ -5,7 +5,7 @@ import {
 	ChevronRight,
 	Clock,
 	ScanFace,
-	Stamp,
+	Speech,
 	Tickets,
 	TrendingUp,
 	Users,
@@ -103,10 +103,7 @@ function TicketEventCard({
 			key={event.id}
 			className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md"
 		>
-			<EventCardHeader
-				event={event}
-				formatDate={formatDate}
-			/>
+			<EventCardHeader event={event} formatDate={formatDate} />
 			<CardContent className="p-0">
 				{/* Stats Grid */}
 				<div className="grid grid-cols-3 gap-2 px-3 pb-3">
@@ -172,7 +169,7 @@ function VisitorEventCard({
 }): ReactElement {
 	const engagementRate =
 		event.totalVisitors > 0
-			? Math.round((event.totalStamps / event.totalVisitors) * 100)
+			? Math.round((event.totalLeads / event.totalVisitors) * 100)
 			: 0;
 
 	return (
@@ -180,10 +177,7 @@ function VisitorEventCard({
 			key={event.id}
 			className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md"
 		>
-			<EventCardHeader
-				event={event}
-				formatDate={formatDate}
-			/>
+			<EventCardHeader event={event} formatDate={formatDate} />
 			<CardContent className="p-0">
 				{/* Stats Grid */}
 				<div className="grid grid-cols-2 gap-2 px-3 pb-3">
@@ -193,9 +187,9 @@ function VisitorEventCard({
 						count={event.totalVisitors}
 					/>
 					<CompactStatsCard
-						icon={Stamp}
-						label="Stamps"
-						count={event.totalStamps}
+						icon={Speech}
+						label="Leads"
+						count={event.totalLeads}
 						variant="sky"
 					/>
 				</div>
@@ -213,7 +207,7 @@ function VisitorEventCard({
 						/>
 					</div>
 					<p className="mt-1 text-right text-muted-foreground text-xs">
-						{event.totalStamps} stamps / {event.totalVisitors} visitors
+						{event.totalLeads} leads / {event.totalVisitors} visitors
 					</p>
 				</div>
 			</CardContent>
@@ -229,20 +223,10 @@ function EventOverviewCard({
 	formatDate: (date: string | Date) => string;
 }): ReactElement {
 	if (event.useTicket) {
-		return (
-			<TicketEventCard
-				event={event}
-				formatDate={formatDate}
-			/>
-		);
+		return <TicketEventCard event={event} formatDate={formatDate} />;
 	}
 
-	return (
-		<VisitorEventCard
-			event={event}
-			formatDate={formatDate}
-		/>
-	);
+	return <VisitorEventCard event={event} formatDate={formatDate} />;
 }
 
 export function AllEventsOverview({
@@ -276,7 +260,9 @@ export function AllEventsOverview({
 			<Card className="rounded-none border-dashed">
 				<CardContent className="p-8 text-center sm:p-12">
 					<Calendar className="mx-auto mb-4 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
-					<h3 className="mb-2 font-semibold text-base sm:text-lg">No events yet</h3>
+					<h3 className="mb-2 font-semibold text-base sm:text-lg">
+						No events yet
+					</h3>
 					<p className="text-muted-foreground text-sm">
 						Create your first event to get started.
 					</p>

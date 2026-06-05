@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { IconTitle } from "@/components/ui/icon-heading";
 import { useDialog } from "@/hooks/use-dialog";
 import type { PrintingService } from "@/lib/api/printing-service";
+import { PrintingServiceFormContent } from "./printing-service-form-dialog";
 import { columns } from "./table/columns";
 import { DataTable } from "./table/data-table";
-import { PrintingServiceFormContent } from "./printing-service-form-dialog";
 
 interface PrintingServiceClientWrapperProps {
 	services: PrintingService[];

@@ -59,6 +59,23 @@ export async function getTeamMembers(filters?: {
 }
 
 /**
+ * Get all organizers (org_owner only)
+ */
+export async function getOrganizers(): Promise<{ id: string; full_name: string; email: string }[]> {
+	try {
+		const response = await restClient.get<{ id: string; full_name: string; email: string }[]>(
+			"v1/team_members/organizers",
+		);
+		return response;
+	} catch (error: unknown) {
+		console.error("Error fetching organizers:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch organizers";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
  * Get members created by a specific organizer
  * This is used by org_owners to view members under a specific organizer
  */
@@ -132,6 +149,7 @@ export async function updateTeamMember(
 				email: string;
 				phone?: string;
 				role?: string;
+				created_by_id?: string | null;
 				password?: string;
 				password_confirmation?: string;
 				email_verified_at?: string | null;
@@ -142,6 +160,7 @@ export async function updateTeamMember(
 				email: validated.email,
 				phone: validated.phone,
 				role: validated.role,
+				created_by_id: validated.created_by_id,
 			},
 		};
 

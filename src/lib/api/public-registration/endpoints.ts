@@ -7,6 +7,7 @@ import type {
 	CreatePublicRegistrationResponse,
 	ExistingRegistrationStatusResponse,
 	PublicRegistrationFormsResponse,
+	PublicTicketDetailsResponse,
 	PublicTicketTypesResponse,
 	VerifyPaymentPayload,
 	VerifyPaymentResponse,
@@ -105,6 +106,21 @@ export async function verifyPublicPayment(
 		const response = await publicRestClient.post<VerifyPaymentResponse>(
 			`v1/public/events/${eventSlug}/payments/verify`,
 			payload,
+		);
+		return response.data;
+	} catch (error: unknown) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+export async function getPublicTicketDetails(
+	eventSlug: string,
+	publicId: string,
+) {
+	try {
+		const response = await publicRestClient.get<PublicTicketDetailsResponse>(
+			`v1/public/events/${eventSlug}/tickets/${publicId}`,
 		);
 		return response.data;
 	} catch (error: unknown) {

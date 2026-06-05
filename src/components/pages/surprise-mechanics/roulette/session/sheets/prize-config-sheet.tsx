@@ -48,7 +48,9 @@ export function PrizeConfigSheet({
 	const [newQuantity, setNewQuantity] = useState(1);
 	const [newImage, setNewImage] = useState<File | null>(null);
 	const [isAddPrizeCardOpen, setIsAddPrizeCardOpen] = useState(false);
-	const [notifyingWinnerIds, setNotifyingWinnerIds] = useState<Set<number>>(new Set());
+	const [notifyingWinnerIds, setNotifyingWinnerIds] = useState<Set<number>>(
+		new Set(),
+	);
 
 	const {
 		data: prizes,
@@ -142,7 +144,7 @@ export function PrizeConfigSheet({
 		mutationFn: (winnerId: number) =>
 			notifyRouletteWinner(eventId, sessionId, winnerId),
 		onMutate: (winnerId) => {
-			setNotifyingWinnerIds(prev => new Set(prev).add(winnerId));
+			setNotifyingWinnerIds((prev) => new Set(prev).add(winnerId));
 		},
 		onSuccess: () => {
 			toast.success("Notification sent successfully");
@@ -151,7 +153,7 @@ export function PrizeConfigSheet({
 			toast.error(getErrorMessage(err) || "Failed to send notification");
 		},
 		onSettled: (_data, _error, winnerId) => {
-			setNotifyingWinnerIds(prev => {
+			setNotifyingWinnerIds((prev) => {
 				const next = new Set(prev);
 				next.delete(winnerId);
 				return next;

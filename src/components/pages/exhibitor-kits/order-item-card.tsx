@@ -20,7 +20,7 @@ export function OrderItemCard({
 	const total = quantity * price;
 
 	return (
-		<div className="p-4 space-y-3">
+		<div className="space-y-3 p-4">
 			<div className="flex items-start gap-3">
 				<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded border bg-muted">
 					{imageUrl ? (
@@ -33,7 +33,7 @@ export function OrderItemCard({
 						<ImageIcon className="h-5 w-5 text-muted-foreground" />
 					)}
 				</div>
-				<div className="flex-1 min-w-0">
+				<div className="min-w-0 flex-1">
 					<div className="flex items-start justify-between">
 						<div>
 							<p className="font-medium">{name}</p>

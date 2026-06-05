@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 
 interface TeamMember {
 	full_name: string;
+	email: string;
+	phone: string;
 }
 
 interface TeamMembersSectionProps {
@@ -24,6 +26,8 @@ export function TeamMembersSection({
 	extraTeamMemberFee,
 }: TeamMembersSectionProps) {
 	const [newMemberName, setNewMemberName] = useState("");
+	const [newMemberEmail, setNewMemberEmail] = useState("");
+	const [newMemberPhone, setNewMemberPhone] = useState("");
 
 	const extraMembersCount =
 		teamMemberLimit != null && teamMembers.length > teamMemberLimit
@@ -31,18 +35,40 @@ export function TeamMembersSection({
 			: 0;
 
 	const handleAddMember = () => {
-		if (!newMemberName.trim()) return;
-		onTeamMembersChange([...teamMembers, { full_name: newMemberName.trim() }]);
+		if (
+			!newMemberName.trim() ||
+			!newMemberEmail.trim() ||
+			!newMemberPhone.trim()
+		) {
+			return;
+		}
+
+		onTeamMembersChange([
+			...teamMembers,
+			{
+				full_name: newMemberName.trim(),
+				email: newMemberEmail.trim(),
+				phone: newMemberPhone.trim(),
+			},
+		]);
 		setNewMemberName("");
+		setNewMemberEmail("");
+		setNewMemberPhone("");
 	};
 
 	const handleRemoveMember = (index: number) => {
 		onTeamMembersChange(teamMembers.filter((_, i) => i !== index));
 	};
 
-	const handleUpdateMemberName = (index: number, name: string) => {
+	const handleUpdateMember = (
+		index: number,
+		field: keyof TeamMember,
+		value: string,
+	) => {
 		onTeamMembersChange(
-			teamMembers.map((m, i) => (i === index ? { full_name: name } : m)),
+			teamMembers.map((member, i) =>
+				i === index ? { ...member, [field]: value } : member,
+			),
 		);
 	};
 
@@ -85,9 +111,11 @@ export function TeamMembersSection({
 				</p>
 
 				{/* How to use guide */}
-				<div className="bg-blue-50 border border-blue-200 p-3">
+				<div className="border border-blue-200 bg-blue-50 p-3">
 					<p className="text-blue-800 text-xs">
-						<span className="font-medium">How to add:</span> Type the full name of your team member in the box below, then click the "Add" button. You can add multiple team members one by one.
+						<span className="font-medium">How to add:</span> Enter the full
+						name, real email address, and phone number for each team member,
+						then click "Add".
 					</p>
 				</div>
 			</div>
@@ -96,14 +124,26 @@ export function TeamMembersSection({
 			<div className="space-y-2">
 				<Label>Add Team Member</Label>
 				<p className="text-muted-foreground text-xs">
-					Enter the full name of a team member and click "Add" to include them
+					Use the member&apos;s real email address so they can receive their QR
+					code.
 				</p>
-				<div className="flex flex-col gap-2 sm:flex-row">
+				<div className="grid gap-2 md:grid-cols-[1.3fr_1fr_1fr_auto]">
 					<Input
 						value={newMemberName}
 						onChange={(e) => setNewMemberName(e.target.value)}
 						placeholder="e.g., Ahmad bin Abdullah"
 						className="flex-1"
+					/>
+					<Input
+						type="email"
+						value={newMemberEmail}
+						onChange={(e) => setNewMemberEmail(e.target.value)}
+						placeholder="Email address"
+					/>
+					<Input
+						value={newMemberPhone}
+						onChange={(e) => setNewMemberPhone(e.target.value)}
+						placeholder="Phone number"
 						onKeyDown={(e) => {
 							if (e.key === "Enter") {
 								e.preventDefault();
@@ -128,21 +168,39 @@ export function TeamMembersSection({
 				<div className="space-y-2">
 					<Label>Added Members ({teamMembers.length})</Label>
 					<p className="text-muted-foreground text-xs">
-						You can edit names by clicking on them, or remove a member by clicking the red trash icon
+						You can edit member details here, or remove a member with the red
+						trash icon.
 					</p>
-					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+					<div className="space-y-2">
 						{teamMembers.map((member, index) => (
 							<div
-								key={`member-${index}`}
-								className="flex items-center gap-2 border bg-muted/30 p-2"
+								key={`${member.email}-${member.full_name}-${index}`}
+								className="grid gap-2 border bg-muted/30 p-2 lg:grid-cols-[auto_1.2fr_1fr_1fr_auto] lg:items-center"
 							>
 								<span className="shrink-0 font-medium text-muted-foreground text-xs">
 									#{index + 1}
 								</span>
 								<Input
 									value={member.full_name}
-									onChange={(e) => handleUpdateMemberName(index, e.target.value)}
+									onChange={(e) =>
+										handleUpdateMember(index, "full_name", e.target.value)
+									}
 									className="min-w-0 flex-1"
+								/>
+								<Input
+									type="email"
+									value={member.email}
+									onChange={(e) =>
+										handleUpdateMember(index, "email", e.target.value)
+									}
+									className="min-w-0"
+								/>
+								<Input
+									value={member.phone}
+									onChange={(e) =>
+										handleUpdateMember(index, "phone", e.target.value)
+									}
+									className="min-w-0"
 								/>
 								<Button
 									type="button"
@@ -176,8 +234,9 @@ export function TeamMembersSection({
 				extraTeamMemberFee > 0 && (
 					<div className="rounded border border-amber-200 bg-amber-50 p-3">
 						<p className="text-amber-800 text-sm">
-							You have <span className="font-semibold">{extraMembersCount}</span>{" "}
-							extra member{extraMembersCount > 1 ? "s" : ""} beyond the included
+							You have{" "}
+							<span className="font-semibold">{extraMembersCount}</span> extra
+							member{extraMembersCount > 1 ? "s" : ""} beyond the included
 							limit. Additional charge:{" "}
 							<span className="font-semibold">
 								{formatCurrency(extraMembersCount * extraTeamMemberFee)}

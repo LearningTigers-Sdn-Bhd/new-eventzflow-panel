@@ -1,7 +1,17 @@
 "use client";
 
 import { Image } from "@unpic/react";
-import { Bell, ChevronDown, Edit2, Gift, Loader2, Save, Trash2, UserX, X } from "lucide-react";
+import {
+	Bell,
+	ChevronDown,
+	Edit2,
+	Gift,
+	Loader2,
+	Save,
+	Trash2,
+	UserX,
+	X,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ImageUpload from "@/components/file-upload/image-upload";
@@ -276,8 +286,14 @@ export function PrizeItem({
 										<Button
 											variant="outline"
 											size="sm"
-											disabled={winners[0] ? notifyingWinnerIds.has(winners[0].id) : true}
-											onClick={() => winners[0] && onNotifyWinner(winners[0].id)}
+											disabled={
+												winners[0]
+													? notifyingWinnerIds.has(winners[0].id)
+													: true
+											}
+											onClick={() =>
+												winners[0] && onNotifyWinner(winners[0].id)
+											}
 											className="gap-2 rounded-none"
 										>
 											{winners[0] && notifyingWinnerIds.has(winners[0].id) ? (

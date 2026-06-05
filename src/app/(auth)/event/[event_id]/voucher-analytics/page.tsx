@@ -14,11 +14,17 @@ import {
 	YAxis,
 } from "recharts";
 import { StatsCard } from "@/components/admin-ui/analytic";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import {
 	ExportPdfButton,
 	prepareVoucherReportData,
 } from "@/components/pdf-reports";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	EventDateFilter,
+	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+} from "@/components/ui/event-date-filter";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -28,11 +34,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import {
-	EventDateFilter,
-	getAnalyticsParamsFromSelection,
-	type EventDateSelection,
-} from "@/components/ui/event-date-filter";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
@@ -80,7 +81,12 @@ export default function VoucherAnalyticsPage({
 
 	// Fetch voucher analytics with vendor_id filter for vendors
 	const { data, isLoading: analyticsLoading } = useQuery({
-		queryKey: ["voucher-analytics", eventId, currentUserVendorId, dateSelection],
+		queryKey: [
+			"voucher-analytics",
+			eventId,
+			currentUserVendorId,
+			dateSelection,
+		],
 		queryFn: () =>
 			getVoucherAnalytics({
 				event_id: eventId,
@@ -91,6 +97,7 @@ export default function VoucherAnalyticsPage({
 			}),
 		enabled:
 			!Number.isNaN(eventId) &&
+			event?.use_voucher === true &&
 			(!permissions.isEventVendor || !!currentUserVendorId) &&
 			!!event,
 	});
@@ -148,6 +155,15 @@ export default function VoucherAnalyticsPage({
 			<div className="flex h-64 items-center justify-center">
 				<p className="text-muted-foreground">Invalid event ID</p>
 			</div>
+		);
+	}
+
+	if (!eventLoading && event?.use_voucher !== true) {
+		return (
+			<FeatureLockedState
+				isEventVendor={permissions.isEventVendor}
+				featureName="Vouchers"
+			/>
 		);
 	}
 
@@ -221,19 +237,16 @@ export default function VoucherAnalyticsPage({
 						<CardTitle>Redemption Trend</CardTitle>
 						<div className="flex items-center gap-2">
 							{event && (
-							<EventDateFilter
-								eventStartDate={event.start_date}
-								eventEndDate={event.end_date}
-								value={dateSelection}
-								onChange={setDateSelection}
-								hideAllTime
-								hidePreEvent
-							/>
-						)}
-							<ExportPdfButton
-								data={reportData}
-								disabled={isLoading}
-							/>
+								<EventDateFilter
+									eventStartDate={event.start_date}
+									eventEndDate={event.end_date}
+									value={dateSelection}
+									onChange={setDateSelection}
+									hideAllTime
+									hidePreEvent
+								/>
+							)}
+							<ExportPdfButton data={reportData} disabled={isLoading} />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -305,7 +318,9 @@ export default function VoucherAnalyticsPage({
 							<div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
 								<TrendingUp className="h-8 w-8 opacity-50" />
 								<p className="text-sm">No redemptions in this period</p>
-								<p className="text-xs opacity-70">Try selecting a different time range</p>
+								<p className="text-xs opacity-70">
+									Try selecting a different time range
+								</p>
 							</div>
 						)}
 					</CardContent>

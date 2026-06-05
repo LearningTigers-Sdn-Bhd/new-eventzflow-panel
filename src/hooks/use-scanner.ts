@@ -61,6 +61,11 @@ export function useScanner({
 					setTimeout(resolve, SCANNER_CONFIG.STOP_DELAY_MS),
 				);
 			}
+
+			// Fully release camera resources and DOM bindings.
+			// This prevents iOS Safari from keeping the camera stream alive.
+			await scannerRef.current.clear();
+			scannerRef.current = null;
 		} catch (error: any) {
 			// Ignore "already under transition" error as it often happens during rapid unmounts
 			if (
@@ -96,7 +101,17 @@ export function useScanner({
 
 			const config = {
 				fps: SCANNER_CONFIG.FPS,
-				qrbox: SCANNER_CONFIG.QRBOX_SIZE,
+				// Force a square qrbox on all devices (iOS can render number-based qrbox inconsistently)
+				qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+					const size = Math.max(
+						180,
+						Math.min(
+							320,
+							Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.7),
+						),
+					);
+					return { width: size, height: size };
+				},
 				aspectRatio: SCANNER_CONFIG.ASPECT_RATIO,
 			};
 

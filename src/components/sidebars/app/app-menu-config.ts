@@ -11,6 +11,7 @@ import {
 	Import,
 	Key,
 	LayoutDashboard,
+	Mail,
 	Package,
 	Printer,
 	Store,
@@ -103,6 +104,13 @@ export const navigationData = {
 			allowBottomNavigation: true,
 		},
 		{
+			name: "Lead Scan",
+			url: "/lead-scan" as Route,
+			icon: BiQrScan,
+			roleAllowed: [USER_ROLES.VENDOR, USER_ROLES.EXHIBITOR],
+			allowBottomNavigation: true,
+		},
+		{
 			name: "Scans",
 			url: "/scan" as Route,
 			icon: BiQrScan,
@@ -169,10 +177,17 @@ export const navigationData = {
 			isActive: (pathname: string) => pathname.startsWith("/manage-resources/"),
 		},
 		{
+			name: "Email Log",
+			url: "/email-log" as Route,
+			icon: Mail,
+			roleAllowed: [USER_ROLES.ORG_OWNER],
+			allowBottomNavigation: false,
+		},
+		{
 			name: "API Keys",
 			url: "/api" as Route,
 			icon: Key,
-			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
+			roleAllowed: [USER_ROLES.ORG_OWNER],
 			allowBottomNavigation: false,
 		},
 		{

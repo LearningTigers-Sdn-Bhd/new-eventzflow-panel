@@ -46,7 +46,8 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 		timeSeries.revenue?.map((d) => ({ date: d.date, value: d.value })) ?? [];
 
 	// Detect if data is hourly (single date) or daily (all time/event duration/pre-event)
-	const isHourlyData = registrationData.length > 0 && registrationData[0]?.date?.includes(" ");
+	const isHourlyData =
+		registrationData.length > 0 && registrationData[0]?.date?.includes(" ");
 
 	// Dynamic subtitles based on data type
 	const registrationSubtitle = isHourlyData
@@ -111,7 +112,13 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 						/>
 					</View>
 
-					<View style={{ borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 24 }}>
+					<View
+						style={{
+							borderTopWidth: 1,
+							borderTopColor: "#e5e7eb",
+							paddingTop: 24,
+						}}
+					>
 						<AreaChart
 							data={registrationData}
 							title="Ticket Sales Volume"
@@ -142,14 +149,15 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 					</Section>
 				)}
 
-				{hourlyBreakdown?.registrations && hourlyBreakdown.registrations.length > 0 && (
-					<Section title="Hourly Sales Breakdown by Day">
-						<DailyHourlyBreakdownSection
-							data={hourlyBreakdown.registrations}
-							barColor={colors.brandBlue}
-						/>
-					</Section>
-				)}
+				{hourlyBreakdown?.registrations &&
+					hourlyBreakdown.registrations.length > 0 && (
+						<Section title="Hourly Sales Breakdown by Day">
+							<DailyHourlyBreakdownSection
+								data={hourlyBreakdown.registrations}
+								barColor={colors.brandBlue}
+							/>
+						</Section>
+					)}
 
 				<ReportFooter />
 			</Page>

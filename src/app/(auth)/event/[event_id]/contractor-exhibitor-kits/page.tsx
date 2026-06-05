@@ -1,9 +1,9 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { use } from "react";
 import { ContractorExhibitorKitsView } from "@/components/pages/event-exhibitor-contractor/contractor-exhibitor-kits-view";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { redirect } from "next/navigation";
 
 export default function ContractorExhibitorKitsPage({
 	params,

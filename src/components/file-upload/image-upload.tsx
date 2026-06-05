@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	type FileWithPreview,
@@ -27,16 +27,14 @@ export default function ImageUpload({
 	maxSize = 5 * 1024 * 1024, // 5MB
 	fillHeight = false,
 }: ImageUploadProps) {
-	// We need to track the preview URL separately
-	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-	const prevValueRef = useRef<string | File | undefined>(undefined);
+	const [externalPreviewUrl, setExternalPreviewUrl] = useState<string | null>(
+		null,
+	);
 
 	// Initialize file upload hook
 	const [
 		{ files, isDragging, errors },
 		{
-			addFiles,
-			removeFile,
 			clearFiles,
 			handleDragEnter,
 			handleDragLeave,
@@ -50,46 +48,48 @@ export default function ImageUpload({
 		maxSize,
 		accept: "image/*",
 		multiple: false,
+		// We call onChange only when files are added or changed via the hook's internal mechanisms
+		onFilesChange: (newFiles) => {
+			const firstFile = newFiles[0]?.file;
+			if (firstFile instanceof File) {
+				onChange?.(firstFile);
+			} else if (newFiles.length === 0) {
+				// Don't clear automatically if we have a value URL but no hook files
+				// Only clear if clearFiles was called
+			}
+		},
 	});
-
-	useEffect(() => {
-		const firstFile = files[0]?.file;
-		if (firstFile instanceof File) {
-			onChange?.(firstFile);
-		}
-		// Don't call onChange(null) here - only call it explicitly when user removes the image
-		// Otherwise it will clear existing URL values when the component mounts
-	}, [files, onChange]);
 
 	// Sync value prop with internal state
 	useEffect(() => {
-		// Skip if value hasn't changed
-		if (prevValueRef.current === value) {
-			return;
-		}
-
-		prevValueRef.current = value;
-
 		if (typeof value === "string" && value) {
-			setPreviewUrl(value);
+			setExternalPreviewUrl(value);
 		} else if (value instanceof File) {
-			// If the value is a File, ensure preview is correct
+			const matchingHookFile = files.find(
+				(fileEntry) =>
+					fileEntry.file instanceof File && fileEntry.file === value,
+			);
+
+			if (matchingHookFile?.preview) {
+				setExternalPreviewUrl(null);
+				return;
+			}
+
 			const preview = URL.createObjectURL(value);
-			setPreviewUrl(preview);
+			setExternalPreviewUrl(preview);
 			return () => URL.revokeObjectURL(preview);
-		} else if (!value && files.length === 0) {
-			// Only clear if we don't have a current file being uploaded
-			setPreviewUrl(null);
+		} else if (!value) {
+			setExternalPreviewUrl(null);
 		}
-	}, [value, files.length]);
+	}, [files, value]);
 
 	// Hook's files take precedence for preview if a new file is selected
 	const currentFile = files[0];
-	const displayPreview = currentFile?.preview || previewUrl;
+	const displayPreview = currentFile?.preview || externalPreviewUrl;
 
 	const handleRemove = () => {
 		clearFiles();
-		setPreviewUrl(null);
+		setExternalPreviewUrl(null);
 		onChange?.(null);
 	};
 

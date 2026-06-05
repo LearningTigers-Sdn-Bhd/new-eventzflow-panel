@@ -1,27 +1,27 @@
 // API endpoints
 export {
-	getRentableItems,
-	getRentableItem,
 	createRentableItem,
-	updateRentableItem,
 	deleteRentableItem,
+	getRentableItem,
+	getRentableItems,
+	updateRentableItem,
 } from "./endpoints";
 
 // Request types and schemas
 export {
 	type CreateRentableItemRequest,
 	createRentableItemSchema,
-	type UpdateRentableItemRequest,
-	updateRentableItemSchema,
 	type DeleteRentableItemRequest,
 	deleteRentableItemSchema,
+	type UpdateRentableItemRequest,
+	updateRentableItemSchema,
 } from "./request";
 
 // Response types
 export type {
 	BackendRentableItem,
-	RentableItem,
 	CreateRentableItemResponse,
-	UpdateRentableItemResponse,
 	DeleteRentableItemResponse,
+	RentableItem,
+	UpdateRentableItemResponse,
 } from "./response";

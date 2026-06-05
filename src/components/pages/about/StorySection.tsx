@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Heart, Cpu, Users } from "lucide-react";
+import { CheckCircle2, Cpu, Heart, Users } from "lucide-react";
 import { SMOOTH_EASE } from "@/lib/constants/animation";
 
 const missionPillars = [
@@ -51,7 +51,7 @@ const storyMilestones = [
 
 export default function StorySection() {
 	return (
-		<section className="bg-white-background px-6 py-24 md:py-32 border border-black">
+		<section className="border border-black bg-white-background px-6 py-24 md:py-32">
 			<div className="mx-auto max-w-7xl">
 				{/* Header */}
 				<motion.div
@@ -63,23 +63,23 @@ export default function StorySection() {
 				>
 					<div className="mb-6 flex items-center gap-4">
 						<div className="h-[2px] w-10 bg-black" />
-						<p className="text-xs font-bold uppercase tracking-[0.4em] text-black">
+						<p className="font-bold text-black text-xs uppercase tracking-[0.4em]">
 							Our Story
 						</p>
 					</div>
-					<h2 className="mb-6 font-black text-3xl uppercase tracking-tighter text-black sm:text-4xl md:text-5xl">
+					<h2 className="mb-6 font-black text-3xl text-black uppercase tracking-tighter sm:text-4xl md:text-5xl">
 						Why we created EventzFlow
 					</h2>
-					<p className="text-lg leading-relaxed text-black/70 md:text-xl">
-						We built EventzFlow to solve a problem we saw happening
-						everywhere: talented event organizers wasting hours on manual
-						tasks, juggling disconnected tools, and unable to deliver the
-						seamless experiences they envisioned.
+					<p className="text-black/70 text-lg leading-relaxed md:text-xl">
+						We built EventzFlow to solve a problem we saw happening everywhere:
+						talented event organizers wasting hours on manual tasks, juggling
+						disconnected tools, and unable to deliver the seamless experiences
+						they envisioned.
 					</p>
 				</motion.div>
 
 				{/* Mission Pillars */}
-				<div className="grid md:grid-cols-3 mb-16">
+				<div className="mb-16 grid md:grid-cols-3">
 					{missionPillars.map((pillar) => {
 						const IconComponent = pillar.icon;
 						return (
@@ -98,10 +98,12 @@ export default function StorySection() {
 								<div className="mb-4 flex h-12 w-12 items-center justify-center border border-black/30 text-black transition-all duration-300 group-hover:bg-black group-hover:text-white">
 									<IconComponent className="h-5 w-5" />
 								</div>
-								<h3 className="mb-3 font-bold text-lg text-black">
+								<h3 className="mb-3 font-bold text-black text-lg">
 									{pillar.title}
 								</h3>
-								<p className="text-base text-black/70 md:text-lg">{pillar.description}</p>
+								<p className="text-base text-black/70 md:text-lg">
+									{pillar.description}
+								</p>
 							</motion.div>
 						);
 					})}
@@ -113,7 +115,7 @@ export default function StorySection() {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ duration: 0.8, ease: SMOOTH_EASE }}
-					className="bg-green-background border border-black p-8 md:p-12"
+					className="border border-black bg-green-background p-8 md:p-12"
 				>
 					<h3 className="mb-8 font-bold text-2xl text-black uppercase tracking-tight">
 						How We Got Here
@@ -131,18 +133,18 @@ export default function StorySection() {
 								}}
 								className="border border-black bg-white p-6"
 							>
-								<span className="text-xs font-bold text-brand-green">
+								<span className="font-bold text-brand-green text-xs">
 									Phase {milestone.phase}
 								</span>
-								<h4 className="mt-2 mb-3 font-bold text-lg text-black">
+								<h4 className="mt-2 mb-3 font-bold text-black text-lg">
 									{milestone.title}
 								</h4>
 								<p className="mb-4 text-base text-black/70 leading-relaxed md:text-lg">
 									{milestone.description}
 								</p>
-								<div className="flex items-start gap-2 border-t border-black pt-4">
+								<div className="flex items-start gap-2 border-black border-t pt-4">
 									<CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-green" />
-									<span className="text-sm text-black/50 md:text-base">
+									<span className="text-black/50 text-sm md:text-base">
 										{milestone.impact}
 									</span>
 								</div>

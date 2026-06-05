@@ -4,10 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Loader2, Receipt, RefreshCw } from "lucide-react";
 import { use } from "react";
 import { EmptyState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { DataTable } from "@/components/pages/voucher-redemption/table/voucher-log-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { getEventById } from "@/lib/api/event";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
 
 export default function VoucherLogsPage({
@@ -20,6 +22,19 @@ export default function VoucherLogsPage({
 
 	// Check permissions - only org_owner, organizer, event_admin can view
 	const permissions = useEventPermissions(event_id);
+	const { data: event, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+	});
+
+	if (!isLoadingEvent && event?.use_voucher !== true) {
+		return (
+			<FeatureLockedState
+				isEventVendor={permissions.isEventVendor}
+				featureName="Vouchers"
+			/>
+		);
+	}
 
 	const {
 		data: logs,
@@ -47,7 +62,7 @@ export default function VoucherLogsPage({
 	}
 
 	// Loading state
-	if (isLoading) {
+	if (isLoading || isLoadingEvent) {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="flex flex-col items-center gap-2">

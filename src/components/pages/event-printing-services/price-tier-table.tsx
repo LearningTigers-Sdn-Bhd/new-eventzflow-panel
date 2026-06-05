@@ -1,9 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import { Trash2, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -27,8 +27,7 @@ export function PriceTierTable({
 }: PriceTierTableProps) {
 	// Sort by start date
 	const sortedTiers = [...priceTiers].sort(
-		(a, b) =>
-			new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+		(a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
 	);
 
 	// Check if a tier is currently active

@@ -25,7 +25,7 @@ export type ResourceImageSize = "thumbnail" | "medium" | "large" | "original";
  */
 export function getResourceImage(
 	headerImgUrl: string | ResourceImageVariants | null | undefined,
-	size: ResourceImageSize = "medium"
+	size: ResourceImageSize = "medium",
 ): string | null {
 	if (!headerImgUrl) {
 		return null;
@@ -56,7 +56,7 @@ export function getResourceImage(
  * @returns True if an image is available, false otherwise
  */
 export function hasResourceImage(
-	headerImgUrl: string | ResourceImageVariants | null | undefined
+	headerImgUrl: string | ResourceImageVariants | null | undefined,
 ): boolean {
 	return getResourceImage(headerImgUrl, "original") !== null;
 }
@@ -69,7 +69,7 @@ export function hasResourceImage(
  * @returns Object with all available variants or null if no image
  */
 export function getAllResourceImageVariants(
-	headerImgUrl: string | ResourceImageVariants | null | undefined
+	headerImgUrl: string | ResourceImageVariants | null | undefined,
 ): ResourceImageVariants | null {
 	if (!headerImgUrl) {
 		return null;

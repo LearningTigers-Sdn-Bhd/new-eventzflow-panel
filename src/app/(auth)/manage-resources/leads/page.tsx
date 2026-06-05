@@ -42,8 +42,7 @@ export default function LeadsPage() {
 			<ErrorState
 				title="Failed to load leads"
 				description={
-					error.message ||
-					"We couldn't load resource leads. Please try again."
+					error.message || "We couldn't load resource leads. Please try again."
 				}
 				action={<Button onClick={() => refetch()}>Retry</Button>}
 			/>

@@ -55,7 +55,8 @@ export const columns: ColumnDef<ResourceLead>[] = [
 								<div className="space-y-1">
 									{lead.company && (
 										<p className="text-xs">
-											<span className="font-medium">Company:</span> {lead.company}
+											<span className="font-medium">Company:</span>{" "}
+											{lead.company}
 										</p>
 									)}
 									{lead.jobTitle && (
@@ -88,7 +89,8 @@ export const columns: ColumnDef<ResourceLead>[] = [
 		cell: ({ row }) => {
 			const company = row.original.company;
 			const jobTitle = row.original.jobTitle;
-			if (!company && !jobTitle) return <span className="text-muted-foreground text-xs">-</span>;
+			if (!company && !jobTitle)
+				return <span className="text-muted-foreground text-xs">-</span>;
 			return (
 				<div className="flex flex-col gap-0.5">
 					{company && <span className="text-xs">{company}</span>}
@@ -106,11 +108,14 @@ export const columns: ColumnDef<ResourceLead>[] = [
 		cell: ({ row }) => {
 			const country = row.original.country;
 			const state = row.original.state;
-			if (!country && !state) return <span className="text-muted-foreground text-xs">-</span>;
+			if (!country && !state)
+				return <span className="text-muted-foreground text-xs">-</span>;
 			return (
 				<div className="flex flex-col gap-0.5">
 					{country && <span className="text-xs">{country}</span>}
-					{state && <span className="text-muted-foreground text-xs">{state}</span>}
+					{state && (
+						<span className="text-muted-foreground text-xs">{state}</span>
+					)}
 				</div>
 			);
 		},
@@ -121,7 +126,8 @@ export const columns: ColumnDef<ResourceLead>[] = [
 		header: "Resource",
 		cell: ({ row }) => {
 			const resource = row.original.resource;
-			if (!resource) return <span className="text-muted-foreground text-xs">-</span>;
+			if (!resource)
+				return <span className="text-muted-foreground text-xs">-</span>;
 			return (
 				<div className="flex flex-col gap-1">
 					<span className="line-clamp-1 text-xs">{resource.title}</span>
@@ -137,13 +143,15 @@ export const columns: ColumnDef<ResourceLead>[] = [
 	},
 	{
 		accessorKey: "createdAt",
-		header: ({ column }) => <SortableHeader column={column} label="Submitted" />,
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Submitted" />
+		),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("createdAt"));
 			return (
 				<div className="flex flex-col gap-0.5">
 					<div className="text-xs">{date.toLocaleDateString()}</div>
-					<div className="text-muted-foreground text-[10px]">
+					<div className="text-[10px] text-muted-foreground">
 						{date.toLocaleTimeString()}
 					</div>
 				</div>

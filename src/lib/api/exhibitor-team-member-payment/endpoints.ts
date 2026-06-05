@@ -1,19 +1,21 @@
 import { restClient } from "@/utils/rest-api";
 import {
-	type GetExhibitorTeamMemberPaymentsRequest,
-	type GetExhibitorTeamMemberPaymentRequest,
 	type CreateExhibitorTeamMemberPaymentRequest,
-	type UpdateExhibitorTeamMemberPaymentRequest,
-	getExhibitorTeamMemberPaymentsSchema,
-	getExhibitorTeamMemberPaymentSchema,
 	createExhibitorTeamMemberPaymentSchema,
+	type GetExhibitorTeamMemberPaymentRequest,
+	type GetExhibitorTeamMemberPaymentsRequest,
+	getExhibitorTeamMemberPaymentSchema,
+	getExhibitorTeamMemberPaymentsSchema,
+	type UpdateExhibitorTeamMemberPaymentRequest,
 	updateExhibitorTeamMemberPaymentSchema,
 } from "./request";
 import type {
 	BackendExhibitorTeamMemberPayment,
-	ExhibitorTeamMemberPayment,
 	CreateExhibitorTeamMemberPaymentResponse,
+	CreateRazorpayOrderResponse,
+	ExhibitorTeamMemberPayment,
 	UpdateExhibitorTeamMemberPaymentResponse,
+	VerifyRazorpayPaymentResponse,
 } from "./response";
 
 // Transform backend payment to frontend format
@@ -31,6 +33,9 @@ function transformPayment(
 		paymentSource: backendPayment.payment_source,
 		paymentProofUrl: backendPayment.payment_proof_url,
 		externalRef: backendPayment.external_ref,
+		gateway: backendPayment.gateway,
+		gatewayPaymentId: backendPayment.gateway_payment_id,
+		paymentMethod: backendPayment.payment_method,
 		note: backendPayment.note,
 		paidAt: backendPayment.paid_at,
 		createdAt: backendPayment.created_at,
@@ -163,11 +168,10 @@ export async function updateExhibitorTeamMemberPayment(
 		const validated = updateExhibitorTeamMemberPaymentSchema.parse(data);
 		const { eventId, exhibitorKitId, paymentId, ...updateData } = validated;
 
-		const response =
-			await restClient.patch<BackendExhibitorTeamMemberPayment>(
-				`v1/events/${eventId}/exhibitor_kits/${exhibitorKitId}/exhibitor_team_member_payments/${paymentId}`,
-				{ exhibitor_team_member_payment: updateData },
-			);
+		const response = await restClient.patch<BackendExhibitorTeamMemberPayment>(
+			`v1/events/${eventId}/exhibitor_kits/${exhibitorKitId}/exhibitor_team_member_payments/${paymentId}`,
+			{ exhibitor_team_member_payment: updateData },
+		);
 
 		return transformPayment(response);
 	} catch (error: unknown) {
@@ -190,8 +194,14 @@ export async function resubmitTeamMemberPaymentProof(data: {
 	note?: string;
 }): Promise<UpdateExhibitorTeamMemberPaymentResponse> {
 	try {
-		const { eventId, exhibitorKitId, paymentId, paymentProof, externalRef, note } =
-			data;
+		const {
+			eventId,
+			exhibitorKitId,
+			paymentId,
+			paymentProof,
+			externalRef,
+			note,
+		} = data;
 
 		const formData = new FormData();
 		formData.append(
@@ -222,7 +232,56 @@ export async function resubmitTeamMemberPaymentProof(data: {
 	} catch (error: unknown) {
 		console.error("Error resubmitting payment proof:", error);
 		const message =
-			error instanceof Error ? error.message : "Failed to resubmit payment proof";
+			error instanceof Error
+				? error.message
+				: "Failed to resubmit payment proof";
+		throw new Error(message);
+	}
+}
+
+export async function createExtraTeamMemberPaymentOrder(data: {
+	eventId: string;
+	exhibitorKitId: string;
+}): Promise<CreateRazorpayOrderResponse["data"]> {
+	try {
+		const response = await restClient.post<CreateRazorpayOrderResponse>(
+			`v1/events/${data.eventId}/exhibitor_kits/${data.exhibitorKitId}/exhibitor_team_member_payments/razorpay/create_order`,
+			{},
+		);
+
+		return response.data;
+	} catch (error: unknown) {
+		console.error("Error creating extra team member payment order:", error);
+		const message =
+			error instanceof Error ? error.message : "Failed to create payment order";
+		throw new Error(message);
+	}
+}
+
+export async function verifyExtraTeamMemberPayment(data: {
+	eventId: string;
+	exhibitorKitId: string;
+	paymentId: number;
+	razorpayOrderId: string;
+	razorpayPaymentId: string;
+	razorpaySignature: string;
+}): Promise<VerifyRazorpayPaymentResponse["data"]> {
+	try {
+		const response = await restClient.post<VerifyRazorpayPaymentResponse>(
+			`v1/events/${data.eventId}/exhibitor_kits/${data.exhibitorKitId}/exhibitor_team_member_payments/razorpay/verify`,
+			{
+				payment_id: data.paymentId,
+				razorpay_order_id: data.razorpayOrderId,
+				razorpay_payment_id: data.razorpayPaymentId,
+				razorpay_signature: data.razorpaySignature,
+			},
+		);
+
+		return response.data;
+	} catch (error: unknown) {
+		console.error("Error verifying extra team member payment:", error);
+		const message =
+			error instanceof Error ? error.message : "Failed to verify payment";
 		throw new Error(message);
 	}
 }

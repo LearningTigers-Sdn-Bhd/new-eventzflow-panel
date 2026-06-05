@@ -1,0 +1,248 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import { type ApiKeyScope, createEventApiKey } from "@/lib/api/api-keys";
+
+interface CreateEventApiKeyDialogProps {
+	eventId: number;
+	onClose: () => void;
+}
+
+export default function CreateEventApiKeyDialog({
+	eventId,
+	onClose,
+}: CreateEventApiKeyDialogProps) {
+	const [createdKey, setCreatedKey] = useState<string | null>(null);
+	const [copied, setCopied] = useState(false);
+	const [keyName, setKeyName] = useState("");
+	const [scope, setScope] = useState<ApiKeyScope>("read_only");
+	const queryClient = useQueryClient();
+	const { isOrgOwner } = useUserPermissions();
+
+	const createMutation = useMutation({
+		mutationFn: ({ name, scope }: { name: string; scope?: ApiKeyScope }) =>
+			createEventApiKey(eventId, name, scope),
+		onSuccess: (data) => {
+			setCreatedKey(data.apiKey.rawKey);
+			toast.success("API Key Created", {
+				description:
+					data.apiKey.message || "Your API key has been created successfully.",
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", String(eventId), "api-keys"],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error("Failed to create API key", {
+				description:
+					error.message || "An error occurred while creating the API key.",
+			});
+		},
+	});
+
+	const handleCopy = async () => {
+		if (createdKey) {
+			try {
+				await navigator.clipboard.writeText(createdKey);
+				setCopied(true);
+				toast.success("Copied to clipboard", {
+					description: "API key has been copied to your clipboard.",
+				});
+				setTimeout(() => setCopied(false), 2000);
+			} catch {
+				toast.error("Failed to copy", {
+					description: "Please copy the key manually.",
+				});
+			}
+		}
+	};
+
+	const handleCreate = () => {
+		if (!keyName.trim()) {
+			toast.error("API Key name is required", {
+				description: "Please enter a name for your API key.",
+			});
+			return;
+		}
+		// Only org_owner can elevate; backend enforces too. Sending the field
+		// from a non-owner is harmless (server ignores it) but we omit it for
+		// clarity.
+		createMutation.mutate({
+			name: keyName.trim(),
+			scope: isOrgOwner ? scope : undefined,
+		});
+	};
+
+	return (
+		<div className="space-y-6">
+			{!createdKey ? (
+				<>
+					<div className="flex flex-col items-center gap-4 py-4">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/40">
+							<AlertTriangle
+								className="h-6 w-6 text-amber-600 dark:text-amber-300"
+								strokeWidth={2}
+							/>
+						</div>
+						<div className="space-y-2 text-center">
+							<h4 className="font-semibold text-sm">Important</h4>
+							<p className="text-muted-foreground text-sm">
+								Once created, the API key will only be shown once. Make sure to
+								copy and store it securely.
+							</p>
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="keyName">API Key Name</Label>
+						<Input
+							id="keyName"
+							type="text"
+							placeholder="e.g., Ticketing Integration, CRM Sync"
+							value={keyName}
+							onChange={(e) => setKeyName(e.target.value)}
+							maxLength={255}
+							disabled={createMutation.isPending}
+						/>
+						<p className="text-muted-foreground text-xs">
+							Give your API key a descriptive name to identify it later.
+						</p>
+					</div>
+
+					{isOrgOwner ? (
+						<div className="space-y-2">
+							<Label htmlFor="keyScope">Permission</Label>
+							<Select
+								value={scope}
+								onValueChange={(v) => setScope(v as ApiKeyScope)}
+								disabled={createMutation.isPending}
+							>
+								<SelectTrigger id="keyScope">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="read_only">
+										Read only — GET requests only
+									</SelectItem>
+									<SelectItem value="check_in">
+										Check-in — read + POST (scanner endpoints)
+									</SelectItem>
+									<SelectItem value="read_write">
+										Full access — all CRUD methods
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							<p className="text-muted-foreground text-xs">
+								Only org owners can grant write access. Default is read-only.
+							</p>
+						</div>
+					) : (
+						<div className="rounded-md border bg-muted/40 p-3 text-muted-foreground text-xs">
+							Keys you create are read-only (GET requests only). Contact your
+							organization owner if you need write access.
+						</div>
+					)}
+
+					<Separator />
+
+					<div className="flex justify-end gap-3">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onClose}
+							disabled={createMutation.isPending}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="button"
+							onClick={handleCreate}
+							disabled={createMutation.isPending || !keyName.trim()}
+						>
+							{createMutation.isPending ? "Creating..." : "Generate API Key"}
+						</Button>
+					</div>
+				</>
+			) : (
+				<>
+					<div className="flex flex-col items-center gap-4 py-4">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/40">
+							<Check
+								className="h-6 w-6 text-emerald-600 dark:text-emerald-300"
+								strokeWidth={2}
+							/>
+						</div>
+						<div className="space-y-2 text-center">
+							<h4 className="font-semibold text-sm">
+								API Key Created Successfully
+							</h4>
+							<p className="text-muted-foreground text-sm">
+								Copy this key now. You won't be able to see it again!
+							</p>
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<p className="font-medium text-sm">Your API Key:</p>
+						<div className="flex gap-2">
+							<div className="flex-1 break-all rounded-md border bg-muted p-3 font-mono text-sm">
+								{createdKey}
+							</div>
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								onClick={handleCopy}
+								className="shrink-0"
+							>
+								{copied ? (
+									<Check className="h-4 w-4 text-green-600" />
+								) : (
+									<Copy className="h-4 w-4" />
+								)}
+							</Button>
+						</div>
+					</div>
+
+					<div className="flex flex-col items-center gap-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/40">
+						<div className="flex gap-3">
+							<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+							<div className="space-y-1">
+								<p className="font-semibold text-red-900 text-sm dark:text-red-100">
+									Warning
+								</p>
+								<p className="text-red-800 text-sm dark:text-red-200">
+									This is the only time you will see this key. Make sure to copy
+									it now and store it securely.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<Separator />
+
+					<div className="flex justify-end">
+						<Button type="button" onClick={onClose}>
+							Done
+						</Button>
+					</div>
+				</>
+			)}
+		</div>
+	);
+}

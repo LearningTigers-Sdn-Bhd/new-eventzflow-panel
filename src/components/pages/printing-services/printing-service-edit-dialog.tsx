@@ -26,14 +26,18 @@ interface PrintingServiceEditContentProps {
 	service: PrintingService;
 }
 
-export function PrintingServiceEditContent({ service }: PrintingServiceEditContentProps) {
+export function PrintingServiceEditContent({
+	service,
+}: PrintingServiceEditContentProps) {
 	const { closeDialog } = useDialog();
 	const queryClient = useQueryClient();
 
 	const [name, setName] = useState(service.name);
 	const [description, setDescription] = useState(service.description ?? "");
 	const [unitOfMeasure, setUnitOfMeasure] = useState(service.unitOfMeasure);
-	const [defaultPrice, setDefaultPrice] = useState(String(service.defaultPrice));
+	const [defaultPrice, setDefaultPrice] = useState(
+		String(service.defaultPrice),
+	);
 	const [status, setStatus] = useState<"active" | "inactive">(service.status);
 	const [categoryId, setCategoryId] = useState(String(service.itemCategoryId));
 	const [image, setImage] = useState<File | null>(null);

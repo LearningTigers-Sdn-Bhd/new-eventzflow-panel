@@ -70,7 +70,8 @@ export const usePublicSeatStore = create<SeatReservationState>()(
 			initialize: (session) => {
 				const previousSessionId = get().persistedSessionId;
 				const isSessionChanged =
-					typeof previousSessionId === "number" && previousSessionId !== session.id;
+					typeof previousSessionId === "number" &&
+					previousSessionId !== session.id;
 
 				const sections: Record<number, EventSeatSection> = {};
 				session.event_seat_venues?.forEach((venue) => {

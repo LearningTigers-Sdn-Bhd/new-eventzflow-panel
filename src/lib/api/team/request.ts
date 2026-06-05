@@ -15,7 +15,8 @@ export const updateTeamMemberSchema = z.object({
 	full_name: z.string().min(2, "Name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	phone: z.string().optional(),
-	role: z.enum(["org_owner", "organizer", "member", "vendor"]).optional(),
+	role: z.enum(["org_owner", "organizer", "member", "vendor", "exhibitor", "exhibition_contractor"]).optional(),
+	created_by_id: z.string().nullable().optional(),
 	newPassword: z.string().optional(),
 	email_verified_at: z.string().nullable().optional(),
 });

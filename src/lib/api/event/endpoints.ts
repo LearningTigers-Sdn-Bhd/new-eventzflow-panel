@@ -5,7 +5,12 @@ import {
 	type UpdateEventRequest,
 	updateEventSchema,
 } from "./request";
-import type { BackendEvent, Event, EventDetails } from "./response";
+import type {
+	BackendEvent,
+	Event,
+	EventDetails,
+	WishWallSetting,
+} from "./response";
 
 /**
  * Get all events
@@ -57,10 +62,9 @@ export async function updateEvent(
 ): Promise<Event> {
 	const validated = updateEventSchema.parse(data); // Validate form data
 
-	const response = await restClient.put<BackendEvent>(
-		`v1/events/${eventId}`,
-		{ event: validated },
-	);
+	const response = await restClient.put<BackendEvent>(`v1/events/${eventId}`, {
+		event: validated,
+	});
 
 	// Return full event data without transformation
 	return response;
@@ -141,6 +145,29 @@ export async function removeEventLogo(eventId: string): Promise<Event> {
 	return response;
 }
 
+export async function uploadEventPoster(
+	eventId: string,
+	poster: File,
+): Promise<Event> {
+	const formData = new FormData();
+	formData.append("event[poster]", poster);
+	const response = await restClient.patchFormData<BackendEvent>(
+		`v1/events/${eventId}`,
+		formData,
+	);
+	return response;
+}
+
+export async function removeEventPoster(eventId: string): Promise<Event> {
+	const formData = new FormData();
+	formData.append("event[remove_poster]", "true");
+	const response = await restClient.patchFormData<BackendEvent>(
+		`v1/events/${eventId}`,
+		formData,
+	);
+	return response;
+}
+
 // ============================================================================
 // PUBLIC ENDPOINTS - No authentication required
 // ============================================================================
@@ -161,6 +188,8 @@ export interface PublicEventInfo {
 	venue_address: string | null;
 	status: string;
 	logo_url: string | null;
+	poster_url: string | null;
+	wish_wall_setting: WishWallSetting;
 }
 
 /**

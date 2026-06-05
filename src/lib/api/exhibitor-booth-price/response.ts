@@ -6,6 +6,8 @@ export type BackendExhibitorBoothPrice = {
 	zone: string | null;
 	label: string;
 	price: number | string;
+	current_price?: number | string;
+	active_price_tier_label?: string | null;
 	quota: number | null;
 	created_at: string;
 	updated_at: string;
@@ -19,6 +21,8 @@ export type ExhibitorBoothPrice = {
 	zone: string | null;
 	label: string;
 	price: number;
+	currentPrice: number;
+	activePriceTierLabel: string | null;
 	quota: number | null;
 	createdAt: string;
 	updatedAt: string;

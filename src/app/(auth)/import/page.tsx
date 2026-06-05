@@ -99,7 +99,7 @@ export default function ImportPage() {
 									key={option.value}
 									type="button"
 									onClick={() => setSelectedImportType(option.value)}
-									className="group flex flex-col items-center gap-4 rounded-none border-2 border-dashed border-muted-foreground/30 bg-background p-8 transition-all hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+									className="group flex flex-col items-center gap-4 rounded-none border-2 border-muted-foreground/30 border-dashed bg-background p-8 transition-all hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
 								>
 									<div className="rounded-full border-2 border-muted-foreground/30 p-4 transition-colors group-hover:border-primary group-hover:bg-primary/10">
 										<Icon className="h-10 w-10 text-muted-foreground transition-colors group-hover:text-primary" />
@@ -135,7 +135,9 @@ export default function ImportPage() {
 				<div className="w-full px-0 md:w-auto md:px-4">
 					<Select
 						value={selectedImportType}
-						onValueChange={(value) => setSelectedImportType(value as ImportType)}
+						onValueChange={(value) =>
+							setSelectedImportType(value as ImportType)
+						}
 					>
 						<SelectTrigger className="w-full rounded-none border md:w-auto">
 							<SelectValue placeholder="Select import type" />

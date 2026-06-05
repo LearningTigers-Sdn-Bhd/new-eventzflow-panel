@@ -104,26 +104,29 @@ export function BreadcrumbNav() {
 	return (
 		<nav
 			aria-label="Breadcrumb"
-			className="flex items-center gap-1.5 text-sm text-muted-foreground"
+			className="flex items-center gap-1.5 text-muted-foreground text-sm"
 		>
 			<Link
 				href="/dashboard"
-				className="flex items-center hover:text-foreground transition-colors"
+				className="flex items-center transition-colors hover:text-foreground"
 			>
 				<Home className="size-4" />
 			</Link>
 
 			{breadcrumbs.map((item, index) => (
-				<div key={`${index}-${item.href}`} className="flex items-center gap-1.5">
+				<div
+					key={`${index}-${item.href}`}
+					className="flex items-center gap-1.5"
+				>
 					<ChevronRight className="size-3.5 text-muted-foreground/50" />
 					{item.isLast ? (
-						<span className="font-medium text-foreground truncate max-w-[250px]">
+						<span className="max-w-[250px] truncate font-medium text-foreground">
 							{item.label}
 						</span>
 					) : (
 						<Link
 							href={item.href as "/dashboard"}
-							className="hover:text-foreground transition-colors truncate max-w-[200px]"
+							className="max-w-[200px] truncate transition-colors hover:text-foreground"
 						>
 							{item.label}
 						</Link>

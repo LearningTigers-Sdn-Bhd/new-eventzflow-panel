@@ -19,33 +19,38 @@ export function PublicExhibitorKitsView() {
 	});
 
 	// Fetch vendors for all events (we'll need to do this for each event)
-	const eventIds = events?.map(event => event.id) || [];
-	
+	const eventIds = events?.map((event) => event.id) || [];
+
 	const vendorQueries = useQuery({
 		queryKey: ["all-event-vendors", eventIds],
 		queryFn: async () => {
 			if (!events || events.length === 0) return [];
-			
+
 			// Fetch vendors for all events in parallel
 			const vendorPromises = events.map(async (event) => {
 				try {
 					const vendors = await getEventVendors(event.id);
 					// Attach event data to each vendor
-					return vendors.map(vendor => ({ 
-						...vendor, 
+					return vendors.map((vendor) => ({
+						...vendor,
 						event: event,
 						// Also attach event to the exhibitor_kit if it exists
-						exhibitor_kit: vendor.exhibitor_kit ? {
-							...vendor.exhibitor_kit,
-							event: event
-						} : undefined
+						exhibitor_kit: vendor.exhibitor_kit
+							? {
+									...vendor.exhibitor_kit,
+									event: event,
+								}
+							: undefined,
 					}));
 				} catch (error) {
-					console.error(`Failed to fetch vendors for event ${event.id}:`, error);
+					console.error(
+						`Failed to fetch vendors for event ${event.id}:`,
+						error,
+					);
 					return [];
 				}
 			});
-			
+
 			const allVendorArrays = await Promise.all(vendorPromises);
 			return allVendorArrays.flat();
 		},
@@ -56,9 +61,11 @@ export function PublicExhibitorKitsView() {
 	const error = eventsError || vendorQueries.error;
 
 	// Extract exhibitor kits from all vendors across all events
-	const allKitsWithEventAndVendor: ExhibitorKitWithEventAndVendor[] = (vendorQueries.data || [])
-		.filter(vendor => vendor.exhibitor_kit) // Only vendors with exhibitor kits
-		.map(vendor => ({
+	const allKitsWithEventAndVendor: ExhibitorKitWithEventAndVendor[] = (
+		vendorQueries.data || []
+	)
+		.filter((vendor) => vendor.exhibitor_kit) // Only vendors with exhibitor kits
+		.map((vendor) => ({
 			...vendor.exhibitor_kit!,
 			vendor: vendor,
 			event: vendor.event,
@@ -69,7 +76,7 @@ export function PublicExhibitorKitsView() {
 			kits={allKitsWithEventAndVendor}
 			events={events || []}
 			isLoading={isLoading}
-			error={error ? error as Error : null}
+			error={error ? (error as Error) : null}
 		/>
 	);
 }

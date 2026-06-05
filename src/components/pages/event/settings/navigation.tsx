@@ -1,10 +1,26 @@
 "use client";
 
-import { CreditCard, ImageIcon, InfoIcon, Mail, Monitor, TagIcon } from "lucide-react";
+import {
+	BellRing,
+	CreditCard,
+	ImageIcon,
+	InfoIcon,
+	Mail,
+	Monitor,
+	TagIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { canAccessPosterSettings } from "./access";
 
-export type SettingsTab = "event-information" | "email-settings" | "custom-labels" | "welcome-screen" | "branding" | "payment-gateway";
+export type SettingsTab =
+	| "event-information"
+	| "email-settings"
+	| "event-reminder"
+	| "custom-labels"
+	| "welcome-screen"
+	| "poster"
+	| "payment-gateway";
 
 interface NavigationItem {
 	id: SettingsTab;
@@ -30,6 +46,11 @@ const navigationItems: NavigationItem[] = [
 		icon: Mail,
 	},
 	{
+		id: "event-reminder",
+		label: "Event Reminder",
+		icon: BellRing,
+	},
+	{
 		id: "custom-labels",
 		label: "Custom Labels",
 		icon: TagIcon,
@@ -40,8 +61,8 @@ const navigationItems: NavigationItem[] = [
 		icon: Monitor,
 	},
 	{
-		id: "branding",
-		label: "Branding",
+		id: "poster",
+		label: "Poster",
 		icon: ImageIcon,
 	},
 	{
@@ -55,9 +76,17 @@ export default function SettingsNavigation({
 	activeTab,
 	onTabChange,
 }: SettingsNavigationProps) {
+	const visibleNavigationItems = navigationItems.filter((item) => {
+		if (item.id === "poster") {
+			return canAccessPosterSettings();
+		}
+
+		return true;
+	});
+
 	return (
-		<div className="sticky top-0 flex w-full flex-row gap-2 overflow-x-auto self-start md:flex-col">
-			{navigationItems.map((item) => {
+		<div className="sticky top-0 flex w-full flex-row gap-2 self-start overflow-x-auto md:flex-col">
+			{visibleNavigationItems.map((item) => {
 				const Icon = item.icon;
 				const isActive = activeTab === item.id;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
+import { CalendarClock, Pencil, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
 	type RegistrationForm,
 } from "@/lib/api/registration-form";
 import { EditRegistrationFormForm } from "./edit-registration-form-form";
+import { RegistrationFormRsvpSettingsForm } from "./registration-form-rsvp-settings-form";
 
 interface RegistrationFormActionsMenuProps {
 	registrationForm: RegistrationForm;
@@ -82,9 +83,42 @@ export function RegistrationFormActionsMenu({
 		});
 	};
 
+	const handleRsvpSettingsClick = () => {
+		openDialog({
+			component: RegistrationFormRsvpSettingsForm,
+			props: {
+				eventId,
+				registrationFormId: registrationForm.id.toString(),
+				onClose: closeDialog,
+			},
+			config: {
+				title: `Delegate Approval & RSVP - ${registrationForm.name}`,
+				description:
+					"Configure approval workflow and RSVP confirmation for this registration form.",
+				size: "full",
+				className: "rounded-none",
+			},
+		});
+	};
+
 	return (
 		<TooltipProvider delayDuration={0}>
 			<ButtonGroup>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="rounded-none"
+							onClick={handleRsvpSettingsClick}
+						>
+							<CalendarClock className="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">
+						Delegate Approval & RSVP
+					</TooltipContent>
+				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button

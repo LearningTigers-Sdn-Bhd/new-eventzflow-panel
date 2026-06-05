@@ -14,10 +14,7 @@ import { createRouletteWinner } from "@/lib/api/roulette";
 /**
  * Mutation Hook: Create Roulette Winner
  */
-export function useCreateRouletteWinner(
-	eventId: string,
-	sessionId: number,
-) {
+export function useCreateRouletteWinner(eventId: string, sessionId: number) {
 	const queryClient = useQueryClient();
 
 	return useMutation({

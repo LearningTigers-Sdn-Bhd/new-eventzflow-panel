@@ -13,7 +13,12 @@ export default function LeadMetricsPage() {
 	const actions = useMemo(() => null, []);
 	useSetResourceActions(actions);
 
-	const { data: metrics, isLoading, error, refetch } = useQuery({
+	const {
+		data: metrics,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({
 		queryKey: ["resource-leads-metrics"],
 		queryFn: getResourceLeadMetrics,
 	});

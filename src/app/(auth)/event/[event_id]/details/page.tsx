@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
+import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,8 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
-	const { isVendor, isExhibitionContractor, canManageEvent } = useEventPermissions(event_id);
+	const { isVendor, isExhibitionContractor, canManageEvent } =
+		useEventPermissions(event_id);
 	const { openDialog, closeDialog } = useDialog();
 
 	const shouldFetchAnalytics =
@@ -50,10 +52,15 @@ export default function EventDetailsPage({
 			},
 			{
 				queryKey: ["voucher-analytics", event_id],
-				queryFn: () =>
-					getVoucherAnalytics({
+				queryFn: async () => {
+					const eventDetails = await getEventById(event_id);
+					if (eventDetails.use_voucher !== true) {
+						return null;
+					}
+					return getVoucherAnalytics({
 						event_id: Number.parseInt(event_id, 10),
-					}),
+					});
+				},
 				enabled: shouldFetchAnalytics,
 			},
 		],
@@ -117,16 +124,18 @@ export default function EventDetailsPage({
 
 	return (
 		<div className="space-y-6">
-			<EventDetailsView event={event} />
+			<EventDetailsActionButtons event={event} />
 
 			{shouldFetchAnalytics && (
 				<AnalyticsClientWrapper
 					event={event}
 					ticketAnalytics={analytics as EventAnalyticsType | undefined}
 					mallData={mallData}
-					voucherAnalytics={voucherAnalytics}
+					voucherAnalytics={voucherAnalytics ?? undefined}
 				/>
 			)}
+
+			<EventDetailsView event={event} />
 		</div>
 	);
 }

@@ -24,11 +24,11 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
+import AddVendorVoucherForm from "../forms/add-vendor-voucher-form";
 import type { VendorVoucher } from "./vendor-voucher-table-columns";
 import { generateColumns } from "./vendor-voucher-table-columns";
 import { DataControl } from "./vendor-voucher-table-control";
 import { VendorVoucherItem } from "./voucher-item";
-import AddVendorVoucherForm from "../forms/add-vendor-voucher-form";
 
 interface VendorVoucherTableProps<TData> {
 	data: TData[];
@@ -96,7 +96,9 @@ export function VendorVoucherTable<TData>({
 								title: "No vouchers yet",
 								desc: "Create your first voucher to start offering discounts",
 								icon: <Ticket />,
-								action: <Button onClick={handleCreateVoucher}>Create Voucher</Button>,
+								action: (
+									<Button onClick={handleCreateVoucher}>Create Voucher</Button>
+								),
 							}}
 						/>
 					</DesktopView>
@@ -117,7 +119,11 @@ export function VendorVoucherTable<TData>({
 									description="Create your first voucher to start offering discounts"
 									icon={<Ticket />}
 									height="h-auto"
-									action={<Button onClick={handleCreateVoucher}>Create Voucher</Button>}
+									action={
+										<Button onClick={handleCreateVoucher}>
+											Create Voucher
+										</Button>
+									}
 								/>
 							)}
 						</div>
@@ -139,7 +145,11 @@ export function VendorVoucherTable<TData>({
 										description="Create your first voucher to start offering discounts"
 										icon={<Ticket />}
 										height="h-auto"
-										action={<Button onClick={handleCreateVoucher}>Create Voucher</Button>}
+										action={
+											<Button onClick={handleCreateVoucher}>
+												Create Voucher
+											</Button>
+										}
 									/>
 								</div>
 							)}

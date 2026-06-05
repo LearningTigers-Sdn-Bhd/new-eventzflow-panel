@@ -95,8 +95,10 @@ function transformRedemptionLog(
 						backendLog.redeemer.full_name ||
 						backendLog.redeemer.attendee_name ||
 						backendLog.redeemer_name,
-					email: backendLog.redeemer.email || backendLog.redeemer.attendee_email,
-					phone: backendLog.redeemer.phone || backendLog.redeemer.attendee_phone,
+					email:
+						backendLog.redeemer.email || backendLog.redeemer.attendee_email,
+					phone:
+						backendLog.redeemer.phone || backendLog.redeemer.attendee_phone,
 					publicId: backendLog.redeemer.public_id,
 				}
 			: undefined,

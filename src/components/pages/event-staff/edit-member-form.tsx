@@ -21,8 +21,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { updateTeamMember } from "@/lib/api/team";
 import type { EventStaffMember } from "@/lib/api/event/event-staff";
+import { updateTeamMember } from "@/lib/api/team";
 
 interface EditMemberFormProps {
 	member: EventStaffMember;

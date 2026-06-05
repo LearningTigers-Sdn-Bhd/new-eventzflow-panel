@@ -47,7 +47,12 @@ export function ManageKitCustomRequestsForm({
 	exhibitorKitId,
 }: ManageKitCustomRequestsFormProps) {
 	const subtotal = customRequests
-		.filter((req) => req.status === "approved" && req.resolved_price && Number(req.resolved_price) > 0)
+		.filter(
+			(req) =>
+				req.status === "approved" &&
+				req.resolved_price &&
+				Number(req.resolved_price) > 0,
+		)
 		.reduce((sum, req) => sum + req.quantity * Number(req.resolved_price), 0);
 
 	if (customRequests.length === 0) {
@@ -112,7 +117,9 @@ export function ManageKitCustomRequestsForm({
 							{/* Stats */}
 							<div className="flex items-center justify-between border-t border-dashed px-3 py-2 md:px-4 md:py-3">
 								<div>
-									<p className="text-[10px] text-muted-foreground md:text-xs">Qty</p>
+									<p className="text-[10px] text-muted-foreground md:text-xs">
+										Qty
+									</p>
 									<p className="font-medium text-xs md:text-sm">
 										{request.quantity}
 									</p>
@@ -122,7 +129,8 @@ export function ManageKitCustomRequestsForm({
 										Price
 									</p>
 									<p className="font-medium text-xs md:text-sm">
-										{request.resolved_price && Number(request.resolved_price) > 0
+										{request.resolved_price &&
+										Number(request.resolved_price) > 0
 											? `RM ${Number(request.resolved_price).toFixed(2)}`
 											: "-"}
 									</p>
@@ -187,7 +195,9 @@ export function ManageKitCustomRequestsForm({
 					<p className="text-muted-foreground text-xs md:text-sm">
 						Approved Total
 					</p>
-					<p className="font-bold text-lg md:text-xl">RM {subtotal.toFixed(2)}</p>
+					<p className="font-bold text-lg md:text-xl">
+						RM {subtotal.toFixed(2)}
+					</p>
 				</div>
 			</div>
 		</section>

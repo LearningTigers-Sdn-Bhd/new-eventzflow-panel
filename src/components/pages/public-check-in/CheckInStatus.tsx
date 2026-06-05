@@ -32,7 +32,7 @@ export function CheckInStatus({
 			<div className="mx-auto w-full max-w-4xl">
 				<div className="mb-6 flex items-start justify-between sm:mb-12">
 					<div className="bg-black/20 px-2.5 py-1.5 font-bold font-mono text-[10px] uppercase tracking-widest backdrop-blur-lg sm:px-4 sm:py-2 sm:text-xs">
-						{status === "success" ? "Entry Authorized" : "Entry Denied"}
+						{status === "success" ? "Entry Authorized" : "Check-in Status"}
 					</div>
 					<button
 						onClick={onClose}
@@ -46,10 +46,21 @@ export function CheckInStatus({
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.1 }}
-					className="mb-6 font-bold text-[15vw] uppercase leading-none tracking-tighter sm:mb-8 sm:text-[12vw] lg:text-[10rem]"
+					className="mb-2 font-bold text-[15vw] uppercase leading-none tracking-tighter sm:mb-2 sm:text-[12vw] lg:text-[10rem]"
 				>
-					{status === "success" ? "Valid" : "Used"}
+					{status === "success" ? "Valid" : "Re-entry"}
 				</motion.h1>
+
+				<motion.p
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 0.8 }}
+					transition={{ delay: 0.2 }}
+					className="mb-8 font-medium text-lg uppercase tracking-wider sm:mb-12 sm:text-xl"
+				>
+					{status === "success"
+						? "Welcome to the event! Please proceed."
+						: "This ticket has been scanned. Please approach event staff if you need assistance."}
+				</motion.p>
 
 				<div className="flex flex-col gap-6 border-white/20 border-t pt-6 sm:gap-12 sm:pt-12 md:flex-row">
 					<div className="flex-1">
@@ -65,11 +76,11 @@ export function CheckInStatus({
 							Details
 						</div>
 						<div className="space-y-0.5 text-base sm:space-y-1 sm:text-xl md:text-2xl">
-							{attendee.type_name && (
-								<div>{attendee.type_name}</div>
-							)}
+							{attendee.type_name && <div>{attendee.type_name}</div>}
 							{attendee.email && (
-								<div className="break-all opacity-90 text-sm sm:text-xl md:text-2xl">{attendee.email}</div>
+								<div className="break-all text-sm opacity-90 sm:text-xl md:text-2xl">
+									{attendee.email}
+								</div>
 							)}
 							{attendee.phone && (
 								<div className="opacity-90">{attendee.phone}</div>

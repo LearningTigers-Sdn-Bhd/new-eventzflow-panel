@@ -7,8 +7,20 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { createApiKey, getApiKeys } from "@/lib/api/api-keys";
+import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
+import {
+	type ApiKeyScope,
+	createApiKey,
+	getApiKeys,
+} from "@/lib/api/api-keys";
 
 interface CreateApiKeyDialogProps {
 	onClose: () => void;
@@ -20,9 +32,10 @@ export default function CreateApiKeyDialog({
 	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
 	const [keyName, setKeyName] = useState("");
+	const [scope, setScope] = useState<ApiKeyScope>("read_only");
 	const queryClient = useQueryClient();
+	const { isOrgOwner } = useUserPermissions();
 
-	// Check if the current user already has an API key
 	const { data: existingApiKeys, isLoading: loadingKeys } = useQuery({
 		queryKey: ["api-keys"],
 		queryFn: getApiKeys,
@@ -38,10 +51,7 @@ export default function CreateApiKeyDialog({
 				description:
 					data.apiKey.message || "Your API key has been created successfully.",
 			});
-			// Invalidate the API keys list to refresh it
-			queryClient.invalidateQueries({
-				queryKey: ["api-keys"],
-			});
+			queryClient.invalidateQueries({ queryKey: ["api-keys"] });
 		},
 		onError: (error: Error) => {
 			toast.error("Failed to create API key", {
@@ -56,11 +66,9 @@ export default function CreateApiKeyDialog({
 			try {
 				await navigator.clipboard.writeText(createdKey);
 				setCopied(true);
-				toast.success("Copied to clipboard", {
-					description: "API key has been copied to your clipboard.",
-				});
+				toast.success("Copied to clipboard");
 				setTimeout(() => setCopied(false), 2000);
-			} catch (_error) {
+			} catch {
 				toast.error("Failed to copy", {
 					description: "Please copy the key manually.",
 				});
@@ -70,23 +78,19 @@ export default function CreateApiKeyDialog({
 
 	const handleCreate = () => {
 		if (!keyName.trim()) {
-			toast.error("API Key name is required", {
-				description: "Please enter a name for your API key.",
-			});
+			toast.error("API Key name is required");
 			return;
 		}
-		createMutation.mutate({ name: keyName.trim() });
-	};
-
-	const handleClose = () => {
-		onClose();
+		createMutation.mutate({
+			name: keyName.trim(),
+			scope: isOrgOwner ? scope : undefined,
+		});
 	};
 
 	return (
 		<div className="space-y-6">
 			{!createdKey ? (
 				<>
-					{/* Warning message */}
 					<div className="flex flex-col items-center gap-4 py-4">
 						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/40">
 							<AlertTriangle
@@ -103,7 +107,6 @@ export default function CreateApiKeyDialog({
 						</div>
 					</div>
 
-					{/* API Key Name Input */}
 					<div className="space-y-2">
 						<Label htmlFor="keyName">API Key Name</Label>
 						<Input
@@ -120,6 +123,40 @@ export default function CreateApiKeyDialog({
 						</p>
 					</div>
 
+					{isOrgOwner ? (
+						<div className="space-y-2">
+							<Label htmlFor="keyScope">Permission</Label>
+							<Select
+								value={scope}
+								onValueChange={(v) => setScope(v as ApiKeyScope)}
+								disabled={createMutation.isPending}
+							>
+								<SelectTrigger id="keyScope">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="read_only">
+										Read only — GET requests only
+									</SelectItem>
+									<SelectItem value="check_in">
+										Check-in — read + POST (scanner endpoints)
+									</SelectItem>
+									<SelectItem value="read_write">
+										Full access — all CRUD methods
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							<p className="text-muted-foreground text-xs">
+								Only org owners can grant write access. Default is read-only.
+							</p>
+						</div>
+					) : (
+						<div className="rounded-md border bg-muted/40 p-3 text-muted-foreground text-xs">
+							Keys you create are read-only (GET requests only). Contact your
+							organization owner if you need write access.
+						</div>
+					)}
+
 					{hasExistingKey && (
 						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-950/40">
 							<div className="flex gap-3">
@@ -130,8 +167,7 @@ export default function CreateApiKeyDialog({
 									</p>
 									<p className="text-amber-800 text-sm dark:text-amber-200">
 										You already have an active API key. Creating a new one will
-										not revoke your existing key, but only one key per user is
-										recommended.
+										not revoke your existing key.
 									</p>
 								</div>
 							</div>
@@ -144,7 +180,7 @@ export default function CreateApiKeyDialog({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={handleClose}
+							onClick={onClose}
 							disabled={createMutation.isPending}
 						>
 							Cancel
@@ -162,7 +198,6 @@ export default function CreateApiKeyDialog({
 				</>
 			) : (
 				<>
-					{/* Success message */}
 					<div className="flex flex-col items-center gap-4 py-4">
 						<div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/40">
 							<Check
@@ -202,7 +237,6 @@ export default function CreateApiKeyDialog({
 						</div>
 					</div>
 
-					{/* Warning */}
 					<div className="flex flex-col items-center gap-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/40">
 						<div className="flex gap-3">
 							<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
@@ -221,7 +255,7 @@ export default function CreateApiKeyDialog({
 					<Separator />
 
 					<div className="flex justify-end">
-						<Button type="button" onClick={handleClose}>
+						<Button type="button" onClick={onClose}>
 							Done
 						</Button>
 					</div>

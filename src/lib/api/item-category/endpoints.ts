@@ -2,18 +2,18 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type CreateItemCategoryRequest,
 	createItemCategorySchema,
-	type UpdateItemCategoryRequest,
-	updateItemCategorySchema,
 	type DeleteItemCategoryRequest,
 	deleteItemCategorySchema,
+	type UpdateItemCategoryRequest,
+	updateItemCategorySchema,
 } from "./request";
 import type {
 	BackendItemCategory,
-	ItemCategory,
 	CreateItemCategoryResponse,
-	UpdateItemCategoryResponse,
 	DeleteItemCategoryResponse,
+	ItemCategory,
 	ToggleItemCategoryStatusResponse,
+	UpdateItemCategoryResponse,
 } from "./response";
 
 // Transform backend response to frontend format
@@ -32,12 +32,15 @@ function transformItemCategory(backend: BackendItemCategory): ItemCategory {
  */
 export async function getItemCategories(): Promise<ItemCategory[]> {
 	try {
-		const response = await restClient.get<BackendItemCategory[]>("v1/item_categories");
+		const response =
+			await restClient.get<BackendItemCategory[]>("v1/item_categories");
 		return response.map(transformItemCategory);
 	} catch (error: unknown) {
 		console.error("Error fetching item categories:", error);
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to fetch item categories";
+			error instanceof Error
+				? error.message
+				: "Failed to fetch item categories";
 		throw new Error(errorMessage);
 	}
 }
@@ -47,7 +50,9 @@ export async function getItemCategories(): Promise<ItemCategory[]> {
  */
 export async function getItemCategory(id: number): Promise<ItemCategory> {
 	try {
-		const response = await restClient.get<BackendItemCategory>(`v1/item_categories/${id}`);
+		const response = await restClient.get<BackendItemCategory>(
+			`v1/item_categories/${id}`,
+		);
 		return transformItemCategory(response);
 	} catch (error: unknown) {
 		console.error("Error fetching item category:", error);
@@ -66,10 +71,13 @@ export async function createItemCategory(
 	try {
 		const validated = createItemCategorySchema.parse(data);
 
-		const response = await restClient.post<BackendItemCategory>("v1/item_categories", {
-			name: validated.name,
-			active: validated.active,
-		});
+		const response = await restClient.post<BackendItemCategory>(
+			"v1/item_categories",
+			{
+				name: validated.name,
+				active: validated.active,
+			},
+		);
 
 		return {
 			success: true,

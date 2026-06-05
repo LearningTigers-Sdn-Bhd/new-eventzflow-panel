@@ -5,11 +5,7 @@ import { useParams } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-	Field,
-	FieldGroup,
-	FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -19,8 +15,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManagePaymentFormProps {
 	vendor: EventVendor;

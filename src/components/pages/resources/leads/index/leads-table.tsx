@@ -127,17 +127,19 @@ export function LeadsTable({
 					<MobileView>
 						<div className="space-y-4">
 							{table.getRowModel().rows.length > 0 ? (
-								table.getRowModel().rows.map((row) => (
-									<LeadsItem
-										key={row.id}
-										lead={row.original}
-										onClick={
-											clickableRowConfig?.isEnabled
-												? () => clickableRowConfig.onRowClick?.(row.original)
-												: undefined
-										}
-									/>
-								))
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<LeadsItem
+											key={row.id}
+											lead={row.original}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
+										/>
+									))
 							) : (
 								<div className="flex flex-col items-center justify-center py-12 text-center">
 									<Mail className="mb-4 h-10 w-10 text-muted-foreground" />
@@ -152,17 +154,19 @@ export function LeadsTable({
 					<TabletView>
 						<div className="grid grid-cols-2 gap-4">
 							{table.getRowModel().rows.length > 0 ? (
-								table.getRowModel().rows.map((row) => (
-									<LeadsItem
-										key={row.id}
-										lead={row.original}
-										onClick={
-											clickableRowConfig?.isEnabled
-												? () => clickableRowConfig.onRowClick?.(row.original)
-												: undefined
-										}
-									/>
-								))
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<LeadsItem
+											key={row.id}
+											lead={row.original}
+											onClick={
+												clickableRowConfig?.isEnabled
+													? () => clickableRowConfig.onRowClick?.(row.original)
+													: undefined
+											}
+										/>
+									))
 							) : (
 								<div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
 									<Mail className="mb-4 h-10 w-10 text-muted-foreground" />

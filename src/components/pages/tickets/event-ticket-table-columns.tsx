@@ -24,6 +24,13 @@ export type BaseTicket = {
 	checkedIn?: boolean;
 	checkInAt?: string | null;
 	deletedAt?: string | null;
+	paymentMethod?: string;
+	transactionId?: string;
+	paymentScreenshotUrl?: string;
+	passBundle?: {
+		id: number;
+		name: string;
+	} | null;
 };
 
 // Status filter options
@@ -107,11 +114,19 @@ export function generateColumns(
 			accessorKey: "ticketTypeName",
 			size: 140,
 			header: "Ticket Type",
-			cell: ({ row }) => (
-				<div className="truncate font-medium">
-					{row.getValue("ticketTypeName") || "N/A"}
-				</div>
-			),
+			cell: ({ row }) => {
+				const ticket = row.original;
+				return (
+					<div className="truncate font-medium">
+						{ticket.ticketTypeName || "N/A"}{" "}
+						{ticket.ticketTypeId && (
+							<span className="text-muted-foreground text-xs font-normal">
+								(#{ticket.ticketTypeId})
+							</span>
+						)}
+					</div>
+				);
+			},
 			// Note: Ticket types are dynamic, so FilterableHeader cannot be used here
 			// Filtering is handled via filterFn for compatibility with existing filter logic
 			filterFn: (row, id, value) => {
@@ -120,6 +135,17 @@ export function generateColumns(
 					return value.includes(row.getValue(id));
 				}
 				return row.getValue(id) === value;
+			},
+		},
+		{
+			accessorKey: "passBundle",
+			size: 140,
+			header: "Bundle Pass",
+			cell: ({ row }) => {
+				const passBundle = row.original.passBundle;
+				return (
+					<div className="truncate font-medium">{passBundle?.name || "-"}</div>
+				);
 			},
 		},
 		{
@@ -213,6 +239,7 @@ export function generateColumns(
 						(l) => l.name === key,
 					);
 					const value = customLabel?.value || "";
+
 					return (
 						<div
 							className={cn(

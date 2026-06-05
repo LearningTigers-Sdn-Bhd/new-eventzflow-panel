@@ -1,7 +1,15 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreditCard, Eye, EyeOff, Pencil, Shield, Trash2 } from "lucide-react";
+import {
+	Copy,
+	CreditCard,
+	Eye,
+	EyeOff,
+	Pencil,
+	Shield,
+	Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
@@ -14,6 +22,7 @@ import {
 	createEventPaymentGateway,
 	deleteEventPaymentGateway,
 	getEventPaymentGateway,
+	getSharedPaymentGatewayWebhookUrl,
 	updateEventPaymentGateway,
 } from "@/lib/api/event/payment-gateway";
 import { queryClient } from "@/utils/rest-api";
@@ -28,8 +37,20 @@ export default function PaymentGatewayForm({
 }: PaymentGatewayFormProps) {
 	const [keyId, setKeyId] = useState("");
 	const [keySecret, setKeySecret] = useState("");
+	const [webhookSecret, setWebhookSecret] = useState("");
 	const [showSecret, setShowSecret] = useState(false);
+	const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
+	const sharedWebhookUrl = getSharedPaymentGatewayWebhookUrl();
+
+	const handleCopyWebhookUrl = async () => {
+		try {
+			await navigator.clipboard.writeText(sharedWebhookUrl);
+			toast.success("Webhook URL copied to clipboard");
+		} catch {
+			toast.error("Failed to copy webhook URL");
+		}
+	};
 
 	const queryKey = ["event", eventId, "payment-gateway"];
 
@@ -56,6 +77,7 @@ export default function PaymentGatewayForm({
 				provider: "razorpay" as const,
 				key_id: keyId,
 				key_secret: keySecret,
+				...(webhookSecret ? { webhook_secret: webhookSecret } : {}),
 			};
 
 			if (hasCustomGateway) {
@@ -67,7 +89,9 @@ export default function PaymentGatewayForm({
 			queryClient.invalidateQueries({ queryKey });
 			setIsEditing(false);
 			setKeySecret("");
+			setWebhookSecret("");
 			setShowSecret(false);
+			setShowWebhookSecret(false);
 			toast.success("Payment gateway saved successfully");
 		},
 		onError: (err: Error) => {
@@ -81,8 +105,10 @@ export default function PaymentGatewayForm({
 			queryClient.invalidateQueries({ queryKey });
 			setKeyId("");
 			setKeySecret("");
+			setWebhookSecret("");
 			setIsEditing(false);
 			setShowSecret(false);
+			setShowWebhookSecret(false);
 			toast.success("Custom gateway removed. Using default gateway.");
 		},
 		onError: (err: Error) => {
@@ -95,14 +121,18 @@ export default function PaymentGatewayForm({
 			setKeyId(gatewayData.data.key_id);
 		}
 		setKeySecret("");
+		setWebhookSecret("");
 		setShowSecret(false);
+		setShowWebhookSecret(false);
 		setIsEditing(true);
 	};
 
 	const handleCancel = () => {
 		setKeyId(gatewayData?.data?.key_id || "");
 		setKeySecret("");
+		setWebhookSecret("");
 		setShowSecret(false);
+		setShowWebhookSecret(false);
 		setIsEditing(false);
 	};
 
@@ -134,25 +164,59 @@ export default function PaymentGatewayForm({
 				}}
 				actions={
 					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">Status:</span>
-						<Badge variant={hasCustomGateway ? "default" : "secondary"} className="rounded-none">
+						<span className="text-muted-foreground text-sm">Status:</span>
+						<Badge
+							variant={hasCustomGateway ? "default" : "secondary"}
+							className="rounded-none"
+						>
 							{hasCustomGateway ? "Custom Gateway" : "Default Gateway"}
 						</Badge>
 					</div>
 				}
 			>
 				<div className="flex flex-col gap-6">
+					<div className="rounded-none border bg-muted/30 p-4">
+						<div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+							<div className="space-y-1">
+								<p className="font-medium text-sm">Razorpay webhook URL</p>
+								<p className="text-muted-foreground text-sm">
+									Paste this shared URL into Razorpay as the backend webhook
+									endpoint, and subscribe to at least `payment.captured` and
+									`payment.failed` events.
+								</p>
+							</div>
+							<div className="flex items-center gap-2">
+								<Input
+									readOnly
+									value={sharedWebhookUrl}
+									className="min-w-0 rounded-none font-mono text-xs md:w-[32rem]"
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									className="rounded-none"
+									onClick={handleCopyWebhookUrl}
+								>
+									<Copy className="mr-2 h-4 w-4" />
+									Copy URL
+								</Button>
+							</div>
+						</div>
+					</div>
+
 					{/* Default state - no custom gateway, not editing */}
 					{!hasCustomGateway && !isEditing && (
 						<div className="space-y-4">
-							<div className="flex items-start gap-3 rounded-none border p-4 bg-muted/50">
-								<Shield className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+							<div className="flex items-start gap-3 rounded-none border bg-muted/50 p-4">
+								<Shield className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
 								<div className="space-y-1">
-									<p className="text-sm font-medium">Using Default Payment Gateway</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="font-medium text-sm">
+										Using Default Payment Gateway
+									</p>
+									<p className="text-muted-foreground text-sm">
 										This event uses the system default Razorpay payment gateway.
-										Configure a custom gateway if this event requires a different
-										Razorpay account.
+										Configure a custom gateway if this event requires a
+										different Razorpay account.
 									</p>
 								</div>
 							</div>
@@ -169,29 +233,39 @@ export default function PaymentGatewayForm({
 					{hasCustomGateway && !isEditing && (
 						<div className="space-y-5">
 							{/* Credentials display - horizontal row */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-none border p-4">
+							<div className="grid grid-cols-1 gap-4 rounded-none border p-4 md:grid-cols-4">
 								<div className="space-y-1.5">
-									<Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+									<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
 										Provider
 									</Label>
-									<p className="text-sm font-semibold capitalize">
+									<p className="font-semibold text-sm capitalize">
 										{gatewayData?.data?.provider}
 									</p>
 								</div>
 								<div className="space-y-1.5">
-									<Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+									<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
 										Key ID
 									</Label>
-									<p className="text-sm font-semibold font-mono">
+									<p className="font-mono font-semibold text-sm">
 										{gatewayData?.data?.key_id}
 									</p>
 								</div>
 								<div className="space-y-1.5">
-									<Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+									<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
 										Key Secret
 									</Label>
-									<p className="text-sm font-semibold">
+									<p className="font-semibold text-sm">
 										{gatewayData?.data?.has_key_secret
+											? "Configured (encrypted)"
+											: "Not configured"}
+									</p>
+								</div>
+								<div className="space-y-1.5">
+									<Label className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+										Webhook Secret
+									</Label>
+									<p className="font-semibold text-sm">
+										{gatewayData?.data?.has_webhook_secret
 											? "Configured (encrypted)"
 											: "Not configured"}
 									</p>
@@ -241,7 +315,7 @@ export default function PaymentGatewayForm({
 									<Label htmlFor="key_secret">
 										Razorpay Key Secret
 										{hasCustomGateway && (
-											<span className="text-muted-foreground font-normal ml-2">
+											<span className="ml-2 font-normal text-muted-foreground">
 												(leave blank to keep existing)
 											</span>
 										)}
@@ -257,11 +331,43 @@ export default function PaymentGatewayForm({
 										/>
 										<button
 											type="button"
-											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+											className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
 											onClick={() => setShowSecret(!showSecret)}
 											tabIndex={-1}
 										>
 											{showSecret ? (
+												<EyeOff className="h-4 w-4" />
+											) : (
+												<Eye className="h-4 w-4" />
+											)}
+										</button>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="webhook_secret">
+										Webhook Secret
+										{hasCustomGateway && (
+											<span className="ml-2 font-normal text-muted-foreground">
+												(leave blank to keep existing)
+											</span>
+										)}
+									</Label>
+									<div className="relative">
+										<Input
+											id="webhook_secret"
+											type={showWebhookSecret ? "text" : "password"}
+											className="rounded-none pr-10"
+											placeholder="Enter webhook secret"
+											value={webhookSecret}
+											onChange={(e) => setWebhookSecret(e.target.value)}
+										/>
+										<button
+											type="button"
+											className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+											onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+											tabIndex={-1}
+										>
+											{showWebhookSecret ? (
 												<EyeOff className="h-4 w-4" />
 											) : (
 												<Eye className="h-4 w-4" />

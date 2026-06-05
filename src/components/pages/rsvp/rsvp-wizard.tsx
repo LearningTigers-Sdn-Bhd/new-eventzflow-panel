@@ -201,6 +201,8 @@ export function RsvpWizard({ data, slug, publicId }: RsvpWizardProps) {
 									rsvpStatus={rsvpStatus}
 									companions={companions}
 									eventTitle={data.event.title}
+									eventSlug={slug}
+									visitorPublicId={publicId}
 									onChangeResponse={handleChangeResponse}
 								/>
 							)}

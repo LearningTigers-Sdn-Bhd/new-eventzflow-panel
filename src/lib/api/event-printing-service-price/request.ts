@@ -32,6 +32,12 @@ export const deletePrintingServicePriceTierSchema = z.object({
 });
 
 // Type exports for request data
-export type CreatePrintingServicePriceTierRequest = z.infer<typeof createPrintingServicePriceTierSchema>;
-export type UpdatePrintingServicePriceTierRequest = z.infer<typeof updatePrintingServicePriceTierSchema>;
-export type DeletePrintingServicePriceTierRequest = z.infer<typeof deletePrintingServicePriceTierSchema>;
+export type CreatePrintingServicePriceTierRequest = z.infer<
+	typeof createPrintingServicePriceTierSchema
+>;
+export type UpdatePrintingServicePriceTierRequest = z.infer<
+	typeof updatePrintingServicePriceTierSchema
+>;
+export type DeletePrintingServicePriceTierRequest = z.infer<
+	typeof deletePrintingServicePriceTierSchema
+>;

@@ -4,13 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
 import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { FeatureLockedState } from "@/components/feature-locked-state";
 import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
-import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { DataTable } from "@/components/pages/vouchers/table/event-voucher-table";
+import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
+import { getEventById } from "@/lib/api/event";
 import { getVouchers } from "@/lib/api/voucher";
 
 export default function VouchersPage({
@@ -25,9 +27,16 @@ export default function VouchersPage({
 	const { canManageEventVendors, isEventVendor } =
 		useEventPermissions(event_id);
 
+	const { data: event, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+	});
+
 	// Only show action button for event admins and vendors
 	useSetEventActions(
-		canManageEventVendors || isEventVendor ? <VouchersPageButton /> : null,
+		(canManageEventVendors || isEventVendor) && event?.use_voucher === true ? (
+			<VouchersPageButton />
+		) : null,
 	);
 
 	// Fetch vouchers from API
@@ -39,6 +48,7 @@ export default function VouchersPage({
 	} = useQuery({
 		queryKey: ["event", event_id, "vouchers"],
 		queryFn: () => getVouchers({ event_id: Number(event_id) }),
+		enabled: event?.use_voucher === true,
 	});
 
 	// Filter vouchers by vendor if user is a vendor
@@ -57,9 +67,18 @@ export default function VouchersPage({
 	// Get columns based on permissions
 	const columns = getVoucherColumns(canManageEventVendors || isEventVendor);
 
+	if (!isLoadingEvent && event?.use_voucher !== true) {
+		return (
+			<FeatureLockedState
+				isEventVendor={isEventVendor}
+				featureName="Vouchers"
+			/>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
-			{isLoading ? (
+			{isLoading || isLoadingEvent ? (
 				<LoadingState
 					title="Loading vouchers..."
 					description="Please wait while we fetch vouchers..."

@@ -1,0 +1,200 @@
+"use client";
+
+import {
+	type ColumnFiltersState,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable,
+	type VisibilityState,
+} from "@tanstack/react-table";
+import { PackageOpen } from "lucide-react";
+import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
+import { BaseTable } from "@/components/admin-ui/table/base-table";
+import { DataPagination } from "@/components/data-pagination";
+import { EmptyState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
+import type { PassBundle } from "@/lib/api/pass-bundle";
+import { generatePassBundleColumns } from "./pass-bundle-columns";
+import { PassBundleForm } from "./pass-bundle-form";
+import { PassBundleItem } from "./pass-bundle-item";
+import PassBundleQRModal from "./pass-bundle-qr-modal";
+import { PassBundleTableControl } from "./pass-bundle-table-control";
+
+interface PassBundleTableProps {
+	eventId: string;
+	data: PassBundle[];
+	onDelete: (bundle: PassBundle) => void;
+}
+
+export function PassBundleTable({
+	eventId,
+	data,
+	onDelete,
+}: PassBundleTableProps) {
+	const { openDialog, closeDialog } = useDialog();
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
+
+	const openCreate = () => {
+		openDialog({
+			component: PassBundleForm,
+			props: { eventId, onClose: closeDialog },
+			config: {
+				title: "Create Bundle Pass",
+				description: "Create a private bundle link for an invited entity.",
+				size: "2xl",
+				className: "rounded-none",
+			},
+		});
+	};
+
+	const openEdit = React.useCallback(
+		(bundle: PassBundle) => {
+			openDialog({
+				component: PassBundleForm,
+				props: { eventId, passBundle: bundle, onClose: closeDialog },
+				config: {
+					title: "Edit Bundle Pass",
+					description: "Update this bundle details.",
+					size: "2xl",
+					className: "rounded-none",
+				},
+			});
+		},
+		[closeDialog, eventId, openDialog],
+	);
+
+	const openQr = React.useCallback(
+		(bundle: PassBundle) => {
+			openDialog({
+				component: PassBundleQRModal,
+				props: { bundle },
+				config: {
+					title: "Bundle QR Code",
+					description:
+						"Scan or share this QR to open the bundle registration link.",
+					size: "lg",
+					className: "rounded-none",
+				},
+			});
+		},
+		[openDialog],
+	);
+
+	const columns = React.useMemo(
+		() =>
+			generatePassBundleColumns({ onEdit: openEdit, onQr: openQr, onDelete }),
+		[onDelete, openEdit, openQr],
+	);
+
+	const table = useReactTable({
+		data,
+		columns,
+		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
+		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		onColumnVisibilityChange: setColumnVisibility,
+		state: {
+			sorting,
+			columnFilters,
+			columnVisibility,
+		},
+	});
+
+	return (
+		<div className="w-full">
+			<PassBundleTableControl table={table} />
+
+			<div className="min-h-[calc(100vh-320px)]">
+				<ResponsiveLayout>
+					<DesktopView>
+						<BaseTable
+							table={table}
+							emptyStateConfig={{
+								title: "No bundle passes found",
+								desc: "Create your first bundle pass to get started",
+								icon: <PackageOpen />,
+								action: (
+									<Button onClick={openCreate}>Create Bundle Pass</Button>
+								),
+							}}
+						/>
+					</DesktopView>
+					<MobileView>
+						<div className="space-y-2">
+							{table.getRowModel().rows?.length ? (
+								table
+									.getRowModel()
+									.rows.map((row) => (
+										<PassBundleItem
+											key={row.id}
+											bundle={row.original}
+											onEdit={openEdit}
+											onQr={openQr}
+											onDelete={onDelete}
+										/>
+									))
+							) : (
+								<EmptyState
+									title="No bundle passes found"
+									description="Create your first bundle pass to get started"
+									icon={<PackageOpen />}
+									height="h-auto"
+									action={
+										<Button onClick={openCreate}>Create Bundle Pass</Button>
+									}
+								/>
+							)}
+						</div>
+					</MobileView>
+					<TabletView>
+						<div className="grid grid-cols-2 gap-4">
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<div key={row.id} className="col-span-1">
+										<PassBundleItem
+											bundle={row.original}
+											onEdit={openEdit}
+											onQr={openQr}
+											onDelete={onDelete}
+										/>
+									</div>
+								))
+							) : (
+								<EmptyState
+									title="No bundle passes found"
+									description="Create your first bundle pass to get started"
+									icon={<PackageOpen />}
+									height="h-auto"
+									action={
+										<Button onClick={openCreate}>Create Bundle Pass</Button>
+									}
+								/>
+							)}
+						</div>
+					</TabletView>
+				</ResponsiveLayout>
+			</div>
+			<div className="pb-14 md:pb-4">
+				<DataPagination table={table} />
+			</div>
+		</div>
+	);
+}

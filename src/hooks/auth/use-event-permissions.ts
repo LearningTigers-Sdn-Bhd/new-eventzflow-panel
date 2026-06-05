@@ -33,12 +33,12 @@ export type EventPermissions = {
 	canViewVisitors: boolean;
 	canScanVisitorStamps: boolean;
 	canEditVendorProfile: boolean;
-	canViewStampAnalytics: boolean;
+	canViewLeadAnalytics: boolean;
 
 	// Tab visibility
 	canViewVendorsTab: boolean;
 	canViewVisitorsTab: boolean;
-	canViewStampScannerTab: boolean;
+	canViewLeadScannerTab: boolean;
 };
 
 /**
@@ -113,12 +113,12 @@ export function useEventPermissions(
 				canViewVisitors: false,
 				canScanVisitorStamps: false,
 				canEditVendorProfile: false,
-				canViewStampAnalytics: false,
+				canViewLeadAnalytics: false,
 
 				// Tab visibility
 				canViewVendorsTab: false,
 				canViewVisitorsTab: false,
-				canViewStampScannerTab: false,
+				canViewLeadScannerTab: false,
 			};
 		}
 
@@ -162,12 +162,12 @@ export function useEventPermissions(
 				canViewVisitors: false,
 				canScanVisitorStamps: isVendor, // Vendors can scan stamps
 				canEditVendorProfile: isVendor,
-				canViewStampAnalytics: isVendor,
+				canViewLeadAnalytics: isVendor,
 
 				// Tab visibility
 				canViewVendorsTab: isVendor,
 				canViewVisitorsTab: false,
-				canViewStampScannerTab: !useTicket && isVendor,
+				canViewLeadScannerTab: !useTicket && isVendor,
 			};
 		}
 
@@ -206,13 +206,12 @@ export function useEventPermissions(
 		const canViewVisitors = isOrgOwner || isEventAdmin || isEventTeamMember;
 		const canScanVisitorStamps = isOrgOwner || isEventAdmin || isEventVendor;
 		const canEditVendorProfile = isEventVendor;
-		const canViewStampAnalytics = isEventVendor;
+		const canViewLeadAnalytics = isEventVendor;
 
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
 		const canViewVisitorsTab = !useTicket && canViewVisitors;
-		const canViewStampScannerTab =
-			!useTicket && (canScanVisitorStamps ?? false);
+		const canViewLeadScannerTab = !useTicket && (canScanVisitorStamps ?? false);
 
 		return {
 			// Loading state
@@ -241,12 +240,12 @@ export function useEventPermissions(
 			canViewVisitors,
 			canScanVisitorStamps,
 			canEditVendorProfile,
-			canViewStampAnalytics,
+			canViewLeadAnalytics,
 
 			// Tab visibility
 			canViewVendorsTab,
 			canViewVisitorsTab,
-			canViewStampScannerTab,
+			canViewLeadScannerTab,
 		};
 	}, [
 		user,

@@ -11,7 +11,10 @@ interface DistributionSummaryProps {
 /**
  * Distribution Summary - Shows percentage distribution with progress bars
  */
-export function DistributionSummary({ items, title }: DistributionSummaryProps) {
+export function DistributionSummary({
+	items,
+	title,
+}: DistributionSummaryProps) {
 	const total = items.reduce((sum, item) => sum + item.value, 0);
 
 	return (

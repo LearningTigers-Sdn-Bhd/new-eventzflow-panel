@@ -1,12 +1,24 @@
 "use client";
 
-import { ShoppingCart, Trash2, Package, Printer, CheckCircle2 } from "lucide-react";
+import {
+	CheckCircle2,
+	Package,
+	Printer,
+	ShoppingCart,
+	Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 
 interface CartSummaryProps {
@@ -44,7 +56,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="py-8 text-center border border-dashed p-4">
+					<div className="border border-dashed p-4 py-8 text-center">
 						<ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
 						<p className="mt-2 text-muted-foreground text-sm">
 							Your cart is empty
@@ -63,7 +75,9 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 						<ShoppingCart className="h-5 w-5" />
 						Cart Summary
 					</span>
-					<Badge variant="secondary" className="rounded-none">{itemsCount} items</Badge>
+					<Badge variant="secondary" className="rounded-none">
+						{itemsCount} items
+					</Badge>
 				</CardTitle>
 			</CardHeader>
 
@@ -148,7 +162,8 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 											className="h-7 w-20 rounded-none text-xs"
 										/>
 										<span className="text-muted-foreground text-xs">
-											= RM {(printing.agreedPrice * printing.quantity).toFixed(2)}
+											= RM{" "}
+											{(printing.agreedPrice * printing.quantity).toFixed(2)}
 										</span>
 									</div>
 								</div>

@@ -32,9 +32,7 @@ export function DashboardClientWrapper() {
 			<ErrorState
 				title="Failed to load events"
 				description="We couldn't load your events data. Please try again."
-				action={
-					<Button onClick={() => window.location.reload()}>Retry</Button>
-				}
+				action={<Button onClick={() => window.location.reload()}>Retry</Button>}
 			/>
 		);
 	}

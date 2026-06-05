@@ -18,16 +18,21 @@ import {
 	CreditCard,
 	FileText,
 	Gift,
+	Grid,
 	Handshake,
 	HardHat,
 	Import,
+	Key,
 	Logs,
 	type LucideIcon,
 	MapPin,
+	MessageSquareHeart,
 	Package,
+	PackageOpen,
 	Printer,
 	ScanQrCode,
 	ShoppingCart,
+	Speech,
 	Ticket,
 	TrendingUp,
 	User,
@@ -106,6 +111,7 @@ const visible = {
 		e?.use_exhibitor_kit === true,
 	hasSeatTicketing: (_p: Permissions, e?: Event) =>
 		e?.use_seat_ticketing === true,
+	hasVouchers: (_p: Permissions, e?: Event) => e?.use_voucher === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
 
 	// Special access
@@ -129,6 +135,9 @@ const visible = {
 		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
+	// photoBoothAccess: (p: Permissions, e?: Event) =>
+	// 	e?.photo_booth_enabled === true &&
+	// 	(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
 };
 
 // ============================================================================
@@ -152,6 +161,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			visible: visible.vendor,
 		},
 		{
+			route: "event-leads",
+			label: "Event Leads",
+			description: "Scan attendee QR codes to capture leads.",
+			icon: Speech,
+			visible: (p, e) => visible.vendor(p) && e?.use_event_leads === true,
+		},
+		{
 			route: "contractor-profile",
 			label: "Contractor Profile",
 			description: "Manage your contractor profile and settings.",
@@ -172,6 +188,28 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Briefcase,
 			visible: visible.businessMatchingAccess,
 		},
+		// {
+		// 	route: "photo-booth",
+		// 	label: "Photo Booth",
+		// 	description: "Manage photo booth settings and gallery.",
+		// 	icon: Camera,
+		// 	visible: visible.photoBoothAccess,
+		// },
+		{
+			route: "plans",
+			label: "Seating Plans",
+			description: "Manage seating plans and table assignments.",
+			icon: Grid,
+			visible: visible.eventAdmin,
+		},
+		{
+			route: "wishes",
+			label: "Guestbook",
+			description:
+				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
+			icon: MessageSquareHeart,
+			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
+		},
 		{
 			route: "location",
 			label: "Location",
@@ -187,6 +225,14 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "Import visitors from Excel or CSV files.",
 			icon: Import,
 			visible: (p, e) => visible.mallEvent(p, e) && visible.organizerOrOwner(p),
+		},
+		{
+			route: "api-keys",
+			label: "API Keys",
+			description: "Manage API keys for external integrations with this event.",
+			icon: Key,
+			visible: (p, e) =>
+				e?.use_api_access === true && visible.organizerOrOwner(p),
 		},
 	],
 
@@ -259,6 +305,12 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "Manage registration forms and ticket mapping.",
 					icon: ClipboardList,
 				},
+				{
+					route: "bundle-passes",
+					label: "Bundle Passes",
+					description: "Create private bundle pass links for invited entities.",
+					icon: PackageOpen,
+				},
 			],
 		},
 
@@ -269,8 +321,7 @@ export const eventMenuConfig: EventMenuConfig = {
 			id: "seat-ticketing",
 			label: "Seat Reservation",
 			icon: Ticket,
-			visible: (p, e) =>
-				visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+			visible: (p, e) => visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
 			tabs: [
 				{
 					route: "seat-ticketing/sessions",
@@ -425,13 +476,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: ScanQrCode,
 					visible: visible.vendor,
 				},
-				{
-					route: "visitor-stamps",
-					label: "Visitor Stamp Scanner",
-					description: "Scan visitor QR codes to create stamps.",
-					icon: ScanQrCode,
-					visible: (p, e) => visible.mallEvent(p, e) && visible.vendor(p),
-				},
 			],
 		},
 
@@ -529,9 +573,9 @@ export const eventMenuConfig: EventMenuConfig = {
 					visible: visible.eventAdmin,
 				},
 				{
-					route: "stamp-logs",
-					label: "Stamp Logs",
-					description: "View all visitor stamp logs for this event.",
+					route: "lead-logs",
+					label: "Lead Logs",
+					description: "View all event lead logs for this event.",
 					icon: Logs,
 					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
 				},

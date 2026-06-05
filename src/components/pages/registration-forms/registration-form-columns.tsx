@@ -58,6 +58,23 @@ const columns: ColumnDef<RegistrationForm>[] = [
 		},
 	},
 	{
+		accessorKey: "status",
+		size: 100,
+		header: ({ column }) => <SortableHeader column={column} label="Status" />,
+		cell: ({ row }) => {
+			const status = row.getValue("status") as number;
+			return status === 0 ? (
+				<Badge className="rounded-none bg-green-600 hover:bg-green-600">
+					Active
+				</Badge>
+			) : (
+				<Badge variant="secondary" className="rounded-none">
+					Inactive
+				</Badge>
+			);
+		},
+	},
+	{
 		accessorKey: "position",
 		size: 100,
 		header: ({ column }) => <SortableHeader column={column} label="Position" />,

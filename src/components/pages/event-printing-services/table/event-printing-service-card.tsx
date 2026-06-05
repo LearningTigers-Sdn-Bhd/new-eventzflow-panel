@@ -1,8 +1,8 @@
 "use client";
 
 import { DollarSign, MoreHorizontal, Unlink } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -24,7 +24,9 @@ interface EventPrintingServiceCardProps {
 	service: EventPrintingService;
 }
 
-export function EventPrintingServiceCard({ service }: EventPrintingServiceCardProps) {
+export function EventPrintingServiceCard({
+	service,
+}: EventPrintingServiceCardProps) {
 	const { openDialog } = useDialog();
 
 	const handleManagePricing = () => {
@@ -60,7 +62,10 @@ export function EventPrintingServiceCard({ service }: EventPrintingServiceCardPr
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="rounded-none">
-							<DropdownMenuItem onClick={handleManagePricing} className="rounded-none">
+							<DropdownMenuItem
+								onClick={handleManagePricing}
+								className="rounded-none"
+							>
 								<DollarSign className="mr-2 h-4 w-4" />
 								Manage Pricing
 							</DropdownMenuItem>

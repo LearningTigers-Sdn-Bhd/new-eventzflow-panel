@@ -1,7 +1,14 @@
 "use client";
 
 import { PieChart as PieChartIcon } from "lucide-react";
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import {
+	Cell,
+	Legend,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
+} from "recharts";
 import {
 	Card,
 	CardContent,
@@ -63,8 +70,8 @@ export function PieChartCard({
 		if (active && payload && payload.length) {
 			return (
 				<div className="rounded-lg border bg-background p-2 shadow-md">
-					<p className="text-sm font-medium">{payload[0].name}</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="font-medium text-sm">{payload[0].name}</p>
+					<p className="text-muted-foreground text-sm">
 						Count: {payload[0].value}
 					</p>
 				</div>
@@ -83,7 +90,7 @@ export function PieChartCard({
 							className="h-3 w-3 rounded-full"
 							style={{ backgroundColor: entry.color }}
 						/>
-						<span className="text-xs text-muted-foreground truncate">
+						<span className="truncate text-muted-foreground text-xs">
 							{entry.value}: {entry.payload.value}
 						</span>
 					</div>
@@ -107,7 +114,7 @@ export function PieChartCard({
 					</div>
 				</CardHeader>
 				<CardContent className="flex flex-col items-center justify-center bg-accent p-0">
-					<div className="h-[300px] w-full pt-2 px-4 pb-4">
+					<div className="h-[300px] w-full px-4 pt-2 pb-4">
 						<Skeleton className="h-full w-full rounded-full" />
 					</div>
 				</CardContent>
@@ -159,7 +166,9 @@ export function PieChartCard({
 						<p className="text-sm">
 							{emptyMessage || `No ${title.toLowerCase()} available`}
 						</p>
-						<p className="text-xs opacity-70">Data will appear when available</p>
+						<p className="text-xs opacity-70">
+							Data will appear when available
+						</p>
 					</div>
 				)}
 			</CardContent>

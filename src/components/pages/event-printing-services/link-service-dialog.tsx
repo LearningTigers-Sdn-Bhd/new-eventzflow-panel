@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Loader2, Printer } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDialog } from "@/hooks/use-dialog";
-import { getPrintingServices } from "@/lib/api/printing-service";
 import type { PrintingService } from "@/lib/api/printing-service";
+import { getPrintingServices } from "@/lib/api/printing-service";
 import { cn } from "@/lib/utils";
 
 interface LinkServiceDialogProps {
@@ -66,7 +66,8 @@ export function LinkServiceDialog({
 					<Printer className="mb-4 h-12 w-12 text-muted-foreground" />
 					<p className="font-medium">No services available</p>
 					<p className="text-muted-foreground text-sm">
-						All your printing services are already linked to this event, or you haven't created any yet.
+						All your printing services are already linked to this event, or you
+						haven't created any yet.
 					</p>
 				</div>
 				<div className="flex justify-end border-t pt-4">
@@ -113,7 +114,8 @@ export function LinkServiceDialog({
 
 			<div className="flex items-center justify-between border-t pt-4">
 				<p className="text-muted-foreground text-sm">
-					{selectedIds.length} service{selectedIds.length !== 1 ? "s" : ""} selected
+					{selectedIds.length} service{selectedIds.length !== 1 ? "s" : ""}{" "}
+					selected
 				</p>
 				<div className="flex gap-2">
 					<Button
@@ -167,12 +169,12 @@ function ServiceItem({
 		>
 			<Checkbox
 				checked={isSelected}
-				className="rounded-none pointer-events-none"
+				className="pointer-events-none rounded-none"
 			/>
-			<div className="flex-1 min-w-0">
-				<p className="font-medium text-sm truncate">{service.name}</p>
+			<div className="min-w-0 flex-1">
+				<p className="truncate font-medium text-sm">{service.name}</p>
 				{service.description && (
-					<p className="text-muted-foreground text-xs truncate">
+					<p className="truncate text-muted-foreground text-xs">
 						{service.description}
 					</p>
 				)}
@@ -180,9 +182,7 @@ function ServiceItem({
 					RM {Number(service.defaultPrice).toFixed(2)} / {service.unitOfMeasure}
 				</p>
 			</div>
-			{isSelected && (
-				<Check className="h-4 w-4 shrink-0 text-primary" />
-			)}
+			{isSelected && <Check className="h-4 w-4 shrink-0 text-primary" />}
 		</div>
 	);
 }

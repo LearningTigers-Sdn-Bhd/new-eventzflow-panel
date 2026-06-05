@@ -160,10 +160,7 @@ export function MobileStickyHeaderRow({
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div
-			className={cn("flex w-full items-center gap-4", className)}
-			{...props}
-		>
+		<div className={cn("flex w-full items-center gap-4", className)} {...props}>
 			{children}
 		</div>
 	);

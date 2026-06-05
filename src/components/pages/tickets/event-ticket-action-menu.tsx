@@ -8,6 +8,7 @@ import {
 	Pencil,
 	QrCode,
 	RotateCcw,
+	Send,
 	Trash2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -28,6 +29,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import {
 	archiveTicket,
 	forceDeleteTicket,
+	resendTicketConfirmationEmail,
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
@@ -42,17 +44,20 @@ interface TicketActionsMenuProps {
 	deletedAt?: string | null;
 }
 
-export function TicketActionsMenu({
+interface UseTicketActionsProps {
+	ticket: BaseTicket;
+	eventId?: string;
+}
+
+export function useTicketActions({
 	ticket,
-	deletedAt,
-}: TicketActionsMenuProps) {
+	eventId: eventIdProp,
+}: UseTicketActionsProps) {
 	const params = useParams();
-	const eventId = params.event_id as string;
+	const eventId = eventIdProp || (params.event_id as string);
 	const { openDialog, closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
-	const { user } = useAuth();
 	const queryClient = useQueryClient();
-	const isArchived = !!deletedAt;
 
 	const openEditModal = () => {
 		openDialog({
@@ -108,11 +113,6 @@ export function TicketActionsMenu({
 		});
 	};
 
-	// Check if unscan button should be shown
-	// Only for org_owner and when ticket status is "scanned"
-	const showUnscanButton =
-		user?.role === "org_owner" && ticket.status === "scanned";
-
 	const archiveTicketMutation = useMutation({
 		mutationFn: () => archiveTicket(eventId, ticket.publicId),
 		onSuccess: () => {
@@ -152,6 +152,21 @@ export function TicketActionsMenu({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to restore ticket");
+		},
+	});
+
+	const resendConfirmationEmailMutation = useMutation({
+		mutationFn: () => resendTicketConfirmationEmail(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Ticket confirmation email has been queued for resend.");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error(
+				error.message || "Failed to resend ticket confirmation email",
+			);
 		},
 	});
 
@@ -206,20 +221,76 @@ export function TicketActionsMenu({
 		});
 	};
 
+	const handleResendConfirmationEmailClick = () => {
+		openConfirm({
+			title: "Resend Ticket Confirmation Email",
+			message:
+				"Resend the ticket confirmation email with QR code to this attendee?",
+			confirmLabel: "Resend Email",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				resendConfirmationEmailMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
+	return {
+		openEditModal,
+		openViewModal,
+		openQRModal,
+		openUnscanModal,
+		handleArchiveClick,
+		handleDeleteClick,
+		handleRestoreClick,
+		handleResendConfirmationEmailClick,
+	};
+}
+
+export function TicketActionsMenu({
+	ticket,
+	deletedAt,
+}: TicketActionsMenuProps) {
+	const { user } = useAuth();
+	const isArchived = !!deletedAt;
+
+	const {
+		openEditModal,
+		openViewModal,
+		openQRModal,
+		openUnscanModal,
+		handleArchiveClick,
+		handleDeleteClick,
+		handleRestoreClick,
+		handleResendConfirmationEmailClick,
+	} = useTicketActions({ ticket });
+
+	// Check if unscan button should be shown
+	// For org_owner or organizer and when ticket status is "scanned"
+	const showUnscanButton =
+		(user?.role === "org_owner" || user?.role === "organizer") &&
+		ticket.status === "scanned";
+
 	// Determine which actions to show based on role and archive status
 	const showArchive =
 		!isArchived && ["org_owner", "organizer"].includes(user?.role || "");
 	const showDelete = user?.role === "org_owner";
+	const showResendConfirmationEmail =
+		user?.role === "org_owner" || user?.role === "organizer";
 	const showRestore =
 		isArchived && ["org_owner", "organizer"].includes(user?.role || "");
-	const showMoreMenu = showArchive || showDelete || showRestore;
+	const showMoreMenu =
+		showArchive || showDelete || showRestore || showResendConfirmationEmail;
 
 	return (
 		<ButtonGroup>
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
+				className="h-8 w-8 rounded-none p-0 text-blue-500 hover:bg-blue-50 hover:text-blue-600 [&_svg]:text-blue-500 hover:[&_svg]:text-blue-600"
 				onClick={openEditModal}
 				title="Edit Ticket"
 			>
@@ -228,7 +299,7 @@ export function TicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
+				className="h-8 w-8 rounded-none p-0 text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
 				onClick={openViewModal}
 				title="View Ticket"
 			>
@@ -237,7 +308,7 @@ export function TicketActionsMenu({
 			<Button
 				size="icon-sm"
 				variant="outline"
-				className="rounded-none text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
+				className="h-8 w-8 rounded-none p-0 text-purple-500 hover:bg-purple-50 hover:text-purple-600 [&_svg]:text-purple-500 hover:[&_svg]:text-purple-600"
 				onClick={openQRModal}
 				title="Generate QR Code"
 			>
@@ -247,7 +318,7 @@ export function TicketActionsMenu({
 				<Button
 					size="icon-sm"
 					variant="outline"
-					className="rounded-none text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
+					className="h-8 w-8 rounded-none p-0 text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
 					onClick={openUnscanModal}
 					title="Unscan Ticket"
 				>
@@ -260,7 +331,7 @@ export function TicketActionsMenu({
 						<Button
 							size="icon-sm"
 							variant="outline"
-							className="rounded-none"
+							className="h-8 w-8 rounded-none p-0"
 							title="More Actions"
 						>
 							<MoreHorizontal className="size-4" />
@@ -289,6 +360,15 @@ export function TicketActionsMenu({
 							>
 								<RotateCcw className="mr-2 h-4 w-4" />
 								Restore Ticket
+							</DropdownMenuItem>
+						)}
+						{showResendConfirmationEmail && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleResendConfirmationEmailClick}
+							>
+								<Send className="mr-2 h-4 w-4" />
+								Resend Ticket Email
 							</DropdownMenuItem>
 						)}
 						{showDelete && (

@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import PrivacyPolicyPageClient from "./page-client";
 
 export const metadata: Metadata = {

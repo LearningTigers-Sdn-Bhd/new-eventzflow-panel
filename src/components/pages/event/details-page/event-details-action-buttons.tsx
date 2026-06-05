@@ -2,6 +2,7 @@
 
 import {
 	Activity,
+	Camera,
 	ChevronDown,
 	ExternalLink,
 	Megaphone,
@@ -144,39 +145,33 @@ export function EventDetailsActionButtons({
 
 				{canManageEvent && (
 					<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									className="rounded-none border py-5"
-									variant="outline"
-								>
-									<Monitor className="mr-2 h-4 w-4" />
-									<span>Welcome Screen</span>
-									<ChevronDown className="ml-2 h-3 w-3" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="rounded-none">
-								<DropdownMenuItem
-									onClick={() =>
-										window.open(
-											`/events/${event.slug}/welcome-screen`,
-											"_blank",
-										)
-									}
-								>
-									<Monitor className="mr-2 h-4 w-4" />
-									Open Display
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => setAnnounceOpen(true)}>
-									<Megaphone className="mr-2 h-4 w-4" />
-									Announce Guest
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={openDisplaySettings}>
-									<Settings className="mr-2 h-4 w-4" />
-									Display Settings
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button className="rounded-none border py-5" variant="outline">
+								<Monitor className="mr-2 h-4 w-4" />
+								<span>Welcome Screen</span>
+								<ChevronDown className="ml-2 h-3 w-3" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="rounded-none">
+							<DropdownMenuItem
+								onClick={() =>
+									window.open(`/events/${event.slug}/welcome-screen`, "_blank")
+								}
+							>
+								<Monitor className="mr-2 h-4 w-4" />
+								Open Display
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => setAnnounceOpen(true)}>
+								<Megaphone className="mr-2 h-4 w-4" />
+								Announce Guest
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={openDisplaySettings}>
+								<Settings className="mr-2 h-4 w-4" />
+								Display Settings
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				)}
 			</div>
 

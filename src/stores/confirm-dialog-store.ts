@@ -54,7 +54,9 @@ const initialState: ConfirmDialogState = {
 	},
 };
 
-export const useConfirmDialogStore = create<ConfirmDialogState & ConfirmDialogActions>((set) => ({
+export const useConfirmDialogStore = create<
+	ConfirmDialogState & ConfirmDialogActions
+>((set) => ({
 	...initialState,
 
 	openDialog: (params: {

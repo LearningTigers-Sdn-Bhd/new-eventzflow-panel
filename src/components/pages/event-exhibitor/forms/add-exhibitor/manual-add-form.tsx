@@ -26,12 +26,27 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getEventById } from "@/lib/api/event";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
+import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getVendors } from "@/lib/api/vendor";
 
 interface ManualAddFormProps {
 	eventId: number;
 	onClose?: () => void;
+}
+
+function humanizeBoothType(value: string): string {
+	return value
+		.replace(/[_-]+/g, " ")
+		.trim()
+		.split(/\s+/)
+		.map((word) =>
+			word.length === 0
+				? word
+				: word[0].toUpperCase() + word.slice(1).toLowerCase(),
+		)
+		.join(" ");
 }
 
 export default function ManualAddForm({
@@ -42,6 +57,11 @@ export default function ManualAddForm({
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
 	const qrUrlField = useId();
+	const boothPriceField = useId();
+	const boothTypeField = useId();
+	const boothQuantityField = useId();
+	const boothNumberField = useId();
+	const companyNameField = useId();
 	const picFullNameField = useId();
 	const picContactNumberField = useId();
 	const picEmailField = useId();
@@ -52,13 +72,37 @@ export default function ManualAddForm({
 	const [posterUrl, setPosterUrl] = useState("");
 	const [qrUrl, setQrUrl] = useState("");
 
-	// PIC fields for exhibitor kit
+	// Exhibitor kit fields
+	const [boothPriceId, setBoothPriceId] = useState<string>("");
+	const [boothType, setBoothType] = useState<string>("");
+	const [boothQuantity, setBoothQuantity] = useState<string>("1");
+	const [boothNumber, setBoothNumber] = useState("");
+	const [companyName, setCompanyName] = useState("");
 	const [picFullName, setPicFullName] = useState("");
 	const [picContactNumber, setPicContactNumber] = useState("");
 	const [picEmail, setPicEmail] = useState("");
 	const [specialRequirements, setSpecialRequirements] = useState("");
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
+
+	const eventIdStr = eventId.toString();
+
+	// Fetch event for booth_types fallback + use_exhibitor_kit/use_ticket detection
+	const { data: event, isLoading: isLoadingEvent } = useQuery({
+		queryKey: ["event", eventIdStr],
+		queryFn: () => getEventById(eventIdStr),
+	});
+
+	const isExhibitorEvent = Boolean(
+		event?.use_ticket || event?.use_exhibitor_kit,
+	);
+
+	// Fetch booth prices configured for the event
+	const { data: boothPrices, isLoading: isLoadingBoothPrices } = useQuery({
+		queryKey: ["event", eventIdStr, "exhibitor-booth-prices"],
+		queryFn: () => getExhibitorBoothPrices(eventId),
+		enabled: isExhibitorEvent,
+	});
 
 	// Fetch available vendors
 	const {
@@ -72,15 +116,18 @@ export default function ManualAddForm({
 
 	// Fetch existing event vendors to check which are already added
 	const { data: eventVendors, isLoading: isLoadingEventVendors } = useQuery({
-		queryKey: ["event", eventId.toString(), "vendors"],
+		queryKey: ["event", eventIdStr, "vendors"],
 		queryFn: () => getEventVendors(eventId),
 	});
 
-	// Create a set of already added vendor IDs for quick lookup
 	const addedVendorIds = useMemo(() => {
 		if (!eventVendors) return new Set<number>();
 		return new Set(eventVendors.map((ev) => ev.vendor_id));
 	}, [eventVendors]);
+
+	const hasBoothPrices = (boothPrices?.length ?? 0) > 0;
+	const eventBoothTypes = event?.booth_types ?? [];
+	const showBoothTypeFallback = !hasBoothPrices;
 
 	const queryClient = useQueryClient();
 	const createExhibitorMutation = useMutation({
@@ -89,7 +136,7 @@ export default function ManualAddForm({
 		onSuccess: () => {
 			toast.success("Exhibitor added to event successfully!");
 			queryClient.invalidateQueries({
-				queryKey: ["event", eventId.toString(), "vendors"],
+				queryKey: ["event", eventIdStr, "vendors"],
 			});
 			onClose?.();
 		},
@@ -97,6 +144,15 @@ export default function ManualAddForm({
 			toast.error(error.message || "Failed to assign exhibitor");
 		},
 	});
+
+	const clearError = (key: string) => {
+		setErrors((prev) => {
+			if (!(key in prev)) return prev;
+			const next = { ...prev };
+			delete next[key];
+			return next;
+		});
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -108,7 +164,18 @@ export default function ManualAddForm({
 			newErrors.vendorId = "Please select a vendor";
 		}
 
-		// Validate PIC fields (required for exhibitors)
+		if (hasBoothPrices && !boothPriceId) {
+			newErrors.boothPriceId = "Please select a booth price";
+		}
+		if (showBoothTypeFallback && !boothType.trim()) {
+			newErrors.boothType = "Please select or enter a booth type";
+		}
+
+		const qty = Number(boothQuantity);
+		if (!Number.isInteger(qty) || qty < 1) {
+			newErrors.boothQuantity = "Booth quantity must be at least 1";
+		}
+
 		if (!picFullName.trim()) {
 			newErrors.picFullName = "PIC full name is required";
 		}
@@ -127,38 +194,62 @@ export default function ManualAddForm({
 			};
 
 			const trimmedRedirectUrl = redirectUrl.trim();
-			if (trimmedRedirectUrl) {
-				data.redirect_url = trimmedRedirectUrl;
-			}
+			if (trimmedRedirectUrl) data.redirect_url = trimmedRedirectUrl;
 
 			const trimmedPosterUrl = posterUrl.trim();
-			if (trimmedPosterUrl) {
-				data.poster_url = trimmedPosterUrl;
-			}
+			if (trimmedPosterUrl) data.poster_url = trimmedPosterUrl;
 
 			const trimmedQrUrl = qrUrl.trim();
-			if (trimmedQrUrl) {
-				data.qr_url = trimmedQrUrl;
-			}
+			if (trimmedQrUrl) data.qr_url = trimmedQrUrl;
 
-			// Add exhibitor kit attributes
-			data.exhibitor_kit_attributes = {
+			const kit: NonNullable<
+				Parameters<typeof createEventVendor>[1]["exhibitor_kit_attributes"]
+			> = {
 				pic_full_name: picFullName.trim(),
 				pic_contact_number: picContactNumber.trim(),
-				pic_email_address: picEmail.trim() || undefined,
-				special_requirements: specialRequirements.trim() || undefined,
 			};
+
+			if (hasBoothPrices && boothPriceId) {
+				kit.exhibitor_booth_price_id = Number(boothPriceId);
+			}
+			if (showBoothTypeFallback && boothType.trim()) {
+				kit.booth_type = boothType.trim();
+			}
+
+			if (Number.isInteger(qty) && qty > 0) {
+				kit.booth_quantity = qty;
+			}
+
+			const trimmedBoothNumber = boothNumber.trim();
+			if (trimmedBoothNumber) kit.booth_number = trimmedBoothNumber;
+
+			const selectedVendor = vendors?.find((v) => v.id.toString() === vendorId);
+			const trimmedCompany = companyName.trim();
+			kit.company_name = trimmedCompany || selectedVendor?.full_name || "";
+
+			const trimmedPicEmail = picEmail.trim();
+			if (trimmedPicEmail) kit.pic_email_address = trimmedPicEmail;
+
+			const trimmedSpecial = specialRequirements.trim();
+			if (trimmedSpecial) kit.special_requirements = trimmedSpecial;
+
+			data.exhibitor_kit_attributes = kit;
 
 			await createExhibitorMutation.mutateAsync(data);
 		} catch {
-			// Error is handled by onError callback
+			// handled by onError
 		}
 	};
 
-	if (isLoadingVendors || isLoadingEventVendors) {
+	if (
+		isLoadingVendors ||
+		isLoadingEventVendors ||
+		isLoadingEvent ||
+		(isExhibitorEvent && isLoadingBoothPrices)
+	) {
 		return (
 			<LoadingState
-				title="Loading vendors..."
+				title="Loading..."
 				description="Please wait..."
 				height="h-[300px]"
 			/>
@@ -196,7 +287,6 @@ export default function ManualAddForm({
 		);
 	}
 
-	// Filter only active vendors
 	const activeVendors = vendors.filter((v) => v.status === "active");
 
 	if (activeVendors.length === 0) {
@@ -220,6 +310,8 @@ export default function ManualAddForm({
 		);
 	}
 
+	const submitting = createExhibitorMutation.isPending;
+
 	return (
 		<section className="w-full">
 			<form onSubmit={handleSubmit}>
@@ -241,15 +333,24 @@ export default function ManualAddForm({
 								value={vendorId}
 								onValueChange={(value) => {
 									setVendorId(value);
-									if (errors.vendorId) {
-										setErrors((prev) => {
-											const newErrors = { ...prev };
-											delete newErrors.vendorId;
-											return newErrors;
-										});
+									clearError("vendorId");
+									const selected = activeVendors.find(
+										(v) => v.id.toString() === value,
+									);
+									if (selected) {
+										setCompanyName(selected.full_name || "");
+										setPicFullName(
+											selected.vendorProfile?.person_in_charge ||
+												selected.full_name ||
+												"",
+										);
+										setPicContactNumber(selected.phone || "");
+										setPicEmail(selected.email || "");
+										clearError("picFullName");
+										clearError("picContactNumber");
 									}
 								}}
-								disabled={createExhibitorMutation.isPending}
+								disabled={submitting}
 							>
 								<SelectTrigger id={vendorIdField}>
 									<SelectValue placeholder="Select a vendor" />
@@ -304,7 +405,7 @@ export default function ManualAddForm({
 									value={redirectUrl}
 									onChange={(e) => setRedirectUrl(e.target.value)}
 									placeholder="https://example.com"
-									disabled={createExhibitorMutation.isPending}
+									disabled={submitting}
 									className="rounded-none"
 								/>
 							</Field>
@@ -319,7 +420,7 @@ export default function ManualAddForm({
 									value={posterUrl}
 									onChange={(e) => setPosterUrl(e.target.value)}
 									placeholder="https://example.com/poster.jpg"
-									disabled={createExhibitorMutation.isPending}
+									disabled={submitting}
 									className="rounded-none"
 								/>
 							</Field>
@@ -334,10 +435,146 @@ export default function ManualAddForm({
 									value={qrUrl}
 									onChange={(e) => setQrUrl(e.target.value)}
 									placeholder="https://example.com"
-									disabled={createExhibitorMutation.isPending}
+									disabled={submitting}
 									className="rounded-none"
 								/>
 							</Field>
+						</div>
+
+						<FieldSeparator />
+
+						{/* Booth Details */}
+						<div className="rounded-none border border-dashed bg-muted/30 p-4">
+							<p className="mb-4 font-medium text-sm">Booth Details</p>
+
+							{hasBoothPrices ? (
+								<Field orientation="vertical" className="mb-4">
+									<FieldLabel htmlFor={boothPriceField}>
+										Booth Price *
+									</FieldLabel>
+									{errors.boothPriceId && (
+										<FieldError>{errors.boothPriceId}</FieldError>
+									)}
+									<Select
+										value={boothPriceId}
+										onValueChange={(value) => {
+											setBoothPriceId(value);
+											clearError("boothPriceId");
+										}}
+										disabled={submitting}
+									>
+										<SelectTrigger id={boothPriceField}>
+											<SelectValue placeholder="Select a booth price" />
+										</SelectTrigger>
+										<SelectContent>
+											{boothPrices?.map((bp) => (
+												<SelectItem key={bp.id} value={bp.id.toString()}>
+													{humanizeBoothType(bp.boothType)} — {bp.label}
+													{bp.zone ? ` (${bp.zone})` : ""} — RM
+													{bp.currentPrice}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldDescription>
+										Booth type and amount are derived from the selected price.
+									</FieldDescription>
+								</Field>
+							) : (
+								<Field orientation="vertical" className="mb-4">
+									<FieldLabel htmlFor={boothTypeField}>Booth Type *</FieldLabel>
+									{errors.boothType && (
+										<FieldError>{errors.boothType}</FieldError>
+									)}
+									{eventBoothTypes.length > 0 ? (
+										<Select
+											value={boothType}
+											onValueChange={(value) => {
+												setBoothType(value);
+												clearError("boothType");
+											}}
+											disabled={submitting}
+										>
+											<SelectTrigger id={boothTypeField}>
+												<SelectValue placeholder="Select a booth type" />
+											</SelectTrigger>
+											<SelectContent>
+												{eventBoothTypes.map((bt) => (
+													<SelectItem key={bt} value={bt}>
+														{humanizeBoothType(bt)}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									) : (
+										<Input
+											id={boothTypeField}
+											value={boothType}
+											onChange={(e) => {
+												setBoothType(e.target.value);
+												clearError("boothType");
+											}}
+											placeholder="e.g. Shell Scheme"
+											disabled={submitting}
+											className="rounded-none"
+										/>
+									)}
+									<FieldDescription>
+										No booth prices configured. Enter or select a booth type.
+									</FieldDescription>
+								</Field>
+							)}
+
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={boothQuantityField}>
+										Booth Quantity
+									</FieldLabel>
+									{errors.boothQuantity && (
+										<FieldError>{errors.boothQuantity}</FieldError>
+									)}
+									<Input
+										id={boothQuantityField}
+										type="number"
+										min={1}
+										value={boothQuantity}
+										onChange={(e) => {
+											setBoothQuantity(e.target.value);
+											clearError("boothQuantity");
+										}}
+										disabled={submitting}
+										className="rounded-none"
+									/>
+								</Field>
+
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={boothNumberField}>
+										Booth Number (Optional)
+									</FieldLabel>
+									<Input
+										id={boothNumberField}
+										value={boothNumber}
+										onChange={(e) => setBoothNumber(e.target.value)}
+										placeholder="e.g. A-12"
+										disabled={submitting}
+										className="rounded-none"
+									/>
+								</Field>
+
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={companyNameField}>
+										Company Name (Optional)
+									</FieldLabel>
+									<Input
+										id={companyNameField}
+										value={companyName}
+										onChange={(e) => setCompanyName(e.target.value)}
+										placeholder="Enter company name"
+										disabled={submitting}
+										className="rounded-none"
+									/>
+								</Field>
+							</div>
 						</div>
 
 						<FieldSeparator />
@@ -362,16 +599,10 @@ export default function ManualAddForm({
 										value={picFullName}
 										onChange={(e) => {
 											setPicFullName(e.target.value);
-											if (errors.picFullName) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.picFullName;
-													return newErrors;
-												});
-											}
+											clearError("picFullName");
 										}}
 										placeholder="Enter full name"
-										disabled={createExhibitorMutation.isPending}
+										disabled={submitting}
 										className="rounded-none"
 									/>
 								</Field>
@@ -389,16 +620,10 @@ export default function ManualAddForm({
 										value={picContactNumber}
 										onChange={(e) => {
 											setPicContactNumber(e.target.value);
-											if (errors.picContactNumber) {
-												setErrors((prev) => {
-													const newErrors = { ...prev };
-													delete newErrors.picContactNumber;
-													return newErrors;
-												});
-											}
+											clearError("picContactNumber");
 										}}
 										placeholder="Enter contact number"
-										disabled={createExhibitorMutation.isPending}
+										disabled={submitting}
 										className="rounded-none"
 									/>
 								</Field>
@@ -413,7 +638,7 @@ export default function ManualAddForm({
 										value={picEmail}
 										onChange={(e) => setPicEmail(e.target.value)}
 										placeholder="Enter email address"
-										disabled={createExhibitorMutation.isPending}
+										disabled={submitting}
 										className="rounded-none"
 									/>
 								</Field>
@@ -428,7 +653,7 @@ export default function ManualAddForm({
 									value={specialRequirements}
 									onChange={(e) => setSpecialRequirements(e.target.value)}
 									placeholder="Enter any special requirements..."
-									disabled={createExhibitorMutation.isPending}
+									disabled={submitting}
 									className="min-h-[80px] rounded-none"
 								/>
 							</Field>
@@ -442,17 +667,12 @@ export default function ManualAddForm({
 								type="button"
 								variant="outline"
 								onClick={onClose}
-								disabled={createExhibitorMutation.isPending}
+								disabled={submitting}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="submit"
-								disabled={createExhibitorMutation.isPending}
-							>
-								{createExhibitorMutation.isPending
-									? "Assigning..."
-									: "Assign Exhibitor"}
+							<Button type="submit" disabled={submitting}>
+								{submitting ? "Assigning..." : "Assign Exhibitor"}
 							</Button>
 						</div>
 					</FieldGroup>

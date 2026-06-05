@@ -92,7 +92,7 @@ export const EmptyState = ({
 	return (
 		<div
 			className={cn(
-				"flex w-full items-center justify-center p-8",
+				"flex w-full items-center justify-center border border-gray-300 border-dashed p-8",
 				height,
 				className,
 			)}

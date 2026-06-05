@@ -9,7 +9,7 @@ export function calculateYTicks(maxValue: number, tickCount: number): number[] {
 	if (maxValue === 0) return [0];
 
 	const rawInterval = maxValue / (tickCount - 1);
-	const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)));
+	const magnitude = 10 ** Math.floor(Math.log10(rawInterval));
 	const normalized = rawInterval / magnitude;
 
 	let niceInterval: number;
@@ -68,7 +68,7 @@ export function formatDateLabel(dateStr: string): string {
  * Format hour to 12-hour format
  */
 export function formatHourTo12h(hourStr: string): string {
-	const hour = parseInt(hourStr.split(":")[0], 10);
+	const hour = Number.parseInt(hourStr.split(":")[0], 10);
 	if (hour === 0) return "12A";
 	if (hour === 12) return "12P";
 	if (hour < 12) return `${hour}A`;
@@ -79,7 +79,7 @@ export function formatHourTo12h(hourStr: string): string {
  * Format hour to 12-hour format with AM/PM
  */
 export function formatHourTo12hFull(hourStr: string): string {
-	const hour = parseInt(hourStr.split(":")[0], 10);
+	const hour = Number.parseInt(hourStr.split(":")[0], 10);
 	if (hour === 0) return "12AM";
 	if (hour === 12) return "12PM";
 	if (hour < 12) return `${hour}AM`;
@@ -92,7 +92,10 @@ export function formatHourTo12hFull(hourStr: string): string {
  * @param points Array of points
  * @param maxY Optional maximum Y value (baseline) - curve won't go beyond this
  */
-export function createSmoothPath(points: { x: number; y: number }[], maxY?: number): string {
+export function createSmoothPath(
+	points: { x: number; y: number }[],
+	maxY?: number,
+): string {
 	if (points.length < 2) return "";
 	if (points.length === 2) {
 		return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;

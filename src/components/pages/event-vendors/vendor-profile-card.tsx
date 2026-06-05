@@ -2,7 +2,6 @@
 
 import { Edit, Mail, MapPin, Phone, StickyNote, User2 } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import type { VendorProfile } from "@/lib/api/vendor-profile";
@@ -22,8 +21,8 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 	return (
 		<>
 			<section className="space-y-6 border-t border-dashed">
-				<div className="flex flex-col gap-3 border-b border-dashed p-4 sm:flex-row sm:items-start sm:justify-between">
-					<div className="space-y-1">
+				<div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
+					<div className="min-w-0 flex-1 space-y-2">
 						<p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 							Vendor Profile
 						</p>
@@ -34,17 +33,13 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 							Marketing profile and contact information
 						</p>
 					</div>
-					<div className="flex items-center gap-2">
-						{profile.category && (
-							<Badge
-								variant="outline"
-								className="px-2 py-0.5 font-medium text-xs"
-							>
-								{profile.category}
-							</Badge>
-						)}
+					<div className="flex shrink-0 items-start gap-2 self-start">
 						{canEditProfile && (
-							<Button className="rounded-none" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+							<Button
+								className="rounded-none"
+								size="sm"
+								onClick={() => setIsEditDialogOpen(true)}
+							>
 								<Edit className="mr-2 h-4 w-4" />
 								Edit
 							</Button>
@@ -52,22 +47,33 @@ export function VendorProfileCard({ profile }: VendorProfileCardProps) {
 					</div>
 				</div>
 
-			<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-				<div className="space-y-4">
-					<div className="overflow-hidden border bg-muted/60">
-						{profile.image_url ? (
-							<img
-								src={profile.image_url}
-								alt={profile.vendor.full_name}
-								className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-							/>
-						) : (
-							<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
-								No image been added yet.
-							</div>
-						)}
+				{profile.category && (
+					<div className="border-y border-dashed px-4 py-3">
+						<p className="text-sm leading-relaxed">
+							<span className="font-medium text-muted-foreground">
+								Category:
+							</span>{" "}
+							<span>{profile.category}</span>
+						</p>
 					</div>
-				</div>
+				)}
+
+				<div className="grid items-start gap-8 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+					<div className="space-y-4">
+						<div className="overflow-hidden border bg-muted/60">
+							{profile.image_url ? (
+								<img
+									src={profile.image_url}
+									alt={profile.vendor.full_name}
+									className="h-105 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+								/>
+							) : (
+								<div className="flex h-105 items-center justify-center text-muted-foreground text-xs">
+									No image been added yet.
+								</div>
+							)}
+						</div>
+					</div>
 
 					<div className="space-y-4 border bg-background/60 p-4">
 						<div className="space-y-1 text-sm">

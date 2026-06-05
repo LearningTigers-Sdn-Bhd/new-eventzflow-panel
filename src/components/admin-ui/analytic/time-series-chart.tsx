@@ -55,7 +55,7 @@ export function TimeSeriesChart({
 			const timePart = dateString.split(" ")[1];
 			if (timePart) {
 				const [hourStr] = timePart.split(":");
-				const hour = parseInt(hourStr, 10);
+				const hour = Number.parseInt(hourStr, 10);
 				if (hour === 0) return "12AM";
 				if (hour === 12) return "12PM";
 				if (hour < 12) return `${hour}AM`;
@@ -78,7 +78,7 @@ export function TimeSeriesChart({
 			const date = new Date(datePart);
 			if (timePart) {
 				const [hourStr, minStr] = timePart.split(":");
-				const hour = parseInt(hourStr, 10);
+				const hour = Number.parseInt(hourStr, 10);
 				const ampm = hour >= 12 ? "PM" : "AM";
 				const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
 				return `${date.toLocaleDateString("en-US", {
@@ -115,7 +115,7 @@ export function TimeSeriesChart({
 					</div>
 				</CardHeader>
 				<CardContent className="flex flex-col items-center justify-center bg-accent p-0">
-					<div className="h-[200px] w-full px-4 pb-4 pt-2">
+					<div className="h-[200px] w-full px-4 pt-2 pb-4">
 						<Skeleton className="h-full w-full" />
 					</div>
 				</CardContent>
@@ -140,12 +140,15 @@ export function TimeSeriesChart({
 			</CardHeader>
 			<CardContent className="flex flex-col items-center justify-center bg-accent p-0">
 				{hasData ? (
-					<ChartContainer config={chartConfig} className="h-[200px] w-full pt-2">
+					<ChartContainer
+						config={chartConfig}
+						className="h-[200px] w-full pt-2"
+					>
 						<AreaChart
 							accessibilityLayer
 							data={data}
 							margin={{
-								left: -20,
+								left: -10,
 								right: 30,
 								top: 20,
 								bottom: 5,
@@ -177,7 +180,7 @@ export function TimeSeriesChart({
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								domain={[0, 'auto']}
+								domain={[0, "auto"]}
 								tickFormatter={(value) => {
 									if (value >= 1000) {
 										return `${(value / 1000).toFixed(1)}k`;
@@ -209,7 +212,9 @@ export function TimeSeriesChart({
 						<p className="text-sm">
 							{emptyMessage || `No ${title.toLowerCase()} in this period`}
 						</p>
-						<p className="text-xs opacity-70">Try selecting a different time range</p>
+						<p className="text-xs opacity-70">
+							Try selecting a different time range
+						</p>
 					</div>
 				)}
 			</CardContent>

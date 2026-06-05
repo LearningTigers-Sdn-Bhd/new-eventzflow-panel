@@ -61,10 +61,17 @@ export function ContractorFormContent() {
 	// Filter to only show org_owner and organizer roles
 	const organizerOptions = [
 		...(user && !teamMembers.some((m) => m.id === user.id?.toString())
-			? [{ value: user.id?.toString() ?? "", label: `${user.full_name} (${user.role})` }]
+			? [
+					{
+						value: user.id?.toString() ?? "",
+						label: `${user.full_name} (${user.role})`,
+					},
+				]
 			: []),
 		...teamMembers
-			.filter((member) => member.role === "org_owner" || member.role === "organizer")
+			.filter(
+				(member) => member.role === "org_owner" || member.role === "organizer",
+			)
 			.map((member) => ({
 				value: member.id,
 				label: `${member.full_name} (${member.role})`,
@@ -119,7 +126,10 @@ export function ContractorFormContent() {
 		} else if (formData.password !== formData.password_confirmation) {
 			newErrors.password_confirmation = "Passwords don't match";
 		}
-		if (formData.contact_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
+		if (
+			formData.contact_email.trim() &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)
+		) {
 			newErrors.contact_email = "Must be a valid email address";
 		}
 
@@ -175,7 +185,9 @@ export function ContractorFormContent() {
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.full_name}
-								errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+								errors={
+									errors.full_name ? [{ message: errors.full_name }] : undefined
+								}
 							/>
 							<InputLabel
 								htmlFor={emailId}
@@ -213,7 +225,9 @@ export function ContractorFormContent() {
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.password}
-								errors={errors.password ? [{ message: errors.password }] : undefined}
+								errors={
+									errors.password ? [{ message: errors.password }] : undefined
+								}
 								onAction={() => setShowPassword(!showPassword)}
 								actionIcon={showPassword ? <EyeOff /> : <Eye />}
 								actionLabel={showPassword ? "Hide password" : "Show password"}
@@ -225,15 +239,23 @@ export function ContractorFormContent() {
 								type={showConfirmPassword ? "text" : "password"}
 								placeholder="Confirm password"
 								value={formData.password_confirmation}
-								onChange={(value) => handleChange("password_confirmation", value)}
+								onChange={(value) =>
+									handleChange("password_confirmation", value)
+								}
 								required
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.password_confirmation}
-								errors={errors.password_confirmation ? [{ message: errors.password_confirmation }] : undefined}
+								errors={
+									errors.password_confirmation
+										? [{ message: errors.password_confirmation }]
+										: undefined
+								}
 								onAction={() => setShowConfirmPassword(!showConfirmPassword)}
 								actionIcon={showConfirmPassword ? <EyeOff /> : <Eye />}
-								actionLabel={showConfirmPassword ? "Hide password" : "Show password"}
+								actionLabel={
+									showConfirmPassword ? "Hide password" : "Show password"
+								}
 							/>
 						</div>
 					</FormGroupContainer>
@@ -265,7 +287,11 @@ export function ContractorFormContent() {
 								disabled={isPending}
 								variant="no-rounded"
 								isInvalid={!!errors.contact_email}
-								errors={errors.contact_email ? [{ message: errors.contact_email }] : undefined}
+								errors={
+									errors.contact_email
+										? [{ message: errors.contact_email }]
+										: undefined
+								}
 							/>
 							<InputLabel
 								htmlFor={contactPhoneId}
@@ -293,7 +319,9 @@ export function ContractorFormContent() {
 									label="Printing Services"
 									description="Allow contractor to access printing services"
 									checked={formData.allow_printing_services}
-									onCheckedChange={(checked) => handleChange("allow_printing_services", checked)}
+									onCheckedChange={(checked) =>
+										handleChange("allow_printing_services", checked)
+									}
 									disabled={isPending}
 									variant="no-rounded"
 								/>

@@ -16,6 +16,7 @@ import { useDrawCompletion } from "@/hooks/surprise/roulette/use-draw-completion
 import { usePrizeRoulette } from "@/hooks/surprise/roulette/use-prize-roulette";
 import { useQueueInitialization } from "@/hooks/surprise/roulette/use-queue-initialization";
 import { useCelebration } from "@/hooks/surprise/shared/use-celebration";
+import { useFullscreen } from "@/hooks/surprise/shared/use-fullscreen";
 import { useSessionBackground } from "@/hooks/surprise/shared/use-session-background";
 import { useSessionSheets } from "@/hooks/surprise/shared/use-session-sheets";
 import { useDialog } from "@/hooks/use-dialog";
@@ -37,6 +38,8 @@ interface RouletteSessionContextValue {
 	// UI State
 	isDisplayMode: boolean;
 	toggleDisplayMode: () => void;
+	isFullscreen: boolean;
+	toggleFullscreen: () => void;
 	sheetState: ReturnType<typeof useSessionSheets>;
 
 	// Draw State
@@ -84,6 +87,7 @@ function RouletteSessionProviderInner({
 	const { showCelebration } = useCelebrationDialog();
 	const { openDialog, closeDialog } = useDialog();
 	const [isDisplayMode, setIsDisplayMode] = useState(false);
+	const { isFullscreen, toggleFullscreen } = useFullscreen();
 
 	// Sheet state management
 	const sheetState = useSessionSheets();
@@ -237,6 +241,8 @@ function RouletteSessionProviderInner({
 			// UI State
 			isDisplayMode,
 			toggleDisplayMode: () => setIsDisplayMode((prev) => !prev),
+			isFullscreen,
+			toggleFullscreen,
 			sheetState,
 
 			// Draw State
@@ -267,6 +273,8 @@ function RouletteSessionProviderInner({
 			session,
 			eventName,
 			isDisplayMode,
+			isFullscreen,
+			toggleFullscreen,
 			sheetState,
 			isDrawing,
 			canDraw,

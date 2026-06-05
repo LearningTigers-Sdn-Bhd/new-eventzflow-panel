@@ -1,24 +1,27 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface WireframeGiftBoxProps {
 	isOpen: boolean;
 	isAnimating: boolean;
 }
 
-export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps) {
+export function WireframeGiftBox({
+	isOpen,
+	isAnimating,
+}: WireframeGiftBoxProps) {
 	// Isometric Projection Coordinates
 	// Center: 200, 250
 	// Width: 160, Height: 120 (approx)
-	
+
 	// Base Vertices
 	const backBottom = { x: 200, y: 320 };
 	const frontBottom = { x: 200, y: 380 }; // This is actually the lowest point, maybe too low.
-	
+
 	// Let's define a standard isometric cube
 	// Front Face: (100, 150) -> (300, 150) -> (300, 350) -> (100, 350) -- No, that's flat.
-	
+
 	// ISO Vertices:
 	// A: Top-Back (Center)
 	// B: Top-Right
@@ -27,7 +30,7 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 	// E: Bottom-Left
 	// F: Top-Left
 	// G: Center (Front-Top corner)
-	
+
 	// Adjusting for "Box" shape (wider than tall)
 	const startX = 200;
 	const startY = 300;
@@ -59,7 +62,7 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 								scaleY: [1, 1.05, 0.9, 1], // Stretch -> Squash -> Normal
 								scaleX: [1, 0.95, 1.05, 1], // Narrow -> Wide -> Normal
 								rotate: 0,
-						  }
+							}
 						: { y: 0, scaleY: 1, scaleX: 1, rotate: 0 }
 				}
 				transition={{
@@ -69,30 +72,59 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 					times: [0, 0.4, 0.8, 1],
 				}}
 			>
-				<svg width="400" height="400" viewBox="0 0 400 400" className="overflow-visible">
+				<svg
+					width="400"
+					height="400"
+					viewBox="0 0 400 400"
+					className="overflow-visible"
+				>
 					<defs>
-						<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-							<path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" strokeWidth="1" />
+						<pattern
+							id="grid"
+							width="20"
+							height="20"
+							patternUnits="userSpaceOnUse"
+						>
+							<path
+								d="M 20 0 L 0 0 0 20"
+								fill="none"
+								stroke="#e2e8f0"
+								strokeWidth="1"
+							/>
 						</pattern>
 					</defs>
 
 					{/* --- INSIDE / BACK WIRES (Dashed) --- */}
 					{/* Back Vertical Line */}
-					<path d={`M${backBottomPt.x} ${backBottomPt.y} L${backTop.x} ${backTop.y}`} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+					<path
+						d={`M${backBottomPt.x} ${backBottomPt.y} L${backTop.x} ${backTop.y}`}
+						stroke="#94a3b8"
+						strokeWidth="2"
+						strokeDasharray="5,5"
+					/>
 					{/* Bottom Back-Right edge */}
-					<path d={`M${backBottomPt.x} ${backBottomPt.y} L${rightBottom.x} ${rightBottom.y}`} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+					<path
+						d={`M${backBottomPt.x} ${backBottomPt.y} L${rightBottom.x} ${rightBottom.y}`}
+						stroke="#94a3b8"
+						strokeWidth="2"
+						strokeDasharray="5,5"
+					/>
 					{/* Bottom Back-Left edge */}
-					<path d={`M${backBottomPt.x} ${backBottomPt.y} L${leftBottom.x} ${leftBottom.y}`} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
-
+					<path
+						d={`M${backBottomPt.x} ${backBottomPt.y} L${leftBottom.x} ${leftBottom.y}`}
+						stroke="#94a3b8"
+						strokeWidth="2"
+						strokeDasharray="5,5"
+					/>
 
 					{/* --- TOP OPENING RIM (Back Edges) --- */}
-					<path 
+					<path
 						d={`M${leftTop.x} ${leftTop.y} L${backTop.x} ${backTop.y} L${rightTop.x} ${rightTop.y}`}
 						fill="none"
 						stroke="#334155"
 						strokeWidth="2"
 					/>
-					
+
 					{/* --- EXPLODED VIEW GUIDE LINE --- */}
 					{isOpen && (
 						<motion.path
@@ -110,28 +142,28 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 					<motion.text
 						key="q-mark"
 						x="200"
-						textAnchor="middle" 
-						dominantBaseline="middle" 
+						textAnchor="middle"
+						dominantBaseline="middle"
 						className="fill-slate-600 font-black text-8xl"
-						style={{ fontFamily: "monospace", pointerEvents: 'none' }}
+						style={{ fontFamily: "monospace", pointerEvents: "none" }}
 						initial={{ y: 230, scale: 1, rotate: 0 }}
-						animate={{ 
+						animate={{
 							y: isOpen ? 80 : [225, 235, 225], // Pop Up vs Floating Loop
 							scale: isOpen ? 1.5 : 1,
-							rotate: isOpen ? [0, -10, 10, 0] : [0, -2, 2, 0] // Shake vs Gentle Wobble
+							rotate: isOpen ? [0, -10, 10, 0] : [0, -2, 2, 0], // Shake vs Gentle Wobble
 						}}
 						transition={
-							isOpen 
-							? { 
-								y: { type: "spring", bounce: 0.5, duration: 0.8 },
-								scale: { type: "spring", bounce: 0.5, duration: 0.8 },
-								rotate: { duration: 0.4, type: "tween", ease: "easeInOut" }
-							  }
-							: { 
-								duration: 2.5, 
-								repeat: Number.POSITIVE_INFINITY, 
-								ease: "easeInOut" 
-							  }
+							isOpen
+								? {
+										y: { type: "spring", bounce: 0.5, duration: 0.8 },
+										scale: { type: "spring", bounce: 0.5, duration: 0.8 },
+										rotate: { duration: 0.4, type: "tween", ease: "easeInOut" },
+									}
+								: {
+										duration: 2.5,
+										repeat: Number.POSITIVE_INFINITY,
+										ease: "easeInOut",
+									}
 						}
 					>
 						?
@@ -143,8 +175,14 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 							<>
 								{[...Array(50)].map((_, i) => {
 									const type = ["star", "circle", "triangle", "ribbon"][i % 4];
-									const color = ["#FFD700", "#FF4081", "#00E676", "#2979FF", "#FF9100"][i % 5];
-									
+									const color = [
+										"#FFD700",
+										"#FF4081",
+										"#00E676",
+										"#2979FF",
+										"#FF9100",
+									][i % 5];
+
 									// Simple "Explosion" physics: Start center, shoot OUT and UP
 									// x: Wide scatter (-300 to +300 relative to center)
 									// y: Shoot UP (-100 to -300 pixels from start)
@@ -153,41 +191,45 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 
 									const animProps = {
 										x: endX,
-										y: endY, 
+										y: endY,
 										rotate: Math.random() * 360,
 										opacity: [0, 1, 1, 0], // Fade in, hold, fade out
 										scale: [0, 1.2, 0.5], // Puff up then shrink
 									};
-									
-									const transProps = { 
+
+									const transProps = {
 										duration: 1.2 + Math.random(),
 										ease: "easeOut" as const,
 									};
-									const initialProps = { x: 200, y: 150, scale: 0, opacity: 0, rotate: 0 };
+									const initialProps = {
+										x: 200,
+										y: 150,
+										scale: 0,
+										opacity: 0,
+										rotate: 0,
+									};
 
 									return (
-										<motion.g 
+										<motion.g
 											key={i}
 											initial={initialProps}
 											animate={animProps}
 											transition={transProps}
 										>
 											{type === "star" && (
-												<path 
-													d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
-													fill={color} 
-													transform="scale(0.6)" 
+												<path
+													d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+													fill={color}
+													transform="scale(0.6)"
 												/>
 											)}
-											{type === "circle" && (
-												<circle r={5} fill={color} />
-											)}
+											{type === "circle" && <circle r={5} fill={color} />}
 											{type === "triangle" && (
 												<polygon points="0,12 6,0 12,12" fill={color} />
 											)}
 											{type === "ribbon" && (
-												<path 
-													d="M4 0c0 5 3 8 3 14s-3 8-3 14c3-3 5-3 8 0 0-6 3-9 3-14s-3-9-3-14c-3 3-5 3-8 0z" 
+												<path
+													d="M4 0c0 5 3 8 3 14s-3 8-3 14c3-3 5-3 8 0 0-6 3-9 3-14s-3-9-3-14c-3 3-5 3-8 0z"
 													fill={color}
 													transform="scale(0.5)"
 												/>
@@ -199,51 +241,53 @@ export function WireframeGiftBox({ isOpen, isAnimating }: WireframeGiftBoxProps)
 						)}
 					</AnimatePresence>
 
-
 					{/* --- FRONT FACES (Solid) --- */}
 					{/* Left Face - Made more transparent */}
-					<path 
-						d={`M${centerBottom.x} ${centerBottom.y} L${leftBottom.x} ${leftBottom.y} L${leftTop.x} ${leftTop.y} L${centerTop.x} ${centerTop.y} Z`} 
-						fill="rgba(255, 255, 255, 0.4)" 
-						stroke="#334155" 
+					<path
+						d={`M${centerBottom.x} ${centerBottom.y} L${leftBottom.x} ${leftBottom.y} L${leftTop.x} ${leftTop.y} L${centerTop.x} ${centerTop.y} Z`}
+						fill="rgba(255, 255, 255, 0.4)"
+						stroke="#334155"
 						strokeWidth="2"
 					/>
 					{/* Right Face */}
-					<path 
-						d={`M${centerBottom.x} ${centerBottom.y} L${rightBottom.x} ${rightBottom.y} L${rightTop.x} ${rightTop.y} L${centerTop.x} ${centerTop.y} Z`} 
-						fill="rgba(255, 255, 255, 0.4)" 
-						stroke="#334155" 
-						strokeWidth="2" 
+					<path
+						d={`M${centerBottom.x} ${centerBottom.y} L${rightBottom.x} ${rightBottom.y} L${rightTop.x} ${rightTop.y} L${centerTop.x} ${centerTop.y} Z`}
+						fill="rgba(255, 255, 255, 0.4)"
+						stroke="#334155"
+						strokeWidth="2"
 					/>
 
 					{/* --- LID (Exploded View Animation) --- */}
 					<motion.g
 						animate={{
 							y: isOpen ? -60 : 0, // Lift straight up
-							opacity: isOpen ? 0.4 : 1
+							opacity: isOpen ? 0.4 : 1,
 						}}
 						transition={{ duration: 0.8, type: "spring", stiffness: 50 }}
 					>
 						{/* Lid Top Face */}
-						<path 
-							d={`M${centerTop.x} ${centerTop.y} L${rightTop.x} ${rightTop.y} L${backTop.x} ${backTop.y} L${leftTop.x} ${leftTop.y} Z`} 
-							fill="#f8fafc" 
-							stroke="#334155" 
-							strokeWidth="2" 
+						<path
+							d={`M${centerTop.x} ${centerTop.y} L${rightTop.x} ${rightTop.y} L${backTop.x} ${backTop.y} L${leftTop.x} ${leftTop.y} Z`}
+							fill="#f8fafc"
+							stroke="#334155"
+							strokeWidth="2"
 						/>
 						{/* Lid Rims (Thickness) */}
 						{/* Right Rim */}
-						<path 
+						<path
 							d={`M${centerTop.x} ${centerTop.y} L${rightTop.x} ${rightTop.y} L${rightTop.x} ${rightTop.y + 10} L${centerTop.x} ${centerTop.y + 10} Z`}
-							fill="#cbd5e1" stroke="#334155" strokeWidth="2"
+							fill="#cbd5e1"
+							stroke="#334155"
+							strokeWidth="2"
 						/>
 						{/* Left Rim */}
-						<path 
+						<path
 							d={`M${centerTop.x} ${centerTop.y} L${leftTop.x} ${leftTop.y} L${leftTop.x} ${leftTop.y + 10} L${centerTop.x} ${centerTop.y + 10} Z`}
-							fill="#e2e8f0" stroke="#334155" strokeWidth="2"
+							fill="#e2e8f0"
+							stroke="#334155"
+							strokeWidth="2"
 						/>
 					</motion.g>
-
 				</svg>
 			</motion.div>
 		</div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import { Calendar, ChevronDown, Clock, MapPin } from "lucide-react";
+import { Calendar, ChevronDown, Clock, MapPin, Scan } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ import {
 	StationRow,
 } from "@/components/pages/public-check-in/CheckInVisuals";
 import { StationSelection } from "@/components/pages/public-check-in/StationSelection";
+import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
 import { usePublicCheckIn } from "@/hooks/use-public-check-in";
 
 const STATION_STORAGE_KEY = "public_checkin_station";
@@ -68,6 +70,16 @@ function EventCheckInContent() {
 		handleResetToScan,
 		selectMethod,
 	} = usePublicCheckIn(slug, checkInUrl);
+
+	// Physical hardware barcode scanner hook
+	useBarcodeScanner({
+		onScanSuccess: (decodedText) => {
+			toast.info("Barcode Scanned", {
+				description: "Processing your ticket...",
+			});
+			handleQRScan(decodedText);
+		},
+	});
 
 	// Initialize station from URL or localStorage
 	useEffect(() => {
@@ -134,14 +146,14 @@ function EventCheckInContent() {
 				<div className="relative z-10 mx-auto w-full max-w-lg lg:mx-0">
 					{/* Logo Area */}
 					<div className="mb-6 flex items-center gap-3 sm:mb-6 lg:mb-8 lg:gap-4">
-						<span
-							className="font-bold text-2xl leading-tight sm:text-xl lg:text-2xl"
-							style={{ fontFamily: "Times New Roman, serif" }}
-						>
-							<span style={{ color: "#23c460" }}>Event</span>
-							<span style={{ color: "#2766ec" }}>z</span>
-							<span style={{ color: "#23c460" }}>Flow</span>
-						</span>
+						<Image
+							src="/logo/Logo.png"
+							alt="EventzFlow logo"
+							width={907}
+							height={73}
+							priority
+							className="h-auto w-[165px] sm:w-[175px] lg:w-[210px]"
+						/>
 					</div>
 
 					{/* Title Area */}
@@ -195,6 +207,21 @@ function EventCheckInContent() {
 								}
 								icon={Clock}
 							/>
+						</div>
+						<div className="border border-neutral-300 bg-white/50 p-3 backdrop-blur-sm sm:p-4">
+							<div className="flex items-center gap-3">
+								<div className="flex h-8 w-8 items-center justify-center border border-neutral-200 bg-white">
+									<Scan className="h-4 w-4 text-brand-green" />
+								</div>
+								<div className="flex flex-col">
+									<span className="font-bold font-mono text-[10px] text-neutral-500 uppercase tracking-wider">
+										Scanner Status
+									</span>
+									<span className="font-bold text-black text-sm uppercase">
+										Ready to Scan
+									</span>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -275,7 +302,9 @@ function EventCheckInContent() {
 						<CheckInStatus
 							status={view}
 							attendee={selectedAttendee}
-							onClose={searchMethod === "scan" ? handleResetToScan : handleReset}
+							onClose={
+								searchMethod === "scan" ? handleResetToScan : handleReset
+							}
 						/>
 					)}
 			</AnimatePresence>

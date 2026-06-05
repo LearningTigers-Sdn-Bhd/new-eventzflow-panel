@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2, Power } from "lucide-react";
+import { MoreHorizontal, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +15,16 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import type { PrintingService } from "@/lib/api/printing-service";
 import { updatePrintingService } from "@/lib/api/printing-service";
-import { PrintingServiceEditContent } from "../printing-service-edit-dialog";
 import { DeletePrintingServiceContent } from "../delete-printing-service-dialog";
+import { PrintingServiceEditContent } from "../printing-service-edit-dialog";
 
 interface PrintingServiceActionsMenuProps {
 	service: PrintingService;
 }
 
-export function PrintingServiceActionsMenu({ service }: PrintingServiceActionsMenuProps) {
+export function PrintingServiceActionsMenu({
+	service,
+}: PrintingServiceActionsMenuProps) {
 	const { openDialog } = useDialog();
 	const queryClient = useQueryClient();
 

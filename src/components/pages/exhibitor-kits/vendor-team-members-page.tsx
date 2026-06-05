@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Info, Plus, Users } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,13 +24,13 @@ import { getEventVendors } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
+import { TeamMemberPaymentSection } from "./team-member-payment-section";
 import { DataTable } from "./team-members/data-table";
 import {
 	type TeamMemberRow,
 	type TeamMembersTableMeta,
 	teamMembersColumns,
 } from "./team-members/team-members-columns";
-import { TeamMemberPaymentSection } from "./team-member-payment-section";
 
 interface VendorTeamMembersPageProps {
 	eventId: number;
@@ -39,8 +40,100 @@ interface VendorTeamMembersPageProps {
 interface TeamMemberInput {
 	id?: number;
 	full_name: string;
+	email: string;
+	phone: string;
 	created_at?: string;
 	_destroy?: boolean;
+}
+
+interface NewMemberFormState {
+	full_name: string;
+	email: string;
+	phone: string;
+}
+
+interface RawTeamMemberInput {
+	id?: number;
+	full_name?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	created_at?: string;
+	_destroy?: boolean;
+}
+
+interface ExtraSlotSummaryInput {
+	paid_extra_member_count?: number | null;
+	used_paid_extra_member_count?: number | null;
+}
+
+export function normalizeTeamMemberInput(
+	member: RawTeamMemberInput,
+): TeamMemberInput {
+	return {
+		id: member.id,
+		full_name: member.full_name ?? "",
+		email: member.email ?? "",
+		phone: member.phone ?? "",
+		created_at: member.created_at,
+		_destroy: member._destroy ?? false,
+	};
+}
+
+export function buildSingleTeamMemberPayload(member: TeamMemberInput) {
+	const normalized = normalizeTeamMemberInput(member);
+
+	return [
+		{
+			id: normalized.id,
+			full_name: normalized.full_name.trim(),
+			email: normalized.email.trim(),
+			phone: normalized.phone.trim(),
+			_destroy: normalized._destroy,
+		},
+	];
+}
+
+export function getExtraTeamMemberPaymentFeedback(
+	searchParams: URLSearchParams,
+) {
+	if (searchParams.get("source") !== "extra-team-member") {
+		return null;
+	}
+
+	if (searchParams.get("payment") === "success") {
+		return {
+			variant: "success" as const,
+			title: "Payment successful",
+			message: "Your extra team member payment was completed successfully.",
+		};
+	}
+
+	if (searchParams.get("payment") === "error") {
+		return {
+			variant: "error" as const,
+			title: "Payment not completed",
+			message:
+				"We could not confirm the payment. Please try again from the pending payment card.",
+		};
+	}
+
+	return null;
+}
+
+export function getExtraSlotSummary({
+	paid_extra_member_count,
+	used_paid_extra_member_count,
+}: ExtraSlotSummaryInput) {
+	const paid = paid_extra_member_count ?? 0;
+	if (paid <= 0) return null;
+
+	const inUse = Math.min(used_paid_extra_member_count ?? 0, paid);
+
+	return {
+		paid,
+		inUse,
+		label: `${inUse} / ${paid} in use`,
+	};
 }
 
 export function VendorTeamMembersPage({
@@ -49,6 +142,7 @@ export function VendorTeamMembersPage({
 }: VendorTeamMembersPageProps) {
 	const queryClient = useQueryClient();
 	const { openConfirm, closeDialog } = useConfirmDialog();
+	const searchParams = useSearchParams();
 
 	// Fetch vendor data
 	const { data: vendors, isLoading: isLoadingVendor } = useQuery({
@@ -72,12 +166,9 @@ export function VendorTeamMembersPage({
 	useEffect(() => {
 		if (kit?.exhibitor_team_members) {
 			setTeamMembers(
-				kit.exhibitor_team_members.map((m: ExhibitorTeamMember) => ({
-					id: m.id,
-					full_name: m.full_name,
-					created_at: m.created_at,
-					_destroy: false,
-				})),
+				kit.exhibitor_team_members.map((m: ExhibitorTeamMember) =>
+					normalizeTeamMemberInput(m),
+				),
 			);
 		}
 	}, [kit?.exhibitor_team_members]);
@@ -109,37 +200,52 @@ export function VendorTeamMembersPage({
 	});
 
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-	const [newMemberName, setNewMemberName] = useState("");
+	const [newMemberForm, setNewMemberForm] = useState<NewMemberFormState>({
+		full_name: "",
+		email: "",
+		phone: "",
+	});
 
 	const handleAddMember = () => {
 		setIsAddDialogOpen(true);
-		setNewMemberName("");
+		setNewMemberForm({ full_name: "", email: "", phone: "" });
 	};
 
 	const handleConfirmAdd = async () => {
-		if (!newMemberName.trim()) {
-			toast.error("Please enter a name");
+		if (!newMemberForm.full_name.trim()) {
+			toast.error("Please enter a full name");
+			return;
+		}
+
+		if (!newMemberForm.email.trim()) {
+			toast.error("Please enter an email address");
+			return;
+		}
+
+		if (!newMemberForm.phone.trim()) {
+			toast.error("Please enter a phone number");
 			return;
 		}
 
 		const updatedMembers = [
 			...teamMembers,
-			{ full_name: newMemberName.trim(), _destroy: false },
+			{
+				full_name: newMemberForm.full_name.trim(),
+				email: newMemberForm.email.trim(),
+				phone: newMemberForm.phone.trim(),
+				_destroy: false,
+			},
 		];
 		setTeamMembers(updatedMembers);
 		setIsAddDialogOpen(false);
-		setNewMemberName("");
+		setNewMemberForm({ full_name: "", email: "", phone: "" });
 
 		// Auto-save the new member
 		try {
 			await updateKitMutation.mutateAsync({
-				exhibitor_team_members_attributes: updatedMembers
-					.filter((m) => !m._destroy)
-					.map((m) => ({
-						id: m.id,
-						full_name: m.full_name.trim(),
-						_destroy: m._destroy,
-					})),
+				exhibitor_team_members_attributes: buildSingleTeamMemberPayload(
+					updatedMembers[updatedMembers.length - 1],
+				),
 			});
 		} catch (_error) {
 			// Revert on error
@@ -168,13 +274,9 @@ export function VendorTeamMembersPage({
 
 					// Auto-save the deletion
 					updateKitMutation.mutate({
-						exhibitor_team_members_attributes: updatedMembers
-							.filter((m) => m.id || !m._destroy)
-							.map((m) => ({
-								id: m.id,
-								full_name: m.full_name.trim(),
-								_destroy: m._destroy,
-							})),
+						exhibitor_team_members_attributes: buildSingleTeamMemberPayload(
+							updatedMembers[actualIndex],
+						),
 					});
 				} else {
 					// Remove new member from list (not yet saved)
@@ -204,10 +306,18 @@ export function VendorTeamMembersPage({
 		: 0;
 
 	// Total excess for display purposes (regardless of payment status)
-	const totalExcessCount = limit && currentCount > limit ? currentCount - limit : 0;
+	const totalExcessCount =
+		limit && currentCount > limit ? currentCount - limit : 0;
 	const totalCharges = totalExcessCount * fee;
+	const extraSlotSummary = getExtraSlotSummary({
+		paid_extra_member_count: kit?.paid_extra_member_count,
+		used_paid_extra_member_count: kit?.used_paid_extra_member_count,
+	});
 
 	const canAddMore = !limit || fee > 0 || currentCount < limit;
+	const paymentFeedback = getExtraTeamMemberPaymentFeedback(
+		new URLSearchParams(searchParams.toString()),
+	);
 
 	// Transform active members to table rows
 	const tableData: TeamMemberRow[] = useMemo(() => {
@@ -263,9 +373,37 @@ export function VendorTeamMembersPage({
 
 	return (
 		<div className="space-y-6 p-0">
+			{paymentFeedback && (
+				<Alert
+					className={
+						paymentFeedback.variant === "success"
+							? "rounded-none border-green-500 bg-green-50"
+							: "rounded-none border-red-500 bg-red-50"
+					}
+				>
+					<AlertCircle
+						className={
+							paymentFeedback.variant === "success"
+								? "h-4 w-4 text-green-600"
+								: "h-4 w-4 text-red-600"
+						}
+					/>
+					<AlertDescription
+						className={
+							paymentFeedback.variant === "success"
+								? "text-green-700"
+								: "text-red-700"
+						}
+					>
+						<span className="block font-medium">{paymentFeedback.title}</span>
+						<span>{paymentFeedback.message}</span>
+					</AlertDescription>
+				</Alert>
+			)}
+
 			{/* Summary Cards - Only show when there's a limit */}
 			{limit && (
-				<div className="grid gap-4 md:grid-cols-3">
+				<div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
 					<div className="border p-4">
 						<div className="mb-3">
 							<h3 className="font-medium text-sm">Total Members</h3>
@@ -299,6 +437,18 @@ export function VendorTeamMembersPage({
 							</p>
 						</div>
 					)}
+
+					{extraSlotSummary && (
+						<div className="border p-4">
+							<div className="mb-3">
+								<h3 className="font-medium text-sm">Paid Extra Slots</h3>
+							</div>
+							<div className="font-bold text-2xl">{extraSlotSummary.paid}</div>
+							<p className="text-muted-foreground text-xs">
+								{extraSlotSummary.label}
+							</p>
+						</div>
+					)}
 				</div>
 			)}
 
@@ -307,9 +457,9 @@ export function VendorTeamMembersPage({
 				<Alert className="rounded-none border-amber-500 bg-amber-50 dark:bg-amber-950/20">
 					<AlertCircle className="h-4 w-4 text-amber-600" />
 					<AlertDescription className="text-amber-600">
-						You have {totalExcessCount} team member{totalExcessCount !== 1 ? "s" : ""}{" "}
-						exceeding the free limit. Additional charges of RM{" "}
-						{totalCharges.toFixed(2)} will apply.
+						You have {totalExcessCount} team member
+						{totalExcessCount !== 1 ? "s" : ""} exceeding the free limit.
+						Additional charges of RM {totalCharges.toFixed(2)} will apply.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -321,6 +471,7 @@ export function VendorTeamMembersPage({
 				excessCount={unpaidExcessCount}
 				feePerMember={fee}
 				totalCharges={unpaidCharges}
+				paymentMode={kit.extra_team_member_payment_mode}
 			/>
 
 			{/* Info about limit */}
@@ -348,7 +499,7 @@ export function VendorTeamMembersPage({
 
 			{/* Add Member Dialog */}
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="rounded-none sm:max-w-[425px]">
 					<DialogHeader>
 						<DialogTitle>Add Team Member</DialogTitle>
 						<DialogDescription>
@@ -369,9 +520,49 @@ export function VendorTeamMembersPage({
 							<Label htmlFor="member-name">Full Name</Label>
 							<Input
 								id="member-name"
-								value={newMemberName}
-								onChange={(e) => setNewMemberName(e.target.value)}
+								value={newMemberForm.full_name}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										full_name: e.target.value,
+									}))
+								}
 								placeholder="Enter full name"
+								className="rounded-none"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="member-email">Email Address</Label>
+							<Input
+								id="member-email"
+								type="email"
+								value={newMemberForm.email}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										email: e.target.value,
+									}))
+								}
+								placeholder="name@example.com"
+								className="rounded-none"
+							/>
+							<p className="text-muted-foreground text-xs">
+								Use the member&apos;s real email address. Their QR code will be
+								sent to this email.
+							</p>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="member-phone">Phone Number</Label>
+							<Input
+								id="member-phone"
+								value={newMemberForm.phone}
+								onChange={(e) =>
+									setNewMemberForm((current) => ({
+										...current,
+										phone: e.target.value,
+									}))
+								}
+								placeholder="Enter phone number"
 								className="rounded-none"
 								onKeyDown={(e) => {
 									if (e.key === "Enter") {

@@ -19,7 +19,31 @@ import type { DrawStyle, DrawTheme } from "../../types";
 
 interface DrawStyleFieldProps {
 	// biome-ignore lint/suspicious/noExplicitAny: FieldApi requires generic types for form fields
-	field: FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+	field: FieldApi<
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>;
 	isPending?: boolean;
 }
 
@@ -62,7 +86,31 @@ export function DrawStyleField({
 
 interface DrawThemeFieldProps {
 	// biome-ignore lint/suspicious/noExplicitAny: FieldApi requires generic types for form fields
-	field: FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+	field: FieldApi<
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>;
 	isPending?: boolean;
 }
 

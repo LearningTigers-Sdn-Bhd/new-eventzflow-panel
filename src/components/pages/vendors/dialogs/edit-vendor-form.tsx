@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, Eye, EyeOff, User } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, Eye, EyeOff, Shield, User } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
@@ -11,6 +11,8 @@ import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { getOrganizers } from "@/lib/api/team";
 import type { Vendor } from "@/lib/api/vendor";
 import { updateVendor } from "@/lib/api/vendor";
 
@@ -53,6 +55,7 @@ export default function EditVendorForm({
 	vendor,
 	onClose,
 }: EditVendorFormProps) {
+	const { user } = useAuth();
 	const nameId = useId();
 	const emailId = useId();
 	const phoneId = useId();
@@ -64,6 +67,23 @@ export default function EditVendorForm({
 	const companyProfileId = useId();
 	const addressId = useId();
 	const notesId = useId();
+	const assignedToId = useId();
+
+	const isOrgOwner = user?.role === "org_owner";
+
+	const { data: organizers = [] } = useQuery({
+		queryKey: ["organizers"],
+		queryFn: getOrganizers,
+		enabled: isOrgOwner,
+	});
+
+	const organizerOptions = [
+		{ value: "none", label: "None (unassigned)" },
+		...organizers.map((o) => ({
+			value: o.id,
+			label: `${o.full_name} (${o.email})`,
+		})),
+	];
 
 	const initialCategoryState = getCategoryState(vendor.vendorProfile?.category);
 
@@ -72,7 +92,6 @@ export default function EditVendorForm({
 		email: vendor.email,
 		phone: vendor.phone || "",
 		newPassword: "",
-		// Vendor profile fields
 		category: initialCategoryState.selected,
 		customCategory: initialCategoryState.custom,
 		person_in_charge: vendor.vendorProfile?.person_in_charge || "",
@@ -80,10 +99,13 @@ export default function EditVendorForm({
 		company_profile: vendor.vendorProfile?.company_profile || "",
 		address: vendor.vendorProfile?.address || "",
 		notes: vendor.vendorProfile?.notes || "",
+		created_by_id: "",
 	});
 
 	const [image, setImage] = useState<File | null>(null);
-	const [imageUrl, setImageUrl] = useState(vendor.vendorProfile?.image_url || "");
+	const [imageUrl, setImageUrl] = useState(
+		vendor.vendorProfile?.image_url || "",
+	);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [showPassword, setShowPassword] = useState(false);
@@ -103,6 +125,7 @@ export default function EditVendorForm({
 			company_profile: vendor.vendorProfile?.company_profile || "",
 			address: vendor.vendorProfile?.address || "",
 			notes: vendor.vendorProfile?.notes || "",
+			created_by_id: "",
 		});
 		setImage(null);
 		setImageUrl(vendor.vendorProfile?.image_url || "");
@@ -147,12 +170,16 @@ export default function EditVendorForm({
 
 		try {
 			// Determine final category value
-			const finalCategory = formData.category === "Others"
-				? formData.customCategory.trim()
-				: formData.category;
+			const finalCategory =
+				formData.category === "Others"
+					? formData.customCategory.trim()
+					: formData.category;
 
 			// Build profile attributes - send empty string to clear fields, undefined to keep unchanged
-			const profileAttributes: Record<string, string | number | File | boolean | undefined> = {};
+			const profileAttributes: Record<
+				string,
+				string | number | File | boolean | undefined
+			> = {};
 
 			// Include profile id for updates (prevents destroy/recreate)
 			if (vendor.vendorProfile?.id) {
@@ -166,7 +193,6 @@ export default function EditVendorForm({
 			profileAttributes.company_profile = formData.company_profile;
 			profileAttributes.address = formData.address;
 			profileAttributes.notes = formData.notes;
-
 
 			// Handle image
 			if (image) {
@@ -182,6 +208,11 @@ export default function EditVendorForm({
 				email: formData.email,
 				phone: formData.phone || undefined,
 				newPassword: formData.newPassword || undefined,
+				created_by_id: isOrgOwner
+					? formData.created_by_id === "none" || formData.created_by_id === ""
+						? null
+						: formData.created_by_id
+					: undefined,
 				vendor_profile_attributes: profileAttributes,
 			});
 		} catch {
@@ -240,15 +271,19 @@ export default function EditVendorForm({
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<InputLabel
 										htmlFor={nameId}
-										label="Full Name"
-										placeholder="John Doe"
+										label="Full Entity Name (Company / Association / Institution)"
+										placeholder="Enter full entity name"
 										value={formData.full_name}
 										onChange={(value) => handleChange("full_name", value)}
 										required
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.full_name}
-										errors={errors.full_name ? [{ message: errors.full_name }] : undefined}
+										errors={
+											errors.full_name
+												? [{ message: errors.full_name }]
+												: undefined
+										}
 									/>
 									<InputLabel
 										htmlFor={emailId}
@@ -260,7 +295,9 @@ export default function EditVendorForm({
 										disabled={isPending}
 										variant="no-rounded"
 										isInvalid={!!errors.email}
-										errors={errors.email ? [{ message: errors.email }] : undefined}
+										errors={
+											errors.email ? [{ message: errors.email }] : undefined
+										}
 									/>
 								</div>
 
@@ -286,7 +323,9 @@ export default function EditVendorForm({
 										variant="no-rounded"
 										onAction={() => setShowPassword(!showPassword)}
 										actionIcon={showPassword ? <EyeOff /> : <Eye />}
-										actionLabel={showPassword ? "Hide password" : "Show password"}
+										actionLabel={
+											showPassword ? "Hide password" : "Show password"
+										}
 									/>
 								</div>
 							</div>
@@ -311,7 +350,9 @@ export default function EditVendorForm({
 							description: "Vendor business information and profile",
 						}}
 					>
-						<div className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+						<div
+							className={`grid grid-cols-1 gap-4 ${formData.category === "Others" ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+						>
 							<SelectLabel
 								htmlFor={categoryId}
 								label="Business Category"
@@ -398,6 +439,30 @@ export default function EditVendorForm({
 							/>
 						</div>
 					</FormGroupContainer>
+
+					{/* Organizer Assignment - org_owner only */}
+					{isOrgOwner && (
+						<FormGroupContainer
+							title={{
+								icon: Shield,
+								label: "Organizer Assignment",
+								description: "Assign this vendor to an organizer.",
+							}}
+						>
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<SelectLabel
+									htmlFor={assignedToId}
+									label="Assigned To (Organizer)"
+									placeholder="Select organizer"
+									value={formData.created_by_id || undefined}
+									onChange={(value) => handleChange("created_by_id", value)}
+									options={organizerOptions}
+									disabled={isPending}
+									variant="no-rounded"
+								/>
+							</div>
+						</FormGroupContainer>
+					)}
 				</FieldSet>
 
 				{/* Action Buttons */}

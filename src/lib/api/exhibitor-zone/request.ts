@@ -19,6 +19,12 @@ export const deleteExhibitorZoneSchema = z.object({
 	id: z.number().min(1, "Zone ID is required"),
 });
 
-export type CreateExhibitorZoneRequest = z.infer<typeof createExhibitorZoneSchema>;
-export type UpdateExhibitorZoneRequest = z.infer<typeof updateExhibitorZoneSchema>;
-export type DeleteExhibitorZoneRequest = z.infer<typeof deleteExhibitorZoneSchema>;
+export type CreateExhibitorZoneRequest = z.infer<
+	typeof createExhibitorZoneSchema
+>;
+export type UpdateExhibitorZoneRequest = z.infer<
+	typeof updateExhibitorZoneSchema
+>;
+export type DeleteExhibitorZoneRequest = z.infer<
+	typeof deleteExhibitorZoneSchema
+>;

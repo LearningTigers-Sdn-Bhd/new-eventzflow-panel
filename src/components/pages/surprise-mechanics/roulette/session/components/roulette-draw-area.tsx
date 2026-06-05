@@ -2,8 +2,10 @@
 
 import { DrawComponent } from "@/components/pages/surprise-mechanics/shared/components/draw-component";
 import { SessionDrawArea } from "@/components/pages/surprise-mechanics/shared/components/session-draw-area";
+import { SessionFullscreenToggle } from "@/components/pages/surprise-mechanics/shared/components/session-header";
 import { DrawProvider } from "@/components/pages/surprise-mechanics/shared/contexts/draw-context";
 import type { Prize } from "@/components/pages/surprise-mechanics/shared/draw-styles/type";
+import { cn } from "@/lib/utils";
 import type { Participant } from "@/stores/lucky-draw-store";
 import { useRouletteSession } from "../session-provider";
 
@@ -19,6 +21,8 @@ export function RouletteDrawArea() {
 		backgroundStyle,
 		handleDrawComplete,
 		handleOpenDrawDialog,
+		isFullscreen,
+		toggleFullscreen,
 	} = useRouletteSession();
 
 	// Wrapper function to adapt handleDrawComplete signature
@@ -36,7 +40,12 @@ export function RouletteDrawArea() {
 	};
 
 	return (
-		<div className="lg:col-span-2">
+		<div
+			className={cn(
+				"lg:col-span-2",
+				isFullscreen ? "fixed inset-0 z-50 bg-background" : "",
+			)}
+		>
 			<DrawProvider
 				value={{
 					drawStyle,
@@ -53,7 +62,18 @@ export function RouletteDrawArea() {
 				<SessionDrawArea
 					session={session}
 					backgroundStyle={backgroundStyle}
+					className={cn(
+						"flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-0 transition-all duration-300 md:p-6",
+						isFullscreen ? "h-screen w-full" : "aspect-video w-full max-w-7xl",
+					)}
 					drawComponent={<DrawComponent />}
+					fullscreenToggle={
+						<SessionFullscreenToggle
+							isFullscreen={isFullscreen}
+							onToggle={toggleFullscreen}
+							isOverlay
+						/>
+					}
 				/>
 			</DrawProvider>
 		</div>

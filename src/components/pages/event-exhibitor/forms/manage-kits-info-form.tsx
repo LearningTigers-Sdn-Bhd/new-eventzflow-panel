@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { EventVendor } from "@/lib/api/event-vendor";
 import { getEventById } from "@/lib/api/event";
+import type { EventVendor } from "@/lib/api/event-vendor";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManageKitsInfoFormProps {
@@ -280,13 +280,13 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 								id={nameOnFasciaField}
 								value={nameOnFascia}
 								onChange={(e) => setNameOnFascia(e.target.value)}
-								placeholder="Max 25 chars"
-								maxLength={25}
+								placeholder="Max 30 chars"
+								maxLength={30}
 								disabled={updateKitMutation.isPending}
 								className="rounded-none text-sm"
 							/>
 							<FieldDescription className="text-xs">
-								{nameOnFascia.length}/25
+								{nameOnFascia.length}/30
 							</FieldDescription>
 						</Field>
 						<Field orientation="vertical">

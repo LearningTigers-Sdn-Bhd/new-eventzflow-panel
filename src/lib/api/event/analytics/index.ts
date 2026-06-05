@@ -17,10 +17,10 @@ export {
 export {
 	type GetEventAnalyticsRequest,
 	type GetTimeSeriesRequest,
-	type TimeSeriesGroupBy,
-	type TimeSeriesMetric,
 	getEventAnalyticsSchema,
 	getTimeSeriesSchema,
+	type TimeSeriesGroupBy,
+	type TimeSeriesMetric,
 } from "./request";
 
 // Response types
