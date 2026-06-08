@@ -126,26 +126,49 @@ export const kyClient = ky.create({
 		],
 		afterResponse: [
 			async (request, _options, response) => {
-				// Global 401 handler
+				// Global 401 handler — attempts recovery before clearing session
 				if (response.status === 401) {
 					const url = new URL(request.url);
-					// Don't intercept auth endpoints to avoid loops (e.g. failed login/refresh)
 					const isAuthEndpoint = url.pathname.includes("/auth/");
 
 					if (!isAuthEndpoint) {
-						logger.warn("401 Unauthorized detected. Clearing session.");
+						logger.warn(
+							"401 Unauthorized detected. Attempting token refresh before logout.",
+						);
 
-						// Clear session
+						try {
+							// Dynamically import to avoid circular dependency
+							const { refreshToken } = await import(
+								"@/lib/api/auth/endpoints"
+							);
+							await refreshToken();
+
+							// Refresh succeeded — token was likely rotated by another tab.
+							// The original request already failed, but the session is valid.
+							// Return the failed response; the caller (react-query) will retry.
+							logger.info(
+								"Token refresh recovered session after 401.",
+							);
+							return response;
+						} catch {
+							// Refresh also failed — session is truly invalid
+							logger.warn(
+								"Token refresh failed after 401. Clearing session.",
+							);
+						}
+
+						// Clear session only after refresh retry fails
 						const state = useUserSessionStore.getState();
 						state.removeSessionCredentials();
 						state.setUser(null);
 
-						// Redirect to login if in browser
 						if (typeof window !== "undefined") {
-							// Use window.location to force a full refresh and clear client state
-							// Append return URL if needed
 							const currentPath = window.location.pathname;
-							if (currentPath !== "/sign-in" && currentPath !== "/login") {
+							if (
+								currentPath !== "/sign-in" &&
+								currentPath !== "/login" &&
+								currentPath !== "/auth"
+							) {
 								window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
 							}
 						}

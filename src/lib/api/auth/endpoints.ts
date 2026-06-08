@@ -51,10 +51,15 @@ function isTokenExpiringSoon(expiresAt: number): boolean {
 }
 
 /**
- * Refresh access token using refresh token
+ * Refresh access token using refresh token.
+ *
+ * Includes a single retry to handle multi-tab race conditions:
+ * If another tab rotated the refresh token cookie between our read and
+ * the server check, the cookie will now contain the new valid token
+ * on retry (browser updates cookies from Set-Cookie immediately).
  */
 export async function refreshToken(): Promise<string> {
-	// Prevent multiple simultaneous refresh attempts
+	// Prevent multiple simultaneous refresh attempts within this tab
 	if (refreshPromise) {
 		return refreshPromise;
 	}
@@ -62,48 +67,62 @@ export async function refreshToken(): Promise<string> {
 	const state = useUserSessionStore.getState();
 
 	refreshPromise = (async () => {
-		try {
-			// No request body needed, cookie contains refresh token
-			// We send an empty object as body because it's a POST request
-			const response = await restClient.post<RefreshTokenResponse>(
-				"v1/auth/refresh_token",
-				{},
-			);
+		let lastError: unknown;
 
-			// Validate response
-			const validatedResponse = refreshTokenResponseSchema.parse(response);
+		// Attempt refresh up to 2 times to handle cross-tab token rotation
+		for (let attempt = 0; attempt < 2; attempt++) {
+			try {
+				const response = await restClient.post<RefreshTokenResponse>(
+					"v1/auth/refresh_token",
+					{},
+				);
 
-			if (!validatedResponse.success) {
-				throw new Error(validatedResponse.message || "Token refresh failed");
+				const validatedResponse =
+					refreshTokenResponseSchema.parse(response);
+
+				if (!validatedResponse.success) {
+					throw new Error(
+						validatedResponse.message || "Token refresh failed",
+					);
+				}
+
+				const { access_token, expires_at, user } =
+					validatedResponse.data;
+				const expiresAtTimestamp = parseExpiresAt(expires_at);
+
+				state.setSessionCredentials({
+					accessToken: access_token,
+					expiresAt: expiresAtTimestamp,
+				});
+				state.setUser(user);
+
+				return access_token;
+			} catch (error) {
+				lastError = error;
+
+				// On first failure, wait briefly for cookie to sync from
+				// another tab's successful rotation, then retry
+				if (attempt === 0) {
+					await new Promise((resolve) => setTimeout(resolve, 1000));
+					continue;
+				}
 			}
-
-			const { access_token, expires_at, user } = validatedResponse.data;
-			const expiresAtTimestamp = parseExpiresAt(expires_at);
-
-			// Update store with new tokens
-			// Note: We don't store refresh_token anymore, it's in the HttpOnly cookie
-			state.setSessionCredentials({
-				accessToken: access_token,
-				expiresAt: expiresAtTimestamp,
-			});
-			state.setUser(user);
-
-			return access_token;
-		} catch (error) {
-			// If refresh fails, the session is unrecoverable.
-			// Log the user out to force re-authentication.
-			logout();
-
-			if (error instanceof Error && error.name === "ZodError") {
-				throw new Error("Invalid refresh token response");
-			}
-			throw error;
-		} finally {
-			refreshPromise = null;
 		}
+
+		// Both attempts failed — session is truly unrecoverable
+		logout();
+
+		if (lastError instanceof Error && lastError.name === "ZodError") {
+			throw new Error("Invalid refresh token response");
+		}
+		throw lastError;
 	})();
 
-	return refreshPromise;
+	try {
+		return await refreshPromise;
+	} finally {
+		refreshPromise = null;
+	}
 }
 
 /**
