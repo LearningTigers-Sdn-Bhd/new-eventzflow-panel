@@ -283,20 +283,52 @@ export function PlanEditorContent({
 	const duplicateObjectsMutation = useMutation({
 		mutationFn: async (objects: PlanObject[]) => {
 			await savePendingChanges();
-			const duplicates = objects.map((obj) => ({
-				object_type: obj.object_type,
-				layer: obj.layer,
-				x: obj.x + 20,
-				y: obj.y + 20,
-				rotation: obj.rotation || 0,
-				width: obj.width,
-				height: obj.height,
-				path: obj.path,
-				label: obj.label ? `${obj.label} (Copy)` : undefined,
-				capacity: obj.capacity,
-				locked: false,
-				z_index: obj.z_index || 0,
-			}));
+
+			const existingLabels = new Set(
+				(plan.plan_objects || []).map((o) => o.label).filter(Boolean),
+			);
+			const usedInBatch = new Set<string>();
+
+			const duplicates = objects.map((obj) => {
+				let nextLabel = obj.label || undefined;
+
+				if (obj.label) {
+					const base = obj.label.replace(/\s\(Copy\)$/, "").trim();
+					const match = base.match(/^(.*?)\s?(\d+)$/);
+					let namePart = base;
+					let startNum = 1;
+
+					if (match) {
+						namePart = match[1].trim();
+						startNum = Number.parseInt(match[2], 10) + 1;
+					}
+
+					let num = startNum;
+					while (
+						existingLabels.has(`${namePart} ${num}`) ||
+						usedInBatch.has(`${namePart} ${num}`)
+					) {
+						num++;
+					}
+					nextLabel = `${namePart} ${num}`;
+					usedInBatch.add(nextLabel);
+				}
+
+				return {
+					object_type: obj.object_type,
+					layer: obj.layer,
+					x: obj.x + 20,
+					y: obj.y + 20,
+					rotation: obj.rotation || 0,
+					width: obj.width,
+					height: obj.height,
+					path: obj.path,
+					label: nextLabel,
+					capacity: obj.capacity,
+					locked: false,
+					z_index: obj.z_index || 0,
+				};
+			});
 			return batchCreatePlanObjects(plan.id.toString(), duplicates);
 		},
 		onSuccess: (newObjects) => {
