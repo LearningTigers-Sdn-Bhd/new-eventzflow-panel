@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { format, isSameDay, isValid, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect } from "react";
 import { RegistrationOptionCards } from "@/components/pages/public-registration/RegistrationOptionCards";
 import { getPublicEventById } from "@/lib/api/event/endpoints";
-import { getPublicRegistrationForms } from "@/lib/api/public-registration";
+import { getPublicPassBundle, getPublicRegistrationForms } from "@/lib/api/public-registration";
 import { buildPublicRegistrationLandingTitle } from "@/lib/public-registration/title";
 import { API_BASE_URL } from "@/utils/rest-api";
 
@@ -78,6 +79,24 @@ export default function EventRegistrationLandingPage({
 	params: Promise<{ slug: string }>;
 }) {
 	const { slug } = use(params);
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const bundleToken = searchParams.get("bundle");
+
+	const bundleQuery = useQuery({
+		queryKey: ["public-pass-bundle", slug, bundleToken],
+		queryFn: () => getPublicPassBundle(slug, bundleToken!),
+		enabled: Boolean(bundleToken),
+		retry: false,
+	});
+
+	useEffect(() => {
+		if (!bundleToken || !bundleQuery.data) return;
+		const formSlug = bundleQuery.data.registration_form.slug;
+		router.replace(
+			`/events/${encodeURIComponent(slug)}/register/${encodeURIComponent(formSlug)}?bundle=${encodeURIComponent(bundleToken)}`,
+		);
+	}, [bundleToken, bundleQuery.data, slug, router]);
 
 	const eventQuery = useQuery({
 		queryKey: ["public-event", slug],
@@ -108,6 +127,29 @@ export default function EventRegistrationLandingPage({
 			eventQuery.data?.title,
 		);
 	}, [eventQuery.data?.title]);
+
+	if (bundleToken && bundleQuery.isLoading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-slate-50/50">
+				<div className="h-8 w-8 animate-spin rounded-full border-3 border-slate-200 border-t-brand-green" />
+			</div>
+		);
+	}
+
+	if (bundleToken && bundleQuery.isError) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-slate-50/50 px-4">
+				<div className="border-2 border-black bg-white p-8 text-center max-w-md w-full">
+					<h2 className="mb-3 font-black text-2xl text-black tracking-tighter">
+						INVALID BUNDLE LINK
+					</h2>
+					<p className="text-black/60">
+						This bundle link is invalid, expired, or has reached its limit.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<section className="relative min-h-screen overflow-hidden bg-slate-50/50">

@@ -88,9 +88,11 @@ async function loadRazorpayCheckoutScript() {
 export function PublicRegistrationForm({
 	eventSlug,
 	formSlug,
+	bundleToken,
 }: {
 	eventSlug: string;
 	formSlug: string;
+	bundleToken?: string;
 }) {
 	// Steps: 1 = ticket type, 2 = email, 3 = attendee details
 	const [currentStep, setCurrentStep] = useState(1);
@@ -123,12 +125,14 @@ export function PublicRegistrationForm({
 		singleResult,
 		groupResult,
 		statusMessage,
+		bundleData,
+		bundleError,
 		checkExistingRegistration,
 		submit,
-	} = usePublicRegistrationForm({ eventSlug, formSlug });
+	} = usePublicRegistrationForm({ eventSlug, formSlug, bundleToken });
 
 	const ticketTypes = ticketTypesQuery.data ?? [];
-	const hasMultipleTicketTypes = ticketTypes.length > 1;
+	const hasMultipleTicketTypes = ticketTypes.length > 1 && !bundleToken;
 
 	const selectedTicketType = useMemo(() => {
 		return ticketTypes.find((t) => t.id === selectedTicketTypeId) ?? null;
@@ -174,6 +178,12 @@ export function PublicRegistrationForm({
 			}
 		}
 	}, [ticketTypes, hasMultipleTicketTypes, currentStep]);
+
+	useEffect(() => {
+		if (bundleData?.ticket_type?.id) {
+			setSelectedTicketTypeId(bundleData.ticket_type.id);
+		}
+	}, [bundleData?.ticket_type?.id]);
 
 	// Handle group registration attendee count
 	useEffect(() => {
@@ -237,7 +247,8 @@ export function PublicRegistrationForm({
 	const loading =
 		eventQuery.isLoading ||
 		ticketTypesQuery.isLoading ||
-		registrationFormsQuery.isLoading;
+		registrationFormsQuery.isLoading ||
+		(Boolean(bundleToken) && !bundleData && !bundleError);
 
 	// Step validation
 	const canProceedStep1 = selectedTicketTypeId !== null;
@@ -583,6 +594,25 @@ export function PublicRegistrationForm({
 		);
 	}
 
+	if (bundleToken && bundleError) {
+		return (
+			<div className="border-2 border-black bg-white p-8 text-center md:p-10">
+				<div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center bg-red-50">
+					<Ticket className="h-8 w-8 text-red-400" />
+				</div>
+				<h2 className="mb-3 font-black text-2xl text-black tracking-tighter">
+					INVALID BUNDLE LINK
+				</h2>
+				<p className="mx-auto mb-6 max-w-md text-black/60">
+					This bundle link is invalid, expired, or has reached its limit.
+				</p>
+				<p className="text-black/40 text-sm">
+					Please contact the organizer for a valid bundle link.
+				</p>
+			</div>
+		);
+	}
+
 	// No ticket types available for this form
 	if (ticketTypes.length === 0) {
 		return (
@@ -627,6 +657,19 @@ export function PublicRegistrationForm({
 
 	return (
 		<div className="mx-auto w-full max-w-2xl">
+			{bundleData && (
+				<div className="mb-6 flex items-center gap-3 rounded-xl border border-brand-green/20 bg-brand-green/5 px-4 py-3">
+					<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-green/10">
+						<Ticket className="h-4 w-4 text-brand-green" />
+					</div>
+					<div className="min-w-0">
+						<p className="font-semibold text-slate-900 text-sm">{bundleData.name}</p>
+						<p className="text-slate-500 text-xs">
+							Bundle pass · {bundleData.remaining_count} of {bundleData.pass_limit} remaining
+						</p>
+					</div>
+				</div>
+			)}
 			{/* Stepper */}
 			<div className="mb-8 sm:mb-12">
 				<div className="relative mx-auto w-full max-w-[500px]">
