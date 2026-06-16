@@ -11,6 +11,26 @@ export async function getTicketRsvp(
 	);
 }
 
+export async function getTicketRsvpServer(
+	data: TicketRsvpRequest,
+): Promise<PublicTicketRsvpResponse> {
+	const validated = ticketRsvpRequestSchema.parse(data);
+	const baseUrl =
+		process.env.API_URL ||
+		process.env.NEXT_PUBLIC_API_URL ||
+		"http://localhost:3000";
+	const res = await fetch(
+		`${baseUrl}/v1/public/events/${validated.eventId}/ticket_rsvp/${validated.token}`,
+		{ cache: "no-store" },
+	);
+	if (!res.ok) {
+		const body = await res.json().catch(() => ({}));
+		throw new Error((body as { message?: string })?.message || "Not found");
+	}
+	return res.json() as Promise<PublicTicketRsvpResponse>;
+}
+
+
 export async function confirmTicketRsvp(
 	data: TicketRsvpRequest,
 ): Promise<PublicTicketRsvpResponse> {

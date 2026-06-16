@@ -71,3 +71,9 @@ export type RejectTicketApplicationRequest = z.infer<
 	typeof rejectTicketApplicationSchema
 >;
 export type ResendTicketRsvpRequest = z.infer<typeof resendTicketRsvpSchema>;
+
+export const approveTicketRsvpSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+});
+export type ApproveTicketRsvpRequest = z.infer<typeof approveTicketRsvpSchema>;

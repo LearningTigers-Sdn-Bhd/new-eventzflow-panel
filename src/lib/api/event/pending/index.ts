@@ -3,6 +3,7 @@
 // API endpoints
 export {
 	approveTicketApplication,
+	approveTicketRsvp,
 	createPendingTicket,
 	getPendingTickets,
 	rejectTicketApplication,
@@ -12,6 +13,8 @@ export {
 export {
 	type ApproveTicketApplicationRequest,
 	approveTicketApplicationSchema,
+	type ApproveTicketRsvpRequest,
+	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
 	type GetPendingTicketsRequest,

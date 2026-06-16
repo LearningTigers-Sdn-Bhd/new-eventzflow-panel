@@ -2,6 +2,8 @@ import { restClient } from "@/utils/rest-api";
 import {
 	type ApproveTicketApplicationRequest,
 	approveTicketApplicationSchema,
+	type ApproveTicketRsvpRequest,
+	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
 	type GetPendingTicketsRequest,
@@ -200,6 +202,16 @@ export async function resendTicketRsvp(
 	const validated = resendTicketRsvpSchema.parse(data);
 	const response = await restClient.post<BackendPendingTicket>(
 		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/resend_rsvp`,
+	);
+	return transformPendingTicket(response);
+}
+
+export async function approveTicketRsvp(
+	data: ApproveTicketRsvpRequest,
+): Promise<PendingTicket> {
+	const validated = approveTicketRsvpSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/approve_rsvp`,
 	);
 	return transformPendingTicket(response);
 }

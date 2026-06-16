@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, MoreHorizontal, Pencil, Send, X } from "lucide-react";
+import { Check, Eye, MoreHorizontal, Pencil, Send, UserCheck, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	approveTicketApplication,
+	approveTicketRsvp,
 	resendTicketRsvp,
 } from "@/lib/api/event/pending";
 import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
@@ -69,6 +70,19 @@ export function usePendingTicketActions({
 		},
 	});
 
+	const approveRsvpMutation = useMutation({
+		mutationFn: () => approveTicketRsvp({ eventId, ticketId: ticket.publicId }),
+		onSuccess: () => {
+			toast.success("RSVP approved on behalf of attendee");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to approve RSVP");
+		},
+	});
+
 	const openEditModal = () => {
 		openDialog({
 			component: PendingTicketEditModal,
@@ -114,6 +128,7 @@ export function usePendingTicketActions({
 	return {
 		approveMutation,
 		resendMutation,
+		approveRsvpMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
@@ -126,6 +141,7 @@ export function PendingTicketActionsMenu({
 	const {
 		approveMutation,
 		resendMutation,
+		approveRsvpMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
@@ -138,6 +154,9 @@ export function PendingTicketActionsMenu({
 	const canResend =
 		ticket.ticketApplication?.reviewStatus === "approved" &&
 		ticket.ticketApplication?.rsvpStatus !== "confirmed";
+	const canApproveRsvp =
+		ticket.ticketApplication?.reviewStatus === "approved" &&
+		ticket.ticketApplication?.rsvpStatus === "sent";
 	const hasTicketApplication = Boolean(ticket.ticketApplication);
 
 	return (
@@ -197,6 +216,14 @@ export function PendingTicketActionsMenu({
 						>
 							<Send className="mr-2 h-4 w-4 text-indigo-600" />
 							Resend RSVP
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => approveRsvpMutation.mutate()}
+							disabled={!canApproveRsvp || approveRsvpMutation.isPending}
+							className="rounded-none"
+						>
+							<UserCheck className="mr-2 h-4 w-4 text-violet-600" />
+							Approve RSVP
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
