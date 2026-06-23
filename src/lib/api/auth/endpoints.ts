@@ -42,12 +42,13 @@ function parseExpiresAt(expiresAt: string): number {
 }
 
 /**
- * Check if token is expired or expiring soon (within 5 minutes)
+ * Check if token is expired or expiring soon (within 2 minutes)
+ * Used for determining when to proactively refresh
  */
 function isTokenExpiringSoon(expiresAt: number): boolean {
 	const now = Date.now();
-	const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-	return expiresAt - now <= fiveMinutes;
+	const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
+	return expiresAt - now <= twoMinutes;
 }
 
 /**
@@ -57,6 +58,8 @@ function isTokenExpiringSoon(expiresAt: number): boolean {
  * If another tab rotated the refresh token cookie between our read and
  * the server check, the cookie will now contain the new valid token
  * on retry (browser updates cookies from Set-Cookie immediately).
+ *
+ * Note: We track lastRefreshAt to prevent refresh spam across tabs.
  */
 export async function refreshToken(): Promise<string> {
 	// Prevent multiple simultaneous refresh attempts within this tab
@@ -65,6 +68,7 @@ export async function refreshToken(): Promise<string> {
 	}
 
 	const state = useUserSessionStore.getState();
+	const currentCredentials = state.sessionCredentials;
 
 	refreshPromise = (async () => {
 		let lastError: unknown;
@@ -93,6 +97,7 @@ export async function refreshToken(): Promise<string> {
 				state.setSessionCredentials({
 					accessToken: access_token,
 					expiresAt: expiresAtTimestamp,
+					lastRefreshAt: Date.now(), // Track refresh time for rate limiting
 				});
 				state.setUser(user);
 
@@ -110,7 +115,11 @@ export async function refreshToken(): Promise<string> {
 		}
 
 		// Both attempts failed — session is truly unrecoverable
-		logout();
+		// Only clear session if the token was actually expired
+		// Don't clear if it's just a server error (token might still be valid)
+		if (currentCredentials && Date.now() >= currentCredentials.expiresAt) {
+			logout();
+		}
 
 		if (lastError instanceof Error && lastError.name === "ZodError") {
 			throw new Error("Invalid refresh token response");
@@ -156,6 +165,7 @@ export async function login(
 		state.setSessionCredentials({
 			accessToken: access_token,
 			expiresAt: expiresAtTimestamp,
+			lastRefreshAt: Date.now(),
 		});
 		state.setUser(user);
 		return validatedResponse;
@@ -205,6 +215,7 @@ export async function register(
 		state.setSessionCredentials({
 			accessToken: access_token,
 			expiresAt: expiresAtTimestamp,
+			lastRefreshAt: Date.now(),
 		});
 		state.setUser(user);
 
@@ -400,6 +411,7 @@ export async function updatePassword(
 			state.setSessionCredentials({
 				accessToken: access_token,
 				expiresAt: expiresAtTimestamp,
+				lastRefreshAt: Date.now(),
 			});
 		}
 		return validated;

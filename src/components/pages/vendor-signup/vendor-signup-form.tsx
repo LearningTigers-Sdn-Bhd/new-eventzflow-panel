@@ -90,6 +90,7 @@ export function VendorSignupForm({
 			setSessionCredentials({
 				accessToken: access_token,
 				expiresAt: new Date(expires_at).getTime(),
+				lastRefreshAt: Date.now(),
 			});
 
 			onSuccess(response.data.event_vendor.event_title);

@@ -14,7 +14,10 @@ import { useUserSessionStore } from "@/stores/new-auth-store";
  */
 
 const REFRESH_CHANNEL_NAME = "eventzflow_token_refresh";
-const CROSS_TAB_WAIT_MS = 3000; // Max time to wait for another tab's refresh
+// Increased wait time - 5 seconds is more reliable for slow servers
+const CROSS_TAB_WAIT_MS = 5000;
+// Minimum time between refresh attempts (matches store constant)
+const MIN_REFRESH_INTERVAL_MS = 30 * 1000;
 
 type RefreshMessage =
 	| { type: "refresh_start" }
@@ -25,6 +28,7 @@ class RefreshQueueService {
 	private refreshPromise: Promise<string> | null = null;
 	private channel: BroadcastChannel | null = null;
 	private externalRefreshInProgress = false;
+	private lastRefreshAttempt = 0;
 
 	// Endpoints that should not trigger token refresh
 	private readonly excludedEndpoints = [
@@ -72,10 +76,33 @@ class RefreshQueueService {
 
 	private shouldRefreshToken(): boolean {
 		const state = useUserSessionStore.getState();
+
+		// No credentials = not logged in, no need to refresh
 		if (!state.sessionCredentials) {
 			return false;
 		}
-		return state.isTokenExpired() || state.isTokenExpiringSoon();
+
+		// Token is expired - needs refresh
+		if (state.isTokenExpired()) {
+			return true;
+		}
+
+		// Token is expiring soon (within 2 minutes) - needs proactive refresh
+		if (state.isTokenExpiringSoon()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private canAttemptRefresh(): boolean {
+		const now = Date.now();
+		// Rate limit: don't refresh more than once every 30 seconds
+		if (now - this.lastRefreshAttempt < MIN_REFRESH_INTERVAL_MS) {
+			return false;
+		}
+		this.lastRefreshAttempt = now;
+		return true;
 	}
 
 	/**
@@ -100,6 +127,7 @@ class RefreshQueueService {
 				resolve(false);
 			}, CROSS_TAB_WAIT_MS);
 
+			// Check every 200ms for external refresh completion
 			const checkInterval = setInterval(() => {
 				// If another tab finished and our token is now valid, we're good
 				if (!this.externalRefreshInProgress || !this.shouldRefreshToken()) {
@@ -161,8 +189,26 @@ class RefreshQueueService {
 			return false;
 		}
 
+		// Check rate limiting
+		if (!this.canAttemptRefresh()) {
+			return false;
+		}
+
 		await this.startRefresh();
 		return true;
+	}
+
+	/**
+	 * Force a token refresh (for explicit refresh calls)
+	 */
+	async forceRefresh(): Promise<string> {
+		if (!this.canAttemptRefresh()) {
+			const credentials = useUserSessionStore.getState().sessionCredentials;
+			if (credentials) {
+				return credentials.accessToken;
+			}
+		}
+		return this.startRefresh();
 	}
 
 	/**

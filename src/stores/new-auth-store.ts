@@ -19,6 +19,7 @@ export interface User {
 interface SessionCredentials {
 	accessToken: string;
 	expiresAt: number;
+	lastRefreshAt: number; // Track when we last successfully refreshed
 }
 
 interface UserSessionState {
@@ -29,7 +30,16 @@ interface UserSessionState {
 	removeSessionCredentials: () => void;
 	isTokenExpired: () => boolean;
 	isTokenExpiringSoon: () => boolean;
+	canRefresh: () => boolean; // Prevent refresh spam - minimum time between refreshes
 }
+
+// Minimum time between refresh attempts to prevent spam (30 seconds)
+// This prevents multiple tabs from hammering the refresh endpoint
+const MIN_REFRESH_INTERVAL_MS = 30 * 1000;
+
+// Refresh buffer: refresh when token expires in 2 minutes (instead of 5)
+// This gives enough buffer for slow requests while not being too aggressive
+const REFRESH_BUFFER_MS = 2 * 60 * 1000;
 
 const userSessionStoreSlice: StateCreator<
 	UserSessionState,
@@ -49,8 +59,14 @@ const userSessionStoreSlice: StateCreator<
 	isTokenExpiringSoon: () => {
 		const credentials = get().sessionCredentials;
 		if (!credentials) return true;
-		const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-		return credentials.expiresAt - Date.now() <= fiveMinutes;
+		// Only consider expiring soon if within 2 minutes of expiry
+		return credentials.expiresAt - Date.now() <= REFRESH_BUFFER_MS;
+	},
+	canRefresh: () => {
+		const credentials = get().sessionCredentials;
+		if (!credentials?.lastRefreshAt) return true;
+		// Prevent refresh spam - minimum 30 seconds between refresh attempts
+		return Date.now() - credentials.lastRefreshAt >= MIN_REFRESH_INTERVAL_MS;
 	},
 });
 

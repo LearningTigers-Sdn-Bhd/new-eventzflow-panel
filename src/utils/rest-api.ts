@@ -151,25 +151,37 @@ export const kyClient = ky.create({
 							);
 							return response;
 						} catch {
-							// Refresh also failed — session is truly invalid
-							logger.warn(
-								"Token refresh failed after 401. Clearing session.",
-							);
-						}
+							// Refresh also failed — check if token was actually expired
+							// If token is not expired (just invalid rotation), don't logout
+							// This prevents logging out users when server has issues
+							const state = useUserSessionStore.getState();
+							const isExpired = state.isTokenExpired();
 
-						// Clear session only after refresh retry fails
-						const state = useUserSessionStore.getState();
-						state.removeSessionCredentials();
-						state.setUser(null);
+							if (isExpired) {
+								logger.warn(
+									"Token refresh failed after 401 and token is expired. Clearing session.",
+								);
+								// Clear session only if token was truly expired
+								state.removeSessionCredentials();
+								state.setUser(null);
 
-						if (typeof window !== "undefined") {
-							const currentPath = window.location.pathname;
-							if (
-								currentPath !== "/sign-in" &&
-								currentPath !== "/login" &&
-								currentPath !== "/auth"
-							) {
-								window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
+								if (typeof window !== "undefined") {
+									const currentPath = window.location.pathname;
+									if (
+										currentPath !== "/sign-in" &&
+										currentPath !== "/login" &&
+										currentPath !== "/auth"
+									) {
+										window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
+									}
+								}
+							} else {
+								// Token not expired but refresh failed - server issue
+								// Don't logout, let the user continue with existing token
+								// It might work on next request
+								logger.warn(
+									"Token refresh failed but token not expired. Preserving session.",
+								);
 							}
 						}
 					}
