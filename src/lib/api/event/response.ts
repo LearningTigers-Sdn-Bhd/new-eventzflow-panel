@@ -38,6 +38,7 @@ export type Event = {
 	use_sponsorship: boolean;
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
+	use_certificate: boolean;
 	use_api_access: boolean;
 	reminders_enabled: boolean;
 	reminder_7_day: boolean;

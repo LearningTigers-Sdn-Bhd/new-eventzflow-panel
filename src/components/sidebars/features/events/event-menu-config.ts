@@ -11,6 +11,7 @@
  */
 
 import {
+	Award,
 	Briefcase,
 	Building2,
 	ChartBar,
@@ -112,6 +113,7 @@ const visible = {
 	hasSeatTicketing: (_p: Permissions, e?: Event) =>
 		e?.use_seat_ticketing === true,
 	hasVouchers: (_p: Permissions, e?: Event) => e?.use_voucher === true,
+	hasCertificate: (_p: Permissions, e?: Event) => e?.use_certificate === true,
 	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
 
 	// Special access
@@ -311,9 +313,16 @@ export const eventMenuConfig: EventMenuConfig = {
 					description: "Create private bundle pass links for invited entities.",
 					icon: PackageOpen,
 				},
+				{
+					route: "certificates",
+					label: "E-Certificates",
+					description: "Design and send certificates to attendees.",
+					icon: Award,
+					visible: (p, e) =>
+						visible.hasCertificate(p, e) && visible.eventAdmin(p),
+				},
 			],
 		},
-
 		// ------------------------------------------------------------------------
 		// SEAT TICKETING GROUP
 		// ------------------------------------------------------------------------
