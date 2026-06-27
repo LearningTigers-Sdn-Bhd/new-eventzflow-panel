@@ -16,9 +16,27 @@ type CertificateCanvasProps = {
 	readOnly?: boolean;
 	onSelectField: (id: string | null) => void;
 	onChangeField: (id: string, patch: Partial<CertificateField>) => void;
-	/** Max pixel width the stage is allowed to occupy in the layout. */
-	maxStageWidth?: number;
 };
+
+// Tracks the available width of a container element so the canvas can scale to
+// fit it responsively (instead of assuming a fixed width that may overflow on
+// smaller screens like a MacBook Air).
+function useContainerWidth() {
+	const ref = useRef<HTMLDivElement>(null);
+	const [width, setWidth] = useState(0);
+
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		const update = () => setWidth(el.clientWidth);
+		update();
+		const observer = new ResizeObserver(update);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, []);
+
+	return { ref, width };
+}
 
 // Loads an HTMLImageElement for Konva without the `use-image` package.
 function useHtmlImage(url: string | null) {
@@ -78,87 +96,95 @@ export function CertificateCanvas({
 	readOnly = false,
 	onSelectField,
 	onChangeField,
-	maxStageWidth = 900,
 }: CertificateCanvasProps) {
 	const bgImage = useHtmlImage(backgroundUrl);
 	const stageRef = useRef<Konva.Stage>(null);
+	const { ref: containerRef, width: containerWidth } = useContainerWidth();
 
-	// Scale the design canvas down to fit the available layout width.
-	const scale = Math.min(1, maxStageWidth / canvasWidth);
+	// Scale the design canvas to fit the measured container width; never upscale
+	// beyond 1:1. Before the first measurement, render nothing (the container
+	// still mounts so it can be measured) to avoid a huge first paint that blows
+	// out the layout on smaller screens.
+	const measured = containerWidth > 0;
+	const scale = measured ? Math.min(1, containerWidth / canvasWidth) : 0;
 	const stageWidth = canvasWidth * scale;
 	const stageHeight = canvasHeight * scale;
 
 	return (
-		<div
-			className="overflow-hidden rounded-none border bg-muted/30"
-			style={{ width: stageWidth, height: stageHeight }}
-		>
-			<Stage
-				ref={stageRef}
-				width={stageWidth}
-				height={stageHeight}
-				scaleX={scale}
-				scaleY={scale}
-				onMouseDown={(e) => {
-					if (readOnly) return;
-					// Click on empty canvas clears selection.
-					if (e.target === e.target.getStage()) {
-						onSelectField(null);
-					}
-				}}
-			>
-				<Layer>
-					{bgImage ? (
-						<KonvaImage
-							image={bgImage}
-							width={canvasWidth}
-							height={canvasHeight}
-							listening={false}
-						/>
-					) : (
-						<Rect
-							width={canvasWidth}
-							height={canvasHeight}
-							fill="#ffffff"
-							stroke="#e5e7eb"
-							strokeWidth={2}
-							listening={false}
-						/>
-					)}
+		<div ref={containerRef} className="w-full">
+			{measured && (
+				<div
+					className="overflow-hidden rounded-none border bg-muted/30"
+					style={{ width: stageWidth, height: stageHeight }}
+				>
+					<Stage
+						ref={stageRef}
+						width={stageWidth}
+						height={stageHeight}
+						scaleX={scale}
+						scaleY={scale}
+						onMouseDown={(e) => {
+							if (readOnly) return;
+							// Click on empty canvas clears selection.
+							if (e.target === e.target.getStage()) {
+								onSelectField(null);
+							}
+						}}
+					>
+						<Layer>
+							{bgImage ? (
+								<KonvaImage
+									image={bgImage}
+									width={canvasWidth}
+									height={canvasHeight}
+									listening={false}
+								/>
+							) : (
+								<Rect
+									width={canvasWidth}
+									height={canvasHeight}
+									fill="#ffffff"
+									stroke="#e5e7eb"
+									strokeWidth={2}
+									listening={false}
+								/>
+							)}
 
-					{fields.map((field) => {
-						const isSelected = field.id === selectedFieldId;
-						return (
-							<Text
-								key={field.id}
-								text={fieldDisplayValue(field, sampleName)}
-								x={field.x}
-								y={field.y}
-								width={field.width}
-								height={field.height}
-								fontSize={field.font_size}
-								fontStyle={field.font_style}
-								fontFamily="Helvetica"
-								fill={field.color}
-								align={konvaAlign(field.align)}
-								verticalAlign="middle"
-								draggable={!readOnly}
-								listening={!readOnly}
-								onClick={() => !readOnly && onSelectField(field.id)}
-								onTap={() => !readOnly && onSelectField(field.id)}
-								onDragEnd={(e) => {
-									onChangeField(field.id, {
-										x: Math.round(e.target.x()),
-										y: Math.round(e.target.y()),
-									});
-								}}
-								stroke={isSelected ? "#2563eb" : undefined}
-								strokeWidth={isSelected ? 1 : 0}
-							/>
-						);
-					})}
-				</Layer>
-			</Stage>
+							{fields.map((field) => {
+								const isSelected = field.id === selectedFieldId;
+								return (
+									<Text
+										key={field.id}
+										text={fieldDisplayValue(field, sampleName)}
+										x={field.x}
+										y={field.y}
+										width={field.width}
+										height={field.height}
+										fontSize={field.font_size}
+										fontStyle={field.font_style}
+										fontFamily="Helvetica"
+										fill={field.color}
+										align={konvaAlign(field.align)}
+										verticalAlign="middle"
+										draggable={!readOnly}
+										listening={!readOnly}
+										onClick={() => !readOnly && onSelectField(field.id)}
+										onTap={() => !readOnly && onSelectField(field.id)}
+										onDragEnd={(e) => {
+											onChangeField(field.id, {
+												x: Math.round(e.target.x()),
+												y: Math.round(e.target.y()),
+											});
+										}}
+										stroke={isSelected ? "#2563eb" : undefined}
+										strokeWidth={isSelected ? 1 : 0}
+									/>
+								);
+							})}
+						</Layer>
+					</Stage>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Pencil, Plus } from "lucide-react";
+import { Image as ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -15,11 +15,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
 	type CertificateField,
 	type CertificateTemplate,
 	downloadCertificate,
 	getCertificateTemplate,
+	removeCertificateBackground,
 	uploadCertificateBackground,
 	upsertCertificateTemplate,
 } from "@/lib/api/certificate";
@@ -83,6 +85,7 @@ type CertificatesDesignerProps = {
 
 export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 	const queryClient = useQueryClient();
+	const { openConfirm } = useConfirmDialog();
 
 	const { data: template } = useQuery({
 		queryKey: ["event", eventId, "certificate-template"],
@@ -221,6 +224,35 @@ export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 		uploadMutation.mutate(file);
 	};
 
+	// Permanently deletes the uploaded background image on the server.
+	const removeBackgroundMutation = useMutation({
+		mutationFn: () => removeCertificateBackground(eventId),
+		onSuccess: (tpl) => {
+			setBackgroundUrl(resolveImageUrl(tpl.background_image_url));
+			toast.success("Background image removed");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "certificate-template"],
+			});
+		},
+		onError: (e: unknown) =>
+			toast.error(
+				e instanceof Error ? e.message : "Failed to remove background",
+			),
+	});
+
+	const confirmRemoveBackground = () => {
+		openConfirm({
+			title: "Remove background image",
+			message:
+				"This permanently deletes the uploaded certificate template image. Your placed fields stay, but you'll need to upload a new image. Continue?",
+			confirmLabel: "Remove image",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			onConfirm: () => removeBackgroundMutation.mutate(),
+		});
+	};
+
 	const saveMutation = useMutation({
 		mutationFn: (nextStatus: CertificateTemplate["status"]) =>
 			upsertCertificateTemplate(eventId, {
@@ -341,8 +373,8 @@ export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-				<div className="space-y-3">
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+				<div className="min-w-0 space-y-3">
 					{backgroundUrl ? (
 						<>
 							<CertificateCanvas
@@ -366,15 +398,29 @@ export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 										<span className="text-muted-foreground text-xs">
 											{orientation} · {canvasWidth}×{canvasHeight}px
 										</span>
-										<Button
-											variant="outline"
-											size="sm"
-											className="rounded-none"
-											onClick={() => setBackgroundUrl(null)}
-										>
-											<ImageIcon className="mr-1 size-4" />
-											Replace background image
-										</Button>
+										<div className="flex gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												className="rounded-none"
+												onClick={() => setBackgroundUrl(null)}
+											>
+												<ImageIcon className="mr-1 size-4" />
+												Replace image
+											</Button>
+											<Button
+												variant="outline"
+												size="sm"
+												className="rounded-none text-destructive hover:text-destructive"
+												onClick={confirmRemoveBackground}
+												disabled={removeBackgroundMutation.isPending}
+											>
+												<Trash2 className="mr-1 size-4" />
+												{removeBackgroundMutation.isPending
+													? "Removing..."
+													: "Remove image"}
+											</Button>
+										</div>
 									</div>
 								</>
 							)}

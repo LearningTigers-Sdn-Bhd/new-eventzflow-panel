@@ -32,8 +32,10 @@ export function SendCertificatesPanel({
 	onClose,
 }: SendCertificatesPanelProps) {
 	const [audience, setAudience] = useState<Audience>("all");
-	// Tracks public_ids the admin explicitly removed from the send.
-	const [excluded, setExcluded] = useState<Set<string>>(new Set());
+	// Tracks the public_ids the admin has explicitly selected to receive a
+	// certificate. Nothing is selected by default — the admin opts people in
+	// (or uses "Select all").
+	const [selected, setSelected] = useState<Set<string>>(new Set());
 	const [search, setSearch] = useState("");
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
@@ -75,12 +77,12 @@ export function SendCertificatesPanel({
 		);
 	}, [eligible, search]);
 
-	const recipientCount = eligible.filter(
-		(p) => !excluded.has(p.public_id),
+	const recipientCount = eligible.filter((p) =>
+		selected.has(p.public_id),
 	).length;
 
 	const toggle = (publicId: string) => {
-		setExcluded((prev) => {
+		setSelected((prev) => {
 			const next = new Set(prev);
 			if (next.has(publicId)) {
 				next.delete(publicId);
@@ -91,12 +93,34 @@ export function SendCertificatesPanel({
 		});
 	};
 
+	// "Select all" applies to the currently visible (searched + filtered) rows.
+	const allVisibleSelected =
+		visible.length > 0 && visible.every((p) => selected.has(p.public_id));
+
+	const toggleSelectAll = () => {
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (allVisibleSelected) {
+				for (const p of visible) next.delete(p.public_id);
+			} else {
+				for (const p of visible) next.add(p.public_id);
+			}
+			return next;
+		});
+	};
+
 	const sendMutation = useMutation({
-		mutationFn: () =>
-			sendCertificates(eventId, {
+		mutationFn: () => {
+			// Backend expects exclusions; derive them from the eligible set minus
+			// the explicitly selected recipients.
+			const excludedPublicIds = eligible
+				.filter((p) => !selected.has(p.public_id))
+				.map((p) => p.public_id);
+			return sendCertificates(eventId, {
 				audience,
-				excluded_public_ids: Array.from(excluded),
-			}),
+				excluded_public_ids: excludedPublicIds,
+			});
+		},
 		onSuccess: (res) => {
 			toast.success(
 				`Queued ${res.queued} certificate${res.queued === 1 ? "" : "s"}` +
@@ -170,62 +194,82 @@ export function SendCertificatesPanel({
 					placeholder="Search name or email..."
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
-					className="max-w-xs"
+					className="max-w-xs rounded-none"
 				/>
-				<Badge variant="secondary">{recipientCount} recipients</Badge>
+				<div className="flex items-center gap-3">
+					<Badge variant="secondary" className="rounded-none">
+						{recipientCount} selected
+					</Badge>
+					{visible.length > 0 && (
+						<label
+							htmlFor="select-all-recipients"
+							className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
+						>
+							<Checkbox
+								id="select-all-recipients"
+								checked={allVisibleSelected}
+								onCheckedChange={toggleSelectAll}
+							/>
+							Select all{search.trim() ? " (matching)" : ""}
+						</label>
+					)}
+				</div>
 			</div>
 
-			<div className="max-h-72 overflow-y-auto rounded-none border">
-				{isLoading ? (
-					<LoadingState title="Loading attendees..." height="h-48" />
-				) : error ? (
-					<ErrorState
-						title="Failed to load attendees"
-						height="h-48"
-						action={<Button onClick={() => refetch()}>Retry</Button>}
-					/>
-				) : visible.length === 0 ? (
-					<EmptyState
-						title="No eligible attendees"
-						description="No attendees match this audience and have an email on file."
-						height="h-48"
-					/>
-				) : (
-					<ul className="divide-y">
-						{visible.map((p) => {
-							const included = !excluded.has(p.public_id);
-							const alreadySent =
-								p.certificate_status && SENT_STATUSES.has(p.certificate_status);
-							return (
-								<li
-									key={p.public_id}
-									className="flex items-center gap-3 px-3 py-2 text-sm"
-								>
-									<Checkbox
-										checked={included}
-										onCheckedChange={() => toggle(p.public_id)}
-									/>
-									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium">{p.attendee_name}</p>
-										<p className="truncate text-muted-foreground text-xs">
-											{p.attendee_email}
-										</p>
-									</div>
-									{p.checked_in && (
-										<Badge variant="outline" className="text-xs">
-											Checked in
-										</Badge>
-									)}
-									{alreadySent && (
-										<Badge variant="outline" className="text-xs">
-											Already sent
-										</Badge>
-									)}
-								</li>
-							);
-						})}
-					</ul>
-				)}
+			<div className="rounded-none border">
+				<div className="max-h-72 overflow-y-auto">
+					{isLoading ? (
+						<LoadingState title="Loading attendees..." height="h-48" />
+					) : error ? (
+						<ErrorState
+							title="Failed to load attendees"
+							height="h-48"
+							action={<Button onClick={() => refetch()}>Retry</Button>}
+						/>
+					) : visible.length === 0 ? (
+						<EmptyState
+							title="No eligible attendees"
+							description="No attendees match this audience and have an email on file."
+							height="h-48"
+						/>
+					) : (
+						<ul className="divide-y">
+							{visible.map((p) => {
+								const isSelected = selected.has(p.public_id);
+								const alreadySent =
+									p.certificate_status &&
+									SENT_STATUSES.has(p.certificate_status);
+								return (
+									<li
+										key={p.public_id}
+										className="flex items-center gap-3 px-3 py-2 text-sm"
+									>
+										<Checkbox
+											checked={isSelected}
+											onCheckedChange={() => toggle(p.public_id)}
+										/>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-medium">{p.attendee_name}</p>
+											<p className="truncate text-muted-foreground text-xs">
+												{p.attendee_email}
+											</p>
+										</div>
+										{p.checked_in && (
+											<Badge variant="outline" className="text-xs">
+												Checked in
+											</Badge>
+										)}
+										{alreadySent && (
+											<Badge variant="outline" className="text-xs">
+												Already sent
+											</Badge>
+										)}
+									</li>
+								);
+							})}
+						</ul>
+					)}
+				</div>
 			</div>
 
 			<div className="flex items-center justify-end gap-2">

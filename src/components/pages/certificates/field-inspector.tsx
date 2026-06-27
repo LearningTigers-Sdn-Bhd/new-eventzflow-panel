@@ -1,6 +1,7 @@
 "use client";
 
 import { MousePointerClick } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,75 @@ type FieldInspectorProps = {
 	onChange: (id: string, patch: Partial<CertificateField>) => void;
 	onRemove: (id: string) => void;
 };
+
+// Common font sizes offered as quick picks; the field still accepts any typed value.
+const FONT_SIZE_PRESETS = [
+	12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 90, 100, 110, 120,
+	130,
+];
+
+// Solid colors for the swatch dropdown.
+const COLOR_OPTIONS = [
+	{ label: "Black", value: "#000000" },
+	{ label: "Charcoal", value: "#374151" },
+	{ label: "Gray", value: "#6B7280" },
+	{ label: "White", value: "#FFFFFF" },
+	{ label: "Navy", value: "#1E3A8A" },
+	{ label: "Blue", value: "#2563EB" },
+	{ label: "Teal", value: "#0F766E" },
+	{ label: "Green", value: "#047857" },
+	{ label: "Gold", value: "#B45309" },
+	{ label: "Maroon", value: "#7F1D1D" },
+	{ label: "Red", value: "#DC2626" },
+];
+
+// Text input for whole-number values that can be cleared while typing (no
+// number-spinner, no stuck "0", no leading-zero "08"). Commits a number to the
+// parent only when the buffer is a valid number; reverts an empty buffer on blur.
+function NumberField({
+	label,
+	value,
+	onCommit,
+	listId,
+}: {
+	label: string;
+	value: number;
+	onCommit: (n: number) => void;
+	listId?: string;
+}) {
+	const [text, setText] = useState(String(value));
+
+	// Keep the buffer in sync when the value changes externally (e.g. dragging
+	// the field on the canvas).
+	useEffect(() => {
+		setText(String(value));
+	}, [value]);
+
+	return (
+		<div className="space-y-1">
+			<Label className="text-xs">{label}</Label>
+			<Input
+				className="h-9 w-full rounded-none"
+				type="text"
+				inputMode="numeric"
+				list={listId}
+				value={text}
+				onChange={(e) => {
+					let raw = e.target.value;
+					if (raw !== "") {
+						if (!/^\d+$/.test(raw)) return; // digits only
+						raw = raw.replace(/^0+(?=\d)/, ""); // strip leading zeros
+					}
+					setText(raw);
+					if (raw !== "") onCommit(Number(raw));
+				}}
+				onBlur={() => {
+					if (text === "") setText(String(value));
+				}}
+			/>
+		</div>
+	);
+}
 
 export function FieldInspector({
 	field,
@@ -55,65 +125,66 @@ export function FieldInspector({
 			</div>
 
 			<div className="grid grid-cols-2 gap-3">
-				<div className="space-y-1">
-					<Label className="text-xs">X</Label>
-					<Input
-						className="rounded-none"
-						type="number"
-						value={field.x}
-						onChange={(e) => onChange(field.id, { x: Number(e.target.value) })}
-					/>
-				</div>
-				<div className="space-y-1">
-					<Label className="text-xs">Y</Label>
-					<Input
-						className="rounded-none"
-						type="number"
-						value={field.y}
-						onChange={(e) => onChange(field.id, { y: Number(e.target.value) })}
-					/>
-				</div>
-				<div className="space-y-1">
-					<Label className="text-xs">Width</Label>
-					<Input
-						className="rounded-none"
-						type="number"
-						value={field.width}
-						onChange={(e) =>
-							onChange(field.id, { width: Number(e.target.value) })
-						}
-					/>
-				</div>
-				<div className="space-y-1">
-					<Label className="text-xs">Height</Label>
-					<Input
-						className="rounded-none"
-						type="number"
-						value={field.height}
-						onChange={(e) =>
-							onChange(field.id, { height: Number(e.target.value) })
-						}
-					/>
-				</div>
-				<div className="space-y-1">
-					<Label className="text-xs">Font size</Label>
-					<Input
-						className="rounded-none"
-						type="number"
-						value={field.font_size}
-						onChange={(e) =>
-							onChange(field.id, { font_size: Number(e.target.value) })
-						}
-					/>
-				</div>
+				<NumberField
+					label="X"
+					value={field.x}
+					onCommit={(n) => onChange(field.id, { x: n })}
+				/>
+				<NumberField
+					label="Y"
+					value={field.y}
+					onCommit={(n) => onChange(field.id, { y: n })}
+				/>
+				<NumberField
+					label="Width"
+					value={field.width}
+					onCommit={(n) => onChange(field.id, { width: n })}
+				/>
+				<NumberField
+					label="Height"
+					value={field.height}
+					onCommit={(n) => onChange(field.id, { height: n })}
+				/>
+				<NumberField
+					label="Font size"
+					value={field.font_size}
+					onCommit={(n) => onChange(field.id, { font_size: n })}
+					listId="certificate-font-sizes"
+				/>
+				<datalist id="certificate-font-sizes">
+					{FONT_SIZE_PRESETS.map((size) => (
+						<option key={size} value={size} />
+					))}
+				</datalist>
 				<div className="space-y-1">
 					<Label className="text-xs">Color</Label>
-					<Input
-						className="rounded-none"
-						type="color"
+					<Select
 						value={field.color}
-						onChange={(e) => onChange(field.id, { color: e.target.value })}
-					/>
+						onValueChange={(v) => onChange(field.id, { color: v })}
+					>
+						<SelectTrigger className="h-9 w-full rounded-none">
+							<span className="flex items-center gap-2">
+								<span
+									className="size-4 border"
+									style={{ backgroundColor: field.color }}
+								/>
+								<SelectValue placeholder="Select color" />
+							</span>
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							{COLOR_OPTIONS.map((c) => (
+								<SelectItem key={c.value} value={c.value}>
+									<span className="flex items-center gap-2">
+										<span
+											className="size-4 border"
+											style={{ backgroundColor: c.value }}
+										/>
+										{c.label}
+									</span>
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			</div>
 
@@ -128,10 +199,10 @@ export function FieldInspector({
 							})
 						}
 					>
-						<SelectTrigger className="rounded-none">
+						<SelectTrigger className="h-9 w-full rounded-none">
 							<SelectValue />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="rounded-none">
 							<SelectItem value="normal">Normal</SelectItem>
 							<SelectItem value="bold">Bold</SelectItem>
 							<SelectItem value="italic">Italic</SelectItem>
@@ -148,10 +219,10 @@ export function FieldInspector({
 							})
 						}
 					>
-						<SelectTrigger className="rounded-none">
+						<SelectTrigger className="h-9 w-full rounded-none">
 							<SelectValue />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="rounded-none">
 							<SelectItem value="left">Left</SelectItem>
 							<SelectItem value="center">Center</SelectItem>
 							<SelectItem value="right">Right</SelectItem>
@@ -164,6 +235,7 @@ export function FieldInspector({
 				<div className="space-y-1">
 					<Label className="text-xs">Static text</Label>
 					<Input
+						className="h-9 w-full rounded-none"
 						value={field.static_value ?? ""}
 						onChange={(e) =>
 							onChange(field.id, { static_value: e.target.value })

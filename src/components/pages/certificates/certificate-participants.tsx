@@ -129,16 +129,24 @@ export function CertificateParticipants({
 		pendingDownloadId,
 	};
 
-	const isEmpty = (data?.length ?? 0) === 0;
+	const allParticipants = data ?? [];
+	const hasParticipants = allParticipants.length > 0;
+	// The tracking table only lists participants who have actually been sent a
+	// certificate (any delivery status). Not-yet-sent attendees are issued via
+	// the "Send certificates" dialog, not shown here.
+	const sentParticipants = allParticipants.filter(
+		(p) => p.certificate_status != null,
+	);
+	const hasSent = sentParticipants.length > 0;
 
 	return (
 		<div className="space-y-3">
-			<div className="flex flex-wrap items-center justify-between gap-2">
-				<p className="text-muted-foreground text-sm">
+			<div className="flex items-start justify-between gap-4">
+				<p className="min-w-0 text-muted-foreground text-sm">
 					Track which participants have received their certificate, send to
 					everyone at once, or resend to an individual.
 				</p>
-				<div className="flex gap-2">
+				<div className="flex shrink-0 gap-2">
 					<Button
 						variant="outline"
 						size="sm"
@@ -154,7 +162,7 @@ export function CertificateParticipants({
 						size="sm"
 						className="rounded-none"
 						onClick={() => downloadAllMutation.mutate()}
-						disabled={isEmpty || downloadAllMutation.isPending}
+						disabled={!hasParticipants || downloadAllMutation.isPending}
 						title="Download all certificates as one PDF"
 					>
 						<Download className="mr-1 h-4 w-4" />
@@ -164,7 +172,7 @@ export function CertificateParticipants({
 						size="sm"
 						className="rounded-none"
 						onClick={() => setSendDialogOpen(true)}
-						disabled={isEmpty || !canSend}
+						disabled={!hasParticipants || !canSend}
 						title={
 							canSend
 								? "Send certificates to attendees"
@@ -177,7 +185,7 @@ export function CertificateParticipants({
 				</div>
 			</div>
 
-			{!canSend && !isEmpty && (
+			{!canSend && hasParticipants && (
 				<div className="border border-dashed bg-muted/40 px-3 py-2 text-muted-foreground text-xs">
 					Your certificate template is still a draft. Go to the{" "}
 					<span className="font-medium">Design Certificate</span> tab and choose
@@ -185,16 +193,20 @@ export function CertificateParticipants({
 				</div>
 			)}
 
-			{isEmpty ? (
+			{!hasSent ? (
 				<EmptyState
-					title="No participants yet"
-					description="Ticket holders with an email address will appear here once they register."
+					title="No certificates sent yet"
+					description={
+						hasParticipants
+							? "Use \u201cSend certificates\u201d to issue them. Participants will appear here once a certificate has been sent."
+							: "Ticket holders with an email address will appear here once they register and receive a certificate."
+					}
 					height="h-64"
 				/>
 			) : (
 				<CertificateParticipantsTable
 					columns={certificateParticipantsColumns}
-					data={data || []}
+					data={sentParticipants}
 					meta={tableMeta}
 				/>
 			)}
