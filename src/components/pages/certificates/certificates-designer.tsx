@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
+import { Image as ImageIcon, Info, Pencil, Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,6 +26,10 @@ import {
 	upsertCertificateTemplate,
 } from "@/lib/api/certificate";
 import { API_BASE_URL } from "@/utils/rest-api";
+import {
+	RECOMMENDED_CERTIFICATE_SIZES,
+	resolveCertificateCanvasSize,
+} from "./certificate-canvas-size";
 import { CertificateSummary } from "./certificate-summary";
 import { FieldInspector } from "./field-inspector";
 
@@ -213,11 +217,13 @@ export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 		const objectUrl = URL.createObjectURL(file);
 		const img = new window.Image();
 		img.onload = () => {
-			setCanvasWidth(img.naturalWidth);
-			setCanvasHeight(img.naturalHeight);
-			setOrientation(
-				img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait",
+			const nextSize = resolveCertificateCanvasSize(
+				img.naturalWidth,
+				img.naturalHeight,
 			);
+			setCanvasWidth(nextSize.canvasWidth);
+			setCanvasHeight(nextSize.canvasHeight);
+			setOrientation(nextSize.orientation);
 			URL.revokeObjectURL(objectUrl);
 		};
 		img.src = objectUrl;
@@ -436,6 +442,19 @@ export function CertificatesDesigner({ eventId }: CertificatesDesignerProps) {
 								Upload your designed certificate (portrait or landscape). Then
 								add fields and drag them onto it.
 							</p>
+							<div className="flex gap-2 border border-blue-200 bg-blue-50 p-3 text-blue-900 text-xs">
+								<Info className="mt-0.5 size-4 shrink-0" />
+								<p>
+									<span className="font-medium">
+										Recommended certificate size:
+									</span>{" "}
+									landscape {RECOMMENDED_CERTIFICATE_SIZES.landscape.width}×
+									{RECOMMENDED_CERTIFICATE_SIZES.landscape.height}px or portrait{" "}
+									{RECOMMENDED_CERTIFICATE_SIZES.portrait.width}×
+									{RECOMMENDED_CERTIFICATE_SIZES.portrait.height}px for best
+									export quality.
+								</p>
+							</div>
 						</div>
 					) : (
 						<div className="flex flex-col items-center justify-center gap-2 border border-dashed p-10 text-center">
