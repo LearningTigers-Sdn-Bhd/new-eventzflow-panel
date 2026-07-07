@@ -103,9 +103,12 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 	const registeredByEmail = ticket.registeredByEmail?.trim();
 	const hasAdditionalInfo =
 		Boolean(registeredByEmail) || customLabels.length > 0;
+	const hasPaymentInfo = Boolean(
+		ticket.paymentMethod || ticket.transactionId || ticket.paymentScreenshotUrl,
+	);
 
 	return (
-		<div className="flex h-full w-full flex-col gap-0 p-0">
+		<div className="flex h-full w-full max-w-6xl flex-col gap-0 p-0">
 			<ScrollArea className="max-h-[85vh]">
 				<div className="flex flex-col gap-6 p-6">
 					{/* Header Status Section */}
@@ -137,7 +140,12 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 						</Badge>
 					</div>
 
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+					<div
+						className={cn(
+							"grid grid-cols-1 gap-6",
+							hasPaymentInfo ? "lg:grid-cols-3" : "md:grid-cols-2",
+						)}
+					>
 						{/* Buyer Information Card */}
 						<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
 							<div className="border-b-2 bg-muted px-4 py-3">
@@ -205,9 +213,7 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 						</Card>
 
 						{/* Payment Information Card (if available) */}
-						{(ticket.paymentMethod ||
-							ticket.transactionId ||
-							ticket.paymentScreenshotUrl) && (
+						{hasPaymentInfo && (
 							<Card className="gap-0 rounded-none border-2 p-0 shadow-none transition-colors hover:border-primary/50">
 								<div className="border-b-2 bg-muted px-4 py-3">
 									<h3 className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">

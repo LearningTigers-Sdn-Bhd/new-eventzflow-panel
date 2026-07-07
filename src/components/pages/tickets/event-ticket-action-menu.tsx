@@ -79,7 +79,7 @@ export function useTicketActions({
 			config: {
 				title: "View Ticket",
 				description: "View the ticket information.",
-				size: "2xl",
+				size: "4xl",
 				showCloseButton: true,
 				className: "rounded-none",
 			},
