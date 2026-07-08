@@ -1,7 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { logout as authLogout, refreshToken } from "@/lib/api/auth";
 import { type User, useUserSessionStore } from "@/stores/new-auth-store";
 
@@ -21,6 +28,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const NO_AUTH_REFRESH_ROUTES = [
 	"/events/", // Public check-in pages: /events/[slug]/check-in
 ];
+
+export async function handleAuthStorageChangeForAuthProvider(
+	e: StorageEvent,
+	refreshAttempted: React.MutableRefObject<boolean>,
+	refresh: () => Promise<unknown> = refreshToken,
+) {
+	// Only react to changes in our session key
+	if (e.key === "user-session" && e.newValue) {
+		await useUserSessionStore.persist.rehydrate();
+
+		// Another tab updated the session - re-check if we need to refresh
+		const state = useUserSessionStore.getState();
+		if (state.isTokenExpiringSoon() && !refreshAttempted.current) {
+			refreshAttempted.current = true;
+			refresh().catch(() => {
+				// Silent fail - user will be logged out via 401 handlers if truly expired
+			});
+		}
+	}
+}
 
 function shouldSkipAuthRefresh(pathname: string): boolean {
 	return NO_AUTH_REFRESH_ROUTES.some((route) => pathname.startsWith(route));
@@ -74,7 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		// 1. No credentials = not logged in, no refresh needed
 		// 2. Token expired = refresh needed
 		// 3. Token expiring soon = refresh needed (proactive)
-		const needsRefresh = sessionCredentials && (isTokenExpired() || useUserSessionStore.getState().isTokenExpiringSoon());
+		const needsRefresh =
+			sessionCredentials &&
+			(isTokenExpired() ||
+				useUserSessionStore.getState().isTokenExpiringSoon());
 
 		// Only attempt refresh once per mount (prevents refresh loops)
 		if (needsRefresh && !refreshAttempted.current) {
@@ -104,17 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		if (!isHydrated) return;
 
 		const handleStorageChange = (e: StorageEvent) => {
-			// Only react to changes in our session key
-			if (e.key === "user-session" && e.newValue) {
-				// Another tab updated the session - re-check if we need to refresh
-				const state = useUserSessionStore.getState();
-				if (state.isTokenExpiringSoon() && !refreshAttempted.current) {
-					refreshAttempted.current = true;
-					refreshToken().catch(() => {
-						// Silent fail - user will be logged out via 401 handlers if truly expired
-					});
-				}
-			}
+			handleAuthStorageChangeForAuthProvider(e, refreshAttempted);
 		};
 
 		window.addEventListener("storage", handleStorageChange);
@@ -142,7 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const isAuthenticated = !!user && !!sessionCredentials;
 
 	return (
-		<AuthContext.Provider value={{ isAuthenticated, isLoading, user, logout, forceRefresh }}>
+		<AuthContext.Provider
+			value={{ isAuthenticated, isLoading, user, logout, forceRefresh }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

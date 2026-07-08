@@ -39,6 +39,8 @@ export const API_BASE_URL =
 			"http://localhost:3000"
 		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+const AUTH_RETRY_HEADER = "X-Auth-Retry";
+
 export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -130,26 +132,25 @@ export const kyClient = ky.create({
 				if (response.status === 401) {
 					const url = new URL(request.url);
 					const isAuthEndpoint = url.pathname.includes("/auth/");
+					const alreadyRetried = request.headers.has(AUTH_RETRY_HEADER);
 
-					if (!isAuthEndpoint) {
+					if (!isAuthEndpoint && !alreadyRetried) {
 						logger.warn(
 							"401 Unauthorized detected. Attempting token refresh before logout.",
 						);
 
 						try {
-							// Dynamically import to avoid circular dependency
-							const { refreshToken } = await import(
-								"@/lib/api/auth/endpoints"
-							);
-							await refreshToken();
+							await refreshQueueService.forceRefresh();
 
-							// Refresh succeeded — token was likely rotated by another tab.
-							// The original request already failed, but the session is valid.
-							// Return the failed response; the caller (react-query) will retry.
+							const retryHeaders = new Headers(request.headers);
+							retryHeaders.set(AUTH_RETRY_HEADER, "true");
+							const retryRequest = new Request(request, {
+								headers: retryHeaders,
+							});
 							logger.info(
-								"Token refresh recovered session after 401.",
+								"Token refresh recovered session after 401. Retrying request.",
 							);
-							return response;
+							return kyClient(retryRequest);
 						} catch {
 							// Refresh also failed — check if token was actually expired
 							// If token is not expired (just invalid rotation), don't logout
