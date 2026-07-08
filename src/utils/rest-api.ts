@@ -143,6 +143,7 @@ export const kyClient = ky.create({
 							await refreshQueueService.forceRefresh();
 
 							const retryHeaders = new Headers(request.headers);
+							retryHeaders.delete("Authorization");
 							retryHeaders.set(AUTH_RETRY_HEADER, "true");
 							const retryRequest = new Request(request, {
 								headers: retryHeaders,

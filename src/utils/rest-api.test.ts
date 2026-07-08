@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 let forceRefreshCalls = 0;
 let directRefreshCalls = 0;
+let accessToken = "stale-token";
 
 mock.module("@/services/refresh-queue", () => ({
 	refreshQueueService: {
 		waitForRefreshIfNeeded: async () => false,
 		forceRefresh: async () => {
 			forceRefreshCalls += 1;
+			accessToken = "fresh-token";
 			return "fresh-token";
 		},
 	},
@@ -24,7 +26,7 @@ mock.module("@/stores/new-auth-store", () => ({
 	useUserSessionStore: {
 		getState: () => ({
 			sessionCredentials: {
-				accessToken: "stale-token",
+				accessToken,
 				expiresAt: Date.now() + 60_000,
 				lastRefreshAt: Date.now() - 60_000,
 			},
@@ -41,6 +43,7 @@ describe("kyClient 401 recovery", () => {
 	beforeEach(() => {
 		forceRefreshCalls = 0;
 		directRefreshCalls = 0;
+		accessToken = "stale-token";
 	});
 
 	afterEach(() => {
@@ -49,9 +52,13 @@ describe("kyClient 401 recovery", () => {
 
 	test("uses the shared refresh queue and replays the original request once", async () => {
 		const urls: string[] = [];
+		const authHeaders: Array<string | null> = [];
 		globalThis.fetch = mock(async (input: RequestInfo | URL) => {
 			const url = input instanceof Request ? input.url : input.toString();
 			urls.push(url);
+			authHeaders.push(
+				input instanceof Request ? input.headers.get("Authorization") : null,
+			);
 
 			if (urls.length === 1) {
 				return new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -79,6 +86,38 @@ describe("kyClient 401 recovery", () => {
 			"http://localhost:3000/v1/protected",
 			"http://localhost:3000/v1/protected",
 		]);
+		expect(authHeaders).toEqual(["Bearer stale-token", "Bearer fresh-token"]);
+	});
+
+	test("replays a POST request with its JSON body intact after refresh", async () => {
+		const bodies: unknown[] = [];
+		const authHeaders: Array<string | null> = [];
+		globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+			const req = input as Request;
+			authHeaders.push(req.headers.get("Authorization"));
+			bodies.push(await req.clone().json());
+
+			if (bodies.length === 1) {
+				return new Response(JSON.stringify({ error: "unauthorized" }), {
+					status: 401,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			return new Response(JSON.stringify({ ok: true }), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			});
+		}) as typeof fetch;
+
+		const { restClient } = await import("./rest-api");
+
+		await expect(
+			restClient.post<{ ok: boolean }>("v1/protected", { foo: "bar" }),
+		).resolves.toEqual({ ok: true });
+		expect(forceRefreshCalls).toBe(1);
+		expect(bodies).toEqual([{ foo: "bar" }, { foo: "bar" }]);
+		expect(authHeaders).toEqual(["Bearer stale-token", "Bearer fresh-token"]);
 	});
 
 	test("does not retry forever when the replay is also unauthorized", async () => {
