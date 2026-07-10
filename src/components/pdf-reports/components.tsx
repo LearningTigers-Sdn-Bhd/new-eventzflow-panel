@@ -1,6 +1,6 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Image, Text, View } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
 import { colors, styles } from "./styles";
 import {
@@ -27,14 +27,10 @@ export function ReportHeader({
 	return (
 		<View style={styles.header} fixed>
 			<View style={styles.headerTop}>
-				<View>
-					{/* EventzFlow Logo with Floating Nav Colors */}
-					<Text style={{ fontSize: 24, fontFamily: "Times-Bold" }}>
-						<Text style={{ color: colors.brandGreen }}>Event</Text>
-						<Text style={{ color: colors.brandBlue }}>z</Text>
-						<Text style={{ color: colors.brandGreen }}>Flow</Text>
-					</Text>
-				</View>
+				<Image
+					src="/logo/Logo.png"
+					style={{ width: 120, height: 10, objectFit: "contain" }}
+				/>
 				<View style={{ alignItems: "flex-end" }}>
 					<Text
 						style={{
