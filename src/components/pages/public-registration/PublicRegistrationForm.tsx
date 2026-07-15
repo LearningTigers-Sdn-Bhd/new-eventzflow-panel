@@ -13,6 +13,7 @@ import {
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { usePublicRegistrationForm } from "@/hooks/use-public-registration-form";
 import type { ExistingRegistrationStatusData } from "@/lib/api/public-registration";
@@ -26,7 +27,7 @@ import {
 } from "@/lib/public-registration/attendee-state";
 import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
 import { buildPublicRegistrationTypeTitle } from "@/lib/public-registration/title";
-import { TicketDownloadButton } from "./TicketDownloadButton";
+import { RegistrationTicketSummary } from "./RegistrationTicketSummary";
 import { TicketVisual } from "./TicketVisual";
 
 interface AttendeeFormRow {
@@ -103,6 +104,7 @@ export function PublicRegistrationForm({
 	const [attendees, setAttendees] = useState<AttendeeFormRow[]>([
 		emptyAttendee(),
 	]);
+	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 	const [existingRegistrationStatus, setExistingRegistrationStatus] =
 		useState<ExistingRegistrationStatusData | null>(null);
@@ -456,6 +458,12 @@ export function PublicRegistrationForm({
 
 	function goToConfirmationStep(event: FormEvent) {
 		event.preventDefault();
+		if (!hasAcceptedTerms) {
+			toast.error(
+				"Please agree to the Terms & Conditions and Privacy Policy before continuing.",
+			);
+			return;
+		}
 		if (hasDuplicateAttendeeEmail) {
 			toast.error("Each attendee must use a unique email address.");
 			return;
@@ -1200,6 +1208,42 @@ export function PublicRegistrationForm({
 								)}
 							</div>
 
+							<div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+								<Checkbox
+									id="registration-legal-consent"
+									checked={hasAcceptedTerms}
+									onCheckedChange={(checked) =>
+										setHasAcceptedTerms(checked === true)
+									}
+									aria-required="true"
+									className="mt-0.5"
+								/>
+								<label
+									htmlFor="registration-legal-consent"
+									className="cursor-pointer text-slate-600 text-xs leading-relaxed sm:text-sm"
+								>
+									By continuing, you agree to our{" "}
+									<a
+										href="/terms-and-conditions"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+									>
+										Terms &amp; Conditions
+									</a>{" "}
+									and{" "}
+									<a
+										href="/privacy-policy"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+									>
+										Privacy Policy
+									</a>
+									. <span className="font-medium text-red-500">*</span>
+								</label>
+							</div>
+
 							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 								<Button
 									type="button"
@@ -1212,7 +1256,11 @@ export function PublicRegistrationForm({
 								</Button>
 								<Button
 									type="submit"
-									disabled={!selectedTicketType || hasDuplicateAttendeeEmail}
+									disabled={
+										!selectedTicketType ||
+										hasDuplicateAttendeeEmail ||
+										!hasAcceptedTerms
+									}
 									className="h-12 w-full rounded-xl border border-black bg-black px-6 font-bold text-base text-white leading-none transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 								>
 									Confirm Registration
@@ -1511,35 +1559,21 @@ export function PublicRegistrationForm({
 
 						<div className="mt-8">
 							<div className="space-y-4 sm:space-y-6">
-								<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
-									<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
-										Registration Reference
-									</p>
-									<p className="mt-2 font-bold font-mono text-lg text-slate-900">
-										{paymentTicketPublicId ?? finalPublicIds[0]}
-									</p>
-									<p className="mt-6 text-slate-500 text-sm">
-										A confirmation email has been sent to <br />
-										<span className="font-semibold text-slate-900">
-											{email}
-										</span>
-									</p>
-
-									{!hasPendingApprovalRegistration && (
-										<div className="mt-8 border-slate-100 border-t pt-6">
-											<TicketDownloadButton
-												eventSlug={eventSlug}
-												publicIds={
-													finalPublicIds.length > 0
-														? finalPublicIds
-														: paymentTicketPublicId
-															? [paymentTicketPublicId]
-															: []
-												}
-											/>
-										</div>
-									)}
-								</div>
+								<RegistrationTicketSummary
+									eventSlug={eventSlug}
+									email={email}
+									publicIds={
+										finalPublicIds.length > 0
+											? finalPublicIds
+											: paymentTicketPublicId
+												? [paymentTicketPublicId]
+												: []
+									}
+									ticketPublicId={
+										paymentTicketPublicId ?? finalPublicIds[0] ?? null
+									}
+									isPendingApproval={hasPendingApprovalRegistration}
+								/>
 
 								<div className="flex flex-col gap-3">
 									{isExistingPaidRegistration && (
