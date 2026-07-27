@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	Building2,
 	CreditCard,
+	Download,
 	Edit,
 	Package,
 	Printer,
@@ -15,13 +16,23 @@ import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-co
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
@@ -69,6 +80,16 @@ export function ExhibitorKitDetailsSection({
 	// Auth and payment verification state (org_owner only)
 	const { user } = useAuth();
 	const isOrgOwner = user?.role === "org_owner";
+	const { isEventAdmin } = useEventPermissions(eventVendor.event_id);
+	const canDownloadIc =
+		isOrgOwner || user?.role === "organizer" || isEventAdmin;
+	const [isDownloadingIc, setIsDownloadingIc] = useState(false);
+	const [icPreview, setIcPreview] = useState<{
+		url: string;
+		filename: string;
+		contentType: string;
+	} | null>(null);
+	const [icPreviewError, setIcPreviewError] = useState<string | null>(null);
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<ExhibitorKitPayment | null>(null);
@@ -95,6 +116,35 @@ export function ExhibitorKitDetailsSection({
 		setSelectedPayment(payment);
 		setDialogAction("reject");
 		setVerifyRejectOpen(true);
+	};
+
+	const handlePreviewIc = async () => {
+		setIsDownloadingIc(true);
+		setIcPreviewError(null);
+		try {
+			const { blob, headers } = await downloadExhibitorKitIcCopy(
+				eventVendor.event_id,
+				kit.id,
+			);
+			const disposition = headers.get("content-disposition") ?? "";
+			const filename =
+				disposition.match(/filename="?([^";]+)"?/)?.[1] ?? "ic-copy";
+			setIcPreview({
+				url: URL.createObjectURL(blob),
+				filename,
+				contentType: blob.type,
+			});
+		} catch {
+			setIcPreviewError("Unable to load IC copy. Please try again.");
+		} finally {
+			setIsDownloadingIc(false);
+		}
+	};
+
+	const closeIcPreview = () => {
+		if (icPreview) URL.revokeObjectURL(icPreview.url);
+		setIcPreview(null);
+		setIcPreviewError(null);
 	};
 
 	const items = kit.exhibitor_kit_items || [];
@@ -160,6 +210,25 @@ export function ExhibitorKitDetailsSection({
 							</h3>
 						</div>
 						<div className="space-y-2 text-sm">
+							<div className="flex items-center justify-between">
+								<span className="font-medium">IC Copy</span>
+								{kit.ic_copy_uploaded && canDownloadIc ? (
+									<Button
+										size="sm"
+										variant="outline"
+										className="rounded-none"
+										onClick={handlePreviewIc}
+										disabled={isDownloadingIc}
+									>
+										<Download className="mr-1 size-3.5" />
+										{isDownloadingIc ? "Loading..." : "Preview"}
+									</Button>
+								) : (
+									<span className="text-muted-foreground">
+										{kit.ic_copy_uploaded ? "Uploaded" : "Not uploaded"}
+									</span>
+								)}
+							</div>
 							<div className="flex justify-between">
 								<span className="font-medium">Booth Number</span>
 								<span className="text-muted-foreground">
@@ -619,6 +688,56 @@ export function ExhibitorKitDetailsSection({
 					action={dialogAction}
 				/>
 			)}
+			{icPreviewError && (
+				<p className="text-destructive text-xs">{icPreviewError}</p>
+			)}
+			<Dialog
+				open={Boolean(icPreview)}
+				onOpenChange={(open) => !open && closeIcPreview()}
+			>
+				<DialogContent className="max-w-4xl rounded-none p-0">
+					<DialogHeader className="border-b p-4 text-left">
+						<DialogTitle>IC Copy Preview</DialogTitle>
+						<DialogDescription>{icPreview?.filename}</DialogDescription>
+					</DialogHeader>
+					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
+						{icPreview?.contentType === "application/pdf" ? (
+							<iframe
+								src={icPreview.url}
+								title={icPreview.filename}
+								className="h-[62vh] w-full border-0"
+							/>
+						) : icPreview ? (
+							<object
+								data={icPreview.url}
+								type={icPreview.contentType}
+								aria-label="Uploaded IC copy"
+								className="max-h-[62vh] max-w-full"
+							>
+								<span>Preview unavailable. Use Download.</span>
+							</object>
+						) : null}
+					</div>
+					<DialogFooter className="border-t p-4 sm:justify-end">
+						<Button
+							variant="outline"
+							className="rounded-none"
+							onClick={closeIcPreview}
+						>
+							Close
+						</Button>
+						{icPreview && (
+							<a
+								href={icPreview.url}
+								download={icPreview.filename}
+								className="inline-flex h-9 items-center justify-center rounded-none bg-primary px-4 font-medium text-primary-foreground text-sm"
+							>
+								Download
+							</a>
+						)}
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</section>
 	);
 }

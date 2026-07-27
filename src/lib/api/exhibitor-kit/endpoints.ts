@@ -76,3 +76,12 @@ export async function submitExhibitorKitOrder(
 		{},
 	);
 }
+
+export async function downloadExhibitorKitIcCopy(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/ic_copy`,
+	);
+}
