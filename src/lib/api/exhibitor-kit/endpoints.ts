@@ -61,6 +61,13 @@ export async function updateExhibitorKit(
 	);
 }
 
+export async function deleteExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<void> {
+	await restClient.delete<void>(`v1/events/${eventId}/exhibitor_kits/${kitId}`);
+}
+
 /**
  * Submit an exhibitor kit order
  * This auto-creates payment records for unpaid items and printings,

@@ -17,6 +17,8 @@ export interface CustomRequestWithVendor extends CustomRequest {
 	vendor_name: string;
 	vendor_email: string;
 	event_id: number;
+	booth_number: string;
+	booth_name: string;
 }
 
 const statusConfig = {
@@ -62,6 +64,18 @@ export const customRequestsColumns: ColumnDef<CustomRequestWithVendor>[] = [
 				vendorName.includes(searchValue) || vendorEmail.includes(searchValue)
 			);
 		},
+	},
+	{
+		accessorKey: "booth_number",
+		header: "Booth",
+		cell: ({ row }) => (
+			<div>
+				<p className="font-medium">{row.original.booth_number || "-"}</p>
+				<p className="text-muted-foreground text-xs">
+					{row.original.booth_name || "-"}
+				</p>
+			</div>
+		),
 	},
 	{
 		accessorKey: "description",

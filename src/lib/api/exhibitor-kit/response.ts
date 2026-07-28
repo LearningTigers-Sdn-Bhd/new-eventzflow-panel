@@ -115,6 +115,7 @@ export interface ExhibitorKit {
 	indemnity_link?: string;
 	exhibitor_booth_price_id?: number;
 	exhibitor_booth_price_label?: string | null;
+	exhibitor_booth_price_zone?: string | null;
 	custom_fields_data?: Record<string, unknown>;
 	ic_copy_uploaded?: boolean;
 	exhibitor_team_members: ExhibitorTeamMember[];

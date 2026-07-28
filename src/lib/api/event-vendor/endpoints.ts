@@ -7,11 +7,29 @@ import {
 } from "./request";
 import type { EventVendor } from "./response";
 
+type EventVendorResponse = Omit<EventVendor, "exhibitor_kits"> & {
+	exhibitor_kits?: EventVendor["exhibitor_kits"];
+	exhibitor_kit?: EventVendor["exhibitor_kits"][number];
+};
+
+function normalizeEventVendor({
+	exhibitor_kit,
+	...vendor
+}: EventVendorResponse): EventVendor {
+	return {
+		...vendor,
+		exhibitor_kits: vendor.exhibitor_kits ?? (exhibitor_kit ? [exhibitor_kit] : []),
+	};
+}
+
 /**
  * Get all vendors for an event
  */
 export async function getEventVendors(eventId: number): Promise<EventVendor[]> {
-	return restClient.get<EventVendor[]>(`v1/events/${eventId}/vendors`);
+	const vendors = await restClient.get<EventVendorResponse[]>(
+		`v1/events/${eventId}/vendors`,
+	);
+	return vendors.map(normalizeEventVendor);
 }
 
 /**
@@ -39,9 +57,10 @@ export async function createEventVendor(
 	data: CreateEventVendorRequest,
 ): Promise<EventVendor> {
 	const validated = createEventVendorSchema.parse(data);
-	return restClient.post<EventVendor>(`v1/events/${eventId}/vendors`, {
+	const vendor = await restClient.post<EventVendorResponse>(`v1/events/${eventId}/vendors`, {
 		vendor: validated,
 	});
+	return normalizeEventVendor(vendor);
 }
 
 /**
@@ -53,12 +72,13 @@ export async function updateEventVendor(
 	data: UpdateEventVendorRequest,
 ): Promise<EventVendor> {
 	const validated = updateEventVendorSchema.parse(data);
-	return restClient.patch<EventVendor>(
+	const vendor = await restClient.patch<EventVendorResponse>(
 		`v1/events/${eventId}/vendors/${vendorId}`,
 		{
 			vendor: validated,
 		},
 	);
+	return normalizeEventVendor(vendor);
 }
 
 /**

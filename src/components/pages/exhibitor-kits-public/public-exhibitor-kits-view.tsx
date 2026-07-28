@@ -34,13 +34,10 @@ export function PublicExhibitorKitsView() {
 					return vendors.map((vendor) => ({
 						...vendor,
 						event: event,
-						// Also attach event to the exhibitor_kit if it exists
-						exhibitor_kit: vendor.exhibitor_kit
-							? {
-									...vendor.exhibitor_kit,
-									event: event,
-								}
-							: undefined,
+						exhibitor_kits: vendor.exhibitor_kits.map((kit) => ({
+							...kit,
+							event,
+						})),
 					}));
 				} catch (error) {
 					console.error(
@@ -63,13 +60,13 @@ export function PublicExhibitorKitsView() {
 	// Extract exhibitor kits from all vendors across all events
 	const allKitsWithEventAndVendor: ExhibitorKitWithEventAndVendor[] = (
 		vendorQueries.data || []
-	)
-		.filter((vendor) => vendor.exhibitor_kit) // Only vendors with exhibitor kits
-		.map((vendor) => ({
-			...vendor.exhibitor_kit!,
+	).flatMap((vendor) =>
+		vendor.exhibitor_kits.map((kit) => ({
+			...kit,
 			vendor: vendor,
 			event: vendor.event,
-		}));
+		})),
+	);
 
 	return (
 		<ExhibitorKitsClientWrapper

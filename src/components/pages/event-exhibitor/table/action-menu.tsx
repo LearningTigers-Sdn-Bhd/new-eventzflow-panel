@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	CreditCard,
 	Eye,
@@ -24,9 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
-import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
-import { deleteEventVendor } from "@/lib/api/event-vendor";
+import { deleteExhibitorKit, type ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
@@ -35,9 +34,13 @@ import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
 
 interface ExhibitorActionsMenuProps {
 	exhibitor: EventVendor;
+	kit: ExhibitorKit;
 }
 
-export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
+export function ExhibitorActionsMenu({
+	exhibitor,
+	kit,
+}: ExhibitorActionsMenuProps) {
 	const router = useRouter();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -46,22 +49,17 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 
 	const queryClient = useQueryClient();
 
-	const { data: event } = useQuery({
-		queryKey: ["event", eventId],
-		queryFn: () => getEventById(eventId),
-	});
-	const deleteExhibitorMutation = useMutation({
-		mutationFn: (exhibitorId: number) =>
-			deleteEventVendor(Number(eventId), exhibitorId),
+	const deleteKitMutation = useMutation({
+		mutationFn: (kitId: number) => deleteExhibitorKit(Number(eventId), kitId),
 		onSuccess: () => {
-			toast.success("Exhibitor removed from event successfully!");
+			toast.success("Exhibitor kit cancelled successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId, "vendors"],
 			});
 			closeDialog();
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to remove exhibitor");
+			toast.error(error.message || "Failed to cancel exhibitor kit");
 		},
 	});
 
@@ -79,14 +77,11 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	};
 
 	const handleManageKitsClick = () => {
-		if (!exhibitor.exhibitor_kit) {
-			toast.error("No exhibitor kit found for this exhibitor");
-			return;
-		}
 		openDialog({
 			component: ManageKitsModal,
 			props: {
 				vendor: exhibitor,
+				kitId: kit.id,
 				showPrintingServices: true, // org_owner always sees printing services
 				onClose: closeDialog,
 			},
@@ -116,14 +111,11 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	};
 
 	const handleManageMemberClick = () => {
-		if (!exhibitor.exhibitor_kit) {
-			toast.error("No exhibitor kit found for this exhibitor");
-			return;
-		}
 		openDialog({
 			component: ManageTeamMembersForm,
 			props: {
 				vendor: exhibitor,
+				kitId: kit.id,
 				onClose: closeDialog,
 			},
 			config: {
@@ -135,14 +127,11 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 	};
 
 	const handleManagePaymentClick = () => {
-		if (!exhibitor.exhibitor_kit) {
-			toast.error("No exhibitor kit found for this exhibitor");
-			return;
-		}
 		openDialog({
 			component: ManagePaymentForm,
 			props: {
 				vendor: exhibitor,
+				kitId: kit.id,
 				onClose: closeDialog,
 			},
 			config: {
@@ -155,15 +144,15 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 
 	const handleDeleteClick = () => {
 		openConfirm({
-			title: "Remove Exhibitor",
-			message: `Are you sure you want to remove ${exhibitor.vendor.full_name} from this event? They will no longer have access to this event's exhibitor functions.`,
-			confirmLabel: "Remove",
+			title: "Cancel Exhibitor Kit",
+			message: `Are you sure you want to cancel this kit for ${exhibitor.vendor.full_name}? Other kits and the vendor account will remain.`,
+			confirmLabel: "Cancel Kit",
 			cancelLabel: "Cancel",
 			type: "destructive",
 			icon: "delete",
 			size: "sm",
 			onConfirm: () => {
-				deleteExhibitorMutation.mutate(exhibitor.id);
+				deleteKitMutation.mutate(kit.id);
 			},
 			onCancel: closeDialog,
 		});
@@ -231,7 +220,7 @@ export function ExhibitorActionsMenu({ exhibitor }: ExhibitorActionsMenuProps) {
 					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
 				>
 					<Trash2 className="mr-2 size-4" />
-					Delete
+					Cancel Kit
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

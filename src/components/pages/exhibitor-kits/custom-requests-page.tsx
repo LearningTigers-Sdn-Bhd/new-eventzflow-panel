@@ -1,10 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { FileQuestion } from "lucide-react";
+import { ArrowLeft, FileQuestion } from "lucide-react";
+import Link from "next/link";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getExhibitorKit } from "@/lib/api/exhibitor-kit";
 import { getAutoRefreshQueryOptions } from "@/lib/query/auto-refresh";
@@ -13,12 +15,22 @@ import { CustomRequestsForm } from "./custom-requests-form";
 interface CustomRequestsPageProps {
 	eventId: number;
 	eventVendorId: number;
+	kitId: number;
 }
 
 export function CustomRequestsPage({
 	eventId,
 	eventVendorId,
+	kitId,
 }: CustomRequestsPageProps) {
+	useSetEventActions(
+		<Button asChild variant="outline" className="rounded-none">
+			<Link href={`/event/${eventId}/exhibitor-kits`}>
+				<ArrowLeft className="mr-2 size-4" />
+				Back to My Booths
+			</Link>
+		</Button>,
+	);
 	// First get the event vendor to find the exhibitor kit ID
 	const {
 		data: eventVendors,
@@ -30,7 +42,8 @@ export function CustomRequestsPage({
 	});
 
 	const currentVendor = eventVendors?.find((ev) => ev.id === eventVendorId);
-	const exhibitorKitId = currentVendor?.exhibitor_kit?.id;
+	const ownsKit = currentVendor?.exhibitor_kits.some((kit) => kit.id === kitId);
+	const exhibitorKitId = ownsKit ? kitId : undefined;
 
 	// Then fetch the full exhibitor kit with custom requests
 	const {

@@ -28,14 +28,14 @@ import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManageKitsInfoFormProps {
 	vendor: EventVendor;
+	kitId: number;
 	onClose?: () => void;
 }
 
-export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
+export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 	const params = useParams();
 	const eventId = Number(params.event_id);
-	const kit = vendor.exhibitor_kit;
-	const kitId = kit?.id;
+	const kit = vendor.exhibitor_kits.find((candidate) => candidate.id === kitId);
 
 	// Form field IDs
 	const boothNumberField = useId();

@@ -32,14 +32,12 @@ import {
 	PackageOpen,
 	Printer,
 	ScanQrCode,
-	ShoppingCart,
 	Speech,
 	Ticket,
 	TrendingUp,
 	User,
 	UserCheck,
 	Users,
-	UsersRound,
 	Warehouse,
 } from "lucide-react";
 import type { IconType } from "react-icons";
@@ -493,7 +491,7 @@ export const eventMenuConfig: EventMenuConfig = {
 		// ------------------------------------------------------------------------
 		{
 			id: "my-exhibitor-kit",
-			label: "My Exhibitor Kit",
+			label: "My Exhibitor Kits",
 			icon: Package,
 			visible: visible.vendorExhibitorKitAccess,
 			tabs: [
@@ -504,22 +502,10 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: FileText,
 				},
 				{
-					route: "order-items",
-					label: "Order Kits",
-					description: "Browse and order exhibitor kit items.",
-					icon: ShoppingCart,
-				},
-				{
-					route: "my-items",
-					label: "My Kits",
-					description: "View and manage your ordered kit items.",
+					route: "exhibitor-kits",
+					label: "My Booths",
+					description: "View and manage your exhibitor booths.",
 					icon: Package,
-				},
-				{
-					route: "team-members",
-					label: "My Team",
-					description: "Manage your team members for this event.",
-					icon: UsersRound,
 				},
 			],
 		},

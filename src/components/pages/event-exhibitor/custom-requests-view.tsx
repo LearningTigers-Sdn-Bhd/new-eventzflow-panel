@@ -50,18 +50,19 @@ export function CustomRequestsView({ eventId }: CustomRequestsViewProps) {
 	// Aggregate all custom requests from all exhibitor kits with vendor info
 	const allRequests: CustomRequestWithVendor[] = [];
 	vendors?.forEach((vendor) => {
-		const exhibitorKit = vendor.exhibitor_kit;
-		if (exhibitorKit?.custom_requests) {
-			exhibitorKit.custom_requests.forEach((request) => {
+		vendor.exhibitor_kits.forEach((kit) => {
+			kit.custom_requests?.forEach((request) => {
 				allRequests.push({
 					...request,
 					vendor_name: vendor.vendor.full_name,
 					vendor_email: vendor.vendor.email,
-					exhibitor_kit_id: exhibitorKit.id,
+					exhibitor_kit_id: kit.id,
 					event_id: Number(eventId),
+					booth_number: kit.booth_number,
+					booth_name: kit.name_on_fascia,
 				});
 			});
-		}
+		});
 	});
 
 	return (

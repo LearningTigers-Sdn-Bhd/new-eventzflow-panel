@@ -15,11 +15,11 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import type { EventVendor } from "@/lib/api/event-vendor";
+import type { ExhibitorKitWithVendor } from "@/lib/exhibitor-kits";
 import { cn } from "@/lib/utils";
 import { ExhibitorActionsMenu } from "./action-menu";
 
-export type ExhibitorMember = EventVendor;
+export type ExhibitorMember = ExhibitorKitWithVendor;
 
 function formatCreatedAt(dateString?: string | null): {
 	timePart: string;
@@ -70,7 +70,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.booth_number",
+		accessorKey: "kit.booth_number",
 		id: "booth_number",
 		size: 120,
 		header: ({ column }) => {
@@ -94,13 +94,13 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			return <div className="font-medium">{kit?.booth_number || "-"}</div>;
 		},
 	},
 	{
 		accessorFn: (row) =>
-			row.exhibitor_kit?.company_name || row.vendor.full_name,
+			row.kit.company_name || row.vendor.vendor.full_name,
 		id: "company_name",
 		size: 200,
 		header: ({ column }) => {
@@ -124,30 +124,30 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			return (
 				<div className="font-medium">
-					{kit?.company_name || row.original.vendor.full_name}
+					{kit.company_name || row.original.vendor.vendor.full_name}
 				</div>
 			);
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.name_on_fascia",
+		accessorKey: "kit.name_on_fascia",
 		id: "name_on_fascia",
 		size: 180,
 		header: () => <p className="font-medium">Fascia Name</p>,
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			return <div className="text-sm">{kit?.name_on_fascia || "-"}</div>;
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.booth_type",
+		accessorKey: "kit.booth_type",
 		id: "booth_type",
 		size: 140,
 		filterFn: (row, id, value) => {
-			return row.original.exhibitor_kit?.booth_type === value;
+			return row.original.kit.booth_type === value;
 		},
 		header: ({ column }) => {
 			const filterType = column.getFilterValue() as string | undefined;
@@ -197,7 +197,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			if (!kit?.booth_type)
 				return <span className="text-muted-foreground">-</span>;
 			return (
@@ -219,12 +219,12 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 	},
 
 	{
-		accessorKey: "exhibitor_kit.pic_full_name",
+		accessorKey: "kit.pic_full_name",
 		id: "pic_full_name",
 		size: 220,
 		header: () => <p className="font-medium">Contact Person</p>,
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			if (!kit) return <span className="text-muted-foreground">-</span>;
 			return (
 				<div className="flex flex-col">
@@ -237,11 +237,11 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.payment_status",
+		accessorKey: "kit.payment_status",
 		id: "payment_status",
 		size: 140,
 		filterFn: (row, id, value) => {
-			return row.original.exhibitor_kit?.payment_status === value;
+			return row.original.kit.payment_status === value;
 		},
 		header: ({ column }) => {
 			const filterStatus = column.getFilterValue() as string | undefined;
@@ -303,7 +303,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			if (!kit?.payment_status)
 				return <span className="text-muted-foreground">-</span>;
 			const statusColors: Record<string, string> = {
@@ -326,12 +326,12 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorKey: "exhibitor_kit.exhibitor_team_members",
+		accessorKey: "kit.exhibitor_team_members",
 		id: "team_count",
 		size: 160,
 		header: () => <p className="font-medium">Team Members</p>,
 		cell: ({ row }) => {
-			const kit = row.original.exhibitor_kit;
+			const kit = row.original.kit;
 			const members = kit?.exhibitor_team_members || [];
 			const totalCount = members.length;
 			const limit = kit?.team_member_limit;
@@ -435,7 +435,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorKey: "created_at",
+		accessorKey: "kit.created_at",
 		id: "created_at",
 		size: 150,
 		header: ({ column }) => {
@@ -459,7 +459,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const { timePart, datePart } = formatCreatedAt(row.original.created_at);
+			const { timePart, datePart } = formatCreatedAt(row.original.kit.created_at);
 
 			return (
 				<div className="flex flex-col">
@@ -481,10 +481,10 @@ const actionsColumn: ColumnDef<ExhibitorMember> = {
 	},
 	header: () => <div className="text-center">Actions</div>,
 	cell: ({ row }) => {
-		const exhibitor = row.original;
+		const { vendor, kit } = row.original;
 		return (
 			<div className="flex justify-center">
-				<ExhibitorActionsMenu exhibitor={exhibitor} />
+				<ExhibitorActionsMenu exhibitor={vendor} kit={kit} />
 			</div>
 		);
 	},

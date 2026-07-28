@@ -47,15 +47,17 @@ export function OrderedItemsView({ eventId }: OrderedItemsViewProps) {
 	// Aggregate all items from all exhibitor kits with vendor info
 	const allItems: ExhibitorKitItemWithVendor[] = [];
 	vendors?.forEach((vendor) => {
-		if (vendor.exhibitor_kit?.exhibitor_kit_items) {
-			vendor.exhibitor_kit.exhibitor_kit_items.forEach((item) => {
+		vendor.exhibitor_kits.forEach((kit) => {
+			kit.exhibitor_kit_items?.forEach((item) => {
 				allItems.push({
 					...item,
 					vendor_name: vendor.vendor.full_name,
 					vendor_email: vendor.vendor.email,
+					booth_number: kit.booth_number,
+					booth_name: kit.name_on_fascia,
 				});
 			});
-		}
+		});
 	});
 
 	return (

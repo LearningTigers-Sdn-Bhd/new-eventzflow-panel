@@ -39,12 +39,10 @@ export default function PublicExhibitorKitsPage() {
 					return vendors.map((vendor) => ({
 						...vendor,
 						event: event,
-						exhibitor_kit: vendor.exhibitor_kit
-							? {
-									...vendor.exhibitor_kit,
-									event: event,
-								}
-							: undefined,
+						exhibitor_kits: vendor.exhibitor_kits.map((kit) => ({
+							...kit,
+							event,
+						})),
 					}));
 				} catch (error) {
 					console.error(
@@ -65,13 +63,13 @@ export default function PublicExhibitorKitsPage() {
 	const error = eventsError || vendorQueries.error;
 
 	// Extract exhibitor kits from all vendors across all events
-	const allKitsWithEventAndVendor = (vendorQueries.data || [])
-		.filter((vendor) => vendor.exhibitor_kit)
-		.map((vendor) => ({
-			...vendor.exhibitor_kit!,
+	const allKitsWithEventAndVendor = (vendorQueries.data || []).flatMap(
+		(vendor) => vendor.exhibitor_kits.map((kit) => ({
+			...kit,
 			vendor: vendor,
 			event: vendor.event,
-		}));
+		})),
+	);
 
 	return (
 		<div className="space-y-6 p-0">

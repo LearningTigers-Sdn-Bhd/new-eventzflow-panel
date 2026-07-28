@@ -79,9 +79,13 @@ export function VendorProfileView({ eventId }: VendorProfileViewProps) {
 	return (
 		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
-			{currentEventVendor && (
-				<ExhibitorKitDetailsSection eventVendor={currentEventVendor} />
-			)}
+			{currentEventVendor?.exhibitor_kits.map((kit) => (
+				<ExhibitorKitDetailsSection
+					key={kit.id}
+					eventVendor={currentEventVendor}
+					kit={kit}
+				/>
+			))}
 		</div>
 	);
 }

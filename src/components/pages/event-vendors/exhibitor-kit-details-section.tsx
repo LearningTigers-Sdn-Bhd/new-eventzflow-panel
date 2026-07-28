@@ -33,6 +33,7 @@ import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
@@ -69,12 +70,13 @@ function ExpandableText({
 
 interface ExhibitorKitDetailsSectionProps {
 	eventVendor: EventVendor;
+	kit: ExhibitorKit;
 }
 
 export function ExhibitorKitDetailsSection({
 	eventVendor,
+	kit,
 }: ExhibitorKitDetailsSectionProps) {
-	const kit = eventVendor.exhibitor_kit;
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
 	// Auth and payment verification state (org_owner only)
@@ -100,10 +102,6 @@ export function ExhibitorKitDetailsSection({
 		queryKey: ["event", eventVendor.event_id],
 		queryFn: () => getEventById(String(eventVendor.event_id)),
 	});
-
-	if (!kit) {
-		return null;
-	}
 
 	// Payment dialog handlers (org_owner only)
 	const handleVerifyPayment = (payment: ExhibitorKitPayment) => {

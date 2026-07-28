@@ -9,8 +9,9 @@ import {
 	Printer,
 	ShoppingCart,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
@@ -21,9 +22,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventById } from "@/lib/api/event";
 import {
-	getExhibitorKits,
+	getExhibitorKit,
 	submitExhibitorKitOrder,
 	updateExhibitorKit,
 } from "@/lib/api/exhibitor-kit";
@@ -34,12 +36,22 @@ import { OrderItemCard } from "./order-item-card";
 interface ReviewSubmitPageProps {
 	eventId: number;
 	eventVendorId: number;
+	kitId: number;
 }
 
 export function ReviewSubmitPage({
 	eventId,
 	eventVendorId,
+	kitId,
 }: ReviewSubmitPageProps) {
+	useSetEventActions(
+		<Button asChild variant="outline" className="rounded-none">
+			<Link href={`/event/${eventId}/exhibitor-kits`}>
+				<ArrowLeft className="mr-2 size-4" />
+				Back to My Booths
+			</Link>
+		</Button>,
+	);
 	const { user } = useAuth();
 	const router = useRouter();
 	const {
@@ -50,7 +62,11 @@ export function ReviewSubmitPage({
 		updateItemNotes,
 		updatePrintingNotes,
 		updatePrintingFileReference,
+		setScope,
 	} = useExhibitorCart();
+	useEffect(() => {
+		setScope(eventId, kitId);
+	}, [eventId, kitId, setScope]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", eventId],
@@ -72,16 +88,16 @@ export function ReviewSubmitPage({
 	);
 
 	// Fetch exhibitor kits to find the one for this vendor
-	const { data: exhibitorKits, isLoading: isLoadingKit } = useQuery({
-		queryKey: ["exhibitor-kits", eventId],
-		queryFn: () => getExhibitorKits(eventId),
+	const { data: exhibitorKit, isLoading: isLoadingKit } = useQuery({
+		queryKey: ["exhibitor-kit", eventId, kitId],
+		queryFn: () => getExhibitorKit(eventId, kitId),
 		enabled: canAccessExhibitorManagement,
 	});
 
-	const exhibitorKit = exhibitorKits?.find(
-		(kit) => kit.event_vendor_id === eventVendorId,
-	);
-	const exhibitorKitId = exhibitorKit?.id;
+	const exhibitorKitId =
+		exhibitorKit?.event_vendor_id === eventVendorId
+			? exhibitorKit.id
+			: undefined;
 
 	const submitMutation = useMutation({
 		mutationFn: async () => {
@@ -125,7 +141,7 @@ export function ReviewSubmitPage({
 			}
 			clearCart();
 			// Redirect to my-items page to see the submitted order
-			router.push(`/event/${eventId}/my-items`);
+			router.push(`/event/${eventId}/exhibitor-kits/${kitId}/my-items`);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to submit order");

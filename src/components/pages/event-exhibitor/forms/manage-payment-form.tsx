@@ -20,13 +20,14 @@ import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
 export interface ManagePaymentFormProps {
 	vendor: EventVendor;
+	kitId: number;
 	onClose?: () => void;
 }
 
-export function ManagePaymentForm({ vendor, onClose }: ManagePaymentFormProps) {
+export function ManagePaymentForm({ vendor, kitId, onClose }: ManagePaymentFormProps) {
 	const params = useParams();
 	const eventId = Number(params.event_id);
-	const kit = vendor.exhibitor_kit;
+	const kit = vendor.exhibitor_kits.find((candidate) => candidate.id === kitId);
 
 	// Form field IDs
 	const paymentStatusField = useId();

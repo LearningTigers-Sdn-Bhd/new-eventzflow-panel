@@ -101,7 +101,13 @@ export default function VendorProfilePage() {
 	return (
 		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
-			<ExhibitorKitDetailsSection eventVendor={eventVendor} />
+			{eventVendor.exhibitor_kits.map((kit) => (
+				<ExhibitorKitDetailsSection
+					key={kit.id}
+					eventVendor={eventVendor}
+					kit={kit}
+				/>
+			))}
 		</div>
 	);
 }

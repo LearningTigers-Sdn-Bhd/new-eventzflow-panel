@@ -7,6 +7,7 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	Clock,
+	Store,
 	Users,
 } from "lucide-react";
 import type { Route } from "next";
@@ -84,6 +85,12 @@ export function ContractorDashboard() {
 						value={summary.total_exhibitors}
 						subtitle="Across all events"
 						Icon={Users}
+					/>
+					<StatsCard
+						label="Booths"
+						value={summary.total_booths}
+						subtitle="Across all events"
+						Icon={Store}
 					/>
 					<StatsCard
 						label="Total Received"
@@ -191,7 +198,7 @@ function ContractorEventCard({
 			</CardHeader>
 			<CardContent className="border-t p-0">
 				{/* Contractor Stats */}
-				<div className="grid grid-cols-3 gap-2 p-3 sm:gap-3 sm:p-4">
+				<div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4 sm:gap-3 sm:p-4">
 					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
 						<Users className="size-4 text-muted-foreground sm:size-5" />
 						<div>
@@ -200,6 +207,18 @@ function ContractorEventCard({
 							</p>
 							<p className="font-bold text-base sm:text-lg">
 								{event.exhibitors_count}
+							</p>
+						</div>
+					</div>
+
+					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
+						<Store className="size-4 text-muted-foreground sm:size-5" />
+						<div>
+							<p className="text-[10px] text-muted-foreground sm:text-xs">
+								Booths
+							</p>
+							<p className="font-bold text-base sm:text-lg">
+								{event.booths_count}
 							</p>
 						</div>
 					</div>
@@ -278,7 +297,7 @@ function ContractorDashboardSkeleton() {
 
 			{/* Summary Stats */}
 			<div className="grid grid-cols-2 gap-1.5 p-2 sm:gap-2 sm:p-0 xl:grid-cols-3">
-				{[1, 2, 3, 4, 5].map((i) => (
+				{[1, 2, 3, 4, 5, 6].map((i) => (
 					<div
 						key={i}
 						className="flex items-center justify-between rounded-none border border-dashed p-3 sm:p-4"
@@ -315,8 +334,8 @@ function ContractorDashboardSkeleton() {
 							</div>
 
 							{/* Stats Grid */}
-							<div className="grid grid-cols-3 gap-2 border-t p-3 sm:gap-3 sm:p-4">
-								{[1, 2, 3].map((j) => (
+							<div className="grid grid-cols-2 gap-2 border-t p-3 sm:grid-cols-4 sm:gap-3 sm:p-4">
+								{[1, 2, 3, 4].map((j) => (
 									<div
 										key={j}
 										className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2"

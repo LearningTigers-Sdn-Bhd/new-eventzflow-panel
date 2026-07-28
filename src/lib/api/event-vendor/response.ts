@@ -16,7 +16,7 @@ export interface EventVendor {
 		full_name: string;
 		phone?: string;
 	};
-	exhibitor_kit?: ExhibitorKit;
+	exhibitor_kits: ExhibitorKit[];
 	created_at: string;
 	updated_at: string;
 }

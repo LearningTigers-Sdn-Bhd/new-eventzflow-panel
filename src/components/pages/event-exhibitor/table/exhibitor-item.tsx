@@ -28,7 +28,7 @@ interface ExhibitorItemProps {
 }
 
 export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
-	const kit = exhibitor.exhibitor_kit;
+	const { vendor, kit } = exhibitor;
 
 	const getPaymentStatusColor = (status: string) => {
 		const statusColors: Record<string, string> = {
@@ -51,7 +51,7 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 							</Badge>
 						)}
 						<span className="font-bold">
-							{kit?.company_name || exhibitor.vendor.full_name}
+							{kit.company_name || vendor.vendor.full_name}
 						</span>
 					</div>
 				</ItemTitle>
@@ -137,13 +137,13 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 					<div className="flex items-center gap-2">
 						<Building2 className="size-4 shrink-0" />
 						<span className="text-sm">
-							Created on {formatDateTime(exhibitor.created_at)}
+						Created on {formatDateTime(kit.created_at || vendor.created_at)}
 						</span>
 					</div>
 				</div>
 			</ItemContent>
 			<ItemActions>
-				<ExhibitorActionsMenu exhibitor={exhibitor} />
+			<ExhibitorActionsMenu exhibitor={vendor} kit={kit} />
 			</ItemActions>
 		</Item>
 	);

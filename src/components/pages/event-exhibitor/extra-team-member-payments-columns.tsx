@@ -25,6 +25,8 @@ export interface TeamMemberPaymentWithVendor
 	vendor_name: string;
 	vendor_email: string;
 	event_vendor_id: number;
+	booth_number: string;
+	booth_name: string;
 }
 
 const getStatusConfig = (status: TeamMemberPaymentWithVendor["status"]) => {
@@ -70,6 +72,18 @@ export const paymentsColumns: ColumnDef<TeamMemberPaymentWithVendor>[] = [
 				<p className="font-medium">{row.original.vendor_name}</p>
 				<p className="text-muted-foreground text-xs">
 					{row.original.vendor_email}
+				</p>
+			</div>
+		),
+	},
+	{
+		accessorKey: "booth_number",
+		header: "Booth",
+		cell: ({ row }) => (
+			<div>
+				<p className="font-medium">{row.original.booth_number || "-"}</p>
+				<p className="text-muted-foreground text-xs">
+					{row.original.booth_name || "-"}
 				</p>
 			</div>
 		),

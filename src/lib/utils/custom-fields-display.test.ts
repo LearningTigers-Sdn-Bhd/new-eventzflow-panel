@@ -52,6 +52,7 @@ describe("formatCustomFieldEntries", () => {
 
 	test("hides internal and effectively empty custom fields", () => {
 		const formatted = formatCustomFieldEntries({
+			_public_booking_fingerprint: "internal-hash",
 			zone: null,
 			payment_option: "later",
 			is_booth_manager: true,

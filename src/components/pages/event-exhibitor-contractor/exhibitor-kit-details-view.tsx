@@ -64,9 +64,9 @@ export function ExhibitorKitDetailsView({
 		eventDetails?.allow_contractor_printing_services ?? false;
 
 	// Find the exhibitor kit from the vendors data (same approach as admin)
-	const exhibitorKit = vendors?.find(
-		(vendor) => vendor.exhibitor_kit?.id === Number(kitId),
-	)?.exhibitor_kit;
+	const exhibitorKit = vendors
+		?.flatMap((vendor) => vendor.exhibitor_kits)
+		.find((kit) => kit.id === Number(kitId));
 
 	if (isLoading || isLoadingEvent) {
 		return (
@@ -97,7 +97,7 @@ export function ExhibitorKitDetailsView({
 	}
 
 	const vendor = vendors?.find(
-		(vendor) => vendor.exhibitor_kit?.id === Number(kitId),
+		(vendor) => vendor.exhibitor_kits.some((kit) => kit.id === Number(kitId)),
 	);
 	const items = exhibitorKit.exhibitor_kit_items || [];
 	const printings = exhibitorKit.exhibitor_kit_printings || [];

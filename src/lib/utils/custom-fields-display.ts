@@ -121,7 +121,7 @@ export function formatCustomFieldEntries(
 
 	return Object.entries(data)
 		.filter(([key, value]) => {
-			if (HIDDEN_CUSTOM_FIELD_KEYS.has(key)) {
+			if (key.startsWith("_") || HIDDEN_CUSTOM_FIELD_KEYS.has(key)) {
 				return false;
 			}
 

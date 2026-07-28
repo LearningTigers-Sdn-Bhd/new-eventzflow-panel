@@ -22,12 +22,14 @@ import {
 
 interface ManageKitsModalProps {
 	vendor: EventVendor;
+	kitId: number;
 	showPrintingServices?: boolean;
 	onClose?: () => void;
 }
 
 export function ManageKitsModal({
 	vendor: initialVendor,
+	kitId,
 	showPrintingServices = true,
 	onClose,
 }: ManageKitsModalProps) {
@@ -49,7 +51,7 @@ export function ManageKitsModal({
 	// Find the current vendor from the fresh data
 	const vendor =
 		vendors?.find((v) => v.id === initialVendor.id) || initialVendor;
-	const kit = vendor.exhibitor_kit;
+	const kit = vendor.exhibitor_kits.find((candidate) => candidate.id === kitId);
 	const isProtectedTab = isExhibitorManagementProtectedTab(activeTab);
 	const showLockedState = shouldShowExhibitorManagementLockedState(
 		activeTab,
@@ -86,7 +88,7 @@ export function ManageKitsModal({
 			/>
 			<div className="flex min-w-0 flex-col gap-4">
 				{activeTab === "exhibitor-info" && (
-					<ManageKitsInfoForm vendor={vendor} onClose={onClose} />
+					<ManageKitsInfoForm vendor={vendor} kitId={kit.id} onClose={onClose} />
 				)}
 				{isProtectedTab && isLoadingEvent && (
 					<LoadingState

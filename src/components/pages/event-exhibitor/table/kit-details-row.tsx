@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
@@ -48,19 +49,19 @@ function ExpandableText({
 
 interface KitDetailsRowProps {
 	vendor: EventVendor;
+	kit: ExhibitorKit;
 	isExpanded: boolean;
 }
 
-export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
+export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 	const { user } = useAuth();
-	const kit = vendor.exhibitor_kit;
 	const { data: event } = useQuery({
 		queryKey: ["event", vendor.event_id],
 		queryFn: () => getEventById(String(vendor.event_id)),
 		enabled: isExpanded && !!kit,
 	});
 
-	if (!kit || !isExpanded) {
+	if (!isExpanded) {
 		return null;
 	}
 

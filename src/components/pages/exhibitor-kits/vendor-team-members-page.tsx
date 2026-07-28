@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Info, Plus, Users } from "lucide-react";
+import { AlertCircle, ArrowLeft, Info, Plus, Users } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ import {
 interface VendorTeamMembersPageProps {
 	eventId: number;
 	eventVendorId: number;
+	kitId: number;
 }
 
 interface TeamMemberInput {
@@ -139,6 +141,7 @@ export function getExtraSlotSummary({
 export function VendorTeamMembersPage({
 	eventId,
 	eventVendorId,
+	kitId,
 }: VendorTeamMembersPageProps) {
 	const queryClient = useQueryClient();
 	const { openConfirm, closeDialog } = useConfirmDialog();
@@ -151,7 +154,9 @@ export function VendorTeamMembersPage({
 	});
 
 	const vendor = vendors?.find((v) => v.id === eventVendorId);
-	const kit = vendor?.exhibitor_kit;
+	const kit = vendor?.exhibitor_kits.find(
+		(candidate) => candidate.id === kitId,
+	);
 
 	// Fetch team member limit settings
 	const { data: limitSettings, isLoading: isLoadingLimit } = useQuery({
@@ -338,12 +343,20 @@ export function VendorTeamMembersPage({
 
 	// Set the "Add Member" button in the header - MUST be before any returns
 	useSetEventActions(
-		!isLoadingVendor && !isLoadingLimit && kit && canAddMore ? (
-			<Button onClick={handleAddMember} className="rounded-none">
-				<Plus className="mr-2 h-4 w-4" />
-				Add Member
+		<div className="flex items-center gap-2">
+			<Button asChild variant="outline" className="rounded-none">
+				<Link href={`/event/${eventId}/exhibitor-kits`}>
+					<ArrowLeft className="mr-2 size-4" />
+					Back to My Booths
+				</Link>
 			</Button>
-		) : null,
+			{!isLoadingVendor && !isLoadingLimit && kit && canAddMore && (
+				<Button onClick={handleAddMember} className="rounded-none">
+					<Plus className="mr-2 h-4 w-4" />
+					Add Member
+				</Button>
+			)}
+		</div>,
 	);
 
 	// Early returns for loading and no kit
