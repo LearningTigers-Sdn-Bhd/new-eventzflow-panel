@@ -94,7 +94,9 @@ export function ExhibitorActionsMenu({
 
 	const handleViewExhibitorClick = () => {
 		// Use vendors route since profile page is shared
-		router.push(`/event/${eventId}/vendors/${exhibitor.id}/profile`);
+		router.push(
+			`/event/${eventId}/vendors/${exhibitor.id}/profile?kit_id=${kit.id}`,
+		);
 	};
 
 	const handleQrCodeClick = () => {
@@ -137,7 +139,7 @@ export function ExhibitorActionsMenu({
 			config: {
 				title: "Manage Payment",
 				description: "Update payment status, amount paid, and notes",
-				size: "md",
+				size: "4xl",
 			},
 		});
 	};

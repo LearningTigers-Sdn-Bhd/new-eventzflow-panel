@@ -25,3 +25,8 @@ test("vendor account removal remains separate and explicitly labelled", () => {
 	expect(source).toContain('title: "Remove Vendor Account from Event"');
 	expect(source).toContain("Remove Vendor Account");
 });
+
+test("view exhibitor targets only the selected kit", () => {
+	const source = readFileSync(new URL("./action-menu.tsx", import.meta.url), "utf8");
+	expect(source).toContain("profile?kit_id=${kit.id}");
+});

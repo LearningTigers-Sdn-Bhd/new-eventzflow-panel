@@ -19,6 +19,8 @@ import {
 	shouldExpandEmbeddedTeamMembersSection,
 	shouldShowEmbeddedExhibitorManagementSections,
 } from "../../event/exhibitor-management-access";
+import { IcCopyPreviewButton } from "../ic-copy-preview-button";
+import { PaymentProofPreviewButton } from "../payment-proof-preview-button";
 
 function ExpandableText({
 	text,
@@ -248,6 +250,22 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 							{kit.booth_number || "-"}
 						</span>
 					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">IC Copy</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.ic_copy_uploaded}
+						/>
+					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">IC Copy</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.ic_copy_uploaded}
+						/>
+					</div>
 					<div className="flex justify-between gap-2 py-0.5">
 						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge
@@ -392,6 +410,23 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 							</span>
 						</div>
 					)}
+					<div className="flex items-center justify-between gap-2 border-t pt-1.5">
+						<span className="font-medium text-xs">Payment Proof</span>
+						<div className="flex items-center gap-2">
+							{kit.payment_proof_status === "rejected" && (
+								<Badge
+									variant="outline"
+									className="h-7 rounded-none border-destructive text-destructive text-xs"
+								>
+									Rejected
+								</Badge>
+							)}
+							<PaymentProofPreviewButton
+								url={kit.payment_proof_url}
+								className="h-7 rounded-none px-2 text-xs"
+							/>
+						</div>
+					</div>
 					{kit.payment_note && (
 						<div className="border-t pt-1.5">
 							<span className="mb-0.5 block font-medium text-xs">Note</span>

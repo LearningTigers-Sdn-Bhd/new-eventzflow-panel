@@ -1,12 +1,21 @@
 "use client";
 
 import { use } from "react";
+import type { ReactNode } from "react";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
+
+interface ExhibitorKitLayoutProps {
+	children: ReactNode;
+	params: Promise<{
+		event_id: string;
+		kit_id: string;
+	}>;
+}
 
 export default function ExhibitorKitLayout({
 	children,
 	params,
-}: LayoutProps<"/event/[event_id]/exhibitor-kits/[kit_id]">) {
+}: ExhibitorKitLayoutProps) {
 	const { event_id, kit_id } = use(params);
 	const { eventVendor, isLoading } = useCurrentUserEventVendorId(
 		Number(event_id),

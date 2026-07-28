@@ -81,6 +81,8 @@ export interface ExhibitorTeamMemberPaymentInKit {
 	status: TeamMemberPaymentStatus;
 	payment_source: "manual_bank_in" | "payment_gateway" | null;
 	payment_proof_url: string | null;
+	payment_proof_status?: "pending" | "submitted" | "rejected" | "paid" | string;
+	payment_note?: string | null;
 	external_ref: string | null;
 	note: string | null;
 	paid_at: string | null;
@@ -110,6 +112,8 @@ export interface ExhibitorKit {
 	indemnity_signed: boolean;
 	indemnity_document_url?: string;
 	payment_status: PaymentStatus;
+	payment_proof_url?: string | null;
+	payment_proof_status?: "pending" | "submitted" | "rejected" | "paid" | string;
 	amount_paid?: string;
 	payment_note?: string;
 	indemnity_link?: string;

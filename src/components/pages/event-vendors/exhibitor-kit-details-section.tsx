@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -92,6 +91,13 @@ export function ExhibitorKitDetailsSection({
 		contentType: string;
 	} | null>(null);
 	const [icPreviewError, setIcPreviewError] = useState<string | null>(null);
+	const [paymentProofPreview, setPaymentProofPreview] = useState<{
+		url: string;
+		filename: string;
+		contentType: string;
+	} | null>(null);
+	const [isLoadingPaymentProof, setIsLoadingPaymentProof] = useState(false);
+	const [paymentProofError, setPaymentProofError] = useState<string | null>(null);
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<ExhibitorKitPayment | null>(null);
@@ -143,6 +149,35 @@ export function ExhibitorKitDetailsSection({
 		if (icPreview) URL.revokeObjectURL(icPreview.url);
 		setIcPreview(null);
 		setIcPreviewError(null);
+	};
+
+	const handlePreviewPaymentProof = async () => {
+		if (!kit.payment_proof_url) return;
+		setIsLoadingPaymentProof(true);
+		setPaymentProofError(null);
+		try {
+			const response = await fetch(kit.payment_proof_url);
+			if (!response.ok) throw new Error("Unable to load payment proof");
+			const blob = await response.blob();
+			const disposition = response.headers.get("content-disposition") ?? "";
+			const filename =
+				disposition.match(/filename="?([^";]+)"?/)?.[1] ?? "payment-proof";
+			setPaymentProofPreview({
+				url: URL.createObjectURL(blob),
+				filename,
+				contentType: blob.type,
+			});
+		} catch {
+			setPaymentProofError("Unable to load payment proof. Please try again.");
+		} finally {
+			setIsLoadingPaymentProof(false);
+		}
+	};
+
+	const closePaymentProofPreview = () => {
+		if (paymentProofPreview) URL.revokeObjectURL(paymentProofPreview.url);
+		setPaymentProofPreview(null);
+		setPaymentProofError(null);
 	};
 
 	const items = kit.exhibitor_kit_items || [];
@@ -364,6 +399,23 @@ export function ExhibitorKitDetailsSection({
 										: "-"}
 								</span>
 							</div>
+							<div className="flex items-center justify-between border-t pt-2">
+								<span className="font-medium">Payment Proof</span>
+								{kit.payment_proof_url ? (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										className="rounded-none"
+										disabled={isLoadingPaymentProof}
+										onClick={handlePreviewPaymentProof}
+									>
+										<Download className="size-4" />
+										{isLoadingPaymentProof ? "Loading..." : "Preview"}
+									</Button>
+								) : <span className="text-muted-foreground">Not submitted</span>}
+							</div>
+							{paymentProofError && <p className="text-destructive text-xs">{paymentProofError}</p>}
 							{kit.payment_note && (
 								<div className="border-t pt-2">
 									<span className="mb-1 block font-medium">Note</span>
@@ -696,7 +748,6 @@ export function ExhibitorKitDetailsSection({
 				<DialogContent className="max-w-4xl rounded-none p-0">
 					<DialogHeader className="border-b p-4 text-left">
 						<DialogTitle>IC Copy Preview</DialogTitle>
-						<DialogDescription>{icPreview?.filename}</DialogDescription>
 					</DialogHeader>
 					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
 						{icPreview?.contentType === "application/pdf" ? (
@@ -732,6 +783,31 @@ export function ExhibitorKitDetailsSection({
 							>
 								Download
 							</a>
+						)}
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+			<Dialog
+				open={Boolean(paymentProofPreview)}
+				onOpenChange={(open) => !open && closePaymentProofPreview()}
+			>
+				<DialogContent className="max-w-4xl rounded-none p-0">
+					<DialogHeader className="border-b p-4 text-left">
+						<DialogTitle>Payment Proof Preview</DialogTitle>
+					</DialogHeader>
+					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
+						{paymentProofPreview?.contentType === "application/pdf" ? (
+							<iframe src={paymentProofPreview.url} title={paymentProofPreview.filename} className="h-[62vh] w-full border-0" />
+						) : paymentProofPreview ? (
+							<object data={paymentProofPreview.url} type={paymentProofPreview.contentType} aria-label="Uploaded payment proof" className="max-h-[62vh] max-w-full">
+								<span>Preview unavailable. Use Download.</span>
+							</object>
+						) : null}
+					</div>
+					<DialogFooter className="border-t p-4 sm:justify-end">
+						<Button variant="outline" className="rounded-none" onClick={closePaymentProofPreview}>Close</Button>
+						{paymentProofPreview && (
+							<a href={paymentProofPreview.url} download={paymentProofPreview.filename} className="inline-flex h-9 items-center justify-center rounded-none bg-primary px-4 font-medium text-primary-foreground text-sm">Download</a>
 						)}
 					</DialogFooter>
 				</DialogContent>

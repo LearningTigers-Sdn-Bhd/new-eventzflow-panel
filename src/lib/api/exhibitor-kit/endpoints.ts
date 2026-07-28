@@ -92,3 +92,14 @@ export async function downloadExhibitorKitIcCopy(
 		`v1/events/${eventId}/exhibitor_kits/${kitId}/ic_copy`,
 	);
 }
+
+export async function rejectExhibitorKitPaymentProof(
+	eventId: number,
+	kitId: number,
+	note?: string,
+): Promise<ExhibitorKit> {
+	return restClient.post<ExhibitorKit>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/reject_payment_proof`,
+		{ note: note || undefined },
+	);
+}

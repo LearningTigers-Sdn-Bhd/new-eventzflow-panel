@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
@@ -16,6 +16,7 @@ export default function VendorProfilePage() {
 	const params = useParams();
 	const eventId = Number(params.event_id);
 	const eventVendorId = Number(params.vendor_id);
+	const selectedKitId = Number(useSearchParams().get("kit_id"));
 	const { user } = useAuth();
 	const permissions = useEventPermissions(eventId);
 
@@ -98,16 +99,22 @@ export default function VendorProfilePage() {
 		);
 	}
 
+	const selectedKit = eventVendor.exhibitor_kits.find(
+		(kit) => kit.id === selectedKitId,
+	);
+	if (!selectedKit) {
+		return (
+			<ErrorState
+				title="Exhibitor kit not found"
+				description="The selected booth does not belong to this exhibitor."
+			/>
+		);
+	}
+
 	return (
 		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
-			{eventVendor.exhibitor_kits.map((kit) => (
-				<ExhibitorKitDetailsSection
-					key={kit.id}
-					eventVendor={eventVendor}
-					kit={kit}
-				/>
-			))}
+			<ExhibitorKitDetailsSection eventVendor={eventVendor} kit={selectedKit} />
 		</div>
 	);
 }
