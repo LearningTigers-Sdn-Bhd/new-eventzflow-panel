@@ -112,6 +112,67 @@ export function formatCustomFieldValue(
 	return JSON.stringify(value);
 }
 
+function formatIndemnityDate(value: unknown): string | null {
+	if (typeof value !== "string" || value.trim() === "") {
+		return null;
+	}
+
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) {
+		return value;
+	}
+
+	return new Intl.DateTimeFormat("en-MY", {
+		dateStyle: "medium",
+		timeStyle: "short",
+	}).format(date);
+}
+
+export function formatTicketCustomFieldValue(
+	key: string,
+	value: unknown,
+): string {
+	const normalizedKey = key.replace(/^_+/, "").toLowerCase();
+
+	if (
+		normalizedKey === "indemnity" &&
+		typeof value === "object" &&
+		value !== null &&
+		!Array.isArray(value)
+	) {
+		const indemnity = value as Record<string, unknown>;
+		const lines: string[] = [];
+
+		if (indemnity.accepted === true) {
+			lines.push("Accepted");
+		} else if (indemnity.accepted === false) {
+			lines.push("Not accepted");
+		}
+
+		if (
+			typeof indemnity.signed_name === "string" &&
+			indemnity.signed_name.trim()
+		) {
+			lines.push(`Signed by: ${indemnity.signed_name}`);
+		}
+
+		if (typeof indemnity.method === "string" && indemnity.method.trim()) {
+			lines.push(`Method: ${humanizeCustomFieldKey(indemnity.method)}`);
+		}
+
+		const signedAt = formatIndemnityDate(indemnity.signed_at);
+		if (signedAt) {
+			lines.push(`Signed at: ${signedAt}`);
+		}
+
+		if (lines.length > 0) {
+			return lines.join("\n");
+		}
+	}
+
+	return formatCustomFieldValue(value);
+}
+
 export function formatCustomFieldEntries(
 	data?: Record<string, unknown> | null,
 ): CustomFieldDisplayEntry[] {

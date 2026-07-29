@@ -1,4 +1,8 @@
 import type { BackendEvent } from "@/lib/api/event/response";
+import {
+	formatTicketCustomFieldValue,
+	humanizeCustomFieldKey,
+} from "@/lib/utils/custom-fields-display";
 import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
@@ -151,7 +155,10 @@ export async function getMyScannedTickets(
 			const customLabels: Array<{ name: string; value: string }> = [];
 			if (ticket.custom_fields_data) {
 				for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-					customLabels.push({ name: key, value: String(value) });
+					customLabels.push({
+						name: humanizeCustomFieldKey(key),
+						value: formatTicketCustomFieldValue(key, value),
+					});
 				}
 			}
 
@@ -230,7 +237,10 @@ function transformBackendTicket(
 
 		if (bt.custom_fields_data) {
 			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
-				customLabels.push({ name: String(key), value: String(val) });
+				customLabels.push({
+					name: humanizeCustomFieldKey(key),
+					value: formatTicketCustomFieldValue(key, val),
+				});
 			}
 		}
 	} else {

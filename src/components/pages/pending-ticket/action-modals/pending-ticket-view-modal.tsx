@@ -62,7 +62,7 @@ const InfoItem = ({
 			) : (
 				<p
 					className={cn(
-						"font-semibold text-sm leading-tight",
+						"whitespace-pre-line break-words font-semibold text-sm leading-relaxed",
 						capitalize && "capitalize",
 					)}
 				>
@@ -255,9 +255,9 @@ export default function PendingTicketViewModal({
 						{ticket.customLabels && ticket.customLabels.length > 0 ? (
 							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
 								<CardContent className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
-									{ticket.customLabels.map((label, index) => (
+									{ticket.customLabels.map((label) => (
 										<InfoItem
-											key={`${label.name}-${index}`}
+											key={label.name}
 											label={
 												label.name.includes("_")
 													? label.name
