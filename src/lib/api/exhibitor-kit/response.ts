@@ -112,6 +112,7 @@ export interface ExhibitorKit {
 	indemnity_signed: boolean;
 	indemnity_document_url?: string;
 	payment_status: PaymentStatus;
+	booking_status?: "active" | "paid" | "cancelled" | "expired";
 	payment_proof_url?: string | null;
 	payment_proof_status?: "pending" | "submitted" | "rejected" | "paid" | string;
 	amount_paid?: string;

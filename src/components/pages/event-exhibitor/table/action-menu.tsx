@@ -25,7 +25,11 @@ import {
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { EventVendor } from "@/lib/api/event-vendor";
-import { deleteExhibitorKit, type ExhibitorKit } from "@/lib/api/exhibitor-kit";
+import {
+	deleteExhibitorKit,
+	type ExhibitorKit,
+	permanentlyDeleteExhibitorKit,
+} from "@/lib/api/exhibitor-kit";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
@@ -60,6 +64,21 @@ export function ExhibitorActionsMenu({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to cancel exhibitor kit");
+		},
+	});
+
+	const permanentlyDeleteKitMutation = useMutation({
+		mutationFn: (kitId: number) =>
+			permanentlyDeleteExhibitorKit(Number(eventId), kitId),
+		onSuccess: () => {
+			toast.success("Exhibitor kit permanently deleted!");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to delete exhibitor kit");
 		},
 	});
 
@@ -144,6 +163,10 @@ export function ExhibitorActionsMenu({
 		});
 	};
 
+	const canCancelKit =
+		kit.payment_status === "unpaid" &&
+		(kit.booking_status === undefined || kit.booking_status === "active");
+
 	const handleDeleteClick = () => {
 		openConfirm({
 			title: "Cancel Exhibitor Kit",
@@ -155,6 +178,22 @@ export function ExhibitorActionsMenu({
 			size: "sm",
 			onConfirm: () => {
 				deleteKitMutation.mutate(kit.id);
+			},
+			onCancel: closeDialog,
+		});
+	};
+
+	const handlePermanentDeleteClick = () => {
+		openConfirm({
+			title: "Permanently Delete Exhibitor Kit",
+			message: `This will permanently delete this cancelled kit for ${exhibitor.vendor.full_name} and all its related records (payments, team members, requests). This cannot be undone.`,
+			confirmLabel: "Delete Permanently",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				permanentlyDeleteKitMutation.mutate(kit.id);
 			},
 			onCancel: closeDialog,
 		});
@@ -219,11 +258,21 @@ export function ExhibitorActionsMenu({
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={handleDeleteClick}
-					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
+					disabled={!canCancelKit}
+					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600 data-[disabled]:cursor-not-allowed data-[disabled]:text-muted-foreground"
 				>
 					<Trash2 className="mr-2 size-4" />
-					Cancel Kit
+					{kit.booking_status === "cancelled" ? "Kit Cancelled" : "Cancel Kit"}
 				</DropdownMenuItem>
+				{kit.booking_status === "cancelled" && (
+					<DropdownMenuItem
+						onClick={handlePermanentDeleteClick}
+						className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
+					>
+						<Trash2 className="mr-2 size-4" />
+						Delete Kit Permanently
+					</DropdownMenuItem>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
