@@ -18,20 +18,14 @@ export const getExhibitorBoothsSchema = z.object({
 
 export const createExhibitorBoothSchema = z.object({
 	event_id: z.number().int().min(1, "Event ID is required"),
-	exhibitor_booth_price_id: z
-		.number()
-		.int()
-		.min(1, "Booth price is required"),
+	exhibitor_booth_price_id: z.number().int().min(1, "Booth price is required"),
 	number: boothNumberSchema,
 	status: exhibitorBoothStatusSchema.default("available"),
 });
 
 export const bulkCreateExhibitorBoothsSchema = z.object({
 	event_id: z.number().int().min(1, "Event ID is required"),
-	exhibitor_booth_price_id: z
-		.number()
-		.int()
-		.min(1, "Booth price is required"),
+	exhibitor_booth_price_id: z.number().int().min(1, "Booth price is required"),
 	numbers: z.array(boothNumberSchema).min(1, "Add at least one booth number"),
 	status: exhibitorBoothStatusSchema.default("available"),
 });
@@ -49,9 +43,7 @@ export const releaseExhibitorBoothSchema = z.object({
 
 export const deleteExhibitorBoothSchema = releaseExhibitorBoothSchema;
 
-export type ExhibitorBoothStatus = z.infer<
-	typeof exhibitorBoothStatusSchema
->;
+export type ExhibitorBoothStatus = z.infer<typeof exhibitorBoothStatusSchema>;
 export type GetExhibitorBoothsRequest = z.infer<
 	typeof getExhibitorBoothsSchema
 >;

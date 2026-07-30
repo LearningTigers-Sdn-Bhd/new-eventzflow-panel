@@ -56,6 +56,12 @@ const formSchema = z.object({
 	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	enableExhibitorManagement: z.boolean(),
+	exhibitorReservationTtlHours: z
+		.string()
+		.refine(
+			(value) => value === "" || /^-?\d+$/.test(value),
+			"Enter whole hours",
+		),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
 	useVoucher: z.boolean(),
@@ -149,6 +155,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useSeatTicketing: false,
 			useExhibitorKit: false,
 			enableExhibitorManagement: false,
+			exhibitorReservationTtlHours: "",
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useVoucher: true,
@@ -188,6 +195,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					enable_exhibitor_management: value.enableExhibitorManagement,
+					exhibitor_reservation_ttl_hours:
+						value.exhibitorReservationTtlHours === ""
+							? null
+							: Number(value.exhibitorReservationTtlHours),
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_voucher: value.useVoucher,
@@ -236,6 +247,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue(
 					"enableExhibitorManagement",
 					event.enable_exhibitor_management ?? false,
+				);
+				form.setFieldValue(
+					"exhibitorReservationTtlHours",
+					event.exhibitor_reservation_ttl_hours?.toString() ?? "",
 				);
 				form.setFieldValue(
 					"allowPrintingServices",
@@ -1041,6 +1056,29 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												</>
 											)}
 										</div>
+									);
+								}}
+							</form.Field>
+							<form.Field name="exhibitorReservationTtlHours">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+
+									return (
+										<InputLabel
+											label="Hold unpaid booth reservations for (hours)"
+											htmlFor={field.name}
+											inputType="number"
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											description="Leave blank so unpaid booth reservations never expire."
+											step={1}
+											placeholder="Never expires"
+											disabled={updateEventMutation.isPending}
+										/>
 									);
 								}}
 							</form.Field>

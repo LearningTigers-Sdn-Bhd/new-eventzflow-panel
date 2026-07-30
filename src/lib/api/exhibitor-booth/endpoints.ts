@@ -106,8 +106,7 @@ export async function updateExhibitorBooth(
 			exhibitor_booth: {
 				...(validated.exhibitor_booth_price_id
 					? {
-							exhibitor_booth_price_id:
-								validated.exhibitor_booth_price_id,
+							exhibitor_booth_price_id: validated.exhibitor_booth_price_id,
 						}
 					: {}),
 				...(validated.number ? { number: validated.number } : {}),
