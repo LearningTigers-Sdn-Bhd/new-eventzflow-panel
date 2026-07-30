@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Armchair,
 	ChevronDown,
 	LayoutGrid,
 	Link2,
@@ -22,6 +23,7 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
+import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
@@ -93,6 +95,19 @@ export function ExhibitorPageButton() {
 							>
 								<Tags className="h-4 w-4" />
 								Booth Prices
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
+					<BoothInventoryDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<Armchair className="h-4 w-4" />
+								Manage Booths
 							</DropdownMenuItem>
 						}
 					/>
