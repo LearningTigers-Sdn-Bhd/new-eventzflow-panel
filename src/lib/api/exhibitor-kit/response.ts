@@ -121,6 +121,9 @@ export interface ExhibitorKit {
 	exhibitor_booth_price_id?: number;
 	exhibitor_booth_price_label?: string | null;
 	exhibitor_booth_price_zone?: string | null;
+	exhibitor_package_id?: number | null;
+	exhibitor_package_name?: string | null;
+	exhibitor_package_inclusions?: string | null;
 	custom_fields_data?: Record<string, unknown>;
 	ic_copy_uploaded?: boolean;
 	exhibitor_team_members: ExhibitorTeamMember[];

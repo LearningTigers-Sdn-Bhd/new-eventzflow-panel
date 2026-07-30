@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getEventById } from "@/lib/api/event";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
+import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
 import { getVendors } from "@/lib/api/vendor";
 
 interface ManualAddFormProps {
@@ -74,6 +75,7 @@ export default function ManualAddForm({
 
 	// Exhibitor kit fields
 	const [boothPriceId, setBoothPriceId] = useState<string>("");
+	const [packageId, setPackageId] = useState("");
 	const [boothType, setBoothType] = useState<string>("");
 	const [boothQuantity, setBoothQuantity] = useState<string>("1");
 	const [boothNumber, setBoothNumber] = useState("");
@@ -103,6 +105,20 @@ export default function ManualAddForm({
 		queryFn: () => getExhibitorBoothPrices(eventId),
 		enabled: isExhibitorEvent,
 	});
+
+	const { data: packages = [] } = useQuery({
+		queryKey: ["exhibitor-packages", eventId],
+		queryFn: () => getExhibitorPackages(eventId),
+	});
+
+	const availablePackages = packages.filter(
+		(item) => String(item.exhibitorBoothPriceId) === boothPriceId,
+	);
+
+	// Booth price drives which packages are valid; a stale selection is rejected server-side.
+	useEffect(() => {
+		setPackageId("");
+	}, [boothPriceId]);
 
 	// Fetch available vendors
 	const {
@@ -211,6 +227,9 @@ export default function ManualAddForm({
 
 			if (hasBoothPrices && boothPriceId) {
 				kit.exhibitor_booth_price_id = Number(boothPriceId);
+			}
+			if (packageId) {
+				kit.exhibitor_package_id = Number(packageId);
 			}
 			if (showBoothTypeFallback && boothType.trim()) {
 				kit.booth_type = boothType.trim();
@@ -448,38 +467,59 @@ export default function ManualAddForm({
 							<p className="mb-4 font-medium text-sm">Booth Details</p>
 
 							{hasBoothPrices ? (
-								<Field orientation="vertical" className="mb-4">
-									<FieldLabel htmlFor={boothPriceField}>
-										Booth Price *
-									</FieldLabel>
-									{errors.boothPriceId && (
-										<FieldError>{errors.boothPriceId}</FieldError>
+								<>
+									<Field orientation="vertical" className="mb-4">
+										<FieldLabel htmlFor={boothPriceField}>
+											Booth Price *
+										</FieldLabel>
+										{errors.boothPriceId && (
+											<FieldError>{errors.boothPriceId}</FieldError>
+										)}
+										<Select
+											value={boothPriceId}
+											onValueChange={(value) => {
+												setBoothPriceId(value);
+												clearError("boothPriceId");
+											}}
+											disabled={submitting}
+										>
+											<SelectTrigger id={boothPriceField}>
+												<SelectValue placeholder="Select a booth price" />
+											</SelectTrigger>
+											<SelectContent>
+												{boothPrices?.map((bp) => (
+													<SelectItem key={bp.id} value={bp.id.toString()}>
+														{humanizeBoothType(bp.boothType)} — {bp.label}
+														{bp.zone ? ` (${bp.zone})` : ""} — RM
+														{bp.currentPrice}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FieldDescription>
+											Booth type and amount are derived from the selected price.
+										</FieldDescription>
+									</Field>
+									{availablePackages.length > 0 && (
+										<Field orientation="vertical" className="mb-4">
+											<FieldLabel htmlFor="manual-package">
+												Package (optional)
+											</FieldLabel>
+											<Select value={packageId} onValueChange={setPackageId}>
+												<SelectTrigger id="manual-package">
+													<SelectValue placeholder="Local — booth only" />
+												</SelectTrigger>
+												<SelectContent>
+													{availablePackages.map((item) => (
+														<SelectItem key={item.id} value={String(item.id)}>
+															{item.name} — RM {item.price.toFixed(2)}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</Field>
 									)}
-									<Select
-										value={boothPriceId}
-										onValueChange={(value) => {
-											setBoothPriceId(value);
-											clearError("boothPriceId");
-										}}
-										disabled={submitting}
-									>
-										<SelectTrigger id={boothPriceField}>
-											<SelectValue placeholder="Select a booth price" />
-										</SelectTrigger>
-										<SelectContent>
-											{boothPrices?.map((bp) => (
-												<SelectItem key={bp.id} value={bp.id.toString()}>
-													{humanizeBoothType(bp.boothType)} — {bp.label}
-													{bp.zone ? ` (${bp.zone})` : ""} — RM
-													{bp.currentPrice}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FieldDescription>
-										Booth type and amount are derived from the selected price.
-									</FieldDescription>
-								</Field>
+								</>
 							) : (
 								<Field orientation="vertical" className="mb-4">
 									<FieldLabel htmlFor={boothTypeField}>Booth Type *</FieldLabel>

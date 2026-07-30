@@ -394,13 +394,28 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.exhibitor_booth_price_label && (
 						<div className="flex justify-between gap-2 py-0.5">
-							<span className="shrink-0 font-medium text-xs">
-								Booth Package
-							</span>
+							<span className="shrink-0 font-medium text-xs">Booth Type</span>
 							<span className="break-words text-right text-muted-foreground text-xs">
 								{kit.exhibitor_booth_price_label}
 							</span>
 						</div>
+					)}
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Package</span>
+						<span className="break-words text-right text-muted-foreground text-xs">
+							{kit.exhibitor_package_name ?? "—"}
+						</span>
+					</div>
+					{kit.exhibitor_package_inclusions && (
+						<ul className="list-disc space-y-0.5 py-0.5 pl-4 text-muted-foreground text-xs">
+							{kit.exhibitor_package_inclusions
+								.split("\n")
+								.map((line) => line.trim())
+								.filter(Boolean)
+								.map((line) => (
+									<li key={line}>{line}</li>
+								))}
+						</ul>
 					)}
 					<div className="flex items-center justify-between gap-2 border-t pt-1.5">
 						<span className="font-medium text-xs">Payment Proof</span>

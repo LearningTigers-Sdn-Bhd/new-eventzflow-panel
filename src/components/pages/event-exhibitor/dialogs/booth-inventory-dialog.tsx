@@ -41,6 +41,12 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
 	bulkCreateExhibitorBooths,
 	createExhibitorBooth,
 	deleteExhibitorBooth,
@@ -429,8 +435,8 @@ export function BoothInventoryDialog({
 						</div>
 					</div>
 
-					<div className="flex min-h-[60dvh] flex-1 flex-col lg:min-h-0">
-						<div className="flex flex-wrap items-end gap-3 border-b bg-background px-5 py-4">
+					<div className="flex min-h-[60dvh] flex-1 flex-col gap-6 overflow-y-auto bg-muted/10 p-6 lg:min-h-0 lg:p-8">
+						<div className="flex flex-wrap items-end gap-3">
 							<div className="w-full space-y-1.5 sm:w-48">
 								<Label htmlFor="booth-zone-filter">Zone</Label>
 								<Select
@@ -442,7 +448,7 @@ export function BoothInventoryDialog({
 								>
 									<SelectTrigger
 										id="booth-zone-filter"
-										className="w-full rounded-none"
+										className="h-9 w-full rounded-none"
 									>
 										<SelectValue placeholder="All zones" />
 									</SelectTrigger>
@@ -467,7 +473,7 @@ export function BoothInventoryDialog({
 								>
 									<SelectTrigger
 										id="booth-price-filter"
-										className="w-full rounded-none"
+										className="h-9 w-full rounded-none"
 									>
 										<SelectValue placeholder="All booth prices" />
 									</SelectTrigger>
@@ -492,7 +498,7 @@ export function BoothInventoryDialog({
 								>
 									<SelectTrigger
 										id="booth-status-filter"
-										className="w-full rounded-none"
+										className="h-9 w-full rounded-none"
 									>
 										<SelectValue placeholder="All statuses" />
 									</SelectTrigger>
@@ -508,154 +514,189 @@ export function BoothInventoryDialog({
 							</div>
 						</div>
 
-						<div className="min-h-0 flex-1 overflow-auto">
-							<Table>
-								<TableHeader className="sticky top-0 z-10 bg-background">
-									<TableRow>
-										<TableHead>Number</TableHead>
-										<TableHead>Zone</TableHead>
-										<TableHead>Booth type</TableHead>
-										<TableHead>Label</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Held by</TableHead>
-										<TableHead>Held since</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{isLoading ? (
+						<div className="flex min-h-0 flex-1 flex-col rounded-none border bg-background shadow-sm">
+							<div className="min-h-0 flex-1 overflow-auto">
+								<Table>
+									<TableHeader className="sticky top-0 z-10 bg-background">
 										<TableRow>
-											<TableCell colSpan={8} className="h-64 text-center">
-												<Loader2 className="mx-auto h-5 w-5 animate-spin" />
-											</TableCell>
+											<TableHead>Number</TableHead>
+											<TableHead>Zone</TableHead>
+											<TableHead>Booth type</TableHead>
+											<TableHead>Label</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Held by</TableHead>
+											<TableHead>Held since</TableHead>
+											<TableHead className="w-[100px]">Actions</TableHead>
 										</TableRow>
-									) : visibleBooths.length === 0 ? (
-										<TableRow>
-											<TableCell
-												colSpan={8}
-												className="h-64 text-center text-muted-foreground"
-											>
-												No booths match these filters.
-											</TableCell>
-										</TableRow>
-									) : (
-										visibleBooths.map((booth) => (
-											<TableRow key={booth.id}>
-												<TableCell className="font-medium">
-													{booth.number}
-												</TableCell>
-												<TableCell>{booth.zone || "—"}</TableCell>
-												<TableCell>
-													{formatBoothType(booth.boothType)}
-												</TableCell>
-												<TableCell>{booth.label}</TableCell>
-												<TableCell>
-													<Badge variant="outline" className="rounded-none">
-														{statusLabel(booth.status)}
-													</Badge>
-												</TableCell>
-												<TableCell>{booth.heldBy || "—"}</TableCell>
-												<TableCell>
-													{booth.heldSince
-														? new Date(booth.heldSince).toLocaleString()
-														: "—"}
-												</TableCell>
-												<TableCell>
-													<div className="flex justify-end gap-1">
-														{booth.status === "reserved" && (
-															<Button
-																type="button"
-																size="sm"
-																variant="outline"
-																className="h-8 rounded-none"
-																onClick={() =>
-																	releaseMutation.mutate({ id: booth.id })
-																}
-															>
-																<RotateCcw className="mr-1 h-3.5 w-3.5" />
-																Release
-															</Button>
-														)}
-														{(booth.status === "available" ||
-															booth.status === "blocked") && (
-															<Button
-																type="button"
-																size="sm"
-																variant="outline"
-																className="h-8 rounded-none"
-																onClick={() =>
-																	updateMutation.mutate({
-																		id: booth.id,
-																		status:
-																			booth.status === "blocked"
-																				? "available"
-																				: "blocked",
-																	})
-																}
-															>
-																{booth.status === "blocked" ? (
-																	<CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-																) : (
-																	<Ban className="mr-1 h-3.5 w-3.5" />
-																)}
-																{booth.status === "blocked"
-																	? "Unblock"
-																	: "Block"}
-															</Button>
-														)}
-														{(booth.status === "available" ||
-															booth.status === "blocked") && (
-															<Button
-																type="button"
-																size="icon"
-																variant="ghost"
-																className="h-8 w-8 rounded-none text-destructive"
-																onClick={() =>
-																	deleteMutation.mutate({ id: booth.id })
-																}
-															>
-																<Trash2 className="h-4 w-4" />
-																<span className="sr-only">Delete</span>
-															</Button>
-														)}
-													</div>
+									</TableHeader>
+									<TableBody>
+										{isLoading ? (
+											<TableRow>
+												<TableCell colSpan={8} className="py-8 text-center">
+													<Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
 												</TableCell>
 											</TableRow>
-										))
-									)}
-								</TableBody>
-							</Table>
-						</div>
+										) : visibleBooths.length === 0 ? (
+											<TableRow>
+												<TableCell
+													colSpan={8}
+													className="py-8 text-center text-muted-foreground"
+												>
+													No booths match these filters.
+												</TableCell>
+											</TableRow>
+										) : (
+											visibleBooths.map((booth) => (
+												<TableRow key={booth.id}>
+													<TableCell className="font-medium">
+														{booth.number}
+													</TableCell>
+													<TableCell>{booth.zone || "—"}</TableCell>
+													<TableCell>
+														{formatBoothType(booth.boothType)}
+													</TableCell>
+													<TableCell>{booth.label}</TableCell>
+													<TableCell>
+														<Badge variant="outline" className="rounded-none">
+															{statusLabel(booth.status)}
+														</Badge>
+													</TableCell>
+													<TableCell>{booth.heldBy || "—"}</TableCell>
+													<TableCell>
+														{booth.heldSince
+															? new Date(booth.heldSince).toLocaleString()
+															: "—"}
+													</TableCell>
+													<TableCell>
+														<TooltipProvider>
+															<div className="flex items-center gap-1">
+																{booth.status === "reserved" && (
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<Button
+																				type="button"
+																				variant="ghost"
+																				size="sm"
+																				className="h-8 w-8 rounded-none p-0"
+																				onClick={() =>
+																					releaseMutation.mutate({
+																						id: booth.id,
+																					})
+																				}
+																				aria-label={`Release booth ${booth.number}`}
+																			>
+																				<RotateCcw className="h-4 w-4" />
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent className="rounded-none">
+																			Release booth
+																		</TooltipContent>
+																	</Tooltip>
+																)}
+																{(booth.status === "available" ||
+																	booth.status === "blocked") && (
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<Button
+																				type="button"
+																				variant="ghost"
+																				size="sm"
+																				className="h-8 w-8 rounded-none p-0"
+																				onClick={() =>
+																					updateMutation.mutate({
+																						id: booth.id,
+																						status:
+																							booth.status === "blocked"
+																								? "available"
+																								: "blocked",
+																					})
+																				}
+																				aria-label={
+																					booth.status === "blocked"
+																						? `Unblock booth ${booth.number}`
+																						: `Block booth ${booth.number}`
+																				}
+																			>
+																				{booth.status === "blocked" ? (
+																					<CheckCircle2 className="h-4 w-4" />
+																				) : (
+																					<Ban className="h-4 w-4" />
+																				)}
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent className="rounded-none">
+																			{booth.status === "blocked"
+																				? "Unblock booth (make available)"
+																				: "Block booth (make unavailable)"}
+																		</TooltipContent>
+																	</Tooltip>
+																)}
+																{(booth.status === "available" ||
+																	booth.status === "blocked") && (
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<Button
+																				type="button"
+																				variant="ghost"
+																				size="sm"
+																				className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
+																				onClick={() =>
+																					deleteMutation.mutate({
+																						id: booth.id,
+																					})
+																				}
+																				aria-label={`Delete booth ${booth.number}`}
+																			>
+																				<Trash2 className="h-4 w-4" />
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent className="rounded-none">
+																			Delete booth
+																		</TooltipContent>
+																	</Tooltip>
+																)}
+															</div>
+														</TooltipProvider>
+													</TableCell>
+												</TableRow>
+											))
+										)}
+									</TableBody>
+								</Table>
+							</div>
 
-						<div className="flex shrink-0 items-center justify-between border-t px-5 py-4 text-sm">
-							<span className="text-muted-foreground">
-								{booths.length} booths · Page {page} of {pageCount}
-							</span>
-							<div className="flex gap-1">
-								<Button
-									type="button"
-									size="sm"
-									variant="outline"
-									className="rounded-none"
-									disabled={page === 1}
-									onClick={() => setPage((current) => Math.max(1, current - 1))}
-								>
-									<ChevronLeft className="h-4 w-4" />
-									Previous
-								</Button>
-								<Button
-									type="button"
-									size="sm"
-									variant="outline"
-									className="rounded-none"
-									disabled={page === pageCount}
-									onClick={() =>
-										setPage((current) => Math.min(pageCount, current + 1))
-									}
-								>
-									Next
-									<ChevronRight className="h-4 w-4" />
-								</Button>
+							<div className="flex shrink-0 items-center justify-between border-t px-5 py-3 text-sm">
+								<span className="text-muted-foreground">
+									{booths.length} booths · Page {page} of {pageCount}
+								</span>
+								<div className="flex gap-1">
+									<Button
+										type="button"
+										size="sm"
+										variant="outline"
+										className="rounded-none"
+										disabled={page === 1}
+										onClick={() =>
+											setPage((current) => Math.max(1, current - 1))
+										}
+									>
+										<ChevronLeft className="h-4 w-4" />
+										Previous
+									</Button>
+									<Button
+										type="button"
+										size="sm"
+										variant="outline"
+										className="rounded-none"
+										disabled={page === pageCount}
+										onClick={() =>
+											setPage((current) => Math.min(pageCount, current + 1))
+										}
+									>
+										Next
+										<ChevronRight className="h-4 w-4" />
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>

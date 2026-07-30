@@ -5,6 +5,7 @@ import {
 	LayoutGrid,
 	Link2,
 	MapPinned,
+	PackageOpen,
 	Plus,
 	Settings2,
 	Tags,
@@ -26,6 +27,7 @@ import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-di
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
+import { PackageDialog } from "../dialogs/package-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
 import { ZonePricingDialog } from "../dialogs/zone-pricing-dialog";
 import AddExhibitorModal from "../forms/add-exhibitor";
@@ -95,6 +97,19 @@ export function ExhibitorPageButton() {
 							>
 								<Tags className="h-4 w-4" />
 								Booth Prices
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
+					<PackageDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<PackageOpen className="h-4 w-4" />
+								Packages
 							</DropdownMenuItem>
 						}
 					/>
