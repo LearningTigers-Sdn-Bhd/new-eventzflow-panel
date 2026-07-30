@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Armchair,
 	ChevronDown,
 	LayoutGrid,
 	Link2,
@@ -10,6 +9,7 @@ import {
 	Settings2,
 	Tags,
 	Users,
+	Vault,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -106,7 +106,7 @@ export function ExhibitorPageButton() {
 								onSelect={(e) => e.preventDefault()}
 								className="rounded-none"
 							>
-								<Armchair className="h-4 w-4" />
+								<Vault className="h-4 w-4" />
 								Manage Booths
 							</DropdownMenuItem>
 						}

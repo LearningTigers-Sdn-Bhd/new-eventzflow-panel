@@ -254,24 +254,25 @@ export function BoothInventoryDialog({
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>{trigger}</DialogTrigger>
-			<DialogContent className="flex h-[92vh] max-w-[96vw] flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-[96vw]">
-				<DialogHeader className="border-b px-6 py-5">
+			<DialogContent className="!top-0 !left-0 !h-[100dvh] !w-screen !max-w-none !translate-x-0 !translate-y-0 sm:!max-w-none flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0">
+				<DialogHeader className="shrink-0 border-b px-6 py-5">
 					<DialogTitle>Manage Exhibitor Booths</DialogTitle>
 					<DialogDescription>
 						Create and manage the physical booths exhibitors can reserve.
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="grid min-h-0 flex-1 lg:grid-cols-[360px_minmax(0,1fr)]">
-					<div className="overflow-y-auto border-r bg-muted/20 p-5">
-						<div className="grid grid-cols-3 gap-1">
+				<div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:overflow-hidden">
+					<div className="shrink-0 border-b bg-muted/20 p-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
+						<p className="mb-3 font-medium text-sm">Add inventory</p>
+						<div className="grid grid-cols-3 gap-px border bg-border p-px">
 							{(["single", "range", "paste"] as EntryMode[]).map((mode) => (
 								<Button
 									key={mode}
 									type="button"
 									size="sm"
 									variant={entryMode === mode ? "default" : "outline"}
-									className="rounded-none"
+									className="min-w-0 whitespace-nowrap rounded-none border-0 px-2 text-xs"
 									onClick={() => setEntryMode(mode)}
 								>
 									{mode === "single"
@@ -428,70 +429,88 @@ export function BoothInventoryDialog({
 						</div>
 					</div>
 
-					<div className="flex min-h-0 flex-col p-5">
-						<div className="grid gap-2 border-b pb-4 sm:grid-cols-3">
-							<Select
-								value={zoneFilter}
-								onValueChange={(value) => {
-									setZoneFilter(value);
-									setPage(1);
-								}}
-							>
-								<SelectTrigger className="rounded-none">
-									<SelectValue placeholder="All zones" />
-								</SelectTrigger>
-								<SelectContent className="rounded-none">
-									<SelectItem value="all">All zones</SelectItem>
-									{zones.map((zone) => (
-										<SelectItem key={zone.id} value={String(zone.id)}>
-											{zone.zone}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<Select
-								value={priceFilter}
-								onValueChange={(value) => {
-									setPriceFilter(value);
-									setPage(1);
-								}}
-							>
-								<SelectTrigger className="rounded-none">
-									<SelectValue placeholder="All booth prices" />
-								</SelectTrigger>
-								<SelectContent className="rounded-none">
-									<SelectItem value="all">All booth prices</SelectItem>
-									{boothPrices.map((price) => (
-										<SelectItem key={price.id} value={String(price.id)}>
-											{priceLabel(price)}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<Select
-								value={statusFilter}
-								onValueChange={(value) => {
-									setStatusFilter(value);
-									setPage(1);
-								}}
-							>
-								<SelectTrigger className="rounded-none">
-									<SelectValue placeholder="All statuses" />
-								</SelectTrigger>
-								<SelectContent className="rounded-none">
-									<SelectItem value="all">All statuses</SelectItem>
-									{STATUS_OPTIONS.map((status) => (
-										<SelectItem key={status} value={status}>
-											{statusLabel(status)}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+					<div className="flex min-h-[60dvh] flex-1 flex-col lg:min-h-0">
+						<div className="flex flex-wrap items-end gap-3 border-b bg-background px-5 py-4">
+							<div className="w-full space-y-1.5 sm:w-48">
+								<Label htmlFor="booth-zone-filter">Zone</Label>
+								<Select
+									value={zoneFilter}
+									onValueChange={(value) => {
+										setZoneFilter(value);
+										setPage(1);
+									}}
+								>
+									<SelectTrigger
+										id="booth-zone-filter"
+										className="w-full rounded-none"
+									>
+										<SelectValue placeholder="All zones" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="all">All zones</SelectItem>
+										{zones.map((zone) => (
+											<SelectItem key={zone.id} value={String(zone.id)}>
+												{zone.zone}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="w-full space-y-1.5 sm:w-80">
+								<Label htmlFor="booth-price-filter">Booth price</Label>
+								<Select
+									value={priceFilter}
+									onValueChange={(value) => {
+										setPriceFilter(value);
+										setPage(1);
+									}}
+								>
+									<SelectTrigger
+										id="booth-price-filter"
+										className="w-full rounded-none"
+									>
+										<SelectValue placeholder="All booth prices" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="all">All booth prices</SelectItem>
+										{boothPrices.map((price) => (
+											<SelectItem key={price.id} value={String(price.id)}>
+												{priceLabel(price)}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="w-full space-y-1.5 sm:w-44">
+								<Label htmlFor="booth-status-filter">Status</Label>
+								<Select
+									value={statusFilter}
+									onValueChange={(value) => {
+										setStatusFilter(value);
+										setPage(1);
+									}}
+								>
+									<SelectTrigger
+										id="booth-status-filter"
+										className="w-full rounded-none"
+									>
+										<SelectValue placeholder="All statuses" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="all">All statuses</SelectItem>
+										{STATUS_OPTIONS.map((status) => (
+											<SelectItem key={status} value={status}>
+												{statusLabel(status)}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
 						</div>
 
 						<div className="min-h-0 flex-1 overflow-auto">
 							<Table>
-								<TableHeader>
+								<TableHeader className="sticky top-0 z-10 bg-background">
 									<TableRow>
 										<TableHead>Number</TableHead>
 										<TableHead>Zone</TableHead>
@@ -506,7 +525,7 @@ export function BoothInventoryDialog({
 								<TableBody>
 									{isLoading ? (
 										<TableRow>
-											<TableCell colSpan={8} className="py-12 text-center">
+											<TableCell colSpan={8} className="h-64 text-center">
 												<Loader2 className="mx-auto h-5 w-5 animate-spin" />
 											</TableCell>
 										</TableRow>
@@ -514,7 +533,7 @@ export function BoothInventoryDialog({
 										<TableRow>
 											<TableCell
 												colSpan={8}
-												className="py-12 text-center text-muted-foreground"
+												className="h-64 text-center text-muted-foreground"
 											>
 												No booths match these filters.
 											</TableCell>
@@ -608,7 +627,7 @@ export function BoothInventoryDialog({
 							</Table>
 						</div>
 
-						<div className="flex items-center justify-between border-t pt-4 text-sm">
+						<div className="flex shrink-0 items-center justify-between border-t px-5 py-4 text-sm">
 							<span className="text-muted-foreground">
 								{booths.length} booths · Page {page} of {pageCount}
 							</span>

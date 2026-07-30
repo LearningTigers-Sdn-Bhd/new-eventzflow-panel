@@ -24,5 +24,20 @@ describe("BoothInventoryDialog", () => {
 
 		expect(content).toContain("BoothInventoryDialog");
 		expect(content).toContain("Manage Booths");
+		expect(content).toContain("Vault");
+		expect(content).not.toContain("Armchair");
+	});
+
+	test("uses a fullscreen workspace with a stable sidebar and compact filters", () => {
+		const content = readFileSync(
+			new URL("./booth-inventory-dialog.tsx", import.meta.url),
+			"utf8",
+		);
+
+		expect(content).toContain("h-[100dvh]");
+		expect(content).toContain("w-screen");
+		expect(content).toContain("grid-cols-[400px_minmax(0,1fr)]");
+		expect(content).toContain("flex flex-wrap");
+		expect(content).not.toContain("h-[92vh]");
 	});
 });
