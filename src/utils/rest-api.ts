@@ -93,6 +93,26 @@ export const kyClient = ky.create({
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
+		beforeError: [
+			async (error) => {
+				const { response } = error;
+				if (response?.body) {
+					try {
+						const body = await response.clone().json();
+						const message =
+							body?.error ??
+							body?.message ??
+							(Array.isArray(body?.errors)
+								? body.errors.join(", ")
+								: undefined);
+						if (message) error.message = message;
+					} catch {
+						// Response body isn't JSON — keep ky's default message
+					}
+				}
+				return error;
+			},
+		],
 		beforeRequest: [
 			async (request) => {
 				// Check if we need to wait for token refresh before this request

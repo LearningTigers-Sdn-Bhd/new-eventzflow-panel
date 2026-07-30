@@ -258,14 +258,6 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 							available={kit.ic_copy_uploaded}
 						/>
 					</div>
-					<div className="flex items-center justify-between gap-2 py-0.5">
-						<span className="font-medium text-xs">IC Copy</span>
-						<IcCopyPreviewButton
-							eventId={vendor.event_id}
-							kitId={kit.id}
-							available={kit.ic_copy_uploaded}
-						/>
-					</div>
 					<div className="flex justify-between gap-2 py-0.5">
 						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge
