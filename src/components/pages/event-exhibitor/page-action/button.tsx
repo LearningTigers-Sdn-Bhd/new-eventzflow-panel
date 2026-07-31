@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
@@ -39,6 +40,9 @@ export function ExhibitorPageButton() {
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
 	const permissions = useEventPermissions(eventId);
+	const setFullScreenDialogOpen = useFullScreenDialogStore(
+		(state) => state.setOpen,
+	);
 
 	const handleAssignExhibitor = () => {
 		openDialog({
@@ -90,57 +94,45 @@ export function ExhibitorPageButton() {
 						}
 					/>
 					<DropdownMenuSeparator />
-					<BoothPricingDialog
-						eventId={Number(eventId)}
-						trigger={
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								className="rounded-none"
-							>
-								<Tags className="h-4 w-4" />
-								Booth Prices
-							</DropdownMenuItem>
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`booth-pricing-dialog-${eventId}`, true)
 						}
-					/>
+						className="rounded-none"
+					>
+						<Tags className="h-4 w-4" />
+						Booth Prices
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<PackageDialog
-						eventId={Number(eventId)}
-						trigger={
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								className="rounded-none"
-							>
-								<PackageOpen className="h-4 w-4" />
-								Packages
-							</DropdownMenuItem>
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`package-dialog-${eventId}`, true)
 						}
-					/>
+						className="rounded-none"
+					>
+						<PackageOpen className="h-4 w-4" />
+						Packages
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<VoucherDialog
-						eventId={Number(eventId)}
-						trigger={
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								className="rounded-none"
-							>
-								<TicketPercent className="h-4 w-4" />
-								Vouchers
-							</DropdownMenuItem>
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`voucher-dialog-${eventId}`, true)
 						}
-					/>
+						className="rounded-none"
+					>
+						<TicketPercent className="h-4 w-4" />
+						Vouchers
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<BoothInventoryDialog
-						eventId={Number(eventId)}
-						trigger={
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								className="rounded-none"
-							>
-								<Vault className="h-4 w-4" />
-								Manage Booths
-							</DropdownMenuItem>
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`booth-inventory-dialog-${eventId}`, true)
 						}
-					/>
+						className="rounded-none"
+					>
+						<Vault className="h-4 w-4" />
+						Manage Booths
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<BoothTypesDialog
 						eventId={Number(eventId)}
@@ -186,6 +178,22 @@ export function ExhibitorPageButton() {
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
+			<BoothPricingDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
+			<PackageDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
+			<VoucherDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
+			<BoothInventoryDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
 			<Button
 				onClick={handleAssignExhibitor}
 				className="w-full rounded-none sm:w-auto"
