@@ -33,6 +33,7 @@ const exhibitorKitAttributesSchema = z.object({
 	// Booth price / quantity (server derives booth_type/amount_paid from booth price)
 	exhibitor_booth_price_id: z.number().optional(),
 	exhibitor_package_id: z.number().optional(),
+	voucher_code: z.string().trim().optional(),
 	booth_quantity: z.number().int().positive().optional(),
 	// Optional extras
 	special_requirements: z.string().optional(),

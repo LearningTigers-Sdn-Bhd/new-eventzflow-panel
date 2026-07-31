@@ -9,6 +9,7 @@ import {
 	Plus,
 	Settings2,
 	Tags,
+	TicketPercent,
 	Users,
 	Vault,
 } from "lucide-react";
@@ -29,6 +30,7 @@ import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { PackageDialog } from "../dialogs/package-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
+import { VoucherDialog } from "../dialogs/voucher-dialog";
 import { ZonePricingDialog } from "../dialogs/zone-pricing-dialog";
 import AddExhibitorModal from "../forms/add-exhibitor";
 
@@ -110,6 +112,19 @@ export function ExhibitorPageButton() {
 							>
 								<PackageOpen className="h-4 w-4" />
 								Packages
+							</DropdownMenuItem>
+						}
+					/>
+					<DropdownMenuSeparator />
+					<VoucherDialog
+						eventId={Number(eventId)}
+						trigger={
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className="rounded-none"
+							>
+								<TicketPercent className="h-4 w-4" />
+								Vouchers
 							</DropdownMenuItem>
 						}
 					/>

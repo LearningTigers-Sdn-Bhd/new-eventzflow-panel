@@ -37,6 +37,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useFullScreenDialogOpen } from "@/hooks/use-full-screen-dialog-open";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import {
 	createExhibitorPackage,
@@ -69,7 +70,9 @@ const DEFAULT_FORM: FormState = {
 
 export function PackageDialog({ eventId, trigger }: PackageDialogProps) {
 	const queryClient = useQueryClient();
-	const [isOpen, setIsOpen] = React.useState(false);
+	const [isOpen, setIsOpen] = useFullScreenDialogOpen(
+		`package-dialog-${eventId}`,
+	);
 	const [editingItem, setEditingItem] = React.useState<ExhibitorPackage | null>(
 		null,
 	);

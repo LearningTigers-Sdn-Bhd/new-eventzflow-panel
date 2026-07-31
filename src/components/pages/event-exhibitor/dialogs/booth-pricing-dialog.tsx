@@ -39,6 +39,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useFullScreenDialogOpen } from "@/hooks/use-full-screen-dialog-open";
 import { getEventById } from "@/lib/api/event";
 import {
 	createExhibitorBoothPrice,
@@ -89,7 +90,9 @@ export function BoothPricingDialog({
 	trigger,
 }: BoothPricingDialogProps) {
 	const queryClient = useQueryClient();
-	const [isOpen, setIsOpen] = React.useState(false);
+	const [isOpen, setIsOpen] = useFullScreenDialogOpen(
+		`booth-pricing-dialog-${eventId}`,
+	);
 	const [editingItem, setEditingItem] =
 		React.useState<ExhibitorBoothPrice | null>(null);
 	const [tierBoothPrice, setTierBoothPrice] =

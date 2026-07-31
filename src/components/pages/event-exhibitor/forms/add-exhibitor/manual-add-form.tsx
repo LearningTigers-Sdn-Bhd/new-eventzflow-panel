@@ -30,6 +30,7 @@ import { getEventById } from "@/lib/api/event";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
+import { previewExhibitorVoucher } from "@/lib/api/exhibitor-voucher";
 import { getVendors } from "@/lib/api/vendor";
 
 interface ManualAddFormProps {
@@ -76,6 +77,11 @@ export default function ManualAddForm({
 	// Exhibitor kit fields
 	const [boothPriceId, setBoothPriceId] = useState<string>("");
 	const [packageId, setPackageId] = useState("");
+	const [voucherCode, setVoucherCode] = useState("");
+	const [voucherPreview, setVoucherPreview] = useState<{
+		price: number;
+	} | null>(null);
+	const [voucherError, setVoucherError] = useState("");
 	const [boothType, setBoothType] = useState<string>("");
 	const [boothQuantity, setBoothQuantity] = useState<string>("1");
 	const [boothNumber, setBoothNumber] = useState("");
@@ -115,10 +121,41 @@ export default function ManualAddForm({
 		(item) => String(item.exhibitorBoothPriceId) === boothPriceId,
 	);
 
-	// Booth price drives which packages are valid; a stale selection is rejected server-side.
 	useEffect(() => {
-		setPackageId("");
-	}, [boothPriceId]);
+		if (!voucherCode.trim() || !boothPriceId) {
+			setVoucherPreview(null);
+			setVoucherError("");
+			return;
+		}
+
+		setVoucherPreview(null);
+		setVoucherError("");
+		let isCurrent = true;
+		const timeout = setTimeout(async () => {
+			try {
+				const result = await previewExhibitorVoucher({
+					eventId,
+					code: voucherCode.trim(),
+					exhibitorBoothPriceId: Number(boothPriceId),
+					exhibitorPackageId: packageId ? Number(packageId) : null,
+				});
+				if (!isCurrent) return;
+				setVoucherPreview({ price: result.price });
+				setVoucherError("");
+			} catch (error) {
+				if (!isCurrent) return;
+				setVoucherPreview(null);
+				setVoucherError(
+					error instanceof Error ? error.message : "Invalid voucher code",
+				);
+			}
+		}, 400);
+
+		return () => {
+			isCurrent = false;
+			clearTimeout(timeout);
+		};
+	}, [voucherCode, boothPriceId, packageId, eventId]);
 
 	// Fetch available vendors
 	const {
@@ -230,6 +267,9 @@ export default function ManualAddForm({
 			}
 			if (packageId) {
 				kit.exhibitor_package_id = Number(packageId);
+			}
+			if (voucherCode.trim()) {
+				kit.voucher_code = voucherCode.trim();
 			}
 			if (showBoothTypeFallback && boothType.trim()) {
 				kit.booth_type = boothType.trim();
@@ -479,6 +519,7 @@ export default function ManualAddForm({
 											value={boothPriceId}
 											onValueChange={(value) => {
 												setBoothPriceId(value);
+												setPackageId("");
 												clearError("boothPriceId");
 											}}
 											disabled={submitting}
@@ -519,6 +560,28 @@ export default function ManualAddForm({
 											</Select>
 										</Field>
 									)}
+									<Field orientation="vertical" className="mb-4">
+										<FieldLabel htmlFor="manual-voucher-code">
+											Voucher Code (optional)
+										</FieldLabel>
+										<Input
+											id="manual-voucher-code"
+											value={voucherCode}
+											onChange={(e) =>
+												setVoucherCode(e.target.value.toUpperCase())
+											}
+											placeholder="e.g. A7K2M9XQ"
+											disabled={submitting}
+											className="rounded-none font-mono"
+										/>
+										{voucherPreview && (
+											<FieldDescription className="text-emerald-600">
+												Voucher applied — price becomes RM{" "}
+												{voucherPreview.price.toFixed(2)}
+											</FieldDescription>
+										)}
+										{voucherError && <FieldError>{voucherError}</FieldError>}
+									</Field>
 								</>
 							) : (
 								<Field orientation="vertical" className="mb-4">

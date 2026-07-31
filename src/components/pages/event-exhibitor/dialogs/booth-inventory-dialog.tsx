@@ -46,6 +46,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useFullScreenDialogOpen } from "@/hooks/use-full-screen-dialog-open";
 import {
 	bulkCreateExhibitorBooths,
 	createExhibitorBooth,
@@ -100,7 +101,9 @@ export function BoothInventoryDialog({
 	trigger,
 }: BoothInventoryDialogProps) {
 	const queryClient = useQueryClient();
-	const [isOpen, setIsOpen] = React.useState(false);
+	const [isOpen, setIsOpen] = useFullScreenDialogOpen(
+		`booth-inventory-dialog-${eventId}`,
+	);
 	const [entryMode, setEntryMode] = React.useState<EntryMode>("single");
 	const [boothPriceId, setBoothPriceId] = React.useState("");
 	const [entryStatus, setEntryStatus] =
