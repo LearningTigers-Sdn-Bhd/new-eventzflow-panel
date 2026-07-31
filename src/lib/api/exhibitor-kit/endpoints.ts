@@ -115,6 +115,15 @@ export async function downloadExhibitorKitIcCopy(
 	);
 }
 
+export async function downloadExhibitorKitCustomsDeclaration(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/customs_declaration`,
+	);
+}
+
 export async function rejectExhibitorKitPaymentProof(
 	eventId: number,
 	kitId: number,

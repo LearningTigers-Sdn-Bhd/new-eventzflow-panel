@@ -10,16 +10,21 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
+import {
+	downloadExhibitorKitCustomsDeclaration,
+	downloadExhibitorKitIcCopy,
+} from "@/lib/api/exhibitor-kit";
 
 export function IcCopyPreviewButton({
 	eventId,
 	kitId,
 	available,
+	document = "ic-copy",
 }: {
 	eventId: number;
 	kitId: number;
 	available?: boolean;
+	document?: "ic-copy" | "customs-declaration";
 }) {
 	const [preview, setPreview] = useState<{ url: string; type: string } | null>(
 		null,
@@ -30,7 +35,11 @@ export function IcCopyPreviewButton({
 	const open = async () => {
 		setLoading(true);
 		try {
-			const { blob } = await downloadExhibitorKitIcCopy(eventId, kitId);
+			const download =
+				document === "ic-copy"
+					? downloadExhibitorKitIcCopy
+					: downloadExhibitorKitCustomsDeclaration;
+			const { blob } = await download(eventId, kitId);
 			setPreview({ url: URL.createObjectURL(blob), type: blob.type });
 		} finally {
 			setLoading(false);
@@ -59,20 +68,26 @@ export function IcCopyPreviewButton({
 			>
 				<DialogContent className="max-w-4xl rounded-none p-0">
 					<DialogHeader className="border-b p-4 text-left">
-						<DialogTitle>IC Copy Preview</DialogTitle>
+						<DialogTitle>
+							{document === "ic-copy"
+								? "IC Copy Preview"
+								: "Customs Declaration Preview"}
+						</DialogTitle>
 					</DialogHeader>
 					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
 						{preview?.type === "application/pdf" ? (
 							<iframe
 								src={preview.url}
-								title="IC copy"
+								title={
+									document === "ic-copy" ? "IC copy" : "Customs declaration"
+								}
 								className="h-[62vh] w-full border-0"
 							/>
 						) : preview ? (
 							<object
 								data={preview.url}
 								type={preview.type}
-								aria-label="Uploaded IC copy"
+								aria-label={`Uploaded ${document === "ic-copy" ? "IC copy" : "customs declaration"}`}
 								className="h-auto max-h-[62vh] max-w-full object-contain"
 							/>
 						) : null}
@@ -84,7 +99,7 @@ export function IcCopyPreviewButton({
 						{preview && (
 							<a
 								href={preview.url}
-								download="ic-copy"
+								download={document}
 								className="inline-flex h-9 items-center justify-center bg-primary px-4 font-medium text-primary-foreground text-sm"
 							>
 								Download
