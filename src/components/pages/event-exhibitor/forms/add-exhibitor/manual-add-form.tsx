@@ -507,8 +507,8 @@ export default function ManualAddForm({
 							<p className="mb-4 font-medium text-sm">Booth Details</p>
 
 							{hasBoothPrices ? (
-								<>
-									<Field orientation="vertical" className="mb-4">
+								<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+									<Field orientation="vertical">
 										<FieldLabel htmlFor={boothPriceField}>
 											Booth Price *
 										</FieldLabel>
@@ -542,7 +542,7 @@ export default function ManualAddForm({
 										</FieldDescription>
 									</Field>
 									{availablePackages.length > 0 && (
-										<Field orientation="vertical" className="mb-4">
+										<Field orientation="vertical">
 											<FieldLabel htmlFor="manual-package">
 												Package (optional)
 											</FieldLabel>
@@ -560,7 +560,7 @@ export default function ManualAddForm({
 											</Select>
 										</Field>
 									)}
-									<Field orientation="vertical" className="mb-4">
+									<Field orientation="vertical">
 										<FieldLabel htmlFor="manual-voucher-code">
 											Voucher Code (optional)
 										</FieldLabel>
@@ -582,7 +582,7 @@ export default function ManualAddForm({
 										)}
 										{voucherError && <FieldError>{voucherError}</FieldError>}
 									</Field>
-								</>
+								</div>
 							) : (
 								<Field orientation="vertical" className="mb-4">
 									<FieldLabel htmlFor={boothTypeField}>Booth Type *</FieldLabel>

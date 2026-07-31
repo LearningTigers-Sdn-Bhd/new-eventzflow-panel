@@ -36,6 +36,7 @@ export type BulkCreateExhibitorBoothsResponse = {
 
 export type UpdateExhibitorBoothResponse = CreateExhibitorBoothResponse;
 export type ReleaseExhibitorBoothResponse = CreateExhibitorBoothResponse;
+export type AssignExhibitorBoothResponse = CreateExhibitorBoothResponse;
 
 export type DeleteExhibitorBoothResponse = {
 	success: boolean;

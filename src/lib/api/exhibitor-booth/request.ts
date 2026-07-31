@@ -41,6 +41,11 @@ export const releaseExhibitorBoothSchema = z.object({
 	id: z.number().int().min(1, "Booth ID is required"),
 });
 
+export const assignExhibitorBoothSchema = z.object({
+	id: z.number().int().min(1, "Booth ID is required"),
+	exhibitor_kit_id: z.number().int().min(1, "Exhibitor kit ID is required"),
+});
+
 export const deleteExhibitorBoothSchema = releaseExhibitorBoothSchema;
 
 export type ExhibitorBoothStatus = z.infer<typeof exhibitorBoothStatusSchema>;
@@ -58,6 +63,9 @@ export type UpdateExhibitorBoothRequest = z.infer<
 >;
 export type ReleaseExhibitorBoothRequest = z.infer<
 	typeof releaseExhibitorBoothSchema
+>;
+export type AssignExhibitorBoothRequest = z.infer<
+	typeof assignExhibitorBoothSchema
 >;
 export type DeleteExhibitorBoothRequest = z.infer<
 	typeof deleteExhibitorBoothSchema

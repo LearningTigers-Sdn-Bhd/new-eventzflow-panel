@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+	assignExhibitorBoothSchema,
 	bulkCreateExhibitorBoothsSchema,
 	createExhibitorBoothSchema,
 	deleteExhibitorBoothSchema,
@@ -65,5 +66,24 @@ describe("exhibitor booth request schemas", () => {
 	test("requires ids for release and delete", () => {
 		expect(releaseExhibitorBoothSchema.safeParse({}).success).toBe(false);
 		expect(deleteExhibitorBoothSchema.safeParse({ id: 12 }).success).toBe(true);
+	});
+
+	test("accepts valid booth assignment ids", () => {
+		expect(
+			assignExhibitorBoothSchema.safeParse({ id: 12, exhibitor_kit_id: 34 })
+				.success,
+		).toBe(true);
+	});
+
+	test("rejects missing, zero, or negative booth assignment ids", () => {
+		expect(assignExhibitorBoothSchema.safeParse({}).success).toBe(false);
+		expect(
+			assignExhibitorBoothSchema.safeParse({ id: 0, exhibitor_kit_id: 34 })
+				.success,
+		).toBe(false);
+		expect(
+			assignExhibitorBoothSchema.safeParse({ id: 12, exhibitor_kit_id: -1 })
+				.success,
+		).toBe(false);
 	});
 });

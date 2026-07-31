@@ -1,5 +1,7 @@
 import { kyClient, restClient } from "@/utils/rest-api";
 import {
+	type AssignExhibitorBoothRequest,
+	assignExhibitorBoothSchema,
 	type BulkCreateExhibitorBoothsRequest,
 	bulkCreateExhibitorBoothsSchema,
 	type CreateExhibitorBoothRequest,
@@ -14,6 +16,7 @@ import {
 	updateExhibitorBoothSchema,
 } from "./request";
 import type {
+	AssignExhibitorBoothResponse,
 	BackendExhibitorBooth,
 	BulkCreateExhibitorBoothsResponse,
 	CreateExhibitorBoothResponse,
@@ -124,6 +127,18 @@ export async function releaseExhibitorBooth(
 	const validated = releaseExhibitorBoothSchema.parse(data);
 	const response = await restClient.post<BackendExhibitorBooth>(
 		`v1/exhibitor_booths/${validated.id}/release`,
+	);
+
+	return { success: true, booth: transformBooth(response) };
+}
+
+export async function assignExhibitorBooth(
+	data: AssignExhibitorBoothRequest,
+): Promise<AssignExhibitorBoothResponse> {
+	const validated = assignExhibitorBoothSchema.parse(data);
+	const response = await restClient.post<BackendExhibitorBooth>(
+		`v1/exhibitor_booths/${validated.id}/assign`,
+		{ exhibitor_booth: { exhibitor_kit_id: validated.exhibitor_kit_id } },
 	);
 
 	return { success: true, booth: transformBooth(response) };

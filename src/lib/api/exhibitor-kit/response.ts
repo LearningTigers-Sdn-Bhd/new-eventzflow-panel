@@ -119,11 +119,19 @@ export interface ExhibitorKit {
 	payment_note?: string;
 	indemnity_link?: string;
 	exhibitor_booth_price_id?: number;
+	exhibitor_booth_id?: number | null;
 	exhibitor_booth_price_label?: string | null;
 	exhibitor_booth_price_zone?: string | null;
 	exhibitor_package_id?: number | null;
 	exhibitor_package_name?: string | null;
 	exhibitor_package_inclusions?: string | null;
+	exhibitor_voucher_code?: string | null;
+	exhibitor_voucher_discount_type?:
+		| "percentage_off"
+		| "fixed_amount_off"
+		| "flat_price"
+		| null;
+	exhibitor_voucher_discount_value?: string | number | null;
 	custom_fields_data?: Record<string, unknown>;
 	ic_copy_uploaded?: boolean;
 	exhibitor_team_members: ExhibitorTeamMember[];
