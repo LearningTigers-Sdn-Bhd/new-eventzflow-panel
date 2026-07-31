@@ -78,6 +78,19 @@ export async function permanentlyDeleteExhibitorKit(
 }
 
 /**
+ * Org-owner-only: hard-deletes a kit in any state, bypassing the cancel-first
+ * requirement permanentlyDeleteExhibitorKit enforces.
+ */
+export async function forceDeleteExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<void> {
+	await restClient.delete<void>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/force_delete`,
+	);
+}
+
+/**
  * Submit an exhibitor kit order
  * This auto-creates payment records for unpaid items and printings,
  * grouped by payee (item/service owner), and links them to the payments for tracking.
