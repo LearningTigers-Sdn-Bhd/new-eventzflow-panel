@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { getEventById } from "@/lib/api/event";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
+import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
+import { previewExhibitorVoucher } from "@/lib/api/exhibitor-voucher";
 import { getVendors } from "@/lib/api/vendor";
 
 interface ManualAddFormProps {
@@ -74,6 +76,12 @@ export default function ManualAddForm({
 
 	// Exhibitor kit fields
 	const [boothPriceId, setBoothPriceId] = useState<string>("");
+	const [packageId, setPackageId] = useState("");
+	const [voucherCode, setVoucherCode] = useState("");
+	const [voucherPreview, setVoucherPreview] = useState<{
+		price: number;
+	} | null>(null);
+	const [voucherError, setVoucherError] = useState("");
 	const [boothType, setBoothType] = useState<string>("");
 	const [boothQuantity, setBoothQuantity] = useState<string>("1");
 	const [boothNumber, setBoothNumber] = useState("");
@@ -103,6 +111,51 @@ export default function ManualAddForm({
 		queryFn: () => getExhibitorBoothPrices(eventId),
 		enabled: isExhibitorEvent,
 	});
+
+	const { data: packages = [] } = useQuery({
+		queryKey: ["exhibitor-packages", eventId],
+		queryFn: () => getExhibitorPackages(eventId),
+	});
+
+	const availablePackages = packages.filter(
+		(item) => String(item.exhibitorBoothPriceId) === boothPriceId,
+	);
+
+	useEffect(() => {
+		if (!voucherCode.trim() || !boothPriceId) {
+			setVoucherPreview(null);
+			setVoucherError("");
+			return;
+		}
+
+		setVoucherPreview(null);
+		setVoucherError("");
+		let isCurrent = true;
+		const timeout = setTimeout(async () => {
+			try {
+				const result = await previewExhibitorVoucher({
+					eventId,
+					code: voucherCode.trim(),
+					exhibitorBoothPriceId: Number(boothPriceId),
+					exhibitorPackageId: packageId ? Number(packageId) : null,
+				});
+				if (!isCurrent) return;
+				setVoucherPreview({ price: result.price });
+				setVoucherError("");
+			} catch (error) {
+				if (!isCurrent) return;
+				setVoucherPreview(null);
+				setVoucherError(
+					error instanceof Error ? error.message : "Invalid voucher code",
+				);
+			}
+		}, 400);
+
+		return () => {
+			isCurrent = false;
+			clearTimeout(timeout);
+		};
+	}, [voucherCode, boothPriceId, packageId, eventId]);
 
 	// Fetch available vendors
 	const {
@@ -211,6 +264,12 @@ export default function ManualAddForm({
 
 			if (hasBoothPrices && boothPriceId) {
 				kit.exhibitor_booth_price_id = Number(boothPriceId);
+			}
+			if (packageId) {
+				kit.exhibitor_package_id = Number(packageId);
+			}
+			if (voucherCode.trim()) {
+				kit.voucher_code = voucherCode.trim();
 			}
 			if (showBoothTypeFallback && boothType.trim()) {
 				kit.booth_type = boothType.trim();
@@ -448,38 +507,82 @@ export default function ManualAddForm({
 							<p className="mb-4 font-medium text-sm">Booth Details</p>
 
 							{hasBoothPrices ? (
-								<Field orientation="vertical" className="mb-4">
-									<FieldLabel htmlFor={boothPriceField}>
-										Booth Price *
-									</FieldLabel>
-									{errors.boothPriceId && (
-										<FieldError>{errors.boothPriceId}</FieldError>
+								<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+									<Field orientation="vertical">
+										<FieldLabel htmlFor={boothPriceField}>
+											Booth Price *
+										</FieldLabel>
+										{errors.boothPriceId && (
+											<FieldError>{errors.boothPriceId}</FieldError>
+										)}
+										<Select
+											value={boothPriceId}
+											onValueChange={(value) => {
+												setBoothPriceId(value);
+												setPackageId("");
+												clearError("boothPriceId");
+											}}
+											disabled={submitting}
+										>
+											<SelectTrigger id={boothPriceField}>
+												<SelectValue placeholder="Select a booth price" />
+											</SelectTrigger>
+											<SelectContent>
+												{boothPrices?.map((bp) => (
+													<SelectItem key={bp.id} value={bp.id.toString()}>
+														{humanizeBoothType(bp.boothType)} — {bp.label}
+														{bp.zone ? ` (${bp.zone})` : ""} — RM
+														{bp.currentPrice}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FieldDescription>
+											Booth type and amount are derived from the selected price.
+										</FieldDescription>
+									</Field>
+									{availablePackages.length > 0 && (
+										<Field orientation="vertical">
+											<FieldLabel htmlFor="manual-package">
+												Package (optional)
+											</FieldLabel>
+											<Select value={packageId} onValueChange={setPackageId}>
+												<SelectTrigger id="manual-package">
+													<SelectValue placeholder="Local — booth only" />
+												</SelectTrigger>
+												<SelectContent>
+													{availablePackages.map((item) => (
+														<SelectItem key={item.id} value={String(item.id)}>
+															{item.name} — RM {item.price.toFixed(2)}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</Field>
 									)}
-									<Select
-										value={boothPriceId}
-										onValueChange={(value) => {
-											setBoothPriceId(value);
-											clearError("boothPriceId");
-										}}
-										disabled={submitting}
-									>
-										<SelectTrigger id={boothPriceField}>
-											<SelectValue placeholder="Select a booth price" />
-										</SelectTrigger>
-										<SelectContent>
-											{boothPrices?.map((bp) => (
-												<SelectItem key={bp.id} value={bp.id.toString()}>
-													{humanizeBoothType(bp.boothType)} — {bp.label}
-													{bp.zone ? ` (${bp.zone})` : ""} — RM
-													{bp.currentPrice}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FieldDescription>
-										Booth type and amount are derived from the selected price.
-									</FieldDescription>
-								</Field>
+									<Field orientation="vertical">
+										<FieldLabel htmlFor="manual-voucher-code">
+											Voucher Code (optional)
+										</FieldLabel>
+										<Input
+											id="manual-voucher-code"
+											value={voucherCode}
+											onChange={(e) =>
+												setVoucherCode(e.target.value.toUpperCase())
+											}
+											placeholder="e.g. A7K2M9XQ"
+											disabled={submitting}
+											className="rounded-none font-mono"
+										/>
+										{voucherPreview && (
+											<FieldDescription className="text-emerald-600">
+												Voucher applied — price becomes RM{" "}
+												{voucherPreview.price.toFixed(2)}
+											</FieldDescription>
+										)}
+										{voucherError && <FieldError>{voucherError}</FieldError>}
+									</Field>
+								</div>
 							) : (
 								<Field orientation="vertical" className="mb-4">
 									<FieldLabel htmlFor={boothTypeField}>Booth Type *</FieldLabel>

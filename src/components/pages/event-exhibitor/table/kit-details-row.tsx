@@ -53,9 +53,15 @@ interface KitDetailsRowProps {
 	vendor: EventVendor;
 	kit: ExhibitorKit;
 	isExpanded: boolean;
+	batchSize?: number;
 }
 
-export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
+export function KitDetailsRow({
+	vendor,
+	kit,
+	isExpanded,
+	batchSize,
+}: KitDetailsRowProps) {
 	const { user } = useAuth();
 	const { data: event } = useQuery({
 		queryKey: ["event", vendor.event_id],
@@ -250,12 +256,31 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 							{kit.booth_number || "-"}
 						</span>
 					</div>
+					{kit.booking_batch_id && (
+						<Badge
+							variant="secondary"
+							className="h-5 w-full justify-center rounded-none text-xs"
+						>
+							{batchSize && batchSize > 1
+								? `Batch of ${batchSize}`
+								: "Bulk registration batch"}
+						</Badge>
+					)}
 					<div className="flex items-center justify-between gap-2 py-0.5">
 						<span className="font-medium text-xs">IC Copy</span>
 						<IcCopyPreviewButton
 							eventId={vendor.event_id}
 							kitId={kit.id}
 							available={kit.ic_copy_uploaded}
+						/>
+					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">Customs Declaration</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.customs_declaration_uploaded}
+							document="customs-declaration"
 						/>
 					</div>
 					<div className="flex justify-between gap-2 py-0.5">
@@ -394,13 +419,28 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.exhibitor_booth_price_label && (
 						<div className="flex justify-between gap-2 py-0.5">
-							<span className="shrink-0 font-medium text-xs">
-								Booth Package
-							</span>
+							<span className="shrink-0 font-medium text-xs">Booth Type</span>
 							<span className="break-words text-right text-muted-foreground text-xs">
 								{kit.exhibitor_booth_price_label}
 							</span>
 						</div>
+					)}
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Package</span>
+						<span className="break-words text-right text-muted-foreground text-xs">
+							{kit.exhibitor_package_name ?? "—"}
+						</span>
+					</div>
+					{kit.exhibitor_package_inclusions && (
+						<ul className="list-disc space-y-0.5 py-0.5 pl-4 text-muted-foreground text-xs">
+							{kit.exhibitor_package_inclusions
+								.split("\n")
+								.map((line) => line.trim())
+								.filter(Boolean)
+								.map((line) => (
+									<li key={line}>{line}</li>
+								))}
+						</ul>
 					)}
 					<div className="flex items-center justify-between gap-2 border-t pt-1.5">
 						<span className="font-medium text-xs">Payment Proof</span>

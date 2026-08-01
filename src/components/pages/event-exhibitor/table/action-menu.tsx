@@ -22,12 +22,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import {
 	deleteExhibitorKit,
 	type ExhibitorKit,
+	forceDeleteExhibitorKit,
 	permanentlyDeleteExhibitorKit,
 } from "@/lib/api/exhibitor-kit";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
@@ -50,6 +52,8 @@ export function ExhibitorActionsMenu({
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
+	const { user } = useAuth();
+	const isOrgOwner = user?.role === "org_owner";
 
 	const queryClient = useQueryClient();
 
@@ -79,6 +83,21 @@ export function ExhibitorActionsMenu({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to delete exhibitor kit");
+		},
+	});
+
+	const forceDeleteKitMutation = useMutation({
+		mutationFn: (kitId: number) =>
+			forceDeleteExhibitorKit(Number(eventId), kitId),
+		onSuccess: () => {
+			toast.success("Exhibitor kit force deleted!");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "vendors"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to force delete exhibitor kit");
 		},
 	});
 
@@ -199,6 +218,22 @@ export function ExhibitorActionsMenu({
 		});
 	};
 
+	const handleForceDeleteClick = () => {
+		openConfirm({
+			title: "Force Delete Exhibitor Kit",
+			message: `This bypasses the normal payment and cancellation checks and permanently deletes this kit for ${exhibitor.vendor.full_name} in its current state, including all related records (payments, team members, requests). This cannot be undone.`,
+			confirmLabel: "Force Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				forceDeleteKitMutation.mutate(kit.id);
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	return (
 		<DropdownMenu modal={false}>
 			<DropdownMenuTrigger asChild>
@@ -271,6 +306,15 @@ export function ExhibitorActionsMenu({
 					>
 						<Trash2 className="mr-2 size-4" />
 						Delete Kit Permanently
+					</DropdownMenuItem>
+				)}
+				{isOrgOwner && (
+					<DropdownMenuItem
+						onClick={handleForceDeleteClick}
+						className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
+					>
+						<Trash2 className="mr-2 size-4" />
+						Force Delete Kit
 					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>

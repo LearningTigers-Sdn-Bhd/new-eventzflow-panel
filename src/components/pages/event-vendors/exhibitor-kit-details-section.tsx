@@ -11,6 +11,7 @@ import {
 	Users,
 } from "lucide-react";
 import { useState } from "react";
+import { IcCopyPreviewButton } from "@/components/pages/event-exhibitor/ic-copy-preview-button";
 import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
 import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +32,8 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
-import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
 import type { ExhibitorKitPayment } from "@/lib/api/exhibitor-kit-payment";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
@@ -70,11 +71,13 @@ function ExpandableText({
 interface ExhibitorKitDetailsSectionProps {
 	eventVendor: EventVendor;
 	kit: ExhibitorKit;
+	batchSize?: number;
 }
 
 export function ExhibitorKitDetailsSection({
 	eventVendor,
 	kit,
+	batchSize,
 }: ExhibitorKitDetailsSectionProps) {
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -97,7 +100,9 @@ export function ExhibitorKitDetailsSection({
 		contentType: string;
 	} | null>(null);
 	const [isLoadingPaymentProof, setIsLoadingPaymentProof] = useState(false);
-	const [paymentProofError, setPaymentProofError] = useState<string | null>(null);
+	const [paymentProofError, setPaymentProofError] = useState<string | null>(
+		null,
+	);
 	const [verifyRejectOpen, setVerifyRejectOpen] = useState(false);
 	const [selectedPayment, setSelectedPayment] =
 		useState<ExhibitorKitPayment | null>(null);
@@ -219,6 +224,13 @@ export function ExhibitorKitDetailsSection({
 							{kit.booth_type.replace(/_/g, " ")}
 						</Badge>
 					)}
+					{kit.booking_batch_id && (
+						<Badge variant="secondary" className="rounded-none">
+							{batchSize && batchSize > 1
+								? `Batch of ${batchSize}`
+								: "Bulk registration batch"}
+						</Badge>
+					)}
 					<Button
 						size="sm"
 						className="rounded-none"
@@ -259,6 +271,23 @@ export function ExhibitorKitDetailsSection({
 								) : (
 									<span className="text-muted-foreground">
 										{kit.ic_copy_uploaded ? "Uploaded" : "Not uploaded"}
+									</span>
+								)}
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="font-medium">Customs Declaration</span>
+								{canDownloadIc ? (
+									<IcCopyPreviewButton
+										eventId={eventVendor.event_id}
+										kitId={kit.id}
+										available={kit.customs_declaration_uploaded}
+										document="customs-declaration"
+									/>
+								) : (
+									<span className="text-muted-foreground">
+										{kit.customs_declaration_uploaded
+											? "Uploaded"
+											: "Not uploaded"}
 									</span>
 								)}
 							</div>
@@ -413,9 +442,13 @@ export function ExhibitorKitDetailsSection({
 										<Download className="size-4" />
 										{isLoadingPaymentProof ? "Loading..." : "Preview"}
 									</Button>
-								) : <span className="text-muted-foreground">Not submitted</span>}
+								) : (
+									<span className="text-muted-foreground">Not submitted</span>
+								)}
 							</div>
-							{paymentProofError && <p className="text-destructive text-xs">{paymentProofError}</p>}
+							{paymentProofError && (
+								<p className="text-destructive text-xs">{paymentProofError}</p>
+							)}
 							{kit.payment_note && (
 								<div className="border-t pt-2">
 									<span className="mb-1 block font-medium">Note</span>
@@ -797,17 +830,38 @@ export function ExhibitorKitDetailsSection({
 					</DialogHeader>
 					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
 						{paymentProofPreview?.contentType === "application/pdf" ? (
-							<iframe src={paymentProofPreview.url} title={paymentProofPreview.filename} className="h-[62vh] w-full border-0" />
+							<iframe
+								src={paymentProofPreview.url}
+								title={paymentProofPreview.filename}
+								className="h-[62vh] w-full border-0"
+							/>
 						) : paymentProofPreview ? (
-							<object data={paymentProofPreview.url} type={paymentProofPreview.contentType} aria-label="Uploaded payment proof" className="max-h-[62vh] max-w-full">
+							<object
+								data={paymentProofPreview.url}
+								type={paymentProofPreview.contentType}
+								aria-label="Uploaded payment proof"
+								className="max-h-[62vh] max-w-full"
+							>
 								<span>Preview unavailable. Use Download.</span>
 							</object>
 						) : null}
 					</div>
 					<DialogFooter className="border-t p-4 sm:justify-end">
-						<Button variant="outline" className="rounded-none" onClick={closePaymentProofPreview}>Close</Button>
+						<Button
+							variant="outline"
+							className="rounded-none"
+							onClick={closePaymentProofPreview}
+						>
+							Close
+						</Button>
 						{paymentProofPreview && (
-							<a href={paymentProofPreview.url} download={paymentProofPreview.filename} className="inline-flex h-9 items-center justify-center rounded-none bg-primary px-4 font-medium text-primary-foreground text-sm">Download</a>
+							<a
+								href={paymentProofPreview.url}
+								download={paymentProofPreview.filename}
+								className="inline-flex h-9 items-center justify-center rounded-none bg-primary px-4 font-medium text-primary-foreground text-sm"
+							>
+								Download
+							</a>
 						)}
 					</DialogFooter>
 				</DialogContent>
