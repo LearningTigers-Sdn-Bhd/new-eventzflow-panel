@@ -71,11 +71,13 @@ function ExpandableText({
 interface ExhibitorKitDetailsSectionProps {
 	eventVendor: EventVendor;
 	kit: ExhibitorKit;
+	batchSize?: number;
 }
 
 export function ExhibitorKitDetailsSection({
 	eventVendor,
 	kit,
+	batchSize,
 }: ExhibitorKitDetailsSectionProps) {
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -220,6 +222,13 @@ export function ExhibitorKitDetailsSection({
 					{kit.booth_type && (
 						<Badge variant="outline" className="rounded-none capitalize">
 							{kit.booth_type.replace(/_/g, " ")}
+						</Badge>
+					)}
+					{kit.booking_batch_id && (
+						<Badge variant="secondary" className="rounded-none">
+							{batchSize && batchSize > 1
+								? `Batch of ${batchSize}`
+								: "Bulk registration batch"}
 						</Badge>
 					)}
 					<Button

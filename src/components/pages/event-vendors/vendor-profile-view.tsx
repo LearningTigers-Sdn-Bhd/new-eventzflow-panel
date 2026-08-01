@@ -84,6 +84,11 @@ export function VendorProfileView({ eventId }: VendorProfileViewProps) {
 					key={kit.id}
 					eventVendor={currentEventVendor}
 					kit={kit}
+					batchSize={
+						currentEventVendor.exhibitor_kits.filter(
+							(other) => other.booking_batch_id === kit.booking_batch_id,
+						).length
+					}
 				/>
 			))}
 		</div>

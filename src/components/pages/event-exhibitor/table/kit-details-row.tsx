@@ -53,9 +53,15 @@ interface KitDetailsRowProps {
 	vendor: EventVendor;
 	kit: ExhibitorKit;
 	isExpanded: boolean;
+	batchSize?: number;
 }
 
-export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
+export function KitDetailsRow({
+	vendor,
+	kit,
+	isExpanded,
+	batchSize,
+}: KitDetailsRowProps) {
 	const { user } = useAuth();
 	const { data: event } = useQuery({
 		queryKey: ["event", vendor.event_id],
@@ -250,6 +256,16 @@ export function KitDetailsRow({ vendor, kit, isExpanded }: KitDetailsRowProps) {
 							{kit.booth_number || "-"}
 						</span>
 					</div>
+					{kit.booking_batch_id && (
+						<Badge
+							variant="secondary"
+							className="h-5 w-full justify-center rounded-none text-xs"
+						>
+							{batchSize && batchSize > 1
+								? `Batch of ${batchSize}`
+								: "Bulk registration batch"}
+						</Badge>
+					)}
 					<div className="flex items-center justify-between gap-2 py-0.5">
 						<span className="font-medium text-xs">IC Copy</span>
 						<IcCopyPreviewButton
