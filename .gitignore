@@ -48,8 +48,6 @@ next-env.d.ts
 /.gemini/settings.json.bak
 /.mcp.json
 /.mcp.json.bak
-/.vscode/mcp.json
-/.vscode/mcp.json.bak
 /.zed/settings.json
 /.zed/settings.json.bak
 /AGENTS.md

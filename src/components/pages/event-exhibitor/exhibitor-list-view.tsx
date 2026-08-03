@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import { flattenExhibitorKits } from "@/lib/exhibitor-kits";
 import { CustomRequestsView } from "./custom-requests-view";
 import { ExtraTeamMemberPaymentsView } from "./extra-team-member-payments-view";
 import { OrderedItemsView } from "./ordered-items-view";
@@ -194,7 +195,7 @@ export function ExhibitorListView({
 							</div>
 							<DataTable
 								columns={columns}
-								data={vendors || []}
+								data={flattenExhibitorKits(vendors || [])}
 								canManageVendors={canManageVendors}
 							/>
 						</div>

@@ -12,6 +12,8 @@ interface ManageKitCustomRequestsFormProps {
 	vendorEmail: string;
 	eventId: number;
 	exhibitorKitId: number;
+	boothNumber?: string;
+	boothName?: string;
 	onClose?: () => void;
 }
 
@@ -45,6 +47,8 @@ export function ManageKitCustomRequestsForm({
 	vendorEmail,
 	eventId,
 	exhibitorKitId,
+	boothNumber = "",
+	boothName = "",
 }: ManageKitCustomRequestsFormProps) {
 	const subtotal = customRequests
 		.filter(
@@ -86,6 +90,8 @@ export function ManageKitCustomRequestsForm({
 						vendor_email: vendorEmail,
 						event_id: eventId,
 						exhibitor_kit_id: exhibitorKitId,
+						booth_number: boothNumber,
+						booth_name: boothName,
 					};
 
 					return (

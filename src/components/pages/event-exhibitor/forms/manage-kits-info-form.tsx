@@ -24,18 +24,47 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
+import {
+	assignExhibitorBooth,
+	getExhibitorBooths,
+	releaseExhibitorBooth,
+} from "@/lib/api/exhibitor-booth";
+import {
+	type ExhibitorKit,
+	getExhibitorKit,
+	updateExhibitorKit,
+} from "@/lib/api/exhibitor-kit";
+
+function formatVoucherDiscount(
+	discountType: ExhibitorKit["exhibitor_voucher_discount_type"],
+	discountValue: ExhibitorKit["exhibitor_voucher_discount_value"],
+): string {
+	if (!discountType || discountValue === null || discountValue === undefined) {
+		return "";
+	}
+	const value = Number(discountValue);
+	switch (discountType) {
+		case "percentage_off":
+			return `${value}% off`;
+		case "fixed_amount_off":
+			return `RM${value} off`;
+		case "flat_price":
+			return `RM${value} flat`;
+		default:
+			return "";
+	}
+}
 
 export interface ManageKitsInfoFormProps {
 	vendor: EventVendor;
+	kitId: number;
 	onClose?: () => void;
 }
 
-export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
+export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 	const params = useParams();
 	const eventId = Number(params.event_id);
-	const kit = vendor.exhibitor_kit;
-	const kitId = kit?.id;
+	const kit = vendor.exhibitor_kits.find((candidate) => candidate.id === kitId);
 
 	// Form field IDs
 	const boothNumberField = useId();
@@ -94,6 +123,23 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
 	});
+	const { data: kitDetails, isPending: isKitDetailsPending } = useQuery({
+		queryKey: ["event", eventId, "exhibitor-kit", kitId],
+		queryFn: () => getExhibitorKit(eventId, kitId),
+	});
+	const {
+		data: booths = [],
+		isPending: isBoothsPending,
+		isError: isBoothsError,
+	} = useQuery({
+		queryKey: ["event", eventId, "exhibitor-booths"],
+		queryFn: () => getExhibitorBooths({ event_id: eventId }),
+	});
+	const hasBoothInventory = booths.length > 0;
+	const linkedBoothId = kitDetails?.exhibitor_booth_id ?? null;
+	const selectableBooths = booths.filter(
+		(booth) => booth.status === "available" || booth.id === linkedBoothId,
+	);
 
 	const boothTypeOptions = useMemo(() => {
 		const defaults = [
@@ -134,6 +180,41 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 		},
 	});
 
+	const assignBoothMutation = useMutation({
+		mutationFn: (newBoothId: number | null) => {
+			if (newBoothId === null) {
+				if (!linkedBoothId) throw new Error("No booth to release");
+				return releaseExhibitorBooth({ id: linkedBoothId });
+			}
+			return assignExhibitorBooth({
+				id: newBoothId,
+				exhibitor_kit_id: kitId,
+			});
+		},
+		onSuccess: (result, newBoothId) => {
+			setBoothNumber(newBoothId === null ? "" : result.booth.number);
+			queryClient.setQueryData(
+				["event", eventId, "exhibitor-kit", kitId],
+				(old: ExhibitorKit | undefined) =>
+					old ? { ...old, exhibitor_booth_id: newBoothId } : old,
+			);
+			toast.success("Booth updated");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId.toString(), "vendors"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "exhibitor-booths"],
+			});
+			queryClient.invalidateQueries({ queryKey: ["exhibitor-booths"] });
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "exhibitor-kit", kitId],
+			});
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update booth");
+		},
+	});
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
@@ -141,9 +222,8 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 			toast.error("No exhibitor kit found");
 			return;
 		}
-
 		await updateKitMutation.mutateAsync({
-			booth_number: boothNumber || undefined,
+			...(!hasBoothInventory ? { booth_number: boothNumber || undefined } : {}),
 			booth_type: boothType || undefined,
 			booth_dimensions: boothDimensions || undefined,
 			side_wall_left_required: sideWallLeftRequired,
@@ -189,14 +269,49 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 							>
 								Booth Number
 							</FieldLabel>
-							<Input
-								id={boothNumberField}
-								value={boothNumber}
-								onChange={(e) => setBoothNumber(e.target.value)}
-								placeholder="e.g., A-101"
-								disabled={updateKitMutation.isPending}
-								className="rounded-none text-sm"
-							/>
+							{hasBoothInventory ? (
+								<Select
+									value={linkedBoothId ? String(linkedBoothId) : "none"}
+									onValueChange={(value) =>
+										assignBoothMutation.mutate(
+											value === "none" ? null : Number(value),
+										)
+									}
+									disabled={
+										assignBoothMutation.isPending || isKitDetailsPending
+									}
+								>
+									<SelectTrigger
+										id={boothNumberField}
+										className="rounded-none text-sm"
+									>
+										<SelectValue placeholder="Select a booth" />
+									</SelectTrigger>
+									<SelectContent className="rounded-none">
+										<SelectItem value="none">No Booth</SelectItem>
+										{selectableBooths.map((booth) => (
+											<SelectItem key={booth.id} value={String(booth.id)}>
+												{booth.number}
+												{booth.label ? ` — ${booth.label}` : ""}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							) : (
+								<Input
+									id={boothNumberField}
+									value={boothNumber}
+									onChange={(e) => setBoothNumber(e.target.value)}
+									placeholder="e.g., A-101"
+									disabled={updateKitMutation.isPending || isBoothsPending}
+									className="rounded-none text-sm"
+								/>
+							)}
+							{isBoothsError && (
+								<FieldDescription className="text-destructive text-xs">
+									Failed to load booth inventory. Refresh to try again.
+								</FieldDescription>
+							)}
 						</Field>
 						<Field orientation="vertical">
 							<FieldLabel
@@ -263,6 +378,44 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 							</div>
 						</Field>
 					</div>
+
+					{(kitDetails?.exhibitor_booth_price_label ||
+						kitDetails?.exhibitor_package_name ||
+						kitDetails?.exhibitor_voucher_code) && (
+						<div className="grid grid-cols-2 items-start gap-3 rounded-none border border-dashed bg-accent/50 p-3 md:grid-cols-3 md:gap-4">
+							<Field orientation="vertical">
+								<FieldLabel className="text-xs md:text-sm">
+									Booth Price
+								</FieldLabel>
+								<p className="text-sm">
+									{kitDetails?.exhibitor_booth_price_label
+										? `${kitDetails.exhibitor_booth_price_label}${
+												kitDetails.exhibitor_booth_price_zone
+													? ` (${kitDetails.exhibitor_booth_price_zone})`
+													: ""
+											}`
+										: "—"}
+								</p>
+							</Field>
+							<Field orientation="vertical">
+								<FieldLabel className="text-xs md:text-sm">Package</FieldLabel>
+								<p className="text-sm">
+									{kitDetails?.exhibitor_package_name || "—"}
+								</p>
+							</Field>
+							<Field orientation="vertical">
+								<FieldLabel className="text-xs md:text-sm">Voucher</FieldLabel>
+								<p className="text-sm">
+									{kitDetails?.exhibitor_voucher_code
+										? `${kitDetails.exhibitor_voucher_code} (${formatVoucherDiscount(
+												kitDetails.exhibitor_voucher_discount_type,
+												kitDetails.exhibitor_voucher_discount_value,
+											)})`
+										: "—"}
+								</p>
+							</Field>
+						</div>
+					)}
 
 					<FieldSeparator />
 
@@ -497,7 +650,7 @@ export function ManageKitsInfoForm({ vendor }: ManageKitsInfoFormProps) {
 					<div className="flex justify-end">
 						<Button
 							type="submit"
-							disabled={updateKitMutation.isPending}
+							disabled={updateKitMutation.isPending || isBoothsPending}
 							className="w-full sm:w-auto"
 						>
 							{updateKitMutation.isPending ? "Saving..." : "Save Changes"}

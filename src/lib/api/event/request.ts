@@ -21,6 +21,7 @@ export const createEventSchema = z.object({
 	use_sponsorship: z.boolean().optional().default(false),
 	// photo_booth_enabled: z.boolean().optional().default(false),
 	use_event_leads: z.boolean().optional().default(false),
+	use_certificate: z.boolean().optional().default(false),
 	use_api_access: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
 	end_date: z.string(), // ISO date string
@@ -57,12 +58,14 @@ export const updateEventSchema = z.object({
 	use_seat_ticketing: z.boolean().optional(),
 	use_exhibitor_kit: z.boolean().optional(),
 	enable_exhibitor_management: z.boolean().optional(),
+	exhibitor_reservation_ttl_hours: z.number().int().nullable().optional(),
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
 	use_voucher: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
 	// photo_booth_enabled: z.boolean().optional(),
 	use_event_leads: z.boolean().optional(),
+	use_certificate: z.boolean().optional(),
 	use_api_access: z.boolean().optional(),
 	reminders_enabled: z.boolean().optional(),
 	reminder_7_day: z.boolean().optional(),

@@ -6,7 +6,7 @@ This application uses a secure, cookie-based authentication system designed to p
 
 ## Core Principles
 
-1.  **Memory-Only Access Tokens:** The short-lived `access_token` is stored in React memory (Zustand) and is never persisted to `localStorage` or `sessionStorage`.
+1.  **Short-Lived Persisted Access Tokens:** The short-lived (~15 min) `access_token` is stored in the Zustand `useUserSessionStore` with `persist` middleware (localStorage) so it can be shared across tabs. This is acceptable only because the token expires quickly; the long-lived credential never touches JavaScript-accessible storage.
 2.  **HttpOnly Cookies for Refresh Tokens:** The long-lived `refresh_token` is stored in an `HttpOnly`, `Secure` cookie. It is inaccessible to JavaScript, making it safe from XSS token theft.
 3.  **Silent Initialization:** On page refresh, the application silently requests a new access token using the cookie before the user sees the interface.
 4.  **Global 401 Interceptor:** Any unauthorized response automatically clears the local state and redirects the user to the sign-in page.
@@ -17,10 +17,10 @@ This application uses a secure, cookie-based authentication system designed to p
 *   User submits credentials.
 *   Backend validates and returns `access_token` and `user` profile in the JSON body.
 *   Backend sets the `refresh_token` in an `HttpOnly` cookie.
-*   Frontend stores `access_token` and `user` in the memory-only store.
+*   Frontend stores `access_token` and `user` in `useUserSessionStore` (persisted, short-lived token).
 
 ### 2. Application Initialization (The "Silent Refresh")
-Since the `access_token` is lost on page refresh, the `AuthProvider` handles restoration:
+On page load the persisted `access_token` may be stale or near expiry, so the `AuthProvider` re-validates the session:
 *   App Mounts -> `isInitialized` is `false`.
 *   `AuthProvider` calls `POST /v1/auth/refresh_token` (Browser automatically sends the HttpOnly cookie).
 *   **Success:** Backend returns a new `access_token` and the `user` profile. `isInitialized` becomes `true`.
@@ -35,7 +35,7 @@ Since the `access_token` is lost on page refresh, the `AuthProvider` handles res
 ### `AuthProvider` (`src/providers/auth-provider.tsx`)
 The root-level wrapper that manages the initialization lifecycle.
 *   **`isLoading`**: `true` during the silent refresh attempt.
-*   **`isAuthenticated`**: `true` if a user and token are present in memory.
+*   **`isAuthenticated`**: `true` if a user and token are present in the store.
 
 ### `useAuth` Hook (`src/hooks/auth/use-auth.ts`)
 The primary hook for accessing auth state.
@@ -68,10 +68,10 @@ if (!isInitialized) return <LoadingSpinner />;
 
 | Feature | Old (Vulnerable) | New (Secure) |
 | :--- | :--- | :--- |
-| **Storage** | `localStorage` (XSS Vulnerable) | **Memory + HttpOnly Cookie** (XSS Safe) |
+| **Storage** | Long-lived tokens in `localStorage` (XSS Vulnerable) | **Short-lived (~15 min) access token in LS + refresh token in HttpOnly cookie** |
 | **Persistence** | Permanent in LS | Cookie-based (30 days) |
 | **Initial Load** | "Hydration" from Disk | **Initialization** via Silent Refresh |
-| **Token Theft** | Easy via `document.cookie` or LS | **Impossible** for JavaScript to read |
+| **Token Theft** | Full session theft via LS | Refresh token **unreadable by JavaScript**; access token exposure capped at ~15 min |
 
 ## Troubleshooting
 

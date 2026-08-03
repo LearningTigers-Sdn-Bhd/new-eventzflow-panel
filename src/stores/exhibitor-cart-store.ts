@@ -22,9 +22,17 @@ export interface CartPrinting {
 	imageUrl?: string | null;
 }
 
-interface ExhibitorCartState {
+interface Cart {
 	items: CartItem[];
 	printings: CartPrinting[];
+}
+
+interface ExhibitorCartState {
+	eventId: number | null;
+	kitId: number | null;
+	items: CartItem[];
+	printings: CartPrinting[];
+	carts: Record<string, Cart>;
 
 	// Items actions
 	addItem: (item: CartItem) => void;
@@ -46,6 +54,7 @@ interface ExhibitorCartState {
 
 	// General actions
 	clearCart: () => void;
+	setScope: (eventId: number, kitId: number) => void;
 	getTotalAmount: () => number;
 	getItemsCount: () => number;
 }
@@ -53,8 +62,11 @@ interface ExhibitorCartState {
 export const useExhibitorCart = create<ExhibitorCartState>()(
 	persist(
 		(set, get) => ({
+			eventId: null,
+			kitId: null,
 			items: [],
 			printings: [],
+			carts: {},
 
 			// Items actions
 			addItem: (item) =>
@@ -162,6 +174,23 @@ export const useExhibitorCart = create<ExhibitorCartState>()(
 
 			// General actions
 			clearCart: () => set({ items: [], printings: [] }),
+			setScope: (eventId, kitId) =>
+				set((state) => {
+					if (state.eventId === eventId && state.kitId === kitId) return state;
+
+					const carts = { ...state.carts };
+					if (state.eventId !== null && state.kitId !== null) {
+						carts[`${state.eventId}:${state.kitId}`] = {
+							items: state.items,
+							printings: state.printings,
+						};
+					}
+					const cart = carts[`${eventId}:${kitId}`] ?? {
+						items: [],
+						printings: [],
+					};
+					return { eventId, kitId, carts, ...cart };
+				}),
 
 			getTotalAmount: () => {
 				const state = get();
@@ -183,6 +212,22 @@ export const useExhibitorCart = create<ExhibitorCartState>()(
 		}),
 		{
 			name: "exhibitor-cart-storage",
+			version: 1,
+			migrate: (persistedState) => {
+				const state = persistedState as ExhibitorCartState;
+				if (state.carts || state.eventId === null || state.kitId === null) {
+					return { ...state, carts: state.carts ?? {} };
+				}
+				return {
+					...state,
+					carts: {
+						[`${state.eventId}:${state.kitId}`]: {
+							items: state.items ?? [],
+							printings: state.printings ?? [],
+						},
+					},
+				};
+			},
 		},
 	),
 );

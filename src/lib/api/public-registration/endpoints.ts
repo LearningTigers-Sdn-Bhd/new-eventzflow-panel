@@ -9,6 +9,7 @@ import type {
 	PublicRegistrationFormsResponse,
 	PublicTicketDetailsResponse,
 	PublicTicketTypesResponse,
+	PublicPassBundleResponse,
 	VerifyPaymentPayload,
 	VerifyPaymentResponse,
 } from "./types";
@@ -121,6 +122,18 @@ export async function getPublicTicketDetails(
 	try {
 		const response = await publicRestClient.get<PublicTicketDetailsResponse>(
 			`v1/public/events/${eventSlug}/tickets/${publicId}`,
+		);
+		return response.data;
+	} catch (error: unknown) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+export async function getPublicPassBundle(eventSlug: string, token: string) {
+	try {
+		const response = await publicRestClient.get<PublicPassBundleResponse>(
+			`v1/public/events/${eventSlug}/pass_bundles/${token}`,
 		);
 		return response.data;
 	} catch (error: unknown) {

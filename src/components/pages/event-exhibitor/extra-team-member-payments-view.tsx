@@ -71,16 +71,18 @@ export function ExtraTeamMemberPaymentsView({
 	// Aggregate all payments from all exhibitor kits with vendor info
 	const allPayments: TeamMemberPaymentWithVendor[] = [];
 	vendors?.forEach((vendor) => {
-		if (vendor.exhibitor_kit?.exhibitor_team_member_payments) {
-			vendor.exhibitor_kit.exhibitor_team_member_payments.forEach((payment) => {
+		vendor.exhibitor_kits.forEach((kit) => {
+			kit.exhibitor_team_member_payments?.forEach((payment) => {
 				allPayments.push({
 					...payment,
 					vendor_name: vendor.vendor.full_name,
 					vendor_email: vendor.vendor.email,
 					event_vendor_id: vendor.id,
+					booth_number: kit.booth_number,
+					booth_name: kit.name_on_fascia,
 				});
 			});
-		}
+		});
 	});
 
 	const tableMeta: PaymentsTableMeta = {

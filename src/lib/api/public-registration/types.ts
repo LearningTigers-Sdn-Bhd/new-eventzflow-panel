@@ -113,6 +113,7 @@ export interface CreatePublicRegistrationPayload {
 	form_slug?: string;
 	registered_by_email?: string;
 	custom_fields_data?: Record<string, string>;
+	bundle?: string;
 }
 
 export interface CreatedPublicRegistration {
@@ -156,4 +157,27 @@ export interface PublicTicketDetails {
 export interface PublicTicketDetailsResponse {
 	success: boolean;
 	data: PublicTicketDetails;
+}
+
+export interface PublicPassBundle {
+	name: string;
+	token: string;
+	pass_limit: number;
+	used_count: number;
+	remaining_count: number;
+	payment_mode: string;
+	payment_status: string;
+	registration_form: {
+		name: string;
+		slug: string;
+	};
+	ticket_type: {
+		id: number;
+		name: string;
+	};
+}
+
+export interface PublicPassBundleResponse {
+	success: boolean;
+	data: PublicPassBundle;
 }

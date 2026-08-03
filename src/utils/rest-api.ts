@@ -39,6 +39,8 @@ export const API_BASE_URL =
 			"http://localhost:3000"
 		: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+const AUTH_RETRY_HEADER = "X-Auth-Retry";
+
 export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -91,6 +93,26 @@ export const kyClient = ky.create({
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
+		beforeError: [
+			async (error) => {
+				const { response } = error;
+				if (response?.body) {
+					try {
+						const body = await response.clone().json();
+						const message =
+							body?.error ??
+							body?.message ??
+							(Array.isArray(body?.errors)
+								? body.errors.join(", ")
+								: undefined);
+						if (message) error.message = message;
+					} catch {
+						// Response body isn't JSON — keep ky's default message
+					}
+				}
+				return error;
+			},
+		],
 		beforeRequest: [
 			async (request) => {
 				// Check if we need to wait for token refresh before this request
@@ -126,27 +148,62 @@ export const kyClient = ky.create({
 		],
 		afterResponse: [
 			async (request, _options, response) => {
-				// Global 401 handler
+				// Global 401 handler — attempts recovery before clearing session
 				if (response.status === 401) {
 					const url = new URL(request.url);
-					// Don't intercept auth endpoints to avoid loops (e.g. failed login/refresh)
 					const isAuthEndpoint = url.pathname.includes("/auth/");
+					const alreadyRetried = request.headers.has(AUTH_RETRY_HEADER);
 
-					if (!isAuthEndpoint) {
-						logger.warn("401 Unauthorized detected. Clearing session.");
+					if (!isAuthEndpoint && !alreadyRetried) {
+						logger.warn(
+							"401 Unauthorized detected. Attempting token refresh before logout.",
+						);
 
-						// Clear session
-						const state = useUserSessionStore.getState();
-						state.removeSessionCredentials();
-						state.setUser(null);
+						try {
+							await refreshQueueService.forceRefresh();
 
-						// Redirect to login if in browser
-						if (typeof window !== "undefined") {
-							// Use window.location to force a full refresh and clear client state
-							// Append return URL if needed
-							const currentPath = window.location.pathname;
-							if (currentPath !== "/sign-in" && currentPath !== "/login") {
-								window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
+							const retryHeaders = new Headers(request.headers);
+							retryHeaders.delete("Authorization");
+							retryHeaders.set(AUTH_RETRY_HEADER, "true");
+							const retryRequest = new Request(request, {
+								headers: retryHeaders,
+							});
+							logger.info(
+								"Token refresh recovered session after 401. Retrying request.",
+							);
+							return kyClient(retryRequest);
+						} catch {
+							// Refresh also failed — check if token was actually expired
+							// If token is not expired (just invalid rotation), don't logout
+							// This prevents logging out users when server has issues
+							const state = useUserSessionStore.getState();
+							const isExpired = state.isTokenExpired();
+
+							if (isExpired) {
+								logger.warn(
+									"Token refresh failed after 401 and token is expired. Clearing session.",
+								);
+								// Clear session only if token was truly expired
+								state.removeSessionCredentials();
+								state.setUser(null);
+
+								if (typeof window !== "undefined") {
+									const currentPath = window.location.pathname;
+									if (
+										currentPath !== "/sign-in" &&
+										currentPath !== "/login" &&
+										currentPath !== "/auth"
+									) {
+										window.location.href = `/sign-in?returnUrl=${encodeURIComponent(currentPath)}`;
+									}
+								}
+							} else {
+								// Token not expired but refresh failed - server issue
+								// Don't logout, let the user continue with existing token
+								// It might work on next request
+								logger.warn(
+									"Token refresh failed but token not expired. Preserving session.",
+								);
 							}
 						}
 					}

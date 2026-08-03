@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getCheckInEvent } from "@/lib/api/event-check-in";
 import {
 	createPublicRegistration,
+	getPublicPassBundle,
 	getPublicRegistrationForms,
 	getPublicRegistrationStatus,
 	getPublicTicketTypes,
@@ -40,9 +41,11 @@ function compactCustomFields(fields: Record<string, string | undefined>) {
 export function usePublicRegistrationForm({
 	eventSlug,
 	formSlug,
+	bundleToken,
 }: {
 	eventSlug: string;
 	formSlug: string;
+	bundleToken?: string;
 }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -70,6 +73,13 @@ export function usePublicRegistrationForm({
 	const registrationFormsQuery = useQuery({
 		queryKey: ["public-registration-forms", eventSlug],
 		queryFn: () => getPublicRegistrationForms(eventSlug),
+	});
+
+	const bundleQuery = useQuery({
+		queryKey: ["public-pass-bundle", eventSlug, bundleToken],
+		queryFn: () => getPublicPassBundle(eventSlug, bundleToken!),
+		enabled: Boolean(bundleToken),
+		retry: false,
 	});
 
 	const selectedRegistrationForm = registrationFormsQuery.data?.find(
@@ -138,6 +148,7 @@ export function usePublicRegistrationForm({
 					formSlug,
 					sharedCustomFields,
 					registeredByEmail: values.leaderEmail,
+					...(bundleToken ? { bundle: bundleToken } : {}),
 					attendees: parsed.attendees.map((attendee) => ({
 						attendee_name: attendee.attendee_name,
 						attendee_email: attendee.attendee_email,
@@ -188,6 +199,7 @@ export function usePublicRegistrationForm({
 				ticket_type_id: ticketTypeId,
 				role: "delegate",
 				form_slug: formSlug,
+				...(bundleToken ? { bundle: bundleToken } : {}),
 				custom_fields_data: {
 					...sharedCustomFields,
 					...compactCustomFields(attendee.custom_fields_data ?? {}),
@@ -230,6 +242,8 @@ export function usePublicRegistrationForm({
 		statusMessage,
 		singleResult,
 		groupResult,
+		bundleData: bundleQuery.data ?? null,
+		bundleError: bundleQuery.isError,
 		checkExistingRegistration,
 		submit,
 	};

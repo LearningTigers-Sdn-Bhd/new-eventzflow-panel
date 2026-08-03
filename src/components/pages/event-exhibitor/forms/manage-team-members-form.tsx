@@ -24,6 +24,7 @@ import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-lim
 
 interface ManageTeamMembersFormProps {
 	vendor: EventVendor;
+	kitId: number;
 	onClose?: () => void;
 }
 
@@ -158,6 +159,7 @@ export function hasConfiguredTeamMemberLimit(limit: number | null | undefined) {
 
 export function resolveCurrentVendor(
 	initialVendor: EventVendor,
+	kitId: number,
 	vendors?: EventVendor[],
 ) {
 	const freshVendor = vendors?.find((vendor) => vendor.id === initialVendor.id);
@@ -165,9 +167,11 @@ export function resolveCurrentVendor(
 	if (!freshVendor) return initialVendor;
 
 	const initialMembers =
-		initialVendor.exhibitor_kit?.exhibitor_team_members?.length ?? 0;
+		initialVendor.exhibitor_kits.find((kit) => kit.id === kitId)
+			?.exhibitor_team_members.length ?? 0;
 	const freshMembers =
-		freshVendor.exhibitor_kit?.exhibitor_team_members?.length ?? 0;
+		freshVendor.exhibitor_kits.find((kit) => kit.id === kitId)
+			?.exhibitor_team_members.length ?? 0;
 	const initialUpdatedAt = initialVendor.updated_at
 		? Date.parse(initialVendor.updated_at)
 		: Number.NaN;
@@ -188,6 +192,7 @@ export function resolveCurrentVendor(
 
 export function ManageTeamMembersForm({
 	vendor: initialVendor,
+	kitId,
 	onClose,
 }: ManageTeamMembersFormProps) {
 	const params = useParams();
@@ -199,8 +204,8 @@ export function ManageTeamMembersForm({
 		refetchOnMount: "always",
 		refetchOnWindowFocus: true,
 	});
-	const vendor = resolveCurrentVendor(initialVendor, vendors);
-	const kit = vendor.exhibitor_kit;
+	const vendor = resolveCurrentVendor(initialVendor, kitId, vendors);
+	const kit = vendor.exhibitor_kits.find((candidate) => candidate.id === kitId);
 
 	const [teamMembers, setTeamMembers] = useState<TeamMemberInput[]>([]);
 	const [hasLocalChanges, setHasLocalChanges] = useState(false);

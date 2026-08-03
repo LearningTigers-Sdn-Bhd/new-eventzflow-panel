@@ -1,14 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exhibitor-kit-details-section";
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { getEventVendor } from "@/lib/api/event-vendor";
 
@@ -16,8 +15,8 @@ export default function VendorProfilePage() {
 	const params = useParams();
 	const eventId = Number(params.event_id);
 	const eventVendorId = Number(params.vendor_id);
+	const selectedKitId = Number(useSearchParams().get("kit_id"));
 	const { user } = useAuth();
-	const permissions = useEventPermissions(eventId);
 
 	// Get the event vendor to find the actual vendor_id
 	const {
@@ -98,10 +97,30 @@ export default function VendorProfilePage() {
 		);
 	}
 
+	const selectedKit = eventVendor.exhibitor_kits.find(
+		(kit) => kit.id === selectedKitId,
+	);
+	if (!selectedKit) {
+		return (
+			<ErrorState
+				title="Exhibitor kit not found"
+				description="The selected booth does not belong to this exhibitor."
+			/>
+		);
+	}
+
 	return (
 		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
-			<ExhibitorKitDetailsSection eventVendor={eventVendor} />
+			<ExhibitorKitDetailsSection
+				eventVendor={eventVendor}
+				kit={selectedKit}
+				batchSize={
+					eventVendor.exhibitor_kits.filter(
+						(kit) => kit.booking_batch_id === selectedKit.booking_batch_id,
+					).length
+				}
+			/>
 		</div>
 	);
 }

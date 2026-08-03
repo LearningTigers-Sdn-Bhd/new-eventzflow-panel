@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 export type ExhibitorKitPrintingWithVendor = ExhibitorKitPrinting & {
 	vendor_name: string;
 	vendor_email: string;
+	booth_number: string;
+	booth_name: string;
 };
 
 export const printingsColumns: ColumnDef<ExhibitorKitPrintingWithVendor>[] = [
@@ -48,6 +50,18 @@ export const printingsColumns: ColumnDef<ExhibitorKitPrintingWithVendor>[] = [
 				<div className="font-medium">{row.getValue("vendor")}</div>
 				<div className="text-muted-foreground text-xs">
 					{row.original.vendor_email}
+				</div>
+			</div>
+		),
+	},
+	{
+		accessorKey: "booth_number",
+		header: "Booth",
+		cell: ({ row }) => (
+			<div>
+				<div className="font-medium">{row.original.booth_number || "-"}</div>
+				<div className="text-muted-foreground text-xs">
+					{row.original.booth_name || "-"}
 				</div>
 			</div>
 		),

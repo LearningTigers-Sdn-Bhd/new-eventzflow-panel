@@ -310,20 +310,52 @@ export function PlanWorkshop({
 	const duplicateObjectsMutation = useMutation({
 		mutationFn: async (objects: PlanObject[]) => {
 			await savePendingChanges();
-			const duplicates = objects.map((obj) => ({
-				object_type: obj.object_type,
-				layer: obj.layer,
-				x: obj.x + 20,
-				y: obj.y + 20,
-				rotation: obj.rotation || 0,
-				width: obj.width,
-				height: obj.height,
-				path: obj.path,
-				label: obj.label ? `${obj.label} (Copy)` : undefined,
-				capacity: obj.capacity,
-				locked: false,
-				z_index: obj.z_index || 0,
-			}));
+
+			const existingLabels = new Set(
+				(plan.plan_objects || []).map((o) => o.label).filter(Boolean),
+			);
+			const usedInBatch = new Set<string>();
+
+			const duplicates = objects.map((obj) => {
+				let nextLabel = obj.label || undefined;
+
+				if (obj.label) {
+					const base = obj.label.replace(/\s\(Copy\)$/, "").trim();
+					const match = base.match(/^(.*?)\s?(\d+)$/);
+					let namePart = base;
+					let startNum = 1;
+
+					if (match) {
+						namePart = match[1].trim();
+						startNum = Number.parseInt(match[2], 10) + 1;
+					}
+
+					let num = startNum;
+					while (
+						existingLabels.has(`${namePart} ${num}`) ||
+						usedInBatch.has(`${namePart} ${num}`)
+					) {
+						num++;
+					}
+					nextLabel = `${namePart} ${num}`;
+					usedInBatch.add(nextLabel);
+				}
+
+				return {
+					object_type: obj.object_type,
+					layer: obj.layer,
+					x: obj.x + 20,
+					y: obj.y + 20,
+					rotation: obj.rotation || 0,
+					width: obj.width,
+					height: obj.height,
+					path: obj.path,
+					label: nextLabel,
+					capacity: obj.capacity,
+					locked: false,
+					z_index: obj.z_index || 0,
+				};
+			});
 			console.log("[PlanWorkshop] Duplicating objects:", duplicates);
 			return batchCreatePlanObjects(plan.id.toString(), duplicates);
 		},
@@ -1107,7 +1139,7 @@ export function PlanWorkshop({
 												onClick={() => handleExport("ops")}
 											>
 												<Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-												Internal Manifest (Ops + Notes)
+												Guest List with Notes
 											</DropdownMenuItem>
 											<DropdownMenuItem
 												className="cursor-pointer gap-2 py-3 font-bold text-xs dark:focus:bg-slate-800"
@@ -1145,11 +1177,14 @@ export function PlanWorkshop({
 								<button
 									key={item.id}
 									disabled={isCalibrating}
-									onClick={() =>
+									onClick={() => {
 										setActiveTab(
 											activeTab === item.id ? null : (item.id as any),
-										)
-									}
+										);
+										if (item.id !== "inspector") {
+											setSelectedObjectIds([]);
+										}
+									}}
 									className={cn(
 										"group relative flex w-full flex-col items-center justify-center px-1 py-3 transition-colors duration-200",
 										activeTab === item.id

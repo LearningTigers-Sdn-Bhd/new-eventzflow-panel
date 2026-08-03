@@ -50,15 +50,17 @@ export function OrderedServicesView({ eventId }: OrderedServicesViewProps) {
 	// Aggregate all printings from all exhibitor kits with vendor info
 	const allPrintings: ExhibitorKitPrintingWithVendor[] = [];
 	vendors?.forEach((vendor) => {
-		if (vendor.exhibitor_kit?.exhibitor_kit_printings) {
-			vendor.exhibitor_kit.exhibitor_kit_printings.forEach((printing) => {
+		vendor.exhibitor_kits.forEach((kit) => {
+			kit.exhibitor_kit_printings?.forEach((printing) => {
 				allPrintings.push({
 					...printing,
 					vendor_name: vendor.vendor.full_name,
 					vendor_email: vendor.vendor.email,
+					booth_number: kit.booth_number,
+					booth_name: kit.name_on_fascia,
 				});
 			});
-		}
+		});
 	});
 
 	return (

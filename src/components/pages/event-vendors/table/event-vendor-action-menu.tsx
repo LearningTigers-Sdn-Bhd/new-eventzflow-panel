@@ -80,9 +80,9 @@ export function EventVendorActionsMenu({
 
 	const handleDeleteClick = () => {
 		openConfirm({
-			title: "Remove Vendor",
-			message: `Are you sure you want to remove ${vendor.vendor.full_name} from this event? They will no longer have access to this event's vendor functions.`,
-			confirmLabel: "Remove",
+			title: "Remove Vendor Account from Event",
+			message: `Are you sure you want to remove ${vendor.vendor.full_name}'s vendor account from this event? This is separate from cancelling one exhibitor kit.`,
+			confirmLabel: "Remove Vendor Account",
 			cancelLabel: "Cancel",
 			type: "destructive",
 			icon: "delete",
@@ -133,7 +133,7 @@ export function EventVendorActionsMenu({
 					className="cursor-pointer rounded-none text-red-600 focus:bg-red-50 focus:text-red-600"
 				>
 					<Trash2 className="mr-2 size-4" />
-					Delete
+					Remove Vendor Account
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

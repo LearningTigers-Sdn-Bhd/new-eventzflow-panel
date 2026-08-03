@@ -40,6 +40,7 @@ export async function submitGroupRegistrations(params: {
 		attendee_phone?: string;
 		custom_fields_data?: Record<string, string>;
 	}>;
+	bundle?: string;
 	concurrency?: number;
 }) {
 	const concurrency = params.concurrency ?? 3;
@@ -62,6 +63,7 @@ export async function submitGroupRegistrations(params: {
 					role: params.role,
 					form_slug: params.formSlug,
 					registered_by_email: params.registeredByEmail,
+					...(params.bundle ? { bundle: params.bundle } : {}),
 					custom_fields_data: {
 						...(params.sharedCustomFields ?? {}),
 						...(attendee.custom_fields_data ?? {}),

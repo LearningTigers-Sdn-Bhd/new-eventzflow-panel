@@ -77,6 +77,7 @@ export const useCurrentUserEventVendorId = (eventId: number) => {
 
 	return {
 		eventVendorId: currentUserEventVendor?.id,
+		eventVendor: currentUserEventVendor,
 		isLoading,
 		error,
 		isVendor: !!currentUserEventVendor,

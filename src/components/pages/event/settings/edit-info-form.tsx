@@ -56,12 +56,19 @@ const formSchema = z.object({
 	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	enableExhibitorManagement: z.boolean(),
+	exhibitorReservationTtlHours: z
+		.string()
+		.refine(
+			(value) => value === "" || /^-?\d+$/.test(value),
+			"Enter whole hours",
+		),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
 	useVoucher: z.boolean(),
 	useSponsorship: z.boolean(),
 	// photoBoothEnabled: z.boolean(),
 	useEventLeads: z.boolean(),
+	useCertificate: z.boolean(),
 	useApiAccess: z.boolean(),
 	description: z.string(),
 	venueName: z.string(),
@@ -148,12 +155,14 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useSeatTicketing: false,
 			useExhibitorKit: false,
 			enableExhibitorManagement: false,
+			exhibitorReservationTtlHours: "",
 			allowPrintingServices: false,
 			useBusinessMatching: false,
 			useVoucher: true,
 			useSponsorship: false,
 			// photoBoothEnabled: false,
 			useEventLeads: false,
+			useCertificate: false,
 			useApiAccess: false,
 			description: "",
 			venueName: "",
@@ -186,11 +195,16 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					enable_exhibitor_management: value.enableExhibitorManagement,
+					exhibitor_reservation_ttl_hours:
+						value.exhibitorReservationTtlHours === ""
+							? null
+							: Number(value.exhibitorReservationTtlHours),
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
 					use_voucher: value.useVoucher,
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
+					use_certificate: value.useCertificate,
 					use_api_access: value.useApiAccess,
 					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
@@ -235,6 +249,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.enable_exhibitor_management ?? false,
 				);
 				form.setFieldValue(
+					"exhibitorReservationTtlHours",
+					event.exhibitor_reservation_ttl_hours?.toString() ?? "",
+				);
+				form.setFieldValue(
 					"allowPrintingServices",
 					event.allow_contractor_printing_services ?? false,
 				);
@@ -245,6 +263,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useVoucher", event.use_voucher ?? true);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
+				form.setFieldValue("useCertificate", event.use_certificate ?? false);
 				form.setFieldValue("useApiAccess", event.use_api_access ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
@@ -878,6 +897,22 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 									</form.Field>
 								)}
 								{canManageAdvancedEventOptions && (
+									<form.Field name="useCertificate">
+										{(field) => (
+											<SwitchCardInput
+												label="E-Certificates"
+												description="Design certificate templates and email them to attendees."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
+								{canManageAdvancedEventOptions && (
 									<form.Field name="useApiAccess">
 										{(field) => (
 											<SwitchCardInput
@@ -1021,6 +1056,29 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												</>
 											)}
 										</div>
+									);
+								}}
+							</form.Field>
+							<form.Field name="exhibitorReservationTtlHours">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+
+									return (
+										<InputLabel
+											label="Hold unpaid booth reservations for (hours)"
+											htmlFor={field.name}
+											inputType="number"
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											description="Leave blank so unpaid booth reservations never expire."
+											step={1}
+											placeholder="Never expires"
+											disabled={updateEventMutation.isPending}
+										/>
 									);
 								}}
 							</form.Field>

@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import { cn } from "@/lib/utils";
 import { formatCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { mergeKitItems, mergeKitPrintings } from "@/lib/utils/merge-kit-items";
@@ -18,6 +19,8 @@ import {
 	shouldExpandEmbeddedTeamMembersSection,
 	shouldShowEmbeddedExhibitorManagementSections,
 } from "../../event/exhibitor-management-access";
+import { IcCopyPreviewButton } from "../ic-copy-preview-button";
+import { PaymentProofPreviewButton } from "../payment-proof-preview-button";
 
 function ExpandableText({
 	text,
@@ -48,19 +51,25 @@ function ExpandableText({
 
 interface KitDetailsRowProps {
 	vendor: EventVendor;
+	kit: ExhibitorKit;
 	isExpanded: boolean;
+	batchSize?: number;
 }
 
-export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
+export function KitDetailsRow({
+	vendor,
+	kit,
+	isExpanded,
+	batchSize,
+}: KitDetailsRowProps) {
 	const { user } = useAuth();
-	const kit = vendor.exhibitor_kit;
 	const { data: event } = useQuery({
 		queryKey: ["event", vendor.event_id],
 		queryFn: () => getEventById(String(vendor.event_id)),
 		enabled: isExpanded && !!kit,
 	});
 
-	if (!kit || !isExpanded) {
+	if (!isExpanded) {
 		return null;
 	}
 
@@ -247,6 +256,33 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 							{kit.booth_number || "-"}
 						</span>
 					</div>
+					{kit.booking_batch_id && (
+						<Badge
+							variant="secondary"
+							className="h-5 w-full justify-center rounded-none text-xs"
+						>
+							{batchSize && batchSize > 1
+								? `Batch of ${batchSize}`
+								: "Bulk registration batch"}
+						</Badge>
+					)}
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">IC Copy</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.ic_copy_uploaded}
+						/>
+					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">Customs Declaration</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.customs_declaration_uploaded}
+							document="customs-declaration"
+						/>
+					</div>
 					<div className="flex justify-between gap-2 py-0.5">
 						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge
@@ -383,14 +419,46 @@ export function KitDetailsRow({ vendor, isExpanded }: KitDetailsRowProps) {
 					</div>
 					{kit.exhibitor_booth_price_label && (
 						<div className="flex justify-between gap-2 py-0.5">
-							<span className="shrink-0 font-medium text-xs">
-								Booth Package
-							</span>
+							<span className="shrink-0 font-medium text-xs">Booth Type</span>
 							<span className="break-words text-right text-muted-foreground text-xs">
 								{kit.exhibitor_booth_price_label}
 							</span>
 						</div>
 					)}
+					<div className="flex justify-between gap-2 py-0.5">
+						<span className="shrink-0 font-medium text-xs">Package</span>
+						<span className="break-words text-right text-muted-foreground text-xs">
+							{kit.exhibitor_package_name ?? "—"}
+						</span>
+					</div>
+					{kit.exhibitor_package_inclusions && (
+						<ul className="list-disc space-y-0.5 py-0.5 pl-4 text-muted-foreground text-xs">
+							{kit.exhibitor_package_inclusions
+								.split("\n")
+								.map((line) => line.trim())
+								.filter(Boolean)
+								.map((line) => (
+									<li key={line}>{line}</li>
+								))}
+						</ul>
+					)}
+					<div className="flex items-center justify-between gap-2 border-t pt-1.5">
+						<span className="font-medium text-xs">Payment Proof</span>
+						<div className="flex items-center gap-2">
+							{kit.payment_proof_status === "rejected" && (
+								<Badge
+									variant="outline"
+									className="h-7 rounded-none border-destructive text-destructive text-xs"
+								>
+									Rejected
+								</Badge>
+							)}
+							<PaymentProofPreviewButton
+								url={kit.payment_proof_url}
+								className="h-7 rounded-none px-2 text-xs"
+							/>
+						</div>
+					</div>
 					{kit.payment_note && (
 						<div className="border-t pt-1.5">
 							<span className="mb-0.5 block font-medium text-xs">Note</span>

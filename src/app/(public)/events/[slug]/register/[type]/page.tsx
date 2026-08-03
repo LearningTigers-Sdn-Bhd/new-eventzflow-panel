@@ -4,10 +4,13 @@ import { PublicRegistrationForm } from "@/components/pages/public-registration/P
 
 export default async function PublicRegistrationTypePage({
 	params,
+	searchParams,
 }: {
 	params: Promise<{ slug: string; type: string }>;
+	searchParams: Promise<{ bundle?: string }>;
 }) {
 	const { slug, type } = await params;
+	const { bundle } = await searchParams;
 
 	return (
 		<section className="relative min-h-screen overflow-hidden bg-slate-50/50">
@@ -33,7 +36,7 @@ export default async function PublicRegistrationTypePage({
 
 				<div className="rounded-3xl border border-slate-200/60 bg-white/80 p-1 shadow-2xl shadow-slate-200/50 backdrop-blur-xl">
 					<div className="rounded-[22px] bg-white px-3 py-6 sm:px-6 sm:py-8 md:p-12">
-						<PublicRegistrationForm eventSlug={slug} formSlug={type} />
+						<PublicRegistrationForm eventSlug={slug} formSlug={type} bundleToken={bundle} />
 					</div>
 				</div>
 			</main>

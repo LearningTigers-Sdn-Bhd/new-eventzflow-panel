@@ -1,13 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, Printer } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Package, Printer } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventById } from "@/lib/api/event";
+import { getExhibitorKit } from "@/lib/api/exhibitor-kit";
+import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 import { isExhibitorManagementEnabled } from "../event/exhibitor-management-access";
 import { CartSummary } from "./cart-summary";
 import { ItemsCatalog } from "./items-catalog";
@@ -15,18 +20,39 @@ import { PrintingsCatalog } from "./printings-catalog";
 
 interface OrderItemsPageProps {
 	eventId: number;
+	kitId: number;
 	onCheckout?: () => void;
 }
 
-export function OrderItemsPage({ eventId, onCheckout }: OrderItemsPageProps) {
+export function OrderItemsPage({
+	eventId,
+	kitId,
+	onCheckout,
+}: OrderItemsPageProps) {
 	const { user } = useAuth();
 	const [activeTab, setActiveTab] = useState("items");
+	const setScope = useExhibitorCart((state) => state.setScope);
+	useSetEventActions(
+		<Button asChild variant="outline" className="rounded-none">
+			<Link href={`/event/${eventId}/exhibitor-kits`}>
+				<ArrowLeft className="mr-2 size-4" />
+				Back to My Booths
+			</Link>
+		</Button>,
+	);
+	const { data: kit, isLoading: isLoadingKit } = useQuery({
+		queryKey: ["exhibitor-kit", eventId, kitId],
+		queryFn: () => getExhibitorKit(eventId, kitId),
+	});
+	useEffect(() => {
+		setScope(eventId, kitId);
+	}, [eventId, kitId, setScope]);
 	const { data: eventDetails, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(String(eventId)),
 	});
 
-	if (isLoadingEvent) {
+	if (isLoadingEvent || isLoadingKit) {
 		return (
 			<LoadingState
 				title="Loading feature access..."
@@ -38,6 +64,8 @@ export function OrderItemsPage({ eventId, onCheckout }: OrderItemsPageProps) {
 	if (!isExhibitorManagementEnabled(user?.role, eventDetails)) {
 		return <FeatureLockedState isEventVendor />;
 	}
+
+	if (!kit) return <FeatureLockedState isEventVendor />;
 
 	return (
 		<div className="space-y-4 px-2 sm:space-y-6 md:px-4">
@@ -69,7 +97,11 @@ export function OrderItemsPage({ eventId, onCheckout }: OrderItemsPageProps) {
 				{/* Cart Summary - Sticky */}
 				<div className="lg:col-span-1">
 					<div className="sticky top-6">
-						<CartSummary eventId={eventId} onCheckout={onCheckout} />
+						<CartSummary
+							eventId={eventId}
+							kitId={kitId}
+							onCheckout={onCheckout}
+						/>
 					</div>
 				</div>
 			</div>

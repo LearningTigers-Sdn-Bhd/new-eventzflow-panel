@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { VendorTeamMembersPage } from "@/components/pages/exhibitor-kits/vendor-team-members-page";
+import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
@@ -15,7 +15,7 @@ export default function Page({ params }: PageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id);
 
-	const { eventVendorId, isLoading } = useCurrentUserEventVendorId(eventId);
+	const { eventVendor, isLoading } = useCurrentUserEventVendorId(eventId);
 
 	if (isLoading) {
 		return (
@@ -26,7 +26,7 @@ export default function Page({ params }: PageProps) {
 		);
 	}
 
-	if (!eventVendorId) {
+	if (!eventVendor) {
 		return (
 			<div className="px-2 py-6 text-center md:px-4">
 				<p className="text-muted-foreground">
@@ -36,7 +36,9 @@ export default function Page({ params }: PageProps) {
 		);
 	}
 
-	return (
-		<VendorTeamMembersPage eventId={eventId} eventVendorId={eventVendorId} />
+	redirect(
+		eventVendor.exhibitor_kits.length === 1
+			? `/event/${eventId}/exhibitor-kits/${eventVendor.exhibitor_kits[0].id}/team-members`
+			: `/event/${eventId}/exhibitor-kits`,
 	);
 }

@@ -6,6 +6,7 @@ export type PublicTicketRsvpData = {
 	review_status: "pending_review" | "approved" | "rejected";
 	rsvp_status: "not_sent" | "sent" | "confirmed" | "declined" | "expired";
 	rsvp_expires_at: string | null;
+	rsvp_required: boolean;
 	ticket_status: string;
 	payment_status: string;
 };

@@ -27,7 +27,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
-import type { EventVendor } from "@/lib/api/event-vendor";
 import { cn } from "@/lib/utils";
 import type { ExhibitorMember } from "./columns";
 import { DataControl } from "./data-control";
@@ -85,6 +84,7 @@ export function DataTable<TData, TValue>({
 			expandedRows,
 			toggleRow,
 		},
+		getRowId: (row) => String((row as ExhibitorMember).kit.id),
 	});
 
 	return (
@@ -161,7 +161,19 @@ export function DataTable<TData, TValue>({
 												<TableRow className="hover:bg-transparent">
 													<TableCell colSpan={columns.length} className="p-0">
 														<KitDetailsRow
-															vendor={row.original as EventVendor}
+															vendor={(row.original as ExhibitorMember).vendor}
+															kit={(row.original as ExhibitorMember).kit}
+															batchSize={
+																table
+																	.getRowModel()
+																	.rows.filter(
+																		(other) =>
+																			(other.original as ExhibitorMember).kit
+																				.booking_batch_id ===
+																			(row.original as ExhibitorMember).kit
+																				.booking_batch_id,
+																	).length
+															}
 															isExpanded={expandedRows[row.id]}
 														/>
 													</TableCell>

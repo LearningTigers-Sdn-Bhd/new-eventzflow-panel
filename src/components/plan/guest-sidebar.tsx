@@ -348,7 +348,7 @@ export function GuestSidebar({
 														group.members.map((member) => {
 															const guest = mergedList.find(
 																(g) =>
-																	g.id === member.participant_id &&
+																	String(g.id) === String(member.participant_id) &&
 																	g.type ===
 																		member.participant_type.toLowerCase(),
 															);
@@ -361,6 +361,7 @@ export function GuestSidebar({
 																	<span className="truncate font-bold text-slate-700 dark:text-slate-300">
 																		{guest?.name ||
 																			guest?.full_name ||
+																			member.participant_name ||
 																			"Unknown Guest"}
 																	</span>
 																</div>

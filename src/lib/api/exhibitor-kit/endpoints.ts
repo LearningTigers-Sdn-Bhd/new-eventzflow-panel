@@ -61,6 +61,35 @@ export async function updateExhibitorKit(
 	);
 }
 
+export async function deleteExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<void> {
+	await restClient.delete<void>(`v1/events/${eventId}/exhibitor_kits/${kitId}`);
+}
+
+export async function permanentlyDeleteExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<void> {
+	await restClient.delete<void>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/permanently_delete`,
+	);
+}
+
+/**
+ * Org-owner-only: hard-deletes a kit in any state, bypassing the cancel-first
+ * requirement permanentlyDeleteExhibitorKit enforces.
+ */
+export async function forceDeleteExhibitorKit(
+	eventId: number,
+	kitId: number,
+): Promise<void> {
+	await restClient.delete<void>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/force_delete`,
+	);
+}
+
 /**
  * Submit an exhibitor kit order
  * This auto-creates payment records for unpaid items and printings,
@@ -74,5 +103,34 @@ export async function submitExhibitorKitOrder(
 	return restClient.post<{ data: ExhibitorKitPayment[]; message: string }>(
 		`v1/events/${eventId}/exhibitor_kits/${kitId}/submit_order`,
 		{},
+	);
+}
+
+export async function downloadExhibitorKitIcCopy(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/ic_copy`,
+	);
+}
+
+export async function downloadExhibitorKitCustomsDeclaration(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/customs_declaration`,
+	);
+}
+
+export async function rejectExhibitorKitPaymentProof(
+	eventId: number,
+	kitId: number,
+	note?: string,
+): Promise<ExhibitorKit> {
+	return restClient.post<ExhibitorKit>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/reject_payment_proof`,
+		{ note: note || undefined },
 	);
 }

@@ -13,6 +13,7 @@ import {
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { usePublicRegistrationForm } from "@/hooks/use-public-registration-form";
 import type { ExistingRegistrationStatusData } from "@/lib/api/public-registration";
@@ -26,7 +27,7 @@ import {
 } from "@/lib/public-registration/attendee-state";
 import { buildPublicRegistrationSteps } from "@/lib/public-registration/steps";
 import { buildPublicRegistrationTypeTitle } from "@/lib/public-registration/title";
-import { TicketDownloadButton } from "./TicketDownloadButton";
+import { RegistrationTicketSummary } from "./RegistrationTicketSummary";
 import { TicketVisual } from "./TicketVisual";
 
 interface AttendeeFormRow {
@@ -88,9 +89,11 @@ async function loadRazorpayCheckoutScript() {
 export function PublicRegistrationForm({
 	eventSlug,
 	formSlug,
+	bundleToken,
 }: {
 	eventSlug: string;
 	formSlug: string;
+	bundleToken?: string;
 }) {
 	// Steps: 1 = ticket type, 2 = email, 3 = attendee details
 	const [currentStep, setCurrentStep] = useState(1);
@@ -101,6 +104,7 @@ export function PublicRegistrationForm({
 	const [attendees, setAttendees] = useState<AttendeeFormRow[]>([
 		emptyAttendee(),
 	]);
+	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 	const [existingRegistrationStatus, setExistingRegistrationStatus] =
 		useState<ExistingRegistrationStatusData | null>(null);
@@ -123,12 +127,14 @@ export function PublicRegistrationForm({
 		singleResult,
 		groupResult,
 		statusMessage,
+		bundleData,
+		bundleError,
 		checkExistingRegistration,
 		submit,
-	} = usePublicRegistrationForm({ eventSlug, formSlug });
+	} = usePublicRegistrationForm({ eventSlug, formSlug, bundleToken });
 
 	const ticketTypes = ticketTypesQuery.data ?? [];
-	const hasMultipleTicketTypes = ticketTypes.length > 1;
+	const hasMultipleTicketTypes = ticketTypes.length > 1 && !bundleToken;
 
 	const selectedTicketType = useMemo(() => {
 		return ticketTypes.find((t) => t.id === selectedTicketTypeId) ?? null;
@@ -174,6 +180,12 @@ export function PublicRegistrationForm({
 			}
 		}
 	}, [ticketTypes, hasMultipleTicketTypes, currentStep]);
+
+	useEffect(() => {
+		if (bundleData?.ticket_type?.id) {
+			setSelectedTicketTypeId(bundleData.ticket_type.id);
+		}
+	}, [bundleData?.ticket_type?.id]);
 
 	// Handle group registration attendee count
 	useEffect(() => {
@@ -237,7 +249,8 @@ export function PublicRegistrationForm({
 	const loading =
 		eventQuery.isLoading ||
 		ticketTypesQuery.isLoading ||
-		registrationFormsQuery.isLoading;
+		registrationFormsQuery.isLoading ||
+		(Boolean(bundleToken) && !bundleData && !bundleError);
 
 	// Step validation
 	const canProceedStep1 = selectedTicketTypeId !== null;
@@ -445,6 +458,12 @@ export function PublicRegistrationForm({
 
 	function goToConfirmationStep(event: FormEvent) {
 		event.preventDefault();
+		if (!hasAcceptedTerms) {
+			toast.error(
+				"Please agree to the Terms & Conditions and Privacy Policy before continuing.",
+			);
+			return;
+		}
 		if (hasDuplicateAttendeeEmail) {
 			toast.error("Each attendee must use a unique email address.");
 			return;
@@ -583,6 +602,25 @@ export function PublicRegistrationForm({
 		);
 	}
 
+	if (bundleToken && bundleError) {
+		return (
+			<div className="border-2 border-black bg-white p-8 text-center md:p-10">
+				<div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center bg-red-50">
+					<Ticket className="h-8 w-8 text-red-400" />
+				</div>
+				<h2 className="mb-3 font-black text-2xl text-black tracking-tighter">
+					INVALID BUNDLE LINK
+				</h2>
+				<p className="mx-auto mb-6 max-w-md text-black/60">
+					This bundle link is invalid, expired, or has reached its limit.
+				</p>
+				<p className="text-black/40 text-sm">
+					Please contact the organizer for a valid bundle link.
+				</p>
+			</div>
+		);
+	}
+
 	// No ticket types available for this form
 	if (ticketTypes.length === 0) {
 		return (
@@ -627,6 +665,19 @@ export function PublicRegistrationForm({
 
 	return (
 		<div className="mx-auto w-full max-w-2xl">
+			{bundleData && (
+				<div className="mb-6 flex items-center gap-3 rounded-xl border border-brand-green/20 bg-brand-green/5 px-4 py-3">
+					<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-green/10">
+						<Ticket className="h-4 w-4 text-brand-green" />
+					</div>
+					<div className="min-w-0">
+						<p className="font-semibold text-slate-900 text-sm">{bundleData.name}</p>
+						<p className="text-slate-500 text-xs">
+							Bundle pass · {bundleData.remaining_count} of {bundleData.pass_limit} remaining
+						</p>
+					</div>
+				</div>
+			)}
 			{/* Stepper */}
 			<div className="mb-8 sm:mb-12">
 				<div className="relative mx-auto w-full max-w-[500px]">
@@ -1157,6 +1208,42 @@ export function PublicRegistrationForm({
 								)}
 							</div>
 
+							<div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+								<Checkbox
+									id="registration-legal-consent"
+									checked={hasAcceptedTerms}
+									onCheckedChange={(checked) =>
+										setHasAcceptedTerms(checked === true)
+									}
+									aria-required="true"
+									className="mt-0.5"
+								/>
+								<label
+									htmlFor="registration-legal-consent"
+									className="cursor-pointer text-slate-600 text-xs leading-relaxed sm:text-sm"
+								>
+									By continuing, you agree to our{" "}
+									<a
+										href="/terms-and-conditions"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+									>
+										Terms &amp; Conditions
+									</a>{" "}
+									and{" "}
+									<a
+										href="/privacy-policy"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+									>
+										Privacy Policy
+									</a>
+									. <span className="font-medium text-red-500">*</span>
+								</label>
+							</div>
+
 							<div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row">
 								<Button
 									type="button"
@@ -1169,7 +1256,11 @@ export function PublicRegistrationForm({
 								</Button>
 								<Button
 									type="submit"
-									disabled={!selectedTicketType || hasDuplicateAttendeeEmail}
+									disabled={
+										!selectedTicketType ||
+										hasDuplicateAttendeeEmail ||
+										!hasAcceptedTerms
+									}
 									className="h-12 w-full rounded-xl border border-black bg-black px-6 font-bold text-base text-white leading-none transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-30 sm:h-14 sm:flex-1 sm:px-8"
 								>
 									Confirm Registration
@@ -1468,35 +1559,21 @@ export function PublicRegistrationForm({
 
 						<div className="mt-8">
 							<div className="space-y-4 sm:space-y-6">
-								<div className="rounded-2xl border border-brand-green/20 bg-brand-green/[0.02] p-4 text-center sm:p-6">
-									<p className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">
-										Registration Reference
-									</p>
-									<p className="mt-2 font-bold font-mono text-lg text-slate-900">
-										{paymentTicketPublicId ?? finalPublicIds[0]}
-									</p>
-									<p className="mt-6 text-slate-500 text-sm">
-										A confirmation email has been sent to <br />
-										<span className="font-semibold text-slate-900">
-											{email}
-										</span>
-									</p>
-
-									{!hasPendingApprovalRegistration && (
-										<div className="mt-8 border-slate-100 border-t pt-6">
-											<TicketDownloadButton
-												eventSlug={eventSlug}
-												publicIds={
-													finalPublicIds.length > 0
-														? finalPublicIds
-														: paymentTicketPublicId
-															? [paymentTicketPublicId]
-															: []
-												}
-											/>
-										</div>
-									)}
-								</div>
+								<RegistrationTicketSummary
+									eventSlug={eventSlug}
+									email={email}
+									publicIds={
+										finalPublicIds.length > 0
+											? finalPublicIds
+											: paymentTicketPublicId
+												? [paymentTicketPublicId]
+												: []
+									}
+									ticketPublicId={
+										paymentTicketPublicId ?? finalPublicIds[0] ?? null
+									}
+									isPendingApproval={hasPendingApprovalRegistration}
+								/>
 
 								<div className="flex flex-col gap-3">
 									{isExistingPaidRegistration && (

@@ -7,6 +7,7 @@ export interface ContractorEventData {
 	start_date: string;
 	end_date: string;
 	exhibitors_count: number;
+	booths_count: number;
 	total_received_amount: number;
 	pending_payments_count: number;
 	verified_payments_count: number;
@@ -16,6 +17,7 @@ export interface ContractorDashboardSummary {
 	total_events: number;
 	active_events: number;
 	total_exhibitors: number;
+	total_booths: number;
 	total_received_amount: number;
 	pending_payments_count: number;
 	verified_payments_count: number;

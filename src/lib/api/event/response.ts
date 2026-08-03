@@ -32,12 +32,14 @@ export type Event = {
 	use_seat_ticketing: boolean;
 	use_exhibitor_kit: boolean;
 	enable_exhibitor_management: boolean;
+	exhibitor_reservation_ttl_hours: number | null;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
 	use_voucher: boolean;
 	use_sponsorship: boolean;
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
+	use_certificate: boolean;
 	use_api_access: boolean;
 	reminders_enabled: boolean;
 	reminder_7_day: boolean;

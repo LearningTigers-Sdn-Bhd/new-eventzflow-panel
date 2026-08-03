@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CreditCard, Package, Printer } from "lucide-react";
+import { ArrowLeft, CreditCard, Package, Printer } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -23,9 +24,14 @@ import { printingsColumns } from "./my-items/printings-columns";
 interface MyItemsPageProps {
 	eventId: number;
 	eventVendorId: number;
+	kitId: number;
 }
 
-export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
+export function MyItemsPage({
+	eventId,
+	eventVendorId,
+	kitId,
+}: MyItemsPageProps) {
 	const { user } = useAuth();
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("items");
@@ -50,19 +56,27 @@ export function MyItemsPage({ eventId, eventVendorId }: MyItemsPageProps) {
 
 	// Find the current vendor and get their exhibitor kit
 	const currentVendor = eventVendors?.find((ev) => ev.id === eventVendorId);
-	const myKit = currentVendor?.exhibitor_kit;
+	const myKit = currentVendor?.exhibitor_kits.find((kit) => kit.id === kitId);
 
 	const handleAddMoreItems = () => {
-		router.push(`/event/${eventId}/order-items`);
+		router.push(`/event/${eventId}/exhibitor-kits/${kitId}/order-items`);
 	};
 
 	// Set the "Add More Items" button in the header
 	useSetEventActions(
-		canAccessExhibitorManagement ? (
-			<Button onClick={handleAddMoreItems} className="rounded-none">
-				Add More Items
+		<div className="flex items-center gap-2">
+			<Button asChild variant="outline" className="rounded-none">
+				<Link href={`/event/${eventId}/exhibitor-kits`}>
+					<ArrowLeft className="mr-2 size-4" />
+					Back to My Booths
+				</Link>
 			</Button>
-		) : null,
+			{canAccessExhibitorManagement && (
+				<Button onClick={handleAddMoreItems} className="rounded-none">
+					Add More Items
+				</Button>
+			)}
+		</div>,
 	);
 
 	if (isLoadingEvent) {

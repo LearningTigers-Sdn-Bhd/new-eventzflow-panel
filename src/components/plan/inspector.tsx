@@ -135,7 +135,7 @@ export function Inspector({
 					<DelayedInput
 						value={plan.name}
 						onSubmit={(val) => onUpdatePlan({ name: val })}
-						className="h-9 border-transparent bg-slate-50 font-medium transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+						className="h-9 border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 
@@ -181,7 +181,7 @@ export function Inspector({
 							onSubmit={(val) =>
 								onUpdatePlan({ canvas_width: unitToPx(Number(val), unit) })
 							}
-							className="h-9 border-transparent bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+							className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 						/>
 					</div>
 					<div className="space-y-2">
@@ -194,7 +194,7 @@ export function Inspector({
 							onSubmit={(val) =>
 								onUpdatePlan({ canvas_height: unitToPx(Number(val), unit) })
 							}
-							className="h-9 border-transparent bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+							className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 						/>
 					</div>
 				</div>
@@ -260,7 +260,7 @@ export function Inspector({
 						handlePropertyChange(() => onUpdate(object.id, { label: val }))
 					}
 					disabled={object.locked}
-					className="h-9 border-transparent bg-slate-50 font-medium transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+					className="h-9 border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 				/>
 			</div>
 
@@ -302,7 +302,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-transparent bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+						className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 				<div className="space-y-2">
@@ -318,7 +318,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-transparent bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+						className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 			</div>
@@ -337,7 +337,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-transparent bg-slate-50 text-center font-medium transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+						className="h-9 border-slate-200 bg-slate-50 text-center font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 			)}
@@ -355,11 +355,11 @@ export function Inspector({
 						)
 					}
 					disabled={object.locked}
-					className="h-9 border-transparent bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-200 focus:border-primary dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-800"
+					className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 				/>
 			</div>
 
-			<div className="flex items-center justify-between rounded-xl border border-transparent bg-slate-50 p-3 transition-all hover:border-slate-200 dark:bg-slate-900 dark:hover:border-slate-800">
+			<div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
 				<Label
 					className="cursor-pointer font-bold text-slate-600 text-xs dark:text-slate-400"
 					htmlFor="locked"

@@ -6,6 +6,7 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import { flattenExhibitorKits } from "@/lib/exhibitor-kits";
 import { DataTable } from "../exhibitor-kits/my-items/data-table";
 import {
 	type ExhibitorKitWithVendor,
@@ -58,12 +59,9 @@ export function ContractorExhibitorKitsView({
 	}
 
 	// Extract exhibitor kits from vendors (same approach as admin)
-	const kitsWithVendors: ExhibitorKitWithVendor[] = (vendors || [])
-		.filter((vendor) => vendor.exhibitor_kit) // Only vendors with exhibitor kits
-		.map((vendor) => ({
-			...vendor.exhibitor_kit!,
-			vendor: vendor,
-		}));
+	const kitsWithVendors: ExhibitorKitWithVendor[] = flattenExhibitorKits(
+		vendors || [],
+	).map(({ vendor, kit }) => ({ ...kit, vendor }));
 
 	// Get columns with contractor printing flag
 	const columns = getColumns({ allowContractorPrinting });

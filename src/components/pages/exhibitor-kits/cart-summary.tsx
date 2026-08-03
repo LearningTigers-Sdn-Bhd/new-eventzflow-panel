@@ -23,10 +23,11 @@ import { useExhibitorCart } from "@/stores/exhibitor-cart-store";
 
 interface CartSummaryProps {
 	eventId: number;
+	kitId: number;
 	onCheckout?: () => void;
 }
 
-export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
+export function CartSummary({ eventId, kitId, onCheckout }: CartSummaryProps) {
 	const router = useRouter();
 	const {
 		items,
@@ -43,7 +44,7 @@ export function CartSummary({ eventId, onCheckout }: CartSummaryProps) {
 	const itemsCount = getItemsCount();
 
 	const handleReviewSubmit = () => {
-		router.push(`/event/${eventId}/review-submit`);
+		router.push(`/event/${eventId}/exhibitor-kits/${kitId}/review-submit`);
 	};
 
 	if (itemsCount === 0) {
