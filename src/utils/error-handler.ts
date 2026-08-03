@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 /**
  * Backend unified error response format
  * Based on Swagger documentation at /api-docs
@@ -27,6 +29,12 @@ export interface BackendErrorResponse {
  * ```
  */
 export async function extractErrorMessage(error: unknown): Promise<string> {
+	// Client-side validation failure (thrown before any request went out) —
+	// surface the schema's own message instead of the raw stringified issues array.
+	if (error instanceof ZodError) {
+		return error.issues[0]?.message || "Invalid input. Please check the form.";
+	}
+
 	// Handle HTTP errors from ky
 	if (error && typeof error === "object" && "response" in error) {
 		try {

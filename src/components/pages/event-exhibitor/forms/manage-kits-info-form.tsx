@@ -34,6 +34,7 @@ import {
 	getExhibitorKit,
 	updateExhibitorKit,
 } from "@/lib/api/exhibitor-kit";
+import { extractErrorMessage } from "@/utils/error-handler";
 
 function formatVoucherDiscount(
 	discountType: ExhibitorKit["exhibitor_voucher_discount_type"],
@@ -127,14 +128,24 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 		queryKey: ["event", eventId, "exhibitor-kit", kitId],
 		queryFn: () => getExhibitorKit(eventId, kitId),
 	});
+	// Scoped to the kit's own booth price — a kit billed at one price tier must
+	// only ever see (and be assignable to) booths from that same tier.
+	const kitBoothPriceId = kitDetails?.exhibitor_booth_price_id;
+	const boothsQueryEnabled = Boolean(kitBoothPriceId);
 	const {
 		data: booths = [],
-		isPending: isBoothsPending,
+		isPending: isBoothsPendingRaw,
 		isError: isBoothsError,
 	} = useQuery({
-		queryKey: ["event", eventId, "exhibitor-booths"],
-		queryFn: () => getExhibitorBooths({ event_id: eventId }),
+		queryKey: ["event", eventId, "exhibitor-booths", kitBoothPriceId],
+		queryFn: () =>
+			getExhibitorBooths({
+				event_id: eventId,
+				exhibitor_booth_price_id: kitBoothPriceId,
+			}),
+		enabled: boothsQueryEnabled,
 	});
+	const isBoothsPending = boothsQueryEnabled && isBoothsPendingRaw;
 	const hasBoothInventory = booths.length > 0;
 	const linkedBoothId = kitDetails?.exhibitor_booth_id ?? null;
 	const selectableBooths = booths.filter(
@@ -175,8 +186,8 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 				queryKey: ["event", eventId.toString(), "vendors"],
 			});
 		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update exhibitor kit");
+		onError: async (error: unknown) => {
+			toast.error(await extractErrorMessage(error));
 		},
 	});
 
@@ -210,8 +221,8 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 				queryKey: ["event", eventId, "exhibitor-kit", kitId],
 			});
 		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update booth");
+		onError: async (error: unknown) => {
+			toast.error(await extractErrorMessage(error));
 		},
 	});
 
@@ -272,11 +283,15 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 							{hasBoothInventory ? (
 								<Select
 									value={linkedBoothId ? String(linkedBoothId) : "none"}
-									onValueChange={(value) =>
-										assignBoothMutation.mutate(
-											value === "none" ? null : Number(value),
-										)
-									}
+									onValueChange={(value) => {
+										if (value === "none") {
+											assignBoothMutation.mutate(null);
+											return;
+										}
+										const parsed = Number(value);
+										if (!Number.isInteger(parsed) || parsed < 1) return;
+										assignBoothMutation.mutate(parsed);
+									}}
 									disabled={
 										assignBoothMutation.isPending || isKitDetailsPending
 									}
