@@ -1,8 +1,10 @@
 import { restClient } from "@/utils/rest-api";
 import {
+	type AcceptWaitingListRequest,
 	type ApproveTicketApplicationRequest,
-	approveTicketApplicationSchema,
 	type ApproveTicketRsvpRequest,
+	acceptWaitingListSchema,
+	approveTicketApplicationSchema,
 	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
@@ -71,6 +73,7 @@ function transformPendingTicket(
 		customLabels,
 		createdAt: backendTicket.created_at,
 		paymentStatus,
+		waitingList: backendTicket.waiting_list,
 		paymentScreenshotUrl: backendTicket.payment_screenshot_url || undefined,
 		transactionId: backendTicket.transaction_id || undefined,
 		paymentMethod: backendTicket.payment_method || undefined,
@@ -212,6 +215,16 @@ export async function approveTicketRsvp(
 	const validated = approveTicketRsvpSchema.parse(data);
 	const response = await restClient.patch<BackendPendingTicket>(
 		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/approve_rsvp`,
+	);
+	return transformPendingTicket(response);
+}
+
+export async function acceptWaitingList(
+	data: AcceptWaitingListRequest,
+): Promise<PendingTicket> {
+	const validated = acceptWaitingListSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/accept_waiting_list`,
 	);
 	return transformPendingTicket(response);
 }

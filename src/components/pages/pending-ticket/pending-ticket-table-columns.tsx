@@ -32,6 +32,7 @@ export type PendingTicket = {
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
 	paymentStatus: PaymentStatusString;
+	waitingList?: boolean;
 	paymentScreenshotUrl?: string;
 	transactionId?: string;
 	paymentMethod?: string;
@@ -179,7 +180,7 @@ export function generateColumns(
 
 				return (
 					<div className="flex flex-col gap-1.5">
-						<div className="flex items-center gap-2">
+						<div className="flex flex-col items-start gap-1">
 							<Badge
 								variant="secondary"
 								className={cn(
@@ -189,6 +190,14 @@ export function generateColumns(
 							>
 								{getPaymentStatusText(status)}
 							</Badge>
+							{ticket.waitingList && (
+								<Badge
+									variant="outline"
+									className="shrink-0 rounded-none border-amber-300 text-amber-700"
+								>
+									Waiting List
+								</Badge>
+							)}
 
 							{hasTransactionId && !hasScreenshot && (
 								<Button

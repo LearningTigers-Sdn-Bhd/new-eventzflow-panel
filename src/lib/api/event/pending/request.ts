@@ -77,3 +77,9 @@ export const approveTicketRsvpSchema = z.object({
 	ticketId: z.string().min(1, "Ticket ID is required"),
 });
 export type ApproveTicketRsvpRequest = z.infer<typeof approveTicketRsvpSchema>;
+
+export const acceptWaitingListSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+});
+export type AcceptWaitingListRequest = z.infer<typeof acceptWaitingListSchema>;
