@@ -28,6 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getEventById } from "@/lib/api/event";
 import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
+import { getExhibitorBooths } from "@/lib/api/exhibitor-booth";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
 import { previewExhibitorVoucher } from "@/lib/api/exhibitor-voucher";
@@ -119,6 +120,22 @@ export default function ManualAddForm({
 
 	const availablePackages = packages.filter(
 		(item) => String(item.exhibitorBoothPriceId) === boothPriceId,
+	);
+
+	// Booths already configured for the selected price get picked from a list;
+	// a price with no booth inventory falls back to free-text entry.
+	const { data: boothsForPrice = [] } = useQuery({
+		queryKey: ["event", eventIdStr, "exhibitor-booths", boothPriceId],
+		queryFn: () =>
+			getExhibitorBooths({
+				event_id: eventId,
+				exhibitor_booth_price_id: Number(boothPriceId),
+			}),
+		enabled: Boolean(boothPriceId),
+	});
+	const hasBoothInventoryForPrice = boothsForPrice.length > 0;
+	const availableBoothNumbers = boothsForPrice.filter(
+		(booth) => booth.status === "available",
 	);
 
 	useEffect(() => {
@@ -520,6 +537,7 @@ export default function ManualAddForm({
 											onValueChange={(value) => {
 												setBoothPriceId(value);
 												setPackageId("");
+												setBoothNumber("");
 												clearError("boothPriceId");
 											}}
 											disabled={submitting}
@@ -546,11 +564,19 @@ export default function ManualAddForm({
 											<FieldLabel htmlFor="manual-package">
 												Package (optional)
 											</FieldLabel>
-											<Select value={packageId} onValueChange={setPackageId}>
+											<Select
+												value={packageId || "none"}
+												onValueChange={(value) =>
+													setPackageId(value === "none" ? "" : value)
+												}
+											>
 												<SelectTrigger id="manual-package">
 													<SelectValue placeholder="Local — booth only" />
 												</SelectTrigger>
 												<SelectContent>
+													<SelectItem value="none">
+														No package (booth only)
+													</SelectItem>
 													{availablePackages.map((item) => (
 														<SelectItem key={item.id} value={String(item.id)}>
 															{item.name} — RM {item.price.toFixed(2)}
@@ -654,14 +680,51 @@ export default function ManualAddForm({
 									<FieldLabel htmlFor={boothNumberField}>
 										Booth Number (Optional)
 									</FieldLabel>
-									<Input
-										id={boothNumberField}
-										value={boothNumber}
-										onChange={(e) => setBoothNumber(e.target.value)}
-										placeholder="e.g. A-12"
-										disabled={submitting}
-										className="rounded-none"
-									/>
+									{hasBoothInventoryForPrice ? (
+										<Select
+											value={boothNumber || "none"}
+											onValueChange={(value) =>
+												setBoothNumber(value === "none" ? "" : value)
+											}
+											disabled={
+												submitting || availableBoothNumbers.length === 0
+											}
+										>
+											<SelectTrigger id={boothNumberField}>
+												<SelectValue
+													placeholder={
+														availableBoothNumbers.length === 0
+															? "No booths available"
+															: "Select a booth number"
+													}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="none">Unassigned</SelectItem>
+												{availableBoothNumbers.map((booth) => (
+													<SelectItem key={booth.id} value={booth.number}>
+														{booth.number}
+														{booth.label ? ` — ${booth.label}` : ""}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									) : (
+										<Input
+											id={boothNumberField}
+											value={boothNumber}
+											onChange={(e) => setBoothNumber(e.target.value)}
+											placeholder="e.g. A-12"
+											disabled={submitting}
+											className="rounded-none"
+										/>
+									)}
+									{hasBoothInventoryForPrice &&
+										availableBoothNumbers.length === 0 && (
+											<FieldDescription className="text-destructive">
+												All booths for this price are currently taken.
+											</FieldDescription>
+										)}
 								</Field>
 
 								<Field orientation="vertical">

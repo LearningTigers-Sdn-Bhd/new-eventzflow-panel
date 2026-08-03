@@ -8,6 +8,7 @@ import {
 	ChevronRight,
 	Loader2,
 	RotateCcw,
+	Search,
 	Trash2,
 } from "lucide-react";
 import * as React from "react";
@@ -116,6 +117,7 @@ export function BoothInventoryDialog({
 	const [statusFilter, setStatusFilter] = React.useState("all");
 	const [priceFilter, setPriceFilter] = React.useState("all");
 	const [zoneFilter, setZoneFilter] = React.useState("all");
+	const [numberSearch, setNumberSearch] = React.useState("");
 	const [page, setPage] = React.useState(1);
 
 	const { data: boothPrices = [] } = useQuery({
@@ -151,6 +153,20 @@ export function BoothInventoryDialog({
 		queryFn: () => getExhibitorBooths(boothFilters),
 		enabled: isOpen,
 	});
+
+	// Unfiltered total — how many booths exist for the event, independent of
+	// the zone/price/status filters and search above.
+	const { data: allBooths = [] } = useQuery({
+		queryKey: ["exhibitor-booths", { event_id: eventId }],
+		queryFn: () => getExhibitorBooths({ event_id: eventId }),
+		enabled: isOpen,
+	});
+
+	const searchedBooths = React.useMemo(() => {
+		const query = numberSearch.trim().toLowerCase();
+		if (!query) return booths;
+		return booths.filter((booth) => booth.number.toLowerCase().includes(query));
+	}, [booths, numberSearch]);
 
 	const invalidateBooths = () =>
 		queryClient.invalidateQueries({ queryKey: ["exhibitor-booths"] });
@@ -230,8 +246,11 @@ export function BoothInventoryDialog({
 	);
 	const bulkPreview = entryMode === "range" ? rangePreview : pastePreview;
 
-	const pageCount = Math.max(1, Math.ceil(booths.length / PAGE_SIZE));
-	const visibleBooths = booths.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+	const pageCount = Math.max(1, Math.ceil(searchedBooths.length / PAGE_SIZE));
+	const visibleBooths = searchedBooths.slice(
+		(page - 1) * PAGE_SIZE,
+		page * PAGE_SIZE,
+	);
 
 	const submitSingle = (event: React.FormEvent) => {
 		event.preventDefault();
@@ -439,7 +458,31 @@ export function BoothInventoryDialog({
 					</div>
 
 					<div className="flex min-h-[60dvh] flex-1 flex-col gap-6 overflow-y-auto bg-muted/10 p-6 lg:min-h-0 lg:p-8">
+						<div className="flex items-center justify-between">
+							<p className="text-muted-foreground text-sm">
+								<span className="font-medium text-foreground">
+									{allBooths.length}
+								</span>{" "}
+								booths entered for this event
+							</p>
+						</div>
 						<div className="flex flex-wrap items-end gap-3">
+							<div className="w-full space-y-1.5 sm:w-56">
+								<Label htmlFor="booth-number-search">Search booth number</Label>
+								<div className="relative">
+									<Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+									<Input
+										id="booth-number-search"
+										value={numberSearch}
+										onChange={(e) => {
+											setNumberSearch(e.target.value);
+											setPage(1);
+										}}
+										placeholder="e.g. K085"
+										className="h-9 rounded-none pl-8"
+									/>
+								</div>
+							</div>
 							<div className="w-full space-y-1.5 sm:w-48">
 								<Label htmlFor="booth-zone-filter">Zone</Label>
 								<Select
@@ -670,7 +713,7 @@ export function BoothInventoryDialog({
 
 							<div className="flex shrink-0 items-center justify-between border-t px-5 py-3 text-sm">
 								<span className="text-muted-foreground">
-									{booths.length} booths · Page {page} of {pageCount}
+									{searchedBooths.length} matching · Page {page} of {pageCount}
 								</span>
 								<div className="flex gap-1">
 									<Button
