@@ -824,28 +824,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 													onCheckedChange={field.handleChange}
 													disabled={updateEventMutation.isPending}
 												/>
-												{field.state.value && (
-													<form.Field name="businessMatchingWebhookUrl">
-														{(urlField) => {
-															const isInvalid =
-																urlField.state.meta.isTouched &&
-																!urlField.state.meta.isValid;
-															return (
-																<InputLabel
-																	label="Business Matching Webhook URL"
-																	htmlFor={urlField.name}
-																	value={urlField.state.value}
-																	onChange={urlField.handleChange}
-																	onBlur={urlField.handleBlur}
-																	errors={urlField.state.meta.errors}
-																	isInvalid={isInvalid}
-																	placeholder="https://webhook.example.com/bm"
-																	disabled={updateEventMutation.isPending}
-																/>
-															);
-														}}
-													</form.Field>
-												)}
 											</div>
 										)}
 									</form.Field>

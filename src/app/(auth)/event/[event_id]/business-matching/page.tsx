@@ -9,7 +9,7 @@ import {
 	RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -29,9 +29,11 @@ import {
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
-import { downloadBookingsReport } from "@/lib/api/business-matching";
+import { useDialog } from "@/hooks/use-dialog";
+import { downloadBookingsReport, getHostProfile } from "@/lib/api/business-matching";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import { cable } from "@/lib/cable";
+import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 
 export default function BusinessMatchingPage() {
 	const params = useParams();
@@ -47,6 +49,7 @@ export default function BusinessMatchingPage() {
 		isPending: isRefreshing,
 	} = useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
+	const { openDialog } = useDialog();
 
 	// Fetch event details to check for webhook URL
 	const { data: event } = useQuery({
@@ -55,42 +58,32 @@ export default function BusinessMatchingPage() {
 		enabled: !!event_id,
 	});
 
-	// State for webhook URL input
-	const [webhookUrlInput, setWebhookUrlInput] = useState("");
 
-	// Update event mutation
-	const updateEventMutation = useMutation({
-		mutationFn: async (url: string) => {
-			return await updateEvent(event_id, {
-				business_matching_webhook_url: url,
-			});
-		},
-		onSuccess: () => {
-			toast.success("Webhook URL updated successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", event_id] });
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update webhook URL");
-		},
-	});
 
-	const handleSaveWebhook = () => {
-		if (!webhookUrlInput) {
-			toast.error("Please enter a valid URL");
-			return;
-		}
-		try {
-			new URL(webhookUrlInput); // Basic validation
-			updateEventMutation.mutate(webhookUrlInput);
-		} catch {
-			toast.error("Invalid URL format");
-		}
-	};
-
+	const router = useRouter();
 	const { isBusinessHost, canManageEvent } = useEventPermissions(
 		event_id,
 		event,
 	);
+
+	// Check if logged-in host has completed their profile
+	const { data: hostProfile } = useQuery({
+		queryKey: ["host-profile", event_id],
+		queryFn: () => getHostProfile(event_id),
+		enabled: isBusinessHost,
+	});
+
+	const showProfileWarning = useMemo(() => {
+		if (!isBusinessHost || !hostProfile) return false;
+		return (
+			!hostProfile.description ||
+			!hostProfile.sourcing_intent ||
+			!hostProfile.capabilities ||
+			hostProfile.description.includes("Professional host available") ||
+			hostProfile.sourcing_intent.includes("Looking for strategic partnerships") ||
+			hostProfile.capabilities.includes("Expertise in technology solutions")
+		);
+	}, [isBusinessHost, hostProfile]);
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
@@ -234,6 +227,24 @@ export default function BusinessMatchingPage() {
 
 	const actionButtons = (
 		<div className="flex items-center gap-2">
+			{canManageEvent && (
+				<Button
+					onClick={() => {
+						openDialog({
+							component: CreateSessionDialog,
+							props: { eventId: event_id },
+							config: {
+								title: "Create Matchmaking Session",
+								size: "lg",
+							},
+						});
+					}}
+					className="h-8 rounded-none md:h-9"
+				>
+					Create Session
+				</Button>
+			)}
+
 			{data && data.length > 0 && (
 				<>
 					<Button
@@ -278,40 +289,23 @@ export default function BusinessMatchingPage() {
 
 	return (
 		<div className="space-y-4">
-			{canManageEvent && event && !event.business_matching_webhook_url && (
-				<Card className="rounded-none border border-l-4 border-l-amber-500">
-					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 font-medium text-lg">
-							<AlertTriangle className="h-5 w-5 text-amber-500" />
-							Setup Business Matching
-						</CardTitle>
-						<CardDescription>
-							To enable real-time data synchronization for Business Matching,
-							please provide the Webhook URL. (Contact your administrator if you
-							don&apos;t have this URL).
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="flex w-full max-w-sm items-center space-x-2">
-							<Input
-								type="url"
-								placeholder="https://webhook.example.com/bm"
-								value={webhookUrlInput}
-								onChange={(e) => setWebhookUrlInput(e.target.value)}
-								disabled={updateEventMutation.isPending}
-								className="rounded-none"
-							/>
-							<Button
-								type="button"
-								onClick={handleSaveWebhook}
-								disabled={updateEventMutation.isPending}
-								className="rounded-none"
-							>
-								{updateEventMutation.isPending ? "Saving..." : "Save URL"}
-							</Button>
+			{showProfileWarning && (
+				<div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3.5 text-yellow-800 dark:text-yellow-200">
+					<div className="flex items-center gap-2.5">
+						<AlertTriangle className="h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-400" />
+						<div className="text-sm">
+							<span className="font-semibold">Complete Your Host Profile:</span> You haven't filled out your matching details (Bio, Sourcing Intent, or Capabilities) yet. Fill them out to get the best matchmaking matches.
 						</div>
-					</CardContent>
-				</Card>
+					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => router.push(`/event/${event_id}/host-profile`)}
+						className="h-8 shrink-0 border-yellow-500/30 bg-yellow-500/20 text-yellow-900 hover:bg-yellow-500/30 dark:text-yellow-200 self-end sm:self-center"
+					>
+						Edit Profile
+					</Button>
+				</div>
 			)}
 			<DataTable
 				columns={filteredColumns}

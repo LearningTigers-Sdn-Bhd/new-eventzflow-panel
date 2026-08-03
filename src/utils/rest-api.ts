@@ -602,6 +602,32 @@ export const publicRestClient = {
 	},
 
 	/**
+	 * Make a PUT request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	put: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (PUT):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.put(url, { json: data }).json<T>();
+	},
+
+	/**
+	 * Make a PATCH request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	patch: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (PATCH):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.patch(url, { json: data }).json<T>();
+	},
+
+	/**
 	 * Get the full URL for an image endpoint
 	 * @param path - The image path (e.g., "v1/voucher_images/filename.jpg")
 	 * @returns Full URL to access the image

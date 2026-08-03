@@ -10,8 +10,9 @@ import {
 	MessageSquare,
 	MoreVertical,
 	Phone,
+	User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,25 @@ export function BookingCardItem({
 	const [valueDraft, setValueDraft] = useState<string>(
 		displayBooking.potential_deal_value?.toString() || "",
 	);
+	const [showBookerInfo, setShowBookerInfo] = useState(false);
+
+	const parsedBookerInfo = useMemo(() => {
+		const comment = displayBooking.host_comment || "";
+		if (!comment) return null;
+
+		const descriptionMatch = comment.match(/Description:\s*([\s\S]*?)(?=(?:Sourcing Intent:|Capabilities:|$))/i);
+		const intentMatch = comment.match(/Sourcing Intent:\s*([\s\S]*?)(?=(?:Description:|Capabilities:|$))/i);
+		const capabilitiesMatch = comment.match(/Capabilities:\s*([\s\S]*?)(?=(?:Description:|Sourcing Intent:|$))/i);
+
+		if (descriptionMatch || intentMatch || capabilitiesMatch) {
+			return {
+				description: descriptionMatch?.[1]?.trim() || "",
+				sourcingIntent: intentMatch?.[1]?.trim() || "",
+				capabilities: capabilitiesMatch?.[1]?.trim() || "",
+			};
+		}
+		return null;
+	}, [displayBooking.host_comment]);
 
 	const getCommonBookingData = () => ({
 		name: displayBooking.name,
@@ -495,6 +515,47 @@ export function BookingCardItem({
 						</Button>
 					)}
 				</div>
+				{parsedBookerInfo && (
+					<div className="mt-2 border-t pt-2 space-y-1">
+						<Button
+							variant="outline"
+							size="sm"
+							type="button"
+							onClick={() => setShowBookerInfo(!showBookerInfo)}
+							className="h-7 w-full justify-between text-xs"
+						>
+							<span className="flex items-center gap-1.5 font-medium">
+								<User className="h-3 w-3 text-primary" />
+								Booker Profile Details
+							</span>
+							<span className="text-[10px] text-muted-foreground">
+								{showBookerInfo ? "Hide" : "Expand"}
+							</span>
+						</Button>
+						{showBookerInfo && (
+							<div className="bg-muted/40 p-2 rounded-lg border border-muted/50 text-[11px] space-y-2.5 mt-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+								{parsedBookerInfo.description && (
+									<div>
+										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Description / Bio</span>
+										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.description}</p>
+									</div>
+								)}
+								{parsedBookerInfo.sourcingIntent && (
+									<div>
+										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Sourcing Intent</span>
+										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.sourcingIntent}</p>
+									</div>
+								)}
+								{parsedBookerInfo.capabilities && (
+									<div>
+										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Capabilities</span>
+										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.capabilities}</p>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
+				)}
 			</CardContent>
 			<CardFooter className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-2 pt-2">
 				{displayBooking.status !== "Approved" &&

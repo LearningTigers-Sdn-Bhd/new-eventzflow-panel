@@ -56,16 +56,18 @@ export function useEventPermissions(
 
 	// Check if user is an exhibition contractor
 	const isExhibitionContractor = user?.role === "exhibition_contractor";
+	const isExhibitor = user?.role === "exhibitor";
 
 	// Determine which queries should run based on user role
 	const shouldFetchStaff =
 		!!user &&
 		!!eventId &&
 		user.role !== "vendor" &&
+		!isExhibitor &&
 		!isExhibitionContractor &&
 		!!event;
 	const shouldFetchVendors =
-		!!user && !!eventId && !isExhibitionContractor && !!event;
+		!!user && !!eventId && !isExhibitor && !isExhibitionContractor && !!event;
 
 	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
 	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({
@@ -186,8 +188,8 @@ export function useEventPermissions(
 		const isEventAdmin = userStaffAssignment?.eventRole === "event_admin";
 		const isEventTeamMember =
 			userStaffAssignment?.eventRole === "event_team_member";
-		const isBusinessHost = userStaffAssignment?.eventRole === "business_host";
-		const isEventStaff = !!userStaffAssignment;
+		const isBusinessHost = user.role === "exhibitor" || userStaffAssignment?.eventRole === "business_host";
+		const isEventStaff = !!userStaffAssignment || user.role === "exhibitor";
 
 		// Check if user is a vendor for this event
 		const isEventVendor =

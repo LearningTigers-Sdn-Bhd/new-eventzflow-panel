@@ -132,7 +132,7 @@ const visible = {
 		visible.hasExhibitorKit(p, e),
 	businessMatchingAccess: (p: Permissions, e?: Event) =>
 		e?.use_business_matching === true &&
-		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
+		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner || p.isBusinessHost),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
 	// photoBoothAccess: (p: Permissions, e?: Event) =>
@@ -187,6 +187,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			description: "View and manage business matching for this event.",
 			icon: Briefcase,
 			visible: visible.businessMatchingAccess,
+		},
+		{
+			route: "host-profile",
+			label: "Host Profile",
+			description: "Manage your business matching details and capabilities.",
+			icon: User,
+			visible: (p) => p.isBusinessHost,
 		},
 		// {
 		// 	route: "photo-booth",

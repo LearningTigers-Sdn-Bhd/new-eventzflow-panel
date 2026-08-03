@@ -164,39 +164,7 @@ export default function WebhookSettingsForm({
 						</div>
 					</FormGroupContainer>
 
-					{event?.use_business_matching && (
-						<FormGroupContainer
-							title={{
-								icon: InfoIcon,
-								label: "Business Matching Integration",
-								description:
-									"Configure the dedicated webhook for external business matching services.",
-							}}
-						>
-							<div className="grid grid-cols-1 gap-4">
-								<form.Field name="businessMatchingWebhookUrl">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-										return (
-											<InputLabel
-												label="Business Matching Webhook URL"
-												htmlFor={field.name}
-												value={field.state.value}
-												onChange={field.handleChange}
-												onBlur={field.handleBlur}
-												errors={field.state.meta.errors}
-												isInvalid={isInvalid}
-												placeholder="https://webhook.saleschatalyst.com/..."
-												description="Used for synchronous scheduling and availability lookups."
-												disabled={updateEventMutation.isPending}
-											/>
-										);
-									}}
-								</form.Field>
-							</div>
-						</FormGroupContainer>
-					)}
+
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe
