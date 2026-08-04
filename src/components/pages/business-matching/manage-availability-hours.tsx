@@ -35,6 +35,9 @@ export default function ManageAvailabilityHours({
 	>([]);
 	const [newStart, setNewStart] = useState("09:00");
 	const [newEnd, setNewEnd] = useState("17:00");
+	// Which day's "add block" form is currently open — only one at a time,
+	// hidden by default so the day cards just show existing blocks.
+	const [addingDay, setAddingDay] = useState<string | null>(null);
 
 	// Initialize local copy when raw data is fetched
 	useEffect(() => {
@@ -49,10 +52,10 @@ export default function ManageAvailabilityHours({
 		}
 	}, [rawAvailabilities]);
 
-	const handleAddBlock = (dateStr: string) => {
+	const handleAddBlock = (dateStr: string): boolean => {
 		if (newStart >= newEnd) {
 			toast.error("Start time must be before end time");
-			return;
+			return false;
 		}
 
 		const overlaps = localAvailabilities
@@ -67,7 +70,7 @@ export default function ManageAvailabilityHours({
 
 		if (overlaps) {
 			toast.error("This block overlaps with an existing availability range");
-			return;
+			return false;
 		}
 
 		setLocalAvailabilities((prev) => [
@@ -75,6 +78,7 @@ export default function ManageAvailabilityHours({
 			{ day: dateStr, start_time: newStart, end_time: newEnd },
 		]);
 		toast.success("Availability block added!");
+		return true;
 	};
 
 	const handleRemoveBlock = (dateStr: string, indexToRemove: number) => {
@@ -169,34 +173,69 @@ export default function ManageAvailabilityHours({
 									</div>
 								)}
 
-								<div className="flex flex-wrap items-center gap-3 border-t border-dashed pt-2">
-									<div className="flex items-center gap-1.5">
-										<span className="text-muted-foreground text-xs">From</span>
-										<Input
-											type="time"
-											value={newStart}
-											onChange={(e) => setNewStart(e.target.value)}
-											className="h-8 w-24 text-xs"
-										/>
-									</div>
-									<div className="flex items-center gap-1.5">
-										<span className="text-muted-foreground text-xs">To</span>
-										<Input
-											type="time"
-											value={newEnd}
-											onChange={(e) => setNewEnd(e.target.value)}
-											className="h-8 w-24 text-xs"
-										/>
-									</div>
-									<Button
-										type="button"
-										size="sm"
-										variant="outline"
-										onClick={() => handleAddBlock(dateObj)}
-										className="h-8 gap-1 text-xs"
-									>
-										<Plus className="h-3 w-3" /> Add Block
-									</Button>
+								<div className="border-t border-dashed pt-2">
+									{addingDay === dateObj ? (
+										<div className="flex flex-wrap items-center gap-3">
+											<div className="flex items-center gap-1.5">
+												<span className="text-muted-foreground text-xs">
+													From
+												</span>
+												<Input
+													type="time"
+													value={newStart}
+													onChange={(e) => setNewStart(e.target.value)}
+													className="h-8 w-24 text-xs"
+													autoFocus
+												/>
+											</div>
+											<div className="flex items-center gap-1.5">
+												<span className="text-muted-foreground text-xs">
+													To
+												</span>
+												<Input
+													type="time"
+													value={newEnd}
+													onChange={(e) => setNewEnd(e.target.value)}
+													className="h-8 w-24 text-xs"
+												/>
+											</div>
+											<Button
+												type="button"
+												size="sm"
+												onClick={() => {
+													if (handleAddBlock(dateObj)) {
+														setAddingDay(null);
+													}
+												}}
+												className="h-8 gap-1 text-xs"
+											>
+												<Plus className="h-3 w-3" /> Add
+											</Button>
+											<Button
+												type="button"
+												size="sm"
+												variant="ghost"
+												onClick={() => setAddingDay(null)}
+												className="h-8 text-xs"
+											>
+												Cancel
+											</Button>
+										</div>
+									) : (
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											onClick={() => {
+												setNewStart("09:00");
+												setNewEnd("17:00");
+												setAddingDay(dateObj);
+											}}
+											className="h-8 gap-1 text-xs"
+										>
+											<Plus className="h-3 w-3" /> Add Block
+										</Button>
+									)}
 								</div>
 							</div>
 						);
