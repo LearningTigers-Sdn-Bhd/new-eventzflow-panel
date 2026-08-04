@@ -2,7 +2,14 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
-import { Calendar, Clock, MapPin, Pencil, User } from "lucide-react";
+import {
+	Calendar,
+	CalendarCheck,
+	Clock,
+	MapPin,
+	Pencil,
+	User,
+} from "lucide-react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
@@ -21,9 +28,9 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			const event = row.original;
 			const offeringTags = event.offering_tags || [];
 			return (
-				<div className="flex flex-col gap-1 py-1 max-w-[280px]">
+				<div className="flex max-w-[280px] flex-col gap-1 py-1">
 					<span
-						className={`font-semibold text-foreground leading-snug break-words block ${
+						className={`block break-words font-semibold text-foreground leading-snug ${
 							event.title.length > 40 ? "text-xs" : "text-sm"
 						}`}
 					>
@@ -74,7 +81,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			}
 
 			return (
-				<div className="flex items-center gap-1.5 py-1 max-w-[200px]">
+				<div className="flex max-w-[200px] items-center gap-1.5 py-1">
 					<button
 						type="button"
 						onClick={() => {
@@ -91,7 +98,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								},
 							});
 						}}
-						className="font-semibold text-sm text-foreground hover:text-primary hover:underline flex items-center gap-1.5 transition-colors text-left"
+						className="flex items-center gap-1.5 text-left font-semibold text-foreground text-sm transition-colors hover:text-primary hover:underline"
 					>
 						<User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 						{host.full_name}
@@ -126,13 +133,18 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 									},
 								});
 							}}
-							className="inline-flex items-center rounded-full bg-primary/10 hover:bg-primary/20 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors border border-primary/20 cursor-pointer"
+							className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 font-semibold text-xs shadow-sm transition-all hover:shadow-md ${
+								count > 0
+									? "bg-primary text-primary-foreground hover:opacity-90"
+									: "border border-muted-foreground/30 border-dashed bg-transparent text-muted-foreground hover:bg-muted/50"
+							}`}
 						>
+							{count > 0 && <CalendarCheck className="h-3 w-3" />}
 							{count} booking{count !== 1 ? "s" : ""}
 						</button>
 					</div>
 					{event.created_at && (
-						<div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+						<div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
 							<Calendar className="h-3 w-3 shrink-0" />
 							<span>
 								Created: {format(parseISO(event.created_at), "dd MMM yyyy")}

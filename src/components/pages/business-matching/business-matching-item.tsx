@@ -1,7 +1,14 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { Calendar, Clock, MapPin, Pencil, User } from "lucide-react";
+import {
+	Calendar,
+	CalendarCheck,
+	Clock,
+	MapPin,
+	Pencil,
+	User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Item, ItemActions, ItemContent } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
@@ -28,19 +35,19 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	return (
 		<Item
 			variant="outline"
-			className="w-full rounded-lg border border-muted p-4 space-y-3.5 bg-card hover:shadow-md transition-all duration-200"
+			className="w-full space-y-3.5 rounded-lg border border-muted bg-card p-4 transition-all duration-200 hover:shadow-md"
 		>
-			<ItemContent className="flex flex-col gap-2.5 w-full">
+			<ItemContent className="flex w-full flex-col gap-2.5">
 				<div>
 					<span
-						className={`font-semibold text-foreground leading-snug block break-words ${
+						className={`block break-words font-semibold text-foreground leading-snug ${
 							event.title.length > 40 ? "text-sm sm:text-base" : "text-base"
 						}`}
 					>
 						{event.title}
 					</span>
 					{event.location && (
-						<span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+						<span className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground text-xs">
 							<MapPin className="h-3.5 w-3.5 shrink-0" />
 							{event.location}
 						</span>
@@ -49,11 +56,11 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 
 				{/* Tags */}
 				{offeringTags.length > 0 && (
-					<div className="flex flex-wrap gap-1 mt-0.5">
+					<div className="mt-0.5 flex flex-wrap gap-1">
 						{offeringTags.map((tag) => (
 							<span
 								key={tag}
-								className="inline-flex items-center rounded bg-primary/5 px-1.5 py-0.5 text-[9px] font-medium text-primary border border-primary/10"
+								className="inline-flex items-center rounded border border-primary/10 bg-primary/5 px-1.5 py-0.5 font-medium text-[9px] text-primary"
 							>
 								{tag}
 							</span>
@@ -61,10 +68,10 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 					</div>
 				)}
 
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-muted-foreground/10">
+				<div className="grid grid-cols-1 gap-3 border-muted-foreground/10 border-t pt-3 sm:grid-cols-2">
 					{/* Host info */}
 					<div className="space-y-1.5">
-						<span className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider block">
+						<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 							Host Profile
 						</span>
 						{host ? (
@@ -84,7 +91,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 										},
 									});
 								}}
-								className="font-medium text-sm text-foreground hover:text-primary hover:underline flex items-center gap-1.5 transition-colors text-left truncate w-full"
+								className="flex w-full items-center gap-1.5 truncate text-left font-medium text-foreground text-sm transition-colors hover:text-primary hover:underline"
 							>
 								<User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 								{host.full_name}
@@ -104,7 +111,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 										},
 									});
 								}}
-								className="h-8 text-xs w-full justify-center"
+								className="h-8 w-full justify-center text-xs"
 							>
 								Attach a host
 							</Button>
@@ -112,8 +119,8 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 					</div>
 
 					{/* Activity & Stats */}
-					<div className="space-y-1.5 sm:border-l sm:pl-3 border-muted-foreground/10">
-						<span className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider block">
+					<div className="space-y-1.5 border-muted-foreground/10 sm:border-l sm:pl-3">
+						<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 							Activity & Stats
 						</span>
 						<div className="space-y-1 text-xs">
@@ -133,8 +140,13 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 											},
 										});
 									}}
-									className="inline-flex items-center rounded-full bg-primary/10 hover:bg-primary/20 px-2.5 py-0.5 text-[10px] font-semibold text-primary transition-colors border border-primary/20 cursor-pointer h-5"
+									className={`inline-flex h-5 cursor-pointer items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold text-[10px] shadow-sm transition-all hover:shadow-md ${
+										count > 0
+											? "bg-primary text-primary-foreground hover:opacity-90"
+											: "border border-muted-foreground/30 border-dashed bg-transparent text-muted-foreground hover:bg-muted/50"
+									}`}
 								>
+									{count > 0 && <CalendarCheck className="h-2.5 w-2.5" />}
 									{count} booking{count !== 1 ? "s" : ""}
 								</button>
 							</div>
