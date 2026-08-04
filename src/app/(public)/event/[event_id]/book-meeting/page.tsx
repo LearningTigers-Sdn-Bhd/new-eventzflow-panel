@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/auth/use-auth"; // Keep useAuth for potential future use or if user logs in mid-flow
 import {
@@ -70,7 +71,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 
 	// Filtering states for hosts list
 	const [searchQuery, setSearchQuery] = useState("");
-	const [selectedTag, setSelectedTag] = useState<string | null>(null);
+	const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
 	// Queries - enabled based on steps
 	const {
@@ -152,13 +153,17 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			return;
 		}
 
-		const hostUserId = selectedBmEvent.host?.id || (hosts && hosts.length > 0 ? hosts[0].id : "");
+		const hostUserId =
+			selectedBmEvent.host?.id ||
+			(hosts && hosts.length > 0 ? hosts[0].id : "");
 
 		const combinedNote = [
 			description ? `Description: ${description}` : "",
 			sourcingIntent ? `Sourcing Intent: ${sourcingIntent}` : "",
-			capabilities ? `Capabilities: ${capabilities}` : ""
-		].filter(Boolean).join("\n\n");
+			capabilities ? `Capabilities: ${capabilities}` : "",
+		]
+			.filter(Boolean)
+			.join("\n\n");
 
 		createBooking(
 			{
@@ -204,30 +209,31 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	// Filter and sort sessions/hosts based on search query, selected tag, and similarity to visitorInterests
 	const filteredBmEvents = (bmEvents || [])
 		.filter((event) => {
-			const matchesSearch = event.title
-				.toLowerCase()
-				.includes(searchQuery.toLowerCase()) || 
-				(event.location && event.location.toLowerCase().includes(searchQuery.toLowerCase()));
+			const matchesSearch =
+				event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				(event.location &&
+					event.location.toLowerCase().includes(searchQuery.toLowerCase()));
 
 			const eventTags = (event as any).offering_tags || [];
-			const matchesTag = !selectedTag || eventTags.includes(selectedTag);
+			const matchesTag =
+				selectedTags.length === 0 ||
+				eventTags.some((t: string) => selectedTags.includes(t));
 
 			return matchesSearch && matchesTag;
 		})
 		.map((event) => {
 			const eventTags = (event as any).offering_tags || [];
-			const matchCount = eventTags.filter((t: string) => visitorInterests.includes(t)).length;
+			const matchCount = eventTags.filter((t: string) =>
+				visitorInterests.includes(t),
+			).length;
 			return { event, matchCount };
 		})
 		.sort((a, b) => b.matchCount - a.matchCount)
 		.map((item) => item.event);
 
 	// Get all unique tags from all sessions/hosts
-	const allUniqueTags = Array.from(
-		new Set(
-			(bmEvents || [])
-				.flatMap((e: any) => e.offering_tags || [])
-		)
+	const allUniqueTags: string[] = Array.from(
+		new Set((bmEvents || []).flatMap((e: any) => e.offering_tags || [])),
 	);
 
 	const renderStepContent = () => {
@@ -268,7 +274,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 								/>
 							</div>
 							<div className="space-y-1">
-								<Label htmlFor="description">Company Description / Bio (Optional)</Label>
+								<Label htmlFor="description">
+									Company Description / Bio (Optional)
+								</Label>
 								<textarea
 									id="description"
 									value={description}
@@ -278,7 +286,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 								/>
 							</div>
 							<div className="space-y-1">
-								<Label htmlFor="sourcingIntent">Sourcing Intent / Needs (Optional)</Label>
+								<Label htmlFor="sourcingIntent">
+									Sourcing Intent / Needs (Optional)
+								</Label>
 								<textarea
 									id="sourcingIntent"
 									value={sourcingIntent}
@@ -288,7 +298,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 								/>
 							</div>
 							<div className="space-y-1">
-								<Label htmlFor="capabilities">Capabilities / Offerings (Optional)</Label>
+								<Label htmlFor="capabilities">
+									Capabilities / Offerings (Optional)
+								</Label>
 								<textarea
 									id="capabilities"
 									value={capabilities}
@@ -297,16 +309,27 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								/>
 							</div>
-							
+
 							<div className="space-y-2 pt-3">
-								<Label className="text-sm font-semibold text-foreground block">
+								<Label className="block font-semibold text-foreground text-sm">
 									What categories are you looking for? (Optional)
 								</Label>
-								<span className="text-muted-foreground text-xs block -mt-1">
-									Select matching tags to automatically rank relevant hosts to the top of your view!
+								<span className="-mt-1 block text-muted-foreground text-xs">
+									Select matching tags to automatically rank relevant hosts to
+									the top of your view!
 								</span>
 								<div className="flex flex-wrap gap-1.5 pt-1.5">
-									{["Fintech Core", "Cybersecurity SaaS", "Generative AI API", "AI Diagnostics", "IoT Fleet Tech", "No-Code Builder", "Pre-Seed Fund", "Seed Venture Capital", "Series A Equity"].map((tag) => {
+									{[
+										"Fintech Core",
+										"Cybersecurity SaaS",
+										"Generative AI API",
+										"AI Diagnostics",
+										"IoT Fleet Tech",
+										"No-Code Builder",
+										"Pre-Seed Fund",
+										"Seed Venture Capital",
+										"Series A Equity",
+									].map((tag) => {
 										const selected = visitorInterests.includes(tag);
 										return (
 											<Button
@@ -315,8 +338,10 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 												variant={selected ? "default" : "outline"}
 												size="sm"
 												onClick={() => {
-													setVisitorInterests(prev => 
-														prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+													setVisitorInterests((prev) =>
+														prev.includes(tag)
+															? prev.filter((t) => t !== tag)
+															: [...prev, tag],
 													);
 												}}
 												className="rounded-full text-xs"
@@ -365,43 +390,29 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 										placeholder="Search hosts or companies..."
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
-										className="w-full text-base py-5"
+										className="w-full py-5 text-base"
 									/>
-									
+
 									{allUniqueTags.length > 0 && (
 										<div className="space-y-1">
-											<span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider block">
-												Filter by Category:
+											<span className="block font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+												Filter by Category
 											</span>
-											<div className="flex flex-wrap gap-1.5 pt-1">
-												<Button
-													type="button"
-													variant={selectedTag === null ? "default" : "outline"}
-													size="sm"
-													onClick={() => setSelectedTag(null)}
-													className="rounded-full text-xs"
-												>
-													All Categories
-												</Button>
-												{allUniqueTags.map((tag) => (
-													<Button
-														key={tag}
-														type="button"
-														variant={selectedTag === tag ? "default" : "outline"}
-														size="sm"
-														onClick={() => setSelectedTag(tag)}
-														className="rounded-full text-xs"
-													>
-														{tag}
-													</Button>
-												))}
-											</div>
+											<MultiSelectLegacy
+												options={allUniqueTags.map((tag) => ({
+													label: tag,
+													value: tag,
+												}))}
+												selected={selectedTags}
+												onChange={setSelectedTags}
+												placeholder="All Categories"
+											/>
 										</div>
 									)}
 								</div>
 
 								{filteredBmEvents.length === 0 ? (
-									<div className="py-12 border border-dashed rounded-lg text-center text-muted-foreground text-sm">
+									<div className="rounded-lg border border-dashed py-12 text-center text-muted-foreground text-sm">
 										No matching sessions found. Try clearing filters.
 									</div>
 								) : (
@@ -412,15 +423,22 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 											);
 											setSelectedBmEvent(selected || null);
 										}}
-										value={selectedBmEvent?.id ? String(selectedBmEvent.id) : ""}
-										className="grid grid-cols-1 gap-4 max-h-[500px] overflow-y-auto pr-2"
+										value={
+											selectedBmEvent?.id ? String(selectedBmEvent.id) : ""
+										}
+										className="grid grid-cols-1 gap-2 sm:grid-cols-2"
 									>
 										{filteredBmEvents.map((event) => {
 											const isSelected = selectedBmEvent?.id === event.id;
 											const isExpanded = expandedHostId === event.id;
-											const eventTags = (event as any).offering_tags || event.host?.offering_tags || [];
-											const matchingTags = eventTags.filter((t: string) => visitorInterests.includes(t));
-											
+											const eventTags =
+												(event as any).offering_tags ||
+												event.host?.offering_tags ||
+												[];
+											const matchingTags = eventTags.filter((t: string) =>
+												visitorInterests.includes(t),
+											);
+
 											return (
 												<div
 													key={event.id}
@@ -431,20 +449,21 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 														setSelectedBmEvent(selected || null);
 														setExpandedHostId(isExpanded ? null : event.id);
 													}}
-													className={`relative flex flex-col justify-between cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${
-														isSelected 
-															? "border-primary bg-primary/5 ring-1 ring-primary" 
-															: "border-muted hover:border-muted-foreground/30 bg-card"
+													className={`relative flex cursor-pointer flex-col justify-between rounded-xl border p-2.5 transition-all duration-200 hover:shadow-md ${
+														isSelected
+															? "border-primary bg-primary/5 ring-1 ring-primary"
+															: "border-muted bg-card hover:border-muted-foreground/30"
 													}`}
 												>
-													<div className="space-y-2">
+													<div className="space-y-1">
 														<div className="flex items-start justify-between gap-2">
 															<div>
-																<div className="font-semibold text-base tracking-tight leading-snug">
+																<div className="font-semibold text-base leading-snug tracking-tight">
 																	{event.title}
 																</div>
-																<div className="text-sm font-medium text-primary mt-1">
-																	Host: {event.host?.full_name || 'Assigned Host'}
+																<div className="font-medium text-primary text-sm">
+																	Host:{" "}
+																	{event.host?.full_name || "Assigned Host"}
 																</div>
 															</div>
 															<RadioGroupItem
@@ -462,20 +481,20 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 																className="mt-1 flex-shrink-0"
 															/>
 														</div>
-														
-														<div className="text-muted-foreground text-xs space-y-0.5">
+
+														<div className="space-y-0.5 text-muted-foreground text-xs">
 															<p>📍 {event.location || "Main Hall"}</p>
 															<p>⏱️ {event.duration} min sessions</p>
 														</div>
 													</div>
-													
-													<div className="mt-4 pt-3 border-t border-muted/60 space-y-2">
+
+													<div className="mt-2 space-y-1.5 border-muted/60 border-t pt-2">
 														{matchingTags.length > 0 && (
-															<span className="inline-flex items-center gap-1 rounded bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold text-green-600">
+															<span className="inline-flex items-center gap-1 rounded bg-green-500/10 px-2 py-0.5 font-semibold text-[10px] text-green-600">
 																✨ {matchingTags.length} Matches Your Interest
 															</span>
 														)}
-														
+
 														{eventTags.length > 0 && (
 															<div className="flex flex-wrap gap-1">
 																{eventTags.map((t: string) => {
@@ -483,9 +502,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 																	return (
 																		<span
 																			key={t}
-																			className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${
-																				isMatch 
-																					? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200" 
+																			className={`rounded px-1.5 py-0.5 font-medium text-[9px] ${
+																				isMatch
+																					? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
 																					: "bg-muted text-muted-foreground"
 																			}`}
 																		>
@@ -498,40 +517,60 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 													</div>
 
 													{isExpanded && event.host && (
-														<div 
-															onClick={(e) => e.stopPropagation()} 
-															className="mt-4 pt-4 border-t border-muted/60 space-y-3 text-xs animate-in fade-in slide-in-from-top-2 duration-200"
+														<div
+															onClick={(e) => e.stopPropagation()}
+															className="fade-in slide-in-from-top-2 mt-2 animate-in space-y-2 border-muted/60 border-t pt-2 text-xs duration-200"
 														>
 															{event.host.description && (
 																<div className="space-y-1">
-																	<span className="font-semibold text-muted-foreground block uppercase tracking-wider text-[10px]">Description</span>
-																	<p className="text-foreground leading-relaxed bg-muted/30 p-2.5 rounded-lg border border-muted/30">{event.host.description}</p>
+																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+																		Description
+																	</span>
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																		{event.host.description}
+																	</p>
 																</div>
 															)}
 															{event.host.sourcing_intent && (
 																<div className="space-y-1">
-																	<span className="font-semibold text-muted-foreground block uppercase tracking-wider text-[10px]">Sourcing Intent</span>
-																	<p className="text-foreground leading-relaxed bg-muted/30 p-2.5 rounded-lg border border-muted/30">{event.host.sourcing_intent}</p>
+																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+																		Sourcing Intent
+																	</span>
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																		{event.host.sourcing_intent}
+																	</p>
 																</div>
 															)}
 															{event.host.capabilities && (
 																<div className="space-y-1">
-																	<span className="font-semibold text-muted-foreground block uppercase tracking-wider text-[10px]">Capabilities / Offerings</span>
-																	<p className="text-foreground leading-relaxed bg-muted/30 p-2.5 rounded-lg border border-muted/30">{event.host.capabilities}</p>
+																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+																		Capabilities / Offerings
+																	</span>
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																		{event.host.capabilities}
+																	</p>
 																</div>
 															)}
-															{event.host.interest_tags && event.host.interest_tags.length > 0 && (
-																<div className="space-y-1">
-																	<span className="font-semibold text-muted-foreground block uppercase tracking-wider text-[10px]">Interests / Looking For</span>
-																	<div className="flex flex-wrap gap-1 pt-1">
-																		{event.host.interest_tags.map((tag: string) => (
-																			<span key={tag} className="rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-200 px-1.5 py-0.5 text-[9px] font-medium border border-blue-100 dark:border-blue-900">
-																				{tag}
-																			</span>
-																		))}
+															{event.host.interest_tags &&
+																event.host.interest_tags.length > 0 && (
+																	<div className="space-y-1">
+																		<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+																			Interests / Looking For
+																		</span>
+																		<div className="flex flex-wrap gap-1 pt-1">
+																			{event.host.interest_tags.map(
+																				(tag: string) => (
+																					<span
+																						key={tag}
+																						className="rounded border border-blue-100 bg-blue-50 px-1.5 py-0.5 font-medium text-[9px] text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200"
+																					>
+																						{tag}
+																					</span>
+																				),
+																			)}
+																		</div>
 																	</div>
-																</div>
-															)}
+																)}
 														</div>
 													)}
 												</div>
