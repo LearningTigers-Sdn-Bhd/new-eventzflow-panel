@@ -1,7 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CheckCircle2 } from "lucide-react";
+import {
+	useMutation,
+	useQueries,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import { Building2, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -27,12 +32,23 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getEventById } from "@/lib/api/event";
-import { createEventVendor, getEventVendors } from "@/lib/api/event-vendor";
+import {
+	createEventVendorBatch,
+	getEventVendors,
+} from "@/lib/api/event-vendor";
 import { getExhibitorBooths } from "@/lib/api/exhibitor-booth";
+import type { ExhibitorBooth } from "@/lib/api/exhibitor-booth/response";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
 import { previewExhibitorVoucher } from "@/lib/api/exhibitor-voucher";
 import { getVendors } from "@/lib/api/vendor";
+import {
+	createManualBoothRow,
+	hasDuplicateBoothNumbers,
+	type ManualBoothRow,
+	normalizeBoothNumber,
+	toBatchBooths,
+} from "./manual-add-form-utils";
 
 interface ManualAddFormProps {
 	eventId: number;
@@ -52,6 +68,10 @@ function humanizeBoothType(value: string): string {
 		.join(" ");
 }
 
+interface VoucherPreviewState {
+	price: number;
+}
+
 export default function ManualAddForm({
 	eventId,
 	onClose,
@@ -60,11 +80,8 @@ export default function ManualAddForm({
 	const redirectUrlField = useId();
 	const posterUrlField = useId();
 	const qrUrlField = useId();
-	const boothPriceField = useId();
-	const boothTypeField = useId();
-	const boothQuantityField = useId();
-	const boothNumberField = useId();
 	const companyNameField = useId();
+	const nameOnFasciaField = useId();
 	const picFullNameField = useId();
 	const picContactNumberField = useId();
 	const picEmailField = useId();
@@ -75,24 +92,25 @@ export default function ManualAddForm({
 	const [posterUrl, setPosterUrl] = useState("");
 	const [qrUrl, setQrUrl] = useState("");
 
-	// Exhibitor kit fields
-	const [boothPriceId, setBoothPriceId] = useState<string>("");
-	const [packageId, setPackageId] = useState("");
-	const [voucherCode, setVoucherCode] = useState("");
-	const [voucherPreview, setVoucherPreview] = useState<{
-		price: number;
-	} | null>(null);
-	const [voucherError, setVoucherError] = useState("");
-	const [boothType, setBoothType] = useState<string>("");
-	const [boothQuantity, setBoothQuantity] = useState<string>("1");
-	const [boothNumber, setBoothNumber] = useState("");
+	const [boothRows, setBoothRows] = useState<ManualBoothRow[]>([
+		createManualBoothRow("booth-1"),
+	]);
+	const [voucherPreviews, setVoucherPreviews] = useState<
+		Record<string, VoucherPreviewState>
+	>({});
+	const [voucherErrors, setVoucherErrors] = useState<Record<string, string>>(
+		{},
+	);
+
 	const [companyName, setCompanyName] = useState("");
+	const [nameOnFascia, setNameOnFascia] = useState("");
 	const [picFullName, setPicFullName] = useState("");
 	const [picContactNumber, setPicContactNumber] = useState("");
 	const [picEmail, setPicEmail] = useState("");
 	const [specialRequirements, setSpecialRequirements] = useState("");
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
 
 	const eventIdStr = eventId.toString();
 
@@ -118,61 +136,160 @@ export default function ManualAddForm({
 		queryFn: () => getExhibitorPackages(eventId),
 	});
 
-	const availablePackages = packages.filter(
-		(item) => String(item.exhibitorBoothPriceId) === boothPriceId,
-	);
+	const hasBoothPrices = (boothPrices?.length ?? 0) > 0;
+	const eventBoothTypes = event?.booth_types ?? [];
 
-	// Booths already configured for the selected price get picked from a list;
-	// a price with no booth inventory falls back to free-text entry.
-	const { data: boothsForPrice = [] } = useQuery({
-		queryKey: ["event", eventIdStr, "exhibitor-booths", boothPriceId],
-		queryFn: () =>
-			getExhibitorBooths({
-				event_id: eventId,
-				exhibitor_booth_price_id: Number(boothPriceId),
-			}),
-		enabled: Boolean(boothPriceId),
+	// Per-row inventory lookups, one query per row keyed on its selected booth price
+	const boothInventoryQueries = useQueries({
+		queries: boothRows.map((row) => ({
+			queryKey: ["event", eventIdStr, "exhibitor-booths", row.boothPriceId],
+			queryFn: () =>
+				getExhibitorBooths({
+					event_id: eventId,
+					exhibitor_booth_price_id: Number(row.boothPriceId),
+				}),
+			enabled: Boolean(row.boothPriceId),
+		})),
 	});
-	const hasBoothInventoryForPrice = boothsForPrice.length > 0;
-	const availableBoothNumbers = boothsForPrice.filter(
-		(booth) => booth.status === "available",
-	);
 
+	const inventoryByRowId = useMemo(() => {
+		const map: Record<string, ExhibitorBooth[]> = {};
+		boothRows.forEach((row, index) => {
+			map[row.id] = boothInventoryQueries[index]?.data ?? [];
+		});
+		return map;
+	}, [boothRows, boothInventoryQueries]);
+
+	// Booth numbers already selected in other rows are excluded, in addition to server status
+	const selectedBoothNumbersByRowId = useMemo(() => {
+		const map: Record<string, Set<string>> = {};
+		boothRows.forEach((row) => {
+			const others = boothRows.filter((other) => other.id !== row.id);
+			map[row.id] = new Set(
+				others
+					.map((other) => normalizeBoothNumber(other.boothNumber))
+					.filter(Boolean),
+			);
+		});
+		return map;
+	}, [boothRows]);
+
+	const updateBoothRow = (id: string, patch: Partial<ManualBoothRow>) => {
+		setBoothRows((prev) =>
+			prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+		);
+		setRowErrors((prev) => {
+			if (!(id in prev)) return prev;
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
+
+	const addBoothRow = () => {
+		setBoothRows((prev) => [
+			...prev,
+			createManualBoothRow(`booth-${Date.now()}-${prev.length}`),
+		]);
+	};
+
+	const removeBoothRow = (id: string) => {
+		setBoothRows((prev) =>
+			prev.length > 1 ? prev.filter((row) => row.id !== id) : prev,
+		);
+		setVoucherPreviews((prev) => {
+			if (!(id in prev)) return prev;
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+		setVoucherErrors((prev) => {
+			if (!(id in prev)) return prev;
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
+
+	const changeBoothPrice = (id: string, value: string) => {
+		updateBoothRow(id, { boothPriceId: value, packageId: "", boothNumber: "" });
+		setVoucherPreviews((prev) => {
+			if (!(id in prev)) return prev;
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
+
+	// Per-row debounced voucher preview
+	// biome-ignore lint/correctness/useExhaustiveDependencies: keying on a joined string, not boothRows itself, avoids re-running every render on array identity
 	useEffect(() => {
-		if (!voucherCode.trim() || !boothPriceId) {
-			setVoucherPreview(null);
-			setVoucherError("");
-			return;
-		}
-
-		setVoucherPreview(null);
-		setVoucherError("");
-		let isCurrent = true;
-		const timeout = setTimeout(async () => {
-			try {
-				const result = await previewExhibitorVoucher({
-					eventId,
-					code: voucherCode.trim(),
-					exhibitorBoothPriceId: Number(boothPriceId),
-					exhibitorPackageId: packageId ? Number(packageId) : null,
+		const timeouts = boothRows.map((row) => {
+			const code = row.voucherCode.trim();
+			if (!code || !row.boothPriceId) {
+				setVoucherPreviews((prev) => {
+					if (!(row.id in prev)) return prev;
+					const next = { ...prev };
+					delete next[row.id];
+					return next;
 				});
-				if (!isCurrent) return;
-				setVoucherPreview({ price: result.price });
-				setVoucherError("");
-			} catch (error) {
-				if (!isCurrent) return;
-				setVoucherPreview(null);
-				setVoucherError(
-					error instanceof Error ? error.message : "Invalid voucher code",
-				);
+				setVoucherErrors((prev) => {
+					if (!(row.id in prev)) return prev;
+					const next = { ...prev };
+					delete next[row.id];
+					return next;
+				});
+				return null;
 			}
-		}, 400);
+
+			return setTimeout(async () => {
+				try {
+					const result = await previewExhibitorVoucher({
+						eventId,
+						code,
+						exhibitorBoothPriceId: Number(row.boothPriceId),
+						exhibitorPackageId: row.packageId ? Number(row.packageId) : null,
+					});
+					setVoucherPreviews((prev) => ({
+						...prev,
+						[row.id]: { price: result.price },
+					}));
+					setVoucherErrors((prev) => {
+						if (!(row.id in prev)) return prev;
+						const next = { ...prev };
+						delete next[row.id];
+						return next;
+					});
+				} catch (error) {
+					setVoucherPreviews((prev) => {
+						if (!(row.id in prev)) return prev;
+						const next = { ...prev };
+						delete next[row.id];
+						return next;
+					});
+					setVoucherErrors((prev) => ({
+						...prev,
+						[row.id]:
+							error instanceof Error ? error.message : "Invalid voucher code",
+					}));
+				}
+			}, 400);
+		});
 
 		return () => {
-			isCurrent = false;
-			clearTimeout(timeout);
+			for (const timeout of timeouts) {
+				if (timeout) clearTimeout(timeout);
+			}
 		};
-	}, [voucherCode, boothPriceId, packageId, eventId]);
+	}, [
+		boothRows
+			.map(
+				(row) =>
+					`${row.id}:${row.voucherCode}:${row.boothPriceId}:${row.packageId}`,
+			)
+			.join("|"),
+		eventId,
+	]);
 
 	// Fetch available vendors
 	const {
@@ -195,16 +312,14 @@ export default function ManualAddForm({
 		return new Set(eventVendors.map((ev) => ev.vendor_id));
 	}, [eventVendors]);
 
-	const hasBoothPrices = (boothPrices?.length ?? 0) > 0;
-	const eventBoothTypes = event?.booth_types ?? [];
-	const showBoothTypeFallback = !hasBoothPrices;
-
 	const queryClient = useQueryClient();
-	const createExhibitorMutation = useMutation({
-		mutationFn: (data: Parameters<typeof createEventVendor>[1]) =>
-			createEventVendor(eventId, data),
-		onSuccess: () => {
-			toast.success("Exhibitor added to event successfully!");
+	const createBatchMutation = useMutation({
+		mutationFn: (data: Parameters<typeof createEventVendorBatch>[1]) =>
+			createEventVendorBatch(eventId, data, crypto.randomUUID()),
+		onSuccess: (result) => {
+			toast.success(
+				`Exhibitor assigned with ${result.exhibitor_kits.length} booth(s)`,
+			);
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventIdStr, "vendors"],
 			});
@@ -227,23 +342,13 @@ export default function ManualAddForm({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setErrors({});
+		setRowErrors({});
 
 		const newErrors: Record<string, string> = {};
+		const newRowErrors: Record<string, string> = {};
 
 		if (!vendorId) {
 			newErrors.vendorId = "Please select a vendor";
-		}
-
-		if (hasBoothPrices && !boothPriceId) {
-			newErrors.boothPriceId = "Please select a booth price";
-		}
-		if (showBoothTypeFallback && !boothType.trim()) {
-			newErrors.boothType = "Please select or enter a booth type";
-		}
-
-		const qty = Number(boothQuantity);
-		if (!Number.isInteger(qty) || qty < 1) {
-			newErrors.boothQuantity = "Booth quantity must be at least 1";
 		}
 
 		if (!picFullName.trim()) {
@@ -253,65 +358,60 @@ export default function ManualAddForm({
 			newErrors.picContactNumber = "PIC contact number is required";
 		}
 
-		if (Object.keys(newErrors).length > 0) {
+		for (const row of boothRows) {
+			if (hasBoothPrices) {
+				if (!row.boothPriceId) {
+					newRowErrors[row.id] = "Please select a booth price";
+					continue;
+				}
+				const inventory = inventoryByRowId[row.id] ?? [];
+				if (inventory.length > 0 && !row.boothNumber.trim()) {
+					newRowErrors[row.id] = "Please select a booth number";
+				}
+			} else if (!row.boothType.trim()) {
+				newRowErrors[row.id] = "Please select or enter a booth type";
+			}
+		}
+
+		if (hasDuplicateBoothNumbers(boothRows)) {
+			newErrors.boothRows = "Each booth number can only be selected once";
+		}
+
+		if (
+			Object.keys(newErrors).length > 0 ||
+			Object.keys(newRowErrors).length > 0
+		) {
 			setErrors(newErrors);
+			setRowErrors(newRowErrors);
 			return;
 		}
 
-		try {
-			const data: Parameters<typeof createEventVendor>[1] = {
-				vendor_id: Number(vendorId),
-			};
+		const selectedVendor = vendors?.find((v) => v.id.toString() === vendorId);
 
-			const trimmedRedirectUrl = redirectUrl.trim();
-			if (trimmedRedirectUrl) data.redirect_url = trimmedRedirectUrl;
-
-			const trimmedPosterUrl = posterUrl.trim();
-			if (trimmedPosterUrl) data.poster_url = trimmedPosterUrl;
-
-			const trimmedQrUrl = qrUrl.trim();
-			if (trimmedQrUrl) data.qr_url = trimmedQrUrl;
-
-			const kit: NonNullable<
-				Parameters<typeof createEventVendor>[1]["exhibitor_kit_attributes"]
-			> = {
+		const data: Parameters<typeof createEventVendorBatch>[1] = {
+			vendor_id: Number(vendorId),
+			exhibitor: {
 				pic_full_name: picFullName.trim(),
 				pic_contact_number: picContactNumber.trim(),
-			};
+				company_name: companyName.trim() || selectedVendor?.full_name || "",
+				name_on_fascia: nameOnFascia.trim() || undefined,
+				pic_email_address: picEmail.trim() || undefined,
+				special_requirements: specialRequirements.trim() || undefined,
+			},
+			booths: toBatchBooths(boothRows, hasBoothPrices),
+		};
 
-			if (hasBoothPrices && boothPriceId) {
-				kit.exhibitor_booth_price_id = Number(boothPriceId);
-			}
-			if (packageId) {
-				kit.exhibitor_package_id = Number(packageId);
-			}
-			if (voucherCode.trim()) {
-				kit.voucher_code = voucherCode.trim();
-			}
-			if (showBoothTypeFallback && boothType.trim()) {
-				kit.booth_type = boothType.trim();
-			}
+		const trimmedRedirectUrl = redirectUrl.trim();
+		if (trimmedRedirectUrl) data.redirect_url = trimmedRedirectUrl;
 
-			if (Number.isInteger(qty) && qty > 0) {
-				kit.booth_quantity = qty;
-			}
+		const trimmedPosterUrl = posterUrl.trim();
+		if (trimmedPosterUrl) data.poster_url = trimmedPosterUrl;
 
-			const trimmedBoothNumber = boothNumber.trim();
-			if (trimmedBoothNumber) kit.booth_number = trimmedBoothNumber;
+		const trimmedQrUrl = qrUrl.trim();
+		if (trimmedQrUrl) data.qr_url = trimmedQrUrl;
 
-			const selectedVendor = vendors?.find((v) => v.id.toString() === vendorId);
-			const trimmedCompany = companyName.trim();
-			kit.company_name = trimmedCompany || selectedVendor?.full_name || "";
-
-			const trimmedPicEmail = picEmail.trim();
-			if (trimmedPicEmail) kit.pic_email_address = trimmedPicEmail;
-
-			const trimmedSpecial = specialRequirements.trim();
-			if (trimmedSpecial) kit.special_requirements = trimmedSpecial;
-
-			data.exhibitor_kit_attributes = kit;
-
-			await createExhibitorMutation.mutateAsync(data);
+		try {
+			await createBatchMutation.mutateAsync(data);
 		} catch {
 			// handled by onError
 		}
@@ -386,7 +486,7 @@ export default function ManualAddForm({
 		);
 	}
 
-	const submitting = createExhibitorMutation.isPending;
+	const submitting = createBatchMutation.isPending;
 
 	return (
 		<section className="w-full">
@@ -519,217 +619,285 @@ export default function ManualAddForm({
 
 						<FieldSeparator />
 
-						{/* Booth Details */}
+						{/* Booths */}
 						<div className="rounded-none border border-dashed bg-muted/30 p-4">
-							<p className="mb-4 font-medium text-sm">Booth Details</p>
+							<div className="mb-4 flex items-center justify-between">
+								<p className="font-medium text-sm">Booths</p>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={addBoothRow}
+									disabled={submitting}
+								>
+									<Plus className="mr-1 h-4 w-4" />
+									Add Booth
+								</Button>
+							</div>
 
-							{hasBoothPrices ? (
-								<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-									<Field orientation="vertical">
-										<FieldLabel htmlFor={boothPriceField}>
-											Booth Price *
-										</FieldLabel>
-										{errors.boothPriceId && (
-											<FieldError>{errors.boothPriceId}</FieldError>
-										)}
-										<Select
-											value={boothPriceId}
-											onValueChange={(value) => {
-												setBoothPriceId(value);
-												setPackageId("");
-												setBoothNumber("");
-												clearError("boothPriceId");
-											}}
-											disabled={submitting}
-										>
-											<SelectTrigger id={boothPriceField}>
-												<SelectValue placeholder="Select a booth price" />
-											</SelectTrigger>
-											<SelectContent>
-												{boothPrices?.map((bp) => (
-													<SelectItem key={bp.id} value={bp.id.toString()}>
-														{humanizeBoothType(bp.boothType)} — {bp.label}
-														{bp.zone ? ` (${bp.zone})` : ""} — RM
-														{bp.currentPrice}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<FieldDescription>
-											Booth type and amount are derived from the selected price.
-										</FieldDescription>
-									</Field>
-									{availablePackages.length > 0 && (
-										<Field orientation="vertical">
-											<FieldLabel htmlFor="manual-package">
-												Package (optional)
-											</FieldLabel>
-											<Select
-												value={packageId || "none"}
-												onValueChange={(value) =>
-													setPackageId(value === "none" ? "" : value)
-												}
-											>
-												<SelectTrigger id="manual-package">
-													<SelectValue placeholder="Local — booth only" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="none">
-														No package (booth only)
-													</SelectItem>
-													{availablePackages.map((item) => (
-														<SelectItem key={item.id} value={String(item.id)}>
-															{item.name} — RM {item.price.toFixed(2)}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-										</Field>
-									)}
-									<Field orientation="vertical">
-										<FieldLabel htmlFor="manual-voucher-code">
-											Voucher Code (optional)
-										</FieldLabel>
-										<Input
-											id="manual-voucher-code"
-											value={voucherCode}
-											onChange={(e) =>
-												setVoucherCode(e.target.value.toUpperCase())
-											}
-											placeholder="e.g. A7K2M9XQ"
-											disabled={submitting}
-											className="rounded-none font-mono"
-										/>
-										{voucherPreview && (
-											<FieldDescription className="text-emerald-600">
-												Voucher applied — price becomes RM{" "}
-												{voucherPreview.price.toFixed(2)}
-											</FieldDescription>
-										)}
-										{voucherError && <FieldError>{voucherError}</FieldError>}
-									</Field>
-								</div>
-							) : (
-								<Field orientation="vertical" className="mb-4">
-									<FieldLabel htmlFor={boothTypeField}>Booth Type *</FieldLabel>
-									{errors.boothType && (
-										<FieldError>{errors.boothType}</FieldError>
-									)}
-									{eventBoothTypes.length > 0 ? (
-										<Select
-											value={boothType}
-											onValueChange={(value) => {
-												setBoothType(value);
-												clearError("boothType");
-											}}
-											disabled={submitting}
-										>
-											<SelectTrigger id={boothTypeField}>
-												<SelectValue placeholder="Select a booth type" />
-											</SelectTrigger>
-											<SelectContent>
-												{eventBoothTypes.map((bt) => (
-													<SelectItem key={bt} value={bt}>
-														{humanizeBoothType(bt)}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									) : (
-										<Input
-											id={boothTypeField}
-											value={boothType}
-											onChange={(e) => {
-												setBoothType(e.target.value);
-												clearError("boothType");
-											}}
-											placeholder="e.g. Shell Scheme"
-											disabled={submitting}
-											className="rounded-none"
-										/>
-									)}
-									<FieldDescription>
-										No booth prices configured. Enter or select a booth type.
-									</FieldDescription>
-								</Field>
+							{errors.boothRows && (
+								<FieldError className="mb-4">{errors.boothRows}</FieldError>
 							)}
 
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={boothQuantityField}>
-										Booth Quantity
-									</FieldLabel>
-									{errors.boothQuantity && (
-										<FieldError>{errors.boothQuantity}</FieldError>
-									)}
-									<Input
-										id={boothQuantityField}
-										type="number"
-										min={1}
-										value={boothQuantity}
-										onChange={(e) => {
-											setBoothQuantity(e.target.value);
-											clearError("boothQuantity");
-										}}
-										disabled={submitting}
-										className="rounded-none"
-									/>
-								</Field>
+							<div className="flex flex-col gap-4">
+								{boothRows.map((row, index) => {
+									const availablePackages = packages.filter(
+										(item) =>
+											String(item.exhibitorBoothPriceId) === row.boothPriceId,
+									);
+									const boothsForPrice = inventoryByRowId[row.id] ?? [];
+									const excludedNumbers =
+										selectedBoothNumbersByRowId[row.id] ?? new Set<string>();
+									const availableBoothNumbers = boothsForPrice.filter(
+										(booth) =>
+											booth.status === "available" &&
+											!excludedNumbers.has(normalizeBoothNumber(booth.number)),
+									);
+									const hasBoothInventoryForPrice = boothsForPrice.length > 0;
+									const voucherPreview = voucherPreviews[row.id];
+									const voucherError = voucherErrors[row.id];
 
-								<Field orientation="vertical">
-									<FieldLabel htmlFor={boothNumberField}>
-										Booth Number (Optional)
-									</FieldLabel>
-									{hasBoothInventoryForPrice ? (
-										<Select
-											value={boothNumber || "none"}
-											onValueChange={(value) =>
-												setBoothNumber(value === "none" ? "" : value)
-											}
-											disabled={
-												submitting || availableBoothNumbers.length === 0
-											}
+									return (
+										<div
+											key={row.id}
+											className="rounded-none border bg-background p-4"
 										>
-											<SelectTrigger id={boothNumberField}>
-												<SelectValue
-													placeholder={
-														availableBoothNumbers.length === 0
-															? "No booths available"
-															: "Select a booth number"
-													}
-												/>
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="none">Unassigned</SelectItem>
-												{availableBoothNumbers.map((booth) => (
-													<SelectItem key={booth.id} value={booth.number}>
-														{booth.number}
-														{booth.label ? ` — ${booth.label}` : ""}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									) : (
-										<Input
-											id={boothNumberField}
-											value={boothNumber}
-											onChange={(e) => setBoothNumber(e.target.value)}
-											placeholder="e.g. A-12"
-											disabled={submitting}
-											className="rounded-none"
-										/>
-									)}
-									{hasBoothInventoryForPrice &&
-										availableBoothNumbers.length === 0 && (
-											<FieldDescription className="text-destructive">
-												All booths for this price are currently taken.
-											</FieldDescription>
-										)}
-								</Field>
+											<div className="mb-3 flex items-center justify-between">
+												<p className="font-medium text-sm">Booth {index + 1}</p>
+												{boothRows.length > 1 && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="sm"
+														onClick={() => removeBoothRow(row.id)}
+														disabled={submitting}
+													>
+														<Trash2 className="h-4 w-4 text-destructive" />
+													</Button>
+												)}
+											</div>
 
+											{rowErrors[row.id] && (
+												<FieldError className="mb-3">
+													{rowErrors[row.id]}
+												</FieldError>
+											)}
+
+											{hasBoothPrices ? (
+												<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+													<Field orientation="vertical">
+														<FieldLabel>Booth Price *</FieldLabel>
+														<Select
+															value={row.boothPriceId}
+															onValueChange={(value) =>
+																changeBoothPrice(row.id, value)
+															}
+															disabled={submitting}
+														>
+															<SelectTrigger>
+																<SelectValue placeholder="Select a booth price" />
+															</SelectTrigger>
+															<SelectContent>
+																{boothPrices?.map((bp) => (
+																	<SelectItem
+																		key={bp.id}
+																		value={bp.id.toString()}
+																	>
+																		{humanizeBoothType(bp.boothType)} —{" "}
+																		{bp.label}
+																		{bp.zone ? ` (${bp.zone})` : ""} — RM
+																		{bp.currentPrice}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+														<FieldDescription>
+															Booth type and amount are derived from the
+															selected price.
+														</FieldDescription>
+													</Field>
+													{availablePackages.length > 0 && (
+														<Field orientation="vertical">
+															<FieldLabel>Package (optional)</FieldLabel>
+															<Select
+																value={row.packageId || "none"}
+																onValueChange={(value) =>
+																	updateBoothRow(row.id, {
+																		packageId: value === "none" ? "" : value,
+																	})
+																}
+																disabled={submitting}
+															>
+																<SelectTrigger>
+																	<SelectValue placeholder="Local — booth only" />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="none">
+																		No package (booth only)
+																	</SelectItem>
+																	{availablePackages.map((item) => (
+																		<SelectItem
+																			key={item.id}
+																			value={String(item.id)}
+																		>
+																			{item.name} — RM {item.price.toFixed(2)}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+														</Field>
+													)}
+													<Field orientation="vertical">
+														<FieldLabel>Voucher Code (optional)</FieldLabel>
+														<Input
+															value={row.voucherCode}
+															onChange={(e) =>
+																updateBoothRow(row.id, {
+																	voucherCode: e.target.value.toUpperCase(),
+																})
+															}
+															placeholder="e.g. A7K2M9XQ"
+															disabled={submitting}
+															className="rounded-none font-mono"
+														/>
+														{voucherPreview && (
+															<FieldDescription className="text-emerald-600">
+																Voucher applied — price becomes RM{" "}
+																{voucherPreview.price.toFixed(2)}
+															</FieldDescription>
+														)}
+														{voucherError && (
+															<FieldError>{voucherError}</FieldError>
+														)}
+													</Field>
+													<Field orientation="vertical">
+														<FieldLabel>Booth Number (Optional)</FieldLabel>
+														{hasBoothInventoryForPrice ? (
+															<Select
+																value={row.boothNumber || "none"}
+																onValueChange={(value) =>
+																	updateBoothRow(row.id, {
+																		boothNumber: value === "none" ? "" : value,
+																	})
+																}
+																disabled={
+																	submitting ||
+																	availableBoothNumbers.length === 0
+																}
+															>
+																<SelectTrigger>
+																	<SelectValue
+																		placeholder={
+																			availableBoothNumbers.length === 0
+																				? "No booths available"
+																				: "Select a booth number"
+																		}
+																	/>
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="none">
+																		Unassigned
+																	</SelectItem>
+																	{availableBoothNumbers.map((booth) => (
+																		<SelectItem
+																			key={booth.id}
+																			value={booth.number}
+																		>
+																			{booth.number}
+																			{booth.label ? ` — ${booth.label}` : ""}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+														) : (
+															<Input
+																value={row.boothNumber}
+																onChange={(e) =>
+																	updateBoothRow(row.id, {
+																		boothNumber: e.target.value,
+																	})
+																}
+																placeholder="e.g. A-12"
+																disabled={submitting}
+																className="rounded-none"
+															/>
+														)}
+														{hasBoothInventoryForPrice &&
+															availableBoothNumbers.length === 0 && (
+																<FieldDescription className="text-destructive">
+																	All booths for this price are currently taken.
+																</FieldDescription>
+															)}
+													</Field>
+												</div>
+											) : (
+												<div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+													<Field orientation="vertical">
+														<FieldLabel>Booth Type *</FieldLabel>
+														{eventBoothTypes.length > 0 ? (
+															<Select
+																value={row.boothType}
+																onValueChange={(value) =>
+																	updateBoothRow(row.id, { boothType: value })
+																}
+																disabled={submitting}
+															>
+																<SelectTrigger>
+																	<SelectValue placeholder="Select a booth type" />
+																</SelectTrigger>
+																<SelectContent>
+																	{eventBoothTypes.map((bt) => (
+																		<SelectItem key={bt} value={bt}>
+																			{humanizeBoothType(bt)}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+														) : (
+															<Input
+																value={row.boothType}
+																onChange={(e) =>
+																	updateBoothRow(row.id, {
+																		boothType: e.target.value,
+																	})
+																}
+																placeholder="e.g. Shell Scheme"
+																disabled={submitting}
+																className="rounded-none"
+															/>
+														)}
+														<FieldDescription>
+															No booth prices configured. Enter or select a
+															booth type.
+														</FieldDescription>
+													</Field>
+													<Field orientation="vertical">
+														<FieldLabel>Booth Number (Optional)</FieldLabel>
+														<Input
+															value={row.boothNumber}
+															onChange={(e) =>
+																updateBoothRow(row.id, {
+																	boothNumber: e.target.value,
+																})
+															}
+															placeholder="e.g. A-12"
+															disabled={submitting}
+															className="rounded-none"
+														/>
+													</Field>
+												</div>
+											)}
+										</div>
+									);
+								})}
+							</div>
+
+							<FieldSeparator className="my-4" />
+
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<Field orientation="vertical">
 									<FieldLabel htmlFor={companyNameField}>
-										Company Name (Optional)
+										Company Name
 									</FieldLabel>
 									<Input
 										id={companyNameField}
@@ -739,6 +907,23 @@ export default function ManualAddForm({
 										disabled={submitting}
 										className="rounded-none"
 									/>
+								</Field>
+								<Field orientation="vertical">
+									<FieldLabel htmlFor={nameOnFasciaField}>
+										Name on Fascia
+									</FieldLabel>
+									<Input
+										id={nameOnFasciaField}
+										value={nameOnFascia}
+										onChange={(e) => setNameOnFascia(e.target.value)}
+										placeholder="e.g. Acme Sdn Bhd"
+										maxLength={30}
+										disabled={submitting}
+										className="rounded-none"
+									/>
+									<FieldDescription>
+										Applied to every booth in this batch.
+									</FieldDescription>
 								</Field>
 							</div>
 						</div>
