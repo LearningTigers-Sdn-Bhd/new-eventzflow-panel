@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MdSpaceDashboard } from "react-icons/md";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState } from "@/components/data-state";
+import { BusinessHostDashboard } from "@/components/pages/dashboard/business-host-dashboard";
 import { ContractorDashboard } from "@/components/pages/dashboard/contractor-dashboard";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
 import { DashboardStats } from "@/components/pages/dashboard/dashboard-stats";
@@ -36,6 +37,11 @@ export default function DashboardPage() {
 	// Show contractor dashboard for exhibition_contractor role
 	if (user?.role === "exhibition_contractor") {
 		return <ContractorDashboard />;
+	}
+
+	// Show business host dashboard for exhibitor role (business hosts)
+	if (user?.role === "exhibitor") {
+		return <BusinessHostDashboard />;
 	}
 
 	return (
