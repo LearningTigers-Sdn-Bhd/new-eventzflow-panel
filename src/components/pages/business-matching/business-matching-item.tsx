@@ -34,7 +34,8 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const host = event.host;
 	const offeringTags = event.offering_tags || [];
 	const count = event.bookings_count ?? 0;
-	const ownsSession = isBusinessHost && !!user && host?.id === String(user.id);
+	const ownsSession =
+		isBusinessHost && !!user && String(host?.id ?? "") === String(user.id);
 
 	return (
 		<Item

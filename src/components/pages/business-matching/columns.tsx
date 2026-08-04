@@ -176,7 +176,9 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			);
 
 			const ownsSession =
-				isBusinessHost && !!user && row.original.host?.id === String(user.id);
+				isBusinessHost &&
+				!!user &&
+				String(row.original.host?.id ?? "") === String(user.id);
 
 			if (!canManageEvent && !ownsSession) return null;
 
