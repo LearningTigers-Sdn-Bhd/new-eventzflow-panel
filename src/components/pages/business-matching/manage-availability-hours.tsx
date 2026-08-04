@@ -185,7 +185,7 @@ export default function ManageAvailabilityHours({
 													value={newStart}
 													onChange={(e) => setNewStart(e.target.value)}
 													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-24 text-xs"
+													className="h-8 w-32 px-2 text-xs"
 													autoFocus
 												/>
 											</div>
@@ -198,7 +198,7 @@ export default function ManageAvailabilityHours({
 													value={newEnd}
 													onChange={(e) => setNewEnd(e.target.value)}
 													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-24 text-xs"
+													className="h-8 w-32 px-2 text-xs"
 												/>
 											</div>
 											<Button
