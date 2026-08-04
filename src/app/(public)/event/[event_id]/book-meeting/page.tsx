@@ -514,10 +514,10 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 																	return (
 																		<span
 																			key={t}
-																			className={`rounded px-1.5 py-0.5 font-medium text-[9px] ${
+																			className={`rounded border px-1 py-px font-medium text-[9px] ${
 																				isMatch
-																					? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
-																					: "bg-muted text-muted-foreground"
+																					? "border-green-200 bg-green-100 text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200"
+																					: "border-violet-100 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950 dark:text-violet-200"
 																			}`}
 																		>
 																			{t}
@@ -531,41 +531,41 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 													{isExpanded && event.host && (
 														<div
 															onClick={(e) => e.stopPropagation()}
-															className="fade-in slide-in-from-top-2 mt-2 animate-in space-y-2 border-muted/60 border-t pt-2 text-xs duration-200"
+															className="fade-in slide-in-from-top-2 mt-2 animate-in space-y-1.5 border-muted/60 border-t pt-2 text-xs duration-200"
 														>
 															{event.host.description && (
-																<div className="space-y-1">
+																<div className="space-y-0.5">
 																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 																		Description
 																	</span>
-																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-1.5 text-foreground leading-relaxed">
 																		{event.host.description}
 																	</p>
 																</div>
 															)}
 															{event.host.sourcing_intent && (
-																<div className="space-y-1">
+																<div className="space-y-0.5">
 																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 																		Sourcing Intent
 																	</span>
-																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-1.5 text-foreground leading-relaxed">
 																		{event.host.sourcing_intent}
 																	</p>
 																</div>
 															)}
 															{event.host.capabilities && (
-																<div className="space-y-1">
+																<div className="space-y-0.5">
 																	<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 																		Capabilities / Offerings
 																	</span>
-																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-2 text-foreground leading-relaxed">
+																	<p className="rounded-lg border border-muted/30 bg-muted/30 p-1.5 text-foreground leading-relaxed">
 																		{event.host.capabilities}
 																	</p>
 																</div>
 															)}
 															{event.host.interest_tags &&
 																event.host.interest_tags.length > 0 && (
-																	<div className="space-y-1">
+																	<div className="space-y-0.5">
 																		<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
 																			Interests / Looking For
 																		</span>
