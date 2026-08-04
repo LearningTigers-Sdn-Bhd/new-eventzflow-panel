@@ -72,6 +72,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	// Filtering states for hosts list
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedTags, setSelectedTags] = useState<string[]>([]);
+	const [sessionPage, setSessionPage] = useState(1);
 
 	// Queries - enabled based on steps
 	const {
@@ -239,6 +240,29 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 		}
 	}, [filteredBmEvents, selectedBmEvent]);
 
+	// Paginate the session list instead of a long scroll when there are many.
+	const sessionsPerPage = 8;
+	const totalSessionPages = Math.max(
+		1,
+		Math.ceil(filteredBmEvents.length / sessionsPerPage),
+	);
+	const paginatedBmEvents = filteredBmEvents.slice(
+		(sessionPage - 1) * sessionsPerPage,
+		sessionPage * sessionsPerPage,
+	);
+
+	// Reset to page 1 whenever the search/category filters change the result set.
+	useEffect(() => {
+		setSessionPage(1);
+	}, [searchQuery, selectedTags]);
+
+	// Clamp if the current page no longer exists (e.g. bmEvents shrank).
+	useEffect(() => {
+		if (sessionPage > totalSessionPages) {
+			setSessionPage(totalSessionPages);
+		}
+	}, [sessionPage, totalSessionPages]);
+
 	// --- Render Helpers ---
 	if (!isInitialized) {
 		return (
@@ -371,7 +395,6 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			case 2: // Select Session
 				return (
 					<div className="space-y-6">
-						<h2 className="mb-4 font-semibold text-xl">Choose Event Session</h2>
 						{isLoadingBmEvents ? (
 							<div className="py-10 text-center">
 								<div className="flex flex-col items-center gap-2">
@@ -440,7 +463,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 										}
 										className="grid grid-cols-1 gap-2 sm:grid-cols-2"
 									>
-										{filteredBmEvents.map((event) => {
+										{paginatedBmEvents.map((event) => {
 											const isSelected = selectedBmEvent?.id === event.id;
 											const isExpanded = expandedHostId === event.id;
 											const eventTags =
@@ -589,6 +612,36 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 											);
 										})}
 									</RadioGroup>
+								)}
+
+								{totalSessionPages > 1 && (
+									<div className="flex items-center justify-between pt-2">
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() => setSessionPage((p) => Math.max(1, p - 1))}
+											disabled={sessionPage === 1}
+										>
+											<ArrowLeft className="mr-1 h-3.5 w-3.5" /> Previous
+										</Button>
+										<span className="text-muted-foreground text-xs">
+											Page {sessionPage} of {totalSessionPages}
+										</span>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() =>
+												setSessionPage((p) =>
+													Math.min(totalSessionPages, p + 1),
+												)
+											}
+											disabled={sessionPage === totalSessionPages}
+										>
+											Next <ArrowRight className="ml-1 h-3.5 w-3.5" />
+										</Button>
+									</div>
 								)}
 							</div>
 						)}
