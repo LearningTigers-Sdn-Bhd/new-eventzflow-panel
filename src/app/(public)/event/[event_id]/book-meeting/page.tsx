@@ -819,7 +819,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			</div>
 
 			<Card className="flex min-h-[400px] flex-col">
-				<CardHeader>
+				<CardHeader className="gap-0.5">
 					<CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
 					<CardDescription>{getStepDescription()}</CardDescription>
 				</CardHeader>
