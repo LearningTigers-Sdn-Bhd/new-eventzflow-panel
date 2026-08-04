@@ -29,7 +29,7 @@ export function ExpandableTags({
 				<span
 					key={tag}
 					className={cn(
-						"inline-flex items-center rounded bg-primary/5 px-1.5 py-0.5 text-[9px] font-medium text-primary border border-primary/10",
+						"inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-medium text-[9px] text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300",
 						tagClassName,
 					)}
 				>
@@ -43,7 +43,7 @@ export function ExpandableTags({
 						e.stopPropagation();
 						setExpanded((prev) => !prev);
 					}}
-					className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground hover:bg-muted/70 transition-colors"
+					className="inline-flex items-center rounded-full border border-muted-foreground/30 border-dashed px-2 py-0.5 font-medium text-[9px] text-muted-foreground transition-colors hover:bg-muted/50"
 				>
 					{expanded ? "Show less" : `+${hiddenCount}`}
 				</button>

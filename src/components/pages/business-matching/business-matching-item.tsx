@@ -9,6 +9,7 @@ import {
 	Pencil,
 	User,
 } from "lucide-react";
+import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { Button } from "@/components/ui/button";
 import { Item, ItemActions, ItemContent } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
@@ -55,18 +56,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 				</div>
 
 				{/* Tags */}
-				{offeringTags.length > 0 && (
-					<div className="mt-0.5 flex flex-wrap gap-1">
-						{offeringTags.map((tag) => (
-							<span
-								key={tag}
-								className="inline-flex items-center rounded border border-primary/10 bg-primary/5 px-1.5 py-0.5 font-medium text-[9px] text-primary"
-							>
-								{tag}
-							</span>
-						))}
-					</div>
-				)}
+				<ExpandableTags tags={offeringTags} limit={5} className="mt-0.5" />
 
 				<div className="grid grid-cols-1 gap-3 border-muted-foreground/10 border-t pt-3 sm:grid-cols-2">
 					{/* Host info */}
