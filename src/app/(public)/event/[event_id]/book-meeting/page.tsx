@@ -197,15 +197,6 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 		);
 	};
 
-	// --- Render Helpers ---
-	if (!isInitialized) {
-		return (
-			<div className="flex min-h-[50vh] items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-primary" />
-			</div>
-		);
-	}
-
 	// Filter and sort sessions/hosts based on search query, selected tag, and similarity to visitorInterests
 	const filteredBmEvents = (bmEvents || [])
 		.filter((event) => {
@@ -235,6 +226,27 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	const allUniqueTags: string[] = Array.from(
 		new Set((bmEvents || []).flatMap((e: any) => e.offering_tags || [])),
 	);
+
+	// If the current selection is filtered out by search/category changes,
+	// clear it — otherwise a stale, no-longer-visible session would still
+	// let the user proceed past this step without an actual visible selection.
+	useEffect(() => {
+		if (
+			selectedBmEvent &&
+			!filteredBmEvents.some((e) => e.id === selectedBmEvent.id)
+		) {
+			setSelectedBmEvent(null);
+		}
+	}, [filteredBmEvents, selectedBmEvent]);
+
+	// --- Render Helpers ---
+	if (!isInitialized) {
+		return (
+			<div className="flex min-h-[50vh] items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-primary" />
+			</div>
+		);
+	}
 
 	const renderStepContent = () => {
 		switch (step) {

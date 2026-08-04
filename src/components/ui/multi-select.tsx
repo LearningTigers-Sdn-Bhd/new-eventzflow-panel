@@ -181,11 +181,11 @@ const MultiSelectContent = React.forwardRef<
 	return (
 		<PopoverContent
 			ref={ref}
-			className={cn("w-[200px] p-0", className)}
+			className={cn("w-[220px] overflow-hidden p-0", className)}
 			align="start"
 			{...props}
 		>
-			<ScrollArea className="max-h-60">
+			<ScrollArea className="max-h-60 overflow-hidden">
 				<div className="space-y-1 p-2">{children}</div>
 			</ScrollArea>
 		</PopoverContent>
