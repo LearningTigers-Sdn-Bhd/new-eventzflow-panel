@@ -275,15 +275,24 @@ export async function downloadBookingsReport(
 	const url = `v1/business_matching/events/${eventId}/report?format=${format}`;
 
 	// Use POST to send a list of IDs
-	const { blob } = await restClient.postBlob(url, {
+	const { blob, headers } = await restClient.postBlob(url, {
 		business_matching_event_ids: bmEventIds,
 	});
+
+	// The backend names the file based on the event and, for business hosts,
+	// their own name — fall back to a generic name only if the header is missing.
+	const disposition = headers.get("content-disposition") ?? "";
+	const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+	const quotedMatch = disposition.match(/filename="?([^"; ]+)"?/i);
+	const filename = utf8Match
+		? decodeURIComponent(utf8Match[1])
+		: (quotedMatch?.[1] ?? `business_matching_report_${eventId}.${format}`);
 
 	// Create download link
 	const downloadUrl = window.URL.createObjectURL(blob);
 	const link = document.createElement("a");
 	link.href = downloadUrl;
-	link.download = `business_matching_report_${eventId}.${format}`;
+	link.download = filename;
 	document.body.appendChild(link);
 	link.click();
 	document.body.removeChild(link);
