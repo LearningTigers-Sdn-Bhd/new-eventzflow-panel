@@ -20,6 +20,9 @@ interface CreateSessionDialogProps {
 	session?: BusinessMatchingEvent; // If provided, edit mode
 	eventStartDate?: string; // Prefill only — the session's range can differ from the event's
 	eventEndDate?: string;
+	// When true, this is a host editing their own session: the date range is
+	// admin-controlled and read-only, and the host can't delete the session.
+	isHostEditing?: boolean;
 }
 
 const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
@@ -27,6 +30,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	session,
 	eventStartDate,
 	eventEndDate,
+	isHostEditing = false,
 }) => {
 	const { closeDialog } = useDialog();
 	const isEditMode = !!session;
@@ -104,8 +108,9 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			admin_wa_number: adminWaNumber,
 			start_time: startTime,
 			end_time: endTime,
-			...(startDate && { start_date: startDate }),
-			...(endDate && { end_date: endDate }),
+			// Session dates are admin-controlled — never submitted from a host edit.
+			...(!isHostEditing && startDate && { start_date: startDate }),
+			...(!isHostEditing && endDate && { end_date: endDate }),
 		};
 
 		if (isEditMode && session) {
@@ -211,7 +216,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						type="date"
 						value={startDate}
 						onChange={(e) => setStartDate(e.target.value)}
-						disabled={isPending}
+						disabled={isPending || isHostEditing}
 					/>
 				</div>
 				<div className="space-y-2">
@@ -221,12 +226,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						type="date"
 						value={endDate}
 						onChange={(e) => setEndDate(e.target.value)}
-						disabled={isPending}
+						disabled={isPending || isHostEditing}
 					/>
 				</div>
 				<p className="col-span-2 -mt-2 text-muted-foreground text-xs">
-					Defaults to the event's dates, but can be set entirely before or after
-					the event period.
+					{isHostEditing
+						? "Set by your event admin — contact them to change these dates."
+						: "Defaults to the event's dates, but can be set entirely before or after the event period."}
 				</p>
 			</div>
 
@@ -255,7 +261,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			</div>
 
 			<div className="flex items-center justify-between pt-4">
-				{isEditMode && session && (
+				{isEditMode && session && !isHostEditing && (
 					<Button
 						type="button"
 						variant="destructive"

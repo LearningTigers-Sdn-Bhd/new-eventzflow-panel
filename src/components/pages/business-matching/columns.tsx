@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
@@ -169,9 +170,15 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		header: "Actions",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
-			const { canManageEvent } = useEventPermissions(row.original.event_id);
+			const { user } = useAuth();
+			const { canManageEvent, isBusinessHost } = useEventPermissions(
+				row.original.event_id,
+			);
 
-			if (!canManageEvent) return null;
+			const ownsSession =
+				isBusinessHost && !!user && row.original.host?.id === String(user.id);
+
+			if (!canManageEvent && !ownsSession) return null;
 
 			return (
 				<div className="flex gap-1.5 py-1">
@@ -184,6 +191,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								props: {
 									eventId: row.original.event_id,
 									session: row.original,
+									isHostEditing: !canManageEvent,
 								},
 								config: {
 									title: `Edit "${row.original.title}"`,

@@ -12,6 +12,7 @@ import {
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { Button } from "@/components/ui/button";
 import { Item, ItemActions, ItemContent } from "@/components/ui/item";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions"; // Import the hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
@@ -26,12 +27,14 @@ interface BusinessMatchingItemProps {
 
 export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const { openDialog } = useDialog();
+	const { user } = useAuth();
 	const { isBusinessHost, canManageEvent } = useEventPermissions(
 		event.event_id,
 	);
 	const host = event.host;
 	const offeringTags = event.offering_tags || [];
 	const count = event.bookings_count ?? 0;
+	const ownsSession = isBusinessHost && !!user && host?.id === String(user.id);
 
 	return (
 		<Item
@@ -162,7 +165,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 				</div>
 			</ItemContent>
 			<ItemActions className="mt-4 flex w-full items-center gap-2 sm:mt-0 sm:w-auto">
-				{canManageEvent && (
+				{(canManageEvent || ownsSession) && (
 					<div className="flex gap-2">
 						<Button
 							variant="outline"
@@ -173,6 +176,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 									props: {
 										eventId: event.event_id,
 										session: event,
+										isHostEditing: !canManageEvent,
 									},
 									config: {
 										title: `Edit "${event.title}"`,
