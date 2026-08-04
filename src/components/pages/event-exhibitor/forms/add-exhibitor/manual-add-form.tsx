@@ -537,11 +537,7 @@ export default function ManualAddForm({
 											Number(vendor.id),
 										);
 										return (
-											<SelectItem
-												key={vendor.id}
-												value={vendor.id.toString()}
-												disabled={isAlreadyAdded}
-											>
+											<SelectItem key={vendor.id} value={vendor.id.toString()}>
 												<div className="flex w-full items-center gap-2">
 													<Building2 className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
 													<div className="flex min-w-0 flex-1 items-center gap-2">
@@ -554,7 +550,10 @@ export default function ManualAddForm({
 														</span>
 													</div>
 													{isAlreadyAdded && (
-														<CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-600" />
+														<span className="flex flex-shrink-0 items-center gap-1 text-muted-foreground text-xs">
+															<CheckCircle2 className="h-4 w-4 text-green-600" />
+															Has booths
+														</span>
 													)}
 												</div>
 											</SelectItem>
@@ -563,7 +562,8 @@ export default function ManualAddForm({
 								</SelectContent>
 							</Select>
 							<FieldDescription>
-								Select a vendor to assign as exhibitor to this event.
+								Select a vendor to assign as exhibitor to this event. Selecting
+								a vendor that already has booths adds more booths to it.
 							</FieldDescription>
 						</Field>
 
