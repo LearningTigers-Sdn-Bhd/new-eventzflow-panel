@@ -1,39 +1,29 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	Briefcase,
-	Download,
-	LinkIcon,
-	RefreshCw,
-} from "lucide-react";
-import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Briefcase, Download, LinkIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
+import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 import { DataTable } from "@/components/pages/business-matching/data-table";
+import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
 	useBusinessMatchingEvents,
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useDialog } from "@/hooks/use-dialog";
-import { downloadBookingsReport, getHostProfile } from "@/lib/api/business-matching";
-import { getEventById, updateEvent } from "@/lib/api/event";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
+import {
+	downloadBookingsReport,
+	getHostProfile,
+} from "@/lib/api/business-matching";
+import { getEventById } from "@/lib/api/event";
 import { cable } from "@/lib/cable";
-import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
+import { useEventActionsStore } from "@/stores/event-actions-store";
 
 export default function BusinessMatchingPage() {
 	const params = useParams();
@@ -43,13 +33,12 @@ export default function BusinessMatchingPage() {
 	console.log("Current event_id:", event_id); // Add this log
 	const { data, isLoading, error, isFetching } =
 		useBusinessMatchingEvents(event_id);
-	const {
-		mutate: _forceRefresh,
-		mutateAsync: forceRefreshAsync,
-		isPending: isRefreshing,
-	} = useForceRefreshBusinessMatching(event_id);
+	const { mutateAsync: forceRefreshAsync } =
+		useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
 	const { openDialog } = useDialog();
+	const setActions = useEventActionsStore((state) => state.setActions);
+	const clearActions = useEventActionsStore((state) => state.clearActions);
 
 	// Fetch event details to check for webhook URL
 	const { data: event } = useQuery({
@@ -58,13 +47,19 @@ export default function BusinessMatchingPage() {
 		enabled: !!event_id,
 	});
 
-
-
 	const router = useRouter();
-	const { isBusinessHost, canManageEvent } = useEventPermissions(
-		event_id,
-		event,
-	);
+	const {
+		isBusinessHost,
+		canManageEvent,
+		isOrgOwner,
+		isOrganizer,
+		isEventAdmin,
+	} = useEventPermissions(event_id, event);
+
+	// Matches the backend's manage_business_matching_tags? policy exactly
+	// (org_owner || organizer || event_admin) — broader than canManageEvent,
+	// which intentionally excludes organizers for other event-management actions.
+	const canManageTags = isOrgOwner || isOrganizer || isEventAdmin;
 
 	// Check if logged-in host has completed their profile
 	const { data: hostProfile } = useQuery({
@@ -80,7 +75,9 @@ export default function BusinessMatchingPage() {
 			!hostProfile.sourcing_intent ||
 			!hostProfile.capabilities ||
 			hostProfile.description.includes("Professional host available") ||
-			hostProfile.sourcing_intent.includes("Looking for strategic partnerships") ||
+			hostProfile.sourcing_intent.includes(
+				"Looking for strategic partnerships",
+			) ||
 			hostProfile.capabilities.includes("Expertise in technology solutions")
 		);
 	}, [isBusinessHost, hostProfile]);
@@ -150,35 +147,6 @@ export default function BusinessMatchingPage() {
 		};
 	}, [event_id, queryClient]);
 
-	const handleRefresh = async () => {
-		toast.info("Refreshing events and clearing cache...", {
-			description: "Fetching the latest data and reloading the page.",
-		});
-
-		try {
-			await forceRefreshAsync();
-			localStorage.setItem(
-				`last_bm_refresh_${event_id}`,
-				Date.now().toString(),
-			);
-			window.location.reload();
-		} catch (error) {
-			console.error("Manual refresh failed", error);
-			toast.error("Refresh failed. Please try again.");
-
-			// If refresh fails (e.g. invalid webhook), clear the cache so the UI shows the error state
-			// instead of stale data.
-			queryClient.removeQueries({ queryKey: ["business-matching-events"] });
-			queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
-			queryClient.removeQueries({
-				queryKey: ["business-matching-availability"],
-			});
-			queryClient.removeQueries({
-				queryKey: ["business-matching-detailed-slots"],
-			});
-		}
-	};
-
 	const handleGenerateReport = async (format: "pdf" | "xlsx") => {
 		toast.info(`Generating ${format.toUpperCase()} report...`, {
 			description: "Please wait while we compile the data.",
@@ -206,25 +174,6 @@ export default function BusinessMatchingPage() {
 			});
 	};
 
-	if (isLoading || isFetching) {
-		return (
-			<LoadingState
-				title="Loading events..."
-				description="Please wait while we fetch business matching events."
-			/>
-		);
-	}
-
-	if (error) {
-		return (
-			<ErrorState
-				title="Failed to load events"
-				description="Could not fetch business matching events. Please try again later."
-				icon={<Briefcase />}
-			/>
-		);
-	}
-
 	const actionButtons = (
 		<div className="flex items-center gap-2">
 			{canManageEvent && (
@@ -232,7 +181,11 @@ export default function BusinessMatchingPage() {
 					onClick={() => {
 						openDialog({
 							component: CreateSessionDialog,
-							props: { eventId: event_id },
+							props: {
+								eventId: event_id,
+								eventStartDate: event?.start_date,
+								eventEndDate: event?.end_date,
+							},
 							config: {
 								title: "Create Matchmaking Session",
 								size: "lg",
@@ -242,6 +195,25 @@ export default function BusinessMatchingPage() {
 					className="h-8 rounded-none md:h-9"
 				>
 					Create Session
+				</Button>
+			)}
+
+			{canManageTags && (
+				<Button
+					variant="outline"
+					onClick={() => {
+						openDialog({
+							component: ManageTagsDialog,
+							props: { eventId: event_id },
+							config: {
+								title: "Manage Matching Tags",
+								size: "lg",
+							},
+						});
+					}}
+					className="h-8 rounded-none md:h-9"
+				>
+					Manage Tags
 				</Button>
 			)}
 
@@ -271,47 +243,57 @@ export default function BusinessMatchingPage() {
 					)}
 				</>
 			)}
-
-			<Button
-				variant="outline"
-				size="sm"
-				onClick={handleRefresh}
-				disabled={isRefreshing}
-				className="h-8 rounded-none md:h-9"
-			>
-				<RefreshCw
-					className={`h-4 w-4 md:mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-				/>
-				<span className="hidden md:inline">Refresh</span>
-			</Button>
 		</div>
 	);
+
+	useEffect(() => {
+		setActions(actionButtons);
+		return () => clearActions();
+	}, [actionButtons, setActions, clearActions]);
+
+	if (isLoading || isFetching) {
+		return (
+			<LoadingState
+				title="Loading events..."
+				description="Please wait while we fetch business matching events."
+			/>
+		);
+	}
+
+	if (error) {
+		return (
+			<ErrorState
+				title="Failed to load events"
+				description="Could not fetch business matching events. Please try again later."
+				icon={<Briefcase />}
+			/>
+		);
+	}
 
 	return (
 		<div className="space-y-4">
 			{showProfileWarning && (
-				<div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3.5 text-yellow-800 dark:text-yellow-200">
+				<div className="mb-4 flex flex-col items-start justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3.5 text-yellow-800 sm:flex-row sm:items-center dark:text-yellow-200">
 					<div className="flex items-center gap-2.5">
 						<AlertTriangle className="h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-400" />
 						<div className="text-sm">
-							<span className="font-semibold">Complete Your Host Profile:</span> You haven't filled out your matching details (Bio, Sourcing Intent, or Capabilities) yet. Fill them out to get the best matchmaking matches.
+							<span className="font-semibold">Complete Your Host Profile:</span>{" "}
+							You haven't filled out your matching details (Bio, Sourcing
+							Intent, or Capabilities) yet. Fill them out to get the best
+							matchmaking matches.
 						</div>
 					</div>
 					<Button
 						variant="outline"
 						size="sm"
 						onClick={() => router.push(`/event/${event_id}/host-profile`)}
-						className="h-8 shrink-0 border-yellow-500/30 bg-yellow-500/20 text-yellow-900 hover:bg-yellow-500/30 dark:text-yellow-200 self-end sm:self-center"
+						className="h-8 shrink-0 self-end border-yellow-500/30 bg-yellow-500/20 text-yellow-900 hover:bg-yellow-500/30 sm:self-center dark:text-yellow-200"
 					>
 						Edit Profile
 					</Button>
 				</div>
 			)}
-			<DataTable
-				columns={filteredColumns}
-				data={data || []}
-				actions={actionButtons}
-			/>
+			<DataTable columns={filteredColumns} data={data || []} />
 		</div>
 	);
 }

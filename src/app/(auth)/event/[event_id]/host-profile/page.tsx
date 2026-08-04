@@ -1,20 +1,27 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, Tag, User } from "lucide-react";
 import { use, useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ErrorState, LoadingState } from "@/components/data-state";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
-import { getEventById } from "@/lib/api/event";
-import { getHostProfile, updateHostProfile } from "@/lib/api/business-matching";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import { User, Tag, FileText } from "lucide-react";
+import { ErrorState, LoadingState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useBusinessMatchingTags } from "@/hooks/use-business-matching";
+import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { getHostProfile, updateHostProfile } from "@/lib/api/business-matching";
+import { getEventById } from "@/lib/api/event";
 
 export default function HostProfilePage({
 	params,
@@ -37,15 +44,23 @@ export default function HostProfilePage({
 	const [description, setDescription] = useState("");
 	const [sourcingIntent, setSourcingIntent] = useState("");
 	const [capabilities, setCapabilities] = useState("");
-	const [offeringTagsInput, setOfferingTagsInput] = useState("");
-	const [interestTagsInput, setInterestTagsInput] = useState("");
+	const [offeringTags, setOfferingTags] = useState<string[]>([]);
+	const [interestTags, setInterestTags] = useState<string[]>([]);
 
 	// Fetch host profile
-	const { data: profile, isLoading, error } = useQuery({
+	const {
+		data: profile,
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ["host-profile", event_id],
 		queryFn: () => getHostProfile(event_id),
 		enabled: isInitialized && !!user && isBusinessHost,
 	});
+
+	// Fetch the event's admin-curated tag list — hosts may only pick from this
+	const { data: availableTags, isLoading: isTagsLoading } =
+		useBusinessMatchingTags(event_id);
 
 	// Sync state when data is loaded
 	useEffect(() => {
@@ -53,16 +68,19 @@ export default function HostProfilePage({
 			setDescription(profile.description || "");
 			setSourcingIntent(profile.sourcing_intent || "");
 			setCapabilities(profile.capabilities || "");
-			setOfferingTagsInput((profile.offering_tags || []).join(", "));
-			setInterestTagsInput((profile.interest_tags || []).join(", "));
+			setOfferingTags(profile.offering_tags || []);
+			setInterestTags(profile.interest_tags || []);
 		}
 	}, [profile]);
 
 	const updateMutation = useMutation({
-		mutationFn: (data: Parameters<typeof updateHostProfile>[1]) => updateHostProfile(event_id, data),
+		mutationFn: (data: Parameters<typeof updateHostProfile>[1]) =>
+			updateHostProfile(event_id, data),
 		onSuccess: (updatedProfile) => {
 			queryClient.setQueryData(["host-profile", event_id], updatedProfile);
-			queryClient.invalidateQueries({ queryKey: ["business-matching-events", event_id] });
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-events", event_id],
+			});
 			toast.success("Host profile updated successfully!");
 		},
 		onError: (err: any) => {
@@ -75,22 +93,12 @@ export default function HostProfilePage({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// Parse tags from comma-separated input
-		const offering_tags = offeringTagsInput
-			.split(",")
-			.map((t) => t.trim())
-			.filter((t) => t.length > 0);
-		const interest_tags = interestTagsInput
-			.split(",")
-			.map((t) => t.trim())
-			.filter((t) => t.length > 0);
-
 		updateMutation.mutate({
 			description,
 			sourcing_intent: sourcingIntent,
 			capabilities,
-			offering_tags,
-			interest_tags,
+			offering_tags: offeringTags,
+			interest_tags: interestTags,
 		});
 	};
 
@@ -125,8 +133,8 @@ export default function HostProfilePage({
 	}
 
 	return (
-		<div className="space-y-6 max-w-4xl mx-auto py-2 px-4">
-			<div className="page-header border-b pb-4 mb-4">
+		<div className="mx-auto max-w-4xl space-y-6 px-4 py-2">
+			<div className="page-header mb-4 border-b pb-4">
 				<IconTitle
 					icon={User}
 					title="My Host Profile"
@@ -142,7 +150,8 @@ export default function HostProfilePage({
 							Profile Information
 						</CardTitle>
 						<CardDescription>
-							These details will be displayed to matching buyers and sellers when they click your name.
+							These details will be displayed to matching buyers and sellers
+							when they click your name.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
@@ -158,8 +167,9 @@ export default function HostProfilePage({
 								rows={4}
 								className="resize-y"
 							/>
-							<span className="text-xs text-muted-foreground">
-								Brief summary of your professional background or organization's focus.
+							<span className="text-muted-foreground text-xs">
+								Brief summary of your professional background or organization's
+								focus.
 							</span>
 						</div>
 
@@ -175,8 +185,9 @@ export default function HostProfilePage({
 								rows={3}
 								className="resize-y"
 							/>
-							<span className="text-xs text-muted-foreground">
-								Help matching attendees understand exactly who or what you are looking to source.
+							<span className="text-muted-foreground text-xs">
+								Help matching attendees understand exactly who or what you are
+								looking to source.
 							</span>
 						</div>
 
@@ -192,7 +203,7 @@ export default function HostProfilePage({
 								rows={3}
 								className="resize-y"
 							/>
-							<span className="text-xs text-muted-foreground">
+							<span className="text-muted-foreground text-xs">
 								List your systems, products, capabilities, or core solutions.
 							</span>
 						</div>
@@ -206,37 +217,58 @@ export default function HostProfilePage({
 							Categories & Matching Tags
 						</CardTitle>
 						<CardDescription>
-							Tags are used by the matching algorithm to score compatibility between you and visitors.
+							Tags are used by the matching algorithm to score compatibility
+							between you and visitors.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid gap-2">
 							<Label htmlFor="offeringTags" className="font-semibold text-sm">
-								Offering Tags (Comma-separated)
+								Offering Tags
 							</Label>
-							<Input
-								id="offeringTags"
-								value={offeringTagsInput}
-								onChange={(e) => setOfferingTagsInput(e.target.value)}
-								placeholder="SaaS Core, Generative AI, IoT, Cybersecurity"
+							<MultiSelectLegacy
+								options={(availableTags?.offering_tags || []).map((t) => ({
+									label: t,
+									value: t,
+								}))}
+								selected={offeringTags}
+								onChange={setOfferingTags}
+								placeholder={
+									isTagsLoading
+										? "Loading tags..."
+										: (availableTags?.offering_tags || []).length === 0
+											? "No tags configured yet by the event admin"
+											: "Select offering tags"
+								}
 							/>
-							<span className="text-xs text-muted-foreground">
-								Tags describing what you offer. Separate multiple tags with a comma.
+							<span className="text-muted-foreground text-xs">
+								Tags describing what you offer, chosen from the event's approved
+								list.
 							</span>
 						</div>
 
 						<div className="grid gap-2 border-t pt-4">
 							<Label htmlFor="interestTags" className="font-semibold text-sm">
-								Interest Tags (Comma-separated)
+								Interest Tags
 							</Label>
-							<Input
-								id="interestTags"
-								value={interestTagsInput}
-								onChange={(e) => setInterestTagsInput(e.target.value)}
-								placeholder="Enterprise Clients, Distributors, Direct Buyers"
+							<MultiSelectLegacy
+								options={(availableTags?.interest_tags || []).map((t) => ({
+									label: t,
+									value: t,
+								}))}
+								selected={interestTags}
+								onChange={setInterestTags}
+								placeholder={
+									isTagsLoading
+										? "Loading tags..."
+										: (availableTags?.interest_tags || []).length === 0
+											? "No tags configured yet by the event admin"
+											: "Select interest tags"
+								}
 							/>
-							<span className="text-xs text-muted-foreground">
-								Tags describing what you are looking for. Separate multiple tags with a comma.
+							<span className="text-muted-foreground text-xs">
+								Tags describing what you are looking for, chosen from the
+								event's approved list.
 							</span>
 						</div>
 					</CardContent>

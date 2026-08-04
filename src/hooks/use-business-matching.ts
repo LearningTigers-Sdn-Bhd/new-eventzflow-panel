@@ -1,29 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
+	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
 	type CreateHostRequest,
+	type CreateSessionRequest,
 	createAndAssignHost,
 	createBooking,
+	createBusinessMatchingSession,
+	deleteBusinessMatchingSession,
 	getAvailability,
 	getBookings,
 	getBusinessMatchingEvents,
+	getBusinessMatchingTags,
 	getDetailedSlots,
-	removeHost,
-	type UpdateBookingRequest,
-	updateBooking,
-	createBusinessMatchingSession,
-	updateBusinessMatchingSession,
-	deleteBusinessMatchingSession,
-	type CreateSessionRequest,
 	getPortalData,
-	updatePortalProfile,
 	getPortalMatches,
+	getPortalTags,
+	getSessionAvailabilities,
+	removeHost,
 	requestPortalBooking,
 	respondPortalBooking,
-	getSessionAvailabilities,
+	type UpdateBookingRequest,
+	type UpdateTagsRequest,
+	updateBooking,
+	updateBusinessMatchingSession,
+	updateBusinessMatchingTags,
+	updatePortalProfile,
 	updateSessionAvailabilities,
-	type BusinessMatchingAvailabilityRecord,
 } from "@/lib/api/business-matching";
 
 export const useRemoveHost = (eventId: string) => {
@@ -360,6 +364,41 @@ export const useDeleteBusinessMatchingSession = (eventId: string) => {
 	});
 };
 
+export const useBusinessMatchingTags = (eventId: string) => {
+	return useQuery({
+		queryKey: ["business-matching-tags", eventId],
+		queryFn: () => getBusinessMatchingTags(eventId),
+		enabled: !!eventId,
+	});
+};
+
+export const useUpdateBusinessMatchingTags = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: UpdateTagsRequest) =>
+			updateBusinessMatchingTags(eventId, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-tags", eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["host-profile", eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const usePortalTags = (token: string) => {
+	return useQuery({
+		queryKey: ["business-matching-portal-tags", token],
+		queryFn: () => getPortalTags(token),
+		enabled: !!token,
+	});
+};
+
 export const usePortalData = (token: string) => {
 	return useQuery({
 		queryKey: ["business-matching-portal", token],
@@ -443,7 +482,10 @@ export const useSessionAvailabilities = (sessionId: string) => {
 	});
 };
 
-export const useUpdateSessionAvailabilities = (sessionId: string, eventId: string) => {
+export const useUpdateSessionAvailabilities = (
+	sessionId: string,
+	eventId: string,
+) => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({
@@ -466,5 +508,3 @@ export const useUpdateSessionAvailabilities = (sessionId: string, eventId: strin
 		},
 	});
 };
-
-

@@ -8,6 +8,8 @@ export interface BusinessMatchingEvent {
 	location: string;
 	admin_email: string;
 	admin_wa_number: string;
+	start_date?: string;
+	end_date?: string;
 	offering_tags?: string[];
 	interest_tags?: string[];
 	created_at?: string;
@@ -361,7 +363,9 @@ export interface PublicBookingInfo {
 /**
  * Fetch public booking info for reschedule (no auth required)
  */
-export async function getPublicBookingInfo(bookingId: string): Promise<PublicBookingInfo> {
+export async function getPublicBookingInfo(
+	bookingId: string,
+): Promise<PublicBookingInfo> {
 	return publicRestClient.get<PublicBookingInfo>(
 		`v1/business_matching/bookings/${bookingId}/public`,
 	);
@@ -392,7 +396,6 @@ export async function cancelBooking(
 	);
 }
 
-
 export interface CreateSessionRequest {
 	title: string;
 	slot_duration: number;
@@ -401,6 +404,8 @@ export interface CreateSessionRequest {
 	admin_wa_number?: string;
 	start_time?: string;
 	end_time?: string;
+	start_date?: string;
+	end_date?: string;
 }
 
 export async function createBusinessMatchingSession(
@@ -560,4 +565,45 @@ export async function updateHostProfile(
 ): Promise<HostProfile> {
 	const url = `v1/business_matching/events/${eventId}/host_profile`;
 	return restClient.put<HostProfile>(url, data);
+}
+
+export interface BusinessMatchingTags {
+	offering_tags: string[];
+	interest_tags: string[];
+}
+
+export interface TagRename {
+	from: string;
+	to: string;
+}
+
+export interface UpdateTagsRequest {
+	offering_tags?: string[];
+	interest_tags?: string[];
+	renamed_offering_tags?: TagRename[];
+	renamed_interest_tags?: TagRename[];
+}
+
+// Admin-only: view/manage the event's curated tag list (org_owner, organizer, event_admin).
+export async function getBusinessMatchingTags(
+	eventId: string,
+): Promise<BusinessMatchingTags> {
+	const url = `v1/business_matching/events/${eventId}/tags`;
+	return restClient.get<BusinessMatchingTags>(url);
+}
+
+export async function updateBusinessMatchingTags(
+	eventId: string,
+	data: UpdateTagsRequest,
+): Promise<BusinessMatchingTags> {
+	const url = `v1/business_matching/events/${eventId}/tags`;
+	return restClient.put<BusinessMatchingTags>(url, data);
+}
+
+// Attendee portal (magic token): read-only, the tag list they may pick from.
+export async function getPortalTags(
+	token: string,
+): Promise<BusinessMatchingTags> {
+	const url = `v1/business_matching/portal/tags?token=${encodeURIComponent(token)}`;
+	return publicRestClient.get<BusinessMatchingTags>(url);
 }

@@ -1,18 +1,17 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Calendar, Clock, MapPin, User, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
-
+import { Calendar, Clock, MapPin, Pencil, User } from "lucide-react";
+import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
+import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import AttachHostDialog from "./attach-host-dialog";
-import AvailabilityDialog from "./availability-dialog";
-import BookingsDialog from "./bookings-dialog";
-import HostDetailsDialog from "./host-details-dialog";
 import CreateSessionDialog from "./create-session-dialog";
+import HostDetailsDialog from "./host-details-dialog";
+import SessionActivityDialog from "./session-activity-dialog";
 
 export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	{
@@ -23,9 +22,11 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			const offeringTags = event.offering_tags || [];
 			return (
 				<div className="flex flex-col gap-1 py-1 max-w-[280px]">
-					<span className={`font-semibold text-foreground leading-snug break-words block ${
-						event.title.length > 40 ? "text-xs" : "text-sm"
-					}`}>
+					<span
+						className={`font-semibold text-foreground leading-snug break-words block ${
+							event.title.length > 40 ? "text-xs" : "text-sm"
+						}`}
+					>
 						{event.title}
 					</span>
 					{event.location && (
@@ -34,23 +35,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 							{event.location}
 						</span>
 					)}
-					{offeringTags.length > 0 && (
-						<div className="flex flex-wrap gap-1 mt-1">
-							{offeringTags.slice(0, 3).map((tag) => (
-								<span
-									key={tag}
-									className="inline-flex items-center rounded bg-primary/5 px-1.5 py-0.5 text-[9px] font-medium text-primary border border-primary/10"
-								>
-									{tag}
-								</span>
-							))}
-							{offeringTags.length > 3 && (
-								<span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
-									+{offeringTags.length - 3}
-								</span>
-							)}
-						</div>
-					)}
+					<ExpandableTags tags={offeringTags} limit={3} className="mt-1" />
 				</div>
 			);
 		},
@@ -130,14 +115,14 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 							type="button"
 							onClick={() => {
 								openDialog({
-									component: BookingsDialog,
+									component: SessionActivityDialog,
 									props: {
 										bmEventId: event.id,
 										eventId: event.event_id,
 									},
 									config: {
-										title: `Bookings for ${event.title}`,
-										size: "4xl",
+										title: `Bookings & Availability for ${event.title}`,
+										size: "5xl",
 									},
 								});
 							}}
@@ -149,13 +134,18 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 					{event.created_at && (
 						<div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
 							<Calendar className="h-3 w-3 shrink-0" />
-							<span>Created: {format(parseISO(event.created_at), "dd MMM yyyy")}</span>
+							<span>
+								Created: {format(parseISO(event.created_at), "dd MMM yyyy")}
+							</span>
 						</div>
 					)}
 					{event.updated_at && (
 						<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
 							<Clock className="h-3 w-3 shrink-0" />
-							<span>Updated: {format(parseISO(event.updated_at), "dd MMM yyyy, h:mm a")}</span>
+							<span>
+								Updated:{" "}
+								{format(parseISO(event.updated_at), "dd MMM yyyy, h:mm a")}
+							</span>
 						</div>
 					)}
 				</div>
@@ -169,6 +159,8 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			const { openDialog } = useDialog();
 			const { canManageEvent } = useEventPermissions(row.original.event_id);
 
+			if (!canManageEvent) return null;
+
 			return (
 				<div className="flex gap-1.5 py-1">
 					<Button
@@ -176,46 +168,22 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 						size="icon"
 						onClick={() => {
 							openDialog({
-								component: AvailabilityDialog,
+								component: CreateSessionDialog,
 								props: {
-									bmEventId: row.original.id,
 									eventId: row.original.event_id,
-									eventTitle: row.original.title,
+									session: row.original,
 								},
 								config: {
-									title: `Availability for ${row.original.title}`,
-									size: "3xl",
+									title: `Edit "${row.original.title}"`,
+									size: "2xl",
 								},
 							});
 						}}
 						className="h-8 w-8"
-						title="Availability"
+						title="Edit"
 					>
-						<Calendar className="h-4 w-4" />
+						<Pencil className="h-4 w-4" />
 					</Button>
-					{canManageEvent && (
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={() => {
-								openDialog({
-									component: CreateSessionDialog,
-									props: {
-										eventId: row.original.event_id,
-										session: row.original,
-									},
-									config: {
-										title: `Edit "${row.original.title}"`,
-										size: "lg",
-									},
-								});
-							}}
-							className="h-8 w-8"
-							title="Edit"
-						>
-							<Pencil className="h-4 w-4" />
-						</Button>
-					)}
 				</div>
 			);
 		},

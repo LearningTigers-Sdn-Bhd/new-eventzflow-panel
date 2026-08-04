@@ -1,26 +1,32 @@
+import { Loader2, Trash2 } from "lucide-react";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2 } from "lucide-react";
-import { useDialog } from "@/hooks/use-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useCreateBusinessMatchingSession,
-	useUpdateBusinessMatchingSession,
 	useDeleteBusinessMatchingSession,
+	useUpdateBusinessMatchingSession,
 } from "@/hooks/use-business-matching";
+import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import ManageAvailabilityHours from "./manage-availability-hours";
 
 interface CreateSessionDialogProps {
 	eventId: string;
 	session?: BusinessMatchingEvent; // If provided, edit mode
+	eventStartDate?: string; // Prefill only — the session's range can differ from the event's
+	eventEndDate?: string;
 }
 
 const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	eventId,
 	session,
+	eventStartDate,
+	eventEndDate,
 }) => {
 	const { closeDialog } = useDialog();
 	const isEditMode = !!session;
@@ -37,9 +43,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const handleDelete = () => {
 		if (!session) return;
 		if (
-			confirm(
-				`Are you sure you want to delete session "${session.title}"?`,
-			)
+			confirm(`Are you sure you want to delete session "${session.title}"?`)
 		) {
 			deleteSession(session.id, {
 				onSuccess: () => {
@@ -62,6 +66,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const [adminWaNumber, setAdminWaNumber] = useState("");
 	const [startTime, setStartTime] = useState("09:00");
 	const [endTime, setEndTime] = useState("17:00");
+	const [startDate, setStartDate] = useState(
+		eventStartDate?.slice(0, 10) || "",
+	);
+	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
 
 	useEffect(() => {
 		if (session) {
@@ -70,6 +78,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setLocation(session.location || "");
 			setAdminEmail(session.admin_email || "");
 			setAdminWaNumber(session.admin_wa_number || "");
+			setStartDate(session.start_date?.slice(0, 10) || "");
+			setEndDate(session.end_date?.slice(0, 10) || "");
 			// Optional start/end time pre-fill (default 9-5)
 			// (If backend returned them we could parse them, otherwise fallbacks are fine)
 		}
@@ -81,6 +91,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			toast.error("Session Title is required.");
 			return;
 		}
+		if (startDate && endDate && endDate < startDate) {
+			toast.error("End date must be on or after the start date.");
+			return;
+		}
 
 		const payload = {
 			title,
@@ -90,6 +104,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			admin_wa_number: adminWaNumber,
 			start_time: startTime,
 			end_time: endTime,
+			...(startDate && { start_date: startDate }),
+			...(endDate && { end_date: endDate }),
 		};
 
 		if (isEditMode && session) {
@@ -122,7 +138,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		}
 	};
 
-	return (
+	const detailsForm = (
 		<form onSubmit={handleSubmit} className="space-y-4 py-2">
 			<div className="space-y-2">
 				<Label htmlFor="session-title">Session Title *</Label>
@@ -189,6 +205,33 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
+					<Label htmlFor="session-start-date">Session Start Date</Label>
+					<Input
+						id="session-start-date"
+						type="date"
+						value={startDate}
+						onChange={(e) => setStartDate(e.target.value)}
+						disabled={isPending}
+					/>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="session-end-date">Session End Date</Label>
+					<Input
+						id="session-end-date"
+						type="date"
+						value={endDate}
+						onChange={(e) => setEndDate(e.target.value)}
+						disabled={isPending}
+					/>
+				</div>
+				<p className="col-span-2 -mt-2 text-muted-foreground text-xs">
+					Defaults to the event's dates, but can be set entirely before or after
+					the event period.
+				</p>
+			</div>
+
+			<div className="grid grid-cols-2 gap-4">
+				<div className="space-y-2">
 					<Label htmlFor="session-email">Admin Contact Email</Label>
 					<Input
 						id="session-email"
@@ -211,7 +254,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 				</div>
 			</div>
 
-			<div className="flex justify-between items-center pt-4">
+			<div className="flex items-center justify-between pt-4">
 				{isEditMode && session && (
 					<Button
 						type="button"
@@ -227,7 +270,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						Delete Session
 					</Button>
 				)}
-				<div className="flex gap-2 ml-auto">
+				<div className="ml-auto flex gap-2">
 					<Button
 						type="button"
 						variant="outline"
@@ -245,6 +288,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 				</div>
 			</div>
 		</form>
+	);
+
+	if (!isEditMode || !session) {
+		return detailsForm;
+	}
+
+	return (
+		<Tabs defaultValue="details" className="w-full">
+			<TabsList className="mb-4 grid w-full grid-cols-2">
+				<TabsTrigger value="details">Session Details</TabsTrigger>
+				<TabsTrigger value="hours">Manage Hours</TabsTrigger>
+			</TabsList>
+			<TabsContent value="details">{detailsForm}</TabsContent>
+			<TabsContent value="hours">
+				<ManageAvailabilityHours sessionId={session.id} eventId={eventId} />
+			</TabsContent>
+		</Tabs>
 	);
 };
 

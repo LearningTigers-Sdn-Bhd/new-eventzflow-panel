@@ -33,13 +33,11 @@ import { BusinessMatchingItem } from "./business-matching-item";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	actions?: React.ReactNode; // Add actions prop
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	actions,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -118,7 +116,6 @@ export function DataTable<TData, TValue>({
 							</select>
 						</div>
 					)}
-					{actions && <div className="shrink-0">{actions}</div>}
 				</div>
 			</div>
 

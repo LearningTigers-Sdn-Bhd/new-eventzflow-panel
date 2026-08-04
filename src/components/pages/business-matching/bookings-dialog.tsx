@@ -134,7 +134,7 @@ export default function BookingsDialog({
 		});
 
 	return (
-		<div className="mx-auto flex h-[70vh] w-full max-w-4xl flex-col p-1">
+		<div className="flex h-[65vh] w-full flex-col p-1">
 			<div className="mb-2 px-1">
 				<Input
 					placeholder="Search bookings..."

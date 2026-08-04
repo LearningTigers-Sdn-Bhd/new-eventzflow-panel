@@ -1,26 +1,21 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import {
-	Loader2,
-	User,
-	Tags,
-	Calendar,
-	CheckCircle,
-	XCircle,
-	ArrowRightLeft,
-	HelpCircle,
-	Clock,
 	Briefcase,
-	MessageSquare,
+	Calendar,
+	Clock,
+	HelpCircle,
+	Loader2,
 	Sparkles,
+	Tags,
+	User,
+	XCircle,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Card,
 	CardContent,
@@ -28,13 +23,17 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	usePortalData,
 	usePortalMatches,
-	useUpdatePortalProfile,
+	usePortalTags,
 	useRequestPortalBooking,
 	useRespondPortalBooking,
+	useUpdatePortalProfile,
 } from "@/hooks/use-business-matching";
 
 interface AttendeePortalPageProps {
@@ -43,13 +42,17 @@ interface AttendeePortalPageProps {
 	}>;
 }
 
-export default function AttendeePortalPage({ params }: AttendeePortalPageProps) {
+export default function AttendeePortalPage({
+	params,
+}: AttendeePortalPageProps) {
 	const { event_id } = use(params);
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token") || "";
 
 	const { data: portalData, isLoading: isPortalLoading } = usePortalData(token);
-	const { data: matches, isLoading: isMatchesLoading } = usePortalMatches(token);
+	const { data: matches, isLoading: isMatchesLoading } =
+		usePortalMatches(token);
+	const { data: eventTags } = usePortalTags(token);
 
 	const { mutate: updateProfile, isPending: isUpdatingProfile } =
 		useUpdatePortalProfile(token);
@@ -57,26 +60,41 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 		useRequestPortalBooking(token);
 	const { mutate: respondBooking } = useRespondPortalBooking(token);
 
+	const availableOfferingTags = eventTags?.offering_tags || [];
+	const availableInterestTags = eventTags?.interest_tags || [];
+	const hasAnyTagsConfigured =
+		availableOfferingTags.length > 0 || availableInterestTags.length > 0;
+
 	// Onboarding wizard states
 	const [showOnboarding, setShowOnboarding] = useState(false);
 	const [onboardingStep, setOnboardingStep] = useState(1);
 	const [onboardingOfferings, setOnboardingOfferings] = useState<string[]>([]);
 	const [onboardingInterests, setOnboardingInterests] = useState<string[]>([]);
 
-	// Trigger onboarding if user has no tags configured yet
+	// Trigger onboarding if user has no tags configured yet (and there's
+	// actually something for them to pick from)
 	useEffect(() => {
 		if (
 			portalData?.participant &&
 			portalData.participant.offering_tags.length === 0 &&
-			portalData.participant.interest_tags.length === 0
+			portalData.participant.interest_tags.length === 0 &&
+			hasAnyTagsConfigured
 		) {
 			setShowOnboarding(true);
 		}
-	}, [portalData]);
+	}, [portalData, hasAnyTagsConfigured]);
 
-	// Tags inputs state
-	const [offeringInput, setOfferingInput] = useState("");
-	const [interestInput, setInterestInput] = useState("");
+	// Tags selection state
+	const [offeringTags, setOfferingTags] = useState<string[]>([]);
+	const [interestTags, setInterestTags] = useState<string[]>([]);
+
+	// Seed tag selections once the participant's saved profile loads
+	useEffect(() => {
+		if (portalData?.participant) {
+			setOfferingTags(portalData.participant.offering_tags || []);
+			setInterestTags(portalData.participant.interest_tags || []);
+		}
+	}, [portalData]);
 
 	// Active tab
 	const [activeTab, setActiveTab] = useState("schedule");
@@ -96,8 +114,8 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 							Invalid or Missing Link
 						</CardTitle>
 						<CardDescription>
-							Please use the personalized magic link sent to your registered email
-							or WhatsApp to access your matchmaking portal.
+							Please use the personalized magic link sent to your registered
+							email or WhatsApp to access your matchmaking portal.
 						</CardDescription>
 					</CardHeader>
 				</Card>
@@ -118,14 +136,6 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 
 	const handleUpdateTags = (e: React.FormEvent) => {
 		e.preventDefault();
-		const offeringTags = offeringInput
-			.split(",")
-			.map((t) => t.trim())
-			.filter(Boolean);
-		const interestTags = interestInput
-			.split(",")
-			.map((t) => t.trim())
-			.filter(Boolean);
 
 		updateProfile(
 			{ offeringTags, interestTags },
@@ -141,12 +151,6 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 			},
 		);
 	};
-
-	// Initialize inputs when data loads
-	if (participant && offeringInput === "" && interestInput === "") {
-		setOfferingInput(participant.offering_tags.join(", "));
-		setInterestInput(participant.interest_tags.join(", "));
-	}
 
 	const handleSendRequest = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -213,7 +217,7 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 						</p>
 					</div>
 				</div>
-				<div className="rounded-full bg-green-500/10 px-3 py-1 font-medium text-green-500 text-xs self-start md:self-auto">
+				<div className="self-start rounded-full bg-green-500/10 px-3 py-1 font-medium text-green-500 text-xs md:self-auto">
 					Active Matchmaking Participant
 				</div>
 			</div>
@@ -228,19 +232,19 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 									<Tags className="h-5 w-5 text-primary" />
 									Matching Tags
 								</span>
-								<Button 
-									type="button" 
-									variant="outline" 
-									size="sm" 
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
 									onClick={() => {
 										setOnboardingOfferings(participant?.offering_tags || []);
 										setOnboardingInterests(participant?.interest_tags || []);
 										setOnboardingStep(1);
 										setShowOnboarding(true);
 									}}
-									className="gap-1 text-xs px-2 h-7"
+									className="h-7 gap-1 px-2 text-xs"
 								>
-									<Sparkles className="h-3 w-3 text-primary animate-pulse" />
+									<Sparkles className="h-3 w-3 animate-pulse text-primary" />
 									Wizard
 								</Button>
 							</CardTitle>
@@ -253,30 +257,38 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 							<form onSubmit={handleUpdateTags} className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="offering-tags">What I Have (Offering)</Label>
-									<Input
-										id="offering-tags"
-										value={offeringInput}
-										onChange={(e) => setOfferingInput(e.target.value)}
-										placeholder="e.g. SaaS, Consulting, Seed Fund (comma separated)"
-										disabled={isUpdatingProfile}
+									<MultiSelectLegacy
+										options={availableOfferingTags.map((t) => ({
+											label: t,
+											value: t,
+										}))}
+										selected={offeringTags}
+										onChange={setOfferingTags}
+										placeholder={
+											availableOfferingTags.length === 0
+												? "No tags configured yet by the event organizer"
+												: "Select what you offer"
+										}
 									/>
-									<span className="text-muted-foreground text-xs block">
-										Separate tags with commas.
-									</span>
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="interest-tags">What I Seek (Looking For)</Label>
-									<Input
-										id="interest-tags"
-										value={interestInput}
-										onChange={(e) => setInterestInput(e.target.value)}
-										placeholder="e.g. Clients, Developers, Investors (comma separated)"
-										disabled={isUpdatingProfile}
+									<Label htmlFor="interest-tags">
+										What I Seek (Looking For)
+									</Label>
+									<MultiSelectLegacy
+										options={availableInterestTags.map((t) => ({
+											label: t,
+											value: t,
+										}))}
+										selected={interestTags}
+										onChange={setInterestTags}
+										placeholder={
+											availableInterestTags.length === 0
+												? "No tags configured yet by the event organizer"
+												: "Select what you're seeking"
+										}
 									/>
-									<span className="text-muted-foreground text-xs block">
-										Separate tags with commas.
-									</span>
 								</div>
 
 								<Button
@@ -302,8 +314,12 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 						className="space-y-4"
 					>
 						<TabsList className="grid w-full grid-cols-2">
-							<TabsTrigger value="schedule">My Schedule ({bookings.length})</TabsTrigger>
-							<TabsTrigger value="matches">Find Matches ({matches?.length || 0})</TabsTrigger>
+							<TabsTrigger value="schedule">
+								My Schedule ({bookings.length})
+							</TabsTrigger>
+							<TabsTrigger value="matches">
+								Find Matches ({matches?.length || 0})
+							</TabsTrigger>
 						</TabsList>
 
 						{/* Schedule Tab */}
@@ -312,21 +328,25 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 								<Card className="py-12 text-center">
 									<CardContent className="space-y-3">
 										<Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
-										<p className="font-semibold text-lg">No meetings scheduled yet</p>
-										<p className="text-muted-foreground text-sm max-w-sm mx-auto">
-											Browse the &quot;Find Matches&quot; tab to send meeting requests to other
-											exhibitors and visitors.
+										<p className="font-semibold text-lg">
+											No meetings scheduled yet
+										</p>
+										<p className="mx-auto max-w-sm text-muted-foreground text-sm">
+											Browse the &quot;Find Matches&quot; tab to send meeting
+											requests to other exhibitors and visitors.
 										</p>
 									</CardContent>
 								</Card>
 							) : (
 								bookings.map((booking) => {
 									const isRequester = booking.requester.id === participant?.id;
-									const partner = isRequester ? booking.receiver : booking.requester;
+									const partner = isRequester
+										? booking.receiver
+										: booking.requester;
 									return (
 										<Card key={booking.id} className="relative overflow-hidden">
 											<div
-												className={`absolute top-0 left-0 bottom-0 w-2 ${
+												className={`absolute top-0 bottom-0 left-0 w-2 ${
 													booking.status === "Approved"
 														? "bg-green-500"
 														: booking.status === "Pending"
@@ -334,9 +354,11 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 															: "bg-red-500"
 												}`}
 											/>
-											<CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between ml-2">
+											<CardContent className="ml-2 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
 												<div className="space-y-1">
-													<p className="font-semibold text-lg">{partner.name}</p>
+													<p className="font-semibold text-lg">
+														{partner.name}
+													</p>
 													<p className="text-muted-foreground text-sm">
 														{partner.company} ({partner.role})
 													</p>
@@ -352,9 +374,9 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 													</div>
 												</div>
 
-												<div className="flex flex-col gap-2 self-start sm:self-auto min-w-[120px]">
+												<div className="flex min-w-[120px] flex-col gap-2 self-start sm:self-auto">
 													<span
-														className={`inline-block rounded-full px-2 py-0.5 text-center font-medium text-xs self-start sm:self-auto ${
+														className={`inline-block self-start rounded-full px-2 py-0.5 text-center font-medium text-xs sm:self-auto ${
 															booking.status === "Approved"
 																? "bg-green-500/10 text-green-500"
 																: booking.status === "Pending"
@@ -366,19 +388,23 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 													</span>
 
 													{!isRequester && booking.status === "Pending" && (
-														<div className="flex gap-2 mt-2">
+														<div className="mt-2 flex gap-2">
 															<Button
 																size="xs"
-																onClick={() => handleRespond(booking.id, "accept")}
-																className="bg-green-600 hover:bg-green-700 h-8"
+																onClick={() =>
+																	handleRespond(booking.id, "accept")
+																}
+																className="h-8 bg-green-600 hover:bg-green-700"
 															>
 																Accept
 															</Button>
 															<Button
 																size="xs"
 																variant="outline"
-																onClick={() => handleRespond(booking.id, "decline")}
-																className="text-red-500 hover:text-red-600 h-8"
+																onClick={() =>
+																	handleRespond(booking.id, "decline")
+																}
+																className="h-8 text-red-500 hover:text-red-600"
 															>
 																Decline
 															</Button>
@@ -395,26 +421,32 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 						{/* Matches Recommendations Tab */}
 						<TabsContent value="matches" className="space-y-4">
 							{isMatchesLoading ? (
-								<div className="flex py-10 justify-center">
+								<div className="flex justify-center py-10">
 									<Loader2 className="h-8 w-8 animate-spin text-primary" />
 								</div>
 							) : !matches || matches.length === 0 ? (
 								<Card className="py-12 text-center">
 									<CardContent className="space-y-3">
 										<HelpCircle className="mx-auto h-12 w-12 text-muted-foreground" />
-										<p className="font-semibold text-lg">No matching partners found</p>
-										<p className="text-muted-foreground text-sm max-w-sm mx-auto">
-											Try adding more keywords or tags to your &quot;What I Have&quot; and &quot;What I Seek&quot; profiles to generate recommendations.
+										<p className="font-semibold text-lg">
+											No matching partners found
+										</p>
+										<p className="mx-auto max-w-sm text-muted-foreground text-sm">
+											Try adding more keywords or tags to your &quot;What I
+											Have&quot; and &quot;What I Seek&quot; profiles to
+											generate recommendations.
 										</p>
 									</CardContent>
 								</Card>
 							) : (
 								matches.map((item) => (
 									<Card key={item.participant.id} className="relative">
-										<CardContent className="p-6 space-y-4">
+										<CardContent className="space-y-4 p-6">
 											<div className="flex items-start justify-between">
 												<div>
-													<h3 className="font-bold text-lg">{item.participant.name}</h3>
+													<h3 className="font-bold text-lg">
+														{item.participant.name}
+													</h3>
 													<p className="text-muted-foreground text-sm">
 														{item.participant.company} ({item.participant.role})
 													</p>
@@ -425,9 +457,9 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 											</div>
 
 											{/* Tags Grid */}
-											<div className="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2 text-xs">
+											<div className="grid grid-cols-1 gap-2 pt-2 text-xs sm:grid-cols-2">
 												<div>
-													<span className="font-medium text-muted-foreground block mb-1">
+													<span className="mb-1 block font-medium text-muted-foreground">
 														Offering:
 													</span>
 													<div className="flex flex-wrap gap-1">
@@ -440,12 +472,14 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 															</span>
 														))}
 														{item.participant.offering_tags.length === 0 && (
-															<span className="text-muted-foreground italic">None listed</span>
+															<span className="text-muted-foreground italic">
+																None listed
+															</span>
 														)}
 													</div>
 												</div>
 												<div>
-													<span className="font-medium text-muted-foreground block mb-1">
+													<span className="mb-1 block font-medium text-muted-foreground">
 														Seeking:
 													</span>
 													<div className="flex flex-wrap gap-1">
@@ -458,7 +492,9 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 															</span>
 														))}
 														{item.participant.interest_tags.length === 0 && (
-															<span className="text-muted-foreground italic">None listed</span>
+															<span className="text-muted-foreground italic">
+																None listed
+															</span>
 														)}
 													</div>
 												</div>
@@ -467,9 +503,11 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 											{selectedMatchId === item.participant.id ? (
 												<form
 													onSubmit={handleSendRequest}
-													className="border-t pt-4 space-y-4"
+													className="space-y-4 border-t pt-4"
 												>
-													<p className="font-semibold text-sm">Schedule Meeting Slot</p>
+													<p className="font-semibold text-sm">
+														Schedule Meeting Slot
+													</p>
 													<div className="grid grid-cols-2 gap-4">
 														<div className="space-y-1">
 															<Label htmlFor="date">Select Date</Label>
@@ -493,7 +531,7 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 															/>
 														</div>
 													</div>
-													<div className="flex gap-2 justify-end">
+													<div className="flex justify-end gap-2">
 														<Button
 															type="button"
 															variant="outline"
@@ -502,7 +540,10 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 														>
 															Cancel
 														</Button>
-														<Button type="submit" disabled={isBookingRequestPending}>
+														<Button
+															type="submit"
+															disabled={isBookingRequestPending}
+														>
 															{isBookingRequestPending && (
 																<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 															)}
@@ -513,7 +554,9 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 											) : (
 												<div className="pt-2">
 													<Button
-														onClick={() => setSelectedMatchId(item.participant.id)}
+														onClick={() =>
+															setSelectedMatchId(item.participant.id)
+														}
 														className="w-full sm:w-auto"
 													>
 														Request 1-on-1 Meeting
@@ -530,29 +573,31 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 			</div>
 
 			{showOnboarding && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-					<Card className="w-full max-w-lg border-2 shadow-2xl relative overflow-hidden bg-card">
-						<div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10" />
-						
-						<CardHeader className="text-center pt-8">
-							<div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-3">
-								<Sparkles className="h-6 w-6 text-primary animate-pulse" />
+				<div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center bg-background/80 p-4 backdrop-blur-md duration-300">
+					<Card className="relative w-full max-w-lg overflow-hidden border-2 bg-card shadow-2xl">
+						<div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+						<CardHeader className="pt-8 text-center">
+							<div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+								<Sparkles className="h-6 w-6 animate-pulse text-primary" />
 							</div>
-							<CardTitle className="text-2xl font-bold">
-								{onboardingStep === 1 ? "What do you offer?" : "What are you looking for?"}
+							<CardTitle className="font-bold text-2xl">
+								{onboardingStep === 1
+									? "What do you offer?"
+									: "What are you looking for?"}
 							</CardTitle>
 							<CardDescription className="text-sm">
-								{onboardingStep === 1 
-									? "Select what tags describe your products, services, or expertise." 
+								{onboardingStep === 1
+									? "Select what tags describe your products, services, or expertise."
 									: "Select what tags describe your interests, needs, or targets."}
 							</CardDescription>
 						</CardHeader>
-						
+
 						<CardContent className="py-4">
 							{onboardingStep === 1 ? (
 								<div className="space-y-4">
-									<div className="flex flex-wrap gap-2 justify-center py-2">
-										{["Fintech Core", "Cybersecurity SaaS", "Generative AI API", "AI Diagnostics", "IoT Fleet Tech", "No-Code Builder", "Pre-Seed Fund", "Seed Venture Capital", "Series A Equity", "Senior Ruby Developer", "React Frontend Engineer", "AI Researcher", "Product Manager"].map((tag) => {
+									<div className="flex flex-wrap justify-center gap-2 py-2">
+										{availableOfferingTags.map((tag) => {
 											const selected = onboardingOfferings.includes(tag);
 											return (
 												<Button
@@ -560,11 +605,13 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 													type="button"
 													variant={selected ? "default" : "outline"}
 													onClick={() => {
-														setOnboardingOfferings(prev => 
-															prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+														setOnboardingOfferings((prev) =>
+															prev.includes(tag)
+																? prev.filter((t) => t !== tag)
+																: [...prev, tag],
 														);
 													}}
-													className="rounded-full text-sm font-medium transition hover:scale-105"
+													className="rounded-full font-medium text-sm transition hover:scale-105"
 												>
 													{tag}
 												</Button>
@@ -574,8 +621,8 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 								</div>
 							) : (
 								<div className="space-y-4">
-									<div className="flex flex-wrap gap-2 justify-center py-2">
-										{["Enterprise Partners", "B2B Sales Leads", "API Integrators", "AI Startups", "Fintech Disruptors", "Seed Teams", "Full-time Position", "Remote Contracts", "Co-Founder Match", "VC Investment", "Series A Fund"].map((tag) => {
+									<div className="flex flex-wrap justify-center gap-2 py-2">
+										{availableInterestTags.map((tag) => {
 											const selected = onboardingInterests.includes(tag);
 											return (
 												<Button
@@ -583,11 +630,13 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 													type="button"
 													variant={selected ? "default" : "outline"}
 													onClick={() => {
-														setOnboardingInterests(prev => 
-															prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+														setOnboardingInterests((prev) =>
+															prev.includes(tag)
+																? prev.filter((t) => t !== tag)
+																: [...prev, tag],
 														);
 													}}
-													className="rounded-full text-sm font-medium transition hover:scale-105"
+													className="rounded-full font-medium text-sm transition hover:scale-105"
 												>
 													{tag}
 												</Button>
@@ -597,8 +646,8 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 								</div>
 							)}
 						</CardContent>
-						
-						<div className="flex justify-between border-t p-6 bg-muted/30">
+
+						<div className="flex justify-between border-t bg-muted/30 p-6">
 							<Button
 								variant="ghost"
 								onClick={() => {
@@ -611,11 +660,14 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 							>
 								{onboardingStep === 1 ? "Skip" : "Back"}
 							</Button>
-							
+
 							{onboardingStep === 1 ? (
 								<Button
 									onClick={() => setOnboardingStep(2)}
-									disabled={onboardingOfferings.length === 0}
+									disabled={
+										availableOfferingTags.length > 0 &&
+										onboardingOfferings.length === 0
+									}
 									className="px-6"
 								>
 									Next Step
@@ -630,19 +682,27 @@ export default function AttendeePortalPage({ params }: AttendeePortalPageProps) 
 											},
 											{
 												onSuccess: () => {
-													toast.success("Profile saved! Finding your matches...");
+													toast.success(
+														"Profile saved! Finding your matches...",
+													);
 													setShowOnboarding(false);
 												},
 												onError: (err) => {
-													toast.error("Failed to save profile: " + err.message);
-												}
-											}
+													toast.error(`Failed to save profile: ${err.message}`);
+												},
+											},
 										);
 									}}
-									disabled={onboardingInterests.length === 0 || isUpdatingProfile}
+									disabled={
+										(availableInterestTags.length > 0 &&
+											onboardingInterests.length === 0) ||
+										isUpdatingProfile
+									}
 									className="px-6"
 								>
-									{isUpdatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+									{isUpdatingProfile && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
 									Find Matches
 								</Button>
 							)}
