@@ -132,7 +132,11 @@ const visible = {
 		visible.hasExhibitorKit(p, e),
 	businessMatchingAccess: (p: Permissions, e?: Event) =>
 		e?.use_business_matching === true &&
-		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner || p.isBusinessHost),
+		(p.isEventAdmin ||
+			p.isOrganizer ||
+			p.isEventStaff ||
+			p.isOrgOwner ||
+			p.isBusinessHost),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
 	// photoBoothAccess: (p: Permissions, e?: Event) =>
@@ -144,7 +148,7 @@ const visible = {
 // MENU CONFIGURATION
 // ============================================================================
 
-export const eventMenuConfig: EventMenuConfig = {
+const rawEventMenuConfig: EventMenuConfig = {
 	/** Tabs that are always visible to all users */
 	standalone: [
 		{
@@ -592,6 +596,54 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 	],
 } as const;
+
+// ============================================================================
+// BUSINESS HOST LOCKDOWN
+// ============================================================================
+// A user invited purely as a business host (no other staff/admin/vendor
+// standing on this event) should only ever see "Business Matching" and
+// "Host Profile" — not whatever any individual tab's own `visible` check
+// happens to allow. Patching every existing (and future) predicate
+// individually is exactly how gaps like the Tickets group leaking through
+// to business hosts happened, so this wraps the whole config once instead.
+const BUSINESS_HOST_ALLOWED_ROUTES = new Set([
+	"business-matching",
+	"host-profile",
+]);
+
+const isPureBusinessHost = (p: Permissions) =>
+	(p.isBusinessHost ?? false) &&
+	!(p.isOrgOwner ?? false) &&
+	!(p.isOrganizer ?? false) &&
+	!(p.isEventAdmin ?? false) &&
+	!(p.isEventTeamMember ?? false) &&
+	!(p.isEventVendor ?? false) &&
+	!(p.isExhibitionContractor ?? false);
+
+function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
+	const guardItem = (item: EventMenuItem): EventMenuItem => ({
+		...item,
+		visible: (p: Permissions, e?: Event) =>
+			isPureBusinessHost(p)
+				? BUSINESS_HOST_ALLOWED_ROUTES.has(item.route)
+				: (item.visible?.(p, e) ?? true),
+	});
+
+	return {
+		standalone: config.standalone.map(guardItem),
+		groups: config.groups.map((group) => ({
+			...group,
+			// Business hosts never see any group — both routes they're
+			// allowed to see are standalone items, not inside a group.
+			visible: (p: Permissions, e?: Event) =>
+				isPureBusinessHost(p) ? false : (group.visible?.(p, e) ?? true),
+			tabs: group.tabs.map(guardItem),
+		})),
+	};
+}
+
+export const eventMenuConfig: EventMenuConfig =
+	restrictForBusinessHosts(rawEventMenuConfig);
 
 // ============================================================================
 // ROUTE LOOKUP MAP - For layout.tsx to find menu item config by route
