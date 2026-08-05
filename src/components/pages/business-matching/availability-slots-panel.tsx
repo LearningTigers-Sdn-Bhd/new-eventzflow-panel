@@ -1,3 +1,5 @@
+"use client";
+
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
@@ -28,18 +30,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useBusinessMatchingStore } from "@/stores/use-business-matching-store";
 import CreateBookingForm from "./create-booking-form";
 
-interface AvailabilityDialogProps {
+interface AvailabilitySlotsPanelProps {
 	bmEventId: string;
-	eventId: string; // Changed from internalEventId
-	eventTitle: string;
-	onClose?: () => void; // Optional if handled by dialog store
+	eventId: string;
 }
 
-export default function AvailabilityDialog({
+export default function AvailabilitySlotsPanel({
 	bmEventId,
-	eventId, // Changed from internalEventId
-	eventTitle: _eventTitle,
-}: AvailabilityDialogProps) {
+	eventId,
+}: AvailabilitySlotsPanelProps) {
 	const { setSelectedBusinessMatchingDate } = useBusinessMatchingStore();
 	const isMobile = useIsMobile();
 	const [activeTab, setActiveTab] = useState("date");
@@ -78,7 +77,7 @@ export default function AvailabilityDialog({
 
 	if (selectedSlot) {
 		return (
-			<div className="p-4">
+			<div className="p-1">
 				<div className="mb-4 flex items-center gap-2">
 					<Button
 						variant="ghost"
@@ -278,7 +277,7 @@ export default function AvailabilityDialog({
 
 	if (isMobile) {
 		return (
-			<div className="p-4">
+			<div className="space-y-4">
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 					<TabsList className="mb-4 grid w-full grid-cols-2">
 						<TabsTrigger value="date">Date</TabsTrigger>
@@ -296,13 +295,11 @@ export default function AvailabilityDialog({
 	}
 
 	return (
-		<div className="p-4">
-			<div className="flex flex-col justify-center gap-4 md:flex-row">
-				<div className="flex-1">{renderCalendar()}</div>
+		<div className="flex flex-col justify-center gap-4 md:flex-row">
+			<div className="flex-1">{renderCalendar()}</div>
 
-				<div className="flex-1 border-gray-300 border-t-2 pt-4 md:border-t-0 md:border-l-2 md:pt-0 md:pl-4 dark:border-gray-700">
-					{renderSlots()}
-				</div>
+			<div className="flex-1 border-gray-300 border-t-2 pt-4 md:border-t-0 md:border-l-2 md:pt-0 md:pl-4 dark:border-gray-700">
+				{renderSlots()}
 			</div>
 		</div>
 	);

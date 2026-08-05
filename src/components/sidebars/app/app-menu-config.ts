@@ -8,6 +8,7 @@ import {
 	FolderOpen,
 	Handshake,
 	HardHat,
+	Home,
 	Import,
 	Key,
 	LayoutDashboard,
@@ -62,6 +63,13 @@ export const navigationData = {
 			allowBottomNavigation: true,
 		},
 		{
+			name: "Home",
+			url: "/dashboard" as Route,
+			icon: Home,
+			roleAllowed: [USER_ROLES.EXHIBITOR],
+			allowBottomNavigation: true,
+		},
+		{
 			name: "Events",
 			url: "/event" as Route,
 			icon: MdEvent,
@@ -107,7 +115,7 @@ export const navigationData = {
 			name: "Lead Scan",
 			url: "/lead-scan" as Route,
 			icon: BiQrScan,
-			roleAllowed: [USER_ROLES.VENDOR, USER_ROLES.EXHIBITOR],
+			roleAllowed: [USER_ROLES.VENDOR],
 			allowBottomNavigation: true,
 		},
 		{

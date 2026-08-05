@@ -1,31 +1,56 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye } from "lucide-react"; // Import Eye icon
+import { format, parseISO } from "date-fns";
+import {
+	Calendar,
+	CalendarCheck,
+	Clock,
+	MapPin,
+	Pencil,
+	User,
+} from "lucide-react";
+import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { Button } from "@/components/ui/button";
-
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-
-import { useEventPermissions } from "@/hooks/use-event-permissions"; // Add this import
+import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import AttachHostDialog from "./attach-host-dialog";
-import AvailabilityDialog from "./availability-dialog";
-import BookingsDialog from "./bookings-dialog";
-import HostDetailsDialog from "./host-details-dialog"; // Import new dialog
+import CreateSessionDialog from "./create-session-dialog";
+import HostDetailsDialog from "./host-details-dialog";
+import SessionActivityDialog from "./session-activity-dialog";
 
 export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	{
 		accessorKey: "title",
-		header: "Title",
-	},
-	{
-		accessorKey: "location",
-		header: "Location",
-		cell: ({ row }) => <span>{row.original.location}</span>, // Ensure plain text
+		header: "Session Details",
+		cell: ({ row }) => {
+			const event = row.original;
+			const offeringTags = event.offering_tags || [];
+			return (
+				<div className="flex max-w-[280px] flex-col gap-1 py-1">
+					<span
+						className={`block break-words font-semibold text-foreground leading-snug ${
+							event.title.length > 40 ? "text-xs" : "text-sm"
+						}`}
+					>
+						{event.title}
+					</span>
+					{event.location && (
+						<span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+							<MapPin className="h-3 w-3 shrink-0" />
+							{event.location}
+						</span>
+					)}
+					<ExpandableTags tags={offeringTags} limit={3} className="mt-1" />
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "host",
-		header: "Host",
+		header: "Host Profile",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
 			const { isBusinessHost, canManageEvent } = useEventPermissions(
@@ -38,7 +63,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 					<Button
 						variant="outline"
 						size="sm"
-						disabled={isBusinessHost && !canManageEvent} // Disable for hosts
+						disabled={isBusinessHost && !canManageEvent}
 						onClick={() => {
 							openDialog({
 								component: AttachHostDialog,
@@ -49,6 +74,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								},
 							});
 						}}
+						className="h-8 text-xs"
 					>
 						Attach a host
 					</Button>
@@ -56,35 +82,84 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 			}
 
 			return (
-				<div className="flex items-center gap-2">
-					<div className="flex flex-col">
-						<span className="font-medium">{host.full_name}</span>
-						<span className="text-muted-foreground text-xs">
-							{host.phone || "No phone"}
-						</span>
-					</div>
-					{(!isBusinessHost || canManageEvent) && ( // Hide View button for hosts
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-8 w-8 shrink-0"
+				<div className="flex max-w-[200px] items-center gap-1.5 py-1">
+					<button
+						type="button"
+						onClick={() => {
+							openDialog({
+								component: HostDetailsDialog,
+								props: {
+									host,
+									bmEventId: row.original.id,
+									eventId: row.original.event_id,
+								},
+								config: {
+									title: "Host Details",
+									size: "md",
+								},
+							});
+						}}
+						className="flex items-center gap-1.5 text-left font-semibold text-foreground text-sm transition-colors hover:text-primary hover:underline"
+					>
+						<User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+						{host.full_name}
+					</button>
+				</div>
+			);
+		},
+	},
+	{
+		id: "activity",
+		header: "Activity & Stats",
+		cell: ({ row }) => {
+			const { openDialog } = useDialog();
+			const event = row.original;
+			const count = event.bookings_count ?? 0;
+
+			return (
+				<div className="flex flex-col gap-1 py-1 text-xs">
+					<div>
+						<button
+							type="button"
 							onClick={() => {
 								openDialog({
-									component: HostDetailsDialog,
+									component: SessionActivityDialog,
 									props: {
-										host,
-										bmEventId: row.original.id,
-										eventId: row.original.event_id,
+										bmEventId: event.id,
+										eventId: event.event_id,
 									},
 									config: {
-										title: "Host Details",
-										size: "md",
+										title: `Bookings & Availability for ${event.title}`,
+										size: "5xl",
 									},
 								});
 							}}
+							className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 font-semibold text-xs shadow-sm transition-all hover:shadow-md ${
+								count > 0
+									? "bg-primary text-primary-foreground hover:opacity-90"
+									: "border border-muted-foreground/30 border-dashed bg-transparent text-muted-foreground hover:bg-muted/50"
+							}`}
 						>
-							<Eye className="h-4 w-4" />
-						</Button>
+							{count > 0 && <CalendarCheck className="h-3 w-3" />}
+							{count} booking{count !== 1 ? "s" : ""}
+						</button>
+					</div>
+					{event.created_at && (
+						<div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+							<Calendar className="h-3 w-3 shrink-0" />
+							<span>
+								Created: {format(parseISO(event.created_at), "dd MMM yyyy")}
+							</span>
+						</div>
+					)}
+					{event.updated_at && (
+						<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+							<Clock className="h-3 w-3 shrink-0" />
+							<span>
+								Updated:{" "}
+								{format(parseISO(event.updated_at), "dd MMM yyyy, h:mm a")}
+							</span>
+						</div>
 					)}
 				</div>
 			);
@@ -95,47 +170,41 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		header: "Actions",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
+			const { user } = useAuth();
+			const { canManageEvent, isBusinessHost } = useEventPermissions(
+				row.original.event_id,
+			);
+
+			const ownsSession =
+				isBusinessHost &&
+				!!user &&
+				String(row.original.host?.id ?? "") === String(user.id);
+
+			if (!canManageEvent && !ownsSession) return null;
 
 			return (
-				<div className="flex flex-wrap gap-2">
+				<div className="flex gap-1.5 py-1">
 					<Button
 						variant="outline"
-						size="sm"
+						size="icon"
 						onClick={() => {
 							openDialog({
-								component: AvailabilityDialog,
+								component: CreateSessionDialog,
 								props: {
-									bmEventId: row.original.id,
 									eventId: row.original.event_id,
-									eventTitle: row.original.title,
+									session: row.original,
+									isHostEditing: !canManageEvent,
 								},
 								config: {
-									title: `Availability for ${row.original.title}`,
-									size: "3xl",
+									title: `Edit "${row.original.title}"`,
+									size: "2xl",
 								},
 							});
 						}}
+						className="h-8 w-8"
+						title="Edit"
 					>
-						View Availability
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => {
-							openDialog({
-								component: BookingsDialog,
-								props: {
-									bmEventId: row.original.id,
-									eventId: row.original.event_id,
-								},
-								config: {
-									title: `Bookings for ${row.original.title}`,
-									size: "4xl",
-								},
-							});
-						}}
-					>
-						View Bookings
+						<Pencil className="h-4 w-4" />
 					</Button>
 				</div>
 			);

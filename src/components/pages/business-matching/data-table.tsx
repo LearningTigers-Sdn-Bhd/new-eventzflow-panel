@@ -33,25 +33,45 @@ import { BusinessMatchingItem } from "./business-matching-item";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	actions?: React.ReactNode; // Add actions prop
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	actions,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
 	);
+	const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+
+	// Get all unique tags from data
+	const allUniqueTags = React.useMemo(() => {
+		const tagsSet = new Set<string>();
+		for (const row of data) {
+			const eventTags = (row as any).offering_tags || [];
+			for (const tag of eventTags) {
+				tagsSet.add(tag);
+			}
+		}
+		return Array.from(tagsSet);
+	}, [data]);
+
+	// Filter data based on selected tag
+	const filteredData = React.useMemo(() => {
+		if (!selectedTag) return data;
+		return data.filter((row: any) => {
+			const eventTags = row.offering_tags || [];
+			return eventTags.includes(selectedTag);
+		});
+	}, [data, selectedTag]);
 
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 
 	const table = useReactTable({
-		data,
+		data: filteredData,
 		columns,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
@@ -70,15 +90,32 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
-			<div className="mb-4 flex flex-col border border-dashed bg-transparent px-0 py-0 md:px-2 md:py-4 lg:bg-accent lg:px-4 lg:py-4">
-				<div className="flex items-center gap-2">
-					<QuerySearchField
-						table={table}
-						columns={["title"]}
-						placeholder="Filter events..."
-						searchCustomFields={false}
-					/>
-					{actions && <div className="ml-auto shrink-0">{actions}</div>}
+			<div className="mb-4 flex flex-col border border-dashed bg-transparent p-4 lg:bg-accent rounded-lg">
+				<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+					<div className="flex-1">
+						<QuerySearchField
+							table={table}
+							columns={["title", "location"]}
+							placeholder="Search sessions or location..."
+							searchCustomFields={false}
+						/>
+					</div>
+					{allUniqueTags.length > 0 && (
+						<div className="w-full sm:w-[220px]">
+							<select
+								value={selectedTag || ""}
+								onChange={(e) => setSelectedTag(e.target.value || null)}
+								className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+							>
+								<option value="">All Categories / Tags</option>
+								{allUniqueTags.map((tag) => (
+									<option key={tag} value={tag}>
+										{tag}
+									</option>
+								))}
+							</select>
+						</div>
+					)}
 				</div>
 			</div>
 

@@ -1,20 +1,25 @@
 "use client";
 
-import { Eye, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { format, parseISO } from "date-fns";
 import {
-	Item,
-	ItemActions,
-	ItemContent,
-	ItemTitle,
-} from "@/components/ui/item";
+	Calendar,
+	CalendarCheck,
+	Clock,
+	MapPin,
+	Pencil,
+	User,
+} from "lucide-react";
+import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
+import { Button } from "@/components/ui/button";
+import { Item, ItemActions, ItemContent } from "@/components/ui/item";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions"; // Import the hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import AttachHostDialog from "./attach-host-dialog";
-import AvailabilityDialog from "./availability-dialog";
-import BookingsDialog from "./bookings-dialog";
+import CreateSessionDialog from "./create-session-dialog";
 import HostDetailsDialog from "./host-details-dialog";
+import SessionActivityDialog from "./session-activity-dialog";
 
 interface BusinessMatchingItemProps {
 	event: BusinessMatchingEvent;
@@ -22,128 +27,170 @@ interface BusinessMatchingItemProps {
 
 export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const { openDialog } = useDialog();
+	const { user } = useAuth();
 	const { isBusinessHost, canManageEvent } = useEventPermissions(
 		event.event_id,
 	);
 	const host = event.host;
+	const offeringTags = event.offering_tags || [];
+	const count = event.bookings_count ?? 0;
+	const ownsSession =
+		isBusinessHost && !!user && String(host?.id ?? "") === String(user.id);
 
 	return (
-		<Item variant="outline" className="w-full rounded-none border-dashed">
-			<ItemContent className="flex flex-col gap-3">
-				<ItemTitle>
-					<span className="font-bold">{event.title}</span>
-				</ItemTitle>
-
-				<div className="grid w-full grid-cols-1 gap-4 text-muted-foreground text-sm md:grid-cols-2">
+		<Item
+			variant="outline"
+			className="w-full space-y-3.5 rounded-lg border border-muted bg-card p-4 transition-all duration-200 hover:shadow-md"
+		>
+			<ItemContent className="flex w-full flex-col gap-2.5">
+				<div>
+					<span
+						className={`block break-words font-semibold text-foreground leading-snug ${
+							event.title.length > 40 ? "text-sm sm:text-base" : "text-base"
+						}`}
+					>
+						{event.title}
+					</span>
 					{event.location && (
-						<div className="flex items-center gap-2">
-							<MapPin className="size-4 shrink-0" />
-							<span>{event.location}</span>
-						</div>
+						<span className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground text-xs">
+							<MapPin className="h-3.5 w-3.5 shrink-0" />
+							{event.location}
+						</span>
 					)}
+				</div>
 
-					{(!!host || canManageEvent) && (
-						<div className="mt-1 border-t pt-2 md:mt-0 md:border-t-0 md:border-l md:pt-0 md:pl-4">
-							{host ? (
-								<div className="flex items-center gap-2">
-									<div className="flex flex-1 flex-col">
-										<span className="font-medium text-foreground">
-											Host: {host.full_name}
-										</span>
-										<span className="text-xs">
-											Phone: {host.phone || "N/A"}
-										</span>
-									</div>
-									<Button
-										variant="ghost"
-										size="sm"
-										className="h-auto shrink-0 px-2 py-1"
-										onClick={() => {
-											openDialog({
-												component: HostDetailsDialog,
-												props: {
-													host,
-													bmEventId: event.id,
-													eventId: event.event_id,
-												},
-												config: {
-													title: "Host Details",
-													size: "md",
-												},
-											});
-										}}
-									>
-										<Eye className="size-4" />
-									</Button>
-								</div>
-							) : (
-								<Button
-									variant="outline"
-									size="sm"
-									className="w-full rounded-none"
+				{/* Tags */}
+				<ExpandableTags tags={offeringTags} limit={5} className="mt-0.5" />
+
+				<div className="grid grid-cols-1 gap-3 border-muted-foreground/10 border-t pt-3 sm:grid-cols-2">
+					{/* Host info */}
+					<div className="space-y-1.5">
+						<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+							Host Profile
+						</span>
+						{host ? (
+							<button
+								type="button"
+								onClick={() => {
+									openDialog({
+										component: HostDetailsDialog,
+										props: {
+											host,
+											bmEventId: event.id,
+											eventId: event.event_id,
+										},
+										config: {
+											title: "Host Details",
+											size: "md",
+										},
+									});
+								}}
+								className="flex w-full items-center gap-1.5 truncate text-left font-medium text-foreground text-sm transition-colors hover:text-primary hover:underline"
+							>
+								<User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+								{host.full_name}
+							</button>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={isBusinessHost && !canManageEvent}
+								onClick={() => {
+									openDialog({
+										component: AttachHostDialog,
+										props: { bmEvent: event },
+										config: {
+											title: `Attach Host to "${event.title}"`,
+											size: "lg",
+										},
+									});
+								}}
+								className="h-8 w-full justify-center text-xs"
+							>
+								Attach a host
+							</Button>
+						)}
+					</div>
+
+					{/* Activity & Stats */}
+					<div className="space-y-1.5 border-muted-foreground/10 sm:border-l sm:pl-3">
+						<span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+							Activity & Stats
+						</span>
+						<div className="space-y-1 text-xs">
+							<div>
+								<button
+									type="button"
 									onClick={() => {
 										openDialog({
-											component: AttachHostDialog,
-											props: { bmEvent: event },
+											component: SessionActivityDialog,
+											props: {
+												bmEventId: event.id,
+												eventId: event.event_id,
+											},
 											config: {
-												title: `Attach Host to "${event.title}"`,
-												size: "lg",
+												title: `Bookings & Availability for ${event.title}`,
+												size: "5xl",
 											},
 										});
 									}}
+									className={`inline-flex h-5 cursor-pointer items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold text-[10px] shadow-sm transition-all hover:shadow-md ${
+										count > 0
+											? "bg-primary text-primary-foreground hover:opacity-90"
+											: "border border-muted-foreground/30 border-dashed bg-transparent text-muted-foreground hover:bg-muted/50"
+									}`}
 								>
-									Attach a host
-								</Button>
+									{count > 0 && <CalendarCheck className="h-2.5 w-2.5" />}
+									{count} booking{count !== 1 ? "s" : ""}
+								</button>
+							</div>
+							{event.created_at && (
+								<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+									<Calendar className="h-3 w-3 shrink-0" />
+									<span>
+										Created: {format(parseISO(event.created_at), "dd MMM yyyy")}
+									</span>
+								</div>
+							)}
+							{event.updated_at && (
+								<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+									<Clock className="h-3 w-3 shrink-0" />
+									<span>
+										Updated:{" "}
+										{format(parseISO(event.updated_at), "dd MMM yyyy, h:mm a")}
+									</span>
+								</div>
 							)}
 						</div>
-					)}
+					</div>
 				</div>
 			</ItemContent>
-			<ItemActions className="mt-4 flex w-full flex-wrap items-center gap-2 sm:mt-0 sm:w-auto">
-				{(isBusinessHost || canManageEvent) && (
-					<>
+			<ItemActions className="mt-4 flex w-full items-center gap-2 sm:mt-0 sm:w-auto">
+				{(canManageEvent || ownsSession) && (
+					<div className="flex gap-2">
 						<Button
 							variant="outline"
-							size="sm"
-							className="flex-1 rounded-none sm:flex-initial"
+							size="icon"
 							onClick={() => {
 								openDialog({
-									component: AvailabilityDialog,
+									component: CreateSessionDialog,
 									props: {
-										bmEventId: event.id,
 										eventId: event.event_id,
-										eventTitle: event.title,
+										session: event,
+										isHostEditing: !canManageEvent,
 									},
 									config: {
-										title: `Availability for ${event.title}`,
-										size: "3xl",
+										title: `Edit "${event.title}"`,
+										size: "2xl",
 									},
 								});
 							}}
+							className="h-8 w-8"
+							title="Edit"
 						>
-							View Availability
+							<Pencil className="h-4 w-4" />
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							className="flex-1 rounded-none sm:flex-initial"
-							onClick={() => {
-								openDialog({
-									component: BookingsDialog,
-									props: {
-										bmEventId: event.id,
-										eventId: event.event_id,
-									},
-									config: {
-										title: `Bookings for ${event.title}`,
-										size: "4xl",
-									},
-								});
-							}}
-						>
-							View Bookings
-						</Button>
-					</>
+					</div>
 				)}
 			</ItemActions>
 		</Item>

@@ -1,8 +1,9 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import type { Route } from "next";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 
 import { IconHeading } from "@/components/admin-ui/icon-heading";
 import {
@@ -131,9 +132,33 @@ function EventDetailLayoutContent({
 	const isMobile = useIsMobile();
 	const isTablet = useIsTablet();
 	const { toggleSidebar } = useSidebar();
+	const router = useRouter();
 
 	// Use context from EventSidebarProvider - no more duplicate data fetching!
 	const { currentEvent, permissions, isLoading } = useEventSidebarContext();
+
+	// Business hosts don't have "Event Information" in their menu (it's not
+	// relevant to them) — if they land on it directly (bookmark, typed URL),
+	// send them to Business Matching instead.
+	useEffect(() => {
+		if (isLoading || !currentEvent?.id) return;
+
+		const isPureBusinessHost =
+			permissions.isBusinessHost &&
+			!permissions.isOrgOwner &&
+			!permissions.isOrganizer &&
+			!permissions.isEventAdmin &&
+			!permissions.isEventTeamMember &&
+			!permissions.isEventVendor &&
+			!permissions.isExhibitionContractor;
+
+		const segments = pathname.split("/").filter(Boolean);
+		const lastSegment = segments[segments.length - 1];
+
+		if (isPureBusinessHost && lastSegment === "details") {
+			router.replace(`/event/${currentEvent.id}/business-matching` as Route);
+		}
+	}, [isLoading, permissions, pathname, currentEvent?.id, router]);
 
 	// Determine current menu from pathname
 	const currentMenu = useMemo(() => {

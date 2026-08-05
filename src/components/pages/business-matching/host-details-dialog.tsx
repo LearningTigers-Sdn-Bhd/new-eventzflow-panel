@@ -41,12 +41,14 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 				</div>
 				<div className="grid gap-1">
 					<Label className="text-muted-foreground">Email</Label>
-					<div className="flex items-center gap-2">
-						<div className="font-medium">{host.email}</div>
+					<div className="flex items-center gap-2 overflow-hidden">
+						<div className="font-medium break-all text-sm sm:text-base max-w-full">
+							{host.email}
+						</div>
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-6 w-6"
+							className="h-6 w-6 flex-shrink-0"
 							onClick={handleCopyEmail}
 						>
 							<Copy className="h-3 w-3" />
@@ -59,6 +61,39 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 						{host.phone || "N/A"}
 					</a>
 				</div>
+				{host.description && (
+					<div className="grid gap-1 border-t pt-3 mt-1">
+						<Label className="text-muted-foreground">Description / Bio</Label>
+						<div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{host.description}</div>
+					</div>
+				)}
+				{host.sourcing_intent && (
+					<div className="grid gap-1 border-t pt-3 mt-1">
+						<Label className="text-muted-foreground">Sourcing Intent</Label>
+						<div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{host.sourcing_intent}</div>
+					</div>
+				)}
+				{host.capabilities && (
+					<div className="grid gap-1 border-t pt-3 mt-1">
+						<Label className="text-muted-foreground">Capabilities</Label>
+						<div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{host.capabilities}</div>
+					</div>
+				)}
+				{host.interest_tags && host.interest_tags.length > 0 && (
+					<div className="grid gap-1 border-t pt-3 mt-1">
+						<Label className="text-muted-foreground">Interest Tags</Label>
+						<div className="flex flex-wrap gap-1.5 mt-1">
+							{host.interest_tags.map((tag) => (
+								<span
+									key={tag}
+									className="inline-flex items-center rounded bg-blue-50 dark:bg-blue-950/20 px-2 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30"
+								>
+									{tag}
+								</span>
+							))}
+						</div>
+					</div>
+				)}
 			</div>
 
 			<div className="flex justify-end border-t pt-4">

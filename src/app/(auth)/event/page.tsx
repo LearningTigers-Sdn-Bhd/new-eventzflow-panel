@@ -109,7 +109,11 @@ export default function EventPage() {
 						isEnabled: true,
 						onRowClick: (row) => {
 							const event = row as Event;
-							router.push(`/event/${event.id}/details`);
+							// Business hosts don't have access to "details" — land them
+							// on Business Matching instead, their only real landing page.
+							const landingRoute =
+								user?.role === "exhibitor" ? "business-matching" : "details";
+							router.push(`/event/${event.id}/${landingRoute}`);
 						},
 						excludeRowClickColumns: ["actions"],
 					}}
