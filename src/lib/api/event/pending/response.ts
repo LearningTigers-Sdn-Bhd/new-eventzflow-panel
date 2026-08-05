@@ -9,6 +9,7 @@ export interface BackendPendingTicket {
 	ticket_type_id: number;
 	event_id: number;
 	status: "purchased" | "scanned" | "refunded" | "canceled" | "pending_payment";
+	waiting_list?: boolean;
 	payment_status: "pending" | "paid" | "failed" | "refunded_payment" | number; // Can be string or number
 	payment_screenshot_url?: string | null;
 	transaction_id?: string | null;
@@ -57,6 +58,7 @@ export type PendingTicket = {
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
 	paymentStatus: "pending" | "paid" | "failed" | "refunded_payment";
+	waitingList?: boolean;
 	paymentScreenshotUrl?: string;
 	transactionId?: string;
 	paymentMethod?: string;

@@ -320,7 +320,10 @@ export function EditRegistrationFormForm({
 											Active
 										</SelectItem>
 										<SelectItem value="1" className="rounded-none">
-											Inactive
+											Waiting List
+										</SelectItem>
+										<SelectItem value="2" className="rounded-none">
+											Closed
 										</SelectItem>
 									</SelectContent>
 								</Select>

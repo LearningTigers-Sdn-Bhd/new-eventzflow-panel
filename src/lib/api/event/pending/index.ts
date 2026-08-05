@@ -2,6 +2,7 @@
 
 // API endpoints
 export {
+	acceptWaitingList,
 	approveTicketApplication,
 	approveTicketRsvp,
 	createPendingTicket,
@@ -11,9 +12,11 @@ export {
 	updatePendingTicket,
 } from "./endpoints";
 export {
+	type AcceptWaitingListRequest,
 	type ApproveTicketApplicationRequest,
-	approveTicketApplicationSchema,
 	type ApproveTicketRsvpRequest,
+	acceptWaitingListSchema,
+	approveTicketApplicationSchema,
 	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,

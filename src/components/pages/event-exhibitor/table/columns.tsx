@@ -306,6 +306,16 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			const kit = row.original.kit;
 			if (!kit?.payment_status)
 				return <span className="text-muted-foreground">-</span>;
+			if (kit.booking_status === "cancelled") {
+				return (
+					<Badge
+						variant="outline"
+						className="rounded-none border-gray-500 font-bold capitalize text-gray-500"
+					>
+						Cancelled
+					</Badge>
+				);
+			}
 			const statusColors: Record<string, string> = {
 				unpaid: "border-red-500 text-red-500",
 				paid: "border-green-500 text-green-500",

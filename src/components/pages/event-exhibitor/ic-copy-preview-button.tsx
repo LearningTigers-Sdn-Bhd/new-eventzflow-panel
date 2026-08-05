@@ -10,27 +10,48 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { downloadExhibitorKitIcCopy } from "@/lib/api/exhibitor-kit";
+import {
+	downloadExhibitorKitCustomsDeclaration,
+	downloadExhibitorKitCustomsDutyEstimate,
+	downloadExhibitorKitIcCopy,
+} from "@/lib/api/exhibitor-kit";
+
+const DOCUMENT_LABELS = {
+	"ic-copy": "IC Copy",
+	"customs-declaration": "Customs Declaration",
+	"customs-duty-estimate": "Customs Duty Estimate",
+} as const;
+
+const DOCUMENT_DOWNLOADERS = {
+	"ic-copy": downloadExhibitorKitIcCopy,
+	"customs-declaration": downloadExhibitorKitCustomsDeclaration,
+	"customs-duty-estimate": downloadExhibitorKitCustomsDutyEstimate,
+} as const;
 
 export function IcCopyPreviewButton({
 	eventId,
 	kitId,
 	available,
+	document = "ic-copy",
+	boothNumber,
 }: {
 	eventId: number;
 	kitId: number;
 	available?: boolean;
+	document?: "ic-copy" | "customs-declaration" | "customs-duty-estimate";
+	boothNumber?: string | null;
 }) {
 	const [preview, setPreview] = useState<{ url: string; type: string } | null>(
 		null,
 	);
 	const [loading, setLoading] = useState(false);
+	const label = DOCUMENT_LABELS[document];
 	if (!available)
 		return <span className="text-muted-foreground text-xs">Not uploaded</span>;
 	const open = async () => {
 		setLoading(true);
 		try {
-			const { blob } = await downloadExhibitorKitIcCopy(eventId, kitId);
+			const { blob } = await DOCUMENT_DOWNLOADERS[document](eventId, kitId);
 			setPreview({ url: URL.createObjectURL(blob), type: blob.type });
 		} finally {
 			setLoading(false);
@@ -59,22 +80,31 @@ export function IcCopyPreviewButton({
 			>
 				<DialogContent className="max-w-4xl rounded-none p-0">
 					<DialogHeader className="border-b p-4 text-left">
-						<DialogTitle>IC Copy Preview</DialogTitle>
+						<DialogTitle>{label} Preview</DialogTitle>
 					</DialogHeader>
 					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
 						{preview?.type === "application/pdf" ? (
 							<iframe
 								src={preview.url}
-								title="IC copy"
+								title={label}
 								className="h-[62vh] w-full border-0"
 							/>
-						) : preview ? (
+						) : preview?.type.startsWith("image/") ? (
 							<object
 								data={preview.url}
 								type={preview.type}
-								aria-label="Uploaded IC copy"
+								aria-label={`Uploaded ${label}`}
 								className="h-auto max-h-[62vh] max-w-full object-contain"
 							/>
+						) : preview ? (
+							<div className="max-w-sm text-center">
+								<p className="text-sm">
+									This file type can't be previewed here.
+									{boothNumber
+										? ` Download the ${label.toLowerCase()} for booth ${boothNumber} to view it.`
+										: ` Download the ${label.toLowerCase()} to view it.`}
+								</p>
+							</div>
 						) : null}
 					</div>
 					<DialogFooter className="border-t p-4">
@@ -84,10 +114,10 @@ export function IcCopyPreviewButton({
 						{preview && (
 							<a
 								href={preview.url}
-								download="ic-copy"
+								download={`${document}${boothNumber ? `-${boothNumber}` : ""}`}
 								className="inline-flex h-9 items-center justify-center bg-primary px-4 font-medium text-primary-foreground text-sm"
 							>
-								Download
+								Download {label}
 							</a>
 						)}
 					</DialogFooter>

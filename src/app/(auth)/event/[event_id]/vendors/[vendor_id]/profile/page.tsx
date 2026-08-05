@@ -8,7 +8,6 @@ import { ExhibitorKitDetailsSection } from "@/components/pages/event-vendors/exh
 import { VendorProfileCard } from "@/components/pages/event-vendors/vendor-profile-card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { getEventVendor } from "@/lib/api/event-vendor";
 
@@ -18,7 +17,6 @@ export default function VendorProfilePage() {
 	const eventVendorId = Number(params.vendor_id);
 	const selectedKitId = Number(useSearchParams().get("kit_id"));
 	const { user } = useAuth();
-	const permissions = useEventPermissions(eventId);
 
 	// Get the event vendor to find the actual vendor_id
 	const {
@@ -114,7 +112,15 @@ export default function VendorProfilePage() {
 	return (
 		<div className="space-y-0">
 			<VendorProfileCard profile={profile} />
-			<ExhibitorKitDetailsSection eventVendor={eventVendor} kit={selectedKit} />
+			<ExhibitorKitDetailsSection
+				eventVendor={eventVendor}
+				kit={selectedKit}
+				batchSize={
+					eventVendor.exhibitor_kits.filter(
+						(kit) => kit.booking_batch_id === selectedKit.booking_batch_id,
+					).length
+				}
+			/>
 		</div>
 	);
 }

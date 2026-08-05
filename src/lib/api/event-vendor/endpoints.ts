@@ -1,6 +1,8 @@
 import { restClient } from "@/utils/rest-api";
 import {
+	type CreateEventVendorBatchRequest,
 	type CreateEventVendorRequest,
+	createEventVendorBatchSchema,
 	createEventVendorSchema,
 	type UpdateEventVendorRequest,
 	updateEventVendorSchema,
@@ -18,7 +20,8 @@ function normalizeEventVendor({
 }: EventVendorResponse): EventVendor {
 	return {
 		...vendor,
-		exhibitor_kits: vendor.exhibitor_kits ?? (exhibitor_kit ? [exhibitor_kit] : []),
+		exhibitor_kits:
+			vendor.exhibitor_kits ?? (exhibitor_kit ? [exhibitor_kit] : []),
 	};
 }
 
@@ -57,9 +60,30 @@ export async function createEventVendor(
 	data: CreateEventVendorRequest,
 ): Promise<EventVendor> {
 	const validated = createEventVendorSchema.parse(data);
-	const vendor = await restClient.post<EventVendorResponse>(`v1/events/${eventId}/vendors`, {
-		vendor: validated,
-	});
+	const vendor = await restClient.post<EventVendorResponse>(
+		`v1/events/${eventId}/vendors`,
+		{
+			vendor: validated,
+		},
+	);
+	return normalizeEventVendor(vendor);
+}
+
+/**
+ * Add a vendor to an event with one or more booths in a single atomic batch.
+ * Used by the organizer Manual Add form's multi-booth flow.
+ */
+export async function createEventVendorBatch(
+	eventId: number,
+	data: CreateEventVendorBatchRequest,
+	idempotencyKey: string,
+): Promise<EventVendor> {
+	const validated = createEventVendorBatchSchema.parse(data);
+	const vendor = await restClient.postWithHeaders<EventVendorResponse>(
+		`v1/events/${eventId}/vendors/batch`,
+		{ vendor: validated },
+		{ "Idempotency-Key": idempotencyKey },
+	);
 	return normalizeEventVendor(vendor);
 }
 

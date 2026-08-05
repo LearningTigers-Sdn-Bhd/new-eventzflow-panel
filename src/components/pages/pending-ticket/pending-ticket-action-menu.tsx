@@ -1,7 +1,15 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, MoreHorizontal, Pencil, Send, UserCheck, X } from "lucide-react";
+import {
+	Check,
+	Eye,
+	MoreHorizontal,
+	Pencil,
+	Send,
+	UserCheck,
+	X,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import {
+	acceptWaitingList,
 	approveTicketApplication,
 	approveTicketRsvp,
 	resendTicketRsvp,
@@ -55,6 +64,18 @@ export function usePendingTicketActions({
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to approve application");
 		},
+	});
+
+	const acceptWaitingListMutation = useMutation({
+		mutationFn: () => acceptWaitingList({ eventId, ticketId: ticket.publicId }),
+		onSuccess: () => {
+			toast.success("Waiting-list ticket accepted");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+		},
+		onError: (error: Error) =>
+			toast.error(error.message || "Failed to accept waiting-list ticket"),
 	});
 
 	const resendMutation = useMutation({
@@ -127,6 +148,7 @@ export function usePendingTicketActions({
 
 	return {
 		approveMutation,
+		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
 		openEditModal,
@@ -140,6 +162,7 @@ export function PendingTicketActionsMenu({
 }: PendingTicketActionsMenuProps) {
 	const {
 		approveMutation,
+		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
 		openEditModal,
@@ -227,6 +250,18 @@ export function PendingTicketActionsMenu({
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
+			)}
+			{ticket.waitingList && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-emerald-600 hover:bg-emerald-50"
+					onClick={() => acceptWaitingListMutation.mutate()}
+					disabled={acceptWaitingListMutation.isPending}
+					title="Accept Waiting List"
+				>
+					<Check className="size-4" />
+				</Button>
 			)}
 		</ButtonGroup>
 	);
