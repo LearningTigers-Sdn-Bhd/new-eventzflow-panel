@@ -135,6 +135,7 @@ export interface ExhibitorKit {
 	custom_fields_data?: Record<string, unknown>;
 	ic_copy_uploaded?: boolean;
 	customs_declaration_uploaded?: boolean;
+	customs_duty_estimate_uploaded?: boolean;
 	booking_batch_id?: string | null;
 	exhibitor_team_members: ExhibitorTeamMember[];
 	exhibitor_kit_items?: ExhibitorKitItem[];

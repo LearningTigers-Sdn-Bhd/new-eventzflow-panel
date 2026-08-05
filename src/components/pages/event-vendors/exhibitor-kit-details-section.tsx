@@ -291,6 +291,24 @@ export function ExhibitorKitDetailsSection({
 									</span>
 								)}
 							</div>
+							<div className="flex items-center justify-between">
+								<span className="font-medium">Customs Duty Estimate</span>
+								{canDownloadIc ? (
+									<IcCopyPreviewButton
+										eventId={eventVendor.event_id}
+										kitId={kit.id}
+										available={kit.customs_duty_estimate_uploaded}
+										document="customs-duty-estimate"
+										boothNumber={kit.booth_number}
+									/>
+								) : (
+									<span className="text-muted-foreground">
+										{kit.customs_duty_estimate_uploaded
+											? "Uploaded"
+											: "Not uploaded"}
+									</span>
+								)}
+							</div>
 							<div className="flex justify-between">
 								<span className="font-medium">Booth Number</span>
 								<span className="text-muted-foreground">

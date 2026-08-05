@@ -283,6 +283,16 @@ export function KitDetailsRow({
 							document="customs-declaration"
 						/>
 					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">Customs Duty Estimate</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.customs_duty_estimate_uploaded}
+							document="customs-duty-estimate"
+							boothNumber={kit.booth_number}
+						/>
+					</div>
 					<div className="flex justify-between gap-2 py-0.5">
 						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge
