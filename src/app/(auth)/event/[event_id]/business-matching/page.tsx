@@ -54,12 +54,18 @@ export default function BusinessMatchingPage() {
 		isOrgOwner,
 		isOrganizer,
 		isEventAdmin,
+		isBusinessMatchingAdmin,
 	} = useEventPermissions(event_id, event);
 
 	// Matches the backend's manage_business_matching_tags? policy exactly
-	// (org_owner || organizer || event_admin) — broader than canManageEvent,
-	// which intentionally excludes organizers for other event-management actions.
-	const canManageTags = isOrgOwner || isOrganizer || isEventAdmin;
+	// (org_owner || organizer || event_admin || business_matching_admin) —
+	// broader than canManageEvent, which intentionally excludes organizers
+	// for other event-management actions.
+	const canManageTags =
+		isOrgOwner || isOrganizer || isEventAdmin || isBusinessMatchingAdmin;
+	// Matches manage_business_matching_sessions? — event admins/BM admins can
+	// create sessions, in addition to whoever canManageEvent already covers.
+	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
 
 	// Check if logged-in host has completed their profile
 	const { data: hostProfile } = useQuery({
@@ -84,14 +90,14 @@ export default function BusinessMatchingPage() {
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
-		if (isBusinessHost && !canManageEvent) {
+		if (isBusinessHost && !canManageSessions) {
 			// Remove the 'host' column for business hosts
 			return columns.filter(
 				(col) => (col as { accessorKey: string }).accessorKey !== "host",
 			);
 		}
 		return columns;
-	}, [isBusinessHost, canManageEvent]);
+	}, [isBusinessHost, canManageSessions]);
 
 	useEffect(() => {
 		const lastRefreshKey = `last_bm_refresh_${event_id}`;
@@ -176,7 +182,7 @@ export default function BusinessMatchingPage() {
 
 	const actionButtons = (
 		<div className="flex items-center gap-2">
-			{canManageEvent && (
+			{canManageSessions && (
 				<Button
 					onClick={() => {
 						openDialog({

@@ -14,6 +14,7 @@ const EVENT_ROLE_OPTIONS = [
 	{ label: "Admin", value: "event_admin" },
 	{ label: "Team Member", value: "event_team_member" },
 	{ label: "Business Host", value: "business_host" },
+	{ label: "Business Matching Admin", value: "business_matching_admin" },
 ];
 
 const STATUS_OPTIONS = [
@@ -72,7 +73,9 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 					? "Admin"
 					: role === "business_host"
 						? "Business Host"
-						: "Team Member";
+						: role === "business_matching_admin"
+							? "BM Admin"
+							: "Team Member";
 			return (
 				<Badge
 					variant="outline"
@@ -81,6 +84,8 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 						role === "event_admin" && "border-purple-500 text-purple-500",
 						role === "event_team_member" && "border-blue-500 text-blue-500",
 						role === "business_host" && "border-orange-500 text-orange-500",
+						role === "business_matching_admin" &&
+							"border-teal-500 text-teal-500",
 					)}
 				>
 					{roleLabel}

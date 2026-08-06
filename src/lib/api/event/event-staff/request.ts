@@ -9,7 +9,12 @@ export const getEventStaffSchema = z.object({
 export const assignStaffSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	userId: z.string().min(1, "User ID is required"),
-	role: z.enum(["event_admin", "event_team_member", "business_host"]),
+	role: z.enum([
+		"event_admin",
+		"event_team_member",
+		"business_host",
+		"business_matching_admin",
+	]),
 });
 
 // Validation schema for removing staff

@@ -3,7 +3,11 @@ export type BackendEventStaffResponse = {
 	id: number;
 	event_id: number;
 	user_id: string;
-	role: "event_admin" | "event_team_member" | "business_host";
+	role:
+		| "event_admin"
+		| "event_team_member"
+		| "business_host"
+		| "business_matching_admin";
 	user: {
 		id: string;
 		email: string;
@@ -29,7 +33,11 @@ export type BackendEventAssignment = {
 	id: number;
 	event_id: number;
 	user_id: string;
-	role: "event_admin" | "event_team_member" | "business_host";
+	role:
+		| "event_admin"
+		| "event_team_member"
+		| "business_host"
+		| "business_matching_admin";
 	created_at: string;
 	updated_at: string;
 };
@@ -41,7 +49,11 @@ export type EventStaffMember = {
 	email: string;
 	phone?: string;
 	globalRole: "org_owner" | "organizer" | "member";
-	eventRole: "event_admin" | "event_team_member" | "business_host";
+	eventRole:
+		| "event_admin"
+		| "event_team_member"
+		| "business_host"
+		| "business_matching_admin";
 	status: "active" | "inactive";
 	assignmentId: number;
 	createdAt: string;
