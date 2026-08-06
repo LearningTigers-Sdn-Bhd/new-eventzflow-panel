@@ -11,6 +11,7 @@ export interface BusinessMatchingEvent {
 	start_date?: string;
 	end_date?: string;
 	tags_editable?: boolean;
+	hours_editable?: boolean;
 	offering_tags?: string[];
 	interest_tags?: string[];
 	created_at?: string;
@@ -28,6 +29,8 @@ export interface BusinessMatchingEvent {
 		capabilities?: string;
 		avatar_url?: string | null;
 		tags_editable_override?: boolean | null;
+		hours_editable_override?: boolean | null;
+		hours_editable_effective?: boolean;
 	} | null;
 }
 
@@ -43,6 +46,8 @@ export interface BusinessHost {
 	interest_tags?: string[];
 	avatar_url?: string | null;
 	tags_editable_override?: boolean | null;
+	hours_editable_override?: boolean | null;
+	hours_editable_effective?: boolean;
 }
 
 export interface AvailabilityDate {
@@ -421,6 +426,7 @@ export interface CreateSessionRequest {
 	start_date?: string;
 	end_date?: string;
 	tags_editable?: boolean;
+	hours_editable?: boolean;
 }
 
 export async function createBusinessMatchingSession(
@@ -614,6 +620,46 @@ export async function adminSetHostTagsEditableOverride(
 		tags_editable_override: override,
 		business_matching_event_id: bmEventId,
 	});
+}
+
+// Overrides whether a specific host may self-edit hours for a specific
+// session — null clears the override back to the session's default.
+export async function adminSetHostHoursEditableOverride(
+	eventId: string,
+	hostUserId: string,
+	bmEventId: string,
+	override: boolean | null,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		hours_editable_override: override,
+		business_matching_event_id: bmEventId,
+	});
+}
+
+export interface DefaultHoursBlock {
+	start_time: string;
+	end_time: string;
+}
+
+export interface BusinessMatchingSystemSettings {
+	default_hours: DefaultHoursBlock[];
+	hours_editable_default: boolean;
+}
+
+export async function getBusinessMatchingSystemSettings(): Promise<BusinessMatchingSystemSettings> {
+	return restClient.get<BusinessMatchingSystemSettings>(
+		"v1/business_matching/system_settings",
+	);
+}
+
+export async function updateBusinessMatchingSystemSettings(
+	data: Partial<BusinessMatchingSystemSettings>,
+): Promise<BusinessMatchingSystemSettings> {
+	return restClient.put<BusinessMatchingSystemSettings>(
+		"v1/business_matching/system_settings",
+		data,
+	);
 }
 
 export interface BusinessMatchingTags {

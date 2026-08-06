@@ -76,6 +76,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	);
 	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
 	const [tagsEditable, setTagsEditable] = useState(true);
+	const [hoursEditable, setHoursEditable] = useState(true);
 
 	useEffect(() => {
 		if (session) {
@@ -87,6 +88,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setStartDate(session.start_date?.slice(0, 10) || "");
 			setEndDate(session.end_date?.slice(0, 10) || "");
 			setTagsEditable(session.tags_editable ?? true);
+			setHoursEditable(session.hours_editable ?? true);
 			// Optional start/end time pre-fill (default 9-5)
 			// (If backend returned them we could parse them, otherwise fallbacks are fine)
 		}
@@ -116,6 +118,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			...(!isHostEditing && startDate && { start_date: startDate }),
 			...(!isHostEditing && endDate && { end_date: endDate }),
 			...(!isHostEditing && { tags_editable: tagsEditable }),
+			...(!isHostEditing && { hours_editable: hoursEditable }),
 		};
 
 		if (isEditMode && session) {
@@ -272,14 +275,34 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 							Hosts can edit their own tags
 						</Label>
 						<p className="text-muted-foreground text-xs">
-							Turn off if you're setting up tags for the host yourself and
-							don't want them changed.
+							Turn off if you're setting up tags for the host yourself and don't
+							want them changed.
 						</p>
 					</div>
 					<Switch
 						id="session-tags-editable"
 						checked={tagsEditable}
 						onCheckedChange={setTagsEditable}
+						disabled={isPending}
+					/>
+				</div>
+			)}
+
+			{!isHostEditing && (
+				<div className="flex items-center justify-between rounded-lg border p-3">
+					<div className="space-y-0.5">
+						<Label htmlFor="session-hours-editable">
+							Hosts can edit their own hours
+						</Label>
+						<p className="text-muted-foreground text-xs">
+							Turn off to keep this session's schedule fixed to what you set
+							here.
+						</p>
+					</div>
+					<Switch
+						id="session-hours-editable"
+						checked={hoursEditable}
+						onCheckedChange={setHoursEditable}
 						disabled={isPending}
 					/>
 				</div>
@@ -333,7 +356,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			</TabsList>
 			<TabsContent value="details">{detailsForm}</TabsContent>
 			<TabsContent value="hours">
-				<ManageAvailabilityHours sessionId={session.id} eventId={eventId} />
+				<ManageAvailabilityHours
+					sessionId={session.id}
+					eventId={eventId}
+					hoursEditable={
+						isHostEditing
+							? (session.host?.hours_editable_effective ?? true)
+							: true
+					}
+				/>
 			</TabsContent>
 		</Tabs>
 	);

@@ -15,11 +15,16 @@ import {
 interface ManageAvailabilityHoursProps {
 	sessionId: string;
 	eventId: string;
+	// Whether the current viewer may add/remove blocks. Defaults to true
+	// (staff can always edit); the create-session-dialog passes the
+	// resolved value when a host is editing their own session.
+	hoursEditable?: boolean;
 }
 
 export default function ManageAvailabilityHours({
 	sessionId,
 	eventId,
+	hoursEditable = true,
 }: ManageAvailabilityHoursProps) {
 	const { data, isLoading: isLoadingDates } = useBusinessMatchingAvailability(
 		sessionId,
@@ -117,8 +122,9 @@ export default function ManageAvailabilityHours({
 					Manage Working Hours & Breaks
 				</h3>
 				<p className="text-muted-foreground text-xs">
-					Add active shift hours. Gaps between ranges will act as lunch breaks /
-					rest times.
+					{hoursEditable
+						? "Add active shift hours. Gaps between ranges will act as lunch breaks / rest times."
+						: "Your event organizer manages your hours — contact them to make changes."}
 				</p>
 			</div>
 
@@ -161,98 +167,106 @@ export default function ManageAvailabilityHours({
 												<span>
 													{block.start_time} - {block.end_time}
 												</span>
-												<button
-													type="button"
-													onClick={() => handleRemoveBlock(dateObj, idx)}
-													className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
-												>
-													×
-												</button>
+												{hoursEditable && (
+													<button
+														type="button"
+														onClick={() => handleRemoveBlock(dateObj, idx)}
+														className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
+													>
+														×
+													</button>
+												)}
 											</div>
 										))}
 									</div>
 								)}
 
-								<div className="border-t border-dashed pt-2">
-									{addingDay === dateObj ? (
-										<div className="flex flex-wrap items-center gap-3">
-											<div className="flex items-center gap-1.5">
-												<span className="text-muted-foreground text-xs">
-													From
-												</span>
-												<Input
-													type="time"
-													value={newStart}
-													onChange={(e) => setNewStart(e.target.value)}
-													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-32 px-2 text-xs"
-													autoFocus
-												/>
+								{hoursEditable && (
+									<div className="border-t border-dashed pt-2">
+										{addingDay === dateObj ? (
+											<div className="flex flex-wrap items-center gap-3">
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground text-xs">
+														From
+													</span>
+													<Input
+														type="time"
+														value={newStart}
+														onChange={(e) => setNewStart(e.target.value)}
+														onClick={(e) => e.currentTarget.showPicker?.()}
+														className="h-8 w-32 px-2 text-xs"
+														autoFocus
+													/>
+												</div>
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground text-xs">
+														To
+													</span>
+													<Input
+														type="time"
+														value={newEnd}
+														onChange={(e) => setNewEnd(e.target.value)}
+														onClick={(e) => e.currentTarget.showPicker?.()}
+														className="h-8 w-32 px-2 text-xs"
+													/>
+												</div>
+												<Button
+													type="button"
+													size="sm"
+													onClick={() => {
+														if (handleAddBlock(dateObj)) {
+															setAddingDay(null);
+														}
+													}}
+													className="h-8 gap-1 text-xs"
+												>
+													<Plus className="h-3 w-3" /> Add
+												</Button>
+												<Button
+													type="button"
+													size="sm"
+													variant="ghost"
+													onClick={() => setAddingDay(null)}
+													className="h-8 text-xs"
+												>
+													Cancel
+												</Button>
 											</div>
-											<div className="flex items-center gap-1.5">
-												<span className="text-muted-foreground text-xs">
-													To
-												</span>
-												<Input
-													type="time"
-													value={newEnd}
-													onChange={(e) => setNewEnd(e.target.value)}
-													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-32 px-2 text-xs"
-												/>
-											</div>
+										) : (
 											<Button
 												type="button"
 												size="sm"
+												variant="outline"
 												onClick={() => {
-													if (handleAddBlock(dateObj)) {
-														setAddingDay(null);
-													}
+													setNewStart("09:00");
+													setNewEnd("17:00");
+													setAddingDay(dateObj);
 												}}
 												className="h-8 gap-1 text-xs"
 											>
-												<Plus className="h-3 w-3" /> Add
+												<Plus className="h-3 w-3" /> Add Block
 											</Button>
-											<Button
-												type="button"
-												size="sm"
-												variant="ghost"
-												onClick={() => setAddingDay(null)}
-												className="h-8 text-xs"
-											>
-												Cancel
-											</Button>
-										</div>
-									) : (
-										<Button
-											type="button"
-											size="sm"
-											variant="outline"
-											onClick={() => {
-												setNewStart("09:00");
-												setNewEnd("17:00");
-												setAddingDay(dateObj);
-											}}
-											className="h-8 gap-1 text-xs"
-										>
-											<Plus className="h-3 w-3" /> Add Block
-										</Button>
-									)}
-								</div>
+										)}
+									</div>
+								)}
 							</div>
 						);
 					})}
 
-					<div className="flex justify-end gap-2 border-t pt-4">
-						<Button
-							type="button"
-							onClick={handleSaveAvailabilities}
-							disabled={isSavingAvs}
-						>
-							{isSavingAvs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-							Save Availability
-						</Button>
-					</div>
+					{hoursEditable && (
+						<div className="flex justify-end gap-2 border-t pt-4">
+							<Button
+								type="button"
+								onClick={handleSaveAvailabilities}
+								disabled={isSavingAvs}
+							>
+								{isSavingAvs && (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								)}
+								Save Availability
+							</Button>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
+	adminSetHostHoursEditableOverride,
 	adminSetHostTagsEditableOverride,
 	adminUpdateHostAvatar,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
+	type BusinessMatchingSystemSettings,
 	type CreateHostRequest,
 	type CreateSessionRequest,
 	createAndAssignHost,
@@ -14,6 +16,7 @@ import {
 	getAvailability,
 	getBookings,
 	getBusinessMatchingEvents,
+	getBusinessMatchingSystemSettings,
 	getBusinessMatchingTags,
 	getDetailedSlots,
 	getPortalData,
@@ -27,6 +30,7 @@ import {
 	type UpdateTagsRequest,
 	updateBooking,
 	updateBusinessMatchingSession,
+	updateBusinessMatchingSystemSettings,
 	updateBusinessMatchingTags,
 	updatePortalProfile,
 	updateSessionAvailabilities,
@@ -65,11 +69,59 @@ export const useAdminSetHostTagsEditableOverride = (eventId: string) => {
 			bmEventId: string;
 			override: boolean | null;
 		}) =>
-			adminSetHostTagsEditableOverride(eventId, hostUserId, bmEventId, override),
+			adminSetHostTagsEditableOverride(
+				eventId,
+				hostUserId,
+				bmEventId,
+				override,
+			),
 		onSuccess: () => {
 			queryClient.refetchQueries({
 				queryKey: ["business-matching-events", eventId],
 			});
+		},
+	});
+};
+
+export const useAdminSetHostHoursEditableOverride = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			bmEventId,
+			override,
+		}: {
+			hostUserId: string;
+			bmEventId: string;
+			override: boolean | null;
+		}) =>
+			adminSetHostHoursEditableOverride(
+				eventId,
+				hostUserId,
+				bmEventId,
+				override,
+			),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useBusinessMatchingSystemSettings = () =>
+	useQuery({
+		queryKey: ["business-matching-system-settings"],
+		queryFn: getBusinessMatchingSystemSettings,
+	});
+
+export const useUpdateBusinessMatchingSystemSettings = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Partial<BusinessMatchingSystemSettings>) =>
+			updateBusinessMatchingSystemSettings(data),
+		onSuccess: (updated) => {
+			queryClient.setQueryData(["business-matching-system-settings"], updated);
 		},
 	});
 };
