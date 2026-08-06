@@ -1,10 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Tag, User } from "lucide-react";
+import { FileText, Tag } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -134,14 +133,6 @@ export default function HostProfilePage({
 
 	return (
 		<div className="mx-auto max-w-4xl space-y-6 px-4 py-2">
-			<div className="page-header mb-4 border-b pb-4">
-				<IconTitle
-					icon={User}
-					title="My Host Profile"
-					description="Configure your capabilities, intent, and tags for business matchmaking."
-				/>
-			</div>
-
 			<form onSubmit={handleSubmit} className="space-y-6">
 				<Card className="border border-dashed shadow-none">
 					<CardHeader>

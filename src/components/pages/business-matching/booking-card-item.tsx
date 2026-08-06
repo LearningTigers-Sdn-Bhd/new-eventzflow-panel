@@ -26,8 +26,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateBooking } from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useDialog } from "@/hooks/use-dialog";
 import type { Booking, BookingsResponse } from "@/lib/api/business-matching";
 import { cn } from "@/lib/utils";
+import BookerProfileDialog from "./booker-profile-dialog";
 import {
 	CompactCard as Card,
 	CompactCardContent as CardContent,
@@ -53,6 +55,7 @@ export function BookingCardItem({
 	);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
+	const { openDialog } = useDialog();
 
 	const [displayBooking, setDisplayBooking] = useState(booking); // Local display state
 
@@ -88,15 +91,20 @@ export function BookingCardItem({
 	const [valueDraft, setValueDraft] = useState<string>(
 		displayBooking.potential_deal_value?.toString() || "",
 	);
-	const [showBookerInfo, setShowBookerInfo] = useState(false);
 
 	const parsedBookerInfo = useMemo(() => {
 		const comment = displayBooking.host_comment || "";
 		if (!comment) return null;
 
-		const descriptionMatch = comment.match(/Description:\s*([\s\S]*?)(?=(?:Sourcing Intent:|Capabilities:|$))/i);
-		const intentMatch = comment.match(/Sourcing Intent:\s*([\s\S]*?)(?=(?:Description:|Capabilities:|$))/i);
-		const capabilitiesMatch = comment.match(/Capabilities:\s*([\s\S]*?)(?=(?:Description:|Sourcing Intent:|$))/i);
+		const descriptionMatch = comment.match(
+			/Description:\s*([\s\S]*?)(?=(?:Sourcing Intent:|Capabilities:|$))/i,
+		);
+		const intentMatch = comment.match(
+			/Sourcing Intent:\s*([\s\S]*?)(?=(?:Description:|Capabilities:|$))/i,
+		);
+		const capabilitiesMatch = comment.match(
+			/Capabilities:\s*([\s\S]*?)(?=(?:Description:|Sourcing Intent:|$))/i,
+		);
 
 		if (descriptionMatch || intentMatch || capabilitiesMatch) {
 			return {
@@ -516,44 +524,33 @@ export function BookingCardItem({
 					)}
 				</div>
 				{parsedBookerInfo && (
-					<div className="mt-2 border-t pt-2 space-y-1">
+					<div className="mt-2 border-t pt-2">
 						<Button
 							variant="outline"
 							size="sm"
 							type="button"
-							onClick={() => setShowBookerInfo(!showBookerInfo)}
-							className="h-7 w-full justify-between text-xs"
+							onClick={() =>
+								openDialog({
+									component: BookerProfileDialog,
+									props: {
+										name: displayBooking.name,
+										email: displayBooking.email,
+										phone: displayBooking.phone,
+										description: parsedBookerInfo.description,
+										sourcingIntent: parsedBookerInfo.sourcingIntent,
+										capabilities: parsedBookerInfo.capabilities,
+									},
+									config: {
+										title: "Booker Profile Details",
+										size: "md",
+									},
+								})
+							}
+							className="h-7 w-full justify-center gap-1.5 text-xs"
 						>
-							<span className="flex items-center gap-1.5 font-medium">
-								<User className="h-3 w-3 text-primary" />
-								Booker Profile Details
-							</span>
-							<span className="text-[10px] text-muted-foreground">
-								{showBookerInfo ? "Hide" : "Expand"}
-							</span>
+							<User className="h-3 w-3 text-primary" />
+							View Booker Profile Details
 						</Button>
-						{showBookerInfo && (
-							<div className="bg-muted/40 p-2 rounded-lg border border-muted/50 text-[11px] space-y-2.5 mt-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
-								{parsedBookerInfo.description && (
-									<div>
-										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Description / Bio</span>
-										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.description}</p>
-									</div>
-								)}
-								{parsedBookerInfo.sourcingIntent && (
-									<div>
-										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Sourcing Intent</span>
-										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.sourcingIntent}</p>
-									</div>
-								)}
-								{parsedBookerInfo.capabilities && (
-									<div>
-										<span className="font-semibold text-muted-foreground block text-[9px] uppercase tracking-wider">Capabilities</span>
-										<p className="text-foreground leading-relaxed mt-0.5">{parsedBookerInfo.capabilities}</p>
-									</div>
-								)}
-							</div>
-						)}
 					</div>
 				)}
 			</CardContent>

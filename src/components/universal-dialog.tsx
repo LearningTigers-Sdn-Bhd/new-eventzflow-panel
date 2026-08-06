@@ -1,6 +1,8 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -35,7 +37,10 @@ export function UniversalDialog() {
 		props,
 		config,
 		closeDialog,
+		goBack,
+		history,
 	} = useDialogStore();
+	const canGoBack = history.length > 0;
 
 	const [isMounted, setIsMounted] = useState(false);
 
@@ -72,6 +77,18 @@ export function UniversalDialog() {
 								"flex flex-col items-center gap-1 px-6 pt-6 pb-4 md:items-start",
 							)}
 						>
+							{canGoBack && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={goBack}
+									className="mb-1 -ml-2 h-7 gap-1 self-start px-2 text-muted-foreground"
+								>
+									<ArrowLeft className="h-3.5 w-3.5" />
+									Back
+								</Button>
+							)}
 							{config.title ? (
 								<DialogTitle>{config.title}</DialogTitle>
 							) : (
@@ -114,6 +131,18 @@ export function UniversalDialog() {
 								isFullScreen ? "px-6 pt-6" : "px-0",
 							)}
 						>
+							{canGoBack && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={goBack}
+									className="mb-1 -ml-2 h-7 gap-1 self-start px-2 text-muted-foreground"
+								>
+									<ArrowLeft className="h-3.5 w-3.5" />
+									Back
+								</Button>
+							)}
 							{config.title ? (
 								<DialogTitle>{config.title}</DialogTitle>
 							) : (
