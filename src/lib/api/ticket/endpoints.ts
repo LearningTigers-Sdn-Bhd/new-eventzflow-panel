@@ -1,8 +1,5 @@
 import type { BackendEvent } from "@/lib/api/event/response";
-import {
-	formatTicketCustomFieldValue,
-	humanizeCustomFieldKey,
-} from "@/lib/utils/custom-fields-display";
+import { formatTicketCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
@@ -152,15 +149,9 @@ export async function getMyScannedTickets(
 		// Transform backend response to frontend format
 		return sortedTickets.map((ticket) => {
 			// Transform custom_fields_data to customLabels array
-			const customLabels: Array<{ name: string; value: string }> = [];
-			if (ticket.custom_fields_data) {
-				for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-					customLabels.push({
-						name: humanizeCustomFieldKey(key),
-						value: formatTicketCustomFieldValue(key, value),
-					});
-				}
-			}
+			const customLabels = formatTicketCustomFieldEntries(
+				ticket.custom_fields_data,
+			);
 
 			return {
 				id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
@@ -236,12 +227,9 @@ function transformBackendTicket(
 		passBundle = bt.pass_bundle ?? null;
 
 		if (bt.custom_fields_data) {
-			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
-				customLabels.push({
-					name: humanizeCustomFieldKey(key),
-					value: formatTicketCustomFieldValue(key, val),
-				});
-			}
+			customLabels.push(
+				...formatTicketCustomFieldEntries(bt.custom_fields_data),
+			);
 		}
 	} else {
 		// BackendTicketTransformed format

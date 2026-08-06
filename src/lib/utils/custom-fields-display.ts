@@ -135,34 +135,62 @@ export function formatTicketCustomFieldValue(
 	const normalizedKey = key.replace(/^_+/, "").toLowerCase();
 
 	if (
-		normalizedKey === "indemnity" &&
+		["indemnity", "terms_agreement"].includes(normalizedKey) &&
 		typeof value === "object" &&
 		value !== null &&
 		!Array.isArray(value)
 	) {
-		const indemnity = value as Record<string, unknown>;
+		const agreement = value as Record<string, unknown>;
 		const lines: string[] = [];
 
-		if (indemnity.accepted === true) {
+		if (agreement.accepted === true) {
 			lines.push("Accepted");
-		} else if (indemnity.accepted === false) {
+		} else if (agreement.accepted === false) {
 			lines.push("Not accepted");
 		}
 
 		if (
-			typeof indemnity.signed_name === "string" &&
-			indemnity.signed_name.trim()
+			typeof agreement[
+				normalizedKey === "terms_agreement"
+					? "acknowledged_name"
+					: "signed_name"
+			] === "string" &&
+			String(
+				agreement[
+					normalizedKey === "terms_agreement"
+						? "acknowledged_name"
+						: "signed_name"
+				],
+			).trim()
 		) {
-			lines.push(`Signed by: ${indemnity.signed_name}`);
+			const signerKey =
+				normalizedKey === "terms_agreement"
+					? "acknowledged_name"
+					: "signed_name";
+			const signerLabel =
+				normalizedKey === "terms_agreement" ? "Acknowledged by" : "Signed by";
+			lines.push(`${signerLabel}: ${agreement[signerKey]}`);
 		}
 
-		if (typeof indemnity.method === "string" && indemnity.method.trim()) {
-			lines.push(`Method: ${humanizeCustomFieldKey(indemnity.method)}`);
+		if (typeof agreement.method === "string" && agreement.method.trim()) {
+			lines.push(`Method: ${humanizeCustomFieldKey(agreement.method)}`);
 		}
 
-		const signedAt = formatIndemnityDate(indemnity.signed_at);
-		if (signedAt) {
-			lines.push(`Signed at: ${signedAt}`);
+		if (
+			normalizedKey === "terms_agreement" &&
+			typeof agreement.terms_version === "string" &&
+			agreement.terms_version.trim()
+		) {
+			lines.push(`Terms version: ${agreement.terms_version}`);
+		}
+
+		const timestampKey =
+			normalizedKey === "terms_agreement" ? "accepted_at" : "signed_at";
+		const timestamp = formatIndemnityDate(agreement[timestampKey]);
+		if (timestamp) {
+			lines.push(
+				`${normalizedKey === "terms_agreement" ? "Accepted at" : "Signed at"}: ${timestamp}`,
+			);
 		}
 
 		if (lines.length > 0) {
@@ -171,6 +199,19 @@ export function formatTicketCustomFieldValue(
 	}
 
 	return formatCustomFieldValue(value);
+}
+
+export function formatTicketCustomFieldEntries(
+	data?: Record<string, unknown> | null,
+): Array<{ name: string; value: string }> {
+	if (!data) {
+		return [];
+	}
+
+	return Object.entries(data).map(([key, value]) => ({
+		name: key,
+		value: formatTicketCustomFieldValue(key, value),
+	}));
 }
 
 export function formatCustomFieldEntries(
