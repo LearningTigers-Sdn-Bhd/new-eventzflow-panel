@@ -10,6 +10,7 @@ export interface BusinessMatchingEvent {
 	admin_wa_number: string;
 	start_date?: string;
 	end_date?: string;
+	tags_editable?: boolean;
 	offering_tags?: string[];
 	interest_tags?: string[];
 	created_at?: string;
@@ -25,6 +26,8 @@ export interface BusinessMatchingEvent {
 		description?: string;
 		sourcing_intent?: string;
 		capabilities?: string;
+		avatar_url?: string | null;
+		tags_editable_override?: boolean | null;
 	} | null;
 }
 
@@ -39,6 +42,7 @@ export interface BusinessHost {
 	capabilities?: string;
 	interest_tags?: string[];
 	avatar_url?: string | null;
+	tags_editable_override?: boolean | null;
 }
 
 export interface AvailabilityDate {
@@ -416,6 +420,7 @@ export interface CreateSessionRequest {
 	end_time?: string;
 	start_date?: string;
 	end_date?: string;
+	tags_editable?: boolean;
 }
 
 export async function createBusinessMatchingSession(
@@ -563,6 +568,7 @@ export interface HostProfile {
 	sourcing_intent: string;
 	capabilities: string;
 	avatar_url?: string | null;
+	tags_editable?: boolean;
 }
 
 export interface UpdateHostProfileRequest extends Partial<HostProfile> {
@@ -592,6 +598,21 @@ export async function adminUpdateHostAvatar(
 	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
 	return restClient.patch<HostProfile>(url, {
 		avatar_signed_id: avatarSignedId,
+	});
+}
+
+// Overrides whether a specific host may self-edit tags for a specific
+// session — null clears the override back to the session's default.
+export async function adminSetHostTagsEditableOverride(
+	eventId: string,
+	hostUserId: string,
+	bmEventId: string,
+	override: boolean | null,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		tags_editable_override: override,
+		business_matching_event_id: bmEventId,
 	});
 }
 

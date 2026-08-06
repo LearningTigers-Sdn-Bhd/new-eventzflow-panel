@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
+	useAdminSetHostTagsEditableOverride,
 	useAdminUpdateHostAvatar,
 	useRemoveHost,
 } from "@/hooks/use-business-matching";
@@ -21,20 +23,29 @@ interface HostDetailsDialogProps {
 	host: BusinessHost;
 	bmEventId: string;
 	eventId: string;
+	// The session's default for tags_editable — used to show what the toggle
+	// resolves to when there's no per-host override.
+	sessionTagsEditable?: boolean;
 }
 
 const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 	host,
 	bmEventId,
 	eventId,
+	sessionTagsEditable = true,
 }) => {
 	const { closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
 	const { mutate: removeHost, isPending: isRemoving } = useRemoveHost(eventId);
 	const { mutateAsync: updateAvatar, isPending: isSavingAvatar } =
 		useAdminUpdateHostAvatar(eventId);
+	const { mutateAsync: setTagsOverride, isPending: isSavingTagsOverride } =
+		useAdminSetHostTagsEditableOverride(eventId);
 	const [avatarUrl, setAvatarUrl] = useState(
 		host.avatar_url ? `${API_BASE_URL}${host.avatar_url}` : undefined,
+	);
+	const [tagsEditable, setTagsEditable] = useState(
+		host.tags_editable_override ?? sessionTagsEditable,
 	);
 
 	const handleCopyEmail = () => {
@@ -53,6 +64,23 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 			toast.success("Host photo updated");
 		} catch (err) {
 			toast.error("Failed to update host photo", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
+		}
+	};
+
+	const handleTagsEditableChange = async (checked: boolean) => {
+		setTagsEditable(checked);
+		try {
+			await setTagsOverride({
+				hostUserId: host.id,
+				bmEventId,
+				override: checked === sessionTagsEditable ? null : checked,
+			});
+			toast.success("Host's tag-editing access updated");
+		} catch (err) {
+			setTagsEditable(!checked);
+			toast.error("Failed to update tag-editing access", {
 				description: err instanceof Error ? err.message : "Please try again.",
 			});
 		}
@@ -96,6 +124,22 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 					<a className="font-medium" href={`tel:${host.phone}`}>
 						{host.phone || "N/A"}
 					</a>
+				</div>
+				<div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+					<div className="space-y-0.5">
+						<Label>Can edit own tags</Label>
+						<p className="text-muted-foreground text-xs">
+							{host.tags_editable_override === null ||
+							host.tags_editable_override === undefined
+								? `Using session default (${sessionTagsEditable ? "on" : "off"})`
+								: "Overridden for this host"}
+						</p>
+					</div>
+					<Switch
+						checked={tagsEditable}
+						onCheckedChange={handleTagsEditableChange}
+						disabled={isSavingTagsOverride}
+					/>
 				</div>
 				{host.description && (
 					<div className="grid gap-1 border-t pt-3 mt-1">

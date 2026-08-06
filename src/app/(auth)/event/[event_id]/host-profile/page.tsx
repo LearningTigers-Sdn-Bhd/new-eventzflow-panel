@@ -66,6 +66,8 @@ export default function HostProfilePage({
 	const { data: availableTags, isLoading: isTagsLoading } =
 		useBusinessMatchingTags(event_id);
 
+	const tagsLocked = profile?.tags_editable === false;
+
 	// Sync state when data is loaded
 	useEffect(() => {
 		if (profile) {
@@ -118,8 +120,9 @@ export default function HostProfilePage({
 			description,
 			sourcing_intent: sourcingIntent,
 			capabilities,
-			offering_tags: offeringTags,
-			interest_tags: interestTags,
+			...(tagsLocked
+				? {}
+				: { offering_tags: offeringTags, interest_tags: interestTags }),
 			...(avatarSignedId ? { avatar_signed_id: avatarSignedId } : {}),
 		});
 		setAvatarFile(null);
@@ -258,11 +261,14 @@ export default function HostProfilePage({
 							Categories & Matching Tags
 						</CardTitle>
 						<CardDescription>
-							Tags are used by the matching algorithm to score compatibility
-							between you and visitors.
+							{tagsLocked
+								? "Your event organizer manages these tags for you."
+								: "Tags are used by the matching algorithm to score compatibility between you and visitors."}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="space-y-4">
+					<CardContent
+						className={`space-y-4 ${tagsLocked ? "pointer-events-none opacity-60" : ""}`}
+					>
 						<div className="grid gap-2">
 							<Label htmlFor="offeringTags" className="font-semibold text-sm">
 								Offering Tags

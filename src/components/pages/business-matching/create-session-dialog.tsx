@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useCreateBusinessMatchingSession,
@@ -74,6 +75,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		eventStartDate?.slice(0, 10) || "",
 	);
 	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
+	const [tagsEditable, setTagsEditable] = useState(true);
 
 	useEffect(() => {
 		if (session) {
@@ -84,6 +86,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setAdminWaNumber(session.admin_wa_number || "");
 			setStartDate(session.start_date?.slice(0, 10) || "");
 			setEndDate(session.end_date?.slice(0, 10) || "");
+			setTagsEditable(session.tags_editable ?? true);
 			// Optional start/end time pre-fill (default 9-5)
 			// (If backend returned them we could parse them, otherwise fallbacks are fine)
 		}
@@ -108,9 +111,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			admin_wa_number: adminWaNumber,
 			start_time: startTime,
 			end_time: endTime,
-			// Session dates are admin-controlled — never submitted from a host edit.
+			// Session dates and the tags toggle are admin-controlled — never
+			// submitted from a host edit.
 			...(!isHostEditing && startDate && { start_date: startDate }),
 			...(!isHostEditing && endDate && { end_date: endDate }),
+			...(!isHostEditing && { tags_editable: tagsEditable }),
 		};
 
 		if (isEditMode && session) {
@@ -259,6 +264,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 					/>
 				</div>
 			</div>
+
+			{!isHostEditing && (
+				<div className="flex items-center justify-between rounded-lg border p-3">
+					<div className="space-y-0.5">
+						<Label htmlFor="session-tags-editable">
+							Hosts can edit their own tags
+						</Label>
+						<p className="text-muted-foreground text-xs">
+							Turn off if you're setting up tags for the host yourself and
+							don't want them changed.
+						</p>
+					</div>
+					<Switch
+						id="session-tags-editable"
+						checked={tagsEditable}
+						onCheckedChange={setTagsEditable}
+						disabled={isPending}
+					/>
+				</div>
+			)}
 
 			<div className="flex items-center justify-between pt-4">
 				{isEditMode && session && !isHostEditing && (

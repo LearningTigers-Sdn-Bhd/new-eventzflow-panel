@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
+	adminSetHostTagsEditableOverride,
 	adminUpdateHostAvatar,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
@@ -47,6 +48,27 @@ export const useAdminUpdateHostAvatar = (eventId: string) => {
 			});
 			queryClient.refetchQueries({
 				queryKey: ["business-matching-hosts", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminSetHostTagsEditableOverride = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			bmEventId,
+			override,
+		}: {
+			hostUserId: string;
+			bmEventId: string;
+			override: boolean | null;
+		}) =>
+			adminSetHostTagsEditableOverride(eventId, hostUserId, bmEventId, override),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
 			});
 		},
 	});
