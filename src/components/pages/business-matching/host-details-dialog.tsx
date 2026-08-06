@@ -2,13 +2,20 @@
 
 import { Copy, Trash2 } from "lucide-react";
 import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useRemoveHost } from "@/hooks/use-business-matching";
+import {
+	useAdminUpdateHostAvatar,
+	useRemoveHost,
+} from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessHost } from "@/lib/api/business-matching";
+import { uploadFile } from "@/lib/api/upload/endpoints";
+import { API_BASE_URL } from "@/utils/rest-api";
 
 interface HostDetailsDialogProps {
 	host: BusinessHost;
@@ -24,6 +31,11 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 	const { closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
 	const { mutate: removeHost, isPending: isRemoving } = useRemoveHost(eventId);
+	const { mutateAsync: updateAvatar, isPending: isSavingAvatar } =
+		useAdminUpdateHostAvatar(eventId);
+	const [avatarUrl, setAvatarUrl] = useState(
+		host.avatar_url ? `${API_BASE_URL}${host.avatar_url}` : undefined,
+	);
 
 	const handleCopyEmail = () => {
 		navigator.clipboard
@@ -32,9 +44,33 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 			.catch(() => toast.error("Failed to copy email"));
 	};
 
+	const handleAvatarChange = async (file: File | null) => {
+		if (!file) return;
+		try {
+			const uploaded = await uploadFile(file, "general");
+			await updateAvatar({ hostUserId: host.id, avatarSignedId: uploaded.signed_id });
+			setAvatarUrl(URL.createObjectURL(file));
+			toast.success("Host photo updated");
+		} catch (err) {
+			toast.error("Failed to update host photo", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
+		}
+	};
+
 	return (
 		<div className="space-y-6">
 			<div className="space-y-4">
+				<div className="grid gap-1">
+					<Label className="text-muted-foreground">Photo</Label>
+					<ImageUpload
+						value={avatarUrl}
+						onChange={handleAvatarChange}
+						disabled={isSavingAvatar}
+						maxSize={5 * 1024 * 1024}
+						className="max-w-[200px]"
+					/>
+				</div>
 				<div className="grid gap-1">
 					<Label className="text-muted-foreground">Full Name</Label>
 					<div className="font-medium text-lg">{host.full_name}</div>

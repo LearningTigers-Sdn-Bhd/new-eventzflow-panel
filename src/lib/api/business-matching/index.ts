@@ -38,6 +38,7 @@ export interface BusinessHost {
 	sourcing_intent?: string;
 	capabilities?: string;
 	interest_tags?: string[];
+	avatar_url?: string | null;
 }
 
 export interface AvailabilityDate {
@@ -561,6 +562,11 @@ export interface HostProfile {
 	description: string;
 	sourcing_intent: string;
 	capabilities: string;
+	avatar_url?: string | null;
+}
+
+export interface UpdateHostProfileRequest extends Partial<HostProfile> {
+	avatar_signed_id?: string;
 }
 
 export async function getHostProfile(eventId: string): Promise<HostProfile> {
@@ -570,10 +576,23 @@ export async function getHostProfile(eventId: string): Promise<HostProfile> {
 
 export async function updateHostProfile(
 	eventId: string,
-	data: Partial<HostProfile>,
+	data: UpdateHostProfileRequest,
 ): Promise<HostProfile> {
 	const url = `v1/business_matching/events/${eventId}/host_profile`;
 	return restClient.put<HostProfile>(url, data);
+}
+
+// Lets staff (event admin / business matching admin) set a specific host's
+// avatar without needing the host to do it themselves.
+export async function adminUpdateHostAvatar(
+	eventId: string,
+	hostUserId: string,
+	avatarSignedId: string,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		avatar_signed_id: avatarSignedId,
+	});
 }
 
 export interface BusinessMatchingTags {

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
+	adminUpdateHostAvatar,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
 	type CreateHostRequest,
@@ -29,6 +30,27 @@ import {
 	updatePortalProfile,
 	updateSessionAvailabilities,
 } from "@/lib/api/business-matching";
+
+export const useAdminUpdateHostAvatar = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			avatarSignedId,
+		}: {
+			hostUserId: string;
+			avatarSignedId: string;
+		}) => adminUpdateHostAvatar(eventId, hostUserId, avatarSignedId),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-hosts", eventId],
+			});
+		},
+	});
+};
 
 export const useRemoveHost = (eventId: string) => {
 	const queryClient = useQueryClient();

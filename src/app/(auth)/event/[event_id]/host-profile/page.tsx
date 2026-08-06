@@ -1,10 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Tag } from "lucide-react";
+import { FileText, ImageIcon, Tag } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import ImageUpload from "@/components/file-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,6 +22,8 @@ import { useBusinessMatchingTags } from "@/hooks/use-business-matching";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getHostProfile, updateHostProfile } from "@/lib/api/business-matching";
 import { getEventById } from "@/lib/api/event";
+import { uploadFile } from "@/lib/api/upload/endpoints";
+import { API_BASE_URL } from "@/utils/rest-api";
 
 export default function HostProfilePage({
 	params,
@@ -45,6 +48,8 @@ export default function HostProfilePage({
 	const [capabilities, setCapabilities] = useState("");
 	const [offeringTags, setOfferingTags] = useState<string[]>([]);
 	const [interestTags, setInterestTags] = useState<string[]>([]);
+	const [avatarFile, setAvatarFile] = useState<File | null>(null);
+	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
 	// Fetch host profile
 	const {
@@ -89,8 +94,25 @@ export default function HostProfilePage({
 		},
 	});
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+
+		let avatarSignedId: string | undefined;
+		if (avatarFile) {
+			setIsUploadingAvatar(true);
+			try {
+				const uploaded = await uploadFile(avatarFile, "general");
+				avatarSignedId = uploaded.signed_id;
+			} catch (err) {
+				toast.error("Failed to upload photo", {
+					description:
+						err instanceof Error ? err.message : "Please try again.",
+				});
+				setIsUploadingAvatar(false);
+				return;
+			}
+			setIsUploadingAvatar(false);
+		}
 
 		updateMutation.mutate({
 			description,
@@ -98,7 +120,9 @@ export default function HostProfilePage({
 			capabilities,
 			offering_tags: offeringTags,
 			interest_tags: interestTags,
+			...(avatarSignedId ? { avatar_signed_id: avatarSignedId } : {}),
 		});
+		setAvatarFile(null);
 	};
 
 	// Enforce page authorization
@@ -134,6 +158,32 @@ export default function HostProfilePage({
 	return (
 		<div className="mx-auto max-w-4xl space-y-6 px-4 py-2">
 			<form onSubmit={handleSubmit} className="space-y-6">
+				<Card className="border border-dashed shadow-none">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<ImageIcon className="h-5 w-5 text-primary" />
+							Profile Photo
+						</CardTitle>
+						<CardDescription>
+							Take a photo or upload one to help buyers and sellers recognize
+							you.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<ImageUpload
+							value={
+								avatarFile ??
+								(profile?.avatar_url
+									? `${API_BASE_URL}${profile.avatar_url}`
+									: undefined)
+							}
+							onChange={setAvatarFile}
+							maxSize={5 * 1024 * 1024}
+							className="max-w-xs"
+						/>
+					</CardContent>
+				</Card>
+
 				<Card className="border border-dashed shadow-none">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-lg">
@@ -268,10 +318,12 @@ export default function HostProfilePage({
 				<div className="flex justify-end gap-3 border-t pt-4">
 					<Button
 						type="submit"
-						disabled={updateMutation.isPending}
+						disabled={updateMutation.isPending || isUploadingAvatar}
 						className="min-w-[120px]"
 					>
-						{updateMutation.isPending ? "Saving..." : "Save Profile"}
+						{updateMutation.isPending || isUploadingAvatar
+							? "Saving..."
+							: "Save Profile"}
 					</Button>
 				</div>
 			</form>
