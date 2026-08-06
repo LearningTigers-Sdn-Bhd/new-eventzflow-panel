@@ -32,6 +32,7 @@ export type CreateExhibitorBoothResponse = {
 export type BulkCreateExhibitorBoothsResponse = {
 	success: boolean;
 	booths: ExhibitorBooth[];
+	skippedCount: number;
 };
 
 export type UpdateExhibitorBoothResponse = CreateExhibitorBoothResponse;

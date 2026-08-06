@@ -85,18 +85,22 @@ export async function bulkCreateExhibitorBooths(
 	data: BulkCreateExhibitorBoothsRequest,
 ): Promise<BulkCreateExhibitorBoothsResponse> {
 	const validated = bulkCreateExhibitorBoothsSchema.parse(data);
-	const response = await restClient.post<BackendExhibitorBooth[]>(
-		`v1/events/${validated.event_id}/exhibitor_booths/bulk`,
-		{
-			exhibitor_booths: {
-				exhibitor_booth_price_id: validated.exhibitor_booth_price_id,
-				numbers: validated.numbers,
-				status: validated.status,
-			},
+	const response = await restClient.post<{
+		booths: BackendExhibitorBooth[];
+		skipped_count: number;
+	}>(`v1/events/${validated.event_id}/exhibitor_booths/bulk`, {
+		exhibitor_booths: {
+			exhibitor_booth_price_id: validated.exhibitor_booth_price_id,
+			numbers: validated.numbers,
+			status: validated.status,
 		},
-	);
+	});
 
-	return { success: true, booths: response.map(transformBooth) };
+	return {
+		success: true,
+		booths: response.booths.map(transformBooth),
+		skippedCount: response.skipped_count,
+	};
 }
 
 export async function updateExhibitorBooth(

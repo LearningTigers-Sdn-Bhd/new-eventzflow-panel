@@ -184,10 +184,14 @@ export function BoothInventoryDialog({
 
 	const bulkMutation = useMutation({
 		mutationFn: bulkCreateExhibitorBooths,
-		onSuccess: ({ booths: created }) => {
+		onSuccess: ({ booths: created, skippedCount }) => {
 			invalidateBooths();
 			setPastedNumbers("");
-			toast.success(`${created.length} booths created`);
+			toast.success(
+				skippedCount > 0
+					? `${created.length} booths created, ${skippedCount} skipped (already exist)`
+					: `${created.length} booths created`,
+			);
 		},
 		onError: async (error: unknown) => {
 			const message = await extractErrorMessage(error);
