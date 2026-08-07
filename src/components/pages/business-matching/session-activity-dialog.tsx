@@ -14,8 +14,8 @@ export default function SessionActivityDialog({
 	eventId,
 }: SessionActivityDialogProps) {
 	return (
-		<Tabs defaultValue="bookings" className="w-full">
-			<TabsList className="mb-4 grid w-full grid-cols-2">
+		<Tabs defaultValue="bookings" className="w-full gap-2">
+			<TabsList className="grid w-full grid-cols-2">
 				<TabsTrigger value="bookings">Bookings</TabsTrigger>
 				<TabsTrigger value="availability">Availability</TabsTrigger>
 			</TabsList>

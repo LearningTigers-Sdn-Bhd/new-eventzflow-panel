@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar, LayoutGrid, List, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
 import {
 	Empty,
 	EmptyDescription,
@@ -18,6 +19,7 @@ import {
 	useForceRefreshBookings,
 } from "@/hooks/use-business-matching";
 import { BookingCardItem } from "./booking-card-item";
+import { CompactBookingRow } from "./compact-booking-row";
 
 interface BookingsDialogProps {
 	bmEventId: string;
@@ -36,6 +38,7 @@ export default function BookingsDialog({
 		refetch: _refetch,
 	} = useBusinessMatchingBookings(bmEventId, eventId);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [viewMode, setViewMode] = useState<"detailed" | "compact">("detailed");
 	const _queryClient = useQueryClient();
 	const { mutate: forceRefreshBookings, isPending: isRefreshingBookings } =
 		useForceRefreshBookings(bmEventId, eventId);
@@ -133,21 +136,63 @@ export default function BookingsDialog({
 			return dateA.getTime() - dateB.getTime();
 		});
 
+	const renderBookings = (bookings: typeof filteredBookings) =>
+		viewMode === "compact" ? (
+			<div className="flex flex-col gap-1.5 p-1 pb-4">
+				{bookings.map((booking) => (
+					<CompactBookingRow key={booking.id} booking={booking} />
+				))}
+			</div>
+		) : (
+			<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
+				{bookings.map((booking) => (
+					<BookingCardItem
+						key={booking.id}
+						booking={booking}
+						bmEventId={bmEventId}
+						eventId={eventId}
+					/>
+				))}
+			</div>
+		);
+
 	return (
 		<div className="flex h-[70vh] w-full flex-col overflow-hidden p-1">
-			<div className="mb-2 px-1">
+			<div className="mb-1.5 flex items-center gap-2 px-1">
 				<Input
 					placeholder="Search bookings..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="h-8 text-sm"
+					className="h-8 flex-1 text-sm"
 				/>
+				<div className="flex shrink-0 items-center gap-0.5 rounded-md border p-0.5">
+					<Button
+						type="button"
+						variant={viewMode === "detailed" ? "secondary" : "ghost"}
+						size="icon"
+						className="h-7 w-7"
+						onClick={() => setViewMode("detailed")}
+						title="Detailed view"
+					>
+						<LayoutGrid className="h-3.5 w-3.5" />
+					</Button>
+					<Button
+						type="button"
+						variant={viewMode === "compact" ? "secondary" : "ghost"}
+						size="icon"
+						className="h-7 w-7"
+						onClick={() => setViewMode("compact")}
+						title="Compact view"
+					>
+						<List className="h-3.5 w-3.5" />
+					</Button>
+				</div>
 			</div>
 			<Tabs
 				defaultValue={todayBookings.length > 0 ? "today" : "all"}
-				className="flex min-h-0 w-full flex-1 flex-col overflow-hidden"
+				className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-hidden"
 			>
-				<div className="mb-2 shrink-0 px-1">
+				<div className="shrink-0 px-1">
 					<TabsList className="grid w-full grid-cols-2">
 						<TabsTrigger value="today">
 							Today ({todayBookings.length})
@@ -164,16 +209,7 @@ export default function BookingsDialog({
 				>
 					<ScrollArea className="h-full">
 						{todayBookings.length > 0 ? (
-							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
-								{todayBookings.map((booking) => (
-									<BookingCardItem
-										key={booking.id}
-										booking={booking}
-										bmEventId={bmEventId}
-										eventId={eventId}
-									/>
-								))}
-							</div>
+							renderBookings(todayBookings)
 						) : (
 							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
 								<Calendar className="mb-2 h-10 w-10 opacity-20" />
@@ -189,16 +225,7 @@ export default function BookingsDialog({
 				>
 					<ScrollArea className="h-full">
 						{filteredBookings.length > 0 ? (
-							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
-								{filteredBookings.map((booking) => (
-									<BookingCardItem
-										key={booking.id}
-										booking={booking}
-										bmEventId={bmEventId}
-										eventId={eventId}
-									/>
-								))}
-							</div>
+							renderBookings(filteredBookings)
 						) : (
 							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
 								<Calendar className="mb-2 h-10 w-10 opacity-20" />
