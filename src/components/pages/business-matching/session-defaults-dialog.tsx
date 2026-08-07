@@ -70,7 +70,13 @@ export default function SessionDefaultsDialog({
 
 	const handleStartDateSelect = (date: Date | undefined) => {
 		if (!date) return;
-		setStartDate(format(date, "yyyy-MM-dd"));
+		const newStartDate = format(date, "yyyy-MM-dd");
+		setStartDate(newStartDate);
+		// The previously-picked end date may now be before the new start —
+		// clear it rather than leave a now-invalid date sitting in the field.
+		if (endDate && endDate < newStartDate) {
+			setEndDate("");
+		}
 		setStartDateOpen(false);
 		// Jump straight to picking the end date next.
 		setEndDateOpen(true);
@@ -208,7 +214,9 @@ export default function SessionDefaultsDialog({
 								mode="single"
 								selected={endDate ? parseISO(endDate) : undefined}
 								onSelect={handleEndDateSelect}
-								disabled={isPending}
+								disabled={(date) =>
+									isPending || (!!startDate && date < parseISO(startDate))
+								}
 							/>
 						</PopoverContent>
 					</Popover>
