@@ -7,7 +7,7 @@ import {
 	adminUpdateHostTags,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
-	type BusinessMatchingSystemSettings,
+	type BusinessMatchingEventDefaults,
 	type CreateHostRequest,
 	type CreateSessionRequest,
 	createAndAssignHost,
@@ -16,8 +16,8 @@ import {
 	deleteBusinessMatchingSession,
 	getAvailability,
 	getBookings,
+	getBusinessMatchingEventDefaults,
 	getBusinessMatchingEvents,
-	getBusinessMatchingSystemSettings,
 	getBusinessMatchingTags,
 	getDetailedSlots,
 	getPortalData,
@@ -30,8 +30,8 @@ import {
 	type UpdateBookingRequest,
 	type UpdateTagsRequest,
 	updateBooking,
+	updateBusinessMatchingEventDefaults,
 	updateBusinessMatchingSession,
-	updateBusinessMatchingSystemSettings,
 	updateBusinessMatchingTags,
 	updatePortalProfile,
 	updateSessionAvailabilities,
@@ -134,19 +134,23 @@ export const useAdminSetHostHoursEditableOverride = (eventId: string) => {
 	});
 };
 
-export const useBusinessMatchingSystemSettings = () =>
+export const useBusinessMatchingEventDefaults = (eventId: string) =>
 	useQuery({
-		queryKey: ["business-matching-system-settings"],
-		queryFn: getBusinessMatchingSystemSettings,
+		queryKey: ["business-matching-event-defaults", eventId],
+		queryFn: () => getBusinessMatchingEventDefaults(eventId),
+		enabled: !!eventId,
 	});
 
-export const useUpdateBusinessMatchingSystemSettings = () => {
+export const useUpdateBusinessMatchingEventDefaults = (eventId: string) => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (data: Partial<BusinessMatchingSystemSettings>) =>
-			updateBusinessMatchingSystemSettings(data),
+		mutationFn: (data: Partial<BusinessMatchingEventDefaults>) =>
+			updateBusinessMatchingEventDefaults(eventId, data),
 		onSuccess: (updated) => {
-			queryClient.setQueryData(["business-matching-system-settings"], updated);
+			queryClient.setQueryData(
+				["business-matching-event-defaults", eventId],
+				updated,
+			);
 		},
 	});
 };

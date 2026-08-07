@@ -658,22 +658,27 @@ export interface DefaultHoursBlock {
 	end_time: string;
 }
 
-export interface BusinessMatchingSystemSettings {
+export interface BusinessMatchingEventDefaults {
+	default_start_date: string | null;
+	default_end_date: string | null;
 	default_hours: DefaultHoursBlock[];
 	hours_editable_default: boolean;
 }
 
-export async function getBusinessMatchingSystemSettings(): Promise<BusinessMatchingSystemSettings> {
-	return restClient.get<BusinessMatchingSystemSettings>(
-		"v1/business_matching/system_settings",
+export async function getBusinessMatchingEventDefaults(
+	eventId: string,
+): Promise<BusinessMatchingEventDefaults> {
+	return restClient.get<BusinessMatchingEventDefaults>(
+		`v1/business_matching/events/${eventId}/defaults`,
 	);
 }
 
-export async function updateBusinessMatchingSystemSettings(
-	data: Partial<BusinessMatchingSystemSettings>,
-): Promise<BusinessMatchingSystemSettings> {
-	return restClient.put<BusinessMatchingSystemSettings>(
-		"v1/business_matching/system_settings",
+export async function updateBusinessMatchingEventDefaults(
+	eventId: string,
+	data: Partial<BusinessMatchingEventDefaults>,
+): Promise<BusinessMatchingEventDefaults> {
+	return restClient.put<BusinessMatchingEventDefaults>(
+		`v1/business_matching/events/${eventId}/defaults`,
 		data,
 	);
 }

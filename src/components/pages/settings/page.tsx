@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, Cog, CreditCard, Lock, Sun, User } from "lucide-react";
+import { Cog, CreditCard, Lock, Sun, User } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -12,7 +12,6 @@ import {
 import { IconTitle } from "@/components/ui/icon-heading";
 import { getCurrentUser } from "@/lib/api/profile";
 import { AccountInfoForm } from "./account-info-form";
-import { BusinessMatchingDefaultsForm } from "./business-matching-defaults-form";
 import { PasswordForm } from "./password-form";
 import { PaymentDetailForm } from "./payment-detail-form";
 import { ThemeSettings } from "./theme-settings";
@@ -123,27 +122,6 @@ export function SettingsPage() {
 						<ThemeSettings />
 					</CardContent>
 				</Card>
-
-				{/* Business Matching Defaults - org owner only */}
-				{profile?.role === "org_owner" && (
-					<Card className="rounded-none border-primary/20 px-0 shadow-none md:col-span-2">
-						<CardHeader className="flex items-center gap-4 px-2 md:px-4">
-							<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
-								<CalendarClock className="size-5" />
-							</div>
-							<div className="flex flex-col gap-2">
-								<CardTitle>Business Matching Defaults</CardTitle>
-								<CardDescription>
-									Platform-wide default hours, breaks, and host self-editing
-									permissions for new Business Matching sessions.
-								</CardDescription>
-							</div>
-						</CardHeader>
-						<CardContent className="px-2 md:px-4">
-							<BusinessMatchingDefaultsForm />
-						</CardContent>
-					</Card>
-				)}
 			</div>
 		</div>
 	);

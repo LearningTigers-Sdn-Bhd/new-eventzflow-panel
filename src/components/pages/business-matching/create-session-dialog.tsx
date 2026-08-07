@@ -13,7 +13,10 @@ import {
 	useUpdateBusinessMatchingSession,
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
-import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import type {
+	BusinessMatchingEvent,
+	BusinessMatchingEventDefaults,
+} from "@/lib/api/business-matching";
 import ManageAvailabilityHours from "./manage-availability-hours";
 
 interface CreateSessionDialogProps {
@@ -21,6 +24,10 @@ interface CreateSessionDialogProps {
 	session?: BusinessMatchingEvent; // If provided, edit mode
 	eventStartDate?: string; // Prefill only — the session's range can differ from the event's
 	eventEndDate?: string;
+	// This event's configured Business Matching defaults (date range, hours
+	// template) — prefills a brand-new session so the admin doesn't have to
+	// re-enter the same date/time every time.
+	eventDefaults?: BusinessMatchingEventDefaults;
 	// When true, this is a host editing their own session: the date range is
 	// admin-controlled and read-only, and the host can't delete the session.
 	isHostEditing?: boolean;
@@ -31,6 +38,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	session,
 	eventStartDate,
 	eventEndDate,
+	eventDefaults,
 	isHostEditing = false,
 }) => {
 	const { closeDialog } = useDialog();
@@ -89,6 +97,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			// (If backend returned them we could parse them, otherwise fallbacks are fine)
 		}
 	}, [session]);
+
+	// New session (not editing an existing one): prefill from this event's
+	// configured defaults once they've loaded.
+	useEffect(() => {
+		if (session || !eventDefaults) return;
+		if (eventDefaults.default_start_date) {
+			setStartDate(eventDefaults.default_start_date);
+		}
+		if (eventDefaults.default_end_date) {
+			setEndDate(eventDefaults.default_end_date);
+		}
+		if (eventDefaults.default_hours.length > 0) {
+			setStartTime(eventDefaults.default_hours[0].start_time);
+			setEndTime(
+				eventDefaults.default_hours[eventDefaults.default_hours.length - 1]
+					.end_time,
+			);
+		}
+		setHoursEditable(eventDefaults.hours_editable_default);
+	}, [session, eventDefaults]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();

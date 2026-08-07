@@ -8,25 +8,38 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-	useBusinessMatchingSystemSettings,
-	useUpdateBusinessMatchingSystemSettings,
+	useBusinessMatchingEventDefaults,
+	useUpdateBusinessMatchingEventDefaults,
 } from "@/hooks/use-business-matching";
+import { useDialog } from "@/hooks/use-dialog";
 import type { DefaultHoursBlock } from "@/lib/api/business-matching";
 
-export function BusinessMatchingDefaultsForm() {
-	const { data: settings, isLoading } = useBusinessMatchingSystemSettings();
-	const { mutate: updateSettings, isPending } =
-		useUpdateBusinessMatchingSystemSettings();
+interface SessionDefaultsDialogProps {
+	eventId: string;
+}
 
+export default function SessionDefaultsDialog({
+	eventId,
+}: SessionDefaultsDialogProps) {
+	const { closeDialog } = useDialog();
+	const { data: defaults, isLoading } =
+		useBusinessMatchingEventDefaults(eventId);
+	const { mutate: updateDefaults, isPending } =
+		useUpdateBusinessMatchingEventDefaults(eventId);
+
+	const [startDate, setStartDate] = useState("");
+	const [endDate, setEndDate] = useState("");
 	const [blocks, setBlocks] = useState<DefaultHoursBlock[]>([]);
 	const [hoursEditableDefault, setHoursEditableDefault] = useState(true);
 
 	useEffect(() => {
-		if (settings) {
-			setBlocks(settings.default_hours);
-			setHoursEditableDefault(settings.hours_editable_default);
+		if (defaults) {
+			setStartDate(defaults.default_start_date || "");
+			setEndDate(defaults.default_end_date || "");
+			setBlocks(defaults.default_hours);
+			setHoursEditableDefault(defaults.hours_editable_default);
 		}
-	}, [settings]);
+	}, [defaults]);
 
 	const handleAddBlock = () => {
 		setBlocks((prev) => [...prev, { start_time: "09:00", end_time: "17:00" }]);
@@ -53,12 +66,24 @@ export function BusinessMatchingDefaultsForm() {
 			toast.error("Add at least one working-hours block.");
 			return;
 		}
-		updateSettings(
-			{ default_hours: blocks, hours_editable_default: hoursEditableDefault },
+		if (startDate && endDate && endDate < startDate) {
+			toast.error("End date must be on or after the start date.");
+			return;
+		}
+		updateDefaults(
 			{
-				onSuccess: () => toast.success("Business Matching defaults saved!"),
+				default_start_date: startDate || null,
+				default_end_date: endDate || null,
+				default_hours: blocks,
+				hours_editable_default: hoursEditableDefault,
+			},
+			{
+				onSuccess: () => {
+					toast.success("Session defaults saved!");
+					closeDialog();
+				},
 				onError: (error) =>
-					toast.error("Failed to save defaults", {
+					toast.error("Failed to save session defaults", {
 						description: error.message || "An unexpected error occurred.",
 					}),
 			},
@@ -67,7 +92,7 @@ export function BusinessMatchingDefaultsForm() {
 
 	if (isLoading) {
 		return (
-			<div className="flex h-24 items-center justify-center">
+			<div className="flex h-32 items-center justify-center">
 				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 			</div>
 		);
@@ -75,13 +100,40 @@ export function BusinessMatchingDefaultsForm() {
 
 	return (
 		<div className="space-y-4">
+			<p className="text-muted-foreground text-xs">
+				New sessions created for this event will prefill from these — no need to
+				set the date and hours manually every time.
+			</p>
+
+			<div className="grid grid-cols-2 gap-4">
+				<div className="space-y-2">
+					<Label htmlFor="defaults-start-date">Default Start Date</Label>
+					<Input
+						id="defaults-start-date"
+						type="date"
+						value={startDate}
+						onChange={(e) => setStartDate(e.target.value)}
+						disabled={isPending}
+					/>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="defaults-end-date">Default End Date</Label>
+					<Input
+						id="defaults-end-date"
+						type="date"
+						value={endDate}
+						onChange={(e) => setEndDate(e.target.value)}
+						disabled={isPending}
+					/>
+				</div>
+			</div>
+
 			<div className="space-y-2">
 				<Label className="font-semibold text-sm">
 					Default Working Hours & Breaks
 				</Label>
 				<p className="text-muted-foreground text-xs">
-					Pre-fills every new Business Matching session's schedule. Gaps between
-					blocks act as breaks.
+					Gaps between blocks act as breaks (e.g. lunch).
 				</p>
 				<div className="space-y-2">
 					{blocks.map((block, index) => (
@@ -150,7 +202,15 @@ export function BusinessMatchingDefaultsForm() {
 				/>
 			</div>
 
-			<div className="flex justify-end">
+			<div className="flex justify-end gap-2 border-t pt-4">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={closeDialog}
+					disabled={isPending}
+				>
+					Cancel
+				</Button>
 				<Button type="button" onClick={handleSave} disabled={isPending}>
 					{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 					Save Defaults

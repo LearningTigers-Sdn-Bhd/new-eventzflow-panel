@@ -10,8 +10,10 @@ import { columns } from "@/components/pages/business-matching/columns";
 import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
+import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
 import { Button } from "@/components/ui/button";
 import {
+	useBusinessMatchingEventDefaults,
 	useBusinessMatchingEvents,
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
@@ -66,6 +68,12 @@ export default function BusinessMatchingPage() {
 	// Matches manage_business_matching_sessions? — event admins/BM admins can
 	// create sessions, in addition to whoever canManageEvent already covers.
 	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
+
+	// Session defaults prefill new sessions — only fetch for staff who can
+	// actually manage them (the endpoint is staff-only).
+	const { data: eventDefaults } = useBusinessMatchingEventDefaults(
+		canManageSessions ? event_id : "",
+	);
 
 	// Check if logged-in host has completed their profile
 	const { data: hostProfile } = useQuery({
@@ -191,6 +199,7 @@ export default function BusinessMatchingPage() {
 								eventId: event_id,
 								eventStartDate: event?.start_date,
 								eventEndDate: event?.end_date,
+								eventDefaults,
 							},
 							config: {
 								title: "Create Matchmaking Session",
@@ -220,6 +229,25 @@ export default function BusinessMatchingPage() {
 					className="h-8 rounded-none md:h-9"
 				>
 					Manage Tags
+				</Button>
+			)}
+
+			{canManageSessions && (
+				<Button
+					variant="outline"
+					onClick={() => {
+						openDialog({
+							component: SessionDefaultsDialog,
+							props: { eventId: event_id },
+							config: {
+								title: "Session Defaults",
+								size: "lg",
+							},
+						});
+					}}
+					className="h-8 rounded-none md:h-9"
+				>
+					Session Defaults
 				</Button>
 			)}
 
