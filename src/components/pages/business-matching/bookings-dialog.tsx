@@ -134,7 +134,7 @@ export default function BookingsDialog({
 		});
 
 	return (
-		<div className="flex max-h-[70vh] w-full flex-col p-1">
+		<div className="flex max-h-[70vh] w-full flex-col overflow-hidden p-1">
 			<div className="mb-2 px-1">
 				<Input
 					placeholder="Search bookings..."
@@ -145,7 +145,7 @@ export default function BookingsDialog({
 			</div>
 			<Tabs
 				defaultValue={todayBookings.length > 0 ? "today" : "all"}
-				className="flex w-full flex-1 flex-col overflow-hidden"
+				className="flex min-h-0 w-full flex-1 flex-col overflow-hidden"
 			>
 				<div className="mb-2 shrink-0 px-1">
 					<TabsList className="grid w-full grid-cols-2">
@@ -158,8 +158,11 @@ export default function BookingsDialog({
 					</TabsList>
 				</div>
 
-				<TabsContent value="today" className="mt-0 flex-1 overflow-hidden">
-					<ScrollArea className="max-h-[55vh]">
+				<TabsContent
+					value="today"
+					className="mt-0 min-h-0 flex-1 overflow-hidden"
+				>
+					<ScrollArea className="h-full max-h-[55vh]">
 						{todayBookings.length > 0 ? (
 							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
 								{todayBookings.map((booking) => (
@@ -180,8 +183,11 @@ export default function BookingsDialog({
 					</ScrollArea>
 				</TabsContent>
 
-				<TabsContent value="all" className="mt-0 flex-1 overflow-hidden">
-					<ScrollArea className="max-h-[55vh]">
+				<TabsContent
+					value="all"
+					className="mt-0 min-h-0 flex-1 overflow-hidden"
+				>
+					<ScrollArea className="h-full max-h-[55vh]">
 						{filteredBookings.length > 0 ? (
 							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
 								{filteredBookings.map((booking) => (
