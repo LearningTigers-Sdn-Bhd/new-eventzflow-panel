@@ -6,18 +6,12 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	useBusinessMatchingAvailability,
 	useSessionAvailabilities,
 	useUpdateSessionAvailabilities,
 } from "@/hooks/use-business-matching";
 import { validEndTimes, validStartTimes } from "@/lib/time-blocks";
+import { TimeSelect } from "./time-select";
 
 interface ManageAvailabilityHoursProps {
 	sessionId: string;
@@ -184,47 +178,28 @@ export default function ManageAvailabilityHours({
 									<div className="border-t border-dashed pt-2">
 										{addingDay === dateObj ? (
 											<div className="flex flex-wrap items-center gap-2">
-												<Select
+												<TimeSelect
+													options={validStartTimes(dayBlocks)}
 													open={startSelectOpen}
 													onOpenChange={setStartSelectOpen}
 													value={newStart}
 													onValueChange={handleNewStartChange}
-												>
-													<SelectTrigger className="h-8 w-28 text-xs">
-														<SelectValue placeholder="Start time" />
-													</SelectTrigger>
-													<SelectContent className="max-h-[240px]">
-														{validStartTimes(dayBlocks).map((t) => (
-															<SelectItem key={t} value={t}>
-																{t}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
+													placeholder="Start time"
+												/>
 												<span className="text-muted-foreground text-xs">
 													to
 												</span>
-												<Select
+												<TimeSelect
+													options={
+														newStart ? validEndTimes(dayBlocks, newStart) : []
+													}
 													open={endSelectOpen}
 													onOpenChange={setEndSelectOpen}
 													value={newEnd}
 													onValueChange={setNewEnd}
 													disabled={!newStart}
-												>
-													<SelectTrigger className="h-8 w-28 text-xs">
-														<SelectValue placeholder="End time" />
-													</SelectTrigger>
-													<SelectContent className="max-h-[240px]">
-														{(newStart
-															? validEndTimes(dayBlocks, newStart)
-															: []
-														).map((t) => (
-															<SelectItem key={t} value={t}>
-																{t}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
+													placeholder="End time"
+												/>
 												<Button
 													type="button"
 													size="icon"

@@ -19,13 +19,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
 	useBusinessMatchingEventDefaults,
@@ -35,6 +28,7 @@ import { useDialog } from "@/hooks/use-dialog";
 import type { DefaultHoursBlock } from "@/lib/api/business-matching";
 import { validEndTimes, validStartTimes } from "@/lib/time-blocks";
 import { cn } from "@/lib/utils";
+import { TimeSelect } from "./time-select";
 
 interface SessionDefaultsDialogProps {
 	eventId: string;
@@ -265,43 +259,25 @@ export default function SessionDefaultsDialog({
 
 				{isAddingBlock ? (
 					<div className="flex flex-wrap items-center gap-2 rounded-lg border p-2">
-						<Select
+						<TimeSelect
+							options={startTimeOptions}
 							open={startSelectOpen}
 							onOpenChange={setStartSelectOpen}
 							value={newStart}
 							onValueChange={handleNewStartChange}
 							disabled={isPending}
-						>
-							<SelectTrigger className="h-8 w-28 text-xs">
-								<SelectValue placeholder="Start time" />
-							</SelectTrigger>
-							<SelectContent className="max-h-[240px]">
-								{startTimeOptions.map((t) => (
-									<SelectItem key={t} value={t}>
-										{t}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							placeholder="Start time"
+						/>
 						<span className="text-muted-foreground text-xs">to</span>
-						<Select
+						<TimeSelect
+							options={endTimeOptions}
 							open={endSelectOpen}
 							onOpenChange={setEndSelectOpen}
 							value={newEnd}
 							onValueChange={setNewEnd}
 							disabled={isPending || !newStart}
-						>
-							<SelectTrigger className="h-8 w-28 text-xs">
-								<SelectValue placeholder="End time" />
-							</SelectTrigger>
-							<SelectContent className="max-h-[240px]">
-								{endTimeOptions.map((t) => (
-									<SelectItem key={t} value={t}>
-										{t}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							placeholder="End time"
+						/>
 						<Button
 							type="button"
 							size="icon"
