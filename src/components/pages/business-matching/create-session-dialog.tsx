@@ -1,6 +1,6 @@
 import { Loader2, Trash2 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+	useBusinessMatchingBookings,
 	useCreateBusinessMatchingSession,
 	useDeleteBusinessMatchingSession,
+	useSessionAvailabilities,
 	useUpdateBusinessMatchingSession,
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
@@ -17,6 +19,7 @@ import type {
 	BusinessMatchingEvent,
 	BusinessMatchingEventDefaults,
 } from "@/lib/api/business-matching";
+import { addMinutesToTime } from "@/lib/time-blocks";
 import ManageAvailabilityHours from "./manage-availability-hours";
 
 interface CreateSessionDialogProps {
@@ -50,6 +53,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		useUpdateBusinessMatchingSession(eventId);
 	const { mutate: deleteSession, isPending: isDeleting } =
 		useDeleteBusinessMatchingSession(eventId);
+
+	// Existing bookings/availability blocks that a narrower Daily Start/End
+	// Time would silently orphan — checked live so the conflict shows before
+	// Save, not as a surprise afterward.
+	const { data: bookingsData } = useBusinessMatchingBookings(
+		session?.id ?? null,
+		isEditMode ? eventId : null,
+	);
+	const { data: availabilities } = useSessionAvailabilities(session?.id ?? "");
 
 	const isPending = isCreating || isUpdating || isDeleting;
 
@@ -93,8 +105,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setEndDate(session.end_date?.slice(0, 10) || "");
 			setTagsEditable(session.tags_editable ?? true);
 			setHoursEditable(session.hours_editable ?? true);
-			// Optional start/end time pre-fill (default 9-5)
-			// (If backend returned them we could parse them, otherwise fallbacks are fine)
+			setStartTime(session.start_time || "09:00");
+			setEndTime(session.end_time || "17:00");
 		}
 	}, [session]);
 
@@ -121,8 +133,39 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		setHoursEditable(eventDefaults.hours_editable_default);
 	}, [session, eventDefaults]);
 
+	// Bookings/blocks that would fall outside the currently-entered Daily
+	// Start/End Time — recomputed live as the admin types, so the conflict
+	// is visible before they ever hit Save.
+	const timeConflicts = useMemo(() => {
+		if (!isEditMode) return { bookings: [], blocks: [] };
+
+		const conflictingBookings = (bookingsData?.bookings ?? []).filter((b) => {
+			if (b.status === "Cancelled") return false;
+			const bookingEnd = addMinutesToTime(
+				b.booking_time,
+				Number.parseInt(b.duration, 10) || 0,
+			);
+			return b.booking_time < startTime || bookingEnd > endTime;
+		});
+
+		const conflictingBlocks = (availabilities ?? []).filter(
+			(a) => a.start_time < startTime || a.end_time > endTime,
+		);
+
+		return { bookings: conflictingBookings, blocks: conflictingBlocks };
+	}, [isEditMode, bookingsData, availabilities, startTime, endTime]);
+
+	const hasTimeConflict =
+		timeConflicts.bookings.length > 0 || timeConflicts.blocks.length > 0;
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (isEditMode && hasTimeConflict) {
+			toast.error(
+				"This time range excludes existing bookings or hours — adjust it or clear those first.",
+			);
+			return;
+		}
 		if (!title.trim()) {
 			toast.error("Session Title is required.");
 			return;
@@ -226,6 +269,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						onChange={(e) => setStartTime(e.target.value)}
 						required
 						disabled={isPending}
+						aria-invalid={hasTimeConflict}
+						className={hasTimeConflict ? "border-destructive" : undefined}
 					/>
 				</div>
 				<div className="space-y-2">
@@ -237,8 +282,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						onChange={(e) => setEndTime(e.target.value)}
 						required
 						disabled={isPending}
+						aria-invalid={hasTimeConflict}
+						className={hasTimeConflict ? "border-destructive" : undefined}
 					/>
 				</div>
+				{hasTimeConflict && (
+					<p className="col-span-2 text-destructive text-xs">
+						This range excludes{" "}
+						{timeConflicts.bookings.length > 0 &&
+							`${timeConflicts.bookings.length} existing booking${timeConflicts.bookings.length === 1 ? "" : "s"}`}
+						{timeConflicts.bookings.length > 0 &&
+							timeConflicts.blocks.length > 0 &&
+							" and "}
+						{timeConflicts.blocks.length > 0 &&
+							`${timeConflicts.blocks.length} availability block${timeConflicts.blocks.length === 1 ? "" : "s"}`}
+						. Adjust the times, or remove/reschedule those first.
+					</p>
+				)}
 			</div>
 
 			<div className="grid grid-cols-2 gap-4">
@@ -336,7 +396,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 					>
 						Cancel
 					</Button>
-					<Button type="submit" disabled={isPending}>
+					<Button
+						type="submit"
+						disabled={isPending || (isEditMode && hasTimeConflict)}
+					>
 						{(isCreating || isUpdating) && (
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						)}

@@ -8,6 +8,8 @@ export interface BusinessMatchingEvent {
 	location: string;
 	admin_email: string;
 	admin_wa_number: string;
+	start_time?: string;
+	end_time?: string;
 	start_date?: string;
 	end_date?: string;
 	tags_editable?: boolean;

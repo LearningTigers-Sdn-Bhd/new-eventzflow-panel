@@ -41,3 +41,15 @@ export function validEndTimes(blocks: TimeBlock[], start: string): string[] {
 			.sort()[0] ?? "24:00";
 	return TIME_OPTIONS.filter((t) => t > start && t <= nextBoundary);
 }
+
+// "09:00" + 30 -> "09:30". Clamped to 24:00 rather than wrapping past
+// midnight, since a booking/block ending "the next day" isn't meaningful here.
+export function addMinutesToTime(time: string, minutes: number): string {
+	const [h, m] = time.split(":").map(Number);
+	const total = Math.min(h * 60 + m + minutes, 24 * 60);
+	const newH = Math.floor(total / 60)
+		.toString()
+		.padStart(2, "0");
+	const newM = (total % 60).toString().padStart(2, "0");
+	return `${newH}:${newM}`;
+}
