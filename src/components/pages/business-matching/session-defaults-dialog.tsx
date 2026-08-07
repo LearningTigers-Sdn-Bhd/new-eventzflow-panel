@@ -1,11 +1,18 @@
 "use client";
 
-import { Info, Loader2, Plus, X } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { Calendar as CalendarIcon, Info, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import {
 	Tooltip,
@@ -18,6 +25,7 @@ import {
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
 import type { DefaultHoursBlock } from "@/lib/api/business-matching";
+import { cn } from "@/lib/utils";
 
 interface SessionDefaultsDialogProps {
 	eventId: string;
@@ -36,6 +44,8 @@ export default function SessionDefaultsDialog({
 	const [endDate, setEndDate] = useState("");
 	const [blocks, setBlocks] = useState<DefaultHoursBlock[]>([]);
 	const [hoursEditableDefault, setHoursEditableDefault] = useState(true);
+	const [startDateOpen, setStartDateOpen] = useState(false);
+	const [endDateOpen, setEndDateOpen] = useState(false);
 
 	useEffect(() => {
 		if (defaults) {
@@ -45,6 +55,20 @@ export default function SessionDefaultsDialog({
 			setHoursEditableDefault(defaults.hours_editable_default);
 		}
 	}, [defaults]);
+
+	const handleStartDateSelect = (date: Date | undefined) => {
+		if (!date) return;
+		setStartDate(format(date, "yyyy-MM-dd"));
+		setStartDateOpen(false);
+		// Jump straight to picking the end date next.
+		setEndDateOpen(true);
+	};
+
+	const handleEndDateSelect = (date: Date | undefined) => {
+		if (!date) return;
+		setEndDate(format(date, "yyyy-MM-dd"));
+		setEndDateOpen(false);
+	};
 
 	const handleAddBlock = () => {
 		setBlocks((prev) => [...prev, { start_time: "09:00", end_time: "17:00" }]);
@@ -121,23 +145,59 @@ export default function SessionDefaultsDialog({
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
 					<Label htmlFor="defaults-start-date">Default Start Date</Label>
-					<Input
-						id="defaults-start-date"
-						type="date"
-						value={startDate}
-						onChange={(e) => setStartDate(e.target.value)}
-						disabled={isPending}
-					/>
+					<Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								id="defaults-start-date"
+								type="button"
+								variant="outline"
+								disabled={isPending}
+								className={cn(
+									"w-full justify-start font-normal",
+									!startDate && "text-muted-foreground",
+								)}
+							>
+								<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+								{startDate ? format(parseISO(startDate), "PPP") : "Pick a date"}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={startDate ? parseISO(startDate) : undefined}
+								onSelect={handleStartDateSelect}
+								disabled={isPending}
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="defaults-end-date">Default End Date</Label>
-					<Input
-						id="defaults-end-date"
-						type="date"
-						value={endDate}
-						onChange={(e) => setEndDate(e.target.value)}
-						disabled={isPending}
-					/>
+					<Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								id="defaults-end-date"
+								type="button"
+								variant="outline"
+								disabled={isPending}
+								className={cn(
+									"w-full justify-start font-normal",
+									!endDate && "text-muted-foreground",
+								)}
+							>
+								<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+								{endDate ? format(parseISO(endDate), "PPP") : "Pick a date"}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={endDate ? parseISO(endDate) : undefined}
+								onSelect={handleEndDateSelect}
+								disabled={isPending}
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
 			</div>
 
