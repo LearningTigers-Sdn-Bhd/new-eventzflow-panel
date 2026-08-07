@@ -6,6 +6,12 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
@@ -163,26 +169,45 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		<div className="space-y-3">
 			<div className="flex items-center gap-3">
 				<div className="relative shrink-0">
-					<button
-						type="button"
-						onClick={() => avatarUrl && setShowAvatarPreview(true)}
-						className="block"
-					>
-						<Avatar className="size-12 border">
-							<AvatarImage src={avatarUrl} alt={host.full_name} />
-							<AvatarFallback className="text-xs">
-								{host.full_name.slice(0, 2).toUpperCase()}
-							</AvatarFallback>
-						</Avatar>
-					</button>
-					<button
-						type="button"
-						onClick={() => fileInputRef.current?.click()}
-						disabled={isSavingAvatar}
-						className="absolute -right-1 -bottom-1 rounded-full border bg-background px-1 text-[9px] text-muted-foreground hover:text-foreground"
-					>
-						Edit
-					</button>
+					{avatarUrl ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button
+									type="button"
+									className="block"
+									disabled={isSavingAvatar}
+								>
+									<Avatar className="size-12 border">
+										<AvatarImage src={avatarUrl} alt={host.full_name} />
+										<AvatarFallback className="text-xs">
+											{host.full_name.slice(0, 2).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="start">
+								<DropdownMenuItem onClick={() => setShowAvatarPreview(true)}>
+									View Photo
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+									Change Photo
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : (
+						<button
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+							disabled={isSavingAvatar}
+							className="block"
+						>
+							<Avatar className="size-12 border">
+								<AvatarFallback className="text-xs">
+									{host.full_name.slice(0, 2).toUpperCase()}
+								</AvatarFallback>
+							</Avatar>
+						</button>
+					)}
 					<input
 						ref={fileInputRef}
 						type="file"
