@@ -16,7 +16,7 @@ export interface BackendPendingTicket {
 	payment_method?: string | null;
 	checked_in: boolean;
 	check_in_at: string | null;
-	custom_fields_data: Record<string, string> | null;
+	custom_fields_data: Record<string, unknown> | null;
 	created_at: string;
 	updated_at: string;
 	ticket_type?: {

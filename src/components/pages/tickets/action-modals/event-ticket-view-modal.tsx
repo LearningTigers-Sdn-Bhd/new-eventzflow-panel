@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getEventById } from "@/lib/api/event";
+import { isImageUrlValue } from "@/lib/utils/custom-fields-display";
 import { cn } from "../../../../lib/utils";
 import type { BaseTicket } from "../event-ticket-table-columns";
 
@@ -59,6 +60,35 @@ const InfoItem = ({
 			>
 				{value || "-"}
 			</p>
+		</div>
+	);
+};
+
+const InfoImage = ({ label, url }: { label: string; url: string }) => {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-center justify-between gap-2">
+				<div className="flex items-center gap-2 text-muted-foreground">
+					<Eye className="size-3.5" />
+					<span className="font-medium text-[10px] uppercase tracking-wider">
+						{label}
+					</span>
+				</div>
+				<a
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-700"
+				>
+					Open full image
+					<ExternalLink className="size-3" />
+				</a>
+			</div>
+			<a href={url} target="_blank" rel="noopener noreferrer">
+				<div className="relative aspect-video w-full overflow-hidden rounded-none border bg-muted">
+					<img src={url} alt={label} className="h-full w-full object-contain" />
+				</div>
+			</a>
 		</div>
 	);
 };
@@ -281,15 +311,27 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 											icon={Mail}
 										/>
 									)}
-									{customLabels.map((label, index) => (
-										<InfoItem
-											key={`${label.name}-${index}`}
-											label={label.name}
-											value={label.value}
-											icon={Info}
-											capitalize={true}
-										/>
-									))}
+									{customLabels.map((label, index) => {
+										if (isImageUrlValue(label.value)) {
+											return (
+												<InfoImage
+													key={`${label.name}-${index}`}
+													label={label.name}
+													url={label.value}
+												/>
+											);
+										}
+
+										return (
+											<InfoItem
+												key={`${label.name}-${index}`}
+												label={label.name}
+												value={label.value}
+												icon={Info}
+												capitalize={true}
+											/>
+										);
+									})}
 								</CardContent>
 							</Card>
 						) : (

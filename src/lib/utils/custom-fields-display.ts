@@ -214,6 +214,14 @@ export function formatTicketCustomFieldEntries(
 	}));
 }
 
+const IMAGE_URL_PATTERN =
+	/^https?:\/\/\S+\.(?:jpe?g|png|gif|webp|heic|heif)(?:\?\S*)?$/i;
+
+/** True when a formatted custom-field value is a direct link to an image (IC copy, selfie, etc). */
+export function isImageUrlValue(value: string): boolean {
+	return IMAGE_URL_PATTERN.test(value.trim());
+}
+
 export function formatCustomFieldEntries(
 	data?: Record<string, unknown> | null,
 ): CustomFieldDisplayEntry[] {

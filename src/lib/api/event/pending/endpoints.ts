@@ -1,3 +1,4 @@
+import { formatTicketCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { restClient } from "@/utils/rest-api";
 import {
 	type AcceptWaitingListRequest,
@@ -32,16 +33,9 @@ function getErrorMessage(error: unknown, fallback: string): string {
 function transformPendingTicket(
 	backendTicket: BackendPendingTicket,
 ): PendingTicket {
-	const customLabels: Array<{ name: string; value: string }> = [];
-
-	// Transform custom_fields_data to customLabels array
-	if (backendTicket.custom_fields_data) {
-		for (const [key, value] of Object.entries(
-			backendTicket.custom_fields_data,
-		)) {
-			customLabels.push({ name: key, value: String(value) });
-		}
-	}
+	const customLabels = formatTicketCustomFieldEntries(
+		backendTicket.custom_fields_data,
+	);
 
 	// Convert payment_status to string if it's a number (backend enum)
 	let paymentStatus: PendingTicket["paymentStatus"];
