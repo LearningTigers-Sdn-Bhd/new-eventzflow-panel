@@ -134,7 +134,7 @@ export default function BookingsDialog({
 		});
 
 	return (
-		<div className="flex max-h-[70vh] w-full flex-col overflow-hidden p-1">
+		<div className="flex h-[70vh] w-full flex-col overflow-hidden p-1">
 			<div className="mb-2 px-1">
 				<Input
 					placeholder="Search bookings..."
@@ -162,7 +162,7 @@ export default function BookingsDialog({
 					value="today"
 					className="mt-0 min-h-0 flex-1 overflow-hidden"
 				>
-					<ScrollArea className="h-full max-h-[55vh]">
+					<ScrollArea className="h-full">
 						{todayBookings.length > 0 ? (
 							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
 								{todayBookings.map((booking) => (
@@ -187,7 +187,7 @@ export default function BookingsDialog({
 					value="all"
 					className="mt-0 min-h-0 flex-1 overflow-hidden"
 				>
-					<ScrollArea className="h-full max-h-[55vh]">
+					<ScrollArea className="h-full">
 						{filteredBookings.length > 0 ? (
 							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
 								{filteredBookings.map((booking) => (
