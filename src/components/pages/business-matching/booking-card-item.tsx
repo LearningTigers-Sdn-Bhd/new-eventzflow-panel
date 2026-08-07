@@ -24,8 +24,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useUpdateBooking } from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
@@ -39,6 +37,8 @@ import {
 	CompactCardHeader as CardHeader,
 	CompactCardTitle as CardTitle,
 } from "./compact-booking-card";
+import EditBookingCommentDialog from "./edit-booking-comment-dialog";
+import EditBookingValueDialog from "./edit-booking-value-dialog";
 
 interface BookingCardItemProps {
 	booking: Booking;
@@ -56,10 +56,11 @@ export function BookingCardItem({
 	eventId,
 	variant = "card",
 }: BookingCardItemProps) {
-	const { mutate: updateBooking, isPending } = useUpdateBooking(
-		bmEventId,
-		eventId,
-	);
+	const {
+		mutate: updateBooking,
+		mutateAsync: updateBookingAsync,
+		isPending,
+	} = useUpdateBooking(bmEventId, eventId);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
 	const { openDialog } = useDialog();
@@ -89,16 +90,6 @@ export function BookingCardItem({
 		const newOverrides = { ...existing, ...updates };
 		localStorage.setItem(key, JSON.stringify(newOverrides));
 	};
-
-	const [isEditingComment, setIsEditingComment] = useState(false);
-	const [commentDraft, setCommentDraft] = useState(
-		displayBooking.host_comment || "",
-	);
-
-	const [isEditingValue, setIsEditingValue] = useState(false);
-	const [valueDraft, setValueDraft] = useState<string>(
-		displayBooking.potential_deal_value?.toString() || "",
-	);
 
 	const parsedBookerInfo = useMemo(() => {
 		const comment = displayBooking.host_comment || "";
@@ -152,46 +143,68 @@ export function BookingCardItem({
 		);
 	};
 
-	const handleSaveComment = () => {
-		updateBooking(
-			{
+	const handleSaveComment = async (commentValue: string) => {
+		try {
+			await updateBookingAsync({
 				bookingId: displayBooking.id,
-				data: { ...getCommonBookingData(), host_comment: commentDraft },
-			},
-			{
-				onSuccess: () => {
-					const updates = { host_comment: commentDraft };
-					saveOverride(updates); // Persist override
-					setDisplayBooking((prev) => ({ ...prev, ...updates })); // Immediate visual update
-					updateLocalCache(updates);
-					setIsEditingComment(false);
-					toast.success("Comment updated");
-				},
-				onError: () => toast.error("Failed to update comment"),
-			},
-		);
+				data: { ...getCommonBookingData(), host_comment: commentValue },
+			});
+			const updates = { host_comment: commentValue };
+			saveOverride(updates); // Persist override
+			setDisplayBooking((prev) => ({ ...prev, ...updates })); // Immediate visual update
+			updateLocalCache(updates);
+			toast.success("Comment updated");
+		} catch {
+			toast.error("Failed to update comment");
+			throw new Error("Failed to update comment");
+		}
 	};
 
-	const handleSaveValue = () => {
+	const handleSaveValue = async (valueDraft: string) => {
 		const numericValue =
 			valueDraft === "" ? undefined : Number.parseFloat(valueDraft);
-		updateBooking(
-			{
+		try {
+			await updateBookingAsync({
 				bookingId: displayBooking.id,
 				data: { ...getCommonBookingData(), potential_deal_value: numericValue },
+			});
+			const updates = { potential_deal_value: numericValue };
+			saveOverride(updates); // Persist override
+			setDisplayBooking((prev) => ({ ...prev, ...updates })); // Immediate visual update
+			updateLocalCache(updates);
+			toast.success("Deal value updated");
+		} catch {
+			toast.error("Failed to update deal value");
+			throw new Error("Failed to update deal value");
+		}
+	};
+
+	const openCommentDialog = () => {
+		openDialog({
+			component: EditBookingCommentDialog,
+			props: {
+				initialValue: displayBooking.host_comment || "",
+				onSave: handleSaveComment,
 			},
-			{
-				onSuccess: () => {
-					const updates = { potential_deal_value: numericValue };
-					saveOverride(updates); // Persist override
-					setDisplayBooking((prev) => ({ ...prev, ...updates })); // Immediate visual update
-					updateLocalCache(updates);
-					setIsEditingValue(false);
-					toast.success("Deal value updated");
-				},
-				onError: () => toast.error("Failed to update deal value"),
+			config: {
+				title: "Host Comment",
+				size: "md",
 			},
-		);
+		});
+	};
+
+	const openValueDialog = () => {
+		openDialog({
+			component: EditBookingValueDialog,
+			props: {
+				initialValue: displayBooking.potential_deal_value?.toString() || "",
+				onSave: handleSaveValue,
+			},
+			config: {
+				title: "Potential Deal Value",
+				size: "sm",
+			},
+		});
 	};
 
 	const handleTogglePresent = () => {
@@ -353,106 +366,37 @@ export function BookingCardItem({
 
 	const commentSection = (
 		<div className="mt-1 border-t pt-1">
-			{isEditingComment ? (
-				<div className="space-y-1">
-					<div className="flex items-center gap-1 font-medium text-muted-foreground text-xs">
-						<MessageSquare className="h-3 w-3" /> Host Comment
-					</div>
-					<Textarea
-						value={commentDraft}
-						onChange={(e) => setCommentDraft(e.target.value)}
-						className="min-h-[60px] p-2 text-xs"
-						placeholder="Add a comment..."
-					/>
-					<div className="flex justify-end gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => {
-								setIsEditingComment(false);
-								setCommentDraft(displayBooking.host_comment || "");
-							}}
-						>
-							Cancel
-						</Button>
-						<Button size="sm" onClick={handleSaveComment} disabled={isPending}>
-							Save
-						</Button>
-					</div>
-				</div>
-			) : (
-				<Button
-					variant="outline"
-					size="sm"
-					className="h-auto w-full justify-start whitespace-normal py-1.5 text-left font-normal text-muted-foreground text-xs"
-					onClick={() => {
-						setIsEditingComment(true);
-						setCommentDraft(displayBooking.host_comment || "");
-					}}
-				>
-					<MessageSquare className="mr-2 h-3 w-3 shrink-0" />
-					<span className="line-clamp-2">
-						{displayBooking.host_comment
-							? displayBooking.host_comment
-							: "Add Comment..."}
-					</span>
-				</Button>
-			)}
+			<Button
+				variant="outline"
+				size="sm"
+				className="h-auto w-full justify-start whitespace-normal py-1.5 text-left font-normal text-muted-foreground text-xs"
+				onClick={openCommentDialog}
+			>
+				<MessageSquare className="mr-2 h-3 w-3 shrink-0" />
+				<span className="line-clamp-2">
+					{displayBooking.host_comment
+						? displayBooking.host_comment
+						: "Add Comment..."}
+				</span>
+			</Button>
 		</div>
 	);
 
 	const dealValueSection = (
 		<div className="pt-0">
-			{isEditingValue ? (
-				<div className="mt-1 space-y-1">
-					<div className="flex items-center gap-1 font-medium text-muted-foreground text-xs">
-						<DollarSign className="h-3 w-3" /> Deal Value
-					</div>
-					<div className="flex gap-2">
-						<Input
-							type="number"
-							value={valueDraft}
-							onChange={(e) => setValueDraft(e.target.value)}
-							className="h-7 flex-1 px-2 text-xs"
-							placeholder="Value..."
-						/>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => {
-								setIsEditingValue(false);
-								setValueDraft(
-									displayBooking.potential_deal_value?.toString() || "",
-								);
-							}}
-						>
-							Cancel
-						</Button>
-						<Button size="sm" onClick={handleSaveValue} disabled={isPending}>
-							Save
-						</Button>
-					</div>
-				</div>
-			) : (
-				<Button
-					variant="outline"
-					size="sm"
-					className="mt-1 h-auto w-full justify-start py-1.5 font-normal text-muted-foreground text-xs"
-					onClick={() => {
-						setIsEditingValue(true);
-						setValueDraft(
-							displayBooking.potential_deal_value?.toString() || "",
-						);
-					}}
-				>
-					<DollarSign className="mr-2 h-3 w-3 shrink-0" />
-					<span className="truncate">
-						{displayBooking.potential_deal_value
-							? `Deal: ${displayBooking.potential_deal_value}`
-							: "Set Potential Deal Value..."}
-					</span>
-				</Button>
-			)}
+			<Button
+				variant="outline"
+				size="sm"
+				className="mt-1 h-auto w-full justify-start py-1.5 font-normal text-muted-foreground text-xs"
+				onClick={openValueDialog}
+			>
+				<DollarSign className="mr-2 h-3 w-3 shrink-0" />
+				<span className="truncate">
+					{displayBooking.potential_deal_value
+						? `Deal: ${displayBooking.potential_deal_value}`
+						: "Set Potential Deal Value..."}
+				</span>
+			</Button>
 		</div>
 	);
 
