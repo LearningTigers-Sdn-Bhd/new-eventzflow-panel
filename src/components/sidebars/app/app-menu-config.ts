@@ -267,10 +267,18 @@ function filterByRoleAndPermissions(
 	});
 }
 
+// A user whose ONLY standing on the platform is business_matching_admin
+// never sees the generic app nav — Business Matching is reached directly,
+// not through Dashboard/Events/Scans/etc.
 export function getFilteredNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return { mainMenu: [], memberManagement: [], miscellaneous: [] };
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	return {
 		mainMenu: filterByRoleAndPermissions(
@@ -294,7 +302,17 @@ export function getFilteredNavigation(
 export function getMobileNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return {
+			bottomNavItems: [],
+			mainMenuNotInBottomNav: [],
+			memberManagement: [],
+			miscellaneous: [],
+		};
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	const filtered = filterByRoleAndPermissions(
 		navigationData.mainMenu,

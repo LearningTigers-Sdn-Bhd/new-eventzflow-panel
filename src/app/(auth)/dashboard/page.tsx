@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { MdSpaceDashboard } from "react-icons/md";
 import { IconTitle } from "@/components/admin-ui/icon-heading";
-import { ErrorState } from "@/components/data-state";
+import { ErrorState, LoadingState } from "@/components/data-state";
 import { BusinessHostDashboard } from "@/components/pages/dashboard/business-host-dashboard";
 import { ContractorDashboard } from "@/components/pages/dashboard/contractor-dashboard";
 import { DashboardClientWrapper } from "@/components/pages/dashboard/dashboard-client-wrapper";
@@ -17,8 +19,14 @@ import { getAllEventsStats } from "@/lib/api/dashboard";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
-	const { user, isInitialized } = useAuth();
+	const {
+		user,
+		isInitialized,
+		isPureBusinessMatchingAdmin,
+		businessMatchingAdminEventIds,
+	} = useAuth();
 	const isTablet = useIsTablet();
+	const router = useRouter();
 	const {
 		data: stats,
 		isLoading: statsLoading,
@@ -26,8 +34,26 @@ export default function DashboardPage() {
 	} = useQuery({
 		queryKey: ["dashboard-stats"],
 		queryFn: getAllEventsStats,
-		enabled: isInitialized,
+		enabled: isInitialized && !isPureBusinessMatchingAdmin,
 	});
+
+	// A pure BM admin never sees the generic dashboard — send them straight
+	// into Business Matching for their (first) assigned event.
+	useEffect(() => {
+		if (isInitialized && isPureBusinessMatchingAdmin) {
+			const eventId = businessMatchingAdminEventIds[0];
+			router.replace(eventId ? `/event/${eventId}/business-matching` : "/");
+		}
+	}, [
+		isInitialized,
+		isPureBusinessMatchingAdmin,
+		businessMatchingAdminEventIds,
+		router,
+	]);
+
+	if (!isInitialized || isPureBusinessMatchingAdmin) {
+		return <LoadingState title="Redirecting..." description="" />;
+	}
 
 	// Show vendor dashboard for vendor role
 	if (user?.role === "vendor") {
