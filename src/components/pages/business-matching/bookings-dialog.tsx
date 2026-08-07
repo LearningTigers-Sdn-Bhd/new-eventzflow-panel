@@ -19,7 +19,6 @@ import {
 	useForceRefreshBookings,
 } from "@/hooks/use-business-matching";
 import { BookingCardItem } from "./booking-card-item";
-import { CompactBookingRow } from "./compact-booking-row";
 
 interface BookingsDialogProps {
 	bmEventId: string;
@@ -140,7 +139,13 @@ export default function BookingsDialog({
 		viewMode === "compact" ? (
 			<div className="flex flex-col gap-1.5 p-1 pb-4">
 				{bookings.map((booking) => (
-					<CompactBookingRow key={booking.id} booking={booking} />
+					<BookingCardItem
+						key={booking.id}
+						booking={booking}
+						bmEventId={bmEventId}
+						eventId={eventId}
+						variant="row"
+					/>
 				))}
 			</div>
 		) : (
