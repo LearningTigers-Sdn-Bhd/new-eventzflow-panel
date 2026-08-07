@@ -323,7 +323,7 @@ export default function SessionDefaultsDialog({
 			<div className="flex items-center justify-between rounded-lg border p-3">
 				<div className="space-y-0.5">
 					<Label htmlFor="hours-editable-default">
-						Hosts can edit their own hours by default
+						Hosts can edit their own hours
 					</Label>
 				</div>
 				<Switch
