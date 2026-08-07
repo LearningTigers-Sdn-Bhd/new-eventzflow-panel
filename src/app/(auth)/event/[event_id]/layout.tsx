@@ -160,6 +160,32 @@ function EventDetailLayoutContent({
 		}
 	}, [isLoading, permissions, pathname, currentEvent?.id, router]);
 
+	// A business_matching_admin's only concern on this event is Business
+	// Matching — their sidebar only ever shows that one tab, but nothing
+	// stops them from typing/bookmarking any other event URL directly.
+	// Guard at the layout level too, not just in the nav.
+	useEffect(() => {
+		if (isLoading || !currentEvent?.id) return;
+
+		const isPureBusinessMatchingAdmin =
+			permissions.isBusinessMatchingAdmin &&
+			!permissions.isOrgOwner &&
+			!permissions.isOrganizer &&
+			!permissions.isEventAdmin &&
+			!permissions.isEventTeamMember &&
+			!permissions.isEventVendor &&
+			!permissions.isExhibitionContractor;
+
+		const segments = pathname.split("/").filter(Boolean);
+
+		if (
+			isPureBusinessMatchingAdmin &&
+			!segments.includes("business-matching")
+		) {
+			router.replace(`/event/${currentEvent.id}/business-matching` as Route);
+		}
+	}, [isLoading, permissions, pathname, currentEvent?.id, router]);
+
 	// Determine current menu from pathname
 	const currentMenu = useMemo(() => {
 		const segments = pathname.split("/").filter(Boolean);
