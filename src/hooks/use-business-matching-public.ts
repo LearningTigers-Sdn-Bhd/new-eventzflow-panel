@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import {
 	type AvailabilityResponse,
+	acceptHostInvite,
 	type Booking,
 	type BusinessHost,
 	type BusinessMatchingEvent,
@@ -200,5 +201,15 @@ export const useJoinBusinessHost = () => {
 	return useMutation<void, Error, { eventId: string; bmEventId: string }>({
 		mutationFn: ({ eventId, bmEventId }) =>
 			joinBusinessHost(eventId, bmEventId),
+	});
+};
+
+/**
+ * Hook to accept a business host invite via its opaque token — no event/
+ * session IDs pass through the client at all.
+ */
+export const useAcceptHostInvite = () => {
+	return useMutation<void, Error, { token: string }>({
+		mutationFn: ({ token }) => acceptHostInvite(token),
 	});
 };

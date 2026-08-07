@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingTags,
 	useCreateAndAssignHost,
+	useGenerateHostInviteToken,
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
@@ -25,9 +26,16 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	);
 	const { data: availableTags } = useBusinessMatchingTags(bmEvent.event_id);
 
-	// Tab 1: Invite Link
-	const inviteLink = `${window.location.origin}/invite/host?event_id=${bmEvent.event_id}&bm_event_id=${bmEvent.id}`;
+	// Tab 1: Invite Link — the link carries an opaque signed token, never
+	// the raw event/session IDs, so it can't be hand-edited to point at a
+	// different session.
+	const { data: inviteTokenData, isLoading: isLoadingInviteLink } =
+		useGenerateHostInviteToken(bmEvent.event_id, bmEvent.id);
+	const inviteLink = inviteTokenData
+		? `${window.location.origin}/invite/host?token=${encodeURIComponent(inviteTokenData.token)}`
+		: "";
 	const copyInviteLink = () => {
+		if (!inviteLink) return;
 		navigator.clipboard
 			.writeText(inviteLink)
 			.then(() => toast.success("Invite link copied to clipboard"))
@@ -98,8 +106,14 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 						matching session.
 					</p>
 					<div className="flex gap-2">
-						<Input id="invite-link" value={inviteLink} readOnly />
-						<Button onClick={copyInviteLink}>Copy</Button>
+						<Input
+							id="invite-link"
+							value={isLoadingInviteLink ? "Generating link..." : inviteLink}
+							readOnly
+						/>
+						<Button onClick={copyInviteLink} disabled={!inviteLink}>
+							Copy
+						</Button>
 					</div>
 				</div>
 			</TabsContent>

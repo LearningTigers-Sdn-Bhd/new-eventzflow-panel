@@ -16,6 +16,7 @@ import {
 	createBooking,
 	createBusinessMatchingSession,
 	deleteBusinessMatchingSession,
+	generateHostInviteToken,
 	getAvailability,
 	getBookings,
 	getBusinessMatchingEventDefaults,
@@ -224,6 +225,20 @@ export const useCreateAndAssignHost = (eventId: string) => {
 		},
 	});
 };
+
+// Mints a fresh, opaque invite token for a given session — used to build
+// the shareable "Invite with Link" URL without exposing raw IDs.
+export const useGenerateHostInviteToken = (
+	eventId: string,
+	bmEventId: string,
+) =>
+	useQuery({
+		queryKey: ["business-matching-host-invite-token", eventId, bmEventId],
+		queryFn: () => generateHostInviteToken(eventId, bmEventId),
+		enabled: !!eventId && !!bmEventId,
+		staleTime: 0,
+		gcTime: 0,
+	});
 
 export const useBusinessMatchingEvents = (eventId: string) => {
 	const queryResult = useQuery({

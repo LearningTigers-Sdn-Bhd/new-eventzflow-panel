@@ -323,6 +323,26 @@ export async function joinBusinessHost(
 	return restClient.post<void>(url, { business_matching_event_id: bmEventId });
 }
 
+// Mints an opaque, signed token encoding event/session — the shareable
+// invite link carries only this token, never raw IDs.
+export async function generateHostInviteToken(
+	eventId: string,
+	bmEventId: string,
+): Promise<{ token: string }> {
+	const url = `v1/business_matching/events/${eventId}/hosts/invite_link`;
+	return restClient.post<{ token: string }>(url, {
+		business_matching_event_id: bmEventId,
+	});
+}
+
+// Accepts a host invite using only the token — no event/session IDs in
+// the request at all, so a hand-typed URL can't be used to self-attach.
+export async function acceptHostInvite(token: string): Promise<void> {
+	return restClient.post<void>("v1/business_matching/host_invites/accept", {
+		token,
+	});
+}
+
 export interface CreateHostRequest {
 	full_name: string;
 	email: string;
