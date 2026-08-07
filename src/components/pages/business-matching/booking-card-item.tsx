@@ -551,7 +551,7 @@ export function BookingCardItem({
 							<Clock className="h-3.5 w-3.5 shrink-0" />
 							<span>{displayBooking.booking_time}</span>
 						</div>
-						{displayBooking.location && (
+						{displayBooking.location && !isExpanded && (
 							<div className="flex min-w-0 basis-32 items-center gap-1.5 text-muted-foreground">
 								<MapPin className="h-3.5 w-3.5 shrink-0" />
 								<span className="truncate" title={displayBooking.location}>
