@@ -109,7 +109,7 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"min-h-0 flex-1 justify-start overflow-y-auto",
+								"flex min-h-0 flex-1 flex-col justify-start overflow-y-auto",
 								!isFullScreen && "px-4",
 							)}
 						>
@@ -165,7 +165,7 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"min-h-0 flex-1 justify-start overflow-y-auto",
+								"flex min-h-0 flex-1 flex-col justify-start overflow-y-auto",
 								isFullScreen && "overflow-auto",
 							)}
 						>

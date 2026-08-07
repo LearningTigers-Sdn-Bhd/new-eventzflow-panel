@@ -14,17 +14,23 @@ export default function SessionActivityDialog({
 	eventId,
 }: SessionActivityDialogProps) {
 	return (
-		<Tabs defaultValue="bookings" className="w-full gap-2">
-			<TabsList className="grid w-full grid-cols-2">
+		<Tabs
+			defaultValue="bookings"
+			className="flex h-full min-h-0 w-full flex-col gap-2"
+		>
+			<TabsList className="grid w-full shrink-0 grid-cols-2">
 				<TabsTrigger value="bookings">Bookings</TabsTrigger>
 				<TabsTrigger value="availability">Availability</TabsTrigger>
 			</TabsList>
 
-			<TabsContent value="bookings">
+			<TabsContent value="bookings" className="min-h-0 flex-1 overflow-hidden">
 				<BookingsDialog bmEventId={bmEventId} eventId={eventId} />
 			</TabsContent>
 
-			<TabsContent value="availability">
+			<TabsContent
+				value="availability"
+				className="min-h-0 flex-1 overflow-y-auto"
+			>
 				<AvailabilitySlotsPanel bmEventId={bmEventId} eventId={eventId} />
 			</TabsContent>
 		</Tabs>
