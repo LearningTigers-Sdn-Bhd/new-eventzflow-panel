@@ -33,41 +33,8 @@ import {
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
 import type { DefaultHoursBlock } from "@/lib/api/business-matching";
+import { validEndTimes, validStartTimes } from "@/lib/time-blocks";
 import { cn } from "@/lib/utils";
-
-// 30-minute increments, "00:00" .. "23:30".
-function generateTimeOptions(): string[] {
-	const options: string[] = [];
-	for (let m = 0; m < 24 * 60; m += 30) {
-		const h = Math.floor(m / 60)
-			.toString()
-			.padStart(2, "0");
-		const min = (m % 60).toString().padStart(2, "0");
-		options.push(`${h}:${min}`);
-	}
-	return options;
-}
-
-const TIME_OPTIONS = generateTimeOptions();
-
-function isWithinBlock(time: string, block: DefaultHoursBlock): boolean {
-	return time >= block.start_time && time < block.end_time;
-}
-
-// Start times can't fall inside an already-booked block.
-function validStartTimes(blocks: DefaultHoursBlock[]): string[] {
-	return TIME_OPTIONS.filter((t) => !blocks.some((b) => isWithinBlock(t, b)));
-}
-
-// End times must be after the chosen start, and can't run into the next block.
-function validEndTimes(blocks: DefaultHoursBlock[], start: string): string[] {
-	const nextBoundary =
-		blocks
-			.map((b) => b.start_time)
-			.filter((s) => s > start)
-			.sort()[0] ?? "24:00";
-	return TIME_OPTIONS.filter((t) => t > start && t <= nextBoundary);
-}
 
 interface SessionDefaultsDialogProps {
 	eventId: string;

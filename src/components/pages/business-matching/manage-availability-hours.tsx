@@ -1,16 +1,23 @@
 "use client";
 
 import { format, parse } from "date-fns";
-import { Clock, Loader2, Plus } from "lucide-react";
+import { Check, Clock, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	useBusinessMatchingAvailability,
 	useSessionAvailabilities,
 	useUpdateSessionAvailabilities,
 } from "@/hooks/use-business-matching";
+import { validEndTimes, validStartTimes } from "@/lib/time-blocks";
 
 interface ManageAvailabilityHoursProps {
 	sessionId: string;
@@ -38,8 +45,10 @@ export default function ManageAvailabilityHours({
 	const [localAvailabilities, setLocalAvailabilities] = useState<
 		{ day: string; start_time: string; end_time: string }[]
 	>([]);
-	const [newStart, setNewStart] = useState("09:00");
-	const [newEnd, setNewEnd] = useState("17:00");
+	const [newStart, setNewStart] = useState("");
+	const [newEnd, setNewEnd] = useState("");
+	const [startSelectOpen, setStartSelectOpen] = useState(false);
+	const [endSelectOpen, setEndSelectOpen] = useState(false);
 	// Which day's "add block" form is currently open — only one at a time,
 	// hidden by default so the day cards just show existing blocks.
 	const [addingDay, setAddingDay] = useState<string | null>(null);
@@ -57,26 +66,16 @@ export default function ManageAvailabilityHours({
 		}
 	}, [rawAvailabilities]);
 
+	const handleNewStartChange = (value: string) => {
+		setNewStart(value);
+		setNewEnd("");
+		setStartSelectOpen(false);
+		// Move straight to picking the end time next.
+		setEndSelectOpen(true);
+	};
+
 	const handleAddBlock = (dateStr: string): boolean => {
-		if (newStart >= newEnd) {
-			toast.error("Start time must be before end time");
-			return false;
-		}
-
-		const overlaps = localAvailabilities
-			.filter((av) => av.day === dateStr)
-			.some((av) => {
-				return (
-					(newStart >= av.start_time && newStart < av.end_time) ||
-					(newEnd > av.start_time && newEnd <= av.end_time) ||
-					(newStart <= av.start_time && newEnd >= av.end_time)
-				);
-			});
-
-		if (overlaps) {
-			toast.error("This block overlaps with an existing availability range");
-			return false;
-		}
+		if (!newStart || !newEnd) return false;
 
 		setLocalAvailabilities((prev) => [
 			...prev,
@@ -184,52 +183,75 @@ export default function ManageAvailabilityHours({
 								{hoursEditable && (
 									<div className="border-t border-dashed pt-2">
 										{addingDay === dateObj ? (
-											<div className="flex flex-wrap items-center gap-3">
-												<div className="flex items-center gap-1.5">
-													<span className="text-muted-foreground text-xs">
-														From
-													</span>
-													<Input
-														type="time"
-														value={newStart}
-														onChange={(e) => setNewStart(e.target.value)}
-														onClick={(e) => e.currentTarget.showPicker?.()}
-														className="h-8 w-32 px-2 text-xs"
-														autoFocus
-													/>
-												</div>
-												<div className="flex items-center gap-1.5">
-													<span className="text-muted-foreground text-xs">
-														To
-													</span>
-													<Input
-														type="time"
-														value={newEnd}
-														onChange={(e) => setNewEnd(e.target.value)}
-														onClick={(e) => e.currentTarget.showPicker?.()}
-														className="h-8 w-32 px-2 text-xs"
-													/>
-												</div>
+											<div className="flex flex-wrap items-center gap-2">
+												<Select
+													open={startSelectOpen}
+													onOpenChange={setStartSelectOpen}
+													value={newStart}
+													onValueChange={handleNewStartChange}
+												>
+													<SelectTrigger className="h-8 w-28 text-xs">
+														<SelectValue placeholder="Start time" />
+													</SelectTrigger>
+													<SelectContent className="max-h-[240px]">
+														{validStartTimes(dayBlocks).map((t) => (
+															<SelectItem key={t} value={t}>
+																{t}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+												<span className="text-muted-foreground text-xs">
+													to
+												</span>
+												<Select
+													open={endSelectOpen}
+													onOpenChange={setEndSelectOpen}
+													value={newEnd}
+													onValueChange={setNewEnd}
+													disabled={!newStart}
+												>
+													<SelectTrigger className="h-8 w-28 text-xs">
+														<SelectValue placeholder="End time" />
+													</SelectTrigger>
+													<SelectContent className="max-h-[240px]">
+														{(newStart
+															? validEndTimes(dayBlocks, newStart)
+															: []
+														).map((t) => (
+															<SelectItem key={t} value={t}>
+																{t}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
 												<Button
 													type="button"
-													size="sm"
+													size="icon"
+													className="h-8 w-8"
 													onClick={() => {
 														if (handleAddBlock(dateObj)) {
 															setAddingDay(null);
+															setNewStart("");
+															setNewEnd("");
 														}
 													}}
-													className="h-8 gap-1 text-xs"
+													disabled={!newStart || !newEnd}
 												>
-													<Plus className="h-3 w-3" /> Add
+													<Check className="h-3.5 w-3.5" />
 												</Button>
 												<Button
 													type="button"
-													size="sm"
+													size="icon"
 													variant="ghost"
-													onClick={() => setAddingDay(null)}
-													className="h-8 text-xs"
+													onClick={() => {
+														setAddingDay(null);
+														setNewStart("");
+														setNewEnd("");
+													}}
+													className="h-8 w-8"
 												>
-													Cancel
+													<X className="h-3.5 w-3.5" />
 												</Button>
 											</div>
 										) : (
@@ -238,10 +260,12 @@ export default function ManageAvailabilityHours({
 												size="sm"
 												variant="outline"
 												onClick={() => {
-													setNewStart("09:00");
-													setNewEnd("17:00");
+													setNewStart("");
+													setNewEnd("");
 													setAddingDay(dateObj);
+													setStartSelectOpen(true);
 												}}
+												disabled={validStartTimes(dayBlocks).length === 0}
 												className="h-8 gap-1 text-xs"
 											>
 												<Plus className="h-3 w-3" /> Add Block
