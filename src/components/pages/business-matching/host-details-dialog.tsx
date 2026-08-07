@@ -301,19 +301,6 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 						className="h-8 text-xs"
 					/>
 				</div>
-				{tagsDirty && (
-					<div className="flex justify-end">
-						<Button
-							type="button"
-							size="sm"
-							className="h-7 text-xs"
-							onClick={handleSaveTags}
-							disabled={isSavingTags}
-						>
-							{isSavingTags ? "Saving..." : "Save Tags"}
-						</Button>
-					</div>
-				)}
 			</div>
 
 			{infoSections.length > 0 && (
@@ -339,11 +326,13 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 				</Tabs>
 			)}
 
-			<div className="flex justify-end border-t pt-3">
+			<div className="flex items-center justify-between border-t pt-3">
 				<Button
+					type="button"
 					variant="destructive"
-					size="sm"
-					className="text-xs"
+					size="icon"
+					className="h-8 w-8"
+					title="Remove Host"
 					onClick={() => {
 						openConfirm({
 							message: `Are you absolutely sure you want to remove ${host.full_name} as the host for this business matching session? This action cannot be undone.`,
@@ -367,9 +356,21 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 					}}
 					disabled={isRemoving}
 				>
-					<Trash2 className="mr-1 h-3.5 w-3.5" />
-					Remove Host
+					<Trash2 className="h-3.5 w-3.5" />
+					<span className="sr-only">Remove Host</span>
 				</Button>
+
+				{tagsDirty && (
+					<Button
+						type="button"
+						size="sm"
+						className="h-7 text-xs"
+						onClick={handleSaveTags}
+						disabled={isSavingTags}
+					>
+						{isSavingTags ? "Saving..." : "Save Tags"}
+					</Button>
+				)}
 			</div>
 		</div>
 	);
