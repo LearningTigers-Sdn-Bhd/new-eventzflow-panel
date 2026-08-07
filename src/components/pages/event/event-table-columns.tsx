@@ -162,7 +162,16 @@ const visibilityColumn: ColumnDef<Event> = {
 };
 
 // Function to get columns based on user role
-export const getColumns = (userRole?: string): ColumnDef<Event>[] => {
+export const getColumns = (
+	userRole?: string,
+	isPureBusinessMatchingAdmin?: boolean,
+): ColumnDef<Event>[] => {
+	// A pure BM admin only ever lands on Business Matching for an event —
+	// there's nothing for them to "Manage"/archive/delete from this list.
+	if (isPureBusinessMatchingAdmin) {
+		return baseColumns.filter((column) => column.id !== "actions");
+	}
+
 	if (userRole === "org_owner") {
 		// Insert visibility column after status column (index 3)
 		const columnsWithVisibility = [...baseColumns];

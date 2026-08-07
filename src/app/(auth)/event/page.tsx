@@ -19,7 +19,7 @@ import { getEvents } from "@/lib/api/event";
 type EventFilter = "active" | "archived" | "all";
 
 export default function EventPage() {
-	const { user } = useAuth();
+	const { user, isPureBusinessMatchingAdmin } = useAuth();
 	const router = useRouter();
 	const [eventFilter, setEventFilter] = useState<EventFilter>("active");
 
@@ -45,7 +45,10 @@ export default function EventPage() {
 	});
 
 	// Get columns based on user role
-	const columns = useMemo(() => getColumns(user?.role), [user?.role]);
+	const columns = useMemo(
+		() => getColumns(user?.role, isPureBusinessMatchingAdmin),
+		[user?.role, isPureBusinessMatchingAdmin],
+	);
 
 	const { openDialog, closeDialog } = useDialog();
 
@@ -109,10 +112,13 @@ export default function EventPage() {
 						isEnabled: true,
 						onRowClick: (row) => {
 							const event = row as Event;
-							// Business hosts don't have access to "details" — land them
-							// on Business Matching instead, their only real landing page.
+							// Business hosts and BM admins don't have access to "details" —
+							// land them on Business Matching instead, their only real
+							// landing page.
 							const landingRoute =
-								user?.role === "exhibitor" ? "business-matching" : "details";
+								user?.role === "exhibitor" || isPureBusinessMatchingAdmin
+									? "business-matching"
+									: "details";
 							router.push(`/event/${event.id}/${landingRoute}`);
 						},
 						excludeRowClickColumns: ["actions"],
