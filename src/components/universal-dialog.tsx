@@ -67,14 +67,14 @@ export function UniversalDialog() {
 				<MobileTabletView>
 					<DialogContent
 						className={cn(
-							"gap-0 rounded-none border-0 p-0",
+							"flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0",
 							"h-screen! w-screen max-w-none!",
 						)}
 						showCloseButton={config.showCloseButton}
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-1 px-6 pt-6 pb-4 md:items-start",
+								"flex shrink-0 flex-col items-start gap-1 px-4 py-3 pr-10",
 							)}
 						>
 							{canGoBack && (
@@ -90,12 +90,14 @@ export function UniversalDialog() {
 								</Button>
 							)}
 							{config.title ? (
-								<DialogTitle>{config.title}</DialogTitle>
+								<DialogTitle className="line-clamp-2 text-left text-base leading-tight">
+									{config.title}
+								</DialogTitle>
 							) : (
 								<DialogTitle className="sr-only">Dialog</DialogTitle>
 							)}
 							{config.description ? (
-								<DialogDescription className="text-sm">
+								<DialogDescription className="text-xs">
 									{config.description}
 								</DialogDescription>
 							) : (
@@ -107,7 +109,7 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"h-[calc(100vh-8rem)] flex-1 justify-start overflow-auto",
+								"min-h-0 flex-1 justify-start overflow-y-auto",
 								!isFullScreen && "px-4",
 							)}
 						>
