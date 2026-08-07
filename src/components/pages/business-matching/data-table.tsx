@@ -215,7 +215,7 @@ export function DataTable<TData, TValue>({
 					</Table>
 				</div>
 			) : (
-				<div className="mt-4 space-y-2">
+				<div className="mt-4 grid grid-cols-2 gap-2">
 					{table.getRowModel().rows?.length ? (
 						table
 							.getRowModel()
@@ -226,12 +226,14 @@ export function DataTable<TData, TValue>({
 								/>
 							))
 					) : (
-						<EmptyState
-							title="No events found"
-							description="Business matching events will appear here."
-							icon={<Briefcase />}
-							height="h-auto"
-						/>
+						<div className="col-span-2">
+							<EmptyState
+								title="No events found"
+								description="Business matching events will appear here."
+								icon={<Briefcase />}
+								height="h-auto"
+							/>
+						</div>
 					)}
 				</div>
 			)}
