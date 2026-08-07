@@ -115,6 +115,9 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 					.end_time,
 			);
 		}
+		if (eventDefaults.default_slot_duration) {
+			setDuration(eventDefaults.default_slot_duration);
+		}
 		setHoursEditable(eventDefaults.hours_editable_default);
 	}, [session, eventDefaults]);
 

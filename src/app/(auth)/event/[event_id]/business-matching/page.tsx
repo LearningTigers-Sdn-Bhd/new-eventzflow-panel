@@ -1,7 +1,13 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Briefcase, Download, LinkIcon } from "lucide-react";
+import {
+	AlertTriangle,
+	Briefcase,
+	Download,
+	Info,
+	LinkIcon,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -12,6 +18,11 @@ import { DataTable } from "@/components/pages/business-matching/data-table";
 import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
 import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	useBusinessMatchingEventDefaults,
 	useBusinessMatchingEvents,
@@ -240,7 +251,21 @@ export default function BusinessMatchingPage() {
 							component: SessionDefaultsDialog,
 							props: { eventId: event_id },
 							config: {
-								title: "Session Defaults",
+								title: (
+									<span className="flex items-center gap-1.5">
+										Session Defaults
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Info className="h-3.5 w-3.5 text-muted-foreground" />
+											</TooltipTrigger>
+											<TooltipContent>
+												New sessions created for this event will prefill from
+												these — no need to set the date and hours manually every
+												time.
+											</TooltipContent>
+										</Tooltip>
+									</span>
+								),
 								size: "lg",
 							},
 						});

@@ -14,7 +14,7 @@ export type DialogSize =
 	| "full";
 
 export interface DialogConfig {
-	title?: string;
+	title?: React.ReactNode;
 	description?: string;
 	size?: DialogSize;
 	showCloseButton?: boolean;

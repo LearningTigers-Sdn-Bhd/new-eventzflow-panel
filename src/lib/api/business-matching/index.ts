@@ -663,6 +663,7 @@ export interface BusinessMatchingEventDefaults {
 	default_end_date: string | null;
 	default_hours: DefaultHoursBlock[];
 	hours_editable_default: boolean;
+	default_slot_duration: number;
 }
 
 export async function getBusinessMatchingEventDefaults(

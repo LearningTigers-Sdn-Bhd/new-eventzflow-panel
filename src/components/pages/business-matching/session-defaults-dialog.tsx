@@ -1,7 +1,13 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Info, Loader2, Plus, X } from "lucide-react";
+import {
+	Calendar as CalendarIcon,
+	Check,
+	Loader2,
+	Plus,
+	X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,12 +19,14 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
 	useBusinessMatchingEventDefaults,
 	useUpdateBusinessMatchingEventDefaults,
@@ -26,6 +34,40 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import type { DefaultHoursBlock } from "@/lib/api/business-matching";
 import { cn } from "@/lib/utils";
+
+// 30-minute increments, "00:00" .. "23:30".
+function generateTimeOptions(): string[] {
+	const options: string[] = [];
+	for (let m = 0; m < 24 * 60; m += 30) {
+		const h = Math.floor(m / 60)
+			.toString()
+			.padStart(2, "0");
+		const min = (m % 60).toString().padStart(2, "0");
+		options.push(`${h}:${min}`);
+	}
+	return options;
+}
+
+const TIME_OPTIONS = generateTimeOptions();
+
+function isWithinBlock(time: string, block: DefaultHoursBlock): boolean {
+	return time >= block.start_time && time < block.end_time;
+}
+
+// Start times can't fall inside an already-booked block.
+function validStartTimes(blocks: DefaultHoursBlock[]): string[] {
+	return TIME_OPTIONS.filter((t) => !blocks.some((b) => isWithinBlock(t, b)));
+}
+
+// End times must be after the chosen start, and can't run into the next block.
+function validEndTimes(blocks: DefaultHoursBlock[], start: string): string[] {
+	const nextBoundary =
+		blocks
+			.map((b) => b.start_time)
+			.filter((s) => s > start)
+			.sort()[0] ?? "24:00";
+	return TIME_OPTIONS.filter((t) => t > start && t <= nextBoundary);
+}
 
 interface SessionDefaultsDialogProps {
 	eventId: string;
@@ -42,15 +84,24 @@ export default function SessionDefaultsDialog({
 
 	const [startDate, setStartDate] = useState("");
 	const [endDate, setEndDate] = useState("");
+	const [slotDuration, setSlotDuration] = useState(30);
 	const [blocks, setBlocks] = useState<DefaultHoursBlock[]>([]);
 	const [hoursEditableDefault, setHoursEditableDefault] = useState(true);
 	const [startDateOpen, setStartDateOpen] = useState(false);
 	const [endDateOpen, setEndDateOpen] = useState(false);
 
+	// Add-block flow: revealed blank, time chosen from a fixed list only.
+	const [isAddingBlock, setIsAddingBlock] = useState(false);
+	const [newStart, setNewStart] = useState("");
+	const [newEnd, setNewEnd] = useState("");
+	const [startSelectOpen, setStartSelectOpen] = useState(false);
+	const [endSelectOpen, setEndSelectOpen] = useState(false);
+
 	useEffect(() => {
 		if (defaults) {
 			setStartDate(defaults.default_start_date || "");
 			setEndDate(defaults.default_end_date || "");
+			setSlotDuration(defaults.default_slot_duration || 30);
 			setBlocks(defaults.default_hours);
 			setHoursEditableDefault(defaults.hours_editable_default);
 		}
@@ -70,24 +121,35 @@ export default function SessionDefaultsDialog({
 		setEndDateOpen(false);
 	};
 
-	const handleAddBlock = () => {
-		setBlocks((prev) => [...prev, { start_time: "09:00", end_time: "17:00" }]);
+	const startAddingBlock = () => {
+		setNewStart("");
+		setNewEnd("");
+		setIsAddingBlock(true);
+		setStartSelectOpen(true);
+	};
+
+	const handleNewStartChange = (value: string) => {
+		setNewStart(value);
+		setNewEnd("");
+		setStartSelectOpen(false);
+		// Move straight to picking the end time next.
+		setEndSelectOpen(true);
+	};
+
+	const handleConfirmBlock = () => {
+		if (!newStart || !newEnd) return;
+		setBlocks((prev) =>
+			[...prev, { start_time: newStart, end_time: newEnd }].sort((a, b) =>
+				a.start_time.localeCompare(b.start_time),
+			),
+		);
+		setIsAddingBlock(false);
+		setNewStart("");
+		setNewEnd("");
 	};
 
 	const handleRemoveBlock = (index: number) => {
 		setBlocks((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	const handleBlockChange = (
-		index: number,
-		field: keyof DefaultHoursBlock,
-		value: string,
-	) => {
-		setBlocks((prev) =>
-			prev.map((block, i) =>
-				i === index ? { ...block, [field]: value } : block,
-			),
-		);
 	};
 
 	const handleSave = () => {
@@ -105,6 +167,7 @@ export default function SessionDefaultsDialog({
 				default_end_date: endDate || null,
 				default_hours: blocks,
 				hours_editable_default: hoursEditableDefault,
+				default_slot_duration: slotDuration,
 			},
 			{
 				onSuccess: () => {
@@ -127,21 +190,11 @@ export default function SessionDefaultsDialog({
 		);
 	}
 
+	const startTimeOptions = validStartTimes(blocks);
+	const endTimeOptions = newStart ? validEndTimes(blocks, newStart) : [];
+
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center gap-1.5">
-				<Label className="font-semibold text-sm">Session Defaults</Label>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Info className="h-3.5 w-3.5 text-muted-foreground" />
-					</TooltipTrigger>
-					<TooltipContent>
-						New sessions created for this event will prefill from these — no
-						need to set the date and hours manually every time.
-					</TooltipContent>
-				</Tooltip>
-			</div>
-
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
 					<Label htmlFor="defaults-start-date">Default Start Date</Label>
@@ -202,9 +255,23 @@ export default function SessionDefaultsDialog({
 			</div>
 
 			<div className="space-y-2">
-				<Label className="font-semibold text-sm">
-					Default Working Hours & Breaks
+				<Label htmlFor="defaults-slot-duration">
+					Default Slot Duration (minutes)
 				</Label>
+				<Input
+					id="defaults-slot-duration"
+					type="number"
+					min={5}
+					max={180}
+					value={slotDuration}
+					onChange={(e) => setSlotDuration(Number(e.target.value))}
+					disabled={isPending}
+					className="w-32"
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label className="font-semibold text-sm">Default Matching Hours</Label>
 				<p className="text-muted-foreground text-xs">
 					Gaps between blocks act as breaks (e.g. lunch).
 				</p>
@@ -212,50 +279,94 @@ export default function SessionDefaultsDialog({
 					{blocks.map((block, index) => (
 						<div
 							key={`${block.start_time}-${block.end_time}-${index}`}
-							className="flex items-center gap-2"
+							className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary text-xs"
 						>
-							<Input
-								type="time"
-								value={block.start_time}
-								onChange={(e) =>
-									handleBlockChange(index, "start_time", e.target.value)
-								}
-								className="h-9 w-32"
-								disabled={isPending}
-							/>
-							<span className="text-muted-foreground text-xs">to</span>
-							<Input
-								type="time"
-								value={block.end_time}
-								onChange={(e) =>
-									handleBlockChange(index, "end_time", e.target.value)
-								}
-								className="h-9 w-32"
-								disabled={isPending}
-							/>
-							<Button
+							<span>
+								{block.start_time} - {block.end_time}
+							</span>
+							<button
 								type="button"
-								variant="ghost"
-								size="icon"
 								onClick={() => handleRemoveBlock(index)}
 								disabled={isPending}
-								className="h-9 w-9"
+								className="font-bold text-primary transition hover:text-red-500"
 							>
-								<X className="h-4 w-4" />
-							</Button>
+								<X className="h-3 w-3" />
+							</button>
 						</div>
 					))}
 				</div>
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					onClick={handleAddBlock}
-					disabled={isPending}
-					className="gap-1"
-				>
-					<Plus className="h-3 w-3" /> Add Block
-				</Button>
+
+				{isAddingBlock ? (
+					<div className="flex flex-wrap items-center gap-2 rounded-lg border p-2">
+						<Select
+							open={startSelectOpen}
+							onOpenChange={setStartSelectOpen}
+							value={newStart}
+							onValueChange={handleNewStartChange}
+							disabled={isPending}
+						>
+							<SelectTrigger className="h-8 w-28 text-xs">
+								<SelectValue placeholder="Start time" />
+							</SelectTrigger>
+							<SelectContent className="max-h-[240px]">
+								{startTimeOptions.map((t) => (
+									<SelectItem key={t} value={t}>
+										{t}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<span className="text-muted-foreground text-xs">to</span>
+						<Select
+							open={endSelectOpen}
+							onOpenChange={setEndSelectOpen}
+							value={newEnd}
+							onValueChange={setNewEnd}
+							disabled={isPending || !newStart}
+						>
+							<SelectTrigger className="h-8 w-28 text-xs">
+								<SelectValue placeholder="End time" />
+							</SelectTrigger>
+							<SelectContent className="max-h-[240px]">
+								{endTimeOptions.map((t) => (
+									<SelectItem key={t} value={t}>
+										{t}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Button
+							type="button"
+							size="icon"
+							className="h-8 w-8"
+							onClick={handleConfirmBlock}
+							disabled={isPending || !newStart || !newEnd}
+						>
+							<Check className="h-3.5 w-3.5" />
+						</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setIsAddingBlock(false)}
+							disabled={isPending}
+						>
+							<X className="h-3.5 w-3.5" />
+						</Button>
+					</div>
+				) : (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={startAddingBlock}
+						disabled={isPending || startTimeOptions.length === 0}
+						className="gap-1"
+					>
+						<Plus className="h-3 w-3" /> Add Block
+					</Button>
+				)}
 			</div>
 
 			<div className="flex items-center justify-between rounded-lg border p-3">
