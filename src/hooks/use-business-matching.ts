@@ -4,6 +4,7 @@ import {
 	adminSetHostHoursEditableOverride,
 	adminSetHostTagsEditableOverride,
 	adminUpdateHostAvatar,
+	adminUpdateHostTags,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
 	type BusinessMatchingSystemSettings,
@@ -52,6 +53,30 @@ export const useAdminUpdateHostAvatar = (eventId: string) => {
 			});
 			queryClient.refetchQueries({
 				queryKey: ["business-matching-hosts", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminUpdateHostTags = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			offeringTags,
+			interestTags,
+		}: {
+			hostUserId: string;
+			offeringTags: string[];
+			interestTags: string[];
+		}) =>
+			adminUpdateHostTags(eventId, hostUserId, {
+				offering_tags: offeringTags,
+				interest_tags: interestTags,
+			}),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
 			});
 		},
 	});
@@ -148,10 +173,12 @@ export const useCreateAndAssignHost = (eventId: string) => {
 		mutationFn: ({
 			bmEventId,
 			data,
+			tags,
 		}: {
 			bmEventId: string;
 			data: CreateHostRequest;
-		}) => createAndAssignHost(eventId, bmEventId, data),
+			tags?: { offering_tags?: string[]; interest_tags?: string[] };
+		}) => createAndAssignHost(eventId, bmEventId, data, tags),
 		onSuccess: () => {
 			// Refetch the main events query to show the new host immediately
 			queryClient.refetchQueries({

@@ -1,17 +1,21 @@
 // new-eventzflow-panel/src/components/pages/business-matching/host-details-dialog.tsx
 
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, X } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import ImageUpload from "@/components/file-upload/image-upload";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useAdminSetHostHoursEditableOverride,
 	useAdminSetHostTagsEditableOverride,
 	useAdminUpdateHostAvatar,
+	useAdminUpdateHostTags,
+	useBusinessMatchingTags,
 	useRemoveHost,
 } from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
@@ -46,15 +50,27 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		useAdminSetHostTagsEditableOverride(eventId);
 	const { mutateAsync: setHoursOverride, isPending: isSavingHoursOverride } =
 		useAdminSetHostHoursEditableOverride(eventId);
+	const { mutateAsync: saveHostTags, isPending: isSavingTags } =
+		useAdminUpdateHostTags(eventId);
+	const { data: availableTags } = useBusinessMatchingTags(eventId);
+
 	const [avatarUrl, setAvatarUrl] = useState(
 		host.avatar_url ? `${API_BASE_URL}${host.avatar_url}` : undefined,
 	);
+	const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 	const [tagsEditable, setTagsEditable] = useState(
 		host.tags_editable_override ?? sessionTagsEditable,
 	);
 	const [hoursEditable, setHoursEditable] = useState(
 		host.hours_editable_override ?? sessionHoursEditable,
 	);
+	const [offeringTags, setOfferingTags] = useState(host.offering_tags || []);
+	const [interestTags, setInterestTags] = useState(host.interest_tags || []);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const tagsDirty =
+		JSON.stringify(offeringTags) !== JSON.stringify(host.offering_tags || []) ||
+		JSON.stringify(interestTags) !== JSON.stringify(host.interest_tags || []);
 
 	const handleCopyEmail = () => {
 		navigator.clipboard
@@ -114,121 +130,193 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		}
 	};
 
+	const handleSaveTags = async () => {
+		try {
+			await saveHostTags({
+				hostUserId: host.id,
+				offeringTags,
+				interestTags,
+			});
+			toast.success("Host's tags updated");
+		} catch (err) {
+			toast.error("Failed to update host's tags", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
+		}
+	};
+
+	const infoSections = [
+		{ value: "description", label: "Description", content: host.description },
+		{
+			value: "sourcing_intent",
+			label: "Sourcing Intent",
+			content: host.sourcing_intent,
+		},
+		{
+			value: "capabilities",
+			label: "Capabilities",
+			content: host.capabilities,
+		},
+	].filter((s) => s.content);
+
 	return (
-		<div className="space-y-6">
-			<div className="space-y-4">
-				<div className="grid gap-1">
-					<Label className="text-muted-foreground">Photo</Label>
-					<ImageUpload
-						value={avatarUrl}
-						onChange={handleAvatarChange}
+		<div className="space-y-3">
+			<div className="flex items-center gap-3">
+				<div className="relative shrink-0">
+					<button
+						type="button"
+						onClick={() => avatarUrl && setShowAvatarPreview(true)}
+						className="block"
+					>
+						<Avatar className="size-12 border">
+							<AvatarImage src={avatarUrl} alt={host.full_name} />
+							<AvatarFallback className="text-xs">
+								{host.full_name.slice(0, 2).toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
+					</button>
+					<button
+						type="button"
+						onClick={() => fileInputRef.current?.click()}
 						disabled={isSavingAvatar}
-						maxSize={5 * 1024 * 1024}
-						className="max-w-[200px]"
+						className="absolute -right-1 -bottom-1 rounded-full border bg-background px-1 text-[9px] text-muted-foreground hover:text-foreground"
+					>
+						Edit
+					</button>
+					<input
+						ref={fileInputRef}
+						type="file"
+						accept="image/*"
+						className="sr-only"
+						onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
 					/>
 				</div>
-				<div className="grid gap-1">
-					<Label className="text-muted-foreground">Full Name</Label>
-					<div className="font-medium text-lg">{host.full_name}</div>
-				</div>
-				<div className="grid gap-1">
-					<Label className="text-muted-foreground">Email</Label>
-					<div className="flex items-center gap-2 overflow-hidden">
-						<div className="max-w-full break-all font-medium text-sm sm:text-base">
-							{host.email}
-						</div>
+				<div className="min-w-0 flex-1 space-y-0.5">
+					<div className="truncate font-medium text-sm">{host.full_name}</div>
+					<div className="flex items-center gap-1 text-muted-foreground text-xs">
+						<span className="truncate">{host.email}</span>
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-6 w-6 flex-shrink-0"
+							className="h-4 w-4 shrink-0"
 							onClick={handleCopyEmail}
 						>
-							<Copy className="h-3 w-3" />
+							<Copy className="h-2.5 w-2.5" />
 						</Button>
 					</div>
-				</div>
-				<div className="grid gap-1">
-					<Label className="text-muted-foreground">Phone</Label>
-					<a className="font-medium" href={`tel:${host.phone}`}>
+					<a
+						className="block text-muted-foreground text-xs"
+						href={`tel:${host.phone}`}
+					>
 						{host.phone || "N/A"}
 					</a>
 				</div>
-				<div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-					<div className="space-y-0.5">
-						<Label>Can edit own tags</Label>
-						<p className="text-muted-foreground text-xs">
-							{host.tags_editable_override === null ||
-							host.tags_editable_override === undefined
-								? `Using session default (${sessionTagsEditable ? "on" : "off"})`
-								: "Overridden for this host"}
-						</p>
-					</div>
+			</div>
+
+			{showAvatarPreview && avatarUrl && (
+				<button
+					type="button"
+					onClick={() => setShowAvatarPreview(false)}
+					className="fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-black/80 p-8"
+				>
+					<img
+						src={avatarUrl}
+						alt={host.full_name}
+						className="max-h-full max-w-full rounded-lg object-contain"
+					/>
+					<X className="absolute top-4 right-4 h-6 w-6 text-white" />
+				</button>
+			)}
+
+			<div className="grid grid-cols-2 gap-2">
+				<div className="flex items-center justify-between gap-2 rounded-lg border p-2">
+					<Label className="text-xs">Edit own tags</Label>
 					<Switch
 						checked={tagsEditable}
 						onCheckedChange={handleTagsEditableChange}
 						disabled={isSavingTagsOverride}
 					/>
 				</div>
-				<div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-					<div className="space-y-0.5">
-						<Label>Can edit own hours</Label>
-						<p className="text-muted-foreground text-xs">
-							{host.hours_editable_override === null ||
-							host.hours_editable_override === undefined
-								? `Using session default (${sessionHoursEditable ? "on" : "off"})`
-								: "Overridden for this host"}
-						</p>
-					</div>
+				<div className="flex items-center justify-between gap-2 rounded-lg border p-2">
+					<Label className="text-xs">Edit own hours</Label>
 					<Switch
 						checked={hoursEditable}
 						onCheckedChange={handleHoursEditableChange}
 						disabled={isSavingHoursOverride}
 					/>
 				</div>
-				{host.description && (
-					<div className="mt-1 grid gap-1 border-t pt-3">
-						<Label className="text-muted-foreground">Description / Bio</Label>
-						<div className="whitespace-pre-wrap text-foreground text-sm leading-relaxed">
-							{host.description}
-						</div>
-					</div>
-				)}
-				{host.sourcing_intent && (
-					<div className="mt-1 grid gap-1 border-t pt-3">
-						<Label className="text-muted-foreground">Sourcing Intent</Label>
-						<div className="whitespace-pre-wrap text-foreground text-sm leading-relaxed">
-							{host.sourcing_intent}
-						</div>
-					</div>
-				)}
-				{host.capabilities && (
-					<div className="mt-1 grid gap-1 border-t pt-3">
-						<Label className="text-muted-foreground">Capabilities</Label>
-						<div className="whitespace-pre-wrap text-foreground text-sm leading-relaxed">
-							{host.capabilities}
-						</div>
-					</div>
-				)}
-				{host.interest_tags && host.interest_tags.length > 0 && (
-					<div className="mt-1 grid gap-1 border-t pt-3">
-						<Label className="text-muted-foreground">Interest Tags</Label>
-						<div className="mt-1 flex flex-wrap gap-1.5">
-							{host.interest_tags.map((tag) => (
-								<span
-									key={tag}
-									className="inline-flex items-center rounded border border-blue-100 bg-blue-50 px-2 py-0.5 font-semibold text-blue-600 text-xs dark:border-blue-900/30 dark:bg-blue-950/20 dark:text-blue-400"
-								>
-									{tag}
-								</span>
-							))}
-						</div>
+			</div>
+
+			<div className="space-y-2 rounded-lg border p-2">
+				<div className="grid gap-1.5">
+					<Label className="text-muted-foreground text-xs">Offering Tags</Label>
+					<MultiSelectLegacy
+						options={(availableTags?.offering_tags || []).map((t) => ({
+							label: t,
+							value: t,
+						}))}
+						selected={offeringTags}
+						onChange={setOfferingTags}
+						placeholder="Select offering tags"
+						className="h-8 text-xs"
+					/>
+				</div>
+				<div className="grid gap-1.5">
+					<Label className="text-muted-foreground text-xs">Interest Tags</Label>
+					<MultiSelectLegacy
+						options={(availableTags?.interest_tags || []).map((t) => ({
+							label: t,
+							value: t,
+						}))}
+						selected={interestTags}
+						onChange={setInterestTags}
+						placeholder="Select interest tags"
+						className="h-8 text-xs"
+					/>
+				</div>
+				{tagsDirty && (
+					<div className="flex justify-end">
+						<Button
+							type="button"
+							size="sm"
+							className="h-7 text-xs"
+							onClick={handleSaveTags}
+							disabled={isSavingTags}
+						>
+							{isSavingTags ? "Saving..." : "Save Tags"}
+						</Button>
 					</div>
 				)}
 			</div>
 
-			<div className="flex justify-end border-t pt-4">
+			{infoSections.length > 0 && (
+				<Tabs defaultValue={infoSections[0].value} className="w-full">
+					<TabsList className="grid h-8 w-full grid-cols-3">
+						{infoSections.map((s) => (
+							<TabsTrigger
+								key={s.value}
+								value={s.value}
+								className="text-[11px]"
+							>
+								{s.label}
+							</TabsTrigger>
+						))}
+					</TabsList>
+					{infoSections.map((s) => (
+						<TabsContent key={s.value} value={s.value} className="mt-2">
+							<div className="max-h-[120px] overflow-y-auto whitespace-pre-wrap text-foreground text-xs leading-relaxed">
+								{s.content}
+							</div>
+						</TabsContent>
+					))}
+				</Tabs>
+			)}
+
+			<div className="flex justify-end border-t pt-3">
 				<Button
 					variant="destructive"
+					size="sm"
+					className="text-xs"
 					onClick={() => {
 						openConfirm({
 							message: `Are you absolutely sure you want to remove ${host.full_name} as the host for this business matching session? This action cannot be undone.`,
@@ -252,7 +340,7 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 					}}
 					disabled={isRemoving}
 				>
-					<Trash2 className="mr-2 h-4 w-4" />
+					<Trash2 className="mr-1 h-3.5 w-3.5" />
 					Remove Host
 				</Button>
 			</div>

@@ -44,6 +44,7 @@ export interface BusinessHost {
 	sourcing_intent?: string;
 	capabilities?: string;
 	interest_tags?: string[];
+	offering_tags?: string[];
 	avatar_url?: string | null;
 	tags_editable_override?: boolean | null;
 	hours_editable_override?: boolean | null;
@@ -329,16 +330,20 @@ export interface CreateHostRequest {
 
 /**
  * Create a new user, assign as business_host, and attach to a specific BM event.
+ * offering_tags/interest_tags are optional — validated against the event's
+ * curated list, same as host self-service.
  */
 export async function createAndAssignHost(
 	eventId: string,
 	bmEventId: string,
 	data: CreateHostRequest,
+	tags?: { offering_tags?: string[]; interest_tags?: string[] },
 ): Promise<BusinessHost> {
 	const url = `v1/business_matching/events/${eventId}/hosts/create_and_assign`;
 	return restClient.post<BusinessHost>(url, {
 		host: data,
 		business_matching_event_id: bmEventId,
+		...tags,
 	});
 }
 
@@ -605,6 +610,17 @@ export async function adminUpdateHostAvatar(
 	return restClient.patch<HostProfile>(url, {
 		avatar_signed_id: avatarSignedId,
 	});
+}
+
+// Lets staff set a specific host's tags directly (validated against the
+// event's curated list, same as host self-service).
+export async function adminUpdateHostTags(
+	eventId: string,
+	hostUserId: string,
+	data: { offering_tags: string[]; interest_tags: string[] },
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, data);
 }
 
 // Overrides whether a specific host may self-edit tags for a specific

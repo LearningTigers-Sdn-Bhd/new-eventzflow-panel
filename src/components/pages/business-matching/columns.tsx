@@ -97,7 +97,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								},
 								config: {
 									title: "Host Details",
-									size: "md",
+									size: "sm",
 								},
 							});
 						}}
