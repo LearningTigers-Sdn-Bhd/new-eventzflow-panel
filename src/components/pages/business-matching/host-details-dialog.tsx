@@ -1,6 +1,6 @@
 // new-eventzflow-panel/src/components/pages/business-matching/host-details-dialog.tsx
 
-import { Copy, Trash2, X } from "lucide-react";
+import { Camera, Clock, Copy, Trash2, X } from "lucide-react";
 import type React from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -16,10 +16,12 @@ import { Label } from "@/components/ui/label";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	useAdminSetHostHoursEditableOverride,
 	useAdminSetHostTagsEditableOverride,
 	useAdminUpdateHostAvatar,
+	useAdminUpdateHostProfileInfo,
 	useAdminUpdateHostTags,
 	useBusinessMatchingTags,
 	useRemoveHost,
@@ -58,6 +60,8 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		useAdminSetHostHoursEditableOverride(eventId);
 	const { mutateAsync: saveHostTags, isPending: isSavingTags } =
 		useAdminUpdateHostTags(eventId);
+	const { mutateAsync: saveHostInfo, isPending: isSavingInfo } =
+		useAdminUpdateHostProfileInfo(eventId);
 	const { data: availableTags } = useBusinessMatchingTags(eventId);
 
 	const [avatarUrl, setAvatarUrl] = useState(
@@ -72,11 +76,21 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 	);
 	const [offeringTags, setOfferingTags] = useState(host.offering_tags || []);
 	const [interestTags, setInterestTags] = useState(host.interest_tags || []);
+	const [description, setDescription] = useState(host.description || "");
+	const [sourcingIntent, setSourcingIntent] = useState(
+		host.sourcing_intent || "",
+	);
+	const [capabilities, setCapabilities] = useState(host.capabilities || "");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const tagsDirty =
 		JSON.stringify(offeringTags) !== JSON.stringify(host.offering_tags || []) ||
 		JSON.stringify(interestTags) !== JSON.stringify(host.interest_tags || []);
+
+	const infoDirty =
+		description !== (host.description || "") ||
+		sourcingIntent !== (host.sourcing_intent || "") ||
+		capabilities !== (host.capabilities || "");
 
 	const handleCopyEmail = () => {
 		navigator.clipboard
@@ -151,19 +165,42 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		}
 	};
 
+	const handleSaveInfo = async () => {
+		try {
+			await saveHostInfo({
+				hostUserId: host.id,
+				description,
+				sourcingIntent,
+				capabilities,
+			});
+			toast.success("Host's profile info updated");
+		} catch (err) {
+			toast.error("Failed to update host's profile info", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
+		}
+	};
+
 	const infoSections = [
-		{ value: "description", label: "Description", content: host.description },
+		{
+			value: "description",
+			label: "Description",
+			text: description,
+			onChange: setDescription,
+		},
 		{
 			value: "sourcing_intent",
 			label: "Sourcing Intent",
-			content: host.sourcing_intent,
+			text: sourcingIntent,
+			onChange: setSourcingIntent,
 		},
 		{
 			value: "capabilities",
 			label: "Capabilities",
-			content: host.capabilities,
+			text: capabilities,
+			onChange: setCapabilities,
 		},
-	].filter((s) => s.content);
+	];
 
 	return (
 		<div className="space-y-3">
@@ -199,13 +236,20 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 							type="button"
 							onClick={() => fileInputRef.current?.click()}
 							disabled={isSavingAvatar}
-							className="block"
+							className="group block"
+							title="Add Photo"
 						>
 							<Avatar className="size-12 border">
-								<AvatarFallback className="text-xs">
+								<AvatarFallback className="relative text-xs">
 									{host.full_name.slice(0, 2).toUpperCase()}
+									<span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-background/90 opacity-0 transition-opacity group-hover:opacity-100">
+										<Camera className="h-3.5 w-3.5 text-muted-foreground" />
+									</span>
 								</AvatarFallback>
 							</Avatar>
+							<span className="mt-0.5 block text-[9px] text-muted-foreground">
+								Add Photo
+							</span>
 						</button>
 					)}
 					<input
@@ -303,28 +347,31 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 				</div>
 			</div>
 
-			{infoSections.length > 0 && (
-				<Tabs defaultValue={infoSections[0].value} className="w-full">
-					<TabsList className="grid h-8 w-full grid-cols-3">
-						{infoSections.map((s) => (
-							<TabsTrigger
-								key={s.value}
-								value={s.value}
-								className="text-[11px]"
-							>
-								{s.label}
-							</TabsTrigger>
-						))}
-					</TabsList>
+			<Tabs defaultValue={infoSections[0].value} className="w-full">
+				<TabsList className="grid h-8 w-full grid-cols-3">
 					{infoSections.map((s) => (
-						<TabsContent key={s.value} value={s.value} className="mt-2">
-							<div className="max-h-[120px] overflow-y-auto whitespace-pre-wrap text-foreground text-xs leading-relaxed">
-								{s.content}
-							</div>
-						</TabsContent>
+						<TabsTrigger key={s.value} value={s.value} className="text-[11px]">
+							{s.label}
+						</TabsTrigger>
 					))}
-				</Tabs>
-			)}
+				</TabsList>
+				{infoSections.map((s) => (
+					<TabsContent key={s.value} value={s.value} className="mt-2 space-y-1">
+						{!s.text && (
+							<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+								<Clock className="h-2.5 w-2.5" />
+								Pending host update — not added yet
+							</div>
+						)}
+						<Textarea
+							value={s.text}
+							onChange={(e) => s.onChange(e.target.value)}
+							rows={3}
+							className="resize-y text-xs"
+						/>
+					</TabsContent>
+				))}
+			</Tabs>
 
 			<div className="flex items-center justify-between border-t pt-3">
 				<Button
@@ -360,17 +407,31 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 					<span className="sr-only">Remove Host</span>
 				</Button>
 
-				{tagsDirty && (
-					<Button
-						type="button"
-						size="sm"
-						className="h-7 text-xs"
-						onClick={handleSaveTags}
-						disabled={isSavingTags}
-					>
-						{isSavingTags ? "Saving..." : "Save Tags"}
-					</Button>
-				)}
+				<div className="flex items-center gap-2">
+					{infoDirty && (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							className="h-7 text-xs"
+							onClick={handleSaveInfo}
+							disabled={isSavingInfo}
+						>
+							{isSavingInfo ? "Saving..." : "Save Info"}
+						</Button>
+					)}
+					{tagsDirty && (
+						<Button
+							type="button"
+							size="sm"
+							className="h-7 text-xs"
+							onClick={handleSaveTags}
+							disabled={isSavingTags}
+						>
+							{isSavingTags ? "Saving..." : "Save Tags"}
+						</Button>
+					)}
+				</div>
 			</div>
 		</div>
 	);

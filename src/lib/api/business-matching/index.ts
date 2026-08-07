@@ -625,6 +625,17 @@ export async function adminUpdateHostTags(
 	return restClient.patch<HostProfile>(url, data);
 }
 
+// Lets staff fill in/edit a specific host's description, sourcing intent,
+// and capabilities directly, same as host self-service.
+export async function adminUpdateHostProfileInfo(
+	eventId: string,
+	hostUserId: string,
+	data: { description: string; sourcing_intent: string; capabilities: string },
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, data);
+}
+
 // Overrides whether a specific host may self-edit tags for a specific
 // session — null clears the override back to the session's default.
 export async function adminSetHostTagsEditableOverride(

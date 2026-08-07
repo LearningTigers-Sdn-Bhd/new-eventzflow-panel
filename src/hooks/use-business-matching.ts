@@ -4,6 +4,7 @@ import {
 	adminSetHostHoursEditableOverride,
 	adminSetHostTagsEditableOverride,
 	adminUpdateHostAvatar,
+	adminUpdateHostProfileInfo,
 	adminUpdateHostTags,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
@@ -74,6 +75,33 @@ export const useAdminUpdateHostTags = (eventId: string) => {
 			adminUpdateHostTags(eventId, hostUserId, {
 				offering_tags: offeringTags,
 				interest_tags: interestTags,
+			}),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminUpdateHostProfileInfo = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			description,
+			sourcingIntent,
+			capabilities,
+		}: {
+			hostUserId: string;
+			description: string;
+			sourcingIntent: string;
+			capabilities: string;
+		}) =>
+			adminUpdateHostProfileInfo(eventId, hostUserId, {
+				description,
+				sourcing_intent: sourcingIntent,
+				capabilities,
 			}),
 		onSuccess: () => {
 			queryClient.refetchQueries({
