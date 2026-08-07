@@ -67,8 +67,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const [title, setTitle] = useState("");
 	const [duration, setDuration] = useState(30);
 	const [location, setLocation] = useState("");
-	const [adminEmail, setAdminEmail] = useState("");
-	const [adminWaNumber, setAdminWaNumber] = useState("");
 	const [startTime, setStartTime] = useState("09:00");
 	const [endTime, setEndTime] = useState("17:00");
 	const [startDate, setStartDate] = useState(
@@ -83,8 +81,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setTitle(session.title || "");
 			setDuration(Number(session.duration) || 30);
 			setLocation(session.location || "");
-			setAdminEmail(session.admin_email || "");
-			setAdminWaNumber(session.admin_wa_number || "");
 			setStartDate(session.start_date?.slice(0, 10) || "");
 			setEndDate(session.end_date?.slice(0, 10) || "");
 			setTagsEditable(session.tags_editable ?? true);
@@ -109,8 +105,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			title,
 			slot_duration: duration,
 			location,
-			admin_email: adminEmail,
-			admin_wa_number: adminWaNumber,
 			start_time: startTime,
 			end_time: endTime,
 			// Session dates and the tags toggle are admin-controlled — never
@@ -242,30 +236,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						? "Set by your event admin — contact them to change these dates."
 						: "Defaults to the event's dates, but can be set entirely before or after the event period."}
 				</p>
-			</div>
-
-			<div className="grid grid-cols-2 gap-4">
-				<div className="space-y-2">
-					<Label htmlFor="session-email">Admin Contact Email</Label>
-					<Input
-						id="session-email"
-						type="email"
-						value={adminEmail}
-						onChange={(e) => setAdminEmail(e.target.value)}
-						placeholder="admin@example.com"
-						disabled={isPending}
-					/>
-				</div>
-				<div className="space-y-2">
-					<Label htmlFor="session-wa">Admin WhatsApp Number</Label>
-					<Input
-						id="session-wa"
-						value={adminWaNumber}
-						onChange={(e) => setAdminWaNumber(e.target.value)}
-						placeholder="e.g. +60123456789"
-						disabled={isPending}
-					/>
-				</div>
 			</div>
 
 			{!isHostEditing && (
