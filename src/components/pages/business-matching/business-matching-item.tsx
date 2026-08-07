@@ -104,7 +104,12 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 				</div>
 
 				{/* Tags */}
-				<ExpandableTags tags={offeringTags} limit={5} className="mt-0.5" />
+				<ExpandableTags
+					tags={offeringTags}
+					limit={2}
+					singleRow
+					className="mt-0.5"
+				/>
 
 				<div className="space-y-1 border-muted-foreground/10 border-t pt-2">
 					{host ? (
