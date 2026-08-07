@@ -120,16 +120,18 @@ export function UniversalDialog() {
 				<DesktopView>
 					<DialogContent
 						className={cn(
-							"gap-0 p-6",
+							"flex flex-col gap-0 overflow-hidden p-6",
 							sizeClass,
-							isFullScreen && "rounded-none border-0 p-0",
+							isFullScreen
+								? "h-screen! max-h-none! rounded-none border-0 p-0"
+								: "max-h-[85vh]",
 							config.className,
 						)}
 						showCloseButton={config.showCloseButton}
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-1 pb-4 md:items-start",
+								"flex shrink-0 flex-col items-center gap-1 pb-4 md:items-start",
 								isFullScreen ? "px-6 pt-6" : "px-0",
 							)}
 						>
@@ -163,8 +165,8 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"flex-1 justify-start",
-								isFullScreen && "h-[calc(100vh-8rem)] flex-1 overflow-auto",
+								"min-h-0 flex-1 justify-start overflow-y-auto",
+								isFullScreen && "overflow-auto",
 							)}
 						>
 							<ContentComponent {...props} />
