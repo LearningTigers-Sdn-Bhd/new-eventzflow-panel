@@ -25,6 +25,17 @@ export interface BackendPendingTicket {
 		price: number;
 	};
 	ticket_application?: BackendTicketApplication | null;
+	registration_documents_data?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicle_registration_data?: {
+		plate: string;
+		registration_form_id: number;
+		registration_form_name: string | null;
+		registration_form_slug: string | null;
+	} | null;
 }
 
 export type ReviewStatus = "pending_review" | "approved" | "rejected";
@@ -73,6 +84,17 @@ export type PendingTicket = {
 		rsvpConfirmedAt: string | null;
 		rsvpExpiresAt: string | null;
 	};
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
 };
 
 // Response types for operations

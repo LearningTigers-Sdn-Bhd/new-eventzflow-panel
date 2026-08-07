@@ -47,6 +47,17 @@ export type PendingTicket = {
 		rsvpConfirmedAt: string | null;
 		rsvpExpiresAt: string | null;
 	};
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
 };
 
 /**

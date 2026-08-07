@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { isImageUrlValue } from "@/lib/utils/custom-fields-display";
+import { API_BASE_URL } from "@/utils/rest-api";
 import { cn } from "../../../../lib/utils";
 import {
 	formatTicketPrice,
@@ -74,6 +75,23 @@ const InfoItem = ({
 		</div>
 	);
 };
+
+const DOCUMENT_LABELS: Record<string, string> = {
+	passport_copy: "IC / Passport Copy",
+	photo_1: "Participant Selfie",
+	photo_2: "Additional Photo",
+	indemnity_form: "Indemnity Form",
+	signature: "Signature",
+};
+
+function documentLabel(key: string | null, filename: string): string {
+	if (key && DOCUMENT_LABELS[key]) return DOCUMENT_LABELS[key];
+	return key || filename;
+}
+
+function absoluteAssetUrl(url: string): string {
+	return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+}
 
 const InfoImage = ({ label, url }: { label: string; url: string }) => {
 	return (
@@ -173,6 +191,16 @@ export default function PendingTicketViewModal({
 									value={ticket.phone || "No phone provided"}
 									icon={Phone}
 								/>
+								{ticket.vehicleRegistration && (
+									<InfoItem
+										label="Expedition Group"
+										value={
+											ticket.vehicleRegistration.registrationFormName ||
+											"Unknown group"
+										}
+										icon={Tag}
+									/>
+								)}
 							</CardContent>
 						</Card>
 
@@ -324,6 +352,29 @@ export default function PendingTicketViewModal({
 							</div>
 						)}
 					</div>
+
+					{ticket.documents && ticket.documents.length > 0 && (
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<FileText className="size-4 text-primary" />
+								<h3 className="font-bold text-sm uppercase tracking-tight">
+									Registration Documents
+								</h3>
+							</div>
+							<Separator />
+							<Card className="rounded-none border-2 border-dashed p-0 shadow-none">
+								<CardContent className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
+									{ticket.documents.map((doc) => (
+										<InfoImage
+											key={doc.url}
+											label={documentLabel(doc.key, doc.filename)}
+											url={absoluteAssetUrl(doc.url)}
+										/>
+									))}
+								</CardContent>
+							</Card>
+						</div>
+					)}
 
 					{ticket.paymentScreenshotUrl && (
 						<div className="space-y-4">

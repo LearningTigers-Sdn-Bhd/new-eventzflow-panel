@@ -31,6 +31,17 @@ export type Ticket = {
 		value: string;
 	}>;
 	custom_fields_data?: Record<string, string> | null;
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
 };
 
 export type ScannedTicket = {
@@ -126,6 +137,17 @@ export type BackendTicket = {
 		name: string;
 		price: number;
 	};
+	registration_documents_data?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicle_registration_data?: {
+		plate: string;
+		registration_form_id: number;
+		registration_form_name: string | null;
+		registration_form_slug: string | null;
+	} | null;
 };
 
 // Backend response types (transformed from other endpoints like scanned tickets)

@@ -84,6 +84,18 @@ function transformPendingTicket(
 					rsvpExpiresAt: application.rsvp_expires_at,
 				}
 			: undefined,
+		documents: backendTicket.registration_documents_data,
+		vehicleRegistration: backendTicket.vehicle_registration_data
+			? {
+					plate: backendTicket.vehicle_registration_data.plate,
+					registrationFormId:
+						backendTicket.vehicle_registration_data.registration_form_id,
+					registrationFormName:
+						backendTicket.vehicle_registration_data.registration_form_name,
+					registrationFormSlug:
+						backendTicket.vehicle_registration_data.registration_form_slug,
+				}
+			: null,
 	};
 }
 

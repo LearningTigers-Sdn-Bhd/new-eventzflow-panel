@@ -209,6 +209,8 @@ function transformBackendTicket(
 	let transactionId: string | undefined;
 	let paymentScreenshotUrl: string | undefined;
 	let passBundle: Ticket["passBundle"] = null;
+	let documents: Ticket["documents"];
+	let vehicleRegistration: Ticket["vehicleRegistration"] = null;
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -225,6 +227,17 @@ function transformBackendTicket(
 		transactionId = bt.transaction_id;
 		paymentScreenshotUrl = bt.payment_screenshot_url;
 		passBundle = bt.pass_bundle ?? null;
+		documents = bt.registration_documents_data;
+		vehicleRegistration = bt.vehicle_registration_data
+			? {
+					plate: bt.vehicle_registration_data.plate,
+					registrationFormId: bt.vehicle_registration_data.registration_form_id,
+					registrationFormName:
+						bt.vehicle_registration_data.registration_form_name,
+					registrationFormSlug:
+						bt.vehicle_registration_data.registration_form_slug,
+				}
+			: null;
 
 		if (bt.custom_fields_data) {
 			customLabels.push(
@@ -274,6 +287,8 @@ function transformBackendTicket(
 			"custom_fields_data" in ticket
 				? (ticket as BackendTicket).custom_fields_data
 				: undefined,
+		documents,
+		vehicleRegistration,
 	};
 }
 
