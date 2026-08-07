@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
 	Select,
 	SelectContent,
@@ -35,19 +36,22 @@ export function TimeSelect({
 	className,
 	scrollToTime = "06:00",
 }: TimeSelectProps) {
-	const handleOpenChange = (nextOpen: boolean) => {
-		onOpenChange?.(nextOpen);
-		if (!nextOpen || value) return;
+	// Radix only calls onOpenChange for opens it triggers itself (trigger
+	// click, Escape, etc.) — not when we drive `open` externally, which is
+	// exactly how these get auto-opened (start picked -> end auto-opens). A
+	// plain effect on the `open` prop catches both cases.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only re-runs on `open` — options/value/scrollToTime are read at trigger time, not watched for changes
+	useEffect(() => {
+		if (!open || value) return;
 
 		const target = options.find((t) => t >= scrollToTime) ?? options[0];
 		if (!target) return;
 
-		// Radix mounts SelectContent async and also runs its own scroll/focus
-		// positioning right after — a single rAF can lose that race and get
-		// silently reset back to the top. Poll briefly instead of guessing a
-		// fixed delay, and set scrollTop directly (scrollIntoView can get
-		// fought by Radix's own viewport measurement).
+		// Radix mounts SelectContent async, so poll briefly instead of
+		// guessing a fixed delay, and set scrollTop directly (scrollIntoView
+		// can get fought by Radix's own viewport measurement).
 		let attempts = 0;
+		let timer: ReturnType<typeof setTimeout>;
 		const tryScroll = () => {
 			attempts += 1;
 			const item = document.querySelector<HTMLElement>(
@@ -61,17 +65,19 @@ export function TimeSelect({
 					item.offsetTop - viewport.clientHeight / 2 + item.clientHeight / 2;
 				return;
 			}
-			if (attempts < 10) {
-				setTimeout(tryScroll, 20);
+			if (attempts < 15) {
+				timer = setTimeout(tryScroll, 20);
 			}
 		};
-		setTimeout(tryScroll, 20);
-	};
+		timer = setTimeout(tryScroll, 20);
+
+		return () => clearTimeout(timer);
+	}, [open]);
 
 	return (
 		<Select
 			open={open}
-			onOpenChange={handleOpenChange}
+			onOpenChange={onOpenChange}
 			value={value}
 			onValueChange={onValueChange}
 			disabled={disabled}
