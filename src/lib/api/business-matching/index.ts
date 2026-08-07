@@ -202,6 +202,21 @@ export async function getBookings(
 	return restClient.get<BookingsResponse>(url);
 }
 
+export interface PublicBookingStatus {
+	enabled: boolean;
+	cutoff_date: string | null;
+	is_open: boolean;
+}
+
+// Lets the public booking wizard show a "closed" state up front instead of
+// only failing once the visitor reaches the final step.
+export async function getPublicBusinessMatchingBookingStatus(
+	eventId: string,
+): Promise<PublicBookingStatus> {
+	const url = `v1/public/events/${eventId}/business_matching_booking_status`;
+	return publicRestClient.get<PublicBookingStatus>(url);
+}
+
 /**
  * Fetch a single booking from the backend
  */
@@ -697,6 +712,10 @@ export interface BusinessMatchingEventDefaults {
 	default_hours: DefaultHoursBlock[];
 	hours_editable_default: boolean;
 	default_slot_duration: number;
+	public_booking_enabled: boolean;
+	public_booking_cutoff_date: string | null;
+	// enabled=true but the cutoff date has already passed
+	public_booking_past_cutoff_warning: boolean;
 }
 
 export async function getBusinessMatchingEventDefaults(

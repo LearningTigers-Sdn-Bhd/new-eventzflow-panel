@@ -26,6 +26,7 @@ import {
 	useCreatePublicBooking,
 	useDetailedSlots,
 	useEventAvailability,
+	usePublicBookingStatus,
 } from "@/hooks/use-business-matching-public";
 import { useEventDetails } from "@/hooks/use-event-details"; // Import the new hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
@@ -97,6 +98,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 
 	// Access event title from mainEventDetails
 	const eventTitle = mainEventDetails?.title || ""; // Changed from bmEvents[0].event_title to bmEvents[0].title
+
+	const { data: bookingStatus, isLoading: isLoadingBookingStatus } =
+		usePublicBookingStatus(event_id);
 
 	// Fetch hosts in background
 	const { data: hosts } = useBusinessHosts(event_id, {
@@ -264,10 +268,33 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	}, [sessionPage, totalSessionPages]);
 
 	// --- Render Helpers ---
-	if (!isInitialized) {
+	if (!isInitialized || isLoadingBookingStatus) {
 		return (
 			<div className="flex min-h-[50vh] items-center justify-center">
 				<Loader2 className="h-8 w-8 animate-spin text-primary" />
+			</div>
+		);
+	}
+
+	if (bookingStatus && !bookingStatus.is_open) {
+		return (
+			<div className="container mx-auto max-w-md px-4 py-20">
+				<Card>
+					<CardHeader>
+						<CardTitle>Booking Closed</CardTitle>
+						<CardDescription>
+							{eventTitle
+								? `Business matching booking for ${eventTitle} is no longer open.`
+								: "Business matching booking is no longer open for this event."}
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<p className="text-muted-foreground text-sm">
+							Please contact the event organizer if you still need to arrange a
+							meeting.
+						</p>
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}

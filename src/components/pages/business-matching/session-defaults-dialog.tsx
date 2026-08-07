@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import {
+	AlertTriangle,
 	Calendar as CalendarIcon,
 	Check,
 	Loader2,
@@ -50,6 +51,9 @@ export default function SessionDefaultsDialog({
 	const [hoursEditableDefault, setHoursEditableDefault] = useState(true);
 	const [startDateOpen, setStartDateOpen] = useState(false);
 	const [endDateOpen, setEndDateOpen] = useState(false);
+	const [publicBookingEnabled, setPublicBookingEnabled] = useState(true);
+	const [publicBookingCutoffDate, setPublicBookingCutoffDate] = useState("");
+	const [cutoffDateOpen, setCutoffDateOpen] = useState(false);
 
 	// Add-block flow: revealed blank, time chosen from a fixed list only.
 	const [isAddingBlock, setIsAddingBlock] = useState(false);
@@ -65,8 +69,22 @@ export default function SessionDefaultsDialog({
 			setSlotDuration(defaults.default_slot_duration || 30);
 			setBlocks(defaults.default_hours);
 			setHoursEditableDefault(defaults.hours_editable_default);
+			setPublicBookingEnabled(defaults.public_booking_enabled);
+			setPublicBookingCutoffDate(defaults.public_booking_cutoff_date || "");
 		}
 	}, [defaults]);
+
+	const handleCutoffDateSelect = (date: Date | undefined) => {
+		setPublicBookingCutoffDate(date ? format(date, "yyyy-MM-dd") : "");
+		setCutoffDateOpen(false);
+	};
+
+	// Enabled, but the picked/loaded cutoff date has already passed — warn
+	// before it's even saved, not just after.
+	const pastCutoffWarning =
+		publicBookingEnabled &&
+		!!publicBookingCutoffDate &&
+		publicBookingCutoffDate < format(new Date(), "yyyy-MM-dd");
 
 	const handleStartDateSelect = (date: Date | undefined) => {
 		if (!date) return;
@@ -135,6 +153,8 @@ export default function SessionDefaultsDialog({
 				default_hours: blocks,
 				hours_editable_default: hoursEditableDefault,
 				default_slot_duration: slotDuration,
+				public_booking_enabled: publicBookingEnabled,
+				public_booking_cutoff_date: publicBookingCutoffDate || null,
 			},
 			{
 				onSuccess: () => {
@@ -333,6 +353,92 @@ export default function SessionDefaultsDialog({
 					disabled={isPending}
 					className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 				/>
+			</div>
+
+			<div className="space-y-3 rounded-lg border p-3">
+				<div className="flex items-center justify-between">
+					<div className="space-y-0.5">
+						<Label htmlFor="public-booking-enabled">Allow public booking</Label>
+						<p className="text-muted-foreground text-xs">
+							Turn off to stop new bookings via the public link — staff can
+							still add bookings directly either way.
+						</p>
+					</div>
+					<Switch
+						id="public-booking-enabled"
+						checked={publicBookingEnabled}
+						onCheckedChange={setPublicBookingEnabled}
+						disabled={isPending}
+						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="public-booking-cutoff-date">
+						Cut-off date (optional)
+					</Label>
+					<Popover open={cutoffDateOpen} onOpenChange={setCutoffDateOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								id="public-booking-cutoff-date"
+								type="button"
+								variant="outline"
+								disabled={isPending}
+								className={cn(
+									"w-full justify-start font-normal",
+									!publicBookingCutoffDate && "text-muted-foreground",
+								)}
+							>
+								<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+								{publicBookingCutoffDate
+									? format(parseISO(publicBookingCutoffDate), "PPP")
+									: "No cut-off — stays open indefinitely"}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={
+									publicBookingCutoffDate
+										? parseISO(publicBookingCutoffDate)
+										: undefined
+								}
+								onSelect={handleCutoffDateSelect}
+								disabled={isPending}
+							/>
+							{publicBookingCutoffDate && (
+								<div className="border-t p-2">
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="w-full text-xs"
+										onClick={() => {
+											setPublicBookingCutoffDate("");
+											setCutoffDateOpen(false);
+										}}
+									>
+										Clear cut-off date
+									</Button>
+								</div>
+							)}
+						</PopoverContent>
+					</Popover>
+					<p className="text-muted-foreground text-xs">
+						Public booking automatically closes the day after this date.
+					</p>
+				</div>
+
+				{pastCutoffWarning && (
+					<div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-2.5 text-xs text-yellow-800 dark:text-yellow-200">
+						<AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-yellow-600 dark:text-yellow-400" />
+						<span>
+							This cut-off date has already passed, but public booking is still
+							enabled — the public can still book. Toggle it off if that's not
+							intended.
+						</span>
+					</div>
+				)}
 			</div>
 
 			<div className="flex justify-end gap-2 border-t pt-4">
