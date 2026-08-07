@@ -199,6 +199,7 @@ export default function SessionDefaultsDialog({
 					checked={hoursEditableDefault}
 					onCheckedChange={setHoursEditableDefault}
 					disabled={isPending}
+					className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 				/>
 			</div>
 

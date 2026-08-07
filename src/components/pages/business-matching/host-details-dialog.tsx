@@ -235,6 +235,7 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 						checked={tagsEditable}
 						onCheckedChange={handleTagsEditableChange}
 						disabled={isSavingTagsOverride}
+						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 					/>
 				</div>
 				<div className="flex items-center justify-between gap-2 rounded-lg border p-2">
@@ -243,6 +244,7 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 						checked={hoursEditable}
 						onCheckedChange={handleHoursEditableChange}
 						disabled={isSavingHoursOverride}
+						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 					/>
 				</div>
 			</div>

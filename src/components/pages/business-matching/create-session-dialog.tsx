@@ -282,6 +282,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						checked={tagsEditable}
 						onCheckedChange={setTagsEditable}
 						disabled={isPending}
+						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 					/>
 				</div>
 			)}
@@ -302,6 +303,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						checked={hoursEditable}
 						onCheckedChange={setHoursEditable}
 						disabled={isPending}
+						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 					/>
 				</div>
 			)}
