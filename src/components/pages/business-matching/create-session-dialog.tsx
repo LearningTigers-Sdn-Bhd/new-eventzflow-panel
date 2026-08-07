@@ -1,10 +1,17 @@
-import { Loader2, Trash2 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -19,8 +26,10 @@ import type {
 	BusinessMatchingEvent,
 	BusinessMatchingEventDefaults,
 } from "@/lib/api/business-matching";
-import { addMinutesToTime } from "@/lib/time-blocks";
+import { addMinutesToTime, TIME_OPTIONS } from "@/lib/time-blocks";
+import { cn } from "@/lib/utils";
 import ManageAvailabilityHours from "./manage-availability-hours";
+import { TimeSelect } from "./time-select";
 
 interface CreateSessionDialogProps {
 	eventId: string;
@@ -95,6 +104,31 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
 	const [tagsEditable, setTagsEditable] = useState(true);
 	const [hoursEditable, setHoursEditable] = useState(true);
+	const [startTimeOpen, setStartTimeOpen] = useState(false);
+	const [endTimeOpen, setEndTimeOpen] = useState(false);
+	const [startDateOpen, setStartDateOpen] = useState(false);
+	const [endDateOpen, setEndDateOpen] = useState(false);
+
+	const handleStartTimeChange = (value: string) => {
+		setStartTime(value);
+		setStartTimeOpen(false);
+		// Jump straight to picking the end time next.
+		setEndTimeOpen(true);
+	};
+
+	const handleStartDatePick = (date: Date | undefined) => {
+		if (!date) return;
+		setStartDate(format(date, "yyyy-MM-dd"));
+		setStartDateOpen(false);
+		// Jump straight to picking the end date next.
+		setEndDateOpen(true);
+	};
+
+	const handleEndDatePick = (date: Date | undefined) => {
+		if (!date) return;
+		setEndDate(format(date, "yyyy-MM-dd"));
+		setEndDateOpen(false);
+	};
 
 	useEffect(() => {
 		if (session) {
@@ -262,28 +296,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
 					<Label htmlFor="session-start">Daily Start Time</Label>
-					<Input
-						id="session-start"
-						type="time"
+					<TimeSelect
+						options={TIME_OPTIONS}
+						open={startTimeOpen}
+						onOpenChange={setStartTimeOpen}
 						value={startTime}
-						onChange={(e) => setStartTime(e.target.value)}
-						required
+						onValueChange={handleStartTimeChange}
 						disabled={isPending}
-						aria-invalid={hasTimeConflict}
-						className={hasTimeConflict ? "border-destructive" : undefined}
+						className={cn("w-full", hasTimeConflict && "border-destructive")}
 					/>
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="session-end">Daily End Time</Label>
-					<Input
-						id="session-end"
-						type="time"
+					<TimeSelect
+						options={TIME_OPTIONS.filter((t) => t > startTime)}
+						open={endTimeOpen}
+						onOpenChange={setEndTimeOpen}
 						value={endTime}
-						onChange={(e) => setEndTime(e.target.value)}
-						required
+						onValueChange={setEndTime}
 						disabled={isPending}
-						aria-invalid={hasTimeConflict}
-						className={hasTimeConflict ? "border-destructive" : undefined}
+						className={cn("w-full", hasTimeConflict && "border-destructive")}
 					/>
 				</div>
 				{hasTimeConflict && (
@@ -304,23 +336,59 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
 					<Label htmlFor="session-start-date">Session Start Date</Label>
-					<Input
-						id="session-start-date"
-						type="date"
-						value={startDate}
-						onChange={(e) => setStartDate(e.target.value)}
-						disabled={isPending || isHostEditing}
-					/>
+					<Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								id="session-start-date"
+								type="button"
+								variant="outline"
+								disabled={isPending || isHostEditing}
+								className={cn(
+									"w-full justify-start font-normal",
+									!startDate && "text-muted-foreground",
+								)}
+							>
+								<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+								{startDate ? format(parseISO(startDate), "PPP") : "Pick a date"}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={startDate ? parseISO(startDate) : undefined}
+								onSelect={handleStartDatePick}
+								disabled={isPending || isHostEditing}
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="session-end-date">Session End Date</Label>
-					<Input
-						id="session-end-date"
-						type="date"
-						value={endDate}
-						onChange={(e) => setEndDate(e.target.value)}
-						disabled={isPending || isHostEditing}
-					/>
+					<Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								id="session-end-date"
+								type="button"
+								variant="outline"
+								disabled={isPending || isHostEditing}
+								className={cn(
+									"w-full justify-start font-normal",
+									!endDate && "text-muted-foreground",
+								)}
+							>
+								<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+								{endDate ? format(parseISO(endDate), "PPP") : "Pick a date"}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={endDate ? parseISO(endDate) : undefined}
+								onSelect={handleEndDatePick}
+								disabled={isPending || isHostEditing}
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
 				<p className="col-span-2 -mt-2 text-muted-foreground text-xs">
 					{isHostEditing
