@@ -87,7 +87,8 @@ export default function BookingsDialog({
 		);
 	}
 
-	const bookings = data.bookings;
+	// Cancelled bookings are dead entries — nothing left to action on them.
+	const bookings = data.bookings.filter((b) => b.status !== "Cancelled");
 
 	// Helper function to create a sortable Date object from booking details
 	const getSortableDate = (booking: (typeof bookings)[0]) => {

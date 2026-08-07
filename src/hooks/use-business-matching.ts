@@ -10,6 +10,7 @@ import {
 	type BusinessMatchingEventDefaults,
 	type CreateHostRequest,
 	type CreateSessionRequest,
+	cancelBooking,
 	createAndAssignHost,
 	createBooking,
 	createBusinessMatchingSession,
@@ -370,6 +371,21 @@ export const useUpdateBooking = (bmEventId: string, eventId: string) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-bookings", bmEventId, eventId],
+			});
+		},
+	});
+};
+
+export const useCancelBooking = (bmEventId: string, eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (bookingId: string) => cancelBooking(bookingId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-bookings", bmEventId, eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-availability", bmEventId, eventId],
 			});
 		},
 	});

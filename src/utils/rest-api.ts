@@ -104,7 +104,9 @@ export const kyClient = ky.create({
 							body?.message ??
 							(Array.isArray(body?.errors)
 								? body.errors.join(", ")
-								: undefined);
+								: typeof body?.errors === "string"
+									? body.errors
+									: undefined);
 						if (message) error.message = message;
 					} catch {
 						// Response body isn't JSON — keep ky's default message

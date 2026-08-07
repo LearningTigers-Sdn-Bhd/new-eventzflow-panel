@@ -24,7 +24,10 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUpdateBooking } from "@/hooks/use-business-matching";
+import {
+	useCancelBooking,
+	useUpdateBooking,
+} from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { Booking, BookingsResponse } from "@/lib/api/business-matching";
@@ -61,6 +64,8 @@ export function BookingCardItem({
 		mutateAsync: updateBookingAsync,
 		isPending,
 	} = useUpdateBooking(bmEventId, eventId);
+	const { mutate: cancelBookingMutation, isPending: isCancelling } =
+		useCancelBooking(bmEventId, eventId);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
 	const { openDialog } = useDialog();
@@ -207,6 +212,27 @@ export function BookingCardItem({
 		});
 	};
 
+	const handleCancelBooking = () => {
+		openConfirm({
+			message: `Are you sure you want to cancel ${displayBooking.name}'s booking? This cannot be undone.`,
+			confirmLabel: "Yes, Cancel Booking",
+			variant: "destructive",
+			icon: "alert",
+			onConfirm: () => {
+				cancelBookingMutation(displayBooking.id, {
+					onSuccess: () => {
+						toast.success("Booking cancelled");
+					},
+					onError: (error) => {
+						toast.error("Failed to cancel booking", {
+							description: error.message || "An unexpected error occurred.",
+						});
+					},
+				});
+			},
+		});
+	};
+
 	const handleTogglePresent = () => {
 		openConfirm({
 			message:
@@ -320,9 +346,10 @@ export function BookingCardItem({
 						Reschedule
 					</DropdownMenuItem>
 				)}
-				{displayBooking.cancel_link && (
+				{displayBooking.status !== "Cancelled" && (
 					<DropdownMenuItem
-						onClick={() => window.open(displayBooking.cancel_link, "_blank")}
+						onClick={handleCancelBooking}
+						disabled={isCancelling}
 						className="text-destructive focus:text-destructive"
 					>
 						Cancel
