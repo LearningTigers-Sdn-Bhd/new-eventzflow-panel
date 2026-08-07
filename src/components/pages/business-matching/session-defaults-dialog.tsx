@@ -1,12 +1,17 @@
 "use client";
 
-import { Loader2, Plus, X } from "lucide-react";
+import { Info, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	useBusinessMatchingEventDefaults,
 	useUpdateBusinessMatchingEventDefaults,
@@ -100,10 +105,18 @@ export default function SessionDefaultsDialog({
 
 	return (
 		<div className="space-y-4">
-			<p className="text-muted-foreground text-xs">
-				New sessions created for this event will prefill from these — no need to
-				set the date and hours manually every time.
-			</p>
+			<div className="flex items-center gap-1.5">
+				<Label className="font-semibold text-sm">Session Defaults</Label>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Info className="h-3.5 w-3.5 text-muted-foreground" />
+					</TooltipTrigger>
+					<TooltipContent>
+						New sessions created for this event will prefill from these — no
+						need to set the date and hours manually every time.
+					</TooltipContent>
+				</Tooltip>
+			</div>
 
 			<div className="grid grid-cols-2 gap-4">
 				<div className="space-y-2">
@@ -190,9 +203,6 @@ export default function SessionDefaultsDialog({
 					<Label htmlFor="hours-editable-default">
 						Hosts can edit their own hours by default
 					</Label>
-					<p className="text-muted-foreground text-xs">
-						Overridable per session, and per host within a session.
-					</p>
 				</div>
 				<Switch
 					id="hours-editable-default"
