@@ -118,7 +118,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 	const handleStartDatePick = (date: Date | undefined) => {
 		if (!date) return;
-		setStartDate(format(date, "yyyy-MM-dd"));
+		const newStartDate = format(date, "yyyy-MM-dd");
+		setStartDate(newStartDate);
+		// The previously-picked end date may now be before the new start —
+		// clear it rather than leave a now-invalid date sitting in the field.
+		if (endDate && endDate < newStartDate) {
+			setEndDate("");
+		}
 		setStartDateOpen(false);
 		// Jump straight to picking the end date next.
 		setEndDateOpen(true);
@@ -385,7 +391,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 								mode="single"
 								selected={endDate ? parseISO(endDate) : undefined}
 								onSelect={handleEndDatePick}
-								disabled={isPending || isHostEditing}
+								disabled={(date) =>
+									isPending ||
+									isHostEditing ||
+									(!!startDate && date < parseISO(startDate))
+								}
 							/>
 						</PopoverContent>
 					</Popover>
