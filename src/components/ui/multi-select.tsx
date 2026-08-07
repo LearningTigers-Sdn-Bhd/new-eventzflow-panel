@@ -184,7 +184,15 @@ const MultiSelectContent = React.forwardRef<
 			align="start"
 			{...props}
 		>
-			<div className="max-h-60 overflow-y-auto">
+			{/* When this popover is opened from inside a Dialog, the dialog's
+			scroll lock only whitelists scroll containers present in its own
+			subtree at mount time — this list is portaled separately, so its
+			wheel events get swallowed unless we stop them from bubbling up
+			to that lock. */}
+			<div
+				className="max-h-60 overflow-y-auto"
+				onWheel={(e) => e.stopPropagation()}
+			>
 				<div className="space-y-1 p-2">{children}</div>
 			</div>
 		</PopoverContent>

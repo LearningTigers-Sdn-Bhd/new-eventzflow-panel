@@ -97,7 +97,12 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								},
 								config: {
 									title: "Host Details",
-									size: "sm",
+									// "sm" felt cramped for the tabbed content below — bump
+									// width and height a bit. Desktop-only: this className
+									// is dropped on the mobile/tablet dialog variant, which
+									// already goes full-screen.
+									size: "md",
+									className: "sm:max-h-[90vh]",
 								},
 							});
 						}}

@@ -571,6 +571,25 @@ export function BookingCardItem({
 
 				{isExpanded && (
 					<div className="grid gap-1.5 border-t p-2 pt-2">
+						{displayBooking.location && (
+							<div className="flex items-start gap-1.5 pb-1 text-muted-foreground">
+								<MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+								{displayBooking.location.startsWith("http") ? (
+									<a
+										href={displayBooking.location}
+										target="_blank"
+										rel="noreferrer"
+										className="flex items-center gap-1 text-primary text-sm hover:underline"
+									>
+										Online <ExternalLink className="h-2.5 w-2.5 shrink-0" />
+									</a>
+								) : (
+									<span className="whitespace-pre-wrap break-words text-sm">
+										{displayBooking.location}
+									</span>
+								)}
+							</div>
+						)}
 						{(displayBooking.email || displayBooking.phone) && (
 							<div className="grid gap-1.5 pb-1">
 								{displayBooking.email && (
