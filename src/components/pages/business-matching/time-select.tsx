@@ -42,15 +42,30 @@ export function TimeSelect({
 		const target = options.find((t) => t >= scrollToTime) ?? options[0];
 		if (!target) return;
 
-		// Radix portals + mounts SelectContent async on open, so wait a couple
-		// of frames before the target item actually exists in the DOM.
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				document
-					.querySelector(`[data-time-option="${target}"]`)
-					?.scrollIntoView({ block: "start" });
-			});
-		});
+		// Radix mounts SelectContent async and also runs its own scroll/focus
+		// positioning right after — a single rAF can lose that race and get
+		// silently reset back to the top. Poll briefly instead of guessing a
+		// fixed delay, and set scrollTop directly (scrollIntoView can get
+		// fought by Radix's own viewport measurement).
+		let attempts = 0;
+		const tryScroll = () => {
+			attempts += 1;
+			const item = document.querySelector<HTMLElement>(
+				`[data-time-option="${target}"]`,
+			);
+			const viewport = item?.closest<HTMLElement>(
+				"[data-radix-select-viewport]",
+			);
+			if (item && viewport) {
+				viewport.scrollTop =
+					item.offsetTop - viewport.clientHeight / 2 + item.clientHeight / 2;
+				return;
+			}
+			if (attempts < 10) {
+				setTimeout(tryScroll, 20);
+			}
+		};
+		setTimeout(tryScroll, 20);
 	};
 
 	return (
