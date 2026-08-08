@@ -20,7 +20,10 @@ const columns: ColumnDef<TicketType>[] = [
 			const ticketType = row.original;
 			return (
 				<div className="font-medium">
-					{ticketType.name} <span className="text-muted-foreground text-xs">(#{ticketType.id})</span>
+					{ticketType.name}{" "}
+					<span className="text-muted-foreground text-xs">
+						(#{ticketType.id})
+					</span>
 				</div>
 			);
 		},
@@ -46,9 +49,19 @@ const columns: ColumnDef<TicketType>[] = [
 	},
 	{
 		accessorKey: "quantity",
-		size: 100,
+		size: 120,
 		header: ({ column }) => <SortableHeader column={column} label="Quantity" />,
-		cell: ({ row }) => <div>{row.getValue("quantity")}</div>,
+		cell: ({ row }) => {
+			const { quantity, remainingQuantity } = row.original;
+			if (remainingQuantity == null) return <div>{quantity}</div>;
+
+			return (
+				<div className="flex items-center gap-1">
+					<span className="font-medium">{remainingQuantity}</span>
+					<span className="text-muted-foreground text-xs">/ {quantity}</span>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "maxPerOrder",
