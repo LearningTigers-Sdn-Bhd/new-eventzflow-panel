@@ -46,7 +46,9 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 			? "Admin"
 			: member.eventRole === "business_host"
 				? "Business Host"
-				: "Team Member";
+				: member.eventRole === "business_matching_admin"
+					? "BM Admin"
+					: "Team Member";
 
 	return (
 		<Item variant="outline" className="w-full rounded-none">
@@ -65,6 +67,8 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 								"border-blue-500 text-blue-500",
 							member.eventRole === "business_host" &&
 								"border-orange-500 text-orange-500",
+							member.eventRole === "business_matching_admin" &&
+								"border-teal-500 text-teal-500",
 						)}
 					>
 						{member.eventRole === "event_admin" ? (

@@ -15,16 +15,17 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useJoinBusinessHost } from "@/hooks/use-business-matching-public";
+import { useAcceptHostInvite } from "@/hooks/use-business-matching-public";
 
 function InviteHostContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const eventId = searchParams.get("event_id");
-	const bmEventId = searchParams.get("bm_event_id");
+	// Opaque, signed token only — no event/session IDs anywhere in the URL,
+	// so a hand-typed link can't be used to self-attach as a host.
+	const token = searchParams.get("token");
 
 	const { user, isAuthenticated, isInitialized } = useAuth();
-	const { mutate: joinHost, isPending } = useJoinBusinessHost();
+	const { mutate: acceptInvite, isPending } = useAcceptHostInvite();
 	const [isSuccess, setIsSuccess] = useState(false);
 
 	if (!isInitialized) {
@@ -35,10 +36,28 @@ function InviteHostContent() {
 		);
 	}
 
+	if (!token) {
+		return (
+			<div className="container mx-auto max-w-md px-4 py-20">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-destructive">
+							Invalid Invitation
+						</CardTitle>
+						<CardDescription>
+							This invite link is missing or malformed. Ask whoever invited you
+							for a fresh link.
+						</CardDescription>
+					</CardHeader>
+				</Card>
+			</div>
+		);
+	}
+
 	if (!isAuthenticated) {
 		// Redirect to login with return URL
 		const redirectPath = encodeURIComponent(
-			`/invite/host?event_id=${eventId}&bm_event_id=${bmEventId}`,
+			`/invite/host?token=${encodeURIComponent(token)}`,
 		);
 		return (
 			<div className="container mx-auto max-w-md px-4 py-20">
@@ -64,24 +83,9 @@ function InviteHostContent() {
 		);
 	}
 
-	if (!eventId || !bmEventId) {
-		return (
-			<div className="container mx-auto max-w-md px-4 py-20">
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-destructive">
-							Invalid Invitation
-						</CardTitle>
-						<CardDescription>Missing event information.</CardDescription>
-					</CardHeader>
-				</Card>
-			</div>
-		);
-	}
-
 	const handleAccept = () => {
-		joinHost(
-			{ eventId, bmEventId },
+		acceptInvite(
+			{ token },
 			{
 				onSuccess: () => {
 					toast.success("Successfully joined as Business Host!");

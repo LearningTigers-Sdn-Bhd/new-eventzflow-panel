@@ -8,8 +8,12 @@ export interface BusinessMatchingEvent {
 	location: string;
 	admin_email: string;
 	admin_wa_number: string;
+	start_time?: string;
+	end_time?: string;
 	start_date?: string;
 	end_date?: string;
+	tags_editable?: boolean;
+	hours_editable?: boolean;
 	offering_tags?: string[];
 	interest_tags?: string[];
 	created_at?: string;
@@ -25,6 +29,10 @@ export interface BusinessMatchingEvent {
 		description?: string;
 		sourcing_intent?: string;
 		capabilities?: string;
+		avatar_url?: string | null;
+		tags_editable_override?: boolean | null;
+		hours_editable_override?: boolean | null;
+		hours_editable_effective?: boolean;
 	} | null;
 }
 
@@ -38,6 +46,11 @@ export interface BusinessHost {
 	sourcing_intent?: string;
 	capabilities?: string;
 	interest_tags?: string[];
+	offering_tags?: string[];
+	avatar_url?: string | null;
+	tags_editable_override?: boolean | null;
+	hours_editable_override?: boolean | null;
+	hours_editable_effective?: boolean;
 }
 
 export interface AvailabilityDate {
@@ -189,6 +202,21 @@ export async function getBookings(
 	return restClient.get<BookingsResponse>(url);
 }
 
+export interface PublicBookingStatus {
+	enabled: boolean;
+	cutoff_date: string | null;
+	is_open: boolean;
+}
+
+// Lets the public booking wizard show a "closed" state up front instead of
+// only failing once the visitor reaches the final step.
+export async function getPublicBusinessMatchingBookingStatus(
+	eventId: string,
+): Promise<PublicBookingStatus> {
+	const url = `v1/public/events/${eventId}/business_matching_booking_status`;
+	return publicRestClient.get<PublicBookingStatus>(url);
+}
+
 /**
  * Fetch a single booking from the backend
  */
@@ -310,6 +338,26 @@ export async function joinBusinessHost(
 	return restClient.post<void>(url, { business_matching_event_id: bmEventId });
 }
 
+// Mints an opaque, signed token encoding event/session — the shareable
+// invite link carries only this token, never raw IDs.
+export async function generateHostInviteToken(
+	eventId: string,
+	bmEventId: string,
+): Promise<{ token: string }> {
+	const url = `v1/business_matching/events/${eventId}/hosts/invite_link`;
+	return restClient.post<{ token: string }>(url, {
+		business_matching_event_id: bmEventId,
+	});
+}
+
+// Accepts a host invite using only the token — no event/session IDs in
+// the request at all, so a hand-typed URL can't be used to self-attach.
+export async function acceptHostInvite(token: string): Promise<void> {
+	return restClient.post<void>("v1/business_matching/host_invites/accept", {
+		token,
+	});
+}
+
 export interface CreateHostRequest {
 	full_name: string;
 	email: string;
@@ -319,16 +367,20 @@ export interface CreateHostRequest {
 
 /**
  * Create a new user, assign as business_host, and attach to a specific BM event.
+ * offering_tags/interest_tags are optional — validated against the event's
+ * curated list, same as host self-service.
  */
 export async function createAndAssignHost(
 	eventId: string,
 	bmEventId: string,
 	data: CreateHostRequest,
+	tags?: { offering_tags?: string[]; interest_tags?: string[] },
 ): Promise<BusinessHost> {
 	const url = `v1/business_matching/events/${eventId}/hosts/create_and_assign`;
 	return restClient.post<BusinessHost>(url, {
 		host: data,
 		business_matching_event_id: bmEventId,
+		...tags,
 	});
 }
 
@@ -415,6 +467,8 @@ export interface CreateSessionRequest {
 	end_time?: string;
 	start_date?: string;
 	end_date?: string;
+	tags_editable?: boolean;
+	hours_editable?: boolean;
 }
 
 export async function createBusinessMatchingSession(
@@ -561,6 +615,12 @@ export interface HostProfile {
 	description: string;
 	sourcing_intent: string;
 	capabilities: string;
+	avatar_url?: string | null;
+	tags_editable?: boolean;
+}
+
+export interface UpdateHostProfileRequest extends Partial<HostProfile> {
+	avatar_signed_id?: string;
 }
 
 export async function getHostProfile(eventId: string): Promise<HostProfile> {
@@ -570,10 +630,110 @@ export async function getHostProfile(eventId: string): Promise<HostProfile> {
 
 export async function updateHostProfile(
 	eventId: string,
-	data: Partial<HostProfile>,
+	data: UpdateHostProfileRequest,
 ): Promise<HostProfile> {
 	const url = `v1/business_matching/events/${eventId}/host_profile`;
 	return restClient.put<HostProfile>(url, data);
+}
+
+// Lets staff (event admin / business matching admin) set a specific host's
+// avatar without needing the host to do it themselves.
+export async function adminUpdateHostAvatar(
+	eventId: string,
+	hostUserId: string,
+	avatarSignedId: string,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		avatar_signed_id: avatarSignedId,
+	});
+}
+
+// Lets staff set a specific host's tags directly (validated against the
+// event's curated list, same as host self-service).
+export async function adminUpdateHostTags(
+	eventId: string,
+	hostUserId: string,
+	data: { offering_tags: string[]; interest_tags: string[] },
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, data);
+}
+
+// Lets staff fill in/edit a specific host's description, sourcing intent,
+// and capabilities directly, same as host self-service.
+export async function adminUpdateHostProfileInfo(
+	eventId: string,
+	hostUserId: string,
+	data: { description: string; sourcing_intent: string; capabilities: string },
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, data);
+}
+
+// Overrides whether a specific host may self-edit tags for a specific
+// session — null clears the override back to the session's default.
+export async function adminSetHostTagsEditableOverride(
+	eventId: string,
+	hostUserId: string,
+	bmEventId: string,
+	override: boolean | null,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		tags_editable_override: override,
+		business_matching_event_id: bmEventId,
+	});
+}
+
+// Overrides whether a specific host may self-edit hours for a specific
+// session — null clears the override back to the session's default.
+export async function adminSetHostHoursEditableOverride(
+	eventId: string,
+	hostUserId: string,
+	bmEventId: string,
+	override: boolean | null,
+): Promise<HostProfile> {
+	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
+	return restClient.patch<HostProfile>(url, {
+		hours_editable_override: override,
+		business_matching_event_id: bmEventId,
+	});
+}
+
+export interface DefaultHoursBlock {
+	start_time: string;
+	end_time: string;
+}
+
+export interface BusinessMatchingEventDefaults {
+	default_start_date: string | null;
+	default_end_date: string | null;
+	default_hours: DefaultHoursBlock[];
+	hours_editable_default: boolean;
+	default_slot_duration: number;
+	public_booking_enabled: boolean;
+	public_booking_cutoff_date: string | null;
+	// enabled=true but the cutoff date has already passed
+	public_booking_past_cutoff_warning: boolean;
+}
+
+export async function getBusinessMatchingEventDefaults(
+	eventId: string,
+): Promise<BusinessMatchingEventDefaults> {
+	return restClient.get<BusinessMatchingEventDefaults>(
+		`v1/business_matching/events/${eventId}/defaults`,
+	);
+}
+
+export async function updateBusinessMatchingEventDefaults(
+	eventId: string,
+	data: Partial<BusinessMatchingEventDefaults>,
+): Promise<BusinessMatchingEventDefaults> {
+	return restClient.put<BusinessMatchingEventDefaults>(
+		`v1/business_matching/events/${eventId}/defaults`,
+		data,
+	);
 }
 
 export interface BusinessMatchingTags {

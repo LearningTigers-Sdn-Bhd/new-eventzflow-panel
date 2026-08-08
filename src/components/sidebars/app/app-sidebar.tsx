@@ -23,9 +23,13 @@ import { useContractorPermissions } from "@/hooks/use-contractor-permissions";
 import type { UserRole } from "./app-menu-config";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { user } = useAuth();
+	const { user, isPureBusinessMatchingAdmin } = useAuth();
 	const { permissions } = useContractorPermissions();
-	const { filteredNav } = useNavigation(user?.role as UserRole, permissions);
+	const { filteredNav } = useNavigation(
+		user?.role as UserRole,
+		permissions,
+		isPureBusinessMatchingAdmin,
+	);
 
 	return (
 		<ResponsiveLayout>

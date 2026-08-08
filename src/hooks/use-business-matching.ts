@@ -1,16 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
+	adminSetHostHoursEditableOverride,
+	adminSetHostTagsEditableOverride,
+	adminUpdateHostAvatar,
+	adminUpdateHostProfileInfo,
+	adminUpdateHostTags,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
+	type BusinessMatchingEventDefaults,
 	type CreateHostRequest,
 	type CreateSessionRequest,
+	cancelBooking,
 	createAndAssignHost,
 	createBooking,
 	createBusinessMatchingSession,
 	deleteBusinessMatchingSession,
+	generateHostInviteToken,
 	getAvailability,
 	getBookings,
+	getBusinessMatchingEventDefaults,
 	getBusinessMatchingEvents,
 	getBusinessMatchingTags,
 	getDetailedSlots,
@@ -24,11 +33,157 @@ import {
 	type UpdateBookingRequest,
 	type UpdateTagsRequest,
 	updateBooking,
+	updateBusinessMatchingEventDefaults,
 	updateBusinessMatchingSession,
 	updateBusinessMatchingTags,
 	updatePortalProfile,
 	updateSessionAvailabilities,
 } from "@/lib/api/business-matching";
+
+export const useAdminUpdateHostAvatar = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			avatarSignedId,
+		}: {
+			hostUserId: string;
+			avatarSignedId: string;
+		}) => adminUpdateHostAvatar(eventId, hostUserId, avatarSignedId),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-hosts", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminUpdateHostTags = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			offeringTags,
+			interestTags,
+		}: {
+			hostUserId: string;
+			offeringTags: string[];
+			interestTags: string[];
+		}) =>
+			adminUpdateHostTags(eventId, hostUserId, {
+				offering_tags: offeringTags,
+				interest_tags: interestTags,
+			}),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminUpdateHostProfileInfo = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			description,
+			sourcingIntent,
+			capabilities,
+		}: {
+			hostUserId: string;
+			description: string;
+			sourcingIntent: string;
+			capabilities: string;
+		}) =>
+			adminUpdateHostProfileInfo(eventId, hostUserId, {
+				description,
+				sourcing_intent: sourcingIntent,
+				capabilities,
+			}),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminSetHostTagsEditableOverride = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			bmEventId,
+			override,
+		}: {
+			hostUserId: string;
+			bmEventId: string;
+			override: boolean | null;
+		}) =>
+			adminSetHostTagsEditableOverride(
+				eventId,
+				hostUserId,
+				bmEventId,
+				override,
+			),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useAdminSetHostHoursEditableOverride = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			hostUserId,
+			bmEventId,
+			override,
+		}: {
+			hostUserId: string;
+			bmEventId: string;
+			override: boolean | null;
+		}) =>
+			adminSetHostHoursEditableOverride(
+				eventId,
+				hostUserId,
+				bmEventId,
+				override,
+			),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useBusinessMatchingEventDefaults = (eventId: string) =>
+	useQuery({
+		queryKey: ["business-matching-event-defaults", eventId],
+		queryFn: () => getBusinessMatchingEventDefaults(eventId),
+		enabled: !!eventId,
+	});
+
+export const useUpdateBusinessMatchingEventDefaults = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Partial<BusinessMatchingEventDefaults>) =>
+			updateBusinessMatchingEventDefaults(eventId, data),
+		onSuccess: (updated) => {
+			queryClient.setQueryData(
+				["business-matching-event-defaults", eventId],
+				updated,
+			);
+		},
+	});
+};
 
 export const useRemoveHost = (eventId: string) => {
 	const queryClient = useQueryClient();
@@ -52,10 +207,12 @@ export const useCreateAndAssignHost = (eventId: string) => {
 		mutationFn: ({
 			bmEventId,
 			data,
+			tags,
 		}: {
 			bmEventId: string;
 			data: CreateHostRequest;
-		}) => createAndAssignHost(eventId, bmEventId, data),
+			tags?: { offering_tags?: string[]; interest_tags?: string[] };
+		}) => createAndAssignHost(eventId, bmEventId, data, tags),
 		onSuccess: () => {
 			// Refetch the main events query to show the new host immediately
 			queryClient.refetchQueries({
@@ -68,6 +225,20 @@ export const useCreateAndAssignHost = (eventId: string) => {
 		},
 	});
 };
+
+// Mints a fresh, opaque invite token for a given session — used to build
+// the shareable "Invite with Link" URL without exposing raw IDs.
+export const useGenerateHostInviteToken = (
+	eventId: string,
+	bmEventId: string,
+) =>
+	useQuery({
+		queryKey: ["business-matching-host-invite-token", eventId, bmEventId],
+		queryFn: () => generateHostInviteToken(eventId, bmEventId),
+		enabled: !!eventId && !!bmEventId,
+		staleTime: 0,
+		gcTime: 0,
+	});
 
 export const useBusinessMatchingEvents = (eventId: string) => {
 	const queryResult = useQuery({
@@ -243,6 +414,21 @@ export const useUpdateBooking = (bmEventId: string, eventId: string) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-bookings", bmEventId, eventId],
+			});
+		},
+	});
+};
+
+export const useCancelBooking = (bmEventId: string, eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (bookingId: string) => cancelBooking(bookingId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-bookings", bmEventId, eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-availability", bmEventId, eventId],
 			});
 		},
 	});

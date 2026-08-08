@@ -35,8 +35,11 @@ export default function EditRoleForm({
 }: EditRoleFormProps) {
 	const roleId = useId();
 	const [role, setRole] = useState<
-		"event_admin" | "event_team_member" | "business_host"
-	>(member.eventRole as "event_admin" | "event_team_member" | "business_host");
+		| "event_admin"
+		| "event_team_member"
+		| "business_host"
+		| "business_matching_admin"
+	>(member.eventRole);
 
 	const queryClient = useQueryClient();
 	const updateRoleMutation = useMutation({
@@ -94,7 +97,8 @@ export default function EditRoleForm({
 										value as
 											| "event_admin"
 											| "event_team_member"
-											| "business_host",
+											| "business_host"
+											| "business_matching_admin",
 									)
 								}
 								disabled={updateRoleMutation.isPending}
@@ -106,11 +110,15 @@ export default function EditRoleForm({
 									<SelectItem value="event_admin">Event Admin</SelectItem>
 									<SelectItem value="event_team_member">Team Member</SelectItem>
 									<SelectItem value="business_host">Business Host</SelectItem>
+									<SelectItem value="business_matching_admin">
+										Business Matching Admin
+									</SelectItem>
 								</SelectContent>
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								and Business Hosts have limited access.
+								and Business Hosts have limited access. Business Matching
+								Admins can only manage Business Matching for this event.
 							</FieldDescription>
 						</Field>
 

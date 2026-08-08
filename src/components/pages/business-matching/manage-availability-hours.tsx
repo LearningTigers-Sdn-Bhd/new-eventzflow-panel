@@ -1,25 +1,31 @@
 "use client";
 
 import { format, parse } from "date-fns";
-import { Clock, Loader2, Plus } from "lucide-react";
+import { Check, Clock, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
 	useBusinessMatchingAvailability,
 	useSessionAvailabilities,
 	useUpdateSessionAvailabilities,
 } from "@/hooks/use-business-matching";
+import { validEndTimes, validStartTimes } from "@/lib/time-blocks";
+import { TimeSelect } from "./time-select";
 
 interface ManageAvailabilityHoursProps {
 	sessionId: string;
 	eventId: string;
+	// Whether the current viewer may add/remove blocks. Defaults to true
+	// (staff can always edit); the create-session-dialog passes the
+	// resolved value when a host is editing their own session.
+	hoursEditable?: boolean;
 }
 
 export default function ManageAvailabilityHours({
 	sessionId,
 	eventId,
+	hoursEditable = true,
 }: ManageAvailabilityHoursProps) {
 	const { data, isLoading: isLoadingDates } = useBusinessMatchingAvailability(
 		sessionId,
@@ -33,8 +39,10 @@ export default function ManageAvailabilityHours({
 	const [localAvailabilities, setLocalAvailabilities] = useState<
 		{ day: string; start_time: string; end_time: string }[]
 	>([]);
-	const [newStart, setNewStart] = useState("09:00");
-	const [newEnd, setNewEnd] = useState("17:00");
+	const [newStart, setNewStart] = useState("");
+	const [newEnd, setNewEnd] = useState("");
+	const [startSelectOpen, setStartSelectOpen] = useState(false);
+	const [endSelectOpen, setEndSelectOpen] = useState(false);
 	// Which day's "add block" form is currently open — only one at a time,
 	// hidden by default so the day cards just show existing blocks.
 	const [addingDay, setAddingDay] = useState<string | null>(null);
@@ -52,26 +60,16 @@ export default function ManageAvailabilityHours({
 		}
 	}, [rawAvailabilities]);
 
+	const handleNewStartChange = (value: string) => {
+		setNewStart(value);
+		setNewEnd("");
+		setStartSelectOpen(false);
+		// Move straight to picking the end time next.
+		setEndSelectOpen(true);
+	};
+
 	const handleAddBlock = (dateStr: string): boolean => {
-		if (newStart >= newEnd) {
-			toast.error("Start time must be before end time");
-			return false;
-		}
-
-		const overlaps = localAvailabilities
-			.filter((av) => av.day === dateStr)
-			.some((av) => {
-				return (
-					(newStart >= av.start_time && newStart < av.end_time) ||
-					(newEnd > av.start_time && newEnd <= av.end_time) ||
-					(newStart <= av.start_time && newEnd >= av.end_time)
-				);
-			});
-
-		if (overlaps) {
-			toast.error("This block overlaps with an existing availability range");
-			return false;
-		}
+		if (!newStart || !newEnd) return false;
 
 		setLocalAvailabilities((prev) => [
 			...prev,
@@ -117,8 +115,9 @@ export default function ManageAvailabilityHours({
 					Manage Working Hours & Breaks
 				</h3>
 				<p className="text-muted-foreground text-xs">
-					Add active shift hours. Gaps between ranges will act as lunch breaks /
-					rest times.
+					{hoursEditable
+						? "Add active shift hours. Gaps between ranges will act as lunch breaks / rest times."
+						: "Your event organizer manages your hours — contact them to make changes."}
 				</p>
 			</div>
 
@@ -161,98 +160,112 @@ export default function ManageAvailabilityHours({
 												<span>
 													{block.start_time} - {block.end_time}
 												</span>
-												<button
-													type="button"
-													onClick={() => handleRemoveBlock(dateObj, idx)}
-													className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
-												>
-													×
-												</button>
+												{hoursEditable && (
+													<button
+														type="button"
+														onClick={() => handleRemoveBlock(dateObj, idx)}
+														className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
+													>
+														×
+													</button>
+												)}
 											</div>
 										))}
 									</div>
 								)}
 
-								<div className="border-t border-dashed pt-2">
-									{addingDay === dateObj ? (
-										<div className="flex flex-wrap items-center gap-3">
-											<div className="flex items-center gap-1.5">
-												<span className="text-muted-foreground text-xs">
-													From
-												</span>
-												<Input
-													type="time"
+								{hoursEditable && (
+									<div className="border-t border-dashed pt-2">
+										{addingDay === dateObj ? (
+											<div className="flex flex-wrap items-center gap-2">
+												<TimeSelect
+													options={validStartTimes(dayBlocks)}
+													open={startSelectOpen}
+													onOpenChange={setStartSelectOpen}
 													value={newStart}
-													onChange={(e) => setNewStart(e.target.value)}
-													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-32 px-2 text-xs"
-													autoFocus
+													onValueChange={handleNewStartChange}
+													placeholder="Start time"
 												/>
-											</div>
-											<div className="flex items-center gap-1.5">
 												<span className="text-muted-foreground text-xs">
-													To
+													to
 												</span>
-												<Input
-													type="time"
+												<TimeSelect
+													options={
+														newStart ? validEndTimes(dayBlocks, newStart) : []
+													}
+													open={endSelectOpen}
+													onOpenChange={setEndSelectOpen}
 													value={newEnd}
-													onChange={(e) => setNewEnd(e.target.value)}
-													onClick={(e) => e.currentTarget.showPicker?.()}
-													className="h-8 w-32 px-2 text-xs"
+													onValueChange={setNewEnd}
+													disabled={!newStart}
+													placeholder="End time"
 												/>
+												<Button
+													type="button"
+													size="icon"
+													className="h-8 w-8"
+													onClick={() => {
+														if (handleAddBlock(dateObj)) {
+															setAddingDay(null);
+															setNewStart("");
+															setNewEnd("");
+														}
+													}}
+													disabled={!newStart || !newEnd}
+												>
+													<Check className="h-3.5 w-3.5" />
+												</Button>
+												<Button
+													type="button"
+													size="icon"
+													variant="ghost"
+													onClick={() => {
+														setAddingDay(null);
+														setNewStart("");
+														setNewEnd("");
+													}}
+													className="h-8 w-8"
+												>
+													<X className="h-3.5 w-3.5" />
+												</Button>
 											</div>
+										) : (
 											<Button
 												type="button"
 												size="sm"
+												variant="outline"
 												onClick={() => {
-													if (handleAddBlock(dateObj)) {
-														setAddingDay(null);
-													}
+													setNewStart("");
+													setNewEnd("");
+													setAddingDay(dateObj);
+													setStartSelectOpen(true);
 												}}
+												disabled={validStartTimes(dayBlocks).length === 0}
 												className="h-8 gap-1 text-xs"
 											>
-												<Plus className="h-3 w-3" /> Add
+												<Plus className="h-3 w-3" /> Add Block
 											</Button>
-											<Button
-												type="button"
-												size="sm"
-												variant="ghost"
-												onClick={() => setAddingDay(null)}
-												className="h-8 text-xs"
-											>
-												Cancel
-											</Button>
-										</div>
-									) : (
-										<Button
-											type="button"
-											size="sm"
-											variant="outline"
-											onClick={() => {
-												setNewStart("09:00");
-												setNewEnd("17:00");
-												setAddingDay(dateObj);
-											}}
-											className="h-8 gap-1 text-xs"
-										>
-											<Plus className="h-3 w-3" /> Add Block
-										</Button>
-									)}
-								</div>
+										)}
+									</div>
+								)}
 							</div>
 						);
 					})}
 
-					<div className="flex justify-end gap-2 border-t pt-4">
-						<Button
-							type="button"
-							onClick={handleSaveAvailabilities}
-							disabled={isSavingAvs}
-						>
-							{isSavingAvs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-							Save Availability
-						</Button>
-					</div>
+					{hoursEditable && (
+						<div className="flex justify-end gap-2 border-t pt-4">
+							<Button
+								type="button"
+								onClick={handleSaveAvailabilities}
+								disabled={isSavingAvs}
+							>
+								{isSavingAvs && (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								)}
+								Save Availability
+							</Button>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

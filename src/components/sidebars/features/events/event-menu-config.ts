@@ -642,8 +642,49 @@ function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 	};
 }
 
-export const eventMenuConfig: EventMenuConfig =
-	restrictForBusinessHosts(rawEventMenuConfig);
+// ============================================================================
+// BUSINESS MATCHING ADMIN LOCKDOWN
+// ============================================================================
+// A user assigned as business_matching_admin (and nothing else) manages
+// Business Matching for this event only — no other modules.
+const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set(["business-matching"]);
+
+const isPureBusinessMatchingAdmin = (p: Permissions) =>
+	(p.isBusinessMatchingAdmin ?? false) &&
+	!(p.isOrgOwner ?? false) &&
+	!(p.isOrganizer ?? false) &&
+	!(p.isEventAdmin ?? false) &&
+	!(p.isEventTeamMember ?? false) &&
+	!(p.isEventVendor ?? false) &&
+	!(p.isExhibitionContractor ?? false);
+
+function restrictForBusinessMatchingAdmins(
+	config: EventMenuConfig,
+): EventMenuConfig {
+	const guardItem = (item: EventMenuItem): EventMenuItem => ({
+		...item,
+		visible: (p: Permissions, e?: Event) =>
+			isPureBusinessMatchingAdmin(p)
+				? BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES.has(item.route)
+				: (item.visible?.(p, e) ?? true),
+	});
+
+	return {
+		standalone: config.standalone.map(guardItem),
+		groups: config.groups.map((group) => ({
+			...group,
+			visible: (p: Permissions, e?: Event) =>
+				isPureBusinessMatchingAdmin(p)
+					? false
+					: (group.visible?.(p, e) ?? true),
+			tabs: group.tabs.map(guardItem),
+		})),
+	};
+}
+
+export const eventMenuConfig: EventMenuConfig = restrictForBusinessMatchingAdmins(
+	restrictForBusinessHosts(rawEventMenuConfig),
+);
 
 // ============================================================================
 // ROUTE LOOKUP MAP - For layout.tsx to find menu item config by route

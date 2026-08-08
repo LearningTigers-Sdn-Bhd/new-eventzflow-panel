@@ -106,9 +106,7 @@ export function SettingsPage() {
 				)}
 
 				{/* Theme Settings */}
-				<Card
-					className={`rounded-none border-primary/20 px-0 shadow-none ${canManagePaymentDetails ? "" : "md:col-span-2"}`}
-				>
+				<Card className="rounded-none border-primary/20 px-0 shadow-none">
 					<CardHeader className="flex items-center gap-4 px-2 md:px-4">
 						<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
 							<Sun className="size-5" />

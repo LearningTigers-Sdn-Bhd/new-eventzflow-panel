@@ -14,6 +14,10 @@ export interface User {
 		| "exhibition_contractor";
 	phone?: string | null | undefined;
 	email_verified: boolean;
+	// True if this user's ONLY standing on the platform is business_matching_admin
+	// for one or more events — no org-level role, no event admin/team standing.
+	is_pure_business_matching_admin?: boolean;
+	business_matching_admin_event_ids?: string[];
 }
 
 interface SessionCredentials {

@@ -1,7 +1,16 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Briefcase, Download, LinkIcon } from "lucide-react";
+import {
+	AlertTriangle,
+	Briefcase,
+	Download,
+	Info,
+	LinkIcon,
+	MoreVertical,
+	Settings2,
+	Tags,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -10,8 +19,21 @@ import { columns } from "@/components/pages/business-matching/columns";
 import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
+import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
 import { Button } from "@/components/ui/button";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+	useBusinessMatchingEventDefaults,
 	useBusinessMatchingEvents,
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
@@ -54,12 +76,24 @@ export default function BusinessMatchingPage() {
 		isOrgOwner,
 		isOrganizer,
 		isEventAdmin,
+		isBusinessMatchingAdmin,
 	} = useEventPermissions(event_id, event);
 
 	// Matches the backend's manage_business_matching_tags? policy exactly
-	// (org_owner || organizer || event_admin) — broader than canManageEvent,
-	// which intentionally excludes organizers for other event-management actions.
-	const canManageTags = isOrgOwner || isOrganizer || isEventAdmin;
+	// (org_owner || organizer || event_admin || business_matching_admin) —
+	// broader than canManageEvent, which intentionally excludes organizers
+	// for other event-management actions.
+	const canManageTags =
+		isOrgOwner || isOrganizer || isEventAdmin || isBusinessMatchingAdmin;
+	// Matches manage_business_matching_sessions? — event admins/BM admins can
+	// create sessions, in addition to whoever canManageEvent already covers.
+	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
+
+	// Session defaults prefill new sessions — only fetch for staff who can
+	// actually manage them (the endpoint is staff-only).
+	const { data: eventDefaults } = useBusinessMatchingEventDefaults(
+		canManageSessions ? event_id : "",
+	);
 
 	// Check if logged-in host has completed their profile
 	const { data: hostProfile } = useQuery({
@@ -84,14 +118,14 @@ export default function BusinessMatchingPage() {
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
-		if (isBusinessHost && !canManageEvent) {
+		if (isBusinessHost && !canManageSessions) {
 			// Remove the 'host' column for business hosts
 			return columns.filter(
 				(col) => (col as { accessorKey: string }).accessorKey !== "host",
 			);
 		}
 		return columns;
-	}, [isBusinessHost, canManageEvent]);
+	}, [isBusinessHost, canManageSessions]);
 
 	useEffect(() => {
 		const lastRefreshKey = `last_bm_refresh_${event_id}`;
@@ -174,9 +208,12 @@ export default function BusinessMatchingPage() {
 			});
 	};
 
+	const hasMoreActions =
+		canManageTags || canManageSessions || (data && data.length > 0);
+
 	const actionButtons = (
 		<div className="flex items-center gap-2">
-			{canManageEvent && (
+			{canManageSessions && (
 				<Button
 					onClick={() => {
 						openDialog({
@@ -185,6 +222,7 @@ export default function BusinessMatchingPage() {
 								eventId: event_id,
 								eventStartDate: event?.start_date,
 								eventEndDate: event?.end_date,
+								eventDefaults,
 							},
 							config: {
 								title: "Create Matchmaking Session",
@@ -198,50 +236,85 @@ export default function BusinessMatchingPage() {
 				</Button>
 			)}
 
-			{canManageTags && (
-				<Button
-					variant="outline"
-					onClick={() => {
-						openDialog({
-							component: ManageTagsDialog,
-							props: { eventId: event_id },
-							config: {
-								title: "Manage Matching Tags",
-								size: "lg",
-							},
-						});
-					}}
-					className="h-8 rounded-none md:h-9"
-				>
-					Manage Tags
-				</Button>
-			)}
-
-			{data && data.length > 0 && (
-				<>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handleGenerateReport("xlsx")}
-						className="h-8 rounded-none md:h-9"
-					>
-						<Download className="h-4 w-4 md:mr-2" />
-						<span className="hidden lg:inline">Generate Report</span>
-						<span className="hidden md:inline lg:hidden">Report</span>
-					</Button>
-					{!isBusinessHost && (
+			{hasMoreActions && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							size="sm"
-							onClick={handleCopyPublicLink}
-							className="h-8 rounded-none md:h-9"
+							size="icon"
+							className="h-8 w-8 rounded-none md:h-9 md:w-9"
 						>
-							<LinkIcon className="h-4 w-4 md:mr-2" />
-							<span className="hidden lg:inline">Copy Invite Link</span>
-							<span className="hidden md:inline lg:hidden">Invite Link</span>
+							<MoreVertical className="h-4 w-4" />
+							<span className="sr-only">More actions</span>
 						</Button>
-					)}
-				</>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{canManageTags && (
+							<DropdownMenuItem
+								onClick={() => {
+									openDialog({
+										component: ManageTagsDialog,
+										props: { eventId: event_id },
+										config: {
+											title: "Manage Matching Tags",
+											size: "lg",
+										},
+									});
+								}}
+							>
+								<Tags className="h-4 w-4" />
+								Manage Tags
+							</DropdownMenuItem>
+						)}
+
+						{canManageSessions && (
+							<DropdownMenuItem
+								onClick={() => {
+									openDialog({
+										component: SessionDefaultsDialog,
+										props: { eventId: event_id },
+										config: {
+											title: (
+												<span className="flex items-center gap-1.5">
+													Session Defaults
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="h-3.5 w-3.5 text-muted-foreground" />
+														</TooltipTrigger>
+														<TooltipContent>
+															New sessions created for this event will prefill
+															from these — no need to set the date and hours
+															manually every time.
+														</TooltipContent>
+													</Tooltip>
+												</span>
+											),
+											size: "lg",
+										},
+									});
+								}}
+							>
+								<Settings2 className="h-4 w-4" />
+								Session Defaults
+							</DropdownMenuItem>
+						)}
+
+						{data && data.length > 0 && (
+							<>
+								<DropdownMenuItem onClick={() => handleGenerateReport("xlsx")}>
+									<Download className="h-4 w-4" />
+									Generate Report
+								</DropdownMenuItem>
+								{!isBusinessHost && (
+									<DropdownMenuItem onClick={handleCopyPublicLink}>
+										<LinkIcon className="h-4 w-4" />
+										Copy Invite Link
+									</DropdownMenuItem>
+								)}
+							</>
+						)}
+					</DropdownMenuContent>
+				</DropdownMenu>
 			)}
 		</div>
 	);

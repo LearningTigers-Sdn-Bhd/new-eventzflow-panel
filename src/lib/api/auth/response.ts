@@ -15,6 +15,8 @@ export const userSchema = z.object({
 	]),
 	phone: z.string().nullable().optional(),
 	email_verified: z.boolean(),
+	is_pure_business_matching_admin: z.boolean().optional(),
+	business_matching_admin_event_ids: z.array(z.string()).optional(),
 });
 
 // Auth response schema

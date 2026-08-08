@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import {
 	type AvailabilityResponse,
+	acceptHostInvite,
 	type Booking,
 	type BusinessHost,
 	type BusinessMatchingEvent,
@@ -19,6 +20,7 @@ import {
 	getDetailedSlots, // Added import
 	getHostAvailability,
 	getPublicBookingById, // Added import
+	getPublicBusinessMatchingBookingStatus,
 	getPublicBusinessMatchingEvents, // Add this import
 	joinBusinessHost, // Added import
 	type PublicCreateBookingRequest,
@@ -65,6 +67,18 @@ export const useBusinessMatchingEvents = (
 			return getPublicBusinessMatchingEvents(eventId);
 		},
 		enabled: !!eventId && (options?.enabled ?? true),
+	});
+};
+
+/**
+ * Hook to check whether public self-service booking is currently open for
+ * an event — lets the booking wizard show a "closed" state up front.
+ */
+export const usePublicBookingStatus = (eventId: string) => {
+	return useQuery({
+		queryKey: ["business-matching-booking-status-public", eventId],
+		queryFn: () => getPublicBusinessMatchingBookingStatus(eventId),
+		enabled: !!eventId,
 	});
 };
 
@@ -200,5 +214,15 @@ export const useJoinBusinessHost = () => {
 	return useMutation<void, Error, { eventId: string; bmEventId: string }>({
 		mutationFn: ({ eventId, bmEventId }) =>
 			joinBusinessHost(eventId, bmEventId),
+	});
+};
+
+/**
+ * Hook to accept a business host invite via its opaque token — no event/
+ * session IDs pass through the client at all.
+ */
+export const useAcceptHostInvite = () => {
+	return useMutation<void, Error, { token: string }>({
+		mutationFn: ({ token }) => acceptHostInvite(token),
 	});
 };

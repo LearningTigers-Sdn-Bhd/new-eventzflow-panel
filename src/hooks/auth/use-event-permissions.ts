@@ -22,6 +22,7 @@ export type EventPermissions = {
 	isEventStaff: boolean;
 	isEventVendor: boolean;
 	isBusinessHost: boolean;
+	isBusinessMatchingAdmin: boolean;
 
 	// Specific permissions
 	canManageEvent: boolean;
@@ -34,6 +35,9 @@ export type EventPermissions = {
 	canScanVisitorStamps: boolean;
 	canEditVendorProfile: boolean;
 	canViewLeadAnalytics: boolean;
+	// Business Matching admin actions (sessions, tags, hosts) — mirrors the
+	// backend's manage_business_matching_sessions?/manage_business_hosts?
+	canManageBusinessMatching: boolean;
 
 	// Tab visibility
 	canViewVendorsTab: boolean;
@@ -104,6 +108,7 @@ export function useEventPermissions(
 				isEventStaff: false,
 				isEventVendor: false,
 				isBusinessHost: false,
+				isBusinessMatchingAdmin: false,
 
 				// Specific permissions
 				canManageEvent: false,
@@ -116,6 +121,7 @@ export function useEventPermissions(
 				canScanVisitorStamps: false,
 				canEditVendorProfile: false,
 				canViewLeadAnalytics: false,
+				canManageBusinessMatching: false,
 
 				// Tab visibility
 				canViewVendorsTab: false,
@@ -153,6 +159,7 @@ export function useEventPermissions(
 				isEventStaff: false,
 				isEventVendor: isVendor, // Vendor role means they're an event vendor
 				isBusinessHost: false,
+				isBusinessMatchingAdmin: false,
 
 				// Specific permissions
 				canManageEvent: false,
@@ -165,6 +172,7 @@ export function useEventPermissions(
 				canScanVisitorStamps: isVendor, // Vendors can scan stamps
 				canEditVendorProfile: isVendor,
 				canViewLeadAnalytics: isVendor,
+				canManageBusinessMatching: false,
 
 				// Tab visibility
 				canViewVendorsTab: isVendor,
@@ -189,6 +197,8 @@ export function useEventPermissions(
 		const isEventTeamMember =
 			userStaffAssignment?.eventRole === "event_team_member";
 		const isBusinessHost = user.role === "exhibitor" || userStaffAssignment?.eventRole === "business_host";
+		const isBusinessMatchingAdmin =
+			userStaffAssignment?.eventRole === "business_matching_admin";
 		const isEventStaff = !!userStaffAssignment || user.role === "exhibitor";
 
 		// Check if user is a vendor for this event
@@ -209,6 +219,9 @@ export function useEventPermissions(
 		const canScanVisitorStamps = isOrgOwner || isEventAdmin || isEventVendor;
 		const canEditVendorProfile = isEventVendor;
 		const canViewLeadAnalytics = isEventVendor;
+		// Matches the backend's manage_business_matching_sessions?/manage_business_hosts?
+		const canManageBusinessMatching =
+			isOrgOwner || isOrganizer || isEventAdmin || isEventTeamMember || isBusinessMatchingAdmin;
 
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
@@ -230,6 +243,7 @@ export function useEventPermissions(
 			isEventAdmin,
 			isEventTeamMember,
 			isBusinessHost,
+			isBusinessMatchingAdmin,
 			isEventStaff,
 			isEventVendor,
 			// Specific permissions
@@ -243,6 +257,7 @@ export function useEventPermissions(
 			canScanVisitorStamps,
 			canEditVendorProfile,
 			canViewLeadAnalytics,
+			canManageBusinessMatching,
 
 			// Tab visibility
 			canViewVendorsTab,

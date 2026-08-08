@@ -53,9 +53,9 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		header: "Host Profile",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
-			const { isBusinessHost, canManageEvent } = useEventPermissions(
-				row.original.event_id,
-			);
+			const { isBusinessHost, canManageEvent, isBusinessMatchingAdmin } =
+				useEventPermissions(row.original.event_id);
+			const canManageHosts = canManageEvent || isBusinessMatchingAdmin;
 			const host = row.original.host;
 
 			if (!host) {
@@ -63,7 +63,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 					<Button
 						variant="outline"
 						size="sm"
-						disabled={isBusinessHost && !canManageEvent}
+						disabled={isBusinessHost && !canManageHosts}
 						onClick={() => {
 							openDialog({
 								component: AttachHostDialog,
@@ -92,10 +92,17 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 									host,
 									bmEventId: row.original.id,
 									eventId: row.original.event_id,
+									sessionTagsEditable: row.original.tags_editable ?? true,
+									sessionHoursEditable: row.original.hours_editable ?? true,
 								},
 								config: {
 									title: "Host Details",
+									// "sm" felt cramped for the tabbed content below — bump
+									// width and height a bit. Desktop-only: this className
+									// is dropped on the mobile/tablet dialog variant, which
+									// already goes full-screen.
 									size: "md",
+									className: "sm:max-h-[90vh]",
 								},
 							});
 						}}
@@ -171,16 +178,16 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
 			const { user } = useAuth();
-			const { canManageEvent, isBusinessHost } = useEventPermissions(
-				row.original.event_id,
-			);
+			const { canManageEvent, isBusinessHost, isBusinessMatchingAdmin } =
+				useEventPermissions(row.original.event_id);
+			const canManageSession = canManageEvent || isBusinessMatchingAdmin;
 
 			const ownsSession =
 				isBusinessHost &&
 				!!user &&
 				String(row.original.host?.id ?? "") === String(user.id);
 
-			if (!canManageEvent && !ownsSession) return null;
+			if (!canManageSession && !ownsSession) return null;
 
 			return (
 				<div className="flex gap-1.5 py-1">
@@ -193,7 +200,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								props: {
 									eventId: row.original.event_id,
 									session: row.original,
-									isHostEditing: !canManageEvent,
+									isHostEditing: !canManageSession,
 								},
 								config: {
 									title: `Edit "${row.original.title}"`,

@@ -26,9 +26,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { useDialog } from "@/hooks/use-dialog";
 import { useIsTablet } from "@/hooks/use-tablet";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import { BusinessMatchingItem } from "./business-matching-item";
+import SessionActivityDialog from "./session-activity-dialog";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -40,6 +42,7 @@ export function DataTable<TData, TValue>({
 	data,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
+	const { openDialog } = useDialog();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -70,6 +73,24 @@ export function DataTable<TData, TValue>({
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 
+	const openBookings = React.useCallback(
+		(row: TData) => {
+			const bmEvent = row as unknown as BusinessMatchingEvent;
+			openDialog({
+				component: SessionActivityDialog,
+				props: {
+					bmEventId: bmEvent.id,
+					eventId: bmEvent.event_id,
+				},
+				config: {
+					title: `Bookings & Availability for ${bmEvent.title}`,
+					size: "5xl",
+				},
+			});
+		},
+		[openDialog],
+	);
+
 	const table = useReactTable({
 		data: filteredData,
 		columns,
@@ -90,8 +111,8 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="w-full">
 			{/* Control Panel */}
-			<div className="mb-4 flex flex-col border border-dashed bg-transparent p-4 lg:bg-accent rounded-lg">
-				<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+			<div className="mb-4 flex flex-col rounded-lg border border-dashed bg-transparent p-4 lg:bg-accent">
+				<div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
 					<div className="flex-1">
 						<QuerySearchField
 							table={table}
@@ -147,15 +168,32 @@ export function DataTable<TData, TValue>({
 									<TableRow
 										key={row.id}
 										data-state={row.getIsSelected() && "selected"}
+										onClick={() => openBookings(row.original)}
+										className="cursor-pointer hover:bg-muted/50"
 									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell key={cell.id}>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
+										{row.getVisibleCells().map((cell) => {
+											// Host and Actions cells own their own click targets
+											// (host details link, edit button) — don't let the
+											// row-level "open bookings" click fire underneath them.
+											const stopsPropagation =
+												cell.column.id === "host" ||
+												cell.column.id === "actions";
+											return (
+												<TableCell
+													key={cell.id}
+													onClick={
+														stopsPropagation
+															? (e) => e.stopPropagation()
+															: undefined
+													}
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
+												</TableCell>
+											);
+										})}
 									</TableRow>
 								))
 							) : (
@@ -177,7 +215,7 @@ export function DataTable<TData, TValue>({
 					</Table>
 				</div>
 			) : (
-				<div className="mt-4 space-y-2">
+				<div className="mt-4 grid grid-cols-2 gap-2">
 					{table.getRowModel().rows?.length ? (
 						table
 							.getRowModel()
@@ -188,12 +226,14 @@ export function DataTable<TData, TValue>({
 								/>
 							))
 					) : (
-						<EmptyState
-							title="No events found"
-							description="Business matching events will appear here."
-							icon={<Briefcase />}
-							height="h-auto"
-						/>
+						<div className="col-span-2">
+							<EmptyState
+								title="No events found"
+								description="Business matching events will appear here."
+								icon={<Briefcase />}
+								height="h-auto"
+							/>
+						</div>
 					)}
 				</div>
 			)}

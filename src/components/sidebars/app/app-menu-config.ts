@@ -267,10 +267,27 @@ function filterByRoleAndPermissions(
 	});
 }
 
+// A user whose ONLY standing on the platform is business_matching_admin
+// never sees Dashboard/Scans/management screens — but they're often
+// assigned to more than one event, so they still need "Events" to get
+// to whichever one they're there to manage Business Matching for.
+const businessMatchingAdminMainMenu = navigationData.mainMenu.filter(
+	(item) => item.name === "Events",
+);
+
 export function getFilteredNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return {
+			mainMenu: businessMatchingAdminMainMenu,
+			memberManagement: [],
+			miscellaneous: [],
+		};
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	return {
 		mainMenu: filterByRoleAndPermissions(
@@ -294,7 +311,21 @@ export function getFilteredNavigation(
 export function getMobileNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return {
+			bottomNavItems: businessMatchingAdminMainMenu.filter(
+				(item) => item.allowBottomNavigation,
+			),
+			mainMenuNotInBottomNav: businessMatchingAdminMainMenu.filter(
+				(item) => !item.allowBottomNavigation,
+			),
+			memberManagement: [],
+			miscellaneous: [],
+		};
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	const filtered = filterByRoleAndPermissions(
 		navigationData.mainMenu,
