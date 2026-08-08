@@ -104,7 +104,11 @@ export function DataTable<TData>({
 			phone: false, // Hide phone column as it's only used for search
 		};
 
-		const labelKeys = Object.keys(mergedLabelsData);
+		// participation_category has its own fixed, always-visible column
+		// (see event-ticket-table-columns.tsx) so it's excluded here.
+		const labelKeys = Object.keys(mergedLabelsData).filter(
+			(key) => key !== "participation_category",
+		);
 		const totalLabels = labelKeys.length;
 
 		labelKeys.forEach((key, index) => {

@@ -122,6 +122,34 @@ export function generateColumns(
 			},
 		},
 		{
+			id: "custom_participation_category",
+			accessorFn: (row) => {
+				const customLabel = row.customLabels?.find(
+					(l) => l.name === "participation_category",
+				);
+				return customLabel?.value || "";
+			},
+			size: 140,
+			header: "Category",
+			cell: ({ row }) => {
+				const customLabel = row.original.customLabels?.find(
+					(l) => l.name === "participation_category",
+				);
+				const value = customLabel?.value || "";
+				return (
+					<div
+						className={cn(
+							"truncate font-medium",
+							!value && "text-muted-foreground italic",
+						)}
+					>
+						{value || "N/A"}
+					</div>
+				);
+			},
+			enableHiding: false,
+		},
+		{
 			accessorKey: "ticketTypeName",
 			size: 140,
 			header: "Ticket Type",
@@ -131,7 +159,7 @@ export function generateColumns(
 					<div className="truncate font-medium">
 						{ticket.ticketTypeName || "N/A"}{" "}
 						{ticket.ticketTypeId && (
-							<span className="text-muted-foreground text-xs font-normal">
+							<span className="font-normal text-muted-foreground text-xs">
 								(#{ticket.ticketTypeId})
 							</span>
 						)}
@@ -233,6 +261,8 @@ export function generateColumns(
 	const customColumns: ColumnDef<BaseTicket>[] = [];
 	if (labelsData && Object.keys(labelsData).length > 0) {
 		Object.entries(labelsData).forEach(([key, labelName]) => {
+			// participation_category already has its own fixed column above
+			if (key === "participation_category") return;
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {
