@@ -27,6 +27,7 @@ function transformTicketType(backendType: BackendTicketType): TicketType {
 		name: backendType.name,
 		price: Number.parseFloat(backendType.price),
 		quantity: backendType.quantity,
+		remainingQuantity: backendType.remaining_quantity,
 		maxPerOrder: backendType.max_per_order,
 		saleStartsAt: backendType.sale_starts_at,
 		saleEndsAt: backendType.sale_ends_at,
