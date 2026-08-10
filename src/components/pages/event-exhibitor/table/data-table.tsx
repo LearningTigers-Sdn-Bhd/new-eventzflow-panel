@@ -37,6 +37,8 @@ interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	canManageVendors?: boolean;
+	configuredPricingLabels?: string[];
+	configuredZones?: string[];
 }
 
 type StickyColumnMeta = {
@@ -46,6 +48,8 @@ type StickyColumnMeta = {
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	configuredPricingLabels,
+	configuredZones,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -92,7 +96,11 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				configuredPricingLabels={configuredPricingLabels}
+				configuredZones={configuredZones}
+			/>
 
 			<div className="min-h-[45vh]">
 				{!isTablet ? (

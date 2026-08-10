@@ -562,13 +562,6 @@ const rawEventMenuConfig: EventMenuConfig = {
 						visible.hasExhibitorKit(p, e) && visible.eventAdmin(p),
 				},
 				{
-					route: "analytics/vendor",
-					label: "Vendor Analytics",
-					description: "View vendor participation and activity analytics.",
-					icon: ChartBar,
-					visible: (p, e) => visible.hasVendors(p, e) && visible.eventAdmin(p),
-				},
-				{
 					route: "mall-live-feed",
 					label: "Mall Live Feed",
 					description:

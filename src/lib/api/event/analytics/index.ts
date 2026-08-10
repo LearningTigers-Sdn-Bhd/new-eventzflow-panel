@@ -33,6 +33,7 @@ export type {
 	HourlyDataPoint,
 	MallLiveFeedResponse,
 	PartnerAnalyticsBreakdown,
+	PartnerAnalyticsFilterOptions,
 	PartnerAnalyticsResponse,
 	PopularHall,
 	TimeSeriesDataPoint,

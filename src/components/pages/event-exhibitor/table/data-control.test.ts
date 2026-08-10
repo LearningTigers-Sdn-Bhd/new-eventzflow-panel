@@ -20,6 +20,12 @@ describe("event exhibitor table filters", () => {
 		expect(dataControlSource).toContain("exhibitor_booth_price_zone");
 	});
 
+	test("includes configured catalog options in the filters", () => {
+		expect(dataControlSource).toContain("configuredPricingLabels");
+		expect(dataControlSource).toContain("configuredZones");
+		expect(dataControlSource).toContain("getExhibitorFilterOptions");
+	});
+
 	test("keeps filter-only columns hidden from the table", () => {
 		expect(columnsSource).toContain('id: "booth_pricing"');
 		expect(columnsSource).toContain('id: "zone"');

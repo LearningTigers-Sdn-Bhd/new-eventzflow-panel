@@ -5,5 +5,5 @@ export default function ExhibitorAnalyticsPage({
 }: {
 	params: Promise<{ event_id: string }>;
 }) {
-	return <PartnerAnalyticsPage params={params} expectedMode="exhibitor" />;
+	return <PartnerAnalyticsPage params={params} />;
 }

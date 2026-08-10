@@ -20,10 +20,7 @@ import {
 	Clock3,
 	DollarSign,
 	Info,
-	Receipt,
-	ScanLine,
 	Tag,
-	Users,
 } from "lucide-react";
 import * as React from "react";
 import { use } from "react";
@@ -36,15 +33,13 @@ import { DataPagination } from "@/components/data-pagination";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import type {
 	PartnerAnalyticsBreakdown,
+	PartnerAnalyticsFilterOptions,
 	PartnerAnalyticsResponse,
 } from "@/lib/api/event/analytics";
 import { getExhibitorAnalytics } from "@/lib/api/event/analytics";
 
-type PartnerMode = "exhibitor" | "vendor";
-
 interface PartnerAnalyticsPageProps {
 	params: Promise<{ event_id: string }>;
-	expectedMode: PartnerMode;
 }
 
 const formatCurrency = (amount: number) =>
@@ -305,8 +300,10 @@ function PartnerBreakdownDataControl({
 
 function PartnerBreakdownTable({
 	data,
+	filterOptions,
 }: {
 	data: PartnerAnalyticsBreakdown[];
+	filterOptions?: PartnerAnalyticsFilterOptions;
 }) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -335,20 +332,24 @@ function PartnerBreakdownTable({
 	const zones = React.useMemo(
 		() =>
 			Array.from(
-				new Set(
-					data
+				new Set([
+					...(filterOptions?.zones ?? []),
+					...data
 						.map((row) => row.zone)
 						.filter((zone): zone is string => Boolean(zone)),
-				),
+				]),
 			).sort((left, right) => left.localeCompare(right)),
-		[data],
+		[data, filterOptions?.zones],
 	);
 	const pricingLabels = React.useMemo(
 		() =>
-			Array.from(new Set(data.map((row) => row.label))).sort((left, right) =>
-				left.localeCompare(right),
-			),
-		[data],
+			Array.from(
+				new Set([
+					...(filterOptions?.boothPricing ?? []),
+					...data.map((row) => row.label),
+				]),
+			).sort((left, right) => left.localeCompare(right)),
+		[data, filterOptions?.boothPricing],
 	);
 	const boothTypes = React.useMemo(
 		() =>
@@ -441,47 +442,16 @@ function ExhibitorAnalytics({ data }: { data: PartnerAnalyticsResponse }) {
 						</div>
 					</div>
 				</div>
-				<PartnerBreakdownTable data={data.breakdown} />
+				<PartnerBreakdownTable
+					data={data.breakdown}
+					filterOptions={data.filterOptions}
+				/>
 			</section>
 		</>
 	);
 }
 
-function VendorAnalytics({ data }: { data: PartnerAnalyticsResponse }) {
-	return (
-		<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-			<StatsCard
-				label="Total Vendors"
-				value={data.totalPartners}
-				Icon={Building2}
-				variant="sky"
-			/>
-			<StatsCard
-				label="Event Leads"
-				value={data.vendorMetrics.totalLeads}
-				Icon={Users}
-				variant="emerald"
-			/>
-			<StatsCard
-				label="Voucher Sales"
-				value={formatCurrency(data.vendorMetrics.voucherSales)}
-				Icon={Receipt}
-				variant="yellow"
-			/>
-			<StatsCard
-				label="Voucher Redemptions"
-				value={data.vendorMetrics.voucherRedemptions}
-				Icon={ScanLine}
-				variant="default"
-			/>
-		</div>
-	);
-}
-
-export function PartnerAnalyticsPage({
-	params,
-	expectedMode,
-}: PartnerAnalyticsPageProps) {
+export function PartnerAnalyticsPage({ params }: PartnerAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 
@@ -513,16 +483,9 @@ export function PartnerAnalyticsPage({
 		);
 	}
 
-	const mode = data.mode || expectedMode;
-	const isExhibitor = mode === "exhibitor";
-
 	return (
 		<div className="space-y-6">
-			{isExhibitor ? (
-				<ExhibitorAnalytics data={data} />
-			) : (
-				<VendorAnalytics data={data} />
-			)}
+			<ExhibitorAnalytics data={data} />
 		</div>
 	);
 }

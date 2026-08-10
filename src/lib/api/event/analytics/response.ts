@@ -32,6 +32,11 @@ export type PartnerAnalyticsBreakdown = {
 	pendingRevenue: number;
 };
 
+export type PartnerAnalyticsFilterOptions = {
+	zones: string[];
+	boothPricing: string[];
+};
+
 export type PartnerAnalyticsResponse = {
 	mode: "exhibitor" | "vendor";
 	totalPartners: number;
@@ -40,6 +45,7 @@ export type PartnerAnalyticsResponse = {
 	collectedRevenue: number;
 	pendingRevenue: number;
 	breakdown: PartnerAnalyticsBreakdown[];
+	filterOptions?: PartnerAnalyticsFilterOptions;
 	vendorMetrics: {
 		totalLeads: number;
 		voucherSales: number;

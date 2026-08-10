@@ -276,14 +276,6 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "analytics/exhibitor",
 	},
 	{
-		id: "vendor-analytics",
-		label: "Vendor Analytics",
-		title: "Vendor Analytics",
-		description: "View vendor participation and activity analytics.",
-		icon: ChartBar,
-		route: "analytics/vendor",
-	},
-	{
 		id: "mall-live-feed",
 		label: "Mall Live Feed",
 		title: "Mall Live Feed",
@@ -313,7 +305,6 @@ export const ANALYTICS_TAB_IDS = [
 	"ticket-analytics",
 	"visitor-analytics",
 	"exhibitor-analytics",
-	"vendor-analytics",
 	"voucher-analytics",
 	"mall-live-feed",
 ];

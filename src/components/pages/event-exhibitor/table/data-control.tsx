@@ -20,38 +20,31 @@ import {
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
 import type { ExhibitorMember } from "./columns";
+import { getExhibitorFilterOptions } from "./filter-options";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	configuredPricingLabels?: string[];
+	configuredZones?: string[];
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	configuredPricingLabels = [],
+	configuredZones = [],
+}: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
 	const searchColumns = ["company_name", "booth_number"];
 	const rows = table.getPreFilteredRowModel().rows;
-	const pricingLabels = Array.from(
-		new Set(
-			rows
-				.map(
-					(row) =>
-						(row.original as ExhibitorMember).kit.exhibitor_booth_price_label,
-				)
-				.filter((label): label is string => Boolean(label)),
-		),
-	).sort((left, right) => left.localeCompare(right));
-	const zones = Array.from(
-		new Set(
-			rows
-				.map(
-					(row) =>
-						(row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
-				)
-				.filter((zone): zone is string => Boolean(zone)),
-		),
-	).sort((left, right) => left.localeCompare(right));
-	const hasUnassignedZone = rows.some(
-		(row) => !(row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
+	const { pricingLabels, zones, hasUnassignedZone } = getExhibitorFilterOptions(
+		rows.map((row) => ({
+			boothPricingLabel: (row.original as ExhibitorMember).kit
+				.exhibitor_booth_price_label,
+			zone: (row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
+		})),
+		configuredPricingLabels,
+		configuredZones,
 	);
 
 	const renderFilterSelect = (

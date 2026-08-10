@@ -69,9 +69,6 @@ describe("Partner analytics breakdown table", () => {
 		expect(pageSource).toContain(
 			'className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"',
 		);
-		expect(pageSource).toContain(
-			'className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"',
-		);
 		expect(statsCardSource).toContain('className="min-w-0');
 		expect(statsCardSource).toContain("break-words");
 	});
@@ -90,5 +87,18 @@ describe("Partner analytics breakdown table", () => {
 		expect(pageSource).not.toContain(
 			'<p className="text-muted-foreground text-xs">\n\t\t\t\tPaid status includes',
 		);
+	});
+
+	test("uses configured catalog options for filters", () => {
+		expect(pageSource).toContain("filterOptions?.zones");
+		expect(pageSource).toContain("filterOptions?.boothPricing");
+	});
+});
+
+describe("Exhibitor analytics only", () => {
+	test("does not include vendor analytics rendering", () => {
+		expect(pageSource).toContain("function ExhibitorAnalytics");
+		expect(pageSource).not.toContain("function VendorAnalytics");
+		expect(pageSource).not.toContain("expectedMode");
 	});
 });
