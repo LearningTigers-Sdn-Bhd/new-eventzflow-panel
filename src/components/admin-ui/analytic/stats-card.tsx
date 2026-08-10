@@ -279,28 +279,34 @@ export function StatsCard({
 	return (
 		<Card
 			className={cn(
-				"h-full rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l",
+				"h-full min-w-0 rounded-none border border-border/90 border-x border-dashed bg-muted/50 p-0 shadow-none lg:border-l",
 			)}
 		>
-			<CardContent className="h-full p-0">
-				<div className="flex h-full flex-col items-center justify-between gap-2 md:flex-row md:gap-0">
-					<div className="flex h-full items-center justify-center px-6 pt-3 md:py-0">
+			<CardContent className="h-full min-w-0 p-0">
+				<div className="flex h-full min-w-0 flex-col items-center justify-between gap-2 md:flex-row md:gap-0">
+					<div className="flex h-full shrink-0 items-center justify-center px-6 pt-3 md:py-0">
 						<Icon className={cn("size-7 md:size-6")} />
 					</div>
-					<div className="flex h-full w-full flex-col justify-center px-4 pb-4 text-center md:px-0 md:py-4 md:text-left">
-						<p className={cn("text-balance align-top font-semibold text-sm")}>
+					<div className="flex h-full w-full min-w-0 flex-col justify-center px-4 pb-4 text-center md:px-0 md:py-4 md:text-left">
+						<p
+							className={cn(
+								"min-w-0 text-balance break-words align-top font-semibold text-sm leading-tight",
+							)}
+						>
 							{label}
 						</p>
 						<p
 							className={cn(
-								"font-bold text-xl tracking-tight",
+								"min-w-0 break-words font-bold text-xl tracking-tight",
 								variant && countVariants({ variant }),
 							)}
 						>
 							{value}
 						</p>
 						{subtitle && (
-							<p className="text-muted-foreground text-sm">{subtitle}</p>
+							<p className="min-w-0 break-words text-muted-foreground text-sm leading-tight">
+								{subtitle}
+							</p>
 						)}
 					</div>
 				</div>
@@ -314,12 +320,14 @@ export interface CompactStatsCardProps
 	icon: LucideIcon | IconType;
 	label: string;
 	count: number;
+	subtitle?: string;
 }
 
 export function CompactStatsCard({
 	icon: Icon,
 	label,
 	count,
+	subtitle,
 	variant,
 }: CompactStatsCardProps): ReactElement {
 	return (
@@ -327,6 +335,11 @@ export function CompactStatsCard({
 			<Icon className="size-5" />
 			<p className="text-xs">{label}</p>
 			<p className={countVariants({ variant })}>{count}</p>
+			{subtitle && (
+				<p className="max-w-full text-[10px] text-muted-foreground leading-tight">
+					{subtitle}
+				</p>
+			)}
 		</div>
 	);
 }

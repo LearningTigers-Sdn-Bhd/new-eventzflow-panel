@@ -69,11 +69,17 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 		title: event.title,
 		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		useTicket: event.use_ticket ?? true,
+		useExhibitorKit: event.use_exhibitor_kit ?? false,
 		// Ticket event stats
 		totalTickets: event.total_tickets ?? 0,
 		scannedTickets: event.scanned_tickets ?? 0,
 		totalRevenue: centsToDollars(event.total_revenue ?? 0),
-		pendingTickets: event.unscanned_tickets ?? 0,
+		awaitingCheckingTickets: event.unscanned_tickets ?? 0,
+		// Vendor / exhibitor stats
+		totalVendors: event.total_vendors ?? 0,
+		totalExhibitors: event.total_exhibitors ?? 0,
+		paidExhibitors: event.paid_exhibitors ?? 0,
+		unpaidExhibitors: event.unpaid_exhibitors ?? 0,
 		// Non-ticket event stats
 		totalVisitors: event.total_visitors ?? 0,
 		totalLeads: event.total_leads ?? 0,
@@ -201,10 +207,12 @@ export async function getEventAnalytics(
 		eventName: event.title,
 		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		totalTickets: totalTickets.totalTickets,
+		paidTickets: totalTickets.paidTickets,
+		pendingTickets: totalTickets.pendingTickets,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,
 		totalRevenue: centsToDollars(totalRevenue.totalAmountPrice),
-		pendingTickets: unscannedTickets.totalUnscannedTickets,
+		pendingRevenue: centsToDollars(totalRevenue.pendingAmountPrice),
 		locations: locations.length,
 		recentScans,
 		registrationData: (ticketsTimeSeries.data ?? []).map((d) => ({

@@ -48,9 +48,12 @@ export type TicketReportData = {
 	metadata: ReportMetadata;
 	stats: {
 		totalTickets: number;
+		paidTickets: number;
+		pendingTickets: number;
 		scannedTickets: number;
 		unscannedTickets: number;
 		totalRevenue: number;
+		pendingRevenue: number;
 		scanRate: number;
 	};
 	timeSeries: {

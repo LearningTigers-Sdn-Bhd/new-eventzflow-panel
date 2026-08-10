@@ -2,6 +2,8 @@
 
 export type TotalTicketsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 };
 
 export type TotalScannedTicketsResponse = {
@@ -14,6 +16,35 @@ export type TotalUnscannedTicketsResponse = {
 
 export type TotalAmountPriceResponse = {
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
+};
+
+export type PartnerAnalyticsBreakdown = {
+	breakdownKey?: string;
+	label: string;
+	zone: string | null;
+	boothType: string | null;
+	packageLabel: string | null;
+	bookedQuantity: number;
+	paidQuantity: number;
+	unpaidQuantity: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+};
+
+export type PartnerAnalyticsResponse = {
+	mode: "exhibitor" | "vendor";
+	totalPartners: number;
+	paidPartners: number;
+	unpaidPartners: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+	breakdown: PartnerAnalyticsBreakdown[];
+	vendorMetrics: {
+		totalLeads: number;
+		voucherSales: number;
+		voucherRedemptions: number;
+	};
 };
 
 // Visitor analytics response types
@@ -53,9 +84,12 @@ export type DateCountColumn = {
 // Aggregated analytics response
 export type AllEventAnalyticsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 	totalScannedTickets: number;
 	totalUnscannedTickets: number;
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
 	registrationData: DateCountColumn[];
 	scanData: DateCountColumn[];
 	revenueData: DateCountColumn[];

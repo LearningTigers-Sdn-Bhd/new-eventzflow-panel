@@ -92,7 +92,7 @@ export function RegistrationFormActionsMenu({
 				onClose: closeDialog,
 			},
 			config: {
-				title: `Delegate Approval & RSVP - ${registrationForm.name}`,
+				title: `Approval & RSVP - ${registrationForm.name}`,
 				description:
 					"Configure approval workflow and RSVP confirmation for this registration form.",
 				size: "full",
@@ -115,9 +115,7 @@ export function RegistrationFormActionsMenu({
 							<CalendarClock className="h-4 w-4" />
 						</Button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">
-						Delegate Approval & RSVP
-					</TooltipContent>
+					<TooltipContent side="bottom">Approval & RSVP</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>

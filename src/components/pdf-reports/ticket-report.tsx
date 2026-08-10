@@ -26,15 +26,13 @@ interface TicketAnalyticsReportProps {
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
-	const scanRate = calculatePercentage(
-		stats.scannedTickets,
-		stats.totalTickets,
-	);
+	const scanRate = calculatePercentage(stats.scannedTickets, stats.paidTickets);
+	const checkInSummary = `${stats.scannedTickets.toLocaleString()} of ${stats.paidTickets.toLocaleString()} paid tickets checked in`;
 
 	const insights = [
 		`Total Issuance: ${stats.totalTickets.toLocaleString()} tickets have been issued or sold.`,
-		`Total Revenue: The event has generated ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
-		`Utilization: ${scanRate}% of issued tickets have been scanned at entry.`,
+		`Collected Revenue: The event has collected ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
+		`Utilization: ${scanRate}% of paid tickets have been scanned at entry.`,
 	];
 
 	const registrationData =
@@ -73,34 +71,59 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 				<Section title="Sales Overview">
 					<StatsGrid>
 						<StatsCard
-							label="Total Revenue"
+							label="Collected Revenue"
 							value={formatReportCurrency(stats.totalRevenue)}
+						/>
+						<StatsCard
+							label="Pending Revenue"
+							value={formatReportCurrency(stats.pendingRevenue)}
 						/>
 						<StatsCard
 							label="Total Tickets"
 							value={stats.totalTickets.toLocaleString()}
 						/>
 						<StatsCard
-							label="Redeemed"
+							label="Paid Tickets"
+							value={stats.paidTickets.toLocaleString()}
+							isLast
+						/>
+					</StatsGrid>
+					<StatsGrid>
+						<StatsCard
+							label="Pending Tickets"
+							value={stats.pendingTickets.toLocaleString()}
+						/>
+						<StatsCard label="Check-in Rate" value={`${scanRate}%`} />
+						<StatsCard
+							label="Scanned Tickets"
 							value={stats.scannedTickets.toLocaleString()}
-							subtext={`${scanRate}% Utilization`}
+							subtext={`${scanRate}% of paid tickets checked in`}
+						/>
+						<StatsCard
+							label="Unscanned Tickets"
+							value={stats.unscannedTickets.toLocaleString()}
 							isLast
 						/>
 					</StatsGrid>
 				</Section>
 
-				<Section title="Utilization Ratio">
-					<View style={{ alignItems: "center", paddingVertical: 12 }}>
-						<DonutChart
-							value1={stats.scannedTickets}
-							value2={stats.unscannedTickets}
-							label1="Scanned"
-							label2="Pending"
-							color1={colors.brandGreen}
-							color2="#d1d5db"
-						/>
-					</View>
-				</Section>
+				<View wrap={false}>
+					<Section title="Utilization Ratio">
+						<View style={{ alignItems: "center", paddingVertical: 12 }}>
+							<DonutChart
+								value1={stats.scannedTickets}
+								value2={stats.unscannedTickets}
+								label1="Scanned"
+								label2="Unscanned"
+								color1={colors.brandGreen}
+								color2="#d1d5db"
+								centerValue={`${scanRate}%`}
+								centerLabel="Check-in Rate"
+								summary={checkInSummary}
+							/>
+						</View>
+					</Section>
+				</View>
 
 				<Section title="Daily Activity Analysis" breakOnPage>
 					<View style={{ marginBottom: 24 }}>

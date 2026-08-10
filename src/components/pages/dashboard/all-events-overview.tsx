@@ -6,6 +6,7 @@ import {
 	Clock,
 	ScanFace,
 	Speech,
+	Store,
 	Tickets,
 	TrendingUp,
 	Users,
@@ -32,6 +33,22 @@ interface AllEventsOverviewProps {
 	events?: EventOverview[];
 	isLoading?: boolean;
 	error?: unknown;
+}
+
+function getPartnerStats(event: EventOverview): {
+	label: string;
+	count: number;
+	subtitle?: string;
+} {
+	if (!event.useExhibitorKit) {
+		return { label: "Vendors", count: event.totalVendors };
+	}
+
+	return {
+		label: "Exhibitors",
+		count: event.totalExhibitors,
+		subtitle: `Paid: ${event.paidExhibitors} · Unpaid: ${event.unpaidExhibitors}`,
+	};
 }
 
 function EventCardHeader({
@@ -97,6 +114,7 @@ function TicketEventCard({
 		event.totalTickets > 0
 			? Math.round((event.scannedTickets / event.totalTickets) * 100)
 			: 0;
+	const partnerStats = getPartnerStats(event);
 
 	return (
 		<Card
@@ -106,7 +124,7 @@ function TicketEventCard({
 			<EventCardHeader event={event} formatDate={formatDate} />
 			<CardContent className="p-0">
 				{/* Stats Grid */}
-				<div className="grid grid-cols-3 gap-2 px-3 pb-3">
+				<div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-4">
 					<CompactStatsCard
 						icon={Tickets}
 						label="Total"
@@ -121,9 +139,15 @@ function TicketEventCard({
 					/>
 					<CompactStatsCard
 						icon={Clock}
-						label="Pending"
-						count={event.pendingTickets}
+						label="Awaiting Check-In"
+						count={event.awaitingCheckingTickets}
 						variant="yellow"
+					/>
+					<CompactStatsCard
+						icon={Store}
+						label={partnerStats.label}
+						count={partnerStats.count}
+						subtitle={partnerStats.subtitle}
 					/>
 				</div>
 
@@ -171,6 +195,7 @@ function VisitorEventCard({
 		event.totalVisitors > 0
 			? Math.round((event.totalLeads / event.totalVisitors) * 100)
 			: 0;
+	const partnerStats = getPartnerStats(event);
 
 	return (
 		<Card
@@ -180,7 +205,7 @@ function VisitorEventCard({
 			<EventCardHeader event={event} formatDate={formatDate} />
 			<CardContent className="p-0">
 				{/* Stats Grid */}
-				<div className="grid grid-cols-2 gap-2 px-3 pb-3">
+				<div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
 					<CompactStatsCard
 						icon={Users}
 						label="Visitors"
@@ -191,6 +216,12 @@ function VisitorEventCard({
 						label="Leads"
 						count={event.totalLeads}
 						variant="sky"
+					/>
+					<CompactStatsCard
+						icon={Store}
+						label={partnerStats.label}
+						count={partnerStats.count}
+						subtitle={partnerStats.subtitle}
 					/>
 				</div>
 

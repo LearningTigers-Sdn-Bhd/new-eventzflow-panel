@@ -109,9 +109,12 @@ export function EventDetailsTicketStats({
 			},
 			{
 				totalTickets: ticketAnalytics?.totalTickets ?? 0,
+				paidTickets: ticketAnalytics?.paidTickets ?? 0,
+				pendingTickets: ticketAnalytics?.pendingTickets ?? 0,
 				scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
 				unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
 				totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+				pendingRevenue: ticketAnalytics?.pendingRevenue ?? 0,
 			},
 			{
 				registrations: ticketAnalytics?.registrationData,

@@ -11,6 +11,7 @@ import type {
 	DateCountColumn,
 	HourlyBreakdownByDayResponse,
 	MallLiveFeedResponse,
+	PartnerAnalyticsResponse,
 	TimeSeriesResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
@@ -109,9 +110,12 @@ export async function getAllEventAnalytics(
 
 		return {
 			totalTickets: totalTickets.totalTickets,
+			paidTickets: totalTickets.paidTickets,
+			pendingTickets: totalTickets.pendingTickets,
 			totalScannedTickets: totalScannedTickets.totalScannedTickets,
 			totalUnscannedTickets: totalUnscannedTickets.totalUnscannedTickets,
 			totalAmountPrice: totalAmountPrice.totalAmountPrice,
+			pendingAmountPrice: totalAmountPrice.pendingAmountPrice,
 			registrationData: toDateCountFormat(ticketsTimeSeries.data ?? []),
 			scanData: toDateCountFormat(scansTimeSeries.data ?? []),
 			revenueData: toDateCountFormat(revenueTimeSeries.data ?? []),
@@ -203,6 +207,27 @@ export async function getTotalAmountPrice(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch total amount price");
+	}
+}
+
+/**
+ * Get exhibitor analytics, or vendor analytics for non-exhibitor events.
+ */
+export async function getExhibitorAnalytics(
+	data: GetEventAnalyticsRequest,
+): Promise<PartnerAnalyticsResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<PartnerAnalyticsResponse>(
+			`v1/events/${validated.id}/metrics/exhibitor_analytics`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get exhibitor analytics for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch exhibitor analytics");
 	}
 }
 

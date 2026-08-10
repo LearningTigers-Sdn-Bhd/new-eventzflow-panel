@@ -1,6 +1,7 @@
 // API endpoints
 export {
 	getAllEventAnalytics,
+	getExhibitorAnalytics,
 	getHourlyBreakdownByDay,
 	getMallLiveFeed,
 	getTimeSeries,
@@ -31,6 +32,8 @@ export type {
 	HourlyBreakdownByDayResponse,
 	HourlyDataPoint,
 	MallLiveFeedResponse,
+	PartnerAnalyticsBreakdown,
+	PartnerAnalyticsResponse,
 	PopularHall,
 	TimeSeriesDataPoint,
 	TimeSeriesResponse,

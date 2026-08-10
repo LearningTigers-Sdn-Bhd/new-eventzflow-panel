@@ -22,7 +22,7 @@ export type EventOverview = {
 	totalTickets: number;
 	scannedTickets: number;
 	totalRevenue: number;
-	pendingTickets: number;
+	awaitingCheckingTickets: number;
 	lastActivity?: string;
 };
 
@@ -91,10 +91,10 @@ export function EventOverviewCard({
 					<div className="space-y-1">
 						<div className="flex items-center gap-2 text-muted-foreground text-xs">
 							<Clock className="h-3.5 w-3.5" />
-							<span>Pending</span>
+							<span>Awaiting Check-In</span>
 						</div>
 						<p className="font-bold text-orange-600 text-xl dark:text-orange-400">
-							{event.pendingTickets}
+							{event.awaitingCheckingTickets}
 						</p>
 					</div>
 				</div>

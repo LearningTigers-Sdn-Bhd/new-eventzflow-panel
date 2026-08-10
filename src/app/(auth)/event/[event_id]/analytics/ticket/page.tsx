@@ -1,7 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
+import {
+	CheckCircle2,
+	CircleDashed,
+	Clock,
+	DollarSign,
+	Percent,
+	QrCode,
+	Ticket,
+} from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
@@ -93,6 +101,9 @@ export default function TicketAnalyticsPage({
 	});
 
 	const isLoading = eventLoading || analyticsLoading;
+	const checkInRate = data?.paidTickets
+		? Math.round(((data.scannedTickets ?? 0) / data.paidTickets) * 1000) / 10
+		: 0;
 
 	// Generate date filter label for PDF filename
 	const dateFilterLabel = useMemo(() => {
@@ -121,9 +132,12 @@ export default function TicketAnalyticsPage({
 			},
 			{
 				totalTickets: data.totalTickets ?? 0,
+				paidTickets: data.paidTickets ?? 0,
+				pendingTickets: data.pendingTickets ?? 0,
 				scannedTickets: data.scannedTickets ?? 0,
 				unscannedTickets: data.unscannedTickets ?? 0,
 				totalRevenue: data.totalRevenue ?? 0,
+				pendingRevenue: data.pendingRevenue ?? 0,
 			},
 			{
 				registrations: data.registrationData,
@@ -167,9 +181,13 @@ export default function TicketAnalyticsPage({
 					<div className="grid grid-cols-2 gap-2 rounded-none border-y border-dashed p-0 lg:grid-cols-4">
 						{[
 							"total-tickets",
+							"paid-tickets",
+							"pending-tickets",
+							"check-in-rate",
 							"scanned-tickets",
 							"unscanned-tickets",
-							"total-amount",
+							"collected-revenue",
+							"pending-revenue",
 						].map((key) => (
 							<div
 								key={key}
@@ -197,18 +215,38 @@ export default function TicketAnalyticsPage({
 							Icon={Ticket}
 						/>
 						<StatsCard
+							label="Paid Tickets"
+							value={data?.paidTickets?.toLocaleString() || "0"}
+							Icon={DollarSign}
+						/>
+						<StatsCard
+							label="Pending Tickets"
+							value={data?.pendingTickets?.toLocaleString() || "0"}
+							Icon={Clock}
+						/>
+						<StatsCard
+							label="Check-in Rate"
+							value={`${checkInRate}%`}
+							Icon={Percent}
+						/>
+						<StatsCard
 							label="Scanned Tickets"
 							value={data?.scannedTickets?.toLocaleString() || "0"}
-							Icon={CheckCircle2}
+							Icon={QrCode}
 						/>
 						<StatsCard
 							label="Unscanned Tickets"
 							value={data?.unscannedTickets?.toLocaleString() || "0"}
-							Icon={XCircle}
+							Icon={CircleDashed}
 						/>
 						<StatsCard
-							label="Total Amount"
+							label="Collected Revenue"
 							value={formatCurrency(data?.totalRevenue)}
+							Icon={CheckCircle2}
+						/>
+						<StatsCard
+							label="Pending Revenue"
+							value={formatCurrency(data?.pendingRevenue)}
 							Icon={DollarSign}
 						/>
 					</div>
