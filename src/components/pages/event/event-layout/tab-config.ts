@@ -268,6 +268,22 @@ export const TAB_ITEMS: TabItem[] = [
 		route: "analytics/visitor",
 	},
 	{
+		id: "exhibitor-analytics",
+		label: "Exhibitor Analytics",
+		title: "Exhibitor Analytics",
+		description: "View exhibitor booth bookings, payments, and pricing sales.",
+		icon: ChartBar,
+		route: "analytics/exhibitor",
+	},
+	{
+		id: "vendor-analytics",
+		label: "Vendor Analytics",
+		title: "Vendor Analytics",
+		description: "View vendor participation and activity analytics.",
+		icon: ChartBar,
+		route: "analytics/vendor",
+	},
+	{
 		id: "mall-live-feed",
 		label: "Mall Live Feed",
 		title: "Mall Live Feed",
@@ -296,6 +312,8 @@ export const TICKET_TAB_IDS = [
 export const ANALYTICS_TAB_IDS = [
 	"ticket-analytics",
 	"visitor-analytics",
+	"exhibitor-analytics",
+	"vendor-analytics",
 	"voucher-analytics",
 	"mall-live-feed",
 ];

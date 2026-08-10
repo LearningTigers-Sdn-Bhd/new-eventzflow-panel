@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
+import type { ExhibitorMember } from "./columns";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -28,16 +29,102 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
 	const searchColumns = ["company_name", "booth_number"];
+	const rows = table.getPreFilteredRowModel().rows;
+	const pricingLabels = Array.from(
+		new Set(
+			rows
+				.map(
+					(row) =>
+						(row.original as ExhibitorMember).kit.exhibitor_booth_price_label,
+				)
+				.filter((label): label is string => Boolean(label)),
+		),
+	).sort((left, right) => left.localeCompare(right));
+	const zones = Array.from(
+		new Set(
+			rows
+				.map(
+					(row) =>
+						(row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
+				)
+				.filter((zone): zone is string => Boolean(zone)),
+		),
+	).sort((left, right) => left.localeCompare(right));
+	const hasUnassignedZone = rows.some(
+		(row) => !(row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
+	);
+
+	const renderFilterSelect = (
+		label: string,
+		columnId: string,
+		options: { label: string; value: string }[],
+		className = "w-36",
+	) => {
+		const column = table.getColumn(columnId);
+		const filterValue = (column?.getFilterValue() as string) || "all";
+
+		return (
+			<Select
+				value={filterValue}
+				onValueChange={(value) =>
+					column?.setFilterValue(value === "all" ? undefined : value)
+				}
+			>
+				<SelectTrigger
+					className={cn(className, "rounded-none bg-background font-medium")}
+				>
+					<div className="flex min-w-0 items-center gap-1 truncate text-sm">
+						<span className="shrink-0 font-semibold">{label}:</span>
+						<SelectValue placeholder="All" className="truncate" />
+					</div>
+				</SelectTrigger>
+				<SelectContent className="rounded-none bg-background">
+					{options.map((option) => (
+						<SelectItem
+							key={option.value}
+							value={option.value}
+							className="rounded-none"
+						>
+							{option.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		);
+	};
+
+	const boothPricingOptions = [
+		{ label: "All Pricing", value: "all" },
+		...pricingLabels.map((label) => ({ label, value: label })),
+	];
+	const zoneOptions = [
+		{ label: "All Zones", value: "all" },
+		...zones.map((zone) => ({ label: zone, value: zone })),
+		...(hasUnassignedZone
+			? [{ label: "Unassigned", value: "__unassigned__" }]
+			: []),
+	];
 
 	return (
 		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
 			{!_isTablet ? (
-				<div className="hidden items-center gap-2 lg:flex">
-					<QuerySearchField
-						table={table}
-						columns={searchColumns}
-						placeholder="Search exhibitors..."
-					/>
+				<div className="hidden min-w-0 items-center gap-2 lg:flex">
+					<div className="min-w-0 flex-1">
+						<QuerySearchField
+							table={table}
+							columns={searchColumns}
+							placeholder="Search exhibitors..."
+						/>
+					</div>
+					{pricingLabels.length > 0 &&
+						renderFilterSelect(
+							"Booth Pricing",
+							"booth_pricing",
+							boothPricingOptions,
+							"w-40",
+						)}
+					{zones.length > 0 &&
+						renderFilterSelect("Zone", "zone", zoneOptions, "w-32")}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
@@ -79,6 +166,15 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 						placeholder="Search exhibitors..."
 					/>
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+						{pricingLabels.length > 0 &&
+							renderFilterSelect(
+								"Booth Pricing",
+								"booth_pricing",
+								boothPricingOptions,
+								"w-full",
+							)}
+						{zones.length > 0 &&
+							renderFilterSelect("Zone", "zone", zoneOptions, "w-full")}
 						<Button
 							variant="outline"
 							onClick={() =>

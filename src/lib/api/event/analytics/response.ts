@@ -19,6 +19,34 @@ export type TotalAmountPriceResponse = {
 	pendingAmountPrice: number;
 };
 
+export type PartnerAnalyticsBreakdown = {
+	breakdownKey?: string;
+	label: string;
+	zone: string | null;
+	boothType: string | null;
+	packageLabel: string | null;
+	bookedQuantity: number;
+	paidQuantity: number;
+	unpaidQuantity: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+};
+
+export type PartnerAnalyticsResponse = {
+	mode: "exhibitor" | "vendor";
+	totalPartners: number;
+	paidPartners: number;
+	unpaidPartners: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+	breakdown: PartnerAnalyticsBreakdown[];
+	vendorMetrics: {
+		totalLeads: number;
+		voucherSales: number;
+		voucherRedemptions: number;
+	};
+};
+
 // Visitor analytics response types
 export type TotalVisitorsResponse = {
 	totalVisitors: number;

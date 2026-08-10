@@ -53,7 +53,10 @@ export function DataTable<TData, TValue>({
 		[],
 	);
 	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
+		React.useState<VisibilityState>({
+			booth_pricing: false,
+			zone: false,
+		});
 	const [expandedRows, setExpandedRows] = React.useState<
 		Record<string, boolean>
 	>({});

@@ -115,6 +115,20 @@ export function useTabFiltering(
 				return currentEvent?.use_ticket === false;
 			}
 
+			if (tab.id === "exhibitor-analytics") {
+				return (
+					currentEvent?.use_exhibitor_kit === true &&
+					permissions.canViewVendorsTab
+				);
+			}
+
+			if (tab.id === "vendor-analytics") {
+				return (
+					currentEvent?.use_exhibitor_kit !== true &&
+					permissions.canViewVendorsTab
+				);
+			}
+
 			// Event staff - only org_owner can manage
 			if (tab.id === "event-staff") {
 				return permissions.canManageEventStaff;

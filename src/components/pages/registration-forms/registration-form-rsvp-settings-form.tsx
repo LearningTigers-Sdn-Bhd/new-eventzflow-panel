@@ -70,7 +70,7 @@ export function RegistrationFormRsvpSettingsForm({
 	const mutation = useMutation({
 		mutationFn: updateRegistrationFormRsvpSetting,
 		onSuccess: () => {
-			toast.success("Delegate approval & RSVP settings updated");
+			toast.success("Approval & RSVP settings updated");
 			queryClient.invalidateQueries({
 				queryKey: [
 					"event",
@@ -142,7 +142,7 @@ export function RegistrationFormRsvpSettingsForm({
 	if (isLoading) {
 		return (
 			<LoadingState
-				title="Loading delegate approval settings..."
+				title="Loading approval settings..."
 				description="Please wait while we fetch current settings."
 			/>
 		);
@@ -176,7 +176,7 @@ export function RegistrationFormRsvpSettingsForm({
 								<FormGroupContainer
 									title={{
 										icon: CalendarClock,
-										label: "Delegate Approval Workflow",
+										label: "Application Approval Workflow",
 										description:
 											"Control application review flow and acknowledgement email timeline for this registration form.",
 									}}
@@ -185,7 +185,7 @@ export function RegistrationFormRsvpSettingsForm({
 										<form.Field name="enabled">
 											{(field) => (
 												<SwitchCardInput
-													label="Enable delegate approval"
+													label="Enable approval workflow"
 													description="New registrations from this form enter pending review before they are accepted."
 													checked={field.state.value}
 													onCheckedChange={(value) =>
@@ -240,7 +240,7 @@ export function RegistrationFormRsvpSettingsForm({
 										icon: CalendarClock,
 										label: "RSVP Confirmation",
 										description:
-											"Configure whether approved delegates must confirm attendance before ticket QR is issued.",
+											"Configure whether approved applicants must confirm attendance before ticket QR is issued.",
 									}}
 								>
 									<div
@@ -252,7 +252,7 @@ export function RegistrationFormRsvpSettingsForm({
 											{(field) => (
 												<SwitchCardInput
 													label="Require RSVP confirmation"
-													description="If on, approved delegates must confirm RSVP before getting QR ticket."
+													description="If on, approved applicants must confirm RSVP before getting QR ticket."
 													checked={field.state.value}
 													onCheckedChange={(value) =>
 														field.handleChange(Boolean(value))
@@ -300,7 +300,7 @@ export function RegistrationFormRsvpSettingsForm({
 														inputType="number"
 														min={1}
 														step={1}
-														description="How long approved delegates can use the RSVP link."
+														description="How long approved applicants can use the RSVP link."
 														isInvalid={
 															field.state.meta.isTouched &&
 															!field.state.meta.isValid

@@ -553,6 +553,22 @@ const rawEventMenuConfig: EventMenuConfig = {
 					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
 				},
 				{
+					route: "analytics/exhibitor",
+					label: "Exhibitor Analytics",
+					description:
+						"View exhibitor booth bookings, payment status, and pricing sales.",
+					icon: ChartBar,
+					visible: (p, e) =>
+						visible.hasExhibitorKit(p, e) && visible.eventAdmin(p),
+				},
+				{
+					route: "analytics/vendor",
+					label: "Vendor Analytics",
+					description: "View vendor participation and activity analytics.",
+					icon: ChartBar,
+					visible: (p, e) => visible.hasVendors(p, e) && visible.eventAdmin(p),
+				},
+				{
 					route: "mall-live-feed",
 					label: "Mall Live Feed",
 					description:
@@ -682,9 +698,10 @@ function restrictForBusinessMatchingAdmins(
 	};
 }
 
-export const eventMenuConfig: EventMenuConfig = restrictForBusinessMatchingAdmins(
-	restrictForBusinessHosts(rawEventMenuConfig),
-);
+export const eventMenuConfig: EventMenuConfig =
+	restrictForBusinessMatchingAdmins(
+		restrictForBusinessHosts(rawEventMenuConfig),
+	);
 
 // ============================================================================
 // ROUTE LOOKUP MAP - For layout.tsx to find menu item config by route

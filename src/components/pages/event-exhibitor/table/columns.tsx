@@ -217,6 +217,28 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 	},
+	{
+		accessorFn: (row) => row.kit.exhibitor_booth_price_label ?? "",
+		id: "booth_pricing",
+		enableHiding: false,
+		filterFn: (row, id, value) => !value || row.getValue(id) === value,
+		header: () => null,
+		cell: () => null,
+	},
+	{
+		accessorFn: (row) => row.kit.exhibitor_booth_price_zone ?? "",
+		id: "zone",
+		enableHiding: false,
+		filterFn: (row, id, value) => {
+			if (!value) return true;
+			if (value === "__unassigned__") {
+				return !row.original.kit.exhibitor_booth_price_zone;
+			}
+			return row.getValue(id) === value;
+		},
+		header: () => null,
+		cell: () => null,
+	},
 
 	{
 		accessorKey: "kit.pic_full_name",
