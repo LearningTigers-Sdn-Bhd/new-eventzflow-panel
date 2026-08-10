@@ -314,12 +314,14 @@ export interface CompactStatsCardProps
 	icon: LucideIcon | IconType;
 	label: string;
 	count: number;
+	subtitle?: string;
 }
 
 export function CompactStatsCard({
 	icon: Icon,
 	label,
 	count,
+	subtitle,
 	variant,
 }: CompactStatsCardProps): ReactElement {
 	return (
@@ -327,6 +329,11 @@ export function CompactStatsCard({
 			<Icon className="size-5" />
 			<p className="text-xs">{label}</p>
 			<p className={countVariants({ variant })}>{count}</p>
+			{subtitle && (
+				<p className="max-w-full text-[10px] text-muted-foreground leading-tight">
+					{subtitle}
+				</p>
+			)}
 		</div>
 	);
 }
