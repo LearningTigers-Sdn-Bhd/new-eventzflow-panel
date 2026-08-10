@@ -109,9 +109,12 @@ export async function getAllEventAnalytics(
 
 		return {
 			totalTickets: totalTickets.totalTickets,
+			paidTickets: totalTickets.paidTickets,
+			pendingTickets: totalTickets.pendingTickets,
 			totalScannedTickets: totalScannedTickets.totalScannedTickets,
 			totalUnscannedTickets: totalUnscannedTickets.totalUnscannedTickets,
 			totalAmountPrice: totalAmountPrice.totalAmountPrice,
+			pendingAmountPrice: totalAmountPrice.pendingAmountPrice,
 			registrationData: toDateCountFormat(ticketsTimeSeries.data ?? []),
 			scanData: toDateCountFormat(scansTimeSeries.data ?? []),
 			revenueData: toDateCountFormat(revenueTimeSeries.data ?? []),

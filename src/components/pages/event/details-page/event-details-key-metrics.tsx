@@ -1,8 +1,10 @@
 "use client";
 
 import {
+	CircleDashed,
 	Clock,
 	DollarSign,
+	Percent,
 	QrCode,
 	ShoppingBag,
 	Ticket,
@@ -26,6 +28,13 @@ export function EventDetailsKeyMetrics({
 	mallData,
 	formatCurrency,
 }: EventDetailsKeyMetricsProps) {
+	const checkInRate = ticketAnalytics?.paidTickets
+		? Math.round(
+				((ticketAnalytics.scannedTickets ?? 0) / ticketAnalytics.paidTickets) *
+					1000,
+			) / 10
+		: 0;
+
 	return (
 		<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-4">
 			{isTicketEvent ? (
@@ -36,6 +45,21 @@ export function EventDetailsKeyMetrics({
 						Icon={Ticket}
 					/>
 					<StatsCard
+						label="Paid Tickets"
+						value={ticketAnalytics?.paidTickets ?? 0}
+						Icon={DollarSign}
+					/>
+					<StatsCard
+						label="Pending Tickets"
+						value={ticketAnalytics?.pendingTickets ?? 0}
+						Icon={Clock}
+					/>
+					<StatsCard
+						label="Check-in Rate"
+						value={`${checkInRate}%`}
+						Icon={Percent}
+					/>
+					<StatsCard
 						label="Scanned Tickets"
 						value={ticketAnalytics?.scannedTickets ?? 0}
 						Icon={QrCode}
@@ -43,12 +67,17 @@ export function EventDetailsKeyMetrics({
 					<StatsCard
 						label="Unscanned Tickets"
 						value={ticketAnalytics?.unscannedTickets ?? 0}
-						Icon={Clock}
+						Icon={CircleDashed}
 					/>
 					<StatsCard
-						label="Revenue"
+						label="Collected Revenue"
 						value={formatCurrency(ticketAnalytics?.totalRevenue) ?? "0"}
 						Icon={TrendingUp}
+					/>
+					<StatsCard
+						label="Pending Revenue"
+						value={formatCurrency(ticketAnalytics?.pendingRevenue) ?? "0"}
+						Icon={DollarSign}
 					/>
 				</>
 			) : (

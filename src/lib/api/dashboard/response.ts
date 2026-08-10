@@ -54,10 +54,12 @@ export type EventAnalytics = {
 	eventName: string;
 	status: "draft" | "published" | "cancelled" | "completed";
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 	scannedTickets: number;
 	unscannedTickets: number;
 	totalRevenue: number;
-	pendingTickets: number;
+	pendingRevenue: number;
 	locations: number;
 	recentScans: RecentScan[];
 	registrationData: ChartDataPoint[];
@@ -101,6 +103,8 @@ export type BackendEventOverview = {
 
 export type BackendAnalyticsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 };
 
 export type BackendScannedTicketsResponse = {
@@ -113,6 +117,7 @@ export type BackendUnscannedTicketsResponse = {
 
 export type BackendRevenueResponse = {
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
 };
 
 export type BackendTicket = {

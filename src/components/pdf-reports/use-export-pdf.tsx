@@ -141,9 +141,12 @@ export function prepareTicketReportData(
 	event: { id: string; name: string; start_date: string; end_date: string },
 	stats: {
 		totalTickets: number;
+		paidTickets: number;
+		pendingTickets: number;
 		scannedTickets: number;
 		unscannedTickets: number;
 		totalRevenue: number;
+		pendingRevenue: number;
 	},
 	timeSeries: {
 		registrations?: { date: string; value: number }[];
@@ -173,8 +176,8 @@ export function prepareTicketReportData(
 		stats: {
 			...stats,
 			scanRate:
-				stats.totalTickets > 0
-					? (stats.scannedTickets / stats.totalTickets) * 100
+				stats.paidTickets > 0
+					? (stats.scannedTickets / stats.paidTickets) * 100
 					: 0,
 		},
 		timeSeries: {

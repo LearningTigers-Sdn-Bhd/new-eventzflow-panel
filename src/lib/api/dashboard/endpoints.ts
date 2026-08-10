@@ -201,10 +201,12 @@ export async function getEventAnalytics(
 		eventName: event.title,
 		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		totalTickets: totalTickets.totalTickets,
+		paidTickets: totalTickets.paidTickets,
+		pendingTickets: totalTickets.pendingTickets,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,
 		totalRevenue: centsToDollars(totalRevenue.totalAmountPrice),
-		pendingTickets: unscannedTickets.totalUnscannedTickets,
+		pendingRevenue: centsToDollars(totalRevenue.pendingAmountPrice),
 		locations: locations.length,
 		recentScans,
 		registrationData: (ticketsTimeSeries.data ?? []).map((d) => ({
