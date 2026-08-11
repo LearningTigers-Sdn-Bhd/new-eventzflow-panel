@@ -2,10 +2,12 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { useCallback, useRef, useState } from "react";
+import { ExhibitorAnalyticsReport } from "./exhibitor-report";
 import { TicketAnalyticsReport } from "./ticket-report";
 import type {
 	AnalyticsReportData,
 	DailyHourlyBreakdown,
+	ExhibitorReportData,
 	TicketReportData,
 	VisitorReportData,
 	VoucherReportData,
@@ -29,6 +31,8 @@ function createPdfDocument(data: AnalyticsReportData) {
 			return <VisitorAnalyticsReport data={data as VisitorReportData} />;
 		case "voucher":
 			return <VoucherAnalyticsReport data={data as VoucherReportData} />;
+		case "exhibitor":
+			return <ExhibitorAnalyticsReport data={data as ExhibitorReportData} />;
 		default:
 			throw new Error("Unknown report type");
 	}
@@ -297,5 +301,60 @@ export function prepareVoucherReportData(
 		},
 		topVouchers: data.topScannedVouchers,
 		latestTransactions: data.latestRedemptionTransactions,
+	};
+}
+
+/**
+ * Helper function to prepare exhibitor analytics data for export
+ */
+export function prepareExhibitorReportData(
+	event: { id: string; name: string; start_date: string; end_date: string },
+	analytics: {
+		totalPartners: number;
+		paidPartners: number;
+		unpaidPartners: number;
+		collectedRevenue: number;
+		pendingRevenue: number;
+		breakdown: {
+			label: string;
+			zone: string | null;
+			boothType: string | null;
+			bookedQuantity: number;
+			paidQuantity: number;
+			unpaidQuantity: number;
+			collectedRevenue: number;
+			pendingRevenue: number;
+		}[];
+	},
+	timeSeries: {
+		bookings?: { date: string; value: number }[];
+		revenue?: { date: string; value: number }[];
+	} = {},
+): ExhibitorReportData {
+	return {
+		type: "exhibitor",
+		event: {
+			id: event.id,
+			name: event.name,
+			startDate: event.start_date,
+			endDate: event.end_date,
+		},
+		metadata: {
+			generatedAt: new Date(),
+			eventStartDate: event.start_date,
+			eventEndDate: event.end_date,
+		},
+		stats: {
+			totalPartners: analytics.totalPartners,
+			paidPartners: analytics.paidPartners,
+			unpaidPartners: analytics.unpaidPartners,
+			collectedRevenue: analytics.collectedRevenue,
+			pendingRevenue: analytics.pendingRevenue,
+		},
+		breakdown: analytics.breakdown,
+		timeSeries: {
+			bookings: timeSeries.bookings ?? [],
+			revenue: timeSeries.revenue ?? [],
+		},
 	};
 }

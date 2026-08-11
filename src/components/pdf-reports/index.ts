@@ -8,11 +8,13 @@ export {
 	DonutChart,
 	HourlyBarChart,
 } from "./charts";
+export { ExhibitorAnalyticsReport } from "./exhibitor-report";
 export { ExportPdfButton } from "./export-button";
 export { TicketAnalyticsReport } from "./ticket-report";
 export type {
 	AnalyticsReportData,
 	DailyHourlyBreakdown,
+	ExhibitorReportData,
 	ReportEventInfo,
 	ReportMetadata,
 	TicketReportData,
@@ -20,6 +22,7 @@ export type {
 	VoucherReportData,
 } from "./types";
 export {
+	prepareExhibitorReportData,
 	prepareTicketReportData,
 	prepareVisitorReportData,
 	prepareVoucherReportData,

@@ -21,6 +21,8 @@ export const getTimeSeriesSchema = z.object({
 		"stamps",
 		"redemptions",
 		"redemption_value",
+		"exhibitor_bookings",
+		"exhibitor_revenue",
 	]),
 	groupBy: z.enum(["hour", "day", "week", "month"]).optional(),
 	dateMode: z.enum(["all_time", "pre_event"]).optional(),
