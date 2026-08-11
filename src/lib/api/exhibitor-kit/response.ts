@@ -161,6 +161,15 @@ export interface ImportExhibitorKitsRowResult {
 	id?: number;
 	public_id?: string;
 	vendor_email?: string;
+	vendor_name?: string;
+	company_name?: string;
+	booth_type?: string;
+	zone?: string;
+	price_label?: string;
+	package_name?: string;
+	booth_quantity?: number;
+	payment_status?: string;
+	amount?: number;
 	error?: string;
 }
 
