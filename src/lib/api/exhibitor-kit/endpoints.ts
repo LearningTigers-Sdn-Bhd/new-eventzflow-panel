@@ -106,6 +106,60 @@ export async function submitExhibitorKitOrder(
 	);
 }
 
+async function downloadExhibitorKitExport(
+	eventId: number,
+	format: "xlsx" | "csv",
+	fallbackFilename: string,
+): Promise<void> {
+	const { blob, headers } = await restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/export?format=${format}`,
+	);
+
+	let filename = fallbackFilename;
+	const contentDisposition = headers.get("Content-Disposition");
+	if (contentDisposition) {
+		// Prefer the quoted filename="..." segment; Rails also appends an
+		// RFC 5987 filename*=UTF-8''... segment which a greedy match would swallow.
+		const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+		if (filenameMatch) {
+			filename = filenameMatch[1];
+		}
+	}
+
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+}
+
+/**
+ * Download the multi-sheet Excel workbook of registered exhibitor kits for an event
+ * (Summary, Registered Exhibitor, Exhibitor Crew sheets).
+ */
+export async function exportExhibitorKits(eventId: number): Promise<void> {
+	return downloadExhibitorKitExport(
+		eventId,
+		"xlsx",
+		`exhibitor-kits-${eventId}.xlsx`,
+	);
+}
+
+/**
+ * Download a plain CSV of registered exhibitor kits for an event (same columns as
+ * the Excel report's "Registered Exhibitor" sheet).
+ */
+export async function exportExhibitorKitsCsv(eventId: number): Promise<void> {
+	return downloadExhibitorKitExport(
+		eventId,
+		"csv",
+		`exhibitor-kits-${eventId}.csv`,
+	);
+}
+
 export async function downloadExhibitorKitIcCopy(
 	eventId: number,
 	kitId: number,

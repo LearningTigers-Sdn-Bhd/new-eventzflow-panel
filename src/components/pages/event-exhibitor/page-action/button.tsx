@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	BarChart3,
 	ChevronDown,
 	LayoutGrid,
 	Link2,
@@ -13,6 +14,7 @@ import {
 	Users,
 	Vault,
 } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,6 +71,16 @@ export function ExhibitorPageButton() {
 
 	return (
 		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
+			<Button
+				variant="outline"
+				className="w-full rounded-none sm:w-auto"
+				asChild
+			>
+				<Link href={`/event/${eventId}/analytics/exhibitor`}>
+					<BarChart3 className="mr-2 h-4 w-4" />
+					Analytics
+				</Link>
+			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" className="w-full rounded-none sm:w-auto">

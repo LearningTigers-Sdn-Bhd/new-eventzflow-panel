@@ -114,12 +114,43 @@ export type VoucherReportData = {
 };
 
 /**
+ * Exhibitor Analytics Report Data
+ */
+export type ExhibitorReportData = {
+	type: "exhibitor";
+	event: ReportEventInfo;
+	metadata: ReportMetadata;
+	stats: {
+		totalPartners: number;
+		paidPartners: number;
+		unpaidPartners: number;
+		collectedRevenue: number;
+		pendingRevenue: number;
+	};
+	breakdown: {
+		label: string;
+		zone: string | null;
+		boothType: string | null;
+		bookedQuantity: number;
+		paidQuantity: number;
+		unpaidQuantity: number;
+		collectedRevenue: number;
+		pendingRevenue: number;
+	}[];
+	timeSeries: {
+		bookings: ChartDataPoint[];
+		revenue: ChartDataPoint[];
+	};
+};
+
+/**
  * Union type for all report types
  */
 export type AnalyticsReportData =
 	| TicketReportData
 	| VisitorReportData
-	| VoucherReportData;
+	| VoucherReportData
+	| ExhibitorReportData;
 
 /**
  * Helper to format currency for reports
@@ -179,6 +210,8 @@ export function getReportTypeLabel(type: AnalyticsReportData["type"]): string {
 			return "Visitor Analytics Report";
 		case "voucher":
 			return "Voucher Analytics Report";
+		case "exhibitor":
+			return "Exhibitor Analytics Report";
 	}
 }
 

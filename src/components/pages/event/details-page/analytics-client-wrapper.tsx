@@ -6,6 +6,7 @@ import {
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -13,6 +14,7 @@ import type { MallLiveFeedResponse } from "@/lib/api/event/analytics/response";
 import type { Event } from "@/lib/api/event/response";
 import type { VoucherAnalyticsResponse } from "@/lib/api/voucher-analytics/response";
 
+import { EventDetailsExhibitorStats } from "./event-details-exhibitor-stats";
 import { EventDetailsKeyMetrics } from "./event-details-key-metrics";
 import { EventDetailsQuickInfo } from "./event-details-quick-info";
 import { EventDetailsRecentScans } from "./event-details-recent-scans";
@@ -102,6 +104,9 @@ export function AnalyticsClientWrapper({
 							) : (
 								<EventDetailsVisitorStats event={event} />
 							)}
+							{event.use_exhibitor_kit && (
+								<EventDetailsExhibitorStats event={event} />
+							)}
 						</TabsContent>
 
 						<TabsContent value="quick-info" className="mt-2">
@@ -142,6 +147,12 @@ export function AnalyticsClientWrapper({
 						<EventDetailsTicketStats event={event} />
 					) : (
 						<EventDetailsVisitorStats event={event} />
+					)}
+					{event.use_exhibitor_kit && (
+						<>
+							<EventDetailsExhibitorStats event={event} />
+							<Separator />
+						</>
 					)}
 
 					{/* Quick Info */}

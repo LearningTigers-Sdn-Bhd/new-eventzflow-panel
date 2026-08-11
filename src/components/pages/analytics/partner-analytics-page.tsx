@@ -23,20 +23,31 @@ import {
 	Tag,
 } from "lucide-react";
 import * as React from "react";
-import { use } from "react";
-import { StatsCard } from "@/components/admin-ui/analytic";
+import { use, useState } from "react";
+import { StatsCard, TimeSeriesChart } from "@/components/admin-ui/analytic";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { DataPagination } from "@/components/data-pagination";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { ExhibitorExportDropdown } from "@/components/pages/analytics/exhibitor-export-dropdown";
+import { prepareExhibitorReportData } from "@/components/pdf-reports";
+import {
+	EventDateFilter,
+	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+} from "@/components/ui/event-date-filter";
+import { getEventById } from "@/lib/api/event";
 import type {
 	PartnerAnalyticsBreakdown,
 	PartnerAnalyticsFilterOptions,
 	PartnerAnalyticsResponse,
 } from "@/lib/api/event/analytics";
-import { getExhibitorAnalytics } from "@/lib/api/event/analytics";
+import {
+	getExhibitorAnalytics,
+	getTimeSeries,
+} from "@/lib/api/event/analytics";
 
 interface PartnerAnalyticsPageProps {
 	params: Promise<{ event_id: string }>;
@@ -389,7 +400,91 @@ function PartnerBreakdownTable({
 	);
 }
 
-function ExhibitorAnalytics({ data }: { data: PartnerAnalyticsResponse }) {
+function ExhibitorAnalytics({
+	data,
+	eventId,
+	eventName,
+	eventStartDate,
+	eventEndDate,
+	dateSelection,
+	onDateSelectionChange,
+}: {
+	data: PartnerAnalyticsResponse;
+	eventId: number;
+	eventName: string;
+	eventStartDate: string;
+	eventEndDate: string;
+	dateSelection: EventDateSelection;
+	onDateSelectionChange: (selection: EventDateSelection) => void;
+}) {
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
+
+	const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"analytics",
+			"exhibitor_bookings",
+			dateSelection,
+		],
+		queryFn: () =>
+			getTimeSeries({
+				eventId,
+				metric: "exhibitor_bookings",
+				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+	});
+	const { data: revenueData, isLoading: revenueLoading } = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"analytics",
+			"exhibitor_revenue",
+			dateSelection,
+		],
+		queryFn: () =>
+			getTimeSeries({
+				eventId,
+				metric: "exhibitor_revenue",
+				groupBy: analyticsParams.groupBy,
+				dateMode: analyticsParams.dateMode,
+				startDate: analyticsParams.startDate,
+				endDate: analyticsParams.endDate,
+			}),
+	});
+
+	const toChartData = (points?: { period: string; value: number }[]) =>
+		points?.map((p) => ({ date: p.period, value: p.value })) ?? [];
+
+	const reportData = React.useMemo(
+		() =>
+			prepareExhibitorReportData(
+				{
+					id: String(eventId),
+					name: eventName,
+					start_date: eventStartDate,
+					end_date: eventEndDate,
+				},
+				data,
+				{
+					bookings: toChartData(bookingsData?.data),
+					revenue: toChartData(revenueData?.data),
+				},
+			),
+		[
+			data,
+			eventId,
+			eventName,
+			eventStartDate,
+			eventEndDate,
+			bookingsData,
+			revenueData,
+		],
+	);
+
 	return (
 		<>
 			<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
@@ -397,35 +492,64 @@ function ExhibitorAnalytics({ data }: { data: PartnerAnalyticsResponse }) {
 					label="Total Exhibitors"
 					value={data.totalPartners}
 					Icon={Building2}
-					variant="sky"
 				/>
 				<StatsCard
 					label="Paid Exhibitors"
 					value={data.paidPartners}
 					Icon={BadgeCheck}
-					subtitle="Includes waived and sponsored"
-					variant="emerald"
 				/>
 				<StatsCard
 					label="Unpaid Exhibitors"
 					value={data.unpaidPartners}
 					Icon={Clock3}
-					variant="yellow"
 				/>
 				<StatsCard
 					label="Collected Revenue"
 					value={formatCurrency(data.collectedRevenue)}
 					Icon={Banknote}
-					subtitle="Cash payments only"
-					variant="emerald"
 				/>
 				<StatsCard
 					label="Pending Revenue"
 					value={formatCurrency(data.pendingRevenue)}
 					Icon={DollarSign}
-					subtitle="Active unpaid booth value"
-					variant="yellow"
 				/>
+			</div>
+
+			<div className="mb-12 space-y-4 border-y border-dashed">
+				<div className="flex items-center justify-between px-4 pt-4">
+					<h3 className="font-medium text-sm">Analytics Trends</h3>
+					<div className="flex items-center gap-2">
+						<EventDateFilter
+							eventStartDate={eventStartDate}
+							eventEndDate={eventEndDate}
+							value={dateSelection}
+							onChange={onDateSelectionChange}
+						/>
+						<ExhibitorExportDropdown
+							eventId={eventId}
+							reportData={reportData}
+						/>
+					</div>
+				</div>
+
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<TimeSeriesChart
+						title="Booth Bookings"
+						description="Exhibitor booth bookings over time"
+						data={toChartData(bookingsData?.data)}
+						isLoading={bookingsLoading}
+						color="var(--chart-1)"
+						icon={<Building2 className="h-4 w-4" />}
+					/>
+					<TimeSeriesChart
+						title="Booth Revenue"
+						description="Collected exhibitor revenue over time"
+						data={toChartData(revenueData?.data)}
+						isLoading={revenueLoading}
+						color="var(--chart-3)"
+						icon={<Banknote className="h-4 w-4" />}
+					/>
+				</div>
 			</div>
 
 			<section className="space-y-4">
@@ -454,10 +578,18 @@ function ExhibitorAnalytics({ data }: { data: PartnerAnalyticsResponse }) {
 export function PartnerAnalyticsPage({ params }: PartnerAnalyticsPageProps) {
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "all_time",
+	});
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["exhibitor-analytics", eventId],
 		queryFn: () => getExhibitorAnalytics({ id: eventId }),
+		enabled: Number.isInteger(eventId) && eventId > 0,
+	});
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(event_id),
 		enabled: Number.isInteger(eventId) && eventId > 0,
 	});
 
@@ -485,7 +617,15 @@ export function PartnerAnalyticsPage({ params }: PartnerAnalyticsPageProps) {
 
 	return (
 		<div className="space-y-6">
-			<ExhibitorAnalytics data={data} />
+			<ExhibitorAnalytics
+				data={data}
+				eventId={eventId}
+				eventName={event?.title ?? "Event"}
+				eventStartDate={event?.start_date ?? new Date().toISOString()}
+				eventEndDate={event?.end_date ?? new Date().toISOString()}
+				dateSelection={dateSelection}
+				onDateSelectionChange={setDateSelection}
+			/>
 		</div>
 	);
 }
