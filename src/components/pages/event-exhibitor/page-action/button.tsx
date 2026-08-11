@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
 	BarChart3,
 	ChevronDown,
@@ -26,8 +27,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { getEventById } from "@/lib/api/event";
 import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
+import { ExhibitorImportButton } from "../../event-vendors/exhibitor-import-dialog";
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
@@ -42,6 +45,11 @@ export function ExhibitorPageButton() {
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
 	const permissions = useEventPermissions(eventId);
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!eventId,
+	});
 	const setFullScreenDialogOpen = useFullScreenDialogStore(
 		(state) => state.setOpen,
 	);
@@ -190,6 +198,9 @@ export function ExhibitorPageButton() {
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
+			{event?.use_exhibitor_kit === true && (
+				<ExhibitorImportButton eventId={Number(eventId)} />
+			)}
 			<BoothPricingDialog
 				eventId={Number(eventId)}
 				trigger={<span className="hidden" />}
