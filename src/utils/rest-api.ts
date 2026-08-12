@@ -89,7 +89,11 @@ export const kyClient = ky.create({
 	credentials: "include", // Always include cookies (for HttpOnly refresh token)
 	retry: {
 		limit: 3,
-		methods: ["get", "post", "put", "delete", "patch"],
+		// "post" is intentionally excluded: retrying a non-idempotent create
+		// (e.g. booking creation) can silently duplicate-submit if the original
+		// request actually succeeded server-side but the response was lost
+		// (e.g. a proxy gateway timeout).
+		methods: ["get", "put", "delete", "patch"],
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
