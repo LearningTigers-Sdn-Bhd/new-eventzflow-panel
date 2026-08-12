@@ -29,11 +29,13 @@ import {
 	getExhibitorBooths,
 	releaseExhibitorBooth,
 } from "@/lib/api/exhibitor-booth";
+import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import {
 	type ExhibitorKit,
 	getExhibitorKit,
 	updateExhibitorKit,
 } from "@/lib/api/exhibitor-kit";
+import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
 import { extractErrorMessage } from "@/utils/error-handler";
 
 function formatVoucherDiscount(
@@ -168,6 +170,83 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 		(booth) => booth.status === "available" || booth.id === linkedBoothId,
 	);
 
+	// Booth price / package / voucher can be changed until the kit is settled — after
+	// that there's no refund/reconciliation flow, so the backend rejects it (see
+	// ExhibitorKitService#update_booking_selection) and this UI mirrors that gate.
+	const isSettled =
+		kitDetails?.payment_status === "paid" ||
+		kitDetails?.payment_status === "waived" ||
+		kitDetails?.payment_status === "sponsored";
+	const { data: boothPrices = [] } = useQuery({
+		queryKey: ["event", eventId, "exhibitor-booth-prices"],
+		queryFn: () => getExhibitorBoothPrices(eventId),
+	});
+	const { data: packages = [] } = useQuery({
+		queryKey: ["event", eventId, "exhibitor-packages"],
+		queryFn: () => getExhibitorPackages(eventId),
+	});
+	const [selectedBoothPriceId, setSelectedBoothPriceId] = useState<
+		number | undefined
+	>(undefined);
+	const [selectedPackageId, setSelectedPackageId] = useState<number | null>(
+		null,
+	);
+	const [voucherCode, setVoucherCode] = useState("");
+	useEffect(() => {
+		if (!kitDetails) return;
+		setSelectedBoothPriceId(kitDetails.exhibitor_booth_price_id);
+		setSelectedPackageId(kitDetails.exhibitor_package_id ?? null);
+		setVoucherCode(kitDetails.exhibitor_voucher_code ?? "");
+	}, [kitDetails]);
+	// The kit's currently assigned price/package may have been archived/deactivated
+	// since booking — it won't be in the fetch-for-new-bookings list, but the Select
+	// still needs an option to render so the current value doesn't fall back to the
+	// placeholder. Synthesize one from kitDetails' own label when that happens.
+	const boothPriceOptions =
+		kitDetails?.exhibitor_booth_price_id &&
+		!boothPrices.some(
+			(price) => price.id === kitDetails.exhibitor_booth_price_id,
+		)
+			? [
+					{
+						id: kitDetails.exhibitor_booth_price_id,
+						label: kitDetails.exhibitor_booth_price_label || "Current price",
+						zone: kitDetails.exhibitor_booth_price_zone ?? null,
+					},
+					...boothPrices,
+				]
+			: boothPrices;
+	const packageOptions =
+		kitDetails?.exhibitor_package_id &&
+		kitDetails.exhibitor_package_id === selectedPackageId &&
+		!packages.some((pkg) => pkg.id === kitDetails.exhibitor_package_id)
+			? [
+					{
+						id: kitDetails.exhibitor_package_id,
+						name: kitDetails.exhibitor_package_name || "Current package",
+						exhibitorBoothPriceId: selectedBoothPriceId ?? -1,
+					},
+					...packages,
+				]
+			: packages;
+	const packagesForSelectedBoothPrice = packageOptions.filter(
+		(pkg) => pkg.exhibitorBoothPriceId === selectedBoothPriceId,
+	);
+	const bookingSelectionChanged =
+		kitDetails !== undefined &&
+		(selectedBoothPriceId !== kitDetails.exhibitor_booth_price_id ||
+			selectedPackageId !== (kitDetails.exhibitor_package_id ?? null) ||
+			voucherCode !== (kitDetails.exhibitor_voucher_code ?? ""));
+	// Base-price preview only — voucher math needs server-side validation (does the
+	// code even apply to this selection?), so it's excluded here rather than guessed.
+	const selectedPackageForPreview = packages.find(
+		(pkg) => pkg.id === selectedPackageId,
+	);
+	const previewBasePrice =
+		selectedPackageForPreview?.price ??
+		boothPrices.find((price) => price.id === selectedBoothPriceId)
+			?.currentPrice;
+
 	const boothTypeOptions = useMemo(() => {
 		const defaults = [
 			{ value: "shell_scheme", label: "Shell Scheme" },
@@ -200,6 +279,12 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 			toast.success("Exhibitor kit updated successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["event", eventId.toString(), "vendors"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "exhibitor-kit", kitId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "exhibitor-booths"],
 			});
 		},
 		onError: async (error: unknown) => {
@@ -258,6 +343,13 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 
 		await updateKitMutation.mutateAsync({
 			...(!hasBoothInventory ? { booth_number: boothNumber || undefined } : {}),
+			...(bookingSelectionChanged
+				? {
+						exhibitor_booth_price_id: selectedBoothPriceId,
+						exhibitor_package_id: selectedPackageId,
+						voucher_code: voucherCode,
+					}
+				: {}),
 			booth_type: boothType || undefined,
 			booth_dimensions: boothDimensions || undefined,
 			side_wall_left_required: sideWallLeftRequired,
@@ -420,41 +512,129 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 						</Field>
 					</div>
 
-					{(kitDetails?.exhibitor_booth_price_label ||
-						kitDetails?.exhibitor_package_name ||
-						kitDetails?.exhibitor_voucher_code) && (
+					{kitDetails && (
 						<div className="grid grid-cols-2 items-start gap-3 rounded-none border border-dashed bg-accent/50 p-3 md:grid-cols-3 md:gap-4">
 							<Field orientation="vertical">
 								<FieldLabel className="text-xs md:text-sm">
 									Booth Price
 								</FieldLabel>
-								<p className="text-sm">
-									{kitDetails?.exhibitor_booth_price_label
-										? `${kitDetails.exhibitor_booth_price_label}${
-												kitDetails.exhibitor_booth_price_zone
-													? ` (${kitDetails.exhibitor_booth_price_zone})`
-													: ""
-											}`
-										: "—"}
-								</p>
+								{isSettled ? (
+									<p className="text-sm">
+										{kitDetails.exhibitor_booth_price_label
+											? `${kitDetails.exhibitor_booth_price_label}${
+													kitDetails.exhibitor_booth_price_zone
+														? ` (${kitDetails.exhibitor_booth_price_zone})`
+														: ""
+												}`
+											: "—"}
+									</p>
+								) : (
+									<Select
+										value={
+											selectedBoothPriceId ? String(selectedBoothPriceId) : ""
+										}
+										onValueChange={(value) => {
+											// Radix can fire onValueChange("") from its hidden native
+											// <select> bridge while options are still registering —
+											// an empty value is never a real selection, so ignore it
+											// rather than let Number("") (0) clobber the real id.
+											if (!value) return;
+											const parsed = Number(value);
+											setSelectedBoothPriceId(parsed);
+											// Package is scoped to a single booth price — clear it if
+											// it no longer matches the newly selected one.
+											setSelectedPackageId((current) => {
+												const pkg = packages.find((p) => p.id === current);
+												return pkg && pkg.exhibitorBoothPriceId === parsed
+													? current
+													: null;
+											});
+										}}
+										disabled={updateKitMutation.isPending}
+									>
+										<SelectTrigger className="rounded-none text-sm">
+											<SelectValue placeholder="Select booth price" />
+										</SelectTrigger>
+										<SelectContent className="rounded-none">
+											{boothPriceOptions.map((price) => (
+												<SelectItem key={price.id} value={String(price.id)}>
+													{price.label}
+													{price.zone ? ` (${price.zone})` : ""}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
 							</Field>
 							<Field orientation="vertical">
 								<FieldLabel className="text-xs md:text-sm">Package</FieldLabel>
-								<p className="text-sm">
-									{kitDetails?.exhibitor_package_name || "—"}
-								</p>
+								{isSettled ? (
+									<p className="text-sm">
+										{kitDetails.exhibitor_package_name || "—"}
+									</p>
+								) : (
+									<Select
+										value={
+											selectedPackageId ? String(selectedPackageId) : "none"
+										}
+										onValueChange={(value) =>
+											setSelectedPackageId(
+												value === "none" ? null : Number(value),
+											)
+										}
+										disabled={updateKitMutation.isPending}
+									>
+										<SelectTrigger className="rounded-none text-sm">
+											<SelectValue placeholder="No package" />
+										</SelectTrigger>
+										<SelectContent className="rounded-none">
+											<SelectItem value="none">No Package</SelectItem>
+											{packagesForSelectedBoothPrice.map((pkg) => (
+												<SelectItem key={pkg.id} value={String(pkg.id)}>
+													{pkg.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
 							</Field>
 							<Field orientation="vertical">
 								<FieldLabel className="text-xs md:text-sm">Voucher</FieldLabel>
-								<p className="text-sm">
-									{kitDetails?.exhibitor_voucher_code
-										? `${kitDetails.exhibitor_voucher_code} (${formatVoucherDiscount(
-												kitDetails.exhibitor_voucher_discount_type,
-												kitDetails.exhibitor_voucher_discount_value,
-											)})`
-										: "—"}
-								</p>
+								{isSettled ? (
+									<p className="text-sm">
+										{kitDetails.exhibitor_voucher_code
+											? `${kitDetails.exhibitor_voucher_code} (${formatVoucherDiscount(
+													kitDetails.exhibitor_voucher_discount_type,
+													kitDetails.exhibitor_voucher_discount_value,
+												)})`
+											: "—"}
+									</p>
+								) : (
+									<Input
+										value={voucherCode}
+										onChange={(e) => setVoucherCode(e.target.value)}
+										placeholder="Voucher code (optional)"
+										disabled={updateKitMutation.isPending}
+										className="rounded-none text-sm"
+									/>
+								)}
 							</Field>
+							{isSettled && (
+								<FieldDescription className="col-span-2 text-xs md:col-span-3">
+									Kit is settled ({kitDetails.payment_status}) — booth price,
+									package, and voucher can no longer be changed.
+								</FieldDescription>
+							)}
+							{!isSettled &&
+								bookingSelectionChanged &&
+								previewBasePrice !== undefined && (
+									<FieldDescription className="col-span-2 text-xs md:col-span-3">
+										New price on save: RM{previewBasePrice.toFixed(2)}
+										{voucherCode
+											? " (before voucher — applied and validated on save)"
+											: ""}
+									</FieldDescription>
+								)}
 						</div>
 					)}
 

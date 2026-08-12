@@ -8,7 +8,11 @@ export interface BackendErrorResponse {
 	success?: boolean;
 	message?: string;
 	error?: string;
-	errors?: Array<{ field: string; message: string }>;
+	// Backend services return this in three different shapes depending on the
+	// call site: a plain string (ServiceResult errors like "Booth capacity is
+	// sold out"), an array of strings (ActiveRecord's errors.full_messages),
+	// or an array of {field, message} (form-field-scoped validation errors).
+	errors?: string | string[] | Array<{ field: string; message: string }>;
 }
 
 /**
@@ -48,8 +52,13 @@ export async function extractErrorMessage(error: unknown): Promise<string> {
 			if (errorData.error) {
 				return errorData.error;
 			}
-			if (errorData.errors && errorData.errors.length > 0) {
-				return errorData.errors.map((e) => e.message).join(", ");
+			if (typeof errorData.errors === "string" && errorData.errors) {
+				return errorData.errors;
+			}
+			if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+				return errorData.errors
+					.map((e) => (typeof e === "string" ? e : e.message))
+					.join(", ");
 			}
 			if (errorData.message) {
 				return errorData.message;

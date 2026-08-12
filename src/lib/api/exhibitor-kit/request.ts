@@ -163,6 +163,9 @@ export const updateExhibitorKitSchema = z.object({
 	payment_note: z.string().optional(),
 	indemnity_link: z.string().url().optional().or(z.literal("")),
 	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	exhibitor_booth_price_id: z.number().optional(),
+	exhibitor_package_id: z.number().nullable().optional(),
+	voucher_code: z.string().optional(),
 	exhibitor_team_members_attributes: z
 		.array(exhibitorTeamMemberSchema)
 		.optional(),
