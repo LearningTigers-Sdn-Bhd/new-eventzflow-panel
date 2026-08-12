@@ -1,6 +1,7 @@
 "use client";
 
 import { Image, Text, View } from "@react-pdf/renderer";
+import type { Style } from "@react-pdf/types";
 import type { ReactNode } from "react";
 import { colors, styles } from "./styles";
 import {
@@ -114,8 +115,18 @@ export function Section({
 /**
  * Stats Grid Container
  */
-export function StatsGrid({ children }: { children: ReactNode }) {
-	return <View style={styles.statsContainer}>{children}</View>;
+export function StatsGrid({
+	children,
+	style,
+}: {
+	children: ReactNode;
+	style?: Style;
+}) {
+	return (
+		<View style={style ? [styles.statsContainer, style] : styles.statsContainer}>
+			{children}
+		</View>
+	);
 }
 
 /**

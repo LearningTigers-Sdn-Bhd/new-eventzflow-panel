@@ -69,7 +69,7 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 				</SummaryBox>
 
 				<Section title="Sales Overview">
-					<StatsGrid>
+					<StatsGrid style={{ marginBottom: 0, borderBottomWidth: 0 }}>
 						<StatsCard
 							label="Collected Revenue"
 							value={formatReportCurrency(stats.totalRevenue)}
@@ -107,23 +107,24 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 					</StatsGrid>
 				</Section>
 
-				<View wrap={false}>
-					<Section title="Utilization Ratio">
-						<View style={{ alignItems: "center", paddingVertical: 12 }}>
-							<DonutChart
-								value1={stats.scannedTickets}
-								value2={stats.unscannedTickets}
-								label1="Scanned"
-								label2="Unscanned"
-								color1={colors.brandGreen}
-								color2="#d1d5db"
-								centerValue={`${scanRate}%`}
-								centerLabel="Check-in Rate"
-								summary={checkInSummary}
-							/>
-						</View>
-					</Section>
-				</View>
+				<Section title="Utilization Ratio">
+					<View
+						style={{ alignItems: "center", paddingVertical: 4 }}
+						wrap={false}
+					>
+						<DonutChart
+							value1={stats.scannedTickets}
+							value2={stats.unscannedTickets}
+							label1="Scanned"
+							label2="Unscanned"
+							color1={colors.brandGreen}
+							color2="#d1d5db"
+							centerValue={`${scanRate}%`}
+							centerLabel="Check-in Rate"
+							summary={checkInSummary}
+						/>
+					</View>
+				</Section>
 
 				<Section title="Daily Activity Analysis" breakOnPage>
 					<View style={{ marginBottom: 24 }}>

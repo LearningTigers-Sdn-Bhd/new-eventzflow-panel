@@ -26,7 +26,7 @@ export function DonutChart({
 	label2,
 	color1 = colors.brandSecondary,
 	color2 = colors.border,
-	size = 140,
+	size = 110,
 	centerValue,
 	centerLabel,
 	summary,
@@ -74,7 +74,7 @@ export function DonutChart({
 				alignItems: "center",
 				justifyContent: "space-between",
 				width: "100%",
-				paddingVertical: 12,
+				paddingVertical: 6,
 				paddingHorizontal: 24,
 			}}
 			wrap={false}
