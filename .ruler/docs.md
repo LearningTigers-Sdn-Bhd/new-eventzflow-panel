@@ -12,7 +12,7 @@ Next.js 16 (App Router, TypeScript strict) admin panel for the EventzFlow event-
 
 ```bash
 bun run dev          # dev server → http://localhost:3001
-bun run build        # production build (webpack)
+bun run build        # production build (Turbopack)
 bun run start        # serve production build
 bun run check        # Biome lint + format check — run before every commit
 bun run check:fix    # auto-fix lint + format
