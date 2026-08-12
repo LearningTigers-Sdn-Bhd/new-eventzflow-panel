@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,6 +124,22 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
 	});
+	const exhibitorLabels = event?.exhibitor_labels_data ?? {};
+	const [customFieldValues, setCustomFieldValues] = useState<
+		Record<string, string>
+	>({});
+	// Seeded in an effect (not useState's lazy initializer) because
+	// event.exhibitor_labels_data resolves from its own query after mount —
+	// an initializer would run before that data exists and end up empty.
+	const labelsFromEvent = event?.exhibitor_labels_data;
+	useEffect(() => {
+		const values: Record<string, string> = {};
+		for (const key of Object.keys(labelsFromEvent ?? {})) {
+			const existing = kit?.custom_fields_data?.[key];
+			values[key] = typeof existing === "string" ? existing : "";
+		}
+		setCustomFieldValues(values);
+	}, [kit, labelsFromEvent]);
 	const { data: kitDetails, isPending: isKitDetailsPending } = useQuery({
 		queryKey: ["event", eventId, "exhibitor-kit", kitId],
 		queryFn: () => getExhibitorKit(eventId, kitId),
@@ -233,6 +249,13 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 			toast.error("No exhibitor kit found");
 			return;
 		}
+		// custom_fields_data is a full-replace column that also carries internal
+		// bookkeeping keys (dedup fingerprints, batch ids — see
+		// ExhibitorKit::SYSTEM_CUSTOM_FIELD_KEYS on the backend). Overlay only the
+		// configured label keys on top of the kit's existing data so those keys
+		// survive the update untouched.
+		const hasCustomFields = Object.keys(exhibitorLabels).length > 0;
+
 		await updateKitMutation.mutateAsync({
 			...(!hasBoothInventory ? { booth_number: boothNumber || undefined } : {}),
 			booth_type: boothType || undefined,
@@ -255,6 +278,9 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 				| "sponsored",
 			amount_paid: amountPaid || undefined,
 			payment_note: paymentNote || undefined,
+			custom_fields_data: hasCustomFields
+				? { ...kit.custom_fields_data, ...customFieldValues }
+				: undefined,
 		});
 	};
 
@@ -593,6 +619,38 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 							className="min-h-[60px] rounded-none text-sm md:min-h-[80px]"
 						/>
 					</Field>
+
+					{Object.keys(exhibitorLabels).length > 0 && (
+						<>
+							<FieldSeparator />
+							<p className="font-medium text-xs md:text-sm">Additional Info</p>
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-4 md:gap-4">
+								{Object.entries(exhibitorLabels).map(([key, label]) => (
+									<Field orientation="vertical" key={key}>
+										<FieldLabel
+											htmlFor={`custom-${key}`}
+											className="text-xs md:text-sm"
+										>
+											{label}
+										</FieldLabel>
+										<Input
+											id={`custom-${key}`}
+											value={customFieldValues[key] ?? ""}
+											onChange={(e) =>
+												setCustomFieldValues((prev) => ({
+													...prev,
+													[key]: e.target.value,
+												}))
+											}
+											disabled={updateKitMutation.isPending}
+											className="rounded-none text-sm"
+										/>
+									</Field>
+								))}
+							</div>
+						</>
+					)}
+
 					<FieldSeparator />
 
 					{/* Payment Information */}

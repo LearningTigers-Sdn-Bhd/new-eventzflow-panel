@@ -7,14 +7,15 @@ describe("ExhibitorPageButton", () => {
 		"utf8",
 	);
 
-	test("renders the exhibitor import trigger on the Exhibitor page", () => {
-		expect(content).toContain("ExhibitorImportButton");
+	test("renders the exhibitor import trigger under Exhibitor Settings", () => {
+		expect(content).toContain("ExhibitorImportDialog");
 		expect(content).toContain("../../event-vendors/exhibitor-import-dialog");
+		expect(content).toContain("Import Exhibitors");
 	});
 
 	test("passes eventId and gates the trigger on exhibitor kits", () => {
 		expect(content).toMatch(
-			/<ExhibitorImportButton\s+eventId={Number\(eventId\)}/,
+			/<ExhibitorImportDialog\s+eventId={Number\(eventId\)}/,
 		);
 		expect(content).toContain("use_exhibitor_kit");
 	});

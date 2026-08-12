@@ -344,13 +344,13 @@ export function EditExhibitorKitDialog({
 							</div>
 						</div>
 
-						{/* Custom Fields Section */}
+						{/* Additional Info Section */}
 						{Object.keys(exhibitorLabels).length > 0 && (
 							<div className="space-y-4 rounded-none border bg-background p-4">
 								<div className="flex items-center gap-2 border-b pb-2">
 									<Tag className="size-4 text-primary" />
 									<h3 className="font-semibold text-sm uppercase tracking-wide">
-										Custom Fields
+										Additional Info
 									</h3>
 								</div>
 

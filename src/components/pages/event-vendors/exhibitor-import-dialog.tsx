@@ -527,7 +527,3 @@ export function ExhibitorImportDialog({
 		</Dialog>
 	);
 }
-
-export function ExhibitorImportButton({ eventId }: { eventId: number }) {
-	return <ExhibitorImportDialog eventId={eventId} />;
-}

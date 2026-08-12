@@ -7,8 +7,9 @@ describe("ExhibitorImportDialog", () => {
 		"utf8",
 	);
 
-	test("exports ExhibitorImportButton", () => {
-		expect(content).toContain("export function ExhibitorImportButton");
+	test("exports ExhibitorImportDialog with a customizable trigger", () => {
+		expect(content).toContain("export function ExhibitorImportDialog");
+		expect(content).toContain("trigger?: React.ReactNode");
 	});
 
 	test("offers a template download action", () => {

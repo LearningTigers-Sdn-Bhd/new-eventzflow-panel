@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	BarChart3,
 	ChevronDown,
+	FileSpreadsheet,
 	LayoutGrid,
 	Link2,
 	MapPinned,
@@ -30,7 +31,7 @@ import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
-import { ExhibitorImportButton } from "../../event-vendors/exhibitor-import-dialog";
+import { ExhibitorImportDialog } from "../../event-vendors/exhibitor-import-dialog";
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
@@ -179,6 +180,23 @@ export function ExhibitorPageButton() {
 							</DropdownMenuItem>
 						}
 					/>
+					{event?.use_exhibitor_kit === true && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onSelect={() =>
+									setFullScreenDialogOpen(
+										`exhibitor-import-dialog-${eventId}`,
+										true,
+									)
+								}
+								className="rounded-none"
+							>
+								<FileSpreadsheet className="h-4 w-4" />
+								Import Exhibitors
+							</DropdownMenuItem>
+						</>
+					)}
 					{canInviteVendor && (
 						<>
 							<DropdownMenuSeparator />
@@ -198,9 +216,6 @@ export function ExhibitorPageButton() {
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
-			{event?.use_exhibitor_kit === true && (
-				<ExhibitorImportButton eventId={Number(eventId)} />
-			)}
 			<BoothPricingDialog
 				eventId={Number(eventId)}
 				trigger={<span className="hidden" />}
@@ -217,6 +232,12 @@ export function ExhibitorPageButton() {
 				eventId={Number(eventId)}
 				trigger={<span className="hidden" />}
 			/>
+			{event?.use_exhibitor_kit === true && (
+				<ExhibitorImportDialog
+					eventId={Number(eventId)}
+					trigger={<span className="hidden" />}
+				/>
+			)}
 			<Button
 				onClick={handleAssignExhibitor}
 				className="w-full rounded-none sm:w-auto"
