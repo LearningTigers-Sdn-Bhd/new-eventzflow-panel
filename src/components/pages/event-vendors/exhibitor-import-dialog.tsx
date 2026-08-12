@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -53,7 +54,7 @@ import { cn } from "@/lib/utils";
 const XLSX_MIME =
 	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-type RowStatus = "ready" | "created" | "error";
+type RowStatus = "ready" | "created" | "error" | "duplicate";
 
 interface PreviewRow extends ImportExhibitorKitsRowResult {
 	status: RowStatus;
@@ -67,11 +68,18 @@ function mergeRows(
 		...r,
 		status: createdStatus as RowStatus,
 	}));
+	// `skipped` currently only ever carries duplicate-match rows — matched an
+	// existing booking (same vendor/booth/package/quantity), most often from the
+	// exact same file being uploaded twice by accident.
+	const duplicates = data.skipped.data.map((r) => ({
+		...r,
+		status: "duplicate" as RowStatus,
+	}));
 	const errors = data.errors.data.map((r) => ({
 		...r,
 		status: "error" as RowStatus,
 	}));
-	return [...created, ...errors].sort((a, b) => a.row - b.row);
+	return [...created, ...duplicates, ...errors].sort((a, b) => a.row - b.row);
 }
 
 interface ExhibitorImportDialogProps {
@@ -89,6 +97,11 @@ export function ExhibitorImportDialog({
 	);
 	const [phase, setPhase] = useState<"idle" | "previewed" | "imported">("idle");
 	const [rows, setRows] = useState<PreviewRow[]>([]);
+	// Row numbers of "duplicate" rows the admin explicitly ticked to import
+	// anyway (a deliberate second identical booking, not an accidental re-upload).
+	const [approvedDuplicateRows, setApprovedDuplicateRows] = useState<
+		Set<number>
+	>(new Set());
 
 	const [{ files, isDragging, errors: fileErrors }, fileActions] =
 		useFileUpload({
@@ -107,6 +120,7 @@ export function ExhibitorImportDialog({
 	useEffect(() => {
 		setPhase("idle");
 		setRows([]);
+		setApprovedDuplicateRows(new Set());
 	}, [currentFileId]);
 
 	const templateMutation = useMutation({
@@ -119,10 +133,11 @@ export function ExhibitorImportDialog({
 			importExhibitorKits(eventId, file, { dryRun: true }),
 		onSuccess: (data) => {
 			setRows(mergeRows(data, "ready"));
+			setApprovedDuplicateRows(new Set());
 			setPhase("previewed");
-			if (data.errors.count > 0) {
+			if (data.errors.count > 0 || data.skipped.count > 0) {
 				toast.warning(
-					`Preview: ${data.created.count} row(s) ready, ${data.errors.count} error(s)`,
+					`Preview: ${data.created.count} ready, ${data.skipped.count} duplicate(s), ${data.errors.count} error(s)`,
 				);
 			} else {
 				toast.success(`Preview: ${data.created.count} row(s) ready to import`);
@@ -134,17 +149,24 @@ export function ExhibitorImportDialog({
 	});
 
 	const importMutation = useMutation({
-		mutationFn: (file: File) => importExhibitorKits(eventId, file),
+		mutationFn: ({
+			file,
+			forceDuplicateRows,
+		}: {
+			file: File;
+			forceDuplicateRows: number[];
+		}) => importExhibitorKits(eventId, file, { forceDuplicateRows }),
 		onSuccess: (data) => {
 			setRows(mergeRows(data, "created"));
+			setApprovedDuplicateRows(new Set());
 			setPhase("imported");
 			queryClient.invalidateQueries({
 				queryKey: ["event", String(eventId), "vendors"],
 			});
 
-			if (data.errors.count > 0) {
+			if (data.errors.count > 0 || data.skipped.count > 0) {
 				toast.warning(
-					`Import completed: ${data.created.count} created, ${data.errors.count} error(s)`,
+					`Import completed: ${data.created.count} created, ${data.skipped.count} duplicate(s) skipped, ${data.errors.count} error(s)`,
 				);
 			} else {
 				toast.success(
@@ -161,6 +183,7 @@ export function ExhibitorImportDialog({
 		fileActions.clearFiles();
 		setPhase("idle");
 		setRows([]);
+		setApprovedDuplicateRows(new Set());
 	};
 
 	const currentFile = currentFileEntry?.file;
@@ -178,12 +201,31 @@ export function ExhibitorImportDialog({
 			toast.error("Please select a file to import");
 			return;
 		}
-		importMutation.mutate(currentFile);
+		importMutation.mutate({
+			file: currentFile,
+			forceDuplicateRows: Array.from(approvedDuplicateRows),
+		});
+	};
+
+	const toggleDuplicateApproval = (row: number) => {
+		setApprovedDuplicateRows((prev) => {
+			const next = new Set(prev);
+			if (next.has(row)) {
+				next.delete(row);
+			} else {
+				next.add(row);
+			}
+			return next;
+		});
 	};
 
 	const isBusy = previewMutation.isPending || importMutation.isPending;
-	const readyCount = rows.filter((r) => r.status !== "error").length;
+	const readyCount = rows.filter(
+		(r) => r.status === "ready" || r.status === "created",
+	).length;
+	const duplicateCount = rows.filter((r) => r.status === "duplicate").length;
 	const errorCount = rows.filter((r) => r.status === "error").length;
+	const importCount = readyCount + approvedDuplicateRows.size;
 
 	return (
 		<Dialog
@@ -387,6 +429,17 @@ export function ExhibitorImportDialog({
 										<CheckCircle2 className="mr-1 h-3.5 w-3.5" />
 										{readyCount} {phase === "imported" ? "created" : "ready"}
 									</Badge>
+									{duplicateCount > 0 && (
+										<Badge
+											variant="secondary"
+											className="rounded-none border-amber-200 bg-amber-100/80 text-amber-800 hover:bg-amber-100/80"
+										>
+											{duplicateCount} duplicate
+											{duplicateCount === 1 ? "" : "s"}
+											{phase === "previewed" &&
+												` (${approvedDuplicateRows.size} approved)`}
+										</Badge>
+									)}
 									{errorCount > 0 && (
 										<Badge
 											variant="secondary"
@@ -401,7 +454,7 @@ export function ExhibitorImportDialog({
 									<Button
 										type="button"
 										onClick={handleImport}
-										disabled={isBusy || readyCount === 0}
+										disabled={isBusy || importCount === 0}
 										className="rounded-none"
 									>
 										{importMutation.isPending ? (
@@ -411,7 +464,7 @@ export function ExhibitorImportDialog({
 										)}
 										{importMutation.isPending
 											? "Importing..."
-											: `Import ${readyCount} Exhibitor${readyCount === 1 ? "" : "s"}`}
+											: `Import ${importCount} Exhibitor${importCount === 1 ? "" : "s"}`}
 									</Button>
 								)}
 							</div>
@@ -421,6 +474,7 @@ export function ExhibitorImportDialog({
 							<Table>
 								<TableHeader>
 									<TableRow>
+										<TableHead className="w-[70px]">Include</TableHead>
 										<TableHead className="w-[60px]">Row</TableHead>
 										<TableHead>Vendor</TableHead>
 										<TableHead>Company</TableHead>
@@ -439,7 +493,7 @@ export function ExhibitorImportDialog({
 									{rows.length === 0 ? (
 										<TableRow>
 											<TableCell
-												colSpan={12}
+												colSpan={13}
 												className="py-8 text-center text-muted-foreground"
 											>
 												{isBusy
@@ -450,14 +504,31 @@ export function ExhibitorImportDialog({
 									) : (
 										rows.map((row) => {
 											const isError = row.status === "error";
-											const cellClass = cn(isError && "text-red-700");
+											const isDuplicate = row.status === "duplicate";
+											const cellClass = cn(
+												isError && "text-red-700",
+												isDuplicate && "text-amber-800",
+											);
 											return (
 												<TableRow
 													key={row.row}
 													className={cn(
 														isError && "bg-red-50/70 hover:bg-red-50/70",
+														isDuplicate &&
+															"bg-amber-50/70 hover:bg-amber-50/70",
 													)}
 												>
+													<TableCell>
+														{isDuplicate && phase === "previewed" && (
+															<Checkbox
+																checked={approvedDuplicateRows.has(row.row)}
+																onCheckedChange={() =>
+																	toggleDuplicateApproval(row.row)
+																}
+																aria-label={`Import row ${row.row} anyway`}
+															/>
+														)}
+													</TableCell>
 													<TableCell className={cn("font-medium", cellClass)}>
 														{row.row}
 													</TableCell>
@@ -501,6 +572,18 @@ export function ExhibitorImportDialog({
 															<span className="text-red-700 text-xs">
 																{row.error}
 															</span>
+														) : row.status === "duplicate" ? (
+															<div className="flex flex-col gap-1">
+																<Badge
+																	variant="secondary"
+																	className="w-fit rounded-none border-amber-200 bg-amber-100/80 text-amber-800 hover:bg-amber-100/80"
+																>
+																	Duplicate
+																</Badge>
+																<span className="text-amber-800 text-xs">
+																	{row.error}
+																</span>
+															</div>
 														) : row.status === "created" ? (
 															<Badge
 																variant="secondary"

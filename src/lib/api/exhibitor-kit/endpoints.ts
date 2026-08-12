@@ -192,12 +192,15 @@ export async function downloadExhibitorKitImportTemplate(
 
 /**
  * Upload a filled-in exhibitor import workbook. Pass `dryRun: true` to validate
- * without persisting the rows.
+ * without persisting the rows. `forceDuplicateRows` re-submits specific row
+ * numbers that a previous preview/import flagged as matching an existing
+ * booking (same vendor/booth/package/quantity) — the admin explicitly wants
+ * that duplicate created anyway.
  */
 export async function importExhibitorKits(
 	eventId: number,
 	file: File,
-	options?: { dryRun?: boolean },
+	options?: { dryRun?: boolean; forceDuplicateRows?: number[] },
 ): Promise<ImportExhibitorKitsResponse> {
 	const formData = new FormData();
 	formData.append("file", file);
@@ -205,6 +208,9 @@ export async function importExhibitorKits(
 	const params = new URLSearchParams();
 	if (options?.dryRun) {
 		params.append("dry_run", "true");
+	}
+	for (const row of options?.forceDuplicateRows ?? []) {
+		params.append("force_duplicate_rows[]", String(row));
 	}
 	const queryString = params.toString();
 	const url = queryString

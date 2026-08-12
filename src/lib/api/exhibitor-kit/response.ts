@@ -172,6 +172,13 @@ export interface ImportExhibitorKitsRowResult {
 	payment_status?: string;
 	amount?: number;
 	error?: string;
+	/** True for rows in `skipped` that matched an already-imported booking (same
+	 * vendor/booth/package/quantity) — re-uploading the same file lands here
+	 * instead of creating a second booking. Not present on plain error rows. */
+	duplicate?: boolean;
+	existing_kit_id?: number;
+	existing_kit_public_id?: string;
+	existing_created_at?: string;
 }
 
 export interface ImportExhibitorKitsResponse {
