@@ -47,6 +47,15 @@ export default function EventSettingsDialog({
 				{activeTab === "custom-labels" && (
 					<CustomLabelForm eventId={eventId} onClose={onClose} />
 				)}
+				{activeTab === "exhibitor-labels" && (
+					<CustomLabelForm
+						eventId={eventId}
+						onClose={onClose}
+						field="exhibitor_labels_data"
+						title="Exhibitor Fields"
+						description="Add custom fields for exhibitor bookings — shown on the manual Add Exhibitor form, Manage Kits, and the bulk import template. Example: Product Description, Booth Contact Person."
+					/>
+				)}
 				{activeTab === "welcome-screen" && (
 					<WelcomeScreenForm eventId={eventId} onClose={onClose} />
 				)}
