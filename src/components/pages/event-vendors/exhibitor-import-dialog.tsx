@@ -12,6 +12,13 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+	Alert,
+	AlertContent,
+	AlertDescription,
+	AlertIcon,
+	AlertTitle,
+} from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -207,6 +214,25 @@ export function ExhibitorImportDialog({
 
 				<div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
 					<div className="w-full flex-none space-y-6 overflow-y-auto border-r p-6 lg:w-[420px]">
+						<Alert
+							variant="warning"
+							appearance="light"
+							className="rounded-none"
+						>
+							<AlertIcon>
+								<AlertCircle className="h-4 w-4" />
+							</AlertIcon>
+							<AlertContent>
+								<AlertTitle>Set up booth pricing first</AlertTitle>
+								<AlertDescription>
+									This template's Booth Type, Zone, and Package options come
+									from this event's existing booth pricing. Configure booth
+									prices (and zones/packages if used) before downloading, or
+									every row will fail to match during import.
+								</AlertDescription>
+							</AlertContent>
+						</Alert>
+
 						<div>
 							<h3 className="mb-1 font-semibold text-base">
 								1. Get the template
@@ -391,18 +417,20 @@ export function ExhibitorImportDialog({
 							</div>
 						)}
 
-						<div className="rounded-none border bg-background shadow-sm">
+						<div className="overflow-x-auto rounded-none border bg-background shadow-sm">
 							<Table>
 								<TableHeader>
 									<TableRow>
 										<TableHead className="w-[60px]">Row</TableHead>
 										<TableHead>Vendor</TableHead>
 										<TableHead>Company</TableHead>
+										<TableHead>PIC</TableHead>
 										<TableHead>Booth</TableHead>
 										<TableHead>Zone</TableHead>
 										<TableHead>Price Label</TableHead>
 										<TableHead>Package</TableHead>
 										<TableHead>Qty</TableHead>
+										<TableHead>Amount (RM)</TableHead>
 										<TableHead>Payment</TableHead>
 										<TableHead>Status</TableHead>
 									</TableRow>
@@ -411,7 +439,7 @@ export function ExhibitorImportDialog({
 									{rows.length === 0 ? (
 										<TableRow>
 											<TableCell
-												colSpan={10}
+												colSpan={12}
 												className="py-8 text-center text-muted-foreground"
 											>
 												{isBusy
@@ -440,7 +468,10 @@ export function ExhibitorImportDialog({
 														{row.company_name || "-"}
 													</TableCell>
 													<TableCell className={cellClass}>
-														{row.booth_type || "-"}
+														{row.pic_name || "-"}
+													</TableCell>
+													<TableCell className={cn(cellClass, "capitalize")}>
+														{row.booth_type?.replace(/_/g, " ") || "-"}
 													</TableCell>
 													<TableCell className={cellClass}>
 														{row.zone || "-"}
@@ -453,6 +484,14 @@ export function ExhibitorImportDialog({
 													</TableCell>
 													<TableCell className={cellClass}>
 														{row.booth_quantity ?? "-"}
+													</TableCell>
+													<TableCell className={cellClass}>
+														{row.amount != null
+															? row.amount.toLocaleString("en-MY", {
+																	minimumFractionDigits: 2,
+																	maximumFractionDigits: 2,
+																})
+															: "-"}
 													</TableCell>
 													<TableCell className={cellClass}>
 														{row.payment_status || "-"}

@@ -163,6 +163,7 @@ export interface ImportExhibitorKitsRowResult {
 	vendor_email?: string;
 	vendor_name?: string;
 	company_name?: string;
+	pic_name?: string;
 	booth_type?: string;
 	zone?: string;
 	price_label?: string;
