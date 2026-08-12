@@ -6,7 +6,7 @@ import {
 	type UpdateExhibitorKitRequest,
 	updateExhibitorKitSchema,
 } from "./request";
-import type { ExhibitorKit } from "./response";
+import type { ExhibitorKit, ImportExhibitorKitsResponse } from "./response";
 
 /**
  * Get all exhibitor kits for an event
@@ -158,6 +158,60 @@ export async function exportExhibitorKitsCsv(eventId: number): Promise<void> {
 		"csv",
 		`exhibitor-kits-${eventId}.csv`,
 	);
+}
+
+/**
+ * Download the exhibitor import template (.xlsx) for an event — main "Exhibitors"
+ * sheet to fill in plus a read-only "Reference" sheet of current booth pricing.
+ */
+export async function downloadExhibitorKitImportTemplate(
+	eventId: number,
+): Promise<void> {
+	const { blob, headers } = await restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/import_template`,
+	);
+
+	let filename = `exhibitor-import-template-${eventId}.xlsx`;
+	const contentDisposition = headers.get("Content-Disposition");
+	if (contentDisposition) {
+		const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+		if (filenameMatch) {
+			filename = filenameMatch[1];
+		}
+	}
+
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+}
+
+/**
+ * Upload a filled-in exhibitor import workbook. Pass `dryRun: true` to validate
+ * without persisting the rows.
+ */
+export async function importExhibitorKits(
+	eventId: number,
+	file: File,
+	options?: { dryRun?: boolean },
+): Promise<ImportExhibitorKitsResponse> {
+	const formData = new FormData();
+	formData.append("file", file);
+
+	const params = new URLSearchParams();
+	if (options?.dryRun) {
+		params.append("dry_run", "true");
+	}
+	const queryString = params.toString();
+	const url = queryString
+		? `v1/events/${eventId}/exhibitor_kits/import?${queryString}`
+		: `v1/events/${eventId}/exhibitor_kits/import`;
+
+	return restClient.postFormData<ImportExhibitorKitsResponse>(url, formData);
 }
 
 export async function downloadExhibitorKitIcCopy(

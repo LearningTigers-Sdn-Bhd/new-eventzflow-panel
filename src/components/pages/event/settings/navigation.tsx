@@ -18,6 +18,7 @@ export type SettingsTab =
 	| "email-settings"
 	| "event-reminder"
 	| "custom-labels"
+	| "exhibitor-labels"
 	| "welcome-screen"
 	| "poster"
 	| "payment-gateway";
@@ -53,6 +54,11 @@ const navigationItems: NavigationItem[] = [
 	{
 		id: "custom-labels",
 		label: "Custom Labels",
+		icon: TagIcon,
+	},
+	{
+		id: "exhibitor-labels",
+		label: "Exhibitor Fields",
 		icon: TagIcon,
 	},
 	{

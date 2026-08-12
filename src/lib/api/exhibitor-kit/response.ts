@@ -155,3 +155,28 @@ export interface ExhibitorKit {
 	created_at?: string;
 	updated_at?: string;
 }
+
+export interface ImportExhibitorKitsRowResult {
+	row: number;
+	id?: number;
+	public_id?: string;
+	vendor_email?: string;
+	vendor_name?: string;
+	company_name?: string;
+	pic_name?: string;
+	booth_type?: string;
+	zone?: string;
+	price_label?: string;
+	package_name?: string;
+	booth_quantity?: number;
+	payment_status?: string;
+	amount?: number;
+	error?: string;
+}
+
+export interface ImportExhibitorKitsResponse {
+	total: number;
+	created: { count: number; data: ImportExhibitorKitsRowResult[] };
+	skipped: { count: number; data: ImportExhibitorKitsRowResult[] };
+	errors: { count: number; data: ImportExhibitorKitsRowResult[] };
+}

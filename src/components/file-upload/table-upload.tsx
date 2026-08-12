@@ -244,7 +244,7 @@ export default function TableUpload({
 						)}
 					</div>
 
-					<div className="border">
+					<div className="overflow-x-auto border">
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-muted text-xs [&>th]:font-semibold">
