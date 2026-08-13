@@ -30,9 +30,6 @@ export interface BusinessMatchingEvent {
 		sourcing_intent?: string;
 		capabilities?: string;
 		avatar_url?: string | null;
-		tags_editable_override?: boolean | null;
-		hours_editable_override?: boolean | null;
-		hours_editable_effective?: boolean;
 	} | null;
 }
 
@@ -48,9 +45,6 @@ export interface BusinessHost {
 	interest_tags?: string[];
 	offering_tags?: string[];
 	avatar_url?: string | null;
-	tags_editable_override?: boolean | null;
-	hours_editable_override?: boolean | null;
-	hours_editable_effective?: boolean;
 }
 
 export interface AvailabilityDate {
@@ -363,6 +357,7 @@ export interface CreateHostRequest {
 	email: string;
 	phone?: string;
 	password?: string;
+	email_verified_at?: string | null;
 }
 
 /**
@@ -669,36 +664,6 @@ export async function adminUpdateHostProfileInfo(
 ): Promise<HostProfile> {
 	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
 	return restClient.patch<HostProfile>(url, data);
-}
-
-// Overrides whether a specific host may self-edit tags for a specific
-// session — null clears the override back to the session's default.
-export async function adminSetHostTagsEditableOverride(
-	eventId: string,
-	hostUserId: string,
-	bmEventId: string,
-	override: boolean | null,
-): Promise<HostProfile> {
-	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
-	return restClient.patch<HostProfile>(url, {
-		tags_editable_override: override,
-		business_matching_event_id: bmEventId,
-	});
-}
-
-// Overrides whether a specific host may self-edit hours for a specific
-// session — null clears the override back to the session's default.
-export async function adminSetHostHoursEditableOverride(
-	eventId: string,
-	hostUserId: string,
-	bmEventId: string,
-	override: boolean | null,
-): Promise<HostProfile> {
-	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
-	return restClient.patch<HostProfile>(url, {
-		hours_editable_override: override,
-		business_matching_event_id: bmEventId,
-	});
 }
 
 export interface DefaultHoursBlock {

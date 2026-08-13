@@ -14,12 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	useAdminSetHostHoursEditableOverride,
-	useAdminSetHostTagsEditableOverride,
 	useAdminUpdateHostAvatar,
 	useAdminUpdateHostProfileInfo,
 	useAdminUpdateHostTags,
@@ -36,28 +33,18 @@ interface HostDetailsDialogProps {
 	host: BusinessHost;
 	bmEventId: string;
 	eventId: string;
-	// The session's defaults for tags_editable/hours_editable — used to show
-	// what each toggle resolves to when there's no per-host override.
-	sessionTagsEditable?: boolean;
-	sessionHoursEditable?: boolean;
 }
 
 const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 	host,
 	bmEventId,
 	eventId,
-	sessionTagsEditable = true,
-	sessionHoursEditable = true,
 }) => {
 	const { closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
 	const { mutate: removeHost, isPending: isRemoving } = useRemoveHost(eventId);
 	const { mutateAsync: updateAvatar, isPending: isSavingAvatar } =
 		useAdminUpdateHostAvatar(eventId);
-	const { mutateAsync: setTagsOverride, isPending: isSavingTagsOverride } =
-		useAdminSetHostTagsEditableOverride(eventId);
-	const { mutateAsync: setHoursOverride, isPending: isSavingHoursOverride } =
-		useAdminSetHostHoursEditableOverride(eventId);
 	const { mutateAsync: saveHostTags, isPending: isSavingTags } =
 		useAdminUpdateHostTags(eventId);
 	const { mutateAsync: saveHostInfo, isPending: isSavingInfo } =
@@ -68,12 +55,6 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 		host.avatar_url ? `${API_BASE_URL}${host.avatar_url}` : undefined,
 	);
 	const [showAvatarPreview, setShowAvatarPreview] = useState(false);
-	const [tagsEditable, setTagsEditable] = useState(
-		host.tags_editable_override ?? sessionTagsEditable,
-	);
-	const [hoursEditable, setHoursEditable] = useState(
-		host.hours_editable_override ?? sessionHoursEditable,
-	);
 	const [offeringTags, setOfferingTags] = useState(host.offering_tags || []);
 	const [interestTags, setInterestTags] = useState(host.interest_tags || []);
 	const [description, setDescription] = useState(host.description || "");
@@ -111,40 +92,6 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 			toast.success("Host photo updated");
 		} catch (err) {
 			toast.error("Failed to update host photo", {
-				description: err instanceof Error ? err.message : "Please try again.",
-			});
-		}
-	};
-
-	const handleTagsEditableChange = async (checked: boolean) => {
-		setTagsEditable(checked);
-		try {
-			await setTagsOverride({
-				hostUserId: host.id,
-				bmEventId,
-				override: checked === sessionTagsEditable ? null : checked,
-			});
-			toast.success("Host's tag-editing access updated");
-		} catch (err) {
-			setTagsEditable(!checked);
-			toast.error("Failed to update tag-editing access", {
-				description: err instanceof Error ? err.message : "Please try again.",
-			});
-		}
-	};
-
-	const handleHoursEditableChange = async (checked: boolean) => {
-		setHoursEditable(checked);
-		try {
-			await setHoursOverride({
-				hostUserId: host.id,
-				bmEventId,
-				override: checked === sessionHoursEditable ? null : checked,
-			});
-			toast.success("Host's hours-editing access updated");
-		} catch (err) {
-			setHoursEditable(!checked);
-			toast.error("Failed to update hours-editing access", {
 				description: err instanceof Error ? err.message : "Please try again.",
 			});
 		}
@@ -296,27 +243,6 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 					<X className="absolute top-4 right-4 h-6 w-6 text-white" />
 				</button>
 			)}
-
-			<div className="grid grid-cols-2 gap-2">
-				<div className="flex items-center justify-between gap-2 rounded-lg border p-2">
-					<Label className="text-xs">Edit own tags</Label>
-					<Switch
-						checked={tagsEditable}
-						onCheckedChange={handleTagsEditableChange}
-						disabled={isSavingTagsOverride}
-						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
-					/>
-				</div>
-				<div className="flex items-center justify-between gap-2 rounded-lg border p-2">
-					<Label className="text-xs">Edit own hours</Label>
-					<Switch
-						checked={hoursEditable}
-						onCheckedChange={handleHoursEditableChange}
-						disabled={isSavingHoursOverride}
-						className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
-					/>
-				</div>
-			</div>
 
 			<div className="space-y-2 rounded-lg border p-2">
 				<div className="grid gap-1.5">

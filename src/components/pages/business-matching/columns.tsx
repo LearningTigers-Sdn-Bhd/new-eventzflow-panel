@@ -92,8 +92,6 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 									host,
 									bmEventId: row.original.id,
 									eventId: row.original.event_id,
-									sessionTagsEditable: row.original.tags_editable ?? true,
-									sessionHoursEditable: row.original.hours_editable ?? true,
 								},
 								config: {
 									title: "Host Details",

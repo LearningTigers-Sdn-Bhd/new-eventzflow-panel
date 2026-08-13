@@ -64,6 +64,9 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 					email: hostEmail,
 					phone: hostPhone,
 					password: hostPassword,
+					// Admin-created accounts skip the click-to-verify email step —
+					// there's no self-service signup flow for the host to confirm.
+					email_verified_at: new Date().toISOString(),
 				},
 				tags: {
 					offering_tags: offeringTags,

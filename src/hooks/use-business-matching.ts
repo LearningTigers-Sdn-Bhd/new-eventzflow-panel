@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import {
-	adminSetHostHoursEditableOverride,
-	adminSetHostTagsEditableOverride,
 	adminUpdateHostAvatar,
 	adminUpdateHostProfileInfo,
 	adminUpdateHostTags,
@@ -104,58 +102,6 @@ export const useAdminUpdateHostProfileInfo = (eventId: string) => {
 				sourcing_intent: sourcingIntent,
 				capabilities,
 			}),
-		onSuccess: () => {
-			queryClient.refetchQueries({
-				queryKey: ["business-matching-events", eventId],
-			});
-		},
-	});
-};
-
-export const useAdminSetHostTagsEditableOverride = (eventId: string) => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({
-			hostUserId,
-			bmEventId,
-			override,
-		}: {
-			hostUserId: string;
-			bmEventId: string;
-			override: boolean | null;
-		}) =>
-			adminSetHostTagsEditableOverride(
-				eventId,
-				hostUserId,
-				bmEventId,
-				override,
-			),
-		onSuccess: () => {
-			queryClient.refetchQueries({
-				queryKey: ["business-matching-events", eventId],
-			});
-		},
-	});
-};
-
-export const useAdminSetHostHoursEditableOverride = (eventId: string) => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ({
-			hostUserId,
-			bmEventId,
-			override,
-		}: {
-			hostUserId: string;
-			bmEventId: string;
-			override: boolean | null;
-		}) =>
-			adminSetHostHoursEditableOverride(
-				eventId,
-				hostUserId,
-				bmEventId,
-				override,
-			),
 		onSuccess: () => {
 			queryClient.refetchQueries({
 				queryKey: ["business-matching-events", eventId],
