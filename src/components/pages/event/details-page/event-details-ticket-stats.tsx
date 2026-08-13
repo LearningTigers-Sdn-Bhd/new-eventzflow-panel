@@ -48,32 +48,32 @@ export function EventDetailsTicketStats({
 			}),
 	});
 
-	// Determine if event spans multiple days (for hourly breakdown)
-	const isMultiDayEvent = useMemo(() => {
-		const start = new Date(event.start_date);
-		const end = new Date(event.end_date);
-		return start.toDateString() !== end.toDateString();
-	}, [event.start_date, event.end_date]);
-
-	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	// Fetch hourly breakdown by day for all_time, pre_event, or event_duration filter
+	// (works for single-day events too — just renders one day's bars)
 	const shouldFetchHourlyBreakdown =
-		isMultiDayEvent &&
-		(dateSelection.type === "all_time" ||
-			dateSelection.type === "pre_event" ||
-			dateSelection.type === "event_duration");
+		dateSelection.type === "all_time" ||
+		dateSelection.type === "pre_event" ||
+		dateSelection.type === "event_duration";
 
-	const { data: hourlyRegistrations } = useQuery({
-		queryKey: ["event", event.id, "hourly_breakdown", "tickets", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event.id, "tickets", {
-				dateMode: analyticsParams.dateMode,
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-			}),
-		enabled: shouldFetchHourlyBreakdown,
-	});
+	const { data: hourlyRegistrations, isLoading: hourlyRegistrationsLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				event.id,
+				"hourly_breakdown",
+				"tickets",
+				dateSelection,
+			],
+			queryFn: () =>
+				getHourlyBreakdownByDay(event.id, "tickets", {
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
+				}),
+			enabled: shouldFetchHourlyBreakdown,
+		});
 
-	const { data: hourlyScans } = useQuery({
+	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
 		queryKey: ["event", event.id, "hourly_breakdown", "scans", dateSelection],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event.id, "scans", {
@@ -88,6 +88,12 @@ export function EventDetailsTicketStats({
 		() => getDateFilterLabelFromSelection(dateSelection, event.start_date),
 		[dateSelection, event.start_date],
 	);
+
+	// Hourly breakdown queries only run for certain filters — don't block
+	// export on them when they're not enabled (would never resolve).
+	const hourlyBreakdownLoading =
+		shouldFetchHourlyBreakdown &&
+		(hourlyRegistrationsLoading || hourlyScansLoading);
 
 	// Prepare PDF report data
 	const pdfReportData = useMemo(() => {
@@ -148,7 +154,7 @@ export function EventDetailsTicketStats({
 						data={pdfReportData}
 						size="sm"
 						variant="outline"
-						disabled={ticketLoading}
+						disabled={ticketLoading || hourlyBreakdownLoading}
 					/>
 				</div>
 			</div>

@@ -95,33 +95,32 @@ export default function VisitorAnalyticsPage({
 		enabled: !!event,
 	});
 
-	// Determine if event spans multiple days (for hourly breakdown)
-	const isMultiDayEvent = useMemo(() => {
-		if (!event) return false;
-		const start = new Date(event.start_date);
-		const end = new Date(event.end_date);
-		return start.toDateString() !== end.toDateString();
-	}, [event]);
-
-	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	// Fetch hourly breakdown by day for all_time, pre_event, or event_duration filter
+	// (works for single-day events too — just renders one day's bars)
 	const shouldFetchHourlyBreakdown =
-		isMultiDayEvent &&
-		(dateSelection.type === "all_time" ||
-			dateSelection.type === "pre_event" ||
-			dateSelection.type === "event_duration");
+		dateSelection.type === "all_time" ||
+		dateSelection.type === "pre_event" ||
+		dateSelection.type === "event_duration";
 
-	const { data: hourlyRegistrations } = useQuery({
-		queryKey: ["event", eventId, "hourly_breakdown", "visitors", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event_id, "visitors", {
-				dateMode: analyticsParams.dateMode,
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-			}),
-		enabled: !!event && shouldFetchHourlyBreakdown,
-	});
+	const { data: hourlyRegistrations, isLoading: hourlyRegistrationsLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				eventId,
+				"hourly_breakdown",
+				"visitors",
+				dateSelection,
+			],
+			queryFn: () =>
+				getHourlyBreakdownByDay(event_id, "visitors", {
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
+				}),
+			enabled: !!event && shouldFetchHourlyBreakdown,
+		});
 
-	const { data: hourlyScans } = useQuery({
+	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
 		queryKey: [
 			"event",
 			eventId,
@@ -194,8 +193,18 @@ export default function VisitorAnalyticsPage({
 		dateFilterLabel,
 	]);
 
+	// Hourly breakdown queries only run for certain filters — don't block
+	// export on them when they're not enabled (would never resolve).
+	const hourlyBreakdownLoading =
+		shouldFetchHourlyBreakdown &&
+		(hourlyRegistrationsLoading || hourlyScansLoading);
+
 	const isLoading =
-		statsLoading || eventLoading || visitorsLoading || visitorScansLoading;
+		statsLoading ||
+		eventLoading ||
+		visitorsLoading ||
+		visitorScansLoading ||
+		hourlyBreakdownLoading;
 
 	if (Number.isNaN(eventId)) {
 		return (
