@@ -70,9 +70,10 @@ export default function BookingConfirmationPage({
 		);
 	}
 
-	const formattedBookingDate = bookingDetails.booking_date
-		? format(parseISO(bookingDetails.booking_date), "PPP")
-		: "N/A";
+	// booking_date arrives pre-formatted for display (e.g. "13 August 2026"),
+	// not ISO — parseISO on it returns an Invalid Date, so just show it as-is,
+	// same as every other page that renders this field.
+	const formattedBookingDate = bookingDetails.booking_date || "N/A";
 	const _formattedCreatedAt = bookingDetails.created_at
 		? format(parseISO(bookingDetails.created_at), "PPPp")
 		: "N/A";
