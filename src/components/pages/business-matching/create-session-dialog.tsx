@@ -115,10 +115,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const [endDateOpen, setEndDateOpen] = useState(false);
 
 	const handleStartTimeChange = (value: string) => {
+		// Only auto-advance to the end time when this change came from the
+		// user actually picking out of the open dropdown. On dialog load the
+		// start time is prefilled (default, or the event's configured hours),
+		// and that must not pop the end-time picker open by itself.
+		const pickedFromOpenDropdown = startTimeOpen;
+
 		setStartTime(value);
 		setStartTimeOpen(false);
-		// Jump straight to picking the end time next.
-		setEndTimeOpen(true);
+		if (pickedFromOpenDropdown) {
+			setEndTimeOpen(true);
+		}
 	};
 
 	const handleStartDatePick = (date: Date | undefined) => {
