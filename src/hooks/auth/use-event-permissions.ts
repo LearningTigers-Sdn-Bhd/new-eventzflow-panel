@@ -196,7 +196,9 @@ export function useEventPermissions(
 		const isEventAdmin = userStaffAssignment?.eventRole === "event_admin";
 		const isEventTeamMember =
 			userStaffAssignment?.eventRole === "event_team_member";
-		const isBusinessHost = user.role === "exhibitor" || userStaffAssignment?.eventRole === "business_host";
+		const isBusinessHost =
+			user.role === "exhibitor" ||
+			userStaffAssignment?.eventRole === "business_host";
 		const isBusinessMatchingAdmin =
 			userStaffAssignment?.eventRole === "business_matching_admin";
 		const isEventStaff = !!userStaffAssignment || user.role === "exhibitor";
@@ -221,7 +223,11 @@ export function useEventPermissions(
 		const canViewLeadAnalytics = isEventVendor;
 		// Matches the backend's manage_business_matching_sessions?/manage_business_hosts?
 		const canManageBusinessMatching =
-			isOrgOwner || isOrganizer || isEventAdmin || isEventTeamMember || isBusinessMatchingAdmin;
+			isOrgOwner ||
+			isOrganizer ||
+			isEventAdmin ||
+			isEventTeamMember ||
+			isBusinessMatchingAdmin;
 
 		// Tab visibility based on event type and permissions
 		const canViewVendorsTab = canManageEventVendors || isEventVendor;
