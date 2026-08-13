@@ -96,8 +96,8 @@ export function ExhibitorKitDetailsView({
 		);
 	}
 
-	const vendor = vendors?.find(
-		(vendor) => vendor.exhibitor_kits.some((kit) => kit.id === Number(kitId)),
+	const vendor = vendors?.find((vendor) =>
+		vendor.exhibitor_kits.some((kit) => kit.id === Number(kitId)),
 	);
 	const items = exhibitorKit.exhibitor_kit_items || [];
 	const printings = exhibitorKit.exhibitor_kit_printings || [];
@@ -179,6 +179,8 @@ export function ExhibitorKitDetailsView({
 									"border-gray-500 text-gray-500",
 								exhibitorKit.payment_status === "sponsored" &&
 									"border-blue-500 text-blue-500",
+								exhibitorKit.payment_status === "deposit" &&
+									"border-amber-500 text-amber-500",
 							)}
 						>
 							{exhibitorKit.payment_status || "unpaid"}

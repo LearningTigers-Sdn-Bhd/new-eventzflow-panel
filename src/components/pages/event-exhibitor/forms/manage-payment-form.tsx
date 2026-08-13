@@ -82,7 +82,8 @@ export function ManagePaymentForm({
 				| "unpaid"
 				| "paid"
 				| "waived"
-				| "sponsored",
+				| "sponsored"
+				| "deposit",
 			amount_paid: amountPaid || undefined,
 			payment_note: paymentNote || undefined,
 		});
@@ -194,6 +195,7 @@ export function ManagePaymentForm({
 								<SelectItem value="paid">Paid</SelectItem>
 								<SelectItem value="waived">Waived</SelectItem>
 								<SelectItem value="sponsored">Sponsored</SelectItem>
+								<SelectItem value="deposit">Deposit</SelectItem>
 							</SelectContent>
 						</Select>
 					</Field>
@@ -245,10 +247,18 @@ export function ManagePaymentForm({
 							type="button"
 							variant="destructive"
 							onClick={handleRejectProof}
-							disabled={updatePaymentMutation.isPending || isRejecting || kit.payment_proof_status === "rejected"}
+							disabled={
+								updatePaymentMutation.isPending ||
+								isRejecting ||
+								kit.payment_proof_status === "rejected"
+							}
 							className="rounded-none"
 						>
-							{kit.payment_proof_status === "rejected" ? "Proof Rejected" : isRejecting ? "Rejecting..." : "Reject Proof"}
+							{kit.payment_proof_status === "rejected"
+								? "Proof Rejected"
+								: isRejecting
+									? "Rejecting..."
+									: "Reject Proof"}
 						</Button>
 					)}
 					<Button

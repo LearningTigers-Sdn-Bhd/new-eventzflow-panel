@@ -367,7 +367,8 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 				| "unpaid"
 				| "paid"
 				| "waived"
-				| "sponsored",
+				| "sponsored"
+				| "deposit",
 			amount_paid: amountPaid || undefined,
 			payment_note: paymentNote || undefined,
 			custom_fields_data: hasCustomFields
@@ -859,6 +860,7 @@ export function ManageKitsInfoForm({ vendor, kitId }: ManageKitsInfoFormProps) {
 									<SelectItem value="paid">Paid</SelectItem>
 									<SelectItem value="waived">Waived</SelectItem>
 									<SelectItem value="sponsored">Sponsored</SelectItem>
+									<SelectItem value="deposit">Deposit</SelectItem>
 								</SelectContent>
 							</Select>
 						</Field>

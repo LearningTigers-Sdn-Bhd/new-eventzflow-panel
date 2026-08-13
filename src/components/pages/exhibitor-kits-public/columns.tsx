@@ -25,6 +25,8 @@ const getPaymentStatusStyle = (status: string) => {
 			return "border-gray-500 text-gray-500";
 		case "sponsored":
 			return "border-blue-500 text-blue-500";
+		case "deposit":
+			return "border-amber-500 text-amber-500";
 		default:
 			return "border-gray-500 text-gray-500";
 	}

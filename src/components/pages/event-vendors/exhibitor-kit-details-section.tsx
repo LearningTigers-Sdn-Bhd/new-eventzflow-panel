@@ -433,6 +433,8 @@ export function ExhibitorKitDetailsSection({
 											"border-blue-500 text-blue-500",
 										kit.payment_status === "sponsored" &&
 											"border-purple-500 text-purple-500",
+										kit.payment_status === "deposit" &&
+											"border-amber-500 text-amber-500",
 									)}
 								>
 									{kit.payment_status || "unpaid"}
