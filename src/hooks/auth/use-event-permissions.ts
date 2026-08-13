@@ -71,7 +71,7 @@ export function useEventPermissions(
 		!isExhibitionContractor &&
 		!!event;
 	const shouldFetchVendors =
-		!!user && !!eventId && !isExhibitor && !isExhibitionContractor && !!event;
+		!!user && !!eventId && !isExhibitionContractor && !!event;
 
 	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
 	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({

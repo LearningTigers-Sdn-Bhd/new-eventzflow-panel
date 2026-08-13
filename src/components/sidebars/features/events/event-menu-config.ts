@@ -116,7 +116,11 @@ const visible = {
 
 	// Special access
 	luckyDrawAccess: (p: Permissions) =>
-		p.isOrgOwner || p.isEventAdmin || p.isOrganizer || p.isEventStaff,
+		p.isOrgOwner ||
+		p.isEventAdmin ||
+		p.isOrganizer ||
+		p.isEventStaff ||
+		p.isEventVendor,
 	prizeRouletteAccess: (p: Permissions) =>
 		p.isOrgOwner || p.isEventAdmin || p.isEventVendor,
 	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
