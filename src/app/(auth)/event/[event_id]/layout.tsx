@@ -137,9 +137,11 @@ function EventDetailLayoutContent({
 	// Use context from EventSidebarProvider - no more duplicate data fetching!
 	const { currentEvent, permissions, isLoading } = useEventSidebarContext();
 
-	// Business hosts don't have "Event Information" in their menu (it's not
-	// relevant to them) — if they land on it directly (bookmark, typed URL),
-	// send them to Business Matching instead.
+	// A pure business host's only concerns on this event are Business
+	// Matching and their own Host Profile — the sidebar only ever shows
+	// those two tabs, but nothing stops them from typing/bookmarking any
+	// other event URL (analytics, scanned-logs, etc.) directly. Guard at
+	// the layout level too, not just in the nav.
 	useEffect(() => {
 		if (isLoading || !currentEvent?.id) return;
 
@@ -153,9 +155,12 @@ function EventDetailLayoutContent({
 			!permissions.isExhibitionContractor;
 
 		const segments = pathname.split("/").filter(Boolean);
-		const lastSegment = segments[segments.length - 1];
 
-		if (isPureBusinessHost && lastSegment === "details") {
+		if (
+			isPureBusinessHost &&
+			!segments.includes("business-matching") &&
+			!segments.includes("host-profile")
+		) {
 			router.replace(`/event/${currentEvent.id}/business-matching` as Route);
 		}
 	}, [isLoading, permissions, pathname, currentEvent?.id, router]);

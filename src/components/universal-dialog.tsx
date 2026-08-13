@@ -39,6 +39,7 @@ export function UniversalDialog() {
 		closeDialog,
 		goBack,
 		history,
+		instanceId,
 	} = useDialogStore();
 	const canGoBack = history.length > 0;
 
@@ -113,7 +114,7 @@ export function UniversalDialog() {
 								!isFullScreen && "px-4",
 							)}
 						>
-							<ContentComponent {...props} />
+							<ContentComponent key={instanceId} {...props} />
 						</div>
 					</DialogContent>
 				</MobileTabletView>
@@ -169,7 +170,7 @@ export function UniversalDialog() {
 								isFullScreen && "overflow-auto",
 							)}
 						>
-							<ContentComponent {...props} />
+							<ContentComponent key={instanceId} {...props} />
 						</div>
 					</DialogContent>
 				</DesktopView>

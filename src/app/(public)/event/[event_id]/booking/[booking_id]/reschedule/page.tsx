@@ -2,7 +2,6 @@
 
 import { format, parse } from "date-fns";
 import {
-	ArrowLeft,
 	Calendar as CalendarIcon,
 	CheckCircle2,
 	Clock,
@@ -169,13 +168,9 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 								<span className="font-medium">{newTime}</span>
 							</div>
 						</div>
-						<Button
-							variant="outline"
-							className="w-full"
-							onClick={() => router.push(`/event/${event_id}/book-meeting`)}
-						>
-							Done
-						</Button>
+						<p className="text-muted-foreground text-sm">
+							You may close this tab now.
+						</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -186,19 +181,6 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col items-center justify-start px-4 py-12">
-			{/* Header */}
-			<div className="w-full max-w-2xl mb-6">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => router.back()}
-					className="gap-1.5 text-muted-foreground"
-				>
-					<ArrowLeft className="h-4 w-4" />
-					Back
-				</Button>
-			</div>
-
 			<Card className="w-full max-w-2xl shadow-lg">
 				<CardHeader className="border-b pb-5">
 					<div className="flex items-center gap-3">

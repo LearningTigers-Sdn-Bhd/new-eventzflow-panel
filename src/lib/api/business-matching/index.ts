@@ -30,9 +30,6 @@ export interface BusinessMatchingEvent {
 		sourcing_intent?: string;
 		capabilities?: string;
 		avatar_url?: string | null;
-		tags_editable_override?: boolean | null;
-		hours_editable_override?: boolean | null;
-		hours_editable_effective?: boolean;
 	} | null;
 }
 
@@ -48,9 +45,6 @@ export interface BusinessHost {
 	interest_tags?: string[];
 	offering_tags?: string[];
 	avatar_url?: string | null;
-	tags_editable_override?: boolean | null;
-	hours_editable_override?: boolean | null;
-	hours_editable_effective?: boolean;
 }
 
 export interface AvailabilityDate {
@@ -179,9 +173,15 @@ export interface Booking {
 	meeting_approval_link: string;
 	payment_status: string;
 	created_at: string;
-	host_comment?: string; // Maps to 'note'
+	host_comment?: string; // Internal staff note — not booker-submitted
 	potential_deal_value?: number; // Maps to 'detail5'
 	attendance?: string; // Maps to 'detail1'
+	// Filled in by the booker on the public booking form — kept separate
+	// from host_comment so staff notes and booker-submitted profile info
+	// don't overwrite each other.
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export interface BookingsResponse {
@@ -260,6 +260,9 @@ export interface UpdateBookingRequest {
 	booking_time?: string;
 	status?: string;
 	payment_status?: string;
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export async function updateBooking(
@@ -278,7 +281,9 @@ export interface PublicCreateBookingRequest {
 	phone: string;
 	date: string;
 	time: string;
-	note?: string;
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export async function createPublicBooking(
@@ -363,6 +368,7 @@ export interface CreateHostRequest {
 	email: string;
 	phone?: string;
 	password?: string;
+	email_verified_at?: string | null;
 }
 
 /**
@@ -669,36 +675,6 @@ export async function adminUpdateHostProfileInfo(
 ): Promise<HostProfile> {
 	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
 	return restClient.patch<HostProfile>(url, data);
-}
-
-// Overrides whether a specific host may self-edit tags for a specific
-// session — null clears the override back to the session's default.
-export async function adminSetHostTagsEditableOverride(
-	eventId: string,
-	hostUserId: string,
-	bmEventId: string,
-	override: boolean | null,
-): Promise<HostProfile> {
-	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
-	return restClient.patch<HostProfile>(url, {
-		tags_editable_override: override,
-		business_matching_event_id: bmEventId,
-	});
-}
-
-// Overrides whether a specific host may self-edit hours for a specific
-// session — null clears the override back to the session's default.
-export async function adminSetHostHoursEditableOverride(
-	eventId: string,
-	hostUserId: string,
-	bmEventId: string,
-	override: boolean | null,
-): Promise<HostProfile> {
-	const url = `v1/business_matching/events/${eventId}/hosts/${hostUserId}/profile`;
-	return restClient.patch<HostProfile>(url, {
-		hours_editable_override: override,
-		business_matching_event_id: bmEventId,
-	});
 }
 
 export interface DefaultHoursBlock {

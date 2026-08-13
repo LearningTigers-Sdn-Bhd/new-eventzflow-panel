@@ -47,7 +47,7 @@ export default function SessionDefaultsDialog({
 	const [startDate, setStartDate] = useState("");
 	const [endDate, setEndDate] = useState("");
 	const [slotDuration, setSlotDuration] = useState(30);
-	const [blocks, setBlocks] = useState<DefaultHoursBlock[]>([]);
+	const [sessions, setSessions] = useState<DefaultHoursBlock[]>([]);
 	const [hoursEditableDefault, setHoursEditableDefault] = useState(true);
 	const [startDateOpen, setStartDateOpen] = useState(false);
 	const [endDateOpen, setEndDateOpen] = useState(false);
@@ -55,8 +55,8 @@ export default function SessionDefaultsDialog({
 	const [publicBookingCutoffDate, setPublicBookingCutoffDate] = useState("");
 	const [cutoffDateOpen, setCutoffDateOpen] = useState(false);
 
-	// Add-block flow: revealed blank, time chosen from a fixed list only.
-	const [isAddingBlock, setIsAddingBlock] = useState(false);
+	// Add-session flow: revealed blank, time chosen from a fixed list only.
+	const [isAddingSession, setIsAddingSession] = useState(false);
 	const [newStart, setNewStart] = useState("");
 	const [newEnd, setNewEnd] = useState("");
 	const [startSelectOpen, setStartSelectOpen] = useState(false);
@@ -67,7 +67,7 @@ export default function SessionDefaultsDialog({
 			setStartDate(defaults.default_start_date || "");
 			setEndDate(defaults.default_end_date || "");
 			setSlotDuration(defaults.default_slot_duration || 30);
-			setBlocks(defaults.default_hours);
+			setSessions(defaults.default_hours);
 			setHoursEditableDefault(defaults.hours_editable_default);
 			setPublicBookingEnabled(defaults.public_booking_enabled);
 			setPublicBookingCutoffDate(defaults.public_booking_cutoff_date || "");
@@ -106,10 +106,10 @@ export default function SessionDefaultsDialog({
 		setEndDateOpen(false);
 	};
 
-	const startAddingBlock = () => {
+	const startAddingSession = () => {
 		setNewStart("");
 		setNewEnd("");
-		setIsAddingBlock(true);
+		setIsAddingSession(true);
 		setStartSelectOpen(true);
 	};
 
@@ -121,25 +121,25 @@ export default function SessionDefaultsDialog({
 		setEndSelectOpen(true);
 	};
 
-	const handleConfirmBlock = () => {
+	const handleConfirmSession = () => {
 		if (!newStart || !newEnd) return;
-		setBlocks((prev) =>
+		setSessions((prev) =>
 			[...prev, { start_time: newStart, end_time: newEnd }].sort((a, b) =>
 				a.start_time.localeCompare(b.start_time),
 			),
 		);
-		setIsAddingBlock(false);
+		setIsAddingSession(false);
 		setNewStart("");
 		setNewEnd("");
 	};
 
-	const handleRemoveBlock = (index: number) => {
-		setBlocks((prev) => prev.filter((_, i) => i !== index));
+	const handleRemoveSession = (index: number) => {
+		setSessions((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const handleSave = () => {
-		if (blocks.length === 0) {
-			toast.error("Add at least one working-hours block.");
+		if (sessions.length === 0) {
+			toast.error("Add at least one working-hours session.");
 			return;
 		}
 		if (startDate && endDate && endDate < startDate) {
@@ -150,7 +150,7 @@ export default function SessionDefaultsDialog({
 			{
 				default_start_date: startDate || null,
 				default_end_date: endDate || null,
-				default_hours: blocks,
+				default_hours: sessions,
 				hours_editable_default: hoursEditableDefault,
 				default_slot_duration: slotDuration,
 				public_booking_enabled: publicBookingEnabled,
@@ -177,8 +177,8 @@ export default function SessionDefaultsDialog({
 		);
 	}
 
-	const startTimeOptions = validStartTimes(blocks);
-	const endTimeOptions = newStart ? validEndTimes(blocks, newStart) : [];
+	const startTimeOptions = validStartTimes(sessions);
+	const endTimeOptions = newStart ? validEndTimes(sessions, newStart) : [];
 
 	return (
 		<div className="space-y-4">
@@ -262,20 +262,20 @@ export default function SessionDefaultsDialog({
 			<div className="space-y-2">
 				<Label className="font-semibold text-sm">Default Matching Hours</Label>
 				<p className="text-muted-foreground text-xs">
-					Gaps between blocks act as breaks (e.g. lunch).
+					Gaps between sessions act as breaks (e.g. lunch).
 				</p>
 				<div className="space-y-2">
-					{blocks.map((block, index) => (
+					{sessions.map((session, index) => (
 						<div
-							key={`${block.start_time}-${block.end_time}-${index}`}
+							key={`${session.start_time}-${session.end_time}-${index}`}
 							className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary text-xs"
 						>
 							<span>
-								{block.start_time} - {block.end_time}
+								{session.start_time} - {session.end_time}
 							</span>
 							<button
 								type="button"
-								onClick={() => handleRemoveBlock(index)}
+								onClick={() => handleRemoveSession(index)}
 								disabled={isPending}
 								className="font-bold text-primary transition hover:text-red-500"
 							>
@@ -285,7 +285,7 @@ export default function SessionDefaultsDialog({
 					))}
 				</div>
 
-				{isAddingBlock ? (
+				{isAddingSession ? (
 					<div className="flex flex-wrap items-center gap-2 rounded-lg border p-2">
 						<TimeSelect
 							options={startTimeOptions}
@@ -310,7 +310,7 @@ export default function SessionDefaultsDialog({
 							type="button"
 							size="icon"
 							className="h-8 w-8"
-							onClick={handleConfirmBlock}
+							onClick={handleConfirmSession}
 							disabled={isPending || !newStart || !newEnd}
 						>
 							<Check className="h-3.5 w-3.5" />
@@ -320,7 +320,7 @@ export default function SessionDefaultsDialog({
 							variant="ghost"
 							size="icon"
 							className="h-8 w-8"
-							onClick={() => setIsAddingBlock(false)}
+							onClick={() => setIsAddingSession(false)}
 							disabled={isPending}
 						>
 							<X className="h-3.5 w-3.5" />
@@ -331,11 +331,11 @@ export default function SessionDefaultsDialog({
 						type="button"
 						variant="outline"
 						size="sm"
-						onClick={startAddingBlock}
+						onClick={startAddingSession}
 						disabled={isPending || startTimeOptions.length === 0}
 						className="gap-1"
 					>
-						<Plus className="h-3 w-3" /> Add Block
+						<Plus className="h-3 w-3" /> Add Session
 					</Button>
 				)}
 			</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, Calendar as CalendarIcon, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { AlertTriangle, Calendar as CalendarIcon, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
@@ -125,19 +125,6 @@ export default function CancelPage({ params }: CancelPageProps) {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col items-center justify-start px-4 py-12">
-			{/* Header */}
-			<div className="w-full max-w-md mb-6">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => router.back()}
-					className="gap-1.5 text-muted-foreground"
-				>
-					<ArrowLeft className="h-4 w-4" />
-					Back
-				</Button>
-			</div>
-
 			<Card className="w-full max-w-md shadow-lg border-destructive/20">
 				<CardHeader className="border-b pb-5">
 					<div className="flex items-center gap-3">

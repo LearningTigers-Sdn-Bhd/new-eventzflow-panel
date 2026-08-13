@@ -16,7 +16,7 @@ import { TimeSelect } from "./time-select";
 interface ManageAvailabilityHoursProps {
 	sessionId: string;
 	eventId: string;
-	// Whether the current viewer may add/remove blocks. Defaults to true
+	// Whether the current viewer may add/remove sessions. Defaults to true
 	// (staff can always edit); the create-session-dialog passes the
 	// resolved value when a host is editing their own session.
 	hoursEditable?: boolean;
@@ -43,8 +43,8 @@ export default function ManageAvailabilityHours({
 	const [newEnd, setNewEnd] = useState("");
 	const [startSelectOpen, setStartSelectOpen] = useState(false);
 	const [endSelectOpen, setEndSelectOpen] = useState(false);
-	// Which day's "add block" form is currently open — only one at a time,
-	// hidden by default so the day cards just show existing blocks.
+	// Which day's "add session" form is currently open — only one at a time,
+	// hidden by default so the day cards just show existing sessions.
 	const [addingDay, setAddingDay] = useState<string | null>(null);
 
 	// Initialize local copy when raw data is fetched
@@ -68,25 +68,27 @@ export default function ManageAvailabilityHours({
 		setEndSelectOpen(true);
 	};
 
-	const handleAddBlock = (dateStr: string): boolean => {
+	const handleAddSession = (dateStr: string): boolean => {
 		if (!newStart || !newEnd) return false;
 
 		setLocalAvailabilities((prev) => [
 			...prev,
 			{ day: dateStr, start_time: newStart, end_time: newEnd },
 		]);
-		toast.success("Availability block added!");
+		toast.success("Availability session added!");
 		return true;
 	};
 
-	const handleRemoveBlock = (dateStr: string, indexToRemove: number) => {
+	const handleRemoveSession = (dateStr: string, indexToRemove: number) => {
 		setLocalAvailabilities((prev) => {
-			const dayBlocks = prev.filter((av) => av.day === dateStr);
-			const otherBlocks = prev.filter((av) => av.day !== dateStr);
-			const updatedDayBlocks = dayBlocks.filter((_, i) => i !== indexToRemove);
-			return [...otherBlocks, ...updatedDayBlocks];
+			const daySessions = prev.filter((av) => av.day === dateStr);
+			const otherSessions = prev.filter((av) => av.day !== dateStr);
+			const updatedDaySessions = daySessions.filter(
+				(_, i) => i !== indexToRemove,
+			);
+			return [...otherSessions, ...updatedDaySessions];
 		});
-		toast.success("Availability block removed!");
+		toast.success("Availability session removed!");
 	};
 
 	const handleSaveAvailabilities = () => {
@@ -130,7 +132,7 @@ export default function ManageAvailabilityHours({
 					{data?.dates.map((item) => {
 						const parsedDate = parse(item.date, "dd MMMM yyyy", new Date());
 						const dateObj = format(parsedDate, "yyyy-MM-dd");
-						const dayBlocks = localAvailabilities.filter(
+						const daySessions = localAvailabilities.filter(
 							(av) => av.day === dateObj,
 						);
 
@@ -143,27 +145,27 @@ export default function ManageAvailabilityHours({
 									<span className="font-semibold text-sm">
 										{item.day}, {item.date}
 									</span>
-									{dayBlocks.length === 0 && (
+									{daySessions.length === 0 && (
 										<span className="font-medium text-red-500 text-xs">
 											Rest Day / Unavailable
 										</span>
 									)}
 								</div>
 
-								{dayBlocks.length > 0 && (
+								{daySessions.length > 0 && (
 									<div className="flex flex-wrap gap-2">
-										{dayBlocks.map((block, idx) => (
+										{daySessions.map((session, idx) => (
 											<div
-												key={`${dateObj}-${block.start_time}-${block.end_time}-${idx}`}
+												key={`${dateObj}-${session.start_time}-${session.end_time}-${idx}`}
 												className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary text-xs"
 											>
 												<span>
-													{block.start_time} - {block.end_time}
+													{session.start_time} - {session.end_time}
 												</span>
 												{hoursEditable && (
 													<button
 														type="button"
-														onClick={() => handleRemoveBlock(dateObj, idx)}
+														onClick={() => handleRemoveSession(dateObj, idx)}
 														className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
 													>
 														×
@@ -179,7 +181,7 @@ export default function ManageAvailabilityHours({
 										{addingDay === dateObj ? (
 											<div className="flex flex-wrap items-center gap-2">
 												<TimeSelect
-													options={validStartTimes(dayBlocks)}
+													options={validStartTimes(daySessions)}
 													open={startSelectOpen}
 													onOpenChange={setStartSelectOpen}
 													value={newStart}
@@ -191,7 +193,7 @@ export default function ManageAvailabilityHours({
 												</span>
 												<TimeSelect
 													options={
-														newStart ? validEndTimes(dayBlocks, newStart) : []
+														newStart ? validEndTimes(daySessions, newStart) : []
 													}
 													open={endSelectOpen}
 													onOpenChange={setEndSelectOpen}
@@ -205,7 +207,7 @@ export default function ManageAvailabilityHours({
 													size="icon"
 													className="h-8 w-8"
 													onClick={() => {
-														if (handleAddBlock(dateObj)) {
+														if (handleAddSession(dateObj)) {
 															setAddingDay(null);
 															setNewStart("");
 															setNewEnd("");
@@ -240,10 +242,10 @@ export default function ManageAvailabilityHours({
 													setAddingDay(dateObj);
 													setStartSelectOpen(true);
 												}}
-												disabled={validStartTimes(dayBlocks).length === 0}
+												disabled={validStartTimes(daySessions).length === 0}
 												className="h-8 gap-1 text-xs"
 											>
-												<Plus className="h-3 w-3" /> Add Block
+												<Plus className="h-3 w-3" /> Add Session
 											</Button>
 										)}
 									</div>

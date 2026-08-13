@@ -33,6 +33,13 @@ export interface DialogState {
 	props?: Record<string, unknown>;
 	config: DialogConfig;
 	history: DialogFrame[];
+	// Bumped on every openDialog/goBack so UniversalDialog can key its
+	// content on it, forcing a fresh mount instead of reusing whatever
+	// instance (and internal state) the previous dialog left behind —
+	// Radix keeps the outgoing dialog mounted through its close animation,
+	// so without this a rapid close+reopen of the same component type would
+	// silently inherit stale useState (e.g. a dropdown left open).
+	instanceId: number;
 }
 
 interface DialogActions {
@@ -59,6 +66,7 @@ const initialState: DialogState = {
 	props: undefined,
 	config: initialConfig,
 	history: [],
+	instanceId: 0,
 };
 
 export const useDialogStore = create<DialogState & DialogActions>(
@@ -97,6 +105,7 @@ export const useDialogStore = create<DialogState & DialogActions>(
 					...params.config,
 				},
 				history,
+				instanceId: current.instanceId + 1,
 			});
 		},
 
@@ -113,7 +122,7 @@ export const useDialogStore = create<DialogState & DialogActions>(
 		},
 
 		goBack: () => {
-			const { history } = get();
+			const { history, instanceId } = get();
 			if (history.length === 0) return;
 
 			const previous = history[history.length - 1];
@@ -123,6 +132,7 @@ export const useDialogStore = create<DialogState & DialogActions>(
 				props: previous.props,
 				config: previous.config,
 				history: history.slice(0, -1),
+				instanceId: instanceId + 1,
 			});
 		},
 	}),

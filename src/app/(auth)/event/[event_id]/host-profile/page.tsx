@@ -23,6 +23,7 @@ import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getHostProfile, updateHostProfile } from "@/lib/api/business-matching";
 import { getEventById } from "@/lib/api/event";
 import { uploadFile } from "@/lib/api/upload/endpoints";
+import { PROFILE_TEXT_FIELD_MAX_LENGTH } from "@/lib/constants/business-matching-constants";
 import { API_BASE_URL } from "@/utils/rest-api";
 
 export default function HostProfilePage({
@@ -209,12 +210,18 @@ export default function HostProfilePage({
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Describe yourself or your company..."
 								rows={4}
+								maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 								className="resize-y"
 							/>
-							<span className="text-muted-foreground text-xs">
-								Brief summary of your professional background or organization's
-								focus.
-							</span>
+							<div className="flex items-center justify-between">
+								<span className="text-muted-foreground text-xs">
+									Brief summary of your professional background or
+									organization's focus.
+								</span>
+								<span className="shrink-0 text-muted-foreground text-xs">
+									{description.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
+							</div>
 						</div>
 
 						<div className="grid gap-2 border-t pt-4">
@@ -227,12 +234,18 @@ export default function HostProfilePage({
 								onChange={(e) => setSourcingIntent(e.target.value)}
 								placeholder="What solutions or partners are you looking for?"
 								rows={3}
+								maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 								className="resize-y"
 							/>
-							<span className="text-muted-foreground text-xs">
-								Help matching attendees understand exactly who or what you are
-								looking to source.
-							</span>
+							<div className="flex items-center justify-between">
+								<span className="text-muted-foreground text-xs">
+									Help matching attendees understand exactly who or what you
+									are looking to source.
+								</span>
+								<span className="shrink-0 text-muted-foreground text-xs">
+									{sourcingIntent.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
+							</div>
 						</div>
 
 						<div className="grid gap-2 border-t pt-4">
@@ -245,11 +258,17 @@ export default function HostProfilePage({
 								onChange={(e) => setCapabilities(e.target.value)}
 								placeholder="What are your core strengths or offerings?"
 								rows={3}
+								maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 								className="resize-y"
 							/>
-							<span className="text-muted-foreground text-xs">
-								List your systems, products, capabilities, or core solutions.
-							</span>
+							<div className="flex items-center justify-between">
+								<span className="text-muted-foreground text-xs">
+									List your systems, products, capabilities, or core solutions.
+								</span>
+								<span className="shrink-0 text-muted-foreground text-xs">
+									{capabilities.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
+							</div>
 						</div>
 					</CardContent>
 				</Card>
