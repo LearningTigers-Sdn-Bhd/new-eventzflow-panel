@@ -123,7 +123,9 @@ export function StatsGrid({
 	style?: Style;
 }) {
 	return (
-		<View style={style ? [styles.statsContainer, style] : styles.statsContainer}>
+		<View
+			style={style ? [styles.statsContainer, style] : styles.statsContainer}
+		>
 			{children}
 		</View>
 	);
