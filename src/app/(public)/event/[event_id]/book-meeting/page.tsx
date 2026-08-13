@@ -163,14 +163,6 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			selectedBmEvent.host?.id ||
 			(hosts && hosts.length > 0 ? hosts[0].id : "");
 
-		const combinedNote = [
-			description ? `Description: ${description}` : "",
-			sourcingIntent ? `Sourcing Intent: ${sourcingIntent}` : "",
-			capabilities ? `Capabilities: ${capabilities}` : "",
-		]
-			.filter(Boolean)
-			.join("\n\n");
-
 		createBooking(
 			{
 				bmEventId: selectedBmEvent.id,
@@ -182,7 +174,9 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 					phone,
 					date: format(selectedDate, "yyyy-MM-dd"),
 					time: selectedTime,
-					note: combinedNote,
+					booker_description: description,
+					booker_sourcing_intent: sourcingIntent,
+					booker_capabilities: capabilities,
 				},
 			},
 			{

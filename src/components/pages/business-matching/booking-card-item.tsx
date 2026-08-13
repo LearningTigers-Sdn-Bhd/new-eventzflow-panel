@@ -96,29 +96,19 @@ export function BookingCardItem({
 		localStorage.setItem(key, JSON.stringify(newOverrides));
 	};
 
-	const parsedBookerInfo = useMemo(() => {
-		const comment = displayBooking.host_comment || "";
-		if (!comment) return null;
+	const bookerProfileInfo = useMemo(() => {
+		const description = displayBooking.booker_description || "";
+		const sourcingIntent = displayBooking.booker_sourcing_intent || "";
+		const capabilities = displayBooking.booker_capabilities || "";
 
-		const descriptionMatch = comment.match(
-			/Description:\s*([\s\S]*?)(?=(?:Sourcing Intent:|Capabilities:|$))/i,
-		);
-		const intentMatch = comment.match(
-			/Sourcing Intent:\s*([\s\S]*?)(?=(?:Description:|Capabilities:|$))/i,
-		);
-		const capabilitiesMatch = comment.match(
-			/Capabilities:\s*([\s\S]*?)(?=(?:Description:|Sourcing Intent:|$))/i,
-		);
+		if (!description && !sourcingIntent && !capabilities) return null;
 
-		if (descriptionMatch || intentMatch || capabilitiesMatch) {
-			return {
-				description: descriptionMatch?.[1]?.trim() || "",
-				sourcingIntent: intentMatch?.[1]?.trim() || "",
-				capabilities: capabilitiesMatch?.[1]?.trim() || "",
-			};
-		}
-		return null;
-	}, [displayBooking.host_comment]);
+		return { description, sourcingIntent, capabilities };
+	}, [
+		displayBooking.booker_description,
+		displayBooking.booker_sourcing_intent,
+		displayBooking.booker_capabilities,
+	]);
 
 	const getCommonBookingData = () => ({
 		name: displayBooking.name,
@@ -427,7 +417,7 @@ export function BookingCardItem({
 		</div>
 	);
 
-	const bookerProfileSection = parsedBookerInfo && (
+	const bookerProfileSection = bookerProfileInfo && (
 		<div className="mt-2 border-t pt-2">
 			<Button
 				variant="outline"
@@ -440,9 +430,9 @@ export function BookingCardItem({
 							name: displayBooking.name,
 							email: displayBooking.email,
 							phone: displayBooking.phone,
-							description: parsedBookerInfo.description,
-							sourcingIntent: parsedBookerInfo.sourcingIntent,
-							capabilities: parsedBookerInfo.capabilities,
+							description: bookerProfileInfo.description,
+							sourcingIntent: bookerProfileInfo.sourcingIntent,
+							capabilities: bookerProfileInfo.capabilities,
 						},
 						config: {
 							title: "Booker Profile Details",

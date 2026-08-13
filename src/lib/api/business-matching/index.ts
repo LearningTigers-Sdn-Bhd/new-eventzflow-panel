@@ -173,9 +173,15 @@ export interface Booking {
 	meeting_approval_link: string;
 	payment_status: string;
 	created_at: string;
-	host_comment?: string; // Maps to 'note'
+	host_comment?: string; // Internal staff note — not booker-submitted
 	potential_deal_value?: number; // Maps to 'detail5'
 	attendance?: string; // Maps to 'detail1'
+	// Filled in by the booker on the public booking form — kept separate
+	// from host_comment so staff notes and booker-submitted profile info
+	// don't overwrite each other.
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export interface BookingsResponse {
@@ -254,6 +260,9 @@ export interface UpdateBookingRequest {
 	booking_time?: string;
 	status?: string;
 	payment_status?: string;
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export async function updateBooking(
@@ -272,7 +281,9 @@ export interface PublicCreateBookingRequest {
 	phone: string;
 	date: string;
 	time: string;
-	note?: string;
+	booker_description?: string;
+	booker_sourcing_intent?: string;
+	booker_capabilities?: string;
 }
 
 export async function createPublicBooking(
