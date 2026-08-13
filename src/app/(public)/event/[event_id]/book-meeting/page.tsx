@@ -30,6 +30,7 @@ import {
 } from "@/hooks/use-business-matching-public";
 import { useEventDetails } from "@/hooks/use-event-details"; // Import the new hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import { PROFILE_TEXT_FIELD_MAX_LENGTH } from "@/lib/constants/business-matching-constants";
 
 interface BookMeetingPageProps {
 	params: Promise<{
@@ -345,8 +346,12 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									placeholder="Tell us about your business or yourself..."
+									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								/>
+								<span className="block text-right text-muted-foreground text-xs">
+									{description.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
 							</div>
 							<div className="space-y-1">
 								<Label htmlFor="sourcingIntent">
@@ -357,8 +362,12 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									value={sourcingIntent}
 									onChange={(e) => setSourcingIntent(e.target.value)}
 									placeholder="What products, solutions, or partnerships are you looking for?"
+									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								/>
+								<span className="block text-right text-muted-foreground text-xs">
+									{sourcingIntent.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
 							</div>
 							<div className="space-y-1">
 								<Label htmlFor="capabilities">
@@ -369,8 +378,12 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									value={capabilities}
 									onChange={(e) => setCapabilities(e.target.value)}
 									placeholder="What products, solutions, or services do you provide?"
+									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								/>
+								<span className="block text-right text-muted-foreground text-xs">
+									{capabilities.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+								</span>
 							</div>
 
 							<div className="space-y-2 pt-3">

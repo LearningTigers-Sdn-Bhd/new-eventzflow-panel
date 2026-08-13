@@ -27,6 +27,7 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessHost } from "@/lib/api/business-matching";
 import { uploadFile } from "@/lib/api/upload/endpoints";
+import { PROFILE_TEXT_FIELD_MAX_LENGTH } from "@/lib/constants/business-matching-constants";
 import { API_BASE_URL } from "@/utils/rest-api";
 
 interface HostDetailsDialogProps {
@@ -293,8 +294,12 @@ const HostDetailsDialog: React.FC<HostDetailsDialogProps> = ({
 							value={s.text}
 							onChange={(e) => s.onChange(e.target.value)}
 							rows={3}
+							maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
 							className="resize-y text-xs"
 						/>
+						<span className="block text-right text-[10px] text-muted-foreground">
+							{s.text.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+						</span>
 					</TabsContent>
 				))}
 			</Tabs>
