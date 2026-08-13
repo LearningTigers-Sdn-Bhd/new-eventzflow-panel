@@ -51,7 +51,12 @@ export interface ExhibitorKitPrinting {
 }
 
 export type BoothType = string;
-export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
+export type PaymentStatus =
+	| "unpaid"
+	| "paid"
+	| "waived"
+	| "sponsored"
+	| "deposit";
 
 export interface CustomRequest {
 	id: number;

@@ -84,6 +84,7 @@ export function ContractorExhibitorKitsView({
 						{ label: "Unpaid", value: "unpaid" },
 						{ label: "Waived", value: "waived" },
 						{ label: "Sponsored", value: "sponsored" },
+						{ label: "Deposit", value: "deposit" },
 					],
 				}}
 			/>

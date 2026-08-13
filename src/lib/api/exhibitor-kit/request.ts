@@ -95,6 +95,7 @@ export const paymentStatusEnum = z.enum([
 	"paid",
 	"waived",
 	"sponsored",
+	"deposit",
 ]);
 
 // Create exhibitor kit schema

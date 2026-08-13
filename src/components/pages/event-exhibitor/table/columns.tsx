@@ -99,8 +99,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorFn: (row) =>
-			row.kit.company_name || row.vendor.vendor.full_name,
+		accessorFn: (row) => row.kit.company_name || row.vendor.vendor.full_name,
 		id: "company_name",
 		size: 200,
 		header: ({ column }) => {
@@ -320,6 +319,12 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 						>
 							Sponsored
 						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("deposit")}
+						>
+							Deposit
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
@@ -332,7 +337,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 				return (
 					<Badge
 						variant="outline"
-						className="rounded-none border-gray-500 font-bold capitalize text-gray-500"
+						className="rounded-none border-gray-500 font-bold text-gray-500 capitalize"
 					>
 						Cancelled
 					</Badge>
@@ -343,6 +348,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 				paid: "border-green-500 text-green-500",
 				waived: "border-gray-500 text-gray-500",
 				sponsored: "border-blue-500 text-blue-500",
+				deposit: "border-amber-500 text-amber-500",
 			};
 			return (
 				<Badge
@@ -491,7 +497,9 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const { timePart, datePart } = formatCreatedAt(row.original.kit.created_at);
+			const { timePart, datePart } = formatCreatedAt(
+				row.original.kit.created_at,
+			);
 
 			return (
 				<div className="flex flex-col">
