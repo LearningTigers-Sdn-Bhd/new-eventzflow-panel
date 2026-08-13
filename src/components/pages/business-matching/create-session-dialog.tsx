@@ -74,6 +74,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 	const isPending = isCreating || isUpdating || isDeleting;
 
+	// Whether the current viewer may change the Daily Start/End Time and
+	// working-hours breakdown: admins always can; a host can only if this
+	// session's "Hosts can edit their own hours" toggle allows it.
+	const canEditHours = isHostEditing ? (session?.hours_editable ?? true) : true;
+
 	const handleDelete = () => {
 		if (!session) return;
 		if (
@@ -200,12 +205,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (isEditMode && hasTimeConflict) {
-			toast.error(
-				"This time range excludes existing bookings or hours — adjust it or clear those first.",
-			);
-			return;
-		}
 		if (!title.trim()) {
 			toast.error("Session Title is required.");
 			return;
@@ -308,7 +307,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						onOpenChange={setStartTimeOpen}
 						value={startTime}
 						onValueChange={handleStartTimeChange}
-						disabled={isPending}
+						disabled={isPending || !canEditHours}
 						className={cn("w-full", hasTimeConflict && "border-destructive")}
 					/>
 				</div>
@@ -320,7 +319,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						onOpenChange={setEndTimeOpen}
 						value={endTime}
 						onValueChange={setEndTime}
-						disabled={isPending}
+						disabled={isPending || !canEditHours}
 						className={cn("w-full", hasTimeConflict && "border-destructive")}
 					/>
 				</div>
@@ -334,7 +333,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 							" and "}
 						{timeConflicts.blocks.length > 0 &&
 							`${timeConflicts.blocks.length} availability block${timeConflicts.blocks.length === 1 ? "" : "s"}`}
-						. Adjust the times, or remove/reschedule those first.
+						. They'll remain as-is if you save — adjust the times if that's not
+						intended.
 					</p>
 				)}
 			</div>
@@ -474,10 +474,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 					>
 						Cancel
 					</Button>
-					<Button
-						type="submit"
-						disabled={isPending || (isEditMode && hasTimeConflict)}
-					>
+					<Button type="submit" disabled={isPending}>
 						{(isCreating || isUpdating) && (
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						)}
@@ -503,11 +500,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 				<ManageAvailabilityHours
 					sessionId={session.id}
 					eventId={eventId}
-					hoursEditable={
-						isHostEditing
-							? (session.host?.hours_editable_effective ?? true)
-							: true
-					}
+					hoursEditable={canEditHours}
 				/>
 			</TabsContent>
 		</Tabs>
