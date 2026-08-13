@@ -70,18 +70,25 @@ export default function TicketAnalyticsPage({
 		dateSelection.type === "pre_event" ||
 		dateSelection.type === "event_duration";
 
-	const { data: hourlyRegistrations } = useQuery({
-		queryKey: ["event", eventId, "hourly_breakdown", "tickets", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event_id, "tickets", {
-				dateMode: analyticsParams.dateMode,
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-			}),
-		enabled: !!event && shouldFetchHourlyBreakdown,
-	});
+	const { data: hourlyRegistrations, isLoading: hourlyRegistrationsLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				eventId,
+				"hourly_breakdown",
+				"tickets",
+				dateSelection,
+			],
+			queryFn: () =>
+				getHourlyBreakdownByDay(event_id, "tickets", {
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
+				}),
+			enabled: !!event && shouldFetchHourlyBreakdown,
+		});
 
-	const { data: hourlyScans } = useQuery({
+	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
 		queryKey: ["event", eventId, "hourly_breakdown", "scans", dateSelection],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event_id, "scans", {
@@ -92,7 +99,13 @@ export default function TicketAnalyticsPage({
 		enabled: !!event && shouldFetchHourlyBreakdown,
 	});
 
-	const isLoading = eventLoading || analyticsLoading;
+	// Hourly breakdown queries only run for certain filters — don't block
+	// export on them when they're not enabled (would never resolve).
+	const hourlyBreakdownLoading =
+		shouldFetchHourlyBreakdown &&
+		(hourlyRegistrationsLoading || hourlyScansLoading);
+
+	const isLoading = eventLoading || analyticsLoading || hourlyBreakdownLoading;
 	const checkInRate = data?.paidTickets
 		? Math.round(((data.scannedTickets ?? 0) / data.paidTickets) * 1000) / 10
 		: 0;
