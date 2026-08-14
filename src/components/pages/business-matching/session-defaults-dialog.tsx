@@ -360,10 +360,12 @@ export default function SessionDefaultsDialog({
 
 			<div className="flex items-center justify-between rounded-lg border p-3">
 				<div className="space-y-0.5">
-					<Label htmlFor="auto-approve-bookings">Auto-approve bookings</Label>
+					<Label htmlFor="auto-approve-bookings">
+						Auto-approve public bookings
+					</Label>
 					<p className="text-muted-foreground text-xs">
-						New bookings staff create are approved immediately instead of
-						waiting on manual approval.
+						Best for smaller events. Turn off to review bookings before
+						approving.
 					</p>
 				</div>
 				<Switch
