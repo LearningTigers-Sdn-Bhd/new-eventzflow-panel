@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
 import "react-day-picker/dist/style.css"; // Assuming basic styling is needed
@@ -27,6 +26,10 @@ import {
 	useBusinessMatchingDetailedSlots,
 } from "@/hooks/use-business-matching";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+	formatAvailabilityDate,
+	isAvailableDate,
+} from "@/lib/business-matching-dates";
 import { useBusinessMatchingStore } from "@/stores/use-business-matching-store";
 import CreateBookingForm from "./create-booking-form";
 
@@ -168,7 +171,7 @@ export default function AvailabilitySlotsPanel({
 						onSelect={(date) => {
 							setSelectedDate(date);
 							if (date) {
-								const formatted = format(date, "dd MMMM yyyy");
+								const formatted = formatAvailabilityDate(date);
 								setSelectedFormattedDate(formatted);
 								setSelectedBusinessMatchingDate(formatted); // Update Zustand store
 								if (isMobile) setActiveTab("slots");
@@ -177,18 +180,9 @@ export default function AvailabilitySlotsPanel({
 								setSelectedBusinessMatchingDate(undefined); // Clear Zustand store
 							}
 						}}
-						disabled={(day) => {
-							const formattedDay = format(day, "dd MMMM yyyy");
-							return !data?.dates.some((item) => item.date === formattedDay);
-						}}
+						disabled={(day) => !isAvailableDate(day, data?.dates)}
 						modifiers={{
-							available: (day) => {
-								const formattedDay = format(day, "dd MMMM yyyy");
-								return (
-									data?.dates.some((item) => item.date === formattedDay) ??
-									false
-								);
-							},
+							available: (day) => isAvailableDate(day, data?.dates),
 						}}
 						modifiersClassNames={{
 							today: "bg-green-100 text-emerald-800 rounded-full",
