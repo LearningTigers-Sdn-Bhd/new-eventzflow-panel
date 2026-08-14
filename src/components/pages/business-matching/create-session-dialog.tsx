@@ -346,7 +346,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="!mt-2 grid grid-cols-2 gap-4">
 				<div className="space-y-2">
 					<Label htmlFor="session-start-date">Session Start Date</Label>
 					<Popover open={startDateOpen} onOpenChange={setStartDateOpen}>

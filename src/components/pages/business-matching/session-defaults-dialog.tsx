@@ -54,7 +54,7 @@ export default function SessionDefaultsDialog({
 	const [publicBookingEnabled, setPublicBookingEnabled] = useState(true);
 	const [publicBookingCutoffDate, setPublicBookingCutoffDate] = useState("");
 	const [cutoffDateOpen, setCutoffDateOpen] = useState(false);
-	const [autoApproveBookings, setAutoApproveBookings] = useState(true);
+	const [autoApproveBookings, setAutoApproveBookings] = useState(false);
 
 	// Add-session flow: revealed blank, time chosen from a fixed list only.
 	const [isAddingSession, setIsAddingSession] = useState(false);
@@ -361,12 +361,11 @@ export default function SessionDefaultsDialog({
 			<div className="flex items-center justify-between rounded-lg border p-3">
 				<div className="space-y-0.5 pr-4">
 					<Label htmlFor="auto-approve-bookings">
-						Auto-approve incoming bookings
+						Auto-approve public bookings
 					</Label>
 					<p className="text-muted-foreground text-xs">
-						Turn off to hold booker-made bookings as Pending until a host or
-						admin approves them. The booker is told it's awaiting approval, and
-						only gets a confirmation email once approved.
+						Turn off to review bookings before approving. Bookers are told the
+						request is pending, and only get a confirmation email once approved.
 					</p>
 				</div>
 				<Switch
