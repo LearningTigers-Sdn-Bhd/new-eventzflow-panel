@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isSameDay, parse, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -30,6 +30,10 @@ import {
 } from "@/hooks/use-business-matching-public";
 import { useEventDetails } from "@/hooks/use-event-details"; // Import the new hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import {
+	formatAvailabilityDate,
+	isAvailableDate,
+} from "@/lib/business-matching-dates";
 import { PROFILE_TEXT_FIELD_MAX_LENGTH } from "@/lib/constants/business-matching-constants";
 
 interface BookMeetingPageProps {
@@ -117,7 +121,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	});
 
 	const selectedDateStr = selectedDate
-		? format(selectedDate, "d MMMM yyyy")
+		? formatAvailabilityDate(selectedDate)
 		: "";
 	const {
 		data: detailedSlotsData,
@@ -182,7 +186,11 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			{
 				onSuccess: (booking) => {
 					// 'booking' is the data returned from createPublicBooking
-					toast.success("Meeting booked successfully!");
+					toast.success(
+						booking.status === "Pending"
+							? "Request sent — waiting for the host to approve."
+							: "Meeting booked successfully!",
+					);
 					// Redirect to confirmation page with booking ID as query param
 					router.push(
 						`/event/${event_id}/booking-confirmation?bookingId=${booking.id}&bmEventId=${selectedBmEvent?.id}`,
@@ -380,48 +388,42 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 								</span>
 							</div>
 
-							<div className="space-y-2 pt-3">
-								<Label className="block font-semibold text-foreground text-sm">
-									What categories are you looking for? (Optional)
-								</Label>
-								<span className="-mt-1 block text-muted-foreground text-xs">
-									Select matching tags to automatically rank relevant hosts to
-									the top of your view!
-								</span>
-								<div className="flex flex-wrap gap-1.5 pt-1.5">
-									{[
-										"Fintech Core",
-										"Cybersecurity SaaS",
-										"Generative AI API",
-										"AI Diagnostics",
-										"IoT Fleet Tech",
-										"No-Code Builder",
-										"Pre-Seed Fund",
-										"Seed Venture Capital",
-										"Series A Equity",
-									].map((tag) => {
-										const selected = visitorInterests.includes(tag);
-										return (
-											<Button
-												key={tag}
-												type="button"
-												variant={selected ? "default" : "outline"}
-												size="sm"
-												onClick={() => {
-													setVisitorInterests((prev) =>
-														prev.includes(tag)
-															? prev.filter((t) => t !== tag)
-															: [...prev, tag],
-													);
-												}}
-												className="rounded-full text-xs"
-											>
-												{tag}
-											</Button>
-										);
-									})}
+							{/* Only the tags actually assigned to this event's hosts — an
+						    interest the visitor can't be matched against is noise. */}
+							{allUniqueTags.length > 0 && (
+								<div className="space-y-2 pt-3">
+									<Label className="block font-semibold text-foreground text-sm">
+										What categories are you looking for? (Optional)
+									</Label>
+									<span className="-mt-1 block text-muted-foreground text-xs">
+										Select matching tags to automatically rank relevant hosts to
+										the top of your view!
+									</span>
+									<div className="flex flex-wrap gap-1.5 pt-1.5">
+										{allUniqueTags.map((tag) => {
+											const selected = visitorInterests.includes(tag);
+											return (
+												<Button
+													key={tag}
+													type="button"
+													variant={selected ? "default" : "outline"}
+													size="sm"
+													onClick={() => {
+														setVisitorInterests((prev) =>
+															prev.includes(tag)
+																? prev.filter((t) => t !== tag)
+																: [...prev, tag],
+														);
+													}}
+													className="rounded-full text-xs"
+												>
+													{tag}
+												</Button>
+											);
+										})}
+									</div>
 								</div>
-							</div>
+							)}
 						</div>
 					</div>
 				);
@@ -715,19 +717,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 												setSelectedTime(null);
 											}}
 											disabled={(day) =>
-												!eventAvailability?.dates
-													?.map((d) => {
-														const parsed = parse(
-															d.date,
-															"d MMMM yyyy",
-															new Date(),
-														);
-														return Number.isNaN(parsed.getTime())
-															? parseISO(d.date)
-															: parsed;
-													})
-													.filter((d) => !Number.isNaN(d.getTime()))
-													.some((d) => isSameDay(day, d))
+												!isAvailableDate(day, eventAvailability?.dates)
 											}
 											className="rounded-md border shadow"
 										/>
