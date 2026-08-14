@@ -54,6 +54,7 @@ export default function SessionDefaultsDialog({
 	const [publicBookingEnabled, setPublicBookingEnabled] = useState(true);
 	const [publicBookingCutoffDate, setPublicBookingCutoffDate] = useState("");
 	const [cutoffDateOpen, setCutoffDateOpen] = useState(false);
+	const [autoApproveBookings, setAutoApproveBookings] = useState(false);
 
 	// Add-session flow: revealed blank, time chosen from a fixed list only.
 	const [isAddingSession, setIsAddingSession] = useState(false);
@@ -71,6 +72,7 @@ export default function SessionDefaultsDialog({
 			setHoursEditableDefault(defaults.hours_editable_default);
 			setPublicBookingEnabled(defaults.public_booking_enabled);
 			setPublicBookingCutoffDate(defaults.public_booking_cutoff_date || "");
+			setAutoApproveBookings(defaults.auto_approve_bookings);
 		}
 	}, [defaults]);
 
@@ -155,6 +157,7 @@ export default function SessionDefaultsDialog({
 				default_slot_duration: slotDuration,
 				public_booking_enabled: publicBookingEnabled,
 				public_booking_cutoff_date: publicBookingCutoffDate || null,
+				auto_approve_bookings: autoApproveBookings,
 			},
 			{
 				onSuccess: () => {
@@ -350,6 +353,24 @@ export default function SessionDefaultsDialog({
 					id="hours-editable-default"
 					checked={hoursEditableDefault}
 					onCheckedChange={setHoursEditableDefault}
+					disabled={isPending}
+					className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
+				/>
+			</div>
+
+			<div className="flex items-center justify-between rounded-lg border p-3">
+				<div className="space-y-0.5">
+					<Label htmlFor="auto-approve-bookings">
+						Auto-approve public bookings
+					</Label>
+					<p className="text-muted-foreground text-xs">
+						Turn off to review bookings before approving.
+					</p>
+				</div>
+				<Switch
+					id="auto-approve-bookings"
+					checked={autoApproveBookings}
+					onCheckedChange={setAutoApproveBookings}
 					disabled={isPending}
 					className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-red-500"
 				/>
