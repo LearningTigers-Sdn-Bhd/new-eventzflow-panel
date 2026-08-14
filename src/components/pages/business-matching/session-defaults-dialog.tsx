@@ -364,8 +364,7 @@ export default function SessionDefaultsDialog({
 						Auto-approve public bookings
 					</Label>
 					<p className="text-muted-foreground text-xs">
-						Best for smaller events. Turn off to review bookings before
-						approving.
+						Turn off to review bookings before approving.
 					</p>
 				</div>
 				<Switch
