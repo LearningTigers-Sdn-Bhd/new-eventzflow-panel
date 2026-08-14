@@ -692,6 +692,7 @@ export interface BusinessMatchingEventDefaults {
 	public_booking_cutoff_date: string | null;
 	// enabled=true but the cutoff date has already passed
 	public_booking_past_cutoff_warning: boolean;
+	auto_approve_bookings: boolean;
 }
 
 export async function getBusinessMatchingEventDefaults(
