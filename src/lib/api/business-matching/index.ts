@@ -170,7 +170,6 @@ export interface Booking {
 	location: string;
 	cancel_link: string;
 	reschedule_link: string;
-	meeting_approval_link: string;
 	payment_status: string;
 	created_at: string;
 	host_comment?: string; // Internal staff note — not booker-submitted
@@ -453,6 +452,16 @@ export async function rescheduleBooking(
 }
 
 /**
+ * Approve a pending booking. Staff/host action — requires auth, unlike the
+ * booker-facing cancel/reschedule links.
+ */
+export async function approveBooking(bookingId: string): Promise<Booking> {
+	return restClient.patch<Booking>(
+		`v1/business_matching/bookings/${bookingId}/approve`,
+	);
+}
+
+/**
  * Cancel a booking (no auth required)
  */
 export async function cancelBooking(
@@ -690,6 +699,8 @@ export interface BusinessMatchingEventDefaults {
 	default_slot_duration: number;
 	public_booking_enabled: boolean;
 	public_booking_cutoff_date: string | null;
+	// Off = booker-made bookings land as "Pending" until a host/admin approves.
+	auto_approve_bookings: boolean;
 	// enabled=true but the cutoff date has already passed
 	public_booking_past_cutoff_warning: boolean;
 }
