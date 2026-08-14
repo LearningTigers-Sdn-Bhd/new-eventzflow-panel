@@ -54,6 +54,7 @@ export type Event = {
 	webhook_url: string | null;
 	business_matching_webhook_url: string | null;
 	public_registration_url: string | null;
+	registration_path_template: string | null;
 	labels_data: Record<string, string>;
 	exhibitor_labels_data: Record<string, string>;
 	booth_types: string[];

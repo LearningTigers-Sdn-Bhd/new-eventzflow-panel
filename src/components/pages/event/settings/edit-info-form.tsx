@@ -88,6 +88,7 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	registrationPathTemplate: z.string(),
 	multipleScans: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -170,6 +171,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
 			publicRegistrationUrl: "",
+			registrationPathTemplate: "",
 			multipleScans: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -213,6 +215,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
 					public_registration_url: value.publicRegistrationUrl || "",
+					registration_path_template: value.registrationPathTemplate || "",
 					multiple_scans: value.multipleScans,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -277,6 +280,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue(
 					"publicRegistrationUrl",
 					event.public_registration_url || "",
+				);
+				form.setFieldValue(
+					"registrationPathTemplate",
+					event.registration_path_template || "",
 				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
 				form.setFieldValue(
@@ -499,6 +506,26 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											errors={field.state.meta.errors}
 											isInvalid={isInvalid}
 											placeholder="https://forms.example.com"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="registrationPathTemplate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Registration Path Template"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="/luncheon-talk-registration?form=delegate"
 											disabled={updateEventMutation.isPending}
 										/>
 									);
