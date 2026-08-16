@@ -293,6 +293,16 @@ export function KitDetailsRow({
 							boothNumber={kit.booth_number}
 						/>
 					</div>
+					<div className="flex items-center justify-between gap-2 py-0.5">
+						<span className="font-medium text-xs">Indemnity Form</span>
+						<IcCopyPreviewButton
+							eventId={vendor.event_id}
+							kitId={kit.id}
+							available={kit.indemnity_form_uploaded}
+							document="indemnity-form"
+							boothNumber={kit.booth_number}
+						/>
+					</div>
 					<div className="flex justify-between gap-2 py-0.5">
 						<span className="shrink-0 font-medium text-xs">Type</span>
 						<Badge

@@ -309,6 +309,22 @@ export function ExhibitorKitDetailsSection({
 									</span>
 								)}
 							</div>
+							<div className="flex items-center justify-between">
+								<span className="font-medium">Indemnity Form</span>
+								{canDownloadIc ? (
+									<IcCopyPreviewButton
+										eventId={eventVendor.event_id}
+										kitId={kit.id}
+										available={kit.indemnity_form_uploaded}
+										document="indemnity-form"
+										boothNumber={kit.booth_number}
+									/>
+								) : (
+									<span className="text-muted-foreground">
+										{kit.indemnity_form_uploaded ? "Uploaded" : "Not uploaded"}
+									</span>
+								)}
+							</div>
 							<div className="flex justify-between">
 								<span className="font-medium">Booth Number</span>
 								<span className="text-muted-foreground">

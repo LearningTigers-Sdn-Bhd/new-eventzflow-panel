@@ -14,18 +14,21 @@ import {
 	downloadExhibitorKitCustomsDeclaration,
 	downloadExhibitorKitCustomsDutyEstimate,
 	downloadExhibitorKitIcCopy,
+	downloadExhibitorKitIndemnityForm,
 } from "@/lib/api/exhibitor-kit";
 
 const DOCUMENT_LABELS = {
 	"ic-copy": "IC Copy",
 	"customs-declaration": "Customs Declaration",
 	"customs-duty-estimate": "Customs Duty Estimate",
+	"indemnity-form": "Indemnity Form",
 } as const;
 
 const DOCUMENT_DOWNLOADERS = {
 	"ic-copy": downloadExhibitorKitIcCopy,
 	"customs-declaration": downloadExhibitorKitCustomsDeclaration,
 	"customs-duty-estimate": downloadExhibitorKitCustomsDutyEstimate,
+	"indemnity-form": downloadExhibitorKitIndemnityForm,
 } as const;
 
 export function IcCopyPreviewButton({
@@ -38,7 +41,11 @@ export function IcCopyPreviewButton({
 	eventId: number;
 	kitId: number;
 	available?: boolean;
-	document?: "ic-copy" | "customs-declaration" | "customs-duty-estimate";
+	document?:
+		| "ic-copy"
+		| "customs-declaration"
+		| "customs-duty-estimate"
+		| "indemnity-form";
 	boothNumber?: string | null;
 }) {
 	const [preview, setPreview] = useState<{ url: string; type: string } | null>(

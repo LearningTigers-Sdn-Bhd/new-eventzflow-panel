@@ -247,6 +247,15 @@ export async function downloadExhibitorKitCustomsDutyEstimate(
 	);
 }
 
+export async function downloadExhibitorKitIndemnityForm(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/indemnity_form`,
+	);
+}
+
 export async function rejectExhibitorKitPaymentProof(
 	eventId: number,
 	kitId: number,
