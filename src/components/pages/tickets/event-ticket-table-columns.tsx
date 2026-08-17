@@ -147,7 +147,6 @@ export function generateColumns(
 					</div>
 				);
 			},
-			enableHiding: false,
 		},
 		{
 			accessorKey: "ticketTypeName",

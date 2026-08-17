@@ -12,6 +12,8 @@ export type ControlConfig = {
 	// For visibility controls
 	getColumnLabel?: (columnId: string) => string;
 	excludeColumns?: string[];
+	// Clears saved column order/visibility and restores the default layout
+	onReset?: () => void;
 };
 
 export type SearchConfig = {

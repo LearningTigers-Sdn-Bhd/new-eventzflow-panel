@@ -27,6 +27,11 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
+import { usePersistedColumnOrder } from "@/hooks/use-persisted-column-order";
+import {
+	hasSavedColumnVisibility,
+	usePersistedColumnVisibility,
+} from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -35,6 +40,8 @@ import { DataControl } from "./event-ticket-table-control";
 import TicketForm from "./page-action/create-event-ticket-form";
 
 type TicketFilter = "active" | "archived" | "all";
+
+const MANAGE_TICKETS_VISIBILITY_KEY = "manage-tickets-column-visibility";
 
 interface DataTableProps<TData> {
 	data: TData[];
@@ -74,10 +81,13 @@ export function DataTable<TData>({
 	});
 
 	// Initialize with default visibility (phone is always hidden)
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({
+	const [columnVisibility, setColumnVisibility, resetColumnVisibility] =
+		usePersistedColumnVisibility(MANAGE_TICKETS_VISIBILITY_KEY, {
 			phone: false, // Hide phone column as it's only used for search
 		});
+
+	const [columnOrder, setColumnOrder, resetColumnOrder] =
+		usePersistedColumnOrder("manage-tickets-column-order");
 
 	// Merge labels_data keys with any custom label keys found in ticket data
 	const mergedLabelsData = React.useMemo(() => {
@@ -95,14 +105,14 @@ export function DataTable<TData>({
 		return Object.keys(base).length > 0 ? base : undefined;
 	}, [eventData?.labels_data, data]);
 
-	// Generate visibility state for custom columns when mergedLabelsData is available
-	// Show first 3 labels by default, hide the rest if there are more than 3
-	React.useEffect(() => {
-		if (!mergedLabelsData) return;
-
+	// Default visibility: show first 3 custom labels, hide the rest if there
+	// are more than 3. Reused by both the auto-apply effect (first load) and
+	// the "Reset to default" action.
+	const defaultVisibility = React.useMemo<VisibilityState>(() => {
 		const visibility: VisibilityState = {
 			phone: false, // Hide phone column as it's only used for search
 		};
+		if (!mergedLabelsData) return visibility;
 
 		// participation_category has its own fixed, always-visible column
 		// (see event-ticket-table-columns.tsx) so it's excluded here.
@@ -120,8 +130,24 @@ export function DataTable<TData>({
 			}
 		});
 
-		setColumnVisibility(visibility);
+		return visibility;
 	}, [mergedLabelsData]);
+
+	// Apply the computed default only when the user hasn't saved a
+	// visibility preference yet.
+	React.useEffect(() => {
+		if (
+			!mergedLabelsData ||
+			hasSavedColumnVisibility(MANAGE_TICKETS_VISIBILITY_KEY)
+		)
+			return;
+		setColumnVisibility(defaultVisibility);
+	}, [mergedLabelsData, defaultVisibility, setColumnVisibility]);
+
+	const resetColumnPreferences = () => {
+		resetColumnVisibility(defaultVisibility);
+		resetColumnOrder();
+	};
 
 	const columns = React.useMemo(
 		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
@@ -138,10 +164,12 @@ export function DataTable<TData>({
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onColumnOrderChange: setColumnOrder,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
+			columnOrder,
 		},
 	});
 
@@ -152,6 +180,7 @@ export function DataTable<TData>({
 				labelsData={mergedLabelsData}
 				ticketFilter={ticketFilter}
 				onTicketFilterChange={onTicketFilterChange}
+				onResetColumns={resetColumnPreferences}
 			/>
 
 			{/* Data Table */}

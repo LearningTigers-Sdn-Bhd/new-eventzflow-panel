@@ -27,12 +27,19 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
+import { usePersistedColumnOrder } from "@/hooks/use-persisted-column-order";
+import {
+	hasSavedColumnVisibility,
+	usePersistedColumnVisibility,
+} from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
 import PendingTicketForm from "./page-action/create-pending-ticket-form";
 import { PendingTicketItem } from "./pending-ticket-item";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 import { generateColumns } from "./pending-ticket-table-columns";
 import { DataControl } from "./pending-ticket-table-control";
+
+const PENDING_TICKETS_VISIBILITY_KEY = "pending-tickets-column-visibility";
 
 interface DataTableProps<TData> {
 	data: TData[];
@@ -92,13 +99,26 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		return visibility;
 	}, [mergedLabelsData]);
 
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>(initialVisibility);
+	const [columnVisibility, setColumnVisibility, resetColumnVisibility] =
+		usePersistedColumnVisibility(
+			PENDING_TICKETS_VISIBILITY_KEY,
+			initialVisibility,
+		);
 
-	// Update visibility when labels data changes
+	const [columnOrder, setColumnOrder, resetColumnOrder] =
+		usePersistedColumnOrder("pending-tickets-column-order");
+
+	// Apply the computed default (first 3 custom labels visible) only when
+	// the user hasn't saved a visibility preference yet.
 	React.useEffect(() => {
+		if (hasSavedColumnVisibility(PENDING_TICKETS_VISIBILITY_KEY)) return;
 		setColumnVisibility(initialVisibility);
-	}, [initialVisibility]);
+	}, [initialVisibility, setColumnVisibility]);
+
+	const resetColumnPreferences = () => {
+		resetColumnVisibility(initialVisibility);
+		resetColumnOrder();
+	};
 
 	const hasApplicationWorkflow = React.useMemo(
 		() =>
@@ -139,10 +159,12 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onColumnOrderChange: setColumnOrder,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
+			columnOrder,
 		},
 	});
 
@@ -152,6 +174,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 				table={table}
 				labelsData={mergedLabelsData}
 				hasApplicationWorkflow={hasApplicationWorkflow}
+				onResetColumns={resetColumnPreferences}
 			/>
 
 			<div className="min-h-[calc(100vh-320px)]">

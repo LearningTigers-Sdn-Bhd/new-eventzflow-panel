@@ -15,12 +15,17 @@ interface DataControlProps<TData> {
 	labelsData?: Record<string, string>;
 	ticketFilter?: TicketFilter;
 	onTicketFilterChange?: (filter: TicketFilter) => void;
+	onResetColumns?: () => void;
 }
 
 function getColumnLabel(
 	columnId: string,
 	labelsData?: Record<string, string>,
 ): string {
+	if (columnId === "custom_participation_category") {
+		return labelsData?.participation_category || "Category";
+	}
+
 	if (columnId.startsWith("custom_")) {
 		const labelKey = columnId.replace("custom_", "");
 		return labelsData?.[labelKey] || columnId;
@@ -41,6 +46,7 @@ export function DataControl<TData>({
 	labelsData,
 	ticketFilter = "active",
 	onTicketFilterChange,
+	onResetColumns,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -152,6 +158,7 @@ export function DataControl<TData>({
 			type: "visibility",
 			getColumnLabel: (columnId) => getColumnLabel(columnId, labelsData),
 			excludeColumns: ["phone"],
+			onReset: onResetColumns,
 		},
 	];
 

@@ -12,6 +12,7 @@ interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
 	hasApplicationWorkflow?: boolean;
+	onResetColumns?: () => void;
 }
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -76,6 +77,7 @@ export function DataControl<TData>({
 	table,
 	labelsData,
 	hasApplicationWorkflow = true,
+	onResetColumns,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -242,6 +244,7 @@ export function DataControl<TData>({
 			type: "visibility",
 			getColumnLabel: (columnId) => getColumnLabel(columnId, labelsData),
 			excludeColumns: ["phone"],
+			onReset: onResetColumns,
 		},
 	];
 

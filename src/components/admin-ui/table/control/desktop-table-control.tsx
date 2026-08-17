@@ -12,6 +12,8 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -164,12 +166,49 @@ export function DesktopTableControl<TData>({
 								key={column.id}
 								className="rounded-none capitalize"
 								checked={column.getIsVisible()}
-								onCheckedChange={(value) => column.toggleVisibility(!!value)}
+								onSelect={(event) => event.preventDefault()}
+								onCheckedChange={(value) => {
+									column.toggleVisibility(!!value);
+									// Move newly-checked columns to the end so display order
+									// follows selection order, not the column-def order —
+									// but keep sticky-right columns (e.g. Actions) pinned last.
+									if (value) {
+										const stickyRightIds = table
+											.getAllLeafColumns()
+											.filter((c) => c.columnDef.meta?.sticky === "right")
+											.map((c) => c.id);
+										const currentOrder = table.getState().columnOrder.length
+											? table.getState().columnOrder
+											: table.getAllLeafColumns().map((c) => c.id);
+										const rest = currentOrder.filter(
+											(id) => id !== column.id && !stickyRightIds.includes(id),
+										);
+										table.setColumnOrder([
+											...rest,
+											column.id,
+											...stickyRightIds.filter((id) => id !== column.id),
+										]);
+									}
+								}}
 							>
 								{label}
 							</DropdownMenuCheckboxItem>
 						);
 					})}
+					{config.onReset && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="rounded-none"
+								onSelect={(event) => {
+									event.preventDefault();
+									config.onReset?.();
+								}}
+							>
+								Reset to default
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 		);
