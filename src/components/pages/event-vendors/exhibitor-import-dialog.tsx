@@ -265,12 +265,22 @@ export function ExhibitorImportDialog({
 								<AlertCircle className="h-4 w-4" />
 							</AlertIcon>
 							<AlertContent>
-								<AlertTitle>Set up booth pricing first</AlertTitle>
+								<AlertTitle>Before you import</AlertTitle>
 								<AlertDescription>
-									This template's Booth Type, Zone, and Package options come
-									from this event's existing booth pricing. Configure booth
-									prices (and zones/packages if used) before downloading, or
-									every row will fail to match during import.
+									<ul className="list-disc space-y-1 pl-4">
+										<li>
+											Booth Type, Zone, and Package options come from this
+											event's existing booth pricing — configure these before
+											downloading, or every row will fail to match.
+										</li>
+										<li>
+											For booth types with numbered booth inventory, filling in
+											Booth No claims that exact booth — pick from the Reference
+											sheet's available numbers, don't reuse one across rows or
+											enter one that's already booked. Leave it blank to assign
+											a specific booth later instead.
+										</li>
+									</ul>
 								</AlertDescription>
 							</AlertContent>
 						</Alert>
@@ -482,6 +492,7 @@ export function ExhibitorImportDialog({
 										<TableHead>Booth</TableHead>
 										<TableHead>Zone</TableHead>
 										<TableHead>Price Label</TableHead>
+										<TableHead>Booth No</TableHead>
 										<TableHead>Package</TableHead>
 										<TableHead>Qty</TableHead>
 										<TableHead>Amount (RM)</TableHead>
@@ -493,7 +504,7 @@ export function ExhibitorImportDialog({
 									{rows.length === 0 ? (
 										<TableRow>
 											<TableCell
-												colSpan={13}
+												colSpan={14}
 												className="py-8 text-center text-muted-foreground"
 											>
 												{isBusy
@@ -551,6 +562,9 @@ export function ExhibitorImportDialog({
 														{row.price_label || "-"}
 													</TableCell>
 													<TableCell className={cellClass}>
+														{row.booth_no || "-"}
+													</TableCell>
+													<TableCell className={cellClass}>
 														{row.package_name || "-"}
 													</TableCell>
 													<TableCell className={cellClass}>
@@ -569,9 +583,19 @@ export function ExhibitorImportDialog({
 													</TableCell>
 													<TableCell>
 														{row.status === "error" ? (
-															<span className="text-red-700 text-xs">
-																{row.error}
-															</span>
+															<div className="flex flex-col gap-1">
+																{row.booth_taken && (
+																	<Badge
+																		variant="secondary"
+																		className="w-fit rounded-none border-red-200 bg-red-100/80 text-red-800 hover:bg-red-100/80"
+																	>
+																		Booth Taken
+																	</Badge>
+																)}
+																<span className="text-red-700 text-xs">
+																	{row.error}
+																</span>
+															</div>
 														) : row.status === "duplicate" ? (
 															<div className="flex flex-col gap-1">
 																<Badge

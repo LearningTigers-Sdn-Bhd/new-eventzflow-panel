@@ -173,6 +173,10 @@ export interface ImportExhibitorKitsRowResult {
 	booth_type?: string;
 	zone?: string;
 	price_label?: string;
+	/** The Booth No cell for this row. Only meaningfully validated when the
+	 * resolved Booth Type has real numbered-booth inventory set up — otherwise
+	 * it's just a free-text label passed through as-is. */
+	booth_no?: string | null;
 	package_name?: string;
 	booth_quantity?: number;
 	payment_status?: string;
@@ -185,6 +189,11 @@ export interface ImportExhibitorKitsRowResult {
 	existing_kit_id?: number;
 	existing_kit_public_id?: string;
 	existing_created_at?: string;
+	/** True on an `errors` row whose Booth No belongs to a real inventory booth
+	 * that's already claimed by another active/paid booking — as opposed to a
+	 * not-found or wrong-booth-type Booth No error. Lets the preview badge this
+	 * case distinctly from a generic row error. */
+	booth_taken?: boolean;
 }
 
 export interface ImportExhibitorKitsResponse {
