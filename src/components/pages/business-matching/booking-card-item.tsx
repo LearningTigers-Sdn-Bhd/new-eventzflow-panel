@@ -25,6 +25,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+	useApproveBooking,
 	useCancelBooking,
 	useUpdateBooking,
 } from "@/hooks/use-business-matching";
@@ -66,6 +67,8 @@ export function BookingCardItem({
 	} = useUpdateBooking(bmEventId, eventId);
 	const { mutate: cancelBookingMutation, isPending: isCancelling } =
 		useCancelBooking(bmEventId, eventId);
+	const { mutate: approveBookingMutation, isPending: isApproving } =
+		useApproveBooking(bmEventId, eventId);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
 	const { openDialog } = useDialog();
@@ -215,6 +218,29 @@ export function BookingCardItem({
 					},
 					onError: (error) => {
 						toast.error("Failed to cancel booking", {
+							description: error.message || "An unexpected error occurred.",
+						});
+					},
+				});
+			},
+		});
+	};
+
+	const handleApproveBooking = () => {
+		openConfirm({
+			message: `Approve ${displayBooking.name}'s booking on ${displayBooking.booking_date} at ${displayBooking.booking_time}? They'll be emailed that it's confirmed.`,
+			confirmLabel: "Yes, Approve",
+			variant: "success",
+			icon: "check",
+			onConfirm: () => {
+				approveBookingMutation(displayBooking.id, {
+					onSuccess: () => {
+						setDisplayBooking((prev) => ({ ...prev, status: "Approved" }));
+						updateLocalCache({ status: "Approved" });
+						toast.success("Booking approved");
+					},
+					onError: (error) => {
+						toast.error("Failed to approve booking", {
 							description: error.message || "An unexpected error occurred.",
 						});
 					},
@@ -450,18 +476,16 @@ export function BookingCardItem({
 
 	const attendanceFooter = (
 		<>
-			{displayBooking.status !== "Approved" &&
-				displayBooking.meeting_approval_link && (
-					<Button
-						size="sm"
-						className="h-6 w-full bg-green-600 text-sm text-white hover:bg-green-700"
-						onClick={() =>
-							window.open(displayBooking.meeting_approval_link, "_blank")
-						}
-					>
-						<CheckCircle className="mr-1 h-3 w-3" /> Approve
-					</Button>
-				)}
+			{displayBooking.status === "Pending" && (
+				<Button
+					size="sm"
+					className="h-6 w-full bg-green-600 text-sm text-white hover:bg-green-700"
+					onClick={handleApproveBooking}
+					disabled={isApproving}
+				>
+					<CheckCircle className="mr-1 h-3 w-3" /> Approve
+				</Button>
+			)}
 
 			{displayBooking.status === "Approved" &&
 				(!displayBooking.attendance ||

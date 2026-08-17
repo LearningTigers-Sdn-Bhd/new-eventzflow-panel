@@ -1,6 +1,7 @@
 "use client";
 
-import { format, parse } from "date-fns";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
 	Calendar as CalendarIcon,
 	CheckCircle2,
@@ -20,13 +21,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useEventAvailability, useDetailedSlots } from "@/hooks/use-business-matching-public";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+	useDetailedSlots,
+	useEventAvailability,
+} from "@/hooks/use-business-matching-public";
 import {
 	getPublicBookingInfo,
-	rescheduleBooking,
 	type PublicBookingInfo,
+	rescheduleBooking,
 } from "@/lib/api/business-matching";
+import {
+	formatAvailabilityDate,
+	isAvailableDate,
+} from "@/lib/business-matching-dates";
 import { publicRestClient } from "@/utils/rest-api";
 
 interface ReschedulePageProps {
@@ -38,7 +45,9 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	const router = useRouter();
 
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-	const [selectedFormattedDate, setSelectedFormattedDate] = useState<string | undefined>(undefined);
+	const [selectedFormattedDate, setSelectedFormattedDate] = useState<
+		string | undefined
+	>(undefined);
 	const [selectedTime, setSelectedTime] = useState<string | null>(null);
 	const [done, setDone] = useState(false);
 	const [newDate, setNewDate] = useState("");
@@ -57,18 +66,13 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	});
 
 	// Fetch available dates for the session
-	const {
-		data: availabilityData,
-		isLoading: isLoadingAvailability,
-	} = useEventAvailability(booking?.bm_event_id ?? "", event_id, {
-		enabled: !!booking?.bm_event_id,
-	});
+	const { data: availabilityData, isLoading: isLoadingAvailability } =
+		useEventAvailability(booking?.bm_event_id ?? "", event_id, {
+			enabled: !!booking?.bm_event_id,
+		});
 
 	// Fetch time slots for the selected date
-	const {
-		data: slotsData,
-		isLoading: isLoadingSlots,
-	} = useDetailedSlots(
+	const { data: slotsData, isLoading: isLoadingSlots } = useDetailedSlots(
 		booking?.bm_event_id ?? "",
 		selectedFormattedDate ?? "",
 		event_id,
@@ -87,7 +91,9 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 		},
 		onError: (error: Error) => {
 			toast.error("Reschedule failed", {
-				description: error.message || "That slot may already be taken. Please choose another.",
+				description:
+					error.message ||
+					"That slot may already be taken. Please choose another.",
 			});
 		},
 	});
@@ -96,9 +102,11 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	if (isLoadingBooking) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center space-y-3">
-					<Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-					<p className="text-muted-foreground text-sm">Loading your booking...</p>
+				<div className="space-y-3 text-center">
+					<Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+					<p className="text-muted-foreground text-sm">
+						Loading your booking...
+					</p>
 				</div>
 			</div>
 		);
@@ -108,11 +116,14 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	if (bookingError || !booking) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
-				<Card className="max-w-md w-full text-center">
+				<Card className="w-full max-w-md text-center">
 					<CardHeader>
-						<CardTitle className="text-destructive text-2xl">Booking Not Found</CardTitle>
+						<CardTitle className="text-2xl text-destructive">
+							Booking Not Found
+						</CardTitle>
 						<CardDescription>
-							This booking does not exist or the link is invalid. Please contact the event organiser.
+							This booking does not exist or the link is invalid. Please contact
+							the event organiser.
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
@@ -129,9 +140,11 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	if (booking.status === "Cancelled") {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
-				<Card className="max-w-md w-full text-center">
+				<Card className="w-full max-w-md text-center">
 					<CardHeader>
-						<CardTitle className="text-destructive text-2xl">Booking Cancelled</CardTitle>
+						<CardTitle className="text-2xl text-destructive">
+							Booking Cancelled
+						</CardTitle>
 						<CardDescription>
 							This booking has been cancelled and cannot be rescheduled.
 						</CardDescription>
@@ -145,16 +158,16 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 	if (done) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
-				<Card className="max-w-md w-full text-center shadow-lg">
+				<Card className="w-full max-w-md text-center shadow-lg">
 					<CardHeader className="pb-4">
-						<CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-3" />
-						<CardTitle className="text-2xl font-bold">Rescheduled!</CardTitle>
+						<CheckCircle2 className="mx-auto mb-3 h-16 w-16 text-green-500" />
+						<CardTitle className="font-bold text-2xl">Rescheduled!</CardTitle>
 						<CardDescription>
 							Your meeting has been moved to a new time.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="rounded-xl border bg-muted/30 p-4 text-sm space-y-2 text-left">
+						<div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-left text-sm">
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">Session</span>
 								<span className="font-medium">{booking.session_title}</span>
@@ -177,10 +190,10 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 		);
 	}
 
-	const availableDateStrings = availabilityData?.dates.map((d) => d.date) ?? [];
+	const availableDates = availabilityData?.dates ?? [];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col items-center justify-start px-4 py-12">
+		<div className="flex min-h-screen flex-col items-center justify-start bg-gradient-to-b from-background to-muted/30 px-4 py-12">
 			<Card className="w-full max-w-2xl shadow-lg">
 				<CardHeader className="border-b pb-5">
 					<div className="flex items-center gap-3">
@@ -191,16 +204,20 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 							<CardTitle className="text-xl">Reschedule Your Meeting</CardTitle>
 							<CardDescription>
 								Pick a new date and time for your meeting with{" "}
-								<span className="font-medium text-foreground">{booking.session_title}</span>
+								<span className="font-medium text-foreground">
+									{booking.session_title}
+								</span>
 							</CardDescription>
 						</div>
 					</div>
 				</CardHeader>
 
-				<CardContent className="pt-6 space-y-6">
+				<CardContent className="space-y-6 pt-6">
 					{/* Current booking info */}
-					<div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 p-4 text-sm">
-						<p className="text-amber-800 dark:text-amber-300 font-medium mb-1">Current Booking</p>
+					<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/20">
+						<p className="mb-1 font-medium text-amber-800 dark:text-amber-300">
+							Current Booking
+						</p>
 						<p className="text-amber-700 dark:text-amber-400">
 							{booking.booking_date} at {booking.booking_time}
 						</p>
@@ -211,17 +228,19 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 						<div className="flex h-48 items-center justify-center">
 							<Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
 						</div>
-					) : availableDateStrings.length === 0 ? (
-						<div className="text-center text-muted-foreground py-8">
-							<CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-40" />
+					) : availableDates.length === 0 ? (
+						<div className="py-8 text-center text-muted-foreground">
+							<CalendarIcon className="mx-auto mb-3 h-10 w-10 opacity-40" />
 							<p className="font-medium">No available dates</p>
-							<p className="text-sm">This session has no open slots at this time.</p>
+							<p className="text-sm">
+								This session has no open slots at this time.
+							</p>
 						</div>
 					) : (
-						<div className="flex flex-col md:flex-row gap-6">
+						<div className="flex flex-col gap-6 md:flex-row">
 							{/* Calendar */}
 							<div className="flex-1">
-								<h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+								<h3 className="mb-3 flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 									<CalendarIcon className="h-4 w-4" />
 									Select a New Date
 								</h3>
@@ -232,35 +251,32 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 										setSelectedDate(date);
 										setSelectedTime(null);
 										if (date) {
-											setSelectedFormattedDate(format(date, "dd MMMM yyyy"));
+											setSelectedFormattedDate(formatAvailabilityDate(date));
 										} else {
 											setSelectedFormattedDate(undefined);
 										}
 									}}
-									disabled={(day) => {
-										const formatted = format(day, "dd MMMM yyyy");
-										return !availableDateStrings.includes(formatted);
-									}}
+									disabled={(day) => !isAvailableDate(day, availableDates)}
 									modifiers={{
-										available: (day) => {
-											const formatted = format(day, "dd MMMM yyyy");
-											return availableDateStrings.includes(formatted);
-										},
+										available: (day) => isAvailableDate(day, availableDates),
 									}}
 									modifiersClassNames={{
 										today: "bg-green-100 text-emerald-800 rounded-full",
 										available: "bg-green-100 text-emerald-800 rounded-full",
-										selected: "!bg-primary !text-primary-foreground rounded-full",
+										selected:
+											"!bg-primary !text-primary-foreground rounded-full",
 									}}
-									className="rounded-lg border w-fit mx-auto"
+									className="mx-auto w-fit rounded-lg border"
 								/>
 							</div>
 
 							{/* Time slots */}
-							<div className="flex-1 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6">
-								<h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+							<div className="flex-1 border-t pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-6">
+								<h3 className="mb-3 flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 									<Clock className="h-4 w-4" />
-									{selectedDate ? `Slots for ${selectedFormattedDate}` : "Pick a date first"}
+									{selectedDate
+										? `Slots for ${selectedFormattedDate}`
+										: "Pick a date first"}
 								</h3>
 
 								{!selectedDate && (
@@ -282,16 +298,16 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 												No slots available on this date.
 											</p>
 										) : (
-											<div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+											<div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto pr-1">
 												{slotsData.slots.map((slot, i) => (
 													<button
 														key={`${slot.slot}-${i}`}
 														type="button"
 														onClick={() => setSelectedTime(slot.slot)}
-														className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+														className={`rounded-lg border px-3 py-2.5 font-medium text-sm transition-all ${
 															selectedTime === slot.slot
-																? "bg-primary text-primary-foreground border-primary shadow"
-																: "hover:bg-primary/10 hover:border-primary/40"
+																? "border-primary bg-primary text-primary-foreground shadow"
+																: "hover:border-primary/40 hover:bg-primary/10"
 														}`}
 													>
 														{slot.slot}
@@ -307,8 +323,8 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 
 					{/* Confirm button */}
 					{selectedDate && selectedTime && (
-						<div className="border-t pt-5 flex flex-col sm:flex-row gap-3 items-center justify-between">
-							<div className="text-sm text-muted-foreground">
+						<div className="flex flex-col items-center justify-between gap-3 border-t pt-5 sm:flex-row">
+							<div className="text-muted-foreground text-sm">
 								New time:{" "}
 								<span className="font-semibold text-foreground">
 									{selectedFormattedDate} at {selectedTime}
@@ -317,11 +333,9 @@ export default function ReschedulePage({ params }: ReschedulePageProps) {
 							<Button
 								disabled={isRescheduling}
 								onClick={() => {
-									if (!selectedFormattedDate || !selectedTime) return;
-									// Convert "dd MMMM yyyy" back to "yyyy-MM-dd" for the API
-									const parsedDate = parse(selectedFormattedDate, "dd MMMM yyyy", new Date());
+									if (!selectedDate || !selectedTime) return;
 									doReschedule({
-										date: format(parsedDate, "yyyy-MM-dd"),
+										date: format(selectedDate, "yyyy-MM-dd"),
 										time: selectedTime,
 									});
 								}}

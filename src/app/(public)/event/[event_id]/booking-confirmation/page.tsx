@@ -1,7 +1,7 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { use } from "react";
@@ -78,21 +78,35 @@ export default function BookingConfirmationPage({
 		? format(parseISO(bookingDetails.created_at), "PPPp")
 		: "N/A";
 
+	// With auto-approve off the booking lands as "Pending" — saying "Confirmed"
+	// here would promise the booker a slot the host hasn't agreed to yet.
+	const isPendingApproval = bookingDetails.status === "Pending";
+
 	return (
 		<div className="container mx-auto max-w-3xl p-4 py-10">
 			<Card className="text-center">
 				<CardHeader>
-					<CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
+					{isPendingApproval ? (
+						<Clock className="mx-auto mb-4 h-16 w-16 text-amber-500" />
+					) : (
+						<CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
+					)}
 					<CardTitle className="font-bold text-3xl">
-						Booking Confirmed!
+						{isPendingApproval ? "Booking Requested!" : "Booking Confirmed!"}
 					</CardTitle>
 					<CardDescription>
-						Your meeting has been successfully booked.
+						{isPendingApproval
+							? "Your request has been sent and is waiting for the host's approval."
+							: "Your meeting has been successfully booked."}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4 text-left">
 					<p className="text-lg">Hi {bookingDetails.name},</p>
-					<p>Thank you for booking a meeting. Here are your booking details:</p>
+					<p>
+						{isPendingApproval
+							? "Thank you for your request. Here are the details you asked for:"
+							: "Thank you for booking a meeting. Here are your booking details:"}
+					</p>
 
 					<div className="space-y-2 rounded-lg border bg-muted/30 p-4 text-sm">
 						<div className="flex justify-between">
@@ -115,12 +129,24 @@ export default function BookingConfirmationPage({
 								{bookingDetails.location || "To be confirmed"}
 							</span>
 						</div>
+						<div className="flex justify-between">
+							<span className="text-muted-foreground">Status:</span>{" "}
+							<span
+								className={
+									isPendingApproval
+										? "font-medium text-amber-600"
+										: "font-medium text-green-600"
+								}
+							>
+								{isPendingApproval ? "Pending approval" : "Confirmed"}
+							</span>
+						</div>
 					</div>
 
 					<p className="text-muted-foreground text-sm">
-						A confirmation email with these details has been sent to{" "}
-						{bookingDetails.email}. Please check your inbox (or your spam
-						folder).
+						{isPendingApproval
+							? `We've emailed ${bookingDetails.email} to confirm we received your request — you'll get another email as soon as the host approves it. Please check your inbox (or your spam folder).`
+							: `A confirmation email with these details has been sent to ${bookingDetails.email}. Please check your inbox (or your spam folder).`}
 					</p>
 				</CardContent>
 				<CardContent className="mt-6 flex flex-col gap-4 md:flex-row md:justify-between">

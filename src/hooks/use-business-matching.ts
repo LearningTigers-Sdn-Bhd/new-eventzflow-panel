@@ -4,6 +4,7 @@ import {
 	adminUpdateHostAvatar,
 	adminUpdateHostProfileInfo,
 	adminUpdateHostTags,
+	approveBooking,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
 	type BusinessMatchingEventDefaults,
@@ -357,6 +358,18 @@ export const useUpdateBooking = (bmEventId: string, eventId: string) => {
 			bookingId: string;
 			data: UpdateBookingRequest;
 		}) => updateBooking(bmEventId, eventId, bookingId, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-bookings", bmEventId, eventId],
+			});
+		},
+	});
+};
+
+export const useApproveBooking = (bmEventId: string, eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (bookingId: string) => approveBooking(bookingId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-bookings", bmEventId, eventId],

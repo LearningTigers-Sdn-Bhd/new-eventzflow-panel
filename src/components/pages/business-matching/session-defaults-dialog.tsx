@@ -359,12 +359,13 @@ export default function SessionDefaultsDialog({
 			</div>
 
 			<div className="flex items-center justify-between rounded-lg border p-3">
-				<div className="space-y-0.5">
+				<div className="space-y-0.5 pr-4">
 					<Label htmlFor="auto-approve-bookings">
 						Auto-approve public bookings
 					</Label>
 					<p className="text-muted-foreground text-xs">
-						Turn off to review bookings before approving.
+						Turn off to review bookings before approving. Bookers are told the
+						request is pending, and only get a confirmation email once approved.
 					</p>
 				</div>
 				<Switch
