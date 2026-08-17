@@ -22,6 +22,7 @@ import {
 	verifyPublicPayment,
 } from "@/lib/api/public-registration";
 import {
+	getDuplicateAttendeeEmailIndexes,
 	normalizeAttendeesForMode,
 	syncAttendeeCustomFieldKeys,
 } from "@/lib/public-registration/attendee-state";
@@ -166,6 +167,8 @@ export function PublicRegistrationForm({
 	const requiresPayment = (selectedTicketType?.price ?? 0) > 0;
 	const minAttendees = selectedTicketType?.min_attendees ?? 1;
 	const maxAttendees = selectedTicketType?.max_attendees ?? null;
+	const allowMultipleTicketsPerEmail =
+		selectedTicketType?.allow_multiple_tickets_per_email ?? false;
 	const canAddAttendee =
 		registrationMode === "group" &&
 		(!maxAttendees || attendees.length < maxAttendees);
@@ -258,31 +261,15 @@ export function PublicRegistrationForm({
 		selectedTicketTypeId !== null && selectedTicketType?.available,
 	);
 	const canProceedStep2 = email.trim().length > 0 && email.includes("@");
-	const duplicateAttendeeEmailIndexes = useMemo(() => {
-		if (registrationMode !== "group" || attendees.length <= 1) {
-			return new Set<number>();
-		}
-
-		const seen = new Map<string, number[]>();
-		const duplicates = new Set<number>();
-		attendees.forEach((attendee, index) => {
-			const attendeeEmail = attendee.attendee_email.trim().toLowerCase();
-			if (!attendeeEmail) return;
-			const indexes = seen.get(attendeeEmail) ?? [];
-			indexes.push(index);
-			seen.set(attendeeEmail, indexes);
-		});
-
-		seen.forEach((indexes) => {
-			if (indexes.length > 1) {
-				indexes.forEach((index) => {
-					duplicates.add(index);
-				});
-			}
-		});
-
-		return duplicates;
-	}, [attendees, registrationMode]);
+	const duplicateAttendeeEmailIndexes = useMemo(
+		() =>
+			getDuplicateAttendeeEmailIndexes(
+				attendees,
+				registrationMode,
+				allowMultipleTicketsPerEmail,
+			),
+		[attendees, registrationMode, allowMultipleTicketsPerEmail],
+	);
 	const hasDuplicateAttendeeEmail = duplicateAttendeeEmailIndexes.size > 0;
 	const hasPendingRegistration = Boolean(
 		singleResult ||
@@ -439,7 +426,15 @@ export function PublicRegistrationForm({
 
 	function addAttendee() {
 		if (!canAddAttendee) return;
-		setAttendees((current) => [...current, emptyAttendee(customLabelKeys)]);
+		setAttendees((current) => [
+			...current,
+			{
+				...emptyAttendee(customLabelKeys),
+				attendee_email: allowMultipleTicketsPerEmail
+					? (current[0]?.attendee_email ?? "")
+					: "",
+			},
+		]);
 	}
 
 	function updateCustomField(index: number, key: string, value: string) {
@@ -1087,7 +1082,10 @@ export function PublicRegistrationForm({
 														htmlFor={`attendee-name-${attendee.row_id}`}
 														className="block font-semibold text-slate-700 text-sm"
 													>
-														Full Name <span className="text-red-500">*</span>
+														Full Name{" "}
+														{(index === 0 || !allowMultipleTicketsPerEmail) && (
+															<span className="text-red-500">*</span>
+														)}
 													</label>
 													<Input
 														id={`attendee-name-${attendee.row_id}`}
@@ -1101,7 +1099,7 @@ export function PublicRegistrationForm({
 															)
 														}
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
-														required
+														required={index === 0 || !allowMultipleTicketsPerEmail}
 													/>
 												</div>
 
@@ -1111,7 +1109,9 @@ export function PublicRegistrationForm({
 														className="block font-semibold text-slate-700 text-sm"
 													>
 														Email Address{" "}
-														<span className="text-red-500">*</span>
+														{(index === 0 || !allowMultipleTicketsPerEmail) && (
+															<span className="text-red-500">*</span>
+														)}
 													</label>
 													<Input
 														id={`attendee-email-${attendee.row_id}`}
@@ -1128,7 +1128,7 @@ export function PublicRegistrationForm({
 															)
 														}
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
-														required
+														required={index === 0 || !allowMultipleTicketsPerEmail}
 													/>
 													{duplicateAttendeeEmailIndexes.has(index) && (
 														<p className="text-red-500 text-xs">

@@ -25,6 +25,7 @@ export type Event = {
 	status: "draft" | "published" | "cancelled" | "completed";
 	visibility: boolean;
 	multiple_scans: boolean;
+	allow_multiple_tickets_per_email: boolean;
 	use_ticket: boolean;
 	use_wedding: boolean;
 	auto_approve_wishes: boolean;
