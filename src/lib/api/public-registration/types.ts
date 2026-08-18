@@ -22,6 +22,7 @@ export interface PublicTicketTypeItem {
 	registration_mode: "single" | "group";
 	min_attendees: number;
 	max_attendees?: number | null;
+	allow_multiple_tickets_per_email: boolean;
 	custom_fields_data?: Record<string, string | number | boolean | null>;
 	custom_labels_data?: Array<{ key: string; label: string }>;
 }

@@ -90,6 +90,7 @@ const formSchema = z.object({
 		}),
 	registrationPathTemplate: z.string(),
 	multipleScans: z.boolean(),
+	allowMultipleTicketsPerEmail: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
 });
@@ -173,6 +174,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			publicRegistrationUrl: "",
 			registrationPathTemplate: "",
 			multipleScans: false,
+			allowMultipleTicketsPerEmail: false,
 			startDate: new Date(),
 			endDate: new Date(),
 		},
@@ -217,6 +219,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					public_registration_url: value.publicRegistrationUrl || "",
 					registration_path_template: value.registrationPathTemplate || "",
 					multiple_scans: value.multipleScans,
+					allow_multiple_tickets_per_email: value.allowMultipleTicketsPerEmail,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
 				},
@@ -286,6 +289,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.registration_path_template || "",
 				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
+				form.setFieldValue(
+					"allowMultipleTicketsPerEmail",
+					event.allow_multiple_tickets_per_email ?? false,
+				);
 				form.setFieldValue(
 					"startDate",
 					event.start_date ? new Date(event.start_date) : new Date(),
@@ -828,6 +835,20 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										<SwitchCardInput
 											label="Multiple Scans"
 											description="Allow tickets or visitors to be scanned multiple times during the event."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
+									)}
+								</form.Field>
+								<form.Field name="allowMultipleTicketsPerEmail">
+									{(field) => (
+										<SwitchCardInput
+											label="Allow multiple tickets per email"
+											description="One person can hold more than one ticket for this event."
 											htmlFor={field.name}
 											variant="no-rounded"
 											border={true}

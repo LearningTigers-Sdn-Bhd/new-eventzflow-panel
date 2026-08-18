@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	type AttendeeStateRow,
+	getDuplicateAttendeeEmailIndexes,
 	normalizeAttendeesForMode,
 	syncAttendeeCustomFieldKeys,
 } from "./attendee-state";
@@ -80,5 +81,31 @@ describe("attendee-state", () => {
 			member_id: "A001",
 			company: "",
 		});
+	});
+
+	test("duplicate attendee emails are reported when multiple tickets are disabled", () => {
+		expect(
+			getDuplicateAttendeeEmailIndexes(
+				[
+					{ attendee_email: "buyer@example.com" },
+					{ attendee_email: "BUYER@example.com" },
+				],
+				"group",
+				false,
+			),
+		).toEqual(new Set([0, 1]));
+	});
+
+	test("duplicate attendee emails are ignored when multiple tickets are enabled", () => {
+		expect(
+			getDuplicateAttendeeEmailIndexes(
+				[
+					{ attendee_email: "buyer@example.com" },
+					{ attendee_email: "buyer@example.com" },
+				],
+				"group",
+				true,
+			),
+		).toEqual(new Set());
 	});
 });

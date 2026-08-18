@@ -2,6 +2,10 @@ export interface AttendeeStateRow {
 	custom_fields_data: Record<string, string>;
 }
 
+interface AttendeeEmailStateRow {
+	attendee_email: string;
+}
+
 interface NormalizeAttendeeModeOptions<T extends AttendeeStateRow> {
 	registrationMode: "single" | "group";
 	minAttendees: number;
@@ -64,4 +68,38 @@ export function syncAttendeeCustomFieldKeys<T extends AttendeeStateRow>(
 	});
 
 	return hasChanged ? next : attendees;
+}
+
+export function getDuplicateAttendeeEmailIndexes<
+	T extends AttendeeEmailStateRow,
+>(
+	attendees: T[],
+	registrationMode: "single" | "group",
+	allowMultipleTicketsPerEmail: boolean,
+): Set<number> {
+	if (
+		allowMultipleTicketsPerEmail ||
+		registrationMode !== "group" ||
+		attendees.length <= 1
+	) {
+		return new Set<number>();
+	}
+
+	const seen = new Map<string, number[]>();
+	const duplicates = new Set<number>();
+	attendees.forEach((attendee, index) => {
+		const attendeeEmail = attendee.attendee_email.trim().toLowerCase();
+		if (!attendeeEmail) return;
+		const indexes = seen.get(attendeeEmail) ?? [];
+		indexes.push(index);
+		seen.set(attendeeEmail, indexes);
+	});
+
+	seen.forEach((indexes) => {
+		if (indexes.length > 1) {
+			indexes.forEach((index) => duplicates.add(index));
+		}
+	});
+
+	return duplicates;
 }

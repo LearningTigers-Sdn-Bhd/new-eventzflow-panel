@@ -34,6 +34,7 @@ export const createEventSchema = z.object({
 	registration_path_template: z.string().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	exhibitor_labels_data: z.record(z.string(), z.any()).optional(),
+	allow_multiple_tickets_per_email: z.boolean().optional().default(false),
 	event_admin_id: z.number().optional(),
 });
 
@@ -89,6 +90,7 @@ export const updateEventSchema = z.object({
 	registration_path_template: z.string().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
 	exhibitor_labels_data: z.record(z.string(), z.any()).optional(),
+	allow_multiple_tickets_per_email: z.boolean().optional(),
 	booth_types: z.array(z.string()).optional(),
 	event_email_setting_attributes: z
 		.object({
