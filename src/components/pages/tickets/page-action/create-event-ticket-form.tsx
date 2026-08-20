@@ -27,6 +27,7 @@ export default function TicketForm() {
 	const emailId = useId();
 	const phoneId = useId();
 	const roleId = useId();
+	const quantityId = useId();
 
 	// Custom fields state (kept separate since they're dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -72,6 +73,9 @@ export default function TicketForm() {
 		},
 	});
 
+	const allowMultiplePerEmail =
+		eventData?.allow_multiple_tickets_per_email ?? false;
+
 	const form = useForm({
 		defaultValues: {
 			attendee_name: "",
@@ -79,6 +83,7 @@ export default function TicketForm() {
 			attendee_phone: "",
 			ticket_type_id: null as number | null,
 			role: "",
+			quantity: "1",
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -93,6 +98,10 @@ export default function TicketForm() {
 				}
 			});
 
+			const quantity = allowMultiplePerEmail
+				? Math.max(1, Number.parseInt(value.quantity, 10) || 1)
+				: undefined;
+
 			await createTicketMutation.mutateAsync({
 				eventId,
 				attendee_name: value.attendee_name,
@@ -105,6 +114,7 @@ export default function TicketForm() {
 						? customFieldsData
 						: undefined,
 				payment_status: 1, // Automatically set to paid (1 = paid)
+				quantity,
 			});
 		},
 	});
@@ -225,19 +235,66 @@ export default function TicketForm() {
 								)}
 							</form.Field>
 
-							<form.Field name="role">
-								{(field) => (
-									<InputLabel
-										label="Role"
-										htmlFor={roleId}
-										value={field.state.value}
-										onChange={field.handleChange}
-										onBlur={field.handleBlur}
-										placeholder="e.g. VIP, Speaker, Staff"
-										disabled={createTicketMutation.isPending}
-									/>
+							<div
+								className={
+									allowMultiplePerEmail ? "grid grid-cols-2 gap-4" : undefined
+								}
+							>
+								<form.Field name="role">
+									{(field) => (
+										<InputLabel
+											label="Role"
+											htmlFor={roleId}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											placeholder="e.g. VIP, Speaker, Staff"
+											disabled={createTicketMutation.isPending}
+										/>
+									)}
+								</form.Field>
+
+								{allowMultiplePerEmail && (
+									<form.Field
+										name="quantity"
+										validators={{
+											onChange: ({ value }) => {
+												const parsed = Number.parseInt(value, 10);
+												if (!Number.isFinite(parsed) || parsed < 1) {
+													return "Quantity must be at least 1";
+												}
+												if (parsed > 50) {
+													return "Quantity cannot exceed 50";
+												}
+												return undefined;
+											},
+										}}
+									>
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<InputLabel
+													label="Quantity"
+													htmlFor={quantityId}
+													inputType="number"
+													value={field.state.value}
+													onChange={field.handleChange}
+													onBlur={field.handleBlur}
+													min={1}
+													max={50}
+													errors={field.state.meta.errors.map((error) => ({
+														message: String(error),
+													}))}
+													isInvalid={isInvalid}
+													description="Creates this many identical paid tickets under one purchase"
+													disabled={createTicketMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
 								)}
-							</form.Field>
+							</div>
 						</div>
 						<form.Field
 							name="ticket_type_id"

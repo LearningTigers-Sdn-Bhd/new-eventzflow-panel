@@ -7,6 +7,7 @@ import {
 	MoreHorizontal,
 	Pencil,
 	Send,
+	Trash2,
 	UserCheck,
 	X,
 } from "lucide-react";
@@ -22,6 +23,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	acceptWaitingList,
@@ -29,6 +32,7 @@ import {
 	approveTicketRsvp,
 	resendTicketRsvp,
 } from "@/lib/api/event/pending";
+import { archiveTicket } from "@/lib/api/ticket";
 import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
 import PendingTicketViewModal from "./action-modals/pending-ticket-view-modal";
 import RejectTicketApplicationModal from "./action-modals/reject-ticket-application-modal";
@@ -49,7 +53,8 @@ export function usePendingTicketActions({
 }: UsePendingTicketActionsProps) {
 	const params = useParams();
 	const eventId = eventIdProp || (params.event_id as string);
-	const { openDialog } = useDialog();
+	const { openDialog, closeDialog } = useDialog();
+	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
 
 	const approveMutation = useMutation({
@@ -146,14 +151,47 @@ export function usePendingTicketActions({
 		});
 	};
 
+	const deleteTicketMutation = useMutation({
+		mutationFn: () => archiveTicket(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Pending ticket deleted successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to delete pending ticket");
+		},
+	});
+
+	const handleDeleteClick = () => {
+		openConfirm({
+			title: "Delete Pending Ticket",
+			message:
+				"Are you sure you want to delete this pending ticket? This action cannot be undone.",
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => {
+				deleteTicketMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	return {
 		approveMutation,
 		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
+		deleteTicketMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
+		handleDeleteClick,
 	};
 }
 
@@ -165,10 +203,15 @@ export function PendingTicketActionsMenu({
 		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
+		deleteTicketMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
+		handleDeleteClick,
 	} = usePendingTicketActions({ ticket });
+
+	const { user } = useAuth();
+	const canDelete = user?.role === "org_owner" || user?.role === "organizer";
 
 	const canReview =
 		(ticket.ticketApplication?.reviewStatus || "pending_review") ===
@@ -202,6 +245,19 @@ export function PendingTicketActionsMenu({
 			>
 				<Eye className="size-4" />
 			</Button>
+
+			{canDelete && (
+				<Button
+					size="icon-sm"
+					variant="outline"
+					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
+					onClick={handleDeleteClick}
+					disabled={deleteTicketMutation.isPending}
+					title="Delete Pending Ticket"
+				>
+					<Trash2 className="size-4" />
+				</Button>
+			)}
 
 			{hasTicketApplication && (
 				<DropdownMenu>

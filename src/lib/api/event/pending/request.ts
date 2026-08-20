@@ -20,6 +20,10 @@ export const createPendingTicketSchema = z.object({
 	transaction_id: z.string().optional(),
 	payment_method: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
+	// Bulk-add N identical tickets under one registration batch. Only
+	// meaningful (and only shown in the UI) when the event has
+	// allow_multiple_tickets_per_email enabled — backend rejects >1 otherwise.
+	quantity: z.number().int().min(1).max(50).optional(),
 });
 
 // Validation schema for updating a pending ticket
