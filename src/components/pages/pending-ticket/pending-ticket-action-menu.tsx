@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+	Archive,
 	Check,
 	Eye,
 	MoreHorizontal,
@@ -32,7 +33,8 @@ import {
 	approveTicketRsvp,
 	resendTicketRsvp,
 } from "@/lib/api/event/pending";
-import { archiveTicket } from "@/lib/api/ticket";
+import { archiveTicket, forceDeleteTicket } from "@/lib/api/ticket";
+import { cn } from "@/lib/utils";
 import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
 import PendingTicketViewModal from "./action-modals/pending-ticket-view-modal";
 import RejectTicketApplicationModal from "./action-modals/reject-ticket-application-modal";
@@ -151,8 +153,22 @@ export function usePendingTicketActions({
 		});
 	};
 
-	const deleteTicketMutation = useMutation({
+	const archiveTicketMutation = useMutation({
 		mutationFn: () => archiveTicket(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Pending ticket archived successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to archive pending ticket");
+		},
+	});
+
+	const deleteTicketMutation = useMutation({
+		mutationFn: () => forceDeleteTicket(eventId, ticket.publicId),
 		onSuccess: () => {
 			toast.success("Pending ticket deleted successfully!");
 			queryClient.invalidateQueries({
@@ -165,11 +181,28 @@ export function usePendingTicketActions({
 		},
 	});
 
+	const handleArchiveClick = () => {
+		openConfirm({
+			title: "Archive Pending Ticket",
+			message:
+				"Are you sure you want to archive this pending ticket? It will be hidden from the main list.",
+			confirmLabel: "Archive",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				archiveTicketMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	const handleDeleteClick = () => {
 		openConfirm({
 			title: "Delete Pending Ticket",
 			message:
-				"Are you sure you want to delete this pending ticket? This action cannot be undone.",
+				"Are you sure you want to permanently delete this pending ticket? This action cannot be undone and all associated data will be permanently removed.",
 			confirmLabel: "Delete",
 			cancelLabel: "Cancel",
 			type: "destructive",
@@ -187,10 +220,12 @@ export function usePendingTicketActions({
 		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
+		archiveTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
+		handleArchiveClick,
 		handleDeleteClick,
 	};
 }
@@ -203,15 +238,20 @@ export function PendingTicketActionsMenu({
 		acceptWaitingListMutation,
 		resendMutation,
 		approveRsvpMutation,
+		archiveTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
 		openViewModal,
 		openRejectModal,
+		handleArchiveClick,
 		handleDeleteClick,
 	} = usePendingTicketActions({ ticket });
 
 	const { user } = useAuth();
-	const canDelete = user?.role === "org_owner" || user?.role === "organizer";
+	// Same split as the Manage Tickets action menu: organizer can archive
+	// (soft, reversible), only org_owner can permanently delete.
+	const canArchive = user?.role === "org_owner" || user?.role === "organizer";
+	const canDelete = user?.role === "org_owner";
 
 	const canReview =
 		(ticket.ticketApplication?.reviewStatus || "pending_review") ===
@@ -246,64 +286,80 @@ export function PendingTicketActionsMenu({
 				<Eye className="size-4" />
 			</Button>
 
-			{canDelete && (
-				<Button
-					size="icon-sm"
-					variant="outline"
-					className="rounded-none text-red-500 hover:bg-red-50 hover:text-red-600 [&_svg]:text-red-500 hover:[&_svg]:text-red-600"
-					onClick={handleDeleteClick}
-					disabled={deleteTicketMutation.isPending}
-					title="Delete Pending Ticket"
-				>
-					<Trash2 className="size-4" />
-				</Button>
-			)}
-
-			{hasTicketApplication && (
+			{(hasTicketApplication || canArchive || canDelete) && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button size="icon-sm" variant="outline" className="rounded-none">
-							<span className="sr-only">Open application actions</span>
+							<span className="sr-only">Open more actions</span>
 							<MoreHorizontal className="h-4 w-4" />
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="rounded-none">
-						<DropdownMenuLabel className="rounded-none">
-							Application Actions
-						</DropdownMenuLabel>
-						<DropdownMenuSeparator className="rounded-none" />
-						<DropdownMenuItem
-							onClick={() => approveMutation.mutate()}
-							disabled={!canReview || approveMutation.isPending}
-							className="rounded-none"
-						>
-							<Check className="mr-2 h-4 w-4 text-emerald-600" />
-							Approve Application
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={openRejectModal}
-							disabled={!canReview}
-							className="rounded-none"
-						>
-							<X className="mr-2 h-4 w-4 text-red-600" />
-							Reject Application
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() => resendMutation.mutate()}
-							disabled={!canResend || resendMutation.isPending}
-							className="rounded-none"
-						>
-							<Send className="mr-2 h-4 w-4 text-indigo-600" />
-							Resend RSVP
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() => approveRsvpMutation.mutate()}
-							disabled={!canApproveRsvp || approveRsvpMutation.isPending}
-							className="rounded-none"
-						>
-							<UserCheck className="mr-2 h-4 w-4 text-violet-600" />
-							Approve RSVP
-						</DropdownMenuItem>
+					<DropdownMenuContent
+						align="center"
+						side="left"
+						className="rounded-none"
+					>
+						<DropdownMenuLabel>Actions</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						{hasTicketApplication && (
+							<>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => approveMutation.mutate()}
+									disabled={!canReview || approveMutation.isPending}
+								>
+									<Check className="mr-2 h-4 w-4 text-emerald-600" />
+									Approve Application
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={openRejectModal}
+									disabled={!canReview}
+								>
+									<X className="mr-2 h-4 w-4 text-red-600" />
+									Reject Application
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => resendMutation.mutate()}
+									disabled={!canResend || resendMutation.isPending}
+								>
+									<Send className="mr-2 h-4 w-4 text-indigo-600" />
+									Resend RSVP
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={() => approveRsvpMutation.mutate()}
+									disabled={!canApproveRsvp || approveRsvpMutation.isPending}
+								>
+									<UserCheck className="mr-2 h-4 w-4 text-violet-600" />
+									Approve RSVP
+								</DropdownMenuItem>
+							</>
+						)}
+						{canArchive && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleArchiveClick}
+								disabled={archiveTicketMutation.isPending}
+							>
+								<Archive className="mr-2 h-4 w-4" />
+								Archive Pending Ticket
+							</DropdownMenuItem>
+						)}
+						{canDelete && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									className={cn("rounded-none text-red-600")}
+									onClick={handleDeleteClick}
+									disabled={deleteTicketMutation.isPending}
+								>
+									<Trash2 className="mr-2 h-4 w-4" />
+									Delete Pending Ticket
+								</DropdownMenuItem>
+							</>
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			)}
