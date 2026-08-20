@@ -148,11 +148,11 @@ export async function createPendingTicket(
 ): Promise<CreatePendingTicketResponse> {
 	try {
 		const validated = createPendingTicketSchema.parse(data);
-		const { eventId, ...ticketData } = validated;
+		const { eventId, quantity, ...ticketData } = validated;
 
 		const response = await restClient.post<BackendPendingTicket>(
 			`v1/events/${eventId}/tickets`,
-			{ ticket: ticketData },
+			{ ticket: ticketData, quantity },
 		);
 
 		return transformPendingTicket(response);

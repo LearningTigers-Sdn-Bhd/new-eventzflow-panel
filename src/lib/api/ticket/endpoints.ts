@@ -358,13 +358,14 @@ export async function createTicket(data: {
 	custom_fields_data?: Record<string, string>;
 	role?: string;
 	payment_status?: number;
+	quantity?: number;
 }): Promise<CreateTicketResponse> {
 	const validated = createTicketSchema.parse(data);
-	const { eventId, ...ticketData } = validated;
+	const { eventId, quantity, ...ticketData } = validated;
 
 	const response = await restClient.post<BackendTicket>(
 		`v1/events/${eventId}/tickets`,
-		{ ticket: ticketData },
+		{ ticket: ticketData, quantity },
 	);
 
 	// Transform backend response to frontend format
