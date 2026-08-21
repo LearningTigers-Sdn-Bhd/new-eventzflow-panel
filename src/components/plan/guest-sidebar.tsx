@@ -20,7 +20,7 @@ import {
 	Users,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -410,6 +410,15 @@ function GroupModal({
 
 	const isNew = !group;
 
+	useEffect(() => {
+		if (open) {
+			setName(group?.name || "");
+			setNotes(group?.notes || "");
+			setScope(group?.scope || "plan_only");
+			setSearch("");
+		}
+	}, [open, group]);
+
 	const handleSave = () => {
 		if (!name.trim()) return;
 		if (isNew) {
@@ -500,15 +509,20 @@ function GroupModal({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
-			<DialogContent className="flex max-h-[90vh] flex-col rounded-3xl p-0 md:max-w-2xl dark:bg-slate-900">
-				<DialogHeader className="p-6 pb-0">
+			<DialogContent
+				className={cn(
+					"flex max-h-[90vh] flex-col overflow-hidden rounded-3xl p-0 md:max-w-2xl dark:bg-slate-900",
+					!isNew && "h-[85vh]",
+				)}
+			>
+				<DialogHeader className="shrink-0 p-6 pb-0">
 					<DialogTitle className="font-black text-2xl tracking-tighter dark:text-slate-100">
 						{isNew ? "Create Seating Group" : `Manage ${group.name}`}
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="flex flex-1 flex-col gap-6 overflow-hidden p-6">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<div className="flex flex-1 min-h-0 flex-col gap-6 overflow-hidden p-6">
+					<div className="grid shrink-0 grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-2">
 							<Label className="font-black text-[10px] text-slate-400 uppercase tracking-widest dark:text-slate-500">
 								Group Name
@@ -564,14 +578,14 @@ function GroupModal({
 
 					<Button
 						onClick={handleSave}
-						className="h-11 rounded-xl bg-primary font-black text-white uppercase tracking-widest hover:bg-primary/90 dark:text-slate-950"
+						className="h-11 shrink-0 rounded-xl bg-primary font-black text-white uppercase tracking-widest hover:bg-primary/90 dark:text-slate-950"
 					>
 						{isNew ? "CREATE GROUP" : "SAVE DETAILS"}
 					</Button>
 
 					{!isNew && (
-						<div className="flex flex-1 flex-col gap-3 overflow-hidden border-t pt-4 dark:border-slate-800">
-							<div className="flex items-center justify-between">
+						<div className="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden border-t pt-4 dark:border-slate-800">
+							<div className="flex shrink-0 items-center justify-between">
 								<h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest dark:text-slate-500">
 									Select Members ({group.members.length})
 								</h4>
@@ -586,56 +600,67 @@ function GroupModal({
 								</div>
 							</div>
 
-							<ScrollArea className="flex-1 rounded-2xl border bg-slate-50/50 dark:border-slate-800 dark:bg-slate-950/50">
-								<div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
-									{filteredGuests.map((guest) => {
-										const key = `${guest.type}-${guest.id}`;
-										const existing = groupMembershipMap.get(key);
-										const isInThisGroup = existing?.groupId === group.id;
-										const otherGroup =
-											!isInThisGroup && existing
-												? seatingGroups.find((g) => g.id === existing.groupId)
-												: null;
+							<ScrollArea className="h-full min-h-0 flex-1 rounded-2xl border bg-slate-50/50 dark:border-slate-800 dark:bg-slate-950/50">
+								{filteredGuests.length === 0 ? (
+									<div className="flex h-32 flex-col items-center justify-center p-4 text-center">
+										<p className="font-bold text-slate-400 text-xs dark:text-slate-500">
+											{search
+												? "No matching guests found."
+												: "No guests available to assign."}
+										</p>
+									</div>
+								) : (
+									<div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
+										{filteredGuests.map((guest) => {
+											const key = `${guest.type}-${guest.id}`;
+											const existing = groupMembershipMap.get(key);
+											const isInThisGroup = existing?.groupId === group.id;
+											const otherGroup =
+												!isInThisGroup && existing
+													? seatingGroups.find((g) => g.id === existing.groupId)
+													: null;
 
-										return (
-											<button
-												key={key}
-												className={cn(
-													"flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all",
-													isInThisGroup
-														? "border-primary bg-primary/5 ring-1 ring-primary/20 dark:bg-primary/10 dark:ring-primary/40"
-														: "border-slate-100 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700",
-												)}
-												onClick={() => handleToggleMember(guest)}
-											>
-												<div className="min-w-0 flex-1">
-													<p className="truncate font-black text-slate-900 text-xs dark:text-slate-200">
-														{guest.name || guest.full_name}
-													</p>
-													{otherGroup ? (
-														<p className="font-bold text-[9px] text-orange-600 uppercase dark:text-orange-400">
-															Already in {otherGroup.name}
-														</p>
-													) : (
-														<p className="font-bold text-[9px] text-slate-400 uppercase dark:text-slate-500">
-															{guest.type}
-														</p>
-													)}
-												</div>
-												<div
+											return (
+												<button
+													key={key}
+													type="button"
 													className={cn(
-														"flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+														"flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all",
 														isInThisGroup
-															? "border-primary bg-primary text-white dark:bg-primary dark:text-slate-950"
-															: "border-slate-200 dark:border-slate-700",
+															? "border-primary bg-primary/5 ring-1 ring-primary/20 dark:bg-primary/10 dark:ring-primary/40"
+															: "border-slate-100 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700",
 													)}
+													onClick={() => handleToggleMember(guest)}
 												>
-													{isInThisGroup && <Check className="h-3 w-3" />}
-												</div>
-											</button>
-										);
-									})}
-								</div>
+													<div className="min-w-0 flex-1">
+														<p className="truncate font-black text-slate-900 text-xs dark:text-slate-200">
+															{guest.name || guest.full_name}
+														</p>
+														{otherGroup ? (
+															<p className="font-bold text-[9px] text-orange-600 uppercase dark:text-orange-400">
+																Already in {otherGroup.name}
+															</p>
+														) : (
+															<p className="font-bold text-[9px] text-slate-400 uppercase dark:text-slate-500">
+																{guest.type}
+															</p>
+														)}
+													</div>
+													<div
+														className={cn(
+															"flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+															isInThisGroup
+																? "border-primary bg-primary text-white dark:bg-primary dark:text-slate-950"
+																: "border-slate-200 dark:border-slate-700",
+														)}
+													>
+														{isInThisGroup && <Check className="h-3 w-3" />}
+													</div>
+												</button>
+											);
+										})}
+									</div>
+								)}
 							</ScrollArea>
 						</div>
 					)}
