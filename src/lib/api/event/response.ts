@@ -5,6 +5,8 @@ export type EventEmailSetting = {
 	sender_address: string | null;
 	contact_email: string | null;
 	payment_receipt_email: string | null;
+	emails_enabled: boolean;
+	disabled_categories: string[];
 };
 
 export type WishWallSetting = {

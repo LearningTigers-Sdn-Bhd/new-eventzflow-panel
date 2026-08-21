@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -16,6 +17,8 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
 import { queryClient } from "@/utils/rest-api";
+import { canConfigureEmailToggles } from "./access";
+import { EMAIL_CATEGORIES, EMAIL_CATEGORY_GROUPS } from "./email-categories";
 
 const formSchema = z.object({
 	senderName: z.string(),
@@ -34,6 +37,8 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
 			message: "Please enter a valid email address",
 		}),
+	emailsEnabled: z.boolean(),
+	disabledCategories: z.array(z.string()),
 });
 
 interface EmailSettingsFormProps {
@@ -47,6 +52,8 @@ export default function EmailSettingsForm({
 }: EmailSettingsFormProps) {
 	const formId = useId();
 	const sectionId = useId();
+	const { user } = useAuth();
+	const canToggleEmails = canConfigureEmailToggles(user?.role);
 
 	const {
 		data: event,
@@ -82,6 +89,8 @@ export default function EmailSettingsForm({
 			senderAddress: "",
 			contactEmail: "",
 			paymentReceiptEmail: "",
+			emailsEnabled: true,
+			disabledCategories: [] as string[],
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -95,6 +104,12 @@ export default function EmailSettingsForm({
 						sender_address: value.senderAddress || "",
 						contact_email: value.contactEmail || "",
 						payment_receipt_email: value.paymentReceiptEmail || "",
+						...(canToggleEmails
+							? {
+									emails_enabled: value.emailsEnabled,
+									disabled_categories: value.disabledCategories,
+								}
+							: {}),
 					},
 				},
 			});
@@ -112,6 +127,11 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"paymentReceiptEmail",
 					setting?.payment_receipt_email || event.payment_receipt_email || "",
+				);
+				form.setFieldValue("emailsEnabled", setting?.emails_enabled ?? true);
+				form.setFieldValue(
+					"disabledCategories",
+					setting?.disabled_categories ?? [],
 				);
 			}, 0);
 			hasInitialized.current = event.id;
@@ -261,6 +281,88 @@ export default function EmailSettingsForm({
 							</form.Field>
 						</div>
 					</FormGroupContainer>
+
+					{canToggleEmails && (
+						<FormGroupContainer
+							title={{
+								icon: Mail,
+								label: "Email Sending Control",
+								description:
+									"Turn all event emails on/off, or disable specific email types. Org owner only.",
+							}}
+						>
+							<form.Field name="emailsEnabled">
+								{(field) => (
+									<SwitchCardInput
+										variant="no-rounded"
+										label="Send emails for this event"
+										htmlFor={field.name}
+										checked={field.state.value}
+										onCheckedChange={field.handleChange}
+										disabled={updateEventMutation.isPending}
+										description="Master switch. Turning this off stops every email below, regardless of their state."
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="emailsEnabled">
+								{(emailsEnabledField) => (
+									<form.Field name="disabledCategories">
+										{(field) => (
+											<div className="flex flex-col gap-6">
+												{EMAIL_CATEGORY_GROUPS.map((group) => {
+													const categories = EMAIL_CATEGORIES.filter(
+														(c) => c.group === group.key,
+													);
+													if (categories.length === 0) return null;
+
+													return (
+														<div
+															key={group.key}
+															className="flex flex-col gap-3"
+														>
+															<span className="font-medium text-muted-foreground text-sm">
+																{group.label}
+															</span>
+															<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+																{categories.map((category) => (
+																	<SwitchCardInput
+																		key={category.key}
+																		variant="no-rounded"
+																		label={category.label}
+																		htmlFor={`${field.name}-${category.key}`}
+																		checked={
+																			!field.state.value.includes(category.key)
+																		}
+																		onCheckedChange={(checked) => {
+																			field.handleChange(
+																				checked
+																					? field.state.value.filter(
+																							(k) => k !== category.key,
+																						)
+																					: [
+																							...field.state.value,
+																							category.key,
+																						],
+																			);
+																		}}
+																		disabled={
+																			updateEventMutation.isPending ||
+																			!emailsEnabledField.state.value
+																		}
+																	/>
+																))}
+															</div>
+														</div>
+													);
+												})}
+											</div>
+										)}
+									</form.Field>
+								)}
+							</form.Field>
+						</FormGroupContainer>
+					)}
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe
