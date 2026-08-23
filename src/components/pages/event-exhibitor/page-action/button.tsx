@@ -7,6 +7,7 @@ import {
 	FileSpreadsheet,
 	LayoutGrid,
 	Link2,
+	Map as MapIcon,
 	MapPinned,
 	PackageOpen,
 	Plus,
@@ -33,6 +34,7 @@ import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
 import { ExhibitorImportDialog } from "../../event-vendors/exhibitor-import-dialog";
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
+import { BoothPlanDialog } from "../dialogs/booth-plan-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { PackageDialog } from "../dialogs/package-dialog";
@@ -155,6 +157,16 @@ export function ExhibitorPageButton() {
 						Manage Booths
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`booth-plan-dialog-${eventId}`, true)
+						}
+						className="rounded-none"
+					>
+						<MapIcon className="h-4 w-4" />
+						Booth Plan
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
 					<BoothTypesDialog
 						eventId={Number(eventId)}
 						trigger={
@@ -229,6 +241,10 @@ export function ExhibitorPageButton() {
 				trigger={<span className="hidden" />}
 			/>
 			<BoothInventoryDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
+			<BoothPlanDialog
 				eventId={Number(eventId)}
 				trigger={<span className="hidden" />}
 			/>
