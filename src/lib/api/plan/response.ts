@@ -55,6 +55,7 @@ export interface Plan {
 	id: number;
 	event_id: number;
 	name: string;
+	created_at: string;
 	canvas_width: number;
 	canvas_height: number;
 	pixels_per_unit: number;

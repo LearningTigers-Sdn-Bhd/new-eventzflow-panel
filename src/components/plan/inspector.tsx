@@ -70,11 +70,11 @@ export function Inspector({
 		return (
 			<div className="fade-in slide-in-from-right-4 animate-in space-y-8 p-6 duration-300">
 				<div className="space-y-1">
-					<h3 className="flex items-center gap-2 font-black text-slate-400 text-sm uppercase tracking-widest dark:text-slate-500">
+					<h3 className="flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase">
 						<Users className="h-3 w-3" />
 						Bulk Actions
 					</h3>
-					<p className="text-slate-400 text-xs dark:text-slate-500">
+					<p className="text-muted-foreground text-xs">
 						{selectedObjects.length} objects selected.
 					</p>
 				</div>
@@ -82,7 +82,7 @@ export function Inspector({
 				<div className="space-y-3">
 					<Button
 						variant="outline"
-						className="h-10 w-full gap-2 rounded-xl border-slate-200 font-bold text-xs transition-all hover:bg-primary/5 dark:border-slate-800 dark:hover:bg-primary/10"
+						className="h-10 w-full gap-2 rounded-none border-slate-200 font-bold text-xs transition-all hover:bg-primary/5 dark:border-slate-800 dark:hover:bg-primary/10"
 						onClick={onBulkDuplicate}
 					>
 						<Copy className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function Inspector({
 
 					<Button
 						variant="ghost"
-						className="h-10 w-full gap-2 rounded-xl font-bold text-slate-400 text-xs hover:bg-destructive/5 hover:text-destructive dark:text-slate-500 dark:hover:bg-destructive/10"
+						className="h-10 w-full gap-2 rounded-none font-bold text-slate-400 text-xs hover:bg-destructive/5 hover:text-destructive dark:text-slate-500 dark:hover:bg-destructive/10"
 						onClick={onBulkDelete}
 					>
 						<Trash2 className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function Inspector({
 					</Button>
 				</div>
 
-				<div className="flex gap-3 rounded-xl border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
+				<div className="flex gap-3 rounded-none border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
 					<Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 					<div className="space-y-1">
 						<p className="font-bold text-[11px] text-primary uppercase tracking-tight">
@@ -119,11 +119,11 @@ export function Inspector({
 		return (
 			<div className="fade-in slide-in-from-right-4 animate-in space-y-8 p-6 duration-300">
 				<div className="space-y-1">
-					<h3 className="flex items-center gap-2 font-black text-slate-400 text-sm uppercase tracking-widest dark:text-slate-500">
+					<h3 className="flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase">
 						<Settings2 className="h-3 w-3" />
 						Plan Settings
 					</h3>
-					<p className="text-slate-400 text-xs dark:text-slate-500">
+					<p className="text-muted-foreground text-xs">
 						Configure your venue dimensions and units.
 					</p>
 				</div>
@@ -135,7 +135,7 @@ export function Inspector({
 					<DelayedInput
 						value={plan.name}
 						onSubmit={(val) => onUpdatePlan({ name: val })}
-						className="h-9 border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+						className="h-9 rounded-none border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 
@@ -164,7 +164,7 @@ export function Inspector({
 							Re-calibrate Plan Scale
 						</Button>
 					)}
-					<p className="text-slate-400 text-xs italic dark:text-slate-500">
+					<p className="text-muted-foreground text-xs">
 						Upload a PNG/JPG of your overall venue. It will be displayed behind
 						everything.
 					</p>
@@ -181,7 +181,7 @@ export function Inspector({
 							onSubmit={(val) =>
 								onUpdatePlan({ canvas_width: unitToPx(Number(val), unit) })
 							}
-							className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+							className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 						/>
 					</div>
 					<div className="space-y-2">
@@ -194,12 +194,12 @@ export function Inspector({
 							onSubmit={(val) =>
 								onUpdatePlan({ canvas_height: unitToPx(Number(val), unit) })
 							}
-							className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+							className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 						/>
 					</div>
 				</div>
 
-				<div className="flex gap-3 rounded-xl border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
+				<div className="flex gap-3 rounded-none border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
 					<Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 					<div className="space-y-1">
 						<p className="font-bold text-[11px] text-primary uppercase tracking-tight">
@@ -230,12 +230,12 @@ export function Inspector({
 	return (
 		<div className="fade-in slide-in-from-right-4 animate-in space-y-8 p-6 duration-300">
 			<div className="space-y-1">
-				<h3 className="flex items-center gap-2 font-black text-slate-400 text-sm uppercase tracking-widest dark:text-slate-500">
+				<h3 className="flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase">
 					<Ruler className="h-3 w-3" />
 					Object Properties
 				</h3>
 				<div className="flex items-center justify-between">
-					<p className="text-slate-400 text-xs dark:text-slate-500">
+					<p className="text-muted-foreground text-xs">
 						Modify the selected {object.object_type}.
 					</p>
 					{object.locked && (
@@ -260,7 +260,7 @@ export function Inspector({
 						handlePropertyChange(() => onUpdate(object.id, { label: val }))
 					}
 					disabled={object.locked}
-					className="h-9 border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+					className="h-9 rounded-none border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 				/>
 			</div>
 
@@ -282,7 +282,7 @@ export function Inspector({
 							className="bg-slate-50 dark:border-slate-800 dark:bg-slate-900"
 						/>
 					</div>
-					<p className="text-center text-slate-400 text-xs italic dark:text-slate-500">
+					<p className="text-center text-muted-foreground text-xs">
 						Use this to show a specific floor section or stage design.
 					</p>
 				</div>
@@ -302,7 +302,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+						className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 				<div className="space-y-2">
@@ -318,7 +318,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+						className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 			</div>
@@ -337,7 +337,7 @@ export function Inspector({
 							)
 						}
 						disabled={object.locked}
-						className="h-9 border-slate-200 bg-slate-50 text-center font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+						className="h-9 rounded-none border-slate-200 bg-slate-50 text-center font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 					/>
 				</div>
 			)}
@@ -355,11 +355,11 @@ export function Inspector({
 						)
 					}
 					disabled={object.locked}
-					className="h-9 border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+					className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
 				/>
 			</div>
 
-			<div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+			<div className="flex items-center justify-between rounded-none border rounded-none border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
 				<Label
 					className="cursor-pointer font-bold text-slate-600 text-xs dark:text-slate-400"
 					htmlFor="locked"
@@ -378,19 +378,19 @@ export function Inspector({
 			{object.object_type === "table" && (
 				<div className="space-y-4 border-t pt-4 dark:border-slate-800">
 					<div className="flex items-center justify-between px-1">
-						<h3 className="flex items-center gap-2 font-bold text-[11px] text-slate-400 uppercase tracking-tighter dark:text-slate-500">
+						<h3 className="flex items-center gap-2 font-bold text-[11px] text-muted-foreground uppercase">
 							<Users className="h-3 w-3" />
 							Assigned Guests
 						</h3>
-						<span className="rounded-full bg-slate-100 px-2 py-0.5 font-black text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+						<span className="rounded-none bg-slate-100 px-2 py-0.5 font-semibold text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
 							{object.table_assignments?.length || 0} / {object.capacity}
 						</span>
 					</div>
 
 					<div className="custom-scrollbar max-h-[200px] space-y-2 overflow-y-auto pr-1">
 						{object.table_assignments?.length === 0 ? (
-							<div className="rounded-xl border border-slate-200 border-dashed p-8 text-center dark:border-slate-800">
-								<p className="font-medium text-slate-400 text-xs italic dark:text-slate-500">
+							<div className="rounded-none border border-slate-200 border-dashed p-8 text-center dark:border-slate-800">
+								<p className="font-medium text-muted-foreground text-xs">
 									No guests assigned.
 									<br />
 									Drag a guest here to seat them.
@@ -400,7 +400,7 @@ export function Inspector({
 							object.table_assignments?.map((assignment) => (
 								<div
 									key={assignment.id}
-									className="group flex flex-col gap-2 rounded-xl border border-transparent bg-slate-50 p-3 text-xs transition-all hover:border-slate-200 dark:bg-slate-900 dark:hover:border-slate-800"
+									className="group flex flex-col gap-2 rounded-none border border-transparent bg-slate-50 p-3 text-xs transition-all hover:border-slate-200 dark:bg-slate-900 dark:hover:border-slate-800"
 								>
 									<div className="flex items-center justify-between">
 										<div className="flex flex-1 items-center gap-3 truncate">
@@ -434,7 +434,7 @@ export function Inspector({
 										<div className="flex items-center gap-1">
 											<button
 												className={cn(
-													"group/btn rounded-full px-2 py-0.5 font-black text-[8px] uppercase tracking-tighter transition-all",
+													"group/btn rounded-none px-2 py-0.5 font-semibold text-[8px] uppercase transition-all",
 													assignment.arrived_at
 														? "bg-emerald-100 text-emerald-700 hover:bg-red-100 hover:text-red-700 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
 														: "bg-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 dark:bg-slate-800 dark:text-slate-500",

@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	ArrowLeft,
+	ArrowRight,
 	Check,
 	ChevronLeft,
 	Copy,
@@ -897,17 +898,12 @@ export function PlanWorkshop({
 			<TooltipProvider>
 				<div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-white font-sans selection:bg-primary/20 dark:bg-slate-950">
 					{/* Top Navigation */}
-					<header
-						className={cn(
-							"z-50 flex h-14 shrink-0 items-center justify-between border-b bg-white px-4 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900",
-							isCalibrating && "border-slate-800 bg-slate-900",
-						)}
-					>
+					<header className="z-50 flex h-14 shrink-0 items-center justify-between border-black border-b bg-black px-4">
 						<div className="flex items-center gap-4">
 							<Button
 								variant="ghost"
 								size="icon"
-								className="h-8 w-8 rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+								className="h-8 w-8 rounded-md text-white/70 hover:bg-white/10 hover:text-white"
 								asChild
 							>
 								<Link href={`/event/${eventId}/plans`} title="Exit Workshop">
@@ -915,62 +911,27 @@ export function PlanWorkshop({
 								</Link>
 							</Button>
 
-							<div
-								className={cn(
-									"mx-1 h-6 w-px",
-									isCalibrating
-										? "bg-slate-700"
-										: "bg-slate-200 dark:bg-slate-800",
-								)}
-							/>
+							<div className="mx-1 h-6 w-px bg-white/20" />
 
 							<div className="flex min-w-0 flex-col">
 								<div className="flex items-center gap-2">
-									<h1
-										className={cn(
-											"max-w-[200px] truncate font-bold text-sm",
-											isCalibrating
-												? "text-white"
-												: "text-slate-900 dark:text-slate-100",
-										)}
-									>
+									<h1 className="max-w-[200px] truncate font-bold text-sm text-white">
 										{plan.name}
 									</h1>
-									<div
-										className={cn(
-											"flex items-center gap-1.5 rounded-full border px-2 py-0.5",
-											isCalibrating
-												? "border-slate-700 bg-slate-800"
-												: "border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950",
-										)}
-									>
+									<div className="flex items-center gap-1.5 rounded-none border border-white/20 bg-white/10 px-2 py-0.5">
 										{isSaving ||
 										uploadBackgroundMutation.isPending ||
 										uploadObjectImageMutation.isPending ? (
 											<>
-												<Loader2 className="h-2.5 w-2.5 animate-spin text-blue-600 dark:text-blue-400" />
-												<span
-													className={cn(
-														"font-bold text-[10px] uppercase tracking-tighter",
-														isCalibrating
-															? "text-slate-400"
-															: "text-blue-700 dark:text-blue-400",
-													)}
-												>
+												<Loader2 className="h-2.5 w-2.5 animate-spin text-blue-400" />
+												<span className="font-medium text-[10px] text-blue-400 uppercase">
 													Syncing
 												</span>
 											</>
 										) : (
 											<>
-												<div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
-												<span
-													className={cn(
-														"font-bold text-[10px] uppercase tracking-tighter",
-														isCalibrating
-															? "text-emerald-400"
-															: "text-emerald-700 dark:text-emerald-400",
-													)}
-												>
+												<div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+												<span className="font-medium text-[10px] text-emerald-400 uppercase">
 													Saved
 												</span>
 											</>
@@ -984,8 +945,8 @@ export function PlanWorkshop({
 						{isCalibrating ? (
 							<div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-4">
 								<div className="flex items-center gap-2 text-white">
-									<Ruler className="h-4 w-4 text-[#00C4CC]" />
-									<span className="text-nowrap font-black text-xs uppercase tracking-widest">
+									<Ruler className="h-4 w-4 text-primary" />
+									<span className="text-nowrap font-semibold text-xs uppercase">
 										Calibration Mode
 									</span>
 								</div>
@@ -995,13 +956,13 @@ export function PlanWorkshop({
 								</p>
 							</div>
 						) : (
-							<div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
+							<div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-none border border-white/20 bg-white/10 p-1">
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-8 w-8 rounded-md dark:text-slate-400 dark:hover:bg-slate-800"
+											className="h-8 w-8 rounded-none text-white hover:bg-white/15 hover:text-white disabled:text-white/30"
 											onClick={undo}
 											disabled={!canUndo}
 										>
@@ -1015,7 +976,7 @@ export function PlanWorkshop({
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-8 w-8 rounded-md dark:text-slate-400 dark:hover:bg-slate-800"
+											className="h-8 w-8 rounded-none text-white hover:bg-white/15 hover:text-white disabled:text-white/30"
 											onClick={redo}
 											disabled={!canRedo}
 										>
@@ -1030,32 +991,28 @@ export function PlanWorkshop({
 						{/* Right Actions */}
 						<div className="flex items-center gap-3">
 							{!isCalibrating && (
-								<div className="mr-2 flex items-center rounded-full border bg-slate-100 p-1 shadow-inner dark:border-slate-800 dark:bg-slate-950">
+								<div className="mr-2 flex border border-white/20">
 									<Button
 										variant="ghost"
 										size="sm"
 										className={cn(
-											"h-7 rounded-full px-4 font-black text-[10px] transition-all duration-200",
-											unit === "m"
-												? "bg-white text-primary shadow-sm dark:bg-slate-800"
-												: "text-slate-500 hover:text-slate-700 dark:text-slate-400",
+											"h-7 rounded-none px-3 text-white/70 text-xs hover:bg-white/10 hover:text-white",
+											unit === "m" && "bg-white/15 text-white",
 										)}
 										onClick={() => setUnit("m")}
 									>
-										METERS
+										Meters
 									</Button>
 									<Button
 										variant="ghost"
 										size="sm"
 										className={cn(
-											"h-7 rounded-full px-4 font-black text-[10px] transition-all duration-200",
-											unit === "ft"
-												? "bg-white text-primary shadow-sm dark:bg-slate-800"
-												: "text-slate-500 hover:text-slate-700 dark:text-slate-400",
+											"h-7 rounded-none border-white/20 border-l px-3 text-white/70 text-xs hover:bg-white/10 hover:text-white",
+											unit === "ft" && "bg-white/15 text-white",
 										)}
 										onClick={() => setUnit("ft")}
 									>
-										FEET
+										Feet
 									</Button>
 								</div>
 							)}
@@ -1065,7 +1022,7 @@ export function PlanWorkshop({
 									<Button
 										variant="ghost"
 										size="sm"
-										className="h-9 rounded-full px-4 font-bold text-slate-400 text-xs hover:bg-white/10 hover:text-white"
+										className="h-9 rounded-none px-4 text-slate-400 text-xs hover:bg-white/10 hover:text-white"
 										onClick={handleResetCalibration}
 									>
 										<RotateCcw className="mr-2 h-4 w-4" />
@@ -1074,7 +1031,7 @@ export function PlanWorkshop({
 									<Button
 										variant="ghost"
 										size="sm"
-										className="h-9 rounded-full px-4 font-bold text-red-400 text-xs hover:bg-red-500/20 hover:text-white"
+										className="h-9 rounded-none px-4 text-red-400 text-xs hover:bg-red-500/20 hover:text-white"
 										onClick={() => setShowDiscardCalib(true)}
 									>
 										<X className="mr-2 h-4 w-4" />
@@ -1082,7 +1039,7 @@ export function PlanWorkshop({
 									</Button>
 									<Button
 										size="sm"
-										className="h-9 rounded-full bg-[#00C4CC] px-6 font-black text-white text-xs shadow-[#00C4CC]/20 shadow-lg hover:bg-[#00B4BB]"
+										className="h-9 rounded-none px-6 text-xs"
 										onClick={() => setIsCalibrating(false)}
 									>
 										<Check className="mr-2 h-4 w-4" />
@@ -1094,7 +1051,7 @@ export function PlanWorkshop({
 									<Button
 										variant="ghost"
 										size="sm"
-										className="h-9 gap-2 rounded-md px-3 font-bold text-slate-600 text-xs hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+										className="h-9 gap-2 rounded-none px-3 text-white/70 text-xs hover:bg-white/10 hover:text-white"
 										onClick={() => {
 											toast.promise(autoDistributeMutation.mutateAsync(), {
 												loading: "Auto-filling...",
@@ -1104,45 +1061,41 @@ export function PlanWorkshop({
 										}}
 										disabled={autoDistributeMutation.isPending}
 									>
-										<Sparkles className="h-4 w-4 text-primary" />
+										<Sparkles className="h-4 w-4" />
 										Auto-Fill
 									</Button>
 
 									<DropdownMenu>
 										<DropdownMenuTrigger asChild>
 											<Button
-												variant="default"
 												size="sm"
-												className="h-9 rounded-md bg-[#00C4CC] px-4 font-bold text-white hover:bg-[#00B4BB]"
+												className="h-9 rounded-none bg-white px-4 text-black text-xs hover:bg-white/90"
 											>
 												<Download className="mr-2 h-4 w-4" />
 												Export
 											</Button>
 										</DropdownMenuTrigger>
-										<DropdownMenuContent
-											align="end"
-											className="w-56 rounded-xl dark:border-slate-800 dark:bg-slate-900"
-										>
-											<DropdownMenuLabel className="font-black text-[10px] text-slate-400 uppercase tracking-widest dark:text-slate-500">
+										<DropdownMenuContent align="end" className="w-56 rounded-none">
+											<DropdownMenuLabel className="font-medium text-[10px] text-muted-foreground uppercase">
 												Reporting & Printing
 											</DropdownMenuLabel>
-											<DropdownMenuSeparator className="dark:bg-slate-800" />
+											<DropdownMenuSeparator />
 											<DropdownMenuItem
-												className="cursor-pointer gap-2 py-3 font-bold text-xs dark:focus:bg-slate-800"
+												className="cursor-pointer gap-2 py-3 text-xs"
 												onClick={() => handleExport("map")}
 											>
-												<FileImage className="h-4 w-4 text-[#00C4CC]" />
+												<FileImage className="h-4 w-4 text-primary" />
 												Floor Plan Layout (Map)
 											</DropdownMenuItem>
 											<DropdownMenuItem
-												className="cursor-pointer gap-2 py-3 font-bold text-xs dark:focus:bg-slate-800"
+												className="cursor-pointer gap-2 py-3 text-xs"
 												onClick={() => handleExport("ops")}
 											>
 												<Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
 												Guest List with Notes
 											</DropdownMenuItem>
 											<DropdownMenuItem
-												className="cursor-pointer gap-2 py-3 font-bold text-xs dark:focus:bg-slate-800"
+												className="cursor-pointer gap-2 py-3 text-xs"
 												onClick={() => handleExport("public")}
 											>
 												<LayoutGrid className="h-4 w-4 text-orange-500 dark:text-orange-400" />
@@ -1151,12 +1104,12 @@ export function PlanWorkshop({
 										</DropdownMenuContent>
 									</DropdownMenu>
 
-									<div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-800" />
+									<div className="mx-1 h-6 w-px bg-white/20" />
 
 									<Button
 										variant="ghost"
 										size="icon"
-										className="h-8 w-8 rounded-md text-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+										className="h-8 w-8 rounded-none text-white/70 hover:bg-white/10 hover:text-white"
 										onClick={toggleFullscreen}
 									>
 										{isFullscreen ? (
@@ -1172,10 +1125,11 @@ export function PlanWorkshop({
 
 					<div className="relative flex flex-1 overflow-hidden">
 						{/* Sidebar Nav */}
-						<aside className="z-40 flex w-[72px] shrink-0 flex-col items-center gap-2 bg-[#0e1318] py-4 shadow-xl dark:bg-black">
+						<aside className="z-40 flex w-[72px] shrink-0 flex-col items-center border-black border-r bg-black py-2">
 							{navItems.map((item) => (
 								<button
 									key={item.id}
+									type="button"
 									disabled={isCalibrating}
 									onClick={() => {
 										setActiveTab(
@@ -1186,29 +1140,21 @@ export function PlanWorkshop({
 										}
 									}}
 									className={cn(
-										"group relative flex w-full flex-col items-center justify-center px-1 py-3 transition-colors duration-200",
+										"group relative flex w-full flex-col items-center justify-center gap-1 rounded-none px-1 py-3 transition-colors",
 										activeTab === item.id
-											? "bg-white/10 text-white"
-											: "text-[#8b9094] hover:bg-white/5 hover:text-white",
-										isCalibrating && "cursor-not-allowed opacity-20",
+											? "bg-white text-black"
+											: "text-white/50 hover:bg-white/10 hover:text-white",
+										isCalibrating && "cursor-not-allowed opacity-40",
 									)}
 								>
-									<item.icon
-										className={cn(
-											"mb-1 h-6 w-6 transition-transform group-active:scale-90",
-											activeTab === item.id && "text-[#00C4CC]",
-										)}
-									/>
-									<span className="text-center font-medium text-[10px] leading-none tracking-tight">
+									<item.icon className="h-5 w-5" />
+									<span className="text-center font-medium text-[10px] leading-none">
 										{item.label}
 									</span>
 									{item.badge !== undefined && item.badge > 0 && (
-										<span className="absolute top-2 right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#0e1318] bg-[#ff4d4d] px-1 font-black text-[9px] text-white dark:border-black">
+										<span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-black bg-destructive px-1 font-medium text-[9px] text-white">
 											{item.badge}
 										</span>
-									)}
-									{activeTab === item.id && (
-										<div className="absolute top-0 bottom-0 left-0 w-[3px] bg-[#00C4CC]" />
 									)}
 								</button>
 							))}
@@ -1218,7 +1164,7 @@ export function PlanWorkshop({
 						{!isCalibrating && (
 							<div
 								className={cn(
-									"z-30 flex h-full flex-col border-r bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900",
+									"z-30 flex h-full flex-col border-slate-200 border-r bg-white transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900",
 									activeTab
 										? "w-[360px] opacity-100"
 										: "w-0 overflow-hidden border-r-0 opacity-0",
@@ -1226,7 +1172,7 @@ export function PlanWorkshop({
 							>
 								<div className="flex h-full w-[360px] shrink-0 flex-col">
 									<div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-										<h2 className="font-black text-lg text-slate-900 capitalize tracking-tight dark:text-slate-100">
+										<h2 className="font-semibold text-base text-slate-900 capitalize tracking-tight dark:text-slate-100">
 											{activeTab}
 										</h2>
 										<Button
@@ -1321,10 +1267,10 @@ export function PlanWorkshop({
 																<Shapes className="h-4 w-4 text-slate-500 dark:text-slate-400" />
 															</div>
 															<div>
-																<p className="font-bold text-slate-700 dark:text-slate-300">
+																<p className="font-medium text-slate-700 dark:text-slate-300">
 																	{obj.label || obj.object_type}
 																</p>
-																<p className="text-[10px] text-slate-400 uppercase tracking-widest dark:text-slate-500">
+																<p className="text-[10px] text-slate-400 uppercase dark:text-slate-500">
 																	{obj.object_type}
 																</p>
 															</div>
@@ -1345,29 +1291,29 @@ export function PlanWorkshop({
 						<main className="relative flex flex-1 flex-col overflow-hidden bg-[#f0f2f5] dark:bg-slate-950">
 							{/* Startup Overlay */}
 							{showStartup && (
-								<div className="fade-in absolute inset-0 z-50 flex animate-in items-center justify-center bg-white/80 p-6 backdrop-blur-md duration-500 dark:bg-slate-900/80">
+								<div className="absolute inset-0 z-50 flex items-center justify-center border-slate-200 border-l bg-background/95 p-6 backdrop-blur-sm dark:border-slate-800">
 									<Button
 										variant="ghost"
 										size="icon"
-										className="absolute top-6 right-6 h-10 w-10 rounded-full text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+										className="absolute top-6 right-6 rounded-none"
 										onClick={() => setShowStartup(false)}
 									>
-										<X className="h-6 w-6" />
+										<X className="h-5 w-5" />
 									</Button>
 
-									<div className="flex w-full max-w-4xl flex-col items-center gap-12">
-										<div className="space-y-4 text-center">
-											<h2 className="font-black text-4xl text-slate-900 tracking-tighter dark:text-slate-100">
+									<div className="flex w-full max-w-3xl flex-col items-center gap-8">
+										<div className="space-y-1.5 text-center">
+											<h2 className="font-semibold text-2xl tracking-tight">
 												How would you like to start?
 											</h2>
-											<p className="font-medium text-slate-500 dark:text-slate-400">
+											<p className="text-muted-foreground text-sm">
 												Choose a workflow to begin designing your seating plan.
 											</p>
 										</div>
 
-										<div className="grid w-full gap-8 md:grid-cols-2">
+										<div className="grid w-full gap-4 md:grid-cols-2">
 											<Card
-												className="group relative cursor-pointer overflow-hidden border-2 border-transparent shadow-xl transition-all hover:border-[#00C4CC] hover:shadow-2xl active:scale-[0.98] dark:bg-slate-900 dark:hover:border-[#00C4CC]/50"
+												className="cursor-pointer rounded-none border-dashed transition-colors hover:border-primary"
 												onClick={() => {
 													const input = document.createElement("input");
 													input.type = "file";
@@ -1380,54 +1326,64 @@ export function PlanWorkshop({
 													input.click();
 												}}
 											>
-												<CardContent className="flex flex-col items-center gap-6 p-10 text-center">
-													<div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-[#00C4CC]/10 transition-transform duration-500 group-hover:scale-110 dark:bg-[#00C4CC]/20">
-														<FileImage className="h-12 w-12 text-[#00C4CC]" />
+												<CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+													<div className="flex h-14 w-14 items-center justify-center rounded-none border border-primary/20 bg-primary/5">
+														<FileImage className="h-6 w-6 text-primary" />
 													</div>
-													<div className="space-y-2">
-														<h3 className="font-bold text-slate-900 text-xl dark:text-slate-100">
+													<div className="space-y-1">
+														<h3 className="font-medium text-base">
 															Upload Your Plan
 														</h3>
-														<p className="text-slate-500 text-sm leading-relaxed dark:text-slate-400">
+														<p className="text-muted-foreground text-sm">
 															Already have a blueprint or a design? Upload it
 															and place tables directly on top.
 														</p>
 													</div>
-													<div className="flex items-center gap-2 pt-2 font-bold text-[#00C4CC] text-sm uppercase tracking-widest">
-														<Upload className="h-4 w-4" />
-														<span>Upload Image</span>
-													</div>
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														className="gap-1.5 rounded-none"
+													>
+														<Upload className="h-3.5 w-3.5" />
+														Upload Image
+													</Button>
 												</CardContent>
 											</Card>
 
 											<Card
-												className="group relative cursor-pointer overflow-hidden border-2 border-transparent shadow-xl transition-all hover:border-[#00C4CC] hover:shadow-2xl active:scale-[0.98] dark:bg-slate-900 dark:hover:border-[#00C4CC]/50"
+												className="cursor-pointer rounded-none border-dashed transition-colors hover:border-primary"
 												onClick={() => setShowStartup(false)}
 											>
-												<CardContent className="flex flex-col items-center gap-6 p-10 text-center">
-													<div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-slate-100 transition-transform duration-500 group-hover:scale-110 dark:bg-slate-800">
-														<PenTool className="h-12 w-12 text-slate-600 dark:text-slate-400" />
+												<CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+													<div className="flex h-14 w-14 items-center justify-center rounded-none border border-primary/20 bg-primary/5">
+														<PenTool className="h-6 w-6 text-primary" />
 													</div>
-													<div className="space-y-2">
-														<h3 className="font-bold text-slate-900 text-xl dark:text-slate-100">
+													<div className="space-y-1">
+														<h3 className="font-medium text-base">
 															Design from Scratch
 														</h3>
-														<p className="text-slate-500 text-sm leading-relaxed dark:text-slate-400">
+														<p className="text-muted-foreground text-sm">
 															Start with a blank canvas and use our drawing
 															tools to create your own floor layout.
 														</p>
 													</div>
-													<div className="flex items-center gap-2 pt-2 font-bold text-slate-600 text-sm uppercase tracking-widest dark:text-slate-400">
-														<span>Start Drawing</span>
-														<ArrowLeft className="h-4 w-4 rotate-180" />
-													</div>
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														className="gap-1.5 rounded-none"
+													>
+														Start Drawing
+														<ArrowRight className="h-3.5 w-3.5" />
+													</Button>
 												</CardContent>
 											</Card>
 										</div>
 
 										<Button
-											variant="ghost"
-											className="font-bold text-slate-400 text-xs uppercase tracking-widest hover:text-slate-600 dark:hover:text-slate-300"
+											variant="link"
+											className="text-muted-foreground text-sm"
 											onClick={() => setShowStartup(false)}
 										>
 											I'll decide later
@@ -1450,7 +1406,7 @@ export function PlanWorkshop({
 									<>
 										<div className="mr-2 flex items-center gap-2 border-r pr-4 dark:border-slate-800">
 											<Shapes className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-											<span className="font-black text-[10px] text-slate-500 uppercase tracking-widest dark:text-slate-400">
+											<span className="font-medium text-[10px] text-slate-500 uppercase dark:text-slate-400">
 												{selectedObjectIds.length > 1
 													? `${selectedObjectIds.length} Objects Selected`
 													: selectedObject?.label ||
@@ -1581,7 +1537,7 @@ export function PlanWorkshop({
 
 								{/* Quick Tools */}
 								{!isCalibrating && (
-									<div className="slide-in-from-bottom-4 absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 animate-in items-center gap-1 rounded-lg border bg-white p-1 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+									<div className="slide-in-from-bottom-4 absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 animate-in items-center gap-1 rounded-none border bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900">
 										<Button
 											variant={activeTool === "select" ? "secondary" : "ghost"}
 											size="sm"
@@ -1620,36 +1576,36 @@ export function PlanWorkshop({
 						open={!!reassignConfirm}
 						onOpenChange={(open) => !open && setReassignConfirm(null)}
 					>
-						<AlertDialogContent className="max-w-md rounded-2xl dark:border-slate-800 dark:bg-slate-900">
+						<AlertDialogContent className="max-w-md rounded-none dark:border-slate-800 dark:bg-slate-900">
 							<AlertDialogHeader>
-								<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-950/30">
+								<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-none border border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30">
 									<AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
 								</div>
-								<AlertDialogTitle className="font-black text-xl tracking-tight dark:text-slate-100">
+								<AlertDialogTitle className="font-semibold text-lg dark:text-slate-100">
 									Move Guest?
 								</AlertDialogTitle>
-								<AlertDialogDescription className="font-medium text-slate-600 leading-relaxed dark:text-slate-400">
+								<AlertDialogDescription className="text-slate-600 dark:text-slate-400">
 									Are you sure you want to move{" "}
-									<span className="font-bold text-slate-900 dark:text-slate-200">
+									<span className="font-medium text-slate-900 dark:text-slate-200">
 										{reassignConfirm?.guestName}
 									</span>{" "}
 									from{" "}
-									<span className="font-bold text-slate-900 dark:text-slate-200">
+									<span className="font-medium text-slate-900 dark:text-slate-200">
 										{reassignConfirm?.oldTableName}
 									</span>{" "}
 									to{" "}
-									<span className="font-bold text-slate-900 dark:text-slate-200">
+									<span className="font-medium text-slate-900 dark:text-slate-200">
 										{reassignConfirm?.newTableName}
 									</span>
 									?
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter className="mt-6">
-								<AlertDialogCancel className="rounded-full border-slate-200 font-bold dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800">
+								<AlertDialogCancel className="rounded-none">
 									Cancel
 								</AlertDialogCancel>
 								<AlertDialogAction
-									className="rounded-full bg-[#00C4CC] font-bold text-white hover:bg-[#00B4BB] dark:text-slate-950"
+									className="rounded-none"
 									onClick={() => {
 										if (reassignConfirm) {
 											createAssignmentMutation.mutate(reassignConfirm.payload);
@@ -1668,25 +1624,26 @@ export function PlanWorkshop({
 						open={showDiscardCalib}
 						onOpenChange={setShowDiscardCalib}
 					>
-						<AlertDialogContent className="max-w-md rounded-2xl dark:border-slate-800 dark:bg-slate-900">
+						<AlertDialogContent className="max-w-md rounded-none dark:border-slate-800 dark:bg-slate-900">
 							<AlertDialogHeader>
-								<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/30">
+								<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-none border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30">
 									<Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
 								</div>
-								<AlertDialogTitle className="font-black text-red-600 text-xl tracking-tight dark:text-red-400">
+								<AlertDialogTitle className="font-semibold text-lg text-red-600 dark:text-red-400">
 									Cancel Calibration?
 								</AlertDialogTitle>
-								<AlertDialogDescription className="font-medium text-slate-600 leading-relaxed dark:text-slate-400">
-									Cancelling will **completely remove** the floor plan image you
-									just uploaded. You will have to upload it again to use it.
+								<AlertDialogDescription className="text-slate-600 dark:text-slate-400">
+									Cancelling will <strong>completely remove</strong> the floor
+									plan image you just uploaded. You will have to upload it again
+									to use it.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter className="mt-6">
-								<AlertDialogCancel className="rounded-full border-slate-200 font-bold dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800">
+								<AlertDialogCancel className="rounded-none">
 									Go Back
 								</AlertDialogCancel>
 								<AlertDialogAction
-									className="rounded-full bg-red-600 font-bold text-white hover:bg-red-700 dark:bg-red-700 dark:text-slate-100"
+									className="rounded-none bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:text-slate-100"
 									onClick={handleDiscardCalibration}
 								>
 									Yes, Remove Plan
