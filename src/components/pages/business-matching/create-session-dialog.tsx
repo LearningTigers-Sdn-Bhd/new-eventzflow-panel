@@ -3,6 +3,7 @@ import { Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { TagChipInput } from "@/components/admin-ui/form/tag-chip-input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingBookings,
+	useBusinessMatchingTags,
 	useCreateBusinessMatchingSession,
 	useDeleteBusinessMatchingSession,
 	useSessionAvailabilities,
@@ -71,6 +73,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		isEditMode ? eventId : null,
 	);
 	const { data: availabilities } = useSessionAvailabilities(session?.id ?? "");
+	// Tags are event-scoped, so the create form lets the admin add to (or
+	// reuse) the event's existing tag list right here — no separate "Manage
+	// Tags" trip required before the first session exists.
+	const { data: existingTags } = useBusinessMatchingTags(
+		!isEditMode ? eventId : "",
+	);
 
 	const isPending = isCreating || isUpdating || isDeleting;
 
@@ -109,6 +117,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
 	const [tagsEditable, setTagsEditable] = useState(true);
 	const [hoursEditable, setHoursEditable] = useState(true);
+	const [offeringTags, setOfferingTags] = useState<string[]>([]);
+	const [interestTags, setInterestTags] = useState<string[]>([]);
 	const [startTimeOpen, setStartTimeOpen] = useState(false);
 	const [endTimeOpen, setEndTimeOpen] = useState(false);
 	const [startDateOpen, setStartDateOpen] = useState(false);
@@ -185,6 +195,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		setHoursEditable(eventDefaults.hours_editable_default);
 	}, [session, eventDefaults]);
 
+	// Prefill with the event's existing tag list (if any) so the admin can see
+	// and reuse what's already there instead of starting from a blank slate.
+	useEffect(() => {
+		if (session || !existingTags) return;
+		setOfferingTags(existingTags.offering_tags || []);
+		setInterestTags(existingTags.interest_tags || []);
+	}, [session, existingTags]);
+
 	// Bookings/blocks that would fall outside the currently-entered Daily
 	// Start/End Time — recomputed live as the admin types, so the conflict
 	// is visible before they ever hit Save.
@@ -233,6 +251,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			...(!isHostEditing && endDate && { end_date: endDate }),
 			...(!isHostEditing && { tags_editable: tagsEditable }),
 			...(!isHostEditing && { hours_editable: hoursEditable }),
+			// Tags are only accepted on session creation — the event's tag list
+			// is edited afterward via "Manage Tags".
+			...(!isEditMode && {
+				offering_tags: offeringTags,
+				interest_tags: interestTags,
+			}),
 		};
 
 		if (isEditMode && session) {
@@ -413,6 +437,27 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 						: "Defaults to the event's dates, but can be set entirely before or after the event period."}
 				</p>
 			</div>
+
+			{!isEditMode && !isHostEditing && (
+				<div className="space-y-4">
+					<TagChipInput
+						label="Offering Tags"
+						value={offeringTags}
+						onChange={setOfferingTags}
+						placeholder="e.g. SaaS, Consulting, Seed Fund"
+						description="What hosts and attendees can select to describe what they offer."
+						disabled={isPending}
+					/>
+					<TagChipInput
+						label="Interest Tags"
+						value={interestTags}
+						onChange={setInterestTags}
+						placeholder="e.g. Enterprise Clients, Distributors"
+						description="What hosts and attendees can select to describe what they're seeking."
+						disabled={isPending}
+					/>
+				</div>
+			)}
 
 			{!isHostEditing && (
 				<div className="flex items-center justify-between rounded-lg border p-3">
