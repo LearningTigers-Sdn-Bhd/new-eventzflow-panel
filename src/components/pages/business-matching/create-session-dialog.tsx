@@ -1,13 +1,18 @@
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
+import {
+	AlertTriangle,
+	Calendar as CalendarIcon,
+	Loader2,
+	Trash2,
+} from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { TagChipInput } from "@/components/admin-ui/form/tag-chip-input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import {
 	Popover,
 	PopoverContent,
@@ -17,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingBookings,
+	useBusinessMatchingTags,
 	useCreateBusinessMatchingSession,
 	useDeleteBusinessMatchingSession,
 	useSessionAvailabilities,
@@ -72,6 +78,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		isEditMode ? eventId : null,
 	);
 	const { data: availabilities } = useSessionAvailabilities(session?.id ?? "");
+	// Tags a new session can be assigned come only from the event's curated
+	// list — this dialog never lets an admin type a brand-new tag; that's
+	// "Manage Tags"'s job.
+	const { data: availableTags } = useBusinessMatchingTags(
+		!isEditMode ? eventId : "",
+	);
 
 	const isPending = isCreating || isUpdating || isDeleting;
 
@@ -425,22 +437,44 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 			{!isEditMode && !isHostEditing && (
 				<div className="space-y-4">
-					<TagChipInput
-						label="Offering Tags"
-						value={offeringTags}
-						onChange={setOfferingTags}
-						placeholder="e.g. SaaS, Consulting, Seed Fund"
-						description="What hosts and attendees can select to describe what they offer."
-						disabled={isPending}
-					/>
-					<TagChipInput
-						label="Interest Tags"
-						value={interestTags}
-						onChange={setInterestTags}
-						placeholder="e.g. Enterprise Clients, Distributors"
-						description="What hosts and attendees can select to describe what they're seeking."
-						disabled={isPending}
-					/>
+					{availableTags &&
+					availableTags.offering_tags.length === 0 &&
+					availableTags.interest_tags.length === 0 ? (
+						<div className="flex items-start gap-2 rounded-none border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-800 dark:text-yellow-200">
+							<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+							<span>
+								No tags have been set up for this event yet. Add offering and
+								interest tags via "Manage Tags" first, then assign them here.
+							</span>
+						</div>
+					) : (
+						<>
+							<div className="space-y-2">
+								<Label htmlFor="session-offering-tags">Offering Tags</Label>
+								<MultiSelectLegacy
+									options={(availableTags?.offering_tags || []).map((t) => ({
+										label: t,
+										value: t,
+									}))}
+									selected={offeringTags}
+									onChange={setOfferingTags}
+									placeholder="Select offering tags"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="session-interest-tags">Interest Tags</Label>
+								<MultiSelectLegacy
+									options={(availableTags?.interest_tags || []).map((t) => ({
+										label: t,
+										value: t,
+									}))}
+									selected={interestTags}
+									onChange={setInterestTags}
+									placeholder="Select interest tags"
+								/>
+							</div>
+						</>
+					)}
 				</div>
 			)}
 
