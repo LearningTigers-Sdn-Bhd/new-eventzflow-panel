@@ -264,6 +264,25 @@ export function Inspector({
 				/>
 			</div>
 
+			{object.object_type === "table" && (
+				<div className="space-y-2">
+					<Label className="font-bold text-slate-600 text-xs dark:text-slate-400">
+						Table Number
+					</Label>
+					<DelayedInput
+						value={object.table_number || ""}
+						onSubmit={(val) =>
+							handlePropertyChange(() =>
+								onUpdate(object.id, { table_number: val }),
+							)
+						}
+						disabled={object.locked}
+						placeholder="e.g. 12, A1"
+						className="h-9 rounded-none border-slate-200 bg-slate-50 font-medium transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+					/>
+				</div>
+			)}
+
 			{isDesignerType && (
 				<div className="space-y-3">
 					<Label className="flex items-center gap-2 font-bold text-slate-600 text-xs dark:text-slate-400">
@@ -359,7 +378,7 @@ export function Inspector({
 				/>
 			</div>
 
-			<div className="flex items-center justify-between rounded-none border rounded-none border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+			<div className="flex items-center justify-between rounded-none rounded-none border border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
 				<Label
 					className="cursor-pointer font-bold text-slate-600 text-xs dark:text-slate-400"
 					htmlFor="locked"

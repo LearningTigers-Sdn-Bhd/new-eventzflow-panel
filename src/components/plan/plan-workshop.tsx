@@ -1075,7 +1075,10 @@ export function PlanWorkshop({
 												Export
 											</Button>
 										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end" className="w-56 rounded-none">
+										<DropdownMenuContent
+											align="end"
+											className="w-56 rounded-none"
+										>
 											<DropdownMenuLabel className="font-medium text-[10px] text-muted-foreground uppercase">
 												Reporting & Printing
 											</DropdownMenuLabel>
@@ -1125,7 +1128,7 @@ export function PlanWorkshop({
 
 					<div className="relative flex flex-1 overflow-hidden">
 						{/* Sidebar Nav */}
-						<aside className="z-40 flex w-[72px] shrink-0 flex-col items-center border-black border-r bg-black py-2">
+						<aside className="z-40 flex w-[72px] shrink-0 flex-col items-center border-black border-r bg-black">
 							{navItems.map((item) => (
 								<button
 									key={item.id}

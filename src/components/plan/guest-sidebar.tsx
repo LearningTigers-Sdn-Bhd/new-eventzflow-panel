@@ -3,14 +3,15 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
 import {
+	Armchair,
 	CalendarCheck,
 	Check,
 	ChevronRight,
+	Inbox,
 	LayoutGrid,
 	Mail,
 	Phone,
 	Plus,
-	Inbox,
 	Search,
 	ShieldCheck,
 	Trash2,
@@ -1054,36 +1055,39 @@ function GuestDetailsPanel({
 					<span className="block font-semibold text-[11px] text-slate-500 uppercase dark:text-slate-400">
 						Table Assignment
 					</span>
-					<div className="flex items-center justify-between gap-3">
-						{assignedTo ? (
-							<>
-								<div className="flex min-w-0 items-center gap-2 text-xs">
-									<div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-									<span className="truncate text-slate-700 dark:text-slate-300">
-										Seated at{" "}
-										<span className="font-medium">
-											{assignedTo.label || assignedTo.object_type}
-										</span>
-									</span>
+					{assignedTo ? (
+						<div className="flex items-center justify-between gap-3 rounded-none border border-emerald-200 bg-emerald-50 px-3 py-2.5 dark:border-emerald-900/40 dark:bg-emerald-950/30">
+							<div className="flex min-w-0 items-center gap-2.5">
+								<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.4)]">
+									<Armchair className="h-3.5 w-3.5" />
 								</div>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="h-7 shrink-0 rounded-none text-[10px] text-destructive hover:bg-destructive/5 dark:hover:bg-destructive/10"
-									onClick={(e) => {
-										e.preventDefault();
-										onUnassign?.();
-									}}
-								>
-									Unassign
-								</Button>
-							</>
-						) : (
-							<span className="text-muted-foreground text-xs">
-								Not assigned to a table yet.
-							</span>
-						)}
-					</div>
+								<div className="min-w-0">
+									<p className="truncate font-bold text-emerald-800 text-xs dark:text-emerald-300">
+										Seated at {assignedTo.label || assignedTo.object_type}
+									</p>
+									<p className="text-[10px] text-emerald-700/70 dark:text-emerald-500/70">
+										Table assignment active
+									</p>
+								</div>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-7 shrink-0 rounded-none text-[10px] text-destructive hover:bg-destructive/10"
+								onClick={(e) => {
+									e.preventDefault();
+									onUnassign?.();
+								}}
+							>
+								Unassign
+							</Button>
+						</div>
+					) : (
+						<div className="flex items-center gap-2 rounded-none border border-slate-200 border-dashed px-3 py-2.5 text-muted-foreground text-xs dark:border-slate-800">
+							<Armchair className="h-3.5 w-3.5 shrink-0 opacity-40" />
+							Not assigned to a table yet.
+						</div>
+					)}
 				</div>
 
 				<div className="space-y-2 border-t pt-4 dark:border-slate-800">

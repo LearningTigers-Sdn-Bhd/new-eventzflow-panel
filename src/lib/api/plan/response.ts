@@ -10,6 +10,7 @@ export interface PlanObject {
 	height: number;
 	path?: string | null;
 	label: string | null;
+	table_number: string | null;
 	capacity: number | null;
 	locked: boolean;
 	z_index: number;
