@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueries,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,6 +26,7 @@ import {
 	type PassBundleStatus,
 	updatePassBundle,
 } from "@/lib/api/pass-bundle";
+import { getPlan, getPlans } from "@/lib/api/plan";
 import { getEventRegistrationForms } from "@/lib/api/registration-form";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import {
@@ -66,6 +72,9 @@ export function PassBundleForm({
 	const [expiresAt, setExpiresAt] = useState(
 		passBundle?.expiresAt?.slice(0, 10) ?? "",
 	);
+	const [planObjectId, setPlanObjectId] = useState(
+		passBundle?.planObject?.id ? String(passBundle.planObject.id) : "",
+	);
 
 	const formsQuery = useQuery({
 		queryKey: ["event", eventId, "registration-forms"],
@@ -75,6 +84,34 @@ export function PassBundleForm({
 	const ticketTypesQuery = useQuery({
 		queryKey: ["event", eventId, "ticket-types"],
 		queryFn: () => getEventTicketTypes({ eventId }),
+	});
+
+	const plansQuery = useQuery({
+		queryKey: ["event", eventId, "plans"],
+		queryFn: () => getPlans(eventId),
+	});
+
+	// The plans index endpoint doesn't include plan_objects (only #show does),
+	// so fetch each plan's detail to read its table objects.
+	const planDetailQueries = useQueries({
+		queries: (plansQuery.data ?? []).map((plan) => ({
+			queryKey: ["plan", String(plan.id)],
+			queryFn: () => getPlan(String(plan.id)),
+			enabled: plansQuery.isSuccess,
+		})),
+	});
+
+	// Tables only — a bundle can only auto-assign tickets to a table object,
+	// not walls/doors/stage/label/floor.
+	const tableOptions = planDetailQueries.flatMap((query) => {
+		const plan = query.data;
+		if (!plan) return [];
+		return (plan.plan_objects ?? [])
+			.filter((object) => object.object_type === "table")
+			.map((table) => ({
+				id: table.id,
+				label: `${plan.name} — ${table.label ?? `Table ${table.id}`}`,
+			}));
 	});
 
 	useEffect(() => {
@@ -98,6 +135,7 @@ export function PassBundleForm({
 				payment_status: paymentStatus,
 				status,
 				expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+				plan_object_id: planObjectId ? Number.parseInt(planObjectId, 10) : null,
 			};
 
 			if (passBundle) {
@@ -240,6 +278,32 @@ export function PassBundleForm({
 							</SelectContent>
 						</Select>
 					</div>
+				</div>
+
+				<div className="space-y-2">
+					<Label>Table (optional)</Label>
+					<Select
+						value={planObjectId || "none"}
+						onValueChange={(value) =>
+							setPlanObjectId(value === "none" ? "" : value)
+						}
+					>
+						<SelectTrigger className="w-full rounded-none">
+							<SelectValue placeholder="No table — assigned manually" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="none">No table — assigned manually</SelectItem>
+							{tableOptions.map((table) => (
+								<SelectItem key={table.id} value={String(table.id)}>
+									{table.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					<p className="text-muted-foreground text-xs">
+						Every ticket registered through this bundle link is auto-assigned to
+						this table.
+					</p>
 				</div>
 
 				<div className="grid gap-4 md:grid-cols-2">

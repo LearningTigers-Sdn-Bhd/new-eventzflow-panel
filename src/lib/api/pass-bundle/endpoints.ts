@@ -34,6 +34,7 @@ function transformPassBundle(backend: BackendPassBundle): PassBundle {
 		expiresAt: backend.expires_at,
 		registrationForm: backend.registration_form,
 		ticketType: backend.ticket_type,
+		planObject: backend.plan_object,
 		bundleLink: backend.bundle_link,
 		createdAt: backend.created_at,
 		updatedAt: backend.updated_at,

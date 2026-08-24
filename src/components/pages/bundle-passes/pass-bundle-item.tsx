@@ -80,6 +80,12 @@ export function PassBundleItem({
 								: "-"}
 						</p>
 					</div>
+					<div>
+						<p className="text-muted-foreground">Table</p>
+						<p className="font-medium">
+							{bundle.planObject ? bundle.planObject.label : "Unassigned"}
+						</p>
+					</div>
 				</div>
 				<Button
 					type="button"

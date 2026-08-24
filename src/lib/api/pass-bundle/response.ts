@@ -25,6 +25,10 @@ export interface BackendPassBundle {
 		id: number;
 		name: string;
 	};
+	plan_object: {
+		id: number;
+		label: string | null;
+	} | null;
 	bundle_link: string;
 	created_at: string;
 	updated_at: string;
@@ -51,6 +55,10 @@ export interface PassBundle {
 		id: number;
 		name: string;
 	};
+	planObject: {
+		id: number;
+		label: string | null;
+	} | null;
 	bundleLink: string;
 	createdAt: string;
 	updatedAt: string;
