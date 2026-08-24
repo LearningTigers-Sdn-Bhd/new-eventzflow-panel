@@ -17,7 +17,6 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingBookings,
-	useBusinessMatchingTags,
 	useCreateBusinessMatchingSession,
 	useDeleteBusinessMatchingSession,
 	useSessionAvailabilities,
@@ -73,12 +72,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		isEditMode ? eventId : null,
 	);
 	const { data: availabilities } = useSessionAvailabilities(session?.id ?? "");
-	// Tags are event-scoped, so the create form lets the admin add to (or
-	// reuse) the event's existing tag list right here — no separate "Manage
-	// Tags" trip required before the first session exists.
-	const { data: existingTags } = useBusinessMatchingTags(
-		!isEditMode ? eventId : "",
-	);
 
 	const isPending = isCreating || isUpdating || isDeleting;
 
@@ -194,14 +187,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		}
 		setHoursEditable(eventDefaults.hours_editable_default);
 	}, [session, eventDefaults]);
-
-	// Prefill with the event's existing tag list (if any) so the admin can see
-	// and reuse what's already there instead of starting from a blank slate.
-	useEffect(() => {
-		if (session || !existingTags) return;
-		setOfferingTags(existingTags.offering_tags || []);
-		setInterestTags(existingTags.interest_tags || []);
-	}, [session, existingTags]);
 
 	// Bookings/blocks that would fall outside the currently-entered Daily
 	// Start/End Time — recomputed live as the admin types, so the conflict
