@@ -280,31 +280,33 @@ export function PassBundleForm({
 					</div>
 				</div>
 
-				<div className="space-y-2">
-					<Label>Table (optional)</Label>
-					<Select
-						value={planObjectId || "none"}
-						onValueChange={(value) =>
-							setPlanObjectId(value === "none" ? "" : value)
-						}
-					>
-						<SelectTrigger className="w-full rounded-none">
-							<SelectValue placeholder="No table — assigned manually" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="none">No table — assigned manually</SelectItem>
-							{tableOptions.map((table) => (
-								<SelectItem key={table.id} value={String(table.id)}>
-									{table.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<p className="text-muted-foreground text-xs">
-						Every ticket registered through this bundle link is auto-assigned to
-						this table.
-					</p>
-				</div>
+				{tableOptions.length > 0 && (
+					<div className="space-y-2">
+						<Label>Table (optional)</Label>
+						<Select
+							value={planObjectId || "none"}
+							onValueChange={(value) =>
+								setPlanObjectId(value === "none" ? "" : value)
+							}
+						>
+							<SelectTrigger className="w-full rounded-none">
+								<SelectValue placeholder="No table — assigned manually" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="none">No table — assigned manually</SelectItem>
+								{tableOptions.map((table) => (
+									<SelectItem key={table.id} value={String(table.id)}>
+										{table.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<p className="text-muted-foreground text-xs">
+							Every ticket registered through this bundle link is auto-assigned
+							to this table.
+						</p>
+					</div>
+				)}
 
 				<div className="grid gap-4 md:grid-cols-2">
 					<div className="space-y-2">
