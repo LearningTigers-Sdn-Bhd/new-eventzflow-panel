@@ -1,6 +1,7 @@
 export {
 	createGlobalLead,
 	createLead,
+	exportEventLeads,
 	getEventLeads,
 	getRecentGlobalLeads,
 	updateLead,
