@@ -17,6 +17,7 @@ export const createPendingTicketSchema = z.object({
 	role: z.string().optional(),
 	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment
 	payment_screenshot_url: z.string().optional(),
+	payment_proof: z.instanceof(File).optional(),
 	transaction_id: z.string().optional(),
 	payment_method: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
@@ -39,6 +40,7 @@ export const updatePendingTicketSchema = z.object({
 	role: z.string().optional(),
 	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment
 	payment_screenshot_url: z.string().optional(),
+	payment_proof: z.instanceof(File).optional(),
 	transaction_id: z.string().optional(),
 	payment_method: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),

@@ -11,9 +11,11 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { createPendingTicket } from "@/lib/api/event/pending";
+import PaymentReceiptUpload from "../../exhibitor-kits/payment-receipt-upload";
 import { TicketTypeFieldSection } from "../../tickets/page-action/ticket-type-field-section";
 import { PAYMENT_STATUS } from "../constants";
 
@@ -28,7 +30,6 @@ export default function PendingTicketForm() {
 	const emailId = useId();
 	const phoneId = useId();
 	const paymentStatusId = useId();
-	const screenshotUrlId = useId();
 	const transactionIdId = useId();
 	const paymentMethodId = useId();
 	const roleId = useId();
@@ -88,7 +89,7 @@ export default function PendingTicketForm() {
 			payment_status: PAYMENT_STATUS.PENDING,
 			payment_method: "",
 			transaction_id: "",
-			payment_screenshot_url: "",
+			payment_proof: undefined as File | undefined,
 			quantity: "1",
 		},
 		onSubmit: async ({ value }) => {
@@ -116,7 +117,7 @@ export default function PendingTicketForm() {
 				ticket_type_id: value.ticket_type_id,
 				role: value.role || undefined,
 				payment_status: value.payment_status,
-				payment_screenshot_url: value.payment_screenshot_url || undefined,
+				payment_proof: value.payment_proof || undefined,
 				transaction_id: value.transaction_id || undefined,
 				payment_method: value.payment_method || undefined,
 				custom_fields_data:
@@ -392,18 +393,21 @@ export default function PendingTicketForm() {
 									)}
 								</form.Field>
 
-								<form.Field name="payment_screenshot_url">
+								<form.Field name="payment_proof">
 									{(field) => (
-										<InputLabel
-											label="Payment Screenshot URL"
-											htmlFor={screenshotUrlId}
-											placeholder="https://example.com/screenshot.jpg"
-											value={field.state.value}
-											onChange={(value) => field.handleChange(value)}
-											onBlur={field.handleBlur}
-											disabled={createMutation.isPending}
-											description="URL to the payment screenshot (optional)"
-										/>
+										<div className="space-y-2 md:col-span-2">
+											<Label>Payment Screenshot</Label>
+											<PaymentReceiptUpload
+												value={field.state.value}
+												onChange={(file) =>
+													field.handleChange(file ?? undefined)
+												}
+												disabled={createMutation.isPending}
+											/>
+											<p className="text-muted-foreground text-xs">
+												Upload the payment screenshot (optional)
+											</p>
+										</div>
 									)}
 								</form.Field>
 							</div>

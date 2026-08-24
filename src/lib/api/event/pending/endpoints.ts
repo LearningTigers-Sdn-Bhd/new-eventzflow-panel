@@ -140,6 +140,35 @@ export async function getPendingTickets(
 	}
 }
 
+// Builds multipart/form-data for the `ticket[...]` params, needed only when
+// payment_proof is a real File (can't ride along in a JSON body).
+function buildTicketFormData(
+	ticketData: Record<string, unknown>,
+	extra?: Record<string, unknown>,
+): FormData {
+	const formData = new FormData();
+	for (const [key, value] of Object.entries(ticketData)) {
+		if (value === undefined || value === null) continue;
+		if (value instanceof File) {
+			formData.append(`ticket[${key}]`, value);
+		} else if (key === "custom_fields_data" && typeof value === "object") {
+			for (const [fieldKey, fieldValue] of Object.entries(
+				value as Record<string, string>,
+			)) {
+				formData.append(`ticket[custom_fields_data][${fieldKey}]`, fieldValue);
+			}
+		} else {
+			formData.append(`ticket[${key}]`, String(value));
+		}
+	}
+	for (const [key, value] of Object.entries(extra ?? {})) {
+		if (value !== undefined && value !== null) {
+			formData.append(key, String(value));
+		}
+	}
+	return formData;
+}
+
 /**
  * Create a pending ticket
  */
@@ -150,10 +179,15 @@ export async function createPendingTicket(
 		const validated = createPendingTicketSchema.parse(data);
 		const { eventId, quantity, ...ticketData } = validated;
 
-		const response = await restClient.post<BackendPendingTicket>(
-			`v1/events/${eventId}/tickets`,
-			{ ticket: ticketData, quantity },
-		);
+		const response = ticketData.payment_proof
+			? await restClient.postFormData<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets`,
+					buildTicketFormData(ticketData, { quantity }),
+				)
+			: await restClient.post<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets`,
+					{ ticket: ticketData, quantity },
+				);
 
 		return transformPendingTicket(response);
 	} catch (error: unknown) {
@@ -172,10 +206,15 @@ export async function updatePendingTicket(
 		const validated = updatePendingTicketSchema.parse(data);
 		const { eventId, ticketId, ...updateData } = validated;
 
-		const response = await restClient.put<BackendPendingTicket>(
-			`v1/events/${eventId}/tickets/${ticketId}`,
-			{ ticket: updateData },
-		);
+		const response = updateData.payment_proof
+			? await restClient.putFormData<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets/${ticketId}`,
+					buildTicketFormData(updateData),
+				)
+			: await restClient.put<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets/${ticketId}`,
+					{ ticket: updateData },
+				);
 
 		return transformPendingTicket(response);
 	} catch (error: unknown) {
