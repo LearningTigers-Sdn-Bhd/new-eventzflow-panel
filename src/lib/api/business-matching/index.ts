@@ -484,6 +484,10 @@ export interface CreateSessionRequest {
 	end_date?: string;
 	tags_editable?: boolean;
 	hours_editable?: boolean;
+	// Only meaningful on create — these are merged into the event's shared
+	// offering/interest tag lists, not stored on the session itself.
+	offering_tags?: string[];
+	interest_tags?: string[];
 }
 
 export async function createBusinessMatchingSession(

@@ -475,6 +475,9 @@ export const useCreateBusinessMatchingSession = (eventId: string) => {
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-events", eventId],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-tags", eventId],
+			});
 		},
 	});
 };
