@@ -64,6 +64,7 @@ export const updateEventSchema = z.object({
 	exhibitor_reservation_ttl_hours: z.number().int().nullable().optional(),
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
+	business_matching_linked_exhibitor_enabled: z.boolean().optional(),
 	use_voucher: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
 	// photo_booth_enabled: z.boolean().optional(),

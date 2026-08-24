@@ -390,6 +390,26 @@ export async function createAndAssignHost(
 }
 
 /**
+ * Attach host access to an EXISTING exhibitor's user account for this event,
+ * instead of creating a brand-new user. Only available when the event has
+ * business_matching_linked_exhibitor_enabled turned on. The exhibitor keeps
+ * logging in with whatever password they already have — nothing new to set.
+ */
+export async function linkExhibitorHost(
+	eventId: string,
+	bmEventId: string,
+	eventVendorId: number,
+	tags?: { offering_tags?: string[]; interest_tags?: string[] },
+): Promise<BusinessHost> {
+	const url = `v1/business_matching/events/${eventId}/hosts/link_exhibitor`;
+	return restClient.post<BusinessHost>(url, {
+		event_vendor_id: eventVendorId,
+		business_matching_event_id: bmEventId,
+		...tags,
+	});
+}
+
+/**
  * Remove a host from a specific BM event.
  */
 export async function removeHost(

@@ -1,9 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import {
+	Briefcase,
 	Calendar,
+	CalendarCheck,
 	ChevronRight,
+	Clock,
+	MapPin,
 	ShoppingBag,
 	Speech,
 	Ticket,
@@ -11,7 +15,7 @@ import {
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { MdSpaceDashboard } from "react-icons/md";
-import { StatsCard } from "@/components/admin-ui/analytic";
+import { CompactStatsCard, StatsCard } from "@/components/admin-ui/analytic";
 import { ErrorState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +24,7 @@ import { IconTitle } from "@/components/ui/icon-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useFormatDate } from "@/hooks/use-format-date";
+import { getBusinessMatchingEvents } from "@/lib/api/business-matching";
 import { getVendorDashboard } from "@/lib/api/vendor-dashboard";
 import type { VendorEventData } from "@/lib/api/vendor-dashboard/response";
 import { getEventStatusClass } from "@/lib/status-variants";
@@ -41,6 +46,19 @@ export function VendorDashboard() {
 		enabled: isInitialized,
 	});
 
+	const { summary, events } = dashboardData || { summary: null, events: [] };
+
+	// A vendor may also be a linked business matching host for one of these
+	// same events — check each event for sessions they host. Empty for the
+	// vast majority of vendors, in which case nothing renders below.
+	const sessionQueries = useQueries({
+		queries: events.map((event) => ({
+			queryKey: ["business-matching-events", String(event.id)],
+			queryFn: () => getBusinessMatchingEvents(String(event.id)),
+			enabled: isInitialized && !!dashboardData,
+		})),
+	});
+
 	if (!isInitialized || isLoading) {
 		return <VendorDashboardSkeleton />;
 	}
@@ -55,7 +73,9 @@ export function VendorDashboard() {
 		);
 	}
 
-	const { summary, events } = dashboardData || { summary: null, events: [] };
+	const hostedSessions = events.flatMap((event, i) =>
+		(sessionQueries[i]?.data || []).map((session) => ({ event, session })),
+	);
 
 	return (
 		<div className="space-y-0">
@@ -97,6 +117,73 @@ export function VendorDashboard() {
 						subtitle="Across all events"
 						Icon={ShoppingBag}
 					/>
+				</div>
+			)}
+
+			{/* Business Matching — only shown if you also host sessions somewhere */}
+			{hostedSessions.length > 0 && (
+				<div className="mt-4 border-t border-dashed pt-4 sm:mt-6 sm:pt-6">
+					<div className="mb-3 px-3 sm:mb-4 sm:px-4">
+						<IconTitle
+							icon={Briefcase}
+							title="Business Matching"
+							description="Matchmaking sessions you host, using this same account"
+						/>
+					</div>
+					<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
+						{hostedSessions.map(({ event, session }) => (
+							<Card
+								key={session.id}
+								className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md"
+							>
+								<CardHeader className="space-y-2 px-3 pt-3 sm:px-4 sm:pt-4">
+									<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+										<div className="min-w-0">
+											<CardTitle className="line-clamp-2 text-balance text-base tracking-tight">
+												{session.title}
+											</CardTitle>
+											<span className="text-muted-foreground text-xs">
+												{event.title}
+											</span>
+											<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
+												{session.location && (
+													<span className="flex items-center gap-1">
+														<MapPin className="h-3 w-3 shrink-0" />
+														{session.location}
+													</span>
+												)}
+												<span className="flex items-center gap-1">
+													<Clock className="h-3 w-3 shrink-0" />
+													{session.duration} min sessions
+												</span>
+											</div>
+										</div>
+										<Button
+											variant="default"
+											size="sm"
+											onClick={() =>
+												router.push(
+													`/event/${event.id}/business-matching` as Route,
+												)
+											}
+											className="w-full shrink-0 gap-1 rounded-none py-6 transition-shadow group-hover:shadow-md sm:w-auto md:py-0"
+										>
+											View
+											<ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+										</Button>
+									</div>
+								</CardHeader>
+								<CardContent className="px-3 pb-3">
+									<CompactStatsCard
+										icon={CalendarCheck}
+										label="Bookings"
+										count={session.bookings_count ?? 0}
+										variant="emerald"
+									/>
+								</CardContent>
+							</Card>
+						))}
+					</div>
 				</div>
 			)}
 

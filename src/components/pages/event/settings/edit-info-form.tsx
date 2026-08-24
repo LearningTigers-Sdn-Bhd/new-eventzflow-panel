@@ -64,6 +64,7 @@ const formSchema = z.object({
 		),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
+	businessMatchingLinkedExhibitorEnabled: z.boolean(),
 	useVoucher: z.boolean(),
 	useSponsorship: z.boolean(),
 	// photoBoothEnabled: z.boolean(),
@@ -160,6 +161,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			exhibitorReservationTtlHours: "",
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			businessMatchingLinkedExhibitorEnabled: false,
 			useVoucher: true,
 			useSponsorship: false,
 			// photoBoothEnabled: false,
@@ -205,6 +207,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							: Number(value.exhibitorReservationTtlHours),
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
+					business_matching_linked_exhibitor_enabled:
+						value.businessMatchingLinkedExhibitorEnabled,
 					use_voucher: value.useVoucher,
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
@@ -265,6 +269,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue(
 					"useBusinessMatching",
 					event.use_business_matching ?? false,
+				);
+				form.setFieldValue(
+					"businessMatchingLinkedExhibitorEnabled",
+					event.business_matching_linked_exhibitor_enabled ?? false,
 				);
 				form.setFieldValue("useVoucher", event.use_voucher ?? true);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
@@ -875,6 +883,30 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											</div>
 										)}
 									</form.Field>
+								)}
+								{canManageAdvancedEventOptions && (
+									<form.Subscribe
+										selector={(state) => state.values.useBusinessMatching}
+									>
+										{(useBusinessMatching) =>
+											useBusinessMatching ? (
+												<form.Field name="businessMatchingLinkedExhibitorEnabled">
+													{(field) => (
+														<SwitchCardInput
+															label="Linked Exhibitor Hosts"
+															description="Let staff assign business matching hosts by picking an existing exhibitor's account for this event, instead of creating a new one."
+															htmlFor={field.name}
+															variant="no-rounded"
+															border={true}
+															checked={field.state.value}
+															onCheckedChange={field.handleChange}
+															disabled={updateEventMutation.isPending}
+														/>
+													)}
+												</form.Field>
+											) : null
+										}
+									</form.Subscribe>
 								)}
 								<form.Field name="useSponsorship">
 									{(field) => (

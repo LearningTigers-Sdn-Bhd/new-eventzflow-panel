@@ -26,6 +26,7 @@ import {
 	getPortalMatches,
 	getPortalTags,
 	getSessionAvailabilities,
+	linkExhibitorHost,
 	removeHost,
 	requestPortalBooking,
 	respondPortalBooking,
@@ -166,6 +167,29 @@ export const useCreateAndAssignHost = (eventId: string) => {
 				queryKey: ["business-matching-events", eventId],
 			});
 			// Also refetch the hosts list
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-hosts", eventId],
+			});
+		},
+	});
+};
+
+export const useLinkExhibitorHost = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			bmEventId,
+			eventVendorId,
+			tags,
+		}: {
+			bmEventId: string;
+			eventVendorId: number;
+			tags?: { offering_tags?: string[]; interest_tags?: string[] };
+		}) => linkExhibitorHost(eventId, bmEventId, eventVendorId, tags),
+		onSuccess: () => {
+			queryClient.refetchQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
 			queryClient.refetchQueries({
 				queryKey: ["business-matching-hosts", eventId],
 			});
