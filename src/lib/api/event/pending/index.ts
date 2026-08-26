@@ -9,6 +9,7 @@ export {
 	getPendingTickets,
 	rejectTicketApplication,
 	resendTicketRsvp,
+	revertTicketApplication,
 	updatePendingTicket,
 } from "./endpoints";
 export {
@@ -24,8 +25,10 @@ export {
 	getPendingTicketsSchema,
 	type RejectTicketApplicationRequest,
 	type ResendTicketRsvpRequest,
+	type RevertTicketApplicationRequest,
 	rejectTicketApplicationSchema,
 	resendTicketRsvpSchema,
+	revertTicketApplicationSchema,
 	type UpdatePendingTicketRequest,
 	updatePendingTicketSchema,
 } from "./request";

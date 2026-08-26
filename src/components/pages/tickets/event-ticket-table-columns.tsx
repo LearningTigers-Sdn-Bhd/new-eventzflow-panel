@@ -42,6 +42,10 @@ export type BaseTicket = {
 		registrationFormName: string | null;
 		registrationFormSlug: string | null;
 	} | null;
+	ticketApplication?: {
+		reviewStatus: "pending_review" | "approved" | "rejected";
+		rsvpStatus: "not_sent" | "sent" | "confirmed" | "declined" | "expired";
+	};
 };
 
 // Status filter options

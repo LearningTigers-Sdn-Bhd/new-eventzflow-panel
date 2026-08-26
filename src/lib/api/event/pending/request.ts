@@ -57,6 +57,12 @@ export const rejectTicketApplicationSchema = z.object({
 	reason: z.string().optional(),
 });
 
+export const revertTicketApplicationSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	ticketId: z.string().min(1, "Ticket ID is required"),
+	confirmManualRefund: z.boolean().optional(),
+});
+
 export const resendTicketRsvpSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	ticketId: z.string().min(1, "Ticket ID is required"),
@@ -77,6 +83,9 @@ export type RejectTicketApplicationRequest = z.infer<
 	typeof rejectTicketApplicationSchema
 >;
 export type ResendTicketRsvpRequest = z.infer<typeof resendTicketRsvpSchema>;
+export type RevertTicketApplicationRequest = z.infer<
+	typeof revertTicketApplicationSchema
+>;
 
 export const approveTicketRsvpSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),

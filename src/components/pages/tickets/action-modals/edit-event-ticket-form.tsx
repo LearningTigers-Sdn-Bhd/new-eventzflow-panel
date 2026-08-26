@@ -8,12 +8,14 @@ import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { updateTicket } from "@/lib/api/ticket";
+import { PAYMENT_STATUS } from "../../pending-ticket/constants";
 import type { BaseTicket } from "../event-ticket-table-columns";
 import { TicketTypeFieldSection } from "../page-action/ticket-type-field-section";
 
@@ -32,6 +34,8 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 	const emailId = useId();
 	const phoneId = useId();
 	const roleId = useId();
+	const paymentStatusId = useId();
+	const isCheckedIn = ticket.status === "scanned";
 
 	// Custom fields state (kept separate since they're dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -92,6 +96,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			attendee_phone: ticket.phone || "",
 			ticket_type_id: ticket.ticketTypeId || null,
 			role: ticket.role || "",
+			// This form only ever opens for tickets already in Manage Tickets,
+			// which only lists paid tickets — so "Paid" is always the true
+			// starting value here.
+			payment_status: PAYMENT_STATUS.PAID as number,
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -113,6 +121,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				attendee_phone: value.attendee_phone || null,
 				ticket_type_id: value.ticket_type_id,
 				role: value.role || undefined,
+				payment_status: value.payment_status,
 				custom_fields_data:
 					customFields.length > 0 ? customFieldsData : undefined,
 			});
@@ -239,6 +248,40 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 										onBlur={field.handleBlur}
 										placeholder="e.g. VIP, Speaker, Staff"
 										disabled={updateTicketMutation.isPending}
+									/>
+								)}
+							</form.Field>
+
+							<form.Field name="payment_status">
+								{(field) => (
+									<SelectLabel
+										label="Payment Status"
+										htmlFor={paymentStatusId}
+										value={field.state.value.toString()}
+										onChange={(value) =>
+											field.handleChange(Number.parseInt(value, 10))
+										}
+										disabled={updateTicketMutation.isPending || isCheckedIn}
+										description={
+											isCheckedIn
+												? "Ticket already checked in — payment status is locked."
+												: "Reverting to Pending clears this ticket's paid status."
+										}
+										options={[
+											{
+												value: PAYMENT_STATUS.PENDING.toString(),
+												label: "Pending",
+											},
+											{ value: PAYMENT_STATUS.PAID.toString(), label: "Paid" },
+											{
+												value: PAYMENT_STATUS.FAILED.toString(),
+												label: "Failed",
+											},
+											{
+												value: PAYMENT_STATUS.REFUNDED_PAYMENT.toString(),
+												label: "Refunded Payment",
+											},
+										]}
 									/>
 								)}
 							</form.Field>

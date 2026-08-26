@@ -13,8 +13,10 @@ import {
 	getPendingTicketsSchema,
 	type RejectTicketApplicationRequest,
 	type ResendTicketRsvpRequest,
+	type RevertTicketApplicationRequest,
 	rejectTicketApplicationSchema,
 	resendTicketRsvpSchema,
+	revertTicketApplicationSchema,
 	type UpdatePendingTicketRequest,
 	updatePendingTicketSchema,
 } from "./request";
@@ -260,6 +262,17 @@ export async function approveTicketRsvp(
 	const validated = approveTicketRsvpSchema.parse(data);
 	const response = await restClient.patch<BackendPendingTicket>(
 		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/approve_rsvp`,
+	);
+	return transformPendingTicket(response);
+}
+
+export async function revertTicketApplication(
+	data: RevertTicketApplicationRequest,
+): Promise<PendingTicket> {
+	const validated = revertTicketApplicationSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/revert`,
+		{ confirm_manual_refund: validated.confirmManualRefund ?? false },
 	);
 	return transformPendingTicket(response);
 }

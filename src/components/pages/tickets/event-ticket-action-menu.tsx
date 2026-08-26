@@ -10,6 +10,7 @@ import {
 	RotateCcw,
 	Send,
 	Trash2,
+	Undo2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
+import { revertTicketApplication } from "@/lib/api/event/pending";
 import {
 	archiveTicket,
 	forceDeleteTicket,
@@ -170,6 +172,57 @@ export function useTicketActions({
 		},
 	});
 
+	const revertMutation = useMutation({
+		mutationFn: (confirmManualRefund?: boolean) =>
+			revertTicketApplication({
+				eventId,
+				ticketId: ticket.publicId,
+				confirmManualRefund,
+			}),
+		onSuccess: () => {
+			toast.success("Ticket reverted to pending");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			if (error.message?.toLowerCase().includes("gateway")) {
+				openConfirm({
+					title: "Confirm Manual Refund",
+					message: `${error.message} Only continue if you have already refunded this payment outside the app.`,
+					confirmLabel: "I've Refunded, Revert Anyway",
+					cancelLabel: "Cancel",
+					type: "destructive",
+					icon: "alert",
+					size: "sm",
+					onConfirm: () => revertMutation.mutate(true),
+					onCancel: closeDialog,
+				});
+				return;
+			}
+			toast.error(error.message || "Failed to revert ticket");
+		},
+	});
+
+	const handleRevertClick = () => {
+		openConfirm({
+			title: "Revert to Pending",
+			message:
+				"This resets the ticket back to Pending Review, clearing its payment and RSVP status. Continue?",
+			confirmLabel: "Revert",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => revertMutation.mutate(undefined),
+			onCancel: closeDialog,
+		});
+	};
+
 	const handleArchiveClick = () => {
 		openConfirm({
 			title: "Archive Ticket",
@@ -247,6 +300,8 @@ export function useTicketActions({
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleRevertClick,
+		revertMutation,
 	};
 }
 
@@ -266,6 +321,8 @@ export function TicketActionsMenu({
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleRevertClick,
+		revertMutation,
 	} = useTicketActions({ ticket });
 
 	// Check if unscan button should be shown
@@ -282,8 +339,17 @@ export function TicketActionsMenu({
 		user?.role === "org_owner" || user?.role === "organizer";
 	const showRestore =
 		isArchived && ["org_owner", "organizer"].includes(user?.role || "");
+	const showRevert =
+		!isArchived &&
+		ticket.status !== "scanned" &&
+		ticket.ticketApplication?.reviewStatus === "approved" &&
+		["org_owner", "organizer"].includes(user?.role || "");
 	const showMoreMenu =
-		showArchive || showDelete || showRestore || showResendConfirmationEmail;
+		showArchive ||
+		showDelete ||
+		showRestore ||
+		showResendConfirmationEmail ||
+		showRevert;
 
 	return (
 		<ButtonGroup>
@@ -369,6 +435,16 @@ export function TicketActionsMenu({
 							>
 								<Send className="mr-2 h-4 w-4" />
 								Resend Ticket Email
+							</DropdownMenuItem>
+						)}
+						{showRevert && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleRevertClick}
+								disabled={revertMutation.isPending}
+							>
+								<Undo2 className="mr-2 h-4 w-4 text-amber-600" />
+								Revert to Pending
 							</DropdownMenuItem>
 						)}
 						{showDelete && (

@@ -1,4 +1,9 @@
 // Pure TypeScript types for API responses
+import type {
+	BackendTicketApplication,
+	ReviewStatus,
+	RsvpStatus,
+} from "@/lib/api/event/pending/response";
 
 // Frontend types (transformed from backend)
 export type Ticket = {
@@ -42,6 +47,10 @@ export type Ticket = {
 		registrationFormName: string | null;
 		registrationFormSlug: string | null;
 	} | null;
+	ticketApplication?: {
+		reviewStatus: ReviewStatus;
+		rsvpStatus: RsvpStatus;
+	};
 };
 
 export type ScannedTicket = {
@@ -148,6 +157,7 @@ export type BackendTicket = {
 		registration_form_name: string | null;
 		registration_form_slug: string | null;
 	} | null;
+	ticket_application?: BackendTicketApplication | null;
 };
 
 // Backend response types (transformed from other endpoints like scanned tickets)

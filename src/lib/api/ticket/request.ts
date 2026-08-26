@@ -42,6 +42,7 @@ export const updateTicketSchema = z.object({
 	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
 	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
 	role: z.string().optional(),
+	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
 });
 

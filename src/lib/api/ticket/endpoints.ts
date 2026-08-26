@@ -211,6 +211,7 @@ function transformBackendTicket(
 	let passBundle: Ticket["passBundle"] = null;
 	let documents: Ticket["documents"];
 	let vehicleRegistration: Ticket["vehicleRegistration"] = null;
+	let ticketApplication: Ticket["ticketApplication"];
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -243,6 +244,12 @@ function transformBackendTicket(
 			customLabels.push(
 				...formatTicketCustomFieldEntries(bt.custom_fields_data),
 			);
+		}
+		if (bt.ticket_application) {
+			ticketApplication = {
+				reviewStatus: bt.ticket_application.review_status,
+				rsvpStatus: bt.ticket_application.rsvp_status,
+			};
 		}
 	} else {
 		// BackendTicketTransformed format
@@ -289,6 +296,7 @@ function transformBackendTicket(
 				: undefined,
 		documents,
 		vehicleRegistration,
+		ticketApplication,
 	};
 }
 
@@ -383,6 +391,7 @@ export async function updateTicket(data: {
 	attendee_phone?: string | null;
 	ticket_type_id: number;
 	role?: string;
+	payment_status?: number;
 	custom_fields_data?: Record<string, string>;
 }): Promise<UpdateTicketResponse> {
 	const validated = updateTicketSchema.parse(data);
