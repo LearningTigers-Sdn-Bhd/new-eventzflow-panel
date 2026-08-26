@@ -62,18 +62,17 @@ export function useEventPermissions(
 	const isExhibitionContractor = user?.role === "exhibition_contractor";
 	const isExhibitor = user?.role === "exhibitor";
 
-	// Determine which queries should run based on user role
+	// Determine which queries should run based on user role.
+	// Vendors are included here: a vendor can additionally be linked as a
+	// business matching host for this event (see hosts#link_exhibitor),
+	// which is recorded as an EventAssignment, not a change to their global
+	// role, so we still need their staff assignment to detect it.
 	const shouldFetchStaff =
-		!!user &&
-		!!eventId &&
-		user.role !== "vendor" &&
-		!isExhibitor &&
-		!isExhibitionContractor &&
-		!!event;
+		!!user && !!eventId && !isExhibitor && !isExhibitionContractor && !!event;
 	const shouldFetchVendors =
 		!!user && !!eventId && !isExhibitionContractor && !!event;
 
-	// Fetch event staff assignments (only for non-vendor and non-exhibition_contractor users)
+	// Fetch event staff assignments (not for exhibitor and exhibition_contractor users)
 	const { data: eventStaff, isLoading: isLoadingStaff } = useQuery({
 		queryKey: ["event", eventIdStr, "staff"],
 		queryFn: () => getEventStaff({ eventId: eventIdStr }),
@@ -136,15 +135,28 @@ export function useEventPermissions(
 		const isMember = user.role === "member";
 		const isVendor = user.role === "vendor";
 
-		// For vendors and exhibition contractors, we can determine permissions immediately from global role
-		// No need to wait for async queries
+		// For vendors and exhibition contractors, most permissions are known
+		// immediately from the global role. The exception is a vendor who has
+		// also been linked as a business matching host for this event — that
+		// only shows up in their event staff assignment, so we still wait on
+		// that query for vendors (not for exhibition contractors, who can't
+		// be linked hosts).
 		if (isVendor || isExhibitionContractor) {
 			// Determine if event uses tickets
 			const useTicket = event?.use_ticket ?? true;
 
+			const userStaffAssignment = eventStaff?.find(
+				(staff) => String(staff.id) === String(user.id),
+			);
+			const isBusinessHost =
+				isVendor && userStaffAssignment?.eventRole === "business_host";
+			const isBusinessMatchingAdmin =
+				isVendor &&
+				userStaffAssignment?.eventRole === "business_matching_admin";
+
 			return {
-				// Loading state - no loading needed for vendors/contractors
-				isLoading: false,
+				// Loading state - only vendors wait on the staff query
+				isLoading: isVendor && shouldFetchStaff && isLoadingStaff,
 
 				// Global permissions
 				isOrgOwner: false,
@@ -158,8 +170,8 @@ export function useEventPermissions(
 				isEventTeamMember: false,
 				isEventStaff: false,
 				isEventVendor: isVendor, // Vendor role means they're an event vendor
-				isBusinessHost: false,
-				isBusinessMatchingAdmin: false,
+				isBusinessHost,
+				isBusinessMatchingAdmin,
 
 				// Specific permissions
 				canManageEvent: false,
