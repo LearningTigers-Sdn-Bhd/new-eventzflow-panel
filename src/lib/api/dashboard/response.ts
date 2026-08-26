@@ -33,6 +33,7 @@ export type EventOverview = {
 	totalVendors: number;
 	totalExhibitors: number;
 	paidExhibitors: number;
+	depositExhibitors: number;
 	unpaidExhibitors: number;
 	// Non-ticket event stats
 	totalVisitors: number;
@@ -106,6 +107,7 @@ export type BackendEventOverview = {
 	total_vendors: number;
 	total_exhibitors: number;
 	paid_exhibitors: number;
+	deposit_exhibitors: number;
 	unpaid_exhibitors: number;
 	// Non-ticket event stats
 	total_visitors: number;

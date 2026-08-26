@@ -68,9 +68,10 @@ export function AreaChart({
 					(data.length === 1
 						? innerWidth / 2
 						: (i / (data.length - 1)) * innerWidth);
+				const value = d.value ?? 0;
 				const y =
-					paddingTop + innerHeight - (d.value / adjustedMax) * innerHeight;
-				return { x, y, value: d.value, date: d.date };
+					paddingTop + innerHeight - (value / adjustedMax) * innerHeight;
+				return { x, y, value, date: d.date };
 			})
 		: [];
 

@@ -122,6 +122,7 @@ export function EventDetailsExhibitorStats({
 					isLoading={bookingsLoading}
 					color="var(--chart-1)"
 					icon={<Building2 className="h-4 w-4" />}
+					variant="bar"
 				/>
 				<TimeSeriesChart
 					title="Booth Revenue"

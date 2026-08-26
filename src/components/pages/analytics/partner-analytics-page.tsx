@@ -19,6 +19,7 @@ import {
 	Building2,
 	Clock3,
 	DollarSign,
+	HandCoins,
 	Info,
 	Tag,
 } from "lucide-react";
@@ -63,10 +64,13 @@ const formatBoothType = (value: string | null) =>
 	value ? value.replaceAll("_", " ") : "—";
 
 const getPaymentStatus = (row: PartnerAnalyticsBreakdown) => {
-	if (row.paidQuantity > 0 && row.unpaidQuantity > 0) return "mixed";
-	if (row.paidQuantity > 0) return "paid";
-	if (row.unpaidQuantity > 0) return "unpaid";
-	return "none";
+	const statusesPresent = [
+		row.paidQuantity > 0 && "paid",
+		row.depositQuantity > 0 && "deposit",
+		row.unpaidQuantity > 0 && "unpaid",
+	].filter(Boolean);
+	if (statusesPresent.length > 1) return "mixed";
+	return statusesPresent[0] || "none";
 };
 
 const partnerBreakdownColumns: ColumnDef<PartnerAnalyticsBreakdown>[] = [
@@ -134,6 +138,21 @@ const partnerBreakdownColumns: ColumnDef<PartnerAnalyticsBreakdown>[] = [
 		),
 		cell: ({ row }) => (
 			<div className="w-full text-left">{row.original.paidQuantity}</div>
+		),
+	},
+	{
+		accessorKey: "depositQuantity",
+		id: "deposit_quantity",
+		size: 90,
+		header: ({ column }) => (
+			<SortableHeader
+				column={column}
+				label="Deposit"
+				className="w-full justify-start"
+			/>
+		),
+		cell: ({ row }) => (
+			<div className="w-full text-left">{row.original.depositQuantity}</div>
 		),
 	},
 	{
@@ -206,6 +225,7 @@ const partnerBreakdownColumns: ColumnDef<PartnerAnalyticsBreakdown>[] = [
 		enableHiding: true,
 		filterFn: (row, _id, value) => {
 			if (value === "paid") return row.original.paidQuantity > 0;
+			if (value === "deposit") return row.original.depositQuantity > 0;
 			if (value === "unpaid") return row.original.unpaidQuantity > 0;
 			return true;
 		},
@@ -269,6 +289,7 @@ function PartnerBreakdownDataControl({
 		data: [
 			{ label: "All Statuses", value: "all" },
 			{ label: "Paid", value: "paid" },
+			{ label: "Deposit", value: "deposit" },
 			{ label: "Unpaid", value: "unpaid" },
 		],
 	};
@@ -487,7 +508,7 @@ function ExhibitorAnalytics({
 
 	return (
 		<>
-			<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+			<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
 				<StatsCard
 					label="Total Exhibitors"
 					value={data.totalPartners}
@@ -497,6 +518,11 @@ function ExhibitorAnalytics({
 					label="Paid Exhibitors"
 					value={data.paidPartners}
 					Icon={BadgeCheck}
+				/>
+				<StatsCard
+					label="Deposit Exhibitors"
+					value={data.depositPartners}
+					Icon={HandCoins}
 				/>
 				<StatsCard
 					label="Unpaid Exhibitors"
@@ -540,6 +566,7 @@ function ExhibitorAnalytics({
 						isLoading={bookingsLoading}
 						color="var(--chart-1)"
 						icon={<Building2 className="h-4 w-4" />}
+						variant="bar"
 					/>
 					<TimeSeriesChart
 						title="Booth Revenue"

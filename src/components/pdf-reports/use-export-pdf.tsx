@@ -312,6 +312,7 @@ export function prepareExhibitorReportData(
 	analytics: {
 		totalPartners: number;
 		paidPartners: number;
+		depositPartners: number;
 		unpaidPartners: number;
 		collectedRevenue: number;
 		pendingRevenue: number;
@@ -321,6 +322,7 @@ export function prepareExhibitorReportData(
 			boothType: string | null;
 			bookedQuantity: number;
 			paidQuantity: number;
+			depositQuantity: number;
 			unpaidQuantity: number;
 			collectedRevenue: number;
 			pendingRevenue: number;
@@ -347,6 +349,7 @@ export function prepareExhibitorReportData(
 		stats: {
 			totalPartners: analytics.totalPartners,
 			paidPartners: analytics.paidPartners,
+			depositPartners: analytics.depositPartners,
 			unpaidPartners: analytics.unpaidPartners,
 			collectedRevenue: analytics.collectedRevenue,
 			pendingRevenue: analytics.pendingRevenue,

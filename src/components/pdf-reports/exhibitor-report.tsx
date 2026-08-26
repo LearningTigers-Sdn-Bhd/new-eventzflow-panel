@@ -34,6 +34,7 @@ export function ExhibitorAnalyticsReport({
 	const insights = [
 		`Total Exhibitors: ${stats.totalPartners.toLocaleString()} booths booked for the event.`,
 		`Paid: ${stats.paidPartners.toLocaleString()} exhibitors (${paidRate}%) are paid, waived, or sponsored.`,
+		`Deposit: ${stats.depositPartners.toLocaleString()} exhibitors have paid a deposit, balance still pending.`,
 		`Collected Revenue: ${formatReportCurrency(stats.collectedRevenue)} in booth sales, separate from visitor and participant sales.`,
 	];
 
@@ -42,6 +43,7 @@ export function ExhibitorAnalyticsReport({
 		row.zone ?? "—",
 		row.bookedQuantity,
 		row.paidQuantity,
+		row.depositQuantity,
 		row.unpaidQuantity,
 		formatReportCurrency(row.collectedRevenue),
 		formatReportCurrency(row.pendingRevenue),
@@ -61,13 +63,16 @@ export function ExhibitorAnalyticsReport({
 				</SummaryBox>
 
 				<Section title="Exhibitor Sales Overview">
-					<StatsGrid>
+					<StatsGrid style={{ marginBottom: 0, borderBottomWidth: 0 }}>
 						<StatsCard label="Total Exhibitors" value={stats.totalPartners} />
 						<StatsCard
 							label="Paid"
 							value={stats.paidPartners}
 							subtext={`${paidRate}% paid`}
 						/>
+						<StatsCard label="Deposit" value={stats.depositPartners} isLast />
+					</StatsGrid>
+					<StatsGrid>
 						<StatsCard label="Unpaid" value={stats.unpaidPartners} />
 						<StatsCard
 							label="Collected Revenue"
@@ -116,12 +121,13 @@ export function ExhibitorAnalyticsReport({
 							"Zone",
 							"Booked",
 							"Paid",
+							"Deposit",
 							"Unpaid",
 							"Collected",
 							"Pending",
 						]}
 						rows={rows}
-						columnWidths={["24%", "16%", "10%", "10%", "10%", "15%", "15%"]}
+						columnWidths={["20%", "14%", "9%", "9%", "9%", "9%", "15%", "15%"]}
 					/>
 				</Section>
 

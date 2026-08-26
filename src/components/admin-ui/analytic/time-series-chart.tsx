@@ -1,7 +1,15 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	XAxis,
+	YAxis,
+} from "recharts";
 import {
 	Card,
 	CardContent,
@@ -25,6 +33,12 @@ interface TimeSeriesChartProps {
 	color?: string;
 	icon?: React.ReactNode;
 	emptyMessage?: string;
+	/**
+	 * "area" (default) suits continuous/cumulative values (revenue). "bar" suits discrete
+	 * per-day counts (bookings, scans) - a smoothed area over sparse day counts makes zero-days
+	 * invisible and non-zero days look like disconnected floating points.
+	 */
+	variant?: "area" | "bar";
 }
 
 export function TimeSeriesChart({
@@ -35,6 +49,7 @@ export function TimeSeriesChart({
 	color = "var(--chart-1)",
 	icon,
 	emptyMessage,
+	variant = "area",
 }: TimeSeriesChartProps) {
 	const chartConfig = {
 		value: {
@@ -144,67 +159,109 @@ export function TimeSeriesChart({
 						config={chartConfig}
 						className="h-[200px] w-full pt-2"
 					>
-						<AreaChart
-							accessibilityLayer
-							data={data}
-							margin={{
-								left: -10,
-								right: 30,
-								top: 20,
-								bottom: 5,
-							}}
-						>
-							<defs>
-								<linearGradient
-									id={`fill-${title.replace(/\s+/g, "-").toLowerCase()}`}
-									x1="0"
-									y1="0"
-									x2="0"
-									y2="1"
-								>
-									<stop offset="5%" stopColor={color} stopOpacity={0.8} />
-									<stop offset="95%" stopColor={color} stopOpacity={0.1} />
-								</linearGradient>
-							</defs>
-							<CartesianGrid vertical={false} />
-							<XAxis
-								dataKey="date"
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								tickFormatter={formatDate}
-								interval={isHourlyData ? 0 : "preserveStartEnd"}
-								fontSize={isHourlyData ? 10 : 12}
-							/>
-							<YAxis
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								domain={[0, "auto"]}
-								tickFormatter={(value) => {
-									if (value >= 1000) {
-										return `${(value / 1000).toFixed(1)}k`;
+						{variant === "bar" ? (
+							<BarChart
+								accessibilityLayer
+								data={data}
+								margin={{ left: -10, right: 30, top: 20, bottom: 5 }}
+							>
+								<CartesianGrid vertical={false} />
+								<XAxis
+									dataKey="date"
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+									tickFormatter={formatDate}
+									interval={isHourlyData ? 0 : "preserveStartEnd"}
+									fontSize={isHourlyData ? 10 : 12}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+									domain={[0, "auto"]}
+									allowDecimals={false}
+									tickFormatter={(value) => {
+										if (value >= 1000) {
+											return `${(value / 1000).toFixed(1)}k`;
+										}
+										return value.toString();
+									}}
+								/>
+								<ChartTooltip
+									cursor={{ fill: color, opacity: 0.1 }}
+									content={
+										<ChartTooltipContent
+											labelFormatter={formatTooltipLabel}
+											indicator="dot"
+										/>
 									}
-									return value.toString();
+								/>
+								<Bar dataKey="value" fill={color} radius={[2, 2, 0, 0]} />
+							</BarChart>
+						) : (
+							<AreaChart
+								accessibilityLayer
+								data={data}
+								margin={{
+									left: -10,
+									right: 30,
+									top: 20,
+									bottom: 5,
 								}}
-							/>
-							<ChartTooltip
-								cursor={false}
-								content={
-									<ChartTooltipContent
-										labelFormatter={formatTooltipLabel}
-										indicator="dot"
-									/>
-								}
-							/>
-							<Area
-								dataKey="value"
-								type="monotone"
-								fill={`url(#fill-${title.replace(/\s+/g, "-").toLowerCase()})`}
-								stroke={color}
-								baseValue={0}
-							/>
-						</AreaChart>
+							>
+								<defs>
+									<linearGradient
+										id={`fill-${title.replace(/\s+/g, "-").toLowerCase()}`}
+										x1="0"
+										y1="0"
+										x2="0"
+										y2="1"
+									>
+										<stop offset="5%" stopColor={color} stopOpacity={0.8} />
+										<stop offset="95%" stopColor={color} stopOpacity={0.1} />
+									</linearGradient>
+								</defs>
+								<CartesianGrid vertical={false} />
+								<XAxis
+									dataKey="date"
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+									tickFormatter={formatDate}
+									interval={isHourlyData ? 0 : "preserveStartEnd"}
+									fontSize={isHourlyData ? 10 : 12}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+									domain={[0, "auto"]}
+									tickFormatter={(value) => {
+										if (value >= 1000) {
+											return `${(value / 1000).toFixed(1)}k`;
+										}
+										return value.toString();
+									}}
+								/>
+								<ChartTooltip
+									cursor={false}
+									content={
+										<ChartTooltipContent
+											labelFormatter={formatTooltipLabel}
+											indicator="dot"
+										/>
+									}
+								/>
+								<Area
+									dataKey="value"
+									type="monotone"
+									fill={`url(#fill-${title.replace(/\s+/g, "-").toLowerCase()})`}
+									stroke={color}
+									baseValue={0}
+								/>
+							</AreaChart>
+						)}
 					</ChartContainer>
 				) : (
 					<div className="flex h-[200px] w-full flex-col items-center justify-center gap-2 text-muted-foreground">

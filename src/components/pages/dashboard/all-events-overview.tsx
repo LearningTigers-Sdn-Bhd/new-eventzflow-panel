@@ -47,7 +47,7 @@ function getPartnerStats(event: EventOverview): {
 	return {
 		label: "Exhibitors",
 		count: event.totalExhibitors,
-		subtitle: `Paid: ${event.paidExhibitors} · Unpaid: ${event.unpaidExhibitors}`,
+		subtitle: `Paid: ${event.paidExhibitors} · Deposit: ${event.depositExhibitors} · Unpaid: ${event.unpaidExhibitors}`,
 	};
 }
 

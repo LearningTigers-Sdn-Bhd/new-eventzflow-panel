@@ -107,6 +107,7 @@ export async function getEventsOverviewServer(
 		totalVendors: event.total_vendors,
 		totalExhibitors: event.total_exhibitors,
 		paidExhibitors: event.paid_exhibitors,
+		depositExhibitors: event.deposit_exhibitors,
 		unpaidExhibitors: event.unpaid_exhibitors,
 		totalVisitors: event.total_visitors,
 		totalLeads: event.total_leads,

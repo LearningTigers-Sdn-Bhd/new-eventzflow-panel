@@ -123,6 +123,7 @@ export type ExhibitorReportData = {
 	stats: {
 		totalPartners: number;
 		paidPartners: number;
+		depositPartners: number;
 		unpaidPartners: number;
 		collectedRevenue: number;
 		pendingRevenue: number;
@@ -133,6 +134,7 @@ export type ExhibitorReportData = {
 		boothType: string | null;
 		bookedQuantity: number;
 		paidQuantity: number;
+		depositQuantity: number;
 		unpaidQuantity: number;
 		collectedRevenue: number;
 		pendingRevenue: number;

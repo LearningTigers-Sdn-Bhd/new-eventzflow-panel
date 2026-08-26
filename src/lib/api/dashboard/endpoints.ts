@@ -79,6 +79,7 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 		totalVendors: event.total_vendors ?? 0,
 		totalExhibitors: event.total_exhibitors ?? 0,
 		paidExhibitors: event.paid_exhibitors ?? 0,
+		depositExhibitors: event.deposit_exhibitors ?? 0,
 		unpaidExhibitors: event.unpaid_exhibitors ?? 0,
 		// Non-ticket event stats
 		totalVisitors: event.total_visitors ?? 0,

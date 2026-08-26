@@ -27,6 +27,7 @@ export type PartnerAnalyticsBreakdown = {
 	packageLabel: string | null;
 	bookedQuantity: number;
 	paidQuantity: number;
+	depositQuantity: number;
 	unpaidQuantity: number;
 	collectedRevenue: number;
 	pendingRevenue: number;
@@ -41,6 +42,7 @@ export type PartnerAnalyticsResponse = {
 	mode: "exhibitor" | "vendor";
 	totalPartners: number;
 	paidPartners: number;
+	depositPartners: number;
 	unpaidPartners: number;
 	collectedRevenue: number;
 	pendingRevenue: number;
