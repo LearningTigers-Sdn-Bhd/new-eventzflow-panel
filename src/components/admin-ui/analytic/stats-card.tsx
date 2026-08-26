@@ -284,10 +284,10 @@ export function StatsCard({
 		>
 			<CardContent className="h-full min-w-0 p-0">
 				<div className="flex h-full min-w-0 flex-col items-center justify-between gap-2 md:flex-row md:gap-0">
-					<div className="flex h-full shrink-0 items-center justify-center px-6 pt-3 md:py-0">
+					<div className="flex shrink-0 items-center justify-center px-6 pt-3 md:h-full md:py-0">
 						<Icon className={cn("size-7 md:size-6")} />
 					</div>
-					<div className="flex h-full w-full min-w-0 flex-col justify-center px-4 pb-4 text-center md:px-0 md:py-4 md:text-left">
+					<div className="flex w-full min-w-0 flex-col justify-center px-4 pb-4 text-center md:h-full md:px-0 md:py-4 md:text-left">
 						<p
 							className={cn(
 								"min-w-0 text-balance break-words align-top font-semibold text-sm leading-tight",
