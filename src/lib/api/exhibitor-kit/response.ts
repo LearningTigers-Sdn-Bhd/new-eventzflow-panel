@@ -97,6 +97,7 @@ export interface ExhibitorTeamMemberPaymentInKit {
 
 export interface ExhibitorKit {
 	id: number;
+	public_id?: string;
 	event_vendor_id: number;
 	booth_number: string;
 	booth_type: BoothType;

@@ -20,22 +20,17 @@ export const exhibitorTeamMemberSchema = z
 			});
 		}
 
+		// Email/phone are optional (fast on-site registration); format is only
+		// checked when a value is given, matching the backend's ExhibitorTeamMember
+		// validation.
 		if (
-			data.email.trim().length === 0 ||
+			data.email.trim().length > 0 &&
 			!z.email().safeParse(data.email).success
 		) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
 				path: ["email"],
 				message: "Valid email is required",
-			});
-		}
-
-		if (data.phone.trim().length === 0) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ["phone"],
-				message: "Phone number is required",
 			});
 		}
 	});

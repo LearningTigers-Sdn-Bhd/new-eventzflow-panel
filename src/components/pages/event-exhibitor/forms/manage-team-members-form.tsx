@@ -98,10 +98,9 @@ export function getInvalidActiveMemberIndexes(members: RawTeamMemberInput[]) {
 
 		if (normalized._destroy) return indexes;
 
-		const isComplete =
-			normalized.full_name.trim().length > 0 &&
-			normalized.email.trim().length > 0 &&
-			normalized.phone.trim().length > 0;
+		// Email/phone are optional (fast on-site registration); name is the only
+		// required field, matching the backend's ExhibitorTeamMember validation.
+		const isComplete = normalized.full_name.trim().length > 0;
 
 		if (!isComplete) indexes.push(index);
 
@@ -265,12 +264,8 @@ export function ManageTeamMembersForm({
 	});
 
 	const handleAddMember = () => {
-		if (
-			!newMemberName.trim() ||
-			!newMemberEmail.trim() ||
-			!newMemberPhone.trim()
-		) {
-			toast.error("Please enter name, email, and phone number");
+		if (!newMemberName.trim()) {
+			toast.error("Please enter a name");
 			return;
 		}
 		setHasLocalChanges(true);
@@ -324,9 +319,7 @@ export function ManageTeamMembersForm({
 
 		if (invalidIndexes.length > 0) {
 			const rows = invalidIndexes.map((index) => index + 1).join(", ");
-			toast.error(
-				`Please complete full name, email, and phone for row(s): ${rows}`,
-			);
+			toast.error(`Please enter a name for row(s): ${rows}`);
 			return;
 		}
 
@@ -608,7 +601,7 @@ export function ManageTeamMembersForm({
 										<div className="space-y-2">
 											<div className="flex items-center justify-between">
 												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-													Additional Team Members (Paid)
+													Additional Team Members — Extra Fee
 												</p>
 												<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
 													{excessCount} × RM {fee.toFixed(2)} = RM{" "}

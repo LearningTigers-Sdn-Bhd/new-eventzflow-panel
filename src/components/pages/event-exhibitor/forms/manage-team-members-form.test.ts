@@ -54,29 +54,33 @@ describe("manage team members helpers", () => {
 		const initialVendor = {
 			id: 10,
 			event_id: 99,
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [],
+				},
+			],
 		};
 
 		const freshVendor = {
 			id: 10,
 			event_id: 99,
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [
-					{
-						id: 1,
-						full_name: "Ali Ahmad",
-						email: "ali@example.com",
-						phone: "+60123456789",
-					},
-				],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [
+						{
+							id: 1,
+							full_name: "Ali Ahmad",
+							email: "ali@example.com",
+							phone: "+60123456789",
+						},
+					],
+				},
+			],
 		};
 
-		expect(resolveCurrentVendor(initialVendor, [freshVendor])).toEqual(
+		expect(resolveCurrentVendor(initialVendor, 5, [freshVendor])).toEqual(
 			freshVendor,
 		);
 	});
@@ -85,29 +89,33 @@ describe("manage team members helpers", () => {
 		const initialVendor = {
 			id: 10,
 			event_id: 99,
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [
-					{
-						id: 1,
-						full_name: "Ali Ahmad",
-						email: "ali@example.com",
-						phone: "+60123456789",
-					},
-				],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [
+						{
+							id: 1,
+							full_name: "Ali Ahmad",
+							email: "ali@example.com",
+							phone: "+60123456789",
+						},
+					],
+				},
+			],
 		};
 
 		const thinVendor = {
 			id: 10,
 			event_id: 99,
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [],
+				},
+			],
 		};
 
-		expect(resolveCurrentVendor(initialVendor, [thinVendor])).toEqual(
+		expect(resolveCurrentVendor(initialVendor, 5, [thinVendor])).toEqual(
 			initialVendor,
 		);
 	});
@@ -117,30 +125,34 @@ describe("manage team members helpers", () => {
 			id: 10,
 			event_id: 99,
 			updated_at: "2026-03-12T10:00:00Z",
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [
-					{
-						id: 1,
-						full_name: "Ali Ahmad",
-						email: "ali@example.com",
-						phone: "+60123456789",
-					},
-				],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [
+						{
+							id: 1,
+							full_name: "Ali Ahmad",
+							email: "ali@example.com",
+							phone: "+60123456789",
+						},
+					],
+				},
+			],
 		};
 
 		const freshVendor = {
 			id: 10,
 			event_id: 99,
 			updated_at: "2026-03-12T10:05:00Z",
-			exhibitor_kit: {
-				id: 5,
-				exhibitor_team_members: [],
-			},
+			exhibitor_kits: [
+				{
+					id: 5,
+					exhibitor_team_members: [],
+				},
+			],
 		};
 
-		expect(resolveCurrentVendor(initialVendor, [freshVendor])).toEqual(
+		expect(resolveCurrentVendor(initialVendor, 5, [freshVendor])).toEqual(
 			freshVendor,
 		);
 	});
@@ -176,15 +188,15 @@ describe("manage team members helpers", () => {
 		expect(sections.paidMembers[0]?.displayIndex).toBe(3);
 	});
 
-	test("returns indexes for incomplete active members", () => {
+	test("returns indexes for active members missing a name (email/phone optional)", () => {
 		expect(
 			getInvalidActiveMemberIndexes([
 				{ full_name: "Valid", email: "valid@example.com", phone: "1" },
-				{ full_name: "Missing Email", email: "", phone: "2" },
-				{ full_name: "Deleted", email: "", phone: "", _destroy: true },
-				{ full_name: "Missing Phone", email: "phone@example.com", phone: "" },
+				{ full_name: "", email: "no-name@example.com", phone: "2" },
+				{ full_name: "", email: "", phone: "", _destroy: true },
+				{ full_name: "No Contact Info", email: "", phone: "" },
 			]),
-		).toEqual([1, 3]);
+		).toEqual([1]);
 	});
 
 	test("does not sync incoming server members over dirty local edits", () => {
