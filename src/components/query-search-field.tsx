@@ -14,12 +14,14 @@ import {
 interface SingleColumnSearchProps<TData, TValue> {
 	column: Column<TData, TValue> | undefined;
 	placeholder?: string;
+	controlled?: ControlledSearch;
 }
 
 // Global search across multiple columns
 interface GlobalSearchProps<TData> {
 	table: Table<TData>;
 	placeholder?: string;
+	controlled?: ControlledSearch;
 }
 
 // Selective search across specific columns
@@ -28,6 +30,12 @@ interface SelectiveSearchProps<TData> {
 	columns: string[];
 	placeholder?: string;
 	searchCustomFields?: boolean;
+	controlled?: ControlledSearch;
+}
+
+interface ControlledSearch {
+	value: string;
+	onChange: (value: string) => void;
 }
 
 type QuerySearchFieldProps<TData, TValue> =
@@ -38,13 +46,13 @@ type QuerySearchFieldProps<TData, TValue> =
 function isGlobalSearch<TData, TValue>(
 	props: QuerySearchFieldProps<TData, TValue>,
 ): props is GlobalSearchProps<TData> {
-	return "table" in props && !("columns" in props);
+	return "table" in props && !isSelectiveSearch(props);
 }
 
 function isSelectiveSearch<TData, TValue>(
 	props: QuerySearchFieldProps<TData, TValue>,
 ): props is SelectiveSearchProps<TData> {
-	return "table" in props && "columns" in props;
+	return "table" in props && "columns" in props && Array.isArray(props.columns);
 }
 
 export function QuerySearchField<TData, TValue>(
@@ -63,6 +71,7 @@ export function QuerySearchField<TData, TValue>(
 	// Always call useEffect, but only use it for global/selective search
 	React.useEffect(() => {
 		const currentProps = propsRef.current;
+		if (currentProps.controlled) return;
 
 		if (isGlobalSearch(currentProps)) {
 			currentProps.table.setGlobalFilter(globalFilter);
@@ -91,6 +100,8 @@ export function QuerySearchField<TData, TValue>(
 	// Separate effect for selective search filter function setup
 	React.useEffect(() => {
 		const currentProps = propsRef.current;
+		if (currentProps.controlled) return;
+
 		if (isSelectiveSearch(currentProps) && selectiveFilter) {
 			const { table, columns, searchCustomFields } = currentProps;
 
@@ -164,6 +175,15 @@ export function QuerySearchField<TData, TValue>(
 		}
 	}, [selectiveFilter]);
 
+	const searchValue = props.controlled?.value ?? globalFilter;
+	const setSearchValue = (value: string) => {
+		if (props.controlled) {
+			props.controlled.onChange(value);
+		} else {
+			setGlobalFilter(value);
+		}
+	};
+
 	if (isGlobalSearch(props)) {
 		// Global search implementation - searches ALL columns
 		const placeholder = props.placeholder || "Search...";
@@ -172,16 +192,16 @@ export function QuerySearchField<TData, TValue>(
 			<InputGroup className="rounded-none bg-background py-6 lg:py-0">
 				<InputGroupInput
 					placeholder={placeholder}
-					value={globalFilter}
-					onChange={(event) => setGlobalFilter(event.target.value)}
+					value={searchValue}
+					onChange={(event) => setSearchValue(event.target.value)}
 					className="placeholder:text-sm placeholder:tracking-tight md:placeholder:text-base md:placeholder:tracking-tight"
 				/>
 				<InputGroupAddon>
 					<Search className="mr-2.5 size-4" />
 				</InputGroupAddon>
-				{globalFilter && (
+				{searchValue && (
 					<InputGroupAddon align="inline-end">
-						<InputGroupButton onClick={() => setGlobalFilter("")}>
+						<InputGroupButton onClick={() => setSearchValue("")}>
 							<X className="h-4 w-4" />
 						</InputGroupButton>
 					</InputGroupAddon>
@@ -198,15 +218,15 @@ export function QuerySearchField<TData, TValue>(
 			<InputGroup className="rounded-none bg-background">
 				<InputGroupInput
 					placeholder={placeholder}
-					value={globalFilter}
-					onChange={(event) => setGlobalFilter(event.target.value)}
+					value={searchValue}
+					onChange={(event) => setSearchValue(event.target.value)}
 				/>
 				<InputGroupAddon>
 					<Search className="h-4 w-4" />
 				</InputGroupAddon>
-				{globalFilter && (
+				{searchValue && (
 					<InputGroupAddon align="inline-end">
-						<InputGroupButton onClick={() => setGlobalFilter("")}>
+						<InputGroupButton onClick={() => setSearchValue("")}>
 							<X className="h-4 w-4" />
 						</InputGroupButton>
 					</InputGroupAddon>

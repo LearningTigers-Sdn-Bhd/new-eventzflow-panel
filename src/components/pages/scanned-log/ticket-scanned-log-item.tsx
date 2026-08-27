@@ -10,7 +10,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import type { ScannedLog } from "./ticket-scanned-log-columns";
+import type { ScannedLog } from "@/lib/api/event/scan-log/response";
 
 interface ScannedLogItemProps {
 	scannedLog: ScannedLog;
@@ -22,8 +22,14 @@ export function ScannedLogItem({ scannedLog }: ScannedLogItemProps) {
 	});
 
 	const handleCopyId = () => {
-		copyToClipboard(scannedLog.id);
+		copyToClipboard(String(scannedLog.id));
 	};
+
+	const sourceLabel = {
+		staff_scan: "Staff scan",
+		self_check_in: "Self check-in",
+		kiosk: "Kiosk",
+	}[scannedLog.source];
 
 	return (
 		<Item variant="outline" className="h-full w-full">
@@ -55,19 +61,19 @@ export function ScannedLogItem({ scannedLog }: ScannedLogItemProps) {
 				<div className="flex items-center gap-2">
 					<CircleCheck className="size-4 text-muted-foreground" />
 					<h4 className="font-medium text-muted-foreground text-sm">
-						{scannedLog.status === "scanned" ? "Scanned" : "Not Scanned"}
+						{sourceLabel}
 					</h4>
 				</div>
 				<div className="flex items-center gap-2">
 					<Calendar className="size-4 text-muted-foreground" />
 					<h4 className="font-medium text-muted-foreground text-sm">
-						{new Date(scannedLog.checkedInAt).toLocaleString().split(",")[0]}
+						{new Date(scannedLog.scannedAt).toLocaleString().split(",")[0]}
 					</h4>
 				</div>
 				<div className="flex items-center gap-2">
 					<Clock className="size-4 text-muted-foreground" />
 					<h4 className="font-medium text-muted-foreground text-sm">
-						{new Date(scannedLog.checkedInAt).toLocaleString().split(",")[1]}
+						{new Date(scannedLog.scannedAt).toLocaleString().split(",")[1]}
 					</h4>
 				</div>
 			</ItemContent>

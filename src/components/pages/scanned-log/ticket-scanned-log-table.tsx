@@ -2,10 +2,7 @@
 
 import {
 	type ColumnDef,
-	type ColumnFiltersState,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable,
@@ -20,55 +17,71 @@ import {
 	TabletView,
 } from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
-import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import type { ScannedLog } from "./ticket-scanned-log-columns";
+import type { ScannedLog } from "@/lib/api/event/scan-log/response";
 import { ScannedLogItem } from "./ticket-scanned-log-item";
 import { DataControl } from "./ticket-scanned-log-table-control";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	search: string;
+	onSearchChange: (value: string) => void;
+	source: string;
+	onSourceChange: (value: string) => void;
+	onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	search,
+	onSearchChange,
+	source,
+	onSourceChange,
+	onRowClick,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 
+	// No pagination row model: search, the source filter, and paging are all
+	// server-driven (page.tsx), so `data` here is already exactly one page.
+	// Registering getPaginationRowModel would silently slice that page again
+	// to TanStack's default page size (10) everywhere table.getRowModel() is
+	// read below — desktop, mobile, and tablet all lose rows past the 10th.
+	// Sorting stays local: it only reorders the rows already on this page.
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		state: {
 			sorting,
-			columnFilters,
 			columnVisibility,
 		},
 	});
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				search={search}
+				onSearchChange={onSearchChange}
+				source={source}
+				onSourceChange={onSourceChange}
+			/>
 
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
 					<DesktopView>
 						<BaseTable
 							table={table}
+							clickableRowConfig={
+								onRowClick ? { isEnabled: true, onRowClick } : undefined
+							}
 							emptyStateConfig={{
 								title: "No scanned logs found",
 								desc: "No scan logs available for this event yet",
@@ -119,8 +132,6 @@ export function DataTable<TData, TValue>({
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-
-			<DataPagination table={table} />
 		</div>
 	);
 }

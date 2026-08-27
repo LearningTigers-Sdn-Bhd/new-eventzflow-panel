@@ -97,7 +97,6 @@ export function useTabFiltering(
 				[
 					"tickets",
 					"pending-tickets",
-					"scanned-logs",
 					"ticket-types",
 					"ticket-analytics",
 				].includes(tab.id)

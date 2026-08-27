@@ -23,6 +23,8 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import {
@@ -31,12 +33,35 @@ import {
 	guestPolicyValueFromLimit,
 } from "@/lib/api/event/guest-policy";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
+import type { ScanMode } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
 import {
 	canConfigureAdvancedEventOptions,
 	canConfigureExhibitorKit,
 } from "./access";
+
+const SCAN_MODE_OPTIONS: Array<{
+	value: ScanMode;
+	label: string;
+	description: string;
+}> = [
+	{
+		value: "unlimited",
+		label: "Unlimited",
+		description: "Scan anytime, any number of times. Good for re-entry.",
+	},
+	{
+		value: "per_location",
+		label: "Once per location",
+		description: "Each entrance or zone counts once, and resets each day.",
+	},
+	{
+		value: "per_day",
+		label: "Once per day",
+		description: "One scan per calendar day. Good for multi-day events.",
+	},
+];
 
 const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
@@ -91,6 +116,7 @@ const formSchema = z.object({
 		}),
 	registrationPathTemplate: z.string(),
 	multipleScans: z.boolean(),
+	multipleScanMode: z.enum(["unlimited", "per_location", "per_day"]),
 	allowMultipleTicketsPerEmail: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
@@ -176,6 +202,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			publicRegistrationUrl: "",
 			registrationPathTemplate: "",
 			multipleScans: false,
+			multipleScanMode: "unlimited" as ScanMode,
 			allowMultipleTicketsPerEmail: false,
 			startDate: new Date(),
 			endDate: new Date(),
@@ -223,6 +250,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					public_registration_url: value.publicRegistrationUrl || "",
 					registration_path_template: value.registrationPathTemplate || "",
 					multiple_scans: value.multipleScans,
+					multiple_scan_mode: value.multipleScanMode,
 					allow_multiple_tickets_per_email: value.allowMultipleTicketsPerEmail,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
@@ -297,6 +325,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					event.registration_path_template || "",
 				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
+				form.setFieldValue(
+					"multipleScanMode",
+					(event.multiple_scan_mode as ScanMode) || "unlimited",
+				);
 				form.setFieldValue(
 					"allowMultipleTicketsPerEmail",
 					event.allow_multiple_tickets_per_email ?? false,
@@ -840,16 +872,56 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 								</FieldContent>
 								<form.Field name="multipleScans">
 									{(field) => (
-										<SwitchCardInput
-											label="Multiple Scans"
-											description="Allow tickets or visitors to be scanned multiple times during the event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
+										<div className="flex flex-col gap-0">
+											<SwitchCardInput
+												label="Multiple Scans"
+												description="Allow tickets or visitors to be scanned multiple times during the event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+											{field.state.value && (
+												<form.Field name="multipleScanMode">
+													{(modeField) => (
+														<RadioGroup
+															value={modeField.state.value}
+															onValueChange={(v) =>
+																modeField.handleChange(v as ScanMode)
+															}
+															disabled={updateEventMutation.isPending}
+															className="flex flex-col gap-4 border border-t-0 p-4"
+														>
+															{SCAN_MODE_OPTIONS.map((option) => (
+																<div
+																	key={option.value}
+																	className="flex items-start gap-3"
+																>
+																	<RadioGroupItem
+																		value={option.value}
+																		id={`scan-mode-${option.value}`}
+																		className="mt-1"
+																	/>
+																	<Label
+																		htmlFor={`scan-mode-${option.value}`}
+																		className="flex flex-col items-start gap-1 font-normal"
+																	>
+																		<span className="font-medium">
+																			{option.label}
+																		</span>
+																		<span className="text-muted-foreground text-sm">
+																			{option.description}
+																		</span>
+																	</Label>
+																</div>
+															))}
+														</RadioGroup>
+													)}
+												</form.Field>
+											)}
+										</div>
 									)}
 								</form.Field>
 								<form.Field name="allowMultipleTicketsPerEmail">

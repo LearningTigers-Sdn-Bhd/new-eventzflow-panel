@@ -146,6 +146,7 @@ export function MobileTableControl<TData>({
 				columns={searchConfig.columns}
 				placeholder={searchConfig.placeholder}
 				searchCustomFields={searchConfig.enableCustomSearch}
+				controlled={searchConfig.controlled}
 			/>
 			{controlConfigs.length > 0 && (
 				<Collapsible>
