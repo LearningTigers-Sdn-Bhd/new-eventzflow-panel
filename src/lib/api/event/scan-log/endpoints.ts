@@ -19,7 +19,7 @@ type ApiScanLog = {
 const SOURCE_FALLBACK: Record<ScanSource, string> = {
 	staff_scan: "Staff scan",
 	self_check_in: "Self check-in",
-	kiosk: "Kiosk",
+	kiosk: "Public Check-in Page",
 };
 
 function toScannedLog(row: ApiScanLog): ScannedLog {

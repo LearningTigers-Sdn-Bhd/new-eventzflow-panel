@@ -4,11 +4,25 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import type { ScannedLog } from "@/lib/api/event/scan-log/response";
+import { cn } from "@/lib/utils";
 
 const SOURCE_LABELS: Record<ScannedLog["source"], string> = {
 	staff_scan: "Staff scan",
 	self_check_in: "Self check-in",
-	kiosk: "Kiosk",
+	kiosk: "Public Check-in Page",
+};
+
+// Matches the bg-{color}-100/text-{color}-800 badge convention used for
+// status columns throughout the panel (e.g. ticket status, payment status).
+const SOURCE_BADGE_CLASSES: Record<ScannedLog["source"], string> = {
+	staff_scan: "bg-green-100 text-green-800 hover:bg-green-100",
+	self_check_in: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+	kiosk: "bg-amber-100 text-amber-800 hover:bg-amber-100",
+};
+
+const TYPE_BADGE_CLASSES: Record<ScannedLog["scannableType"], string> = {
+	Ticket: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+	Visitor: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100",
 };
 
 export const columns: ColumnDef<ScannedLog>[] = [
@@ -31,7 +45,14 @@ export const columns: ColumnDef<ScannedLog>[] = [
 		size: 110,
 		header: ({ column }) => <SortableHeader column={column} label="Type" />,
 		cell: ({ row }) => (
-			<Badge variant="outline">{row.original.scannableType}</Badge>
+			<Badge
+				className={cn(
+					TYPE_BADGE_CLASSES[row.original.scannableType],
+					"rounded-none",
+				)}
+			>
+				{row.original.scannableType}
+			</Badge>
 		),
 	},
 	{
@@ -58,7 +79,14 @@ export const columns: ColumnDef<ScannedLog>[] = [
 		size: 140,
 		header: ({ column }) => <SortableHeader column={column} label="Source" />,
 		cell: ({ row }) => (
-			<Badge variant="outline">{SOURCE_LABELS[row.original.source]}</Badge>
+			<Badge
+				className={cn(
+					SOURCE_BADGE_CLASSES[row.original.source],
+					"rounded-none",
+				)}
+			>
+				{SOURCE_LABELS[row.original.source]}
+			</Badge>
 		),
 	},
 	{

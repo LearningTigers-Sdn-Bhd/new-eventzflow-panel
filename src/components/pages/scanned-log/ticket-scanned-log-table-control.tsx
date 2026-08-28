@@ -27,7 +27,7 @@ export function DataControl<TData>({
 			{ label: "All", value: "all" },
 			{ label: "Staff scan", value: "staff_scan" },
 			{ label: "Self check-in", value: "self_check_in" },
-			{ label: "Kiosk", value: "kiosk" },
+			{ label: "Public Check-in Page", value: "kiosk" },
 		],
 		customFilter: {
 			value: source,

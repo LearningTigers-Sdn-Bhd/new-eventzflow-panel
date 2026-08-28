@@ -28,7 +28,7 @@ export function ScannedLogItem({ scannedLog }: ScannedLogItemProps) {
 	const sourceLabel = {
 		staff_scan: "Staff scan",
 		self_check_in: "Self check-in",
-		kiosk: "Kiosk",
+		kiosk: "Public Check-in Page",
 	}[scannedLog.source];
 
 	return (

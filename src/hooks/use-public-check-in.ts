@@ -173,12 +173,12 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 	};
 
 	const handleSelectAttendee = async (attendee: AttendeePreview) => {
-		if (attendee.checked_in) {
-			setSelectedAttendee(attendee);
-			setView("already-checked-in");
-			return;
-		}
-
+		// Don't pre-block on attendee.checked_in — it's a snapshot from search
+		// time, and once multi-scan is enabled for the event, staying true
+		// forever after the first scan is expected (see Multiple Scans in
+		// event settings). The real check-in attempt below is the only source
+		// of truth for whether this scan is actually allowed; its catch
+		// already routes a genuine block to the "already-checked-in" view.
 		setSelectedAttendee(attendee);
 		setView("confirm");
 	};
