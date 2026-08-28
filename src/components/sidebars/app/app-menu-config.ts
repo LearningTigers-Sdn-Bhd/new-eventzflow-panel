@@ -56,7 +56,6 @@ export const navigationData = {
 			roleAllowed: [
 				USER_ROLES.ORG_OWNER,
 				USER_ROLES.ORGANIZER,
-				USER_ROLES.MEMBER,
 				USER_ROLES.VENDOR,
 				USER_ROLES.EXHIBITION_CONTRACTOR,
 			],
@@ -76,7 +75,6 @@ export const navigationData = {
 			roleAllowed: [
 				USER_ROLES.ORG_OWNER,
 				USER_ROLES.ORGANIZER,
-				USER_ROLES.MEMBER,
 				USER_ROLES.VENDOR,
 				USER_ROLES.EXHIBITION_CONTRACTOR,
 			],
@@ -175,11 +173,7 @@ export const navigationData = {
 			name: "Manage Post Content",
 			url: "/manage-resources/posts/" as Route,
 			icon: FileText,
-			roleAllowed: [
-				USER_ROLES.ORG_OWNER,
-				USER_ROLES.ORGANIZER,
-				USER_ROLES.MEMBER,
-			],
+			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
 			allowBottomNavigation: false,
 			requiresPermission: "has_writer_permission",
 			isActive: (pathname: string) => pathname.startsWith("/manage-resources/"),
@@ -219,7 +213,6 @@ export const navigationData = {
 			roleAllowed: [
 				USER_ROLES.ORG_OWNER,
 				USER_ROLES.ORGANIZER,
-				USER_ROLES.MEMBER,
 				USER_ROLES.VENDOR,
 				USER_ROLES.EXHIBITION_CONTRACTOR,
 			],

@@ -14,6 +14,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScanHistory } from "@/hooks/use-scan-history";
 import { ActivityFeed } from "./activity-feed";
@@ -26,6 +27,10 @@ import { exportToCSV } from "./utils";
 
 export default function ScanContent() {
 	const isMobile = useIsMobile();
+	const { user } = useAuth();
+	// Team members only scan tickets — the offline data storage/clear
+	// controls aren't relevant (or safe) for them to touch.
+	const canManageStorage = user?.role !== "member";
 	const [isScanning, setIsScanning] = useState(false);
 	const { scanResults, isLoading, addScanResult } = useScanHistory();
 	// Use ref to track scanned IDs immediately without waiting for React re-render
@@ -135,11 +140,13 @@ export default function ScanContent() {
 					<CollapsibleContent className="border border-foreground/50 bg-background py-4 ps-4 pe-1">
 						<Carousel className="w-full pb-4">
 							<CarouselContent>
-								<CarouselItem className="basis-[80%]">
-									<div className="h-full">
-										<StorageStatus />
-									</div>
-								</CarouselItem>
+								{canManageStorage && (
+									<CarouselItem className="basis-[80%]">
+										<div className="h-full">
+											<StorageStatus />
+										</div>
+									</CarouselItem>
+								)}
 								<CarouselItem className="basis-3/4">
 									{scanResults.length > 0 ? (
 										<div className="h-full">
@@ -162,10 +169,14 @@ export default function ScanContent() {
 					</CollapsibleContent>
 				</Collapsible>
 			) : (
-				<div className="grid grid-cols-2 gap-8 pb-4 md:pb-8">
-					<div className="h-full">
-						<StorageStatus />
-					</div>
+				<div
+					className={`grid gap-8 pb-4 md:pb-8 ${canManageStorage ? "grid-cols-2" : "grid-cols-1"}`}
+				>
+					{canManageStorage && (
+						<div className="h-full">
+							<StorageStatus />
+						</div>
+					)}
 
 					{/* Statistics Bar */}
 					{scanResults.length > 0 ? (
