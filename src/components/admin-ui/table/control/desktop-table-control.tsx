@@ -233,6 +233,7 @@ export function DesktopTableControl<TData>({
 				columns={searchConfig.columns}
 				placeholder={searchConfig.placeholder}
 				searchCustomFields={searchConfig.enableCustomSearch}
+				controlled={searchConfig.controlled}
 			/>
 			{controlConfigs.map((config, index) => {
 				const isLast = index === controlConfigs.length - 1;

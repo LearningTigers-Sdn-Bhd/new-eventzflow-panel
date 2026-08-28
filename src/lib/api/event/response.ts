@@ -19,6 +19,8 @@ export type WishWallSetting = {
 	background_image_url: string | null;
 };
 
+export type ScanMode = "unlimited" | "per_location" | "per_day";
+
 export type Event = {
 	id: number;
 	title: string;
@@ -27,6 +29,7 @@ export type Event = {
 	status: "draft" | "published" | "cancelled" | "completed";
 	visibility: boolean;
 	multiple_scans: boolean;
+	multiple_scan_mode: ScanMode;
 	allow_multiple_tickets_per_email: boolean;
 	use_ticket: boolean;
 	use_wedding: boolean;

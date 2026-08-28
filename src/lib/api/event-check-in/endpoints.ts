@@ -3,9 +3,22 @@
  * All check-in operations through a single controller
  */
 
+import { useUserSessionStore } from "@/stores/new-auth-store";
 import { extractErrorMessage } from "@/utils/error-handler";
-import { publicRestClient } from "@/utils/rest-api";
+import { kyPublicClient, publicRestClient } from "@/utils/rest-api";
 import type { CheckInMethod, CheckInResponse, PublicEventInfo } from "./types";
+
+// This page is walk-up/no-login by design (kyPublicClient never attaches a
+// token) — but if a staff member happens to be logged into the panel in this
+// same browser (e.g. a registration counter running on a staff laptop), the
+// backend can attribute and correctly gate the scan to them instead of
+// leaving it anonymous. Best-effort only: an absent or expired token just
+// means the page behaves exactly as it always has.
+function optionalAuthHeader(): Record<string, string> {
+	const { sessionCredentials, isTokenExpired } = useUserSessionStore.getState();
+	if (!sessionCredentials || isTokenExpired()) return {};
+	return { Authorization: `Bearer ${sessionCredentials.accessToken}` };
+}
 
 /**
  * Get event info for check-in page
@@ -45,10 +58,12 @@ export async function checkIn(
 			payload.check_in_url = checkInUrl;
 		}
 
-		const response = await publicRestClient.post<{ data: CheckInResponse }>(
-			`v1/public/events/${eventSlug}/check_in`,
-			payload,
-		);
+		const response = await kyPublicClient
+			.post(`v1/public/events/${eventSlug}/check_in`, {
+				json: payload,
+				headers: optionalAuthHeader(),
+			})
+			.json<{ data: CheckInResponse }>();
 		return response.data;
 	} catch (error: unknown) {
 		const message = await extractErrorMessage(error);

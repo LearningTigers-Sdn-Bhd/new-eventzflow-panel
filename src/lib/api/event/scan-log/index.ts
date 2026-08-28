@@ -8,7 +8,8 @@ export {
 } from "./request";
 // Response types
 export type {
-	BackendTicket,
-	ScanLogBackendUser,
+	Pagination,
+	ScanLogsResponse,
 	ScannedLog,
+	ScanSource,
 } from "./response";

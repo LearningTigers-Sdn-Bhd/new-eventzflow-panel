@@ -1,41 +1,31 @@
-// Backend user type (from Rails API) - specific to scan logs
-export type ScanLogBackendUser = {
-	id: number;
-	full_name: string;
-	email: string;
-};
+export type ScanSource = "staff_scan" | "self_check_in" | "kiosk";
 
-// Backend ticket response type (from Rails API)
-export type BackendTicket = {
-	id: number;
-	public_id: string;
-	event_id: number;
-	ticket_type_id: number;
-	attendee_name: string;
-	attendee_email: string;
-	attendee_phone: string | null;
-	checked_in: boolean;
-	check_in_at: string | null;
-	scanned_by_id: number | null;
-	scanned_by?: ScanLogBackendUser | null; // User who scanned the ticket
-	status: "purchased" | "scanned" | "refunded" | "canceled";
-	created_at: string;
-	updated_at: string;
-	ticket_type?: {
-		id: number;
-		name: string;
-		price: string;
-	};
-};
-
-// Frontend scanned log type
 export type ScannedLog = {
-	id: string;
+	id: number;
 	name: string;
-	email: string;
-	phone: string;
+	email: string | null;
+	phone: string | null;
 	locationName: string;
 	scannedBy: string;
-	status: "scanned" | "not_scanned";
-	checkedInAt: string;
+	source: ScanSource;
+	scannedAt: string;
+	scannableType: "Ticket" | "Visitor";
+	scannableId: number;
+	publicId: string | null;
+};
+
+export type Pagination = {
+	current_page: number;
+	total_pages: number;
+	total_count: number;
+	per_page: number;
+	prev_page: number | null;
+	next_page: number | null;
+};
+
+export type ScanLogsResponse = {
+	success: boolean;
+	message: string;
+	data: ScannedLog[];
+	pagination: Pagination;
 };

@@ -20,4 +20,11 @@ export type SearchConfig = {
 	placeholder: string;
 	enableCustomSearch: boolean;
 	columns?: string[];
+	// When provided, search is driven by the caller instead of the table
+	// instance. Used by server-paginated tables, where filtering in the
+	// browser would only cover the currently loaded page.
+	controlled?: {
+		value: string;
+		onChange: (value: string) => void;
+	};
 };

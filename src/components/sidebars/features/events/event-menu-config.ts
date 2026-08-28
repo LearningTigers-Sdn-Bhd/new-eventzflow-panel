@@ -303,12 +303,6 @@ const rawEventMenuConfig: EventMenuConfig = {
 					icon: TbClockDollar,
 				},
 				{
-					route: "scanned-logs",
-					label: "Scanned Logs",
-					description: "View QR code scan logs and entry records.",
-					icon: ScanQrCode,
-				},
-				{
 					route: "ticket-types",
 					label: "Ticket Types",
 					description: "Manage ticket types for this event.",
@@ -590,6 +584,13 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "View all voucher redemption logs for this event.",
 					icon: Logs,
 					visible: visible.eventAdmin,
+				},
+				{
+					route: "scanned-logs",
+					label: "Scanned Logs",
+					description: "View QR code scan logs and entry records.",
+					icon: ScanQrCode,
+					visible: (p) => visible.eventAdmin(p) || visible.canAccessTickets(p),
 				},
 				{
 					route: "lead-logs",

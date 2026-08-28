@@ -85,6 +85,9 @@ export const updateEventSchema = z.object({
 	venue_name: z.string().optional(),
 	venue_address: z.string().optional(),
 	multiple_scans: z.boolean().optional(),
+	multiple_scan_mode: z
+		.enum(["unlimited", "per_location", "per_day"])
+		.optional(),
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	public_registration_url: z.string().url().optional().or(z.literal("")),
