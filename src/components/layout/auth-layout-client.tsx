@@ -46,6 +46,14 @@ export default function AuthLayoutClient({
 		if (user.email_verified && pathname.startsWith("/verify-email")) {
 			router.push("/dashboard");
 		}
+
+		// Team members ("member" role) only have the ticket scanner — no
+		// dashboard, events, analytics, or anything else. Guard here so a
+		// bookmarked/typed URL can't get around the nav restriction in
+		// app-menu-config.ts.
+		if (user.role === "member" && !pathname.startsWith("/scan")) {
+			router.push("/scan" as Route);
+		}
 	}, [user, pathname, isInitialized, router]);
 
 	// Loading state - waiting for auth hydration
@@ -61,6 +69,12 @@ export default function AuthLayoutClient({
 	// Prevent unverified users from accessing non-verify-email routes
 	// This runs BEFORE children mount, preventing API calls
 	if (!user.email_verified && !pathname.startsWith("/verify-email")) {
+		return <LoadingPage />;
+	}
+
+	// Prevent team members from accessing anything but the scanner
+	// This runs BEFORE children mount, preventing API calls
+	if (user.role === "member" && !pathname.startsWith("/scan")) {
 		return <LoadingPage />;
 	}
 
