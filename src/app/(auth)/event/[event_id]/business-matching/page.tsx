@@ -52,7 +52,6 @@ export default function BusinessMatchingPage() {
 	const event_id =
 		(Array.isArray(params.event_id) ? params.event_id[0] : params.event_id) ??
 		"";
-	console.log("Current event_id:", event_id); // Add this log
 	const { data, isLoading, error, isFetching } =
 		useBusinessMatchingEvents(event_id);
 	const { mutateAsync: forceRefreshAsync } =

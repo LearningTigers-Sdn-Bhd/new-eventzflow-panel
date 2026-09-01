@@ -27,6 +27,16 @@ export const STORAGE_CONFIG = {
 	OFFLINE_TICKETS_KEY: "offline_tickets",
 	OFFLINE_LAST_SYNCED_KEY: "offline_last_synced",
 } as const;
+/**
+ * Offline ticket caching downloads the full attendee list (name/email/phone)
+ * into plaintext localStorage. This is a PII leak vector on any shared or
+ * unattended device, so it is DISABLED by default and must be explicitly
+ * opted into via NEXT_PUBLIC_ENABLE_OFFLINE_SYNC=true.
+ *
+ * Government / high-security deployments should leave this OFF.
+ */
+export const OFFLINE_SYNC_ENABLED =
+	process.env.NEXT_PUBLIC_ENABLE_OFFLINE_SYNC === "true";
 
 // Scanner States (Html5Qrcode library states)
 export const SCANNER_STATES = {

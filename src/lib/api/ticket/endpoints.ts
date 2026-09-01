@@ -66,10 +66,7 @@ export async function checkInTicket(
  * Resets checked_in, check_in_at, scanned_by_id, and status
  */
 export async function unscanTicket(ticketId: string): Promise<void> {
-	console.log("🔄 Unscanning ticket with ID:", ticketId);
-
 	const url = `v1/tickets/${ticketId}/unscan`;
-	console.log("🌐 Calling PATCH:", url);
 
 	try {
 		await restClient.patch(url, {});

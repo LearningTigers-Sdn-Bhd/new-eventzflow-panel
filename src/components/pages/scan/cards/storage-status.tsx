@@ -16,7 +16,12 @@ import {
 import { IconTitle } from "@/components/admin-ui/icon-heading";
 import { Button } from "@/components/ui/button";
 import { getAllForOffline } from "@/lib/api/ticket";
-import { ERROR_MESSAGES, STORAGE_CONFIG, SUCCESS_MESSAGES } from "../constants";
+import {
+	ERROR_MESSAGES,
+	OFFLINE_SYNC_ENABLED,
+	STORAGE_CONFIG,
+	SUCCESS_MESSAGES,
+} from "../constants";
 
 interface StorageData {
 	events: number;
@@ -46,23 +51,43 @@ export function StorageStatus() {
 	const [isClearing, setIsClearing] = useState(false);
 
 	/**
-	 * Load storage data from localStorage on mount
+	 * Load storage data from localStorage on mount.
+	 * When offline sync is disabled, purge any previously cached PII instead.
 	 */
 	useEffect(() => {
-		if (typeof window !== "undefined") {
-			const events = localStorage.getItem(STORAGE_CONFIG.OFFLINE_EVENTS_KEY);
-			const tickets = localStorage.getItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY);
-			const lastSynced = localStorage.getItem(
-				STORAGE_CONFIG.OFFLINE_LAST_SYNCED_KEY,
-			);
+		if (typeof window === "undefined") return;
 
-			setStorageData({
-				events: events ? JSON.parse(events).length : 0,
-				tickets: tickets ? JSON.parse(tickets).length : 0,
-				lastSyncedAt: lastSynced ? new Date(lastSynced) : undefined,
-			});
+		if (!OFFLINE_SYNC_ENABLED) {
+			localStorage.removeItem(STORAGE_CONFIG.OFFLINE_EVENTS_KEY);
+			localStorage.removeItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY);
+			localStorage.removeItem(STORAGE_CONFIG.OFFLINE_LAST_SYNCED_KEY);
+			return;
 		}
+
+		const events = localStorage.getItem(STORAGE_CONFIG.OFFLINE_EVENTS_KEY);
+		const tickets = localStorage.getItem(STORAGE_CONFIG.OFFLINE_TICKETS_KEY);
+		const lastSynced = localStorage.getItem(
+			STORAGE_CONFIG.OFFLINE_LAST_SYNCED_KEY,
+		);
+
+		setStorageData({
+			events: events ? JSON.parse(events).length : 0,
+			tickets: tickets ? JSON.parse(tickets).length : 0,
+			lastSyncedAt: lastSynced ? new Date(lastSynced) : undefined,
+		});
 	}, []);
+
+	if (!OFFLINE_SYNC_ENABLED) {
+		return (
+			<div className="flex h-full flex-col border p-4 md:border-0">
+				<IconTitle
+					icon={HardDrive}
+					title="Offline Sync Disabled"
+					description="Offline attendee caching is turned off for this deployment. Check-in requires a live connection."
+				/>
+			</div>
+		);
+	}
 
 	/**
 	 * Sync data from server to localStorage

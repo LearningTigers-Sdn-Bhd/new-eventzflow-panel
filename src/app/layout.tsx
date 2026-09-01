@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "../index.css";
-import { Clarity } from "@/components/clarity";
 import Providers from "@/components/providers";
 import { UniversalConfirmDialog } from "@/components/universal-confirm-dialog";
 import { UniversalDialog } from "@/components/universal-dialog";
@@ -34,7 +33,6 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className="antialiased" suppressHydrationWarning>
-				<Clarity />
 				<NuqsAdapter>
 					<Providers>
 						{children}
