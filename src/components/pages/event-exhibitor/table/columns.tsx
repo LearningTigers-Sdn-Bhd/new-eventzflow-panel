@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -48,52 +48,28 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		enableSorting: false,
 		enableHiding: false,
 		header: ({ table }) => (
-			<Checkbox
-				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && "indeterminate")
-				}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all kits on this page"
-				className="rounded-none"
-			/>
+			<div className="flex justify-center">
+				<Checkbox
+					checked={
+						table.getIsAllPageRowsSelected() ||
+						(table.getIsSomePageRowsSelected() && "indeterminate")
+					}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					aria-label="Select all kits on this page"
+					className="rounded-none"
+				/>
+			</div>
 		),
 		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label={`Select ${row.original.kit.company_name || "kit"}`}
-				className="rounded-none"
-			/>
-		),
-	},
-	{
-		id: "expand",
-		size: 50,
-		header: () => null,
-		cell: ({ row, table }) => {
-			const isExpanded =
-				(table.options.meta as any)?.expandedRows?.[row.id] || false;
-			return (
-				<Button
-					variant="ghost"
-					size="icon"
+			<div className="flex justify-center">
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label={`Select ${row.original.kit.company_name || "kit"}`}
 					className="rounded-none"
-					onClick={() => {
-						const meta = table.options.meta as any;
-						if (meta?.toggleRow) {
-							meta.toggleRow(row.id);
-						}
-					}}
-				>
-					{isExpanded ? (
-						<ChevronDown className="size-4" />
-					) : (
-						<ChevronRight className="size-4" />
-					)}
-				</Button>
-			);
-		},
+				/>
+			</div>
+		),
 	},
 	{
 		accessorKey: "kit.booth_number",
@@ -171,7 +147,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		accessorKey: "kit.booth_type",
 		id: "booth_type",
 		size: 140,
-		filterFn: (row, id, value) => {
+		filterFn: (row, _id, value) => {
 			return row.original.kit.booth_type === value;
 		},
 		header: ({ column }) => {
@@ -287,7 +263,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		accessorKey: "kit.payment_status",
 		id: "payment_status",
 		size: 140,
-		filterFn: (row, id, value) => {
+		filterFn: (row, _id, value) => {
 			return row.original.kit.payment_status === value;
 		},
 		header: ({ column }) => {
@@ -420,8 +396,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			};
 
 			const maxVisible = 3;
-			const visibleMembers = members.slice(0, maxVisible);
-			const remainingCount = totalCount - maxVisible;
+			const _visibleMembers = members.slice(0, maxVisible);
+			const _remainingCount = totalCount - maxVisible;
 
 			return (
 				<Popover>
