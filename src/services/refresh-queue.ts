@@ -153,8 +153,7 @@ class RefreshQueueService {
 			const resolved = await this.waitForExternalRefresh();
 			if (resolved) {
 				// Token is now valid from another tab's refresh
-				const credentials =
-					useUserSessionStore.getState().sessionCredentials;
+				const credentials = useUserSessionStore.getState().sessionCredentials;
 				return credentials?.accessToken ?? "";
 			}
 			// External refresh failed or timed out — proceed with our own
@@ -199,15 +198,18 @@ class RefreshQueueService {
 	}
 
 	/**
-	 * Force a token refresh (for explicit refresh calls)
+	 * Force a token refresh — used by the 401 recovery handler after a request
+	 * has already been rejected with the current token.
+	 *
+	 * Deliberately does NOT consult canAttemptRefresh()/the 30s cooldown: that
+	 * gate exists to stop *proactive* refresh spam (see waitForRefreshIfNeeded),
+	 * but a 401 is proof the current token is already dead — returning it again
+	 * here just guarantees a second 401 with no recovery left to attempt. In-tab
+	 * request storms are already deduped by startRefresh()'s refreshPromise
+	 * reuse, and cross-tab storms by the BroadcastChannel coordination inside
+	 * it, so skipping the cooldown here doesn't reopen a refresh-spam risk.
 	 */
 	async forceRefresh(): Promise<string> {
-		if (!this.canAttemptRefresh()) {
-			const credentials = useUserSessionStore.getState().sessionCredentials;
-			if (credentials) {
-				return credentials.accessToken;
-			}
-		}
 		return this.startRefresh();
 	}
 
