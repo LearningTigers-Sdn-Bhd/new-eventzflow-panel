@@ -122,6 +122,11 @@ export interface ExhibitorKit {
 	payment_proof_url?: string | null;
 	payment_proof_status?: "pending" | "submitted" | "rejected" | "paid" | string;
 	amount_paid?: string;
+	/** Booth price x booth quantity for this kit, computed server-side. Used to
+	 * pre-fill amount_paid when settling payments in bulk. */
+	booking_value?: string | number | null;
+	booth_quantity?: number;
+	price_snapshot?: string | number | null;
 	payment_note?: string;
 	indemnity_link?: string;
 	exhibitor_booth_price_id?: number;

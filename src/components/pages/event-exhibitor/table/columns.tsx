@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -41,6 +42,31 @@ function formatCreatedAt(dateString?: string | null): {
 }
 
 const baseColumns: ColumnDef<ExhibitorMember>[] = [
+	{
+		id: "select",
+		size: 40,
+		enableSorting: false,
+		enableHiding: false,
+		header: ({ table }) => (
+			<Checkbox
+				checked={
+					table.getIsAllPageRowsSelected() ||
+					(table.getIsSomePageRowsSelected() && "indeterminate")
+				}
+				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+				aria-label="Select all kits on this page"
+				className="rounded-none"
+			/>
+		),
+		cell: ({ row }) => (
+			<Checkbox
+				checked={row.getIsSelected()}
+				onCheckedChange={(value) => row.toggleSelected(!!value)}
+				aria-label={`Select ${row.original.kit.company_name || "kit"}`}
+				className="rounded-none"
+			/>
+		),
+	},
 	{
 		id: "expand",
 		size: 50,

@@ -8,6 +8,7 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -28,6 +29,8 @@ import {
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
+import { useDialogStore } from "@/stores/dialog-store";
+import { BulkPaymentForm } from "../forms/bulk-payment-form";
 import type { ExhibitorMember } from "./columns";
 import { DataControl } from "./data-control";
 import { ExhibitorItem } from "./exhibitor-item";
@@ -64,6 +67,9 @@ export function DataTable<TData, TValue>({
 	const [expandedRows, setExpandedRows] = React.useState<
 		Record<string, boolean>
 	>({});
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+	const openDialog = useDialogStore((state) => state.openDialog);
+	const closeDialog = useDialogStore((state) => state.closeDialog);
 
 	const toggleRow = React.useCallback((rowId: string) => {
 		setExpandedRows((prev) => ({
@@ -82,10 +88,13 @@ export function DataTable<TData, TValue>({
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onRowSelectionChange: setRowSelection,
+		enableRowSelection: true,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
+			rowSelection,
 		},
 		meta: {
 			expandedRows,
@@ -94,6 +103,28 @@ export function DataTable<TData, TValue>({
 		getRowId: (row) => String((row as ExhibitorMember).kit.id),
 	});
 
+	const selectedKits = table
+		.getFilteredSelectedRowModel()
+		.rows.map((row) => (row.original as ExhibitorMember).kit);
+
+	const handleBulkPaymentClick = () => {
+		openDialog({
+			component: BulkPaymentForm,
+			props: {
+				kits: selectedKits,
+				onClose: () => {
+					closeDialog();
+					table.resetRowSelection();
+				},
+			},
+			config: {
+				title: "Update Payment",
+				description: "Apply a payment status to every selected kit",
+				size: "lg",
+			},
+		});
+	};
+
 	return (
 		<div className="w-full">
 			<DataControl
@@ -101,6 +132,32 @@ export function DataTable<TData, TValue>({
 				configuredPricingLabels={configuredPricingLabels}
 				configuredZones={configuredZones}
 			/>
+
+			{selectedKits.length > 0 && (
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border bg-muted/40 px-3 py-2">
+					<p className="text-sm">
+						<span className="font-medium">{selectedKits.length}</span>{" "}
+						{selectedKits.length === 1 ? "kit" : "kits"} selected
+					</p>
+					<div className="flex gap-2">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="rounded-none"
+							onClick={() => table.resetRowSelection()}
+						>
+							Clear
+						</Button>
+						<Button
+							size="sm"
+							className="rounded-none"
+							onClick={handleBulkPaymentClick}
+						>
+							Update Payment
+						</Button>
+					</div>
+				</div>
+			)}
 
 			<div className="min-h-[45vh]">
 				{!isTablet ? (
@@ -224,6 +281,8 @@ export function DataTable<TData, TValue>({
 									<ExhibitorItem
 										key={row.id}
 										exhibitor={row.original as ExhibitorMember}
+										selected={row.getIsSelected()}
+										onSelectedChange={(value) => row.toggleSelected(value)}
 									/>
 								))
 						) : (
