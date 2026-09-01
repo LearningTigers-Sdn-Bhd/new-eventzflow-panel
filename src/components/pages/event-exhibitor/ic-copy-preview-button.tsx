@@ -16,6 +16,7 @@ import {
 	downloadExhibitorKitIcCopy,
 	downloadExhibitorKitIndemnityForm,
 } from "@/lib/api/exhibitor-kit";
+import { createTypedObjectUrl } from "@/lib/utils/file-type";
 
 const DOCUMENT_LABELS = {
 	"ic-copy": "IC Copy",
@@ -59,7 +60,10 @@ export function IcCopyPreviewButton({
 		setLoading(true);
 		try {
 			const { blob } = await DOCUMENT_DOWNLOADERS[document](eventId, kitId);
-			setPreview({ url: URL.createObjectURL(blob), type: blob.type });
+			// Sniff the real type from the bytes — the served Content-Type can be
+			// missing or a generic attachment type after security hardening, which
+			// would otherwise leave the preview dialog blank.
+			setPreview(await createTypedObjectUrl(blob));
 		} finally {
 			setLoading(false);
 		}
@@ -97,10 +101,13 @@ export function IcCopyPreviewButton({
 								className="h-[62vh] w-full border-0"
 							/>
 						) : preview?.type.startsWith("image/") ? (
-							<object
-								data={preview.url}
-								type={preview.type}
-								aria-label={`Uploaded ${label}`}
+							// <img> is allowed by img-src 'blob:' and not subject to
+							// object-src 'none', so images render without loosening the CSP.
+							// A blob URL can't be optimized by next/image, so a plain img is correct here.
+							// biome-ignore lint/performance/noImgElement: blob preview URL, not optimizable by next/image
+							<img
+								src={preview.url}
+								alt={`Uploaded ${label}`}
 								className="h-auto max-h-[62vh] max-w-full object-contain"
 							/>
 						) : preview ? (

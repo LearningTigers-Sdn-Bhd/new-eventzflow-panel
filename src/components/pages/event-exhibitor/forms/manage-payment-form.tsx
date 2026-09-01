@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { InlineFilePreview } from "@/components/file-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -155,20 +156,11 @@ export function ManagePaymentForm({
 				</div>
 				<div className="flex min-h-96 items-center justify-center p-4">
 					{kit.payment_proof_url ? (
-						<object
-							data={kit.payment_proof_url}
-							aria-label="Submitted payment proof"
-							className="h-auto max-h-[55vh] max-w-full object-contain"
-						>
-							<a
-								href={kit.payment_proof_url}
-								target="_blank"
-								rel="noreferrer"
-								className="text-primary underline"
-							>
-								Open payment proof
-							</a>
-						</object>
+						<InlineFilePreview
+							source={{ url: kit.payment_proof_url }}
+							title="Submitted payment proof"
+							className="max-h-[55vh] w-full"
+						/>
 					) : (
 						<p className="text-muted-foreground text-sm">
 							No payment proof submitted.

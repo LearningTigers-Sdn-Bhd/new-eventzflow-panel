@@ -10,6 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { createTypedObjectUrl } from "@/lib/utils/file-type";
 
 export function PaymentProofPreviewButton({
 	url,
@@ -32,7 +33,7 @@ export function PaymentProofPreviewButton({
 			const response = await fetch(url);
 			if (!response.ok) throw new Error();
 			const blob = await response.blob();
-			setPreview({ url: URL.createObjectURL(blob), type: blob.type });
+			setPreview(await createTypedObjectUrl(blob));
 		} catch {
 			setError("Unable to load payment proof.");
 		} finally {
@@ -76,15 +77,20 @@ export function PaymentProofPreviewButton({
 								title="Payment proof"
 								className="h-[62vh] w-full border-0"
 							/>
+						) : preview?.type.startsWith("image/") ? (
+							// <img> is allowed by img-src 'blob:' and not subject to
+							// object-src 'none', so images render without loosening the CSP.
+							// A blob URL can't be optimized by next/image, so a plain img is correct here.
+							// biome-ignore lint/performance/noImgElement: blob preview URL, not optimizable by next/image
+							<img
+								src={preview.url}
+								alt="Uploaded payment proof"
+								className="max-h-[62vh] max-w-full object-contain"
+							/>
 						) : preview ? (
-							<object
-								data={preview.url}
-								type={preview.type}
-								aria-label="Uploaded payment proof"
-								className="max-h-[62vh] max-w-full"
-							>
-								<span>Preview unavailable. Use Download.</span>
-							</object>
+							<p className="max-w-sm text-center text-sm">
+								This file type can't be previewed here. Use Download to view it.
+							</p>
 						) : null}
 					</div>
 					<DialogFooter className="border-t p-4 sm:justify-end">
