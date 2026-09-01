@@ -2,6 +2,17 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
+// Origin that serves uploaded assets (Active Storage blobs, media, etc.). The
+// panel and API run on different origins (e.g. :3001 vs :3000), so 'self' and
+// the https: scheme alone don't cover API-hosted files — especially in dev
+// where the API is plain http. Allow it explicitly for img/media/connect.
+const apiOrigin = (
+	process.env.NEXT_PUBLIC_API_URL ?? (isDev ? "http://localhost:3000" : "")
+).replace(/\/$/, "");
+const assetSources = ["'self'", "data:", "blob:", "https:", apiOrigin]
+	.filter(Boolean)
+	.join(" ");
+
 // Content-Security-Policy.
 // Note: 'unsafe-inline'/'unsafe-eval' are required by Next.js runtime + a few
 // vendor libs. Kept as tight as the current stack allows; tighten further
@@ -10,18 +21,26 @@ const csp = [
 	"default-src 'self'",
 	`script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
 	"style-src 'self' 'unsafe-inline'",
-	"img-src 'self' data: blob: https:",
+	`img-src ${assetSources}`,
 	"font-src 'self' data:",
-	`connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL ?? ""} https: wss:${
+	`connect-src 'self' ${apiOrigin} https: wss:${
 		isDev ? " http://localhost:* ws://localhost:*" : ""
 	}`.trim(),
-	"media-src 'self' blob: data:",
+	`media-src ${assetSources}`,
 	"worker-src 'self' blob:",
+	// Allow blob: documents (PDF previews) to render in an <iframe>, plus the
+	// hosted Notion help embed. Object/embed stays blocked via object-src 'none'
+	// below; images preview via <img> (img-src).
+	"frame-src 'self' blob: https://eventzflow.notion.site",
 	"frame-ancestors 'none'",
 	"form-action 'self'",
 	"base-uri 'self'",
 	"object-src 'none'",
-	"upgrade-insecure-requests",
+	// upgrade-insecure-requests rewrites every http:// subresource to https://.
+	// That's correct in production (real TLS) but breaks local dev, where the
+	// API on http://localhost:3000 has no TLS and the upgraded https:// request
+	// fails with ERR_SSL_PROTOCOL_ERROR. Only enable it outside development.
+	...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [
