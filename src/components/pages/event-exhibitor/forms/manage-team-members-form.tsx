@@ -260,6 +260,12 @@ export function ManageTeamMembersForm({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to update team members");
+			// The save may have partially landed server-side even though this
+			// request errored (e.g. the member row committed before a later step
+			// failed) — resync from the server instead of leaving local state
+			// pointing at members that no longer look "new" to the backend, which
+			// would otherwise re-create them as duplicates on the next retry.
+			queryClient.invalidateQueries({ queryKey: vendorsQueryKey });
 		},
 	});
 
