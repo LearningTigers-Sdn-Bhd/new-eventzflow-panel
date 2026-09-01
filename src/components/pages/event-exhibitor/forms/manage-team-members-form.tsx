@@ -7,6 +7,7 @@ import {
 	Info,
 	Loader2,
 	Plus,
+	RefreshCw,
 	Trash2,
 	Users,
 } from "lucide-react";
@@ -18,7 +19,10 @@ import { FieldGroup, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { getEventVendors } from "@/lib/api/event-vendor";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
+import {
+	resyncExhibitorKitTeamMembers,
+	updateExhibitorKit,
+} from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 
@@ -266,6 +270,55 @@ export function ManageTeamMembersForm({
 			// pointing at members that no longer look "new" to the backend, which
 			// would otherwise re-create them as duplicates on the next retry.
 			queryClient.invalidateQueries({ queryKey: vendorsQueryKey });
+		},
+	});
+
+	// Company name only gets copied onto a member's ticket at the moment the
+	// ticket is created/synced — if the kit's company name is corrected
+	// afterward, already-issued tickets keep the stale value until this runs.
+	const resyncMutation = useMutation({
+		mutationFn: () => {
+			if (!kit?.id) throw new Error("No exhibitor kit found");
+
+			return resyncExhibitorKitTeamMembers(eventId, kit.id);
+		},
+		onSuccess: ({ updated, unchanged, skipped, failed }) => {
+			if (failed.length > 0) {
+				const detail = failed
+					.map((f) => `${f.full_name}${f.reason ? ` (${f.reason})` : ""}`)
+					.join(", ");
+				toast.error(
+					`Resynced ${updated.length} ticket(s), but ${failed.length} failed: ${detail}`,
+				);
+				return;
+			}
+
+			if (updated.length > 0) {
+				const skippedNote = skipped.length
+					? ` ${skipped.length} skipped (no company name or no ticket yet).`
+					: "";
+				toast.success(
+					`Resynced company name on ${updated.length} member ticket${
+						updated.length === 1 ? "" : "s"
+					}.${skippedNote}`,
+				);
+				return;
+			}
+
+			if (unchanged.length > 0) {
+				toast.success(
+					"All member tickets already match the current company name.",
+				);
+				return;
+			}
+
+			const reason =
+				skipped.find((s) => s.reason)?.reason ??
+				"no team members with a linked ticket";
+			toast.info(`Nothing to resync — ${reason}.`);
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to resync team members");
 		},
 	});
 
@@ -568,10 +621,30 @@ export function ManageTeamMembersForm({
 
 						{/* Team Members List */}
 						<div className="space-y-2">
-							<p className="flex items-center gap-2 font-medium text-sm">
-								<Users className="size-4" />
-								Team Members ({visibleMembers.length})
-							</p>
+							<div className="flex items-center justify-between gap-2">
+								<p className="flex items-center gap-2 font-medium text-sm">
+									<Users className="size-4" />
+									Team Members ({visibleMembers.length})
+								</p>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => resyncMutation.mutate()}
+									disabled={
+										resyncMutation.isPending ||
+										updateKitMutation.isPending ||
+										visibleMembers.length === 0
+									}
+									className="rounded-none"
+									title="Re-apply the current company name to every team member's ticket"
+								>
+									<RefreshCw
+										className={`mr-2 size-4 ${resyncMutation.isPending ? "animate-spin" : ""}`}
+									/>
+									{resyncMutation.isPending ? "Resyncing..." : "Resync Members"}
+								</Button>
+							</div>
 
 							{visibleMembers.length === 0 ? (
 								<div className="rounded-none border border-dashed py-8 text-center text-muted-foreground">

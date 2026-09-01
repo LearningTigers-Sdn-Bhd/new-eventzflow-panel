@@ -256,6 +256,34 @@ export async function downloadExhibitorKitIndemnityForm(
 	);
 }
 
+export interface ResyncTeamMembersOutcome {
+	id: number;
+	full_name: string;
+	reason?: string;
+}
+
+export interface ResyncTeamMembersResponse {
+	updated: ResyncTeamMembersOutcome[];
+	unchanged: ResyncTeamMembersOutcome[];
+	skipped: ResyncTeamMembersOutcome[];
+	failed: ResyncTeamMembersOutcome[];
+}
+
+/**
+ * Re-applies the exhibitor kit's current company name onto every team
+ * member's linked ticket. Fixes tickets left stale after a company name typo
+ * is corrected post-registration — without touching ticket status/payment.
+ */
+export async function resyncExhibitorKitTeamMembers(
+	eventId: number,
+	kitId: number,
+): Promise<ResyncTeamMembersResponse> {
+	return restClient.post<ResyncTeamMembersResponse>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/resync_team_members`,
+		{},
+	);
+}
+
 export async function rejectExhibitorKitPaymentProof(
 	eventId: number,
 	kitId: number,
