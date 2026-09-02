@@ -68,10 +68,23 @@ export function DataControl<TData>({
 		return Array.from(names).sort();
 	}, [table]);
 
-	const ticketTypes =
-		eventTicketTypes && eventTicketTypes.length > 0
-			? eventTicketTypes
-			: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
+	const ticketTypes = React.useMemo(() => {
+		const source =
+			eventTicketTypes && eventTicketTypes.length > 0
+				? eventTicketTypes
+				: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
+
+		// Ticket type names aren't guaranteed unique (e.g. an archived type
+		// renamed to match an active one) — the filter only ever matches
+		// against the ticketTypeName string column, so dedupe by name here
+		// rather than rendering two options with the same key/value.
+		const seenNames = new Set<string>();
+		return source.filter(({ name }) => {
+			if (seenNames.has(name)) return false;
+			seenNames.add(name);
+			return true;
+		});
+	}, [eventTicketTypes, uniqueTicketTypeNames]);
 
 	const getStatusFilterValue = () => {
 		const statusFilter = table.getColumn("status")?.getFilterValue() as
