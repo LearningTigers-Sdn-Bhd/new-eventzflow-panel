@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
-import { use } from "react";
+import { use, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/analytics-client-wrapper";
 import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
@@ -29,6 +29,7 @@ export default function EventDetailsPage({
 	const { isVendor, isExhibitionContractor, canManageEvent } =
 		useEventPermissions(event_id);
 	const { openDialog, closeDialog } = useDialog();
+	const [includeMultiScans, setIncludeMultiScans] = useState(false);
 
 	const shouldFetchAnalytics =
 		isInitialized && !isVendor && !isExhibitionContractor;
@@ -41,8 +42,8 @@ export default function EventDetailsPage({
 				enabled: isInitialized,
 			},
 			{
-				queryKey: ["event-analytics", event_id],
-				queryFn: () => getEventAnalytics(event_id),
+				queryKey: ["event-analytics", event_id, includeMultiScans],
+				queryFn: () => getEventAnalytics(event_id, { includeMultiScans }),
 				enabled: shouldFetchAnalytics,
 			},
 			{
@@ -132,6 +133,8 @@ export default function EventDetailsPage({
 					ticketAnalytics={analytics as EventAnalyticsType | undefined}
 					mallData={mallData}
 					voucherAnalytics={voucherAnalytics ?? undefined}
+					includeMultiScans={includeMultiScans}
+					onIncludeMultiScansChange={setIncludeMultiScans}
 				/>
 			)}
 

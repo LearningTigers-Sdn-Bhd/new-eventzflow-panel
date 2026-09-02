@@ -23,7 +23,9 @@ import {
 	getAnalyticsParamsFromSelection,
 	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import { getEventById } from "@/lib/api/event";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
@@ -42,6 +44,7 @@ export default function TicketAnalyticsPage({
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
+	const [includeMultiScans, setIncludeMultiScans] = useState(false);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({
@@ -52,13 +55,14 @@ export default function TicketAnalyticsPage({
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	const { data, isLoading: analyticsLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", dateSelection],
+		queryKey: ["event", eventId, "analytics", dateSelection, includeMultiScans],
 		queryFn: () =>
 			getEventAnalytics(event_id, {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
+				includeMultiScans,
 			}),
 		enabled: !!event,
 	});
@@ -89,12 +93,20 @@ export default function TicketAnalyticsPage({
 		});
 
 	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
-		queryKey: ["event", eventId, "hourly_breakdown", "scans", dateSelection],
+		queryKey: [
+			"event",
+			eventId,
+			"hourly_breakdown",
+			"scans",
+			dateSelection,
+			includeMultiScans,
+		],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event_id, "scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: !!event && shouldFetchHourlyBreakdown,
 	});
@@ -106,8 +118,14 @@ export default function TicketAnalyticsPage({
 		(hourlyRegistrationsLoading || hourlyScansLoading);
 
 	const isLoading = eventLoading || analyticsLoading || hourlyBreakdownLoading;
+	// Rate must stay based on unique checked-in tickets (paid - unscanned), never
+	// on scannedTickets directly — with multi-scan re-entries included, scannedTickets
+	// can exceed paidTickets and would push the rate past 100%.
+	const uniqueScannedTickets = data
+		? (data.paidTickets ?? 0) - (data.unscannedTickets ?? 0)
+		: 0;
 	const checkInRate = data?.paidTickets
-		? Math.round(((data.scannedTickets ?? 0) / data.paidTickets) * 1000) / 10
+		? Math.round((uniqueScannedTickets / data.paidTickets) * 1000) / 10
 		: 0;
 
 	// Generate date filter label for PDF filename
@@ -235,7 +253,7 @@ export default function TicketAnalyticsPage({
 							Icon={Percent}
 						/>
 						<StatsCard
-							label="Scanned Tickets"
+							label={includeMultiScans ? "Total Scans" : "Scanned Tickets"}
 							value={data?.scannedTickets?.toLocaleString() || "0"}
 							Icon={QrCode}
 						/>
@@ -263,6 +281,18 @@ export default function TicketAnalyticsPage({
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
 					<div className="flex items-center gap-2">
+						{event?.multiple_scans && (
+							<div className="flex items-center gap-2">
+								<Switch
+									id="include-multi-scans"
+									checked={includeMultiScans}
+									onCheckedChange={setIncludeMultiScans}
+								/>
+								<Label htmlFor="include-multi-scans" className="text-sm">
+									Include re-scans
+								</Label>
+							</div>
+						)}
 						{event && (
 							<EventDateFilter
 								eventStartDate={event.start_date}

@@ -14,7 +14,9 @@ import {
 	getAnalyticsParamsFromSelection,
 	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { getEventById } from "@/lib/api/event";
 import {
 	getHourlyBreakdownByDay,
@@ -38,6 +40,7 @@ export default function VisitorAnalyticsPage({
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
+	const [includeMultiScans, setIncludeMultiScans] = useState(false);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({
@@ -54,8 +57,8 @@ export default function VisitorAnalyticsPage({
 	});
 
 	const { data: scannedVisitors, isLoading: scannedLoading } = useQuery({
-		queryKey: ["event", eventId, "scanned_visitors"],
-		queryFn: () => getTotalScannedVisitors({ id: eventId }),
+		queryKey: ["event", eventId, "scanned_visitors", includeMultiScans],
+		queryFn: () => getTotalScannedVisitors({ id: eventId, includeMultiScans }),
 	});
 
 	const { data: unscannedVisitors, isLoading: unscannedLoading } = useQuery({
@@ -82,7 +85,14 @@ export default function VisitorAnalyticsPage({
 
 	// Fetch visitor scans time series
 	const { data: visitorScansData, isLoading: visitorScansLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", "visitor_scans", dateSelection],
+		queryKey: [
+			"event",
+			eventId,
+			"analytics",
+			"visitor_scans",
+			dateSelection,
+			includeMultiScans,
+		],
 		queryFn: () =>
 			getTimeSeries({
 				eventId,
@@ -91,6 +101,7 @@ export default function VisitorAnalyticsPage({
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: !!event,
 	});
@@ -127,12 +138,14 @@ export default function VisitorAnalyticsPage({
 			"hourly_breakdown",
 			"visitor_scans",
 			dateSelection,
+			includeMultiScans,
 		],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event_id, "visitor_scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: !!event && shouldFetchHourlyBreakdown,
 	});
@@ -270,6 +283,18 @@ export default function VisitorAnalyticsPage({
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
 					<div className="flex items-center gap-2">
+						{event?.multiple_scans && (
+							<div className="flex items-center gap-2">
+								<Switch
+									id="include-multi-scans"
+									checked={includeMultiScans}
+									onCheckedChange={setIncludeMultiScans}
+								/>
+								<Label htmlFor="include-multi-scans" className="text-sm">
+									Include re-scans
+								</Label>
+							</div>
+						)}
 						{event && (
 							<EventDateFilter
 								eventStartDate={event.start_date}

@@ -28,11 +28,16 @@ export function EventDetailsKeyMetrics({
 	mallData,
 	formatCurrency,
 }: EventDetailsKeyMetricsProps) {
+	// Rate must stay based on unique checked-in tickets (paid - unscanned), never
+	// on scannedTickets directly — with multi-scan re-entries included, scannedTickets
+	// can exceed paidTickets and would push the rate past 100%.
+	const uniqueScannedTickets = ticketAnalytics
+		? (ticketAnalytics.paidTickets ?? 0) -
+			(ticketAnalytics.unscannedTickets ?? 0)
+		: 0;
 	const checkInRate = ticketAnalytics?.paidTickets
-		? Math.round(
-				((ticketAnalytics.scannedTickets ?? 0) / ticketAnalytics.paidTickets) *
-					1000,
-			) / 10
+		? Math.round((uniqueScannedTickets / ticketAnalytics.paidTickets) * 1000) /
+			10
 		: 0;
 
 	return (

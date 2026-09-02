@@ -5,8 +5,10 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
+import { Label } from "@/components/ui/label";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -26,6 +28,8 @@ interface AnalyticsClientWrapperProps {
 	ticketAnalytics?: EventAnalyticsType;
 	mallData?: MallLiveFeedResponse;
 	voucherAnalytics?: VoucherAnalyticsResponse;
+	includeMultiScans?: boolean;
+	onIncludeMultiScansChange?: (value: boolean) => void;
 }
 
 export function AnalyticsClientWrapper({
@@ -33,16 +37,34 @@ export function AnalyticsClientWrapper({
 	ticketAnalytics,
 	mallData,
 	voucherAnalytics,
+	includeMultiScans = false,
+	onIncludeMultiScansChange,
 }: AnalyticsClientWrapperProps) {
 	const { formatDate } = useFormatDate();
 	const isTicketEvent = event.use_ticket !== false;
 
-	// Calculate rates
+	const multiScanToggle = event.multiple_scans && onIncludeMultiScansChange && (
+		<div className="flex items-center gap-2">
+			<Switch
+				id="include-multi-scans"
+				checked={includeMultiScans}
+				onCheckedChange={onIncludeMultiScansChange}
+			/>
+			<Label htmlFor="include-multi-scans" className="text-sm">
+				Include re-scans
+			</Label>
+		</div>
+	);
+
+	// Calculate rates. Use unique checked-in tickets (total - unscanned), never
+	// scannedTickets directly — with multi-scan re-entries included, scannedTickets
+	// can exceed totalTickets and would push the rate past 100%.
+	const uniqueScannedTickets = ticketAnalytics
+		? ticketAnalytics.totalTickets - ticketAnalytics.unscannedTickets
+		: 0;
 	const scanRate =
 		ticketAnalytics && ticketAnalytics.totalTickets > 0
-			? Math.round(
-					(ticketAnalytics.scannedTickets / ticketAnalytics.totalTickets) * 100,
-				)
+			? Math.round((uniqueScannedTickets / ticketAnalytics.totalTickets) * 100)
 			: 0;
 	const redemptionRate = mallData?.redemption_rate ?? 0;
 
@@ -58,6 +80,9 @@ export function AnalyticsClientWrapper({
 		<ResponsiveLayout>
 			<MobileTabletView>
 				<div className="space-y-6">
+					{multiScanToggle && (
+						<div className="flex justify-end px-4">{multiScanToggle}</div>
+					)}
 					{/* Analytics Tabs */}
 					<Tabs defaultValue="key-metrics" className="rounded-none">
 						<div className="relative w-full">
@@ -135,6 +160,9 @@ export function AnalyticsClientWrapper({
 			<DesktopView>
 				<div className="space-y-6">
 					{/* Key Metrics */}
+					{multiScanToggle && (
+						<div className="flex justify-end">{multiScanToggle}</div>
+					)}
 					<EventDetailsKeyMetrics
 						isTicketEvent={isTicketEvent}
 						ticketAnalytics={ticketAnalytics}

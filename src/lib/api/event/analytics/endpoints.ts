@@ -48,6 +48,7 @@ export async function getTimeSeries(
 		if (validated.dateMode) params.set("date_mode", validated.dateMode);
 		if (validated.startDate) params.set("start_date", validated.startDate);
 		if (validated.endDate) params.set("end_date", validated.endDate);
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TimeSeriesResponse>(
 			`v1/events/${validated.eventId}/metrics/time_series?${params.toString()}`,
@@ -155,9 +156,11 @@ export async function getTotalScannedTickets(
 ): Promise<TotalScannedTicketsResponse> {
 	try {
 		const validated = getEventAnalyticsSchema.parse(data);
+		const params = new URLSearchParams();
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TotalScannedTicketsResponse>(
-			`v1/events/${validated.id}/metrics/total_scanned_tickets`,
+			`v1/events/${validated.id}/metrics/total_scanned_tickets?${params.toString()}`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -281,9 +284,11 @@ export async function getTotalScannedVisitors(
 ): Promise<TotalScannedVisitorsResponse> {
 	try {
 		const validated = getEventAnalyticsSchema.parse(data);
+		const params = new URLSearchParams();
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TotalScannedVisitorsResponse>(
-			`v1/events/${validated.id}/metrics/total_scanned_visitors`,
+			`v1/events/${validated.id}/metrics/total_scanned_visitors?${params.toString()}`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -334,6 +339,7 @@ export async function getHourlyBreakdownByDay(
 		startDate?: string;
 		endDate?: string;
 		dateMode?: "all_time" | "pre_event";
+		includeMultiScans?: boolean;
 	},
 ): Promise<DailyHourlyBreakdown[]> {
 	try {
@@ -342,6 +348,7 @@ export async function getHourlyBreakdownByDay(
 		if (options?.dateMode) params.set("date_mode", options.dateMode);
 		if (options?.startDate) params.set("start_date", options.startDate);
 		if (options?.endDate) params.set("end_date", options.endDate);
+		if (options?.includeMultiScans) params.set("include_multi_scans", "true");
 
 		const response = await restClient.get<HourlyBreakdownByDayResponse>(
 			`v1/events/${eventId}/metrics/hourly_breakdown_by_day?${params.toString()}`,

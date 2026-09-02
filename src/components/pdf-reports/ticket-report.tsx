@@ -26,13 +26,26 @@ interface TicketAnalyticsReportProps {
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
-	const scanRate = calculatePercentage(stats.scannedTickets, stats.paidTickets);
-	const checkInSummary = `${stats.scannedTickets.toLocaleString()} of ${stats.paidTickets.toLocaleString()} paid tickets checked in`;
+	// scannedTickets may count every re-entry scan (multi-scan events), not unique
+	// tickets — rate/donut must use unique checked-in tickets or the rate can exceed
+	// 100%. unscannedTickets is always a unique, toggle-independent count.
+	const uniqueScannedTickets = Math.max(
+		stats.paidTickets - stats.unscannedTickets,
+		0,
+	);
+	const includesReScans = stats.scannedTickets > uniqueScannedTickets;
+	const scanRate = calculatePercentage(uniqueScannedTickets, stats.paidTickets);
+	const checkInSummary = `${uniqueScannedTickets.toLocaleString()} of ${stats.paidTickets.toLocaleString()} paid tickets checked in`;
 
 	const insights = [
 		`Total Issuance: ${stats.totalTickets.toLocaleString()} tickets have been issued or sold.`,
 		`Collected Revenue: The event has collected ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
 		`Utilization: ${scanRate}% of paid tickets have been scanned at entry.`,
+		...(includesReScans
+			? [
+					`Re-entries: ${stats.scannedTickets.toLocaleString()} total scans recorded, including re-entries.`,
+				]
+			: []),
 	];
 
 	const registrationData =
@@ -95,9 +108,13 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 						/>
 						<StatsCard label="Check-in Rate" value={`${scanRate}%`} />
 						<StatsCard
-							label="Scanned Tickets"
+							label={includesReScans ? "Total Scans" : "Scanned Tickets"}
 							value={stats.scannedTickets.toLocaleString()}
-							subtext={`${scanRate}% of paid tickets checked in`}
+							subtext={
+								includesReScans
+									? `${uniqueScannedTickets.toLocaleString()} unique tickets checked in`
+									: `${scanRate}% of paid tickets checked in`
+							}
 						/>
 						<StatsCard
 							label="Unscanned Tickets"
@@ -113,7 +130,7 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 						wrap={false}
 					>
 						<DonutChart
-							value1={stats.scannedTickets}
+							value1={uniqueScannedTickets}
 							value2={stats.unscannedTickets}
 							label1="Scanned"
 							label2="Unscanned"

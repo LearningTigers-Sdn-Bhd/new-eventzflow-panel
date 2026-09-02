@@ -98,6 +98,7 @@ export async function getEventAnalytics(
 		endDate?: string;
 		dateMode?: "all_time" | "pre_event";
 		groupBy?: "hour" | "day" | "week" | "month";
+		includeMultiScans?: boolean;
 	},
 ): Promise<EventAnalytics> {
 	const eventIdNum = Number.parseInt(eventId, 10);
@@ -110,8 +111,16 @@ export async function getEventAnalytics(
 		if (options?.dateMode) params.set("date_mode", options.dateMode);
 		if (options?.startDate) params.set("start_date", options.startDate);
 		if (options?.endDate) params.set("end_date", options.endDate);
+		if (metric === "scans" && options?.includeMultiScans) {
+			params.set("include_multi_scans", "true");
+		}
 		return `v1/events/${eventIdNum}/metrics/time_series?${params.toString()}`;
 	};
+
+	const scannedTicketsParams = new URLSearchParams();
+	if (options?.includeMultiScans) {
+		scannedTicketsParams.set("include_multi_scans", "true");
+	}
 
 	// Fetch event details
 	const event = await restClient.get<{
@@ -134,7 +143,7 @@ export async function getEventAnalytics(
 			`v1/events/${eventIdNum}/metrics/total_tickets`,
 		),
 		restClient.get<BackendScannedTicketsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_scanned_tickets?${scannedTicketsParams.toString()}`,
 		),
 		restClient.get<BackendUnscannedTicketsResponse>(
 			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets`,
