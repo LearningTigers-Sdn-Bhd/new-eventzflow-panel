@@ -199,6 +199,36 @@ export function Inspector({
 					</div>
 				</div>
 
+				<div className="space-y-2">
+					<Label className="font-bold text-slate-600 text-xs dark:text-slate-400">
+						Table Text Size (%)
+					</Label>
+					<DelayedInput
+						type="number"
+						value={String(
+							Math.round(
+								((plan.settings_json?.label_font_scale as number) || 1) * 100,
+							),
+						)}
+						onSubmit={(val) => {
+							const percent = Number(val);
+							if (!Number.isFinite(percent) || percent <= 0) return;
+							const clamped = Math.min(Math.max(percent, 50), 250);
+							onUpdatePlan({
+								settings_json: {
+									...plan.settings_json,
+									label_font_scale: clamped / 100,
+								},
+							});
+						}}
+						className="h-9 rounded-none border-slate-200 bg-slate-50 px-2 font-mono text-xs transition-all hover:border-slate-300 focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700"
+					/>
+					<p className="text-muted-foreground text-xs">
+						Controls the size of the table number/label text on the canvas and
+						exports for this plan (50-250%).
+					</p>
+				</div>
+
 				<div className="flex gap-3 rounded-none border border-primary/10 bg-primary/5 p-4 dark:border-primary/20 dark:bg-primary/10">
 					<Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 					<div className="space-y-1">

@@ -80,9 +80,24 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	Tooltip,
 	TooltipContent,
@@ -100,10 +115,15 @@ import {
 	deletePlanObject,
 	exportPlanPdf,
 	getPlan,
+	syncTableNumbers,
 	updateAssignment,
 	updatePlan,
 } from "@/lib/api/plan";
-import type { Plan, PlanObject } from "@/lib/api/plan/response";
+import type {
+	Plan,
+	PlanObject,
+	SyncTableNumbersWarning,
+} from "@/lib/api/plan/response";
 import type { SeatingGroup } from "@/lib/api/seating-group";
 import {
 	addSeatingGroupMember,
@@ -114,6 +134,7 @@ import {
 	removeSeatingGroupMember,
 	updateSeatingGroup,
 } from "@/lib/api/seating-group";
+import { getEventById } from "@/lib/api/event";
 import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";
@@ -387,6 +408,8 @@ export function PlanWorkshop({
 		},
 	});
 
+	const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
+
 	const autoDistributeMutation = useMutation({
 		mutationFn: () => autoDistribute(plan.id.toString()),
 		onSuccess: (result) => {
@@ -399,6 +422,34 @@ export function PlanWorkshop({
 			} else {
 				toast.success("Auto-distribution complete");
 			}
+		},
+	});
+
+	const { data: eventLabelsData } = useQuery({
+		queryKey: ["event", eventId, "labels_data"],
+		queryFn: () => getEventById(eventId),
+		select: (event) => event.labels_data,
+	});
+
+	// Best-guess custom field for "table number": prefer the conventional
+	// `table_number` key, then any key that reads like a table-number field.
+	const recommendedFieldKey = useMemo(() => {
+		const keys = Object.keys(eventLabelsData ?? {});
+		if (keys.includes("table_number")) return "table_number";
+		return keys.find((key) => /table.?(no|num|number)/i.test(key));
+	}, [eventLabelsData]);
+
+	const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
+	const [syncFieldKey, setSyncFieldKey] = useState<string | undefined>();
+	const [syncWarnings, setSyncWarnings] = useState<
+		SyncTableNumbersWarning[] | null
+	>(null);
+
+	const syncTableNumbersMutation = useMutation({
+		mutationFn: (fieldKey: string) =>
+			syncTableNumbers(plan.id.toString(), fieldKey),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["plan", plan.id.toString()] });
 		},
 	});
 
@@ -1052,17 +1103,25 @@ export function PlanWorkshop({
 										variant="ghost"
 										size="sm"
 										className="h-9 gap-2 rounded-none px-3 text-white/70 text-xs hover:bg-white/10 hover:text-white"
-										onClick={() => {
-											toast.promise(autoDistributeMutation.mutateAsync(), {
-												loading: "Auto-filling...",
-												success: "Done",
-												error: "Failed",
-											});
-										}}
+										onClick={() => setShowAutoFillConfirm(true)}
 										disabled={autoDistributeMutation.isPending}
 									>
 										<Sparkles className="h-4 w-4" />
 										Auto-Fill
+									</Button>
+
+									<Button
+										size="sm"
+										className="h-9 gap-2 rounded-none bg-emerald-500 px-3 font-semibold text-white text-xs hover:bg-emerald-600"
+										onClick={() => {
+											setSyncFieldKey(recommendedFieldKey);
+											setIsSyncDialogOpen(true);
+										}}
+										disabled={syncTableNumbersMutation.isPending}
+										title="Assign tickets to tables based on a ticket custom field"
+									>
+										<Hash className="h-4 w-4" />
+										Sync Table Numbers
 									</Button>
 
 									<DropdownMenu>
@@ -1654,6 +1713,175 @@ export function PlanWorkshop({
 							</AlertDialogFooter>
 						</AlertDialogContent>
 					</AlertDialog>
+
+					<AlertDialog
+						open={showAutoFillConfirm}
+						onOpenChange={setShowAutoFillConfirm}
+					>
+						<AlertDialogContent className="max-w-md rounded-none dark:border-slate-800 dark:bg-slate-900">
+							<AlertDialogHeader>
+								<AlertDialogTitle>Auto-fill remaining seats?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This will automatically assign every unseated ticket/visitor
+									to an available table in this plan, grouping registrations
+									together where possible. It won't move guests who are already
+									seated.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter className="mt-6">
+								<AlertDialogCancel className="rounded-none">
+									Cancel
+								</AlertDialogCancel>
+								<AlertDialogAction
+									className="rounded-none"
+									onClick={() => {
+										toast.promise(autoDistributeMutation.mutateAsync(), {
+											loading: "Auto-filling...",
+											success: "Done",
+											error: "Failed",
+										});
+									}}
+								>
+									Auto-Fill
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+
+					<Dialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
+						<DialogContent className="max-w-md rounded-none dark:border-slate-800 dark:bg-slate-900">
+							<DialogHeader>
+								<DialogTitle>Sync Table Numbers</DialogTitle>
+								<DialogDescription>
+									Choose which ticket custom field holds the table number.
+									Tickets with a matching value will be assigned to the table
+									with that number in this plan.
+								</DialogDescription>
+							</DialogHeader>
+
+							{Object.keys(eventLabelsData ?? {}).length > 0 ? (
+								<Select value={syncFieldKey} onValueChange={setSyncFieldKey}>
+									<SelectTrigger className="rounded-none">
+										<SelectValue placeholder="Select a custom field" />
+									</SelectTrigger>
+									<SelectContent>
+										{Object.entries(eventLabelsData ?? {}).map(
+											([key, label]) => (
+												<SelectItem key={key} value={key}>
+													{label}
+													{key === recommendedFieldKey ? " (recommended)" : ""}
+												</SelectItem>
+											),
+										)}
+									</SelectContent>
+								</Select>
+							) : (
+								<p className="text-slate-500 text-sm dark:text-slate-400">
+									This event has no custom fields defined yet. Add one (e.g.
+									"Table Number") under event settings first.
+								</p>
+							)}
+
+							<DialogFooter className="mt-4">
+								<Button
+									variant="outline"
+									className="rounded-none"
+									onClick={() => setIsSyncDialogOpen(false)}
+								>
+									Cancel
+								</Button>
+								<Button
+									className="rounded-none"
+									disabled={!syncFieldKey || syncTableNumbersMutation.isPending}
+									onClick={async () => {
+										if (!syncFieldKey) return;
+										setIsSyncDialogOpen(false);
+										const toastId = toast.loading("Syncing table numbers...");
+										try {
+											const result =
+												await syncTableNumbersMutation.mutateAsync(
+													syncFieldKey,
+												);
+											if (result.warnings?.length) {
+												setSyncWarnings(result.warnings);
+												toast.warning(
+													`Synced ${result.synced_count} ticket(s) with ${result.warnings.length} that didn't sync.`,
+													{ id: toastId },
+												);
+											} else {
+												toast.success(
+													`Synced ${result.synced_count} ticket(s) from the "${result.field_key}" field`,
+													{ id: toastId },
+												);
+											}
+										} catch {
+											toast.error("Sync failed", { id: toastId });
+										}
+									}}
+								>
+									Sync
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+
+					<Dialog
+						open={syncWarnings !== null}
+						onOpenChange={(open) => !open && setSyncWarnings(null)}
+					>
+						<DialogContent className="max-w-lg rounded-none dark:border-slate-800 dark:bg-slate-900">
+							<DialogHeader>
+								<DialogTitle>Tickets that didn't sync</DialogTitle>
+								<DialogDescription>
+									{syncWarnings?.length} ticket(s) couldn't be assigned to a
+									table. Fix the table number or the plan, then re-run the sync.
+								</DialogDescription>
+							</DialogHeader>
+
+							<ScrollArea className="max-h-96">
+								<table className="w-full text-left text-sm">
+									<thead>
+										<tr className="border-slate-200 border-b text-slate-500 text-xs uppercase dark:border-slate-800 dark:text-slate-400">
+											<th className="py-2 pr-2 font-semibold">Name</th>
+											<th className="py-2 pr-2 font-semibold">
+												Table Number Entered
+											</th>
+											<th className="py-2 font-semibold">Reason</th>
+										</tr>
+									</thead>
+									<tbody>
+										{syncWarnings?.map((warning) => (
+											<tr
+												key={warning.ticket_id}
+												className="border-slate-100 border-b last:border-0 dark:border-slate-800"
+											>
+												<td className="py-2 pr-2 font-medium">
+													{warning.attendee_name}
+												</td>
+												<td className="py-2 pr-2 font-mono">
+													{warning.table_number || "—"}
+												</td>
+												<td className="py-2 text-slate-500 dark:text-slate-400">
+													{warning.reason === "no_matching_table"
+														? "No table with this number in this plan"
+														: warning.reason}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</ScrollArea>
+
+							<DialogFooter className="mt-4">
+								<Button
+									className="rounded-none"
+									onClick={() => setSyncWarnings(null)}
+								>
+									Close
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
 				</div>
 
 				<DragOverlay dropAnimation={null}>

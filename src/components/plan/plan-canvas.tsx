@@ -718,6 +718,19 @@ function PlanObjectRenderer({
 		!hideCapacity && object.object_type === "table" && object.capacity !== null;
 	const isOverCapacity =
 		showCapacity && (object.table_assignments?.length || 0) > object.capacity;
+	// Table number is the operational identifier (badges/exports read it), so
+	// it takes the primary line and the label (e.g. sponsor name) demotes to
+	// a secondary line when both are present.
+	const tableNumberText =
+		object.object_type === "table" ? object.table_number : null;
+	const primaryText = tableNumberText || object.label;
+	const secondaryText = tableNumberText && object.label ? object.label : null;
+	// Per-plan configurable text size (saved in Plan#settings_json), applied
+	// as a multiplier over the base pixel sizes below.
+	const fontScale = Number(plan?.settings_json?.label_font_scale) || 1;
+	const primaryFontSize = 10 * fontScale;
+	const secondaryFontSize = 7 * fontScale;
+	const capacityFontSize = 9 * fontScale;
 
 	return (
 		<g
@@ -795,25 +808,44 @@ function PlanObjectRenderer({
 				transform={`translate(${object.width / 2}, ${object.height / 2})`}
 				className="pointer-events-none text-center"
 			>
-				{object.label && (
+				{primaryText && (
 					<text
 						textAnchor="middle"
 						dominantBaseline="middle"
-						dy={showCapacity ? "-0.6em" : "0"}
-						className={cn(
-							"select-none fill-slate-700 font-black text-[10px] uppercase tracking-tighter",
-						)}
+						dy={
+							secondaryText
+								? showCapacity
+									? "-1.1em"
+									: "-0.6em"
+								: showCapacity
+									? "-0.6em"
+									: "0"
+						}
+						style={{ fontSize: `${primaryFontSize}px` }}
+						className="select-none fill-slate-700 font-black uppercase tracking-tighter"
 					>
-						{object.label}
+						{primaryText}
+					</text>
+				)}
+				{secondaryText && (
+					<text
+						textAnchor="middle"
+						dominantBaseline="middle"
+						dy={showCapacity ? "-0.1em" : "0.6em"}
+						style={{ fontSize: `${secondaryFontSize}px` }}
+						className="select-none fill-slate-400 uppercase tracking-tight"
+					>
+						{secondaryText}
 					</text>
 				)}
 				{showCapacity && (
 					<text
 						textAnchor="middle"
 						dominantBaseline="middle"
-						dy={object.label ? "0.8em" : "0"}
+						dy={secondaryText ? "1.1em" : primaryText ? "0.8em" : "0"}
+						style={{ fontSize: `${capacityFontSize}px` }}
 						className={cn(
-							"select-none font-black text-[9px]",
+							"select-none font-black",
 							isOverCapacity ? "fill-destructive" : "fill-slate-600",
 						)}
 					>
