@@ -32,6 +32,10 @@ export interface SearchResponse {
 export interface CheckInSuccessResponse {
 	action: "checked_in";
 	message: string;
+	// True when this attendee was already checked in before this scan (a
+	// multi-scan-allowed rescan), so the UI can still offer Reprint even
+	// though the scan went through the success path, not the blocked one.
+	rescanned?: boolean;
 	attendee: AttendeePreview;
 }
 

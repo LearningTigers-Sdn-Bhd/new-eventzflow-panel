@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
 	type AttendeePreview,
+	CheckInBlockedError,
 	type CheckInMethod,
 	checkIn,
 	confirmCheckIn,
 	getCheckInEvent,
 	type PublicEventInfo,
+	reprintCheckIn,
 } from "@/lib/api/event-check-in";
 
 export type ViewState =
@@ -41,6 +43,12 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 	const [selectedAttendee, setSelectedAttendee] =
 		useState<AttendeePreview | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+	const [isReprinting, setIsReprinting] = useState(false);
+	// True when the currently-shown success screen is actually a rescan of
+	// an already-checked-in ticket, allowed through by multi-scan — the
+	// backend flags this since checked_in stays true either way. Lets the
+	// UI still offer Reprint from the green screen, not just the red one.
+	const [isRescan, setIsRescan] = useState(false);
 
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const lastSearchRef = useRef<string>("");
@@ -108,6 +116,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 						setLiveResults(response.attendees);
 					} else if (response.action === "checked_in") {
 						setSelectedAttendee(response.attendee);
+						setIsRescan(!!response.rescanned);
 						setView("success");
 					}
 				}
@@ -153,6 +162,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 				setView("results");
 			} else if (response.action === "checked_in") {
 				setSelectedAttendee(response.attendee);
+				setIsRescan(!!response.rescanned);
 				setView("success");
 			}
 		} catch (error) {
@@ -196,14 +206,16 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 
 			if (response.action === "checked_in") {
 				setSelectedAttendee(response.attendee);
+				setIsRescan(!!response.rescanned);
 				setView("success");
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "Check-in failed";
-			if (message.toLowerCase().includes("already")) {
+			if (error instanceof CheckInBlockedError) {
+				if (error.attendee) setSelectedAttendee(error.attendee);
 				setView("already-checked-in");
 			} else {
+				const message =
+					error instanceof Error ? error.message : "Check-in failed";
 				toast.error(message);
 			}
 		} finally {
@@ -218,14 +230,16 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 
 				if (response.action === "checked_in") {
 					setSelectedAttendee(response.attendee);
+					setIsRescan(!!response.rescanned);
 					setView("success");
 				}
 			} catch (error) {
-				const message =
-					error instanceof Error ? error.message : "Check-in failed";
-				if (message.toLowerCase().includes("already")) {
+				if (error instanceof CheckInBlockedError) {
+					if (error.attendee) setSelectedAttendee(error.attendee);
 					setView("already-checked-in");
 				} else {
+					const message =
+						error instanceof Error ? error.message : "Check-in failed";
 					toast.error(message);
 					setInputStep("selection");
 				}
@@ -234,12 +248,30 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		[slug, checkInUrl],
 	);
 
+	// Re-fire the scanned webhook for the currently-shown already-checked-in
+	// attendee (wrong name / broken ticket needs a fresh badge).
+	const handleReprint = async () => {
+		if (!selectedAttendee) return;
+
+		setIsReprinting(true);
+		try {
+			await reprintCheckIn(slug, selectedAttendee.public_id, checkInUrl);
+			toast.success("Reprint requested");
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Reprint failed";
+			toast.error(message);
+		} finally {
+			setIsReprinting(false);
+		}
+	};
+
 	const handleReset = () => {
 		setSearchValue("");
 		setSearchResults([]);
 		setLiveResults([]);
 		setSearchError(null);
 		setSelectedAttendee(null);
+		setIsRescan(false);
 		setView("search");
 		setInputStep("selection");
 	};
@@ -251,6 +283,7 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		setLiveResults([]);
 		setSearchError(null);
 		setSelectedAttendee(null);
+		setIsRescan(false);
 		setView("search");
 		setSearchMethod("scan");
 		setInputStep("input");
@@ -285,10 +318,13 @@ export function usePublicCheckIn(slug: string, checkInUrl?: string) {
 		searchError,
 		selectedAttendee,
 		isConfirming,
+		isReprinting,
+		isRescan,
 		handleSearch,
 		handleSelectAttendee,
 		handleConfirmCheckIn,
 		handleQRScan,
+		handleReprint,
 		handleReset,
 		handleResetToScan,
 		selectMethod,
