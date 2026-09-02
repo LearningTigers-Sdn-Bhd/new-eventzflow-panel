@@ -94,6 +94,10 @@ export function DataTable<TData>({
 		const base: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
 		(data as BaseTicket[]).forEach((ticket) => {
 			ticket.customLabels?.forEach(({ name }) => {
+				// Skip server-written/reserved fields (e.g. `_table_number`,
+				// `_indemnity`) - they aren't user-facing custom fields and
+				// would otherwise show up as duplicate/confusing columns.
+				if (name.startsWith("_")) return;
 				if (!(name in base)) {
 					// Prettify raw key: ic_no -> Ic No, t_shirt_size -> T Shirt Size
 					base[name] = name

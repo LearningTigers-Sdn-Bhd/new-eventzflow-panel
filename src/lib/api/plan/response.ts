@@ -52,6 +52,19 @@ export interface AutoDistributeResponse {
 	skipped_groups: AutoDistributeSkippedGroup[];
 }
 
+export interface SyncTableNumbersWarning {
+	ticket_id: number;
+	attendee_name: string;
+	table_number: string;
+	reason: string;
+}
+
+export interface SyncTableNumbersResponse {
+	synced_count: number;
+	warnings: SyncTableNumbersWarning[];
+	field_key: string;
+}
+
 export interface Plan {
 	id: number;
 	event_id: number;
