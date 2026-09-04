@@ -4,6 +4,7 @@ import {
 	type ColumnDef,
 	getCoreRowModel,
 	getSortedRowModel,
+	type PaginationState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -17,10 +18,19 @@ import {
 	TabletView,
 } from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
+import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import type { ScannedLog } from "@/lib/api/event/scan-log/response";
 import { ScannedLogItem } from "./ticket-scanned-log-item";
 import { DataControl } from "./ticket-scanned-log-table-control";
+
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+}
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -30,6 +40,9 @@ interface DataTableProps<TData, TValue> {
 	source: string;
 	onSourceChange: (value: string) => void;
 	onRowClick?: (row: TData) => void;
+	// Server-side pagination state (pagy). When provided, the table runs in
+	// manual-pagination mode so the shared DataPagination control can drive it.
+	pagination?: ServerPagination;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,17 +53,23 @@ export function DataTable<TData, TValue>({
 	source,
 	onSourceChange,
 	onRowClick,
+	pagination,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 
-	// No pagination row model: search, the source filter, and paging are all
-	// server-driven (page.tsx), so `data` here is already exactly one page.
-	// Registering getPaginationRowModel would silently slice that page again
-	// to TanStack's default page size (10) everywhere table.getRowModel() is
-	// read below — desktop, mobile, and tablet all lose rows past the 10th.
-	// Sorting stays local: it only reorders the rows already on this page.
+	// Manual pagination: search, the source filter, and paging are all
+	// server-driven (page.tsx), so `data` here is already exactly one page. We
+	// mirror the pagy state into the table via `manualPagination` + `pageCount`
+	// (never getPaginationRowModel, which would slice the page again to
+	// TanStack's default size of 10). Sorting stays local: it only reorders the
+	// rows already on this page.
+	const paginationState: PaginationState = {
+		pageIndex: pagination?.pageIndex ?? 0,
+		pageSize: pagination?.pageSize ?? data.length,
+	};
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -58,9 +77,18 @@ export function DataTable<TData, TValue>({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		manualPagination: true,
+		pageCount: pagination?.pageCount ?? -1,
+		onPaginationChange: (updater) => {
+			if (!pagination) return;
+			const next =
+				typeof updater === "function" ? updater(paginationState) : updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		state: {
 			sorting,
 			columnVisibility,
+			pagination: paginationState,
 		},
 	});
 
@@ -132,6 +160,10 @@ export function DataTable<TData, TValue>({
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
+
+			{pagination && (
+				<DataPagination table={table} totalRows={pagination.totalCount} />
+			)}
 		</div>
 	);
 }

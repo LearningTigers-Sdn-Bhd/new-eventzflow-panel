@@ -5,9 +5,16 @@ import { Button } from "@/components/ui/button";
 
 interface DataPaginationProps<TData> {
 	table: Table<TData>;
+	// Server-paginated tables only hold one page of rows, so the derived
+	// `rows.length` undercounts. Pass the real total from the server to label
+	// the footer correctly ("N row(s) total").
+	totalRows?: number;
 }
 
-export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
+export function DataPagination<TData>({
+	table,
+	totalRows,
+}: DataPaginationProps<TData>) {
 	const currentPage = table.getState().pagination.pageIndex;
 	const pageCount = table.getPageCount();
 
@@ -52,7 +59,7 @@ export function DataPagination<TData>({ table }: DataPaginationProps<TData>) {
 	return (
 		<div className="-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9">
 			<div className="flex-1 text-muted-foreground text-sm">
-				{table.getFilteredRowModel().rows.length} row(s) total.
+				{totalRows ?? table.getFilteredRowModel().rows.length} row(s) total.
 			</div>
 			<div className="space-x-2">
 				<Button

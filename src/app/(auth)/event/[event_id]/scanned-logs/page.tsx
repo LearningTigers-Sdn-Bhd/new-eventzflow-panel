@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { use, useEffect, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { ScanLogDetailSheet } from "@/components/pages/scanned-log/scan-log-detail-sheet";
+import { ScanLogExportDropdown } from "@/components/pages/scanned-log/scan-log-export-dropdown";
 import { TicketScanButton } from "@/components/pages/scanned-log/ticket-scan-button";
 import { columns } from "@/components/pages/scanned-log/ticket-scanned-log-columns";
 import { DataTable } from "@/components/pages/scanned-log/ticket-scanned-log-table";
@@ -96,6 +97,15 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<ScanLogExportDropdown
+					eventId={event_id}
+					q={debouncedSearch || undefined}
+					source={
+						source === "all"
+							? undefined
+							: (source as "staff_scan" | "self_check_in" | "kiosk")
+					}
+				/>
 				<TicketScanButton
 					eventId={event_id}
 					canScanTickets={canScanTickets}
@@ -103,7 +113,7 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 				/>
 			</div>
 		),
-		[canScanTickets, event_id, refetch],
+		[canScanTickets, event_id, refetch, debouncedSearch, source],
 	);
 
 	useSetEventActions(eventActions);
@@ -133,30 +143,14 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 						source={source}
 						onSourceChange={handleSourceChange}
 						onRowClick={setSelectedRow}
+						pagination={{
+							pageIndex: (scanLogs?.pagination.current_page ?? 1) - 1,
+							pageSize: scanLogs?.pagination.per_page ?? 25,
+							pageCount: scanLogs?.pagination.total_pages ?? 0,
+							totalCount: scanLogs?.pagination.total_count ?? 0,
+							onPageChange: (pageIndex) => setPage(pageIndex + 1),
+						}}
 					/>
-					<div className="flex items-center justify-between">
-						<span className="text-muted-foreground text-sm">
-							{scanLogs?.pagination.total_count ?? 0} scan(s)
-						</span>
-						<div className="flex gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								disabled={!scanLogs?.pagination.prev_page}
-								onClick={() => setPage((p) => p - 1)}
-							>
-								Previous
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								disabled={!scanLogs?.pagination.next_page}
-								onClick={() => setPage((p) => p + 1)}
-							>
-								Next
-							</Button>
-						</div>
-					</div>
 					<ScanLogDetailSheet
 						eventId={event_id}
 						row={selectedRow}
