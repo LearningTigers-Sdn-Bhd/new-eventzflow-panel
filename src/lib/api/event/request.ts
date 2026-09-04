@@ -119,6 +119,7 @@ export const updateEventSchema = z.object({
 				.or(z.null()),
 			emails_enabled: z.boolean().optional(),
 			disabled_categories: z.array(z.string()).optional(),
+			business_matching_ticket_type_ids: z.array(z.number()).optional(),
 		})
 		.optional(),
 	wish_wall_setting_attributes: z

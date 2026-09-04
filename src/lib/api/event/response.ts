@@ -7,6 +7,7 @@ export type EventEmailSetting = {
 	payment_receipt_email: string | null;
 	emails_enabled: boolean;
 	disabled_categories: string[];
+	business_matching_ticket_type_ids: number[];
 };
 
 export type WishWallSetting = {

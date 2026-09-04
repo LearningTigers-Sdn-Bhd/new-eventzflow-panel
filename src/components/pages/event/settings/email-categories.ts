@@ -73,4 +73,9 @@ export const EMAIL_CATEGORIES: {
 		label: "Session Booking (Business Matching)",
 		group: "general",
 	},
+	{
+		key: "business_matching_invite",
+		label: "Business Matching Invite",
+		group: "general",
+	},
 ];

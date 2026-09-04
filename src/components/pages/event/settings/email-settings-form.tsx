@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Mail } from "lucide-react";
+import { Handshake, Mail } from "lucide-react";
 import * as React from "react";
 import { useId } from "react";
 import { toast } from "sonner";
@@ -13,12 +13,17 @@ import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
+import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { queryClient } from "@/utils/rest-api";
 import { canConfigureEmailToggles } from "./access";
 import { EMAIL_CATEGORIES, EMAIL_CATEGORY_GROUPS } from "./email-categories";
+
+const BUSINESS_MATCHING_CATEGORY_KEY = "business_matching_invite";
 
 const formSchema = z.object({
 	senderName: z.string(),
@@ -39,6 +44,7 @@ const formSchema = z.object({
 		}),
 	emailsEnabled: z.boolean(),
 	disabledCategories: z.array(z.string()),
+	businessMatchingTicketTypeIds: z.array(z.string()),
 });
 
 interface EmailSettingsFormProps {
@@ -62,6 +68,11 @@ export default function EmailSettingsForm({
 	} = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId.toString()),
+	});
+
+	const { data: ticketTypes } = useQuery({
+		queryKey: ["event", eventId, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId: eventId.toString() }),
 	});
 
 	const updateEventMutation = useMutation({
@@ -91,6 +102,7 @@ export default function EmailSettingsForm({
 			paymentReceiptEmail: "",
 			emailsEnabled: true,
 			disabledCategories: [] as string[],
+			businessMatchingTicketTypeIds: [] as string[],
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -108,6 +120,8 @@ export default function EmailSettingsForm({
 							? {
 									emails_enabled: value.emailsEnabled,
 									disabled_categories: value.disabledCategories,
+									business_matching_ticket_type_ids:
+										value.businessMatchingTicketTypeIds.map(Number),
 								}
 							: {}),
 					},
@@ -132,6 +146,10 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"disabledCategories",
 					setting?.disabled_categories ?? [],
+				);
+				form.setFieldValue(
+					"businessMatchingTicketTypeIds",
+					(setting?.business_matching_ticket_type_ids ?? []).map(String),
 				);
 			}, 0);
 			hasInitialized.current = event.id;
@@ -312,7 +330,9 @@ export default function EmailSettingsForm({
 											<div className="flex flex-col gap-6">
 												{EMAIL_CATEGORY_GROUPS.map((group) => {
 													const categories = EMAIL_CATEGORIES.filter(
-														(c) => c.group === group.key,
+														(c) =>
+															c.group === group.key &&
+															c.key !== BUSINESS_MATCHING_CATEGORY_KEY,
 													);
 													if (categories.length === 0) return null;
 
@@ -360,6 +380,89 @@ export default function EmailSettingsForm({
 										)}
 									</form.Field>
 								)}
+							</form.Field>
+						</FormGroupContainer>
+					)}
+
+					{canToggleEmails && (
+						<FormGroupContainer
+							title={{
+								icon: Handshake,
+								label: "Business Matching Invite",
+								description:
+									"Send a follow-up email with the business matching booking link after a ticket is confirmed.",
+							}}
+						>
+							<form.Field name="emailsEnabled">
+								{(emailsEnabledField) => (
+									<form.Field name="disabledCategories">
+										{(field) => (
+											<SwitchCardInput
+												variant="no-rounded"
+												label="Send business matching invite"
+												htmlFor={`${field.name}-${BUSINESS_MATCHING_CATEGORY_KEY}`}
+												checked={
+													!field.state.value.includes(
+														BUSINESS_MATCHING_CATEGORY_KEY,
+													)
+												}
+												onCheckedChange={(checked) => {
+													field.handleChange(
+														checked
+															? field.state.value.filter(
+																	(k) => k !== BUSINESS_MATCHING_CATEGORY_KEY,
+																)
+															: [
+																	...field.state.value,
+																	BUSINESS_MATCHING_CATEGORY_KEY,
+																],
+													);
+												}}
+												disabled={
+													updateEventMutation.isPending ||
+													!emailsEnabledField.state.value
+												}
+												description="Buyers of the ticket types picked below get this email right after their ticket confirmation."
+											/>
+										)}
+									</form.Field>
+								)}
+							</form.Field>
+
+							<form.Field name="disabledCategories">
+								{(categoriesField) =>
+									!categoriesField.state.value.includes(
+										BUSINESS_MATCHING_CATEGORY_KEY,
+									) && (
+										<form.Field name="businessMatchingTicketTypeIds">
+											{(ticketTypeIdsField) => (
+												<div className="mt-4 flex flex-col gap-2 border-t pt-4">
+													<Label className="font-medium text-sm">
+														Ticket types that receive the invite
+													</Label>
+													<MultiSelectLegacy
+														options={(ticketTypes ?? []).map((tt) => ({
+															label: tt.name,
+															value: tt.id.toString(),
+														}))}
+														selected={ticketTypeIdsField.state.value}
+														onChange={ticketTypeIdsField.handleChange}
+														placeholder={
+															(ticketTypes ?? []).length === 0
+																? "No ticket types yet"
+																: "Select ticket types"
+														}
+													/>
+													<span className="text-muted-foreground text-xs">
+														Only buyers of the selected ticket types get this
+														email. Requires business matching to be enabled for
+														this event too.
+													</span>
+												</div>
+											)}
+										</form.Field>
+									)
+								}
 							</form.Field>
 						</FormGroupContainer>
 					)}
