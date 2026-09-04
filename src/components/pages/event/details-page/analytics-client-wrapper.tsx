@@ -125,7 +125,10 @@ export function AnalyticsClientWrapper({
 
 						<TabsContent value="time-series-stats" className="mt-2">
 							{isTicketEvent ? (
-								<EventDetailsTicketStats event={event} />
+								<EventDetailsTicketStats
+									event={event}
+									includeMultiScans={includeMultiScans}
+								/>
 							) : (
 								<EventDetailsVisitorStats event={event} />
 							)}
@@ -172,7 +175,10 @@ export function AnalyticsClientWrapper({
 
 					{/* Analytics */}
 					{isTicketEvent ? (
-						<EventDetailsTicketStats event={event} />
+						<EventDetailsTicketStats
+							event={event}
+							includeMultiScans={includeMultiScans}
+						/>
 					) : (
 						<EventDetailsVisitorStats event={event} />
 					)}

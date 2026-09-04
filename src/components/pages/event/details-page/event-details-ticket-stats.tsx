@@ -20,10 +20,15 @@ import type { Event } from "@/lib/api/event/response";
 
 interface EventDetailsTicketStatsProps {
 	event: Event;
+	// Mirrors the page's "Include re-scans" toggle so the on-screen charts and the
+	// exported PDF count re-entry scans when it's on. The PDF report already labels
+	// this variant ("Total Scans" + "N unique tickets checked in") based on the data.
+	includeMultiScans?: boolean;
 }
 
 export function EventDetailsTicketStats({
 	event,
+	includeMultiScans = false,
 }: EventDetailsTicketStatsProps) {
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
@@ -38,6 +43,7 @@ export function EventDetailsTicketStats({
 			event.id.toString(),
 			"time-series",
 			dateSelection,
+			includeMultiScans,
 		],
 		queryFn: () =>
 			getEventAnalytics(event.id.toString(), {
@@ -45,6 +51,7 @@ export function EventDetailsTicketStats({
 				endDate: analyticsParams.endDate,
 				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
+				includeMultiScans,
 			}),
 	});
 
@@ -74,12 +81,20 @@ export function EventDetailsTicketStats({
 		});
 
 	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
-		queryKey: ["event", event.id, "hourly_breakdown", "scans", dateSelection],
+		queryKey: [
+			"event",
+			event.id,
+			"hourly_breakdown",
+			"scans",
+			dateSelection,
+			includeMultiScans,
+		],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event.id, "scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: shouldFetchHourlyBreakdown,
 	});
