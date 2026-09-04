@@ -19,7 +19,13 @@ const assetSources = ["'self'", "data:", "blob:", "https:", apiOrigin]
 // (nonces) in the Phase-3 hardening pass.
 const csp = [
 	"default-src 'self'",
-	`script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+	// 'wasm-unsafe-eval' is required in all environments: the PDF export lib
+	// (pdf-lib) compiles a WebAssembly module at runtime, which CSP treats as
+	// eval. It allows WASM compilation only — unlike 'unsafe-eval' it does not
+	// permit eval()/new Function for JS.
+	`script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${
+		isDev ? " 'unsafe-eval'" : ""
+	}`,
 	"style-src 'self' 'unsafe-inline'",
 	`img-src ${assetSources}`,
 	"font-src 'self' data:",
