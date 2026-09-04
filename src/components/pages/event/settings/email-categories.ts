@@ -39,6 +39,11 @@ export const EMAIL_CATEGORIES: {
 	},
 	{ key: "certificate", label: "E-Certificate", group: "ticket" },
 	{
+		key: "voucher_showcase",
+		label: "Voucher Showcase Follow-up",
+		group: "ticket",
+	},
+	{
 		key: "ticket_application",
 		label: "Ticket Application (RSVP)",
 		group: "ticket",
