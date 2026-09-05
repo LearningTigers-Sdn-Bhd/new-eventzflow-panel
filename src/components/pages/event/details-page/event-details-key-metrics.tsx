@@ -4,7 +4,6 @@ import {
 	CircleDashed,
 	Clock,
 	DollarSign,
-	Percent,
 	QrCode,
 	ShoppingBag,
 	Ticket,
@@ -28,18 +27,6 @@ export function EventDetailsKeyMetrics({
 	mallData,
 	formatCurrency,
 }: EventDetailsKeyMetricsProps) {
-	// Rate must stay based on unique checked-in tickets (paid - unscanned), never
-	// on scannedTickets directly — with multi-scan re-entries included, scannedTickets
-	// can exceed paidTickets and would push the rate past 100%.
-	const uniqueScannedTickets = ticketAnalytics
-		? (ticketAnalytics.paidTickets ?? 0) -
-			(ticketAnalytics.unscannedTickets ?? 0)
-		: 0;
-	const checkInRate = ticketAnalytics?.paidTickets
-		? Math.round((uniqueScannedTickets / ticketAnalytics.paidTickets) * 1000) /
-			10
-		: 0;
-
 	return (
 		<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-4">
 			{isTicketEvent ? (
@@ -60,9 +47,9 @@ export function EventDetailsKeyMetrics({
 						Icon={Clock}
 					/>
 					<StatsCard
-						label="Check-in Rate"
-						value={`${checkInRate}%`}
-						Icon={Percent}
+						label="Total Visitor"
+						value={ticketAnalytics?.totalVisitors ?? 0}
+						Icon={Users}
 					/>
 					<StatsCard
 						label="Scanned Tickets"

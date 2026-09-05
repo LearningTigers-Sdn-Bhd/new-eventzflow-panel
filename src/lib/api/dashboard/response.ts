@@ -63,6 +63,7 @@ export type EventAnalytics = {
 	totalTickets: number;
 	paidTickets: number;
 	pendingTickets: number;
+	totalVisitors: number;
 	scannedTickets: number;
 	unscannedTickets: number;
 	totalRevenue: number;
@@ -119,6 +120,7 @@ export type BackendAnalyticsResponse = {
 	totalTickets: number;
 	paidTickets: number;
 	pendingTickets: number;
+	totalVisitors: number;
 };
 
 export type BackendScannedTicketsResponse = {
@@ -132,6 +134,10 @@ export type BackendUnscannedTicketsResponse = {
 export type BackendRevenueResponse = {
 	totalAmountPrice: number;
 	pendingAmountPrice: number;
+};
+
+export type BackendRecentScansResponse = {
+	recentScans: RecentScan[];
 };
 
 export type BackendTicket = {

@@ -8,11 +8,10 @@ import type {
 	AllEventsStats,
 	BackendAllEventsStats,
 	BackendAnalyticsResponse,
-	BackendEventLocation,
 	BackendEventOverview,
+	BackendRecentScansResponse,
 	BackendRevenueResponse,
 	BackendScannedTicketsResponse,
-	BackendTicket,
 	BackendUnscannedTicketsResponse,
 	EventAnalytics,
 	EventOverview,
@@ -131,7 +130,9 @@ export async function getEventAnalyticsServer(
 		status: string;
 	}>(`v1/events/${eventIdNum}`, token);
 
-	// Fetch all analytics data in parallel (using new time_series endpoint)
+	// Fetch all analytics data in parallel (using new time_series endpoint).
+	// Recent scans come from a dedicated backend query (ScanLog, limit 5) —
+	// never dump the full ticket table just to sort/slice client-side.
 	const [
 		totalTickets,
 		scannedTickets,
@@ -140,6 +141,8 @@ export async function getEventAnalyticsServer(
 		ticketsTimeSeries,
 		scansTimeSeries,
 		revenueTimeSeries,
+		locations,
+		recentScansResponse,
 	] = await Promise.all([
 		serverFetch<BackendAnalyticsResponse>(
 			`v1/events/${eventIdNum}/metrics/total_tickets`,
@@ -169,66 +172,17 @@ export async function getEventAnalyticsServer(
 			`v1/events/${eventIdNum}/metrics/time_series?metric=revenue&group_by=day`,
 			token,
 		),
+		serverFetch<Array<{ id: number }>>(
+			`v1/events/${eventIdNum}/event_locations`,
+			token,
+		),
+		serverFetch<BackendRecentScansResponse>(
+			`v1/events/${eventIdNum}/metrics/recent_scans?limit=5`,
+			token,
+		),
 	]);
 
-	// Fetch event locations to get count
-	const locations = await serverFetch<Array<{ id: number }>>(
-		`v1/events/${eventIdNum}/event_locations`,
-		token,
-	);
-
-	// Fetch recent scans from backend (last 5 scanned tickets)
-	const allTickets = await serverFetch<BackendTicket[]>(
-		`v1/events/${eventIdNum}/tickets`,
-		token,
-	);
-
-	// Filter for scanned tickets and get the 5 most recent
-	const recentScannedTickets = allTickets
-		.filter((ticket) => ticket.status === "scanned" && ticket.checked_in)
-		.sort((a, b) => {
-			const dateA = new Date(a.check_in_at || 0).getTime();
-			const dateB = new Date(b.check_in_at || 0).getTime();
-			return dateB - dateA;
-		})
-		.slice(0, 5);
-
-	// Create a map of user_id -> location_name
-	const locationsWithMembers = await serverFetch<BackendEventLocation[]>(
-		`v1/events/${eventIdNum}/event_locations`,
-		token,
-	);
-
-	const userLocationMap = new Map<number, string>();
-	for (const location of locationsWithMembers) {
-		// Combine staff_members and vendors arrays
-		const allMembers = [
-			...(location.staff_members || []),
-			...(location.vendors || []),
-		];
-
-		for (const member of allMembers) {
-			userLocationMap.set(member.id, location.name);
-		}
-	}
-
-	// Map to RecentScan format
-	const recentScans: RecentScan[] = recentScannedTickets.map((ticket) => {
-		const scannedBy = ticket.scanned_by?.full_name || "Auto Check-in";
-		const locationName = ticket.scanned_by_id
-			? userLocationMap.get(ticket.scanned_by_id) || "General Access"
-			: "N/A";
-
-		return {
-			id: ticket.public_id,
-			ticketHolder: ticket.attendee_name,
-			email: ticket.attendee_email,
-			location: locationName,
-			scannedBy,
-			timestamp: ticket.check_in_at || new Date().toISOString(),
-			status: "scanned",
-		};
-	});
+	const recentScans: RecentScan[] = recentScansResponse.recentScans;
 
 	return {
 		eventId: event.id.toString(),
@@ -237,6 +191,7 @@ export async function getEventAnalyticsServer(
 		totalTickets: totalTickets.totalTickets,
 		paidTickets: totalTickets.paidTickets,
 		pendingTickets: totalTickets.pendingTickets,
+		totalVisitors: totalTickets.totalVisitors,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,
 		totalRevenue: centsToDollars(totalRevenue.totalAmountPrice),
