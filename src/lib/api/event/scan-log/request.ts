@@ -10,6 +10,7 @@ export const getScanLogsSchema = z.object({
 	date: z.string().optional(),
 	scannableType: z.enum(["Ticket", "Visitor"]).optional(),
 	scannableId: z.number().optional(),
+	ticketTypeId: z.number().optional(),
 });
 
 export type GetScanLogsRequest = z.infer<typeof getScanLogsSchema>;

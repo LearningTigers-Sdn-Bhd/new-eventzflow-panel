@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { use, useEffect, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { ScanLogDetailSheet } from "@/components/pages/scanned-log/scan-log-detail-sheet";
-import { ScanLogExportDropdown } from "@/components/pages/scanned-log/scan-log-export-dropdown";
 import { TicketScanButton } from "@/components/pages/scanned-log/ticket-scan-button";
 import { columns } from "@/components/pages/scanned-log/ticket-scanned-log-columns";
 import { DataTable } from "@/components/pages/scanned-log/ticket-scanned-log-table";
@@ -14,6 +13,7 @@ import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 import { getScanLogs } from "@/lib/api/event/scan-log";
 import type { ScannedLog } from "@/lib/api/event/scan-log/response";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 
 function useDebounced<T>(value: T, delay = 300): T {
 	const [debounced, setDebounced] = useState(value);
@@ -36,6 +36,7 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const [source, setSource] = useState("all");
+	const [ticketTypeId, setTicketTypeId] = useState("all");
 	const [selectedRow, setSelectedRow] = useState<ScannedLog | null>(null);
 
 	const debouncedSearch = useDebounced(search);
@@ -50,13 +51,26 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 		setPage(1);
 	};
 
+	const handleTicketTypeIdChange = (value: string) => {
+		setTicketTypeId(value);
+		setPage(1);
+	};
+
 	const {
 		data: scanLogs,
 		isLoading,
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["event", event_id, "scan-logs", page, debouncedSearch, source],
+		queryKey: [
+			"event",
+			event_id,
+			"scan-logs",
+			page,
+			debouncedSearch,
+			source,
+			ticketTypeId,
+		],
 		queryFn: () =>
 			getScanLogs({
 				eventId: event_id,
@@ -67,6 +81,7 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 					source === "all"
 						? undefined
 						: (source as "staff_scan" | "self_check_in" | "kiosk"),
+				ticketTypeId: ticketTypeId === "all" ? undefined : Number(ticketTypeId),
 			}),
 		placeholderData: (previous) => previous,
 	});
@@ -76,6 +91,17 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 		queryKey: ["event", event_id, "staff"],
 		queryFn: () => getEventStaff({ eventId: event_id }),
 	});
+
+	const { data: ticketTypes } = useQuery({
+		queryKey: ["event", event_id, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId: event_id }),
+	});
+
+	const ticketTypeOptions =
+		ticketTypes?.map((type) => ({
+			label: type.name,
+			value: String(type.id),
+		})) ?? [];
 
 	// Check if current user has permission to scan tickets
 	const canScanTickets = useMemo(() => {
@@ -97,15 +123,6 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-				<ScanLogExportDropdown
-					eventId={event_id}
-					q={debouncedSearch || undefined}
-					source={
-						source === "all"
-							? undefined
-							: (source as "staff_scan" | "self_check_in" | "kiosk")
-					}
-				/>
 				<TicketScanButton
 					eventId={event_id}
 					canScanTickets={canScanTickets}
@@ -113,7 +130,7 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 				/>
 			</div>
 		),
-		[canScanTickets, event_id, refetch, debouncedSearch, source],
+		[canScanTickets, event_id, refetch],
 	);
 
 	useSetEventActions(eventActions);
@@ -142,6 +159,9 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 						onSearchChange={handleSearchChange}
 						source={source}
 						onSourceChange={handleSourceChange}
+						ticketTypeId={ticketTypeId}
+						onTicketTypeIdChange={handleTicketTypeIdChange}
+						ticketTypeOptions={ticketTypeOptions}
 						onRowClick={setSelectedRow}
 						pagination={{
 							pageIndex: (scanLogs?.pagination.current_page ?? 1) - 1,

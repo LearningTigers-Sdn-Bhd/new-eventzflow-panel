@@ -5,6 +5,7 @@ export type ScannedLog = {
 	name: string;
 	email: string | null;
 	phone: string | null;
+	ticketTypeName: string | null;
 	locationName: string;
 	scannedBy: string;
 	source: ScanSource;

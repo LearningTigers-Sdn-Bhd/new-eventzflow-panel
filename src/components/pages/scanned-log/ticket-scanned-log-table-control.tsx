@@ -10,6 +10,9 @@ interface DataControlProps<TData> {
 	onSearchChange: (value: string) => void;
 	source: string;
 	onSourceChange: (value: string) => void;
+	ticketTypeId: string;
+	onTicketTypeIdChange: (value: string) => void;
+	ticketTypeOptions: { label: string; value: string }[];
 }
 
 export function DataControl<TData>({
@@ -18,6 +21,9 @@ export function DataControl<TData>({
 	onSearchChange,
 	source,
 	onSourceChange,
+	ticketTypeId,
+	onTicketTypeIdChange,
+	ticketTypeOptions,
 }: DataControlProps<TData>) {
 	const sourceFilterControl: ControlConfig = {
 		label: "Source",
@@ -35,8 +41,20 @@ export function DataControl<TData>({
 		},
 	};
 
+	const ticketTypeFilterControl: ControlConfig = {
+		label: "Ticket Type",
+		columnId: "ticketTypeName",
+		type: "filter",
+		data: [{ label: "All", value: "all" }, ...ticketTypeOptions],
+		customFilter: {
+			value: ticketTypeId,
+			onChange: onTicketTypeIdChange,
+		},
+	};
+
 	const mobileControlConfigs: ControlConfig[] = [
 		{ ...sourceFilterControl, topPriority: true },
+		{ ...ticketTypeFilterControl, topPriority: true },
 		{ label: "Name", columnId: "name", type: "sort" },
 		{ label: "Location", columnId: "locationName", type: "sort" },
 		{ label: "Scanned By", columnId: "scannedBy", type: "sort" },
@@ -53,7 +71,9 @@ export function DataControl<TData>({
 					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
-			desktopConfig={{ controlConfigs: [sourceFilterControl] }}
+			desktopConfig={{
+				controlConfigs: [sourceFilterControl, ticketTypeFilterControl],
+			}}
 			mobileConfig={{ controlConfigs: mobileControlConfigs }}
 		/>
 	);

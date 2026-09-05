@@ -10,6 +10,7 @@ import { ExportLogPageButton } from "@/components/pages/export-log/page-action/b
 import { Button } from "@/components/ui/button";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { createExportLog, getExportLogs } from "@/lib/api/event/export-log";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 
 export default function ExportLogsPage({
 	params,
@@ -28,9 +29,23 @@ export default function ExportLogsPage({
 		queryFn: () => getExportLogs({ eventId: event_id }),
 	});
 
+	const { data: ticketTypes } = useQuery({
+		queryKey: ["event", event_id, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId: event_id }),
+	});
+
+	const ticketTypeOptions =
+		ticketTypes?.map((type) => ({
+			label: type.name,
+			value: String(type.id),
+		})) ?? [];
+
 	const createExportMutation = useMutation({
-		mutationFn: (params: { from?: string; to?: string }) =>
-			createExportLog({ eventId: event_id, ...params }),
+		mutationFn: (params: {
+			from?: string;
+			to?: string;
+			ticketTypeId?: number;
+		}) => createExportLog({ eventId: event_id, ...params }),
 		onSuccess: (newExport) => {
 			// Invalidate and refetch the export logs
 			queryClient.invalidateQueries({
@@ -49,14 +64,19 @@ export default function ExportLogsPage({
 		},
 	});
 
-	const handleCreateExport = (from?: string, to?: string) => {
-		createExportMutation.mutate({ from, to });
+	const handleCreateExport = (params: {
+		from?: string;
+		to?: string;
+		ticketTypeId?: number;
+	}) => {
+		createExportMutation.mutate(params);
 	};
 
 	useSetEventActions(
 		<ExportLogPageButton
 			onCreateExport={handleCreateExport}
 			isCreating={createExportMutation.isPending}
+			ticketTypeOptions={ticketTypeOptions}
 		/>,
 	);
 

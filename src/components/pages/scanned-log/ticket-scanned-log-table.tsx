@@ -39,6 +39,9 @@ interface DataTableProps<TData, TValue> {
 	onSearchChange: (value: string) => void;
 	source: string;
 	onSourceChange: (value: string) => void;
+	ticketTypeId: string;
+	onTicketTypeIdChange: (value: string) => void;
+	ticketTypeOptions: { label: string; value: string }[];
 	onRowClick?: (row: TData) => void;
 	// Server-side pagination state (pagy). When provided, the table runs in
 	// manual-pagination mode so the shared DataPagination control can drive it.
@@ -52,6 +55,9 @@ export function DataTable<TData, TValue>({
 	onSearchChange,
 	source,
 	onSourceChange,
+	ticketTypeId,
+	onTicketTypeIdChange,
+	ticketTypeOptions,
 	onRowClick,
 	pagination,
 }: DataTableProps<TData, TValue>) {
@@ -100,6 +106,9 @@ export function DataTable<TData, TValue>({
 				onSearchChange={onSearchChange}
 				source={source}
 				onSourceChange={onSourceChange}
+				ticketTypeId={ticketTypeId}
+				onTicketTypeIdChange={onTicketTypeIdChange}
+				ticketTypeOptions={ticketTypeOptions}
 			/>
 
 			<div className="min-h-[calc(100vh-320px)]">

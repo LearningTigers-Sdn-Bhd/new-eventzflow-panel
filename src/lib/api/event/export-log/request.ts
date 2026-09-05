@@ -10,6 +10,7 @@ export const createExportLogSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
 	from: z.string().optional(),
 	to: z.string().optional(),
+	ticketTypeId: z.number().optional(),
 });
 
 // Validation schema for downloading export log

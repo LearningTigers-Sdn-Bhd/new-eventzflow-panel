@@ -56,6 +56,17 @@ export const columns: ColumnDef<ScannedLog>[] = [
 		),
 	},
 	{
+		id: "ticketTypeName",
+		accessorFn: (row) => row.ticketTypeName,
+		size: 160,
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Ticket Type" />
+		),
+		cell: ({ row }) => (
+			<div className="font-medium">{row.original.ticketTypeName ?? "—"}</div>
+		),
+	},
+	{
 		id: "locationName",
 		accessorFn: (row) => row.locationName,
 		size: 200,

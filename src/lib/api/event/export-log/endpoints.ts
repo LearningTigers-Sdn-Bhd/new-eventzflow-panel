@@ -55,6 +55,8 @@ export async function createExportLog(
 		const params = new URLSearchParams({ event_id: validated.eventId });
 		if (validated.from) params.append("from", validated.from);
 		if (validated.to) params.append("to", validated.to);
+		if (validated.ticketTypeId)
+			params.append("ticket_type_id", String(validated.ticketTypeId));
 
 		const response = await restClient.post<{
 			success: boolean;
