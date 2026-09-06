@@ -9,9 +9,14 @@ import { EventDetailsActionButtons } from "@/components/pages/event/details-page
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
 import { Button } from "@/components/ui/button";
+import {
+	type EventDateSelection,
+	getAnalyticsParamsFromSelection,
+} from "@/components/ui/event-date-filter";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -29,7 +34,14 @@ export default function EventDetailsPage({
 	const { isVendor, isExhibitionContractor, canManageEvent } =
 		useEventPermissions(event_id);
 	const { openDialog, closeDialog } = useDialog();
-	const [includeMultiScans, setIncludeMultiScans] = useState(false);
+	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
+		`event-${event_id}-include-multi-scans`,
+		false,
+	);
+	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
+		type: "all_time",
+	});
+	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	const shouldFetchAnalytics =
 		isInitialized && !isVendor && !isExhibitionContractor;
@@ -42,8 +54,21 @@ export default function EventDetailsPage({
 				enabled: isInitialized,
 			},
 			{
-				queryKey: ["event-analytics", event_id, includeMultiScans],
-				queryFn: () => getEventAnalytics(event_id, { includeMultiScans }),
+				queryKey: [
+					"event-analytics",
+					event_id,
+					"time-series",
+					dateSelection,
+					includeMultiScans,
+				],
+				queryFn: () =>
+					getEventAnalytics(event_id, {
+						startDate: analyticsParams.startDate,
+						endDate: analyticsParams.endDate,
+						dateMode: analyticsParams.dateMode,
+						groupBy: analyticsParams.groupBy,
+						includeMultiScans,
+					}),
 				enabled: shouldFetchAnalytics,
 			},
 			{
@@ -69,7 +94,7 @@ export default function EventDetailsPage({
 
 	const [
 		{ data: event, isLoading: eventLoading, error: eventError },
-		{ data: analytics },
+		{ data: analytics, isLoading: analyticsLoading },
 		{ data: mallData },
 		{ data: voucherAnalytics },
 	] = queries;
@@ -131,10 +156,13 @@ export default function EventDetailsPage({
 				<AnalyticsClientWrapper
 					event={event}
 					ticketAnalytics={analytics as EventAnalyticsType | undefined}
+					ticketAnalyticsLoading={analyticsLoading}
 					mallData={mallData}
 					voucherAnalytics={voucherAnalytics ?? undefined}
 					includeMultiScans={includeMultiScans}
 					onIncludeMultiScansChange={setIncludeMultiScans}
+					dateSelection={dateSelection}
+					onDateSelectionChange={setDateSelection}
 				/>
 			)}
 

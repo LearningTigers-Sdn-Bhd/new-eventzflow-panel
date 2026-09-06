@@ -116,7 +116,19 @@ export async function getEventAnalytics(
 		return `v1/events/${eventIdNum}/metrics/time_series?${params.toString()}`;
 	};
 
-	const scannedTicketsParams = new URLSearchParams();
+	// Shared date-range params so the summary cards (totals/revenue) are scoped
+	// to the same filter as the Analytics Trends charts.
+	const dateRangeParams = new URLSearchParams();
+	if (options?.dateMode) dateRangeParams.set("date_mode", options.dateMode);
+	if (options?.startDate) dateRangeParams.set("start_date", options.startDate);
+	if (options?.endDate) dateRangeParams.set("end_date", options.endDate);
+
+	const totalTicketsParams = new URLSearchParams(dateRangeParams);
+	if (options?.includeMultiScans) {
+		totalTicketsParams.set("include_multi_scans", "true");
+	}
+
+	const scannedTicketsParams = new URLSearchParams(dateRangeParams);
 	if (options?.includeMultiScans) {
 		scannedTicketsParams.set("include_multi_scans", "true");
 	}
@@ -143,16 +155,16 @@ export async function getEventAnalytics(
 		recentScansResponse,
 	] = await Promise.all([
 		restClient.get<BackendAnalyticsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_tickets?${totalTicketsParams.toString()}`,
 		),
 		restClient.get<BackendScannedTicketsResponse>(
 			`v1/events/${eventIdNum}/metrics/total_scanned_tickets?${scannedTicketsParams.toString()}`,
 		),
 		restClient.get<BackendUnscannedTicketsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets?${dateRangeParams.toString()}`,
 		),
 		restClient.get<BackendRevenueResponse>(
-			`v1/events/${eventIdNum}/metrics/total_amount_price`,
+			`v1/events/${eventIdNum}/metrics/total_amount_price?${dateRangeParams.toString()}`,
 		),
 		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("tickets")),
 		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("scans")),

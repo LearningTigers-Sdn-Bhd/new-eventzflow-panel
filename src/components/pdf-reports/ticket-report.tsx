@@ -106,15 +106,13 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 							label="Pending Tickets"
 							value={stats.pendingTickets.toLocaleString()}
 						/>
-						<StatsCard label="Check-in Rate" value={`${scanRate}%`} />
+						<StatsCard
+							label="Total Visitors"
+							value={stats.totalVisitors.toLocaleString()}
+						/>
 						<StatsCard
 							label={includesReScans ? "Total Scans" : "Scanned Tickets"}
 							value={stats.scannedTickets.toLocaleString()}
-							subtext={
-								includesReScans
-									? `${uniqueScannedTickets.toLocaleString()} unique tickets checked in`
-									: `${scanRate}% of paid tickets checked in`
-							}
 						/>
 						<StatsCard
 							label="Unscanned Tickets"

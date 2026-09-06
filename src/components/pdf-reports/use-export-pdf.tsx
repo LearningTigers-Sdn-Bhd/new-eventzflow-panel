@@ -147,6 +147,7 @@ export function prepareTicketReportData(
 		totalTickets: number;
 		paidTickets: number;
 		pendingTickets: number;
+		totalVisitors: number;
 		scannedTickets: number;
 		unscannedTickets: number;
 		totalRevenue: number;

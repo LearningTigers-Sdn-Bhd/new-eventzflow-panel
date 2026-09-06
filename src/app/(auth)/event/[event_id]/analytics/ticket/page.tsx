@@ -26,6 +26,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import { getEventById } from "@/lib/api/event";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
@@ -44,7 +45,10 @@ export default function TicketAnalyticsPage({
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
-	const [includeMultiScans, setIncludeMultiScans] = useState(false);
+	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
+		`event-${event_id}-include-multi-scans`,
+		false,
+	);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({
@@ -157,6 +161,7 @@ export default function TicketAnalyticsPage({
 				totalTickets: data.totalTickets ?? 0,
 				paidTickets: data.paidTickets ?? 0,
 				pendingTickets: data.pendingTickets ?? 0,
+				totalVisitors: data.totalVisitors ?? 0,
 				scannedTickets: data.scannedTickets ?? 0,
 				unscannedTickets: data.unscannedTickets ?? 0,
 				totalRevenue: data.totalRevenue ?? 0,

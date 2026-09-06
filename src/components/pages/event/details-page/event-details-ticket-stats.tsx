@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, QrCode, Ticket } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 import {
 	ExportPdfButton,
@@ -14,7 +14,7 @@ import {
 	getAnalyticsParamsFromSelection,
 	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
-import { getEventAnalytics } from "@/lib/api/dashboard";
+import type { EventAnalytics } from "@/lib/api/dashboard/response";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 import type { Event } from "@/lib/api/event/response";
 
@@ -24,36 +24,23 @@ interface EventDetailsTicketStatsProps {
 	// exported PDF count re-entry scans when it's on. The PDF report already labels
 	// this variant ("Total Scans" + "N unique tickets checked in") based on the data.
 	includeMultiScans?: boolean;
+	// Fetched once by the parent page (shared with the Key Metrics summary cards
+	// so both are scoped to the same date filter — no duplicate request).
+	ticketAnalytics?: EventAnalytics;
+	isLoading?: boolean;
+	dateSelection: EventDateSelection;
+	onDateSelectionChange: (value: EventDateSelection) => void;
 }
 
 export function EventDetailsTicketStats({
 	event,
 	includeMultiScans = false,
+	ticketAnalytics,
+	isLoading = false,
+	dateSelection,
+	onDateSelectionChange,
 }: EventDetailsTicketStatsProps) {
-	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "all_time",
-	});
-
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
-
-	// Fetch ticket analytics with time-series data
-	const { data: ticketAnalytics, isLoading: ticketLoading } = useQuery({
-		queryKey: [
-			"event-analytics",
-			event.id.toString(),
-			"time-series",
-			dateSelection,
-			includeMultiScans,
-		],
-		queryFn: () =>
-			getEventAnalytics(event.id.toString(), {
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-				dateMode: analyticsParams.dateMode,
-				groupBy: analyticsParams.groupBy,
-				includeMultiScans,
-			}),
-	});
 
 	// Fetch hourly breakdown by day for all_time, pre_event, or event_duration filter
 	// (works for single-day events too — just renders one day's bars)
@@ -72,7 +59,7 @@ export function EventDetailsTicketStats({
 				dateSelection,
 			],
 			queryFn: () =>
-				getHourlyBreakdownByDay(event.id, "tickets", {
+				getHourlyBreakdownByDay(event.id.toString(), "tickets", {
 					dateMode: analyticsParams.dateMode,
 					startDate: analyticsParams.startDate,
 					endDate: analyticsParams.endDate,
@@ -90,7 +77,7 @@ export function EventDetailsTicketStats({
 			includeMultiScans,
 		],
 		queryFn: () =>
-			getHourlyBreakdownByDay(event.id, "scans", {
+			getHourlyBreakdownByDay(event.id.toString(), "scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
@@ -132,6 +119,7 @@ export function EventDetailsTicketStats({
 				totalTickets: ticketAnalytics?.totalTickets ?? 0,
 				paidTickets: ticketAnalytics?.paidTickets ?? 0,
 				pendingTickets: ticketAnalytics?.pendingTickets ?? 0,
+				totalVisitors: ticketAnalytics?.totalVisitors ?? 0,
 				scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
 				unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
 				totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
@@ -163,13 +151,13 @@ export function EventDetailsTicketStats({
 						eventStartDate={event.start_date}
 						eventEndDate={event.end_date}
 						value={dateSelection}
-						onChange={setDateSelection}
+						onChange={onDateSelectionChange}
 					/>
 					<ExportPdfButton
 						data={pdfReportData}
 						size="sm"
 						variant="outline"
-						disabled={ticketLoading || hourlyBreakdownLoading}
+						disabled={isLoading || hourlyBreakdownLoading}
 					/>
 				</div>
 			</div>
@@ -178,7 +166,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Registrations"
 					description="Ticket registrations over time"
 					data={ticketAnalytics?.registrationData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-1)"
 					icon={<Ticket className="h-4 w-4" />}
 				/>
@@ -186,7 +174,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Scans"
 					description="Ticket scans over time"
 					data={ticketAnalytics?.scanData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-2)"
 					icon={<QrCode className="h-4 w-4" />}
 				/>
@@ -194,7 +182,7 @@ export function EventDetailsTicketStats({
 					title="Revenue"
 					description="Sales revenue over time"
 					data={ticketAnalytics?.revenueData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-3)"
 					icon={<DollarSign className="h-4 w-4" />}
 				/>

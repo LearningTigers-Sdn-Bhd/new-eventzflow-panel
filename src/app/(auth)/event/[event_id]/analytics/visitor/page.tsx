@@ -17,6 +17,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getEventById } from "@/lib/api/event";
 import {
 	getHourlyBreakdownByDay,
@@ -40,7 +41,10 @@ export default function VisitorAnalyticsPage({
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
-	const [includeMultiScans, setIncludeMultiScans] = useState(false);
+	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
+		`event-${event_id}-include-multi-scans`,
+		false,
+	);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({

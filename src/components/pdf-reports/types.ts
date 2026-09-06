@@ -50,6 +50,7 @@ export type TicketReportData = {
 		totalTickets: number;
 		paidTickets: number;
 		pendingTickets: number;
+		totalVisitors: number;
 		scannedTickets: number;
 		unscannedTickets: number;
 		totalRevenue: number;

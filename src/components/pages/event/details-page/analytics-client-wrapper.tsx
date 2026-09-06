@@ -5,6 +5,7 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
+import type { EventDateSelection } from "@/components/ui/event-date-filter";
 import { Label } from "@/components/ui/label";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -26,19 +27,25 @@ import { EventDetailsVisitorStats } from "./event-details-visitor-stats";
 interface AnalyticsClientWrapperProps {
 	event: Event;
 	ticketAnalytics?: EventAnalyticsType;
+	ticketAnalyticsLoading?: boolean;
 	mallData?: MallLiveFeedResponse;
 	voucherAnalytics?: VoucherAnalyticsResponse;
 	includeMultiScans?: boolean;
 	onIncludeMultiScansChange?: (value: boolean) => void;
+	dateSelection: EventDateSelection;
+	onDateSelectionChange: (value: EventDateSelection) => void;
 }
 
 export function AnalyticsClientWrapper({
 	event,
 	ticketAnalytics,
+	ticketAnalyticsLoading = false,
 	mallData,
 	voucherAnalytics,
 	includeMultiScans = false,
 	onIncludeMultiScansChange,
+	dateSelection,
+	onDateSelectionChange,
 }: AnalyticsClientWrapperProps) {
 	const { formatDate } = useFormatDate();
 	const isTicketEvent = event.use_ticket !== false;
@@ -128,6 +135,10 @@ export function AnalyticsClientWrapper({
 								<EventDetailsTicketStats
 									event={event}
 									includeMultiScans={includeMultiScans}
+									ticketAnalytics={ticketAnalytics}
+									isLoading={ticketAnalyticsLoading}
+									dateSelection={dateSelection}
+									onDateSelectionChange={onDateSelectionChange}
 								/>
 							) : (
 								<EventDetailsVisitorStats event={event} />
@@ -178,6 +189,10 @@ export function AnalyticsClientWrapper({
 						<EventDetailsTicketStats
 							event={event}
 							includeMultiScans={includeMultiScans}
+							ticketAnalytics={ticketAnalytics}
+							isLoading={ticketAnalyticsLoading}
+							dateSelection={dateSelection}
+							onDateSelectionChange={onDateSelectionChange}
 						/>
 					) : (
 						<EventDetailsVisitorStats event={event} />
