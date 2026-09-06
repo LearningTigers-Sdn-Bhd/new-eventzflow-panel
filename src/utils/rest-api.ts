@@ -325,6 +325,20 @@ export const restClient = {
 	},
 
 	/**
+	 * Make a GET request, returning both the parsed body and response headers.
+	 * Use when the endpoint reports metadata (e.g. pagination totals) via
+	 * headers instead of the JSON body — see `X-Total-Count` on the tickets index.
+	 */
+	getWithHeaders: async <T>(
+		url: string,
+		token?: string,
+	): Promise<{ data: T; headers: Headers }> => {
+		const headers = token ? { Authorization: `Bearer ${token}` } : {};
+		const response = await kyClient.get(url, { headers });
+		return { data: await response.json<T>(), headers: response.headers };
+	},
+
+	/**
 	 * Make a GET request that returns a blob (for file downloads)
 	 * @param url - The endpoint URL
 	 * @param token - Optional token to override the default auth token

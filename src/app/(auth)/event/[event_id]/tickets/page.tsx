@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
@@ -8,10 +9,23 @@ import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
-import { getEventTickets } from "@/lib/api/ticket";
+import { getEventTicketsPaged } from "@/lib/api/ticket";
 
 type TicketFilter = "active" | "archived" | "all";
+
+const PAGE_SIZE = 50;
+
+// The "status"/"ticketTypeName" column filters carry these value shapes
+// (string for status, string[] for ticket type — see
+// event-ticket-table-control.tsx's setFilterValue calls).
+function findColumnFilterValue(
+	columnFilters: ColumnFiltersState,
+	id: string,
+): unknown {
+	return columnFilters.find((f) => f.id === id)?.value;
+}
 
 const TICKET_BASE_FIELDS = [
 	"attendee_name",
@@ -29,6 +43,42 @@ export default function TicketsPage({
 }) {
 	const { event_id } = use(params);
 	const [ticketFilter, setTicketFilter] = useState<TicketFilter>("active");
+	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState("");
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+	const debouncedSearch = useDebounce(search, 300);
+
+	const resetToFirstPage = () => setPage(1);
+
+	const handleSearchChange = (value: string) => {
+		setSearch(value);
+		resetToFirstPage();
+	};
+
+	const handleColumnFiltersChange = (
+		updater:
+			| ColumnFiltersState
+			| ((prev: ColumnFiltersState) => ColumnFiltersState),
+	) => {
+		setColumnFilters((prev) =>
+			typeof updater === "function" ? updater(prev) : updater,
+		);
+		resetToFirstPage();
+	};
+
+	const handleTicketFilterChange = (filter: TicketFilter) => {
+		setTicketFilter(filter);
+		resetToFirstPage();
+	};
+
+	const statusFilter = findColumnFilterValue(columnFilters, "status") as
+		| string
+		| undefined;
+	const ticketTypeFilter = findColumnFilterValue(
+		columnFilters,
+		"ticketTypeName",
+	) as string[] | undefined;
 
 	const eventActions = useMemo(
 		() => (
@@ -47,30 +97,38 @@ export default function TicketsPage({
 
 	useSetEventActions(eventActions);
 
-	// Build query options based on filter
-	const queryOptions = useMemo(() => {
-		if (ticketFilter === "all") {
-			return { full: true };
-		}
-		if (ticketFilter === "archived") {
-			return { archived: true };
-		}
-		return undefined; // Default: active tickets only
-	}, [ticketFilter]);
-
 	const {
-		data: tickets,
+		data: result,
 		isLoading,
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["event", event_id, "tickets", ticketFilter],
-		queryFn: () => getEventTickets(event_id, queryOptions),
+		queryKey: [
+			"event",
+			event_id,
+			"tickets",
+			ticketFilter,
+			page,
+			debouncedSearch,
+			statusFilter,
+			ticketTypeFilter,
+		],
+		queryFn: () =>
+			getEventTicketsPaged(event_id, {
+				page,
+				perPage: PAGE_SIZE,
+				full: ticketFilter === "all",
+				archived: ticketFilter === "archived",
+				q: debouncedSearch || undefined,
+				status: statusFilter as "scanned" | "not_scanned" | undefined,
+				ticketTypeName: ticketTypeFilter?.[0],
+			}),
+		placeholderData: (previous) => previous,
 	});
 
 	return (
 		<div className="space-y-4">
-			{isLoading ? (
+			{isLoading && !result ? (
 				<LoadingState
 					title="Loading tickets..."
 					description="Please wait while we fetch your tickets..."
@@ -85,9 +143,23 @@ export default function TicketsPage({
 				/>
 			) : (
 				<DataTable
-					data={(tickets || []).map((t) => ({ ...t, phone: t.phone || "" }))}
+					data={(result?.data ?? []).map((t) => ({
+						...t,
+						phone: t.phone || "",
+					}))}
 					ticketFilter={ticketFilter}
-					onTicketFilterChange={setTicketFilter}
+					onTicketFilterChange={handleTicketFilterChange}
+					search={search}
+					onSearchChange={handleSearchChange}
+					columnFilters={columnFilters}
+					onColumnFiltersChange={handleColumnFiltersChange}
+					pagination={{
+						pageIndex: page - 1,
+						pageSize: PAGE_SIZE,
+						pageCount: result?.pagination.totalPages ?? 0,
+						totalCount: result?.pagination.totalCount ?? 0,
+						onPageChange: (pageIndex) => setPage(pageIndex + 1),
+					}}
 				/>
 			)}
 		</div>

@@ -16,6 +16,7 @@ import type {
 	CreateTicketResponse,
 	ImportTicketsResponse,
 	OfflineData,
+	PagedTicketsResult,
 	ScannedTicket,
 	Ticket,
 	UpdateTicketResponse,
@@ -349,6 +350,63 @@ export async function getEventTickets(
 	return response
 		.filter((ticket) => isPaidTicketPaymentStatus(ticket.payment_status))
 		.map((ticket) => transformBackendTicket(ticket, event.title, eventId));
+}
+
+/**
+ * Get one server-paginated page of tickets for the Manage Tickets table.
+ * Unlike getEventTickets (which loads every ticket at once — fine for the
+ * seating-plan pickers, too slow at thousands of tickets), search/status/type
+ * filtering and sorting all happen server-side so only one page ever
+ * transfers. Always paid tickets only, matching getEventTickets' behavior.
+ */
+export async function getEventTicketsPaged(
+	eventId: string,
+	options: {
+		page: number;
+		perPage: number;
+		q?: string;
+		status?: "scanned" | "not_scanned";
+		ticketTypeName?: string;
+		archived?: boolean;
+		full?: boolean;
+		sortBy?: "name" | "email" | "status" | "createdAt";
+		sortDir?: "asc" | "desc";
+	},
+): Promise<PagedTicketsResult> {
+	const params = new URLSearchParams();
+	params.set("page", String(options.page));
+	params.set("per_page", String(options.perPage));
+	params.set("payment_status", "paid");
+	if (options.full) {
+		params.set("full", "true");
+	} else if (options.archived) {
+		params.set("archived", "true");
+	}
+	if (options.q) params.set("q", options.q);
+	if (options.status) params.set("status", options.status);
+	if (options.ticketTypeName)
+		params.set("ticket_type_name", options.ticketTypeName);
+	if (options.sortBy) params.set("sort_by", options.sortBy);
+	if (options.sortDir) params.set("sort_dir", options.sortDir);
+
+	const [event, { data: response, headers }] = await Promise.all([
+		restClient.get<BackendEvent>(`v1/events/${eventId}`),
+		restClient.getWithHeaders<BackendTicket[]>(
+			`v1/events/${eventId}/tickets?${params.toString()}`,
+		),
+	]);
+
+	return {
+		data: response.map((ticket) =>
+			transformBackendTicket(ticket, event.title, eventId),
+		),
+		pagination: {
+			currentPage: Number(headers.get("X-Page")) || options.page,
+			totalPages: Number(headers.get("X-Total-Pages")) || 0,
+			totalCount: Number(headers.get("X-Total-Count")) || 0,
+			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+	};
 }
 
 /**

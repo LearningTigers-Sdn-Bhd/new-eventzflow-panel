@@ -232,6 +232,20 @@ export interface OfflineData {
 	tickets: OfflineTicket[];
 }
 
+// Pagination metadata for the tickets index, read off response headers
+// (X-Total-Count etc.) rather than the JSON body — see getEventTicketsPaged.
+export type TicketsPagination = {
+	currentPage: number;
+	totalPages: number;
+	totalCount: number;
+	perPage: number;
+};
+
+export type PagedTicketsResult = {
+	data: Ticket[];
+	pagination: TicketsPagination;
+};
+
 // Backend response type (what the API actually returns)
 export interface BackendOfflineData {
 	events: Array<{ id: number; title: string }>;

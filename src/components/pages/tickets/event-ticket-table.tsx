@@ -5,9 +5,8 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
+	type PaginationState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -43,16 +42,40 @@ type TicketFilter = "active" | "archived" | "all";
 
 const MANAGE_TICKETS_VISIBILITY_KEY = "manage-tickets-column-visibility";
 
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+}
+
 interface DataTableProps<TData> {
 	data: TData[];
 	ticketFilter?: TicketFilter;
 	onTicketFilterChange?: (filter: TicketFilter) => void;
+	search: string;
+	onSearchChange: (value: string) => void;
+	columnFilters: ColumnFiltersState;
+	onColumnFiltersChange: (
+		updater:
+			| ColumnFiltersState
+			| ((prev: ColumnFiltersState) => ColumnFiltersState),
+	) => void;
+	// Search/status/type filtering and paging all happen server-side (see
+	// tickets/page.tsx) — `data` here is always exactly one page.
+	pagination: ServerPagination;
 }
 
 export function DataTable<TData>({
 	data,
 	ticketFilter = "active",
 	onTicketFilterChange,
+	search,
+	onSearchChange,
+	columnFilters,
+	onColumnFiltersChange,
+	pagination,
 }: DataTableProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -71,9 +94,6 @@ export function DataTable<TData>({
 	};
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
 
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
@@ -158,22 +178,40 @@ export function DataTable<TData>({
 		[mergedLabelsData],
 	);
 
+	// Manual pagination: search, status/type filters, and paging are all
+	// server-driven (tickets/page.tsx), so `data` here is already exactly one
+	// page. Mirror the server's pagination state into the table via
+	// `manualPagination` + `pageCount` (never getPaginationRowModel, which
+	// would slice the page again to TanStack's default size of 10). Sorting
+	// stays local: it only reorders the rows already on this page.
+	const paginationState: PaginationState = {
+		pageIndex: pagination.pageIndex,
+		pageSize: pagination.pageSize,
+	};
+
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onColumnFiltersChange,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnOrderChange: setColumnOrder,
+		manualPagination: true,
+		manualFiltering: true,
+		pageCount: pagination.pageCount,
+		onPaginationChange: (updater) => {
+			const next =
+				typeof updater === "function" ? updater(paginationState) : updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
 			columnOrder,
+			pagination: paginationState,
 		},
 	});
 
@@ -185,6 +223,8 @@ export function DataTable<TData>({
 				ticketFilter={ticketFilter}
 				onTicketFilterChange={onTicketFilterChange}
 				onResetColumns={resetColumnPreferences}
+				search={search}
+				onSearchChange={onSearchChange}
 			/>
 
 			{/* Data Table */}
@@ -258,7 +298,7 @@ export function DataTable<TData>({
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} />
+			<DataPagination table={table} totalRows={pagination.totalCount} />
 		</div>
 	);
 }

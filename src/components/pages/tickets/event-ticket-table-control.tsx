@@ -16,6 +16,8 @@ interface DataControlProps<TData> {
 	ticketFilter?: TicketFilter;
 	onTicketFilterChange?: (filter: TicketFilter) => void;
 	onResetColumns?: () => void;
+	search: string;
+	onSearchChange: (value: string) => void;
 }
 
 function getColumnLabel(
@@ -47,6 +49,8 @@ export function DataControl<TData>({
 	ticketFilter = "active",
 	onTicketFilterChange,
 	onResetColumns,
+	search,
+	onSearchChange,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -227,6 +231,7 @@ export function DataControl<TData>({
 					placeholder: "Search tickets...",
 					enableCustomSearch: true,
 					columns: ["name", "email", "phone", "ticketTypeName"],
+					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
 			desktopConfig={{
