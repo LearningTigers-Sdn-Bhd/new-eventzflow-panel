@@ -48,6 +48,7 @@ interface ServerPagination {
 	pageCount: number;
 	totalCount: number;
 	onPageChange: (pageIndex: number) => void;
+	onPageSizeChange: (size: number) => void;
 }
 
 interface DataTableProps<TData> {
@@ -298,7 +299,12 @@ export function DataTable<TData>({
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} totalRows={pagination.totalCount} />
+			<DataPagination
+				table={table}
+				totalRows={pagination.totalCount}
+				pageSize={pagination.pageSize}
+				onPageSizeChange={pagination.onPageSizeChange}
+			/>
 		</div>
 	);
 }

@@ -2,6 +2,13 @@
 
 import type { Table } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 interface DataPaginationProps<TData> {
 	table: Table<TData>;
@@ -9,11 +16,18 @@ interface DataPaginationProps<TData> {
 	// `rows.length` undercounts. Pass the real total from the server to label
 	// the footer correctly ("N row(s) total").
 	totalRows?: number;
+	// When provided (with onPageSizeChange), shows a page-size dropdown.
+	pageSize?: number;
+	onPageSizeChange?: (size: number) => void;
+	pageSizeOptions?: number[];
 }
 
 export function DataPagination<TData>({
 	table,
 	totalRows,
+	pageSize,
+	onPageSizeChange,
+	pageSizeOptions = [25, 50, 100],
 }: DataPaginationProps<TData>) {
 	const currentPage = table.getState().pagination.pageIndex;
 	const pageCount = table.getPageCount();
@@ -58,8 +72,30 @@ export function DataPagination<TData>({
 
 	return (
 		<div className="-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9">
-			<div className="flex-1 text-muted-foreground text-sm">
-				{totalRows ?? table.getFilteredRowModel().rows.length} row(s) total.
+			<div className="flex flex-1 flex-wrap items-center gap-3 text-muted-foreground text-sm">
+				<span>
+					{totalRows ?? table.getFilteredRowModel().rows.length} row(s) total.
+				</span>
+				{pageSize !== undefined && onPageSizeChange && (
+					<div className="flex items-center gap-2">
+						<span>Rows per page</span>
+						<Select
+							value={String(pageSize)}
+							onValueChange={(value) => onPageSizeChange(Number(value))}
+						>
+							<SelectTrigger className="h-8 w-[70px] rounded-none">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{pageSizeOptions.map((size) => (
+									<SelectItem key={size} value={String(size)}>
+										{size}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				)}
 			</div>
 			<div className="space-x-2">
 				<Button

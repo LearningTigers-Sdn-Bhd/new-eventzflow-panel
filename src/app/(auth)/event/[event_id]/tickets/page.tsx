@@ -10,12 +10,13 @@ import { TicketPageButton } from "@/components/pages/tickets/page-action/create-
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTicketsPaged } from "@/lib/api/ticket";
 
 type TicketFilter = "active" | "archived" | "all";
 
-const PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 25;
 
 // The "status"/"ticketTypeName" column filters carry these value shapes
 // (string for status, string[] for ticket type — see
@@ -44,12 +45,21 @@ export default function TicketsPage({
 	const { event_id } = use(params);
 	const [ticketFilter, setTicketFilter] = useState<TicketFilter>("active");
 	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = usePersistedState(
+		`event-${event_id}-tickets-page-size`,
+		DEFAULT_PAGE_SIZE,
+	);
 	const [search, setSearch] = useState("");
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
 	const debouncedSearch = useDebounce(search, 300);
 
 	const resetToFirstPage = () => setPage(1);
+
+	const handlePageSizeChange = (size: number) => {
+		setPageSize(size);
+		resetToFirstPage();
+	};
 
 	const handleSearchChange = (value: string) => {
 		setSearch(value);
@@ -109,6 +119,7 @@ export default function TicketsPage({
 			"tickets",
 			ticketFilter,
 			page,
+			pageSize,
 			debouncedSearch,
 			statusFilter,
 			ticketTypeFilter,
@@ -116,7 +127,7 @@ export default function TicketsPage({
 		queryFn: () =>
 			getEventTicketsPaged(event_id, {
 				page,
-				perPage: PAGE_SIZE,
+				perPage: pageSize,
 				full: ticketFilter === "all",
 				archived: ticketFilter === "archived",
 				q: debouncedSearch || undefined,
@@ -155,10 +166,11 @@ export default function TicketsPage({
 					onColumnFiltersChange={handleColumnFiltersChange}
 					pagination={{
 						pageIndex: page - 1,
-						pageSize: PAGE_SIZE,
+						pageSize,
 						pageCount: result?.pagination.totalPages ?? 0,
 						totalCount: result?.pagination.totalCount ?? 0,
 						onPageChange: (pageIndex) => setPage(pageIndex + 1),
+						onPageSizeChange: handlePageSizeChange,
 					}}
 				/>
 			)}
