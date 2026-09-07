@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
@@ -51,6 +51,7 @@ export default function TicketsPage({
 	);
 	const [search, setSearch] = useState("");
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [sorting, setSorting] = useState<SortingState>([]);
 
 	const debouncedSearch = useDebounce(search, 300);
 
@@ -81,6 +82,24 @@ export default function TicketsPage({
 		setTicketFilter(filter);
 		resetToFirstPage();
 	};
+
+	const handleSortingChange = (
+		updater: SortingState | ((prev: SortingState) => SortingState),
+	) => {
+		setSorting((prev) =>
+			typeof updater === "function" ? updater(prev) : updater,
+		);
+		resetToFirstPage();
+	};
+
+	const sort = sorting[0] as { id: string; desc: boolean } | undefined;
+	const sortBy = sort?.id as
+		| "name"
+		| "email"
+		| "status"
+		| "createdAt"
+		| undefined;
+	const sortDir = sort ? (sort.desc ? "desc" : "asc") : undefined;
 
 	const statusFilter = findColumnFilterValue(columnFilters, "status") as
 		| string
@@ -123,6 +142,8 @@ export default function TicketsPage({
 			debouncedSearch,
 			statusFilter,
 			ticketTypeFilter,
+			sortBy,
+			sortDir,
 		],
 		queryFn: () =>
 			getEventTicketsPaged(event_id, {
@@ -133,6 +154,8 @@ export default function TicketsPage({
 				q: debouncedSearch || undefined,
 				status: statusFilter as "scanned" | "not_scanned" | undefined,
 				ticketTypeName: ticketTypeFilter?.[0],
+				sortBy,
+				sortDir,
 			}),
 		placeholderData: (previous) => previous,
 	});
@@ -164,6 +187,8 @@ export default function TicketsPage({
 					onSearchChange={handleSearchChange}
 					columnFilters={columnFilters}
 					onColumnFiltersChange={handleColumnFiltersChange}
+					sorting={sorting}
+					onSortingChange={handleSortingChange}
 					pagination={{
 						pageIndex: page - 1,
 						pageSize,

@@ -72,18 +72,21 @@ export function DataPagination<TData>({
 
 	return (
 		<div className="-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9">
-			<div className="flex flex-1 flex-wrap items-center gap-3 text-muted-foreground text-sm">
-				<span>
-					{totalRows ?? table.getFilteredRowModel().rows.length} row(s) total.
+			<div className="flex flex-1 flex-wrap items-center gap-4 text-muted-foreground text-sm">
+				<span className="whitespace-nowrap">
+					<span className="font-medium text-foreground">
+						{totalRows ?? table.getFilteredRowModel().rows.length}
+					</span>{" "}
+					row(s) total
 				</span>
 				{pageSize !== undefined && onPageSizeChange && (
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 whitespace-nowrap border-border/60 border-l pl-4">
 						<span>Rows per page</span>
 						<Select
 							value={String(pageSize)}
 							onValueChange={(value) => onPageSizeChange(Number(value))}
 						>
-							<SelectTrigger className="h-8 w-[70px] rounded-none">
+							<SelectTrigger className="h-8 w-[76px] rounded-none">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>

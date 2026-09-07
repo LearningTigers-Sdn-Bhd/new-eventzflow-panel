@@ -66,6 +66,10 @@ interface DataTableProps<TData> {
 	// Search/status/type filtering and paging all happen server-side (see
 	// tickets/page.tsx) — `data` here is always exactly one page.
 	pagination: ServerPagination;
+	sorting: SortingState;
+	onSortingChange: (
+		updater: SortingState | ((prev: SortingState) => SortingState),
+	) => void;
 }
 
 export function DataTable<TData>({
@@ -77,6 +81,8 @@ export function DataTable<TData>({
 	columnFilters,
 	onColumnFiltersChange,
 	pagination,
+	sorting,
+	onSortingChange,
 }: DataTableProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -93,8 +99,6 @@ export function DataTable<TData>({
 			},
 		});
 	};
-
-	const [sorting, setSorting] = React.useState<SortingState>([]);
 
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
@@ -184,7 +188,8 @@ export function DataTable<TData>({
 	// page. Mirror the server's pagination state into the table via
 	// `manualPagination` + `pageCount` (never getPaginationRowModel, which
 	// would slice the page again to TanStack's default size of 10). Sorting
-	// stays local: it only reorders the rows already on this page.
+	// is also server-driven (manualSorting) so it orders the whole ticket
+	// list, not just the rows on this page.
 	const paginationState: PaginationState = {
 		pageIndex: pagination.pageIndex,
 		pageSize: pagination.pageSize,
@@ -193,13 +198,14 @@ export function DataTable<TData>({
 	const table = useReactTable({
 		data,
 		columns,
-		onSortingChange: setSorting,
+		onSortingChange,
 		onColumnFiltersChange,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnOrderChange: setColumnOrder,
 		manualPagination: true,
+		manualSorting: true,
 		manualFiltering: true,
 		pageCount: pagination.pageCount,
 		onPaginationChange: (updater) => {
