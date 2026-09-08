@@ -58,6 +58,7 @@ export function ExportLogTableControl<TData>({
       { label: "All", value: "all" },
       { label: "Ticket List", value: "ticket-list" },
       { label: "Scan History", value: "scan_history" },
+      { label: "Selfies (ZIP)", value: "selfie-zip" },
     ],
     customFilter: {
       value: getTypeFilterValue(),

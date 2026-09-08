@@ -44,8 +44,11 @@ function getPresetDates(preset: Preset): { from: string; to: string } {
 	return { from: "", to: "" };
 }
 
+type ExportType = "ticket-list" | "selfie-zip";
+
 interface ExportLogPageButtonProps {
 	onCreateExport: (params: {
+		type: ExportType;
 		from?: string;
 		to?: string;
 		ticketTypeId?: number;
@@ -60,6 +63,7 @@ export function ExportLogPageButton({
 	ticketTypeOptions,
 }: ExportLogPageButtonProps) {
 	const [open, setOpen] = React.useState(false);
+	const [exportType, setExportType] = React.useState<ExportType>("ticket-list");
 	const [preset, setPreset] = React.useState<Preset>("all");
 	const [from, setFrom] = React.useState("");
 	const [to, setTo] = React.useState("");
@@ -76,11 +80,13 @@ export function ExportLogPageButton({
 
 	const handleExport = () => {
 		onCreateExport({
+			type: exportType,
 			from: from || undefined,
 			to: to || undefined,
 			ticketTypeId: ticketTypeId === "all" ? undefined : Number(ticketTypeId),
 		});
 		setOpen(false);
+		setExportType("ticket-list");
 		setPreset("all");
 		setFrom("");
 		setTo("");
@@ -104,11 +110,32 @@ export function ExportLogPageButton({
 					className="rounded-none"
 				>
 					<FileDown className="size-4" />
-					{isCreating ? "Creating Export..." : "Export Tickets"}
+					{isCreating ? "Creating Export..." : "Export"}
 					<ChevronDown className="ml-1 size-3" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-64 rounded-none" align="end">
+				<div className="space-y-2 p-2">
+					<label
+						htmlFor="export-type"
+						className="mb-1 block font-medium text-muted-foreground text-xs"
+					>
+						Export
+					</label>
+					<Select
+						value={exportType}
+						onValueChange={(value) => setExportType(value as ExportType)}
+					>
+						<SelectTrigger id="export-type" className="w-full rounded-none">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							<SelectItem value="ticket-list">Ticket List (Excel)</SelectItem>
+							<SelectItem value="selfie-zip">Selfies (ZIP)</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+				<DropdownMenuSeparator />
 				{presets.map((p) => (
 					<DropdownMenuItem
 						key={p.value}

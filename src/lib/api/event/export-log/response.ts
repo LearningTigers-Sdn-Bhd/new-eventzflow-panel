@@ -1,7 +1,7 @@
 // Frontend export logs type
 export type ExportLogs = {
 	id: string;
-	type: "ticket-list" | "scan_history";
+	type: "ticket-list" | "scan_history" | "selfie-zip";
 	downloadUrl: string;
 	createdAt: string;
 };

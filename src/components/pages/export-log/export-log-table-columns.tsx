@@ -1,19 +1,19 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
-import { isWithinDateRange, type DateRange } from "./date-range-filter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import { downloadExportLog } from "@/lib/api/event/export-log";
 import { cn } from "@/lib/utils";
+import { type DateRange, isWithinDateRange } from "./date-range-filter";
 
 export type ExportLogs = {
 	id: string;
-	type: "ticket-list" | "scan_history";
+	type: "ticket-list" | "scan_history" | "selfie-zip";
 	downloadUrl: string;
 	createdAt: string;
 };
@@ -32,33 +32,53 @@ const ExportLogViewModal = ({
 	const getTypeLabel = (type: string) => {
 		if (type === "ticket-list") return "Ticket List";
 		if (type === "scan_history") return "Scan History";
+		if (type === "selfie-zip") return "Selfies (ZIP)";
 		return type;
 	};
 
 	const isScanHistory = type === "scan_history";
-	const Icon = isScanHistory ? FileText : FileSpreadsheet;
+	const Icon =
+		type === "selfie-zip"
+			? ImageIcon
+			: isScanHistory
+				? FileText
+				: FileSpreadsheet;
 
 	return (
 		<div className="overflow-hidden">
 			{/* Header band */}
-			<div className={cn(
-				"flex items-center gap-4 px-6 py-5",
-				isScanHistory ? "bg-blue-50 border-b border-blue-100" : "bg-green-50 border-b border-green-100",
-			)}>
-				<div className={cn(
-					"flex size-12 items-center justify-center border-2",
-					isScanHistory ? "border-blue-200 bg-blue-100 text-blue-600" : "border-green-200 bg-green-100 text-green-600",
-				)}>
+			<div
+				className={cn(
+					"flex items-center gap-4 px-6 py-5",
+					type === "selfie-zip"
+						? "border-purple-100 border-b bg-purple-50"
+						: isScanHistory
+							? "border-blue-100 border-b bg-blue-50"
+							: "border-green-100 border-b bg-green-50",
+				)}
+			>
+				<div
+					className={cn(
+						"flex size-12 items-center justify-center border-2",
+						type === "selfie-zip"
+							? "border-purple-200 bg-purple-100 text-purple-600"
+							: isScanHistory
+								? "border-blue-200 bg-blue-100 text-blue-600"
+								: "border-green-200 bg-green-100 text-green-600",
+					)}
+				>
 					<Icon className="size-5" />
 				</div>
 				<div>
 					<p className="font-bold text-base">Export #{id}</p>
 					<Badge
 						className={cn(
-							"mt-1 rounded-none text-xs font-semibold",
-							isScanHistory
-								? "bg-blue-100 text-blue-700 hover:bg-blue-100"
-								: "bg-green-100 text-green-700 hover:bg-green-100",
+							"mt-1 rounded-none font-semibold text-xs",
+							type === "selfie-zip"
+								? "bg-purple-100 text-purple-700 hover:bg-purple-100"
+								: isScanHistory
+									? "bg-blue-100 text-blue-700 hover:bg-blue-100"
+									: "bg-green-100 text-green-700 hover:bg-green-100",
 						)}
 						variant="secondary"
 					>
@@ -75,17 +95,21 @@ const ExportLogViewModal = ({
 				</div>
 				<div className="flex items-center justify-between py-3.5">
 					<span className="text-muted-foreground text-sm">Created</span>
-					<span className="font-medium text-sm">{new Date(createdAt).toLocaleDateString()}</span>
+					<span className="font-medium text-sm">
+						{new Date(createdAt).toLocaleDateString()}
+					</span>
 				</div>
 				<div className="flex items-center justify-between py-3.5">
 					<span className="text-muted-foreground text-sm">Time</span>
-					<span className="font-medium text-sm">{new Date(createdAt).toLocaleTimeString()}</span>
+					<span className="font-medium text-sm">
+						{new Date(createdAt).toLocaleTimeString()}
+					</span>
 				</div>
 			</div>
 
 			{/* Download button */}
-			<div className="px-6 pb-6 pt-4">
-				<Button onClick={onDownload} className="w-full rounded-none gap-2">
+			<div className="px-6 pt-4 pb-6">
+				<Button onClick={onDownload} className="w-full gap-2 rounded-none">
 					<Download className="size-4" />
 					Download File
 				</Button>
@@ -115,6 +139,12 @@ export const columns: ColumnDef<ExportLogs>[] = [
 		header: ({ column }) => <SortableHeader column={column} label="Type" />,
 		cell: ({ row }) => {
 			const type = row.getValue("type") as string;
+			const label =
+				type === "scan_history"
+					? "Scan History"
+					: type === "selfie-zip"
+						? "Selfies (ZIP)"
+						: "Ticket List";
 			return (
 				<Badge
 					variant={type === "scan_history" ? "default" : "secondary"}
@@ -122,10 +152,12 @@ export const columns: ColumnDef<ExportLogs>[] = [
 						"rounded-none",
 						type === "scan_history"
 							? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-							: "bg-green-100 text-green-800 hover:bg-green-100",
+							: type === "selfie-zip"
+								? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+								: "bg-green-100 text-green-800 hover:bg-green-100",
 					)}
 				>
-					{type === "scan_history" ? "Scan History" : "Ticket List"}
+					{label}
 				</Badge>
 			);
 		},

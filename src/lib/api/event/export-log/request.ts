@@ -3,11 +3,13 @@ import { z } from "zod";
 // Validation schema for getting export logs
 export const getExportLogsSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
+	type: z.enum(["ticket-list", "selfie-zip"]).optional(),
 });
 
 // Validation schema for creating export log
 export const createExportLogSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
+	type: z.enum(["ticket-list", "selfie-zip"]).optional(),
 	from: z.string().optional(),
 	to: z.string().optional(),
 	ticketTypeId: z.number().optional(),

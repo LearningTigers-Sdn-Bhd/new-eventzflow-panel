@@ -16,7 +16,7 @@ import type { BackendExportLog, ExportLogs } from "./response";
 function transformExportLog(backendLog: BackendExportLog): ExportLogs {
 	return {
 		id: backendLog.id.toString(),
-		type: backendLog.type as "ticket-list" | "scan_history",
+		type: backendLog.type as "ticket-list" | "scan_history" | "selfie-zip",
 		downloadUrl: `/v1/tickets/exports/${backendLog.id}`,
 		createdAt: backendLog.created_at,
 	};
@@ -31,8 +31,11 @@ export async function getExportLogs(
 	try {
 		const validated = getExportLogsSchema.parse(data);
 
+		const params = new URLSearchParams({ event_id: validated.eventId });
+		if (validated.type) params.append("type", validated.type);
+
 		const response = await restClient.get<BackendExportLog[]>(
-			`v1/tickets/exports?event_id=${validated.eventId}`,
+			`v1/tickets/exports?${params.toString()}`,
 		);
 
 		return response.map(transformExportLog);
@@ -53,6 +56,7 @@ export async function createExportLog(
 		const validated = createExportLogSchema.parse(data);
 
 		const params = new URLSearchParams({ event_id: validated.eventId });
+		if (validated.type) params.append("type", validated.type);
 		if (validated.from) params.append("from", validated.from);
 		if (validated.to) params.append("to", validated.to);
 		if (validated.ticketTypeId)

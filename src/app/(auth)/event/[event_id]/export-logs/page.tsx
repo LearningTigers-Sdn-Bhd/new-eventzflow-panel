@@ -42,6 +42,7 @@ export default function ExportLogsPage({
 
 	const createExportMutation = useMutation({
 		mutationFn: (params: {
+			type: "ticket-list" | "selfie-zip";
 			from?: string;
 			to?: string;
 			ticketTypeId?: number;
@@ -65,6 +66,7 @@ export default function ExportLogsPage({
 	});
 
 	const handleCreateExport = (params: {
+		type: "ticket-list" | "selfie-zip";
 		from?: string;
 		to?: string;
 		ticketTypeId?: number;
