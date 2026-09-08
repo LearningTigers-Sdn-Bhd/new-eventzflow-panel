@@ -19,6 +19,14 @@ import { PAYMENT_STATUS } from "../../pending-ticket/constants";
 import type { BaseTicket } from "../event-ticket-table-columns";
 import { TicketTypeFieldSection } from "../page-action/ticket-type-field-section";
 
+// Server-written audit keys — never editable here, backend strips them from
+// any update payload anyway (see Ticket::RESERVED_CUSTOM_FIELD_KEYS).
+const RESERVED_CUSTOM_FIELD_KEYS = new Set(["_indemnity", "_terms_agreement"]);
+
+function prettifyKey(key: string): string {
+	return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 interface EditTicketFormProps {
 	ticket: BaseTicket;
 }
@@ -48,29 +56,37 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 		queryFn: () => getEventById(eventId),
 	});
 
-	// Initialize custom fields from event labels_data and populate with ticket data
+	// Initialize custom fields from the union of event labels_data and any
+	// keys present directly on the ticket (e.g. registration-form fields never
+	// registered into the event's schema). Matches the View modal's merge —
+	// without it, fields not in labels_data are invisible here and get wiped
+	// on save, since custom_fields_data is a plain-replace jsonb column.
 	useEffect(() => {
-		if (
-			eventData?.labels_data &&
-			Object.keys(eventData.labels_data).length > 0
-		) {
-			const fields = Object.entries(eventData.labels_data).map(
-				([key, labelNameValue]) => {
-					const currentLabelName = labelNameValue as string;
-					// Match by key, not display name
-					const existingLabel = ticket.customLabels?.find(
-						(label) => label.name === key,
-					);
+		const labelsData = eventData?.labels_data ?? {};
+		const mergedKeys = new Map<string, string>(
+			Object.entries(labelsData) as [string, string][],
+		);
+		ticket.customLabels?.forEach(({ name }) => {
+			if (!mergedKeys.has(name)) {
+				mergedKeys.set(name, prettifyKey(name));
+			}
+		});
 
-					return {
-						labelKey: key,
-						labelName: currentLabelName,
-						value: existingLabel?.value || "",
-					};
-				},
-			);
-			setCustomFields(fields);
-		}
+		const fields = Array.from(mergedKeys.entries())
+			.filter(([key]) => !RESERVED_CUSTOM_FIELD_KEYS.has(key))
+			.map(([key, labelName]) => {
+				// Match by key, not display name
+				const existingLabel = ticket.customLabels?.find(
+					(label) => label.name === key,
+				);
+
+				return {
+					labelKey: key,
+					labelName,
+					value: existingLabel?.value || "",
+				};
+			});
+		setCustomFields(fields);
 	}, [eventData, ticket.customLabels]);
 
 	// Update ticket mutation
