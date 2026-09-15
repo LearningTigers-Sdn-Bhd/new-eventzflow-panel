@@ -67,6 +67,7 @@ function transformPendingTicket(
 		status: backendTicket.status === "scanned" ? "scanned" : "not_scanned",
 		customLabels,
 		createdAt: backendTicket.created_at,
+		deletedAt: backendTicket.deleted_at ?? null,
 		paymentStatus,
 		waitingList: backendTicket.waiting_list,
 		paymentScreenshotUrl: backendTicket.payment_screenshot_url || undefined,
@@ -111,6 +112,10 @@ const PENDING_PAYMENT_STATUSES = ["pending", "failed", "refunded_payment"];
 export interface GetPendingTicketsPagedOptions {
 	page: number;
 	perPage: number;
+	/** List only soft-archived pending tickets (maps to archived=true). */
+	archived?: boolean;
+	/** Include archived alongside active pending tickets (maps to full=true). */
+	full?: boolean;
 	q?: string;
 	/** Narrows to one of PENDING_PAYMENT_STATUSES; omitted = all three. */
 	paymentStatus?: "pending" | "failed" | "refunded_payment";
@@ -134,6 +139,10 @@ export async function getPendingTicketsPaged(
 	const params = new URLSearchParams();
 	params.set("page", String(options.page));
 	params.set("per_page", String(options.perPage));
+	// archived/full mirror Manage Tickets: tickets#index applies only_deleted /
+	// with_deleted before the payment_status[] IN filter, so the two compose.
+	if (options.archived) params.set("archived", "true");
+	else if (options.full) params.set("full", "true");
 	for (const status of options.paymentStatus
 		? [options.paymentStatus]
 		: PENDING_PAYMENT_STATUSES) {

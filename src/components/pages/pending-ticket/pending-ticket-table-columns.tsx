@@ -31,6 +31,8 @@ export type PendingTicket = {
 	status: "scanned" | "not_scanned";
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
+	/** Non-null when the ticket is soft-archived (drives the Restore action). */
+	deletedAt?: string | null;
 	paymentStatus: PaymentStatusString;
 	waitingList?: boolean;
 	paymentScreenshotUrl?: string;

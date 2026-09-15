@@ -8,9 +8,13 @@ import { BaseTableControl } from "@/components/admin-ui/table/control/base-table
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 
+type PendingTicketFilter = "active" | "archived" | "all";
+
 interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
+	pendingTicketFilter?: PendingTicketFilter;
+	onPendingTicketFilterChange?: (filter: PendingTicketFilter) => void;
 	onResetColumns?: () => void;
 	search: string;
 	onSearchChange: (value: string) => void;
@@ -74,6 +78,8 @@ function getColumnLabel(
 export function DataControl<TData>({
 	table,
 	labelsData,
+	pendingTicketFilter = "active",
+	onPendingTicketFilterChange,
 	onResetColumns,
 	search,
 	onSearchChange,
@@ -102,6 +108,20 @@ export function DataControl<TData>({
 		eventTicketTypes && eventTicketTypes.length > 0
 			? eventTicketTypes
 			: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
+
+	// Static active/archived/all enum — rendered synchronously from local
+	// state (no fetch), so the toolbar filter is populated on first paint.
+	const pendingTicketFilterControl = onPendingTicketFilterChange
+		? {
+				label: "Ticket Filter",
+				columnId: "pendingTicketFilter",
+				customFilter: {
+					value: pendingTicketFilter,
+					onChange: (value: string) =>
+						onPendingTicketFilterChange(value as PendingTicketFilter),
+				},
+			}
+		: null;
 
 	const getPaymentStatusFilterValue = () => {
 		const paymentStatusFilter =
@@ -228,6 +248,19 @@ export function DataControl<TData>({
 	};
 
 	const desktopControlConfigs: ControlConfig[] = [
+		...(pendingTicketFilterControl
+			? [
+					{
+						...pendingTicketFilterControl,
+						type: "filter" as const,
+						data: [
+							{ label: "Active", value: "active" },
+							{ label: "Archived", value: "archived" },
+							{ label: "All", value: "all" },
+						],
+					},
+				]
+			: []),
 		paymentStatusFilterControl,
 		reviewStatusFilterControl,
 		rsvpStatusFilterControl,
@@ -253,6 +286,20 @@ export function DataControl<TData>({
 	];
 
 	const mobileControlConfigs: ControlConfig[] = [
+		...(pendingTicketFilterControl
+			? [
+					{
+						...pendingTicketFilterControl,
+						type: "filter" as const,
+						data: [
+							{ label: "Active Tickets", value: "active" },
+							{ label: "Archived Tickets", value: "archived" },
+							{ label: "All Tickets", value: "all" },
+						],
+						topPriority: true,
+					},
+				]
+			: []),
 		{ ...paymentStatusFilterControl, topPriority: true },
 		{ ...reviewStatusFilterControl, topPriority: true },
 		{ ...rsvpStatusFilterControl, topPriority: true },

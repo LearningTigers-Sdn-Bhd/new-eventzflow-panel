@@ -14,6 +14,8 @@ import { getPendingTicketsPaged } from "@/lib/api/event/pending";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+type PendingTicketFilter = "active" | "archived" | "all";
+
 // The "paymentStatus"/"reviewStatus"/"rsvpStatus"/"ticketTypeName" column
 // filters carry a single-value string[] (see pending-ticket-table-control.tsx's
 // setFilterValue calls) — same shape as event-ticket-table-control.tsx.
@@ -33,6 +35,8 @@ export default function PendingTicketsPage({
 
 	useSetEventActions(<PendingTicketPageButton />);
 
+	const [pendingTicketFilter, setPendingTicketFilter] =
+		useState<PendingTicketFilter>("active");
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = usePersistedState(
 		`event-${event_id}-pending-tickets-page-size`,
@@ -53,6 +57,11 @@ export default function PendingTicketsPage({
 
 	const handleSearchChange = (value: string) => {
 		setSearch(value);
+		resetToFirstPage();
+	};
+
+	const handlePendingTicketFilterChange = (filter: PendingTicketFilter) => {
+		setPendingTicketFilter(filter);
 		resetToFirstPage();
 	};
 
@@ -111,6 +120,7 @@ export default function PendingTicketsPage({
 			"event",
 			event_id,
 			"pending-tickets",
+			pendingTicketFilter,
 			page,
 			pageSize,
 			debouncedSearch,
@@ -125,6 +135,8 @@ export default function PendingTicketsPage({
 			getPendingTicketsPaged(event_id, {
 				page,
 				perPage: pageSize,
+				archived: pendingTicketFilter === "archived",
+				full: pendingTicketFilter === "all",
 				q: debouncedSearch || undefined,
 				paymentStatus: paymentStatusFilter?.[0] as
 					| "pending"
@@ -169,6 +181,8 @@ export default function PendingTicketsPage({
 			) : (
 				<DataTable
 					data={result?.data ?? []}
+					pendingTicketFilter={pendingTicketFilter}
+					onPendingTicketFilterChange={handlePendingTicketFilterChange}
 					search={search}
 					onSearchChange={handleSearchChange}
 					columnFilters={columnFilters}

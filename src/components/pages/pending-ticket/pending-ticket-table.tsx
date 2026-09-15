@@ -53,8 +53,12 @@ interface ServerPagination {
 	onPageSizeChange: (size: number) => void;
 }
 
+type PendingTicketFilter = "active" | "archived" | "all";
+
 interface DataTableProps<TData> {
 	data: TData[];
+	pendingTicketFilter?: PendingTicketFilter;
+	onPendingTicketFilterChange?: (filter: PendingTicketFilter) => void;
 	search: string;
 	onSearchChange: (value: string) => void;
 	columnFilters: ColumnFiltersState;
@@ -75,6 +79,8 @@ interface DataTableProps<TData> {
 
 export function DataTable<TData>({
 	data,
+	pendingTicketFilter = "active",
+	onPendingTicketFilterChange,
 	search,
 	onSearchChange,
 	columnFilters,
@@ -230,6 +236,8 @@ export function DataTable<TData>({
 			<DataControl
 				table={table}
 				labelsData={mergedLabelsData}
+				pendingTicketFilter={pendingTicketFilter}
+				onPendingTicketFilterChange={onPendingTicketFilterChange}
 				onResetColumns={resetColumnPreferences}
 				search={search}
 				onSearchChange={onSearchChange}

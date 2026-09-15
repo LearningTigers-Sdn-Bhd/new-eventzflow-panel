@@ -227,7 +227,7 @@ export function DesktopTableControl<TData>({
 	};
 
 	return (
-		<div className="hidden items-center gap-2 lg:flex">
+		<div className="hidden flex-wrap items-center gap-2 lg:flex">
 			<QuerySearchField
 				table={table}
 				columns={searchConfig.columns}
@@ -235,18 +235,14 @@ export function DesktopTableControl<TData>({
 				searchCustomFields={searchConfig.enableCustomSearch}
 				controlled={searchConfig.controlled}
 			/>
-			{controlConfigs.map((config, index) => {
-				const isLast = index === controlConfigs.length - 1;
-				const isVisibility = config.type === "visibility";
-				return (
-					<div
-						key={`${config.columnId}-${index}`}
-						className={isLast && isVisibility ? "ml-auto" : ""}
-					>
-						{renderControl(config)}
-					</div>
-				);
-			})}
+			{/* Filters cluster to the right (ml-auto on the group) so the search
+			    box owns the left edge and the columns toggle isn't stranded on
+			    its own — the group wraps as one unit when space runs out. */}
+			<div className="ml-auto flex flex-wrap items-center gap-2">
+				{controlConfigs.map((config, index) => (
+					<div key={`${config.columnId}-${index}`}>{renderControl(config)}</div>
+				))}
+			</div>
 		</div>
 	);
 }
