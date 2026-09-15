@@ -36,7 +36,8 @@ export function TicketItem({ ticket, onView }: TicketItemProps) {
 	return (
 		<Item
 			variant="default"
-			className="h-auto w-full flex-col items-stretch border-none px-3 py-3 transition-colors hover:bg-muted/30"
+			className="h-auto w-full cursor-pointer flex-col items-stretch border-none px-3 py-3 transition-colors hover:bg-muted/30"
+			onClick={() => onView?.(ticket)}
 		>
 			<div className="flex w-full items-start gap-2">
 				<ItemMedia variant="image" className="mt-0.5 size-9 shrink-0">
@@ -56,10 +57,7 @@ export function TicketItem({ ticket, onView }: TicketItemProps) {
 				<ItemContent className="ml-2.5 min-w-0 flex-1">
 					<div className="flex items-start justify-between gap-2">
 						<div className="min-w-0 flex-1">
-							<ItemTitle
-								className="line-clamp-2 cursor-pointer break-words font-bold text-[15px] leading-tight transition-colors hover:text-primary"
-								onClick={() => onView?.(ticket)}
-							>
+							<ItemTitle className="line-clamp-2 break-words font-bold text-[15px] leading-tight transition-colors hover:text-primary">
 								{ticket.name}
 							</ItemTitle>
 						</div>
@@ -84,9 +82,6 @@ export function TicketItem({ ticket, onView }: TicketItemProps) {
 						</div>
 					</div>
 					<ItemDescription className="mt-1.5 flex flex-col gap-1">
-						<span className="truncate font-mono text-[10px] text-muted-foreground">
-							{ticket.publicId}
-						</span>
 						<div className="flex items-start justify-between gap-2">
 							<div className="flex min-w-0 flex-1 items-start gap-1.5 pr-2">
 								<Ticket className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" />
@@ -95,7 +90,10 @@ export function TicketItem({ ticket, onView }: TicketItemProps) {
 									{ticket.ticketTypeId && ` (#${ticket.ticketTypeId})`}
 								</span>
 							</div>
-							<ItemActions className="shrink-0 self-end">
+							<ItemActions
+								className="shrink-0 self-end"
+								onClick={(e) => e.stopPropagation()}
+							>
 								<TicketActionsMenu
 									ticket={ticket}
 									deletedAt={ticket.deletedAt}

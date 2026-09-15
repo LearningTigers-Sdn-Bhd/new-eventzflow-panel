@@ -21,14 +21,18 @@ export function PendingTicketDetailSheet({
 }: PendingTicketDetailSheetProps) {
 	return (
 		<Sheet open={Boolean(ticket)} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-2xl">
-				<SheetHeader className="border-b">
-					<SheetTitle>{ticket?.name ?? "Ticket details"}</SheetTitle>
-					<SheetDescription>
-						{ticket?.publicId ? `Ticket #${ticket.publicId}` : ""}
+			<SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
+				<SheetHeader className="shrink-0 border-b">
+					<SheetTitle className="text-lg capitalize">
+						{ticket?.name ?? "Ticket details"}
+					</SheetTitle>
+					<SheetDescription className="break-all font-mono text-xs">
+						{ticket?.publicId ? `#${ticket.publicId}` : ""}
 					</SheetDescription>
 				</SheetHeader>
-				{ticket && <PendingTicketViewModal ticket={ticket} />}
+				<div className="flex-1 overflow-y-auto">
+					{ticket && <PendingTicketViewModal ticket={ticket} />}
+				</div>
 			</SheetContent>
 		</Sheet>
 	);
