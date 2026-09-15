@@ -7,8 +7,8 @@ import { LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { CertificateParticipants } from "@/components/pages/certificates/certificate-participants";
 import { CertificatesDesigner } from "@/components/pages/certificates/certificates-designer";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getCertificateTemplate } from "@/lib/api/certificate";
 import { getEventById } from "@/lib/api/event";
 
@@ -18,8 +18,8 @@ export default function CertificatesPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
-	const { canManageEventVendors, isEventVendor } =
-		useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
+	const { canManageEventVendors, isEventVendor } = permissions;
 
 	const { data: event, isLoading } = useQuery({
 		queryKey: ["event", event_id],

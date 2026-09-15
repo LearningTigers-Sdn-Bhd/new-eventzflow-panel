@@ -5,9 +5,9 @@ import { use, useMemo } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/event-leads/lead-log-table";
 import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useEventLeads } from "@/hooks/use-event-leads";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 
 interface LeadLogsPageProps {
@@ -18,7 +18,7 @@ export default function LeadLogsPage({ params }: LeadLogsPageProps) {
 	const { event_id } = use(params);
 
 	// Check permissions - only org_owner, organizer, event_admin can view
-	const permissions = useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
 
 	const { data: leads, isLoading, error, refetch } = useEventLeads(event_id);
 

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -28,7 +29,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
@@ -47,7 +47,7 @@ export function ExhibitorPageButton() {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
-	const permissions = useEventPermissions(eventId);
+	const { permissions } = useEventSidebarContext();
 	const { data: event } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),

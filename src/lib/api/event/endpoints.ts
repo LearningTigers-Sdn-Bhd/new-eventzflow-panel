@@ -9,6 +9,7 @@ import type {
 	BackendEvent,
 	Event,
 	EventDetails,
+	EventSidebarContextResponse,
 	WishWallSetting,
 } from "./response";
 
@@ -78,6 +79,14 @@ export async function getEventById(eventId: string): Promise<EventDetails> {
 
 	// Return the full event details response
 	return response;
+}
+
+export async function getEventSidebarContext(
+	eventId: string,
+): Promise<EventSidebarContextResponse> {
+	return restClient.get<EventSidebarContextResponse>(
+		`v1/events/${eventId}/sidebar_context`,
+	);
 }
 
 /**

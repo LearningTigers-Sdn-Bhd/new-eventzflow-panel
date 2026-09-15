@@ -3,12 +3,12 @@
 import { CalendarCheck, MapPin, Pencil, User } from "lucide-react";
 import { useMemo } from "react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent } from "@/components/ui/item";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useBusinessMatchingBookings } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions"; // Import the hook
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import AttachHostDialog from "./attach-host-dialog";
 import CreateSessionDialog from "./create-session-dialog";
@@ -22,9 +22,8 @@ interface BusinessMatchingItemProps {
 export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const { openDialog } = useDialog();
 	const { user } = useAuth();
-	const { isBusinessHost, canManageEvent } = useEventPermissions(
-		event.event_id,
-	);
+	const { permissions } = useEventSidebarContext();
+	const { isBusinessHost, canManageEvent } = permissions;
 	const host = event.host;
 	const offeringTags = event.offering_tags || [];
 	const ownsSession =

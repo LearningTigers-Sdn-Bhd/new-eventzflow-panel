@@ -3,14 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
 import { use, useMemo } from "react";
-import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
 import { DataTable } from "@/components/pages/vouchers/table/event-voucher-table";
 import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventById } from "@/lib/api/event";
 import { getVouchers } from "@/lib/api/voucher";
@@ -24,8 +24,8 @@ export default function VouchersPage({
 	const { user } = useAuth();
 
 	// Check permissions
-	const { canManageEventVendors, isEventVendor } =
-		useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
+	const { canManageEventVendors, isEventVendor } = permissions;
 
 	const { data: event, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", event_id],

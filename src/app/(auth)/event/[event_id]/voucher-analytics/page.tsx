@@ -19,6 +19,7 @@ import {
 	ExportPdfButton,
 	prepareVoucherReportData,
 } from "@/components/pdf-reports";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	EventDateFilter,
@@ -35,7 +36,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import { getEventVendors } from "@/lib/api/event-vendor";
 import { getVoucherAnalytics } from "@/lib/api/voucher-analytics";
@@ -52,7 +52,7 @@ export default function VoucherAnalyticsPage({
 	const { event_id } = use(params);
 	const eventId = Number.parseInt(event_id, 10);
 	const { user } = useAuth();
-	const permissions = useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "event_duration",
 	});

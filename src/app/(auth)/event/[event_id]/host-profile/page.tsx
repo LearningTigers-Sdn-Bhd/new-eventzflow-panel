@@ -6,6 +6,7 @@ import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import ImageUpload from "@/components/file-upload/image-upload";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,7 +20,6 @@ import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useBusinessMatchingTags } from "@/hooks/use-business-matching";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getHostProfile, updateHostProfile } from "@/lib/api/business-matching";
 import { getEventById } from "@/lib/api/event";
 import { uploadFile } from "@/lib/api/upload/endpoints";
@@ -42,7 +42,8 @@ export default function HostProfilePage({
 		enabled: isInitialized && !!user,
 	});
 
-	const { isBusinessHost } = useEventPermissions(event_id, event);
+	const { permissions } = useEventSidebarContext();
+	const { isBusinessHost } = permissions;
 
 	const [description, setDescription] = useState("");
 	const [sourcingIntent, setSourcingIntent] = useState("");
@@ -108,8 +109,7 @@ export default function HostProfilePage({
 				avatarSignedId = uploaded.signed_id;
 			} catch (err) {
 				toast.error("Failed to upload photo", {
-					description:
-						err instanceof Error ? err.message : "Please try again.",
+					description: err instanceof Error ? err.message : "Please try again.",
 				});
 				setIsUploadingAvatar(false);
 				return;
@@ -239,8 +239,8 @@ export default function HostProfilePage({
 							/>
 							<div className="flex items-center justify-between">
 								<span className="text-muted-foreground text-xs">
-									Help matching attendees understand exactly who or what you
-									are looking to source.
+									Help matching attendees understand exactly who or what you are
+									looking to source.
 								</span>
 								<span className="shrink-0 text-muted-foreground text-xs">
 									{sourcingIntent.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
