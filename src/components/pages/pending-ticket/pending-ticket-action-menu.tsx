@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
 	Check,
-	Eye,
 	MoreHorizontal,
 	Pencil,
 	Send,
@@ -36,7 +35,6 @@ import {
 import { archiveTicket, forceDeleteTicket } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
 import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
-import PendingTicketViewModal from "./action-modals/pending-ticket-view-modal";
 import RejectTicketApplicationModal from "./action-modals/reject-ticket-application-modal";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 
@@ -118,20 +116,6 @@ export function usePendingTicketActions({
 				title: "Edit Pending Ticket",
 				description: "Edit the pending ticket information.",
 				size: "full",
-				showCloseButton: true,
-				className: "rounded-none",
-			},
-			props: { ticket },
-		});
-	};
-
-	const openViewModal = () => {
-		openDialog({
-			component: PendingTicketViewModal,
-			config: {
-				title: "View Pending Ticket",
-				description: "View the pending ticket information.",
-				size: "4xl",
 				showCloseButton: true,
 				className: "rounded-none",
 			},
@@ -223,7 +207,6 @@ export function usePendingTicketActions({
 		archiveTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
-		openViewModal,
 		openRejectModal,
 		handleArchiveClick,
 		handleDeleteClick,
@@ -241,7 +224,6 @@ export function PendingTicketActionsMenu({
 		archiveTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
-		openViewModal,
 		openRejectModal,
 		handleArchiveClick,
 		handleDeleteClick,
@@ -276,16 +258,6 @@ export function PendingTicketActionsMenu({
 			>
 				<Pencil className="size-4" />
 			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
-				onClick={openViewModal}
-				title="View Ticket"
-			>
-				<Eye className="size-4" />
-			</Button>
-
 			{(hasTicketApplication || canArchive || canDelete) && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>

@@ -35,6 +35,7 @@ import {
 	usePersistedColumnVisibility,
 } from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
+import { TicketDetailSheet } from "./event-ticket-detail-sheet";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
 import { generateColumns } from "./event-ticket-table-columns";
@@ -90,6 +91,9 @@ export function DataTable<TData>({
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog } = useDialog();
+	const [selectedTicket, setSelectedTicket] = React.useState<BaseTicket | null>(
+		null,
+	);
 
 	const openTicketCreate = () => {
 		openDialog({
@@ -258,6 +262,11 @@ export function DataTable<TData>({
 									<Button onClick={openTicketCreate}>Create Ticket</Button>
 								),
 							}}
+							clickableRowConfig={{
+								isEnabled: true,
+								onRowClick: (row) => setSelectedTicket(row as BaseTicket),
+								excludeRowClickColumns: ["actions"],
+							}}
 						/>
 					</DesktopView>
 					<MobileView>
@@ -268,6 +277,7 @@ export function DataTable<TData>({
 										<TicketItem
 											ticket={row.original as BaseTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 										<ItemSeparator className="opacity-50" />
 									</React.Fragment>
@@ -295,6 +305,7 @@ export function DataTable<TData>({
 										<TicketItem
 											ticket={row.original as BaseTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 									</div>
 								))
@@ -320,6 +331,10 @@ export function DataTable<TData>({
 				totalRows={pagination.totalCount}
 				pageSize={pagination.pageSize}
 				onPageSizeChange={pagination.onPageSizeChange}
+			/>
+			<TicketDetailSheet
+				ticket={selectedTicket}
+				onOpenChange={(open) => !open && setSelectedTicket(null)}
 			/>
 		</div>
 	);

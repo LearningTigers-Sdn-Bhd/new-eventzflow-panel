@@ -12,15 +12,13 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
-import {
-	TicketActionsMenu,
-	useTicketActions,
-} from "./event-ticket-action-menu";
+import { TicketActionsMenu } from "./event-ticket-action-menu";
 import type { BaseTicket } from "./event-ticket-table-columns";
 
 interface TicketItemProps {
 	ticket: BaseTicket;
 	labelsData?: Record<string, string>;
+	onView?: (ticket: BaseTicket) => void;
 }
 
 function getInitials(name: string) {
@@ -32,9 +30,8 @@ function getInitials(name: string) {
 		.slice(0, 2);
 }
 
-export function TicketItem({ ticket }: TicketItemProps) {
+export function TicketItem({ ticket, onView }: TicketItemProps) {
 	const isScanned = ticket.status === "scanned";
-	const { openViewModal } = useTicketActions({ ticket });
 
 	return (
 		<Item
@@ -61,7 +58,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
 						<div className="min-w-0 flex-1">
 							<ItemTitle
 								className="line-clamp-2 cursor-pointer break-words font-bold text-[15px] leading-tight transition-colors hover:text-primary"
-								onClick={openViewModal}
+								onClick={() => onView?.(ticket)}
 							>
 								{ticket.name}
 							</ItemTitle>

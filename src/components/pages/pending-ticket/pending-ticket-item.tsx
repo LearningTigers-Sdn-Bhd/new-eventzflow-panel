@@ -13,15 +13,13 @@ import {
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
 import { getPaymentStatusColor, getPaymentStatusText } from "./constants";
-import {
-	PendingTicketActionsMenu,
-	usePendingTicketActions,
-} from "./pending-ticket-action-menu";
+import { PendingTicketActionsMenu } from "./pending-ticket-action-menu";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 
 interface PendingTicketItemProps {
 	ticket: PendingTicket;
 	labelsData?: Record<string, string>;
+	onView?: (ticket: PendingTicket) => void;
 }
 
 function getInitials(name: string) {
@@ -36,10 +34,9 @@ function getInitials(name: string) {
 /**
  * Mobile/Tablet view component for displaying a pending ticket card
  */
-export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
+export function PendingTicketItem({ ticket, onView }: PendingTicketItemProps) {
 	const isPaid =
 		ticket.paymentStatus === "paid" || ticket.paymentStatus === "completed";
-	const { openViewModal } = usePendingTicketActions({ ticket });
 
 	return (
 		<Item
@@ -66,7 +63,7 @@ export function PendingTicketItem({ ticket }: PendingTicketItemProps) {
 						<div className="min-w-0 flex-1">
 							<ItemTitle
 								className="line-clamp-2 cursor-pointer break-words font-bold text-[15px] leading-tight transition-colors hover:text-primary"
-								onClick={openViewModal}
+								onClick={() => onView?.(ticket)}
 							>
 								{ticket.name}
 							</ItemTitle>

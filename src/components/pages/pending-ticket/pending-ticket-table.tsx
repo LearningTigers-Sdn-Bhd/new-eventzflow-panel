@@ -36,6 +36,7 @@ import {
 } from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
 import PendingTicketForm from "./page-action/create-pending-ticket-form";
+import { PendingTicketDetailSheet } from "./pending-ticket-detail-sheet";
 import { PendingTicketItem } from "./pending-ticket-item";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 import { generateColumns } from "./pending-ticket-table-columns";
@@ -85,6 +86,8 @@ export function DataTable<TData>({
 	const { openDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
+	const [selectedTicket, setSelectedTicket] =
+		React.useState<PendingTicket | null>(null);
 
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
@@ -248,6 +251,11 @@ export function DataTable<TData>({
 									</Button>
 								),
 							}}
+							clickableRowConfig={{
+								isEnabled: true,
+								onRowClick: (row) => setSelectedTicket(row as PendingTicket),
+								excludeRowClickColumns: ["actions"],
+							}}
 						/>
 					</DesktopView>
 					<MobileView>
@@ -258,6 +266,7 @@ export function DataTable<TData>({
 										<PendingTicketItem
 											ticket={row.original as PendingTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 										<ItemSeparator className="opacity-50" />
 									</React.Fragment>
@@ -287,6 +296,7 @@ export function DataTable<TData>({
 										<PendingTicketItem
 											ticket={row.original as PendingTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 									</div>
 								))
@@ -314,6 +324,10 @@ export function DataTable<TData>({
 				totalRows={pagination.totalCount}
 				pageSize={pagination.pageSize}
 				onPageSizeChange={pagination.onPageSizeChange}
+			/>
+			<PendingTicketDetailSheet
+				ticket={selectedTicket}
+				onOpenChange={(open) => !open && setSelectedTicket(null)}
 			/>
 		</div>
 	);
