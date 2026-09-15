@@ -26,7 +26,10 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
-import { usePersistedColumnOrder } from "@/hooks/use-persisted-column-order";
+import {
+	reconcileColumnOrder,
+	usePersistedColumnOrder,
+} from "@/hooks/use-persisted-column-order";
 import {
 	hasSavedColumnVisibility,
 	usePersistedColumnVisibility,
@@ -185,6 +188,13 @@ export function DataTable<TData>({
 		pageSize: pagination.pageSize,
 	};
 
+	// Reconcile the saved order against the current columns so newly-added
+	// columns (e.g. custom labels) never land after sticky-right Actions.
+	const effectiveColumnOrder = React.useMemo(
+		() => reconcileColumnOrder(columnOrder, columns),
+		[columnOrder, columns],
+	);
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -207,7 +217,7 @@ export function DataTable<TData>({
 			sorting,
 			columnFilters,
 			columnVisibility,
-			columnOrder,
+			columnOrder: effectiveColumnOrder,
 			pagination: paginationState,
 		},
 	});
