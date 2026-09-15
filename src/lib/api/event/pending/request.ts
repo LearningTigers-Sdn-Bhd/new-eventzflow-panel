@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-// Validation schema for getting pending tickets
-export const getPendingTicketsSchema = z.object({
-	eventId: z.string().min(1, "Event ID is required"),
-});
-
 // Validation schema for creating a pending ticket
 export const createPendingTicketSchema = z.object({
 	eventId: z.string().min(1, "Event ID is required"),
@@ -69,7 +64,6 @@ export const resendTicketRsvpSchema = z.object({
 });
 
 // Type exports for request data
-export type GetPendingTicketsRequest = z.infer<typeof getPendingTicketsSchema>;
 export type CreatePendingTicketRequest = z.infer<
 	typeof createPendingTicketSchema
 >;

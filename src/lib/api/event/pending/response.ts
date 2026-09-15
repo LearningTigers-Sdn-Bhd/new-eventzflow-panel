@@ -100,3 +100,18 @@ export type PendingTicket = {
 // Response types for operations
 export type CreatePendingTicketResponse = PendingTicket;
 export type UpdatePendingTicketResponse = PendingTicket;
+
+// Pagination metadata for the pending tickets index, read off response
+// headers (X-Total-Count etc.) — see getPendingTicketsPaged and
+// ticket/response.ts's TicketsPagination (same shape, same backend headers).
+export type PendingTicketsPagination = {
+	currentPage: number;
+	totalPages: number;
+	totalCount: number;
+	perPage: number;
+};
+
+export type PagedPendingTicketsResult = {
+	data: PendingTicket[];
+	pagination: PendingTicketsPagination;
+};

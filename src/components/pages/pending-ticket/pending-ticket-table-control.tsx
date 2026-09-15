@@ -11,17 +11,19 @@ import { getEventTicketTypes } from "@/lib/api/ticket-type";
 interface DataControlProps<TData> {
 	table: Table<TData>;
 	labelsData?: Record<string, string>;
-	hasApplicationWorkflow?: boolean;
 	onResetColumns?: () => void;
+	search: string;
+	onSearchChange: (value: string) => void;
 }
 
+// Matches the real payment_status enum values this tab shows (see
+// PENDING_PAYMENT_STATUSES in lib/api/event/pending/endpoints.ts) — "paid"
+// is excluded by the base query, not offered as a sub-filter here.
 const PAYMENT_STATUS_OPTIONS = [
 	{ value: "all", label: "All" },
 	{ value: "pending", label: "Pending" },
-	{ value: "completed", label: "Completed" },
 	{ value: "failed", label: "Failed" },
-	{ value: "approval_pending", label: "Approval Pending" },
-	{ value: "rejected", label: "Rejected" },
+	{ value: "refunded_payment", label: "Refunded" },
 ] as const;
 
 const REVIEW_STATUS_OPTIONS = [
@@ -40,15 +42,11 @@ const RSVP_STATUS_OPTIONS = [
 	{ value: "expired", label: "Expired" },
 ] as const;
 
-const SEARCH_COLUMNS = [
-	"name",
-	"email",
-	"phone",
-	"ticketTypeName",
-	"transactionId",
-	"reviewStatus",
-	"rsvpStatus",
-];
+// Search runs server-side (the `q` param) against attendee name/email/phone
+// and ticket type name — see tickets_controller.rb#search_tickets. Custom
+// fields also match server-side but aren't listed here since they're
+// per-event, not fixed columns.
+const SEARCH_COLUMNS = ["name", "email", "phone", "ticketTypeName"];
 
 function getColumnLabel(
 	columnId: string,
@@ -76,8 +74,9 @@ function getColumnLabel(
 export function DataControl<TData>({
 	table,
 	labelsData,
-	hasApplicationWorkflow = true,
 	onResetColumns,
+	search,
+	onSearchChange,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -142,7 +141,6 @@ export function DataControl<TData>({
 	};
 
 	const getReviewStatusFilterValue = () => {
-		if (!hasApplicationWorkflow) return "all";
 		const reviewStatusFilter =
 			(table.getColumn("reviewStatus")?.getFilterValue() as string[]) ?? [];
 		return reviewStatusFilter.length === 0 ? "all" : reviewStatusFilter[0];
@@ -159,7 +157,6 @@ export function DataControl<TData>({
 		customFilter: {
 			value: getReviewStatusFilterValue(),
 			onChange: (value: string) => {
-				if (!hasApplicationWorkflow) return;
 				const column = table.getColumn("reviewStatus");
 				if (!column) return;
 
@@ -174,7 +171,6 @@ export function DataControl<TData>({
 	};
 
 	const getRsvpStatusFilterValue = () => {
-		if (!hasApplicationWorkflow) return "all";
 		const rsvpStatusFilter =
 			(table.getColumn("rsvpStatus")?.getFilterValue() as string[]) ?? [];
 		return rsvpStatusFilter.length === 0 ? "all" : rsvpStatusFilter[0];
@@ -191,7 +187,6 @@ export function DataControl<TData>({
 		customFilter: {
 			value: getRsvpStatusFilterValue(),
 			onChange: (value: string) => {
-				if (!hasApplicationWorkflow) return;
 				const column = table.getColumn("rsvpStatus");
 				if (!column) return;
 
@@ -234,9 +229,8 @@ export function DataControl<TData>({
 
 	const desktopControlConfigs: ControlConfig[] = [
 		paymentStatusFilterControl,
-		...(hasApplicationWorkflow
-			? [reviewStatusFilterControl, rsvpStatusFilterControl]
-			: []),
+		reviewStatusFilterControl,
+		rsvpStatusFilterControl,
 		ticketTypeFilterControl,
 		{
 			label: "Columns",
@@ -248,54 +242,22 @@ export function DataControl<TData>({
 		},
 	];
 
-	const baseMobileSortConfigs: ControlConfig[] = [
+	// Sort options are limited to what the backend's SORTABLE_COLUMNS
+	// actually supports (name/email/status/createdAt) — sorting is
+	// server-side now, so a column the backend can't order by would silently
+	// no-op instead of sorting. See tickets_controller.rb's sort_order.
+	const mobileSortConfigs: ControlConfig[] = [
 		{ label: "Name", columnId: "name", type: "sort" },
 		{ label: "Email", columnId: "email", type: "sort" },
-		...(hasApplicationWorkflow
-			? [
-					{
-						label: "Review Status",
-						columnId: "reviewStatus",
-						type: "sort" as const,
-					},
-					{
-						label: "RSVP Status",
-						columnId: "rsvpStatus",
-						type: "sort" as const,
-					},
-				]
-			: []),
-		{ label: "Payment Status", columnId: "paymentStatus", type: "sort" },
 		{ label: "Created", columnId: "createdAt", type: "sort" },
 	];
 
-	const customMobileSortConfigs = React.useMemo<ControlConfig[]>(() => {
-		return table
-			.getAllColumns()
-			.filter(
-				(column) =>
-					column.id.startsWith("custom_") &&
-					column.getCanSort() &&
-					column.getIsVisible(),
-			)
-			.map((column) => ({
-				label: getColumnLabel(column.id, labelsData),
-				columnId: column.id,
-				type: "sort" as const,
-			}));
-	}, [labelsData, table]);
-
 	const mobileControlConfigs: ControlConfig[] = [
 		{ ...paymentStatusFilterControl, topPriority: true },
-		...(hasApplicationWorkflow
-			? [
-					{ ...reviewStatusFilterControl, topPriority: true },
-					{ ...rsvpStatusFilterControl, topPriority: true },
-				]
-			: []),
+		{ ...reviewStatusFilterControl, topPriority: true },
+		{ ...rsvpStatusFilterControl, topPriority: true },
 		{ ...ticketTypeFilterControl, topPriority: true },
-		...baseMobileSortConfigs,
-		...customMobileSortConfigs,
+		...mobileSortConfigs,
 	];
 
 	return (
@@ -305,12 +267,8 @@ export function DataControl<TData>({
 				searchConfig: {
 					placeholder: "Search pending tickets...",
 					enableCustomSearch: true,
-					columns: hasApplicationWorkflow
-						? SEARCH_COLUMNS
-						: SEARCH_COLUMNS.filter(
-								(column) =>
-									column !== "reviewStatus" && column !== "rsvpStatus",
-							),
+					columns: SEARCH_COLUMNS,
+					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
 			desktopConfig={{

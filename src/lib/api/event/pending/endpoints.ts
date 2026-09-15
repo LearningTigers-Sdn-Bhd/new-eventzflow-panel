@@ -9,8 +9,6 @@ import {
 	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
-	type GetPendingTicketsRequest,
-	getPendingTicketsSchema,
 	type RejectTicketApplicationRequest,
 	type ResendTicketRsvpRequest,
 	type RevertTicketApplicationRequest,
@@ -23,6 +21,7 @@ import {
 import type {
 	BackendPendingTicket,
 	CreatePendingTicketResponse,
+	PagedPendingTicketsResult,
 	PendingTicket,
 	UpdatePendingTicketResponse,
 } from "./response";
@@ -101,45 +100,66 @@ function transformPendingTicket(
 	};
 }
 
+// Non-paid payment states shown on the Pending Tickets tab. Sent as the
+// default payment_status[] filter (tickets#index supports an array for an
+// IN clause) so only this slice of the event's tickets ever comes over the
+// wire, instead of every ticket (paid included) followed by an in-memory
+// filter — the same class of unbounded fetch that used to make Manage
+// Tickets slow on large events.
+const PENDING_PAYMENT_STATUSES = ["pending", "failed", "refunded_payment"];
+
+export interface GetPendingTicketsPagedOptions {
+	page: number;
+	perPage: number;
+	q?: string;
+	/** Narrows to one of PENDING_PAYMENT_STATUSES; omitted = all three. */
+	paymentStatus?: "pending" | "failed" | "refunded_payment";
+	reviewStatus?: "pending_review" | "approved" | "rejected";
+	rsvpStatus?: "not_sent" | "sent" | "confirmed" | "declined" | "expired";
+	ticketTypeName?: string;
+	sortBy?: "name" | "email" | "status" | "createdAt";
+	sortDir?: "asc" | "desc";
+}
+
 /**
- * Get all pending tickets for an event (payment_status = pending or approval_pending)
+ * One server-paginated page of pending tickets (payment_status = pending,
+ * failed, or refunded_payment) for the Pending Tickets table. Search,
+ * status/review/rsvp/type filtering, sorting, and paging all happen
+ * server-side — see PagedPendingTicketsResult and tickets_controller.rb#index.
  */
-export async function getPendingTickets(
-	data: GetPendingTicketsRequest,
-): Promise<PendingTicket[]> {
-	try {
-		const validated = getPendingTicketsSchema.parse(data);
-
-		// Fetch all tickets for the event
-		const response = await restClient.get<BackendPendingTicket[]>(
-			`v1/events/${validated.eventId}/tickets`,
-		);
-
-		// Filter tickets:
-		// Pending Tickets should only show non-paid payment states.
-		const pendingTickets = response.filter((ticket) => {
-			// Handle both number and string payment status
-			if (typeof ticket.payment_status === "number") {
-				// Include pending (0), failed (2), refunded_payment (3)
-				return (
-					ticket.payment_status === 0 ||
-					ticket.payment_status === 2 ||
-					ticket.payment_status === 3
-				);
-			}
-			// Handle string payment status
-			return (
-				ticket.payment_status === "pending" ||
-				ticket.payment_status === "failed" ||
-				ticket.payment_status === "refunded_payment"
-			);
-		});
-
-		return pendingTickets.map(transformPendingTicket);
-	} catch (error: unknown) {
-		console.error("Error fetching pending tickets:", error);
-		throw new Error(getErrorMessage(error, "Failed to fetch pending tickets"));
+export async function getPendingTicketsPaged(
+	eventId: string,
+	options: GetPendingTicketsPagedOptions,
+): Promise<PagedPendingTicketsResult> {
+	const params = new URLSearchParams();
+	params.set("page", String(options.page));
+	params.set("per_page", String(options.perPage));
+	for (const status of options.paymentStatus
+		? [options.paymentStatus]
+		: PENDING_PAYMENT_STATUSES) {
+		params.append("payment_status[]", status);
 	}
+	if (options.q) params.set("q", options.q);
+	if (options.reviewStatus) params.set("review_status", options.reviewStatus);
+	if (options.rsvpStatus) params.set("rsvp_status", options.rsvpStatus);
+	if (options.ticketTypeName)
+		params.set("ticket_type_name", options.ticketTypeName);
+	if (options.sortBy) params.set("sort_by", options.sortBy);
+	if (options.sortDir) params.set("sort_dir", options.sortDir);
+
+	const { data: response, headers } = await restClient.getWithHeaders<
+		BackendPendingTicket[]
+	>(`v1/events/${eventId}/tickets?${params.toString()}`);
+
+	return {
+		data: response.map(transformPendingTicket),
+		pagination: {
+			currentPage: Number(headers.get("X-Page")) || options.page,
+			totalPages: Number(headers.get("X-Total-Pages")) || 0,
+			totalCount: Number(headers.get("X-Total-Count")) || 0,
+			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+	};
 }
 
 // Builds multipart/form-data for the `ticket[...]` params, needed only when

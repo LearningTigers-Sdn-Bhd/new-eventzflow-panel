@@ -105,7 +105,6 @@ function showPaymentInfoToast(ticket: PendingTicket) {
 
 export function generateColumns(
 	labelsData?: Record<string, string>,
-	hasApplicationWorkflow = true,
 ): ColumnDef<PendingTicket>[] {
 	const baseColumns: ColumnDef<PendingTicket>[] = [
 		{
@@ -295,7 +294,7 @@ export function generateColumns(
 		},
 	];
 
-	if (hasApplicationWorkflow) {
+	{
 		const applicationColumns: ColumnDef<PendingTicket>[] = [
 			{
 				id: "reviewStatus",

@@ -5,9 +5,8 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
+	type PaginationState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -41,19 +40,48 @@ import { DataControl } from "./pending-ticket-table-control";
 
 const PENDING_TICKETS_VISIBILITY_KEY = "pending-tickets-column-visibility";
 
-interface DataTableProps<TData> {
-	data: TData[];
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+	onPageSizeChange: (size: number) => void;
 }
 
-export function DataTable<TData>({ data }: DataTableProps<TData>) {
+interface DataTableProps<TData> {
+	data: TData[];
+	search: string;
+	onSearchChange: (value: string) => void;
+	columnFilters: ColumnFiltersState;
+	onColumnFiltersChange: (
+		updater:
+			| ColumnFiltersState
+			| ((prev: ColumnFiltersState) => ColumnFiltersState),
+	) => void;
+	// Search/status/review/rsvp/type filtering and paging all happen
+	// server-side (see pending-tickets/page.tsx) — `data` here is always
+	// exactly one page.
+	pagination: ServerPagination;
+	sorting: SortingState;
+	onSortingChange: (
+		updater: SortingState | ((prev: SortingState) => SortingState),
+	) => void;
+}
+
+export function DataTable<TData>({
+	data,
+	search,
+	onSearchChange,
+	columnFilters,
+	onColumnFiltersChange,
+	pagination,
+	sorting,
+	onSortingChange,
+}: DataTableProps<TData>) {
 	const { openDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
-
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
 
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
@@ -120,21 +148,17 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		resetColumnOrder();
 	};
 
-	const hasApplicationWorkflow = React.useMemo(
-		() =>
-			(data as PendingTicket[]).some(
-				(ticket) => ticket.ticketApplication != null,
-			),
-		[data],
-	);
-
+	// Review/RSVP columns and filters always render — a single event can mix
+	// tickets that carry a ticket_application with ones that don't (gated per
+	// registration form + per free/paid ticket type, not per event; see
+	// registrations_controller.rb#handle_ticket_application!), so there's no
+	// reliable "does this event use the application workflow" flag to hide
+	// them on, whether computed from the loaded page or the full set. Tickets
+	// without an application just render "-" in those columns (see
+	// pending-ticket-table-columns.tsx).
 	const columns = React.useMemo(
-		() =>
-			generateColumns(
-				mergedLabelsData,
-				hasApplicationWorkflow,
-			) as ColumnDef<TData>[],
-		[mergedLabelsData, hasApplicationWorkflow],
+		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
+		[mergedLabelsData],
 	);
 
 	const openPendingTicketCreate = () => {
@@ -149,22 +173,42 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 		});
 	};
 
+	// Manual pagination: search, status/review/rsvp/type filters, and paging
+	// are all server-driven (pending-tickets/page.tsx), so `data` here is
+	// already exactly one page. Mirror the server's pagination state into the
+	// table via `manualPagination` + `pageCount` (never getPaginationRowModel,
+	// which would slice the page again to TanStack's default size of 10).
+	// Sorting is also server-driven (manualSorting) so it orders the whole
+	// pending-ticket list, not just the rows on this page.
+	const paginationState: PaginationState = {
+		pageIndex: pagination.pageIndex,
+		pageSize: pagination.pageSize,
+	};
+
 	const table = useReactTable({
 		data,
 		columns,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange,
+		onColumnFiltersChange,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnOrderChange: setColumnOrder,
+		manualPagination: true,
+		manualSorting: true,
+		manualFiltering: true,
+		pageCount: pagination.pageCount,
+		onPaginationChange: (updater) => {
+			const next =
+				typeof updater === "function" ? updater(paginationState) : updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
 			columnOrder,
+			pagination: paginationState,
 		},
 	});
 
@@ -173,8 +217,9 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 			<DataControl
 				table={table}
 				labelsData={mergedLabelsData}
-				hasApplicationWorkflow={hasApplicationWorkflow}
 				onResetColumns={resetColumnPreferences}
+				search={search}
+				onSearchChange={onSearchChange}
 			/>
 
 			<div className="min-h-[calc(100vh-320px)]">
@@ -254,7 +299,12 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} />
+			<DataPagination
+				table={table}
+				totalRows={pagination.totalCount}
+				pageSize={pagination.pageSize}
+				onPageSizeChange={pagination.onPageSizeChange}
+			/>
 		</div>
 	);
 }
