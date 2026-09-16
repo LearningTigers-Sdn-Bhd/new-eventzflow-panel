@@ -26,12 +26,16 @@ import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
 import { useDialog } from "@/hooks/use-dialog";
-import { usePersistedColumnOrder } from "@/hooks/use-persisted-column-order";
+import {
+	reconcileColumnOrder,
+	usePersistedColumnOrder,
+} from "@/hooks/use-persisted-column-order";
 import {
 	hasSavedColumnVisibility,
 	usePersistedColumnVisibility,
 } from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
+import { TicketDetailSheet } from "./event-ticket-detail-sheet";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
 import { generateColumns } from "./event-ticket-table-columns";
@@ -87,6 +91,9 @@ export function DataTable<TData>({
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog } = useDialog();
+	const [selectedTicket, setSelectedTicket] = React.useState<BaseTicket | null>(
+		null,
+	);
 
 	const openTicketCreate = () => {
 		openDialog({
@@ -195,6 +202,13 @@ export function DataTable<TData>({
 		pageSize: pagination.pageSize,
 	};
 
+	// Reconcile the saved order against the current columns so newly-added
+	// columns (e.g. custom labels) never land after sticky-right Actions.
+	const effectiveColumnOrder = React.useMemo(
+		() => reconcileColumnOrder(columnOrder, columns),
+		[columnOrder, columns],
+	);
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -217,7 +231,7 @@ export function DataTable<TData>({
 			sorting,
 			columnFilters,
 			columnVisibility,
-			columnOrder,
+			columnOrder: effectiveColumnOrder,
 			pagination: paginationState,
 		},
 	});
@@ -248,6 +262,11 @@ export function DataTable<TData>({
 									<Button onClick={openTicketCreate}>Create Ticket</Button>
 								),
 							}}
+							clickableRowConfig={{
+								isEnabled: true,
+								onRowClick: (row) => setSelectedTicket(row as BaseTicket),
+								excludeRowClickColumns: ["actions"],
+							}}
 						/>
 					</DesktopView>
 					<MobileView>
@@ -258,6 +277,7 @@ export function DataTable<TData>({
 										<TicketItem
 											ticket={row.original as BaseTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 										<ItemSeparator className="opacity-50" />
 									</React.Fragment>
@@ -285,6 +305,7 @@ export function DataTable<TData>({
 										<TicketItem
 											ticket={row.original as BaseTicket}
 											labelsData={mergedLabelsData}
+											onView={setSelectedTicket}
 										/>
 									</div>
 								))
@@ -310,6 +331,10 @@ export function DataTable<TData>({
 				totalRows={pagination.totalCount}
 				pageSize={pagination.pageSize}
 				onPageSizeChange={pagination.onPageSizeChange}
+			/>
+			<TicketDetailSheet
+				ticket={selectedTicket}
+				onOpenChange={(open) => !open && setSelectedTicket(null)}
 			/>
 		</div>
 	);

@@ -1,6 +1,45 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import * as React from "react";
+
+/**
+ * Reconciles a persisted column order against the table's current leaf
+ * columns, so columns added after the order was saved (e.g. new custom
+ * label fields) don't land after sticky-right columns like Actions.
+ * - Drops ids that no longer exist.
+ * - Appends any current column not yet in the saved order (in column-def
+ *   order), right before the sticky-right columns.
+ * - Always pins sticky-right columns (meta.sticky === "right") last.
+ */
+export function reconcileColumnOrder<TData>(
+	columnOrder: string[],
+	columns: ColumnDef<TData>[],
+): string[] {
+	const leafIds = columns.map(
+		(col) => col.id ?? ("accessorKey" in col ? String(col.accessorKey) : ""),
+	);
+	const stickyRightIds = columns
+		.filter((col) => col.meta?.sticky === "right")
+		.map(
+			(col) => col.id ?? ("accessorKey" in col ? String(col.accessorKey) : ""),
+		);
+
+	if (columnOrder.length === 0) {
+		// No saved order — column-def order already ends with Actions.
+		return columnOrder;
+	}
+
+	const known = new Set(leafIds);
+	const ordered = columnOrder.filter(
+		(id) => known.has(id) && !stickyRightIds.includes(id),
+	);
+	const missing = leafIds.filter(
+		(id) => id && !ordered.includes(id) && !stickyRightIds.includes(id),
+	);
+
+	return [...ordered, ...missing, ...stickyRightIds];
+}
 
 /**
  * Column order state persisted to localStorage under `storageKey`.

@@ -8,6 +8,7 @@ import { AnalyticsClientWrapper } from "@/components/pages/event/details-page/an
 import { EventDetailsActionButtons } from "@/components/pages/event/details-page/event-details-action-buttons";
 import { EventDetailsView } from "@/components/pages/event/details-page/event-details-view";
 import EventSettingsDialog from "@/components/pages/event/settings/edit-modal";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	type EventDateSelection,
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/event-date-filter";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventAnalytics } from "@/lib/api/dashboard";
@@ -31,8 +31,8 @@ export default function EventDetailsPage({
 }) {
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
-	const { isVendor, isExhibitionContractor, canManageEvent } =
-		useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
+	const { isVendor, isExhibitionContractor, canManageEvent } = permissions;
 	const { openDialog, closeDialog } = useDialog();
 	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
 		`event-${event_id}-include-multi-scans`,

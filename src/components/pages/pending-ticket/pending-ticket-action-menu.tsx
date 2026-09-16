@@ -4,9 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
 	Check,
-	Eye,
 	MoreHorizontal,
 	Pencil,
+	RotateCcw,
 	Send,
 	Trash2,
 	UserCheck,
@@ -33,10 +33,13 @@ import {
 	approveTicketRsvp,
 	resendTicketRsvp,
 } from "@/lib/api/event/pending";
-import { archiveTicket, forceDeleteTicket } from "@/lib/api/ticket";
+import {
+	archiveTicket,
+	forceDeleteTicket,
+	restoreTicket,
+} from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
 import PendingTicketEditModal from "./action-modals/edit-pending-ticket-form";
-import PendingTicketViewModal from "./action-modals/pending-ticket-view-modal";
 import RejectTicketApplicationModal from "./action-modals/reject-ticket-application-modal";
 import type { PendingTicket } from "./pending-ticket-table-columns";
 
@@ -125,20 +128,6 @@ export function usePendingTicketActions({
 		});
 	};
 
-	const openViewModal = () => {
-		openDialog({
-			component: PendingTicketViewModal,
-			config: {
-				title: "View Pending Ticket",
-				description: "View the pending ticket information.",
-				size: "4xl",
-				showCloseButton: true,
-				className: "rounded-none",
-			},
-			props: { ticket },
-		});
-	};
-
 	const openRejectModal = () => {
 		openDialog({
 			component: RejectTicketApplicationModal,
@@ -164,6 +153,20 @@ export function usePendingTicketActions({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to archive pending ticket");
+		},
+	});
+
+	const restoreTicketMutation = useMutation({
+		mutationFn: () => restoreTicket(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Pending ticket restored successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to restore pending ticket");
 		},
 	});
 
@@ -198,6 +201,22 @@ export function usePendingTicketActions({
 		});
 	};
 
+	const handleRestoreClick = () => {
+		openConfirm({
+			title: "Restore Pending Ticket",
+			message:
+				"Are you sure you want to restore this pending ticket? It will be visible in the active list again.",
+			confirmLabel: "Restore",
+			cancelLabel: "Cancel",
+			type: "success",
+			size: "sm",
+			onConfirm: () => {
+				restoreTicketMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	const handleDeleteClick = () => {
 		openConfirm({
 			title: "Delete Pending Ticket",
@@ -221,11 +240,12 @@ export function usePendingTicketActions({
 		resendMutation,
 		approveRsvpMutation,
 		archiveTicketMutation,
+		restoreTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
-		openViewModal,
 		openRejectModal,
 		handleArchiveClick,
+		handleRestoreClick,
 		handleDeleteClick,
 	};
 }
@@ -239,11 +259,12 @@ export function PendingTicketActionsMenu({
 		resendMutation,
 		approveRsvpMutation,
 		archiveTicketMutation,
+		restoreTicketMutation,
 		deleteTicketMutation,
 		openEditModal,
-		openViewModal,
 		openRejectModal,
 		handleArchiveClick,
+		handleRestoreClick,
 		handleDeleteClick,
 	} = usePendingTicketActions({ ticket });
 
@@ -252,6 +273,9 @@ export function PendingTicketActionsMenu({
 	// (soft, reversible), only org_owner can permanently delete.
 	const canArchive = user?.role === "org_owner" || user?.role === "organizer";
 	const canDelete = user?.role === "org_owner";
+	// An archived ticket swaps Archive for Restore; only shown in the
+	// archived/all filter views where deletedAt is populated.
+	const isArchived = Boolean(ticket.deletedAt);
 
 	const canReview =
 		(ticket.ticketApplication?.reviewStatus || "pending_review") ===
@@ -276,16 +300,6 @@ export function PendingTicketActionsMenu({
 			>
 				<Pencil className="size-4" />
 			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="rounded-none text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
-				onClick={openViewModal}
-				title="View Ticket"
-			>
-				<Eye className="size-4" />
-			</Button>
-
 			{(hasTicketApplication || canArchive || canDelete) && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
@@ -337,16 +351,26 @@ export function PendingTicketActionsMenu({
 								</DropdownMenuItem>
 							</>
 						)}
-						{canArchive && (
-							<DropdownMenuItem
-								className="rounded-none"
-								onClick={handleArchiveClick}
-								disabled={archiveTicketMutation.isPending}
-							>
-								<Archive className="mr-2 h-4 w-4" />
-								Archive Pending Ticket
-							</DropdownMenuItem>
-						)}
+						{canArchive &&
+							(isArchived ? (
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={handleRestoreClick}
+									disabled={restoreTicketMutation.isPending}
+								>
+									<RotateCcw className="mr-2 h-4 w-4" />
+									Restore Pending Ticket
+								</DropdownMenuItem>
+							) : (
+								<DropdownMenuItem
+									className="rounded-none"
+									onClick={handleArchiveClick}
+									disabled={archiveTicketMutation.isPending}
+								>
+									<Archive className="mr-2 h-4 w-4" />
+									Archive Pending Ticket
+								</DropdownMenuItem>
+							))}
 						{canDelete && (
 							<>
 								<DropdownMenuSeparator />

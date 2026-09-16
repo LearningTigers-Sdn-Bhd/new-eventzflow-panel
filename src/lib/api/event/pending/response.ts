@@ -19,6 +19,8 @@ export interface BackendPendingTicket {
 	custom_fields_data: Record<string, unknown> | null;
 	created_at: string;
 	updated_at: string;
+	/** Set when the ticket has been soft-archived; null/absent when active. */
+	deleted_at?: string | null;
 	ticket_type?: {
 		id: number;
 		name: string;
@@ -68,6 +70,8 @@ export type PendingTicket = {
 	status: "scanned" | "not_scanned";
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
+	/** Non-null when the ticket is soft-archived (drives the Restore action). */
+	deletedAt?: string | null;
 	paymentStatus: "pending" | "paid" | "failed" | "refunded_payment";
 	waitingList?: boolean;
 	paymentScreenshotUrl?: string;
@@ -100,3 +104,18 @@ export type PendingTicket = {
 // Response types for operations
 export type CreatePendingTicketResponse = PendingTicket;
 export type UpdatePendingTicketResponse = PendingTicket;
+
+// Pagination metadata for the pending tickets index, read off response
+// headers (X-Total-Count etc.) — see getPendingTicketsPaged and
+// ticket/response.ts's TicketsPagination (same shape, same backend headers).
+export type PendingTicketsPagination = {
+	currentPage: number;
+	totalPages: number;
+	totalCount: number;
+	perPage: number;
+};
+
+export type PagedPendingTicketsResult = {
+	data: PendingTicket[];
+	pagination: PendingTicketsPagination;
+};

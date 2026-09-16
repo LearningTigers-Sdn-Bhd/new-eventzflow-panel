@@ -15,6 +15,7 @@ import { FilePreviewDialog } from "@/components/file-preview-dialog";
 import { IcCopyPreviewButton } from "@/components/pages/event-exhibitor/ic-copy-preview-button";
 import { PaymentList } from "@/components/pages/event-exhibitor-contractor/payment-list";
 import { VerifyRejectPaymentDialog } from "@/components/pages/event-exhibitor-contractor/verify-reject-payment-dialog";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,6 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/auth/use-auth";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
@@ -78,7 +78,8 @@ export function ExhibitorKitDetailsSection({
 	// Auth and payment verification state (org_owner only)
 	const { user } = useAuth();
 	const isOrgOwner = user?.role === "org_owner";
-	const { isEventAdmin } = useEventPermissions(eventVendor.event_id);
+	const { permissions } = useEventSidebarContext();
+	const { isEventAdmin } = permissions;
 	const canDownloadIc =
 		isOrgOwner || user?.role === "organizer" || isEventAdmin;
 	const [icPreviewOpen, setIcPreviewOpen] = useState(false);

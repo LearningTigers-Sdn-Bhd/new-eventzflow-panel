@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
-	Eye,
 	MoreHorizontal,
 	Pencil,
 	QrCode,
@@ -36,7 +35,6 @@ import {
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
 import TicketEditModal from "./action-modals/edit-event-ticket-form";
-import TicketViewModal from "./action-modals/event-ticket-view-modal";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -68,20 +66,6 @@ export function useTicketActions({
 				title: "Edit Ticket",
 				description: "Edit the ticket information.",
 				size: "full",
-				showCloseButton: true,
-				className: "rounded-none",
-			},
-			props: { ticket },
-		});
-	};
-
-	const openViewModal = () => {
-		openDialog({
-			component: TicketViewModal,
-			config: {
-				title: "View Ticket",
-				description: "View the ticket information.",
-				size: "4xl",
 				showCloseButton: true,
 				className: "rounded-none",
 			},
@@ -293,7 +277,6 @@ export function useTicketActions({
 
 	return {
 		openEditModal,
-		openViewModal,
 		openQRModal,
 		openUnscanModal,
 		handleArchiveClick,
@@ -314,7 +297,6 @@ export function TicketActionsMenu({
 
 	const {
 		openEditModal,
-		openViewModal,
 		openQRModal,
 		openUnscanModal,
 		handleArchiveClick,
@@ -361,15 +343,6 @@ export function TicketActionsMenu({
 				title="Edit Ticket"
 			>
 				<Pencil className="size-4" />
-			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="h-8 w-8 rounded-none p-0 text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
-				onClick={openViewModal}
-				title="View Ticket"
-			>
-				<Eye className="size-4" />
 			</Button>
 			<Button
 				size="icon-sm"

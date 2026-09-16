@@ -45,21 +45,21 @@ import { BiInfoSquare } from "react-icons/bi";
 import { FaGifts } from "react-icons/fa6";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
-import type { useEventPermissions } from "@/hooks/use-event-permissions";
-import type { Event } from "@/lib/api/event/response";
+import type {
+	EventSidebarEvent,
+	EventPermissions as Permissions,
+} from "@/lib/api/event/response";
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-type Permissions = ReturnType<typeof useEventPermissions>;
 
 export type EventMenuItem = {
 	route: string;
 	label: string;
 	description: string;
 	icon: IconType | LucideIcon;
-	visible?: (permissions: Permissions, event?: Event) => boolean;
+	visible?: (permissions: Permissions, event?: EventSidebarEvent) => boolean;
 	isActive?: (pathname: string, route: string) => boolean;
 };
 
@@ -67,7 +67,7 @@ export type EventMenuGroup = {
 	id: string;
 	label: string;
 	icon: IconType | LucideIcon;
-	visible?: (permissions: Permissions, event?: Event) => boolean;
+	visible?: (permissions: Permissions, event?: EventSidebarEvent) => boolean;
 	tabs: EventMenuItem[];
 };
 
@@ -82,8 +82,10 @@ export type EventMenuConfig = {
 
 const visible = {
 	// Event type checks
-	ticketEvent: (_p: Permissions, e?: Event) => e?.use_ticket !== false,
-	mallEvent: (_p: Permissions, e?: Event) => e?.use_ticket === false,
+	ticketEvent: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_ticket !== false,
+	mallEvent: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_ticket === false,
 
 	// Permission checks
 	orgOwner: (p: Permissions) => p.canManageEventStaff ?? false,
@@ -106,13 +108,16 @@ const visible = {
 		!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 
 	// Feature flags
-	hasExhibitorKit: (_p: Permissions, e?: Event) =>
+	hasExhibitorKit: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_exhibitor_kit === true,
-	hasSeatTicketing: (_p: Permissions, e?: Event) =>
+	hasSeatTicketing: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_seat_ticketing === true,
-	hasVouchers: (_p: Permissions, e?: Event) => e?.use_voucher === true,
-	hasCertificate: (_p: Permissions, e?: Event) => e?.use_certificate === true,
-	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
+	hasVouchers: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_voucher === true,
+	hasCertificate: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_certificate === true,
+	hasVendors: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_exhibitor_kit !== true,
 
 	// Special access
 	luckyDrawAccess: (p: Permissions) =>
@@ -123,18 +128,18 @@ const visible = {
 		p.isEventVendor,
 	prizeRouletteAccess: (p: Permissions) =>
 		p.isOrgOwner || p.isEventAdmin || p.isEventVendor,
-	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
+	exhibitorContractorAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
-	vendorExhibitorKitAccess: (p: Permissions, e?: Event) =>
+	vendorExhibitorKitAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		visible.vendor(p) && visible.hasExhibitorKit(p, e),
-	contractorOnly: (p: Permissions, e?: Event) =>
+	contractorOnly: (p: Permissions, e?: EventSidebarEvent) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
 	// Org staff or contractor can access event items/printing services
-	orgStaffOrContractor: (p: Permissions, e?: Event) =>
+	orgStaffOrContractor: (p: Permissions, e?: EventSidebarEvent) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
-	businessMatchingAccess: (p: Permissions, e?: Event) =>
+	businessMatchingAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_business_matching === true &&
 		(p.isEventAdmin ||
 			p.isOrganizer ||
@@ -223,7 +228,8 @@ const rawEventMenuConfig: EventMenuConfig = {
 			description:
 				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
 			icon: MessageSquareHeart,
-			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
+			visible: (_p: Permissions, e?: EventSidebarEvent) =>
+				e?.use_wedding === true,
 		},
 		{
 			route: "location",
@@ -637,7 +643,7 @@ const isPureBusinessHost = (p: Permissions) =>
 function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 	const guardItem = (item: EventMenuItem): EventMenuItem => ({
 		...item,
-		visible: (p: Permissions, e?: Event) =>
+		visible: (p: Permissions, e?: EventSidebarEvent) =>
 			isPureBusinessHost(p)
 				? BUSINESS_HOST_ALLOWED_ROUTES.has(item.route)
 				: (item.visible?.(p, e) ?? true),
@@ -649,7 +655,7 @@ function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 			...group,
 			// Business hosts never see any group — both routes they're
 			// allowed to see are standalone items, not inside a group.
-			visible: (p: Permissions, e?: Event) =>
+			visible: (p: Permissions, e?: EventSidebarEvent) =>
 				isPureBusinessHost(p) ? false : (group.visible?.(p, e) ?? true),
 			tabs: group.tabs.map(guardItem),
 		})),
@@ -677,7 +683,7 @@ function restrictForBusinessMatchingAdmins(
 ): EventMenuConfig {
 	const guardItem = (item: EventMenuItem): EventMenuItem => ({
 		...item,
-		visible: (p: Permissions, e?: Event) =>
+		visible: (p: Permissions, e?: EventSidebarEvent) =>
 			isPureBusinessMatchingAdmin(p)
 				? BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES.has(item.route)
 				: (item.visible?.(p, e) ?? true),
@@ -687,7 +693,7 @@ function restrictForBusinessMatchingAdmins(
 		standalone: config.standalone.map(guardItem),
 		groups: config.groups.map((group) => ({
 			...group,
-			visible: (p: Permissions, e?: Event) =>
+			visible: (p: Permissions, e?: EventSidebarEvent) =>
 				isPureBusinessMatchingAdmin(p)
 					? false
 					: (group.visible?.(p, e) ?? true),

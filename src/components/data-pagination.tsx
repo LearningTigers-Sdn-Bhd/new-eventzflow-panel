@@ -27,7 +27,7 @@ export function DataPagination<TData>({
 	totalRows,
 	pageSize,
 	onPageSizeChange,
-	pageSizeOptions = [25, 50, 100],
+	pageSizeOptions = [10, 25, 50, 100],
 }: DataPaginationProps<TData>) {
 	const currentPage = table.getState().pagination.pageIndex;
 	const pageCount = table.getPageCount();

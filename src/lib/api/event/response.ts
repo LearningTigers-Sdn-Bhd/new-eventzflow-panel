@@ -1,5 +1,45 @@
 // Pure TypeScript types for API responses
 
+export type EventPermissions = {
+	// Loading state
+	isLoading: boolean;
+
+	// Global permissions
+	isOrgOwner: boolean;
+	isOrganizer: boolean;
+	isMember: boolean;
+	isVendor: boolean;
+	isExhibitionContractor: boolean;
+
+	// Event-specific roles
+	isEventAdmin: boolean;
+	isEventTeamMember: boolean;
+	isEventStaff: boolean;
+	isEventVendor: boolean;
+	isBusinessHost: boolean;
+	isBusinessMatchingAdmin: boolean;
+
+	// Specific permissions
+	canManageEvent: boolean;
+	canManageEventStaff: boolean;
+	canManageEventVendors: boolean;
+	canViewAnalytics: boolean;
+	canManageTickets: boolean;
+	canScanTickets: boolean;
+	canViewVisitors: boolean;
+	canScanVisitorStamps: boolean;
+	canEditVendorProfile: boolean;
+	canViewLeadAnalytics: boolean;
+	// Business Matching admin actions (sessions, tags, hosts) — mirrors the
+	// backend's manage_business_matching_sessions?/manage_business_hosts?
+	canManageBusinessMatching: boolean;
+
+	// Tab visibility
+	canViewVendorsTab: boolean;
+	canViewVisitorsTab: boolean;
+	canViewLeadScannerTab: boolean;
+};
+
 export type EventEmailSetting = {
 	sender_name: string | null;
 	sender_address: string | null;
@@ -77,6 +117,33 @@ export type Event = {
 };
 
 export type EventDetails = Event;
+
+export type EventSidebarEvent = Pick<
+	Event,
+	| "id"
+	| "title"
+	| "slug"
+	| "status"
+	| "start_date"
+	| "end_date"
+	| "use_ticket"
+	| "use_exhibitor_kit"
+	| "use_seat_ticketing"
+	| "use_voucher"
+	| "use_certificate"
+	| "use_business_matching"
+	| "use_wedding"
+	| "use_api_access"
+	| "use_event_leads"
+	| "use_sponsorship"
+	| "allow_contractor_printing_services"
+>;
+
+export type EventSidebarContextResponse = {
+	currentEvent: EventSidebarEvent;
+	events: EventSidebarEvent[];
+	permissions: EventPermissions;
+};
 
 // Backend response types (raw API responses) - BackendEvent is the same as Event
 export type BackendEvent = Event;

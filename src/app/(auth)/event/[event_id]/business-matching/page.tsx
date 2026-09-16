@@ -20,6 +20,7 @@ import CreateSessionDialog from "@/components/pages/business-matching/create-ses
 import { DataTable } from "@/components/pages/business-matching/data-table";
 import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
 import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -38,7 +39,6 @@ import {
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import {
 	downloadBookingsReport,
 	getHostProfile,
@@ -69,6 +69,7 @@ export default function BusinessMatchingPage() {
 	});
 
 	const router = useRouter();
+	const { permissions } = useEventSidebarContext();
 	const {
 		isBusinessHost,
 		canManageEvent,
@@ -76,7 +77,7 @@ export default function BusinessMatchingPage() {
 		isOrganizer,
 		isEventAdmin,
 		isBusinessMatchingAdmin,
-	} = useEventPermissions(event_id, event);
+	} = permissions;
 
 	// Matches the backend's manage_business_matching_tags? policy exactly
 	// (org_owner || organizer || event_admin || business_matching_admin) —

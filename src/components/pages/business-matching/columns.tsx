@@ -11,10 +11,10 @@ import {
 	User,
 } from "lucide-react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import AttachHostDialog from "./attach-host-dialog";
 import CreateSessionDialog from "./create-session-dialog";
@@ -53,8 +53,9 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		header: "Host Profile",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
+			const { permissions } = useEventSidebarContext();
 			const { isBusinessHost, canManageEvent, isBusinessMatchingAdmin } =
-				useEventPermissions(row.original.event_id);
+				permissions;
 			const canManageHosts = canManageEvent || isBusinessMatchingAdmin;
 			const host = row.original.host;
 
@@ -176,8 +177,9 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
 			const { user } = useAuth();
+			const { permissions } = useEventSidebarContext();
 			const { canManageEvent, isBusinessHost, isBusinessMatchingAdmin } =
-				useEventPermissions(row.original.event_id);
+				permissions;
 			const canManageSession = canManageEvent || isBusinessMatchingAdmin;
 
 			const ownsSession =

@@ -3,7 +3,7 @@
 import { use } from "react";
 import { EventVendorsPageButton } from "@/components/pages/event-vendors/page-action/button";
 import { VendorsListView } from "@/components/pages/event-vendors/vendors-list-view";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 
 export default function EventVendorsPage({
@@ -14,7 +14,8 @@ export default function EventVendorsPage({
 	const { event_id } = use(params);
 
 	// Check permissions
-	const { canManageEventVendors } = useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
+	const { canManageEventVendors } = permissions;
 
 	useSetEventActions(canManageEventVendors ? <EventVendorsPageButton /> : null);
 
