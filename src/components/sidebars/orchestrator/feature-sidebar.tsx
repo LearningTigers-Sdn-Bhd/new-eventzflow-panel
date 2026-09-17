@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeftIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsTablet } from "@/hooks/use-tablet";
-import { useSidebarStore } from "@/stores/sidebar-store";
 
 // ============================================================================
 // FEATURE SIDEBAR PROPS
@@ -238,20 +237,22 @@ function FeatureSidebarSkeleton({
 // FOOTER COMPONENT
 // ============================================================================
 
-function FeatureSidebarFooter() {
+function FeatureSidebarFooter({
+	exitLink,
+}: {
+	exitLink?: FeatureConfig["exitLink"];
+}) {
 	const isTablet = useIsTablet();
-	const { isEventSidebarOpen, setEventSidebarOpen } = useSidebarStore();
 
-	if (isTablet) return null;
+	if (isTablet || !exitLink) return null;
 
 	return (
 		<SidebarFooter className="border-t">
-			<SidebarMenuButton
-				tooltip="Toggle Feature Navigation"
-				onClick={() => setEventSidebarOpen(!isEventSidebarOpen)}
-			>
-				<PanelLeftIcon />
-				<span>Close Navigation</span>
+			<SidebarMenuButton asChild tooltip={exitLink.label}>
+				<Link href={exitLink.href as Route}>
+					<ArrowLeftIcon />
+					<span>{exitLink.label}</span>
+				</Link>
 			</SidebarMenuButton>
 		</SidebarFooter>
 	);
@@ -292,7 +293,7 @@ export function FeatureSidebar({
 			{config.footer ? (
 				<config.footer.component {...(config.footer.props ?? {})} />
 			) : (
-				<FeatureSidebarFooter />
+				<FeatureSidebarFooter exitLink={config.exitLink} />
 			)}
 		</Sidebar>
 	);

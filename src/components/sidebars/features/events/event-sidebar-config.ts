@@ -23,4 +23,8 @@ export const eventSidebarConfig: FeatureConfig = {
 		component: EventMenuHeader,
 	},
 	menu: eventMenuConfig as unknown as MenuConfig,
+	exitLink: {
+		href: "/event",
+		label: "All Events",
+	},
 };
