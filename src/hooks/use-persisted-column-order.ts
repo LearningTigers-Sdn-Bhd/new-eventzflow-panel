@@ -19,6 +19,11 @@ export function reconcileColumnOrder<TData>(
 	const leafIds = columns.map(
 		(col) => col.id ?? ("accessorKey" in col ? String(col.accessorKey) : ""),
 	);
+	const stickyLeftIds = columns
+		.filter((col) => col.meta?.sticky === "left")
+		.map(
+			(col) => col.id ?? ("accessorKey" in col ? String(col.accessorKey) : ""),
+		);
 	const stickyRightIds = columns
 		.filter((col) => col.meta?.sticky === "right")
 		.map(
@@ -26,19 +31,27 @@ export function reconcileColumnOrder<TData>(
 		);
 
 	if (columnOrder.length === 0) {
-		// No saved order — column-def order already ends with Actions.
+		// No saved order — column-def order already starts with sticky-left
+		// columns (e.g. select) and ends with Actions.
 		return columnOrder;
 	}
 
 	const known = new Set(leafIds);
 	const ordered = columnOrder.filter(
-		(id) => known.has(id) && !stickyRightIds.includes(id),
+		(id) =>
+			known.has(id) &&
+			!stickyLeftIds.includes(id) &&
+			!stickyRightIds.includes(id),
 	);
 	const missing = leafIds.filter(
-		(id) => id && !ordered.includes(id) && !stickyRightIds.includes(id),
+		(id) =>
+			id &&
+			!ordered.includes(id) &&
+			!stickyLeftIds.includes(id) &&
+			!stickyRightIds.includes(id),
 	);
 
-	return [...ordered, ...missing, ...stickyRightIds];
+	return [...stickyLeftIds, ...ordered, ...missing, ...stickyRightIds];
 }
 
 /**

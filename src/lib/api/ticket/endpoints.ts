@@ -12,6 +12,9 @@ import type {
 	BackendImportTicketsResponse,
 	BackendTicket,
 	BackendTicketTransformed,
+	BulkArchiveResponse,
+	BulkDeleteResponse,
+	BulkUpdateTicketTypeResponse,
 	CheckInResponse,
 	CreateTicketResponse,
 	ImportTicketsResponse,
@@ -433,6 +436,61 @@ export async function createTicket(data: {
 
 	// Transform backend response to frontend format
 	return transformBackendTicket(response, "Unknown Event", eventId);
+}
+
+/**
+ * Bulk-change the ticket type for a batch of tickets.
+ */
+export async function bulkUpdateTicketType(
+	eventId: string,
+	ticketTypeId: number,
+	ticketIds: string[],
+): Promise<BulkUpdateTicketTypeResponse> {
+	try {
+		return await restClient.patch<BulkUpdateTicketTypeResponse>(
+			`v1/events/${eventId}/tickets/bulk_update_ticket_type`,
+			{ ticket_type_id: ticketTypeId, ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Bulk-archive (soft delete) a batch of tickets. org_owner/organizer only.
+ */
+export async function bulkArchiveTickets(
+	eventId: string,
+	ticketIds: string[],
+): Promise<BulkArchiveResponse> {
+	try {
+		return await restClient.patch<BulkArchiveResponse>(
+			`v1/events/${eventId}/tickets/bulk_archive`,
+			{ ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Bulk-delete (permanent) a batch of tickets. org_owner only.
+ */
+export async function bulkDeleteTickets(
+	eventId: string,
+	ticketIds: string[],
+): Promise<BulkDeleteResponse> {
+	try {
+		return await restClient.delete<BulkDeleteResponse>(
+			`v1/events/${eventId}/tickets/bulk_delete`,
+			{ ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
 }
 
 /**

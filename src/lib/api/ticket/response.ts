@@ -92,6 +92,24 @@ export type CheckInResponse = {
 export type CreateTicketResponse = Ticket;
 export type UpdateTicketResponse = Ticket;
 
+// Bulk update ticket type response
+export type BulkUpdateTicketTypeResponse = {
+	updated: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
+
+// Bulk archive response
+export type BulkArchiveResponse = {
+	archived: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
+
+// Bulk delete response
+export type BulkDeleteResponse = {
+	deleted: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
+
 // Import tickets response
 export type ImportTicketsResponse = {
 	created: number;

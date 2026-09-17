@@ -1,19 +1,21 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	getCoreRowModel,
 	getSortedRowModel,
 	type PaginationState,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { Calendar } from "lucide-react";
+import { Calendar, Info } from "lucide-react";
 import { useParams } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 import {
 	DesktopView,
 	MobileView,
@@ -23,8 +25,10 @@ import {
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
+import BulkChangeTicketTypeModal from "@/components/pages/tickets/page-action/bulk-change-ticket-type-modal";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	reconcileColumnOrder,
@@ -35,6 +39,8 @@ import {
 	usePersistedColumnVisibility,
 } from "@/hooks/use-persisted-column-visibility";
 import { getEventById } from "@/lib/api/event";
+import { bulkArchiveTickets, bulkDeleteTickets } from "@/lib/api/ticket";
+import { useUserSessionStore } from "@/stores/new-auth-store";
 import { TicketDetailSheet } from "./event-ticket-detail-sheet";
 import { TicketItem } from "./event-ticket-item";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -74,6 +80,9 @@ interface DataTableProps<TData> {
 	onSortingChange: (
 		updater: SortingState | ((prev: SortingState) => SortingState),
 	) => void;
+	// Shows the row-select checkbox column and bulk-action bar. Toggled from
+	// the "Tools" dropdown in tickets/page.tsx.
+	selectMode?: boolean;
 }
 
 export function DataTable<TData>({
@@ -87,13 +96,143 @@ export function DataTable<TData>({
 	pagination,
 	sorting,
 	onSortingChange,
+	selectMode = false,
 }: DataTableProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog } = useDialog();
+	const { openConfirm, closeDialog: closeConfirmDialog } = useConfirmDialog();
+	const queryClient = useQueryClient();
+	const user = useUserSessionStore((state) => state.user);
+	const canBulkArchive =
+		user?.role === "org_owner" || user?.role === "organizer";
+	const canBulkDelete = user?.role === "org_owner";
 	const [selectedTicket, setSelectedTicket] = React.useState<BaseTicket | null>(
 		null,
 	);
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+
+	// Selection is only meaningful in select mode — drop it as soon as the
+	// user leaves select mode so a stale selection can't linger.
+	React.useEffect(() => {
+		if (!selectMode) setRowSelection({});
+	}, [selectMode]);
+
+	// Caches selected tickets by publicId so they stay visible (and checked)
+	// even after a search/filter change scrolls them off the current page —
+	// otherwise picking up a second ticket via search would silently lose
+	// track of the first one.
+	const [selectedTicketCache, setSelectedTicketCache] = React.useState<
+		Record<string, TData>
+	>({});
+
+	React.useEffect(() => {
+		setSelectedTicketCache((prev) => {
+			let changed = false;
+			const next = { ...prev };
+			for (const ticket of data as BaseTicket[]) {
+				if (rowSelection[ticket.publicId] && !next[ticket.publicId]) {
+					next[ticket.publicId] = ticket as unknown as TData;
+					changed = true;
+				}
+			}
+			for (const id of Object.keys(next)) {
+				if (!rowSelection[id]) {
+					delete next[id];
+					changed = true;
+				}
+			}
+			return changed ? next : prev;
+		});
+	}, [data, rowSelection]);
+
+	// Prepend previously-selected tickets that the current search/filter no
+	// longer matches, so the bulk-action bar's count always has a visible row
+	// backing it.
+	const effectiveData = React.useMemo(() => {
+		if (!selectMode) return data;
+		const currentIds = new Set((data as BaseTicket[]).map((t) => t.publicId));
+		const pinned = Object.keys(rowSelection)
+			.filter((id) => !currentIds.has(id) && selectedTicketCache[id])
+			.map((id) => selectedTicketCache[id]);
+		return pinned.length > 0 ? [...pinned, ...data] : data;
+	}, [data, selectMode, rowSelection, selectedTicketCache]);
+
+	const bulkArchiveMutation = useMutation({
+		mutationFn: (publicIds: string[]) => bulkArchiveTickets(eventId, publicIds),
+		onSuccess: (result) => {
+			toast.success(`Archived ${result.archived.length} ticket(s)`);
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+			setRowSelection({});
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to archive tickets");
+		},
+	});
+
+	const bulkDeleteMutation = useMutation({
+		mutationFn: (publicIds: string[]) => bulkDeleteTickets(eventId, publicIds),
+		onSuccess: (result) => {
+			toast.success(`Deleted ${result.deleted.length} ticket(s)`);
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+			setRowSelection({});
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to delete tickets");
+		},
+	});
+
+	const handleBulkArchiveClick = () => {
+		const publicIds = Object.keys(rowSelection);
+		openConfirm({
+			title: "Archive Tickets",
+			message: `Archive ${publicIds.length} selected ticket${publicIds.length === 1 ? "" : "s"}? They'll be hidden from the main list.`,
+			confirmLabel: "Archive",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => bulkArchiveMutation.mutate(publicIds),
+			onCancel: closeConfirmDialog,
+		});
+	};
+
+	const handleBulkDeleteClick = () => {
+		const publicIds = Object.keys(rowSelection);
+		openConfirm({
+			title: "Delete Tickets",
+			message: `Permanently delete ${publicIds.length} selected ticket${publicIds.length === 1 ? "" : "s"}? This cannot be undone.`,
+			confirmLabel: "Delete",
+			cancelLabel: "Cancel",
+			type: "destructive",
+			icon: "delete",
+			size: "sm",
+			onConfirm: () => bulkDeleteMutation.mutate(publicIds),
+			onCancel: closeConfirmDialog,
+		});
+	};
+
+	const openBulkChangeTicketType = () => {
+		openDialog({
+			component: BulkChangeTicketTypeModal,
+			config: {
+				size: "md",
+				showCloseButton: true,
+				title: "Change Ticket Type",
+				description: "Move the selected tickets to a different ticket type.",
+				className: "rounded-none",
+			},
+			props: {
+				eventId,
+				publicIds: Object.keys(rowSelection),
+				onSuccess: () => setRowSelection({}),
+			},
+		});
+	};
 
 	const openTicketCreate = () => {
 		openDialog({
@@ -124,7 +263,7 @@ export function DataTable<TData>({
 	// Merge labels_data keys with any custom label keys found in ticket data
 	const mergedLabelsData = React.useMemo(() => {
 		const base: Record<string, string> = { ...(eventData?.labels_data ?? {}) };
-		(data as BaseTicket[]).forEach((ticket) => {
+		(effectiveData as BaseTicket[]).forEach((ticket) => {
 			ticket.customLabels?.forEach(({ name }) => {
 				// Skip server-written/reserved fields (e.g. `_table_number`,
 				// `_indemnity`) - they aren't user-facing custom fields and
@@ -139,7 +278,7 @@ export function DataTable<TData>({
 			});
 		});
 		return Object.keys(base).length > 0 ? base : undefined;
-	}, [eventData?.labels_data, data]);
+	}, [eventData?.labels_data, effectiveData]);
 
 	// Default visibility: show first 3 custom labels, hide the rest if there
 	// are more than 3. Reused by both the auto-apply effect (first load) and
@@ -186,8 +325,8 @@ export function DataTable<TData>({
 	};
 
 	const columns = React.useMemo(
-		() => generateColumns(mergedLabelsData) as ColumnDef<TData>[],
-		[mergedLabelsData],
+		() => generateColumns(mergedLabelsData, selectMode) as ColumnDef<TData>[],
+		[mergedLabelsData, selectMode],
 	);
 
 	// Manual pagination: search, status/type filters, and paging are all
@@ -210,7 +349,7 @@ export function DataTable<TData>({
 	);
 
 	const table = useReactTable({
-		data,
+		data: effectiveData,
 		columns,
 		onSortingChange,
 		onColumnFiltersChange,
@@ -218,6 +357,9 @@ export function DataTable<TData>({
 		getSortedRowModel: getSortedRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnOrderChange: setColumnOrder,
+		onRowSelectionChange: setRowSelection,
+		getRowId: (row) => (row as BaseTicket).publicId,
+		enableRowSelection: true,
 		manualPagination: true,
 		manualSorting: true,
 		manualFiltering: true,
@@ -233,6 +375,7 @@ export function DataTable<TData>({
 			columnVisibility,
 			columnOrder: effectiveColumnOrder,
 			pagination: paginationState,
+			rowSelection,
 		},
 	});
 
@@ -247,6 +390,67 @@ export function DataTable<TData>({
 				search={search}
 				onSearchChange={onSearchChange}
 			/>
+
+			{selectMode && Object.keys(rowSelection).length === 0 && (
+				<div className="mb-2 flex items-center gap-2 border-l-4 border-l-blue-500 bg-blue-50 px-4 py-2.5 dark:bg-blue-950/30">
+					<Info className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+					<span className="text-blue-900 text-sm dark:text-blue-100">
+						Select tickets below to perform a bulk action.
+					</span>
+				</div>
+			)}
+
+			{Object.keys(rowSelection).length > 0 && (
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-l-4 border-l-primary bg-muted/50 px-4 py-2.5">
+					<span className="flex items-center gap-2 font-medium text-sm">
+						<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 font-semibold text-primary-foreground text-xs">
+							{Object.keys(rowSelection).length}
+						</span>
+						selected
+					</span>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							className="rounded-none"
+							onClick={openBulkChangeTicketType}
+						>
+							Change Ticket Type
+						</Button>
+						{canBulkArchive && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-none"
+								onClick={handleBulkArchiveClick}
+								disabled={bulkArchiveMutation.isPending}
+							>
+								Archive
+							</Button>
+						)}
+						{canBulkDelete && (
+							<Button
+								variant="destructive"
+								size="sm"
+								className="rounded-none"
+								onClick={handleBulkDeleteClick}
+								disabled={bulkDeleteMutation.isPending}
+							>
+								Delete
+							</Button>
+						)}
+						<div className="mx-1 h-5 w-px bg-border" />
+						<Button
+							variant="ghost"
+							size="sm"
+							className="rounded-none"
+							onClick={() => setRowSelection({})}
+						>
+							Clear
+						</Button>
+					</div>
+				</div>
+			)}
 
 			{/* Data Table */}
 			<div className="min-h-[calc(100vh-320px)]">
@@ -265,7 +469,7 @@ export function DataTable<TData>({
 							clickableRowConfig={{
 								isEnabled: true,
 								onRowClick: (row) => setSelectedTicket(row as BaseTicket),
-								excludeRowClickColumns: ["actions"],
+								excludeRowClickColumns: ["actions", "select"],
 							}}
 						/>
 					</DesktopView>

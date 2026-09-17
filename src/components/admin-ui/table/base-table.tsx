@@ -105,6 +105,9 @@ export function BaseTable<TData>({
 								>
 									{row.getVisibleCells().map((cell) => {
 										const isSticky = !!cell.column.columnDef.meta?.sticky;
+										const stickyBg = row.getIsSelected()
+											? "bg-muted"
+											: "bg-background";
 										return (
 											<TableCell
 												key={cell.id}
@@ -113,9 +116,15 @@ export function BaseTable<TData>({
 													table.getVisibleLeafColumns()[0]?.id ===
 														cell.column.id && "ps-4",
 													cell.column.columnDef.meta?.sticky === "left" &&
-														"sticky left-0 z-10 bg-background group-hover:bg-muted/50",
+														cn(
+															"sticky left-0 z-10 group-hover:bg-muted/50",
+															stickyBg,
+														),
 													cell.column.columnDef.meta?.sticky === "right" &&
-														"sticky right-0 z-10 bg-background group-hover:bg-muted/50",
+														cn(
+															"sticky right-0 z-10 group-hover:bg-muted/50",
+															stickyBg,
+														),
 													isSticky && "p-0",
 												)}
 												onClick={(e) => {

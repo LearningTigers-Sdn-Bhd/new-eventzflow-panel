@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import { ChevronDown, ListChecks, Wrench } from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
@@ -9,6 +10,13 @@ import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -52,6 +60,7 @@ export default function TicketsPage({
 	const [search, setSearch] = useState("");
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [bulkSelectMode, setBulkSelectMode] = useState(false);
 
 	const debouncedSearch = useDebounce(search, 300);
 
@@ -112,16 +121,40 @@ export default function TicketsPage({
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
-				<JsonSampleTool
-					resourceName="Ticket"
-					eventId={event_id}
-					baseFields={TICKET_BASE_FIELDS}
-				/>
-				<ImportTicketButton />
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							className="w-full rounded-none py-6 md:py-4 lg:w-auto"
+						>
+							<Wrench className="mr-2 h-4 w-4" />
+							Tools
+							<ChevronDown className="ml-2 h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-48 rounded-none">
+						<DropdownMenuItem
+							onSelect={() => setBulkSelectMode((v) => !v)}
+							className="rounded-none"
+						>
+							<ListChecks className="h-4 w-4" />
+							{bulkSelectMode ? "Exit Bulk Actions" : "Bulk Actions"}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<JsonSampleTool
+							resourceName="Ticket"
+							eventId={event_id}
+							baseFields={TICKET_BASE_FIELDS}
+							asMenuItem
+						/>
+						<DropdownMenuSeparator />
+						<ImportTicketButton asMenuItem />
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<TicketPageButton />
 			</div>
 		),
-		[event_id],
+		[event_id, bulkSelectMode],
 	);
 
 	useSetEventActions(eventActions);
@@ -189,6 +222,7 @@ export default function TicketsPage({
 					onColumnFiltersChange={handleColumnFiltersChange}
 					sorting={sorting}
 					onSortingChange={handleSortingChange}
+					selectMode={bulkSelectMode}
 					pagination={{
 						pageIndex: page - 1,
 						pageSize,

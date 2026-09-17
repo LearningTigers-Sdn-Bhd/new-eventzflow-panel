@@ -2,6 +2,6 @@
 
 import { ImportQuickButton } from "@/components/pages/import/import-quick-form";
 
-export function ImportTicketButton() {
-	return <ImportQuickButton importType="tickets" />;
+export function ImportTicketButton({ asMenuItem }: { asMenuItem?: boolean }) {
+	return <ImportQuickButton importType="tickets" asMenuItem={asMenuItem} />;
 }

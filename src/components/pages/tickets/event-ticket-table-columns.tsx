@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./event-ticket-action-menu";
 
@@ -67,10 +68,45 @@ function formatDateTime(dateString: string): {
 
 export function generateColumns(
 	labelsData?: Record<string, string>,
+	showSelectColumn = false,
 ): ColumnDef<BaseTicket>[] {
 	// Base columns that everyone sees
 	// Order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
 	const baseColumns: ColumnDef<BaseTicket>[] = [
+		...(showSelectColumn
+			? [
+					{
+						id: "select",
+						size: 40,
+						enableHiding: false,
+						enableSorting: false,
+						meta: {
+							sticky: "left",
+						},
+						header: ({ table }) => (
+							<Checkbox
+								checked={
+									table.getIsAllPageRowsSelected() ||
+									(table.getIsSomePageRowsSelected() && "indeterminate")
+								}
+								onCheckedChange={(value) =>
+									table.toggleAllPageRowsSelected(!!value)
+								}
+								aria-label="Select all"
+								className="rounded-none"
+							/>
+						),
+						cell: ({ row }) => (
+							<Checkbox
+								checked={row.getIsSelected()}
+								onCheckedChange={(value) => row.toggleSelected(!!value)}
+								aria-label="Select row"
+								className="rounded-none"
+							/>
+						),
+					} satisfies ColumnDef<BaseTicket>,
+				]
+			: []),
 		{
 			accessorKey: "name",
 			size: 200,

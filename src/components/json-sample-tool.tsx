@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
 	Field,
 	FieldGroup,
@@ -31,12 +32,14 @@ interface JsonSampleToolProps {
 	resourceName: string;
 	eventId: string;
 	baseFields: string[];
+	asMenuItem?: boolean;
 }
 
 export function JsonSampleTool({
 	resourceName,
 	eventId,
 	baseFields,
+	asMenuItem,
 }: JsonSampleToolProps) {
 	const { openDialog } = useDialog();
 	const user = useUserSessionStore((state) => state.user);
@@ -62,6 +65,15 @@ export function JsonSampleTool({
 			},
 		});
 	};
+
+	if (asMenuItem) {
+		return (
+			<DropdownMenuItem onSelect={handleOpen} className="rounded-none">
+				<FileJson className="h-4 w-4" />
+				Sample Data
+			</DropdownMenuItem>
+		);
+	}
 
 	return (
 		<Button
