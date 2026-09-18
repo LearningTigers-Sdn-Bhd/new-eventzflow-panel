@@ -35,7 +35,7 @@ export default function SessionActivityDialog({
 
 				<TabsContent
 					value="bookings"
-					className="min-h-0 flex-1 overflow-hidden"
+					className="flex min-h-0 flex-1 flex-col overflow-hidden"
 				>
 					<BookingsDialog bmEventId={bmEventId} eventId={eventId} />
 				</TabsContent>

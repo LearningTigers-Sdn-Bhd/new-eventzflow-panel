@@ -1,5 +1,11 @@
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
+import {
+	Archive,
+	ArchiveRestore,
+	Calendar as CalendarIcon,
+	Loader2,
+	Trash2,
+} from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +34,9 @@ import type {
 } from "@/lib/api/business-matching";
 import { addMinutesToTime, TIME_OPTIONS } from "@/lib/time-blocks";
 import { cn } from "@/lib/utils";
+import ArchiveSessionDialog, {
+	RestoreSessionDialog,
+} from "./archive-session-dialog";
 import ManageAvailabilityHours from "./manage-availability-hours";
 import { TimeSelect } from "./time-select";
 
@@ -53,9 +62,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	eventDefaults,
 	isHostEditing = false,
 }) => {
-	const { closeDialog } = useDialog();
+	const { openDialog, closeDialog } = useDialog();
 	const isEditMode = !!session;
-
 	const { mutate: createSession, isPending: isCreating } =
 		useCreateBusinessMatchingSession(eventId);
 	const { mutate: updateSession, isPending: isUpdating } =
@@ -79,6 +87,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 	// session's "Hosts can edit their own hours" toggle allows it.
 	const canEditHours = isHostEditing ? (session?.hours_editable ?? true) : true;
 
+	const hasHost = !!session?.host;
+	const bookingsCount = session?.bookings_count ?? 0;
+	const canArchive = !hasHost && bookingsCount === 0;
+	const isArchived = session?.is_archived ?? !!session?.archived_at;
+
 	const handleDelete = () => {
 		if (!session) return;
 		if (
@@ -96,6 +109,30 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 				},
 			});
 		}
+	};
+
+	const handleArchive = () => {
+		if (!session) return;
+		openDialog({
+			component: ArchiveSessionDialog,
+			props: { session },
+			config: {
+				title: canArchive ? "Archive Session" : "Cannot Archive Session",
+				size: "md",
+			},
+		});
+	};
+
+	const handleUnarchive = () => {
+		if (!session) return;
+		openDialog({
+			component: RestoreSessionDialog,
+			props: { session },
+			config: {
+				title: "Restore Session",
+				size: "md",
+			},
+		});
 	};
 
 	const [title, setTitle] = useState("");
@@ -458,19 +495,44 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 
 			<div className="flex items-center justify-between pt-4">
 				{isEditMode && session && !isHostEditing && (
-					<Button
-						type="button"
-						variant="destructive"
-						onClick={handleDelete}
-						disabled={isPending}
-					>
-						{isDeleting ? (
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					<div className="flex flex-wrap items-center gap-2">
+						<Button
+							type="button"
+							variant="destructive"
+							onClick={handleDelete}
+							disabled={isPending}
+						>
+							{isDeleting ? (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							) : (
+								<Trash2 className="mr-2 h-4 w-4" />
+							)}
+							Delete Session
+						</Button>
+
+						{!isArchived ? (
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleArchive}
+								disabled={isPending}
+								className="text-muted-foreground hover:text-destructive"
+							>
+								<Archive className="mr-2 h-4 w-4" />
+								Archive Session
+							</Button>
 						) : (
-							<Trash2 className="mr-2 h-4 w-4" />
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleUnarchive}
+								disabled={isPending}
+							>
+								<ArchiveRestore className="mr-2 h-4 w-4" />
+								Restore Session
+							</Button>
 						)}
-						Delete Session
-					</Button>
+					</div>
 				)}
 				<div className="ml-auto flex gap-2">
 					<Button

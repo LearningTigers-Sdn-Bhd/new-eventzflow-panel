@@ -69,8 +69,8 @@ function CompactCardFooter({
 
 export {
 	CompactCard,
-	CompactCardHeader,
-	CompactCardFooter,
-	CompactCardTitle,
 	CompactCardContent,
+	CompactCardFooter,
+	CompactCardHeader,
+	CompactCardTitle,
 };

@@ -27,7 +27,7 @@ const sizeClassMap: Record<string, string> = {
 	"3xl": "sm:max-w-3xl",
 	"4xl": "sm:max-w-4xl",
 	"5xl": "sm:max-w-5xl",
-	full: "!max-w-none !h-screen w-screen",
+	full: "top-0! left-0! h-[100dvh]! w-screen max-w-none! translate-x-0! translate-y-0!",
 };
 
 export function UniversalDialog() {
@@ -89,7 +89,7 @@ export function UniversalDialog() {
 					<DialogContent
 						className={cn(
 							"flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0",
-							"h-screen! w-screen max-w-none!",
+							"top-0! left-0! h-[100dvh]! max-h-[100dvh]! w-screen max-w-none! translate-x-0! translate-y-0!",
 						)}
 						showCloseButton={config.showCloseButton}
 						onPointerDownOutside={handlePointerDownOutside}
@@ -97,7 +97,8 @@ export function UniversalDialog() {
 					>
 						<DialogHeader
 							className={cn(
-								"flex shrink-0 flex-col items-start gap-1 px-4 py-3 pr-10",
+								"flex shrink-0 flex-col items-start gap-1 px-4 pr-10 pb-3",
+								"pt-[max(0.75rem,env(safe-area-inset-top))]",
 							)}
 						>
 							{canGoBack && (
@@ -146,7 +147,7 @@ export function UniversalDialog() {
 							"flex flex-col gap-0 overflow-hidden p-6",
 							sizeClass,
 							isFullScreen
-								? "h-screen! max-h-none! rounded-none border-0 p-0"
+								? "max-h-[100dvh]! rounded-none border-0 p-0"
 								: "max-h-[85vh]",
 							config.className,
 						)}

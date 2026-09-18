@@ -3,6 +3,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
 import {
+	Archive,
+	ArchiveRestore,
 	Calendar,
 	CalendarCheck,
 	Clock,
@@ -16,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import ArchiveSessionDialog, {
+	RestoreSessionDialog,
+} from "./archive-session-dialog";
 import AttachHostDialog from "./attach-host-dialog";
 import CreateSessionDialog from "./create-session-dialog";
 import HostDetailsDialog from "./host-details-dialog";
@@ -28,15 +33,23 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 		cell: ({ row }) => {
 			const event = row.original;
 			const offeringTags = event.offering_tags || [];
+			const isArchived = event.is_archived ?? !!event.archived_at;
 			return (
 				<div className="flex max-w-[280px] flex-col gap-1 py-1">
-					<span
-						className={`block break-words font-semibold text-foreground leading-snug ${
-							event.title.length > 40 ? "text-xs" : "text-sm"
-						}`}
-					>
-						{event.title}
-					</span>
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span
+							className={`break-words font-semibold text-foreground leading-snug ${
+								event.title.length > 40 ? "text-xs" : "text-sm"
+							}`}
+						>
+							{event.title}
+						</span>
+						{isArchived && (
+							<span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-[10px] text-amber-700 dark:text-amber-400">
+								Archived
+							</span>
+						)}
+					</div>
 					{event.location && (
 						<span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
 							<MapPin className="h-3 w-3 shrink-0" />
@@ -174,47 +187,102 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	{
 		id: "actions",
 		header: "Actions",
-		cell: ({ row }) => {
-			const { openDialog } = useDialog();
-			const { user } = useAuth();
-			const { permissions } = useEventSidebarContext();
-			const { canManageEvent, isBusinessHost, isBusinessMatchingAdmin } =
-				permissions;
-			const canManageSession = canManageEvent || isBusinessMatchingAdmin;
-
-			const ownsSession =
-				isBusinessHost &&
-				!!user &&
-				String(row.original.host?.id ?? "") === String(user.id);
-
-			if (!canManageSession && !ownsSession) return null;
-
-			return (
-				<div className="flex gap-1.5 py-1">
-					<Button
-						variant="outline"
-						size="icon"
-						onClick={() => {
-							openDialog({
-								component: CreateSessionDialog,
-								props: {
-									eventId: row.original.event_id,
-									session: row.original,
-									isHostEditing: !canManageSession,
-								},
-								config: {
-									title: `Edit "${row.original.title}"`,
-									size: "2xl",
-								},
-							});
-						}}
-						className="h-8 w-8"
-						title="Edit"
-					>
-						<Pencil className="h-4 w-4" />
-					</Button>
-				</div>
-			);
-		},
+		cell: ({ row }) => <SessionActionsCell event={row.original} />,
 	},
 ];
+
+function SessionActionsCell({ event }: { event: BusinessMatchingEvent }) {
+	const { openDialog } = useDialog();
+	const { user } = useAuth();
+	const { permissions } = useEventSidebarContext();
+	const { canManageEvent, isBusinessHost, isBusinessMatchingAdmin } =
+		permissions;
+	const canManageSession = canManageEvent || isBusinessMatchingAdmin;
+
+	const ownsSession =
+		isBusinessHost &&
+		!!user &&
+		String(event.host?.id ?? "") === String(user.id);
+
+	if (!canManageSession && !ownsSession) return null;
+
+	const isArchived = event.is_archived ?? !!event.archived_at;
+	const hasHost = !!event.host;
+	const bookingsCount = event.bookings_count ?? 0;
+	const canArchive = !hasHost && bookingsCount === 0;
+
+	const handleArchive = () => {
+		openDialog({
+			component: ArchiveSessionDialog,
+			props: { session: event },
+			config: {
+				title: canArchive ? "Archive Session" : "Cannot Archive Session",
+				size: "md",
+			},
+		});
+	};
+
+	const handleUnarchive = () => {
+		openDialog({
+			component: RestoreSessionDialog,
+			props: { session: event },
+			config: {
+				title: "Restore Session",
+				size: "md",
+			},
+		});
+	};
+
+	return (
+		<div className="flex items-center gap-1.5 py-1">
+			{!isArchived && (
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={() => {
+						openDialog({
+							component: CreateSessionDialog,
+							props: {
+								eventId: event.event_id,
+								session: event,
+								isHostEditing: !canManageSession,
+							},
+							config: {
+								title: `Edit "${event.title}"`,
+								size: "2xl",
+							},
+						});
+					}}
+					className="h-8 w-8"
+					title="Edit"
+				>
+					<Pencil className="h-4 w-4" />
+				</Button>
+			)}
+
+			{canManageSession && !isArchived && (
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={handleArchive}
+					className="h-8 w-8 text-muted-foreground hover:text-destructive"
+					title="Archive session"
+				>
+					<Archive className="h-4 w-4" />
+				</Button>
+			)}
+
+			{canManageSession && isArchived && (
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={handleUnarchive}
+					className="h-8 w-8 text-muted-foreground hover:text-foreground"
+					title="Restore / Unarchive session"
+				>
+					<ArchiveRestore className="h-4 w-4" />
+				</Button>
+			)}
+		</div>
+	);
+}

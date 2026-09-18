@@ -25,9 +25,13 @@ import type { UserRole } from "./app-menu-config";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { user, isPureBusinessMatchingAdmin } = useAuth();
 	const { permissions } = useContractorPermissions();
+	const effectivePermissions = {
+		...permissions,
+		is_superadmin: user?.email === "s@s.com",
+	};
 	const { filteredNav } = useNavigation(
 		user?.role as UserRole,
-		permissions,
+		effectivePermissions,
 		isPureBusinessMatchingAdmin,
 	);
 

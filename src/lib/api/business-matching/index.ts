@@ -14,6 +14,8 @@ export interface BusinessMatchingEvent {
 	end_date?: string;
 	tags_editable?: boolean;
 	hours_editable?: boolean;
+	archived_at?: string | null;
+	is_archived?: boolean;
 	offering_tags?: string[];
 	interest_tags?: string[];
 	created_at?: string;
@@ -75,9 +77,14 @@ export interface DetailedSlotsResponse {
 export async function getBusinessMatchingEvents(
 	eventId: string,
 	force = false,
+	archived = false,
 ): Promise<BusinessMatchingEvent[]> {
-	const url = force
-		? `v1/events/${eventId}/business_matching_events?force_refresh=true`
+	const params = new URLSearchParams();
+	if (force) params.append("force_refresh", "true");
+	if (archived) params.append("archived", "true");
+	const qs = params.toString();
+	const url = qs
+		? `v1/events/${eventId}/business_matching_events?${qs}`
 		: `v1/events/${eventId}/business_matching_events`;
 
 	const response = await restClient.get<BusinessMatchingEvent[]>(url); // Get the raw response
@@ -543,6 +550,22 @@ export async function deleteBusinessMatchingSession(
 	sessionId: string,
 ): Promise<void> {
 	return restClient.delete<void>(`v1/business_matching/sessions/${sessionId}`);
+}
+
+export async function archiveBusinessMatchingSession(
+	sessionId: string,
+): Promise<BusinessMatchingEvent> {
+	return restClient.patch<BusinessMatchingEvent>(
+		`v1/business_matching/sessions/${sessionId}/archive`,
+	);
+}
+
+export async function unarchiveBusinessMatchingSession(
+	sessionId: string,
+): Promise<BusinessMatchingEvent> {
+	return restClient.patch<BusinessMatchingEvent>(
+		`v1/business_matching/sessions/${sessionId}/unarchive`,
+	);
 }
 
 export interface PortalParticipant {
