@@ -47,13 +47,14 @@ export default function AuthLayoutClient({
 			router.push("/dashboard");
 		}
 
+		// TEMPORARILY DISABLED: Member restriction was locking out business hosts whose role defaults to "member"
 		// Team members ("member" role) only have the ticket scanner — no
 		// dashboard, events, analytics, or anything else. Guard here so a
 		// bookmarked/typed URL can't get around the nav restriction in
 		// app-menu-config.ts.
-		if (user.role === "member" && !pathname.startsWith("/scan")) {
-			router.push("/scan" as Route);
-		}
+		// if (user.role === "member" && !pathname.startsWith("/scan")) {
+		// 	router.push("/scan" as Route);
+		// }
 	}, [user, pathname, isInitialized, router]);
 
 	// Loading state - waiting for auth hydration
@@ -72,11 +73,12 @@ export default function AuthLayoutClient({
 		return <LoadingPage />;
 	}
 
+	// TEMPORARILY DISABLED: Member restriction was locking out business hosts whose role defaults to "member"
 	// Prevent team members from accessing anything but the scanner
 	// This runs BEFORE children mount, preventing API calls
-	if (user.role === "member" && !pathname.startsWith("/scan")) {
-		return <LoadingPage />;
-	}
+	// if (user.role === "member" && !pathname.startsWith("/scan")) {
+	// 	return <LoadingPage />;
+	// }
 
 	// SidebarOrchestrator handles all layout states:
 	// - no-sidebar, single-sidebar, double-sidebar
