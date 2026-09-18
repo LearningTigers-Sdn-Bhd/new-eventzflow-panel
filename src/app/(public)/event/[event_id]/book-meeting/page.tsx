@@ -208,12 +208,20 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	// Filter and sort sessions/hosts based on search query, selected tag, and similarity to visitorInterests
 	const filteredBmEvents = (bmEvents || [])
 		.filter((event) => {
+			// Hide sessions that have no business host attached
+			if (!event.host || !event.host.id) return false;
+
 			const matchesSearch =
 				event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				(event.host?.full_name &&
+					event.host.full_name
+						.toLowerCase()
+						.includes(searchQuery.toLowerCase())) ||
 				(event.location &&
 					event.location.toLowerCase().includes(searchQuery.toLowerCase()));
 
-			const eventTags = (event as any).offering_tags || [];
+			const eventTags =
+				(event as any).offering_tags || event.host?.offering_tags || [];
 			const matchesTag =
 				selectedTags.length === 0 ||
 				eventTags.some((t: string) => selectedTags.includes(t));
@@ -221,7 +229,8 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 			return matchesSearch && matchesTag;
 		})
 		.map((event) => {
-			const eventTags = (event as any).offering_tags || [];
+			const eventTags =
+				(event as any).offering_tags || event.host?.offering_tags || [];
 			const matchCount = eventTags.filter((t: string) =>
 				visitorInterests.includes(t),
 			).length;
@@ -230,9 +239,13 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 		.sort((a, b) => b.matchCount - a.matchCount)
 		.map((item) => item.event);
 
-	// Get all unique tags from all sessions/hosts
+	// Get all unique tags from sessions that have an attached host
 	const allUniqueTags: string[] = Array.from(
-		new Set((bmEvents || []).flatMap((e: any) => e.offering_tags || [])),
+		new Set(
+			(bmEvents || [])
+				.filter((e) => e.host && e.host.id)
+				.flatMap((e: any) => e.offering_tags || e.host?.offering_tags || []),
+		),
 	);
 
 	// If the current selection is filtered out by search/category changes,

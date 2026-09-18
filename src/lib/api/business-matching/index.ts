@@ -443,6 +443,7 @@ export interface PublicBookingInfo {
 	bm_event_id: string;
 	session_title: string;
 	host_user_id: string;
+	host_name?: string;
 	slot_duration: number;
 }
 
@@ -464,10 +465,18 @@ export async function rescheduleBooking(
 	bookingId: string,
 	date: string,
 	time: string,
-): Promise<{ message: string; booking_date: string; booking_time: string }> {
+	options?: { bm_event_id?: string; host_user_id?: string },
+): Promise<{
+	message: string;
+	booking_date: string;
+	booking_time: string;
+	bm_event_id?: string;
+	host_user_id?: string;
+	session_title?: string;
+}> {
 	return publicRestClient.patch(
 		`v1/business_matching/bookings/${bookingId}/reschedule`,
-		{ date, time },
+		{ date, time, ...options },
 	);
 }
 

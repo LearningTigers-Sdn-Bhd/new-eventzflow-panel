@@ -51,7 +51,27 @@ export function UniversalDialog() {
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			closeDialog();
+			if (canGoBack) {
+				goBack();
+			} else {
+				closeDialog();
+			}
+		}
+	};
+
+	const handlePointerDownOutside = (
+		e: CustomEvent<{ originalEvent: PointerEvent }>,
+	) => {
+		if (canGoBack) {
+			e.preventDefault();
+			goBack();
+		}
+	};
+
+	const handleEscapeKeyDown = (e: KeyboardEvent) => {
+		if (canGoBack) {
+			e.preventDefault();
+			goBack();
 		}
 	};
 
@@ -72,6 +92,8 @@ export function UniversalDialog() {
 							"h-screen! w-screen max-w-none!",
 						)}
 						showCloseButton={config.showCloseButton}
+						onPointerDownOutside={handlePointerDownOutside}
+						onEscapeKeyDown={handleEscapeKeyDown}
 					>
 						<DialogHeader
 							className={cn(
@@ -129,6 +151,8 @@ export function UniversalDialog() {
 							config.className,
 						)}
 						showCloseButton={config.showCloseButton}
+						onPointerDownOutside={handlePointerDownOutside}
+						onEscapeKeyDown={handleEscapeKeyDown}
 					>
 						<DialogHeader
 							className={cn(

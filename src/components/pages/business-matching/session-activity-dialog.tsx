@@ -1,6 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDialog } from "@/hooks/use-dialog";
 import AvailabilitySlotsPanel from "./availability-slots-panel";
 import BookingsDialog from "./bookings-dialog";
 
@@ -13,31 +15,45 @@ export default function SessionActivityDialog({
 	bmEventId,
 	eventId,
 }: SessionActivityDialogProps) {
+	const { closeDialog } = useDialog();
+
 	// The desktop dialog is only *max*-height constrained, so `h-full` here
 	// resolved to auto — the tab panel then clipped its overflow instead of
 	// letting the inner ScrollArea scroll (bookings past the 3rd were
 	// unreachable). A definite height gives the whole chain something to
 	// resolve against. Mobile already gets one from the full-screen dialog.
 	return (
-		<Tabs
-			defaultValue="bookings"
-			className="flex h-full min-h-0 w-full flex-col gap-2 md:h-[70vh]"
-		>
-			<TabsList className="grid w-full shrink-0 grid-cols-2">
-				<TabsTrigger value="bookings">Bookings</TabsTrigger>
-				<TabsTrigger value="availability">Availability</TabsTrigger>
-			</TabsList>
-
-			<TabsContent value="bookings" className="min-h-0 flex-1 overflow-hidden">
-				<BookingsDialog bmEventId={bmEventId} eventId={eventId} />
-			</TabsContent>
-
-			<TabsContent
-				value="availability"
-				className="min-h-0 flex-1 overflow-y-auto"
+		<div className="flex h-full min-h-0 w-full flex-col">
+			<Tabs
+				defaultValue="bookings"
+				className="flex h-full min-h-0 w-full flex-1 flex-col gap-2 md:h-[70vh]"
 			>
-				<AvailabilitySlotsPanel bmEventId={bmEventId} eventId={eventId} />
-			</TabsContent>
-		</Tabs>
+				<TabsList className="grid w-full shrink-0 grid-cols-2">
+					<TabsTrigger value="bookings">Bookings</TabsTrigger>
+					<TabsTrigger value="availability">Availability</TabsTrigger>
+				</TabsList>
+
+				<TabsContent
+					value="bookings"
+					className="min-h-0 flex-1 overflow-hidden"
+				>
+					<BookingsDialog bmEventId={bmEventId} eventId={eventId} />
+				</TabsContent>
+
+				<TabsContent
+					value="availability"
+					className="min-h-0 flex-1 overflow-y-auto"
+				>
+					<AvailabilitySlotsPanel bmEventId={bmEventId} eventId={eventId} />
+				</TabsContent>
+			</Tabs>
+
+			{/* Bottom bar with Cancel/Close button for mobile view */}
+			<div className="flex shrink-0 justify-end border-t bg-background/95 px-4 py-2.5 backdrop-blur-sm md:hidden">
+				<Button type="button" variant="outline" size="sm" onClick={closeDialog}>
+					Close
+				</Button>
+			</div>
+		</div>
 	);
 }
