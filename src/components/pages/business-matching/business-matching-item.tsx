@@ -1,6 +1,13 @@
 "use client";
 
-import { CalendarCheck, MapPin, Pencil, User } from "lucide-react";
+import {
+	Archive,
+	ArchiveRestore,
+	CalendarCheck,
+	MapPin,
+	Pencil,
+	User,
+} from "lucide-react";
 import { useMemo } from "react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
@@ -10,6 +17,9 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { useBusinessMatchingBookings } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import ArchiveSessionDialog, {
+	RestoreSessionDialog,
+} from "./archive-session-dialog";
 import AttachHostDialog from "./attach-host-dialog";
 import CreateSessionDialog from "./create-session-dialog";
 import HostDetailsDialog from "./host-details-dialog";
@@ -23,11 +33,41 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 	const { openDialog } = useDialog();
 	const { user } = useAuth();
 	const { permissions } = useEventSidebarContext();
-	const { isBusinessHost, canManageEvent } = permissions;
+	const { isBusinessHost, canManageEvent, isBusinessMatchingAdmin } =
+		permissions;
+	const canManageSession = canManageEvent || isBusinessMatchingAdmin;
 	const host = event.host;
 	const offeringTags = event.offering_tags || [];
 	const ownsSession =
 		isBusinessHost && !!user && String(host?.id ?? "") === String(user.id);
+	const isArchived = event.is_archived ?? !!event.archived_at;
+	const hasHost = !!host;
+	const bookingsCount = event.bookings_count ?? 0;
+	const canArchive = !hasHost && bookingsCount === 0;
+
+	const handleArchive = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		openDialog({
+			component: ArchiveSessionDialog,
+			props: { session: event },
+			config: {
+				title: canArchive ? "Archive Session" : "Cannot Archive Session",
+				size: "md",
+			},
+		});
+	};
+
+	const handleUnarchive = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		openDialog({
+			component: RestoreSessionDialog,
+			props: { session: event },
+			config: {
+				title: "Restore Session",
+				size: "md",
+			},
+		});
+	};
 
 	const { data: bookingsData } = useBusinessMatchingBookings(
 		event.id,
@@ -72,34 +112,67 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 		>
 			<ItemContent className="flex w-full flex-col gap-2">
 				<div className="flex items-start justify-between gap-2">
-					<span className="block min-w-0 flex-1 break-words font-semibold text-foreground text-sm leading-snug">
-						{event.title}
-					</span>
-					{(canManageEvent || ownsSession) && (
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={(e) => {
-								e.stopPropagation();
-								openDialog({
-									component: CreateSessionDialog,
-									props: {
-										eventId: event.event_id,
-										session: event,
-										isHostEditing: !canManageEvent,
-									},
-									config: {
-										title: `Edit "${event.title}"`,
-										size: "2xl",
-									},
-								});
-							}}
-							className="h-8 w-8 shrink-0"
-							title="Edit"
-						>
-							<Pencil className="h-4 w-4" />
-						</Button>
-					)}
+					<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+						<span className="break-words font-semibold text-foreground text-sm leading-snug">
+							{event.title}
+						</span>
+						{isArchived && (
+							<span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-[10px] text-amber-700 dark:text-amber-400">
+								Archived
+							</span>
+						)}
+					</div>
+					<div className="flex shrink-0 items-center gap-1">
+						{(canManageSession || ownsSession) && !isArchived && (
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={(e) => {
+									e.stopPropagation();
+									openDialog({
+										component: CreateSessionDialog,
+										props: {
+											eventId: event.event_id,
+											session: event,
+											isHostEditing: !canManageSession,
+										},
+										config: {
+											title: `Edit "${event.title}"`,
+											size: "2xl",
+										},
+									});
+								}}
+								className="h-8 w-8"
+								title="Edit"
+							>
+								<Pencil className="h-4 w-4" />
+							</Button>
+						)}
+
+						{canManageSession && !isArchived && (
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={handleArchive}
+								className="h-8 w-8 text-muted-foreground hover:text-destructive"
+								title="Archive session"
+							>
+								<Archive className="h-4 w-4" />
+							</Button>
+						)}
+
+						{canManageSession && isArchived && (
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={handleUnarchive}
+								className="h-8 w-8 text-muted-foreground hover:text-foreground"
+								title="Restore / Unarchive session"
+							>
+								<ArchiveRestore className="h-4 w-4" />
+							</Button>
+						)}
+					</div>
 				</div>
 
 				{/* Tags */}

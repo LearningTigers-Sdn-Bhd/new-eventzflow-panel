@@ -12,7 +12,7 @@ import {
 	Tags,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
@@ -28,6 +28,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Tooltip,
 	TooltipContent,
@@ -52,22 +53,6 @@ export default function BusinessMatchingPage() {
 	const event_id =
 		(Array.isArray(params.event_id) ? params.event_id[0] : params.event_id) ??
 		"";
-	const { data, isLoading, error, isFetching } =
-		useBusinessMatchingEvents(event_id);
-	const { mutateAsync: forceRefreshAsync } =
-		useForceRefreshBusinessMatching(event_id);
-	const queryClient = useQueryClient();
-	const { openDialog } = useDialog();
-	const setActions = useEventActionsStore((state) => state.setActions);
-	const clearActions = useEventActionsStore((state) => state.clearActions);
-
-	// Fetch event details to check for webhook URL
-	const { data: event } = useQuery({
-		queryKey: ["event", event_id],
-		queryFn: () => getEventById(event_id),
-		enabled: !!event_id,
-	});
-
 	const router = useRouter();
 	const { permissions } = useEventSidebarContext();
 	const {
@@ -88,6 +73,52 @@ export default function BusinessMatchingPage() {
 	// Matches manage_business_matching_sessions? — event admins/BM admins can
 	// create sessions, in addition to whoever canManageEvent already covers.
 	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
+
+	const [sessionFilter, setSessionFilter] = useState<"active" | "archived">(
+		"active",
+	);
+	const isArchivedView = sessionFilter === "archived";
+
+	const {
+		data: activeData,
+		isLoading: isActiveLoading,
+		error: activeError,
+		isFetching: isActiveFetching,
+	} = useBusinessMatchingEvents(event_id, false);
+
+	const {
+		data: archivedData,
+		isLoading: isArchivedLoading,
+		error: archivedError,
+		isFetching: isArchivedFetching,
+	} = useBusinessMatchingEvents(canManageSessions ? event_id : "", true);
+
+	const hasArchivedData = (archivedData?.length ?? 0) > 0;
+
+	useEffect(() => {
+		if (!hasArchivedData && sessionFilter === "archived") {
+			setSessionFilter("active");
+		}
+	}, [hasArchivedData, sessionFilter]);
+
+	const data = isArchivedView ? archivedData : activeData;
+	const isLoading = isArchivedView ? isArchivedLoading : isActiveLoading;
+	const isFetching = isArchivedView ? isArchivedFetching : isActiveFetching;
+	const error = isArchivedView ? archivedError : activeError;
+
+	const { mutateAsync: forceRefreshAsync } =
+		useForceRefreshBusinessMatching(event_id);
+	const queryClient = useQueryClient();
+	const { openDialog } = useDialog();
+	const setActions = useEventActionsStore((state) => state.setActions);
+	const clearActions = useEventActionsStore((state) => state.clearActions);
+
+	// Fetch event details to check for webhook URL
+	const { data: event } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+		enabled: !!event_id,
+	});
 
 	// Session defaults prefill new sessions — only fetch for staff who can
 	// actually manage them (the endpoint is staff-only).
@@ -365,6 +396,19 @@ export default function BusinessMatchingPage() {
 						Edit Profile
 					</Button>
 				</div>
+			)}
+			{canManageSessions && hasArchivedData && (
+				<Tabs
+					value={sessionFilter}
+					onValueChange={(val) =>
+						setSessionFilter(val as "active" | "archived")
+					}
+				>
+					<TabsList className="grid w-full max-w-[280px] grid-cols-2">
+						<TabsTrigger value="active">Active</TabsTrigger>
+						<TabsTrigger value="archived">Archived</TabsTrigger>
+					</TabsList>
+				</Tabs>
 			)}
 			<DataTable columns={filteredColumns} data={data || []} />
 		</div>

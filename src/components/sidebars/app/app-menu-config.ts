@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+	Activity,
 	CircleHelp,
 	ClipboardList,
 	FileText,
@@ -209,6 +210,14 @@ export const navigationData = {
 			allowBottomNavigation: false,
 		},
 		{
+			name: "System Status & Activity",
+			url: "/system-activity" as Route,
+			icon: Activity,
+			roleAllowed: [USER_ROLES.ORG_OWNER],
+			allowBottomNavigation: false,
+			requiresPermission: "is_superadmin",
+		},
+		{
 			name: "Help & Docs",
 			url: "/help" as Route,
 			icon: CircleHelp,
@@ -228,6 +237,7 @@ export const navigationData = {
 export interface UserPermissions {
 	allow_printing_services?: boolean;
 	has_writer_permission?: boolean;
+	is_superadmin?: boolean;
 }
 
 function filterByRoleAndPermissions(
@@ -241,12 +251,15 @@ function filterByRoleAndPermissions(
 			return false;
 		}
 		// Then check permission if required
-		if (item.requiresPermission && permissions) {
-			const permKey = item.requiresPermission as keyof UserPermissions;
+		if (item.requiresPermission) {
+			// Special case: is_superadmin strictly requires permissions.is_superadmin === true
+			if (item.requiresPermission === "is_superadmin") {
+				return permissions?.is_superadmin === true;
+			}
 
 			// Special case: has_writer_permission must be strictly followed as per backend
 			if (item.requiresPermission === "has_writer_permission") {
-				return permissions[permKey] === true;
+				return permissions?.has_writer_permission === true;
 			}
 
 			// For org_owner, always allow other permissions (they control them)
@@ -255,7 +268,7 @@ function filterByRoleAndPermissions(
 			}
 
 			// For other roles, check the permission value
-			if (permissions[permKey] === false) {
+			if (permissions && permissions[item.requiresPermission as keyof UserPermissions] === false) {
 				return false;
 			}
 		}

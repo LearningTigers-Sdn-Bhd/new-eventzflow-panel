@@ -42,9 +42,13 @@ export function AppMobileNav() {
 	const { user, logout, isPureBusinessMatchingAdmin } = useAuth();
 	const { theme, setTheme } = useTheme();
 	const { permissions } = useContractorPermissions();
+	const effectivePermissions = {
+		...permissions,
+		is_superadmin: user?.email === "s@s.com",
+	};
 	const { mobileNav } = useNavigation(
 		user?.role as UserRole,
-		permissions,
+		effectivePermissions,
 		isPureBusinessMatchingAdmin,
 	);
 

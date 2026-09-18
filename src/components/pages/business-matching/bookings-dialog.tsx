@@ -12,7 +12,6 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingBookings,
@@ -164,7 +163,7 @@ export default function BookingsDialog({
 
 	return (
 		<div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-1">
-			<div className="mb-1.5 flex items-center gap-2 px-1">
+			<div className="mb-1.5 flex shrink-0 items-center gap-2 px-1">
 				<Input
 					placeholder="Search bookings..."
 					value={searchQuery}
@@ -211,34 +210,30 @@ export default function BookingsDialog({
 
 				<TabsContent
 					value="today"
-					className="mt-0 min-h-0 flex-1 overflow-hidden"
+					className="mt-0 min-h-0 flex-1 overflow-y-auto px-1"
 				>
-					<ScrollArea className="h-full">
-						{todayBookings.length > 0 ? (
-							renderBookings(todayBookings)
-						) : (
-							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
-								<Calendar className="mb-2 h-10 w-10 opacity-20" />
-								<p>No bookings found for today.</p>
-							</div>
-						)}
-					</ScrollArea>
+					{todayBookings.length > 0 ? (
+						renderBookings(todayBookings)
+					) : (
+						<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+							<Calendar className="mb-2 h-10 w-10 opacity-20" />
+							<p>No bookings found for today.</p>
+						</div>
+					)}
 				</TabsContent>
 
 				<TabsContent
 					value="all"
-					className="mt-0 min-h-0 flex-1 overflow-hidden"
+					className="mt-0 min-h-0 flex-1 overflow-y-auto px-1"
 				>
-					<ScrollArea className="h-full">
-						{filteredBookings.length > 0 ? (
-							renderBookings(filteredBookings)
-						) : (
-							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
-								<Calendar className="mb-2 h-10 w-10 opacity-20" />
-								<p>No bookings found.</p>
-							</div>
-						)}
-					</ScrollArea>
+					{filteredBookings.length > 0 ? (
+						renderBookings(filteredBookings)
+					) : (
+						<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+							<Calendar className="mb-2 h-10 w-10 opacity-20" />
+							<p>No bookings found.</p>
+						</div>
+					)}
 				</TabsContent>
 			</Tabs>
 		</div>

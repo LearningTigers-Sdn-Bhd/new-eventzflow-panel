@@ -5,6 +5,7 @@ import {
 	adminUpdateHostProfileInfo,
 	adminUpdateHostTags,
 	approveBooking,
+	archiveBusinessMatchingSession,
 	type BusinessMatchingAvailabilityRecord,
 	BusinessMatchingEvent,
 	type BusinessMatchingEventDefaults,
@@ -32,6 +33,7 @@ import {
 	respondPortalBooking,
 	type UpdateBookingRequest,
 	type UpdateTagsRequest,
+	unarchiveBusinessMatchingSession,
 	updateBooking,
 	updateBusinessMatchingEventDefaults,
 	updateBusinessMatchingSession,
@@ -211,10 +213,13 @@ export const useGenerateHostInviteToken = (
 		gcTime: 0,
 	});
 
-export const useBusinessMatchingEvents = (eventId: string) => {
+export const useBusinessMatchingEvents = (
+	eventId: string,
+	archived = false,
+) => {
 	const queryResult = useQuery({
-		queryKey: ["business-matching-events", eventId],
-		queryFn: () => getBusinessMatchingEvents(eventId),
+		queryKey: ["business-matching-events", eventId, { archived }],
+		queryFn: () => getBusinessMatchingEvents(eventId, false, archived),
 		enabled: !!eventId,
 		staleTime: 1000 * 60 * 30, // 30 minutes
 		refetchOnWindowFocus: false,
@@ -528,6 +533,32 @@ export const useDeleteBusinessMatchingSession = (eventId: string) => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (sessionId: string) => deleteBusinessMatchingSession(sessionId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useArchiveBusinessMatchingSession = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (sessionId: string) =>
+			archiveBusinessMatchingSession(sessionId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["business-matching-events", eventId],
+			});
+		},
+	});
+};
+
+export const useUnarchiveBusinessMatchingSession = (eventId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (sessionId: string) =>
+			unarchiveBusinessMatchingSession(sessionId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-events", eventId],
