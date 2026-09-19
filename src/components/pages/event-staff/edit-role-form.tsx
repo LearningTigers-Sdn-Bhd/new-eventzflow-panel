@@ -117,8 +117,8 @@ export default function EditRoleForm({
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								and Business Hosts have limited access. Business Matching
-								Admins can only manage Business Matching for this event.
+								and Business Hosts have limited access. Business Matching Admins
+								can only manage Business Matching for this event.
 							</FieldDescription>
 						</Field>
 

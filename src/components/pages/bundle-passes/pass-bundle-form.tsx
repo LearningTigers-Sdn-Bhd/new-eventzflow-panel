@@ -293,7 +293,9 @@ export function PassBundleForm({
 								<SelectValue placeholder="No table — assigned manually" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="none">No table — assigned manually</SelectItem>
+								<SelectItem value="none">
+									No table — assigned manually
+								</SelectItem>
 								{tableOptions.map((table) => (
 									<SelectItem key={table.id} value={String(table.id)}>
 										{table.label}

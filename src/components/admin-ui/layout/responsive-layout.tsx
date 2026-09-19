@@ -174,10 +174,10 @@ function MobileTabletView({ children, className }: ResponsiveViewProps) {
 }
 
 export {
-	ResponsiveLayout,
 	DesktopView,
-	TabletView,
-	MobileView,
 	MobileTabletView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
 	useResponsive,
 };

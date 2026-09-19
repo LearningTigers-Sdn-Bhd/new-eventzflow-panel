@@ -75,9 +75,12 @@ const TICKET_ENDPOINTS: ApiEndpoint[] = [
 		headers: AUTH_HEADER,
 		queryParams: {
 			page: "Page number, starts at 1. Defaults to 1 when omitted. Send with `per_page` to paginate through results.",
-			per_page: "Results per page (max 100). When present, activates pagination and returns totals via response headers (`X-Total-Count`, `X-Page`, `X-Per-Page`, `X-Total-Pages`).",
-			updated_since: "ISO8601 timestamp (e.g. `2026-05-17T00:00:00+08:00`). Returns only tickets updated at or after this time. Use for incremental sync.",
-			archived: "Set to 'true' to list only archived (soft-deleted) tickets for this event.",
+			per_page:
+				"Results per page (max 100). When present, activates pagination and returns totals via response headers (`X-Total-Count`, `X-Page`, `X-Per-Page`, `X-Total-Pages`).",
+			updated_since:
+				"ISO8601 timestamp (e.g. `2026-05-17T00:00:00+08:00`). Returns only tickets updated at or after this time. Use for incremental sync.",
+			archived:
+				"Set to 'true' to list only archived (soft-deleted) tickets for this event.",
 			full: "Set to 'true' to include archived tickets alongside active ones. Use only for reconciliation / audit.",
 		},
 		response: [
@@ -412,7 +415,7 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		endpoint: "/v1/events/{event_id}/vendors",
 		category: "Vendors",
 		description:
-			"Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `\"Exhibitor\"` and each entry includes booth/kit details — including the booth's staff under `exhibitor_kit.exhibitor_team_members` (note: nested inside `exhibitor_kit`, not at the top level). When Exhibitor Kit is disabled, the `type` is `\"Merchant\"` and no kit/team data is returned.",
+			'Retrieve all vendors assigned to your event. When Exhibitor Kit is enabled, the `type` is always `"Exhibitor"` and each entry includes booth/kit details — including the booth\'s staff under `exhibitor_kit.exhibitor_team_members` (note: nested inside `exhibitor_kit`, not at the top level). When Exhibitor Kit is disabled, the `type` is `"Merchant"` and no kit/team data is returned.',
 		headers: AUTH_HEADER,
 		response: [
 			{
@@ -513,7 +516,11 @@ const VENDOR_ENDPOINTS: ApiEndpoint[] = [
 		response: {
 			id: 1,
 			type: "Exhibitor",
-			vendor: { id: 10, full_name: "TechCorp Sdn Bhd", email: "booth@techcorp.com" },
+			vendor: {
+				id: 10,
+				full_name: "TechCorp Sdn Bhd",
+				email: "booth@techcorp.com",
+			},
 			exhibitor_kit: {
 				id: 5,
 				booth_number: "A101",

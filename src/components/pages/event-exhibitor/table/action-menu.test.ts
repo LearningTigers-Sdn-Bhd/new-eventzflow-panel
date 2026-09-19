@@ -27,6 +27,9 @@ test("vendor account removal remains separate and explicitly labelled", () => {
 });
 
 test("view exhibitor targets only the selected kit", () => {
-	const source = readFileSync(new URL("./action-menu.tsx", import.meta.url), "utf8");
+	const source = readFileSync(
+		new URL("./action-menu.tsx", import.meta.url),
+		"utf8",
+	);
 	expect(source).toContain("profile?kit_id=${kit.id}");
 });

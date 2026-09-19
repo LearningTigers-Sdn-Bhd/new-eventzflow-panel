@@ -1,7 +1,7 @@
 "use client";
 
-import { use } from "react";
 import { redirect } from "next/navigation";
+import { use } from "react";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface OrderItemsRouteProps {

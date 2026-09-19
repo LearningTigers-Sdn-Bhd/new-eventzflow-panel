@@ -61,11 +61,13 @@ export async function getTeamMembers(filters?: {
 /**
  * Get all organizers (org_owner only)
  */
-export async function getOrganizers(): Promise<{ id: string; full_name: string; email: string }[]> {
+export async function getOrganizers(): Promise<
+	{ id: string; full_name: string; email: string }[]
+> {
 	try {
-		const response = await restClient.get<{ id: string; full_name: string; email: string }[]>(
-			"v1/team_members/organizers",
-		);
+		const response = await restClient.get<
+			{ id: string; full_name: string; email: string }[]
+		>("v1/team_members/organizers");
 		return response;
 	} catch (error: unknown) {
 		console.error("Error fetching organizers:", error);

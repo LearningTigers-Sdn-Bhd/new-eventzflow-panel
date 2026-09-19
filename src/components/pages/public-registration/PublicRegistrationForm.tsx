@@ -666,9 +666,12 @@ export function PublicRegistrationForm({
 						<Ticket className="h-4 w-4 text-brand-green" />
 					</div>
 					<div className="min-w-0">
-						<p className="font-semibold text-slate-900 text-sm">{bundleData.name}</p>
+						<p className="font-semibold text-slate-900 text-sm">
+							{bundleData.name}
+						</p>
 						<p className="text-slate-500 text-xs">
-							Bundle pass · {bundleData.remaining_count} of {bundleData.pass_limit} remaining
+							Bundle pass · {bundleData.remaining_count} of{" "}
+							{bundleData.pass_limit} remaining
 						</p>
 					</div>
 				</div>
@@ -1099,7 +1102,9 @@ export function PublicRegistrationForm({
 															)
 														}
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
-														required={index === 0 || !allowMultipleTicketsPerEmail}
+														required={
+															index === 0 || !allowMultipleTicketsPerEmail
+														}
 													/>
 												</div>
 
@@ -1128,7 +1133,9 @@ export function PublicRegistrationForm({
 															)
 														}
 														className="h-12 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-green/10"
-														required={index === 0 || !allowMultipleTicketsPerEmail}
+														required={
+															index === 0 || !allowMultipleTicketsPerEmail
+														}
 													/>
 													{duplicateAttendeeEmailIndexes.has(index) && (
 														<p className="text-red-500 text-xs">

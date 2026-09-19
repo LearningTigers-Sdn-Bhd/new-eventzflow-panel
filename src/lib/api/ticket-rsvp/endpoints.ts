@@ -30,7 +30,6 @@ export async function getTicketRsvpServer(
 	return res.json() as Promise<PublicTicketRsvpResponse>;
 }
 
-
 export async function confirmTicketRsvp(
 	data: TicketRsvpRequest,
 ): Promise<PublicTicketRsvpResponse> {

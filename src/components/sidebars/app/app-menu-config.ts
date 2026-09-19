@@ -268,7 +268,10 @@ function filterByRoleAndPermissions(
 			}
 
 			// For other roles, check the permission value
-			if (permissions && permissions[item.requiresPermission as keyof UserPermissions] === false) {
+			if (
+				permissions &&
+				permissions[item.requiresPermission as keyof UserPermissions] === false
+			) {
 				return false;
 			}
 		}

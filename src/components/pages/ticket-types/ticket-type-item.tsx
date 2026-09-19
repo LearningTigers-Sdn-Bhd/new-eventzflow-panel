@@ -43,7 +43,7 @@ export function TicketTypeItem({ ticketType }: TicketTypeItemProps) {
 			<CardHeader className="flex flex-row items-center justify-between pb-2">
 				<CardTitle className="font-medium text-base">
 					{ticketType.name}{" "}
-					<span className="text-muted-foreground text-xs font-normal">
+					<span className="font-normal text-muted-foreground text-xs">
 						(#{ticketType.id})
 					</span>
 				</CardTitle>
