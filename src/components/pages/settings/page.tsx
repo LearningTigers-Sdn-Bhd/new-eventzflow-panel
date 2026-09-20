@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Cog, CreditCard, Lock, Sun, User } from "lucide-react";
+import { Bot, Cog, CreditCard, Lock, Sun, User } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -12,6 +12,7 @@ import {
 import { IconTitle } from "@/components/ui/icon-heading";
 import { getCurrentUser } from "@/lib/api/profile";
 import { AccountInfoForm } from "./account-info-form";
+import { AiIntegrationForm } from "./ai-integration-form";
 import { PasswordForm } from "./password-form";
 import { PaymentDetailForm } from "./payment-detail-form";
 import { ThemeSettings } from "./theme-settings";
@@ -31,6 +32,7 @@ export function SettingsPage() {
 	const canManagePaymentDetails = profile?.role
 		? PAYMENT_DETAIL_ROLES.includes(profile.role)
 		: false;
+	const canManageAiIntegration = profile?.role === "org_owner";
 
 	return (
 		<div className="space-y-4">
@@ -122,6 +124,26 @@ export function SettingsPage() {
 						<ThemeSettings />
 					</CardContent>
 				</Card>
+
+				{canManageAiIntegration && (
+					<Card className="rounded-none border-primary/20 px-0 shadow-none md:col-span-2">
+						<CardHeader className="flex items-start gap-4 px-2 md:px-4">
+							<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
+								<Bot className="size-5" />
+							</div>
+							<div className="flex flex-col gap-2">
+								<CardTitle>AI Integration</CardTitle>
+								<CardDescription>
+									Connect an AI provider to power error analysis and smart
+									insights.
+								</CardDescription>
+							</div>
+						</CardHeader>
+						<CardContent className="px-2 md:px-4">
+							<AiIntegrationForm />
+						</CardContent>
+					</Card>
+				)}
 			</div>
 		</div>
 	);
