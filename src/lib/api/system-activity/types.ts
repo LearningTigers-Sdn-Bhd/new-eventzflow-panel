@@ -35,6 +35,8 @@ export interface SystemAuditRecord {
 	};
 	category: string;
 	action_name: string;
+	result: "success" | "failed";
+	error_message: string | null;
 	http_method: string;
 	path: string;
 	details: Record<string, unknown>;

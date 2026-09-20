@@ -11,7 +11,10 @@ import { cn } from "@/lib/utils";
 const WHAT_CHANGED_PREVIEW_LIMIT = 2;
 
 export function WhatChanged({ log }: { log: EventActivityRecord }) {
-	const changes = log.details?.changes;
+	// The diff reflects the action's intended effect, computed before the
+	// request runs — for a failed action it never actually applied, so
+	// showing it here would read as a change that happened when it didn't.
+	const changes = log.result === "failed" ? undefined : log.details?.changes;
 	const entries = changes ? Object.entries(changes) : [];
 	if (entries.length === 0) {
 		return <span className="text-muted-foreground text-xs">—</span>;

@@ -7,6 +7,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import {
 	Activity,
 	AlertTriangle,
+	Bug,
 	CheckCircle2,
 	Clock,
 	Eye,
@@ -117,12 +118,14 @@ export function SystemActivityView() {
 		? format(dateRange.from, "yyyy-MM-dd")
 		: undefined;
 	const toDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+	const resultFilter = activeTab === "errors" ? "failed" : undefined;
 
 	// Poll every 15 seconds to give a near-real-time pulse of user presence
 	const { data, isLoading, isRefetching, refetch } = useQuery({
 		queryKey: [
 			"system-activity",
 			categoryFilter,
+			resultFilter,
 			debouncedSearch,
 			fromDate,
 			toDate,
@@ -132,6 +135,7 @@ export function SystemActivityView() {
 		queryFn: () =>
 			getSystemActivity({
 				category: categoryFilter !== "all" ? categoryFilter : undefined,
+				result: resultFilter,
 				q: debouncedSearch || undefined,
 				from_date: fromDate,
 				to_date: toDate,
@@ -222,6 +226,272 @@ export function SystemActivityView() {
 		);
 	};
 
+	const renderAuditTrail = (errorMode: boolean) => (
+		<TabsContent
+			value={errorMode ? "errors" : "audit"}
+			className="m-0 space-y-3 pt-0"
+		>
+			{/* Category Filter Bar without redundant bulky card header */}
+			<div className="flex flex-col gap-2 border bg-card p-2.5 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-wrap items-center gap-2">
+					<div className="relative">
+						<Search className="absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							value={search}
+							onChange={(e) => {
+								setSearch(e.target.value);
+								setCurrentPage(1);
+							}}
+							placeholder="Search by action or user..."
+							className="h-7 w-[340px] rounded-none pl-7 text-xs"
+						/>
+					</div>
+					<span className="font-medium text-muted-foreground text-xs">
+						Filter Category:
+					</span>
+					<Select
+						value={categoryFilter}
+						onValueChange={(val) => {
+							setCategoryFilter(val);
+							setCurrentPage(1);
+						}}
+					>
+						<SelectTrigger className="h-7 w-[160px] rounded-none text-xs sm:w-[180px]">
+							<SelectValue placeholder="All Categories" />
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							<SelectItem value="all">All Categories</SelectItem>
+							<SelectItem value="ticketing">Ticketing & Check-in</SelectItem>
+							<SelectItem value="business_matching">
+								Business Matching
+							</SelectItem>
+							<SelectItem value="vouchers">Vouchers</SelectItem>
+							<SelectItem value="lucky_draw">Lucky Draw</SelectItem>
+							<SelectItem value="seating">Seating & Tables</SelectItem>
+							<SelectItem value="events">Events</SelectItem>
+							<SelectItem value="exhibitor">Exhibitor</SelectItem>
+							<SelectItem value="auth">Authentication</SelectItem>
+							<SelectItem value="general">General</SelectItem>
+						</SelectContent>
+					</Select>
+					<span className="font-medium text-muted-foreground text-xs">
+						Duration:
+					</span>
+					<DateRangeFilter
+						value={dateRange}
+						onChange={(range) => {
+							setDateRange(range);
+							setCurrentPage(1);
+						}}
+					/>
+				</div>
+
+				{pagination && pagination.total_count > 0 && (
+					<div className="hidden font-mono text-[11px] text-muted-foreground sm:block">
+						{pagination.total_count} {errorMode ? "errors" : "activities"}{" "}
+						recorded
+					</div>
+				)}
+			</div>
+
+			{isLoading && !data ? (
+				<div className="space-y-2 border p-4">
+					<Skeleton className="h-8 w-full" />
+					<Skeleton className="h-8 w-full" />
+					<Skeleton className="h-8 w-full" />
+				</div>
+			) : auditLogs.length === 0 ? (
+				<div className="border p-8 text-center text-muted-foreground">
+					<p className="text-sm">
+						{errorMode
+							? "No errors recorded in the selected range."
+							: "No activity logs recorded in the selected range."}
+					</p>
+				</div>
+			) : (
+				<>
+					{/* Desktop Table View */}
+					<div className="hidden overflow-x-auto border md:block">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Time</TableHead>
+									<TableHead>User</TableHead>
+									<TableHead>Action</TableHead>
+									<TableHead>Category</TableHead>
+									<TableHead>Endpoint Path</TableHead>
+									<TableHead>IP Address</TableHead>
+									{errorMode && <TableHead>Error</TableHead>}
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{auditLogs.map((log) => (
+									<TableRow
+										key={log.id}
+										className="cursor-pointer transition-colors hover:bg-muted/40"
+										onClick={() => setSelectedLog(log)}
+									>
+										<TableCell className="whitespace-nowrap text-muted-foreground text-xs">
+											<div>
+												{format(
+													new Date(log.created_at),
+													"dd MMM yyyy, HH:mm:ss",
+												)}
+											</div>
+											<div className="text-[10px] opacity-75">
+												(
+												{formatDistanceToNow(new Date(log.created_at), {
+													addSuffix: true,
+												})}
+												)
+											</div>
+										</TableCell>
+										<TableCell>
+											<div className="font-medium text-xs">
+												{log.user.full_name}
+											</div>
+											<div className="text-[11px] text-muted-foreground">
+												{log.user.email}
+											</div>
+										</TableCell>
+										<TableCell>
+											<div className="flex flex-col items-start gap-1">
+												<span className="font-semibold text-foreground text-xs">
+													{log.action_name}
+												</span>
+												{log.unusual && <UnusualBadge />}
+											</div>
+										</TableCell>
+										<TableCell>
+											<Badge
+												variant="outline"
+												className={cn(
+													"rounded-none font-medium text-[10px] capitalize",
+													getCategoryBadgeClass(log.category),
+												)}
+											>
+												{log.category.replace(/_/g, " ")}
+											</Badge>
+										</TableCell>
+										<TableCell className="font-mono text-muted-foreground text-xs">
+											<span className="mr-1 font-semibold text-foreground/80">
+												{log.http_method}
+											</span>
+											{log.path}
+										</TableCell>
+										<TableCell className="font-mono text-muted-foreground text-xs">
+											{log.ip_address || "—"}
+										</TableCell>
+										{errorMode && (
+											<TableCell
+												className="max-w-[240px] truncate text-destructive text-xs"
+												title={log.error_message ?? undefined}
+											>
+												{log.error_message || "—"}
+											</TableCell>
+										)}
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+
+					{/* Mobile Card View (Prevents Overflow) */}
+					<div className="space-y-2 md:hidden">
+						{auditLogs.map((log) => (
+							<button
+								type="button"
+								key={log.id}
+								onClick={() => setSelectedLog(log)}
+								className="w-full cursor-pointer space-y-2 border bg-card p-3 text-left transition-colors hover:bg-muted/30"
+							>
+								<div className="flex items-start justify-between gap-2">
+									<Badge
+										variant="outline"
+										className={cn(
+											"rounded-none font-medium text-[10px] capitalize",
+											getCategoryBadgeClass(log.category),
+										)}
+									>
+										{log.category.replace(/_/g, " ")}
+									</Badge>
+									<span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+										{formatDistanceToNow(new Date(log.created_at), {
+											addSuffix: true,
+										})}
+									</span>
+								</div>
+
+								<div>
+									<div className="flex flex-wrap items-center gap-1.5">
+										<span className="font-semibold text-foreground text-xs">
+											{log.action_name}
+										</span>
+										{log.unusual && <UnusualBadge />}
+									</div>
+									<div className="mt-0.5 text-[11px] text-muted-foreground">
+										<span>
+											{log.user.full_name} ({log.user.email})
+										</span>
+									</div>
+									{errorMode && log.error_message && (
+										<div className="mt-1 text-[11px] text-destructive">
+											{log.error_message}
+										</div>
+									)}
+								</div>
+
+								<div className="flex items-center justify-between gap-2 border-t pt-2 text-[11px]">
+									<div className="max-w-[200px] truncate font-mono text-[10px] text-muted-foreground">
+										<span className="mr-1 font-bold text-foreground">
+											{log.http_method}
+										</span>
+										{log.path}
+									</div>
+									<div className="flex shrink-0 items-center font-medium text-[10px] text-muted-foreground">
+										<Eye className="mr-1 size-3" />
+										Details
+									</div>
+								</div>
+							</button>
+						))}
+					</div>
+
+					{/* Pagination Controls */}
+					{pagination && pagination.total_pages > 1 && (
+						<div className="flex flex-col items-center justify-between gap-2 border bg-card p-3 text-muted-foreground text-xs sm:flex-row">
+							<div>
+								Showing page {pagination.current_page} of{" "}
+								{pagination.total_pages} ({pagination.total_count} total{" "}
+								{errorMode ? "errors" : "activities"})
+							</div>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-7 rounded-none text-xs"
+									disabled={currentPage <= 1}
+									onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+								>
+									Previous
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-7 rounded-none text-xs"
+									disabled={currentPage >= pagination.total_pages}
+									onClick={() => setCurrentPage((p) => p + 1)}
+								>
+									Next
+								</Button>
+							</div>
+						</div>
+					)}
+				</>
+			)}
+		</TabsContent>
+	);
+
 	return (
 		<div className="p-0">
 			{/* Page Header matching Item Categories pattern */}
@@ -250,8 +520,8 @@ export function SystemActivityView() {
 
 			{/* Main Content Area with standard padding */}
 			<div className="space-y-4 px-2 md:px-4">
-				{/* Deployment Status Bar on Overview, retention notice on Audit Trail */}
-				{activeTab === "audit" ? (
+				{/* Deployment Status Bar on Overview, retention notice on Audit Trail / Error Logs */}
+				{activeTab === "audit" || activeTab === "errors" ? (
 					<Alert variant="info" appearance="light" size="sm">
 						<AlertIcon>
 							<Clock />
@@ -270,7 +540,10 @@ export function SystemActivityView() {
 				{/* Tabs */}
 				<Tabs
 					value={activeTab}
-					onValueChange={setActiveTab}
+					onValueChange={(tab) => {
+						setActiveTab(tab);
+						setCurrentPage(1);
+					}}
 					className="space-y-3"
 				>
 					<div className="flex flex-col justify-between gap-2 border-b sm:flex-row sm:items-center">
@@ -288,6 +561,13 @@ export function SystemActivityView() {
 							>
 								<Clock className="mr-1.5 size-4 sm:mr-2" />
 								Activity Audit Trail
+							</TabsTrigger>
+							<TabsTrigger
+								value="errors"
+								className="rounded-none border-transparent border-b-2 px-3 py-2 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent sm:px-4 sm:text-sm"
+							>
+								<Bug className="mr-1.5 size-4 sm:mr-2" />
+								Error Logs
 							</TabsTrigger>
 						</TabsList>
 
@@ -517,254 +797,8 @@ export function SystemActivityView() {
 						)}
 					</TabsContent>
 
-					{/* TAB 2: Activity Audit Trail */}
-					<TabsContent value="audit" className="m-0 space-y-3 pt-0">
-						{/* Category Filter Bar without redundant bulky card header */}
-						<div className="flex flex-col gap-2 border bg-card p-2.5 sm:flex-row sm:items-center sm:justify-between">
-							<div className="flex flex-wrap items-center gap-2">
-								<div className="relative">
-									<Search className="absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-									<Input
-										value={search}
-										onChange={(e) => {
-											setSearch(e.target.value);
-											setCurrentPage(1);
-										}}
-										placeholder="Search by action or user..."
-										className="h-7 w-[340px] rounded-none pl-7 text-xs"
-									/>
-								</div>
-								<span className="font-medium text-muted-foreground text-xs">
-									Filter Category:
-								</span>
-								<Select
-									value={categoryFilter}
-									onValueChange={(val) => {
-										setCategoryFilter(val);
-										setCurrentPage(1);
-									}}
-								>
-									<SelectTrigger className="h-7 w-[160px] rounded-none text-xs sm:w-[180px]">
-										<SelectValue placeholder="All Categories" />
-									</SelectTrigger>
-									<SelectContent className="rounded-none">
-										<SelectItem value="all">All Categories</SelectItem>
-										<SelectItem value="ticketing">
-											Ticketing & Check-in
-										</SelectItem>
-										<SelectItem value="business_matching">
-											Business Matching
-										</SelectItem>
-										<SelectItem value="vouchers">Vouchers</SelectItem>
-										<SelectItem value="lucky_draw">Lucky Draw</SelectItem>
-										<SelectItem value="seating">Seating & Tables</SelectItem>
-										<SelectItem value="events">Events</SelectItem>
-										<SelectItem value="exhibitor">Exhibitor</SelectItem>
-										<SelectItem value="auth">Authentication</SelectItem>
-										<SelectItem value="general">General</SelectItem>
-									</SelectContent>
-								</Select>
-								<span className="font-medium text-muted-foreground text-xs">
-									Duration:
-								</span>
-								<DateRangeFilter
-									value={dateRange}
-									onChange={(range) => {
-										setDateRange(range);
-										setCurrentPage(1);
-									}}
-								/>
-							</div>
-
-							{pagination && pagination.total_count > 0 && (
-								<div className="hidden font-mono text-[11px] text-muted-foreground sm:block">
-									{pagination.total_count} activities recorded
-								</div>
-							)}
-						</div>
-
-						{isLoading && !data ? (
-							<div className="space-y-2 border p-4">
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-8 w-full" />
-							</div>
-						) : auditLogs.length === 0 ? (
-							<div className="border p-8 text-center text-muted-foreground">
-								<p className="text-sm">
-									No activity logs recorded in the selected range.
-								</p>
-							</div>
-						) : (
-							<>
-								{/* Desktop Table View */}
-								<div className="hidden overflow-x-auto border md:block">
-									<Table>
-										<TableHeader>
-											<TableRow>
-												<TableHead>Time</TableHead>
-												<TableHead>User</TableHead>
-												<TableHead>Action</TableHead>
-												<TableHead>Category</TableHead>
-												<TableHead>Endpoint Path</TableHead>
-												<TableHead>IP Address</TableHead>
-											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{auditLogs.map((log) => (
-												<TableRow
-													key={log.id}
-													className="cursor-pointer transition-colors hover:bg-muted/40"
-													onClick={() => setSelectedLog(log)}
-												>
-													<TableCell className="whitespace-nowrap text-muted-foreground text-xs">
-														<div>
-															{format(
-																new Date(log.created_at),
-																"dd MMM yyyy, HH:mm:ss",
-															)}
-														</div>
-														<div className="text-[10px] opacity-75">
-															(
-															{formatDistanceToNow(new Date(log.created_at), {
-																addSuffix: true,
-															})}
-															)
-														</div>
-													</TableCell>
-													<TableCell>
-														<div className="font-medium text-xs">
-															{log.user.full_name}
-														</div>
-														<div className="text-[11px] text-muted-foreground">
-															{log.user.email}
-														</div>
-													</TableCell>
-													<TableCell>
-														<div className="flex flex-col items-start gap-1">
-															<span className="font-semibold text-foreground text-xs">
-																{log.action_name}
-															</span>
-															{log.unusual && <UnusualBadge />}
-														</div>
-													</TableCell>
-													<TableCell>
-														<Badge
-															variant="outline"
-															className={cn(
-																"rounded-none font-medium text-[10px] capitalize",
-																getCategoryBadgeClass(log.category),
-															)}
-														>
-															{log.category.replace(/_/g, " ")}
-														</Badge>
-													</TableCell>
-													<TableCell className="font-mono text-muted-foreground text-xs">
-														<span className="mr-1 font-semibold text-foreground/80">
-															{log.http_method}
-														</span>
-														{log.path}
-													</TableCell>
-													<TableCell className="font-mono text-muted-foreground text-xs">
-														{log.ip_address || "—"}
-													</TableCell>
-												</TableRow>
-											))}
-										</TableBody>
-									</Table>
-								</div>
-
-								{/* Mobile Card View (Prevents Overflow) */}
-								<div className="space-y-2 md:hidden">
-									{auditLogs.map((log) => (
-										<button
-											type="button"
-											key={log.id}
-											onClick={() => setSelectedLog(log)}
-											className="w-full cursor-pointer space-y-2 border bg-card p-3 text-left transition-colors hover:bg-muted/30"
-										>
-											<div className="flex items-start justify-between gap-2">
-												<Badge
-													variant="outline"
-													className={cn(
-														"rounded-none font-medium text-[10px] capitalize",
-														getCategoryBadgeClass(log.category),
-													)}
-												>
-													{log.category.replace(/_/g, " ")}
-												</Badge>
-												<span className="shrink-0 font-mono text-[10px] text-muted-foreground">
-													{formatDistanceToNow(new Date(log.created_at), {
-														addSuffix: true,
-													})}
-												</span>
-											</div>
-
-											<div>
-												<div className="flex flex-wrap items-center gap-1.5">
-													<span className="font-semibold text-foreground text-xs">
-														{log.action_name}
-													</span>
-													{log.unusual && <UnusualBadge />}
-												</div>
-												<div className="mt-0.5 text-[11px] text-muted-foreground">
-													<span>
-														{log.user.full_name} ({log.user.email})
-													</span>
-												</div>
-											</div>
-
-											<div className="flex items-center justify-between gap-2 border-t pt-2 text-[11px]">
-												<div className="max-w-[200px] truncate font-mono text-[10px] text-muted-foreground">
-													<span className="mr-1 font-bold text-foreground">
-														{log.http_method}
-													</span>
-													{log.path}
-												</div>
-												<div className="flex shrink-0 items-center font-medium text-[10px] text-muted-foreground">
-													<Eye className="mr-1 size-3" />
-													Details
-												</div>
-											</div>
-										</button>
-									))}
-								</div>
-
-								{/* Pagination Controls */}
-								{pagination && pagination.total_pages > 1 && (
-									<div className="flex flex-col items-center justify-between gap-2 border bg-card p-3 text-muted-foreground text-xs sm:flex-row">
-										<div>
-											Showing page {pagination.current_page} of{" "}
-											{pagination.total_pages} ({pagination.total_count} total
-											activities)
-										</div>
-										<div className="flex items-center gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												className="h-7 rounded-none text-xs"
-												disabled={currentPage <= 1}
-												onClick={() =>
-													setCurrentPage((p) => Math.max(1, p - 1))
-												}
-											>
-												Previous
-											</Button>
-											<Button
-												variant="outline"
-												size="sm"
-												className="h-7 rounded-none text-xs"
-												disabled={currentPage >= pagination.total_pages}
-												onClick={() => setCurrentPage((p) => p + 1)}
-											>
-												Next
-											</Button>
-										</div>
-									</div>
-								)}
-							</>
-						)}
-					</TabsContent>
+					{renderAuditTrail(false)}
+					{renderAuditTrail(true)}
 				</Tabs>
 			</div>
 
@@ -838,25 +872,38 @@ export function SystemActivityView() {
 								</div>
 							</div>
 
-							{Object.keys(getChanges(selectedLog.details)).length > 0 && (
+							{selectedLog.result === "failed" && (
 								<div>
-									<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
-										What changed
+									<div className="mb-1.5 font-semibold text-destructive text-xs uppercase tracking-wide">
+										Why it failed
 									</div>
-									<div className="space-y-1.5">
-										{Object.entries(getChanges(selectedLog.details)).map(
-											([field, change]) => (
-												<div key={field} className="border bg-muted/30 p-3">
-													<div className="font-medium">{field}</div>
-													<div className="text-muted-foreground text-xs">
-														{String(change.from)} → {String(change.to)}
-													</div>
-												</div>
-											),
-										)}
+									<div className="border border-destructive/30 bg-destructive/5 p-3 text-xs">
+										{selectedLog.error_message ||
+											"No further details available."}
 									</div>
 								</div>
 							)}
+
+							{selectedLog.result !== "failed" &&
+								Object.keys(getChanges(selectedLog.details)).length > 0 && (
+									<div>
+										<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
+											What changed
+										</div>
+										<div className="space-y-1.5">
+											{Object.entries(getChanges(selectedLog.details)).map(
+												([field, change]) => (
+													<div key={field} className="border bg-muted/30 p-3">
+														<div className="font-medium">{field}</div>
+														<div className="text-muted-foreground text-xs">
+															{String(change.from)} → {String(change.to)}
+														</div>
+													</div>
+												),
+											)}
+										</div>
+									</div>
+								)}
 
 							{Object.keys(selectedLog.details || {}).length > 0 && (
 								<div>

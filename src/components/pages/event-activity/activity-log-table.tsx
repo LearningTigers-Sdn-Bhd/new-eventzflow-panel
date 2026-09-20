@@ -236,7 +236,12 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 		state: { pagination: paginationState },
 	});
 
-	const changes = selectedLog?.details?.changes ?? {};
+	// A failed action's diff is only ever its intended effect — it never
+	// actually applied, so don't show it as if it happened.
+	const changes =
+		selectedLog?.result === "failed"
+			? {}
+			: (selectedLog?.details?.changes ?? {});
 	const resource = selectedLog?.details?.resource;
 
 	return (
