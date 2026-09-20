@@ -40,6 +40,7 @@ export interface SystemAuditRecord {
 	details: Record<string, unknown>;
 	ip_address?: string;
 	created_at: string;
+	unusual: boolean;
 }
 
 export interface SystemActivityResponse {

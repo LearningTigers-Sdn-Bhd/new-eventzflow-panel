@@ -16,6 +16,7 @@ import {
 	Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { UnusualBadge } from "@/components/pages/event-activity/activity-log-columns";
 import {
 	type DateRange,
 	DateRangeFilter,
@@ -640,8 +641,11 @@ export function SystemActivityView() {
 														</div>
 													</TableCell>
 													<TableCell>
-														<div className="font-semibold text-foreground text-xs">
-															{log.action_name}
+														<div className="flex flex-col items-start gap-1">
+															<span className="font-semibold text-foreground text-xs">
+																{log.action_name}
+															</span>
+															{log.unusual && <UnusualBadge />}
 														</div>
 													</TableCell>
 													<TableCell>
@@ -697,8 +701,11 @@ export function SystemActivityView() {
 											</div>
 
 											<div>
-												<div className="font-semibold text-foreground text-xs">
-													{log.action_name}
+												<div className="flex flex-wrap items-center gap-1.5">
+													<span className="font-semibold text-foreground text-xs">
+														{log.action_name}
+													</span>
+													{log.unusual && <UnusualBadge />}
 												</div>
 												<div className="mt-0.5 text-[11px] text-muted-foreground">
 													<span>
@@ -791,6 +798,11 @@ export function SystemActivityView() {
 							>
 								{selectedLog.category.replace(/_/g, " ")}
 							</Badge>
+							{selectedLog.unusual && (
+								<span className="ml-2 inline-block">
+									<UnusualBadge />
+								</span>
+							)}
 
 							<div>
 								<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">

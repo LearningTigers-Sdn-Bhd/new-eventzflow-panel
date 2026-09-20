@@ -32,6 +32,7 @@ export interface EventActivityRecord {
 	error_message: string | null;
 	details: ActivityDetails;
 	created_at: string;
+	unusual: boolean;
 }
 
 export interface EventActivityLogResponse {

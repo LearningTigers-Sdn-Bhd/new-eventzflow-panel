@@ -61,6 +61,7 @@ import { useUserSessionStore } from "@/stores/new-auth-store";
 import {
 	generateActivityLogColumns,
 	ResultBadge,
+	UnusualBadge,
 } from "./activity-log-columns";
 import { ActivityLogControl } from "./activity-log-control";
 
@@ -323,8 +324,11 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 													</span>
 												</div>
 											</div>
-											<div className="font-semibold text-xs">
-												{log.action_name}
+											<div className="flex flex-wrap items-center gap-1.5">
+												<span className="font-semibold text-xs">
+													{log.action_name}
+												</span>
+												{log.unusual && <UnusualBadge />}
 											</div>
 											<div className="text-muted-foreground text-xs">
 												{log.user.full_name} ({log.user.email})
@@ -385,6 +389,7 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 									{selectedLog.category.replace(/_/g, " ")}
 								</Badge>
 								<ResultBadge log={selectedLog} />
+								{selectedLog.unusual && <UnusualBadge />}
 							</div>
 
 							<div>

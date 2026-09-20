@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { EventActivityRecord } from "@/lib/api/event-activity-log";
 import { getActivityCategoryClass } from "@/lib/status-variants";
@@ -35,6 +36,18 @@ export function WhatChanged({ log }: { log: EventActivityRecord }) {
 				</div>
 			)}
 		</div>
+	);
+}
+
+export function UnusualBadge() {
+	return (
+		<Badge
+			variant="outline"
+			className="gap-1 rounded-none border-amber-600 text-[10px] text-amber-700 dark:text-amber-500"
+		>
+			<AlertTriangle className="size-3" />
+			Unusual
+		</Badge>
 	);
 }
 
@@ -92,9 +105,12 @@ export function generateActivityLogColumns(): ColumnDef<EventActivityRecord>[] {
 			size: 200,
 			header: "Action",
 			cell: ({ row }) => (
-				<span className="font-semibold text-xs">
-					{row.original.action_name}
-				</span>
+				<div className="flex flex-col items-start gap-1">
+					<span className="font-semibold text-xs">
+						{row.original.action_name}
+					</span>
+					{row.original.unusual && <UnusualBadge />}
+				</div>
 			),
 		},
 		{
