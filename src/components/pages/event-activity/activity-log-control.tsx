@@ -4,6 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import type { Table } from "@tanstack/react-table";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
+import {
+	type DateRange,
+	DateRangeFilter,
+} from "@/components/pages/export-log/date-range-filter";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 import type { EventActivityRecord } from "@/lib/api/event-activity-log";
 import { useUserSessionStore } from "@/stores/new-auth-store";
@@ -43,6 +47,8 @@ interface ActivityLogControlProps {
 	onResultChange: (value: string) => void;
 	userId: string;
 	onUserIdChange: (value: string) => void;
+	dateRange: DateRange;
+	onDateRangeChange: (value: DateRange) => void;
 }
 
 export function ActivityLogControl({
@@ -56,6 +62,8 @@ export function ActivityLogControl({
 	onResultChange,
 	userId,
 	onUserIdChange,
+	dateRange,
+	onDateRangeChange,
 }: ActivityLogControlProps) {
 	const currentUser = useUserSessionStore((state) => state.user);
 	const { data: staff } = useQuery({
@@ -77,6 +85,14 @@ export function ActivityLogControl({
 	];
 
 	const controlConfigs: ControlConfig[] = [
+		{
+			label: "Duration",
+			columnId: "duration",
+			type: "custom",
+			render: () => (
+				<DateRangeFilter value={dateRange} onChange={onDateRangeChange} />
+			),
+		},
 		{
 			label: "Category",
 			columnId: "category",

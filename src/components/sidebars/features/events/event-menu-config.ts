@@ -33,6 +33,7 @@ import {
 	Printer,
 	ScanQrCode,
 	Speech,
+	SquareActivity,
 	Ticket,
 	TrendingUp,
 	User,
@@ -602,7 +603,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 					route: "event-activity",
 					label: "Activity Log",
 					description: "View recent actions on this event.",
-					icon: Logs,
+					icon: SquareActivity,
 					visible: (p) =>
 						p.isOrgOwner ||
 						p.isEventAdmin ||

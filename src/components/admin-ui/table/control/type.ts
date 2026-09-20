@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 export type ControlConfig = {
 	label: string;
 	columnId: string;
-	type: "sort" | "filter" | "visibility";
+	type: "sort" | "filter" | "visibility" | "custom";
 	data?: readonly { label: string; value: string }[];
 	topPriority?: boolean;
 	// For custom filters not tied to table columns
@@ -9,6 +11,9 @@ export type ControlConfig = {
 		value: string;
 		onChange: (value: string) => void;
 	};
+	// For type: "custom" — renders an arbitrary control (e.g. a date-range
+	// picker) in place of the standard select, reusing the same row layout.
+	render?: () => ReactNode;
 	// For visibility controls
 	getColumnLabel?: (columnId: string) => string;
 	excludeColumns?: string[];

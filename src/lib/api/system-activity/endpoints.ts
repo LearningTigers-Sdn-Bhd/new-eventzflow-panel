@@ -8,6 +8,9 @@ export interface GetSystemActivityParams {
 	per_page?: number;
 	user_id?: number;
 	category?: string;
+	q?: string;
+	from_date?: string;
+	to_date?: string;
 	include_superadmin?: boolean;
 }
 
@@ -19,6 +22,9 @@ export async function getSystemActivity(
 	if (params.per_page) searchParams.set("per_page", String(params.per_page));
 	if (params.user_id) searchParams.set("user_id", String(params.user_id));
 	if (params.category) searchParams.set("category", params.category);
+	if (params.q) searchParams.set("q", params.q);
+	if (params.from_date) searchParams.set("from_date", params.from_date);
+	if (params.to_date) searchParams.set("to_date", params.to_date);
 	if (params.include_superadmin) searchParams.set("include_superadmin", "true");
 
 	const queryString = searchParams.toString();

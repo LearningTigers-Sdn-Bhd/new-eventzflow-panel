@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	getCoreRowModel,
 	type PaginationState,
 	useReactTable,
 } from "@tanstack/react-table";
 import { format, formatDistanceToNow } from "date-fns";
-import { Activity, RefreshCw } from "lucide-react";
+import { Clock, RefreshCw, SquareActivity, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
 	DesktopView,
 	MobileTabletView,
@@ -17,6 +18,26 @@ import {
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import type { DateRange } from "@/components/pages/export-log/date-range-filter";
+import {
+	Alert,
+	AlertContent,
+	AlertDescription,
+	AlertIcon,
+	AlertTitle,
+} from "@/components/ui/alert";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,12 +50,14 @@ import {
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
+	clearEventActivityLog,
 	type EventActivityRecord,
 	getEventActivityLog,
 } from "@/lib/api/event-activity-log";
 import { getActivityCategoryClass } from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
 import { useEventActionsStore } from "@/stores/event-actions-store";
+import { useUserSessionStore } from "@/stores/new-auth-store";
 import {
 	generateActivityLogColumns,
 	ResultBadge,
@@ -49,6 +72,10 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 	const [category, setCategory] = useState("all");
 	const [result, setResult] = useState("all");
 	const [userId, setUserId] = useState("all");
+	const [dateRange, setDateRange] = useState<DateRange>({
+		from: null,
+		to: null,
+	});
 	const [pageIndex, setPageIndex] = useState(0);
 	const [pageSize, setPageSize] = usePersistedState(
 		`event-${eventId}-activity-log-page-size`,
@@ -60,6 +87,19 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 	const setActions = useEventActionsStore((state) => state.setActions);
 	const clearActions = useEventActionsStore((state) => state.clearActions);
 	const debouncedSearch = useDebounce(search, 300);
+	const currentUser = useUserSessionStore((state) => state.user);
+	const queryClient = useQueryClient();
+
+	const clearLogMutation = useMutation({
+		mutationFn: () => clearEventActivityLog({ eventId }),
+		onSuccess: () => {
+			toast.success("Activity log cleared.");
+			queryClient.invalidateQueries({ queryKey: ["event-activity", eventId] });
+		},
+		onError: () => {
+			toast.error("Failed to clear activity log. Please try again.");
+		},
+	});
 
 	const resetToFirstPage =
 		<T,>(setter: (value: T) => void) =>
@@ -73,6 +113,11 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 		setPageIndex(0);
 	};
 
+	const fromDate = dateRange.from
+		? format(dateRange.from, "yyyy-MM-dd")
+		: undefined;
+	const toDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+
 	const { data, isLoading, error, isFetching, refetch } = useQuery({
 		queryKey: [
 			"event-activity",
@@ -81,6 +126,8 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 			result,
 			userId,
 			debouncedSearch,
+			fromDate,
+			toDate,
 			pageIndex,
 			pageSize,
 		],
@@ -91,6 +138,8 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 				result: result === "all" ? undefined : (result as "success" | "failed"),
 				userId: userId === "all" ? undefined : userId,
 				q: debouncedSearch || undefined,
+				from_date: fromDate,
+				to_date: toDate,
 				page: pageIndex + 1,
 				per_page: pageSize,
 			}),
@@ -99,23 +148,71 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 
 	useEffect(() => {
 		setActions(
-			<Button
-				variant="outline"
-				type="button"
-				onClick={() => refetch()}
-				disabled={isFetching}
-				className="rounded-none"
-				aria-label="Refresh activity logs"
-			>
-				<RefreshCw
-					className={cn("mr-2 size-4", isFetching && "animate-spin")}
-				/>
-				{isFetching ? "Refreshing..." : "Refresh"}
-			</Button>,
+			<>
+				<Button
+					variant="outline"
+					type="button"
+					onClick={() => refetch()}
+					disabled={isFetching}
+					className="rounded-none"
+					aria-label="Refresh activity logs"
+				>
+					<RefreshCw
+						className={cn("mr-2 size-4", isFetching && "animate-spin")}
+					/>
+					{isFetching ? "Refreshing..." : "Refresh"}
+				</Button>
+				{currentUser?.role === "org_owner" && (
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								variant="outline"
+								type="button"
+								className="rounded-none text-destructive hover:text-destructive"
+								aria-label="Clear activity log"
+							>
+								<Trash2 className="mr-2 size-4" />
+								Clear log
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent className="rounded-none">
+							<AlertDialogHeader>
+								<AlertDialogMedia className="rounded-none bg-destructive/10">
+									<Trash2 className="text-destructive" />
+								</AlertDialogMedia>
+								<AlertDialogTitle>Clear activity log?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This permanently deletes every activity log entry for this
+									event. This cannot be undone.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel className="rounded-none">
+									Cancel
+								</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => clearLogMutation.mutate()}
+									disabled={clearLogMutation.isPending}
+									className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									{clearLogMutation.isPending ? "Clearing..." : "Clear log"}
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				)}
+			</>,
 		);
 
 		return () => clearActions();
-	}, [clearActions, isFetching, refetch, setActions]);
+	}, [
+		clearActions,
+		clearLogMutation,
+		currentUser?.role,
+		isFetching,
+		refetch,
+		setActions,
+	]);
 
 	const records = data?.audit_logs.records ?? [];
 	const meta = data?.audit_logs.meta;
@@ -143,6 +240,18 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 
 	return (
 		<div className="w-full">
+			<Alert variant="info" appearance="light" size="sm" className="mb-4">
+				<AlertIcon>
+					<Clock />
+				</AlertIcon>
+				<AlertContent>
+					<AlertTitle>Activity logs are kept for 90 days</AlertTitle>
+					<AlertDescription>
+						Entries older than 90 days are automatically removed.
+					</AlertDescription>
+				</AlertContent>
+			</Alert>
+
 			<ActivityLogControl
 				table={table}
 				eventId={eventId}
@@ -154,6 +263,8 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 				onResultChange={resetToFirstPage(setResult)}
 				userId={userId}
 				onUserIdChange={resetToFirstPage(setUserId)}
+				dateRange={dateRange}
+				onDateRangeChange={resetToFirstPage(setDateRange)}
 			/>
 
 			{isLoading && !data ? (
@@ -175,7 +286,7 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 								emptyStateConfig={{
 									title: "No activity logs found",
 									desc: "No activity logs recorded in the selected range.",
-									icon: <Activity />,
+									icon: <SquareActivity />,
 								}}
 								clickableRowConfig={{
 									isEnabled: true,
@@ -225,7 +336,7 @@ export function ActivityLogTable({ eventId }: { eventId: string }) {
 								<EmptyState
 									title="No activity logs found"
 									description="No activity logs recorded in the selected range."
-									icon={<Activity />}
+									icon={<SquareActivity />}
 									height="h-auto"
 								/>
 							)}

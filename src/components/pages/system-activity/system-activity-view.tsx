@@ -11,20 +11,26 @@ import {
 	Clock,
 	Eye,
 	RefreshCw,
+	Search,
 	ShieldAlert,
 	Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+	type DateRange,
+	DateRangeFilter,
+} from "@/components/pages/export-log/date-range-filter";
+import {
+	Alert,
+	AlertContent,
+	AlertDescription,
+	AlertIcon,
+	AlertTitle,
+} from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { IconTitle } from "@/components/ui/icon-heading";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
@@ -32,6 +38,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -42,6 +55,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDebounce } from "@/hooks/use-debounce";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getSystemActivity } from "@/lib/api/system-activity";
 import type { SystemAuditRecord } from "@/lib/api/system-activity/types";
 import { getActivityCategoryClass as getCategoryBadgeClass } from "@/lib/status-variants";
@@ -49,9 +64,26 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY_INCLUDE_SUPERADMIN = "system-activity-include-superadmin";
 
+function getChanges(
+	details: Record<string, unknown>,
+): Record<string, { from: unknown; to: unknown }> {
+	const changes = details?.changes;
+	if (!changes || typeof changes !== "object") return {};
+	return changes as Record<string, { from: unknown; to: unknown }>;
+}
+
 export function SystemActivityView() {
-	const [activeTab, setActiveTab] = useState("overview");
+	const [activeTab, setActiveTab] = usePersistedState(
+		"system-activity-active-tab",
+		"overview",
+	);
 	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [search, setSearch] = useState("");
+	const debouncedSearch = useDebounce(search, 300);
+	const [dateRange, setDateRange] = useState<DateRange>({
+		from: null,
+		to: null,
+	});
 	const [currentPage, setCurrentPage] = useState(1);
 	const [includeSuperadmin, setIncludeSuperadmin] = useState(false);
 	const [selectedLog, setSelectedLog] = useState<SystemAuditRecord | null>(
@@ -80,17 +112,28 @@ export function SystemActivityView() {
 		}
 	};
 
+	const fromDate = dateRange.from
+		? format(dateRange.from, "yyyy-MM-dd")
+		: undefined;
+	const toDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+
 	// Poll every 15 seconds to give a near-real-time pulse of user presence
 	const { data, isLoading, isRefetching, refetch } = useQuery({
 		queryKey: [
 			"system-activity",
 			categoryFilter,
+			debouncedSearch,
+			fromDate,
+			toDate,
 			currentPage,
 			includeSuperadmin,
 		],
 		queryFn: () =>
 			getSystemActivity({
 				category: categoryFilter !== "all" ? categoryFilter : undefined,
+				q: debouncedSearch || undefined,
+				from_date: fromDate,
+				to_date: toDate,
 				page: currentPage,
 				per_page: 25,
 				include_superadmin: includeSuperadmin,
@@ -170,7 +213,7 @@ export function SystemActivityView() {
 						<span className="text-border">|</span>
 						<div className="flex items-center gap-1">
 							<span className="text-muted-foreground">Retention:</span>
-							<span className="font-medium">3 Days</span>
+							<span className="font-medium">90 Days</span>
 						</div>
 					</div>
 				</div>
@@ -186,7 +229,7 @@ export function SystemActivityView() {
 					<IconTitle
 						icon={Activity}
 						title="System Status & Active Users"
-						description="Live user activity monitor & 3-day deployment audit."
+						description="Live user activity monitor & deployment audit."
 					/>
 				</div>
 				<div className="flex w-full items-center gap-2 px-2 md:w-auto md:px-4">
@@ -206,8 +249,22 @@ export function SystemActivityView() {
 
 			{/* Main Content Area with standard padding */}
 			<div className="space-y-4 px-2 md:px-4">
-				{/* Deployment Status Bar */}
-				{renderDeploymentBanner()}
+				{/* Deployment Status Bar on Overview, retention notice on Audit Trail */}
+				{activeTab === "audit" ? (
+					<Alert variant="info" appearance="light" size="sm">
+						<AlertIcon>
+							<Clock />
+						</AlertIcon>
+						<AlertContent>
+							<AlertTitle>Activity logs are kept for 90 days</AlertTitle>
+							<AlertDescription>
+								Entries older than 90 days are automatically removed.
+							</AlertDescription>
+						</AlertContent>
+					</Alert>
+				) : (
+					renderDeploymentBanner()
+				)}
 
 				{/* Tabs */}
 				<Tabs
@@ -229,7 +286,7 @@ export function SystemActivityView() {
 								className="rounded-none border-transparent border-b-2 px-3 py-2 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent sm:px-4 sm:text-sm"
 							>
 								<Clock className="mr-1.5 size-4 sm:mr-2" />
-								3-Day Activity Audit Trail
+								Activity Audit Trail
 							</TabsTrigger>
 						</TabsList>
 
@@ -459,11 +516,23 @@ export function SystemActivityView() {
 						)}
 					</TabsContent>
 
-					{/* TAB 2: 3-Day Activity Audit Trail */}
+					{/* TAB 2: Activity Audit Trail */}
 					<TabsContent value="audit" className="m-0 space-y-3 pt-0">
 						{/* Category Filter Bar without redundant bulky card header */}
-						<div className="flex items-center justify-between gap-2 border bg-card p-2.5">
-							<div className="flex items-center gap-2">
+						<div className="flex flex-col gap-2 border bg-card p-2.5 sm:flex-row sm:items-center sm:justify-between">
+							<div className="flex flex-wrap items-center gap-2">
+								<div className="relative">
+									<Search className="absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+									<Input
+										value={search}
+										onChange={(e) => {
+											setSearch(e.target.value);
+											setCurrentPage(1);
+										}}
+										placeholder="Search by action or user..."
+										className="h-7 w-[340px] rounded-none pl-7 text-xs"
+									/>
+								</div>
 								<span className="font-medium text-muted-foreground text-xs">
 									Filter Category:
 								</span>
@@ -494,6 +563,16 @@ export function SystemActivityView() {
 										<SelectItem value="general">General</SelectItem>
 									</SelectContent>
 								</Select>
+								<span className="font-medium text-muted-foreground text-xs">
+									Duration:
+								</span>
+								<DateRangeFilter
+									value={dateRange}
+									onChange={(range) => {
+										setDateRange(range);
+										setCurrentPage(1);
+									}}
+								/>
 							</div>
 
 							{pagination && pagination.total_count > 0 && (
@@ -528,7 +607,6 @@ export function SystemActivityView() {
 												<TableHead>Category</TableHead>
 												<TableHead>Endpoint Path</TableHead>
 												<TableHead>IP Address</TableHead>
-												<TableHead className="text-right">Details</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
@@ -585,19 +663,6 @@ export function SystemActivityView() {
 													</TableCell>
 													<TableCell className="font-mono text-muted-foreground text-xs">
 														{log.ip_address || "—"}
-													</TableCell>
-													<TableCell className="text-right">
-														<Button
-															variant="ghost"
-															size="icon"
-															className="size-7 rounded-none"
-															onClick={(e) => {
-																e.stopPropagation();
-																setSelectedLog(log);
-															}}
-														>
-															<Eye className="size-3.5 text-muted-foreground" />
-														</Button>
 													</TableCell>
 												</TableRow>
 											))}
@@ -696,89 +761,105 @@ export function SystemActivityView() {
 				</Tabs>
 			</div>
 
-			{/* Activity Details Modal */}
-			<Dialog
+			{/* Activity Details Sheet */}
+			<Sheet
 				open={!!selectedLog}
 				onOpenChange={(open) => !open && setSelectedLog(null)}
 			>
-				<DialogContent className="max-w-xl rounded-none">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2 font-semibold text-base">
-							<Activity className="size-4 text-primary" />
+				<SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+					<SheetHeader className="shrink-0 border-b">
+						<SheetTitle className="text-lg">
 							{selectedLog?.action_name}
-						</DialogTitle>
-						<DialogDescription className="text-xs">
-							Activity audit details recorded on{" "}
+						</SheetTitle>
+						<SheetDescription>
 							{selectedLog?.created_at &&
 								format(
 									new Date(selectedLog.created_at),
 									"dd MMMM yyyy 'at' HH:mm:ss",
 								)}
-						</DialogDescription>
-					</DialogHeader>
+						</SheetDescription>
+					</SheetHeader>
 
 					{selectedLog && (
-						<div className="space-y-4 text-xs">
-							{/* User Summary */}
-							<div className="grid grid-cols-2 gap-2 border bg-muted/30 p-3">
-								<div>
-									<span className="block text-[11px] text-muted-foreground">
-										User
-									</span>
-									<span className="font-semibold">
+						<div className="flex-1 space-y-3 overflow-y-auto p-4 text-sm">
+							<Badge
+								variant="outline"
+								className={cn(
+									"rounded-none capitalize",
+									getCategoryBadgeClass(selectedLog.category),
+								)}
+							>
+								{selectedLog.category.replace(/_/g, " ")}
+							</Badge>
+
+							<div>
+								<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
+									Performed by
+								</div>
+								<div className="border bg-muted/30 p-3">
+									<div className="font-medium">
 										{selectedLog.user.full_name}
-									</span>
-									<span className="block text-[11px] text-muted-foreground">
-										{selectedLog.user.email}
-									</span>
+									</div>
+									<div className="text-muted-foreground text-xs">
+										{selectedLog.user.email} ·{" "}
+										<span className="capitalize">
+											{selectedLog.user.role.replace(/_/g, " ")}
+										</span>
+									</div>
 								</div>
-								<div>
-									<span className="block text-[11px] text-muted-foreground">
-										Role
-									</span>
-									<Badge
-										variant="secondary"
-										className="rounded-none text-[10px] capitalize"
-									>
-										{selectedLog.user.role.replace(/_/g, " ")}
-									</Badge>
-									<span className="mt-1 block text-[11px] text-muted-foreground">
+							</div>
+
+							<div>
+								<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
+									Request
+								</div>
+								<div className="space-y-1 border bg-muted/30 p-3 font-mono text-xs">
+									<div className="break-all">
+										<span className="mr-1 font-bold text-primary">
+											{selectedLog.http_method}
+										</span>
+										{selectedLog.path}
+									</div>
+									<div className="text-[11px] text-muted-foreground">
 										IP: {selectedLog.ip_address || "Unknown"}
-									</span>
+									</div>
 								</div>
 							</div>
 
-							{/* Endpoint & Method */}
-							<div>
-								<span className="mb-1 block font-medium text-[11px] text-muted-foreground">
-									HTTP Request
-								</span>
-								<div className="flex items-center gap-2 border bg-muted/40 p-2.5 font-mono text-[11px]">
-									<Badge
-										variant="outline"
-										className="rounded-none font-bold text-[10px]"
-									>
-										{selectedLog.http_method}
-									</Badge>
-									<span className="break-all">{selectedLog.path}</span>
+							{Object.keys(getChanges(selectedLog.details)).length > 0 && (
+								<div>
+									<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
+										What changed
+									</div>
+									<div className="space-y-1.5">
+										{Object.entries(getChanges(selectedLog.details)).map(
+											([field, change]) => (
+												<div key={field} className="border bg-muted/30 p-3">
+													<div className="font-medium">{field}</div>
+													<div className="text-muted-foreground text-xs">
+														{String(change.from)} → {String(change.to)}
+													</div>
+												</div>
+											),
+										)}
+									</div>
 								</div>
-							</div>
+							)}
 
-							{/* Parameters & Details */}
-							<div>
-								<span className="mb-1 block font-medium text-[11px] text-muted-foreground">
-									Sanitized Parameters / Context
-								</span>
-								<pre className="max-h-48 overflow-y-auto whitespace-pre-wrap break-all border bg-muted/50 p-3 font-mono text-[11px]">
-									{Object.keys(selectedLog.details || {}).length > 0
-										? JSON.stringify(selectedLog.details, null, 2)
-										: "No extra parameters recorded."}
-								</pre>
-							</div>
+							{Object.keys(selectedLog.details || {}).length > 0 && (
+								<div>
+									<div className="mb-1.5 font-semibold text-foreground text-xs uppercase tracking-wide">
+										Sanitized Parameters / Context
+									</div>
+									<pre className="max-h-48 overflow-y-auto whitespace-pre-wrap break-all border bg-muted/50 p-3 font-mono text-[11px]">
+										{JSON.stringify(selectedLog.details, null, 2)}
+									</pre>
+								</div>
+							)}
 						</div>
 					)}
-				</DialogContent>
-			</Dialog>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }
