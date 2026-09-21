@@ -6,6 +6,7 @@ import { ChevronDown, ListChecks, Wrench } from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
+import { ImportDataDialog } from "@/components/pages/import/import-data-dialog";
 import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
@@ -151,6 +152,15 @@ export default function TicketsPage({
 						<ImportTicketButton asMenuItem />
 					</DropdownMenuContent>
 				</DropdownMenu>
+				{/* Rendered as a sibling of DropdownMenu, not inside DropdownMenuContent —
+				    Radix unmounts the menu's content on close, which would close this
+				    dialog before it ever showed. ImportTicketButton's menu item only
+				    flips the shared full-screen dialog store. */}
+				<ImportDataDialog
+					importType="tickets"
+					trigger={<span className="hidden" />}
+					lockedEventId={event_id}
+				/>
 				<TicketPageButton />
 			</div>
 		),
