@@ -1,6 +1,12 @@
 // Pure TypeScript types for API responses
 
 // Base import response structure (shared between tickets and visitors)
+export type ImportEventSummary = {
+	title: string;
+	exists: boolean;
+	row_count: number;
+};
+
 export type BaseImportResponse = {
 	total: number;
 	created: {
@@ -29,6 +35,9 @@ export type BaseImportResponse = {
 		count: number;
 		data: string[];
 	};
+	// Per-event breakdown for the preview: which Event Title values the file
+	// targets, whether each reuses an existing event or would create a new one.
+	events?: ImportEventSummary[];
 };
 
 // Frontend types (transformed from backend)
@@ -70,6 +79,7 @@ export type BackendImportTicketsResponse = {
 			count: number;
 			data: string[];
 		};
+		events?: ImportEventSummary[];
 	};
 };
 
