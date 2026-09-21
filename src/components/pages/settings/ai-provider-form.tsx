@@ -217,7 +217,7 @@ export function AiProviderForm({ integration, onCancel }: AiProviderFormProps) {
 	}, [createdIntegration, form]);
 
 	return (
-		<div className="space-y-4 border border-primary/20 bg-background p-4">
+		<div className="flex flex-col gap-4 border border-primary/20 bg-background p-4">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<h3 className="font-semibold">
 					{activeIntegration
@@ -539,8 +539,8 @@ export function AiProviderForm({ integration, onCancel }: AiProviderFormProps) {
 							<div>
 								<h4 className="font-semibold text-sm">Models</h4>
 								<p className="text-muted-foreground text-xs">
-									Model ID is sent to the provider; Model Name is shown to
-									users.
+									Model ID is the exact identifier sent to the provider's API;
+									Model Name is just a label for this list.
 								</p>
 							</div>
 							<div className="flex flex-wrap justify-end gap-2">
