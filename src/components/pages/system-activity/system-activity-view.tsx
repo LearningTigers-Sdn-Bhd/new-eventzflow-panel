@@ -2,21 +2,24 @@
 
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import {
 	Activity,
 	AlertTriangle,
+	Bot,
 	Bug,
 	CheckCircle2,
 	Clock,
 	Eye,
 	RefreshCw,
+	RotateCw,
 	Search,
 	ShieldAlert,
+	Sparkle,
 	Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { UnusualBadge } from "@/components/pages/event-activity/activity-log-columns";
 import {
 	type DateRange,
@@ -59,12 +62,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePersistedState } from "@/hooks/use-persisted-state";
-import { getSystemActivity } from "@/lib/api/system-activity";
+import { getAiIntegrations } from "@/lib/api/ai-integration";
+import {
+	analyzeSystemActivityError,
+	getSystemActivity,
+} from "@/lib/api/system-activity";
 import type { SystemAuditRecord } from "@/lib/api/system-activity/types";
-import { getActivityCategoryClass as getCategoryBadgeClass } from "@/lib/status-variants";
+import {
+	getAiSeverityClass,
+	getActivityCategoryClass as getCategoryBadgeClass,
+} from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY_INCLUDE_SUPERADMIN = "system-activity-include-superadmin";
+
+const AI_LOADING_MESSAGES = [
+	"Analyzing the error…",
+	"Reviewing the request details…",
+	"Working out a likely cause and fix…",
+];
 
 function getChanges(
 	details: Record<string, unknown>,
@@ -91,6 +107,8 @@ export function SystemActivityView() {
 	const [selectedLog, setSelectedLog] = useState<SystemAuditRecord | null>(
 		null,
 	);
+	const [selectedModelId, setSelectedModelId] = useState<string>("default");
+	const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
 	// Restore user preference across page refreshes
 	useEffect(() => {
@@ -145,6 +163,59 @@ export function SystemActivityView() {
 			}),
 		refetchInterval: 15000,
 	});
+
+	const analyzeMutation = useMutation({
+		mutationFn: ({ id, modelId }: { id: number; modelId?: number }) =>
+			analyzeSystemActivityError(id, modelId),
+		onSuccess: (result) => {
+			setSelectedLog((prev) =>
+				prev
+					? {
+							...prev,
+							ai_diagnosis: result.ai_diagnosis,
+							ai_diagnosed_at: result.ai_diagnosed_at,
+						}
+					: prev,
+			);
+		},
+	});
+
+	// Cycle a friendly status line while the model is thinking, instead of a static spinner
+	useEffect(() => {
+		if (!analyzeMutation.isPending) {
+			setLoadingMessageIndex(0);
+			return;
+		}
+		const interval = setInterval(() => {
+			setLoadingMessageIndex((i) => (i + 1) % AI_LOADING_MESSAGES.length);
+		}, 2200);
+		return () => clearInterval(interval);
+	}, [analyzeMutation.isPending]);
+
+	const aiIntegrationsQuery = useQuery({
+		queryKey: ["ai-integrations"],
+		queryFn: getAiIntegrations,
+		enabled: !!selectedLog && selectedLog.result === "failed",
+		retry: false,
+	});
+
+	const aiModelOptions = useMemo(
+		() =>
+			(aiIntegrationsQuery.data ?? []).flatMap((integration) =>
+				integration.models.map((model) => ({
+					id: model.id,
+					label: `${model.model_name || model.model_id} · ${integration.provider}`,
+					isDefault: model.is_default,
+				})),
+			),
+		[aiIntegrationsQuery.data],
+	);
+
+	const handleAnalyze = (id: number) => {
+		const modelId =
+			selectedModelId === "default" ? undefined : Number(selectedModelId);
+		analyzeMutation.mutate({ id, modelId });
+	};
 
 	const deployment = data?.deployment_status;
 	const activeUsers = data?.active_users || [];
@@ -881,6 +952,119 @@ export function SystemActivityView() {
 										{selectedLog.error_message ||
 											"No further details available."}
 									</div>
+								</div>
+							)}
+
+							{selectedLog.result === "failed" && (
+								<div>
+									<div className="mb-1.5 flex items-center justify-between gap-2">
+										<div className="font-semibold text-primary text-xs uppercase tracking-wide">
+											AI Diagnosis
+										</div>
+										{!analyzeMutation.isPending && (
+											<div className="flex items-center gap-1.5">
+												{aiModelOptions.length > 0 && (
+													<Select
+														value={selectedModelId}
+														onValueChange={setSelectedModelId}
+													>
+														<SelectTrigger
+															size="sm"
+															className="h-7 w-40 rounded-none text-xs"
+														>
+															<SelectValue placeholder="Model" />
+														</SelectTrigger>
+														<SelectContent className="rounded-none">
+															<SelectItem value="default">
+																Default model
+															</SelectItem>
+															{aiModelOptions.map((model) => (
+																<SelectItem
+																	key={model.id}
+																	value={String(model.id)}
+																>
+																	{model.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												)}
+												<Button
+													size="sm"
+													variant="outline"
+													className="h-7 gap-1.5 rounded-none text-xs"
+													onClick={() => handleAnalyze(selectedLog.id)}
+												>
+													{selectedLog.ai_diagnosis ? (
+														<RotateCw className="size-3.5" />
+													) : (
+														<Bot className="size-3.5" />
+													)}
+													{selectedLog.ai_diagnosis ? "Reanalyze" : "Analyze"}
+												</Button>
+											</div>
+										)}
+									</div>
+
+									{analyzeMutation.isPending && (
+										<div className="flex items-center gap-2 border border-primary/30 bg-primary/5 p-3 text-primary text-xs">
+											<Sparkle className="size-3.5 shrink-0 animate-pulse" />
+											{AI_LOADING_MESSAGES[loadingMessageIndex]}
+										</div>
+									)}
+
+									{!analyzeMutation.isPending && analyzeMutation.isError && (
+										<div className="border border-destructive/30 bg-destructive/5 p-3 text-destructive text-xs">
+											{analyzeMutation.error instanceof Error
+												? analyzeMutation.error.message
+												: "Failed to analyze this error."}
+										</div>
+									)}
+
+									{!analyzeMutation.isPending &&
+										!analyzeMutation.isError &&
+										!selectedLog.ai_diagnosis && (
+											<div className="flex items-center gap-2 border border-dashed bg-muted/20 p-3 text-muted-foreground text-xs">
+												<Bot className="size-3.5 shrink-0" />
+												No analysis yet — run it to see the likely cause and a
+												suggested fix.
+											</div>
+										)}
+
+									{!analyzeMutation.isPending && selectedLog.ai_diagnosis && (
+										<div className="space-y-2 border border-primary/30 bg-primary/5 p-3 text-xs">
+											<div className="flex items-center justify-between">
+												<span className="font-semibold uppercase tracking-wide">
+													Likely cause
+												</span>
+												<Badge
+													variant="outline"
+													className={cn(
+														"rounded-none capitalize",
+														getAiSeverityClass(
+															selectedLog.ai_diagnosis.severity,
+														),
+													)}
+												>
+													{selectedLog.ai_diagnosis.severity} severity
+												</Badge>
+											</div>
+											<p>{selectedLog.ai_diagnosis.cause}</p>
+											<div className="border-primary/20 border-t pt-2 font-semibold uppercase tracking-wide">
+												Suggested fix
+											</div>
+											<p>{selectedLog.ai_diagnosis.suggested_fix}</p>
+											{selectedLog.ai_diagnosed_at && (
+												<p className="pt-1 text-[11px] text-muted-foreground">
+													Analyzed{" "}
+													{formatDistanceToNow(
+														new Date(selectedLog.ai_diagnosed_at),
+														{ addSuffix: true },
+													)}
+												</p>
+											)}
+										</div>
+									)}
 								</div>
 							)}
 

@@ -99,3 +99,17 @@ export function getActivityCategoryClass(category: string): string {
 		"border-muted-foreground/30 bg-muted/20 text-muted-foreground"
 	);
 }
+
+export const aiSeverityVariants: Record<string, string> = {
+	low: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+	medium:
+		"border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+	high: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+};
+
+export function getAiSeverityClass(severity: string): string {
+	return (
+		aiSeverityVariants[severity] ??
+		"border-muted-foreground/30 bg-muted/20 text-muted-foreground"
+	);
+}

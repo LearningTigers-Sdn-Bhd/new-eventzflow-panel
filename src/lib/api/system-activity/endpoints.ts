@@ -1,7 +1,10 @@
 // src/lib/api/system-activity/endpoints.ts
 
 import { restClient } from "@/utils/rest-api";
-import type { SystemActivityResponse } from "./types";
+import type {
+	AnalyzeSystemActivityErrorResponse,
+	SystemActivityResponse,
+} from "./types";
 
 export interface GetSystemActivityParams {
 	page?: number;
@@ -33,4 +36,14 @@ export async function getSystemActivity(
 	const url = `v1/superadmin/system_activity${queryString ? `?${queryString}` : ""}`;
 
 	return restClient.get<SystemActivityResponse>(url);
+}
+
+export async function analyzeSystemActivityError(
+	id: number,
+	aiModelId?: number,
+): Promise<AnalyzeSystemActivityErrorResponse> {
+	return restClient.post<AnalyzeSystemActivityErrorResponse>(
+		`v1/superadmin/system_activity/${id}/analyze`,
+		aiModelId ? { ai_model_id: aiModelId } : {},
+	);
 }

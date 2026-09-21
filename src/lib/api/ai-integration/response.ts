@@ -16,7 +16,6 @@ export const aiModelsResponseSchema = z.array(aiModelSchema);
 
 export const aiIntegrationSchema = z.object({
 	id: z.number(),
-	user_id: z.number(),
 	provider: z.string(),
 	api_url: z.string(),
 	has_api_key: z.boolean(),
