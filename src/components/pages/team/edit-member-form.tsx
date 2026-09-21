@@ -64,12 +64,16 @@ export default function EditMemberForm({
 
 	const assignedToOptions = [
 		{ value: "none", label: "None (unassigned)" },
-		...allMembers.map((m) => ({ value: m.id, label: `${m.full_name} (${m.email})` })),
+		...allMembers.map((m) => ({
+			value: m.id,
+			label: `${m.full_name} (${m.email})`,
+		})),
 	];
 
-	const assignedToValue = formData.created_by_id && formData.created_by_id !== "none"
-		? formData.created_by_id
-		: undefined;
+	const assignedToValue =
+		formData.created_by_id && formData.created_by_id !== "none"
+			? formData.created_by_id
+			: undefined;
 
 	const queryClient = useQueryClient();
 	const updateMemberMutation = useMutation({
@@ -111,7 +115,11 @@ export default function EditMemberForm({
 				email: formData.email,
 				phone: formData.phone || undefined,
 				role: formData.role,
-				created_by_id: isOrgOwner ? (formData.created_by_id === "none" || formData.created_by_id === "" ? null : formData.created_by_id) : undefined,
+				created_by_id: isOrgOwner
+					? formData.created_by_id === "none" || formData.created_by_id === ""
+						? null
+						: formData.created_by_id
+					: undefined,
 				newPassword: formData.newPassword || undefined,
 				email_verified_at: formData.emailVerifiedAt,
 			});

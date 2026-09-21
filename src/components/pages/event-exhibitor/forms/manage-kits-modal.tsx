@@ -88,7 +88,11 @@ export function ManageKitsModal({
 			/>
 			<div className="flex min-w-0 flex-col gap-4">
 				{activeTab === "exhibitor-info" && (
-					<ManageKitsInfoForm vendor={vendor} kitId={kit.id} onClose={onClose} />
+					<ManageKitsInfoForm
+						vendor={vendor}
+						kitId={kit.id}
+						onClose={onClose}
+					/>
 				)}
 				{isProtectedTab && isLoadingEvent && (
 					<LoadingState

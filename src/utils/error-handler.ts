@@ -71,6 +71,15 @@ export async function extractErrorMessage(error: unknown): Promise<string> {
 	return "An error occurred. Please try again.";
 }
 
+export function isNotFoundError(error: unknown): boolean {
+	if (!error || typeof error !== "object" || !("response" in error)) {
+		return false;
+	}
+
+	const response = (error as { response?: { status?: unknown } }).response;
+	return response?.status === 404;
+}
+
 /**
  * Type guard to check if an error is a backend error response
  */

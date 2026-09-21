@@ -6,10 +6,10 @@ import type {
 	CreatePublicRegistrationPayload,
 	CreatePublicRegistrationResponse,
 	ExistingRegistrationStatusResponse,
+	PublicPassBundleResponse,
 	PublicRegistrationFormsResponse,
 	PublicTicketDetailsResponse,
 	PublicTicketTypesResponse,
-	PublicPassBundleResponse,
 	VerifyPaymentPayload,
 	VerifyPaymentResponse,
 } from "./types";

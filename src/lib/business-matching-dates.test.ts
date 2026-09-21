@@ -8,7 +8,9 @@ import {
 describe("business matching availability dates", () => {
 	test("formats without padding the day, matching the API's %-d %B %Y", () => {
 		expect(formatAvailabilityDate(new Date(2026, 7, 5))).toBe("5 August 2026");
-		expect(formatAvailabilityDate(new Date(2026, 7, 15))).toBe("15 August 2026");
+		expect(formatAvailabilityDate(new Date(2026, 7, 15))).toBe(
+			"15 August 2026",
+		);
 	});
 
 	test("parses the API format back to the same calendar day", () => {

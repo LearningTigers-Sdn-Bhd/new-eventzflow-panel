@@ -25,6 +25,12 @@ export interface DeploymentStatus {
 	safe_to_deploy: boolean;
 }
 
+export interface AiDiagnosis {
+	cause: string;
+	suggested_fix: string;
+	severity: "low" | "medium" | "high";
+}
+
 export interface SystemAuditRecord {
 	id: number;
 	user: {
@@ -35,11 +41,22 @@ export interface SystemAuditRecord {
 	};
 	category: string;
 	action_name: string;
+	result: "success" | "failed";
+	error_message: string | null;
 	http_method: string;
 	path: string;
 	details: Record<string, unknown>;
 	ip_address?: string;
 	created_at: string;
+	unusual: boolean;
+	ai_diagnosis: AiDiagnosis | null;
+	ai_diagnosed_at: string | null;
+}
+
+export interface AnalyzeSystemActivityErrorResponse {
+	success: boolean;
+	ai_diagnosis: AiDiagnosis;
+	ai_diagnosed_at: string;
 }
 
 export interface SystemActivityResponse {

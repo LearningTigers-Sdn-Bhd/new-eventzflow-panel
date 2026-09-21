@@ -163,8 +163,6 @@ export default function WebhookSettingsForm({
 							</form.Field>
 						</div>
 					</FormGroupContainer>
-
-
 				</FieldGroup>
 				<FieldGroup className="flex flex-col justify-end gap-2 pt-4 md:pt-8 lg:flex-row">
 					<form.Subscribe

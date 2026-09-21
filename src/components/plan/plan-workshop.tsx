@@ -73,14 +73,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -88,6 +80,14 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -104,6 +104,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getEventById } from "@/lib/api/event";
 import {
 	autoDistribute,
 	batchCreatePlanObjects,
@@ -134,7 +135,6 @@ import {
 	removeSeatingGroupMember,
 	updateSeatingGroup,
 } from "@/lib/api/seating-group";
-import { getEventById } from "@/lib/api/event";
 import { getEventTickets } from "@/lib/api/ticket";
 import { getVisitors } from "@/lib/api/visitor";
 import { cn } from "@/lib/utils";

@@ -1,6 +1,13 @@
 "use client";
 
-import { AlertTriangle, Calendar as CalendarIcon, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+	AlertTriangle,
+	Calendar as CalendarIcon,
+	CheckCircle2,
+	Loader2,
+	XCircle,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
@@ -12,10 +19,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-	getPublicBookingInfo,
 	cancelBooking,
+	getPublicBookingInfo,
 	type PublicBookingInfo,
 } from "@/lib/api/business-matching";
 
@@ -58,9 +64,11 @@ export default function CancelPage({ params }: CancelPageProps) {
 	if (isLoadingBooking) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center space-y-3">
-					<Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-					<p className="text-muted-foreground text-sm">Loading your booking...</p>
+				<div className="space-y-3 text-center">
+					<Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+					<p className="text-muted-foreground text-sm">
+						Loading your booking...
+					</p>
 				</div>
 			</div>
 		);
@@ -70,11 +78,14 @@ export default function CancelPage({ params }: CancelPageProps) {
 	if (bookingError || !booking) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
-				<Card className="max-w-md w-full text-center">
+				<Card className="w-full max-w-md text-center">
 					<CardHeader>
-						<CardTitle className="text-destructive text-2xl">Booking Not Found</CardTitle>
+						<CardTitle className="text-2xl text-destructive">
+							Booking Not Found
+						</CardTitle>
 						<CardDescription>
-							This booking does not exist or the link is invalid. Please contact the event organiser.
+							This booking does not exist or the link is invalid. Please contact
+							the event organiser.
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
@@ -91,16 +102,18 @@ export default function CancelPage({ params }: CancelPageProps) {
 	if (booking.status === "Cancelled" || done) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
-				<Card className="max-w-md w-full text-center shadow-lg">
+				<Card className="w-full max-w-md text-center shadow-lg">
 					<CardHeader className="pb-4">
-						<CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-3" />
-						<CardTitle className="text-2xl font-bold">Booking Cancelled</CardTitle>
+						<CheckCircle2 className="mx-auto mb-3 h-16 w-16 text-green-500" />
+						<CardTitle className="font-bold text-2xl">
+							Booking Cancelled
+						</CardTitle>
 						<CardDescription>
 							Your meeting has been successfully cancelled.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="rounded-xl border bg-muted/30 p-4 text-sm space-y-2 text-left">
+						<div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-left text-sm">
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">Session</span>
 								<span className="font-medium">{booking.session_title}</span>
@@ -124,8 +137,8 @@ export default function CancelPage({ params }: CancelPageProps) {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col items-center justify-start px-4 py-12">
-			<Card className="w-full max-w-md shadow-lg border-destructive/20">
+		<div className="flex min-h-screen flex-col items-center justify-start bg-gradient-to-b from-background to-muted/30 px-4 py-12">
+			<Card className="w-full max-w-md border-destructive/20 shadow-lg">
 				<CardHeader className="border-b pb-5">
 					<div className="flex items-center gap-3">
 						<div className="rounded-full bg-destructive/10 p-2.5">
@@ -134,15 +147,18 @@ export default function CancelPage({ params }: CancelPageProps) {
 						<div>
 							<CardTitle className="text-xl">Cancel Your Meeting</CardTitle>
 							<CardDescription>
-								Cancel your meeting for <span className="font-medium text-foreground">{booking.session_title}</span>
+								Cancel your meeting for{" "}
+								<span className="font-medium text-foreground">
+									{booking.session_title}
+								</span>
 							</CardDescription>
 						</div>
 					</div>
 				</CardHeader>
 
-				<CardContent className="pt-6 space-y-6">
+				<CardContent className="space-y-6 pt-6">
 					{/* Current booking info */}
-					<div className="rounded-lg border bg-muted/50 p-4 text-sm space-y-2">
+					<div className="space-y-2 rounded-lg border bg-muted/50 p-4 text-sm">
 						<div className="flex justify-between">
 							<span className="text-muted-foreground">Name:</span>
 							<span className="font-medium">{booking.name}</span>
@@ -157,12 +173,15 @@ export default function CancelPage({ params }: CancelPageProps) {
 						</div>
 					</div>
 
-					<div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 p-4 text-sm flex gap-3">
-						<AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0" />
+					<div className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/20">
+						<AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
 						<div>
-							<p className="text-amber-800 dark:text-amber-300 font-medium mb-1">Are you sure?</p>
+							<p className="mb-1 font-medium text-amber-800 dark:text-amber-300">
+								Are you sure?
+							</p>
 							<p className="text-amber-700 dark:text-amber-400">
-								This will cancel your slot so others can book it. This action cannot be undone.
+								This will cancel your slot so others can book it. This action
+								cannot be undone.
 							</p>
 						</div>
 					</div>

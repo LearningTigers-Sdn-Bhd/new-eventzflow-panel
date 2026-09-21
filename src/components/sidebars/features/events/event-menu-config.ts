@@ -33,6 +33,7 @@ import {
 	Printer,
 	ScanQrCode,
 	Speech,
+	SquareActivity,
 	Ticket,
 	TrendingUp,
 	User,
@@ -599,6 +600,18 @@ const rawEventMenuConfig: EventMenuConfig = {
 					visible: (p) => visible.eventAdmin(p) || visible.canAccessTickets(p),
 				},
 				{
+					route: "event-activity",
+					label: "Activity Log",
+					description: "View recent actions on this event.",
+					icon: SquareActivity,
+					visible: (p) =>
+						p.isOrgOwner ||
+						p.isEventAdmin ||
+						p.isEventTeamMember ||
+						p.isBusinessHost ||
+						p.isBusinessMatchingAdmin,
+				},
+				{
 					route: "lead-logs",
 					label: "Lead Logs",
 					description: "View all event lead logs for this event.",
@@ -629,6 +642,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 const BUSINESS_HOST_ALLOWED_ROUTES = new Set([
 	"business-matching",
 	"host-profile",
+	"event-activity",
 ]);
 
 const isPureBusinessHost = (p: Permissions) =>
@@ -653,10 +667,13 @@ function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 		standalone: config.standalone.map(guardItem),
 		groups: config.groups.map((group) => ({
 			...group,
-			// Business hosts never see any group — both routes they're
-			// allowed to see are standalone items, not inside a group.
+			// Business hosts never see a group unless it holds one of their
+			// allowed routes (e.g. Activity Log lives in the Logs group) —
+			// guardItem above still hides every other tab in that group.
 			visible: (p: Permissions, e?: EventSidebarEvent) =>
-				isPureBusinessHost(p) ? false : (group.visible?.(p, e) ?? true),
+				isPureBusinessHost(p)
+					? group.tabs.some((t) => BUSINESS_HOST_ALLOWED_ROUTES.has(t.route))
+					: (group.visible?.(p, e) ?? true),
 			tabs: group.tabs.map(guardItem),
 		})),
 	};
@@ -667,7 +684,10 @@ function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 // ============================================================================
 // A user assigned as business_matching_admin (and nothing else) manages
 // Business Matching for this event only — no other modules.
-const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set(["business-matching"]);
+const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set([
+	"business-matching",
+	"event-activity",
+]);
 
 const isPureBusinessMatchingAdmin = (p: Permissions) =>
 	(p.isBusinessMatchingAdmin ?? false) &&
@@ -695,7 +715,9 @@ function restrictForBusinessMatchingAdmins(
 			...group,
 			visible: (p: Permissions, e?: EventSidebarEvent) =>
 				isPureBusinessMatchingAdmin(p)
-					? false
+					? group.tabs.some((t) =>
+							BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES.has(t.route),
+						)
 					: (group.visible?.(p, e) ?? true),
 			tabs: group.tabs.map(guardItem),
 		})),

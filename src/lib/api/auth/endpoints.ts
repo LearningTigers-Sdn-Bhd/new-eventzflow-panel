@@ -81,17 +81,13 @@ export async function refreshToken(): Promise<string> {
 					{},
 				);
 
-				const validatedResponse =
-					refreshTokenResponseSchema.parse(response);
+				const validatedResponse = refreshTokenResponseSchema.parse(response);
 
 				if (!validatedResponse.success) {
-					throw new Error(
-						validatedResponse.message || "Token refresh failed",
-					);
+					throw new Error(validatedResponse.message || "Token refresh failed");
 				}
 
-				const { access_token, expires_at, user } =
-					validatedResponse.data;
+				const { access_token, expires_at, user } = validatedResponse.data;
 				const expiresAtTimestamp = parseExpiresAt(expires_at);
 
 				state.setSessionCredentials({
@@ -109,7 +105,6 @@ export async function refreshToken(): Promise<string> {
 				// another tab's successful rotation, then retry
 				if (attempt === 0) {
 					await new Promise((resolve) => setTimeout(resolve, 1000));
-					continue;
 				}
 			}
 		}

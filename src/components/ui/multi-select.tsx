@@ -272,10 +272,10 @@ MultiSelectItem.displayName = "MultiSelectItem";
 
 export {
 	MultiSelect,
-	MultiSelectTrigger,
-	MultiSelectValue,
 	MultiSelectContent,
 	MultiSelectItem,
+	MultiSelectTrigger,
+	MultiSelectValue,
 	useMultiSelect,
 };
 

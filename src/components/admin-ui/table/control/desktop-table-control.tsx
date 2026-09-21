@@ -223,6 +223,10 @@ export function DesktopTableControl<TData>({
 			return renderVisibilityDropdown(config);
 		}
 
+		if (config.type === "custom") {
+			return config.render?.();
+		}
+
 		return renderFilterSelect(config);
 	};
 

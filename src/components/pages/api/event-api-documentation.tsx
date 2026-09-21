@@ -166,7 +166,9 @@ function ApiEndpointCard({
 										className="flex items-start gap-2 rounded-none border border-sky-200 bg-sky-50 p-3 dark:border-sky-900/40 dark:bg-sky-950/30"
 									>
 										<Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
-										<p className="text-sky-800 text-xs dark:text-sky-200">{note}</p>
+										<p className="text-sky-800 text-xs dark:text-sky-200">
+											{note}
+										</p>
 									</div>
 								))}
 							</div>
@@ -420,7 +422,8 @@ export function EventApiDocumentation({
 					Error Response Shape
 				</h3>
 				<p className="text-muted-foreground text-xs sm:text-sm">
-					When a request fails, the API returns a JSON body with a stable shape so you can handle errors uniformly.
+					When a request fails, the API returns a JSON body with a stable shape
+					so you can handle errors uniformly.
 				</p>
 				<CodeBlock
 					code={`{
@@ -446,7 +449,9 @@ export function EventApiDocumentation({
 							</code>
 						</p>
 						<p className="text-muted-foreground">
-							<code>purchased</code> · <code>scanned</code> · <code>refunded</code> · <code>canceled</code> · <code>pending_payment</code>
+							<code>purchased</code> · <code>scanned</code> ·{" "}
+							<code>refunded</code> · <code>canceled</code> ·{" "}
+							<code>pending_payment</code>
 						</p>
 					</div>
 					<div>
@@ -456,7 +461,8 @@ export function EventApiDocumentation({
 							</code>
 						</p>
 						<p className="text-muted-foreground">
-							<code>pending</code> · <code>paid</code> · <code>failed</code> · <code>refunded_payment</code>
+							<code>pending</code> · <code>paid</code> · <code>failed</code> ·{" "}
+							<code>refunded_payment</code>
 						</p>
 					</div>
 					{!event.use_ticket && (
@@ -467,7 +473,8 @@ export function EventApiDocumentation({
 								</code>
 							</p>
 							<p className="text-muted-foreground">
-								<code>pending</code> · <code>attending</code> · <code>declined</code>
+								<code>pending</code> · <code>attending</code> ·{" "}
+								<code>declined</code>
 							</p>
 						</div>
 					)}
@@ -478,7 +485,8 @@ export function EventApiDocumentation({
 							</code>
 						</p>
 						<p className="text-muted-foreground">
-							<code>Exhibitor</code> (when Exhibitor Kit enabled) · <code>Merchant</code> (otherwise)
+							<code>Exhibitor</code> (when Exhibitor Kit enabled) ·{" "}
+							<code>Merchant</code> (otherwise)
 						</p>
 					</div>
 				</div>
@@ -490,10 +498,16 @@ export function EventApiDocumentation({
 					Paginating Through All Tickets
 				</h3>
 				<p className="text-muted-foreground text-xs sm:text-sm">
-					For large events, fetch tickets in pages. Read the totals from the response headers and stop when
-					{" "}<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">X-Page</code>
-					{" "}equals{" "}
-					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">X-Total-Pages</code>.
+					For large events, fetch tickets in pages. Read the totals from the
+					response headers and stop when{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+						X-Page
+					</code>{" "}
+					equals{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+						X-Total-Pages
+					</code>
+					.
 				</p>
 				<CodeBlock
 					code={`# Fetch the first page (100 rows)
@@ -516,10 +530,12 @@ curl -i '${API_BASE_URL}/v1/events/${eventId}/tickets?page=1&per_page=100' \\
 					Incremental Sync
 				</h3>
 				<p className="text-muted-foreground text-xs sm:text-sm">
-					Save the timestamp of your last successful sync and pass it as
-					{" "}<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">updated_since</code>
-					{" "}on the next call. Only tickets changed since then are returned — much faster than re-pulling
-					the full set.
+					Save the timestamp of your last successful sync and pass it as{" "}
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+						updated_since
+					</code>{" "}
+					on the next call. Only tickets changed since then are returned — much
+					faster than re-pulling the full set.
 				</p>
 				<CodeBlock
 					code={`curl '${API_BASE_URL}/v1/events/${eventId}/tickets?updated_since=2026-05-17T00:00:00+08:00&per_page=100&page=1' \\
@@ -534,27 +550,44 @@ curl -i '${API_BASE_URL}/v1/events/${eventId}/tickets?page=1&per_page=100' \\
 				</h3>
 				<p className="text-muted-foreground text-xs sm:text-sm">
 					Each ticket and visitor has a{" "}
-					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">public_id</code>{" "}
-					— that string is what gets encoded in the QR code, nothing more. Use any standard QR library:
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+						public_id
+					</code>{" "}
+					— that string is what gets encoded in the QR code, nothing more. Use
+					any standard QR library:
 				</p>
 				<ul className="ml-4 list-disc space-y-1 text-muted-foreground text-xs sm:text-sm">
 					<li>
-						Node.js — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode</code>
+						Node.js —{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							qrcode
+						</code>
 					</li>
 					<li>
-						Python — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode</code>
+						Python —{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							qrcode
+						</code>
 					</li>
 					<li>
-						PHP — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">endroid/qr-code</code>
+						PHP —{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							endroid/qr-code
+						</code>
 					</li>
 					<li>
-						Browser — <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">qrcode.js</code>
+						Browser —{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							qrcode.js
+						</code>
 					</li>
 				</ul>
 				<p className="text-muted-foreground text-xs sm:text-sm">
 					When the QR is scanned, you'll get back the{" "}
-					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">public_id</code>
-					{" "}— pass it to the Check-In endpoint.
+					<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+						public_id
+					</code>{" "}
+					— pass it to the Check-In endpoint.
 				</p>
 			</div>
 
@@ -566,26 +599,45 @@ curl -i '${API_BASE_URL}/v1/events/${eventId}/tickets?page=1&per_page=100' \\
 				<ul className="ml-4 list-disc space-y-1 text-muted-foreground text-xs sm:text-sm">
 					<li>
 						All timestamps are ISO 8601 in Malaysia Time (MYT, UTC+8). Example:{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">2026-08-01T09:00:00.000+08:00</code>
-						. When passing timestamps as query params (e.g. <code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">updated_since</code>), both{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">+08:00</code> and{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">Z</code> (UTC) are accepted.
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							2026-08-01T09:00:00.000+08:00
+						</code>
+						. When passing timestamps as query params (e.g.{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							updated_since
+						</code>
+						), both{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							+08:00
+						</code>{" "}
+						and{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							Z
+						</code>{" "}
+						(UTC) are accepted.
 					</li>
 					<li>
 						Money fields (e.g.{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">price</code>,{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">amount_paid</code>
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							price
+						</code>
+						,{" "}
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							amount_paid
+						</code>
 						) are returned as decimal strings (e.g.{" "}
-						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">"99.00"</code>
+						<code className="rounded-none border bg-background px-1 py-0.5 font-mono text-[10px] sm:text-xs">
+							"99.00"
+						</code>
 						) to avoid floating-point loss.
 					</li>
 					<li>
-						Rate limit: 300 requests / minute per IP across the whole API. A 429 response means you've
-						exceeded that — back off and retry.
+						Rate limit: 300 requests / minute per IP across the whole API. A 429
+						response means you've exceeded that — back off and retry.
 					</li>
 					<li>
-						This key is scoped to <strong>this event only</strong>. Calls referencing a different event
-						are rejected with a 403.
+						This key is scoped to <strong>this event only</strong>. Calls
+						referencing a different event are rejected with a 403.
 					</li>
 				</ul>
 			</div>
