@@ -12,12 +12,14 @@ import { ReportSection } from "./report-section";
 interface TicketTypeBreakdownCardProps {
 	eventId: string;
 	onDataChange?: (rows: CustomFieldBreakdownRow[] | null) => void;
+	onLoadingChange?: (isLoading: boolean) => void;
 }
 
 /** Count-only breakdown of tickets grouped by ticket type. */
 export function TicketTypeBreakdownCard({
 	eventId,
 	onDataChange,
+	onLoadingChange,
 }: TicketTypeBreakdownCardProps) {
 	const { labels } = useReportLanguage();
 	const { data, isLoading } = useQuery({
@@ -28,6 +30,10 @@ export function TicketTypeBreakdownCard({
 	useEffect(() => {
 		onDataChange?.(data?.data ?? null);
 	}, [data, onDataChange]);
+
+	useEffect(() => {
+		onLoadingChange?.(isLoading);
+	}, [isLoading, onLoadingChange]);
 
 	return (
 		<ReportSection icon={Ticket} title={labels.ticketTypeBreakdown}>

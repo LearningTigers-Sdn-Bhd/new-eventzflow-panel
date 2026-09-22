@@ -24,6 +24,7 @@ import {
 	HardHat,
 	Import,
 	Key,
+	LayoutDashboard,
 	Logs,
 	type LucideIcon,
 	MapPin,
@@ -556,6 +557,15 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description:
 						"Build your own breakdowns by ticket type or custom registration field.",
 					icon: ChartBar,
+					visible: (p, e) =>
+						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+				},
+				{
+					route: "custom-dashboard",
+					label: "Custom Dashboard",
+					description:
+						"Chart dashboard of your custom report selections — overview, trends, and breakdowns.",
+					icon: LayoutDashboard,
 					visible: (p, e) =>
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},

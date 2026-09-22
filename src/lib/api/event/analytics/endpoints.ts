@@ -434,3 +434,42 @@ export async function getTicketTypeBreakdown(
 		throw new Error(error.message || "Failed to fetch ticket type breakdown");
 	}
 }
+
+/**
+ * Download all of the event's tickets as CSV, for offline charting/analysis
+ * from the custom dashboard. Honors the Content-Disposition filename when
+ * the backend provides one.
+ */
+export async function exportTicketsCsv(
+	eventId: number | string,
+): Promise<void> {
+	try {
+		const { blob, headers } = await restClient.getBlob(
+			`v1/events/${eventId}/tickets/export.csv`,
+		);
+
+		let filename = `event-${eventId}-tickets.csv`;
+		const contentDisposition = headers.get("Content-Disposition");
+		if (contentDisposition) {
+			const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+			if (filenameMatch) filename = filenameMatch[1];
+		}
+
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url);
+		document.body.removeChild(a);
+	} catch (error: unknown) {
+		const message =
+			error instanceof Error ? error.message : "Failed to export tickets CSV";
+		console.error(
+			`❌ Failed to export tickets CSV for event ${eventId}:`,
+			error,
+		);
+		throw new Error(message);
+	}
+}

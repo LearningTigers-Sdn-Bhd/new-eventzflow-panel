@@ -1,5 +1,6 @@
 // API endpoints
 export {
+	exportTicketsCsv,
 	getAllEventAnalytics,
 	getCustomFieldBreakdown,
 	getCustomFieldKeys,

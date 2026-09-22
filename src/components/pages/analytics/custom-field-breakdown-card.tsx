@@ -43,6 +43,10 @@ export type CustomFieldBreakdownChange =
 interface CustomFieldBreakdownCardProps {
 	eventId: string;
 	onDataChange?: (result: CustomFieldBreakdownChange) => void;
+	onLoadingChange?: (isLoading: boolean) => void;
+	/** Hide the breakdown tables and render only the field/group selectors —
+	 * used when the custom dashboard shows the same data as charts. */
+	selectorsOnly?: boolean;
 }
 
 const NONE_VALUE = "__none__";
@@ -56,6 +60,8 @@ const NONE_VALUE = "__none__";
 export function CustomFieldBreakdownCard({
 	eventId,
 	onDataChange,
+	onLoadingChange,
+	selectorsOnly = false,
 }: CustomFieldBreakdownCardProps) {
 	const { labels } = useReportLanguage();
 	const { data: keysData, isLoading: keysLoading } = useQuery({
@@ -133,6 +139,10 @@ export function CustomFieldBreakdownCard({
 			onDataChange?.({ fieldKey: data.fieldKey, rows: data.data });
 		}
 	}, [data, isNested, visibleGroups, onDataChange]);
+
+	useEffect(() => {
+		onLoadingChange?.(!!selectedKey && isLoading);
+	}, [selectedKey, isLoading, onLoadingChange]);
 
 	const groupByOptions =
 		keysData?.keys.filter((key) => key !== selectedKey) ?? [];
@@ -228,7 +238,7 @@ export function CustomFieldBreakdownCard({
 				</p>
 			)}
 
-			{selectedKey && isNested && (
+			{!selectorsOnly && selectedKey && isNested && (
 				<NestedBreakdownGroups
 					groupLabel={humanizeFieldKey(groupByKey)}
 					fieldLabel={humanizeFieldKey(selectedKey)}
@@ -237,7 +247,7 @@ export function CustomFieldBreakdownCard({
 				/>
 			)}
 
-			{selectedKey && !groupByKey && (
+			{!selectorsOnly && selectedKey && !groupByKey && (
 				<BreakdownTable
 					labelHeader={humanizeFieldKey(selectedKey)}
 					rows={!isNested ? data?.data : undefined}

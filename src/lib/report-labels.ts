@@ -37,6 +37,20 @@ export const reportLabels: Record<
 		breakdown: string;
 		by: string;
 		report: string;
+		customDashboard: string;
+		tableView: string;
+		dashboardView: string;
+		overview: string;
+		registrationsOverTime: string;
+		daily: string;
+		weekly: string;
+		monthly: string;
+		donutChart: string;
+		barChart: string;
+		trend: string;
+		exportCsv: string;
+		exporting: string;
+		exportCsvFailed: string;
 	}
 > = {
 	en: {
@@ -68,6 +82,20 @@ export const reportLabels: Record<
 		breakdown: "Breakdown",
 		by: "by",
 		report: "Report",
+		customDashboard: "Custom Dashboard",
+		tableView: "Table view",
+		dashboardView: "Dashboard view",
+		overview: "Overview",
+		registrationsOverTime: "Registrations Over Time",
+		daily: "Daily",
+		weekly: "Weekly",
+		monthly: "Monthly",
+		donutChart: "Donut",
+		barChart: "Bars",
+		trend: "Trend",
+		exportCsv: "Export CSV",
+		exporting: "Exporting…",
+		exportCsvFailed: "Failed to export CSV. Please try again.",
 	},
 	bm: {
 		customFieldBreakdown: "Pecahan Medan Tersuai",
@@ -98,5 +126,19 @@ export const reportLabels: Record<
 		breakdown: "Pecahan",
 		by: "mengikut",
 		report: "Laporan",
+		customDashboard: "Papan Pemuka Tersuai",
+		tableView: "Paparan jadual",
+		dashboardView: "Paparan papan pemuka",
+		overview: "Ringkasan",
+		registrationsOverTime: "Pendaftaran Mengikut Masa",
+		daily: "Harian",
+		weekly: "Mingguan",
+		monthly: "Bulanan",
+		donutChart: "Donat",
+		barChart: "Bar",
+		trend: "Aliran",
+		exportCsv: "Eksport CSV",
+		exporting: "Mengeksport…",
+		exportCsvFailed: "Gagal mengeksport CSV. Sila cuba lagi.",
 	},
 };
