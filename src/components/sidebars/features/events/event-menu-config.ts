@@ -17,6 +17,7 @@ import {
 	ChartBar,
 	ClipboardList,
 	CreditCard,
+	FileChartColumn,
 	FileText,
 	Gift,
 	Grid,
@@ -556,7 +557,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 					label: "Custom Reports",
 					description:
 						"Build your own breakdowns by ticket type or custom registration field.",
-					icon: ChartBar,
+					icon: FileChartColumn,
 					visible: (p, e) =>
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},

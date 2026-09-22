@@ -244,6 +244,8 @@ export function CustomFieldBreakdownCard({
 					fieldLabel={humanizeFieldKey(selectedKey)}
 					groups={visibleGroups}
 					isLoading={isLoading}
+					eventId={eventId}
+					fieldKey={selectedKey}
 				/>
 			)}
 
@@ -252,6 +254,8 @@ export function CustomFieldBreakdownCard({
 					labelHeader={humanizeFieldKey(selectedKey)}
 					rows={!isNested ? data?.data : undefined}
 					isLoading={isLoading}
+					eventId={eventId}
+					fieldKey={selectedKey}
 				/>
 			)}
 		</ReportSection>

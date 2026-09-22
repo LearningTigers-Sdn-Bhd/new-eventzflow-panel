@@ -1,5 +1,6 @@
 // API endpoints
 export {
+	deleteCustomFieldQuota,
 	exportTicketsCsv,
 	getAllEventAnalytics,
 	getCustomFieldBreakdown,
@@ -16,6 +17,7 @@ export {
 	getTotalUnscannedTickets,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
+	setCustomFieldQuota,
 } from "./endpoints";
 
 // Request types and schemas

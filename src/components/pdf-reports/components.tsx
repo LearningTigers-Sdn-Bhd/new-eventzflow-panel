@@ -191,12 +191,19 @@ export function Table({
 	rows,
 	columnWidths,
 	footer,
+	columnAligns,
 }: {
 	headers: string[];
 	rows: (string | number)[][];
 	columnWidths: string[];
 	footer?: (string | number)[];
+	/** Per-column text alignment. Defaults to left, with the last column
+	 * right-aligned, matching every report's original count-only layout. */
+	columnAligns?: ("left" | "right")[];
 }) {
+	const alignFor = (index: number, lastIndex: number) =>
+		columnAligns?.[index] ?? (index === lastIndex ? "right" : "left");
+
 	return (
 		<View style={styles.table}>
 			<View style={styles.tableHeader}>
@@ -207,7 +214,7 @@ export function Table({
 							styles.tableHeaderCell,
 							{
 								width: columnWidths[index],
-								textAlign: index === headers.length - 1 ? "right" : "left",
+								textAlign: alignFor(index, headers.length - 1),
 							},
 						]}
 					>
@@ -235,7 +242,7 @@ export function Table({
 									styles.tableCell,
 									{
 										width: columnWidths[cellIndex],
-										textAlign: cellIndex === row.length - 1 ? "right" : "left",
+										textAlign: alignFor(cellIndex, row.length - 1),
 									},
 								]}
 							>
@@ -267,7 +274,7 @@ export function Table({
 								{
 									width: columnWidths[cellIndex],
 									fontFamily: "Helvetica-Bold",
-									textAlign: cellIndex === footer.length - 1 ? "right" : "left",
+									textAlign: alignFor(cellIndex, footer.length - 1),
 								},
 							]}
 						>

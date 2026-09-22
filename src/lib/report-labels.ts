@@ -51,6 +51,13 @@ export const reportLabels: Record<
 		exportCsv: string;
 		exporting: string;
 		exportCsvFailed: string;
+		quota: string;
+		registered: string;
+		remaining: string;
+		quotaUpdateFailed: string;
+		setQuota: string;
+		hideQuota: string;
+		quotaAutoSaveNotice: string;
 	}
 > = {
 	en: {
@@ -96,6 +103,14 @@ export const reportLabels: Record<
 		exportCsv: "Export CSV",
 		exporting: "Exporting…",
 		exportCsvFailed: "Failed to export CSV. Please try again.",
+		quota: "Quota",
+		registered: "Registered",
+		remaining: "Remaining",
+		quotaUpdateFailed: "Failed to save quota. Please try again.",
+		setQuota: "Set Quota",
+		hideQuota: "Hide Quota Configuration",
+		quotaAutoSaveNotice:
+			"Quota values are saved automatically as you type — no need to click save. Clearing a value removes that quota.",
 	},
 	bm: {
 		customFieldBreakdown: "Pecahan Medan Tersuai",
@@ -140,5 +155,13 @@ export const reportLabels: Record<
 		exportCsv: "Eksport CSV",
 		exporting: "Mengeksport…",
 		exportCsvFailed: "Gagal mengeksport CSV. Sila cuba lagi.",
+		quota: "Kuota",
+		registered: "Telah Mendaftar",
+		remaining: "Belum Mendaftar",
+		quotaUpdateFailed: "Gagal simpan kuota. Sila cuba lagi.",
+		setQuota: "Tetapkan Kuota",
+		hideQuota: "Sembunyi Konfigurasi Kuota",
+		quotaAutoSaveNotice:
+			"Nilai kuota disimpan secara automatik semasa anda menaip — tidak perlu klik simpan. Kosongkan nilai untuk buang kuota tersebut.",
 	},
 };

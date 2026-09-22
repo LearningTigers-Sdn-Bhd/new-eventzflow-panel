@@ -143,9 +143,13 @@ export type HourlyBreakdownByDayResponse = {
 };
 
 // Custom field breakdown (count-only), grouped by a custom_fields_data jsonb key
+// quota/registered/remaining are present only when a quota was set for this value.
 export type CustomFieldBreakdownRow = {
 	value: string;
 	count: number;
+	quota?: number;
+	registered?: number;
+	remaining?: number;
 };
 
 export type CustomFieldBreakdownResponse = {

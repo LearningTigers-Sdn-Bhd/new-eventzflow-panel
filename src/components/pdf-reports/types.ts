@@ -149,11 +149,23 @@ export type ExhibitorReportData = {
 };
 
 /**
+ * A single breakdown table row. quota/registered/remaining are present only
+ * when a quota was configured for that value (see custom_field_quotas).
+ */
+type ReportBreakdownRow = {
+	value: string;
+	count: number;
+	quota?: number;
+	registered?: number;
+	remaining?: number;
+};
+
+/**
  * A single count-only breakdown table (ticket type, or any custom field).
  */
 export type ReportBreakdown = {
 	label: string;
-	rows: { value: string; count: number }[];
+	rows: ReportBreakdownRow[];
 };
 
 /**
@@ -163,7 +175,7 @@ export type ReportBreakdown = {
 export type NestedReportBreakdown = {
 	fieldLabel: string;
 	groupLabel: string;
-	groups: { group: string; rows: { value: string; count: number }[] }[];
+	groups: { group: string; rows: ReportBreakdownRow[] }[];
 };
 
 /**

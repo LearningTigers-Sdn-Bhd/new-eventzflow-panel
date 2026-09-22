@@ -417,6 +417,58 @@ export async function getCustomFieldBreakdown(
 }
 
 /**
+ * Set (upsert) the registration quota for one field_key/value pair (e.g. an
+ * agency's allotted headcount). Informational only — never blocks registration.
+ */
+export async function setCustomFieldQuota(
+	eventId: number | string,
+	fieldKey: string,
+	value: string,
+	quota: number,
+): Promise<{ fieldKey: string; value: string; quota: number }> {
+	try {
+		return await restClient.put<{
+			fieldKey: string;
+			value: string;
+			quota: number;
+		}>(`v1/events/${eventId}/metrics/custom_field_quota`, {
+			field_key: fieldKey,
+			value,
+			quota,
+		});
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to set custom field quota for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to set custom field quota");
+	}
+}
+
+/**
+ * Clear a previously set quota for one field_key/value pair, reverting that
+ * row back to a plain count in the breakdown.
+ */
+export async function deleteCustomFieldQuota(
+	eventId: number | string,
+	fieldKey: string,
+	value: string,
+): Promise<{ fieldKey: string; value: string }> {
+	try {
+		return await restClient.delete<{ fieldKey: string; value: string }>(
+			`v1/events/${eventId}/metrics/custom_field_quota`,
+			{ field_key: fieldKey, value },
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to delete custom field quota for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to delete custom field quota");
+	}
+}
+
+/**
  * Get count-only breakdown of tickets grouped by ticket type.
  */
 export async function getTicketTypeBreakdown(

@@ -10,6 +10,9 @@ interface NestedBreakdownGroupsProps {
 	fieldLabel: string;
 	groups: CustomFieldBreakdownGroup[] | undefined;
 	isLoading: boolean;
+	/** Present together, enables the editable quota column in each subtable. */
+	eventId?: string;
+	fieldKey?: string;
 }
 
 /**
@@ -22,6 +25,8 @@ export function NestedBreakdownGroups({
 	fieldLabel,
 	groups,
 	isLoading,
+	eventId,
+	fieldKey,
 }: NestedBreakdownGroupsProps) {
 	const { labels } = useReportLanguage();
 
@@ -76,6 +81,8 @@ export function NestedBreakdownGroups({
 							labelHeader={fieldLabel}
 							rows={group.rows}
 							isLoading={false}
+							eventId={eventId}
+							fieldKey={fieldKey}
 						/>
 					</div>
 				</div>
