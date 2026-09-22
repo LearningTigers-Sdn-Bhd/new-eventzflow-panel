@@ -1,7 +1,14 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Download, FileSpreadsheet, FileText, ImageIcon } from "lucide-react";
+import {
+	Download,
+	FileSpreadsheet,
+	FileText,
+	ImageIcon,
+	Loader2,
+} from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +34,19 @@ const ExportLogViewModal = ({
 	id: string;
 	type: string;
 	createdAt: string;
-	onDownload: () => void;
+	onDownload: () => Promise<void>;
 }) => {
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	const handleClick = async () => {
+		setIsDownloading(true);
+		try {
+			await onDownload();
+		} finally {
+			setIsDownloading(false);
+		}
+	};
+
 	const getTypeLabel = (type: string) => {
 		if (type === "ticket-list") return "Ticket List";
 		if (type === "scan_history") return "Scan History";
@@ -109,9 +127,22 @@ const ExportLogViewModal = ({
 
 			{/* Download button */}
 			<div className="px-6 pt-4 pb-6">
-				<Button onClick={onDownload} className="w-full gap-2 rounded-none">
-					<Download className="size-4" />
-					Download File
+				<Button
+					onClick={handleClick}
+					disabled={isDownloading}
+					className="w-full gap-2 rounded-none"
+				>
+					{isDownloading ? (
+						<>
+							<Loader2 className="size-4 animate-spin" />
+							Downloading…
+						</>
+					) : (
+						<>
+							<Download className="size-4" />
+							Download File
+						</>
+					)}
 				</Button>
 			</div>
 		</div>
