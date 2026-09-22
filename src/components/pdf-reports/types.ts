@@ -1,13 +1,10 @@
-import type {
-	ChartDataPoint,
-	EventAnalytics,
-} from "@/lib/api/dashboard/response";
+import type { ChartDataPoint } from "@/lib/api/dashboard/response";
 import type {
 	DailyRedemptionTrend,
 	LatestRedemptionTransaction,
 	TopScannedVoucher,
-	VoucherAnalyticsResponse,
 } from "@/lib/api/voucher-analytics/response";
+import type { ReportLanguage } from "@/lib/report-labels";
 
 /**
  * Event information for report header
@@ -66,6 +63,11 @@ export type TicketReportData = {
 	hourlyBreakdown?: {
 		registrations?: DailyHourlyBreakdown[];
 		scans?: DailyHourlyBreakdown[];
+	};
+	// Optional count-only breakdown by a custom_fields_data key (e.g. KITA's "nama_agensi")
+	customFieldBreakdown?: {
+		fieldLabel: string;
+		rows: { value: string; count: number }[];
 	};
 };
 
@@ -147,13 +149,56 @@ export type ExhibitorReportData = {
 };
 
 /**
+ * A single breakdown table row. quota/registered/remaining are present only
+ * when a quota was configured for that value (see custom_field_quotas).
+ */
+type ReportBreakdownRow = {
+	value: string;
+	count: number;
+	quota?: number;
+	registered?: number;
+	remaining?: number;
+};
+
+/**
+ * A single count-only breakdown table (ticket type, or any custom field).
+ */
+export type ReportBreakdown = {
+	label: string;
+	rows: ReportBreakdownRow[];
+};
+
+/**
+ * A custom field breakdown nested under a second field (e.g. Jabatan grouped
+ * by Kementerian) — one sub-table per group value.
+ */
+export type NestedReportBreakdown = {
+	fieldLabel: string;
+	groupLabel: string;
+	groups: { group: string; rows: ReportBreakdownRow[] }[];
+};
+
+/**
+ * Custom Reports Report Data (ticket type + custom field breakdowns)
+ */
+export type CustomReportData = {
+	type: "custom";
+	event: ReportEventInfo;
+	metadata: ReportMetadata;
+	ticketTypeBreakdown?: ReportBreakdown;
+	customFieldBreakdown?: ReportBreakdown | NestedReportBreakdown;
+	language?: ReportLanguage;
+};
+
+/**
  * Union type for all report types
  */
 export type AnalyticsReportData =
 	| TicketReportData
 	| VisitorReportData
 	| VoucherReportData
-	| ExhibitorReportData;
+	| ExhibitorReportData
+	| CustomReportData;
 
 /**
  * Helper to format currency for reports
@@ -215,6 +260,8 @@ export function getReportTypeLabel(type: AnalyticsReportData["type"]): string {
 			return "Voucher Analytics Report";
 		case "exhibitor":
 			return "Exhibitor Analytics Report";
+		case "custom":
+			return "Report";
 	}
 }
 

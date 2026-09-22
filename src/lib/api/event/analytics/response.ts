@@ -141,3 +141,41 @@ export type HourlyBreakdownByDayResponse = {
 	end_date: string;
 	data: DailyHourlyBreakdown[];
 };
+
+// Custom field breakdown (count-only), grouped by a custom_fields_data jsonb key
+// quota/registered/remaining are present only when a quota was set for this value.
+export type CustomFieldBreakdownRow = {
+	value: string;
+	count: number;
+	quota?: number;
+	registered?: number;
+	remaining?: number;
+};
+
+export type CustomFieldBreakdownResponse = {
+	fieldKey: string;
+	data: CustomFieldBreakdownRow[];
+};
+
+// Nested variant: field_key counts grouped under a second jsonb key (group_by)
+export type CustomFieldBreakdownGroup = {
+	group: string;
+	rows: CustomFieldBreakdownRow[];
+	total: number;
+};
+
+export type NestedCustomFieldBreakdownResponse = {
+	fieldKey: string;
+	groupBy: string;
+	groups: CustomFieldBreakdownGroup[];
+};
+
+// Ticket type breakdown (count-only)
+export type TicketTypeBreakdownResponse = {
+	data: CustomFieldBreakdownRow[];
+};
+
+// Auto-detected custom_fields_data keys actually used by this event's tickets
+export type CustomFieldKeysResponse = {
+	keys: string[];
+};
