@@ -4,8 +4,6 @@ import { Document, Page, View } from "@react-pdf/renderer";
 import { AreaChart, DistributionSummary, DonutChart } from "./charts";
 import {
 	BulletList,
-	GridCol,
-	GridRow,
 	ReportFooter,
 	ReportHeader,
 	Section,

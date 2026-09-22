@@ -7,11 +7,15 @@ import {
 } from "./request";
 import type {
 	AllEventAnalyticsResponse,
+	CustomFieldBreakdownResponse,
+	CustomFieldKeysResponse,
 	DailyHourlyBreakdown,
 	DateCountColumn,
 	HourlyBreakdownByDayResponse,
 	MallLiveFeedResponse,
+	NestedCustomFieldBreakdownResponse,
 	PartnerAnalyticsResponse,
+	TicketTypeBreakdownResponse,
 	TimeSeriesResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
@@ -361,5 +365,72 @@ export async function getHourlyBreakdownByDay(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch hourly breakdown data");
+	}
+}
+
+/**
+ * Auto-detect the custom_fields_data jsonb keys actually used by this
+ * event's tickets, for a dropdown instead of manual typing.
+ */
+export async function getCustomFieldKeys(
+	eventId: number | string,
+): Promise<CustomFieldKeysResponse> {
+	try {
+		return await restClient.get<CustomFieldKeysResponse>(
+			`v1/events/${eventId}/metrics/custom_field_keys`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get custom field keys for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch custom field keys");
+	}
+}
+
+/**
+ * Get count-only breakdown of tickets grouped by a custom_fields_data jsonb key.
+ * Works for any event/field — the field key is not hardcoded.
+ */
+export async function getCustomFieldBreakdown(
+	eventId: number | string,
+	fieldKey: string,
+	groupBy?: string,
+): Promise<CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse> {
+	try {
+		const params = new URLSearchParams();
+		params.set("field_key", fieldKey);
+		if (groupBy) params.set("group_by", groupBy);
+
+		return await restClient.get<
+			CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse
+		>(
+			`v1/events/${eventId}/metrics/custom_field_breakdown?${params.toString()}`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get custom field breakdown for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch custom field breakdown");
+	}
+}
+
+/**
+ * Get count-only breakdown of tickets grouped by ticket type.
+ */
+export async function getTicketTypeBreakdown(
+	eventId: number | string,
+): Promise<TicketTypeBreakdownResponse> {
+	try {
+		return await restClient.get<TicketTypeBreakdownResponse>(
+			`v1/events/${eventId}/metrics/ticket_type_breakdown`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get ticket type breakdown for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch ticket type breakdown");
 	}
 }

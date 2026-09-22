@@ -1,17 +1,16 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, View } from "@react-pdf/renderer";
 import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
-	GridCol,
-	GridRow,
 	ReportFooter,
 	ReportHeader,
 	Section,
 	StatsCard,
 	StatsGrid,
 	SummaryBox,
+	Table,
 } from "./components";
 import { colors, styles } from "./styles";
 import {
@@ -25,7 +24,14 @@ interface TicketAnalyticsReportProps {
 }
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
-	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
+	const {
+		event,
+		metadata,
+		stats,
+		timeSeries,
+		hourlyBreakdown,
+		customFieldBreakdown,
+	} = data;
 	// scannedTickets may count every re-entry scan (multi-scan events), not unique
 	// tickets — rate/donut must use unique checked-in tickets or the rate can exceed
 	// 100%. unscannedTickets is always a unique, toggle-independent count.
@@ -197,6 +203,19 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 							/>
 						</Section>
 					)}
+
+				{customFieldBreakdown && customFieldBreakdown.rows.length > 0 && (
+					<Section title={`${customFieldBreakdown.fieldLabel} Breakdown`}>
+						<Table
+							headers={[customFieldBreakdown.fieldLabel, "Count"]}
+							rows={customFieldBreakdown.rows.map((row) => [
+								row.value,
+								row.count,
+							])}
+							columnWidths={["80%", "20%"]}
+						/>
+					</Section>
+				)}
 
 				<ReportFooter />
 			</Page>

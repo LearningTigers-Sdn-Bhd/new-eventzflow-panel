@@ -2,12 +2,16 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { useCallback, useRef, useState } from "react";
+import { CustomReport } from "./custom-report";
 import { ExhibitorAnalyticsReport } from "./exhibitor-report";
 import { TicketAnalyticsReport } from "./ticket-report";
 import type {
 	AnalyticsReportData,
+	CustomReportData,
 	DailyHourlyBreakdown,
 	ExhibitorReportData,
+	NestedReportBreakdown,
+	ReportBreakdown,
 	TicketReportData,
 	VisitorReportData,
 	VoucherReportData,
@@ -33,12 +37,14 @@ function createPdfDocument(data: AnalyticsReportData) {
 			return <VoucherAnalyticsReport data={data as VoucherReportData} />;
 		case "exhibitor":
 			return <ExhibitorAnalyticsReport data={data as ExhibitorReportData} />;
+		case "custom":
+			return <CustomReport data={data as CustomReportData} />;
 		default:
 			throw new Error("Unknown report type");
 	}
 }
 
-function isMobileDevice(): boolean {
+function _isMobileDevice(): boolean {
 	if (typeof navigator === "undefined") return false;
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
@@ -163,6 +169,10 @@ export function prepareTicketReportData(
 		scans?: DailyHourlyBreakdown[];
 	},
 	dateFilterLabel?: string,
+	customFieldBreakdown?: {
+		fieldLabel: string;
+		rows: { value: string; count: number }[];
+	},
 ): TicketReportData {
 	return {
 		type: "ticket",
@@ -191,6 +201,7 @@ export function prepareTicketReportData(
 			revenue: timeSeries.revenue ?? [],
 		},
 		hourlyBreakdown,
+		customFieldBreakdown,
 	};
 }
 
@@ -360,5 +371,36 @@ export function prepareExhibitorReportData(
 			bookings: timeSeries.bookings ?? [],
 			revenue: timeSeries.revenue ?? [],
 		},
+	};
+}
+
+/**
+ * Helper function to prepare custom report data (ticket type + custom field
+ * breakdowns) for export
+ */
+export function prepareCustomReportData(
+	event: { id: string; name: string; start_date: string; end_date: string },
+	breakdowns: {
+		ticketTypeBreakdown?: ReportBreakdown;
+		customFieldBreakdown?: ReportBreakdown | NestedReportBreakdown;
+	},
+	language?: "en" | "bm",
+): CustomReportData {
+	return {
+		type: "custom",
+		event: {
+			id: event.id,
+			name: event.name,
+			startDate: event.start_date,
+			endDate: event.end_date,
+		},
+		metadata: {
+			generatedAt: new Date(),
+			eventStartDate: event.start_date,
+			eventEndDate: event.end_date,
+		},
+		ticketTypeBreakdown: breakdowns.ticketTypeBreakdown,
+		customFieldBreakdown: breakdowns.customFieldBreakdown,
+		language,
 	};
 }

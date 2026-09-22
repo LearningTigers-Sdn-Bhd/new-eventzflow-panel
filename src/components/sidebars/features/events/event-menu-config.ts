@@ -551,6 +551,15 @@ const rawEventMenuConfig: EventMenuConfig = {
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},
 				{
+					route: "custom-reports",
+					label: "Custom Reports",
+					description:
+						"Build your own breakdowns by ticket type or custom registration field.",
+					icon: ChartBar,
+					visible: (p, e) =>
+						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+				},
+				{
 					route: "analytics/visitor",
 					label: "Visitor Analytics",
 					description: "View visitor registrations and check-in analytics.",

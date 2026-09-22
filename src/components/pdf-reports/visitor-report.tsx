@@ -1,11 +1,9 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, View } from "@react-pdf/renderer";
 import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
-	GridCol,
-	GridRow,
 	ReportFooter,
 	ReportHeader,
 	Section,

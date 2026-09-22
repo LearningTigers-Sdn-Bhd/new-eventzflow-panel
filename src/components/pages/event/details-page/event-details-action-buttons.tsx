@@ -2,6 +2,7 @@
 
 import {
 	Activity,
+	ChartBar,
 	ChevronDown,
 	ExternalLink,
 	Megaphone,
@@ -12,6 +13,7 @@ import {
 	Users,
 	Zap,
 } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
@@ -108,6 +110,18 @@ export function EventDetailsActionButtons({
 							>
 								<Ticket className="mr-2 h-4 w-4" />
 								<span>View All Tickets</span>
+							</Button>
+						)}
+						{canViewAnalytics && (
+							<Button
+								className="rounded-none border py-5"
+								variant="outline"
+								onClick={() =>
+									router.push(`/event/${event.id}/custom-reports` as Route)
+								}
+							>
+								<ChartBar className="mr-2 h-4 w-4" />
+								<span>Custom Reports</span>
 							</Button>
 						)}
 					</>

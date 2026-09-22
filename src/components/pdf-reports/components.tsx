@@ -3,6 +3,7 @@
 import { Image, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/types";
 import type { ReactNode } from "react";
+import { reportLabels } from "@/lib/report-labels";
 import { colors, styles } from "./styles";
 import {
 	type AnalyticsReportData,
@@ -20,11 +21,15 @@ export function ReportHeader({
 	eventName,
 	reportType,
 	metadata,
+	language = "en",
 }: {
 	eventName: string;
 	reportType: AnalyticsReportData["type"];
 	metadata: ReportMetadata;
+	language?: "en" | "bm";
 }) {
+	const labels = reportLabels[language];
+
 	return (
 		<View style={styles.header} fixed>
 			<View style={styles.headerTop}>
@@ -41,23 +46,25 @@ export function ReportHeader({
 							textTransform: "uppercase",
 						}}
 					>
-						{getReportTypeLabel(reportType)}
+						{reportType === "custom"
+							? labels.report
+							: getReportTypeLabel(reportType)}
 					</Text>
 					<Text
 						style={{ fontSize: 9, color: colors.textSecondary, marginTop: 4 }}
 					>
-						Generated on {formatReportDate(metadata.generatedAt)}
+						{labels.generatedOn} {formatReportDate(metadata.generatedAt)}
 					</Text>
 				</View>
 			</View>
 
 			<View>
-				<Text style={styles.label}>Event Name</Text>
+				<Text style={styles.label}>{labels.eventName}</Text>
 				<Text style={styles.h1}>{eventName}</Text>
 
 				<View style={[styles.headerMeta, { marginTop: 8 }]}>
 					<View>
-						<Text style={styles.label}>Event Duration</Text>
+						<Text style={styles.label}>{labels.eventDuration}</Text>
 						<Text style={styles.textSmall}>
 							{getEventDateRangeLabel(
 								metadata.eventStartDate,
@@ -183,10 +190,12 @@ export function Table({
 	headers,
 	rows,
 	columnWidths,
+	footer,
 }: {
 	headers: string[];
 	rows: (string | number)[][];
 	columnWidths: string[];
+	footer?: (string | number)[];
 }) {
 	return (
 		<View style={styles.table}>
@@ -194,7 +203,13 @@ export function Table({
 				{headers.map((header, index) => (
 					<Text
 						key={`header-${index}`}
-						style={[styles.tableHeaderCell, { width: columnWidths[index] }]}
+						style={[
+							styles.tableHeaderCell,
+							{
+								width: columnWidths[index],
+								textAlign: index === headers.length - 1 ? "right" : "left",
+							},
+						]}
 					>
 						{header}
 					</Text>
@@ -216,7 +231,13 @@ export function Table({
 						{row.map((cell, cellIndex) => (
 							<Text
 								key={`cell-${cellIndex}`}
-								style={[styles.tableCell, { width: columnWidths[cellIndex] }]}
+								style={[
+									styles.tableCell,
+									{
+										width: columnWidths[cellIndex],
+										textAlign: cellIndex === row.length - 1 ? "right" : "left",
+									},
+								]}
 							>
 								{cell}
 							</Text>
@@ -228,6 +249,31 @@ export function Table({
 					<Text style={styles.textSmall}>
 						No data available for this selection.
 					</Text>
+				</View>
+			)}
+			{footer && rows.length > 0 && (
+				<View
+					style={[
+						styles.tableRow,
+						{ backgroundColor: colors.backgroundHeader },
+					]}
+					wrap={false}
+				>
+					{footer.map((cell, cellIndex) => (
+						<Text
+							key={`footer-${cellIndex}`}
+							style={[
+								styles.tableCell,
+								{
+									width: columnWidths[cellIndex],
+									fontFamily: "Helvetica-Bold",
+									textAlign: cellIndex === footer.length - 1 ? "right" : "left",
+								},
+							]}
+						>
+							{cell}
+						</Text>
+					))}
 				</View>
 			)}
 		</View>

@@ -8,13 +8,17 @@ export {
 	DonutChart,
 	HourlyBarChart,
 } from "./charts";
+export { CustomReport } from "./custom-report";
 export { ExhibitorAnalyticsReport } from "./exhibitor-report";
 export { ExportPdfButton } from "./export-button";
 export { TicketAnalyticsReport } from "./ticket-report";
 export type {
 	AnalyticsReportData,
+	CustomReportData,
 	DailyHourlyBreakdown,
 	ExhibitorReportData,
+	NestedReportBreakdown,
+	ReportBreakdown,
 	ReportEventInfo,
 	ReportMetadata,
 	TicketReportData,
@@ -22,6 +26,7 @@ export type {
 	VoucherReportData,
 } from "./types";
 export {
+	prepareCustomReportData,
 	prepareExhibitorReportData,
 	prepareTicketReportData,
 	prepareVisitorReportData,

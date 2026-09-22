@@ -1,7 +1,5 @@
 "use client";
 
-import { colors } from "../styles";
-
 /**
  * Calculate nice Y-axis tick values
  */
@@ -44,7 +42,7 @@ export function formatYValue(value: number): string {
 export function formatAxisDate(dateStr: string): string {
 	try {
 		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) return dateStr;
+		if (Number.isNaN(date.getTime())) return dateStr;
 		return `${date.getDate()}-${date.getMonth() + 1}`;
 	} catch {
 		return dateStr;
@@ -57,7 +55,7 @@ export function formatAxisDate(dateStr: string): string {
 export function formatDateLabel(dateStr: string): string {
 	try {
 		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) return dateStr;
+		if (Number.isNaN(date.getTime())) return dateStr;
 		return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 	} catch {
 		return dateStr;

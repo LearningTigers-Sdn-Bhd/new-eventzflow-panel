@@ -14,6 +14,10 @@ import { use, useMemo, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
 import {
+	CustomFieldBreakdownCard,
+	humanizeFieldKey,
+} from "@/components/pages/analytics/custom-field-breakdown-card";
+import {
 	ExportPdfButton,
 	prepareTicketReportData,
 } from "@/components/pdf-reports";
@@ -29,6 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import { getEventById } from "@/lib/api/event";
+import type { CustomFieldBreakdownRow } from "@/lib/api/event/analytics";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 
 interface TicketAnalyticsPageProps {
@@ -49,6 +54,10 @@ export default function TicketAnalyticsPage({
 		`event-${event_id}-include-multi-scans`,
 		false,
 	);
+	const [customFieldBreakdown, setCustomFieldBreakdown] = useState<{
+		fieldKey: string;
+		rows: CustomFieldBreakdownRow[];
+	} | null>(null);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({
@@ -174,6 +183,12 @@ export default function TicketAnalyticsPage({
 			},
 			hourlyBreakdown,
 			dateFilterLabel,
+			customFieldBreakdown
+				? {
+						fieldLabel: humanizeFieldKey(customFieldBreakdown.fieldKey),
+						rows: customFieldBreakdown.rows,
+					}
+				: undefined,
 		);
 	}, [
 		event,
@@ -183,6 +198,7 @@ export default function TicketAnalyticsPage({
 		hourlyRegistrations,
 		hourlyScans,
 		dateFilterLabel,
+		customFieldBreakdown,
 	]);
 
 	const formatCurrency = (amount?: number) => {
@@ -317,6 +333,13 @@ export default function TicketAnalyticsPage({
 					isLoading={isLoading}
 				/>
 			</div>
+
+			<CustomFieldBreakdownCard
+				eventId={event_id}
+				onDataChange={(result) =>
+					setCustomFieldBreakdown(result && "rows" in result ? result : null)
+				}
+			/>
 		</div>
 	);
 }
