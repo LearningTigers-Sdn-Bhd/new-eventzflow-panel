@@ -512,9 +512,10 @@ export function FeedbackFormBuilder({
 										</Button>
 									</div>
 									<p className="text-muted-foreground text-xs">
-										Not linked to any ticket. To send it yourself, add{" "}
-										<code>?ticket=&lt;ticket public ID&gt;</code> so the
-										response is saved against that attendee, or pick one below.
+										Preview only: it can't submit responses. To send it
+										yourself, add <code>?ticket=&lt;ticket public ID&gt;</code>{" "}
+										so the response is saved against that attendee, or pick one
+										below.
 									</p>
 									<AttendeeFeedbackLink
 										eventId={eventId}

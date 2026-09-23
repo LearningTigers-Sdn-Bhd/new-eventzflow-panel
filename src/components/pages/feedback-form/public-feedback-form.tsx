@@ -75,9 +75,12 @@ export function PublicFeedbackForm({
 		setMissingIds((ids) => ids.filter((x) => x !== id));
 	};
 
+	// No ?ticket= means the organizer's preview link: show the form, collect nothing.
+	const isPreview = !ticketPublicId;
+
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!form) return;
+		if (!form || isPreview) return;
 		const missing = missingRequired(form.questions, values).map((q) => q.id);
 		setMissingIds(missing);
 		if (missing.length === 0) {
@@ -207,6 +210,16 @@ export function PublicFeedbackForm({
 						</motion.div>
 					) : (
 						<form className="space-y-6" onSubmit={handleSubmit} noValidate>
+							{isPreview && (
+								<p
+									role="status"
+									className="border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm"
+								>
+									<strong>Preview only.</strong> Responses aren't collected from
+									this link. Attendees answer through their personal link from
+									the thank-you email.
+								</p>
+							)}
 							{questions.map((q, index) => (
 								<fieldset
 									key={q.id}
@@ -242,12 +255,12 @@ export function PublicFeedbackForm({
 							<Button
 								type="submit"
 								className="h-12 w-full rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45] sm:ml-auto sm:flex sm:w-auto"
-								disabled={mutation.isPending}
+								disabled={mutation.isPending || isPreview}
 							>
 								{mutation.isPending && (
 									<Loader2 className="size-4 animate-spin" />
 								)}
-								Send feedback
+								{isPreview ? "Submitting disabled in preview" : "Send feedback"}
 							</Button>
 						</form>
 					)}
