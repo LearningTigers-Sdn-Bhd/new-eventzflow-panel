@@ -207,6 +207,11 @@ export function PublicFeedbackForm({
 							<p className="text-[#4E6358]">
 								Your answers help the organiser make the next event better.
 							</p>
+							{mutation.data?.certificate_queued && (
+								<p className="font-medium text-[#1E7A45]">
+									Your e-certificate is on its way to your inbox.
+								</p>
+							)}
 						</motion.div>
 					) : (
 						<form className="space-y-6" onSubmit={handleSubmit} noValidate>

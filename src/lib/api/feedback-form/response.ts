@@ -39,6 +39,8 @@ export interface FeedbackResponseEnvelope {
 		feedback_form_id: number;
 		ticket_id: number | null;
 		submitted_at: string;
+		/** True when a feedback-gated e-certificate was queued for this ticket. */
+		certificate_queued: boolean;
 	};
 }
 

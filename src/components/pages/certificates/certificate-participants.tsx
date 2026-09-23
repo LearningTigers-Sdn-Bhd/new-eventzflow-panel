@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, RefreshCw, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +16,15 @@ import {
 } from "@/components/ui/dialog";
 import {
 	type CertificateParticipant,
+	type CertificateTemplate,
 	downloadAllCertificates,
 	downloadCertificate,
 	getCertificateParticipants,
 	sendOneCertificate,
+	upsertCertificateTemplate,
 } from "@/lib/api/certificate";
+import { getEventById } from "@/lib/api/event";
+import { getFeedbackForm } from "@/lib/api/feedback-form";
 import {
 	type CertificateParticipantsTableMeta,
 	certificateParticipantsColumns,
@@ -31,11 +36,13 @@ type CertificateParticipantsProps = {
 	eventId: string;
 	/** When false, the template isn't ready so sending is disabled. */
 	canSend: boolean;
+	template?: CertificateTemplate | null;
 };
 
 export function CertificateParticipants({
 	eventId,
 	canSend,
+	template,
 }: CertificateParticipantsProps) {
 	const queryClient = useQueryClient();
 	const [pendingSendId, setPendingSendId] = useState<string | null>(null);
@@ -63,6 +70,59 @@ export function CertificateParticipants({
 				e instanceof Error ? e.message : "Failed to send certificate",
 			),
 		onSettled: () => setPendingSendId(null),
+	});
+
+	// Same keys as the event / feedback pages, so these read from cache.
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!template?.require_feedback,
+	});
+	const { data: feedbackForm } = useQuery({
+		queryKey: ["event", eventId, "feedback-form"],
+		queryFn: () => getFeedbackForm(eventId),
+		enabled: !!template?.require_feedback,
+	});
+
+	// Anything that would stop attendees from ever getting a feedback link,
+	// which means nobody gets a certificate while the toggle is on.
+	const feedbackGateProblems: string[] = [];
+	if (template?.require_feedback && event && feedbackForm !== undefined) {
+		const setting = event.event_email_setting;
+		if (template.status !== "ready")
+			feedbackGateProblems.push(
+				"The certificate template is not marked ready.",
+			);
+		if (!feedbackForm?.is_active || !feedbackForm.questions.length)
+			feedbackGateProblems.push(
+				"The feedback form is missing, closed or has no questions.",
+			);
+		if (setting && !setting.emails_enabled)
+			feedbackGateProblems.push("Emails are turned off for this event.");
+		if (setting?.disabled_categories.includes("thank_you"))
+			feedbackGateProblems.push("The thank-you email is turned off.");
+		if (!setting?.thank_you_include_feedback)
+			feedbackGateProblems.push(
+				"The feedback link is off in Email Settings, so attendees won't receive a link.",
+			);
+		if (setting?.disabled_categories.includes("certificate"))
+			feedbackGateProblems.push("The E-Certificate email is turned off.");
+	}
+
+	const templateKey = ["event", eventId, "certificate-template"];
+	const requireFeedbackMutation = useMutation({
+		mutationFn: (requireFeedback: boolean) =>
+			upsertCertificateTemplate(eventId, { require_feedback: requireFeedback }),
+		onSuccess: (saved) => {
+			queryClient.setQueryData(templateKey, saved);
+			toast.success(
+				saved.require_feedback
+					? "Certificates will now be sent after feedback."
+					: "Feedback is no longer required for certificates.",
+			);
+		},
+		onError: (e: unknown) =>
+			toast.error(e instanceof Error ? e.message : "Failed to update setting"),
 	});
 
 	const downloadMutation = useMutation({
@@ -184,6 +244,34 @@ export function CertificateParticipants({
 					</Button>
 				</div>
 			</div>
+
+			{template && (
+				<SwitchCardInput
+					variant="no-rounded"
+					label="Require feedback before sending certificate"
+					htmlFor="certificate-require-feedback"
+					checked={template.require_feedback}
+					onCheckedChange={(checked) => requireFeedbackMutation.mutate(checked)}
+					disabled={requireFeedbackMutation.isPending}
+					description="Each attendee gets their certificate by email right after they submit the feedback form. Needs the template marked ready and an active feedback form. You can still send manually, e.g. to the 'Submitted feedback' audience."
+				/>
+			)}
+
+			{feedbackGateProblems.length > 0 && (
+				<div
+					role="alert"
+					className="border border-amber-300 bg-amber-50 p-3 text-amber-900 text-xs dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+				>
+					<p className="font-medium">
+						No certificates will go out until this is fixed:
+					</p>
+					<ul className="mt-1 list-disc pl-4">
+						{feedbackGateProblems.map((problem) => (
+							<li key={problem}>{problem}</li>
+						))}
+					</ul>
+				</div>
+			)}
 
 			{!canSend && hasParticipants && (
 				<div className="border border-dashed bg-muted/40 px-3 py-2 text-muted-foreground text-xs">

@@ -12,12 +12,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
+	type CertificateAudience,
 	type CertificateParticipant,
 	getCertificateParticipants,
 	sendCertificates,
 } from "@/lib/api/certificate";
 
-type Audience = "all" | "checked_in" | "unsent";
+type Audience = CertificateAudience;
 
 // Statuses that mean a certificate is already on its way / delivered.
 const SENT_STATUSES = new Set(["queued", "sending", "sent", "delivered"]);
@@ -56,6 +57,8 @@ export function SendCertificatesPanel({
 		const list = participants ?? [];
 		return list.filter((p) => {
 			if (audience === "checked_in" && !p.checked_in) return false;
+			if (audience === "feedback_submitted" && !p.feedback_submitted)
+				return false;
 			if (
 				audience === "unsent" &&
 				p.certificate_status &&
@@ -163,7 +166,7 @@ export function SendCertificatesPanel({
 				<RadioGroup
 					value={audience}
 					onValueChange={(v) => setAudience(v as Audience)}
-					className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
 				>
 					<label
 						htmlFor="audience-all"
@@ -185,6 +188,13 @@ export function SendCertificatesPanel({
 					>
 						<RadioGroupItem id="audience-unsent" value="unsent" />
 						Not yet sent
+					</label>
+					<label
+						htmlFor="audience-feedback"
+						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem id="audience-feedback" value="feedback_submitted" />
+						Submitted feedback
 					</label>
 				</RadioGroup>
 			</div>
@@ -259,6 +269,11 @@ export function SendCertificatesPanel({
 												Checked in
 											</Badge>
 										)}
+										{p.feedback_submitted && (
+											<Badge variant="outline" className="text-xs">
+												Feedback
+											</Badge>
+										)}
 										{alreadySent && (
 											<Badge variant="outline" className="text-xs">
 												Already sent
@@ -274,11 +289,12 @@ export function SendCertificatesPanel({
 
 			<div className="flex items-center justify-end gap-2">
 				{onClose && (
-					<Button variant="outline" onClick={onClose}>
+					<Button variant="outline" className="rounded-none" onClick={onClose}>
 						Cancel
 					</Button>
 				)}
 				<Button
+					className="rounded-none"
 					onClick={handleSend}
 					disabled={sendMutation.isPending || recipientCount === 0}
 				>
