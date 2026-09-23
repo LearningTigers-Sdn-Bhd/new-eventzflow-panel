@@ -396,11 +396,15 @@ export async function getCustomFieldBreakdown(
 	eventId: number | string,
 	fieldKey: string,
 	groupBy?: string,
+	excludedTicketTypeIds: string[] = [],
 ): Promise<CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse> {
 	try {
 		const params = new URLSearchParams();
 		params.set("field_key", fieldKey);
 		if (groupBy) params.set("group_by", groupBy);
+		for (const id of excludedTicketTypeIds) {
+			params.append("exclude_ticket_type_ids[]", id);
+		}
 
 		return await restClient.get<
 			CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse

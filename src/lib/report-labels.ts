@@ -13,6 +13,9 @@ export const reportLabels: Record<
 		ticketTypeBreakdown: string;
 		customRegistrationField: string;
 		groupByOptional: string;
+		excludeTicketTypes: string;
+		noTicketTypesExcluded: string;
+		noTicketTypesAvailable: string;
 		noGrouping: string;
 		selectCustomField: string;
 		loadingFields: string;
@@ -65,6 +68,9 @@ export const reportLabels: Record<
 		ticketTypeBreakdown: "Ticket Type Breakdown",
 		customRegistrationField: "Show count for",
 		groupByOptional: "Split into separate lists by (optional)",
+		excludeTicketTypes: "Exclude ticket types",
+		noTicketTypesExcluded: "None excluded",
+		noTicketTypesAvailable: "No ticket types available",
 		noGrouping: "No grouping",
 		selectCustomField: "Select a custom field",
 		loadingFields: "Loading fields…",
@@ -117,6 +123,9 @@ export const reportLabels: Record<
 		ticketTypeBreakdown: "Pecahan Jenis Tiket",
 		customRegistrationField: "Tunjuk kiraan bagi",
 		groupByOptional: "Pisahkan kepada senarai berasingan mengikut (pilihan)",
+		excludeTicketTypes: "Kecualikan jenis tiket",
+		noTicketTypesExcluded: "Tiada jenis tiket dikecualikan",
+		noTicketTypesAvailable: "Tiada jenis tiket tersedia",
 		noGrouping: "Tiada pengumpulan",
 		selectCustomField: "Pilih medan tersuai",
 		loadingFields: "Memuatkan medan…",

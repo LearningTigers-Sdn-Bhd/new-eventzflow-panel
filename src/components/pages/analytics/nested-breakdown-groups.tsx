@@ -50,7 +50,7 @@ export function NestedBreakdownGroups({
 
 	return (
 		<div className="space-y-4">
-			<div className="grid grid-cols-2 gap-2 border-y border-dashed lg:grid-cols-3">
+			<div className="grid grid-cols-2 gap-2 border-y border-dashed">
 				<StatsCard
 					label={labels.totalTickets}
 					value={grandTotal.toLocaleString()}

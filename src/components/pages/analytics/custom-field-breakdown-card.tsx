@@ -1,8 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ListFilter } from "lucide-react";
+import { ChevronDown, ListFilter } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import {
+	MultiSelect,
+	MultiSelectContent,
+	MultiSelectItem,
+	MultiSelectTrigger,
+	MultiSelectValue,
+} from "@/components/ui/multi-select";
 import {
 	Select,
 	SelectContent,
@@ -18,6 +25,7 @@ import {
 	getCustomFieldBreakdown,
 	getCustomFieldKeys,
 } from "@/lib/api/event/analytics";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { BreakdownTable } from "./breakdown-table";
 import { GroupFilterSelect } from "./group-filter-select";
 import { NestedBreakdownGroups } from "./nested-breakdown-groups";
@@ -68,6 +76,10 @@ export function CustomFieldBreakdownCard({
 		queryKey: ["event", eventId, "custom_field_keys"],
 		queryFn: () => getCustomFieldKeys(eventId),
 	});
+	const { data: eventTicketTypes, isLoading: ticketTypesLoading } = useQuery({
+		queryKey: ["event", eventId, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId }),
+	});
 
 	const [selectedKey, setSelectedKey] = usePersistedState(
 		`event-${eventId}-custom-field-breakdown-key`,
@@ -77,6 +89,9 @@ export function CustomFieldBreakdownCard({
 		`event-${eventId}-custom-field-breakdown-group-by`,
 		"",
 	);
+	const [excludedTicketTypeIds, setExcludedTicketTypeIds] = usePersistedState<
+		string[]
+	>(`event-${eventId}-custom-field-breakdown-excluded-ticket-types`, []);
 
 	// Selected keys may no longer exist for this event — clear once keys load.
 	useEffect(() => {
@@ -85,6 +100,26 @@ export function CustomFieldBreakdownCard({
 		if (groupByKey && !keysData.keys.includes(groupByKey)) setGroupByKey("");
 	}, [keysData, selectedKey, groupByKey, setSelectedKey, setGroupByKey]);
 
+	useEffect(() => {
+		if (!eventTicketTypes) return;
+		const validIds = new Set(eventTicketTypes.map(({ id }) => String(id)));
+		const validExcludedIds = excludedTicketTypeIds.filter((id) =>
+			validIds.has(id),
+		);
+		if (validExcludedIds.length !== excludedTicketTypeIds.length) {
+			setExcludedTicketTypeIds(validExcludedIds);
+		}
+	}, [eventTicketTypes, excludedTicketTypeIds, setExcludedTicketTypeIds]);
+
+	const ticketTypeOptions = useMemo(
+		() =>
+			eventTicketTypes?.map(({ id, name }) => ({
+				label: name,
+				value: String(id),
+			})) ?? [],
+		[eventTicketTypes],
+	);
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: [
 			"event",
@@ -92,9 +127,15 @@ export function CustomFieldBreakdownCard({
 			"custom_field_breakdown",
 			selectedKey,
 			groupByKey,
+			excludedTicketTypeIds,
 		],
 		queryFn: () =>
-			getCustomFieldBreakdown(eventId, selectedKey, groupByKey || undefined),
+			getCustomFieldBreakdown(
+				eventId,
+				selectedKey,
+				groupByKey || undefined,
+				excludedTicketTypeIds,
+			),
 		enabled: !!selectedKey,
 	});
 
@@ -149,9 +190,9 @@ export function CustomFieldBreakdownCard({
 
 	return (
 		<ReportSection icon={ListFilter} title={labels.customFieldBreakdown}>
-			<div className="mb-3 flex flex-wrap gap-4">
-				<div className="max-w-sm flex-1 space-y-1">
-					<span className="text-muted-foreground text-xs">
+			<div className="mb-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+				<div className="min-w-0 space-y-1">
+					<span className="block min-h-8 text-muted-foreground text-xs leading-4">
 						{labels.customRegistrationField}
 					</span>
 					<Select
@@ -184,8 +225,8 @@ export function CustomFieldBreakdownCard({
 				</div>
 
 				{selectedKey && (
-					<div className="max-w-sm flex-1 space-y-1">
-						<span className="text-muted-foreground text-xs">
+					<div className="min-w-0 space-y-1">
+						<span className="block min-h-8 text-muted-foreground text-xs leading-4">
 							{labels.groupByOptional}
 						</span>
 						<Select
@@ -217,9 +258,43 @@ export function CustomFieldBreakdownCard({
 					</div>
 				)}
 
+				<div className="min-w-0 space-y-1">
+					<span className="block min-h-8 text-muted-foreground text-xs leading-4">
+						{labels.excludeTicketTypes}
+					</span>
+					<MultiSelect
+						value={excludedTicketTypeIds}
+						onValueChange={setExcludedTicketTypeIds}
+					>
+						<MultiSelectTrigger
+							className="w-full rounded-none"
+							disabled={ticketTypesLoading || !ticketTypeOptions.length}
+							icon={ChevronDown}
+						>
+							<MultiSelectValue
+								placeholder={
+									ticketTypesLoading
+										? labels.loading
+										: ticketTypeOptions.length
+											? labels.noTicketTypesExcluded
+											: labels.noTicketTypesAvailable
+								}
+								options={ticketTypeOptions}
+							/>
+						</MultiSelectTrigger>
+						<MultiSelectContent className="rounded-none p-0">
+							{ticketTypeOptions.map((option) => (
+								<MultiSelectItem key={option.value} value={option.value}>
+									{option.label}
+								</MultiSelectItem>
+							))}
+						</MultiSelectContent>
+					</MultiSelect>
+				</div>
+
 				{isNested && allGroupNames.length > 1 && (
-					<div className="max-w-sm flex-1 space-y-1">
-						<span className="text-muted-foreground text-xs">
+					<div className="min-w-0 space-y-1">
+						<span className="block min-h-8 text-muted-foreground text-xs leading-4">
 							{labels.show} {humanizeFieldKey(groupByKey)}
 						</span>
 						<GroupFilterSelect

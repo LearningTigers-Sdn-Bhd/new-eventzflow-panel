@@ -66,28 +66,33 @@ function BreakdownChart({
 		[rows],
 	);
 	const total = data.reduce((sum, d) => sum + d.value, 0);
+	const cardClassName =
+		"row-span-2 grid min-w-0 grid-rows-subgrid gap-y-0 overflow-hidden rounded-none border bg-background";
 
 	if (isLoading) {
 		return (
-			<div className="border">
-				<div className="border-b px-3 py-2">
+			<section className={cardClassName}>
+				<div className="space-y-3 border-b p-4 sm:p-5">
 					<Skeleton className="h-4 w-40" />
+					<Skeleton className="h-8 w-20" />
 				</div>
 				<Skeleton className="m-4 h-52" />
-			</div>
+			</section>
 		);
 	}
 
 	if (!data.length) {
 		return (
-			<div className="border">
-				<div className="border-b px-3 py-2">
-					<p className="font-medium text-sm">{title}</p>
+			<section className={cardClassName}>
+				<div className="space-y-3 border-b p-4 sm:p-5">
+					<h3 className="break-words font-semibold text-sm leading-relaxed">
+						{title}
+					</h3>
 				</div>
 				<p className="py-10 text-center text-muted-foreground text-sm">
 					{emptyMessage ?? labels.noDataAvailable}
 				</p>
-			</div>
+			</section>
 		);
 	}
 
@@ -95,7 +100,7 @@ function BreakdownChart({
 	const visibleData = expanded ? data : data.slice(0, 10);
 
 	return (
-		<section className="min-w-0 overflow-hidden rounded-none border bg-background">
+		<section className={cardClassName}>
 			<div className="space-y-3 border-b p-4 sm:p-5">
 				<h3 className="break-words font-semibold text-sm leading-relaxed">
 					{title}
@@ -187,14 +192,12 @@ function BreakdownChart({
 
 interface GroupDonutGridProps {
 	groupLabel: string;
-	fieldLabel: string;
 	groups: CustomFieldBreakdownGroup[];
 	isLoading: boolean;
 }
 
 function GroupDonutGrid({
 	groupLabel,
-	fieldLabel,
 	groups,
 	isLoading,
 }: GroupDonutGridProps) {
@@ -219,11 +222,11 @@ function GroupDonutGrid({
 	}
 
 	return (
-		<div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,28rem),1fr))] items-start gap-4">
+		<div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,28rem),1fr))] gap-4">
 			{groups.map((group) => (
 				<BreakdownChart
 					key={group.group}
-					title={`${groupLabel}: ${group.group} — ${fieldLabel}`}
+					title={`${groupLabel}: ${group.group}`}
 					rows={group.rows}
 					isLoading={false}
 					showDonut={false}
@@ -457,7 +460,7 @@ export function CustomDashboardView({
 				<div className="space-y-4">
 					<div
 						className={cn(
-							"grid items-start gap-4",
+							"grid gap-4",
 							flat
 								? "grid-cols-[repeat(auto-fit,minmax(min(100%,28rem),1fr))]"
 								: "grid-cols-1",
@@ -483,7 +486,6 @@ export function CustomDashboardView({
 						<div className="space-y-3">
 							<GroupDonutGrid
 								groupLabel={humanizeFieldKey(nested.groupBy)}
-								fieldLabel={humanizeFieldKey(nested.fieldKey)}
 								groups={nestedGroups}
 								isLoading={customFieldLoading}
 							/>
