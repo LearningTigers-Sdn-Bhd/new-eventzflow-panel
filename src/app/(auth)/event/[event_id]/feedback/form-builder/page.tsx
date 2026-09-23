@@ -9,7 +9,7 @@ import { useEventSidebarContext } from "@/components/sidebars/features/events/ev
 import { getEventById } from "@/lib/api/event";
 import { getFeedbackForm } from "@/lib/api/feedback-form";
 
-export default function FeedbackPage({
+export default function FeedbackFormBuilderPage({
 	params,
 }: {
 	params: Promise<{ event_id: string }>;

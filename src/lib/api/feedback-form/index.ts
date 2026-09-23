@@ -1,5 +1,7 @@
 export {
 	getFeedbackForm,
+	getFeedbackResponses,
+	getFeedbackSummary,
 	getPublicFeedbackForm,
 	saveFeedbackForm,
 	submitFeedback,
@@ -11,6 +13,12 @@ export type {
 } from "./request";
 export type {
 	FeedbackForm,
+	FeedbackIndividualResponse,
 	FeedbackQuestion,
 	FeedbackQuestionType,
+	FeedbackResponsePagination,
+	FeedbackResponsesEnvelope,
+	FeedbackSummary,
+	FeedbackSummaryOption,
+	FeedbackSummaryQuestion,
 } from "./response";

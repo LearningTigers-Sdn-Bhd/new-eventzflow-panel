@@ -5,6 +5,9 @@ import type {
 	FeedbackForm,
 	FeedbackFormEnvelope,
 	FeedbackResponseEnvelope,
+	FeedbackResponsesEnvelope,
+	FeedbackSummary,
+	FeedbackSummaryEnvelope,
 } from "./response";
 
 /** Organizer: the event's form, or null when none has been created yet. */
@@ -59,4 +62,29 @@ export async function submitFeedback(data: SubmitFeedbackRequest) {
 	} catch (error: unknown) {
 		throw new Error(await extractErrorMessage(error));
 	}
+}
+
+/** Organizer: aggregate response counts for each question. */
+export async function getFeedbackSummary(
+	eventId: string,
+): Promise<FeedbackSummary | null> {
+	const response = await restClient.get<FeedbackSummaryEnvelope>(
+		`v1/events/${eventId}/feedback_form/summary`,
+	);
+	return response.data ?? null;
+}
+
+/** Organizer: one page of individual feedback responses (25 per page). */
+export async function getFeedbackResponses(
+	eventId: string,
+	page: number,
+	search = "",
+	ticketTypeId = "all",
+): Promise<FeedbackResponsesEnvelope> {
+	const query = new URLSearchParams({ page: String(page) });
+	if (search.trim()) query.set("q", search.trim());
+	if (ticketTypeId !== "all") query.set("ticket_type_id", ticketTypeId);
+	return restClient.get<FeedbackResponsesEnvelope>(
+		`v1/events/${eventId}/feedback_form/responses?${query.toString()}`,
+	);
 }
