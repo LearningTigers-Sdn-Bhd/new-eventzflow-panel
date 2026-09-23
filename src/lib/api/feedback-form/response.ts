@@ -21,6 +21,8 @@ export interface FeedbackForm {
 	description: string | null;
 	is_active: boolean;
 	questions: FeedbackQuestion[];
+	/** Public endpoint only: the `?ticket=` holder has already responded. */
+	already_submitted?: boolean;
 }
 
 export interface FeedbackFormEnvelope {

@@ -41,10 +41,14 @@ export async function saveFeedbackForm(
 /** Public: active form for an event, by event slug. */
 export async function getPublicFeedbackForm(
 	eventSlug: string,
+	ticketPublicId?: string,
 ): Promise<FeedbackForm> {
+	const query = ticketPublicId
+		? `?${new URLSearchParams({ ticket: ticketPublicId })}`
+		: "";
 	try {
 		const response = await publicRestClient.get<FeedbackFormEnvelope>(
-			`v1/public/events/${eventSlug}/feedback_form`,
+			`v1/public/events/${eventSlug}/feedback_form${query}`,
 		);
 		return response.data as FeedbackForm;
 	} catch (error: unknown) {

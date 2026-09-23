@@ -54,7 +54,11 @@ export const queryClient = new QueryClient({
 			// Suppress global error toasts for business matching queries
 			// as they are handled locally with specific UI states or ignored to prevent spam
 			const queryKey = query.queryKey;
-			const suppressedKeys = ["business-matching", "event-details"];
+			const suppressedKeys = [
+				"business-matching",
+				"event-details",
+				"public-feedback-form",
+			];
 			if (
 				Array.isArray(queryKey) &&
 				queryKey.some(
