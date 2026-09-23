@@ -99,9 +99,21 @@ export function BaseTable<TData>({
 									className={cn(
 										"group transition-colors hover:bg-muted/50",
 										clickableRowConfig?.isEnabled
-											? "cursor-pointer"
+											? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 											: undefined,
 									)}
+									tabIndex={clickableRowConfig?.isEnabled ? 0 : undefined}
+									onKeyDown={(event) => {
+										if (
+											!clickableRowConfig?.isEnabled ||
+											event.target !== event.currentTarget ||
+											(event.key !== "Enter" && event.key !== " ")
+										) {
+											return;
+										}
+										event.preventDefault();
+										clickableRowConfig.onRowClick?.(row.original);
+									}}
 								>
 									{row.getVisibleCells().map((cell) => {
 										const isSticky = !!cell.column.columnDef.meta?.sticky;

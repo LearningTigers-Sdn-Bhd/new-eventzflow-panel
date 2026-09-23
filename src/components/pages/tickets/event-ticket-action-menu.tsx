@@ -1,8 +1,9 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
+	MessageSquareHeart,
 	MoreHorizontal,
 	Pencil,
 	QrCode,
@@ -26,11 +27,13 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
 import { revertTicketApplication } from "@/lib/api/event/pending";
 import {
 	archiveTicket,
 	forceDeleteTicket,
 	resendTicketConfirmationEmail,
+	resendTicketFeedbackEmail,
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
@@ -156,6 +159,16 @@ export function useTicketActions({
 		},
 	});
 
+	const resendFeedbackEmailMutation = useMutation({
+		mutationFn: () => resendTicketFeedbackEmail(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Feedback email has been queued for resend.");
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to resend feedback email");
+		},
+	});
+
 	const revertMutation = useMutation({
 		mutationFn: (confirmManualRefund?: boolean) =>
 			revertTicketApplication({
@@ -275,7 +288,27 @@ export function useTicketActions({
 		});
 	};
 
+	const handleResendFeedbackEmailClick = () => {
+		openConfirm({
+			title: "Resend Feedback Email",
+			message:
+				ticket.status === "scanned"
+					? "Resend the thank-you email with the feedback form link to this attendee?"
+					: "This attendee was never checked in. Send the thank-you email with the feedback form link anyway?",
+			confirmLabel: "Resend Email",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				resendFeedbackEmailMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	return {
+		eventId,
 		openEditModal,
 		openQRModal,
 		openUnscanModal,
@@ -283,6 +316,7 @@ export function useTicketActions({
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleResendFeedbackEmailClick,
 		handleRevertClick,
 		revertMutation,
 	};
@@ -296,6 +330,7 @@ export function TicketActionsMenu({
 	const isArchived = !!deletedAt;
 
 	const {
+		eventId,
 		openEditModal,
 		openQRModal,
 		openUnscanModal,
@@ -303,9 +338,27 @@ export function TicketActionsMenu({
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleResendFeedbackEmailClick,
 		handleRevertClick,
 		revertMutation,
 	} = useTicketActions({ ticket });
+
+	// Shared key with the event pages, so every row reads one cached fetch.
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!eventId,
+	});
+	const emailSetting = event?.event_email_setting;
+	// Mirrors the backend guard in TicketsController#resend_feedback_email;
+	// the backend also checks the form is active and has questions.
+	const showResendFeedbackEmail =
+		!isArchived &&
+		(user?.role === "org_owner" || user?.role === "organizer") &&
+		!!event?.ended &&
+		!!emailSetting?.thank_you_include_feedback &&
+		emailSetting.emails_enabled &&
+		!emailSetting.disabled_categories.includes("thank_you");
 
 	// Check if unscan button should be shown
 	// For org_owner or organizer and when ticket status is "scanned"
@@ -331,6 +384,7 @@ export function TicketActionsMenu({
 		showDelete ||
 		showRestore ||
 		showResendConfirmationEmail ||
+		showResendFeedbackEmail ||
 		showRevert;
 
 	return (
@@ -408,6 +462,15 @@ export function TicketActionsMenu({
 							>
 								<Send className="mr-2 h-4 w-4" />
 								Resend Ticket Email
+							</DropdownMenuItem>
+						)}
+						{showResendFeedbackEmail && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleResendFeedbackEmailClick}
+							>
+								<MessageSquareHeart className="mr-2 h-4 w-4" />
+								Resend Feedback Email
 							</DropdownMenuItem>
 						)}
 						{showRevert && (

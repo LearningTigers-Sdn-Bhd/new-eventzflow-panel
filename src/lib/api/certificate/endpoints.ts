@@ -6,6 +6,7 @@ import {
 	upsertCertificateTemplateSchema,
 } from "./request";
 import type {
+	CertificateAudience,
 	CertificateParticipant,
 	CertificateTemplate,
 	SendCertificatesResponse,
@@ -169,7 +170,7 @@ export async function downloadCertificate(
  */
 export async function downloadAllCertificates(
 	eventId: string,
-	audience: "all" | "checked_in" | "unsent" = "all",
+	audience: CertificateAudience = "all",
 ): Promise<Blob> {
 	const { blob } = await restClient.getBlob(
 		`v1/events/${eventId}/certificates/download_all?audience=${audience}`,

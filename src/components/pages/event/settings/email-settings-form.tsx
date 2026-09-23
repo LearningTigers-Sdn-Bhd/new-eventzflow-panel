@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Handshake, Mail } from "lucide-react";
+import { Handshake, Heart, Mail } from "lucide-react";
 import * as React from "react";
 import { useId } from "react";
 import { toast } from "sonner";
@@ -24,6 +24,12 @@ import { canConfigureEmailToggles } from "./access";
 import { EMAIL_CATEGORIES, EMAIL_CATEGORY_GROUPS } from "./email-categories";
 
 const BUSINESS_MATCHING_CATEGORY_KEY = "business_matching_invite";
+const THANK_YOU_CATEGORY_KEY = "thank_you";
+// Categories with their own dedicated section below, hidden from the generic grid.
+const DEDICATED_CATEGORY_KEYS = [
+	BUSINESS_MATCHING_CATEGORY_KEY,
+	THANK_YOU_CATEGORY_KEY,
+];
 
 const formSchema = z.object({
 	senderName: z.string(),
@@ -45,6 +51,7 @@ const formSchema = z.object({
 	emailsEnabled: z.boolean(),
 	disabledCategories: z.array(z.string()),
 	businessMatchingTicketTypeIds: z.array(z.string()),
+	thankYouIncludeFeedback: z.boolean(),
 });
 
 interface EmailSettingsFormProps {
@@ -103,6 +110,7 @@ export default function EmailSettingsForm({
 			emailsEnabled: true,
 			disabledCategories: [] as string[],
 			businessMatchingTicketTypeIds: [] as string[],
+			thankYouIncludeFeedback: false,
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -122,6 +130,7 @@ export default function EmailSettingsForm({
 									disabled_categories: value.disabledCategories,
 									business_matching_ticket_type_ids:
 										value.businessMatchingTicketTypeIds.map(Number),
+									thank_you_include_feedback: value.thankYouIncludeFeedback,
 								}
 							: {}),
 					},
@@ -150,6 +159,10 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"businessMatchingTicketTypeIds",
 					(setting?.business_matching_ticket_type_ids ?? []).map(String),
+				);
+				form.setFieldValue(
+					"thankYouIncludeFeedback",
+					setting?.thank_you_include_feedback ?? false,
 				);
 			}, 0);
 			hasInitialized.current = event.id;
@@ -332,7 +345,7 @@ export default function EmailSettingsForm({
 													const categories = EMAIL_CATEGORIES.filter(
 														(c) =>
 															c.group === group.key &&
-															c.key !== BUSINESS_MATCHING_CATEGORY_KEY,
+															!DEDICATED_CATEGORY_KEYS.includes(c.key),
 													);
 													if (categories.length === 0) return null;
 
@@ -381,6 +394,75 @@ export default function EmailSettingsForm({
 									</form.Field>
 								)}
 							</form.Field>
+						</FormGroupContainer>
+					)}
+
+					{canToggleEmails && (
+						<FormGroupContainer
+							title={{
+								icon: Heart,
+								label: "Post-Event Thank You",
+								description:
+									"Automatically thank checked-in attendees about 2 hours after the event ends. One email per address.",
+							}}
+						>
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+								<form.Field name="emailsEnabled">
+									{(emailsEnabledField) => (
+										<form.Field name="disabledCategories">
+											{(field) => (
+												<SwitchCardInput
+													variant="no-rounded"
+													label="Send thank you email"
+													htmlFor={`${field.name}-${THANK_YOU_CATEGORY_KEY}`}
+													checked={
+														!field.state.value.includes(THANK_YOU_CATEGORY_KEY)
+													}
+													onCheckedChange={(checked) => {
+														field.handleChange(
+															checked
+																? field.state.value.filter(
+																		(k) => k !== THANK_YOU_CATEGORY_KEY,
+																	)
+																: [
+																		...field.state.value,
+																		THANK_YOU_CATEGORY_KEY,
+																	],
+														);
+													}}
+													disabled={
+														updateEventMutation.isPending ||
+														!emailsEnabledField.state.value
+													}
+													description="A warm thank-you note sent once, only to attendees who checked in."
+												/>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+								<form.Field name="disabledCategories">
+									{(categoriesField) => (
+										<form.Field name="thankYouIncludeFeedback">
+											{(field) => (
+												<SwitchCardInput
+													variant="no-rounded"
+													label="Include feedback form link"
+													htmlFor={field.name}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={
+														updateEventMutation.isPending ||
+														categoriesField.state.value.includes(
+															THANK_YOU_CATEGORY_KEY,
+														)
+													}
+													description="Adds a “Share Your Feedback” button. Skipped automatically if the feedback form is inactive."
+												/>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
 						</FormGroupContainer>
 					)}
 

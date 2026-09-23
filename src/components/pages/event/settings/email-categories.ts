@@ -43,6 +43,7 @@ export const EMAIL_CATEGORIES: {
 		label: "Voucher Showcase Follow-up",
 		group: "ticket",
 	},
+	{ key: "thank_you", label: "Post-Event Thank You", group: "ticket" },
 	{
 		key: "ticket_application",
 		label: "Ticket Application (RSVP)",

@@ -21,10 +21,13 @@ export const upsertCertificateTemplateSchema = z.object({
 	canvas_width: z.number().positive().optional(),
 	canvas_height: z.number().positive().optional(),
 	fields: z.array(certificateFieldSchema).optional(),
+	require_feedback: z.boolean().optional(),
 });
 
 export const sendCertificatesSchema = z.object({
-	audience: z.enum(["all", "checked_in", "unsent"]).default("all"),
+	audience: z
+		.enum(["all", "checked_in", "unsent", "feedback_submitted"])
+		.default("all"),
 	excluded_public_ids: z.array(z.string()).default([]),
 });
 

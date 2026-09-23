@@ -24,6 +24,7 @@ export {
 } from "./request";
 // Response types
 export type {
+	CertificateAudience,
 	CertificateDeliveryStatus,
 	CertificateField,
 	CertificateFieldAlign,

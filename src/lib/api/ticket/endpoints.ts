@@ -759,6 +759,24 @@ export async function restoreTicket(
 /**
  * Resend ticket confirmation email (org_owner only)
  */
+export async function resendTicketFeedbackEmail(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.post<void>(
+			`v1/events/${eventId}/tickets/${publicId}/resend_feedback_email`,
+			{},
+		);
+	} catch (error: unknown) {
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to resend feedback email";
+		throw new Error(message);
+	}
+}
+
 export async function resendTicketConfirmationEmail(
 	eventId: string,
 	publicId: string,

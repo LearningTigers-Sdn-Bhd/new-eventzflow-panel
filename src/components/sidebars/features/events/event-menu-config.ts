@@ -12,6 +12,7 @@
 
 import {
 	Award,
+	Blocks,
 	Briefcase,
 	Building2,
 	ChartBar,
@@ -29,6 +30,8 @@ import {
 	type LucideIcon,
 	MapPin,
 	MessageSquareHeart,
+	MessageSquareQuote,
+	MessageSquareText,
 	Package,
 	PackageOpen,
 	Printer,
@@ -499,6 +502,31 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "Scan and redeem vouchers.",
 					icon: ScanQrCode,
 					visible: visible.vendor,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// FEEDBACK GROUP - Form builder and attendee responses
+		// ------------------------------------------------------------------------
+		{
+			id: "feedback",
+			label: "Feedback",
+			icon: MessageSquareText,
+			visible: visible.eventAdminOnly,
+			tabs: [
+				{
+					route: "feedback/form-builder",
+					label: "Form Builder",
+					description: "Build the post-event feedback form.",
+					icon: Blocks,
+					isActive: (pathname) => pathname.endsWith("/feedback/form-builder"),
+				},
+				{
+					route: "feedback/responses",
+					label: "Responses",
+					description: "Review attendee feedback.",
+					icon: MessageSquareQuote,
 				},
 			],
 		},

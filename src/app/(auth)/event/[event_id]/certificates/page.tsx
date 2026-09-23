@@ -80,6 +80,7 @@ export default function CertificatesPage({
 					<CertificateParticipants
 						eventId={event_id}
 						canSend={template?.status === "ready"}
+						template={template}
 					/>
 				</TabsContent>
 			</div>
