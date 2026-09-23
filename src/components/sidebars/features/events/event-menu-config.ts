@@ -336,6 +336,13 @@ const rawEventMenuConfig: EventMenuConfig = {
 					visible: (p, e) =>
 						visible.hasCertificate(p, e) && visible.eventAdmin(p),
 				},
+				{
+					route: "feedback",
+					label: "Feedback Form",
+					description: "Build a post-event feedback form for attendees.",
+					icon: ClipboardList,
+					visible: visible.eventAdminOnly,
+				},
 			],
 		},
 		// ------------------------------------------------------------------------
