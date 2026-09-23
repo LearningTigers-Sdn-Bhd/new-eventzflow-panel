@@ -48,6 +48,7 @@ export type EventEmailSetting = {
 	emails_enabled: boolean;
 	disabled_categories: string[];
 	business_matching_ticket_type_ids: number[];
+	thank_you_include_feedback: boolean;
 };
 
 export type WishWallSetting = {

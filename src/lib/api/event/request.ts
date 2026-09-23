@@ -120,6 +120,7 @@ export const updateEventSchema = z.object({
 			emails_enabled: z.boolean().optional(),
 			disabled_categories: z.array(z.string()).optional(),
 			business_matching_ticket_type_ids: z.array(z.number()).optional(),
+			thank_you_include_feedback: z.boolean().optional(),
 		})
 		.optional(),
 	wish_wall_setting_attributes: z
