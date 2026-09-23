@@ -30,6 +30,7 @@ import {
 	type FeedbackQuestionType,
 	saveFeedbackForm,
 } from "@/lib/api/feedback-form";
+import { AttendeeFeedbackLink } from "./attendee-feedback-link";
 
 const QUESTION_TYPES: { value: FeedbackQuestionType; label: string }[] = [
 	{ value: "rating", label: "Rating (1–5)" },
@@ -471,15 +472,16 @@ export function FeedbackFormBuilder({
 
 					<section className="border bg-background">
 						<div className="border-b px-5 py-4">
-							<h2 className="font-semibold text-base">Share form</h2>
+							<h2 className="font-semibold text-base">Preview & links</h2>
 							<p className="mt-1 text-muted-foreground text-sm">
-								Send this link to attendees after the event.
+								Attendees get their own link in the thank-you email. Use this to
+								preview the form or copy a link for one attendee.
 							</p>
 						</div>
 						<div className="space-y-3 p-5">
 							{form ? (
 								<>
-									<Label htmlFor="feedback-public-link">Public link</Label>
+									<Label htmlFor="feedback-public-link">Preview link</Label>
 									<Input
 										id="feedback-public-link"
 										value={publicUrl}
@@ -494,7 +496,7 @@ export function FeedbackFormBuilder({
 											onClick={copyLink}
 										>
 											<Copy className="size-4" />
-											Copy link
+											Copy preview link
 										</Button>
 										<Button
 											type="button"
@@ -502,17 +504,22 @@ export function FeedbackFormBuilder({
 											size="icon"
 											asChild
 											className="rounded-none"
-											aria-label="Open public form"
+											aria-label="Open form preview"
 										>
 											<a href={publicUrl} target="_blank" rel="noreferrer">
 												<ExternalLink className="size-4" />
 											</a>
 										</Button>
 									</div>
-									<p className="border-t pt-3 text-muted-foreground text-xs">
-										Add <code>?ticket=&lt;ticket public ID&gt;</code> to link
-										one response to a ticket.
+									<p className="text-muted-foreground text-xs">
+										Not linked to any ticket. To send it yourself, add{" "}
+										<code>?ticket=&lt;ticket public ID&gt;</code> so the
+										response is saved against that attendee, or pick one below.
 									</p>
+									<AttendeeFeedbackLink
+										eventId={eventId}
+										publicUrl={publicUrl}
+									/>
 								</>
 							) : (
 								<p className="text-muted-foreground text-sm">

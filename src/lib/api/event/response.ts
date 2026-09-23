@@ -95,6 +95,8 @@ export type Event = {
 	payment_receipt_email: string | null;
 	event_email_setting: EventEmailSetting | null;
 	wish_wall_setting: WishWallSetting;
+	/** Backend-computed: past end date (a 00:00 end counts as end of that day). */
+	ended: boolean;
 	start_date: string;
 	end_date: string;
 	venue_name: string | null;
