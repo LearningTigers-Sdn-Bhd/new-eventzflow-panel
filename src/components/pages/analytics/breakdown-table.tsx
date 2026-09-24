@@ -80,6 +80,7 @@ export function BreakdownTable({
 	// Stat tiles always reflect the full group — only the table body/footer
 	// below honor the search filter, so search never changes the numbers.
 	const total = rows?.reduce((sum, row) => sum + row.count, 0) ?? 0;
+	const unregisteredCount = rows?.filter((row) => row.count === 0).length ?? 0;
 	const topRow = rows?.length
 		? rows.reduce((top, row) => (row.count > top.count ? row : top))
 		: undefined;
@@ -106,6 +107,13 @@ export function BreakdownTable({
 						value={rows.length.toLocaleString()}
 						Icon={Layers}
 					/>
+					{unregisteredCount > 0 && (
+						<StatsCard
+							label={labels.unregistered}
+							value={unregisteredCount.toLocaleString()}
+							Icon={Layers}
+						/>
+					)}
 					{topRow && (
 						<StatsCard
 							label={labels.topValue}
@@ -187,7 +195,14 @@ export function BreakdownTable({
 							</TableRow>
 						) : filteredRows?.length ? (
 							filteredRows.map((row, index) => (
-								<TableRow key={row.value}>
+								<TableRow
+									key={row.value}
+									className={
+										row.count === 0
+											? "bg-amber-50 dark:bg-amber-950/40"
+											: undefined
+									}
+								>
 									<TableCell className="text-muted-foreground">
 										{index + 1}
 									</TableCell>
@@ -232,7 +247,7 @@ export function BreakdownTable({
 											<span
 												className={
 													row.count > row.quota
-														? "font-semibold text-destructive"
+														? "font-semibold text-green-600 dark:text-green-400"
 														: undefined
 												}
 											>
@@ -246,13 +261,7 @@ export function BreakdownTable({
 									{hasAnyQuota && (
 										<TableCell className="text-right">
 											{row.quota !== undefined ? (
-												<span
-													className={
-														row.count > row.quota
-															? "font-semibold text-destructive"
-															: undefined
-													}
-												>
+												<span>
 													{(row.remaining ?? 0).toLocaleString()} (
 													{Math.round(((row.remaining ?? 0) / row.quota) * 100)}
 													%)
