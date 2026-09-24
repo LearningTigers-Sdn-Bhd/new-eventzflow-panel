@@ -28,6 +28,7 @@ import {
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { BreakdownTable } from "./breakdown-table";
 import { GroupFilterSelect } from "./group-filter-select";
+import { ImportListDialog } from "./import-list-dialog";
 import { NestedBreakdownGroups } from "./nested-breakdown-groups";
 import { ReportSection } from "./report-section";
 
@@ -189,7 +190,21 @@ export function CustomFieldBreakdownCard({
 		keysData?.keys.filter((key) => key !== selectedKey) ?? [];
 
 	return (
-		<ReportSection icon={ListFilter} title={labels.customFieldBreakdown}>
+		<ReportSection
+			icon={ListFilter}
+			title={labels.customFieldBreakdown}
+			action={
+				!selectorsOnly && isNested && selectedKey ? (
+					<ImportListDialog
+						eventId={eventId}
+						fieldKey={selectedKey}
+						groupLabel={humanizeFieldKey(groupByKey)}
+						fieldLabel={humanizeFieldKey(selectedKey)}
+						groups={data.groups}
+					/>
+				) : undefined
+			}
+		>
 			<div className="mb-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<div className="min-w-0 space-y-1">
 					<span className="block min-h-8 text-muted-foreground text-xs leading-4">

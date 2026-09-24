@@ -17,6 +17,7 @@ export {
 	getTotalUnscannedTickets,
 	getTotalUnscannedVisitors,
 	getTotalVisitors,
+	setCustomFieldList,
 	setCustomFieldQuota,
 } from "./endpoints";
 

@@ -27,6 +27,7 @@ export const reportLabels: Record<
 		totalTickets: string;
 		distinct: string;
 		topValue: string;
+		unregistered: string;
 		noDataAvailable: string;
 		loading: string;
 		ticketType: string;
@@ -61,6 +62,23 @@ export const reportLabels: Record<
 		setQuota: string;
 		hideQuota: string;
 		quotaAutoSaveNotice: string;
+		importList: string;
+		importListHint: string;
+		importListTitle: string;
+		importListPlaceholder: string;
+		tabArrange: string;
+		tabPaste: string;
+		arrangeHint: string;
+		pasteHint: string;
+		pickGroupFirst: string;
+		selectOrType: string;
+		addNew: string;
+		newGroupWarning: string;
+		statusExisting: string;
+		statusNew: string;
+		save: string;
+		cancel: string;
+		importFailed: string;
 	}
 > = {
 	en: {
@@ -82,6 +100,7 @@ export const reportLabels: Record<
 		totalTickets: "Total Tickets",
 		distinct: "Distinct",
 		topValue: "Top Value",
+		unregistered: "No Registrations Yet",
 		noDataAvailable: "No data available.",
 		loading: "Loading…",
 		ticketType: "Ticket Type",
@@ -117,6 +136,26 @@ export const reportLabels: Record<
 		hideQuota: "Hide Quota Configuration",
 		quotaAutoSaveNotice:
 			"Quota values are saved automatically as you type — no need to click save. Clearing a value removes that quota.",
+		importList: "Arrange List",
+		importListTitle: "Arrange List & Quotas",
+		importListHint:
+			"Set the display order and quotas for one group. Listed entries with no registrations yet still show, with a count of 0. Registration data is not changed.",
+		importListPlaceholder: "Entry A\t20\nEntry B\t10\nEntry C",
+		selectOrType: "Select or type…",
+		tabArrange: "Arrange",
+		tabPaste: "Paste List",
+		arrangeHint: "Drag a row, or type a new number in No. to move it.",
+		pasteHint:
+			"One entry per line — a number at the end is its quota (optional). Entries must match the registration form exactly. Replaces the current order.",
+		pickGroupFirst: "Select a group first.",
+		addNew: "Add new",
+		newGroupWarning:
+			"No registrations use this value yet — make sure it matches the registration form exactly.",
+		statusExisting: "Registered",
+		statusNew: "No registrations",
+		save: "Save",
+		cancel: "Cancel",
+		importFailed: "Failed to save the list.",
 	},
 	bm: {
 		customFieldBreakdown: "Pecahan Medan Tersuai",
@@ -137,6 +176,7 @@ export const reportLabels: Record<
 		totalTickets: "Jumlah Tiket",
 		distinct: "Bilangan",
 		topValue: "Nilai Tertinggi",
+		unregistered: "Belum Ada Pendaftaran",
 		noDataAvailable: "Tiada data tersedia.",
 		loading: "Memuatkan…",
 		ticketType: "Jenis Tiket",
@@ -172,5 +212,26 @@ export const reportLabels: Record<
 		hideQuota: "Sembunyi Konfigurasi Kuota",
 		quotaAutoSaveNotice:
 			"Nilai kuota disimpan secara automatik semasa anda menaip — tidak perlu klik simpan. Kosongkan nilai untuk buang kuota tersebut.",
+		importList: "Susun Senarai",
+		importListTitle: "Susun Senarai & Kuota",
+		importListHint:
+			"Tetapkan susunan paparan dan kuota bagi satu kumpulan. Entri dalam senarai yang belum ada pendaftaran tetap dipaparkan dengan kiraan 0. Data pendaftaran tidak diubah.",
+		importListPlaceholder: "Entri A\t20\nEntri B\t10\nEntri C",
+		selectOrType: "Pilih atau taip…",
+		tabArrange: "Susun",
+		tabPaste: "Tampal Senarai",
+		arrangeHint:
+			"Seret baris, atau taip nombor baharu di Bil. untuk mengalihnya.",
+		pasteHint:
+			"Satu entri setiap baris — nombor di hujung ialah kuota (pilihan). Entri mesti sama tepat dengan borang pendaftaran. Menggantikan susunan sedia ada.",
+		pickGroupFirst: "Pilih kumpulan dahulu.",
+		addNew: "Tambah baharu",
+		newGroupWarning:
+			"Belum ada pendaftaran dengan nilai ini — pastikan ia sama tepat dengan borang pendaftaran.",
+		statusExisting: "Ada pendaftaran",
+		statusNew: "Belum mendaftar",
+		save: "Simpan",
+		cancel: "Batal",
+		importFailed: "Gagal menyimpan senarai.",
 	},
 };

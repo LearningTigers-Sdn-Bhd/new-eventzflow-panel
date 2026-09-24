@@ -473,6 +473,37 @@ export async function deleteCustomFieldQuota(
 }
 
 /**
+ * Replace the ordered master list (e.g. a client's agency list) for one
+ * group_by value. Listed values show in this order, including ones with no
+ * registrations yet; values dropped from the list lose their slot.
+ */
+export async function setCustomFieldList(
+	eventId: number | string,
+	fieldKey: string,
+	groupValue: string,
+	/** quota omitted = keep current; null = clear. */
+	items: { value: string; quota?: number | null }[],
+): Promise<{ fieldKey: string; groupValue: string; count: number }> {
+	try {
+		return await restClient.put<{
+			fieldKey: string;
+			groupValue: string;
+			count: number;
+		}>(`v1/events/${eventId}/metrics/custom_field_list`, {
+			field_key: fieldKey,
+			group_value: groupValue,
+			items,
+		});
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to set custom field list for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to set custom field list");
+	}
+}
+
+/**
  * Get count-only breakdown of tickets grouped by ticket type.
  */
 export async function getTicketTypeBreakdown(
