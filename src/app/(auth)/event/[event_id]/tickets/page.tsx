@@ -103,11 +103,15 @@ export default function TicketsPage({
 	};
 
 	const sort = sorting[0] as { id: string; desc: boolean } | undefined;
+	// Column ids are either the fixed ones (name/email/status/createdAt) or
+	// custom_<labels_data key> for the generated custom-field columns; the
+	// backend understands both.
 	const sortBy = sort?.id as
 		| "name"
 		| "email"
 		| "status"
 		| "createdAt"
+		| `custom_${string}`
 		| undefined;
 	const sortDir = sort ? (sort.desc ? "desc" : "asc") : undefined;
 

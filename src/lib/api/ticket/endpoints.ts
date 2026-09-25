@@ -372,7 +372,7 @@ export async function getEventTicketsPaged(
 		ticketTypeName?: string;
 		archived?: boolean;
 		full?: boolean;
-		sortBy?: "name" | "email" | "status" | "createdAt";
+		sortBy?: "name" | "email" | "status" | "createdAt" | `custom_${string}`;
 		sortDir?: "asc" | "desc";
 	},
 ): Promise<PagedTicketsResult> {
