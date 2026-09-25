@@ -18,6 +18,7 @@ import { updateTicket } from "@/lib/api/ticket";
 import { PAYMENT_STATUS } from "../../pending-ticket/constants";
 import type { BaseTicket } from "../event-ticket-table-columns";
 import { TicketTypeFieldSection } from "../page-action/ticket-type-field-section";
+import { VehicleGroupField } from "../page-action/vehicle-group-field";
 
 // Server-written audit keys — never editable here, backend strips them from
 // any update payload anyway (see Ticket::RESERVED_CUSTOM_FIELD_KEYS).
@@ -111,6 +112,8 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			attendee_email: ticket.email ?? "",
 			attendee_phone: ticket.phone || "",
 			ticket_type_id: ticket.ticketTypeId || null,
+			vehicle_registration_form_id:
+				ticket.vehicleRegistration?.registrationFormId ?? 0,
 			role: ticket.role || "",
 			// This form only ever opens for tickets already in Manage Tickets,
 			// which only lists paid tickets — so "Paid" is always the true
@@ -136,6 +139,11 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				attendee_email: value.attendee_email.trim() || null,
 				attendee_phone: value.attendee_phone || null,
 				ticket_type_id: value.ticket_type_id,
+				vehicle_registration_form_id:
+					value.vehicle_registration_form_id !==
+					ticket.vehicleRegistration?.registrationFormId
+						? value.vehicle_registration_form_id || undefined
+						: undefined,
 				role: value.role || undefined,
 				payment_status: value.payment_status,
 				custom_fields_data:
@@ -321,6 +329,18 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 								/>
 							)}
 						</form.Field>
+						{ticket.vehicleRegistration && (
+							<form.Field name="vehicle_registration_form_id">
+								{(field) => (
+									<VehicleGroupField
+										eventId={eventId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										disabled={updateTicketMutation.isPending}
+									/>
+								)}
+							</form.Field>
+						)}
 					</FormGroupContainer>
 					<FormGroupContainer
 						title={{

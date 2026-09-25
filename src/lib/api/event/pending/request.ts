@@ -39,6 +39,7 @@ export const updatePendingTicketSchema = z.object({
 	transaction_id: z.string().optional(),
 	payment_method: z.string().optional(),
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
+	vehicle_registration_form_id: z.number().int().optional(),
 });
 
 export const approveTicketApplicationSchema = z.object({

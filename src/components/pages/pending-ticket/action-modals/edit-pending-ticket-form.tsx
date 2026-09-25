@@ -17,6 +17,7 @@ import { getEventById } from "@/lib/api/event";
 import { updatePendingTicket } from "@/lib/api/event/pending";
 import PaymentReceiptUpload from "../../exhibitor-kits/payment-receipt-upload";
 import { TicketTypeFieldSection } from "../../tickets/page-action/ticket-type-field-section";
+import { VehicleGroupField } from "../../tickets/page-action/vehicle-group-field";
 import { getPaymentStatusNumber, PAYMENT_STATUS } from "../constants";
 import type { PendingTicket } from "../pending-ticket-table-columns";
 
@@ -100,6 +101,8 @@ export default function PendingTicketEditModal({
 			attendee_phone: ticket.phone ?? "",
 			role: ticket.role ?? "",
 			ticket_type_id: ticket.ticketTypeId || null,
+			vehicle_registration_form_id:
+				ticket.vehicleRegistration?.registrationFormId ?? 0,
 			payment_status: getPaymentStatusNumber(ticket.paymentStatus),
 			payment_method: ticket.paymentMethod ?? "",
 			transaction_id: ticket.transactionId ?? "",
@@ -122,6 +125,11 @@ export default function PendingTicketEditModal({
 					attendee_phone: value.attendee_phone || null,
 					role: value.role || undefined,
 					ticket_type_id: value.ticket_type_id || undefined,
+					vehicle_registration_form_id:
+						value.vehicle_registration_form_id !==
+						ticket.vehicleRegistration?.registrationFormId
+							? value.vehicle_registration_form_id || undefined
+							: undefined,
 					payment_status: value.payment_status,
 					payment_proof: value.payment_proof || undefined,
 					transaction_id: value.transaction_id || undefined,
@@ -277,6 +285,18 @@ export default function PendingTicketEditModal({
 								/>
 							)}
 						</form.Field>
+						{ticket.vehicleRegistration && (
+							<form.Field name="vehicle_registration_form_id">
+								{(field) => (
+									<VehicleGroupField
+										eventId={eventId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										disabled={updateMutation.isPending}
+									/>
+								)}
+							</form.Field>
+						)}
 					</FormGroupContainer>
 
 					<div className="flex flex-col gap-4">

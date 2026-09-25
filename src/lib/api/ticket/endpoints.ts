@@ -506,6 +506,7 @@ export async function updateTicket(data: {
 	role?: string;
 	payment_status?: number;
 	custom_fields_data?: Record<string, string>;
+	vehicle_registration_form_id?: number;
 }): Promise<UpdateTicketResponse> {
 	const validated = updateTicketSchema.parse(data);
 	const { eventId, ticketId, ...ticketData } = validated;

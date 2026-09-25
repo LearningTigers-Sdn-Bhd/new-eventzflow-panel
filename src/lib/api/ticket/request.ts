@@ -44,6 +44,7 @@ export const updateTicketSchema = z.object({
 	role: z.string().optional(),
 	payment_status: z.number().int().min(0).max(3).optional(), // 0=pending, 1=paid, 2=failed, 3=refunded_payment
 	custom_fields_data: z.record(z.string(), z.string()).optional(),
+	vehicle_registration_form_id: z.number().int().optional(),
 });
 
 // Export types for form data
