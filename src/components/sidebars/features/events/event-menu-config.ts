@@ -15,6 +15,7 @@ import {
 	Blocks,
 	Briefcase,
 	Building2,
+	Car,
 	ChartBar,
 	ClipboardList,
 	CreditCard,
@@ -121,6 +122,8 @@ const visible = {
 		e?.use_voucher === true,
 	hasCertificate: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_certificate === true,
+	hasVehicles: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.vehicles_enabled === true,
 	hasVendors: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_exhibitor_kit !== true,
 
@@ -324,6 +327,14 @@ const rawEventMenuConfig: EventMenuConfig = {
 					label: "Registration Forms",
 					description: "Manage registration forms and ticket mapping.",
 					icon: ClipboardList,
+				},
+				{
+					route: "vehicles",
+					label: "Vehicles",
+					description:
+						"View registered vehicles, their crew, and fix mismatches.",
+					icon: Car,
+					visible: (p, e) => visible.hasVehicles(p, e),
 				},
 				{
 					route: "bundle-passes",

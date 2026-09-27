@@ -38,6 +38,7 @@ function transformRegistrationForm(
 		customLabelsData: backend.custom_labels_data ?? [],
 		status: normalizeRegistrationFormStatus(backend.status),
 		position: backend.position,
+		vehicle: backend.vehicle ?? false,
 		rsvpSetting: backend.registration_form_rsvp_setting
 			? {
 					id: backend.registration_form_rsvp_setting.id,

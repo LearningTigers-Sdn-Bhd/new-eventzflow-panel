@@ -89,6 +89,7 @@ export type Event = {
 	use_event_leads: boolean;
 	use_certificate: boolean;
 	use_api_access: boolean;
+	vehicles_enabled: boolean;
 	reminders_enabled: boolean;
 	reminder_7_day: boolean;
 	reminder_1_day: boolean;
@@ -140,6 +141,7 @@ export type EventSidebarEvent = Pick<
 	| "use_event_leads"
 	| "use_sponsorship"
 	| "allow_contractor_printing_services"
+	| "vehicles_enabled"
 >;
 
 export type EventSidebarContextResponse = {

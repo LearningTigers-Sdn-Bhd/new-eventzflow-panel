@@ -5,11 +5,6 @@ import { useId } from "react";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { getEventRegistrationForms } from "@/lib/api/registration-form";
 
-// ponytail: mirrors VehicleRegistrationRules::FORM_RULES keys on the backend,
-// which re-validates the pick anyway.
-const VEHICLE_FORM_SLUG =
-	/^(expedition-.+|competition|competitor-support|official-crew)$/;
-
 interface VehicleGroupFieldProps {
 	eventId: string;
 	value: number;
@@ -38,7 +33,7 @@ export function VehicleGroupField({
 			onChange={(v) => onChange(Number(v))}
 			disabled={disabled}
 			options={forms
-				.filter((f) => VEHICLE_FORM_SLUG.test(f.slug))
+				.filter((f) => f.vehicle)
 				.map((f) => ({ value: f.id.toString(), label: f.name }))}
 		/>
 	);

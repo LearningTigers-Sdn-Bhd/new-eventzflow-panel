@@ -96,6 +96,7 @@ const formSchema = z.object({
 	useEventLeads: z.boolean(),
 	useCertificate: z.boolean(),
 	useApiAccess: z.boolean(),
+	vehiclesEnabled: z.boolean(),
 	description: z.string(),
 	venueName: z.string(),
 	venueAddress: z.string(),
@@ -194,6 +195,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			useEventLeads: false,
 			useCertificate: false,
 			useApiAccess: false,
+			vehiclesEnabled: false,
 			description: "",
 			venueName: "",
 			venueAddress: "",
@@ -241,6 +243,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_event_leads: value.useEventLeads,
 					use_certificate: value.useCertificate,
 					use_api_access: value.useApiAccess,
+					vehicles_enabled: value.vehiclesEnabled,
 					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
 					venue_name: value.venueName || "",
@@ -307,6 +310,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				form.setFieldValue("useCertificate", event.use_certificate ?? false);
 				form.setFieldValue("useApiAccess", event.use_api_access ?? false);
+				form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("venueName", event.venue_name || "");
@@ -1048,6 +1052,22 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 											<SwitchCardInput
 												label="API Access"
 												description="Allow API keys to be scoped to this event for external integrations."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
+								{canManageAdvancedEventOptions && (
+									<form.Field name="vehiclesEnabled">
+										{(field) => (
+											<SwitchCardInput
+												label="Vehicles"
+												description="Track vehicle registrations and crew for this event."
 												htmlFor={field.name}
 												variant="no-rounded"
 												border={true}

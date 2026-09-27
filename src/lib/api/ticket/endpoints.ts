@@ -413,6 +413,21 @@ export async function getEventTicketsPaged(
 }
 
 /**
+ * Get a single ticket by its public id, fully hydrated (ticket type, custom
+ * fields, vehicle registration) for the Edit Ticket modal.
+ */
+export async function getTicketById(
+	eventId: string,
+	ticketId: string,
+): Promise<Ticket> {
+	const [event, response] = await Promise.all([
+		restClient.get<BackendEvent>(`v1/events/${eventId}`),
+		restClient.get<BackendTicket>(`v1/events/${eventId}/tickets/${ticketId}`),
+	]);
+	return transformBackendTicket(response, event.title, eventId);
+}
+
+/**
  * Create a new ticket
  */
 export async function createTicket(data: {

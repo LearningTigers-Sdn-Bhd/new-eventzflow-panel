@@ -30,9 +30,16 @@ function prettifyKey(key: string): string {
 
 interface EditTicketFormProps {
 	ticket: BaseTicket;
+	// Opened from outside Manage Tickets (e.g. the Vehicles page) for a ticket
+	// that may not be paid — hide the Paid-defaulted status so saving can't
+	// mark it paid.
+	hidePaymentStatus?: boolean;
 }
 
-export default function EditTicketForm({ ticket }: EditTicketFormProps) {
+export default function EditTicketForm({
+	ticket,
+	hidePaymentStatus = false,
+}: EditTicketFormProps) {
 	const { closeDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -145,7 +152,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 						? value.vehicle_registration_form_id || undefined
 						: undefined,
 				role: value.role || undefined,
-				payment_status: value.payment_status,
+				payment_status: hidePaymentStatus ? undefined : value.payment_status,
 				custom_fields_data:
 					customFields.length > 0 ? customFieldsData : undefined,
 			});
@@ -276,39 +283,44 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 								)}
 							</form.Field>
 
-							<form.Field name="payment_status">
-								{(field) => (
-									<SelectLabel
-										label="Payment Status"
-										htmlFor={paymentStatusId}
-										value={field.state.value.toString()}
-										onChange={(value) =>
-											field.handleChange(Number.parseInt(value, 10))
-										}
-										disabled={updateTicketMutation.isPending || isCheckedIn}
-										description={
-											isCheckedIn
-												? "Ticket already checked in — payment status is locked."
-												: "Reverting to Pending clears this ticket's paid status."
-										}
-										options={[
-											{
-												value: PAYMENT_STATUS.PENDING.toString(),
-												label: "Pending",
-											},
-											{ value: PAYMENT_STATUS.PAID.toString(), label: "Paid" },
-											{
-												value: PAYMENT_STATUS.FAILED.toString(),
-												label: "Failed",
-											},
-											{
-												value: PAYMENT_STATUS.REFUNDED_PAYMENT.toString(),
-												label: "Refunded Payment",
-											},
-										]}
-									/>
-								)}
-							</form.Field>
+							{!hidePaymentStatus && (
+								<form.Field name="payment_status">
+									{(field) => (
+										<SelectLabel
+											label="Payment Status"
+											htmlFor={paymentStatusId}
+											value={field.state.value.toString()}
+											onChange={(value) =>
+												field.handleChange(Number.parseInt(value, 10))
+											}
+											disabled={updateTicketMutation.isPending || isCheckedIn}
+											description={
+												isCheckedIn
+													? "Ticket already checked in — payment status is locked."
+													: "Reverting to Pending clears this ticket's paid status."
+											}
+											options={[
+												{
+													value: PAYMENT_STATUS.PENDING.toString(),
+													label: "Pending",
+												},
+												{
+													value: PAYMENT_STATUS.PAID.toString(),
+													label: "Paid",
+												},
+												{
+													value: PAYMENT_STATUS.FAILED.toString(),
+													label: "Failed",
+												},
+												{
+													value: PAYMENT_STATUS.REFUNDED_PAYMENT.toString(),
+													label: "Refunded Payment",
+												},
+											]}
+										/>
+									)}
+								</form.Field>
+							)}
 						</div>
 						<form.Field
 							name="ticket_type_id"
