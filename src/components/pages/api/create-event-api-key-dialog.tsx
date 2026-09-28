@@ -118,6 +118,7 @@ export default function CreateEventApiKeyDialog({
 							onChange={(e) => setKeyName(e.target.value)}
 							maxLength={255}
 							disabled={createMutation.isPending}
+							className="rounded-none"
 						/>
 						<p className="text-muted-foreground text-xs">
 							Give your API key a descriptive name to identify it later.
@@ -132,10 +133,10 @@ export default function CreateEventApiKeyDialog({
 								onValueChange={(v) => setScope(v as ApiKeyScope)}
 								disabled={createMutation.isPending}
 							>
-								<SelectTrigger id="keyScope">
+								<SelectTrigger id="keyScope" className="rounded-none">
 									<SelectValue />
 								</SelectTrigger>
-								<SelectContent>
+								<SelectContent className="rounded-none">
 									<SelectItem value="read_only">
 										Read only — GET requests only
 									</SelectItem>
@@ -145,14 +146,18 @@ export default function CreateEventApiKeyDialog({
 									<SelectItem value="read_write">
 										Full access — all CRUD methods
 									</SelectItem>
+									<SelectItem value="rfid">
+										RFID device — RfiDex endpoints only
+									</SelectItem>
 								</SelectContent>
 							</Select>
 							<p className="text-muted-foreground text-xs">
-								Only org owners can grant write access. Default is read-only.
+								Only org owners can grant write or RFID device access. Default
+								is read-only.
 							</p>
 						</div>
 					) : (
-						<div className="rounded-md border bg-muted/40 p-3 text-muted-foreground text-xs">
+						<div className="rounded-none border bg-muted/40 p-3 text-muted-foreground text-xs">
 							Keys you create are read-only (GET requests only). Contact your
 							organization owner if you need write access.
 						</div>
@@ -164,6 +169,7 @@ export default function CreateEventApiKeyDialog({
 						<Button
 							type="button"
 							variant="outline"
+							className="rounded-none"
 							onClick={onClose}
 							disabled={createMutation.isPending}
 						>
@@ -172,6 +178,7 @@ export default function CreateEventApiKeyDialog({
 						<Button
 							type="button"
 							onClick={handleCreate}
+							className="rounded-none"
 							disabled={createMutation.isPending || !keyName.trim()}
 						>
 							{createMutation.isPending ? "Creating..." : "Generate API Key"}
@@ -200,7 +207,7 @@ export default function CreateEventApiKeyDialog({
 					<div className="space-y-2">
 						<p className="font-medium text-sm">Your API Key:</p>
 						<div className="flex gap-2">
-							<div className="flex-1 break-all rounded-md border bg-muted p-3 font-mono text-sm">
+							<div className="flex-1 break-all rounded-none border bg-muted p-3 font-mono text-sm">
 								{createdKey}
 							</div>
 							<Button
@@ -208,7 +215,7 @@ export default function CreateEventApiKeyDialog({
 								variant="outline"
 								size="icon"
 								onClick={handleCopy}
-								className="shrink-0"
+								className="shrink-0 rounded-none"
 							>
 								{copied ? (
 									<Check className="h-4 w-4 text-green-600" />
@@ -219,7 +226,7 @@ export default function CreateEventApiKeyDialog({
 						</div>
 					</div>
 
-					<div className="flex flex-col items-center gap-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/40">
+					<div className="flex flex-col items-center gap-4 rounded-none border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/40">
 						<div className="flex gap-3">
 							<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
 							<div className="space-y-1">
@@ -237,7 +244,7 @@ export default function CreateEventApiKeyDialog({
 					<Separator />
 
 					<div className="flex justify-end">
-						<Button type="button" onClick={onClose}>
+						<Button type="button" onClick={onClose} className="rounded-none">
 							Done
 						</Button>
 					</div>

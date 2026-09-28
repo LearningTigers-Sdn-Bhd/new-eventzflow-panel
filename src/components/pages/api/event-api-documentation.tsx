@@ -48,6 +48,8 @@ function isAllowed(
 			return m === "PATCH" && CHECK_IN_PATH_RE.test(endpointPath);
 		case "read_write":
 			return true;
+		case "rfid":
+			return false;
 	}
 }
 
@@ -55,10 +57,11 @@ const SCOPE_RANK: Record<ApiKeyScope, number> = {
 	read_only: 0,
 	check_in: 1,
 	read_write: 2,
+	rfid: -1,
 };
 
 function maxScope(apiKeys: ApiKey[]): ApiKeyScope | null {
-	const active = apiKeys.filter((k) => k.isActive);
+	const active = apiKeys.filter((k) => k.isActive && k.scope !== "rfid");
 	if (active.length === 0) return null;
 	return active.reduce<ApiKeyScope>(
 		(acc, k) => (SCOPE_RANK[k.scope] > SCOPE_RANK[acc] ? k.scope : acc),
@@ -70,6 +73,7 @@ const SCOPE_LABELS: Record<ApiKeyScope, string> = {
 	read_only: "Read only",
 	check_in: "Check-in",
 	read_write: "Full access",
+	rfid: "RFID device",
 };
 
 const methodVariants = cva("rounded-none text-white", {

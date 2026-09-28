@@ -4,6 +4,7 @@ export const apiKeyScopeSchema = z.enum([
 	"read_only",
 	"check_in",
 	"read_write",
+	"rfid",
 ]);
 
 // Validation schema for creating an API key
