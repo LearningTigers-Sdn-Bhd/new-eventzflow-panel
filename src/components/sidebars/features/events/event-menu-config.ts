@@ -36,6 +36,7 @@ import {
 	Package,
 	PackageOpen,
 	Printer,
+	Radio,
 	ScanQrCode,
 	Speech,
 	SquareActivity,
@@ -647,6 +648,14 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "View QR code scan logs and entry records.",
 					icon: ScanQrCode,
 					visible: (p) => visible.eventAdmin(p) || visible.canAccessTickets(p),
+				},
+				{
+					route: "rfid",
+					label: "RFID",
+					description:
+						"RFID headcount, stations, bindings, visits, and corrections.",
+					icon: Radio,
+					visible: (p, e) => visible.ticketEvent(p, e) && visible.eventAdmin(p),
 				},
 				{
 					route: "event-activity",
