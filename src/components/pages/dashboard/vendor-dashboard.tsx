@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { MdSpaceDashboard } from "react-icons/md";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { ErrorState } from "@/components/data-state";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconTitle } from "@/components/ui/icon-heading";
@@ -30,8 +30,9 @@ import {
 } from "@/lib/api/business-matching";
 import { getVendorDashboard } from "@/lib/api/vendor-dashboard";
 import type { VendorEventData } from "@/lib/api/vendor-dashboard/response";
-import { getEventStatusClass } from "@/lib/status-variants";
 import { cn } from "@/lib/utils";
+
+const EMPTY_EVENTS: VendorEventData[] = [];
 
 export function VendorDashboard() {
 	const { isInitialized, user } = useAuth();
@@ -49,7 +50,8 @@ export function VendorDashboard() {
 		enabled: isInitialized,
 	});
 
-	const { summary, events } = dashboardData || { summary: null, events: [] };
+	const summary = dashboardData?.summary ?? null;
+	const events = dashboardData?.events ?? EMPTY_EVENTS;
 
 	// A vendor may also be a linked business matching host for one of these
 	// same events — check each event for sessions they host. Empty for the
@@ -61,6 +63,40 @@ export function VendorDashboard() {
 			enabled: isInitialized && !!dashboardData,
 		})),
 	});
+
+	// Split events into active/upcoming vs past, with latest event on top
+	const { activeEvents, pastEvents } = useMemo(() => {
+		const now = new Date();
+		const isPastEvent = (event: VendorEventData) => {
+			if (!event.end_date) return false;
+			const end = new Date(event.end_date);
+			end.setHours(23, 59, 59, 999);
+			return end.getTime() < now.getTime();
+		};
+
+		const active: VendorEventData[] = [];
+		const past: VendorEventData[] = [];
+
+		for (const event of events) {
+			if (isPastEvent(event)) {
+				past.push(event);
+			} else {
+				active.push(event);
+			}
+		}
+
+		const sortByLatest = (a: VendorEventData, b: VendorEventData) => {
+			const aTime = new Date(a.start_date || 0).getTime();
+			const bTime = new Date(b.start_date || 0).getTime();
+			if (bTime !== aTime) return bTime - aTime;
+			return b.id - a.id;
+		};
+
+		active.sort(sortByLatest);
+		past.sort(sortByLatest);
+
+		return { activeEvents: active, pastEvents: past };
+	}, [events]);
 
 	if (!isInitialized || isLoading) {
 		return <VendorDashboardSkeleton />;
@@ -109,7 +145,6 @@ export function VendorDashboard() {
 					<StatsCard
 						label="Assigned Events"
 						value={summary.total_events}
-						subtitle={`${summary.active_events} active`}
 						Icon={Calendar}
 					/>
 					<StatsCard
@@ -133,11 +168,7 @@ export function VendorDashboard() {
 			{/* Events List */}
 			<div className="mt-4 border-t border-dashed pt-4 sm:mt-6 sm:pt-6">
 				<div className="mb-3 px-3 sm:mb-4 sm:px-4">
-					<IconTitle
-						icon={Calendar}
-						title="Your Events"
-						description="Events you are assigned to as a vendor"
-					/>
+					<IconTitle icon={Calendar} title="Your Events" />
 				</div>
 
 				{events.length === 0 ? (
@@ -152,17 +183,87 @@ export function VendorDashboard() {
 							</p>
 						</CardContent>
 					</Card>
+				) : activeEvents.length > 0 ? (
+					<>
+						<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
+							{activeEvents.map((event) => (
+								<VendorEventCard
+									key={event.id}
+									event={event}
+									formatDate={formatDate}
+									hostedSessions={hostedSessionsByEventId.get(event.id)}
+									onViewDetails={() => {
+										if (event.is_business_host_only || !event.event_vendor_id) {
+											router.push(
+												`/event/${event.id}/business-matching` as Route,
+											);
+										} else {
+											router.push(`/event/${event.id}/vendor-profile` as Route);
+										}
+									}}
+									onViewBusinessMatching={() =>
+										router.push(`/event/${event.id}/business-matching` as Route)
+									}
+								/>
+							))}
+						</div>
+
+						{pastEvents.length > 0 && (
+							<div className="mt-6 border-t border-dashed pt-4 sm:mt-8 sm:pt-6">
+								<div className="mb-3 px-3 sm:mb-4 sm:px-4">
+									<h4 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+										Past Events
+									</h4>
+								</div>
+								<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2 opacity-85 hover:opacity-100 transition-opacity">
+									{pastEvents.map((event) => (
+										<VendorEventCard
+											key={event.id}
+											event={event}
+											formatDate={formatDate}
+											hostedSessions={hostedSessionsByEventId.get(event.id)}
+											onViewDetails={() => {
+												if (
+													event.is_business_host_only ||
+													!event.event_vendor_id
+												) {
+													router.push(
+														`/event/${event.id}/business-matching` as Route,
+													);
+												} else {
+													router.push(
+														`/event/${event.id}/vendor-profile` as Route,
+													);
+												}
+											}}
+											onViewBusinessMatching={() =>
+												router.push(
+													`/event/${event.id}/business-matching` as Route,
+												)
+											}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+					</>
 				) : (
 					<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
-						{events.map((event) => (
+						{pastEvents.map((event) => (
 							<VendorEventCard
 								key={event.id}
 								event={event}
 								formatDate={formatDate}
 								hostedSessions={hostedSessionsByEventId.get(event.id)}
-								onViewDetails={() =>
-									router.push(`/event/${event.id}/vendor-profile` as Route)
-								}
+								onViewDetails={() => {
+									if (event.is_business_host_only || !event.event_vendor_id) {
+										router.push(
+											`/event/${event.id}/business-matching` as Route,
+										);
+									} else {
+										router.push(`/event/${event.id}/vendor-profile` as Route);
+									}
+								}}
 								onViewBusinessMatching={() =>
 									router.push(`/event/${event.id}/business-matching` as Route)
 								}
@@ -198,7 +299,7 @@ function VendorEventCard({
 
 	return (
 		<Card className="group rounded-none border-dashed p-0 transition-all hover:border-primary/30 hover:border-solid hover:shadow-md">
-			<CardHeader className="space-y-3 p-3 sm:p-4">
+			<CardHeader className="gap-1 p-3 pb-1 sm:p-4 sm:pb-1.5">
 				<div className="flex items-start justify-between gap-2">
 					<CardTitle className="line-clamp-2 text-base sm:text-lg">
 						{event.title}
@@ -213,87 +314,91 @@ function VendorEventCard({
 						<ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
 					</Button>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<Badge
-						className={cn(
-							"shrink-0 rounded-none text-xs capitalize",
-							getEventStatusClass(event.status),
-						)}
-					>
-						{event.status}
-					</Badge>
-					<span className="text-muted-foreground text-xs">
+				<div className="flex items-center gap-1.5 font-medium text-muted-foreground text-sm sm:text-base">
+					<Calendar className="size-4 shrink-0 text-muted-foreground/70" />
+					<span>
 						{formatDate(event.start_date)} - {formatDate(event.end_date)}
 					</span>
 				</div>
 			</CardHeader>
 			<CardContent className="border-t p-0">
-				{/* Vendor Stats - optimized for mobile */}
-				<div
-					className={cn(
-						"grid gap-2 p-3 sm:gap-3 sm:p-4",
-						isTicketEvent ? "grid-cols-2" : "grid-cols-3",
-					)}
-				>
-					{/* Lead count */}
-					{!isTicketEvent && (
-						<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-							<Speech className="size-4 text-muted-foreground sm:size-5" />
-							<div>
-								<p className="text-[10px] text-muted-foreground sm:text-xs">
-									Your Leads
-								</p>
-								<p className="font-bold text-base sm:text-lg">
-									{event.lead_count}
-								</p>
+				{event.is_business_host_only ? (
+					<div className="p-2.5 sm:p-3.5">
+						<div className="flex items-center gap-2 text-muted-foreground text-xs">
+							<Briefcase className="h-4 w-4 shrink-0 text-primary" />
+							<span>You are assigned as a Business Host for this event.</span>
+						</div>
+					</div>
+				) : (
+					<>
+						{/* Vendor Stats - optimized for mobile */}
+						<div
+							className={cn(
+								"grid gap-2 p-2.5 sm:gap-3 sm:p-3.5",
+								isTicketEvent ? "grid-cols-2" : "grid-cols-3",
+							)}
+						>
+							{/* Lead count */}
+							{!isTicketEvent && (
+								<div className="flex items-center justify-between gap-2 rounded-none border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+									<div className="flex items-center gap-1.5 min-w-0">
+										<Speech className="size-4 shrink-0 text-muted-foreground" />
+										<span className="truncate text-xs text-muted-foreground">
+											Leads
+										</span>
+									</div>
+									<span className="shrink-0 font-bold text-sm sm:text-base">
+										{event.lead_count}
+									</span>
+								</div>
+							)}
+
+							{/* Voucher stats */}
+							<div className="flex items-center justify-between gap-2 rounded-none border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+								<div className="flex items-center gap-1.5 min-w-0">
+									<Ticket className="size-4 shrink-0 text-muted-foreground" />
+									<span className="truncate text-xs text-muted-foreground">
+										Vouchers
+									</span>
+								</div>
+								<span className="shrink-0 font-bold text-sm sm:text-base">
+									{event.total_vouchers}
+								</span>
+							</div>
+
+							<div className="flex items-center justify-between gap-2 rounded-none border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+								<div className="flex items-center gap-1.5 min-w-0">
+									<ShoppingBag className="size-4 shrink-0 text-muted-foreground" />
+									<span className="truncate text-xs text-muted-foreground">
+										Redeemed
+									</span>
+								</div>
+								<span className="shrink-0 font-bold text-green-600 text-sm sm:text-base dark:text-green-400">
+									{event.total_redeemed}
+								</span>
 							</div>
 						</div>
-					)}
 
-					{/* Voucher stats */}
-					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-						<Ticket className="size-4 text-muted-foreground sm:size-5" />
-						<div>
-							<p className="text-[10px] text-muted-foreground sm:text-xs">
-								Vouchers
-							</p>
-							<p className="font-bold text-base sm:text-lg">
-								{event.total_vouchers}
+						{/* Redemption Rate Progress Bar */}
+						<div className="border-t p-3 sm:p-4">
+							<div className="flex items-center justify-between text-xs">
+								<span className="text-muted-foreground">Redemption Rate</span>
+								<span className="font-medium font-mono">
+									{event.redemption_rate.toFixed(1)}%
+								</span>
+							</div>
+							<div className="mt-2 h-1.5 overflow-hidden rounded-none bg-secondary">
+								<div
+									className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all"
+									style={{ width: `${Math.min(event.redemption_rate, 100)}%` }}
+								/>
+							</div>
+							<p className="mt-1 text-right text-muted-foreground text-xs">
+								{event.total_redeemed} / {event.total_vouchers} vouchers
 							</p>
 						</div>
-					</div>
-
-					<div className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2 text-center sm:flex-row sm:gap-2 sm:text-left">
-						<ShoppingBag className="size-4 text-muted-foreground sm:size-5" />
-						<div>
-							<p className="text-[10px] text-muted-foreground sm:text-xs">
-								Redeemed
-							</p>
-							<p className="font-bold text-base text-green-600 sm:text-lg dark:text-green-400">
-								{event.total_redeemed}
-							</p>
-						</div>
-					</div>
-				</div>
-
-				{/* Redemption Rate Progress Bar */}
-				<div className="border-t p-3 sm:p-4">
-					<div className="flex items-center justify-between text-xs">
-						<span className="text-muted-foreground">Redemption Rate</span>
-						<span className="font-medium font-mono">
-							{event.redemption_rate.toFixed(1)}%
-						</span>
-					</div>
-					<div className="mt-2 h-1.5 overflow-hidden rounded-none bg-secondary">
-						<div
-							className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all"
-							style={{ width: `${Math.min(event.redemption_rate, 100)}%` }}
-						/>
-					</div>
-					<p className="mt-1 text-right text-muted-foreground text-xs">
-						{event.total_redeemed} / {event.total_vouchers} vouchers
-					</p>
-				</div>
+					</>
+				)}
 
 				{/* Business Matching — only if you also host sessions for this event */}
 				{hostedSessions && hostedSessions.length > 0 && (
@@ -301,17 +406,19 @@ function VendorEventCard({
 						<div className="mb-2 flex items-center justify-between gap-2">
 							<span className="flex items-center gap-1.5 font-medium text-xs">
 								<Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-								Business Matching — you host this
+								Business Matching
 							</span>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={onViewBusinessMatching}
-								className="h-7 shrink-0 gap-1 rounded-none text-xs"
-							>
-								View
-								<ChevronRight className="h-3 w-3" />
-							</Button>
+							{!event.is_business_host_only && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={onViewBusinessMatching}
+									className="h-7 shrink-0 gap-1 rounded-none text-xs"
+								>
+									View
+									<ChevronRight className="h-3 w-3" />
+								</Button>
+							)}
 						</div>
 						<div className="space-y-1.5">
 							{hostedSessions.map((session) => (
@@ -369,7 +476,6 @@ function VendorDashboardSkeleton() {
 						<div className="space-y-2">
 							<Skeleton className="h-3 w-20 sm:h-4 sm:w-24" />
 							<Skeleton className="h-6 w-12 sm:h-8 sm:w-16" />
-							<Skeleton className="h-3 w-16 sm:w-20" />
 						</div>
 						<Skeleton className="h-8 w-8 shrink-0 rounded-md sm:h-10 sm:w-10" />
 					</div>
@@ -380,33 +486,31 @@ function VendorDashboardSkeleton() {
 			<div className="mt-4 border-t border-dashed pt-4 sm:mt-6 sm:pt-6">
 				<div className="mb-3 px-3 sm:mb-4 sm:px-4">
 					<Skeleton className="h-5 w-28 sm:h-6 sm:w-32" />
-					<Skeleton className="mt-1 h-3 w-48 sm:w-56" />
 				</div>
 				<div className="grid gap-3 px-3 sm:gap-4 sm:px-4 lg:grid-cols-2">
 					{[1, 2].map((i) => (
 						<div key={i} className="rounded-none border border-dashed p-0">
 							{/* Card Header */}
-							<div className="space-y-3 p-3 sm:p-4">
+							<div className="gap-1 p-3 pb-1 sm:p-4 sm:pb-1.5">
 								<div className="flex items-start justify-between gap-2">
 									<Skeleton className="h-5 w-40 sm:h-6 sm:w-48" />
 									<Skeleton className="h-8 w-16 shrink-0 rounded-none" />
 								</div>
-								<div className="flex flex-wrap items-center gap-2">
-									<Skeleton className="h-5 w-20 rounded-none" />
-									<Skeleton className="h-3 w-32" />
-								</div>
+								<Skeleton className="h-4 w-44 sm:h-5 sm:w-56" />
 							</div>
 
 							{/* Stats Grid */}
-							<div className="grid grid-cols-2 gap-2 border-t p-3 sm:gap-3 sm:p-4">
+							<div className="grid grid-cols-2 gap-2 border-t p-2.5 sm:gap-3 sm:p-3.5">
 								{[1, 2].map((j) => (
 									<div
 										key={j}
-										className="flex flex-col items-center gap-1 rounded-none border border-primary/20 bg-primary/5 p-2"
+										className="flex items-center justify-between gap-2 rounded-none border border-primary/20 bg-primary/5 px-2.5 py-1.5"
 									>
-										<Skeleton className="h-4 w-4 sm:h-5 sm:w-5" />
-										<Skeleton className="h-2 w-12 sm:h-3" />
-										<Skeleton className="h-5 w-10 sm:h-6 sm:w-12" />
+										<div className="flex items-center gap-1.5">
+											<Skeleton className="h-4 w-4" />
+											<Skeleton className="h-3 w-12" />
+										</div>
+										<Skeleton className="h-4 w-6" />
 									</div>
 								))}
 							</div>

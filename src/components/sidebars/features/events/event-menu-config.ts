@@ -662,12 +662,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 					label: "Activity Log",
 					description: "View recent actions on this event.",
 					icon: SquareActivity,
-					visible: (p) =>
-						p.isOrgOwner ||
-						p.isEventAdmin ||
-						p.isEventTeamMember ||
-						p.isBusinessHost ||
-						p.isBusinessMatchingAdmin,
+					visible: (p) => p.isOrgOwner || p.isEventAdmin || p.isEventTeamMember,
 				},
 				{
 					route: "lead-logs",
@@ -700,7 +695,6 @@ const rawEventMenuConfig: EventMenuConfig = {
 const BUSINESS_HOST_ALLOWED_ROUTES = new Set([
 	"business-matching",
 	"host-profile",
-	"event-activity",
 ]);
 
 const isPureBusinessHost = (p: Permissions) =>
@@ -742,10 +736,7 @@ function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
 // ============================================================================
 // A user assigned as business_matching_admin (and nothing else) manages
 // Business Matching for this event only — no other modules.
-const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set([
-	"business-matching",
-	"event-activity",
-]);
+const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set(["business-matching"]);
 
 const isPureBusinessMatchingAdmin = (p: Permissions) =>
 	(p.isBusinessMatchingAdmin ?? false) &&

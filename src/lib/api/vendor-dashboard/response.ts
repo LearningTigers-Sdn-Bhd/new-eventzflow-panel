@@ -7,7 +7,8 @@ export interface VendorEventData {
 	use_ticket: boolean;
 	start_date: string;
 	end_date: string;
-	event_vendor_id: number;
+	event_vendor_id: number | null;
+	is_business_host_only?: boolean;
 	lead_count: number;
 	total_vouchers: number;
 	total_redeemed: number;

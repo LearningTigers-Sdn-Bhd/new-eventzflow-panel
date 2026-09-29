@@ -166,19 +166,42 @@ export const getColumns = (
 	userRole?: string,
 	isPureBusinessMatchingAdmin?: boolean,
 ): ColumnDef<Event>[] => {
+	const isOrganizer = userRole === "org_owner" || userRole === "organizer";
+
+	let cols = [...baseColumns];
+
+	// Remove Event ID and Status columns for non-organizer roles
+	if (!isOrganizer) {
+		cols = cols.filter(
+			(column) =>
+				!(
+					"accessorKey" in column &&
+					(column.accessorKey === "id" || column.accessorKey === "status")
+				) &&
+				column.id !== "id" &&
+				column.id !== "status",
+		);
+	}
+
 	// A pure BM admin only ever lands on Business Matching for an event —
 	// there's nothing for them to "Manage"/archive/delete from this list.
 	if (isPureBusinessMatchingAdmin) {
-		return baseColumns.filter((column) => column.id !== "actions");
+		cols = cols.filter((column) => column.id !== "actions");
 	}
 
 	if (userRole === "org_owner") {
-		// Insert visibility column after status column (index 3)
-		const columnsWithVisibility = [...baseColumns];
-		columnsWithVisibility.splice(3, 0, visibilityColumn);
-		return columnsWithVisibility;
+		// Insert visibility column after status column
+		const statusIndex = cols.findIndex(
+			(col) => "accessorKey" in col && col.accessorKey === "status",
+		);
+		if (statusIndex !== -1) {
+			cols.splice(statusIndex + 1, 0, visibilityColumn);
+		} else {
+			cols.splice(3, 0, visibilityColumn);
+		}
 	}
-	return baseColumns;
+
+	return cols;
 };
 
 // Default export for backward compatibility
