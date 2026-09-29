@@ -26,7 +26,7 @@ interface EventStaffItemProps {
 }
 
 export function EventStaffItem({ member }: EventStaffItemProps) {
-	const { formatDate } = useFormatDate();
+	const { formatDate, formatTime } = useFormatDate();
 
 	const handleEmailClick = () => {
 		window.location.href = `mailto:${member.email}`;
@@ -123,9 +123,12 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 					)}
 					<div className="flex w-full items-center gap-0.5">
 						<Calendar className="size-4" />
-						<span className="px-2.5 text-sm">
-							Assigned on {formatDate(member.createdAt)}
-						</span>
+						<div className="px-2.5 text-sm">
+							<div className="font-semibold text-foreground">
+								{formatTime(member.createdAt)}
+							</div>
+							<div>{formatDate(member.createdAt, "long")}</div>
+						</div>
 					</div>
 				</div>
 			</ItemContent>

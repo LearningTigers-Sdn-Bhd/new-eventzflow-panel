@@ -126,8 +126,16 @@ const baseColumns: ColumnDef<EventStaffMember>[] = [
 			<SortableHeader column={column} label="Assigned At" />
 		),
 		cell: ({ row }) => {
-			const { formatDate } = useFormatDate();
-			return <div>{formatDate(row.getValue("createdAt"))}</div>;
+			const { formatDate, formatTime } = useFormatDate();
+			const assignedAt = row.getValue("createdAt") as string;
+			return (
+				<div>
+					<div className="font-semibold">{formatTime(assignedAt)}</div>
+					<div className="text-muted-foreground text-xs">
+						{formatDate(assignedAt, "long")}
+					</div>
+				</div>
+			);
 		},
 	},
 ];

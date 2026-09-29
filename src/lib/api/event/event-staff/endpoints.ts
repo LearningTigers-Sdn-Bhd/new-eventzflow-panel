@@ -48,8 +48,8 @@ function transformEventStaffMember(
 		eventRole: staffData.role,
 		status: STATUS_MAP[staffData.user.status] ?? DEFAULT_STATUS,
 		assignmentId: staffData.id,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		createdAt: staffData.created_at,
+		updatedAt: staffData.updated_at,
 	};
 }
 

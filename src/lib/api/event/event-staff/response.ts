@@ -3,6 +3,8 @@ export type BackendEventStaffResponse = {
 	id: number;
 	event_id: number;
 	user_id: string;
+	created_at: string;
+	updated_at: string;
 	role:
 		| "event_admin"
 		| "event_team_member"
