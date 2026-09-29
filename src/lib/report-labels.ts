@@ -33,6 +33,9 @@ export const reportLabels: Record<
 		ticketType: string;
 		searchPlaceholder: string;
 		noMatchesForSearch: string;
+		filterAll: string;
+		filterBelowTarget: string;
+		filterReachedTarget: string;
 		show: string;
 		allSelected: string;
 		eventName: string;
@@ -106,6 +109,9 @@ export const reportLabels: Record<
 		ticketType: "Ticket Type",
 		searchPlaceholder: "Search…",
 		noMatchesForSearch: "No matches found.",
+		filterAll: "All",
+		filterBelowTarget: "Below target",
+		filterReachedTarget: "Reached target",
 		show: "Show",
 		allSelected: "All",
 		eventName: "Event Name",
@@ -182,6 +188,9 @@ export const reportLabels: Record<
 		ticketType: "Jenis Tiket",
 		searchPlaceholder: "Cari…",
 		noMatchesForSearch: "Tiada padanan ditemui.",
+		filterAll: "Semua",
+		filterBelowTarget: "Belum capai target",
+		filterReachedTarget: "Sudah capai target",
 		show: "Tunjuk",
 		allSelected: "Semua",
 		eventName: "Nama Acara",

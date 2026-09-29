@@ -48,6 +48,9 @@ export function BreakdownTable({
 }: BreakdownTableProps) {
 	const { labels } = useReportLanguage();
 	const [search, setSearch] = useState("");
+	const [targetFilter, setTargetFilter] = useState<"all" | "below" | "reached">(
+		"all",
+	);
 	const [showQuotaColumn, setShowQuotaColumn] = useState(false);
 	const queryClient = useQueryClient();
 
@@ -85,11 +88,16 @@ export function BreakdownTable({
 		? rows.reduce((top, row) => (row.count > top.count ? row : top))
 		: undefined;
 
-	const filteredRows = search.trim()
-		? rows?.filter((row) =>
-				row.value.toLowerCase().includes(search.trim().toLowerCase()),
-			)
-		: rows;
+	const query = search.trim().toLowerCase();
+	const filteredRows = rows?.filter((row) => {
+		if (query && !row.value.toLowerCase().includes(query)) return false;
+		// Rows without a quota have no target, so they match neither status.
+		if (targetFilter === "below")
+			return row.quota !== undefined && row.count < row.quota;
+		if (targetFilter === "reached")
+			return row.quota !== undefined && row.count >= row.quota;
+		return true;
+	});
 	const filteredTotal =
 		filteredRows?.reduce((sum, row) => sum + row.count, 0) ?? 0;
 
@@ -142,6 +150,29 @@ export function BreakdownTable({
 							</div>
 						) : (
 							<div />
+						)}
+
+						{hasAnyQuota && (
+							<div className="flex">
+								{(
+									[
+										["all", labels.filterAll],
+										["below", labels.filterBelowTarget],
+										["reached", labels.filterReachedTarget],
+									] as const
+								).map(([key, text]) => (
+									<Button
+										key={key}
+										type="button"
+										variant={targetFilter === key ? "secondary" : "outline"}
+										size="sm"
+										className="rounded-none"
+										onClick={() => setTargetFilter(key)}
+									>
+										{text}
+									</Button>
+								))}
+							</div>
 						)}
 
 						{quotaCapable && (
