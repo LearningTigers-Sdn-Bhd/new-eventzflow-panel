@@ -115,10 +115,11 @@ export default function EventPage() {
 							// Business hosts and BM admins don't have access to "details" —
 							// land them on Business Matching instead, their only real
 							// landing page.
-							const landingRoute =
-								user?.role === "exhibitor" || isPureBusinessMatchingAdmin
-									? "business-matching"
-									: "details";
+							const isOrganizer =
+								user?.role === "org_owner" || user?.role === "organizer";
+							const landingRoute = isOrganizer
+								? "details"
+								: "business-matching";
 							router.push(`/event/${event.id}/${landingRoute}`);
 						},
 						excludeRowClickColumns: ["actions"],

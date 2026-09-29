@@ -5,14 +5,16 @@ import {
 	ChevronDown,
 	ChevronRight,
 	Clock,
+	Copy,
 	DollarSign,
 	ExternalLink,
 	Mail,
 	MapPin,
 	MessageSquare,
-	MoreVertical,
+	Pencil,
 	Phone,
 	User,
+	XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -265,7 +267,6 @@ export function BookingCardItem({
 	const confirmTogglePresent = () => {
 		const isCurrentlyPresent = displayBooking.attendance === "Present";
 		const newPresentStatus = isCurrentlyPresent ? "" : "Present";
-		// setShowConfirm(false); // No longer needed
 		updateBooking(
 			{
 				bookingId: displayBooking.id,
@@ -280,25 +281,6 @@ export function BookingCardItem({
 					toast.success(
 						`Attendance ${newPresentStatus ? "marked as Present" : "cleared"}`,
 					);
-				},
-				onError: () => toast.error("Failed to update attendance"),
-			},
-		);
-	};
-
-	const handleSetAttendance = (status: "Present" | "Absent" | "") => {
-		updateBooking(
-			{
-				bookingId: displayBooking.id,
-				data: { ...getCommonBookingData(), attendance: status },
-			},
-			{
-				onSuccess: () => {
-					const updates = { attendance: status };
-					saveOverride(updates); // Persist override
-					setDisplayBooking((prev) => ({ ...prev, ...updates })); // Immediate visual update
-					updateLocalCache(updates);
-					toast.success(`Attendance set to ${status || "cleared"}`);
 				},
 				onError: () => toast.error("Failed to update attendance"),
 			},
@@ -344,107 +326,100 @@ export function BookingCardItem({
 		</Badge>
 	);
 
-	const actionsMenu = (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-					<MoreVertical className="h-4 w-4" />
-					<span className="sr-only">Open actions</span>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-[180px]">
-				{displayBooking.reschedule_link && (
-					<DropdownMenuItem
-						onClick={() =>
-							window.open(displayBooking.reschedule_link, "_blank")
-						}
+	const contactInfoSection = (displayBooking.email || displayBooking.phone) && (
+		<div className="mt-1 flex flex-col gap-1 border-t pt-1 text-xs">
+			{displayBooking.email && (
+				<div className="group flex items-center justify-between gap-1">
+					<div
+						className="flex min-w-0 items-center gap-1.5 text-muted-foreground"
+						title={displayBooking.email}
 					>
-						Reschedule
-					</DropdownMenuItem>
-				)}
-				{displayBooking.status !== "Cancelled" && (
-					<DropdownMenuItem
-						onClick={handleCancelBooking}
-						disabled={isCancelling}
-						className="text-destructive focus:text-destructive"
+						<Mail className="h-3 w-3 shrink-0" />
+						<span className="truncate text-xs">{displayBooking.email}</span>
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-5 w-5 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+						onClick={() => {
+							navigator.clipboard.writeText(displayBooking.email);
+							toast.success("Email copied to clipboard");
+						}}
+						title="Copy email"
 					>
-						Cancel
-					</DropdownMenuItem>
-				)}
-				{displayBooking.attendance === "Present" && (
-					<DropdownMenuItem
-						onClick={() => handleSetAttendance("Absent")}
-						disabled={isPending}
+						<Copy className="h-3 w-3" />
+						<span className="sr-only">Copy email</span>
+					</Button>
+				</div>
+			)}
+			{displayBooking.phone && (
+				<div className="group flex items-center justify-between gap-1">
+					<div
+						className="flex min-w-0 items-center gap-1.5 text-muted-foreground"
+						title={displayBooking.phone}
 					>
-						Mark Absent
-					</DropdownMenuItem>
-				)}
-				{displayBooking.attendance === "Absent" && (
-					<DropdownMenuItem
-						onClick={() => handleSetAttendance("Present")}
-						disabled={isPending}
+						<Phone className="h-3 w-3 shrink-0" />
+						<span className="truncate text-xs">{displayBooking.phone}</span>
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-5 w-5 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+						onClick={() => {
+							navigator.clipboard.writeText(displayBooking.phone);
+							toast.success("Phone copied to clipboard");
+						}}
+						title="Copy phone"
 					>
-						Mark Present
-					</DropdownMenuItem>
-				)}
-				{!displayBooking.attendance && (
-					<>
-						<DropdownMenuItem
-							onClick={() => handleSetAttendance("Present")}
-							disabled={isPending}
-						>
-							Mark Present
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() => handleSetAttendance("Absent")}
-							disabled={isPending}
-						>
-							Mark Absent
-						</DropdownMenuItem>
-					</>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-
-	const commentSection = (
-		<div className="mt-1 border-t pt-1">
-			<Button
-				variant="outline"
-				size="sm"
-				className="h-auto w-full justify-start whitespace-normal py-1.5 text-left font-normal text-muted-foreground text-xs"
-				onClick={openCommentDialog}
-			>
-				<MessageSquare className="mr-2 h-3 w-3 shrink-0" />
-				<span className="line-clamp-2">
-					{displayBooking.host_comment
-						? displayBooking.host_comment
-						: "Add Comment..."}
-				</span>
-			</Button>
+						<Copy className="h-3 w-3" />
+						<span className="sr-only">Copy phone</span>
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 
-	const dealValueSection = (
-		<div className="pt-0">
+	const commentAndDealValueSection = (
+		<div className="mt-1 grid grid-cols-2 gap-1.5 border-t pt-1.5">
 			<Button
 				variant="outline"
 				size="sm"
-				className="mt-1 h-auto w-full justify-start py-1.5 font-normal text-muted-foreground text-xs"
-				onClick={openValueDialog}
+				className="h-7 w-full justify-start px-2 py-1 font-normal text-muted-foreground text-xs"
+				onClick={openCommentDialog}
+				title={displayBooking.host_comment || "+ Comment"}
 			>
-				<DollarSign className="mr-2 h-3 w-3 shrink-0" />
+				<MessageSquare className="mr-1.5 h-3 w-3 shrink-0" />
+				<span className="truncate">
+					{displayBooking.host_comment
+						? displayBooking.host_comment
+						: "+ Comment"}
+				</span>
+			</Button>
+			<Button
+				variant="outline"
+				size="sm"
+				className="h-7 w-full justify-start px-2 py-1 font-normal text-muted-foreground text-xs"
+				onClick={openValueDialog}
+				title={
+					displayBooking.potential_deal_value
+						? `Deal: ${displayBooking.potential_deal_value}`
+						: "+ Potential Deal"
+				}
+			>
+				<DollarSign className="mr-1.5 h-3 w-3 shrink-0" />
 				<span className="truncate">
 					{displayBooking.potential_deal_value
 						? `Deal: ${displayBooking.potential_deal_value}`
-						: "Set Potential Deal Value..."}
+						: "+ Potential Deal"}
 				</span>
 			</Button>
 		</div>
 	);
 
 	const bookerProfileSection = bookerProfileInfo && (
-		<div className="mt-2 border-t pt-2">
+		<div className="mt-1 border-t pt-1.5">
 			<Button
 				variant="outline"
 				size="sm"
@@ -474,35 +449,76 @@ export function BookingCardItem({
 		</div>
 	);
 
-	const attendanceFooter = (
-		<>
-			{displayBooking.status === "Pending" && (
+	const bottomButtons = (
+		<div className="flex w-full items-center gap-2">
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" size="sm" className="h-7 flex-1 text-xs">
+						<Pencil className="mr-1.5 h-3 w-3" />
+						Edit
+						<ChevronDown className="ml-1 h-3 w-3 opacity-60" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="start" className="w-[160px]">
+					{displayBooking.reschedule_link ? (
+						<DropdownMenuItem
+							onClick={() =>
+								window.open(displayBooking.reschedule_link, "_blank")
+							}
+						>
+							<Calendar className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+							Reschedule
+						</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem disabled>
+							<Calendar className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+							Reschedule (Unavailable)
+						</DropdownMenuItem>
+					)}
+					{displayBooking.status !== "Cancelled" && (
+						<DropdownMenuItem
+							onClick={handleCancelBooking}
+							disabled={isCancelling}
+							className="text-destructive focus:text-destructive"
+						>
+							<XCircle className="mr-2 h-3.5 w-3.5" />
+							Cancel
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			{displayBooking.status === "Pending" ? (
 				<Button
 					size="sm"
-					className="h-6 w-full bg-green-600 text-sm text-white hover:bg-green-700"
+					className="h-7 flex-1 bg-green-600 text-white text-xs hover:bg-green-700"
 					onClick={handleApproveBooking}
 					disabled={isApproving}
 				>
-					<CheckCircle className="mr-1 h-3 w-3" /> Approve
+					<CheckCircle className="mr-1.5 h-3 w-3" />
+					Approve
+				</Button>
+			) : (
+				<Button
+					variant={
+						displayBooking.attendance === "Present" ? "default" : "outline"
+					}
+					size="sm"
+					className={cn(
+						"h-7 flex-1 text-xs",
+						displayBooking.attendance === "Present" &&
+							"bg-green-600 text-white hover:bg-green-700",
+					)}
+					onClick={handleTogglePresent}
+					disabled={isPending}
+				>
+					<CheckCircle className="mr-1.5 h-3 w-3" />
+					{displayBooking.attendance === "Present"
+						? "Marked Present"
+						: "Mark Attendance"}
 				</Button>
 			)}
-
-			{displayBooking.status === "Approved" &&
-				(!displayBooking.attendance ||
-					(displayBooking.attendance !== "Present" &&
-						displayBooking.attendance !== "Absent")) && (
-					<Button
-						variant="outline"
-						size="sm"
-						className="h-6 w-full text-sm"
-						onClick={handleTogglePresent}
-						disabled={isPending}
-					>
-						<CheckCircle className="mr-1 h-3 w-3" />
-						Mark Attendance
-					</Button>
-				)}
-		</>
+		</div>
 	);
 
 	if (variant === "row") {
@@ -550,65 +566,34 @@ export function BookingCardItem({
 					<div className="ml-auto flex shrink-0 items-center gap-1">
 						{statusBadge}
 						{attendanceBadge}
-						{actionsMenu}
 					</div>
 				</div>
 
 				{isExpanded && (
 					<div className="grid gap-1.5 border-t p-2 pt-2">
 						{displayBooking.location && (
-							<div className="flex items-start gap-1.5 pb-1 text-muted-foreground">
+							<div className="flex items-start gap-1.5 pb-1 text-muted-foreground text-xs">
 								<MapPin className="mt-0.5 h-3 w-3 shrink-0" />
 								{displayBooking.location.startsWith("http") ? (
 									<a
 										href={displayBooking.location}
 										target="_blank"
 										rel="noreferrer"
-										className="flex items-center gap-1 text-primary text-sm hover:underline"
+										className="flex items-center gap-1 text-primary text-xs hover:underline"
 									>
 										Online <ExternalLink className="h-2.5 w-2.5 shrink-0" />
 									</a>
 								) : (
-									<span className="whitespace-pre-wrap break-words text-sm">
+									<span className="whitespace-pre-wrap break-words text-xs">
 										{displayBooking.location}
 									</span>
 								)}
 							</div>
 						)}
-						{(displayBooking.email || displayBooking.phone) && (
-							<div className="grid gap-1.5 pb-1">
-								{displayBooking.email && (
-									<div
-										className="flex items-center gap-1.5 truncate text-muted-foreground"
-										title={displayBooking.email}
-									>
-										<Mail className="h-3 w-3 shrink-0" />
-										<span className="truncate text-sm">
-											{displayBooking.email}
-										</span>
-									</div>
-								)}
-								{displayBooking.phone && (
-									<div
-										className="flex items-center gap-1.5 truncate text-muted-foreground"
-										title={displayBooking.phone}
-									>
-										<Phone className="h-3 w-3 shrink-0" />
-										<span className="truncate text-sm">
-											{displayBooking.phone}
-										</span>
-									</div>
-								)}
-							</div>
-						)}
-						{commentSection}
-						{dealValueSection}
+						{contactInfoSection}
+						{commentAndDealValueSection}
 						{bookerProfileSection}
-						{attendanceFooter && (
-							<div className="mt-1 flex flex-col gap-2 border-t pt-2">
-								{attendanceFooter}
-							</div>
-						)}
+						<div className="mt-1 border-t pt-2">{bottomButtons}</div>
 					</div>
 				)}
 			</div>
@@ -617,7 +602,7 @@ export function BookingCardItem({
 
 	return (
 		<Card className="flex h-full flex-col overflow-hidden shadow-none">
-			<CardHeader className="shrink-0 space-y-0 p-1.5">
+			<CardHeader className="shrink-0 space-y-0 p-2 pb-1.5">
 				<div className="flex items-center justify-between gap-1.5">
 					<div className="min-w-0 flex-1 leading-tight">
 						<CardTitle
@@ -630,30 +615,27 @@ export function BookingCardItem({
 					<div className="flex items-center gap-1">
 						{statusBadge}
 						{attendanceBadge}
-						{actionsMenu}
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="grid flex-1 gap-1.5 p-2 pt-2">
-				<div className="flex items-center gap-1.5">
-					<Calendar className="h-3 w-3 shrink-0" />
-					<span className="truncate font-medium text-foreground text-sm">
-						{displayBooking.booking_date}
-					</span>
-				</div>
-				<div className="flex items-center gap-1.5">
-					<Clock className="h-3 w-3 shrink-0" />
-					<span className="truncate text-foreground text-sm">
-						{displayBooking.booking_time} ({displayBooking.duration})
-					</span>
+			<CardContent className="grid flex-1 gap-1.5 p-2 pt-1">
+				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+					<div className="flex items-center gap-1.5 font-medium text-foreground">
+						<Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+						<span>{displayBooking.booking_date}</span>
+					</div>
+					<div className="flex items-center gap-1.5 text-muted-foreground">
+						<Clock className="h-3.5 w-3.5 shrink-0" />
+						<span>
+							{displayBooking.booking_time}
+							{displayBooking.duration ? ` (${displayBooking.duration})` : ""}
+						</span>
+					</div>
 				</div>
 				{displayBooking.location && (
-					<div className="flex items-center gap-1.5">
+					<div className="flex items-center gap-1.5 text-muted-foreground text-xs">
 						<MapPin className="h-3 w-3 shrink-0" />
-						<span
-							className="flex-1 truncate text-sm"
-							title={displayBooking.location}
-						>
+						<span className="flex-1 truncate" title={displayBooking.location}>
 							{displayBooking.location.startsWith("http") ? (
 								<a
 									href={displayBooking.location}
@@ -669,37 +651,12 @@ export function BookingCardItem({
 						</span>
 					</div>
 				)}
-				{(displayBooking.email || displayBooking.phone) && (
-					<div className="mt-1 grid gap-1.5 border-t pt-1">
-						{displayBooking.email && (
-							<div
-								className="flex items-center gap-1.5 truncate text-muted-foreground"
-								title={displayBooking.email}
-							>
-								<Mail className="h-3 w-3 shrink-0" />
-								<span className="truncate text-sm">{displayBooking.email}</span>
-							</div>
-						)}
-						{displayBooking.phone && (
-							<div
-								className="flex items-center gap-1.5 truncate text-muted-foreground"
-								title={displayBooking.phone}
-							>
-								<Phone className="h-3 w-3 shrink-0" />
-								<span className="truncate text-sm">{displayBooking.phone}</span>
-							</div>
-						)}
-					</div>
-				)}
-
-				{/* Host Comment Section */}
-				{commentSection}
-
-				{dealValueSection}
+				{contactInfoSection}
+				{commentAndDealValueSection}
 				{bookerProfileSection}
 			</CardContent>
-			<CardFooter className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-2 pt-2">
-				{attendanceFooter}
+			<CardFooter className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-2">
+				{bottomButtons}
 			</CardFooter>
 		</Card>
 	);

@@ -227,15 +227,15 @@ export default function LeadScanPageContent() {
 
 			<div className="space-y-4 p-3 sm:p-4">
 				<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-					<Card className="self-start overflow-hidden rounded-none border-primary/20 border-x-0 border-y border-dashed bg-accent p-2 shadow-none sm:p-4">
+					<Card className="self-start overflow-hidden rounded-none border-primary/20 border-x-0 border-y border-dashed bg-muted/40 p-2 shadow-none sm:p-4">
 						<div className="mx-auto w-full max-w-md">
-							<div className="relative aspect-square w-full rounded-none bg-white">
+							<div className="relative aspect-square w-full rounded-none border border-border bg-card">
 								<div id={SCANNER_ID} className="h-full w-full" />
 								{!isScanning && (
-									<div className="absolute inset-0 flex flex-col items-center justify-center rounded-none border border-primary/30 border-dashed">
+									<div className="absolute inset-0 flex flex-col items-center justify-center rounded-none border border-primary/30 border-dashed bg-card/90 backdrop-blur-xs">
 										<div className="max-w-sm space-y-4 px-3 text-center sm:space-y-6 sm:px-4">
-											<div className="inline-flex rounded-none border border-primary/10 bg-primary/5 p-4 sm:p-6">
-												<QrCode className="h-12 w-12 text-primary/60 sm:h-16 sm:w-16" />
+											<div className="inline-flex rounded-none border border-primary/20 bg-primary/10 p-4 sm:p-6">
+												<QrCode className="h-12 w-12 text-primary sm:h-16 sm:w-16" />
 											</div>
 											<div className="space-y-1 sm:space-y-2">
 												<h3 className="font-semibold text-foreground text-lg sm:text-xl">

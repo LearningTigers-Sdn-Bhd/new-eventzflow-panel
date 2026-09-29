@@ -31,6 +31,7 @@ import {
 	removeHost,
 	requestPortalBooking,
 	respondPortalBooking,
+	sendHostInviteEmail,
 	type UpdateBookingRequest,
 	type UpdateTagsRequest,
 	unarchiveBusinessMatchingSession,
@@ -212,6 +213,18 @@ export const useGenerateHostInviteToken = (
 		staleTime: 0,
 		gcTime: 0,
 	});
+
+export const useSendHostInviteEmail = (eventId: string) => {
+	return useMutation({
+		mutationFn: ({
+			bmEventId,
+			email,
+		}: {
+			bmEventId: string;
+			email: string;
+		}) => sendHostInviteEmail(eventId, bmEventId, email),
+	});
+};
 
 export const useBusinessMatchingEvents = (
 	eventId: string,

@@ -32,7 +32,7 @@ export default function EventDetailsPage({
 	const { event_id } = use(params);
 	const { isInitialized } = useAuth();
 	const { permissions } = useEventSidebarContext();
-	const { isVendor, isExhibitionContractor, canManageEvent } = permissions;
+	const { canManageEvent, canViewAnalytics } = permissions;
 	const { openDialog, closeDialog } = useDialog();
 	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
 		`event-${event_id}-include-multi-scans`,
@@ -43,8 +43,7 @@ export default function EventDetailsPage({
 	});
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
-	const shouldFetchAnalytics =
-		isInitialized && !isVendor && !isExhibitionContractor;
+	const shouldFetchAnalytics = isInitialized && Boolean(canViewAnalytics);
 
 	const queries = useQueries({
 		queries: [

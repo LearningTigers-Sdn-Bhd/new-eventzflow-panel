@@ -1,6 +1,6 @@
 import { useUserSessionStore } from "@/stores/new-auth-store";
 import { extractErrorMessage } from "@/utils/error-handler";
-import { restClient } from "@/utils/rest-api";
+import { publicRestClient, restClient } from "@/utils/rest-api";
 import {
 	type LoginRequest,
 	loginRequestSchema,
@@ -19,6 +19,8 @@ import {
 import {
 	type AuthResponse,
 	authResponseSchema,
+	type CheckAccountResponse,
+	checkAccountResponseSchema,
 	type RefreshTokenResponse,
 	type RequestResetPasswordResponse,
 	type ResetPasswordResponse,
@@ -410,6 +412,24 @@ export async function updatePassword(
 			});
 		}
 		return validated;
+	} catch (error) {
+		const errorMessage = await extractErrorMessage(error);
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Check if account exists with email (public endpoint - no auth required)
+ */
+export async function checkAccount(
+	email: string,
+): Promise<CheckAccountResponse> {
+	try {
+		const param = `email=${encodeURIComponent(email.trim().toLowerCase())}`;
+		const response = await publicRestClient.get<CheckAccountResponse>(
+			`v1/auth/check_account?${param}`,
+		);
+		return checkAccountResponseSchema.parse(response);
 	} catch (error) {
 		const errorMessage = await extractErrorMessage(error);
 		throw new Error(errorMessage);

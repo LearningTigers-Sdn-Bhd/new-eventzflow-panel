@@ -1,5 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link as LinkIcon, Loader2, Store, UserPlus } from "lucide-react";
+import {
+	CheckCircle2,
+	Copy,
+	Link as LinkIcon,
+	Loader2,
+	Mail,
+	Store,
+	UserPlus,
+} from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -20,15 +28,19 @@ import {
 	useCreateAndAssignHost,
 	useGenerateHostInviteToken,
 	useLinkExhibitorHost,
+	useSendHostInviteEmail,
 } from "@/hooks/use-business-matching";
 import { useDialog } from "@/hooks/use-dialog";
 import { useEventVendors } from "@/hooks/use-event-vendors";
+import { checkAccount, emailSchema } from "@/lib/api/auth";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import { getEventById } from "@/lib/api/event";
 
 interface AttachHostDialogProps {
 	bmEvent: BusinessMatchingEvent;
 }
+
+type HostEmailStep = "check_email" | "account_found" | "new_account";
 
 const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	const { closeDialog } = useDialog();
@@ -38,6 +50,8 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	const { mutate: linkExhibitor, isPending: isLinking } = useLinkExhibitorHost(
 		bmEvent.event_id,
 	);
+	const { mutate: sendInviteEmail, isPending: isSendingInviteEmail } =
+		useSendHostInviteEmail(bmEvent.event_id);
 	const { data: availableTags } = useBusinessMatchingTags(bmEvent.event_id);
 
 	const { data: event } = useQuery({
@@ -99,16 +113,81 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 			.catch(() => toast.error("Failed to copy link"));
 	};
 
-	// Tab 2: Create Host Account
+	// Tab 2: Add Host by Email Flow (Canva-inspired: Check email first)
+	const [hostStep, setHostStep] = useState<HostEmailStep>("check_email");
 	const [hostName, setHostName] = useState("");
 	const [hostEmail, setHostEmail] = useState("");
 	const [hostPhone, setHostPhone] = useState("");
 	const [hostPassword, setHostPassword] = useState("");
 	const [offeringTags, setOfferingTags] = useState<string[]>([]);
 	const [interestTags, setInterestTags] = useState<string[]>([]);
+	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+	const [emailError, setEmailError] = useState<string | null>(null);
+
+	const handleCheckEmail = async (e?: React.FormEvent) => {
+		if (e) e.preventDefault();
+		setEmailError(null);
+
+		const trimmedEmail = hostEmail.trim().toLowerCase();
+		const validationResult = emailSchema.safeParse(trimmedEmail);
+		if (!validationResult.success) {
+			setEmailError(
+				validationResult.error.issues[0]?.message || "Invalid email address",
+			);
+			return;
+		}
+
+		setIsCheckingEmail(true);
+		try {
+			const res = await checkAccount(trimmedEmail);
+			if (res.data.exists) {
+				setHostStep("account_found");
+			} else {
+				setHostStep("new_account");
+			}
+		} catch (err) {
+			const msg =
+				err instanceof Error
+					? err.message
+					: "Failed to check email. Please try again.";
+			setEmailError(msg);
+		} finally {
+			setIsCheckingEmail(false);
+		}
+	};
+
+	const handleSendEmailInvite = () => {
+		const trimmedEmail = hostEmail.trim().toLowerCase();
+		if (!trimmedEmail) return;
+
+		sendInviteEmail(
+			{
+				bmEventId: bmEvent.id,
+				email: trimmedEmail,
+			},
+			{
+				onSuccess: (data) => {
+					toast.success(
+						data.message || `Invitation email sent to ${trimmedEmail}!`,
+					);
+				},
+				onError: (error) => {
+					toast.error("Failed to send invitation email", {
+						description: error.message || "An unexpected error occurred.",
+					});
+				},
+			},
+		);
+	};
+
+	const handleResetEmailFlow = () => {
+		setHostStep("check_email");
+		setEmailError(null);
+	};
 
 	const handleCreateHost = async () => {
-		if (!hostName || !hostEmail || !hostPassword) {
+		const trimmedEmail = hostEmail.trim().toLowerCase();
+		if (!hostName || !trimmedEmail || !hostPassword) {
 			toast.error("Host name, email, and password are required.");
 			return;
 		}
@@ -118,7 +197,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 				bmEventId: bmEvent.id,
 				data: {
 					full_name: hostName,
-					email: hostEmail,
+					email: trimmedEmail,
 					phone: hostPhone,
 					password: hostPassword,
 					// Admin-created accounts skip the click-to-verify email step —
@@ -157,7 +236,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 				</TabsTrigger>
 				<TabsTrigger value="create">
 					<UserPlus className="mr-2 h-4 w-4" />
-					Create Account
+					Add by Email
 				</TabsTrigger>
 				{linkedExhibitorEnabled && (
 					<TabsTrigger value="link-exhibitor">
@@ -186,79 +265,226 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 				</div>
 			</TabsContent>
 			<TabsContent value="create" className="py-4">
-				<div className="space-y-4">
-					<p className="text-muted-foreground text-sm">
-						Create an account for the host and assign them to this session
-						directly. Their email will be auto-verified.
-					</p>
-					<div className="space-y-2">
-						<Label htmlFor="host-name">Host Full Name</Label>
-						<Input
-							id="host-name"
-							value={hostName}
-							onChange={(e) => setHostName(e.target.value)}
-							placeholder="John Doe"
-						/>
+				{hostStep === "check_email" && (
+					<form onSubmit={handleCheckEmail} className="space-y-4">
+						<p className="text-muted-foreground text-sm">
+							Enter the host's email to get started. We'll check if they already
+							have an EventzFlow account.
+						</p>
+						<div className="space-y-2">
+							<Label htmlFor="host-check-email">Host Email</Label>
+							<Input
+								id="host-check-email"
+								type="email"
+								value={hostEmail}
+								onChange={(e) => {
+									setHostEmail(e.target.value);
+									if (emailError) setEmailError(null);
+								}}
+								placeholder="host@example.com"
+							/>
+							{emailError && (
+								<p className="text-destructive text-xs">{emailError}</p>
+							)}
+						</div>
+						<div className="flex justify-end pt-2">
+							<Button
+								type="submit"
+								disabled={isCheckingEmail || !hostEmail.trim()}
+							>
+								{isCheckingEmail && (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								)}
+								Continue
+							</Button>
+						</div>
+					</form>
+				)}
+
+				{hostStep === "account_found" && (
+					<div className="space-y-4">
+						<div className="space-y-2 rounded-lg border bg-muted/40 p-4">
+							<div className="flex items-center gap-2 font-medium text-foreground">
+								<CheckCircle2 className="h-5 w-5 text-green-600" />
+								<span>Existing Account Found</span>
+							</div>
+							<p className="text-muted-foreground text-sm">
+								An account with{" "}
+								<strong className="text-foreground">
+									{hostEmail.trim().toLowerCase()}
+								</strong>{" "}
+								already exists in EventzFlow.
+							</p>
+							<p className="text-muted-foreground text-xs">
+								Invite them to this session using their existing account.
+							</p>
+						</div>
+
+						<div className="space-y-3">
+							<div className="space-y-1.5">
+								<Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+									Option 1: Send Invitation Email
+								</Label>
+								<p className="text-muted-foreground text-xs">
+									Send an email invite with a direct join link to{" "}
+									{hostEmail.trim().toLowerCase()}.
+								</p>
+								<Button
+									type="button"
+									onClick={handleSendEmailInvite}
+									disabled={isSendingInviteEmail}
+									className="w-full"
+								>
+									{isSendingInviteEmail ? (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									) : (
+										<Mail className="mr-2 h-4 w-4" />
+									)}
+									Send Invitation Email
+								</Button>
+							</div>
+
+							<div className="relative py-2">
+								<div className="absolute inset-0 flex items-center">
+									<span className="w-full border-t" />
+								</div>
+								<div className="relative flex justify-center text-xs uppercase">
+									<span className="bg-background px-2 text-muted-foreground">
+										Or
+									</span>
+								</div>
+							</div>
+
+							<div className="space-y-1.5">
+								<Label
+									htmlFor="invite-link-found"
+									className="font-semibold text-muted-foreground text-xs uppercase tracking-wider"
+								>
+									Option 2: Copy Invitation Link
+								</Label>
+								<div className="flex gap-2">
+									<Input
+										id="invite-link-found"
+										value={
+											isLoadingInviteLink ? "Generating link..." : inviteLink
+										}
+										readOnly
+									/>
+									<Button
+										type="button"
+										variant="secondary"
+										onClick={copyInviteLink}
+										disabled={!inviteLink}
+									>
+										<Copy className="mr-2 h-4 w-4" />
+										Copy
+									</Button>
+								</div>
+							</div>
+						</div>
+
+						<div className="pt-2 text-center">
+							<button
+								type="button"
+								onClick={handleResetEmailFlow}
+								className="text-muted-foreground text-xs underline hover:text-foreground"
+							>
+								Check a different email
+							</button>
+						</div>
 					</div>
-					<div className="space-y-2">
-						<Label htmlFor="host-email">Host Email</Label>
-						<Input
-							id="host-email"
-							type="email"
-							value={hostEmail}
-							onChange={(e) => setHostEmail(e.target.value)}
-							placeholder="host@example.com"
-						/>
+				)}
+
+				{hostStep === "new_account" && (
+					<div className="space-y-4">
+						<p className="text-muted-foreground text-sm">
+							Create an account for the host and assign them to this session
+							directly. Their email will be auto-verified.
+						</p>
+						<div className="space-y-1">
+							<Label htmlFor="host-email">Host Email</Label>
+							<Input
+								id="host-email"
+								type="email"
+								value={hostEmail.trim().toLowerCase()}
+								readOnly
+								className="cursor-not-allowed bg-muted"
+							/>
+							<div>
+								<button
+									type="button"
+									onClick={handleResetEmailFlow}
+									className="text-primary text-xs underline hover:text-primary/80"
+								>
+									Change email
+								</button>
+							</div>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="host-name">Host Full Name</Label>
+							<Input
+								id="host-name"
+								value={hostName}
+								onChange={(e) => setHostName(e.target.value)}
+								placeholder="John Doe"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="host-phone">Host Phone (Optional)</Label>
+							<Input
+								id="host-phone"
+								type="tel"
+								value={hostPhone}
+								onChange={(e) => setHostPhone(e.target.value)}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="host-password">Password</Label>
+							<Input
+								id="host-password"
+								type="password"
+								value={hostPassword}
+								onChange={(e) => setHostPassword(e.target.value)}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="host-offering-tags">
+								Offering Tags (Optional)
+							</Label>
+							<MultiSelectLegacy
+								options={(availableTags?.offering_tags || []).map((t) => ({
+									label: t,
+									value: t,
+								}))}
+								selected={offeringTags}
+								onChange={setOfferingTags}
+								placeholder="Select offering tags"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="host-interest-tags">
+								Interest Tags (Optional)
+							</Label>
+							<MultiSelectLegacy
+								options={(availableTags?.interest_tags || []).map((t) => ({
+									label: t,
+									value: t,
+								}))}
+								selected={interestTags}
+								onChange={setInterestTags}
+								placeholder="Select interest tags"
+							/>
+						</div>
+						<div className="flex justify-end pt-4">
+							<Button onClick={handleCreateHost} disabled={isCreating}>
+								{isCreating && (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								)}
+								Create and Assign Host
+							</Button>
+						</div>
 					</div>
-					<div className="space-y-2">
-						<Label htmlFor="host-phone">Host Phone (Optional)</Label>
-						<Input
-							id="host-phone"
-							type="tel"
-							value={hostPhone}
-							onChange={(e) => setHostPhone(e.target.value)}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="host-password">Password</Label>
-						<Input
-							id="host-password"
-							type="password"
-							value={hostPassword}
-							onChange={(e) => setHostPassword(e.target.value)}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="host-offering-tags">Offering Tags (Optional)</Label>
-						<MultiSelectLegacy
-							options={(availableTags?.offering_tags || []).map((t) => ({
-								label: t,
-								value: t,
-							}))}
-							selected={offeringTags}
-							onChange={setOfferingTags}
-							placeholder="Select offering tags"
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="host-interest-tags">Interest Tags (Optional)</Label>
-						<MultiSelectLegacy
-							options={(availableTags?.interest_tags || []).map((t) => ({
-								label: t,
-								value: t,
-							}))}
-							selected={interestTags}
-							onChange={setInterestTags}
-							placeholder="Select interest tags"
-						/>
-					</div>
-					<div className="flex justify-end pt-4">
-						<Button onClick={handleCreateHost} disabled={isCreating}>
-							{isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-							Create and Assign Host
-						</Button>
-					</div>
-				</div>
+				)}
 			</TabsContent>
 			{linkedExhibitorEnabled && (
 				<TabsContent value="link-exhibitor" className="py-4">
