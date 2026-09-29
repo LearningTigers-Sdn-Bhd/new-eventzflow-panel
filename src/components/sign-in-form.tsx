@@ -1,8 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Info, Lock, Mail } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthForm } from "@/hooks/auth/use-auth-form";
 import { emailSchema, passwordSchema } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
@@ -17,18 +17,24 @@ import {
 } from "./ui/input-group";
 import { Label } from "./ui/label";
 
+interface SignInFormProps {
+	onSwitchToSignUp: () => void;
+	initialEmail?: string;
+	existingAccountNotice?: string | null;
+}
+
 export default function SignInForm({
 	onSwitchToSignUp,
-}: {
-	onSwitchToSignUp: () => void;
-}) {
+	initialEmail = "",
+	existingAccountNotice,
+}: SignInFormProps) {
 	const { isLoading, error, handleLogin } = useAuthForm();
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 
 	const form = useForm({
 		defaultValues: {
-			email: "",
+			email: initialEmail,
 			password: "",
 			remember: false,
 		},
@@ -36,6 +42,12 @@ export default function SignInForm({
 			await handleLogin(value.email, value.password);
 		},
 	});
+
+	useEffect(() => {
+		if (initialEmail) {
+			form.setFieldValue("email", initialEmail);
+		}
+	}, [initialEmail, form]);
 
 	if (isLoading) {
 		return (
@@ -84,6 +96,14 @@ export default function SignInForm({
 					</div>
 
 					<div className="space-y-8">
+						{existingAccountNotice && (
+							<div className="flex items-start gap-3 rounded-md border border-primary/30 bg-primary/10 p-4 text-foreground text-sm">
+								<Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+								<div>
+									<p className="font-medium">{existingAccountNotice}</p>
+								</div>
+							</div>
+						)}
 						{error && (
 							<div className="rounded-md bg-destructive/10 p-4 text-destructive text-sm">
 								{error}
