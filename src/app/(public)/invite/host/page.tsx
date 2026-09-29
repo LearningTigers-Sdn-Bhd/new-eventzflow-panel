@@ -137,9 +137,20 @@ function InviteHostContent() {
 						By accepting, you will be able to manage your schedule and view
 						bookings for this event.
 					</p>
-					<div className="mb-4 rounded-md bg-muted p-3 text-sm">
-						<p>
-							<strong>User:</strong> {user?.email}
+					<div className="mb-4 space-y-1 rounded-md bg-muted p-3 text-sm">
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-xs">
+								Signed in as:
+							</span>
+							<Link
+								href={`/auth?login&redirect=${encodeURIComponent(`/invite/host?token=${encodeURIComponent(token)}`)}`}
+								className="text-primary text-xs underline hover:text-primary/80"
+							>
+								Switch account
+							</Link>
+						</div>
+						<p className="truncate font-medium text-foreground">
+							{user?.email}
 						</p>
 					</div>
 				</CardContent>

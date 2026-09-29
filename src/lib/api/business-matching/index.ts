@@ -369,6 +369,25 @@ export async function acceptHostInvite(token: string): Promise<void> {
 	});
 }
 
+export interface SendHostInviteEmailResponse {
+	message: string;
+	invite_url: string;
+	token: string;
+}
+
+// Sends an invitation email to the host with the invite link
+export async function sendHostInviteEmail(
+	eventId: string,
+	bmEventId: string,
+	email: string,
+): Promise<SendHostInviteEmailResponse> {
+	const url = `v1/business_matching/events/${eventId}/hosts/send_invite_email`;
+	return restClient.post<SendHostInviteEmailResponse>(url, {
+		business_matching_event_id: bmEventId,
+		email,
+	});
+}
+
 export interface CreateHostRequest {
 	full_name: string;
 	email: string;
