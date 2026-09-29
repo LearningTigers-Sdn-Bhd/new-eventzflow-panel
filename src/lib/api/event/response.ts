@@ -73,6 +73,7 @@ export type Event = {
 	multiple_scans: boolean;
 	multiple_scan_mode: ScanMode;
 	allow_multiple_tickets_per_email: boolean;
+	require_unique_membership_numbers: boolean;
 	use_ticket: boolean;
 	use_wedding: boolean;
 	auto_approve_wishes: boolean;

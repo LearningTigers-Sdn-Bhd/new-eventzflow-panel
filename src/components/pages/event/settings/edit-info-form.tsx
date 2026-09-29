@@ -119,6 +119,7 @@ const formSchema = z.object({
 	multipleScans: z.boolean(),
 	multipleScanMode: z.enum(["unlimited", "per_location", "per_day"]),
 	allowMultipleTicketsPerEmail: z.boolean(),
+	requireUniqueMembershipNumbers: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
 });
@@ -206,6 +207,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			multipleScans: false,
 			multipleScanMode: "unlimited" as ScanMode,
 			allowMultipleTicketsPerEmail: false,
+			requireUniqueMembershipNumbers: true,
 			startDate: new Date(),
 			endDate: new Date(),
 		},
@@ -255,6 +257,8 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					multiple_scans: value.multipleScans,
 					multiple_scan_mode: value.multipleScanMode,
 					allow_multiple_tickets_per_email: value.allowMultipleTicketsPerEmail,
+					require_unique_membership_numbers:
+						value.requireUniqueMembershipNumbers,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
 				},
@@ -332,6 +336,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue(
 					"multipleScanMode",
 					(event.multiple_scan_mode as ScanMode) || "unlimited",
+				);
+				form.setFieldValue(
+					"requireUniqueMembershipNumbers",
+					event.require_unique_membership_numbers ?? true,
 				);
 				form.setFieldValue(
 					"allowMultipleTicketsPerEmail",
@@ -926,6 +934,20 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												</form.Field>
 											)}
 										</div>
+									)}
+								</form.Field>
+								<form.Field name="requireUniqueMembershipNumbers">
+									{(field) => (
+										<SwitchCardInput
+											label="Require unique membership numbers"
+											description="Turn off to let multiple people register with the same membership number. Resolve existing duplicates before turning this back on."
+											htmlFor={field.name}
+											variant="no-rounded"
+											border={true}
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
+											disabled={updateEventMutation.isPending}
+										/>
 									)}
 								</form.Field>
 								<form.Field name="allowMultipleTicketsPerEmail">
