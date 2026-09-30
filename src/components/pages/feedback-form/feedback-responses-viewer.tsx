@@ -7,18 +7,11 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { MessageSquareQuote } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { QuerySearchField } from "@/components/query-search-field";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	Sheet,
 	SheetContent,
@@ -29,15 +22,29 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/use-debounce";
 import type {
+	FeedbackFilters,
 	FeedbackForm,
 	FeedbackIndividualResponse,
+	FeedbackSummary,
 	FeedbackSummaryQuestion,
 } from "@/lib/api/feedback-form";
 import {
 	getFeedbackResponses,
 	getFeedbackSummary,
 } from "@/lib/api/feedback-form";
-import { getEventTicketTypes } from "@/lib/api/ticket-type";
+
+import { FeedbackAiSummaryCard } from "./responses/ai-summary-card";
+import { FeedbackCommentsTab } from "./responses/comments-tab";
+import { FeedbackFilterBar } from "./responses/filter-bar";
+import {
+	DEFAULT_FILTERS,
+	filtersKey,
+	formatPercent,
+	hasActiveFilters,
+} from "./responses/filters";
+import { FeedbackExportMenu } from "./responses/export/export-menu";
+import { FeedbackKpiHeader } from "./responses/kpi-header";
+import { FeedbackNonRespondersTab } from "./responses/non-responders-tab";
 
 const RESPONSE_PAGE_SIZE = 25;
 
@@ -48,103 +55,136 @@ export function FeedbackResponsesViewer({
 	eventId: string;
 	form: FeedbackForm;
 }) {
-	return (
-		<div className="w-full">
-			<Tabs defaultValue="summary" className="w-full">
-				<div className="w-full border-y border-dashed">
-					<TabsList className="flex h-12 w-full rounded-none">
-						<TabsTrigger
-							value="summary"
-							className="flex flex-1 items-center justify-center rounded-none"
-						>
-							Summary
-						</TabsTrigger>
-						<TabsTrigger
-							value="individual"
-							className="flex flex-1 items-center justify-center rounded-none"
-						>
-							Individual
-						</TabsTrigger>
-					</TabsList>
-				</div>
-				<div className="mt-6">
-					<TabsContent value="summary" className="mt-0">
-						<FeedbackSummaryTab eventId={eventId} />
-					</TabsContent>
-					<TabsContent value="individual" className="mt-0">
-						<FeedbackResponsesTab
-							eventId={eventId}
-							questions={form.questions}
-						/>
-					</TabsContent>
-				</div>
-			</Tabs>
-		</div>
-	);
-}
-
-function FeedbackSummaryTab({ eventId }: { eventId: string }) {
+	const [filters, setFilters] = useState<FeedbackFilters>(DEFAULT_FILTERS);
 	const {
 		data: summary,
 		isLoading,
 		isError,
 	} = useQuery({
-		queryKey: ["event", eventId, "feedback-summary"],
-		queryFn: () => getFeedbackSummary(eventId),
+		queryKey: ["event", eventId, "feedback-summary", ...filtersKey(filters)],
+		queryFn: () => getFeedbackSummary(eventId, filters),
+		placeholderData: keepPreviousData,
 	});
 
-	if (isLoading) {
-		return (
-			<LoadingState
-				title="Loading response summary..."
-				description="Please wait while we summarize attendee feedback."
+	return (
+		<div className="w-full space-y-6">
+			<FeedbackFilterBar
+				eventId={eventId}
+				filters={filters}
+				onChange={setFilters}
+				actions={<FeedbackExportMenu eventId={eventId} filters={filters} />}
 			/>
+
+			{isLoading && !summary ? (
+				<LoadingState
+					title="Loading response summary..."
+					description="Please wait while we summarize attendee feedback."
+				/>
+			) : isError || !summary ? (
+				<ErrorState title="Unable to load the response summary" />
+			) : (
+				<>
+					<FeedbackKpiHeader summary={summary} />
+					<Tabs defaultValue="summary" className="w-full">
+						<div className="w-full border-y border-dashed">
+							<TabsList className="flex h-12 w-full rounded-none">
+								{[
+									["summary", "Summary"],
+									["comments", "Comments"],
+									["individual", "Individual"],
+									["not-responded", "Not responded"],
+								].map(([value, label]) => (
+									<TabsTrigger
+										key={value}
+										value={value}
+										className="flex flex-1 items-center justify-center rounded-none"
+									>
+										{label}
+									</TabsTrigger>
+								))}
+							</TabsList>
+						</div>
+						<div className="mt-6">
+							<TabsContent value="summary" className="mt-0">
+								<div className="space-y-4">
+									<FeedbackAiSummaryCard eventId={eventId} filters={filters} />
+									<FeedbackSummaryTab summary={summary} filters={filters} />
+								</div>
+							</TabsContent>
+							<TabsContent value="comments" className="mt-0">
+								<FeedbackCommentsTab
+									eventId={eventId}
+									filters={filters}
+									questions={form.questions}
+									aboveList={
+										<FeedbackAiSummaryCard
+											eventId={eventId}
+											filters={filters}
+										/>
+									}
+								/>
+							</TabsContent>
+							<TabsContent value="individual" className="mt-0">
+								<FeedbackResponsesTab
+									eventId={eventId}
+									filters={filters}
+									questions={form.questions}
+								/>
+							</TabsContent>
+							<TabsContent value="not-responded" className="mt-0">
+								<FeedbackNonRespondersTab eventId={eventId} filters={filters} />
+							</TabsContent>
+						</div>
+					</Tabs>
+				</>
+			)}
+		</div>
+	);
+}
+
+function FeedbackSummaryTab({
+	summary,
+	filters,
+}: {
+	summary: FeedbackSummary;
+	filters: FeedbackFilters;
+}) {
+	if (summary.total_responses === 0) {
+		return (
+			<section className="border border-dashed p-8 text-center">
+				<h2 className="font-medium">
+					{hasActiveFilters(filters)
+						? "No matching responses"
+						: "No responses yet"}
+				</h2>
+				<p className="mt-1 text-muted-foreground text-sm">
+					{hasActiveFilters(filters)
+						? "Try widening the filters."
+						: "Responses will appear here after attendees submit the form."}
+				</p>
+			</section>
 		);
 	}
 
-	if (isError || !summary) {
-		return <ErrorState title="Unable to load the response summary" />;
-	}
-
 	return (
-		<div className="space-y-6">
-			<div className="grid gap-4 sm:grid-cols-2">
-				<section className="space-y-2 border border-dashed p-5">
-					<p className="text-muted-foreground text-sm">Total responses</p>
-					<p className="font-semibold text-3xl">{summary.total_responses}</p>
-				</section>
-				<section className="space-y-2 border border-dashed p-5">
-					<p className="text-muted-foreground text-sm">Last submitted</p>
-					<p className="font-medium">
-						{summary.last_submitted_at
-							? new Date(summary.last_submitted_at).toLocaleString()
-							: "No submissions yet"}
-					</p>
-				</section>
-			</div>
-
-			{summary.total_responses === 0 ? (
-				<section className="border border-dashed p-8 text-center">
-					<h2 className="font-medium">No responses yet</h2>
-					<p className="mt-1 text-muted-foreground text-sm">
-						Responses will appear here after attendees submit the form.
-					</p>
-				</section>
-			) : (
-				<div className="space-y-4">
-					{summary.questions.map((question) => (
-						<FeedbackSummaryCard key={question.id} question={question} />
-					))}
-				</div>
-			)}
+		<div className="space-y-4">
+			{summary.questions.map((question) => (
+				<FeedbackSummaryCard
+					key={question.id}
+					question={question}
+					totalResponses={summary.total_responses}
+				/>
+			))}
 		</div>
 	);
 }
 
 function FeedbackSummaryCard({
 	question,
+	totalResponses,
 }: {
 	question: FeedbackSummaryQuestion;
+	totalResponses: number;
 }) {
 	const maxCount = Math.max(0, ...Object.values(question.distribution ?? {}));
 
@@ -154,6 +194,9 @@ function FeedbackSummaryCard({
 				<h2 className="font-medium">{question.question_text}</h2>
 				<p className="text-muted-foreground text-sm">
 					{question.answered_count} answered
+					{question.seen_count !== undefined &&
+						question.seen_count < totalResponses &&
+						` · only shown to ${question.seen_count} of ${totalResponses} (based on earlier answers)`}
 				</p>
 			</header>
 
@@ -164,6 +207,11 @@ function FeedbackSummaryCard({
 						<span className="ml-2 font-normal text-base text-muted-foreground">
 							/ 5
 						</span>
+						{question.satisfied_percent != null && (
+							<span className="ml-4 font-normal text-base text-muted-foreground">
+								{formatPercent(question.satisfied_percent)} satisfied
+							</span>
+						)}
 					</p>
 					<div className="space-y-3">
 						{[5, 4, 3, 2, 1].map((rating) => {
@@ -178,6 +226,38 @@ function FeedbackSummaryCard({
 							);
 						})}
 					</div>
+					{(question.by_ticket_type ?? []).length > 1 && (
+						<div className="space-y-2 border-t pt-3">
+							<p className="text-muted-foreground text-xs uppercase tracking-wide">
+								By ticket type
+							</p>
+							{(question.by_ticket_type ?? []).map((row) => (
+								<div
+									key={row.ticket_type_id}
+									className="flex items-center gap-3 text-sm"
+								>
+									<span
+										className="w-28 shrink-0 truncate"
+										title={row.ticket_type_name ?? ""}
+									>
+										{row.ticket_type_name ?? "Ticket"}
+									</span>
+									<div className="h-2 min-w-12 flex-1 bg-muted">
+										<div
+											className="h-full bg-primary"
+											style={{ width: `${(row.average / 5) * 100}%` }}
+										/>
+									</div>
+									<span className="w-10 text-right tabular-nums">
+										{row.average.toFixed(1)}
+									</span>
+									<span className="w-16 text-right text-muted-foreground text-xs tabular-nums">
+										n={row.count}
+									</span>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 			) : question.question_type === "text" ? (
 				<div className="space-y-3">
@@ -250,21 +330,23 @@ function CountBar({
 
 function FeedbackResponsesTab({
 	eventId,
+	filters,
 	questions,
 }: {
 	eventId: string;
+	filters: FeedbackFilters;
 	questions: FeedbackForm["questions"];
 }) {
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const debouncedSearch = useDebounce(search, 300);
-	const [ticketTypeFilter, setTicketTypeFilter] = useState("all");
 	const [selectedResponse, setSelectedResponse] =
 		useState<FeedbackIndividualResponse | null>(null);
-	const { data: ticketTypes = [] } = useQuery({
-		queryKey: ["event", eventId, "ticket-types"],
-		queryFn: () => getEventTicketTypes({ eventId }),
-	});
+	const filterParts = filtersKey(filters);
+	const filterSignature = filterParts.join("|");
+	// A different filter set always starts from page one.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset only when the filters change
+	useEffect(() => setPage(1), [filterSignature]);
 	const {
 		data: responsePage,
 		isLoading,
@@ -276,10 +358,10 @@ function FeedbackResponsesTab({
 			"feedback-responses",
 			page,
 			debouncedSearch,
-			ticketTypeFilter,
+			...filterParts,
 		],
 		queryFn: () =>
-			getFeedbackResponses(eventId, page, debouncedSearch, ticketTypeFilter),
+			getFeedbackResponses(eventId, page, debouncedSearch, filters),
 		placeholderData: keepPreviousData,
 	});
 	const responses = responsePage?.data ?? [];
@@ -346,8 +428,26 @@ function FeedbackResponsesTab({
 					return `${answerCount} ${answerCount === 1 ? "answer" : "answers"}`;
 				},
 			},
+			...questions.map<ColumnDef<FeedbackIndividualResponse>>(
+				(question, index) => ({
+					id: `question-${question.id}`,
+					header: `Q${index + 1}. ${question.question_text}`,
+					size: 240,
+					accessorFn: (item) => item.answers[String(question.id)] ?? "",
+					cell: ({ row }) => {
+						const answer = row.original.answers[String(question.id)]?.trim();
+						return answer ? (
+							<p className="max-w-56 truncate" title={answer}>
+								{answer}
+							</p>
+						) : (
+							<span className="text-muted-foreground">—</span>
+						);
+					},
+				}),
+			),
 		],
-		[],
+		[questions],
 	);
 	const table = useReactTable<FeedbackIndividualResponse>({
 		data: responses,
@@ -374,7 +474,7 @@ function FeedbackResponsesTab({
 		return <ErrorState title="Unable to load individual responses" />;
 	}
 
-	const hasFilters = search.trim().length > 0 || ticketTypeFilter !== "all";
+	const hasFilters = search.trim().length > 0 || hasActiveFilters(filters);
 
 	return (
 		<>
@@ -400,34 +500,6 @@ function FeedbackResponsesTab({
 						}}
 					/>
 				</div>
-				<Select
-					value={ticketTypeFilter}
-					onValueChange={(value) => {
-						setTicketTypeFilter(value);
-						setPage(1);
-					}}
-				>
-					<SelectTrigger className="w-40 shrink-0 rounded-none bg-background font-medium">
-						<div className="flex min-w-0 items-center gap-1 truncate text-sm">
-							<span className="shrink-0 font-semibold">Ticket type:</span>
-							<SelectValue placeholder="All" className="truncate" />
-						</div>
-					</SelectTrigger>
-					<SelectContent className="rounded-none">
-						<SelectItem value="all" className="rounded-none">
-							All
-						</SelectItem>
-						{ticketTypes.map((ticketType) => (
-							<SelectItem
-								key={ticketType.id}
-								value={String(ticketType.id)}
-								className="rounded-none"
-							>
-								{ticketType.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
 			</div>
 			{isLoading && !responsePage ? (
 				<LoadingState
@@ -443,7 +515,7 @@ function FeedbackResponsesTab({
 								? "No matching responses"
 								: "No individual responses yet",
 							desc: hasFilters
-								? "Try changing your search or ticket type filter."
+								? "Try changing your search or filters."
 								: "Attendee answers will appear here after a response is submitted.",
 							icon: <MessageSquareQuote />,
 						}}

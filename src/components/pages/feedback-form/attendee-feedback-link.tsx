@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Search } from "lucide-react";
+import { Copy, ExternalLink, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -53,10 +53,18 @@ export function AttendeeFeedbackLink({
 
 	return (
 		<div className="space-y-2 border-t pt-3">
-			<Label htmlFor="feedback-attendee-search">Link for an attendee</Label>
+			<div className="space-y-1">
+				<Label htmlFor="feedback-attendee-search">
+					Link for a specific attendee
+				</Label>
+				<p className="text-muted-foreground text-xs">
+					Attendees automatically get their link via email. Search below to test
+					submitting as an attendee or resend their personal link directly.
+				</p>
+			</div>
 			{selected ? (
-				<>
-					<div className="flex items-center justify-between gap-2 border px-3 py-2 text-sm">
+				<div className="space-y-2">
+					<div className="flex items-center justify-between gap-2 border bg-muted/20 px-3 py-2 text-sm">
 						<div className="min-w-0">
 							<p className="flex items-center gap-2">
 								<span className="truncate font-medium">
@@ -72,23 +80,45 @@ export function AttendeeFeedbackLink({
 							type="button"
 							variant="ghost"
 							size="sm"
-							className="rounded-none"
+							className="rounded-none text-xs"
 							onClick={() => setSelected(null)}
 						>
 							Change
 						</Button>
 					</div>
-					<Input value={attendeeUrl} readOnly className="rounded-none" />
-					<Button
-						type="button"
-						variant="outline"
-						className="w-full rounded-none"
-						onClick={copyAttendeeLink}
-					>
-						<Copy className="size-4" />
-						Copy attendee link
-					</Button>
-				</>
+					<Input
+						value={attendeeUrl}
+						readOnly
+						className="rounded-none font-mono text-xs"
+					/>
+					<div className="flex gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							className="flex-1 rounded-none"
+							onClick={copyAttendeeLink}
+						>
+							<Copy className="size-4" />
+							Copy attendee link
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="icon"
+							asChild
+							className="rounded-none"
+							aria-label="Open attendee link to test submission"
+						>
+							<a href={attendeeUrl} target="_blank" rel="noreferrer">
+								<ExternalLink className="size-4" />
+							</a>
+						</Button>
+					</div>
+					<p className="text-muted-foreground text-[11px]">
+						Responses submitted through this link are recorded under{" "}
+						{selected.name || "this attendee"}.
+					</p>
+				</div>
 			) : (
 				<>
 					<div className="relative">
@@ -97,7 +127,7 @@ export function AttendeeFeedbackLink({
 							id="feedback-attendee-search"
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search attendee by name or email"
+							placeholder="Search attendee by name or email…"
 							className="rounded-none pl-9"
 							onKeyDown={(e) => e.key === "Escape" && setSearch("")}
 							// Click outside closes; result rows preventDefault on mousedown so

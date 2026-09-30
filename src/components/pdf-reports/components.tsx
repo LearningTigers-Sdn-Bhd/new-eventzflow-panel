@@ -127,11 +127,15 @@ export function StatsGrid({
 	style,
 }: {
 	children: ReactNode;
-	style?: Style;
+	style?: React.ComponentProps<typeof View>["style"];
 }) {
 	return (
 		<View
-			style={style ? [styles.statsContainer, style] : styles.statsContainer}
+			style={
+				style
+					? [styles.statsContainer, ...(Array.isArray(style) ? style : [style])]
+					: styles.statsContainer
+			}
 		>
 			{children}
 		</View>

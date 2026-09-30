@@ -7,6 +7,7 @@ import {
 	InfoIcon,
 	Mail,
 	Monitor,
+	SlidersHorizontal,
 	TagIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { canAccessPosterSettings } from "./access";
 
 export type SettingsTab =
 	| "event-information"
+	| "event-features"
 	| "email-settings"
 	| "event-reminder"
 	| "custom-labels"
@@ -40,6 +42,11 @@ const navigationItems: NavigationItem[] = [
 		id: "event-information",
 		label: "Event Information",
 		icon: InfoIcon,
+	},
+	{
+		id: "event-features",
+		label: "Event Features",
+		icon: SlidersHorizontal,
 	},
 	{
 		id: "email-settings",

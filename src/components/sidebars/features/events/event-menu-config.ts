@@ -123,6 +123,8 @@ const visible = {
 		e?.use_voucher === true,
 	hasCertificate: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_certificate === true,
+	hasFeedback: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_feedback === true,
 	hasVehicles: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.vehicles_enabled === true,
 	hasVendors: (_p: Permissions, e?: EventSidebarEvent) =>
@@ -525,7 +527,8 @@ const rawEventMenuConfig: EventMenuConfig = {
 			id: "feedback",
 			label: "Feedback",
 			icon: MessageSquareText,
-			visible: visible.eventAdminOnly,
+			visible: (p, e) =>
+				visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
 			tabs: [
 				{
 					route: "feedback/form-builder",

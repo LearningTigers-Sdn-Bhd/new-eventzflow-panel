@@ -6,6 +6,7 @@ import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import EmailSettingsForm from "./email-settings-form";
+import EventFeaturesForm from "./event-features-form";
 import type { SettingsTab } from "./navigation";
 import SettingsNavigation from "./navigation";
 import PaymentGatewayForm from "./payment-gateway-form";
@@ -37,6 +38,9 @@ export default function EventSettingsDialog({
 			<div className="flex min-h-0 w-full flex-1 flex-col gap-4">
 				{activeTab === "event-information" && (
 					<InfoForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "event-features" && (
+					<EventFeaturesForm eventId={eventId} onClose={onClose} />
 				)}
 				{activeTab === "email-settings" && (
 					<EmailSettingsForm eventId={eventId} onClose={onClose} />
