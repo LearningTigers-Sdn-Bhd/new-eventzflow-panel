@@ -2,10 +2,10 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
-import { Check, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Heart, Loader2 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
 	type FeedbackAnswerValues,
+	evaluatePageNavigation,
+	findReachableQuestions,
 	missingRequired,
 	toAnswerPayload,
 } from "./feedback-answers";
@@ -34,6 +36,8 @@ export function PublicFeedbackForm({
 }: PublicFeedbackFormProps) {
 	const [values, setValues] = useState<FeedbackAnswerValues>({});
 	const [missingIds, setMissingIds] = useState<number[]>([]);
+	const [currentPage, setCurrentPage] = useState<number>(1);
+	const [pageHistory, setPageHistory] = useState<number[]>([1]);
 	const reduceMotion = useReducedMotion();
 
 	const {
@@ -46,9 +50,35 @@ export function PublicFeedbackForm({
 		retry: false,
 	});
 
+	const questions = useMemo(() => form?.questions ?? [], [form?.questions]);
+	const pagesMetadata = useMemo(() => form?.pages_metadata ?? [], [form?.pages_metadata]);
+	const displayMode = form?.display_mode ?? "pages";
+
+	const activePages = useMemo(() => {
+		const pages = [...new Set(questions.map((q) => q.page_number ?? 1))].sort(
+			(a, b) => a - b,
+		);
+		return pages.length > 0 ? pages : [1];
+	}, [questions]);
+
+	const isMultiPage = activePages.length > 1;
+
+	// Keep currentPage valid when activePages change
+	useEffect(() => {
+		if (activePages.length > 0 && !activePages.includes(currentPage)) {
+			setCurrentPage(activePages[0]);
+			setPageHistory([activePages[0]]);
+		}
+	}, [activePages, currentPage]);
+
 	useEffect(() => {
 		if (form?.title) document.title = form.title;
 	}, [form?.title]);
+
+	const reachableQuestions = useMemo(
+		() => findReachableQuestions(questions, values),
+		[questions, values],
+	);
 
 	const mutation = useMutation({
 		mutationFn: () => {
@@ -56,7 +86,7 @@ export function PublicFeedbackForm({
 			return submitFeedback({
 				form_id: form.id,
 				ticket_public_id: ticketPublicId,
-				answers: toAnswerPayload(form.questions, values),
+				answers: toAnswerPayload(reachableQuestions, values),
 			});
 		},
 		onSuccess: () => {
@@ -78,16 +108,94 @@ export function PublicFeedbackForm({
 	// No ?ticket= means the organizer's preview link: show the form, collect nothing.
 	const isPreview = !ticketPublicId;
 
+	const currentQuestions = useMemo(
+		() => questions.filter((q) => (q.page_number ?? 1) === currentPage),
+		[questions, currentPage],
+	);
+
+	const handleNextPage = () => {
+		const missing = missingRequired(currentQuestions, values).map((q) => q.id);
+		setMissingIds(missing);
+		if (missing.length > 0) {
+			const first = document.getElementById(`question-${missing[0]}`);
+			first?.scrollIntoView({
+				behavior: reduceMotion ? "auto" : "smooth",
+				block: "center",
+			});
+			first?.querySelector<HTMLElement>("input, textarea, button")?.focus({
+				preventScroll: true,
+			});
+			return;
+		}
+
+		const nav = evaluatePageNavigation(
+			currentPage,
+			currentQuestions,
+			values,
+			activePages,
+		);
+		if (nav.action === "submit") {
+			if (!isPreview) mutation.mutate();
+			return;
+		}
+
+		setPageHistory((prev) => [...prev, nav.targetPage]);
+		setCurrentPage(nav.targetPage);
+		window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+	};
+
+	const handlePreviousPage = () => {
+		if (pageHistory.length <= 1) return;
+		const nextHistory = [...pageHistory];
+		nextHistory.pop();
+		const prevPage = nextHistory[nextHistory.length - 1];
+		setPageHistory(nextHistory);
+		setCurrentPage(prevPage);
+		setMissingIds([]);
+		window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+	};
+
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (!form || isPreview) return;
-		const missing = missingRequired(form.questions, values).map((q) => q.id);
+
+		if (displayMode === "pages" && isMultiPage) {
+			const currentMissing = missingRequired(currentQuestions, values).map(
+				(q) => q.id,
+			);
+			if (currentMissing.length > 0) {
+				setMissingIds(currentMissing);
+				const first = document.getElementById(`question-${currentMissing[0]}`);
+				first?.scrollIntoView({
+					behavior: reduceMotion ? "auto" : "smooth",
+					block: "center",
+				});
+				first?.querySelector<HTMLElement>("input, textarea, button")?.focus({
+					preventScroll: true,
+				});
+				return;
+			}
+		}
+
+		const missing = missingRequired(reachableQuestions, values).map((q) => q.id);
 		setMissingIds(missing);
 		if (missing.length === 0) {
 			mutation.mutate();
 			return;
 		}
-		// Long forms: bring the first unanswered required question into view.
+
+		// Find page of first missing question if in pages mode
+		const firstMissingQ = reachableQuestions.find((q) => q.id === missing[0]);
+		if (
+			displayMode === "pages" &&
+			firstMissingQ &&
+			firstMissingQ.page_number &&
+			firstMissingQ.page_number !== currentPage
+		) {
+			setCurrentPage(firstMissingQ.page_number);
+			setPageHistory((prev) => [...prev, firstMissingQ.page_number!]);
+		}
+
 		const first = document.getElementById(`question-${missing[0]}`);
 		first?.scrollIntoView({
 			behavior: reduceMotion ? "auto" : "smooth",
@@ -133,11 +241,14 @@ export function PublicFeedbackForm({
 					body: "We've got your answers for this ticket, so there's nothing more to do. Thanks for helping the organiser make the next event better.",
 				}
 			: null;
-	const questions = form?.questions ?? [];
-	const answeredCount = questions.filter((q) => {
+	const answeredCount = reachableQuestions.filter((q) => {
 		const v = values[q.id];
 		return Array.isArray(v) ? v.length > 0 : Boolean(v?.trim());
 	}).length;
+
+	const currentPageMeta = pagesMetadata.find(
+		(p) => p.page_number === currentPage,
+	);
 
 	return (
 		<Backdrop>
@@ -155,6 +266,11 @@ export function PublicFeedbackForm({
 					<div
 						className={cn("min-w-0 space-y-2", notice && "flex-1 text-center")}
 					>
+						{!notice && displayMode === "pages" && isMultiPage && (
+							<span className="inline-block rounded-full bg-[#0F3D2E]/10 px-3 py-1 font-semibold text-[#0F3D2E] text-xs uppercase tracking-wider">
+								Page {activePages.indexOf(currentPage) + 1} of {activePages.length}
+							</span>
+						)}
 						<h1 className="font-bold text-3xl text-[#0F3D2E] leading-tight tracking-tight sm:text-4xl">
 							{notice ? notice.heading : form?.title}
 						</h1>
@@ -164,8 +280,11 @@ export function PublicFeedbackForm({
 							</p>
 						)}
 					</div>
-					{!notice && !mutation.isSuccess && questions.length > 0 && (
-						<ProgressRing answered={answeredCount} total={questions.length} />
+					{!notice && !mutation.isSuccess && reachableQuestions.length > 0 && (
+						<ProgressRing
+							answered={answeredCount}
+							total={reachableQuestions.length}
+						/>
 					)}
 				</header>
 
@@ -225,53 +344,210 @@ export function PublicFeedbackForm({
 									the thank-you email.
 								</p>
 							)}
-							{questions.map((q, index) => (
-								<fieldset
-									key={q.id}
-									id={`question-${q.id}`}
-									className={cn(
-										"space-y-3 border-b pb-6 transition-colors",
-										missingIds.includes(q.id) && "border-destructive/40",
-									)}
+
+							{displayMode === "pages" && isMultiPage ? (
+								<motion.div
+									key={currentPage}
+									initial={reduceMotion ? false : { opacity: 0, x: 20 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ duration: 0.2 }}
+									className="space-y-6"
 								>
-									<legend className="mb-1 font-medium text-[#0F3D2E]">
-										{index + 1}. {q.question_text}
-										{q.required && <span className="text-destructive"> *</span>}
-									</legend>
-									{q.hint_text?.trim() && (
-										<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
-											{q.hint_text.trim()}
-										</p>
-									)}
-									<QuestionInput
-										question={q}
-										value={values[q.id]}
-										onChange={(value) => setValue(q.id, value)}
-									/>
-									{missingIds.includes(q.id) && (
-										<p className="text-destructive text-sm">
-											Answer this question to submit.
-										</p>
-									)}
-								</fieldset>
-							))}
+									{currentPageMeta &&
+										(currentPageMeta.title?.trim() ||
+											currentPageMeta.description?.trim()) && (
+											<div className="border-b border-[#0F3D2E]/15 pb-4">
+												{currentPageMeta.title?.trim() && (
+													<h2 className="font-bold text-xl text-[#0F3D2E]">
+														{currentPageMeta.title.trim()}
+													</h2>
+												)}
+												{currentPageMeta.description?.trim() && (
+													<p className="mt-1 text-[#4E6358] text-sm leading-relaxed">
+														{currentPageMeta.description.trim()}
+													</p>
+												)}
+											</div>
+										)}
 
-							{mutation.isError && (
-								<p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
-									{mutation.error.message}
-								</p>
+									{currentQuestions.map((q) => {
+										const globalIndex = questions.findIndex(
+											(item) => item.id === q.id,
+										);
+										return (
+											<fieldset
+												key={q.id}
+												id={`question-${q.id}`}
+												className={cn(
+													"space-y-3 border-b pb-6 transition-colors",
+													missingIds.includes(q.id) && "border-destructive/40",
+												)}
+											>
+												<legend className="mb-1 font-medium text-[#0F3D2E]">
+													{globalIndex + 1}. {q.question_text}
+													{q.required && (
+														<span className="text-destructive"> *</span>
+													)}
+												</legend>
+												{q.hint_text?.trim() && (
+													<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
+														{q.hint_text.trim()}
+													</p>
+												)}
+												<QuestionInput
+													question={q}
+													value={values[q.id]}
+													onChange={(value) => setValue(q.id, value)}
+												/>
+												{missingIds.includes(q.id) && (
+													<p className="text-destructive text-sm">
+														Answer this question to continue.
+													</p>
+												)}
+											</fieldset>
+										);
+									})}
+
+									{mutation.isError && (
+										<p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
+											{mutation.error.message}
+										</p>
+									)}
+
+									<div className="flex items-center justify-between gap-4 pt-4">
+										{pageHistory.length > 1 ? (
+											<Button
+												type="button"
+												variant="outline"
+												className="h-11 rounded-none border-[#0F3D2E]/25 px-5 text-[#0F3D2E] hover:bg-[#CFF5DD]/40"
+												onClick={handlePreviousPage}
+											>
+												<ArrowLeft className="mr-2 size-4" />
+												Previous
+											</Button>
+										) : (
+											<div />
+										)}
+
+										{activePages.indexOf(currentPage) <
+										activePages.length - 1 ? (
+											<Button
+												type="button"
+												className="h-11 rounded-none bg-[#0F3D2E] px-6 text-white hover:bg-[#1E7A45]"
+												onClick={handleNextPage}
+											>
+												Next page
+												<ArrowRight className="ml-2 size-4" />
+											</Button>
+										) : (
+											<Button
+												type="submit"
+												className="h-12 rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45]"
+												disabled={mutation.isPending || isPreview}
+											>
+												{mutation.isPending && (
+													<Loader2 className="mr-2 size-4 animate-spin" />
+												)}
+												{isPreview
+													? "Submitting disabled in preview"
+													: "Send feedback"}
+											</Button>
+										)}
+									</div>
+								</motion.div>
+							) : (
+								<div className="space-y-6">
+									{activePages.map((pageNumber) => {
+										const pageMeta = pagesMetadata.find(
+											(p) => p.page_number === pageNumber,
+										);
+										const pageQuestions = questions.filter(
+											(q) => (q.page_number ?? 1) === pageNumber,
+										);
+										if (pageQuestions.length === 0) return null;
+										return (
+											<div key={pageNumber} className="space-y-6">
+												{isMultiPage && (
+													<div className="border-b border-[#0F3D2E]/15 pb-3 pt-4 first:pt-0">
+														<div className="flex items-center gap-2">
+															<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
+																Section {pageNumber}
+															</span>
+															{pageMeta?.title?.trim() && (
+																<h2 className="font-bold text-lg text-[#0F3D2E]">
+																	{pageMeta.title.trim()}
+																</h2>
+															)}
+														</div>
+														{pageMeta?.description?.trim() && (
+															<p className="mt-1 text-[#4E6358] text-sm leading-relaxed">
+																{pageMeta.description.trim()}
+															</p>
+														)}
+													</div>
+												)}
+												{pageQuestions.map((q) => {
+													const globalIndex = questions.findIndex(
+														(item) => item.id === q.id,
+													);
+													return (
+														<fieldset
+															key={q.id}
+															id={`question-${q.id}`}
+															className={cn(
+																"space-y-3 border-b pb-6 transition-colors",
+																missingIds.includes(q.id) &&
+																	"border-destructive/40",
+															)}
+														>
+															<legend className="mb-1 font-medium text-[#0F3D2E]">
+																{globalIndex + 1}. {q.question_text}
+																{q.required && (
+																	<span className="text-destructive"> *</span>
+																)}
+															</legend>
+															{q.hint_text?.trim() && (
+																<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
+																	{q.hint_text.trim()}
+																</p>
+															)}
+															<QuestionInput
+																question={q}
+																value={values[q.id]}
+																onChange={(value) => setValue(q.id, value)}
+															/>
+															{missingIds.includes(q.id) && (
+																<p className="text-destructive text-sm">
+																	Answer this question to submit.
+																</p>
+															)}
+														</fieldset>
+													);
+												})}
+											</div>
+										);
+									})}
+
+									{mutation.isError && (
+										<p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
+											{mutation.error.message}
+										</p>
+									)}
+
+									<Button
+										type="submit"
+										className="h-12 w-full rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45] sm:ml-auto sm:flex sm:w-auto"
+										disabled={mutation.isPending || isPreview}
+									>
+										{mutation.isPending && (
+											<Loader2 className="mr-2 size-4 animate-spin" />
+										)}
+										{isPreview
+											? "Submitting disabled in preview"
+											: "Send feedback"}
+									</Button>
+								</div>
 							)}
-
-							<Button
-								type="submit"
-								className="h-12 w-full rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45] sm:ml-auto sm:flex sm:w-auto"
-								disabled={mutation.isPending || isPreview}
-							>
-								{mutation.isPending && (
-									<Loader2 className="size-4 animate-spin" />
-								)}
-								{isPreview ? "Submitting disabled in preview" : "Send feedback"}
-							</Button>
 						</form>
 					)}
 				</div>

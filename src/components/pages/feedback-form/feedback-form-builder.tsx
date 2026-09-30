@@ -6,6 +6,7 @@ import {
 	ArrowUp,
 	Copy,
 	ExternalLink,
+	GitFork,
 	Loader2,
 	Plus,
 	Save,
@@ -26,10 +27,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	type FeedbackDisplayMode,
 	type FeedbackForm,
 	type FeedbackQuestionType,
+	type FeedbackRoutingRule,
 	saveFeedbackForm,
 } from "@/lib/api/feedback-form";
+import { cn } from "@/lib/utils";
 import { AttendeeFeedbackLink } from "./attendee-feedback-link";
 import { QuestionLivePreview } from "./question-live-preview";
 
@@ -74,6 +78,14 @@ type DraftQuestion = {
 	required: boolean;
 	placeholder: string;
 	hint_text: string;
+	page_number: number;
+	routing_rules: FeedbackRoutingRule[];
+};
+
+type DraftPage = {
+	page_number: number;
+	title: string;
+	description: string;
 };
 
 type FeedbackFormBuilderProps = {
@@ -89,11 +101,24 @@ export function FeedbackFormBuilder({
 	form,
 }: FeedbackFormBuilderProps) {
 	const queryClient = useQueryClient();
-	const [initial] = useState(() => ({
-		title: form?.title ?? "Event Feedback",
-		description: form?.description ?? "",
-		isActive: form?.is_active ?? true,
-		questions:
+	const [initial] = useState(() => {
+		const rawPages = form?.pages_metadata ?? [];
+		const qPages = [
+			...new Set(form?.questions.map((q) => q.page_number ?? 1) ?? []),
+		];
+		const allPageNums = [
+			...new Set([...rawPages.map((p) => p.page_number), ...qPages, 1]),
+		].sort((a, b) => a - b);
+		const pages: DraftPage[] = allPageNums.map((num) => {
+			const existing = rawPages.find((p) => p.page_number === num);
+			return {
+				page_number: num,
+				title: existing?.title ?? "",
+				description: existing?.description ?? "",
+			};
+		});
+
+		const questions: DraftQuestion[] =
 			form?.questions.map((q) => {
 				const ratingLabels = parseRatingLabels(q.options);
 				const hasMiddleLabels = Boolean(
@@ -121,19 +146,38 @@ export function FeedbackFormBuilder({
 					required: q.required,
 					placeholder: q.placeholder ?? "",
 					hint_text: q.hint_text ?? "",
+					page_number: q.page_number ?? 1,
+					routing_rules: q.routing_rules ?? [],
 				};
-			}) ?? [],
-	}));
+			}) ?? [];
+
+		return {
+			title: form?.title ?? "Event Feedback",
+			description: form?.description ?? "",
+			isActive: form?.is_active ?? true,
+			displayMode: form?.display_mode ?? ("pages" as FeedbackDisplayMode),
+			pages,
+			questions,
+		};
+	});
+
 	const [title, setTitle] = useState(initial.title);
 	const [description, setDescription] = useState(initial.description);
 	const [isActive, setIsActive] = useState(initial.isActive);
+	const [displayMode, setDisplayMode] = useState<FeedbackDisplayMode>(
+		initial.displayMode,
+	);
+	const [pages, setPages] = useState<DraftPage[]>(initial.pages);
 	const [questions, setQuestions] = useState<DraftQuestion[]>(
 		initial.questions,
 	);
+
 	const isDirty =
 		title !== initial.title ||
 		description !== initial.description ||
 		isActive !== initial.isActive ||
+		displayMode !== initial.displayMode ||
+		JSON.stringify(pages) !== JSON.stringify(initial.pages) ||
 		JSON.stringify(questions.map(({ optionKeys, ...q }) => q)) !==
 			JSON.stringify(initial.questions.map(({ optionKeys, ...q }) => q));
 
@@ -157,6 +201,12 @@ export function FeedbackFormBuilder({
 					title: title.trim(),
 					description: description.trim() || null,
 					is_active: isActive,
+					display_mode: displayMode,
+					pages_metadata: pages.map((p) => ({
+						page_number: p.page_number,
+						title: p.title.trim() || null,
+						description: p.description.trim() || null,
+					})),
 					feedback_questions_attributes: questions.map((q, index) => ({
 						id: q.id,
 						question_text: q.question_text.trim(),
@@ -179,6 +229,11 @@ export function FeedbackFormBuilder({
 								? q.placeholder.trim() || null
 								: null,
 						hint_text: q.hint_text.trim() || null,
+						page_number: q.page_number ?? 1,
+						routing_rules:
+							q.routing_rules && q.routing_rules.length > 0
+								? q.routing_rules
+								: [],
 					})),
 				},
 				form !== null,
@@ -226,14 +281,6 @@ export function FeedbackFormBuilder({
 			}),
 		);
 
-	const move = (index: number, delta: number) =>
-		setQuestions((qs) => {
-			const next = [...qs];
-			const [item] = next.splice(index, 1);
-			next.splice(index + delta, 0, item);
-			return next;
-		});
-
 	const updateRatingLabel = (
 		key: string,
 		labelIndex: number,
@@ -254,7 +301,63 @@ export function FeedbackFormBuilder({
 			}),
 		);
 
-	const addQuestion = () =>
+	const updatePage = (pageNumber: number, patch: Partial<DraftPage>) => {
+		setPages((ps) =>
+			ps.map((p) => (p.page_number === pageNumber ? { ...p, ...patch } : p)),
+		);
+	};
+
+	const addPage = () => {
+		const nextPageNumber =
+			pages.length > 0
+				? Math.max(...pages.map((p) => p.page_number)) + 1
+				: 1;
+		setPages((prev) => [
+			...prev,
+			{ page_number: nextPageNumber, title: "", description: "" },
+		]);
+		addQuestionToPage(nextPageNumber);
+		toast.success(`Page ${nextPageNumber} added`);
+	};
+
+	const deletePage = (pageNumber: number) => {
+		if (pages.length <= 1) return;
+		const targetFallbackPage = Math.max(1, pageNumber - 1);
+		const updatedQuestions = questions.map((q) =>
+			q.page_number === pageNumber
+				? { ...q, page_number: targetFallbackPage }
+				: q,
+		);
+		const remainingPages = pages.filter((p) => p.page_number !== pageNumber);
+		const pageMapping = new Map<number, number>();
+		remainingPages.forEach((p, idx) => {
+			pageMapping.set(p.page_number, idx + 1);
+		});
+		const renumberedPages = remainingPages.map((p, idx) => ({
+			...p,
+			page_number: idx + 1,
+		}));
+		const renumberedQuestions = updatedQuestions.map((q) => {
+			const newPageNum = pageMapping.get(q.page_number) ?? 1;
+			const updatedRules = (q.routing_rules ?? []).map((rule) => {
+				if (rule.target_page && pageMapping.has(rule.target_page)) {
+					return { ...rule, target_page: pageMapping.get(rule.target_page)! };
+				}
+				return rule;
+			});
+			return {
+				...q,
+				page_number: newPageNum,
+				routing_rules: updatedRules,
+			};
+		});
+
+		setPages(renumberedPages);
+		setQuestions(renumberedQuestions);
+		toast.info(`Page ${pageNumber} deleted. Questions reassigned.`);
+	};
+
+	const addQuestionToPage = (pageNumber: number) => {
 		setQuestions((qs) => [
 			...qs,
 			{
@@ -268,8 +371,73 @@ export function FeedbackFormBuilder({
 				required: false,
 				placeholder: "",
 				hint_text: "",
+				page_number: pageNumber,
+				routing_rules: [],
 			},
 		]);
+	};
+
+	const moveQuestionWithinPage = (
+		pageNumber: number,
+		localIndex: number,
+		delta: number,
+	) => {
+		setQuestions((prevQuestions) => {
+			const pageQuestions = prevQuestions.filter(
+				(q) => (q.page_number ?? 1) === pageNumber,
+			);
+			const targetLocalIndex = localIndex + delta;
+			if (targetLocalIndex < 0 || targetLocalIndex >= pageQuestions.length) {
+				return prevQuestions;
+			}
+
+			const itemToMove = pageQuestions[localIndex];
+			const itemToSwap = pageQuestions[targetLocalIndex];
+
+			const globalIndexA = prevQuestions.findIndex(
+				(q) => q.key === itemToMove.key,
+			);
+			const globalIndexB = prevQuestions.findIndex(
+				(q) => q.key === itemToSwap.key,
+			);
+
+			const next = [...prevQuestions];
+			next[globalIndexA] = itemToSwap;
+			next[globalIndexB] = itemToMove;
+			return next;
+		});
+	};
+
+	const moveQuestionToPage = (questionKey: string, targetPage: number) => {
+		setQuestions((qs) =>
+			qs.map((q) =>
+				q.key === questionKey ? { ...q, page_number: targetPage } : q,
+			),
+		);
+	};
+
+	const duplicateQuestion = (key: string) => {
+		setQuestions((qs) => {
+			const index = qs.findIndex((q) => q.key === key);
+			if (index === -1) return qs;
+			const source = qs[index];
+			const copy: DraftQuestion = {
+				...source,
+				id: undefined,
+				key: crypto.randomUUID(),
+				question_text: `${source.question_text} (Copy)`,
+				optionKeys: source.optionKeys.map(() => crypto.randomUUID()),
+				routing_rules: source.routing_rules ? [...source.routing_rules] : [],
+			};
+			const next = [...qs];
+			next.splice(index + 1, 0, copy);
+			return next;
+		});
+	};
+
+	const deleteQuestion = (key: string) => {
+		setQuestions((qs) => qs.filter((q) => q.key !== key));
+	};
 
 	const copyLink = async () => {
 		await navigator.clipboard.writeText(publicUrl);
@@ -286,6 +454,7 @@ export function FeedbackFormBuilder({
 		>
 			<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
 				<div className="min-w-0 space-y-6">
+					{/* Form Overview details */}
 					<section className="border bg-background">
 						<div className="border-b px-5 py-4 sm:px-6">
 							<h2 className="font-semibold text-base">Form details</h2>
@@ -319,388 +488,636 @@ export function FeedbackFormBuilder({
 						</div>
 					</section>
 
-					<section className="border bg-background">
-						<div className="border-b px-5 py-4 sm:px-6">
-							<h2 className="font-semibold text-base">Questions</h2>
-							<p className="mt-1 text-muted-foreground text-sm">
-								{questions.length}{" "}
-								{questions.length === 1 ? "question" : "questions"} in this form
-							</p>
-						</div>
-						{questions.length === 0 && (
-							<p className="px-5 py-8 text-muted-foreground text-sm sm:px-6">
-								No questions yet. Add one to start collecting feedback.
-							</p>
-						)}
-						<div className="divide-y">
-							{questions.map((q, index) => (
-								<div key={q.key} className="space-y-5 p-5 sm:p-6">
-									<div className="flex items-center justify-between gap-3">
-										<div className="flex items-center gap-3">
-											<span className="flex size-8 items-center justify-center border bg-muted/40 font-mono text-muted-foreground text-xs">
-												{String(index + 1).padStart(2, "0")}
-											</span>
-											<h3 className="font-medium text-sm">
-												Question {index + 1}
-											</h3>
-										</div>
-										<div className="flex gap-1">
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon-sm"
-												className="rounded-none"
-												disabled={index === 0}
-												onClick={() => move(index, -1)}
-												aria-label={`Move question ${index + 1} up`}
-											>
-												<ArrowUp className="size-4" />
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon-sm"
-												className="rounded-none"
-												disabled={index === questions.length - 1}
-												onClick={() => move(index, 1)}
-												aria-label={`Move question ${index + 1} down`}
-											>
-												<ArrowDown className="size-4" />
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon-sm"
-												className="rounded-none text-destructive hover:text-destructive"
-												onClick={() =>
-													setQuestions((qs) =>
-														qs.filter((x) => x.key !== q.key),
-													)
-												}
-												aria-label={`Remove question ${index + 1}`}
-											>
-												<Trash2 className="size-4" />
-											</Button>
-										</div>
+					{/* Pages & Sections with nested questions */}
+					{pages.map((p) => {
+						const pageQuestions = questions.filter(
+							(q) => (q.page_number ?? 1) === p.page_number,
+						);
+						return (
+							<section key={p.page_number} className="border bg-background">
+								<div className="flex flex-wrap items-center justify-between gap-4 border-b bg-muted/20 px-5 py-4 sm:px-6">
+									<div className="flex items-center gap-3">
+										<span className="bg-[#23C460] px-2.5 py-1 font-bold text-white text-xs uppercase tracking-wide">
+											Page {p.page_number}
+										</span>
+										<span className="text-muted-foreground text-xs">
+											({pageQuestions.length}{" "}
+											{pageQuestions.length === 1 ? "question" : "questions"})
+										</span>
 									</div>
-									<div className="space-y-2">
-										<Label htmlFor={`question-${q.key}`}>Question text</Label>
+									{pages.length > 1 && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="h-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+											onClick={() => deletePage(p.page_number)}
+										>
+											<Trash2 className="mr-1 size-3.5" />
+											Delete page
+										</Button>
+									)}
+								</div>
+
+								{/* Page Title & Description inputs */}
+								<div className="grid gap-3 border-b bg-muted/10 p-5 sm:grid-cols-2 sm:px-6">
+									<div className="space-y-1.5">
+										<Label className="text-xs">Page title (optional)</Label>
 										<Input
-											id={`question-${q.key}`}
-											className="rounded-none"
-											value={q.question_text}
+											value={p.title}
+											placeholder={`e.g. Page ${p.page_number} details`}
+											className="rounded-none bg-background text-sm"
 											onChange={(e) =>
-												update(q.key, { question_text: e.target.value })
+												updatePage(p.page_number, { title: e.target.value })
 											}
-											placeholder="e.g. How would you rate the event?"
-											required
 										/>
 									</div>
-									<div className="grid gap-3 sm:grid-cols-2">
-										<div className="space-y-1.5">
-											<Label
-												htmlFor={`hint-${q.key}`}
-												className="text-muted-foreground text-xs"
-											>
-												Helpful hint / subtitle (optional)
-											</Label>
-											<Input
-												id={`hint-${q.key}`}
-												className="h-8 rounded-none text-xs"
-												value={q.hint_text}
-												onChange={(e) =>
-													update(q.key, { hint_text: e.target.value })
-												}
-												placeholder="e.g. Briefly describe in 1–2 sentences"
-											/>
-										</div>
-										{q.question_type === "text" ? (
-											<div className="space-y-1.5">
-												<Label
-													htmlFor={`placeholder-${q.key}`}
-													className="text-muted-foreground text-xs"
-												>
-													Textarea placeholder (optional)
-												</Label>
-												<Input
-													id={`placeholder-${q.key}`}
-													className="h-8 rounded-none text-xs"
-													value={q.placeholder}
-													onChange={(e) =>
-														update(q.key, { placeholder: e.target.value })
-													}
-													placeholder="e.g. Type your feedback here..."
-												/>
-											</div>
-										) : null}
-									</div>
-									<div className="grid gap-x-6 gap-y-2 sm:grid-cols-[16rem_auto]">
-										<Label htmlFor={`type-${q.key}`}>Answer type</Label>
-										<Select
-											value={q.question_type || undefined}
-											onValueChange={(value) =>
-												update(q.key, {
-													question_type: value as FeedbackQuestionType,
-													...(value === "single_choice" || value === "multi_choice"
-														? {
-																optionsText:
-																	q.optionsText || "Option 1\nOption 2\n",
-																optionKeys:
-																	q.optionKeys.length > 1
-																		? q.optionKeys
-																		: [
-																				crypto.randomUUID(),
-																				crypto.randomUUID(),
-																				crypto.randomUUID(),
-																			],
-															}
-														: {}),
+									<div className="space-y-1.5">
+										<Label className="text-xs">
+											Page subtitle / description (optional)
+										</Label>
+										<Input
+											value={p.description}
+											placeholder="Short guidance for this page"
+											className="rounded-none bg-background text-sm"
+											onChange={(e) =>
+												updatePage(p.page_number, {
+													description: e.target.value,
 												})
 											}
-										>
-											<SelectTrigger
-												id={`type-${q.key}`}
-												className="w-full rounded-none sm:col-start-1 sm:row-start-2"
-											>
-												<SelectValue placeholder="Select answer type" />
-											</SelectTrigger>
-											<SelectContent className="rounded-none">
-												{QUESTION_TYPES.map((t) => (
-													<SelectItem
-														key={t.value}
-														value={t.value}
-														className="rounded-none"
-													>
-														{t.label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<div className="flex h-9 items-center gap-2 sm:col-start-2 sm:row-start-2">
-											<Switch
-												id={`required-${q.key}`}
-												checked={q.required}
-												onCheckedChange={(required) =>
-													update(q.key, { required })
-												}
-												className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
-											/>
-											<Label htmlFor={`required-${q.key}`}>Required</Label>
-										</div>
+										/>
 									</div>
-									{isChoice(q.question_type) && (
-										<fieldset className="space-y-2">
-											<legend className="font-medium text-sm">Options</legend>
-											<p className="text-muted-foreground text-xs">
-												Answer choices attendees can select.
-											</p>
-											<div className="space-y-2">
-												{q.optionsText
-													.split("\n")
-													.map((option, optionIndex, rows) => (
-														<div
-															key={q.optionKeys[optionIndex]}
-															className="flex items-center gap-2"
-														>
-															<span className="w-6 shrink-0 text-center font-mono text-muted-foreground text-xs">
-																{String(optionIndex + 1).padStart(2, "0")}
+								</div>
+
+								{/* Questions on this page */}
+								{pageQuestions.length === 0 ? (
+									<p className="px-5 py-8 text-muted-foreground text-sm sm:px-6">
+										No questions on this page yet.
+									</p>
+								) : (
+									<div className="divide-y">
+										{pageQuestions.map((q) => {
+											const globalIndex = questions.findIndex(
+												(item) => item.key === q.key,
+											);
+											const pageIndex = pageQuestions.findIndex(
+												(item) => item.key === q.key,
+											);
+											return (
+												<div
+													key={q.key}
+													className="space-y-5 p-5 sm:p-6"
+												>
+													<div className="flex flex-wrap items-center justify-between gap-3">
+														<div className="flex items-center gap-3">
+															<span className="flex size-8 items-center justify-center border bg-muted/40 font-mono text-muted-foreground text-xs">
+																{String(globalIndex + 1).padStart(2, "0")}
 															</span>
-															<Input
-																id={`options-${q.key}-${optionIndex}`}
-																className="rounded-none"
-																value={option}
-																placeholder={`Option ${optionIndex + 1}`}
-																aria-label={`Option ${optionIndex + 1} for question ${index + 1}`}
-																required={
-																	optionIndex === 0 &&
-																	!rows.some((row) => row.trim())
-																}
-																onChange={(e) =>
-																	updateOptions(q.key, optionIndex, [
-																		e.target.value,
-																	])
-																}
-																onPaste={(e) => {
-																	const pasted = e.clipboardData
-																		.getData("text")
-																		.split(/\r\n?|\n/)
-																		.map((value) => value.trim())
-																		.filter(Boolean);
-																	if (pasted.length > 1) {
-																		e.preventDefault();
-																		updateOptions(q.key, optionIndex, pasted);
-																	}
-																}}
-																onKeyDown={(e) => {
-																	if (e.key === "Enter") {
-																		e.preventDefault();
-																		document
-																			.getElementById(
-																				`options-${q.key}-${optionIndex + 1}`,
-																			)
-																			?.focus();
-																	}
-																}}
-															/>
-															{optionIndex < rows.length - 1 ? (
-																<Button
-																	type="button"
-																	variant="ghost"
-																	size="icon-sm"
-																	className="rounded-none text-muted-foreground"
-																	onClick={() =>
-																		updateOptions(q.key, optionIndex, [])
-																	}
-																	aria-label={`Remove option ${optionIndex + 1}`}
-																>
-																	<Trash2 className="size-4" />
-																</Button>
-															) : (
-																<span className="size-8 shrink-0" />
-															)}
+															<h3 className="font-medium text-sm">
+																Question {globalIndex + 1}
+															</h3>
 														</div>
-													))}
-											</div>
-										</fieldset>
-									)}
+														<div className="flex flex-wrap items-center gap-1.5">
+															{pages.length > 1 && (
+																<Select
+																	value={String(q.page_number)}
+																	onValueChange={(val) =>
+																		moveQuestionToPage(q.key, Number(val))
+																	}
+																>
+																	<SelectTrigger className="h-8 w-36 rounded-none text-xs">
+																		<SelectValue />
+																	</SelectTrigger>
+																	<SelectContent>
+																		{pages.map((targetP) => (
+																			<SelectItem
+																				key={targetP.page_number}
+																				value={String(targetP.page_number)}
+																			>
+																				Move to Page {targetP.page_number}
+																			</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															)}
 
-									{q.question_type === "rating" && (
-										<fieldset className="space-y-3 rounded-none border bg-muted/10 p-4">
-											<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-												<div>
-													<legend className="font-medium text-sm">
-														Rating scale labels (optional)
-													</legend>
-													<p className="text-muted-foreground text-xs">
-														Add labels to guide attendees on the meaning of each score.
-													</p>
-												</div>
-												<div className="flex items-center gap-2">
-													<Switch
-														id={`custom-all-${q.key}`}
-														checked={q.ratingCustomAll}
-														onCheckedChange={(checked) =>
-															update(q.key, { ratingCustomAll: checked })
-														}
-														className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
-													/>
-													<Label
-														htmlFor={`custom-all-${q.key}`}
-														className="text-xs font-normal"
-													>
-														Label all 5 scores
-													</Label>
-												</div>
-											</div>
-
-											{!q.ratingCustomAll ? (
-												<div className="grid gap-3 pt-1 sm:grid-cols-2">
-													<div className="space-y-1.5">
-														<Label
-															htmlFor={`rating-low-${q.key}`}
-															className="text-xs"
-														>
-															Score 1 Label (Lowest)
-														</Label>
-														<Input
-															id={`rating-low-${q.key}`}
-															className="h-8 rounded-none text-sm"
-															value={q.ratingLabels[0]}
-															placeholder="e.g. Strongly disagree"
-															onChange={(e) =>
-																updateRatingLabel(q.key, 0, e.target.value)
-															}
-														/>
-													</div>
-													<div className="space-y-1.5">
-														<Label
-															htmlFor={`rating-high-${q.key}`}
-															className="text-xs"
-														>
-															Score 5 Label (Highest)
-														</Label>
-														<Input
-															id={`rating-high-${q.key}`}
-															className="h-8 rounded-none text-sm"
-															value={q.ratingLabels[4]}
-															placeholder="e.g. Strongly agree"
-															onChange={(e) =>
-																updateRatingLabel(q.key, 4, e.target.value)
-															}
-														/>
-													</div>
-												</div>
-											) : (
-												<div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-5">
-													{[1, 2, 3, 4, 5].map((num) => (
-														<div key={num} className="space-y-1.5">
-															<Label
-																htmlFor={`rating-step-${q.key}-${num}`}
-																className="font-mono text-xs"
-															>
-																Score {num}
-															</Label>
-															<Input
-																id={`rating-step-${q.key}-${num}`}
-																className="h-8 rounded-none text-xs"
-																value={q.ratingLabels[num - 1]}
-																placeholder={
-																	num === 1
-																		? "Lowest"
-																		: num === 5
-																			? "Highest"
-																			: `Score ${num}`
-																}
-																onChange={(e) =>
-																	updateRatingLabel(
-																		q.key,
-																		num - 1,
-																		e.target.value,
+															<Button
+																type="button"
+																variant="ghost"
+																size="icon-sm"
+																className="rounded-none"
+																disabled={pageIndex === 0}
+																onClick={() =>
+																	moveQuestionWithinPage(
+																		p.page_number,
+																		pageIndex,
+																		-1,
 																	)
 																}
+																aria-label={`Move question ${globalIndex + 1} up`}
+															>
+																<ArrowUp className="size-4" />
+															</Button>
+															<Button
+																type="button"
+																variant="ghost"
+																size="icon-sm"
+																className="rounded-none"
+																disabled={
+																	pageIndex === pageQuestions.length - 1
+																}
+																onClick={() =>
+																	moveQuestionWithinPage(
+																		p.page_number,
+																		pageIndex,
+																		1,
+																	)
+																}
+																aria-label={`Move question ${globalIndex + 1} down`}
+															>
+																<ArrowDown className="size-4" />
+															</Button>
+															<Button
+																type="button"
+																variant="ghost"
+																size="icon-sm"
+																className="rounded-none"
+																onClick={() => duplicateQuestion(q.key)}
+																aria-label={`Duplicate question ${globalIndex + 1}`}
+															>
+																<Copy className="size-4" />
+															</Button>
+															<Button
+																type="button"
+																variant="ghost"
+																size="icon-sm"
+																className="rounded-none text-destructive hover:text-destructive"
+																onClick={() => deleteQuestion(q.key)}
+																aria-label={`Remove question ${globalIndex + 1}`}
+															>
+																<Trash2 className="size-4" />
+															</Button>
+														</div>
+													</div>
+
+													<div className="space-y-2">
+														<Label htmlFor={`question-${q.key}`}>
+															Question text
+														</Label>
+														<Input
+															id={`question-${q.key}`}
+															className="rounded-none"
+															value={q.question_text}
+															onChange={(e) =>
+																update(q.key, { question_text: e.target.value })
+															}
+															placeholder="e.g. How would you rate the event?"
+															required
+														/>
+													</div>
+
+													<div className="grid gap-3 sm:grid-cols-2">
+														<div className="space-y-1.5">
+															<Label
+																htmlFor={`hint-${q.key}`}
+																className="text-muted-foreground text-xs"
+															>
+																Helpful hint / subtitle (optional)
+															</Label>
+															<Input
+																id={`hint-${q.key}`}
+																className="h-8 rounded-none text-xs"
+																value={q.hint_text}
+																onChange={(e) =>
+																	update(q.key, { hint_text: e.target.value })
+																}
+																placeholder="e.g. Briefly describe in 1–2 sentences"
 															/>
 														</div>
-													))}
-												</div>
-											)}
-										</fieldset>
-									)}
+														{q.question_type === "text" ? (
+															<div className="space-y-1.5">
+																<Label
+																	htmlFor={`placeholder-${q.key}`}
+																	className="text-muted-foreground text-xs"
+																>
+																	Textarea placeholder (optional)
+																</Label>
+																<Input
+																	id={`placeholder-${q.key}`}
+																	className="h-8 rounded-none text-xs"
+																	value={q.placeholder}
+																	onChange={(e) =>
+																		update(q.key, {
+																			placeholder: e.target.value,
+																		})
+																	}
+																	placeholder="e.g. Type your feedback here..."
+																/>
+															</div>
+														) : null}
+													</div>
 
-									{/* Live interactive question preview */}
-									<QuestionLivePreview
-										questionText={q.question_text}
-										questionType={q.question_type}
-										required={q.required}
-										options={
-											isChoice(q.question_type)
-												? q.optionsText
-														.split("\n")
-														.map((o) => o.trim())
-														.filter(Boolean)
-												: []
-										}
-										ratingLabels={q.ratingLabels}
-										placeholder={q.placeholder}
-										hintText={q.hint_text}
-									/>
+													<div className="grid gap-x-6 gap-y-2 sm:grid-cols-[16rem_auto]">
+														<Label htmlFor={`type-${q.key}`}>Answer type</Label>
+														<Select
+															value={q.question_type || undefined}
+															onValueChange={(value) =>
+																update(q.key, {
+																	question_type: value as FeedbackQuestionType,
+																	...(value === "single_choice" ||
+																	value === "multi_choice"
+																		? {
+																				optionsText:
+																					q.optionsText ||
+																					"Option 1\nOption 2\n",
+																				optionKeys:
+																					q.optionKeys.length > 1
+																						? q.optionKeys
+																						: [
+																								crypto.randomUUID(),
+																								crypto.randomUUID(),
+																								crypto.randomUUID(),
+																							],
+																			}
+																		: {}),
+																})
+															}
+														>
+															<SelectTrigger
+																id={`type-${q.key}`}
+																className="rounded-none sm:col-start-1"
+															>
+																<SelectValue placeholder="Select answer type" />
+															</SelectTrigger>
+															<SelectContent>
+																{QUESTION_TYPES.map((t) => (
+																	<SelectItem key={t.value} value={t.value}>
+																		{t.label}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+														<div className="flex items-center gap-2 sm:col-start-2 sm:row-start-2">
+															<Switch
+																id={`required-${q.key}`}
+																checked={q.required}
+																onCheckedChange={(required) =>
+																	update(q.key, { required })
+																}
+																className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
+															/>
+															<Label
+																htmlFor={`required-${q.key}`}
+																className="font-normal text-muted-foreground text-sm"
+															>
+																Required question
+															</Label>
+														</div>
+													</div>
+
+													{isChoice(q.question_type) && (
+														<div className="space-y-2">
+															<Label htmlFor={`options-${q.key}`}>
+																Options (one per line)
+															</Label>
+															<div className="space-y-2">
+																{q.optionsText
+																	.split("\n")
+																	.map((option, index, all) => {
+																		const isLast = index === all.length - 1;
+																		const isSecondToLast =
+																			index === all.length - 2;
+																		if (isLast && !option) return null;
+																		const showRemove =
+																			!isLast &&
+																			(all.length > 2 ||
+																				(all.length === 2 && !isSecondToLast));
+																		return (
+																			<div
+																				key={
+																					q.optionKeys[index] ??
+																					`${q.key}-opt-${index}`
+																				}
+																				className="flex items-center gap-2"
+																			>
+																				<Input
+																					className="rounded-none"
+																					value={option}
+																					placeholder={
+																						isLast
+																							? "Add option..."
+																							: `Option ${index + 1}`
+																					}
+																					onChange={(e) => {
+																						const lines =
+																							e.target.value.split("\n");
+																						updateOptions(
+																							q.key,
+																							index,
+																							lines,
+																						);
+																					}}
+																					onKeyDown={(e) => {
+																						if (e.key === "Enter") {
+																							e.preventDefault();
+																							const lines =
+																								q.optionsText.split("\n");
+																							lines.splice(index + 1, 0, "");
+																							const nextKeys = [
+																								...q.optionKeys,
+																							];
+																							nextKeys.splice(
+																								index + 1,
+																								0,
+																								crypto.randomUUID(),
+																							);
+																							setQuestions((qs) =>
+																								qs.map((item) =>
+																									item.key === q.key
+																										? {
+																												...item,
+																												optionsText:
+																													lines.join("\n"),
+																												optionKeys: nextKeys,
+																											}
+																										: item,
+																								),
+																							);
+																						}
+																					}}
+																				/>
+																				{showRemove && (
+																					<Button
+																						type="button"
+																						variant="ghost"
+																						size="icon-sm"
+																						className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+																						onClick={() => {
+																							const lines =
+																								q.optionsText.split("\n");
+																							lines.splice(index, 1);
+																							const nextKeys = [
+																								...q.optionKeys,
+																							];
+																							nextKeys.splice(index, 1);
+																							setQuestions((qs) =>
+																								qs.map((item) =>
+																									item.key === q.key
+																										? {
+																												...item,
+																												optionsText:
+																													lines.join("\n"),
+																												optionKeys:
+																													nextKeys,
+																											}
+																										: item,
+																								),
+																							);
+																						}}
+																						aria-label={`Remove option ${index + 1}`}
+																					>
+																						<Trash2 className="size-3.5" />
+																					</Button>
+																				)}
+																			</div>
+																		);
+																	})}
+															</div>
+														</div>
+													)}
+
+													{/* Conditional Branching & Skip Logic for Single Choice */}
+													{q.question_type === "single_choice" && (
+														<QuestionBranchingEditor
+															question={q}
+															pages={pages}
+															onChangeRules={(rules) =>
+																update(q.key, { routing_rules: rules })
+															}
+														/>
+													)}
+
+													{q.question_type === "rating" && (
+														<fieldset className="space-y-4 rounded-none border border-muted/80 bg-muted/10 p-4">
+															<div className="flex flex-wrap items-center justify-between gap-3">
+																<div>
+																	<legend className="font-semibold text-foreground text-xs uppercase tracking-wide">
+																		Rating Scale Labels (Optional)
+																	</legend>
+																	<p className="mt-0.5 text-muted-foreground text-xs">
+																		Add custom labels to guide attendees
+																		through the 1 to 5 scale.
+																	</p>
+																</div>
+																<div className="flex items-center gap-2">
+																	<Switch
+																		id={`custom-all-${q.key}`}
+																		checked={q.ratingCustomAll}
+																		onCheckedChange={(checked) =>
+																			update(q.key, {
+																				ratingCustomAll: checked,
+																			})
+																		}
+																		className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
+																	/>
+																	<Label
+																		htmlFor={`custom-all-${q.key}`}
+																		className="font-normal text-muted-foreground text-xs"
+																	>
+																		Label all 5 scores
+																	</Label>
+																</div>
+															</div>
+
+															{!q.ratingCustomAll ? (
+																<div className="grid gap-3 sm:grid-cols-2">
+																	<div className="space-y-1">
+																		<Label
+																			htmlFor={`label-low-${q.key}`}
+																			className="text-xs"
+																		>
+																			Lowest Score (1)
+																		</Label>
+																		<Input
+																			id={`label-low-${q.key}`}
+																			className="h-8 rounded-none text-xs"
+																			placeholder="e.g. Strongly disagree"
+																			value={q.ratingLabels[0]}
+																			onChange={(e) =>
+																				updateRatingLabel(
+																					q.key,
+																					0,
+																					e.target.value,
+																				)
+																			}
+																		/>
+																	</div>
+																	<div className="space-y-1">
+																		<Label
+																			htmlFor={`label-high-${q.key}`}
+																			className="text-xs"
+																		>
+																			Highest Score (5)
+																		</Label>
+																		<Input
+																			id={`label-high-${q.key}`}
+																			className="h-8 rounded-none text-xs"
+																			placeholder="e.g. Strongly agree"
+																			value={q.ratingLabels[4]}
+																			onChange={(e) =>
+																				updateRatingLabel(
+																					q.key,
+																					4,
+																					e.target.value,
+																				)
+																			}
+																		/>
+																	</div>
+																</div>
+															) : (
+																<div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+																	{[1, 2, 3, 4, 5].map((num) => (
+																		<div key={num} className="space-y-1">
+																			<Label
+																				htmlFor={`label-${num}-${q.key}`}
+																				className="text-muted-foreground text-xs"
+																			>
+																				Score {num}
+																			</Label>
+																			<Input
+																				id={`label-${num}-${q.key}`}
+																				className="h-8 rounded-none text-xs"
+																				value={q.ratingLabels[num - 1]}
+																				placeholder={
+																					num === 1
+																						? "Lowest"
+																						: num === 5
+																							? "Highest"
+																							: `Score ${num}`
+																				}
+																				onChange={(e) =>
+																					updateRatingLabel(
+																						q.key,
+																						num - 1,
+																						e.target.value,
+																					)
+																				}
+																			/>
+																		</div>
+																	))}
+																</div>
+															)}
+														</fieldset>
+													)}
+
+													{/* Live interactive question preview */}
+													<QuestionLivePreview
+														questionText={q.question_text}
+														questionType={q.question_type}
+														required={q.required}
+														options={
+															isChoice(q.question_type)
+																? q.optionsText
+																		.split("\n")
+																		.map((o) => o.trim())
+																		.filter(Boolean)
+																: []
+														}
+														ratingLabels={q.ratingLabels}
+														placeholder={q.placeholder}
+														hintText={q.hint_text}
+													/>
+												</div>
+											);
+										})}
+									</div>
+								)}
+
+								<div className="border-t bg-muted/5 p-4 sm:px-6">
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										className="rounded-none text-xs"
+										onClick={() => addQuestionToPage(p.page_number)}
+									>
+										<Plus className="mr-1 size-3.5" />
+										Add question to Page {p.page_number}
+									</Button>
 								</div>
-							))}
-						</div>
-						<div className="border-t p-5 sm:px-6">
-							<Button
-								type="button"
-								variant="outline"
-								className="rounded-none"
-								onClick={addQuestion}
-							>
-								<Plus className="size-4" />
-								Add question
-							</Button>
-						</div>
-					</section>
+							</section>
+						);
+					})}
+
+					{/* Add New Page Button */}
+					<div className="flex justify-center pt-2">
+						<Button
+							type="button"
+							variant="outline"
+							className="rounded-none border-2 border-dashed px-8 py-5 text-sm hover:border-[#23C460] hover:text-[#23C460]"
+							onClick={addPage}
+						>
+							<Plus className="mr-2 size-4" />
+							Add new page / section
+						</Button>
+					</div>
 				</div>
 
+				{/* Right Sidebar Settings */}
 				<aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+					{/* Display Mode Selector */}
+					<section className="border bg-background">
+						<div className="border-b px-5 py-4">
+							<h2 className="font-semibold text-base">Display mode</h2>
+							<p className="mt-1 text-muted-foreground text-sm">
+								Choose how attendees navigate your feedback form.
+							</p>
+						</div>
+						<div className="space-y-3 p-5">
+							<div
+								onClick={() => setDisplayMode("pages")}
+								className={cn(
+									"cursor-pointer border p-3.5 transition-all text-xs space-y-1",
+									displayMode === "pages"
+										? "border-[#23C460] bg-[#23C460]/5 shadow-sm"
+										: "hover:border-foreground/30",
+								)}
+							>
+								<div className="flex items-center justify-between font-semibold text-sm text-foreground">
+									<span>📑 Flipping Pages (Stepper)</span>
+									{displayMode === "pages" && (
+										<span className="text-[#23C460] font-bold">✓ Active</span>
+									)}
+								</div>
+								<p className="text-muted-foreground text-xs leading-relaxed">
+									Shows one page at a time with smooth page-by-page stepping and
+									conditional skip branching.
+								</p>
+							</div>
+
+							<div
+								onClick={() => setDisplayMode("continuous")}
+								className={cn(
+									"cursor-pointer border p-3.5 transition-all text-xs space-y-1",
+									displayMode === "continuous"
+										? "border-[#23C460] bg-[#23C460]/5 shadow-sm"
+										: "hover:border-foreground/30",
+								)}
+							>
+								<div className="flex items-center justify-between font-semibold text-sm text-foreground">
+									<span>📜 Continuous Scrolling</span>
+									{displayMode === "continuous" && (
+										<span className="text-[#23C460] font-bold">✓ Active</span>
+									)}
+								</div>
+								<p className="text-muted-foreground text-xs leading-relaxed">
+									All sections and questions presented on a single scrolling
+									ticket stub with section headers.
+								</p>
+							</div>
+						</div>
+					</section>
+
 					<section className="border bg-background">
 						<div className="flex items-center justify-between border-b px-5 py-4">
 							<h2 className="font-semibold text-base">Availability</h2>
@@ -810,5 +1227,148 @@ export function FeedbackFormBuilder({
 				</aside>
 			</div>
 		</form>
+	);
+}
+
+function QuestionBranchingEditor({
+	question,
+	pages,
+	onChangeRules,
+}: {
+	question: DraftQuestion;
+	pages: DraftPage[];
+	onChangeRules: (rules: FeedbackRoutingRule[]) => void;
+}) {
+	const [isOpen, setIsOpen] = useState(
+		(question.routing_rules && question.routing_rules.length > 0) || false,
+	);
+	const choices = question.optionsText
+		.split("\n")
+		.map((o) => o.trim())
+		.filter(Boolean);
+
+	if (choices.length === 0) return null;
+
+	const subsequentPages = pages.filter(
+		(p) => p.page_number > (question.page_number ?? 1),
+	);
+
+	const updateChoiceRule = (choice: string, value: string) => {
+		const existingRules = question.routing_rules || [];
+		const filtered = existingRules.filter((r) => r.answer !== choice);
+		if (value === "default") {
+			onChangeRules(filtered);
+		} else if (value === "submit") {
+			onChangeRules([
+				...filtered,
+				{ answer: choice, action: "submit", target_page: null },
+			]);
+		} else {
+			const targetPage = Number(value);
+			onChangeRules([
+				...filtered,
+				{ answer: choice, action: "jump_to_page", target_page: targetPage },
+			]);
+		}
+	};
+
+	const activeRulesCount = (question.routing_rules ?? []).filter((r) =>
+		choices.includes(r.answer),
+	).length;
+
+	return (
+		<div className="space-y-3 border border-dashed bg-muted/10 p-3.5">
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<GitFork className="size-4 text-[#23C460]" />
+					<span className="font-semibold text-foreground text-xs uppercase tracking-wide">
+						Conditional Logic & Branching
+					</span>
+					{activeRulesCount > 0 && (
+						<span className="rounded bg-[#23C460] px-1.5 py-0.5 font-bold text-[10px] text-white">
+							{activeRulesCount} active
+						</span>
+					)}
+				</div>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-7 text-muted-foreground text-xs hover:text-foreground"
+					onClick={() => setIsOpen(!isOpen)}
+				>
+					{isOpen ? "Hide logic" : "Configure logic"}
+				</Button>
+			</div>
+
+			{isOpen && (
+				<div className="space-y-2 pt-1">
+					<p className="text-muted-foreground text-xs">
+						Route attendees to a specific page or submit early based on their
+						selected answer:
+					</p>
+					<div className="divide-y border bg-background">
+						{choices.map((choice) => {
+							const currentRule = question.routing_rules?.find(
+								(r) => r.answer === choice,
+							);
+							let currentValue = "default";
+							if (currentRule) {
+								if (
+									currentRule.action === "submit" ||
+									currentRule.target_page === null ||
+									(typeof currentRule.target_page === "string" &&
+										currentRule.target_page === "submit")
+								) {
+									currentValue = "submit";
+								} else if (currentRule.target_page) {
+									currentValue = String(currentRule.target_page);
+								}
+							}
+
+							return (
+								<div
+									key={choice}
+									className="flex flex-wrap items-center justify-between gap-3 p-2.5 text-xs"
+								>
+									<span className="font-medium text-foreground">
+										If answer is{" "}
+										<strong className="text-[#23C460]">"{choice}"</strong>
+									</span>
+									<div className="flex items-center gap-2">
+										<span className="text-muted-foreground">➔</span>
+										<Select
+											value={currentValue}
+											onValueChange={(val) => updateChoiceRule(choice, val)}
+										>
+											<SelectTrigger className="h-8 w-56 rounded-none text-xs">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="default">
+													Continue to next page (default)
+												</SelectItem>
+												{subsequentPages.map((sp) => (
+													<SelectItem
+														key={sp.page_number}
+														value={String(sp.page_number)}
+													>
+														Jump to Page {sp.page_number}
+														{sp.title ? ` (${sp.title})` : ""}
+													</SelectItem>
+												))}
+												<SelectItem value="submit">
+													Submit form immediately
+												</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+		</div>
 	);
 }

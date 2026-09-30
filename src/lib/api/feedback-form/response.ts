@@ -5,6 +5,20 @@ export type FeedbackQuestionType =
 	| "multi_choice"
 	| "yes_no";
 
+export type FeedbackDisplayMode = "pages" | "continuous";
+
+export interface FeedbackPageMetadata {
+	page_number: number;
+	title?: string | null;
+	description?: string | null;
+}
+
+export interface FeedbackRoutingRule {
+	answer: string;
+	action?: "jump_to_page" | "submit";
+	target_page?: number | null;
+}
+
 export interface FeedbackQuestion {
 	id: number;
 	question_text: string;
@@ -14,6 +28,8 @@ export interface FeedbackQuestion {
 	position: number;
 	placeholder?: string | null;
 	hint_text?: string | null;
+	page_number?: number;
+	routing_rules?: FeedbackRoutingRule[];
 }
 
 export interface FeedbackForm {
@@ -22,6 +38,8 @@ export interface FeedbackForm {
 	title: string;
 	description: string | null;
 	is_active: boolean;
+	display_mode?: FeedbackDisplayMode;
+	pages_metadata?: FeedbackPageMetadata[];
 	questions: FeedbackQuestion[];
 	/** Public endpoint only: the `?ticket=` holder has already responded. */
 	already_submitted?: boolean;

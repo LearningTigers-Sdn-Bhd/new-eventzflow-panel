@@ -12,12 +12,15 @@ export type {
 	SubmitFeedbackRequest,
 } from "./request";
 export type {
+	FeedbackDisplayMode,
 	FeedbackForm,
 	FeedbackIndividualResponse,
+	FeedbackPageMetadata,
 	FeedbackQuestion,
 	FeedbackQuestionType,
 	FeedbackResponsePagination,
 	FeedbackResponsesEnvelope,
+	FeedbackRoutingRule,
 	FeedbackSummary,
 	FeedbackSummaryOption,
 	FeedbackSummaryQuestion,

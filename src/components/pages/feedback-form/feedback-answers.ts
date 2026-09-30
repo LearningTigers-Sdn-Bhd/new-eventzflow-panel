@@ -32,3 +32,102 @@ export function toAnswerPayload(
 		return [{ question_id: q.id, answer_text }];
 	});
 }
+
+export type PageNavigationResult =
+	| { action: "page"; targetPage: number }
+	| { action: "submit" };
+
+/**
+ * Determine what page to navigate to next from the current page,
+ * considering any matching conditional routing rules.
+ */
+export function evaluatePageNavigation(
+	currentPage: number,
+	pageQuestions: FeedbackQuestion[],
+	values: FeedbackAnswerValues,
+	allPages: number[],
+): PageNavigationResult {
+	const sortedPages = [...new Set(allPages)].sort((a, b) => a - b);
+	const currentIndex = sortedPages.indexOf(currentPage);
+	const defaultNextPage =
+		currentIndex !== -1 && currentIndex + 1 < sortedPages.length
+			? sortedPages[currentIndex + 1]
+			: null;
+
+	// Check if any question on the current page has a matching rule
+	for (const question of pageQuestions) {
+		const rules = question.routing_rules;
+		if (!rules || rules.length === 0) continue;
+
+		const rawAnswer = values[question.id];
+		if (rawAnswer === undefined || rawAnswer === null) continue;
+
+		const answerStr = Array.isArray(rawAnswer)
+			? rawAnswer.join(",")
+			: String(rawAnswer).trim();
+
+		const matchingRule = rules.find(
+			(r) => r.answer.trim().toLowerCase() === answerStr.toLowerCase(),
+		);
+
+		if (matchingRule) {
+			if (
+				matchingRule.action === "submit" ||
+				matchingRule.target_page === null ||
+				matchingRule.target_page === undefined ||
+				(typeof matchingRule.target_page === "string" &&
+					matchingRule.target_page === "submit")
+			) {
+				return { action: "submit" };
+			}
+			const target = Number(matchingRule.target_page);
+			if (target > currentPage && sortedPages.includes(target)) {
+				return { action: "page", targetPage: target };
+			}
+		}
+	}
+
+	if (defaultNextPage !== null) {
+		return { action: "page", targetPage: defaultNextPage };
+	}
+
+	return { action: "submit" };
+}
+
+/**
+ * Find all questions on pages that are reachable based on current answers and routing rules.
+ */
+export function findReachableQuestions(
+	questions: FeedbackQuestion[],
+	values: FeedbackAnswerValues,
+): FeedbackQuestion[] {
+	if (questions.length === 0) return [];
+
+	const allPages = [...new Set(questions.map((q) => q.page_number ?? 1))].sort(
+		(a, b) => a - b,
+	);
+	if (allPages.length === 0) return questions;
+
+	const reachable: FeedbackQuestion[] = [];
+	let currentPage: number | null = allPages[0];
+
+	while (currentPage !== null) {
+		const pageQuestions = questions.filter(
+			(q) => (q.page_number ?? 1) === currentPage,
+		);
+		reachable.push(...pageQuestions);
+
+		const nav = evaluatePageNavigation(
+			currentPage,
+			pageQuestions,
+			values,
+			allPages,
+		);
+		if (nav.action === "submit") {
+			break;
+		}
+		currentPage = nav.targetPage;
+	}
+
+	return reachable;
+}

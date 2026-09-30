@@ -1,4 +1,9 @@
-import type { FeedbackQuestionType } from "./response";
+import type {
+	FeedbackDisplayMode,
+	FeedbackPageMetadata,
+	FeedbackQuestionType,
+	FeedbackRoutingRule,
+} from "./response";
 
 export interface FeedbackQuestionInput {
 	id?: number;
@@ -9,12 +14,16 @@ export interface FeedbackQuestionInput {
 	position: number;
 	placeholder?: string | null;
 	hint_text?: string | null;
+	page_number?: number;
+	routing_rules?: FeedbackRoutingRule[];
 }
 
 export interface SaveFeedbackFormRequest {
 	title: string;
 	description: string | null;
 	is_active: boolean;
+	display_mode?: FeedbackDisplayMode;
+	pages_metadata?: FeedbackPageMetadata[];
 	feedback_questions_attributes: FeedbackQuestionInput[];
 }
 
