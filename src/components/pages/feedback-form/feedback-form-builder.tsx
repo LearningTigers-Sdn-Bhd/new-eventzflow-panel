@@ -8,12 +8,13 @@ import {
 	Copy,
 	ExternalLink,
 	GitFork,
+	Info,
 	Loader2,
 	Plus,
 	Save,
 	Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	AlertDialog,
@@ -44,6 +45,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	type FeedbackDisplayMode,
 	type FeedbackForm,
@@ -220,6 +226,68 @@ export function FeedbackFormBuilder({
 		JSON.stringify(pages) !== JSON.stringify(initial.pages) ||
 		JSON.stringify(questions.map(({ optionKeys, ...q }) => q)) !==
 			JSON.stringify(initial.questions.map(({ optionKeys, ...q }) => q));
+
+	useEffect(() => {
+		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+			if (isDirty) {
+				e.preventDefault();
+				e.returnValue = "";
+			}
+		};
+		window.addEventListener("beforeunload", handleBeforeUnload);
+
+		const handleClick = (e: MouseEvent) => {
+			if (!isDirty) return;
+			const target = (e.target as HTMLElement).closest("a");
+			if (!target || !target.href) return;
+			if (
+				target.target === "_blank" ||
+				target.getAttribute("rel")?.includes("external")
+			) {
+				return;
+			}
+
+			try {
+				const url = new URL(target.href, window.location.href);
+				if (
+					url.origin === window.location.origin &&
+					url.pathname === window.location.pathname &&
+					url.search === window.location.search
+				) {
+					return;
+				}
+			} catch {
+				return;
+			}
+
+			const confirmLeave = window.confirm(
+				"You have unsaved changes. Are you sure you want to leave this page without saving?",
+			);
+			if (!confirmLeave) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		};
+
+		const handlePopState = () => {
+			if (!isDirty) return;
+			const confirmLeave = window.confirm(
+				"You have unsaved changes. Are you sure you want to leave this page without saving?",
+			);
+			if (!confirmLeave) {
+				window.history.pushState(null, "", window.location.href);
+			}
+		};
+
+		document.addEventListener("click", handleClick, true);
+		window.addEventListener("popstate", handlePopState);
+
+		return () => {
+			window.removeEventListener("beforeunload", handleBeforeUnload);
+			document.removeEventListener("click", handleClick, true);
+			window.removeEventListener("popstate", handlePopState);
+		};
+	}, [isDirty]);
 
 	const publicUrl =
 		typeof window === "undefined"
@@ -1150,7 +1218,7 @@ export function FeedbackFormBuilder({
 											onClick={() => addQuestionToPage(p.page_number)}
 										>
 											<Plus className="mr-1 size-3.5" />
-											Add question to Page {p.page_number}
+											Add question
 										</Button>
 									</div>
 								</section>
@@ -1288,12 +1356,25 @@ export function FeedbackFormBuilder({
 						</section>
 
 						<section className="border bg-background">
-							<div className="border-b px-5 py-4">
-								<h2 className="font-semibold text-base">Preview & links</h2>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Attendees get their own link in the thank-you email. Use this
-									to preview the form or copy a link for one attendee.
-								</p>
+							<div className="flex items-center justify-between border-b px-5 py-4">
+								<div className="flex items-center gap-1.5">
+									<h2 className="font-semibold text-base">Preview & links</h2>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<button
+												type="button"
+												className="inline-flex cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+												aria-label="Link information"
+											>
+												<Info className="size-4" />
+											</button>
+										</TooltipTrigger>
+										<TooltipContent side="top" className="max-w-xs text-xs">
+											Attendees get their own link in the thank-you email. Use this
+											to preview the form or copy a link for one attendee.
+										</TooltipContent>
+									</Tooltip>
+								</div>
 							</div>
 							<div className="space-y-3 p-5">
 								{form ? (
@@ -1328,12 +1409,6 @@ export function FeedbackFormBuilder({
 												</a>
 											</Button>
 										</div>
-										<p className="text-muted-foreground text-xs">
-											Preview only: it can't submit responses. To send it
-											yourself, add <code>?ticket=&lt;ticket public ID&gt;</code>{" "}
-											so the response is saved against that attendee, or pick
-											one below.
-										</p>
 										<AttendeeFeedbackLink
 											eventId={eventId}
 											publicUrl={publicUrl}
@@ -1372,6 +1447,34 @@ export function FeedbackFormBuilder({
 						</Button>
 					</aside>
 				</div>
+
+				{/* Floating Save Bar when changes exist */}
+				{isDirty && (
+					<div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
+						<div className="pointer-events-auto flex items-center justify-between gap-4 border border-border bg-background/95 px-4 py-2.5 shadow-2xl backdrop-blur-md sm:min-w-[360px]">
+							<div className="flex items-center gap-2">
+								<span className="relative flex size-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+									<span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+								</span>
+								<span className="font-medium text-xs sm:text-sm">Unsaved changes</span>
+							</div>
+							<Button
+								type="submit"
+								size="sm"
+								className="h-8 rounded-none px-4 font-medium text-xs shadow-xs"
+								disabled={mutation.isPending}
+							>
+								{mutation.isPending ? (
+									<Loader2 className="mr-1.5 size-3.5 animate-spin" />
+								) : (
+									<Save className="mr-1.5 size-3.5" />
+								)}
+								Save form
+							</Button>
+						</div>
+					</div>
+				)}
 			</form>
 
 			{/* Delete Confirmation Alert Dialog */}
@@ -1480,9 +1583,9 @@ function QuestionBranchingEditor({
 				</div>
 				<Button
 					type="button"
-					variant="ghost"
+					variant={isOpen ? "secondary" : "outline"}
 					size="sm"
-					className="h-7 text-muted-foreground text-xs hover:text-foreground"
+					className="h-7 rounded-none border-border bg-background px-3 font-medium text-xs shadow-xs hover:bg-muted"
 					onClick={() => setIsOpen(!isOpen)}
 				>
 					{isOpen ? "Hide rules" : "Set rules"}
