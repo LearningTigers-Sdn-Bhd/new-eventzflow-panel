@@ -277,11 +277,6 @@ export function PublicFeedbackForm({
 					<div
 						className={cn("min-w-0 space-y-2", notice && "flex-1 text-center")}
 					>
-						{!notice && displayMode === "pages" && isMultiPage && (
-							<span className="inline-block rounded-full bg-[#0F3D2E]/10 px-3 py-1 font-semibold text-[#0F3D2E] text-xs uppercase tracking-wider">
-								Page {activePages.indexOf(currentPage) + 1} of {activePages.length}
-							</span>
-						)}
 						<h1 className="font-bold text-3xl text-[#0F3D2E] leading-tight tracking-tight sm:text-4xl">
 							{notice ? notice.heading : form?.title}
 						</h1>
@@ -365,23 +360,6 @@ export function PublicFeedbackForm({
 									transition={{ duration: 0.2 }}
 									className="space-y-6"
 								>
-									{currentPageMeta &&
-										(currentPageMeta.title?.trim() ||
-											currentPageMeta.description?.trim()) && (
-											<div className="border-b border-[#0F3D2E]/15 pb-4">
-												{currentPageMeta.title?.trim() && (
-													<h2 className="font-bold text-xl text-[#0F3D2E]">
-														{currentPageMeta.title.trim()}
-													</h2>
-												)}
-												{currentPageMeta.description?.trim() && (
-													<p className="mt-1 text-[#4E6358] text-sm leading-relaxed">
-														{currentPageMeta.description.trim()}
-													</p>
-												)}
-											</div>
-										)}
-
 									{currentQuestions.map((q) => {
 										const globalIndex = questions.findIndex(
 											(item) => item.id === q.id,
@@ -479,22 +457,10 @@ export function PublicFeedbackForm({
 										return (
 											<div key={pageNumber} className="space-y-6">
 												{isMultiPage && (
-													<div className="border-b border-[#0F3D2E]/15 pb-3 pt-4 first:pt-0">
-														<div className="flex items-center gap-2">
-															<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
-																Section {pageNumber}
-															</span>
-															{pageMeta?.title?.trim() && (
-																<h2 className="font-bold text-lg text-[#0F3D2E]">
-																	{pageMeta.title.trim()}
-																</h2>
-															)}
-														</div>
-														{pageMeta?.description?.trim() && (
-															<p className="mt-1 text-[#4E6358] text-sm leading-relaxed">
-																{pageMeta.description.trim()}
-															</p>
-														)}
+													<div className="border-b border-[#0F3D2E]/15 pb-2 pt-4 first:pt-0">
+														<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
+															Page {pageNumber}
+														</span>
 													</div>
 												)}
 												{pageQuestions.map((q) => {

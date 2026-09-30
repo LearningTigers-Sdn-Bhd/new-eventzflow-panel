@@ -608,36 +608,6 @@ export function FeedbackFormBuilder({
 										)}
 									</div>
 
-									{/* Page Title & Description inputs */}
-									<div className="grid gap-3 border-b bg-muted/10 p-5 sm:grid-cols-2 sm:px-6">
-										<div className="space-y-1.5">
-											<Label className="text-xs">Page title (optional)</Label>
-											<Input
-												value={p.title}
-												placeholder={`e.g. Page ${p.page_number} details`}
-												className="rounded-none bg-background text-sm"
-												onChange={(e) =>
-													updatePage(p.page_number, { title: e.target.value })
-												}
-											/>
-										</div>
-										<div className="space-y-1.5">
-											<Label className="text-xs">
-												Page subtitle / description (optional)
-											</Label>
-											<Input
-												value={p.description}
-												placeholder="Short guidance for this page"
-												className="rounded-none bg-background text-sm"
-												onChange={(e) =>
-													updatePage(p.page_number, {
-														description: e.target.value,
-													})
-												}
-											/>
-										</div>
-									</div>
-
 									{/* Questions on this page */}
 									{pageQuestions.length === 0 ? (
 										<p className="px-5 py-8 text-muted-foreground text-sm sm:px-6">
@@ -1572,7 +1542,6 @@ function QuestionBranchingEditor({
 														value={String(sp.page_number)}
 													>
 														Go to Page {sp.page_number}
-														{sp.title ? ` (${sp.title})` : ""}
 													</SelectItem>
 												))}
 												<SelectItem value="submit">
