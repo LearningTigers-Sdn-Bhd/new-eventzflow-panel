@@ -95,6 +95,7 @@ const formSchema = z.object({
 	// photoBoothEnabled: z.boolean(),
 	useEventLeads: z.boolean(),
 	useCertificate: z.boolean(),
+	useFeedback: z.boolean(),
 	useApiAccess: z.boolean(),
 	vehiclesEnabled: z.boolean(),
 	description: z.string(),
@@ -195,6 +196,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			// photoBoothEnabled: false,
 			useEventLeads: false,
 			useCertificate: false,
+			useFeedback: false,
 			useApiAccess: false,
 			vehiclesEnabled: false,
 			description: "",
@@ -244,6 +246,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
 					use_certificate: value.useCertificate,
+					use_feedback: value.useFeedback,
 					use_api_access: value.useApiAccess,
 					vehicles_enabled: value.vehiclesEnabled,
 					// photo_booth_enabled: value.photoBoothEnabled,
@@ -313,6 +316,7 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				form.setFieldValue("useCertificate", event.use_certificate ?? false);
+				form.setFieldValue("useFeedback", event.use_feedback ?? false);
 				form.setFieldValue("useApiAccess", event.use_api_access ?? false);
 				form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
@@ -675,11 +679,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							description: "Configure the event settings and options.",
 						}}
 					>
-						<div className={cn("grid grid-cols-1 gap-4", "xl:grid-cols-2")}>
-							<div className="flex flex-col gap-6 md:gap-4">
-								{isOrgOwner && (
-									<>
-										<FieldContent className="flex w-full flex-none flex-col gap-1">
+						<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+							{isOrgOwner && (
+								<div className="flex flex-col gap-4">
+									<FieldContent className="flex w-full flex-none flex-col gap-1">
 											<FieldLabel>Event Visibility</FieldLabel>
 											<FieldDescription className="text-balance">
 												Select the visibility of your event.
@@ -717,15 +720,16 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												);
 											}}
 										</form.Field>
-									</>
+									</div>
 								)}
 
-								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Event Type</FieldLabel>
-									<FieldDescription className="text-balance">
-										Select the type of event to be held.
-									</FieldDescription>
-								</FieldContent>
+								<div className="flex flex-col gap-4">
+									<FieldContent className="flex w-full flex-none flex-col gap-1">
+										<FieldLabel>Event Type</FieldLabel>
+										<FieldDescription className="text-balance">
+											Select the type of event to be held.
+										</FieldDescription>
+									</FieldContent>
 								<form.Field name="useTicket">
 									{(field) => {
 										const isInvalid =
@@ -874,262 +878,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										);
 									}}
 								</form.Field>
-							</div>
-							<div className="flex flex-col gap-4">
-								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Option Flags</FieldLabel>
-									<FieldDescription className="text-balance">
-										Select the options for your event.
-									</FieldDescription>
-								</FieldContent>
-								<form.Field name="multipleScans">
-									{(field) => (
-										<div className="flex flex-col gap-0">
-											<SwitchCardInput
-												label="Multiple Scans"
-												description="Allow tickets or visitors to be scanned multiple times during the event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-											{field.state.value && (
-												<form.Field name="multipleScanMode">
-													{(modeField) => (
-														<RadioGroup
-															value={modeField.state.value}
-															onValueChange={(v) =>
-																modeField.handleChange(v as ScanMode)
-															}
-															disabled={updateEventMutation.isPending}
-															className="flex flex-col gap-4 border border-t-0 p-4"
-														>
-															{SCAN_MODE_OPTIONS.map((option) => (
-																<div
-																	key={option.value}
-																	className="flex items-start gap-3"
-																>
-																	<RadioGroupItem
-																		value={option.value}
-																		id={`scan-mode-${option.value}`}
-																		className="mt-1"
-																	/>
-																	<Label
-																		htmlFor={`scan-mode-${option.value}`}
-																		className="flex flex-col items-start gap-1 font-normal"
-																	>
-																		<span className="font-medium">
-																			{option.label}
-																		</span>
-																		<span className="text-muted-foreground text-sm">
-																			{option.description}
-																		</span>
-																	</Label>
-																</div>
-															))}
-														</RadioGroup>
-													)}
-												</form.Field>
-											)}
-										</div>
-									)}
-								</form.Field>
-								<form.Field name="requireUniqueMembershipNumbers">
-									{(field) => (
-										<SwitchCardInput
-											label="Require unique membership numbers"
-											description="Turn off to let multiple people register with the same membership number. Resolve existing duplicates before turning this back on."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-								<form.Field name="allowMultipleTicketsPerEmail">
-									{(field) => (
-										<SwitchCardInput
-											label="Allow multiple tickets per email"
-											description="One person can hold more than one ticket for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useBusinessMatching">
-										{(field) => (
-											<div className="flex flex-col gap-4">
-												<SwitchCardInput
-													label="Business Matching"
-													description="Allow business matching for this event."
-													htmlFor={field.name}
-													variant="no-rounded"
-													border={true}
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													disabled={updateEventMutation.isPending}
-												/>
-											</div>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Subscribe
-										selector={(state) => state.values.useBusinessMatching}
-									>
-										{(useBusinessMatching) =>
-											useBusinessMatching ? (
-												<form.Field name="businessMatchingLinkedExhibitorEnabled">
-													{(field) => (
-														<SwitchCardInput
-															label="Linked Exhibitor Hosts"
-															description="Let staff assign business matching hosts by picking an existing exhibitor's account for this event, instead of creating a new one."
-															htmlFor={field.name}
-															variant="no-rounded"
-															border={true}
-															checked={field.state.value}
-															onCheckedChange={field.handleChange}
-															disabled={updateEventMutation.isPending}
-														/>
-													)}
-												</form.Field>
-											) : null
-										}
-									</form.Subscribe>
-								)}
-								<form.Field name="useSponsorship">
-									{(field) => (
-										<SwitchCardInput
-											label="Sponsorships"
-											description="Enable sponsorship management for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useVoucher">
-										{(field) => (
-											<SwitchCardInput
-												label="Vouchers"
-												description="Enable voucher creation, redemption, and analytics for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useEventLeads">
-										{(field) => (
-											<SwitchCardInput
-												label="Event Leads"
-												description="Allow vendors to scan attendee QR codes to capture leads."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useCertificate">
-										{(field) => (
-											<SwitchCardInput
-												label="E-Certificates"
-												description="Design certificate templates and email them to attendees."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useApiAccess">
-										{(field) => (
-											<SwitchCardInput
-												label="API Access"
-												description="Allow API keys to be scoped to this event for external integrations."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="vehiclesEnabled">
-										{(field) => (
-											<SwitchCardInput
-												label="Vehicles"
-												description="Track vehicle registrations and crew for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{/*								<form.Field name="photoBoothEnabled">
-									{(field) => (
-										<SwitchCardInput
-											label="Photo Booth"
-											description="Enable dedicated photo booth feature for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>*/}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useSeatTicketing">
-										{(field) => (
-											<SwitchCardInput
-												label="Seat Ticketing System"
-												description="Enable reserved seat sessions and seat maps for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
 							</div>
 						</div>
 					</FormGroupContainer>
