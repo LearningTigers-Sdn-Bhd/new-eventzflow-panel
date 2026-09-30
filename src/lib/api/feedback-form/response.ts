@@ -40,6 +40,8 @@ export interface FeedbackForm {
 	is_active: boolean;
 	display_mode?: FeedbackDisplayMode;
 	pages_metadata?: FeedbackPageMetadata[];
+	thank_you_title?: string | null;
+	thank_you_message?: string | null;
 	questions: FeedbackQuestion[];
 	/** Public endpoint only: the `?ticket=` holder has already responded. */
 	already_submitted?: boolean;

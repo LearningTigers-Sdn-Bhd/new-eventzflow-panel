@@ -25,6 +25,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -170,6 +171,10 @@ export function FeedbackFormBuilder({
 			description: form?.description ?? "",
 			isActive: form?.is_active ?? true,
 			displayMode: form?.display_mode ?? ("pages" as FeedbackDisplayMode),
+			thankYouTitle: form?.thank_you_title ?? "Thanks for your feedback",
+			thankYouMessage:
+				form?.thank_you_message ??
+				"Your answers help the organiser make the next event better.",
 			pages,
 			questions,
 		};
@@ -180,6 +185,10 @@ export function FeedbackFormBuilder({
 	const [isActive, setIsActive] = useState(initial.isActive);
 	const [displayMode, setDisplayMode] = useState<FeedbackDisplayMode>(
 		initial.displayMode,
+	);
+	const [thankYouTitle, setThankYouTitle] = useState(initial.thankYouTitle);
+	const [thankYouMessage, setThankYouMessage] = useState(
+		initial.thankYouMessage,
 	);
 	const [pages, setPages] = useState<DraftPage[]>(initial.pages);
 	const [questions, setQuestions] = useState<DraftQuestion[]>(
@@ -192,6 +201,8 @@ export function FeedbackFormBuilder({
 		description !== initial.description ||
 		isActive !== initial.isActive ||
 		displayMode !== initial.displayMode ||
+		thankYouTitle !== initial.thankYouTitle ||
+		thankYouMessage !== initial.thankYouMessage ||
 		JSON.stringify(pages) !== JSON.stringify(initial.pages) ||
 		JSON.stringify(questions.map(({ optionKeys, ...q }) => q)) !==
 			JSON.stringify(initial.questions.map(({ optionKeys, ...q }) => q));
@@ -217,6 +228,8 @@ export function FeedbackFormBuilder({
 					description: description.trim() || null,
 					is_active: isActive,
 					display_mode: displayMode,
+					thank_you_title: thankYouTitle.trim() || null,
+					thank_you_message: thankYouMessage.trim() || null,
 					pages_metadata: pages.map((p) => ({
 						page_number: p.page_number,
 						title: p.title.trim() || null,
@@ -524,37 +537,27 @@ export function FeedbackFormBuilder({
 			>
 				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
 					<div className="min-w-0 space-y-6">
-						{/* Form Overview details */}
-						<section className="border bg-background">
-							<div className="border-b px-5 py-4 sm:px-6">
-								<h2 className="font-semibold text-base">Form details</h2>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Introduce the form attendees will see.
-								</p>
+						{/* Form Overview details - directly show title and description */}
+						<section className="space-y-4 border bg-background p-5 sm:p-6">
+							<div className="space-y-1.5">
+								<Label htmlFor="feedback-title">Form title</Label>
+								<Input
+									id="feedback-title"
+									className="rounded-none"
+									value={title}
+									onChange={(e) => setTitle(e.target.value)}
+									required
+								/>
 							</div>
-							<div className="space-y-5 p-5 sm:p-6">
-								<div className="space-y-2">
-									<Label htmlFor="feedback-title">Form title</Label>
-									<Input
-										id="feedback-title"
-										className="rounded-none"
-										value={title}
-										onChange={(e) => setTitle(e.target.value)}
-										required
-									/>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="feedback-description">
-										Description (optional)
-									</Label>
-									<Textarea
-										id="feedback-description"
-										className="min-h-24 rounded-none"
-										value={description}
-										onChange={(e) => setDescription(e.target.value)}
-										placeholder="Tell attendees what this feedback is for (optional)"
-									/>
-								</div>
+							<div className="space-y-1.5">
+								<Label htmlFor="feedback-description">Description</Label>
+								<Textarea
+									id="feedback-description"
+									className="min-h-20 rounded-none"
+									value={description}
+									onChange={(e) => setDescription(e.target.value)}
+									placeholder="Tell attendees what this feedback is for"
+								/>
 							</div>
 						</section>
 
@@ -633,12 +636,16 @@ export function FeedbackFormBuilder({
 												const pageIndex = pageQuestions.findIndex(
 													(item) => item.key === q.key,
 												);
+												const hasHint = Boolean(q.hint_text);
+												const hasPlaceholder = Boolean(q.placeholder);
+
 												return (
 													<div
 														key={q.key}
 														id={`builder-question-${q.key}`}
-														className="space-y-5 border bg-background p-5 shadow-xs sm:p-6"
+														className="space-y-4 border bg-background p-5 shadow-xs sm:p-6"
 													>
+														{/* Header: Number Badge and Action Buttons */}
 														<div className="flex flex-wrap items-center justify-between gap-3">
 															<div className="flex items-center gap-3">
 																<span className="flex size-7 items-center justify-center border border-muted-foreground/20 bg-muted/60 font-mono font-semibold text-foreground text-xs shadow-xs">
@@ -739,52 +746,169 @@ export function FeedbackFormBuilder({
 															</div>
 														</div>
 
-														<div className="space-y-2">
-															<Label htmlFor={`question-${q.key}`}>
-																Question text
-															</Label>
-															<Input
-																id={`question-${q.key}`}
-																className="rounded-none"
-																value={q.question_text}
-																onChange={(e) =>
-																	update(q.key, {
-																		question_text: e.target.value,
-																	})
-																}
-																placeholder="e.g. How would you rate the event?"
-																required
-															/>
-														</div>
-
-														<div className="grid gap-3 sm:grid-cols-2">
-															<div className="space-y-1.5">
-																<Label
-																	htmlFor={`hint-${q.key}`}
-																	className="text-muted-foreground text-xs"
-																>
-																	Helpful hint / subtitle (optional)
+														{/* Desktop row: Question text, Answer type, Required Checkbox */}
+														<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+															<div className="min-w-0 flex-1 space-y-1.5">
+																<Label htmlFor={`question-${q.key}`}>
+																	Question text
 																</Label>
 																<Input
-																	id={`hint-${q.key}`}
-																	className="h-8 rounded-none text-xs"
-																	value={q.hint_text}
+																	id={`question-${q.key}`}
+																	className="rounded-none"
+																	value={q.question_text}
 																	onChange={(e) =>
 																		update(q.key, {
-																			hint_text: e.target.value,
+																			question_text: e.target.value,
 																		})
 																	}
-																	placeholder="e.g. Briefly describe in 1–2 sentences"
+																	placeholder="e.g. How would you rate the event?"
+																	required
 																/>
 															</div>
-															{q.question_type === "text" ? (
-																<div className="space-y-1.5">
-																	<Label
-																		htmlFor={`placeholder-${q.key}`}
-																		className="text-muted-foreground text-xs"
+
+															<div className="w-full space-y-1.5 sm:w-48">
+																<Label htmlFor={`type-${q.key}`}>
+																	Answer type
+																</Label>
+																<Select
+																	value={q.question_type || undefined}
+																	onValueChange={(value) =>
+																		update(q.key, {
+																			question_type:
+																				value as FeedbackQuestionType,
+																			...(value === "single_choice" ||
+																			value === "multi_choice"
+																				? {
+																						optionsText:
+																							q.optionsText ||
+																							"Option 1\nOption 2\n",
+																						optionKeys:
+																							q.optionKeys.length > 1
+																								? q.optionKeys
+																								: [
+																										crypto.randomUUID(),
+																										crypto.randomUUID(),
+																										crypto.randomUUID(),
+																									],
+																					}
+																				: {}),
+																		})
+																	}
+																>
+																	<SelectTrigger
+																		id={`type-${q.key}`}
+																		className="rounded-none"
 																	>
-																		Textarea placeholder (optional)
-																	</Label>
+																		<SelectValue placeholder="Select answer type" />
+																	</SelectTrigger>
+																	<SelectContent>
+																		{QUESTION_TYPES.map((t) => (
+																			<SelectItem key={t.value} value={t.value}>
+																				{t.label}
+																			</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															</div>
+
+															<div className="flex h-10 items-center gap-2 px-1">
+																<Checkbox
+																	id={`required-${q.key}`}
+																	checked={q.required}
+																	onCheckedChange={(checked) =>
+																		update(q.key, { required: Boolean(checked) })
+																	}
+																	className="rounded-none"
+																/>
+																<Label
+																	htmlFor={`required-${q.key}`}
+																	className="cursor-pointer font-normal text-muted-foreground text-sm select-none"
+																>
+																	Required
+																</Label>
+															</div>
+														</div>
+
+														{/* Helpful hint / subtitle - expandable on demand */}
+														<div className="space-y-2">
+															{hasHint ? (
+																<div className="space-y-1">
+																	<div className="flex items-center justify-between">
+																		<Label
+																			htmlFor={`hint-${q.key}`}
+																			className="text-muted-foreground text-xs"
+																		>
+																			Description
+																		</Label>
+																		<button
+																			type="button"
+																			className="text-[11px] text-muted-foreground hover:text-destructive"
+																			onClick={() =>
+																				update(q.key, { hint_text: "" })
+																			}
+																		>
+																			Remove description
+																		</button>
+																	</div>
+																	<Input
+																		id={`hint-${q.key}`}
+																		className="h-8 rounded-none text-xs"
+																		value={q.hint_text}
+																		onChange={(e) =>
+																			update(q.key, {
+																				hint_text: e.target.value,
+																			})
+																		}
+																		placeholder="Add helpful context or subtitle"
+																		autoFocus
+																	/>
+																</div>
+															) : (
+																<div className="flex items-center gap-4">
+																	<button
+																		type="button"
+																		className="font-medium text-muted-foreground text-xs underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground hover:text-foreground"
+																		onClick={() =>
+																			update(q.key, { hint_text: " " })
+																		}
+																	>
+																		+ Add description
+																	</button>
+
+																	{q.question_type === "text" &&
+																		!hasPlaceholder && (
+																			<button
+																				type="button"
+																				className="font-medium text-muted-foreground text-xs underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground hover:text-foreground"
+																				onClick={() =>
+																					update(q.key, { placeholder: " " })
+																				}
+																			>
+																				+ Add placeholder
+																			</button>
+																		)}
+																</div>
+															)}
+
+															{q.question_type === "text" && hasPlaceholder && (
+																<div className="space-y-1 pt-1">
+																	<div className="flex items-center justify-between">
+																		<Label
+																			htmlFor={`placeholder-${q.key}`}
+																			className="text-muted-foreground text-xs"
+																		>
+																			Textarea placeholder
+																		</Label>
+																		<button
+																			type="button"
+																			className="text-[11px] text-muted-foreground hover:text-destructive"
+																			onClick={() =>
+																				update(q.key, { placeholder: "" })
+																			}
+																		>
+																			Remove placeholder
+																		</button>
+																	</div>
 																	<Input
 																		id={`placeholder-${q.key}`}
 																		className="h-8 rounded-none text-xs"
@@ -795,70 +919,10 @@ export function FeedbackFormBuilder({
 																			})
 																		}
 																		placeholder="e.g. Type your feedback here..."
+																		autoFocus
 																	/>
 																</div>
-															) : null}
-														</div>
-
-														<div className="grid gap-x-6 gap-y-2 sm:grid-cols-[16rem_auto]">
-															<Label htmlFor={`type-${q.key}`}>
-																Answer type
-															</Label>
-															<Select
-																value={q.question_type || undefined}
-																onValueChange={(value) =>
-																	update(q.key, {
-																		question_type:
-																			value as FeedbackQuestionType,
-																		...(value === "single_choice" ||
-																		value === "multi_choice"
-																			? {
-																					optionsText:
-																						q.optionsText ||
-																						"Option 1\nOption 2\n",
-																					optionKeys:
-																						q.optionKeys.length > 1
-																							? q.optionKeys
-																							: [
-																									crypto.randomUUID(),
-																									crypto.randomUUID(),
-																									crypto.randomUUID(),
-																								],
-																				}
-																			: {}),
-																	})
-																}
-															>
-																<SelectTrigger
-																	id={`type-${q.key}`}
-																	className="rounded-none sm:col-start-1"
-																>
-																	<SelectValue placeholder="Select answer type" />
-																</SelectTrigger>
-																<SelectContent>
-																	{QUESTION_TYPES.map((t) => (
-																		<SelectItem key={t.value} value={t.value}>
-																			{t.label}
-																		</SelectItem>
-																	))}
-																</SelectContent>
-															</Select>
-															<div className="flex items-center gap-2 sm:col-start-2 sm:row-start-2">
-																<Switch
-																	id={`required-${q.key}`}
-																	checked={q.required}
-																	onCheckedChange={(required) =>
-																		update(q.key, { required })
-																	}
-																	className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
-																/>
-																<Label
-																	htmlFor={`required-${q.key}`}
-																	className="font-normal text-muted-foreground text-sm"
-																>
-																	Required question
-																</Label>
-															</div>
+															)}
 														</div>
 
 														{isChoice(q.question_type) && (
@@ -924,8 +988,7 @@ export function FeedbackFormBuilder({
 																													...item,
 																													optionsText:
 																														lines.join("\n"),
-																													optionKeys:
-																														nextKeys,
+																													optionKeys: nextKeys,
 																												}
 																											: item,
 																									),
@@ -1148,67 +1211,100 @@ export function FeedbackFormBuilder({
 								Add new page / section
 							</Button>
 						</div>
+
+						{/* Custom Thank You Screen Section */}
+						<section className="border bg-background">
+							<div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
+								<h2 className="font-semibold text-base">Thank you screen</h2>
+								<span className="text-muted-foreground text-xs">
+									Shown after submission
+								</span>
+							</div>
+							<div className="space-y-4 p-5 sm:p-6">
+								<div className="space-y-1.5">
+									<Label htmlFor="thank-you-title">Heading</Label>
+									<Input
+										id="thank-you-title"
+										className="rounded-none"
+										value={thankYouTitle}
+										onChange={(e) => setThankYouTitle(e.target.value)}
+										placeholder="Thanks for your feedback"
+									/>
+								</div>
+								<div className="space-y-1.5">
+									<Label htmlFor="thank-you-message">Message</Label>
+									<Textarea
+										id="thank-you-message"
+										className="min-h-20 rounded-none"
+										value={thankYouMessage}
+										onChange={(e) => setThankYouMessage(e.target.value)}
+										placeholder="Your answers help the organiser make the next event better."
+									/>
+								</div>
+							</div>
+						</section>
 					</div>
 
 					{/* Right Sidebar Settings */}
 					<aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-						{/* Display Mode Selector */}
+						{/* Display Mode Selector - Direct and Lean */}
 						<section className="border bg-background">
 							<div className="border-b px-5 py-4">
 								<h2 className="font-semibold text-base">Display mode</h2>
-								<p className="mt-1 text-muted-foreground text-sm">
-									Choose how attendees navigate your feedback form.
-								</p>
 							</div>
-							<div className="space-y-3 p-5">
-								<div
+							<div className="space-y-2 p-4">
+								<button
+									type="button"
 									onClick={() => setDisplayMode("pages")}
 									className={cn(
-										"cursor-pointer border p-3.5 transition-all text-xs space-y-1",
+										"flex w-full items-center justify-between border p-3 text-left text-xs transition-colors",
 										displayMode === "pages"
-											? "border-[#23C460] bg-[#23C460]/5 shadow-sm"
-											: "hover:border-foreground/30",
+											? "border-[#23C460] bg-[#23C460]/10 font-semibold text-foreground"
+											: "text-muted-foreground hover:border-foreground/30",
 									)}
 								>
-									<div className="flex items-center justify-between font-semibold text-sm text-foreground">
-										<span>📑 Flipping Pages (Stepper)</span>
-										{displayMode === "pages" && (
-											<span className="text-[#23C460] font-bold">✓ Active</span>
-										)}
-									</div>
-									<p className="text-muted-foreground text-xs leading-relaxed">
-										Shows one page at a time with smooth page-by-page stepping and
-										conditional skip branching.
-									</p>
-								</div>
+									<span>Flipping pages</span>
+									{displayMode === "pages" && (
+										<span className="font-bold text-[#23C460]">✓</span>
+									)}
+								</button>
 
-								<div
+								<button
+									type="button"
 									onClick={() => setDisplayMode("continuous")}
 									className={cn(
-										"cursor-pointer border p-3.5 transition-all text-xs space-y-1",
+										"flex w-full items-center justify-between border p-3 text-left text-xs transition-colors",
 										displayMode === "continuous"
-											? "border-[#23C460] bg-[#23C460]/5 shadow-sm"
-											: "hover:border-foreground/30",
+											? "border-[#23C460] bg-[#23C460]/10 font-semibold text-foreground"
+											: "text-muted-foreground hover:border-foreground/30",
 									)}
 								>
-									<div className="flex items-center justify-between font-semibold text-sm text-foreground">
-										<span>📜 Continuous Scrolling</span>
-										{displayMode === "continuous" && (
-											<span className="text-[#23C460] font-bold">✓ Active</span>
-										)}
-									</div>
-									<p className="text-muted-foreground text-xs leading-relaxed">
-										All sections and questions presented on a single scrolling
-										ticket stub with section headers.
-									</p>
-								</div>
+									<span>Continuous scrolling</span>
+									{displayMode === "continuous" && (
+										<span className="font-bold text-[#23C460]">✓</span>
+									)}
+								</button>
 							</div>
 						</section>
 
+						{/* Availability with clear Green / Red color */}
 						<section className="border bg-background">
 							<div className="flex items-center justify-between border-b px-5 py-4">
 								<h2 className="font-semibold text-base">Availability</h2>
-								<span className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+								<span
+									className={cn(
+										"flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-semibold text-xs",
+										isActive
+											? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+											: "border border-red-500/30 bg-red-500/10 text-red-600",
+									)}
+								>
+									<span
+										className={cn(
+											"size-1.5 rounded-full",
+											isActive ? "bg-emerald-500" : "bg-red-500",
+										)}
+									/>
 									{isActive ? "Open" : "Closed"}
 								</span>
 							</div>
@@ -1216,14 +1312,19 @@ export function FeedbackFormBuilder({
 								<div className="space-y-1">
 									<Label htmlFor="feedback-active">Accepting responses</Label>
 									<p className="text-muted-foreground text-sm">
-										When closed, the public form is unavailable.
+										{isActive
+											? "Form is live and taking attendee responses."
+											: "Form is closed to new responses."}
 									</p>
 								</div>
 								<Switch
 									id="feedback-active"
 									checked={isActive}
 									onCheckedChange={setIsActive}
-									className="mt-0.5 rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
+									className={cn(
+										"mt-0.5 rounded-none [&_[data-slot=switch-thumb]]:rounded-none",
+										isActive && "data-[state=checked]:bg-emerald-600",
+									)}
 								/>
 							</div>
 						</section>
@@ -1232,8 +1333,8 @@ export function FeedbackFormBuilder({
 							<div className="border-b px-5 py-4">
 								<h2 className="font-semibold text-base">Preview & links</h2>
 								<p className="mt-1 text-muted-foreground text-sm">
-									Attendees get their own link in the thank-you email. Use this to
-									preview the form or copy a link for one attendee.
+									Attendees get their own link in the thank-you email. Use this
+									to preview the form or copy a link for one attendee.
 								</p>
 							</div>
 							<div className="space-y-3 p-5">
@@ -1272,8 +1373,8 @@ export function FeedbackFormBuilder({
 										<p className="text-muted-foreground text-xs">
 											Preview only: it can't submit responses. To send it
 											yourself, add <code>?ticket=&lt;ticket public ID&gt;</code>{" "}
-											so the response is saved against that attendee, or pick one
-											below.
+											so the response is saved against that attendee, or pick
+											one below.
 										</p>
 										<AttendeeFeedbackLink
 											eventId={eventId}
@@ -1336,7 +1437,9 @@ export function FeedbackFormBuilder({
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel className="rounded-none">Cancel</AlertDialogCancel>
+						<AlertDialogCancel className="rounded-none">
+							Cancel
+						</AlertDialogCancel>
 						<AlertDialogAction
 							className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90"
 							onClick={() => {

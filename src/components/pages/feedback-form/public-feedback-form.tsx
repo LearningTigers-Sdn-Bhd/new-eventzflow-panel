@@ -321,10 +321,11 @@ export function PublicFeedbackForm({
 								<Check className="size-8" strokeWidth={3} />
 							</span>
 							<p className="font-bold text-2xl text-[#0F3D2E]">
-								Thanks for your feedback
+								{form?.thank_you_title?.trim() || "Thanks for your feedback"}
 							</p>
 							<p className="text-[#4E6358]">
-								Your answers help the organiser make the next event better.
+								{form?.thank_you_message?.trim() ||
+									"Your answers help the organiser make the next event better."}
 							</p>
 							{mutation.data?.certificate_queued && (
 								<p className="font-medium text-[#1E7A45]">

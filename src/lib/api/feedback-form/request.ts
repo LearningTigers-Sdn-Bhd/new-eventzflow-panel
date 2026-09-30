@@ -24,6 +24,8 @@ export interface SaveFeedbackFormRequest {
 	is_active: boolean;
 	display_mode?: FeedbackDisplayMode;
 	pages_metadata?: FeedbackPageMetadata[];
+	thank_you_title?: string | null;
+	thank_you_message?: string | null;
 	feedback_questions_attributes: FeedbackQuestionInput[];
 }
 
