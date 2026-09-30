@@ -280,7 +280,7 @@ function EventDetailLayoutContent({
 			</div>
 
 			{/* Current Menu Header */}
-			<div className="mx-auto w-full max-w-4xl rounded-none bg-transparent px-0 md:max-w-5xl 2xl:max-w-7xl">
+			<div className="mx-auto w-full max-w-4xl rounded-none bg-transparent px-0 md:max-w-5xl md:pt-5 2xl:max-w-7xl">
 				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
 					<IconHeading
 						icon={currentMenu.icon}
