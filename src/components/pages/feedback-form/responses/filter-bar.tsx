@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
 	Select,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { FeedbackFilters } from "@/lib/api/feedback-form";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
+import { DatePickerField } from "./date-picker";
 import { DEFAULT_FILTERS, hasActiveFilters } from "./filters";
 
 /** Filters shared by every tab and by the exports. `actions` sits at the far right. */
@@ -72,26 +72,24 @@ export function FeedbackFilterBar({
 				<Label htmlFor="feedback-filter-from" className="text-xs">
 					Submitted from
 				</Label>
-				<Input
+				<DatePickerField
 					id="feedback-filter-from"
-					type="date"
-					value={filters.from ?? ""}
+					value={filters.from}
 					max={filters.to || undefined}
-					onChange={(e) => onChange({ ...filters, from: e.target.value })}
-					className="h-9 w-40 rounded-none bg-background"
+					placeholder="Any date"
+					onChange={(from) => onChange({ ...filters, from })}
 				/>
 			</div>
 			<div className="space-y-1">
 				<Label htmlFor="feedback-filter-to" className="text-xs">
 					to
 				</Label>
-				<Input
+				<DatePickerField
 					id="feedback-filter-to"
-					type="date"
-					value={filters.to ?? ""}
+					value={filters.to}
 					min={filters.from || undefined}
-					onChange={(e) => onChange({ ...filters, to: e.target.value })}
-					className="h-9 w-40 rounded-none bg-background"
+					placeholder="Any date"
+					onChange={(to) => onChange({ ...filters, to })}
 				/>
 			</div>
 			{hasActiveFilters(filters) && (
