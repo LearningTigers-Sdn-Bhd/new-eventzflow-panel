@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	ArrowDown,
 	ArrowUp,
+	ChevronDown,
 	Copy,
 	ExternalLink,
 	GitFork,
@@ -26,6 +27,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -85,6 +92,7 @@ type DraftQuestion = {
 	optionsText: string; // one option per line
 	optionKeys: string[];
 	ratingLabels: [string, string, string, string, string];
+	ratingCustomEnabled: boolean;
 	ratingCustomAll: boolean;
 	required: boolean;
 	placeholder: string;
@@ -136,6 +144,11 @@ export function FeedbackFormBuilder({
 		const questions: DraftQuestion[] =
 			form?.questions.map((q) => {
 				const ratingLabels = parseRatingLabels(q.options);
+				const hasCustomLabels =
+					(q.question_type === "rating" &&
+						Array.isArray(q.options) &&
+						q.options.some((o) => o && o.trim().length > 0)) ||
+					false;
 				const hasMiddleLabels = Boolean(
 					ratingLabels[1]?.trim() ||
 						ratingLabels[2]?.trim() ||
@@ -157,6 +170,7 @@ export function FeedbackFormBuilder({
 						`${q.id}-new`,
 					],
 					ratingLabels,
+					ratingCustomEnabled: hasCustomLabels,
 					ratingCustomAll: hasMiddleLabels,
 					required: q.required,
 					placeholder: q.placeholder ?? "",
@@ -241,7 +255,7 @@ export function FeedbackFormBuilder({
 						question_type: q.question_type as FeedbackQuestionType,
 						options:
 							q.question_type === "rating"
-								? q.ratingLabels.some((l) => l.trim())
+								? q.ratingCustomEnabled && q.ratingLabels.some((l) => l.trim())
 									? q.ratingLabels.map((l) => l.trim())
 									: null
 								: isChoice(q.question_type)
@@ -395,6 +409,7 @@ export function FeedbackFormBuilder({
 				optionsText: "",
 				optionKeys: [crypto.randomUUID()],
 				ratingLabels: ["", "", "", "", ""],
+				ratingCustomEnabled: false,
 				ratingCustomAll: false,
 				required: false,
 				placeholder: "",
@@ -487,6 +502,7 @@ export function FeedbackFormBuilder({
 		if (isChoice(q.question_type) && q.optionsText.trim()) return true;
 		if (
 			q.question_type === "rating" &&
+			q.ratingCustomEnabled &&
 			q.ratingLabels.some((l) => l.trim())
 		)
 			return true;
@@ -663,26 +679,44 @@ export function FeedbackFormBuilder({
 															</div>
 															<div className="flex flex-wrap items-center gap-1.5">
 																{pages.length > 1 && (
-																	<Select
-																		value={String(q.page_number)}
-																		onValueChange={(val) =>
-																			moveQuestionToPage(q.key, Number(val))
-																		}
-																	>
-																		<SelectTrigger className="h-8 w-36 rounded-none text-xs">
-																			<SelectValue />
-																		</SelectTrigger>
-																		<SelectContent>
+																	<DropdownMenu>
+																		<DropdownMenuTrigger asChild>
+																			<Button
+																				type="button"
+																				variant="outline"
+																				size="sm"
+																				className="h-8 rounded-none text-xs gap-1 font-normal"
+																			>
+																				Move
+																				<ChevronDown className="size-3.5 opacity-60" />
+																			</Button>
+																		</DropdownMenuTrigger>
+																		<DropdownMenuContent
+																			align="end"
+																			className="rounded-none"
+																		>
 																			{pages.map((targetP) => (
-																				<SelectItem
+																				<DropdownMenuItem
 																					key={targetP.page_number}
-																					value={String(targetP.page_number)}
+																					disabled={
+																						targetP.page_number === q.page_number
+																					}
+																					onClick={() =>
+																						moveQuestionToPage(
+																							q.key,
+																							targetP.page_number,
+																						)
+																					}
+																					className="cursor-pointer rounded-none text-xs"
 																				>
-																					Move to Page {targetP.page_number}
-																				</SelectItem>
+																					Page {targetP.page_number}
+																					{targetP.page_number === q.page_number
+																						? " (Current)"
+																						: ""}
+																				</DropdownMenuItem>
 																			))}
-																		</SelectContent>
-																	</Select>
+																		</DropdownMenuContent>
+																	</DropdownMenu>
 																)}
 
 																<Button
@@ -746,15 +780,18 @@ export function FeedbackFormBuilder({
 															</div>
 														</div>
 
-														{/* Desktop row: Question text, Answer type, Required Checkbox */}
-														<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+														{/* Desktop row: Question, Answer type, Required Checkbox */}
+														<div className="flex flex-col gap-3 sm:flex-row sm:items-start">
 															<div className="min-w-0 flex-1 space-y-1.5">
-																<Label htmlFor={`question-${q.key}`}>
-																	Question text
+																<Label
+																	htmlFor={`question-${q.key}`}
+																	className="font-medium text-xs text-foreground"
+																>
+																	Question
 																</Label>
 																<Input
 																	id={`question-${q.key}`}
-																	className="rounded-none"
+																	className="h-9 rounded-none text-sm"
 																	value={q.question_text}
 																	onChange={(e) =>
 																		update(q.key, {
@@ -767,7 +804,10 @@ export function FeedbackFormBuilder({
 															</div>
 
 															<div className="w-full space-y-1.5 sm:w-48">
-																<Label htmlFor={`type-${q.key}`}>
+																<Label
+																	htmlFor={`type-${q.key}`}
+																	className="font-medium text-xs text-foreground"
+																>
 																	Answer type
 																</Label>
 																<Select
@@ -797,7 +837,7 @@ export function FeedbackFormBuilder({
 																>
 																	<SelectTrigger
 																		id={`type-${q.key}`}
-																		className="rounded-none"
+																		className="h-9 w-full rounded-none text-sm"
 																	>
 																		<SelectValue placeholder="Select answer type" />
 																	</SelectTrigger>
@@ -811,7 +851,7 @@ export function FeedbackFormBuilder({
 																</Select>
 															</div>
 
-															<div className="flex h-10 items-center gap-2 px-1">
+															<div className="flex h-9 items-center gap-2 px-1 sm:self-end">
 																<Checkbox
 																	id={`required-${q.key}`}
 																	checked={q.required}
@@ -1036,7 +1076,7 @@ export function FeedbackFormBuilder({
 															</div>
 														)}
 
-														{/* Conditional Branching & Skip Logic for Single Choice */}
+														{/* Page navigation based on answer for Single Choice */}
 														{q.question_type === "single_choice" && (
 															<QuestionBranchingEditor
 																question={q}
@@ -1052,7 +1092,7 @@ export function FeedbackFormBuilder({
 																<div className="flex flex-wrap items-center justify-between gap-3">
 																	<div>
 																		<legend className="font-semibold text-foreground text-xs uppercase tracking-wide">
-																			Rating Scale Labels (Optional)
+																			Rating labels
 																		</legend>
 																		<p className="mt-0.5 text-muted-foreground text-xs">
 																			Add custom labels to guide attendees
@@ -1061,101 +1101,141 @@ export function FeedbackFormBuilder({
 																	</div>
 																	<div className="flex items-center gap-2">
 																		<Switch
-																			id={`custom-all-${q.key}`}
-																			checked={q.ratingCustomAll}
+																			id={`custom-labels-${q.key}`}
+																			checked={q.ratingCustomEnabled}
 																			onCheckedChange={(checked) =>
 																				update(q.key, {
-																					ratingCustomAll: checked,
+																					ratingCustomEnabled: checked,
 																				})
 																			}
 																			className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
 																		/>
 																		<Label
-																			htmlFor={`custom-all-${q.key}`}
-																			className="font-normal text-muted-foreground text-xs"
+																			htmlFor={`custom-labels-${q.key}`}
+																			className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
 																		>
-																			Label all 5 scores
+																			Custom labels
 																		</Label>
 																	</div>
 																</div>
 
-																{!q.ratingCustomAll ? (
-																	<div className="grid gap-3 sm:grid-cols-2">
-																		<div className="space-y-1">
-																			<Label
-																				htmlFor={`label-low-${q.key}`}
-																				className="text-xs"
-																			>
-																				Lowest Score (1)
-																			</Label>
-																			<Input
-																				id={`label-low-${q.key}`}
-																				className="h-8 rounded-none text-xs"
-																				placeholder="e.g. Strongly disagree"
-																				value={q.ratingLabels[0]}
-																				onChange={(e) =>
-																					updateRatingLabel(
-																						q.key,
-																						0,
-																						e.target.value,
-																					)
+																{q.ratingCustomEnabled ? (
+																	<div className="space-y-4 pt-1">
+																		<div className="flex items-center justify-end gap-2">
+																			<Switch
+																				id={`custom-all-${q.key}`}
+																				checked={q.ratingCustomAll}
+																				onCheckedChange={(checked) =>
+																					update(q.key, {
+																						ratingCustomAll: checked,
+																					})
 																				}
+																				className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
 																			/>
-																		</div>
-																		<div className="space-y-1">
 																			<Label
-																				htmlFor={`label-high-${q.key}`}
-																				className="text-xs"
+																				htmlFor={`custom-all-${q.key}`}
+																				className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
 																			>
-																				Highest Score (5)
+																				Label all 5 scores
 																			</Label>
-																			<Input
-																				id={`label-high-${q.key}`}
-																				className="h-8 rounded-none text-xs"
-																				placeholder="e.g. Strongly agree"
-																				value={q.ratingLabels[4]}
-																				onChange={(e) =>
-																					updateRatingLabel(
-																						q.key,
-																						4,
-																						e.target.value,
-																					)
-																				}
-																			/>
 																		</div>
+
+																		{!q.ratingCustomAll ? (
+																			<div className="grid gap-3 sm:grid-cols-2">
+																				<div className="space-y-1">
+																					<Label
+																						htmlFor={`label-low-${q.key}`}
+																						className="text-xs"
+																					>
+																						Lowest Score (1)
+																					</Label>
+																					<Input
+																						id={`label-low-${q.key}`}
+																						className="h-8 rounded-none text-xs"
+																						placeholder="e.g. Strongly disagree"
+																						value={q.ratingLabels[0]}
+																						onChange={(e) =>
+																							updateRatingLabel(
+																								q.key,
+																								0,
+																								e.target.value,
+																							)
+																						}
+																					/>
+																				</div>
+																				<div className="space-y-1">
+																					<Label
+																						htmlFor={`label-high-${q.key}`}
+																						className="text-xs"
+																					>
+																						Highest Score (5)
+																					</Label>
+																					<Input
+																						id={`label-high-${q.key}`}
+																						className="h-8 rounded-none text-xs"
+																						placeholder="e.g. Strongly agree"
+																						value={q.ratingLabels[4]}
+																						onChange={(e) =>
+																							updateRatingLabel(
+																								q.key,
+																								4,
+																								e.target.value,
+																							)
+																						}
+																					/>
+																				</div>
+																			</div>
+																		) : (
+																			<div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+																				{[1, 2, 3, 4, 5].map((num) => (
+																					<div
+																						key={num}
+																						className="space-y-1"
+																					>
+																						<Label
+																							htmlFor={`label-${num}-${q.key}`}
+																							className="text-muted-foreground text-xs"
+																						>
+																							Score {num}
+																						</Label>
+																						<Input
+																							id={`label-${num}-${q.key}`}
+																							className="h-8 rounded-none text-xs"
+																							value={
+																								q.ratingLabels[num - 1]
+																							}
+																							placeholder={
+																								num === 1
+																									? "Lowest"
+																									: num === 5
+																										? "Highest"
+																										: `Score ${num}`
+																							}
+																							onChange={(e) =>
+																								updateRatingLabel(
+																									q.key,
+																									num - 1,
+																									e.target.value,
+																								)
+																							}
+																						/>
+																					</div>
+																				))}
+																			</div>
+																		)}
 																	</div>
 																) : (
-																	<div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-																		{[1, 2, 3, 4, 5].map((num) => (
-																			<div key={num} className="space-y-1">
-																				<Label
-																					htmlFor={`label-${num}-${q.key}`}
-																					className="text-muted-foreground text-xs"
-																				>
-																					Score {num}
-																				</Label>
-																				<Input
-																					id={`label-${num}-${q.key}`}
-																					className="h-8 rounded-none text-xs"
-																					value={q.ratingLabels[num - 1]}
-																					placeholder={
-																						num === 1
-																							? "Lowest"
-																							: num === 5
-																								? "Highest"
-																								: `Score ${num}`
-																					}
-																					onChange={(e) =>
-																						updateRatingLabel(
-																							q.key,
-																							num - 1,
-																							e.target.value,
-																						)
-																					}
-																				/>
-																			</div>
-																		))}
-																	</div>
+																	<p className="text-muted-foreground text-xs">
+																		Using default labels:{" "}
+																		<span className="font-medium text-foreground">
+																			1 (Strongly disagree)
+																		</span>{" "}
+																		to{" "}
+																		<span className="font-medium text-foreground">
+																			5 (Strongly agree)
+																		</span>
+																		.
+																	</p>
 																)}
 															</fieldset>
 														)}
@@ -1173,7 +1253,11 @@ export function FeedbackFormBuilder({
 																			.filter(Boolean)
 																	: []
 															}
-															ratingLabels={q.ratingLabels}
+															ratingLabels={
+																q.ratingCustomEnabled
+																	? q.ratingLabels
+																	: ["", "", "", "", ""]
+															}
 															placeholder={q.placeholder}
 															hintText={q.hint_text}
 														/>
@@ -1512,7 +1596,7 @@ function QuestionBranchingEditor({
 				<div className="flex items-center gap-2">
 					<GitFork className="size-4 text-[#23C460]" />
 					<span className="font-semibold text-foreground text-xs uppercase tracking-wide">
-						Conditional Logic & Branching
+						Go to page based on answer
 					</span>
 					{activeRulesCount > 0 && (
 						<span className="rounded bg-[#23C460] px-1.5 py-0.5 font-bold text-[10px] text-white">
@@ -1527,15 +1611,15 @@ function QuestionBranchingEditor({
 					className="h-7 text-muted-foreground text-xs hover:text-foreground"
 					onClick={() => setIsOpen(!isOpen)}
 				>
-					{isOpen ? "Hide logic" : "Configure logic"}
+					{isOpen ? "Hide rules" : "Set rules"}
 				</Button>
 			</div>
 
 			{isOpen && (
 				<div className="space-y-2 pt-1">
 					<p className="text-muted-foreground text-xs">
-						Route attendees to a specific page or submit early based on their
-						selected answer:
+						Send attendees to a specific page or submit based on their selected
+						answer:
 					</p>
 					<div className="divide-y border bg-background">
 						{choices.map((choice) => {
@@ -1583,12 +1667,12 @@ function QuestionBranchingEditor({
 														key={sp.page_number}
 														value={String(sp.page_number)}
 													>
-														Jump to Page {sp.page_number}
+														Go to Page {sp.page_number}
 														{sp.title ? ` (${sp.title})` : ""}
 													</SelectItem>
 												))}
 												<SelectItem value="submit">
-													Submit form immediately
+													Submit form
 												</SelectItem>
 											</SelectContent>
 										</Select>
