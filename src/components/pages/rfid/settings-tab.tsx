@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -95,15 +94,6 @@ export function SettingsTab({
 							<SelectItem value="write">write — encode stickers</SelectItem>
 						</SelectContent>
 					</Select>
-					{mode === "write" && (
-						<Alert className="rounded-none border-amber-300 bg-amber-50 text-amber-900">
-							<AlertTitle>Write operation is not available yet</AlertTitle>
-							<AlertDescription>
-								Write mode is not currently available. Saving this setting will
-								not enable any write operations.
-							</AlertDescription>
-						</Alert>
-					)}
 				</div>
 
 				<div className="flex items-start gap-3">

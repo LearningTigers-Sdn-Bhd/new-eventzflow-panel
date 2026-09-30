@@ -1,5 +1,9 @@
 // API endpoints
 export {
+	deleteRfidAnomalies,
+	deleteRfidBinding,
+	deleteRfidStation,
+	dismissRfidAnomalies,
 	downloadRfidVisitsCsv,
 	getRfidAnomalies,
 	getRfidBindings,
@@ -7,6 +11,8 @@ export {
 	getRfidSummary,
 	getRfidVisits,
 	manualExitRfidVisit,
+	type RfidAnomalySelection,
+	updateRfidBinding,
 	updateRfidSettings,
 	updateRfidStation,
 } from "./endpoints";
@@ -14,8 +20,10 @@ export {
 export {
 	type ManualExitRequest,
 	manualExitSchema,
+	type UpdateRfidBindingRequest,
 	type UpdateRfidSettingsRequest,
 	type UpdateRfidStationRequest,
+	updateRfidBindingSchema,
 	updateRfidSettingsSchema,
 	updateRfidStationSchema,
 } from "./request";
@@ -24,6 +32,7 @@ export type {
 	RfidAnomaliesResponse,
 	RfidAnomalyObservation,
 	RfidBinding,
+	RfidBindingResponse,
 	RfidBindingsResponse,
 	RfidMode,
 	RfidPagination,

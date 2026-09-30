@@ -1,8 +1,10 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,9 +14,10 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
-import type { RfidStation } from "@/lib/api/rfid";
+import { deleteRfidStation, type RfidStation } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "./confirm-dialog";
 import { RfidTable } from "./rfid-table";
 import { StationCorrectionDialog } from "./station-correction-dialog";
 
@@ -51,12 +54,40 @@ export function StationsTab({
 	eventId,
 	stations,
 	canUpdate,
+	canAdmin,
 }: {
 	eventId: string;
 	stations: RfidStation[];
 	canUpdate: boolean;
+	canAdmin: boolean;
 }) {
+	const queryClient = useQueryClient();
 	const [selected, setSelected] = useState<RfidStation | null>(null);
+	const [toDelete, setToDelete] = useState<RfidStation | null>(null);
+
+	const deleteMutation = useMutation({
+		mutationFn: (station: RfidStation) =>
+			deleteRfidStation(eventId, station.id),
+		onSuccess: () => {
+			toast.success("Station deleted.");
+			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
+			setToDelete(null);
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	const deleteButton = (station: RfidStation) =>
+		canAdmin ? (
+			<Button
+				variant="outline"
+				size="sm"
+				className="rounded-none text-destructive"
+				onClick={() => setToDelete(station)}
+			>
+				<Trash2 className="size-4" />
+				Delete
+			</Button>
+		) : null;
 
 	const columns: ColumnDef<RfidStation, unknown>[] = [
 		{
@@ -98,18 +129,22 @@ export function StationsTab({
 		{
 			id: "actions",
 			header: "",
-			cell: ({ row }) =>
-				canUpdate ? (
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-none"
-						onClick={() => setSelected(row.original)}
-					>
-						<Pencil className="size-4" />
-						Correct
-					</Button>
-				) : null,
+			cell: ({ row }) => (
+				<div className="flex gap-2">
+					{canUpdate && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="rounded-none"
+							onClick={() => setSelected(row.original)}
+						>
+							<Pencil className="size-4" />
+							Correct
+						</Button>
+					)}
+					{deleteButton(row.original)}
+				</div>
+			),
 		},
 	];
 
@@ -141,17 +176,20 @@ export function StationsTab({
 									? formatDateTime(station.last_heartbeat_at)
 									: "never"}
 							</p>
-							{canUpdate && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="mt-2 rounded-none"
-									onClick={() => setSelected(station)}
-								>
-									<Pencil className="size-4" />
-									Correct
-								</Button>
-							)}
+							<div className="mt-2 flex gap-2">
+								{canUpdate && (
+									<Button
+										variant="outline"
+										size="sm"
+										className="rounded-none"
+										onClick={() => setSelected(station)}
+									>
+										<Pencil className="size-4" />
+										Correct
+									</Button>
+								)}
+								{deleteButton(station)}
+							</div>
 						</ItemContent>
 					</Item>
 				)}
@@ -162,6 +200,15 @@ export function StationsTab({
 				canUpdate={canUpdate}
 				open={selected !== null}
 				onOpenChange={(open) => !open && setSelected(null)}
+			/>
+			<ConfirmDialog
+				open={toDelete !== null}
+				onOpenChange={(open) => !open && setToDelete(null)}
+				title={`Delete station ${toDelete?.name ?? toDelete?.station_key ?? ""}?`}
+				description="This also deletes every reading this station recorded and the visits built from them. Headcount is recalculated. It cannot be undone."
+				confirmLabel="Delete station"
+				pending={deleteMutation.isPending}
+				onConfirm={() => toDelete && deleteMutation.mutate(toDelete)}
 			/>
 		</>
 	);

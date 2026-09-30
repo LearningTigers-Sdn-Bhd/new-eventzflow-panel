@@ -93,6 +93,7 @@ export type RfidPagination = {
 export type RfidStationsResponse = { stations: RfidStation[] };
 export type RfidStationResponse = { station: RfidStation };
 export type RfidBindingsResponse = { bindings: RfidBinding[] };
+export type RfidBindingResponse = { binding: RfidBinding };
 export type RfidVisitsResponse = {
 	visits: RfidVisit[];
 	pagination: RfidPagination;

@@ -40,6 +40,20 @@ export const updateRfidSettingsSchema = z
 		},
 	);
 
+export const updateRfidBindingSchema = z
+	.object({
+		ticket_public_id: z.string().uuid().optional(),
+		tag_key: z
+			.string()
+			.trim()
+			.regex(/^([0-9a-fA-F]{2})+$/, "Sticker must be even-length hex.")
+			.optional(),
+	})
+	.refine((v) => v.ticket_public_id !== undefined || v.tag_key !== undefined, {
+		message: "Change the ticket or the sticker.",
+	});
+
+export type UpdateRfidBindingRequest = z.infer<typeof updateRfidBindingSchema>;
 export type UpdateRfidStationRequest = z.infer<typeof updateRfidStationSchema>;
 export type ManualExitRequest = z.infer<typeof manualExitSchema>;
 export type UpdateRfidSettingsRequest = z.infer<

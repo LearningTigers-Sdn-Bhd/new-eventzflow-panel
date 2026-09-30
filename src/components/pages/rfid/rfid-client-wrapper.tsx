@@ -56,6 +56,9 @@ export function RfidClientWrapper({
 		permissions.isEventAdmin ||
 		permissions.isEventTeamMember;
 
+	// Mirrors EventPolicy#rfid_admin? (delete / edit / clear): org owner only.
+	const canAdmin = permissions.isOrgOwner === true;
+
 	const [visitsPage, setVisitsPage] = useState(1);
 	const [anomaliesPage, setAnomaliesPage] = useState(1);
 
@@ -208,11 +211,16 @@ export function RfidClientWrapper({
 							eventId={eventId}
 							stations={stations}
 							canUpdate={canUpdate}
+							canAdmin={canAdmin}
 						/>
 					</TabsContent>
 
 					<TabsContent value="bindings" className="mt-0">
-						<BindingsTab bindings={bindings} />
+						<BindingsTab
+							eventId={eventId}
+							bindings={bindings}
+							canAdmin={canAdmin}
+						/>
 					</TabsContent>
 
 					<TabsContent value="visits" className="mt-0">
@@ -228,6 +236,8 @@ export function RfidClientWrapper({
 
 					<TabsContent value="anomalies" className="mt-0">
 						<AnomaliesTab
+							eventId={eventId}
+							canAdmin={canAdmin}
 							observations={anomaliesQuery.data?.observations ?? []}
 							visits={anomaliesQuery.data?.visits ?? []}
 							pagination={anomaliesQuery.data?.pagination}

@@ -1,8 +1,13 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, EyeOff, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Item,
 	ItemContent,
@@ -10,12 +15,16 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
-import type {
-	RfidAnomalyObservation,
-	RfidPagination,
-	RfidVisit,
+import {
+	deleteRfidAnomalies,
+	dismissRfidAnomalies,
+	type RfidAnomalyObservation,
+	type RfidAnomalySelection,
+	type RfidPagination,
+	type RfidVisit,
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
+import { ConfirmDialog } from "./confirm-dialog";
 import { OutcomeBadge, RfidTable } from "./rfid-table";
 
 function AnomalyBadges({ anomalies }: { anomalies: string[] }) {
@@ -143,23 +152,146 @@ function FlaggedVisits({ visits }: { visits: RfidVisit[] }) {
 	);
 }
 
+type Pending = { kind: "dismiss" | "delete"; selection: RfidAnomalySelection };
+
 export function AnomaliesTab({
+	eventId,
 	observations,
 	visits,
 	pagination,
 	page,
 	onPageChange,
+	canAdmin,
 }: {
+	eventId: string;
 	observations: RfidAnomalyObservation[];
 	visits: RfidVisit[];
 	pagination: RfidPagination | undefined;
 	page: number;
 	onPageChange: (page: number) => void;
+	canAdmin: boolean;
 }) {
+	const queryClient = useQueryClient();
+	const [selected, setSelected] = useState<number[]>([]);
+	const [pending, setPending] = useState<Pending | null>(null);
+
+	const toggle = (id: number, on: boolean) =>
+		setSelected((ids) =>
+			on ? [...new Set([...ids, id])] : ids.filter((x) => x !== id),
+		);
+	const pageIds = observations.map((obs) => obs.observation_id);
+	const allOnPage =
+		pageIds.length > 0 && pageIds.every((id) => selected.includes(id));
+
+	const mutation = useMutation({
+		mutationFn: ({ kind, selection }: Pending) =>
+			kind === "dismiss"
+				? dismissRfidAnomalies(eventId, selection)
+				: deleteRfidAnomalies(eventId, selection),
+		onSuccess: ({ affected }, { kind }) => {
+			toast.success(
+				`${affected} reading${affected === 1 ? "" : "s"} ${kind === "dismiss" ? "dismissed" : "deleted"}.`,
+			);
+			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
+			setSelected([]);
+			setPending(null);
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	const selectColumn: ColumnDef<RfidAnomalyObservation, unknown> = {
+		id: "select",
+		header: () => (
+			<Checkbox
+				aria-label="Select all on this page"
+				checked={allOnPage}
+				onCheckedChange={(on) =>
+					setSelected((ids) =>
+						on === true
+							? [...new Set([...ids, ...pageIds])]
+							: ids.filter((id) => !pageIds.includes(id)),
+					)
+				}
+			/>
+		),
+		cell: ({ row }) => (
+			<Checkbox
+				aria-label={`Select reading ${row.original.observation_id}`}
+				checked={selected.includes(row.original.observation_id)}
+				onCheckedChange={(on) =>
+					toggle(row.original.observation_id, on === true)
+				}
+			/>
+		),
+	};
+
+	const count = pagination?.total_count ?? observations.length;
+	const isDelete = pending?.kind === "delete";
+	const isAll = pending !== null && "all" in pending.selection;
+	const n =
+		pending && "ids" in pending.selection
+			? pending.selection.ids.length
+			: count;
+
 	return (
 		<div>
+			{canAdmin && (
+				<div className="mb-3 flex flex-wrap items-center gap-2">
+					<span className="text-muted-foreground text-sm">
+						{selected.length} selected
+					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						className="rounded-none"
+						disabled={selected.length === 0}
+						onClick={() =>
+							setPending({ kind: "dismiss", selection: { ids: selected } })
+						}
+					>
+						<EyeOff className="size-4" />
+						Dismiss selected
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						className="rounded-none"
+						disabled={count === 0}
+						onClick={() =>
+							setPending({ kind: "dismiss", selection: { all: true } })
+						}
+					>
+						<EyeOff className="size-4" />
+						Dismiss all
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						className="rounded-none text-destructive"
+						disabled={selected.length === 0}
+						onClick={() =>
+							setPending({ kind: "delete", selection: { ids: selected } })
+						}
+					>
+						<Trash2 className="size-4" />
+						Delete selected
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						className="rounded-none text-destructive"
+						disabled={count === 0}
+						onClick={() =>
+							setPending({ kind: "delete", selection: { all: true } })
+						}
+					>
+						<Trash2 className="size-4" />
+						Delete all
+					</Button>
+				</div>
+			)}
 			<RfidTable
-				columns={columns}
+				columns={canAdmin ? [selectColumn, ...columns] : columns}
 				data={observations}
 				emptyTitle="No anomalies"
 				emptyDescription="Readings the gates could not accept, or whose meaning changed, appear here."
@@ -197,6 +329,20 @@ export function AnomaliesTab({
 								<OutcomeBadge outcome={obs.current_outcome} />
 							</div>
 							<AnomalyBadges anomalies={obs.anomalies} />
+							{canAdmin && (
+								<div className="flex items-center gap-2 text-xs">
+									<Checkbox
+										id={`anomaly-select-${obs.observation_id}`}
+										checked={selected.includes(obs.observation_id)}
+										onCheckedChange={(on) =>
+											toggle(obs.observation_id, on === true)
+										}
+									/>
+									<label htmlFor={`anomaly-select-${obs.observation_id}`}>
+										Select
+									</label>
+								</div>
+							)}
 							{obs.reason && (
 								<p className="text-muted-foreground text-xs">{obs.reason}</p>
 							)}
@@ -205,6 +351,23 @@ export function AnomaliesTab({
 				)}
 			/>
 			<FlaggedVisits visits={visits} />
+			<ConfirmDialog
+				open={pending !== null}
+				onOpenChange={(open) => !open && setPending(null)}
+				title={
+					isDelete
+						? `Delete ${isAll ? "all" : n} reading${n === 1 ? "" : "s"}?`
+						: `Dismiss ${isAll ? "all" : n} reading${n === 1 ? "" : "s"}?`
+				}
+				description={
+					isDelete
+						? "The readings are removed for good, together with the visits built from them, so headcount can change. Accepted readings that only carry a flag are removed too. It cannot be undone."
+						: "They leave this list and the anomaly count. The readings and visits stay in the data and the CSV."
+				}
+				confirmLabel={isDelete ? "Delete" : "Dismiss"}
+				pending={mutation.isPending}
+				onConfirm={() => pending && mutation.mutate(pending)}
+			/>
 		</div>
 	);
 }

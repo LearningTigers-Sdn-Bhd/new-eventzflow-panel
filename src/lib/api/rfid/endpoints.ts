@@ -1,11 +1,13 @@
 import { kyClient, restClient } from "@/utils/rest-api";
 import type {
 	ManualExitRequest,
+	UpdateRfidBindingRequest,
 	UpdateRfidSettingsRequest,
 	UpdateRfidStationRequest,
 } from "./request";
 import type {
 	RfidAnomaliesResponse,
+	RfidBindingResponse,
 	RfidBindingsResponse,
 	RfidSettingsResponse,
 	RfidStationResponse,
@@ -88,9 +90,9 @@ export function getRfidAnomalies(
 }
 
 /**
- * Update the event's RFID mode / check-in requirement. Setting `write` only
- * changes the event mode — RfiDex still refuses physical sticker writes
- * until P4 hardware acceptance, so this never authorizes hardware writes.
+ * Update the event's RFID mode / check-in requirement. `write` tells RfiDex
+ * desks to encode stickers; RfiDex still refuses to write until the reader's
+ * sticker write test has passed on that PC.
  */
 export function updateRfidSettings(
 	eventId: string | number,
@@ -111,4 +113,63 @@ export async function downloadRfidVisitsCsv(
 ): Promise<Blob> {
 	const response = await kyClient.get(`${base(eventId)}/visits.csv`);
 	return response.blob();
+}
+
+// --- Org-owner clean-up (backend: EventPolicy#rfid_admin?) -----------------
+
+/** Delete a station together with its readings and derived visits. */
+export function deleteRfidStation(
+	eventId: string | number,
+	stationId: number,
+): Promise<{ deleted: true }> {
+	return restClient.delete<{ deleted: true }>(
+		`${base(eventId)}/stations/${stationId}`,
+	);
+}
+
+/** Change an active binding's ticket and/or sticker (tag key) in place. */
+export function updateRfidBinding(
+	eventId: string | number,
+	bindingId: number,
+	data: UpdateRfidBindingRequest,
+): Promise<RfidBindingResponse> {
+	return restClient.patch<RfidBindingResponse>(
+		`${base(eventId)}/bindings/${bindingId}`,
+		data,
+	);
+}
+
+/** Hard delete; earlier readings of that sticker become unknown. */
+export function deleteRfidBinding(
+	eventId: string | number,
+	bindingId: number,
+): Promise<{ deleted: true }> {
+	return restClient.delete<{ deleted: true }>(
+		`${base(eventId)}/bindings/${bindingId}`,
+	);
+}
+
+/** Selection: `ids` of anomalous readings, or `all: true` for every one. */
+export type RfidAnomalySelection = { ids: number[] } | { all: true };
+
+/** Hide readings from Anomalies (list and count); the raw data stays. */
+export function dismissRfidAnomalies(
+	eventId: string | number,
+	selection: RfidAnomalySelection,
+): Promise<{ affected: number }> {
+	return restClient.post<{ affected: number }>(
+		`${base(eventId)}/anomalies/dismiss`,
+		selection,
+	);
+}
+
+/** Hard-delete readings (and the visits built from them). */
+export function deleteRfidAnomalies(
+	eventId: string | number,
+	selection: RfidAnomalySelection,
+): Promise<{ affected: number }> {
+	return restClient.delete<{ affected: number }>(
+		`${base(eventId)}/anomalies`,
+		selection,
+	);
 }
