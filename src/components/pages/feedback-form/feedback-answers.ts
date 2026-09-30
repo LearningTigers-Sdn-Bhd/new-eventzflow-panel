@@ -39,22 +39,19 @@ export type PageNavigationResult =
 
 /**
  * Determine what page to navigate to next from the current page,
- * considering any matching conditional routing rules.
+ * considering any matching conditional routing rules and skipping
+ * alternative branch pages that were not selected.
  */
 export function evaluatePageNavigation(
 	currentPage: number,
 	pageQuestions: FeedbackQuestion[],
 	values: FeedbackAnswerValues,
 	allPages: number[],
+	allQuestions?: FeedbackQuestion[],
 ): PageNavigationResult {
 	const sortedPages = [...new Set(allPages)].sort((a, b) => a - b);
-	const currentIndex = sortedPages.indexOf(currentPage);
-	const defaultNextPage =
-		currentIndex !== -1 && currentIndex + 1 < sortedPages.length
-			? sortedPages[currentIndex + 1]
-			: null;
 
-	// Check if any question on the current page has a matching rule
+	// 1. Check if any question on the current page has a matching rule
 	for (const question of pageQuestions) {
 		const rules = question.routing_rules;
 		if (!rules || rules.length === 0) continue;
@@ -87,8 +84,51 @@ export function evaluatePageNavigation(
 		}
 	}
 
-	if (defaultNextPage !== null) {
-		return { action: "page", targetPage: defaultNextPage };
+	// 2. No matching rule on currentPage: look for the next valid page,
+	// skipping alternative branch targets from answered questions.
+	const questionsToCheck = allQuestions ?? pageQuestions;
+	const candidatePages = sortedPages.filter((p) => p > currentPage);
+
+	for (const candidatePage of candidatePages) {
+		let isUnselectedBranch = false;
+
+		for (const q of questionsToCheck) {
+			const rules = q.routing_rules;
+			if (!rules || rules.length === 0) continue;
+
+			// Rules on this question that target candidatePage
+			const rulesForCandidate = rules.filter(
+				(r) =>
+					(r.action === "jump_to_page" || !r.action) &&
+					Number(r.target_page) === candidatePage,
+			);
+			if (rulesForCandidate.length === 0) continue;
+
+			// Has this question been answered?
+			const rawAnswer = values[q.id];
+			if (rawAnswer === undefined || rawAnswer === null) continue;
+
+			const answerStr = (
+				Array.isArray(rawAnswer) ? rawAnswer.join(",") : String(rawAnswer)
+			)
+				.trim()
+				.toLowerCase();
+
+			const userSelectedCandidateRule = rulesForCandidate.some(
+				(r) => r.answer.trim().toLowerCase() === answerStr,
+			);
+
+			// If the question was answered, but the answer does not lead to candidatePage,
+			// candidatePage is an alternative branch that was not chosen.
+			if (!userSelectedCandidateRule) {
+				isUnselectedBranch = true;
+				break;
+			}
+		}
+
+		if (!isUnselectedBranch) {
+			return { action: "page", targetPage: candidatePage };
+		}
 	}
 
 	return { action: "submit" };
@@ -110,8 +150,10 @@ export function findReachableQuestions(
 
 	const reachable: FeedbackQuestion[] = [];
 	let currentPage: number | null = allPages[0];
+	const visitedPages = new Set<number>();
 
-	while (currentPage !== null) {
+	while (currentPage !== null && !visitedPages.has(currentPage)) {
+		visitedPages.add(currentPage);
 		const pageQuestions = questions.filter(
 			(q) => (q.page_number ?? 1) === currentPage,
 		);
@@ -122,6 +164,7 @@ export function findReachableQuestions(
 			pageQuestions,
 			values,
 			allPages,
+			questions,
 		);
 		if (nav.action === "submit") {
 			break;

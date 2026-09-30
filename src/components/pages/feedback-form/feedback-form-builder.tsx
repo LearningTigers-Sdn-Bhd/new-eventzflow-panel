@@ -1103,112 +1103,44 @@ export function FeedbackFormBuilder({
 																	</div>
 																</div>
 
-																{q.ratingCustomEnabled ? (
-																	<div className="space-y-4 pt-1">
-																		<div className="flex items-center justify-end gap-2">
-																			<Switch
-																				id={`custom-all-${q.key}`}
-																				checked={q.ratingCustomAll}
-																				onCheckedChange={(checked) =>
-																					update(q.key, {
-																						ratingCustomAll: checked,
-																					})
-																				}
-																				className="rounded-none [&_[data-slot=switch-thumb]]:rounded-none"
-																			/>
-																			<Label
-																				htmlFor={`custom-all-${q.key}`}
-																				className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
+																{q.ratingCustomEnabled && (
+																	<div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-5">
+																		{[1, 2, 3, 4, 5].map((num) => (
+																			<div
+																				key={num}
+																				className="space-y-1"
 																			>
-																				Label all 5 scores
-																			</Label>
-																		</div>
-
-																		{!q.ratingCustomAll ? (
-																			<div className="grid gap-3 sm:grid-cols-2">
-																				<div className="space-y-1">
-																					<Label
-																						htmlFor={`label-low-${q.key}`}
-																						className="text-xs"
-																					>
-																						Lowest Score (1)
-																					</Label>
-																					<Input
-																						id={`label-low-${q.key}`}
-																						className="h-8 rounded-none text-xs"
-																						placeholder="e.g. Strongly disagree"
-																						value={q.ratingLabels[0]}
-																						onChange={(e) =>
-																							updateRatingLabel(
-																								q.key,
-																								0,
-																								e.target.value,
-																							)
-																						}
-																					/>
-																				</div>
-																				<div className="space-y-1">
-																					<Label
-																						htmlFor={`label-high-${q.key}`}
-																						className="text-xs"
-																					>
-																						Highest Score (5)
-																					</Label>
-																					<Input
-																						id={`label-high-${q.key}`}
-																						className="h-8 rounded-none text-xs"
-																						placeholder="e.g. Strongly agree"
-																						value={q.ratingLabels[4]}
-																						onChange={(e) =>
-																							updateRatingLabel(
-																								q.key,
-																								4,
-																								e.target.value,
-																							)
-																						}
-																					/>
-																				</div>
+																				<Label
+																					htmlFor={`label-${num}-${q.key}`}
+																					className="font-medium text-muted-foreground text-xs"
+																				>
+																					Score {num}
+																				</Label>
+																				<Input
+																					id={`label-${num}-${q.key}`}
+																					className="h-8 rounded-none text-xs"
+																					value={
+																						q.ratingLabels[num - 1]
+																					}
+																					placeholder={
+																						num === 1
+																							? "Lowest (e.g. Very poor)"
+																							: num === 5
+																								? "Highest (e.g. Excellent)"
+																								: `Score ${num}`
+																					}
+																					onChange={(e) =>
+																						updateRatingLabel(
+																							q.key,
+																							num - 1,
+																							e.target.value,
+																						)
+																					}
+																				/>
 																			</div>
-																		) : (
-																			<div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-																				{[1, 2, 3, 4, 5].map((num) => (
-																					<div
-																						key={num}
-																						className="space-y-1"
-																					>
-																						<Label
-																							htmlFor={`label-${num}-${q.key}`}
-																							className="text-muted-foreground text-xs"
-																						>
-																							Score {num}
-																						</Label>
-																						<Input
-																							id={`label-${num}-${q.key}`}
-																							className="h-8 rounded-none text-xs"
-																							value={
-																								q.ratingLabels[num - 1]
-																							}
-																							placeholder={
-																								num === 1
-																									? "Lowest"
-																									: num === 5
-																										? "Highest"
-																										: `Score ${num}`
-																							}
-																							onChange={(e) =>
-																								updateRatingLabel(
-																									q.key,
-																									num - 1,
-																									e.target.value,
-																								)
-																							}
-																						/>
-																					</div>
-																				))}
-																			</div>
-																		)}
+																		))}
 																	</div>
-																) : null}
+																)}
 															</fieldset>
 														)}
 

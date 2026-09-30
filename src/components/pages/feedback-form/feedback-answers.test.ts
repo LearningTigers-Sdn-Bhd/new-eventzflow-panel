@@ -99,4 +99,43 @@ describe("feedback answers", () => {
 		const fullReachable = findReachableQuestions(allQuestions, { 1: "Yes" });
 		expect(fullReachable.map((x) => x.id)).toEqual([1, 2, 3]);
 	});
+
+	test("skips alternative branch page 4 when entering page 3", () => {
+		const q1: FeedbackQuestion = {
+			...q(1, "single_choice", true),
+			page_number: 1,
+			options: ["Option A", "Option B"],
+			routing_rules: [
+				{ answer: "Option A", action: "jump_to_page", target_page: 3 },
+				{ answer: "Option B", action: "jump_to_page", target_page: 4 },
+			],
+		};
+		const q3 = { ...q(3, "text", true), page_number: 3 };
+		const q4 = { ...q(4, "text", true), page_number: 4 };
+		const allQuestions = [q1, q3, q4];
+		const allPages = [1, 2, 3, 4];
+
+		// From page 1, Option A goes to page 3
+		expect(
+			evaluatePageNavigation(1, [q1], { 1: "Option A" }, allPages, allQuestions),
+		).toEqual({ action: "page", targetPage: 3 });
+
+		// From page 3, because user chose Option A (not Option B), page 4 is skipped and form submits!
+		expect(
+			evaluatePageNavigation(3, [q3], { 1: "Option A", 3: "Done" }, allPages, allQuestions),
+		).toEqual({ action: "submit" });
+
+		// If there is a common page 5 after the branches, it goes to page 5 instead of page 4
+		const q5 = { ...q(5, "text", true), page_number: 5 };
+		const allQuestionsWith5 = [q1, q3, q4, q5];
+		const allPagesWith5 = [1, 2, 3, 4, 5];
+		expect(
+			evaluatePageNavigation(3, [q3], { 1: "Option A", 3: "Done" }, allPagesWith5, allQuestionsWith5),
+		).toEqual({ action: "page", targetPage: 5 });
+
+		// If user chose Option B, from page 1 it goes directly to page 4
+		expect(
+			evaluatePageNavigation(1, [q1], { 1: "Option B" }, allPages, allQuestions),
+		).toEqual({ action: "page", targetPage: 4 });
+	});
 });

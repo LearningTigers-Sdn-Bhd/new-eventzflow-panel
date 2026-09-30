@@ -113,6 +113,16 @@ export function PublicFeedbackForm({
 		[questions, currentPage],
 	);
 
+	const nextNav = useMemo(() => {
+		return evaluatePageNavigation(
+			currentPage,
+			currentQuestions,
+			values,
+			activePages,
+			questions,
+		);
+	}, [currentPage, currentQuestions, values, activePages, questions]);
+
 	const handleNextPage = () => {
 		const missing = missingRequired(currentQuestions, values).map((q) => q.id);
 		setMissingIds(missing);
@@ -133,6 +143,7 @@ export function PublicFeedbackForm({
 			currentQuestions,
 			values,
 			activePages,
+			questions,
 		);
 		if (nav.action === "submit") {
 			if (!isPreview) mutation.mutate();
@@ -430,8 +441,7 @@ export function PublicFeedbackForm({
 											<div />
 										)}
 
-										{activePages.indexOf(currentPage) <
-										activePages.length - 1 ? (
+										{nextNav.action === "page" ? (
 											<Button
 												type="button"
 												className="h-11 rounded-none bg-[#0F3D2E] px-6 text-white hover:bg-[#1E7A45]"
