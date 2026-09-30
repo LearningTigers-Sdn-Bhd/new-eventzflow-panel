@@ -37,6 +37,7 @@ import {
 	getFeedbackAiSummary,
 	getFeedbackExportData,
 } from "@/lib/api/feedback-form";
+import { FEEDBACK_AI_ENABLED } from "../ai-enabled";
 import { filtersKey } from "../filters";
 import { buildResponsesCsv } from "./csv";
 import { downloadBlob } from "./download";
@@ -112,7 +113,7 @@ export function FeedbackExportMenu({
 	const { data: aiState } = useQuery({
 		queryKey: ["event", eventId, "feedback-ai-summary"],
 		queryFn: () => getFeedbackAiSummary(eventId),
-		enabled: format === "xlsx" || format === "pdf",
+		enabled: FEEDBACK_AI_ENABLED && (format === "xlsx" || format === "pdf"),
 	});
 	const aiSummary =
 		aiState?.summary?.status === "ready" && aiState.summary.content

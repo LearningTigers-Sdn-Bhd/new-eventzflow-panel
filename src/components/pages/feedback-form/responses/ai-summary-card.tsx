@@ -34,6 +34,7 @@ import {
 	getFeedbackAiSummary,
 } from "@/lib/api/feedback-form";
 import { cn } from "@/lib/utils";
+import { FEEDBACK_AI_ENABLED } from "./ai-enabled";
 import { hasActiveFilters } from "./filters";
 
 const SENTIMENT_STYLES: Record<FeedbackSentiment, string> = {
@@ -61,7 +62,16 @@ export const aiSummaryQueryKey = (eventId: string) => [
  * AI summary of the comments. Everyone who can see responses reads the stored
  * result; only an org_owner (decided by the API) sees the Generate button.
  */
-export function FeedbackAiSummaryCard({
+export function FeedbackAiSummaryCard(props: {
+	eventId: string;
+	filters: FeedbackFilters;
+}) {
+	// Hidden (and no request made) until the feature flag is on.
+	if (!FEEDBACK_AI_ENABLED) return null;
+	return <FeedbackAiSummaryCardContent {...props} />;
+}
+
+function FeedbackAiSummaryCardContent({
 	eventId,
 	filters,
 }: {
