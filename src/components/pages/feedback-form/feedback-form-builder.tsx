@@ -341,7 +341,7 @@ export function FeedbackFormBuilder({
 	};
 
 	const mutation = useMutation({
-		mutationFn: (opts?: { force?: boolean }) => {
+		mutationFn: (opts?: { force?: boolean } | void) => {
 			const missingTypeIndex = questions.findIndex((q) => !q.question_type);
 			if (missingTypeIndex !== -1) {
 				const msg = `Please select an answer type for Question ${missingTypeIndex + 1}.`;
