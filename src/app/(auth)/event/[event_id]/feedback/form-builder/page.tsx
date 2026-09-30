@@ -32,6 +32,8 @@ export default function FeedbackFormBuilderPage({
 		queryKey: ["event", event_id, "feedback-form"],
 		queryFn: () => getFeedbackForm(event_id),
 		enabled: canManageEventVendors && event?.use_feedback === true,
+		// A focus refetch bumps dataUpdatedAt, which remounts the builder and drops unsaved edits.
+		refetchOnWindowFocus: false,
 	});
 
 	if (eventLoading || (event?.use_feedback === true && formLoading)) {

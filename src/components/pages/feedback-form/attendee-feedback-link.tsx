@@ -86,7 +86,11 @@ export function AttendeeFeedbackLink({
 							Change
 						</Button>
 					</div>
-					<Input value={attendeeUrl} readOnly className="rounded-none font-mono text-xs" />
+					<Input
+						value={attendeeUrl}
+						readOnly
+						className="rounded-none font-mono text-xs"
+					/>
 					<div className="flex gap-2">
 						<Button
 							type="button"

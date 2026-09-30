@@ -21,6 +21,7 @@ import {
 	type FeedbackAnswerValues,
 	evaluatePageNavigation,
 	findReachableQuestions,
+	findVisiblePages,
 	missingRequired,
 	toAnswerPayload,
 } from "./feedback-answers";
@@ -35,6 +36,8 @@ export function PublicFeedbackForm({
 	ticketPublicId,
 }: PublicFeedbackFormProps) {
 	const [values, setValues] = useState<FeedbackAnswerValues>({});
+	// Preview only: the organizer clicked Send to see the thank-you screen.
+	const [previewSubmitted, setPreviewSubmitted] = useState(false);
 	const [missingIds, setMissingIds] = useState<number[]>([]);
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [pageHistory, setPageHistory] = useState<number[]>([1]);
@@ -48,10 +51,16 @@ export function PublicFeedbackForm({
 		queryKey: ["public-feedback-form", slug, ticketPublicId],
 		queryFn: () => getPublicFeedbackForm(slug, ticketPublicId),
 		retry: false,
+		// Once loaded, keep this form for the whole session even if it's closed meanwhile.
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
 	});
 
 	const questions = useMemo(() => form?.questions ?? [], [form?.questions]);
-	const pagesMetadata = useMemo(() => form?.pages_metadata ?? [], [form?.pages_metadata]);
+	const pagesMetadata = useMemo(
+		() => form?.pages_metadata ?? [],
+		[form?.pages_metadata],
+	);
 	const displayMode = form?.display_mode ?? "pages";
 
 	const activePages = useMemo(() => {
@@ -75,9 +84,21 @@ export function PublicFeedbackForm({
 		if (form?.title) document.title = form.title;
 	}, [form?.title]);
 
+	// Single-page mode hides branch sections until the controlling choice is made.
+	const visiblePages = useMemo(
+		() =>
+			displayMode === "continuous"
+				? findVisiblePages(questions, values)
+				: activePages,
+		[displayMode, questions, values, activePages],
+	);
+
 	const reachableQuestions = useMemo(
-		() => findReachableQuestions(questions, values),
-		[questions, values],
+		() =>
+			displayMode === "continuous"
+				? questions.filter((q) => visiblePages.includes(q.page_number ?? 1))
+				: findReachableQuestions(questions, values),
+		[displayMode, questions, values, visiblePages],
 	);
 
 	const mutation = useMutation({
@@ -86,6 +107,7 @@ export function PublicFeedbackForm({
 			return submitFeedback({
 				form_id: form.id,
 				ticket_public_id: ticketPublicId,
+				session_token: form.session_token,
 				answers: toAnswerPayload(reachableQuestions, values),
 			});
 		},
@@ -168,7 +190,12 @@ export function PublicFeedbackForm({
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!form || isPreview) return;
+		if (!form) return;
+		if (isPreview) {
+			setPreviewSubmitted(true);
+			window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+			return;
+		}
 
 		if (displayMode === "pages" && isMultiPage) {
 			const currentMissing = missingRequired(currentQuestions, values).map(
@@ -188,7 +215,9 @@ export function PublicFeedbackForm({
 			}
 		}
 
-		const missing = missingRequired(reachableQuestions, values).map((q) => q.id);
+		const missing = missingRequired(reachableQuestions, values).map(
+			(q) => q.id,
+		);
 		setMissingIds(missing);
 		if (missing.length === 0) {
 			mutation.mutate();
@@ -241,15 +270,15 @@ export function PublicFeedbackForm({
 				/already been submitted/i.test(mutation.error.message)));
 	const notice = closed
 		? {
-				heading: "Feedback has closed",
+				heading: "Feedback has wrapped up",
 				title: "Thank you for being part of the event",
-				body: "This feedback form is no longer taking responses. The organiser may have closed it, or the link has changed. If you still have something to share, reach out to the event organiser directly.",
+				body: "This feedback form has wrapped up. If you'd still like to share your thoughts, the event organizer would love to hear from you directly.",
 			}
 		: alreadySubmitted
 			? {
 					heading: form.title,
-					title: "You've already shared your feedback",
-					body: "We've got your answers for this ticket, so there's nothing more to do. Thanks for helping the organiser make the next event better.",
+					title: "Thank you, your feedback is in!",
+					body: "We've received your answers for this ticket. Thank you for taking the time to share your thoughts.",
 				}
 			: null;
 	const answeredCount = reachableQuestions.filter((q) => {
@@ -286,12 +315,15 @@ export function PublicFeedbackForm({
 							</p>
 						)}
 					</div>
-					{!notice && !mutation.isSuccess && reachableQuestions.length > 0 && (
-						<ProgressRing
-							answered={answeredCount}
-							total={reachableQuestions.length}
-						/>
-					)}
+					{!notice &&
+						!mutation.isSuccess &&
+						!previewSubmitted &&
+						reachableQuestions.length > 0 && (
+							<ProgressRing
+								answered={answeredCount}
+								total={reachableQuestions.length}
+							/>
+						)}
 				</header>
 
 				{/* Perforated tear line with side notches */}
@@ -317,7 +349,7 @@ export function PublicFeedbackForm({
 							</p>
 							<p className="max-w-md text-[#4E6358]">{notice.body}</p>
 						</div>
-					) : mutation.isSuccess ? (
+					) : mutation.isSuccess || previewSubmitted ? (
 						<motion.div
 							initial={reduceMotion ? false : { scale: 0.9, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
@@ -331,8 +363,29 @@ export function PublicFeedbackForm({
 							</p>
 							<p className="text-[#4E6358]">
 								{form?.thank_you_message?.trim() ||
-									"Your answers help the organiser make the next event better."}
+									"Thank you for taking the time to share your thoughts. The organizer truly values your feedback."}
 							</p>
+							{previewSubmitted && (
+								<div
+									role="status"
+									className="mt-4 max-w-md space-y-3 border border-amber-300 bg-amber-50 p-4 text-amber-900 text-sm"
+								>
+									<p>
+										<strong>Preview only.</strong> This is how the thank-you
+										screen looks after submitting. No data was submitted or
+										saved.
+									</p>
+									<Button
+										type="button"
+										variant="outline"
+										className="h-10 rounded-none border-amber-400 bg-white text-amber-900 hover:bg-amber-100"
+										onClick={() => setPreviewSubmitted(false)}
+									>
+										<ArrowLeft className="mr-2 size-4" />
+										Back to form
+									</Button>
+								</div>
+							)}
 							{mutation.data?.certificate_queued && (
 								<p className="font-medium text-[#1E7A45]">
 									Your e-certificate is on its way to your inbox.
@@ -346,9 +399,10 @@ export function PublicFeedbackForm({
 									role="status"
 									className="border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm"
 								>
-									<strong>Preview only.</strong> Responses aren't collected from
-									this link. Attendees answer through their personal link from
-									the thank-you email.
+									<strong>Preview only.</strong> You can click Send feedback to
+									see the thank-you screen, but nothing is submitted or saved.
+									Attendees answer through their personal link from the
+									thank-you email.
 								</p>
 							)}
 
@@ -360,10 +414,19 @@ export function PublicFeedbackForm({
 									transition={{ duration: 0.2 }}
 									className="space-y-6"
 								>
+									<span className="inline-block bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
+										Page {pageHistory.length}
+									</span>
 									{currentQuestions.map((q) => {
-										const globalIndex = questions.findIndex(
+										// Number by the path the attendee actually sees, so a jump from
+										// page 2 to page 4 doesn't skip numbers.
+										const reachableIndex = reachableQuestions.findIndex(
 											(item) => item.id === q.id,
 										);
+										const globalIndex =
+											reachableIndex >= 0
+												? reachableIndex
+												: questions.findIndex((item) => item.id === q.id);
 										return (
 											<fieldset
 												key={q.id}
@@ -432,78 +495,82 @@ export function PublicFeedbackForm({
 											<Button
 												type="submit"
 												className="h-12 rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45]"
-												disabled={mutation.isPending || isPreview}
+												disabled={mutation.isPending}
 											>
 												{mutation.isPending && (
 													<Loader2 className="mr-2 size-4 animate-spin" />
 												)}
-												{isPreview
-													? "Submitting disabled in preview"
-													: "Send feedback"}
+												Send feedback
 											</Button>
 										)}
 									</div>
 								</motion.div>
 							) : (
 								<div className="space-y-6">
-									{activePages.map((pageNumber) => {
-										const pageMeta = pagesMetadata.find(
-											(p) => p.page_number === pageNumber,
-										);
-										const pageQuestions = questions.filter(
-											(q) => (q.page_number ?? 1) === pageNumber,
-										);
-										if (pageQuestions.length === 0) return null;
-										return (
-											<div key={pageNumber} className="space-y-6">
-												{isMultiPage && (
-													<div className="border-b border-[#0F3D2E]/15 pb-2 pt-4 first:pt-0">
-														<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
-															Page {pageNumber}
-														</span>
-													</div>
-												)}
-												{pageQuestions.map((q) => {
-													const globalIndex = questions.findIndex(
-														(item) => item.id === q.id,
-													);
-													return (
-														<fieldset
-															key={q.id}
-															id={`question-${q.id}`}
-															className={cn(
-																"space-y-3 border-b pb-6 transition-colors",
-																missingIds.includes(q.id) &&
-																	"border-destructive/40",
-															)}
-														>
-															<legend className="mb-1 font-medium text-[#0F3D2E]">
-																{globalIndex + 1}. {q.question_text}
-																{q.required && (
-																	<span className="text-destructive"> *</span>
+									{visiblePages
+										.filter((n) =>
+											questions.some((q) => (q.page_number ?? 1) === n),
+										)
+										.map((pageNumber, sectionIndex) => {
+											const pageMeta = pagesMetadata.find(
+												(p) => p.page_number === pageNumber,
+											);
+											const pageQuestions = questions.filter(
+												(q) => (q.page_number ?? 1) === pageNumber,
+											);
+											if (pageQuestions.length === 0) return null;
+											return (
+												<div key={pageNumber} className="space-y-6">
+													{isMultiPage && (
+														<div className="border-b border-[#0F3D2E]/15 pb-2 pt-4 first:pt-0">
+															<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
+																Section {sectionIndex + 1}
+															</span>
+														</div>
+													)}
+													{pageQuestions.map((q) => {
+														// Number only the sections shown, so switching
+														// branches never leaves a gap.
+														const globalIndex = reachableQuestions.findIndex(
+															(item) => item.id === q.id,
+														);
+														return (
+															<fieldset
+																key={q.id}
+																id={`question-${q.id}`}
+																className={cn(
+																	"space-y-3 border-b pb-6 transition-colors",
+																	missingIds.includes(q.id) &&
+																		"border-destructive/40",
 																)}
-															</legend>
-															{q.hint_text?.trim() && (
-																<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
-																	{q.hint_text.trim()}
-																</p>
-															)}
-															<QuestionInput
-																question={q}
-																value={values[q.id]}
-																onChange={(value) => setValue(q.id, value)}
-															/>
-															{missingIds.includes(q.id) && (
-																<p className="text-destructive text-sm">
-																	Answer this question to submit.
-																</p>
-															)}
-														</fieldset>
-													);
-												})}
-											</div>
-										);
-									})}
+															>
+																<legend className="mb-1 font-medium text-[#0F3D2E]">
+																	{globalIndex + 1}. {q.question_text}
+																	{q.required && (
+																		<span className="text-destructive"> *</span>
+																	)}
+																</legend>
+																{q.hint_text?.trim() && (
+																	<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
+																		{q.hint_text.trim()}
+																	</p>
+																)}
+																<QuestionInput
+																	question={q}
+																	value={values[q.id]}
+																	onChange={(value) => setValue(q.id, value)}
+																/>
+																{missingIds.includes(q.id) && (
+																	<p className="text-destructive text-sm">
+																		Answer this question to submit.
+																	</p>
+																)}
+															</fieldset>
+														);
+													})}
+												</div>
+											);
+										})}
 
 									{mutation.isError && (
 										<p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
@@ -514,14 +581,12 @@ export function PublicFeedbackForm({
 									<Button
 										type="submit"
 										className="h-12 w-full rounded-none bg-[#0F3D2E] px-8 text-base text-white hover:bg-[#1E7A45] sm:ml-auto sm:flex sm:w-auto"
-										disabled={mutation.isPending || isPreview}
+										disabled={mutation.isPending}
 									>
 										{mutation.isPending && (
 											<Loader2 className="mr-2 size-4 animate-spin" />
 										)}
-										{isPreview
-											? "Submitting disabled in preview"
-											: "Send feedback"}
+										Send feedback
 									</Button>
 								</div>
 							)}
@@ -687,6 +752,7 @@ function QuestionInput({
 				<Textarea
 					id={id}
 					className="rounded-none"
+					maxLength={5000}
 					placeholder={question.placeholder || undefined}
 					value={(value as string) ?? ""}
 					onChange={(e) => onChange(e.target.value)}

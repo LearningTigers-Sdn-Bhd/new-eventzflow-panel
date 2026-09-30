@@ -3,16 +3,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	ArrowDown,
+	AlertTriangle,
 	ArrowUp,
 	ChevronDown,
 	Copy,
 	ExternalLink,
+	Eye,
 	GitFork,
-	Info,
 	Loader2,
 	Plus,
 	Save,
 	Trash2,
+	UserCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -34,6 +36,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -46,19 +55,20 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
 	type FeedbackDisplayMode,
 	type FeedbackForm,
 	type FeedbackQuestionType,
 	type FeedbackRoutingRule,
+	FeedbackConflictError,
 	saveFeedbackForm,
 } from "@/lib/api/feedback-form";
 import { cn } from "@/lib/utils";
 import { AttendeeFeedbackLink } from "./attendee-feedback-link";
+import {
+	findDuplicateOptions,
+	pruneRulesToOptions,
+	renameRuleAnswer,
+} from "./feedback-answers";
 import { QuestionLivePreview } from "./question-live-preview";
 
 const QUESTION_TYPES: { value: FeedbackQuestionType; label: string }[] = [
@@ -105,6 +115,10 @@ type DraftQuestion = {
 	hint_text: string;
 	page_number: number;
 	routing_rules: FeedbackRoutingRule[];
+	/** Last non-blank text per option key, so clearing then retyping still renames its rules. */
+	optionMemo?: Record<string, string>;
+	/** Responses that already answered this question (organizer stats). */
+	answersCount?: number;
 };
 
 type DraftPage = {
@@ -183,6 +197,7 @@ export function FeedbackFormBuilder({
 					hint_text: q.hint_text ?? "",
 					page_number: q.page_number ?? 1,
 					routing_rules: q.routing_rules ?? [],
+					answersCount: q.answers_count ?? 0,
 				};
 			}) ?? [];
 
@@ -194,7 +209,7 @@ export function FeedbackFormBuilder({
 			thankYouTitle: form?.thank_you_title ?? "Thanks for your feedback",
 			thankYouMessage:
 				form?.thank_you_message ??
-				"Your answers help the organiser make the next event better.",
+				"Thank you for taking the time to share your thoughts. The organizer truly values your feedback.",
 			pages,
 			questions,
 		};
@@ -203,9 +218,21 @@ export function FeedbackFormBuilder({
 	const [title, setTitle] = useState(initial.title);
 	const [description, setDescription] = useState(initial.description);
 	const [isActive, setIsActive] = useState(initial.isActive);
+	const [pendingActive, setPendingActive] = useState<boolean | null>(null);
+	const [testOpen, setTestOpen] = useState(false);
+	// Saved state that can change without a remount (availability autosaves).
+	const [savedActive, setSavedActive] = useState(initial.isActive);
+	const [serverUpdatedAt, setServerUpdatedAt] = useState(form?.updated_at);
+	const [conflict, setConflict] = useState<{
+		latest: FeedbackForm | undefined;
+		overwrite: () => void;
+	} | null>(null);
 	const [displayMode, setDisplayMode] = useState<FeedbackDisplayMode>(
 		initial.displayMode,
 	);
+	// Single-Page Mode groups questions into sections; Multi-Page Mode into pages.
+	const unit = displayMode === "continuous" ? "Section" : "Page";
+	const unitLower = unit.toLowerCase();
 	const [thankYouTitle, setThankYouTitle] = useState(initial.thankYouTitle);
 	const [thankYouMessage, setThankYouMessage] = useState(
 		initial.thankYouMessage,
@@ -214,18 +241,22 @@ export function FeedbackFormBuilder({
 	const [questions, setQuestions] = useState<DraftQuestion[]>(
 		initial.questions,
 	);
-	const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+	const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+		null,
+	);
 
 	const isDirty =
 		title !== initial.title ||
 		description !== initial.description ||
-		isActive !== initial.isActive ||
+		isActive !== savedActive ||
 		displayMode !== initial.displayMode ||
 		thankYouTitle !== initial.thankYouTitle ||
 		thankYouMessage !== initial.thankYouMessage ||
 		JSON.stringify(pages) !== JSON.stringify(initial.pages) ||
-		JSON.stringify(questions.map(({ optionKeys, ...q }) => q)) !==
-			JSON.stringify(initial.questions.map(({ optionKeys, ...q }) => q));
+		JSON.stringify(questions.map(({ optionKeys, optionMemo, ...q }) => q)) !==
+			JSON.stringify(
+				initial.questions.map(({ optionKeys, optionMemo, ...q }) => q),
+			);
 
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -294,8 +325,23 @@ export function FeedbackFormBuilder({
 			? ""
 			: `${window.location.origin}/events/${eventSlug}/feedback`;
 
+	const optionList = (q: DraftQuestion) =>
+		q.optionsText
+			.split("\n")
+			.map((o) => o.trim())
+			.filter(Boolean);
+	// Rules match answers ignoring case, so "Yes" and "yes" would be one choice.
+	const duplicateOptions = (q: DraftQuestion) =>
+		isChoice(q.question_type) ? findDuplicateOptions(optionList(q)) : [];
+
+	const showConflict = (error: unknown, overwrite: () => void) => {
+		if (!(error instanceof FeedbackConflictError)) return false;
+		setConflict({ latest: error.latest, overwrite });
+		return true;
+	};
+
 	const mutation = useMutation({
-		mutationFn: () => {
+		mutationFn: (opts?: { force?: boolean }) => {
 			const missingTypeIndex = questions.findIndex((q) => !q.question_type);
 			if (missingTypeIndex !== -1) {
 				const msg = `Please select an answer type for Question ${missingTypeIndex + 1}.`;
@@ -303,9 +349,20 @@ export function FeedbackFormBuilder({
 				throw new Error(msg);
 			}
 
+			const duplicateIndex = questions.findIndex(
+				(q) => duplicateOptions(q).length > 0,
+			);
+			if (duplicateIndex !== -1) {
+				throw new Error(
+					`Question ${duplicateIndex + 1} has duplicate options (${duplicateOptions(questions[duplicateIndex]).join(", ")}). Make each option different.`,
+				);
+			}
+
 			return saveFeedbackForm(
 				eventId,
 				{
+					// Omitted on "overwrite": skips the concurrent-edit check.
+					expected_updated_at: opts?.force ? undefined : serverUpdatedAt,
 					title: title.trim(),
 					description: description.trim() || null,
 					is_active: isActive,
@@ -335,15 +392,14 @@ export function FeedbackFormBuilder({
 						required: q.required,
 						position: index,
 						placeholder:
-							q.question_type === "text"
-								? q.placeholder.trim() || null
-								: null,
+							q.question_type === "text" ? q.placeholder.trim() || null : null,
 						hint_text: q.hint_text.trim() || null,
 						page_number: q.page_number ?? 1,
-						routing_rules:
-							q.routing_rules && q.routing_rules.length > 0
-								? q.routing_rules
-								: [],
+						// Drop rules whose option no longer exists (renamed or removed).
+						routing_rules: pruneRulesToOptions(
+							q.routing_rules ?? [],
+							optionList(q),
+						),
 					})),
 				},
 				form !== null,
@@ -353,7 +409,43 @@ export function FeedbackFormBuilder({
 			queryClient.setQueryData(["event", eventId, "feedback-form"], saved);
 			toast.success("Feedback form saved");
 		},
-		onError: (error: Error) => toast.error(error.message),
+		onError: (error: Error) => {
+			if (showConflict(error, () => mutation.mutate({ force: true }))) return;
+			toast.error(error.message);
+		},
+	});
+
+	// Availability saves on its own, without touching other unsaved edits.
+	const availabilityMutation = useMutation({
+		mutationFn: ({ next, force }: { next: boolean; force?: boolean }) =>
+			saveFeedbackForm(
+				eventId,
+				{
+					is_active: next,
+					expected_updated_at: force ? undefined : serverUpdatedAt,
+				},
+				true,
+			),
+		onSuccess: (saved, { next }) => {
+			setIsActive(next);
+			setSavedActive(next);
+			setServerUpdatedAt(saved.updated_at);
+			// Keep dataUpdatedAt so the page doesn't remount and drop other drafts.
+			const key = ["event", eventId, "feedback-form"];
+			queryClient.setQueryData(key, saved, {
+				updatedAt: queryClient.getQueryState(key)?.dataUpdatedAt,
+			});
+			toast.success(next ? "Now accepting responses" : "Responses closed");
+		},
+		onError: (error: Error, vars) => {
+			if (
+				showConflict(error, () =>
+					availabilityMutation.mutate({ next: vars.next, force: true }),
+				)
+			)
+				return;
+			toast.error(error.message);
+		},
 	});
 
 	const update = (key: string, patch: Partial<DraftQuestion>) =>
@@ -367,6 +459,19 @@ export function FeedbackFormBuilder({
 				if (q.key !== key) return q;
 				const rows = q.optionsText.split("\n");
 				const optionKeys = [...q.optionKeys];
+				// Follow a renamed option with its branching rules; remember the last
+				// non-blank text so clearing and retyping still finds them.
+				const memoKey = q.optionKeys[index];
+				const memo = { ...(q.optionMemo ?? {}) };
+				const prev = rows[index]?.trim() || memo[memoKey] || "";
+				const next = values.length === 1 ? values[0].trim() : "";
+				let routing_rules = q.routing_rules;
+				if (values.length === 1 && memoKey) {
+					if (next && prev && next !== prev) {
+						routing_rules = renameRuleAnswer(routing_rules, prev, next);
+					}
+					memo[memoKey] = next || prev;
+				}
 				rows.splice(index, 1, ...values);
 				optionKeys.splice(
 					index,
@@ -387,15 +492,17 @@ export function FeedbackFormBuilder({
 					rows.push("");
 					optionKeys.push(crypto.randomUUID());
 				}
-				return { ...q, optionsText: rows.join("\n"), optionKeys };
+				return {
+					...q,
+					optionsText: rows.join("\n"),
+					optionKeys,
+					routing_rules,
+					optionMemo: memo,
+				};
 			}),
 		);
 
-	const updateRatingLabel = (
-		key: string,
-		labelIndex: number,
-		value: string,
-	) =>
+	const updateRatingLabel = (key: string, labelIndex: number, value: string) =>
 		setQuestions((qs) =>
 			qs.map((q) => {
 				if (q.key !== key) return q;
@@ -419,15 +526,13 @@ export function FeedbackFormBuilder({
 
 	const addPage = () => {
 		const nextPageNumber =
-			pages.length > 0
-				? Math.max(...pages.map((p) => p.page_number)) + 1
-				: 1;
+			pages.length > 0 ? Math.max(...pages.map((p) => p.page_number)) + 1 : 1;
 		setPages((prev) => [
 			...prev,
 			{ page_number: nextPageNumber, title: "", description: "" },
 		]);
 		addQuestionToPage(nextPageNumber);
-		toast.success(`Page ${nextPageNumber} added`);
+		toast.success(`${unit} ${nextPageNumber} added`);
 	};
 
 	const deletePage = (pageNumber: number) => {
@@ -449,12 +554,16 @@ export function FeedbackFormBuilder({
 		}));
 		const renumberedQuestions = updatedQuestions.map((q) => {
 			const newPageNum = pageMapping.get(q.page_number) ?? 1;
-			const updatedRules = (q.routing_rules ?? []).map((rule) => {
-				if (rule.target_page && pageMapping.has(rule.target_page)) {
-					return { ...rule, target_page: pageMapping.get(rule.target_page)! };
-				}
-				return rule;
-			});
+			// Drop rules that pointed at the deleted page; they'd otherwise land on
+			// whichever page takes its number after renumbering.
+			const updatedRules = (q.routing_rules ?? [])
+				.filter((rule) => Number(rule.target_page) !== pageNumber)
+				.map((rule) => {
+					if (rule.target_page && pageMapping.has(rule.target_page)) {
+						return { ...rule, target_page: pageMapping.get(rule.target_page)! };
+					}
+					return rule;
+				});
 			return {
 				...q,
 				page_number: newPageNum,
@@ -619,7 +728,107 @@ export function FeedbackFormBuilder({
 					mutation.mutate();
 				}}
 			>
-				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
+				<div className="space-y-6">
+					{/* Settings toolbar: display mode, preview, availability */}
+					<div className="flex flex-wrap items-center gap-3 border bg-background px-4 py-3">
+						<div className="flex items-center gap-2">
+							<Label htmlFor="feedback-display-mode" className="text-xs">
+								Display mode
+							</Label>
+							<Select
+								value={displayMode}
+								onValueChange={(v) => setDisplayMode(v as FeedbackDisplayMode)}
+							>
+								<SelectTrigger
+									id="feedback-display-mode"
+									className="h-9 w-44 rounded-none text-xs"
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent className="rounded-none">
+									<SelectItem value="pages">Multi-Page Mode</SelectItem>
+									<SelectItem value="continuous">Single-Page Mode</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									type="button"
+									variant="outline"
+									className="h-9 rounded-none text-xs"
+									disabled={!form}
+									title={form ? undefined : "Save the form to enable preview"}
+								>
+									<Eye className="size-4" />
+									Preview
+									<ChevronDown className="size-3.5" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="start" className="rounded-none">
+								{isDirty && (
+									<p className="max-w-56 border-b px-2 py-1.5 text-amber-700 text-xs dark:text-amber-300">
+										Unsaved edits aren't in the preview. Save first to see them.
+									</p>
+								)}
+								<DropdownMenuItem
+									onSelect={() => window.open(publicUrl, "_blank", "noopener")}
+								>
+									<ExternalLink className="size-4" />
+									Open in new tab
+								</DropdownMenuItem>
+								<DropdownMenuItem onSelect={copyLink}>
+									<Copy className="size-4" />
+									Copy preview link
+								</DropdownMenuItem>
+								<DropdownMenuItem onSelect={() => setTestOpen(true)}>
+									<UserCheck className="size-4" />
+									Test as attendee…
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+
+						{/* Availability: far right */}
+						<div className="ml-auto flex items-center gap-2">
+							<span
+								className={cn(
+									"font-semibold text-xs",
+									isActive ? "text-emerald-600" : "text-red-600",
+								)}
+							>
+								{isActive ? "Open" : "Closed"}
+							</span>
+							<Switch
+								id="feedback-active"
+								aria-label="Accepting responses"
+								checked={isActive}
+								disabled={availabilityMutation.isPending}
+								onCheckedChange={(next) => setPendingActive(next)}
+								className={cn(
+									"rounded-none [&_[data-slot=switch-thumb]]:rounded-none",
+									isActive && "data-[state=checked]:bg-emerald-600",
+								)}
+							/>
+						</div>
+					</div>
+
+					{(form?.response_count ?? 0) > 0 && (
+						<p
+							role="status"
+							className="flex items-start gap-2 border border-amber-300 bg-amber-50 p-3 text-amber-950 text-sm dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+						>
+							<AlertTriangle className="mt-0.5 size-4 shrink-0" />
+							<span>
+								This form already has {form?.response_count} response
+								{form?.response_count === 1 ? "" : "s"}. You can edit wording,
+								add questions and options, and reorder, but answered questions
+								can't change type, and options people chose can't be removed or
+								renamed.
+							</span>
+						</p>
+					)}
+
 					<div className="min-w-0 space-y-6">
 						{/* Form Overview details - directly show title and description */}
 						<section className="space-y-4 border bg-background p-5 sm:p-6">
@@ -655,7 +864,7 @@ export function FeedbackFormBuilder({
 									<div className="flex flex-wrap items-center justify-between gap-4 border-b bg-muted/20 px-5 py-4 sm:px-6">
 										<div className="flex items-center gap-3">
 											<span className="bg-[#23C460] px-2.5 py-1 font-bold text-white text-xs uppercase tracking-wide">
-												Page {p.page_number}
+												{unit} {p.page_number}
 											</span>
 											<span className="text-muted-foreground text-xs">
 												({pageQuestions.length}{" "}
@@ -671,7 +880,7 @@ export function FeedbackFormBuilder({
 												onClick={() => requestDeletePage(p.page_number)}
 											>
 												<Trash2 className="mr-1 size-3.5" />
-												Delete page
+												Delete {unitLower}
 											</Button>
 										)}
 									</div>
@@ -679,7 +888,7 @@ export function FeedbackFormBuilder({
 									{/* Questions on this page */}
 									{pageQuestions.length === 0 ? (
 										<p className="px-5 py-8 text-muted-foreground text-sm sm:px-6">
-											No questions on this page yet.
+											No questions in this {unitLower} yet.
 										</p>
 									) : (
 										<div className="space-y-4 bg-muted/20 p-4 sm:p-6">
@@ -740,7 +949,8 @@ export function FeedbackFormBuilder({
 																				<DropdownMenuItem
 																					key={targetP.page_number}
 																					disabled={
-																						targetP.page_number === q.page_number
+																						targetP.page_number ===
+																						q.page_number
 																					}
 																					onClick={() =>
 																						moveQuestionToPage(
@@ -750,7 +960,7 @@ export function FeedbackFormBuilder({
 																					}
 																					className="cursor-pointer rounded-none text-xs"
 																				>
-																					Page {targetP.page_number}
+																					{unit} {targetP.page_number}
 																					{targetP.page_number === q.page_number
 																						? " (Current)"
 																						: ""}
@@ -833,10 +1043,15 @@ export function FeedbackFormBuilder({
 																	</Label>
 																	<Select
 																		value={q.question_type || undefined}
+																		disabled={(q.answersCount ?? 0) > 0}
 																		onValueChange={(value) =>
 																			update(q.key, {
 																				question_type:
 																					value as FeedbackQuestionType,
+																				// Rules only apply to single choice.
+																				...(value !== "single_choice"
+																					? { routing_rules: [] }
+																					: {}),
 																				...(value === "single_choice" ||
 																				value === "multi_choice"
 																					? {
@@ -864,7 +1079,10 @@ export function FeedbackFormBuilder({
 																		</SelectTrigger>
 																		<SelectContent>
 																			{QUESTION_TYPES.map((t) => (
-																				<SelectItem key={t.value} value={t.value}>
+																				<SelectItem
+																					key={t.value}
+																					value={t.value}
+																				>
 																					{t.label}
 																				</SelectItem>
 																			))}
@@ -877,7 +1095,9 @@ export function FeedbackFormBuilder({
 																		id={`required-${q.key}`}
 																		checked={q.required}
 																		onCheckedChange={(checked) =>
-																			update(q.key, { required: Boolean(checked) })
+																			update(q.key, {
+																				required: Boolean(checked),
+																			})
 																		}
 																		className="rounded-none"
 																	/>
@@ -953,45 +1173,66 @@ export function FeedbackFormBuilder({
 															</div>
 														)}
 
-															{q.question_type === "text" && hasPlaceholder && (
-																<div className="space-y-1 pt-1">
-																	<div className="flex items-center justify-between">
-																		<Label
-																			htmlFor={`placeholder-${q.key}`}
-																			className="text-muted-foreground text-xs"
-																		>
-																			Textarea placeholder
-																		</Label>
-																		<button
-																			type="button"
-																			className="text-[11px] text-muted-foreground hover:text-destructive"
-																			onClick={() =>
-																				update(q.key, { placeholder: "" })
-																			}
-																		>
-																			Remove placeholder
-																		</button>
-																	</div>
-																	<Input
-																		id={`placeholder-${q.key}`}
-																		className="h-8 rounded-none text-xs"
-																		value={q.placeholder}
-																		onChange={(e) =>
-																			update(q.key, {
-																				placeholder: e.target.value,
-																			})
+														{q.question_type === "text" && hasPlaceholder && (
+															<div className="space-y-1 pt-1">
+																<div className="flex items-center justify-between">
+																	<Label
+																		htmlFor={`placeholder-${q.key}`}
+																		className="text-muted-foreground text-xs"
+																	>
+																		Textarea placeholder
+																	</Label>
+																	<button
+																		type="button"
+																		className="text-[11px] text-muted-foreground hover:text-destructive"
+																		onClick={() =>
+																			update(q.key, { placeholder: "" })
 																		}
-																		placeholder="e.g. Type your feedback here..."
-																		autoFocus
-																	/>
+																	>
+																		Remove placeholder
+																	</button>
 																</div>
-															)}
+																<Input
+																	id={`placeholder-${q.key}`}
+																	className="h-8 rounded-none text-xs"
+																	value={q.placeholder}
+																	onChange={(e) =>
+																		update(q.key, {
+																			placeholder: e.target.value,
+																		})
+																	}
+																	placeholder="e.g. Type your feedback here..."
+																	autoFocus
+																/>
+															</div>
+														)}
 
 														{isChoice(q.question_type) && (
 															<div className="space-y-2">
 																<Label htmlFor={`options-${q.key}`}>
 																	Options (one per line)
 																</Label>
+																{(q.answersCount ?? 0) > 0 && (
+																	<p className="text-muted-foreground text-xs">
+																		Options already chosen in responses can't be
+																		removed or renamed. You can still add new
+																		ones.
+																	</p>
+																)}
+																{duplicateOptions(q).length > 0 && (
+																	<p
+																		role="alert"
+																		className="flex items-start gap-1.5 text-amber-700 text-xs dark:text-amber-300"
+																	>
+																		<AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+																		Duplicate option
+																		{duplicateOptions(q).length > 1 ? "s" : ""}:{" "}
+																		{duplicateOptions(q).join(", ")}. Options
+																		that differ only by upper/lower case count
+																		as the same, so make each one different
+																		before saving.
+																	</p>
+																)}
 																<div className="space-y-2">
 																	{q.optionsText
 																		.split("\n")
@@ -1003,7 +1244,8 @@ export function FeedbackFormBuilder({
 																			const showRemove =
 																				!isLast &&
 																				(all.length > 2 ||
-																					(all.length === 2 && !isSecondToLast));
+																					(all.length === 2 &&
+																						!isSecondToLast));
 																			return (
 																				<div
 																					key={
@@ -1067,6 +1309,9 @@ export function FeedbackFormBuilder({
 																							onClick={() => {
 																								const lines =
 																									q.optionsText.split("\n");
+																								const removed = lines[index]
+																									?.trim()
+																									.toLowerCase();
 																								lines.splice(index, 1);
 																								const nextKeys = [
 																									...q.optionKeys,
@@ -1079,8 +1324,15 @@ export function FeedbackFormBuilder({
 																													...item,
 																													optionsText:
 																														lines.join("\n"),
-																													optionKeys:
-																														nextKeys,
+																													optionKeys: nextKeys,
+																													routing_rules:
+																														item.routing_rules.filter(
+																															(r) =>
+																																r.answer
+																																	.trim()
+																																	.toLowerCase() !==
+																																removed,
+																														),
 																												}
 																											: item,
 																									),
@@ -1103,6 +1355,7 @@ export function FeedbackFormBuilder({
 															<QuestionBranchingEditor
 																question={q}
 																pages={pages}
+																unit={unit}
 																onChangeRules={(rules) =>
 																	update(q.key, { routing_rules: rules })
 																}
@@ -1144,10 +1397,7 @@ export function FeedbackFormBuilder({
 																{q.ratingCustomEnabled && (
 																	<div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-5">
 																		{[1, 2, 3, 4, 5].map((num) => (
-																			<div
-																				key={num}
-																				className="space-y-1"
-																			>
+																			<div key={num} className="space-y-1">
 																				<Label
 																					htmlFor={`label-${num}-${q.key}`}
 																					className="font-medium text-muted-foreground text-xs"
@@ -1157,9 +1407,7 @@ export function FeedbackFormBuilder({
 																				<Input
 																					id={`label-${num}-${q.key}`}
 																					className="h-8 rounded-none text-xs"
-																					value={
-																						q.ratingLabels[num - 1]
-																					}
+																					value={q.ratingLabels[num - 1]}
 																					placeholder={
 																						num === 1
 																							? "Lowest (e.g. Very poor)"
@@ -1234,7 +1482,7 @@ export function FeedbackFormBuilder({
 								onClick={addPage}
 							>
 								<Plus className="mr-2 size-4" />
-								Add new page / section
+								Add new {unitLower}
 							</Button>
 						</div>
 
@@ -1264,189 +1512,122 @@ export function FeedbackFormBuilder({
 										className="min-h-20 rounded-none"
 										value={thankYouMessage}
 										onChange={(e) => setThankYouMessage(e.target.value)}
-										placeholder="Your answers help the organiser make the next event better."
+										placeholder="Thank you for taking the time to share your thoughts. The organizer truly values your feedback."
 									/>
 								</div>
 							</div>
 						</section>
 					</div>
-
-					{/* Right Sidebar Settings */}
-					<aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-						{/* Display Mode Selector - Direct and Lean */}
-						<section className="border bg-background">
-							<div className="border-b px-5 py-4">
-								<h2 className="font-semibold text-base">Display mode</h2>
-							</div>
-							<div className="space-y-2 p-4">
-								<button
-									type="button"
-									onClick={() => setDisplayMode("pages")}
-									className={cn(
-										"flex w-full items-center justify-between border p-3 text-left text-xs transition-colors",
-										displayMode === "pages"
-											? "border-[#23C460] bg-[#23C460]/10 font-semibold text-foreground"
-											: "text-muted-foreground hover:border-foreground/30",
-									)}
-								>
-									<span>Flipping pages</span>
-									{displayMode === "pages" && (
-										<span className="font-bold text-[#23C460]">✓</span>
-									)}
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setDisplayMode("continuous")}
-									className={cn(
-										"flex w-full items-center justify-between border p-3 text-left text-xs transition-colors",
-										displayMode === "continuous"
-											? "border-[#23C460] bg-[#23C460]/10 font-semibold text-foreground"
-											: "text-muted-foreground hover:border-foreground/30",
-									)}
-								>
-									<span>Continuous scrolling</span>
-									{displayMode === "continuous" && (
-										<span className="font-bold text-[#23C460]">✓</span>
-									)}
-								</button>
-							</div>
-						</section>
-
-						{/* Availability with clear Green / Red color */}
-						<section className="border bg-background">
-							<div className="flex items-center justify-between border-b px-5 py-4">
-								<h2 className="font-semibold text-base">Availability</h2>
-								<span
-									className={cn(
-										"flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-semibold text-xs",
-										isActive
-											? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
-											: "border border-red-500/30 bg-red-500/10 text-red-600",
-									)}
-								>
-									<span
-										className={cn(
-											"size-1.5 rounded-full",
-											isActive ? "bg-emerald-500" : "bg-red-500",
-										)}
-									/>
-									{isActive ? "Open" : "Closed"}
-								</span>
-							</div>
-							<div className="flex items-start justify-between gap-3 p-5">
-								<div className="space-y-1">
-									<Label htmlFor="feedback-active">Accepting responses</Label>
-									<p className="text-muted-foreground text-sm">
-										{isActive
-											? "Form is live and taking attendee responses."
-											: "Form is closed to new responses."}
-									</p>
-								</div>
-								<Switch
-									id="feedback-active"
-									checked={isActive}
-									onCheckedChange={setIsActive}
-									className={cn(
-										"mt-0.5 rounded-none [&_[data-slot=switch-thumb]]:rounded-none",
-										isActive && "data-[state=checked]:bg-emerald-600",
-									)}
-								/>
-							</div>
-						</section>
-
-						<section className="border bg-background">
-							<div className="flex items-center justify-between border-b px-5 py-4">
-								<div className="flex items-center gap-1.5">
-									<h2 className="font-semibold text-base">Preview & links</h2>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<button
-												type="button"
-												className="inline-flex cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-												aria-label="Link information"
-											>
-												<Info className="size-4" />
-											</button>
-										</TooltipTrigger>
-										<TooltipContent side="top" className="max-w-xs text-xs">
-											Attendees get their own link in the thank-you email. Use this
-											to preview the form or copy a link for one attendee.
-										</TooltipContent>
-									</Tooltip>
-								</div>
-							</div>
-							<div className="space-y-3 p-5">
-								{form ? (
-									<>
-										<Label htmlFor="feedback-public-link">Preview link</Label>
-										<Input
-											id="feedback-public-link"
-											value={publicUrl}
-											readOnly
-											className="rounded-none"
-										/>
-										<div className="flex gap-2">
-											<Button
-												type="button"
-												variant="outline"
-												className="flex-1 rounded-none"
-												onClick={copyLink}
-											>
-												<Copy className="size-4" />
-												Copy preview link
-											</Button>
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
-												asChild
-												className="rounded-none"
-												aria-label="Open form preview"
-											>
-												<a href={publicUrl} target="_blank" rel="noreferrer">
-													<ExternalLink className="size-4" />
-												</a>
-											</Button>
-										</div>
-										<AttendeeFeedbackLink
-											eventId={eventId}
-											publicUrl={publicUrl}
-										/>
-									</>
-								) : (
-									<p className="text-muted-foreground text-sm">
-										Save the form to create its public link.
-									</p>
-								)}
-							</div>
-						</section>
-
-						{isDirty && (
-							<div
-								role="status"
-								className="border border-amber-300 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-							>
-								<p className="font-semibold text-sm">Unsaved changes</p>
-								<p className="mt-1 text-sm">
-									Click Save form to apply your edits.
-								</p>
-							</div>
-						)}
-						<Button
-							type="submit"
-							className="h-10 w-full rounded-none"
-							disabled={mutation.isPending}
-						>
-							{mutation.isPending ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<Save className="size-4" />
-							)}
-							Save form
-						</Button>
-					</aside>
 				</div>
+
+				<AlertDialog
+					open={pendingActive !== null}
+					onOpenChange={(o) => !o && setPendingActive(null)}
+				>
+					<AlertDialogContent className="rounded-none">
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								{pendingActive
+									? "Start accepting responses?"
+									: "Stop accepting responses?"}
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								{pendingActive
+									? "Attendees will be able to submit feedback again."
+									: "Attendees will no longer be able to submit feedback. Their links will show a closed message."}{" "}
+								This takes effect immediately.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel className="rounded-none">
+								Cancel
+							</AlertDialogCancel>
+							<AlertDialogAction
+								className="rounded-none"
+								onClick={() => {
+									if (pendingActive !== null) {
+										// Saved form: apply and save right away. New form: part of the first save.
+										if (form)
+											availabilityMutation.mutate({ next: pendingActive });
+										else setIsActive(pendingActive);
+									}
+									setPendingActive(null);
+								}}
+							>
+								{pendingActive ? "Turn on" : "Turn off"}
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+
+				<AlertDialog
+					open={conflict !== null}
+					onOpenChange={(o) => !o && setConflict(null)}
+				>
+					<AlertDialogContent className="rounded-none">
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								Someone else changed this form
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								The form was saved by someone else after you opened it. Saving
+								now would overwrite their changes. You can load their version
+								(your unsaved edits are discarded) or overwrite it with yours.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel className="rounded-none">
+								Keep editing
+							</AlertDialogCancel>
+							<Button
+								type="button"
+								variant="outline"
+								className="rounded-none"
+								onClick={() => {
+									const c = conflict;
+									setConflict(null);
+									c?.overwrite();
+								}}
+							>
+								Overwrite with mine
+							</Button>
+							<AlertDialogAction
+								className="rounded-none"
+								onClick={() => {
+									const latest = conflict?.latest;
+									setConflict(null);
+									if (latest) {
+										queryClient.setQueryData(
+											["event", eventId, "feedback-form"],
+											latest,
+										);
+									} else {
+										queryClient.invalidateQueries({
+											queryKey: ["event", eventId, "feedback-form"],
+										});
+									}
+								}}
+							>
+								Load their version
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+
+				<Dialog open={testOpen} onOpenChange={setTestOpen}>
+					<DialogContent className="rounded-none">
+						<DialogHeader>
+							<DialogTitle>Test as attendee</DialogTitle>
+							<DialogDescription>
+								Choose an attendee first. Submitting through their link is a
+								real submission recorded under them.
+							</DialogDescription>
+						</DialogHeader>
+						{form && (
+							<AttendeeFeedbackLink eventId={eventId} publicUrl={publicUrl} />
+						)}
+					</DialogContent>
+				</Dialog>
 
 				{/* Floating Save Bar when changes exist */}
 				{isDirty && (
@@ -1457,7 +1638,9 @@ export function FeedbackFormBuilder({
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
 									<span className="relative inline-flex size-2 rounded-full bg-amber-500" />
 								</span>
-								<span className="font-medium text-xs sm:text-sm">Unsaved changes</span>
+								<span className="font-medium text-xs sm:text-sm">
+									Unsaved changes
+								</span>
 							</div>
 							<Button
 								type="submit"
@@ -1489,12 +1672,12 @@ export function FeedbackFormBuilder({
 						<AlertDialogTitle>
 							{pendingDelete?.type === "question"
 								? `Delete Question ${String(pendingDelete.number).padStart(2, "0")}?`
-								: `Delete Page ${pendingDelete?.pageNumber}?`}
+								: `Delete ${unit} ${pendingDelete?.pageNumber}?`}
 						</AlertDialogTitle>
 						<AlertDialogDescription>
 							{pendingDelete?.type === "question"
 								? "This question has content entered that will be permanently removed. Are you sure you want to delete it?"
-								: "This page contains entered content or questions with data. Deleting this page will move its questions to the previous page."}
+								: `This ${unitLower} contains entered content or questions with data. Deleting this ${unitLower} will move its questions to the previous ${unitLower}.`}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -1524,10 +1707,12 @@ export function FeedbackFormBuilder({
 function QuestionBranchingEditor({
 	question,
 	pages,
+	unit,
 	onChangeRules,
 }: {
 	question: DraftQuestion;
 	pages: DraftPage[];
+	unit: string;
 	onChangeRules: (rules: FeedbackRoutingRule[]) => void;
 }) {
 	const [isOpen, setIsOpen] = useState(
@@ -1563,6 +1748,7 @@ function QuestionBranchingEditor({
 		}
 	};
 
+	const unitLower = unit.toLowerCase();
 	const activeRulesCount = (question.routing_rules ?? []).filter((r) =>
 		choices.includes(r.answer),
 	).length;
@@ -1573,7 +1759,7 @@ function QuestionBranchingEditor({
 				<div className="flex items-center gap-2">
 					<GitFork className="size-4 text-[#23C460]" />
 					<span className="font-semibold text-foreground text-xs uppercase tracking-wide">
-						Go to page based on answer
+						Go to {unitLower} based on answer
 					</span>
 					{activeRulesCount > 0 && (
 						<span className="rounded bg-[#23C460] px-1.5 py-0.5 font-bold text-[10px] text-white">
@@ -1595,8 +1781,8 @@ function QuestionBranchingEditor({
 			{isOpen && (
 				<div className="space-y-2 pt-1">
 					<p className="text-muted-foreground text-xs">
-						Send attendees to a specific page or submit based on their selected
-						answer:
+						Send attendees to a specific {unitLower} or submit based on their
+						selected answer:
 					</p>
 					<div className="divide-y border bg-background">
 						{choices.map((choice) => {
@@ -1637,19 +1823,17 @@ function QuestionBranchingEditor({
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="default">
-													Continue to next page (default)
+													Continue to next {unitLower} (default)
 												</SelectItem>
 												{subsequentPages.map((sp) => (
 													<SelectItem
 														key={sp.page_number}
 														value={String(sp.page_number)}
 													>
-														Go to Page {sp.page_number}
+														Go to {unit} {sp.page_number}
 													</SelectItem>
 												))}
-												<SelectItem value="submit">
-													Submit form
-												</SelectItem>
+												<SelectItem value="submit">Submit form</SelectItem>
 											</SelectContent>
 										</Select>
 									</div>

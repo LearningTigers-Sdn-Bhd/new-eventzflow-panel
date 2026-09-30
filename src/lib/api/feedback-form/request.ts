@@ -19,6 +19,8 @@ export interface FeedbackQuestionInput {
 }
 
 export interface SaveFeedbackFormRequest {
+	/** Version the editor loaded; a mismatch means someone else saved (409). */
+	expected_updated_at?: string;
 	title: string;
 	description: string | null;
 	is_active: boolean;
@@ -32,5 +34,6 @@ export interface SaveFeedbackFormRequest {
 export interface SubmitFeedbackRequest {
 	form_id: number;
 	ticket_public_id?: string;
+	session_token?: string;
 	answers: { question_id: number; answer_text: string }[];
 }

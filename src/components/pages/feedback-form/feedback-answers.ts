@@ -1,4 +1,7 @@
-import type { FeedbackQuestion } from "@/lib/api/feedback-form";
+import type {
+	FeedbackQuestion,
+	FeedbackRoutingRule,
+} from "@/lib/api/feedback-form";
 
 /** multi_choice holds the selected options; every other type holds a string. */
 export type FeedbackAnswerValues = Record<number, string | string[]>;
@@ -114,13 +117,15 @@ export function evaluatePageNavigation(
 				.trim()
 				.toLowerCase();
 
-			const userSelectedCandidateRule = rulesForCandidate.some(
+			// Only an answer that matched a *different* jump rule sends the
+			// attendee down another branch. An answer with no rule (e.g. "Yes" when
+			// only "No" has a rule) just follows the normal page order.
+			const chosenRule = rules.find(
 				(r) => r.answer.trim().toLowerCase() === answerStr,
 			);
+			if (!chosenRule) continue;
 
-			// If the question was answered, but the answer does not lead to candidatePage,
-			// candidatePage is an alternative branch that was not chosen.
-			if (!userSelectedCandidateRule) {
+			if (Number(chosenRule.target_page) !== candidatePage) {
 				isUnselectedBranch = true;
 				break;
 			}
@@ -173,4 +178,79 @@ export function findReachableQuestions(
 	}
 
 	return reachable;
+}
+
+/**
+ * Pages to show in single-page mode. Follows the same routing as the stepper,
+ * but stops after a page holding a branching question that is still
+ * unanswered, so the next section stays hidden until a choice is made.
+ */
+export function findVisiblePages(
+	questions: FeedbackQuestion[],
+	values: FeedbackAnswerValues,
+): number[] {
+	if (questions.length === 0) return [];
+
+	const allPages = [...new Set(questions.map((q) => q.page_number ?? 1))].sort(
+		(a, b) => a - b,
+	);
+
+	const visible: number[] = [];
+	let currentPage: number | null = allPages[0];
+
+	while (currentPage !== null && !visible.includes(currentPage)) {
+		visible.push(currentPage);
+		const pageQuestions = questions.filter(
+			(q) => (q.page_number ?? 1) === currentPage,
+		);
+
+		const awaitingChoice = pageQuestions.some(
+			(q) => (q.routing_rules?.length ?? 0) > 0 && isBlank(values[q.id]),
+		);
+		if (awaitingChoice) break;
+
+		const nav = evaluatePageNavigation(
+			currentPage,
+			pageQuestions,
+			values,
+			allPages,
+			questions,
+		);
+		currentPage = nav.action === "submit" ? null : nav.targetPage;
+	}
+
+	return visible;
+}
+
+/** Options that repeat once case and surrounding spaces are ignored (rules match that way). */
+export function findDuplicateOptions(options: string[]): string[] {
+	const seen = new Set<string>();
+	const dupes = new Set<string>();
+	for (const raw of options) {
+		const option = raw.trim();
+		if (!option) continue;
+		const key = option.toLowerCase();
+		if (seen.has(key)) dupes.add(option);
+		seen.add(key);
+	}
+	return [...dupes];
+}
+
+/** Point rules at an option's new text after it was renamed. */
+export function renameRuleAnswer(
+	rules: FeedbackRoutingRule[],
+	from: string,
+	to: string,
+): FeedbackRoutingRule[] {
+	if (!from || !to || from === to) return rules;
+	return rules.map((r) => (r.answer === from ? { ...r, answer: to } : r));
+}
+
+/** Keep only rules whose answer is still one of the options. */
+export function pruneRulesToOptions(
+	rules: FeedbackRoutingRule[],
+	options: string[],
+): FeedbackRoutingRule[] {
+	const valid = new Set(options.map((o) => o.trim().toLowerCase()));
+	return rules.filter((r) => valid.has(r.answer.trim().toLowerCase()));
 }
