@@ -19,6 +19,7 @@ import {
 	deleteCustomFieldQuota,
 	setCustomFieldQuota,
 } from "@/lib/api/event/analytics";
+import { AgencyNamesExport } from "./agency-names-export";
 
 interface BreakdownTableProps {
 	labelHeader: string;
@@ -27,6 +28,10 @@ interface BreakdownTableProps {
 	/** Present together, enables the editable quota column for this field. */
 	eventId?: string;
 	fieldKey?: string;
+	/** Category scope for the name-list PDF (nested view). */
+	groupBy?: string;
+	groupValue?: string;
+	excludedTicketTypeIds?: string[];
 }
 
 /**
@@ -45,6 +50,9 @@ export function BreakdownTable({
 	isLoading,
 	eventId,
 	fieldKey,
+	groupBy,
+	groupValue,
+	excludedTicketTypeIds,
 }: BreakdownTableProps) {
 	const { labels } = useReportLanguage();
 	const [search, setSearch] = useState("");
@@ -78,7 +86,15 @@ export function BreakdownTable({
 	const canEditQuota = quotaCapable && showQuotaColumn;
 	const hasAnyQuota = !!rows?.some((row) => row.quota !== undefined);
 	const showQuotaCol = canEditQuota || hasAnyQuota;
-	const colSpanCount = 3 + (showQuotaCol ? 1 : 0) + (hasAnyQuota ? 1 : 0);
+	const colSpanCount =
+		3 + (showQuotaCol ? 1 : 0) + (hasAnyQuota ? 1 : 0) + (quotaCapable ? 1 : 0);
+	const exportProps = {
+		eventId: eventId as string,
+		fieldKey: fieldKey as string,
+		groupBy,
+		groupValue,
+		excludedTicketTypeIds,
+	};
 
 	// Stat tiles always reflect the full group — only the table body/footer
 	// below honor the search filter, so search never changes the numbers.
@@ -175,6 +191,10 @@ export function BreakdownTable({
 							</div>
 						)}
 
+						{quotaCapable && filteredRows && (
+							<AgencyNamesExport {...exportProps} rows={filteredRows} />
+						)}
+
 						{quotaCapable && (
 							<Button
 								type="button"
@@ -212,6 +232,7 @@ export function BreakdownTable({
 							{hasAnyQuota && (
 								<TableHead className="text-right">{labels.remaining}</TableHead>
 							)}
+							{quotaCapable && <TableHead className="w-10" />}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -302,6 +323,15 @@ export function BreakdownTable({
 											)}
 										</TableCell>
 									)}
+									{quotaCapable && (
+										<TableCell className="p-1">
+											<AgencyNamesExport
+												{...exportProps}
+												rows={[row]}
+												compact
+											/>
+										</TableCell>
+									)}
 								</TableRow>
 							))
 						) : (
@@ -330,6 +360,7 @@ export function BreakdownTable({
 									{(search.trim() ? filteredTotal : total).toLocaleString()}
 								</TableCell>
 								{hasAnyQuota && <TableCell />}
+								{quotaCapable && <TableCell />}
 							</TableRow>
 						</TableFooter>
 					)}

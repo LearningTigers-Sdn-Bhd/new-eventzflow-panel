@@ -5,6 +5,7 @@ export {
 	getAllEventAnalytics,
 	getCustomFieldBreakdown,
 	getCustomFieldKeys,
+	getCustomFieldNames,
 	getExhibitorAnalytics,
 	getHourlyBreakdownByDay,
 	getMallLiveFeed,

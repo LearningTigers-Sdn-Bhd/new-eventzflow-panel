@@ -3,6 +3,7 @@ import { StatsCard } from "@/components/admin-ui/analytic";
 import { Badge } from "@/components/ui/badge";
 import { useReportLanguage } from "@/hooks/use-report-language";
 import type { CustomFieldBreakdownGroup } from "@/lib/api/event/analytics";
+import { AgencyNamesExport } from "./agency-names-export";
 import { BreakdownTable } from "./breakdown-table";
 
 interface NestedBreakdownGroupsProps {
@@ -13,6 +14,9 @@ interface NestedBreakdownGroupsProps {
 	/** Present together, enables the editable quota column in each subtable. */
 	eventId?: string;
 	fieldKey?: string;
+	/** jsonb key of the group (category), used to scope the name-list PDF. */
+	groupKey?: string;
+	excludedTicketTypeIds?: string[];
 }
 
 /**
@@ -27,6 +31,8 @@ export function NestedBreakdownGroups({
 	isLoading,
 	eventId,
 	fieldKey,
+	groupKey,
+	excludedTicketTypeIds,
 }: NestedBreakdownGroupsProps) {
 	const { labels } = useReportLanguage();
 
@@ -63,6 +69,19 @@ export function NestedBreakdownGroups({
 				/>
 			</div>
 
+			{eventId && fieldKey && (
+				<div className="flex justify-end">
+					<AgencyNamesExport
+						eventId={eventId}
+						fieldKey={fieldKey}
+						groups={groups}
+						groupBy={groupKey}
+						excludedTicketTypeIds={excludedTicketTypeIds}
+						label={labels.downloadAllNameList}
+					/>
+				</div>
+			)}
+
 			{groups.map((group) => (
 				<div key={group.group} className="border">
 					<div className="flex items-center justify-between gap-2 border-b bg-muted/50 px-3 py-2">
@@ -83,6 +102,9 @@ export function NestedBreakdownGroups({
 							isLoading={false}
 							eventId={eventId}
 							fieldKey={fieldKey}
+							groupBy={groupKey}
+							groupValue={group.group}
+							excludedTicketTypeIds={excludedTicketTypeIds}
 						/>
 					</div>
 				</div>

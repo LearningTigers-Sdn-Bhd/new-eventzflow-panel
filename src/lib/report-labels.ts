@@ -29,6 +29,14 @@ export const reportLabels: Record<
 		topValue: string;
 		unregistered: string;
 		noDataAvailable: string;
+		nameList: string;
+		downloadNameList: string;
+		generating: string;
+		downloadAllNameList: string;
+		attendeeName: string;
+		email: string;
+		phone: string;
+		noRegistrationsYet: string;
 		loading: string;
 		ticketType: string;
 		searchPlaceholder: string;
@@ -105,6 +113,14 @@ export const reportLabels: Record<
 		topValue: "Top Value",
 		unregistered: "No Registrations Yet",
 		noDataAvailable: "No data available.",
+		nameList: "Registered Names",
+		downloadNameList: "Download names (PDF)",
+		generating: "Generating PDF… please wait",
+		downloadAllNameList: "Download all categories with names (PDF)",
+		attendeeName: "Name",
+		email: "Email",
+		phone: "Phone",
+		noRegistrationsYet: "No registrations yet.",
 		loading: "Loading…",
 		ticketType: "Ticket Type",
 		searchPlaceholder: "Search…",
@@ -184,6 +200,14 @@ export const reportLabels: Record<
 		topValue: "Nilai Tertinggi",
 		unregistered: "Belum Ada Pendaftaran",
 		noDataAvailable: "Tiada data tersedia.",
+		nameList: "Senarai Nama Berdaftar",
+		downloadNameList: "Muat turun senarai nama (PDF)",
+		generating: "Menjana PDF… sila tunggu",
+		downloadAllNameList: "Muat turun semua kategori dengan nama (PDF)",
+		attendeeName: "Nama",
+		email: "Emel",
+		phone: "No. Telefon",
+		noRegistrationsYet: "Belum ada pendaftaran.",
 		loading: "Memuatkan…",
 		ticketType: "Jenis Tiket",
 		searchPlaceholder: "Cari…",

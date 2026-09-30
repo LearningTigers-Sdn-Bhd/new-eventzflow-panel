@@ -170,6 +170,14 @@ export type NestedCustomFieldBreakdownResponse = {
 	groups: CustomFieldBreakdownGroup[];
 };
 
+// Attendee names behind a custom field breakdown, keyed by field value
+export type CustomFieldNamesResponse = {
+	data: Record<
+		string,
+		{ name: string; email: string | null; phone: string | null }[]
+	>;
+};
+
 // Ticket type breakdown (count-only)
 export type TicketTypeBreakdownResponse = {
 	data: CustomFieldBreakdownRow[];

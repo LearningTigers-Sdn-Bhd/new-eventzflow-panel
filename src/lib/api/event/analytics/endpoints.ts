@@ -9,6 +9,7 @@ import type {
 	AllEventAnalyticsResponse,
 	CustomFieldBreakdownResponse,
 	CustomFieldKeysResponse,
+	CustomFieldNamesResponse,
 	DailyHourlyBreakdown,
 	DateCountColumn,
 	HourlyBreakdownByDayResponse,
@@ -418,6 +419,34 @@ export async function getCustomFieldBreakdown(
 		);
 		throw new Error(error.message || "Failed to fetch custom field breakdown");
 	}
+}
+
+/**
+ * Attendee names behind breakdown rows, for name-list PDFs. `value` narrows to
+ * one agency; `groupBy`+`groupValue` narrows to one category.
+ */
+export async function getCustomFieldNames(
+	eventId: number | string,
+	fieldKey: string,
+	opts: {
+		value?: string;
+		groupBy?: string;
+		groupValue?: string;
+		excludedTicketTypeIds?: string[];
+	} = {},
+): Promise<CustomFieldNamesResponse> {
+	const params = new URLSearchParams({ field_key: fieldKey });
+	if (opts.value) params.set("value", opts.value);
+	if (opts.groupBy && opts.groupValue) {
+		params.set("group_by", opts.groupBy);
+		params.set("group_value", opts.groupValue);
+	}
+	for (const id of opts.excludedTicketTypeIds ?? []) {
+		params.append("exclude_ticket_type_ids[]", id);
+	}
+	return restClient.get<CustomFieldNamesResponse>(
+		`v1/events/${eventId}/metrics/custom_field_names?${params.toString()}`,
+	);
 }
 
 /**

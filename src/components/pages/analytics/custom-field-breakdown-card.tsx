@@ -336,6 +336,8 @@ export function CustomFieldBreakdownCard({
 					isLoading={isLoading}
 					eventId={eventId}
 					fieldKey={selectedKey}
+					groupKey={groupByKey}
+					excludedTicketTypeIds={excludedTicketTypeIds}
 				/>
 			)}
 
@@ -346,6 +348,7 @@ export function CustomFieldBreakdownCard({
 					isLoading={isLoading}
 					eventId={eventId}
 					fieldKey={selectedKey}
+					excludedTicketTypeIds={excludedTicketTypeIds}
 				/>
 			)}
 		</ReportSection>
