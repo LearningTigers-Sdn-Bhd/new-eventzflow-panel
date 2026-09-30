@@ -234,10 +234,15 @@ export function PublicFeedbackForm({
 										missingIds.includes(q.id) && "border-destructive/40",
 									)}
 								>
-									<legend className="mb-3 font-medium text-[#0F3D2E]">
+									<legend className="mb-1 font-medium text-[#0F3D2E]">
 										{index + 1}. {q.question_text}
 										{q.required && <span className="text-destructive"> *</span>}
 									</legend>
+									{q.hint_text?.trim() && (
+										<p className="mb-3 text-muted-foreground text-xs leading-relaxed">
+											{q.hint_text.trim()}
+										</p>
+									)}
 									<QuestionInput
 										question={q}
 										value={values[q.id]}
@@ -370,42 +375,66 @@ function QuestionInput({
 	const id = `q-${question.id}`;
 
 	switch (question.question_type) {
-		case "rating":
+		case "rating": {
+			const options = question.options;
+			const hasPerScoreLabels = Boolean(
+				options &&
+					options.length === 5 &&
+					(options[1]?.trim() || options[2]?.trim() || options[3]?.trim()),
+			);
+			const lowLabel = options?.[0]?.trim() || "Strongly disagree";
+			const highLabel =
+				options && options.length === 5
+					? options[4]?.trim() || "Strongly agree"
+					: options?.[1]?.trim() || "Strongly agree";
+
 			return (
-				<div className="w-full">
-					<div className="mx-auto flex max-w-sm justify-between">
-						{[1, 2, 3, 4, 5].map((n) => (
-							<label
-								key={n}
-								className="flex cursor-pointer flex-col items-center gap-2"
-							>
-								<span className="font-medium text-foreground text-sm tabular-nums">
-									{n}
-								</span>
-								<input
-									type="radio"
-									name={id}
-									value={n}
-									checked={value === String(n)}
-									onChange={() => onChange(String(n))}
-									className="peer sr-only"
-									aria-label={`${n} of 5`}
-								/>
-								<span className="size-6 rounded-full border-2 border-muted-foreground/40 transition-colors hover:border-[#23C460] peer-checked:border-[#23C460] peer-checked:bg-[#23C460] peer-checked:shadow-[inset_0_0_0_3px_var(--background)] peer-focus-visible:outline-2 peer-focus-visible:outline-ring peer-focus-visible:outline-offset-2" />
-							</label>
-						))}
+				<div className="w-full space-y-3">
+					<div className="mx-auto flex max-w-sm justify-between gap-1 sm:gap-2">
+						{[1, 2, 3, 4, 5].map((n) => {
+							const stepLabel = options?.[n - 1]?.trim();
+							return (
+								<label
+									key={n}
+									className="group flex flex-1 cursor-pointer flex-col items-center gap-1.5 text-center"
+								>
+									<span className="font-semibold text-foreground text-sm tabular-nums">
+										{n}
+									</span>
+									<input
+										type="radio"
+										name={id}
+										value={n}
+										checked={value === String(n)}
+										onChange={() => onChange(String(n))}
+										className="peer sr-only"
+										aria-label={`${n} of 5${stepLabel ? `: ${stepLabel}` : ""}`}
+									/>
+									<span className="size-7 rounded-full border-2 border-muted-foreground/30 transition-all hover:scale-105 hover:border-[#23C460] peer-checked:border-[#23C460] peer-checked:bg-[#23C460] peer-checked:shadow-[inset_0_0_0_3.5px_var(--background)] peer-focus-visible:outline-2 peer-focus-visible:outline-ring" />
+									{hasPerScoreLabels && stepLabel && (
+										<span className="line-clamp-2 max-w-[4.5rem] text-[11px] leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
+											{stepLabel}
+										</span>
+									)}
+								</label>
+							);
+						})}
 					</div>
-					<div className="mt-3 flex justify-between text-foreground/80 text-sm">
-						<span>Strongly disagree</span>
-						<span>Strongly agree</span>
-					</div>
+					{!hasPerScoreLabels && (
+						<div className="mx-auto flex max-w-sm justify-between text-muted-foreground text-xs sm:text-sm">
+							<span>{lowLabel}</span>
+							<span>{highLabel}</span>
+						</div>
+					)}
 				</div>
 			);
+		}
 		case "text":
 			return (
 				<Textarea
 					id={id}
 					className="rounded-none"
+					placeholder={question.placeholder || undefined}
 					value={(value as string) ?? ""}
 					onChange={(e) => onChange(e.target.value)}
 				/>

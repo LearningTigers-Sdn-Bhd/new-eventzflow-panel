@@ -12,6 +12,8 @@ export interface FeedbackQuestion {
 	options: string[] | null;
 	required: boolean;
 	position: number;
+	placeholder?: string | null;
+	hint_text?: string | null;
 }
 
 export interface FeedbackForm {

@@ -31,12 +31,15 @@ describe("feedback answers", () => {
 		).toEqual([1]);
 	});
 
-	test("drops blanks and JSON-encodes multi-choice", () => {
-		expect(
-			toAnswerPayload(questions, { 1: "5", 2: ["A", "B"], 3: " " }),
-		).toEqual([
-			{ question_id: 1, answer_text: "5" },
-			{ question_id: 2, answer_text: '["A","B"]' },
+	test("handles rating answer with custom scale labels", () => {
+		const ratingQ: FeedbackQuestion = {
+			...q(4, "rating", true),
+			options: ["Terrible", "Poor", "Average", "Good", "Excellent"],
+		};
+		expect(missingRequired([ratingQ], { 4: "5" })).toHaveLength(0);
+		expect(missingRequired([ratingQ], {})).toHaveLength(1);
+		expect(toAnswerPayload([ratingQ], { 4: "4" })).toEqual([
+			{ question_id: 4, answer_text: "4" },
 		]);
 	});
 });

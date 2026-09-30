@@ -9,6 +9,7 @@ import { FeatureLockedState } from "@/components/feature-locked-state";
 import { FeedbackResponsesViewer } from "@/components/pages/feedback-form/feedback-responses-viewer";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
+import { getEventById } from "@/lib/api/event";
 import { getFeedbackForm } from "@/lib/api/feedback-form";
 
 export default function FeedbackResponsesPage({
@@ -19,26 +20,23 @@ export default function FeedbackResponsesPage({
 	const { event_id } = use(params);
 	const { permissions } = useEventSidebarContext();
 	const { canManageEventVendors, isEventVendor } = permissions;
+
+	const { data: event, isLoading: eventLoading } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+	});
+
 	const {
 		data: form,
-		isLoading,
+		isLoading: formLoading,
 		isError,
 	} = useQuery({
 		queryKey: ["event", event_id, "feedback-form"],
 		queryFn: () => getFeedbackForm(event_id),
-		enabled: canManageEventVendors,
+		enabled: canManageEventVendors && event?.use_feedback === true,
 	});
 
-	if (!canManageEventVendors) {
-		return (
-			<FeatureLockedState
-				isEventVendor={isEventVendor}
-				featureName="Feedback Form"
-			/>
-		);
-	}
-
-	if (isLoading) {
+	if (eventLoading || (event?.use_feedback === true && formLoading)) {
 		return (
 			<LoadingState
 				title="Loading feedback responses..."
@@ -47,7 +45,16 @@ export default function FeedbackResponsesPage({
 		);
 	}
 
-	if (isError) {
+	if (event?.use_feedback !== true || !canManageEventVendors) {
+		return (
+			<FeatureLockedState
+				isEventVendor={isEventVendor}
+				featureName="Feedback Form"
+			/>
+		);
+	}
+
+	if (isError || !event) {
 		return <ErrorState title="Unable to load feedback responses" />;
 	}
 

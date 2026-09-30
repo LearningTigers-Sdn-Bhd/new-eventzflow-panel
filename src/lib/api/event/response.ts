@@ -89,6 +89,7 @@ export type Event = {
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
 	use_certificate: boolean;
+	use_feedback: boolean;
 	use_api_access: boolean;
 	vehicles_enabled: boolean;
 	reminders_enabled: boolean;
@@ -136,6 +137,7 @@ export type EventSidebarEvent = Pick<
 	| "use_seat_ticketing"
 	| "use_voucher"
 	| "use_certificate"
+	| "use_feedback"
 	| "use_business_matching"
 	| "use_wedding"
 	| "use_api_access"

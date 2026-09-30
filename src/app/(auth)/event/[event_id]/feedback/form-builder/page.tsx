@@ -31,23 +31,23 @@ export default function FeedbackFormBuilderPage({
 	} = useQuery({
 		queryKey: ["event", event_id, "feedback-form"],
 		queryFn: () => getFeedbackForm(event_id),
-		enabled: canManageEventVendors,
+		enabled: canManageEventVendors && event?.use_feedback === true,
 	});
 
-	if (!canManageEventVendors) {
-		return (
-			<FeatureLockedState
-				isEventVendor={isEventVendor}
-				featureName="Feedback Form"
-			/>
-		);
-	}
-
-	if (eventLoading || formLoading) {
+	if (eventLoading || (event?.use_feedback === true && formLoading)) {
 		return (
 			<LoadingState
 				title="Loading feedback form..."
 				description="Please wait while we load the form builder."
+			/>
+		);
+	}
+
+	if (event?.use_feedback !== true || !canManageEventVendors) {
+		return (
+			<FeatureLockedState
+				isEventVendor={isEventVendor}
+				featureName="Feedback Form"
 			/>
 		);
 	}
