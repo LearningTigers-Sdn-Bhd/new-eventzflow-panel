@@ -661,23 +661,26 @@ export function FeedbackFormBuilder({
 														id={`builder-question-${q.key}`}
 														className="space-y-4 border bg-background p-5 shadow-xs sm:p-6"
 													>
-														{/* Header: Number Badge and Action Buttons */}
-														<div className="flex flex-wrap items-center justify-between gap-3">
-															<div className="flex items-center gap-3">
-																<span className="flex size-7 items-center justify-center border border-muted-foreground/20 bg-muted/60 font-mono font-semibold text-foreground text-xs shadow-xs">
+														{/* Top row: Number Badge, Question Input, and Action Buttons */}
+														<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+															<div className="flex min-w-0 flex-1 items-center gap-2.5">
+																<span className="flex size-9 shrink-0 items-center justify-center border border-muted-foreground/20 bg-muted/60 font-mono font-semibold text-foreground text-xs shadow-xs">
 																	{String(globalIndex + 1).padStart(2, "0")}
 																</span>
-																{q.question_text ? (
-																	<span className="max-w-[14rem] truncate font-medium text-foreground text-sm sm:max-w-md">
-																		{q.question_text}
-																	</span>
-																) : (
-																	<span className="text-muted-foreground text-xs italic">
-																		Untitled question
-																	</span>
-																)}
+																<Input
+																	id={`question-${q.key}`}
+																	className="h-9 rounded-none text-sm font-medium"
+																	value={q.question_text}
+																	onChange={(e) =>
+																		update(q.key, {
+																			question_text: e.target.value,
+																		})
+																	}
+																	placeholder="e.g. How would you rate the event?"
+																	required
+																/>
 															</div>
-															<div className="flex flex-wrap items-center gap-1.5">
+															<div className="flex shrink-0 items-center gap-1.5 self-end sm:self-center">
 																{pages.length > 1 && (
 																	<DropdownMenu>
 																		<DropdownMenuTrigger asChild>
@@ -780,130 +783,76 @@ export function FeedbackFormBuilder({
 															</div>
 														</div>
 
-														{/* Desktop row: Question, Answer type, Required Checkbox */}
-														<div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-															<div className="min-w-0 flex-1 space-y-1.5">
-																<Label
-																	htmlFor={`question-${q.key}`}
-																	className="font-medium text-xs text-foreground"
-																>
-																	Question
-																</Label>
-																<Input
-																	id={`question-${q.key}`}
-																	className="h-9 rounded-none text-sm"
-																	value={q.question_text}
-																	onChange={(e) =>
-																		update(q.key, {
-																			question_text: e.target.value,
-																		})
-																	}
-																	placeholder="e.g. How would you rate the event?"
-																	required
-																/>
-															</div>
-
-															<div className="w-full space-y-1.5 sm:w-48">
-																<Label
-																	htmlFor={`type-${q.key}`}
-																	className="font-medium text-xs text-foreground"
-																>
-																	Answer type
-																</Label>
-																<Select
-																	value={q.question_type || undefined}
-																	onValueChange={(value) =>
-																		update(q.key, {
-																			question_type:
-																				value as FeedbackQuestionType,
-																			...(value === "single_choice" ||
-																			value === "multi_choice"
-																				? {
-																						optionsText:
-																							q.optionsText ||
-																							"Option 1\nOption 2\n",
-																						optionKeys:
-																							q.optionKeys.length > 1
-																								? q.optionKeys
-																								: [
-																										crypto.randomUUID(),
-																										crypto.randomUUID(),
-																										crypto.randomUUID(),
-																									],
-																					}
-																				: {}),
-																		})
-																	}
-																>
-																	<SelectTrigger
-																		id={`type-${q.key}`}
-																		className="h-9 w-full rounded-none text-sm"
+														{/* Controls row: Answer type, Required Checkbox, and Description button */}
+														<div className="flex flex-wrap items-center justify-between gap-3 pt-0.5">
+															<div className="flex flex-wrap items-center gap-4">
+																<div className="flex items-center gap-2">
+																	<Label
+																		htmlFor={`type-${q.key}`}
+																		className="font-medium text-muted-foreground text-xs shrink-0"
 																	>
-																		<SelectValue placeholder="Select answer type" />
-																	</SelectTrigger>
-																	<SelectContent>
-																		{QUESTION_TYPES.map((t) => (
-																			<SelectItem key={t.value} value={t.value}>
-																				{t.label}
-																			</SelectItem>
-																		))}
-																	</SelectContent>
-																</Select>
-															</div>
-
-															<div className="flex h-9 items-center gap-2 px-1 sm:self-end">
-																<Checkbox
-																	id={`required-${q.key}`}
-																	checked={q.required}
-																	onCheckedChange={(checked) =>
-																		update(q.key, { required: Boolean(checked) })
-																	}
-																	className="rounded-none"
-																/>
-																<Label
-																	htmlFor={`required-${q.key}`}
-																	className="cursor-pointer font-normal text-muted-foreground text-sm select-none"
-																>
-																	Required
-																</Label>
-															</div>
-														</div>
-
-														{/* Helpful hint / subtitle - expandable on demand */}
-														<div className="space-y-2">
-															{hasHint ? (
-																<div className="space-y-1">
-																	<div className="flex items-center justify-between">
-																		<Label
-																			htmlFor={`hint-${q.key}`}
-																			className="text-muted-foreground text-xs"
-																		>
-																			Description
-																		</Label>
-																		<button
-																			type="button"
-																			className="text-[11px] text-muted-foreground hover:text-destructive"
-																			onClick={() =>
-																				update(q.key, { hint_text: "" })
-																			}
-																		>
-																			Remove description
-																		</button>
-																	</div>
-																	<Input
-																		id={`hint-${q.key}`}
-																		className="h-8 rounded-none text-xs"
-																		value={q.hint_text}
-																		onChange={(e) =>
+																		Answer type
+																	</Label>
+																	<Select
+																		value={q.question_type || undefined}
+																		onValueChange={(value) =>
 																			update(q.key, {
-																				hint_text: e.target.value,
+																				question_type:
+																					value as FeedbackQuestionType,
+																				...(value === "single_choice" ||
+																				value === "multi_choice"
+																					? {
+																							optionsText:
+																								q.optionsText ||
+																								"Option 1\nOption 2\n",
+																							optionKeys:
+																								q.optionKeys.length > 1
+																									? q.optionKeys
+																									: [
+																											crypto.randomUUID(),
+																											crypto.randomUUID(),
+																											crypto.randomUUID(),
+																										],
+																						}
+																					: {}),
 																			})
 																		}
-																		placeholder="Add helpful context or subtitle"
-																		autoFocus
-																	/>
+																	>
+																		<SelectTrigger
+																			id={`type-${q.key}`}
+																			className="h-8 w-44 rounded-none text-xs"
+																		>
+																			<SelectValue placeholder="Select answer type" />
+																		</SelectTrigger>
+																		<SelectContent>
+																			{QUESTION_TYPES.map((t) => (
+																				<SelectItem key={t.value} value={t.value}>
+																					{t.label}
+																				</SelectItem>
+																			))}
+																		</SelectContent>
+																	</Select>
 																</div>
-															) : (
+
+																<div className="flex h-8 items-center gap-2 px-1">
+																	<Checkbox
+																		id={`required-${q.key}`}
+																		checked={q.required}
+																		onCheckedChange={(checked) =>
+																			update(q.key, { required: Boolean(checked) })
+																		}
+																		className="rounded-none"
+																	/>
+																	<Label
+																		htmlFor={`required-${q.key}`}
+																		className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
+																	>
+																		Required
+																	</Label>
+																</div>
+															</div>
+
+															{!hasHint && (
 																<div className="flex items-center gap-4">
 																	<button
 																		type="button"
@@ -929,6 +878,42 @@ export function FeedbackFormBuilder({
 																		)}
 																</div>
 															)}
+														</div>
+
+														{/* Helpful hint / subtitle - expandable on demand */}
+														{hasHint && (
+															<div className="space-y-1">
+																<div className="flex items-center justify-between">
+																	<Label
+																		htmlFor={`hint-${q.key}`}
+																		className="text-muted-foreground text-xs"
+																	>
+																		Description
+																	</Label>
+																	<button
+																		type="button"
+																		className="text-[11px] text-muted-foreground hover:text-destructive"
+																		onClick={() =>
+																			update(q.key, { hint_text: "" })
+																		}
+																	>
+																		Remove description
+																	</button>
+																</div>
+																<Input
+																	id={`hint-${q.key}`}
+																	className="h-8 rounded-none text-xs"
+																	value={q.hint_text}
+																	onChange={(e) =>
+																		update(q.key, {
+																			hint_text: e.target.value,
+																		})
+																	}
+																	placeholder="Add helpful context or subtitle"
+																	autoFocus
+																/>
+															</div>
+														)}
 
 															{q.question_type === "text" && hasPlaceholder && (
 																<div className="space-y-1 pt-1">
@@ -1224,19 +1209,7 @@ export function FeedbackFormBuilder({
 																			</div>
 																		)}
 																	</div>
-																) : (
-																	<p className="text-muted-foreground text-xs">
-																		Using default labels:{" "}
-																		<span className="font-medium text-foreground">
-																			1 (Strongly disagree)
-																		</span>{" "}
-																		to{" "}
-																		<span className="font-medium text-foreground">
-																			5 (Strongly agree)
-																		</span>
-																		.
-																	</p>
-																)}
+																) : null}
 															</fieldset>
 														)}
 
