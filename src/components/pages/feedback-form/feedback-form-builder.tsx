@@ -948,7 +948,6 @@ export function FeedbackFormBuilder({
 																	/>
 																</div>
 															)}
-														</div>
 
 														{isChoice(q.question_type) && (
 															<div className="space-y-2">
