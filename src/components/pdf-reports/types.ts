@@ -128,6 +128,10 @@ export type ExhibitorReportData = {
 		paidPartners: number;
 		depositPartners: number;
 		unpaidPartners: number;
+		bookedBooths: number;
+		paidBooths: number;
+		depositBooths: number;
+		unpaidBooths: number;
 		collectedRevenue: number;
 		pendingRevenue: number;
 	};

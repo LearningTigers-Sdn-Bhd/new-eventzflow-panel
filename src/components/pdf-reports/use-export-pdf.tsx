@@ -326,6 +326,10 @@ export function prepareExhibitorReportData(
 		paidPartners: number;
 		depositPartners: number;
 		unpaidPartners: number;
+		bookedBooths: number;
+		paidBooths: number;
+		depositBooths: number;
+		unpaidBooths: number;
 		collectedRevenue: number;
 		pendingRevenue: number;
 		breakdown: {
@@ -363,6 +367,10 @@ export function prepareExhibitorReportData(
 			paidPartners: analytics.paidPartners,
 			depositPartners: analytics.depositPartners,
 			unpaidPartners: analytics.unpaidPartners,
+			bookedBooths: analytics.bookedBooths,
+			paidBooths: analytics.paidBooths,
+			depositBooths: analytics.depositBooths,
+			unpaidBooths: analytics.unpaidBooths,
 			collectedRevenue: analytics.collectedRevenue,
 			pendingRevenue: analytics.pendingRevenue,
 		},

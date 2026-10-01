@@ -510,23 +510,23 @@ function ExhibitorAnalytics({
 		<>
 			<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
 				<StatsCard
-					label="Total Exhibitors"
-					value={data.totalPartners}
+					label="Booths Booked"
+					value={data.bookedBooths}
 					Icon={Building2}
 				/>
 				<StatsCard
-					label="Paid Exhibitors"
-					value={data.paidPartners}
+					label="Booths Paid"
+					value={data.paidBooths}
 					Icon={BadgeCheck}
 				/>
 				<StatsCard
-					label="Deposit Exhibitors"
-					value={data.depositPartners}
+					label="Booths Deposit"
+					value={data.depositBooths}
 					Icon={HandCoins}
 				/>
 				<StatsCard
-					label="Unpaid Exhibitors"
-					value={data.unpaidPartners}
+					label="Booths Unpaid"
+					value={data.unpaidBooths}
 					Icon={Clock3}
 				/>
 				<StatsCard

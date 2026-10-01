@@ -29,12 +29,12 @@ export function ExhibitorAnalyticsReport({
 	const { event, metadata, stats, breakdown, timeSeries } = data;
 	const hasTrendData =
 		timeSeries.bookings.length > 0 || timeSeries.revenue.length > 0;
-	const paidRate = calculatePercentage(stats.paidPartners, stats.totalPartners);
+	const paidRate = calculatePercentage(stats.paidBooths, stats.bookedBooths);
 
 	const insights = [
-		`Total Exhibitors: ${stats.totalPartners.toLocaleString()} booths booked for the event.`,
-		`Paid: ${stats.paidPartners.toLocaleString()} exhibitors (${paidRate}%) are paid, waived, or sponsored.`,
-		`Deposit: ${stats.depositPartners.toLocaleString()} exhibitors have paid a deposit, balance still pending.`,
+		`Booths Booked: ${stats.bookedBooths.toLocaleString()} booths booked for the event.`,
+		`Paid: ${stats.paidBooths.toLocaleString()} booths (${paidRate}%) are paid, waived, or sponsored.`,
+		`Deposit: ${stats.depositBooths.toLocaleString()} booths have paid a deposit, balance still pending.`,
 		`Collected Revenue: ${formatReportCurrency(stats.collectedRevenue)} in booth sales, separate from visitor and participant sales.`,
 	];
 
@@ -64,16 +64,16 @@ export function ExhibitorAnalyticsReport({
 
 				<Section title="Exhibitor Sales Overview">
 					<StatsGrid style={{ marginBottom: 0, borderBottomWidth: 0 }}>
-						<StatsCard label="Total Exhibitors" value={stats.totalPartners} />
+						<StatsCard label="Booths Booked" value={stats.bookedBooths} />
 						<StatsCard
-							label="Paid"
-							value={stats.paidPartners}
+							label="Booths Paid"
+							value={stats.paidBooths}
 							subtext={`${paidRate}% paid`}
 						/>
-						<StatsCard label="Deposit" value={stats.depositPartners} isLast />
+						<StatsCard label="Booths Deposit" value={stats.depositBooths} isLast />
 					</StatsGrid>
 					<StatsGrid>
-						<StatsCard label="Unpaid" value={stats.unpaidPartners} />
+						<StatsCard label="Booths Unpaid" value={stats.unpaidBooths} />
 						<StatsCard
 							label="Collected Revenue"
 							value={formatReportCurrency(stats.collectedRevenue)}
