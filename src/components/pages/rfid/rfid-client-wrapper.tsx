@@ -7,6 +7,7 @@ import {
 	Download,
 	LayoutDashboard,
 	ListChecks,
+	Monitor,
 	Radio,
 	Settings2,
 	Users,
@@ -236,6 +237,20 @@ export function RfidClientWrapper({
 
 	useSetEventActions(
 		<div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row">
+			<Button
+				variant="outline"
+				asChild
+				className="w-full shrink-0 rounded-none lg:w-auto"
+			>
+				<a
+					href={`/event/${eventId}/rfid/display`}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<Monitor className="mr-2 size-4" />
+					Open gate display
+				</a>
+			</Button>
 			<Button
 				variant="outline"
 				onClick={() => setSettingsOpen(true)}

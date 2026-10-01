@@ -98,12 +98,14 @@ export default function EventDetailLayout({
 		"seat-ticketing/sessions/",
 	);
 	const isReviewSubmitRoute = pathname.includes("review-submit");
+	const isRfidDisplayRoute = pathname.endsWith("/rfid/display");
 
 	// Early return for special routes that don't use sidebar
 	if (
 		isLuckyDrawSessionRoute ||
 		isPrizeRouletteSessionRoute ||
-		isSeatTicketingSessionRoute
+		isSeatTicketingSessionRoute ||
+		isRfidDisplayRoute
 	) {
 		return <div className="w-full">{children}</div>;
 	}

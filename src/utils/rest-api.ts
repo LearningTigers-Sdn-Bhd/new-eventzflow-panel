@@ -51,6 +51,7 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
+			if (query.meta?.suppressErrorToast) return;
 			// Suppress global error toasts for business matching queries
 			// as they are handled locally with specific UI states or ignored to prevent spam
 			const queryKey = query.queryKey;

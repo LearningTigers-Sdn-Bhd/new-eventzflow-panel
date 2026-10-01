@@ -10,6 +10,8 @@ import type {
 	RfidAnomaliesResponse,
 	RfidBindingResponse,
 	RfidBindingsResponse,
+	RfidDisplayMode,
+	RfidDisplayResponse,
 	RfidEligibilityResponse,
 	RfidEligibilityStatus,
 	RfidFlow,
@@ -28,6 +30,15 @@ import type {
 } from "./response";
 
 const base = (eventId: string | number) => `v1/events/${eventId}/rfid`;
+
+export function getRfidDisplayActivity(
+	eventId: string | number,
+	mode: RfidDisplayMode,
+): Promise<RfidDisplayResponse> {
+	return restClient.get<RfidDisplayResponse>(
+		`${base(eventId)}/display_activity?mode=${mode}`,
+	);
+}
 
 /** Live headcount / open visits / anomaly count for the event. */
 export function getRfidSummary(

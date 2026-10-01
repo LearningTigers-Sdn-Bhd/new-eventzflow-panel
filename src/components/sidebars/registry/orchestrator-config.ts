@@ -14,6 +14,7 @@ export const noSidebarRoutes: NoSidebarRoute[] = [
 	{ route: "prize-roulette/session", type: "include" },
 	{ route: "review-submit", type: "include" },
 	{ route: "seat-ticketing/sessions/", type: "include" },
+	{ route: "/rfid/display", type: "include" },
 ];
 
 /**

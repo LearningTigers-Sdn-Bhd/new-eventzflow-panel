@@ -80,6 +80,15 @@ export type RfidVisit = {
 	exit_station: string | null;
 };
 
+export type RfidDisplayMode = "in" | "out" | "both";
+export type RfidDisplayActivity = {
+	id: string;
+	ticket_name: string | null;
+	direction: "in" | "out";
+	occurred_at: string;
+};
+export type RfidDisplayResponse = { activity: RfidDisplayActivity[] };
+
 // An anomaly row keeps both the reply the gate was first given and the
 // current adjudication — a late offline binding or a staff correction can
 // change the meaning of a reading without rewriting its raw record.
