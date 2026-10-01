@@ -18,8 +18,8 @@ import {
 } from "@/lib/api/feedback-form";
 import { cn } from "@/lib/utils";
 import {
-	type FeedbackAnswerValues,
 	evaluatePageNavigation,
+	type FeedbackAnswerValues,
 	findReachableQuestions,
 	findVisiblePages,
 	missingRequired,
@@ -415,7 +415,8 @@ export function PublicFeedbackForm({
 									className="space-y-6"
 								>
 									<span className="inline-block bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
-										Page {pageHistory.length}
+										{currentPageMeta?.title?.trim() ||
+											`Page ${pageHistory.length}`}
 									</span>
 									{currentQuestions.map((q) => {
 										// Number by the path the attendee actually sees, so a jump from
@@ -521,10 +522,11 @@ export function PublicFeedbackForm({
 											if (pageQuestions.length === 0) return null;
 											return (
 												<div key={pageNumber} className="space-y-6">
-													{isMultiPage && (
-														<div className="border-b border-[#0F3D2E]/15 pb-2 pt-4 first:pt-0">
+													{(isMultiPage || pageMeta?.title?.trim()) && (
+														<div className="border-[#0F3D2E]/15 border-b pt-4 pb-2 first:pt-0">
 															<span className="bg-[#CFF5DD] px-2.5 py-0.5 font-bold text-[#0F3D2E] text-xs uppercase tracking-wide">
-																Section {sectionIndex + 1}
+																{pageMeta?.title?.trim() ||
+																	`Section ${sectionIndex + 1}`}
 															</span>
 														</div>
 													)}
@@ -730,7 +732,7 @@ function QuestionInput({
 									/>
 									<span className="size-7 rounded-full border-2 border-muted-foreground/30 transition-all hover:scale-105 hover:border-[#23C460] peer-checked:border-[#23C460] peer-checked:bg-[#23C460] peer-checked:shadow-[inset_0_0_0_3.5px_var(--background)] peer-focus-visible:outline-2 peer-focus-visible:outline-ring" />
 									{hasPerScoreLabels && stepLabel && (
-										<span className="line-clamp-2 max-w-[4.5rem] text-[11px] leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
+										<span className="line-clamp-2 max-w-[4.5rem] text-[11px] text-muted-foreground leading-tight transition-colors group-hover:text-foreground">
 											{stepLabel}
 										</span>
 									)}

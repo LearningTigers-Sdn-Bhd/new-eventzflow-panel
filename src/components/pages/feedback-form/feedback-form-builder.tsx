@@ -2,8 +2,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-	ArrowDown,
 	AlertTriangle,
+	ArrowDown,
 	ArrowUp,
 	ChevronDown,
 	Copy,
@@ -31,18 +31,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,11 +55,11 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	FeedbackConflictError,
 	type FeedbackDisplayMode,
 	type FeedbackForm,
 	type FeedbackQuestionType,
 	type FeedbackRoutingRule,
-	FeedbackConflictError,
 	saveFeedbackForm,
 } from "@/lib/api/feedback-form";
 import { cn } from "@/lib/utils";
@@ -862,10 +862,19 @@ export function FeedbackFormBuilder({
 							return (
 								<section key={p.page_number} className="border bg-background">
 									<div className="flex flex-wrap items-center justify-between gap-4 border-b bg-muted/20 px-5 py-4 sm:px-6">
-										<div className="flex items-center gap-3">
-											<span className="bg-[#23C460] px-2.5 py-1 font-bold text-white text-xs uppercase tracking-wide">
+										<div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+											<span className="shrink-0 bg-[#23C460] px-2.5 py-1 font-bold text-white text-xs uppercase tracking-wide">
 												{unit} {p.page_number}
 											</span>
+											<Input
+												aria-label={`${unit} ${p.page_number} name`}
+												className="h-9 w-full rounded-none sm:w-80"
+												value={p.title}
+												placeholder={`${unit} ${p.page_number}`}
+												onChange={(e) =>
+													updatePage(p.page_number, { title: e.target.value })
+												}
+											/>
 											<span className="text-muted-foreground text-xs">
 												({pageQuestions.length}{" "}
 												{pageQuestions.length === 1 ? "question" : "questions"})
@@ -916,7 +925,7 @@ export function FeedbackFormBuilder({
 																</span>
 																<Input
 																	id={`question-${q.key}`}
-																	className="h-9 rounded-none text-sm font-medium"
+																	className="h-9 rounded-none font-medium text-sm"
 																	value={q.question_text}
 																	onChange={(e) =>
 																		update(q.key, {
@@ -935,7 +944,7 @@ export function FeedbackFormBuilder({
 																				type="button"
 																				variant="outline"
 																				size="sm"
-																				className="h-8 rounded-none text-xs gap-1 font-normal"
+																				className="h-8 gap-1 rounded-none font-normal text-xs"
 																			>
 																				Move
 																				<ChevronDown className="size-3.5 opacity-60" />
@@ -960,7 +969,8 @@ export function FeedbackFormBuilder({
 																					}
 																					className="cursor-pointer rounded-none text-xs"
 																				>
-																					{unit} {targetP.page_number}
+																					{targetP.title.trim() ||
+																						`${unit} ${targetP.page_number}`}
 																					{targetP.page_number === q.page_number
 																						? " (Current)"
 																						: ""}
@@ -1037,7 +1047,7 @@ export function FeedbackFormBuilder({
 																<div className="flex items-center gap-2">
 																	<Label
 																		htmlFor={`type-${q.key}`}
-																		className="font-medium text-muted-foreground text-xs shrink-0"
+																		className="shrink-0 font-medium text-muted-foreground text-xs"
 																	>
 																		Answer type
 																	</Label>
@@ -1103,7 +1113,7 @@ export function FeedbackFormBuilder({
 																	/>
 																	<Label
 																		htmlFor={`required-${q.key}`}
-																		className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
+																		className="cursor-pointer select-none font-normal text-muted-foreground text-xs"
 																	>
 																		Required
 																	</Label>
@@ -1114,7 +1124,7 @@ export function FeedbackFormBuilder({
 																<div className="flex items-center gap-4">
 																	<button
 																		type="button"
-																		className="font-medium text-muted-foreground text-xs underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground hover:text-foreground"
+																		className="font-medium text-muted-foreground text-xs underline decoration-muted-foreground/40 underline-offset-4 hover:text-foreground hover:decoration-foreground"
 																		onClick={() =>
 																			update(q.key, { hint_text: " " })
 																		}
@@ -1126,7 +1136,7 @@ export function FeedbackFormBuilder({
 																		!hasPlaceholder && (
 																			<button
 																				type="button"
-																				className="font-medium text-muted-foreground text-xs underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground hover:text-foreground"
+																				className="font-medium text-muted-foreground text-xs underline decoration-muted-foreground/40 underline-offset-4 hover:text-foreground hover:decoration-foreground"
 																				onClick={() =>
 																					update(q.key, { placeholder: " " })
 																				}
@@ -1387,7 +1397,7 @@ export function FeedbackFormBuilder({
 																		/>
 																		<Label
 																			htmlFor={`custom-labels-${q.key}`}
-																			className="cursor-pointer font-normal text-muted-foreground text-xs select-none"
+																			className="cursor-pointer select-none font-normal text-muted-foreground text-xs"
 																		>
 																			Custom labels
 																		</Label>
@@ -1830,7 +1840,8 @@ function QuestionBranchingEditor({
 														key={sp.page_number}
 														value={String(sp.page_number)}
 													>
-														Go to {unit} {sp.page_number}
+														Go to{" "}
+														{sp.title.trim() || `${unit} ${sp.page_number}`}
 													</SelectItem>
 												))}
 												<SelectItem value="submit">Submit form</SelectItem>
