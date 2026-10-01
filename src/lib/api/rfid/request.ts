@@ -32,13 +32,30 @@ export const updateRfidSettingsSchema = z
 	.object({
 		rfid_mode: z.enum(["bind", "write"]).optional(),
 		require_check_in: z.boolean().optional(),
+		attendance_percent: z.number().int().min(1).max(100).optional(),
 	})
 	.refine(
-		(v) => v.rfid_mode !== undefined || v.require_check_in !== undefined,
+		(v) =>
+			v.rfid_mode !== undefined ||
+			v.require_check_in !== undefined ||
+			v.attendance_percent !== undefined,
 		{
-			message: "rfid_mode or require_check_in is required",
+			message: "rfid_mode, require_check_in or attendance_percent is required",
 		},
 	);
+
+// Sessions are timed windows staff define; times go out as RFC3339.
+export const rfidSessionSchema = z
+	.object({
+		name: z.string().trim().min(1, "A name is required."),
+		starts_at: z.string().min(1, "A start time is required."),
+		ends_at: z.string().min(1, "An end time is required."),
+		mandatory: z.boolean(),
+	})
+	.refine((v) => Date.parse(v.ends_at) > Date.parse(v.starts_at), {
+		message: "The end must be after the start.",
+		path: ["ends_at"],
+	});
 
 export const updateRfidBindingSchema = z
 	.object({
@@ -55,6 +72,7 @@ export const updateRfidBindingSchema = z
 
 export type UpdateRfidBindingRequest = z.infer<typeof updateRfidBindingSchema>;
 export type UpdateRfidStationRequest = z.infer<typeof updateRfidStationSchema>;
+export type RfidSessionRequest = z.infer<typeof rfidSessionSchema>;
 export type ManualExitRequest = z.infer<typeof manualExitSchema>;
 export type UpdateRfidSettingsRequest = z.infer<
 	typeof updateRfidSettingsSchema

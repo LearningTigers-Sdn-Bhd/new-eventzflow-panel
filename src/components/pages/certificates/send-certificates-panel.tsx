@@ -59,6 +59,7 @@ export function SendCertificatesPanel({
 			if (audience === "checked_in" && !p.checked_in) return false;
 			if (audience === "feedback_submitted" && !p.feedback_submitted)
 				return false;
+			if (audience === "rfid_qualified" && !p.rfid_qualified) return false;
 			if (
 				audience === "unsent" &&
 				p.certificate_status &&
@@ -166,7 +167,7 @@ export function SendCertificatesPanel({
 				<RadioGroup
 					value={audience}
 					onValueChange={(v) => setAudience(v as Audience)}
-					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
 				>
 					<label
 						htmlFor="audience-all"
@@ -195,6 +196,16 @@ export function SendCertificatesPanel({
 					>
 						<RadioGroupItem id="audience-feedback" value="feedback_submitted" />
 						Submitted feedback
+					</label>
+					<label
+						htmlFor="audience-rfid-qualified"
+						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem
+							id="audience-rfid-qualified"
+							value="rfid_qualified"
+						/>
+						Qualified by RFID attendance
 					</label>
 				</RadioGroup>
 			</div>

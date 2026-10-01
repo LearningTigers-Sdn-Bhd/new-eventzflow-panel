@@ -3,6 +3,7 @@
 import {
 	type ColumnDef,
 	getCoreRowModel,
+	type Table,
 	useReactTable,
 } from "@tanstack/react-table";
 import { Radio } from "lucide-react";
@@ -13,6 +14,11 @@ import {
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
 import { BaseTable } from "@/components/admin-ui/table/base-table";
+import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
+import type {
+	ControlConfig,
+	SearchConfig,
+} from "@/components/admin-ui/table/control/type";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Badge } from "@/components/ui/badge";
@@ -24,30 +30,26 @@ export type RfidServerPagination = {
 	pageCount: number;
 	totalCount: number;
 	onPageChange: (pageIndex: number) => void;
+	// Shows the "Rows per page" selector in the footer when given.
+	onPageSizeChange?: (size: number) => void;
 };
 
-/**
- * Small server-paginated table shared by the RFID tabs. Mirrors the manual
- * pagination pattern used by Scanned Logs / Activity Log: `data` is exactly
- * one page from the backend (pagy), sorting stays off because ordering is
- * server-defined. Desktop shows the full table; mobile/tablet shows cards.
- */
-export function RfidTable<TData>({
-	columns,
-	data,
-	emptyTitle,
-	emptyDescription,
-	pagination,
-	renderMobileCard,
-}: {
-	columns: ColumnDef<TData, unknown>[];
-	data: TData[];
-	emptyTitle: string;
-	emptyDescription: string;
-	pagination?: RfidServerPagination;
-	renderMobileCard: (row: TData) => React.ReactNode;
-}) {
-	const table = useReactTable({
+// Same search + filter bar as the Manage Tickets table. Search and filters
+// are server-side here, so `search.controlled` must be set.
+export type RfidTableControl = {
+	search: SearchConfig;
+	filters: ControlConfig[];
+};
+
+// Table instance for a server-paginated page of rows (sorting is off: the
+// server orders). Shared by RfidTable and the expandable Visits table so both
+// get the same toolbar and footer.
+export function useRfidTable<TData>(
+	columns: ColumnDef<TData, unknown>[],
+	data: TData[],
+	pagination?: RfidServerPagination,
+) {
+	return useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
@@ -69,11 +71,77 @@ export function RfidTable<TData>({
 			},
 		},
 	});
+}
+
+export function RfidControlBar<TData>({
+	table,
+	control,
+}: {
+	table: Table<TData>;
+	control: RfidTableControl;
+}) {
+	return (
+		<BaseTableControl
+			table={table}
+			searchConfig={{ searchConfig: control.search }}
+			desktopConfig={{ controlConfigs: control.filters }}
+			mobileConfig={{
+				controlConfigs: control.filters.map((filter) => ({
+					...filter,
+					topPriority: true,
+				})),
+			}}
+		/>
+	);
+}
+
+export function RfidPager<TData>({
+	table,
+	pagination,
+}: {
+	table: Table<TData>;
+	pagination: RfidServerPagination;
+}) {
+	return (
+		<DataPagination
+			table={table}
+			totalRows={pagination.totalCount}
+			pageSize={pagination.onPageSizeChange ? pagination.pageSize : undefined}
+			onPageSizeChange={pagination.onPageSizeChange}
+		/>
+	);
+}
+
+/**
+ * Small server-paginated table shared by the RFID tabs. Mirrors the manual
+ * pagination pattern used by Scanned Logs / Activity Log: `data` is exactly
+ * one page from the backend (pagy), sorting stays off because ordering is
+ * server-defined. Desktop shows the full table; mobile/tablet shows cards.
+ */
+export function RfidTable<TData>({
+	columns,
+	data,
+	emptyTitle,
+	emptyDescription,
+	pagination,
+	control,
+	renderMobileCard,
+}: {
+	columns: ColumnDef<TData, unknown>[];
+	data: TData[];
+	emptyTitle: string;
+	emptyDescription: string;
+	pagination?: RfidServerPagination;
+	control?: RfidTableControl;
+	renderMobileCard: (row: TData) => React.ReactNode;
+}) {
+	const table = useRfidTable(columns, data, pagination);
 
 	const rows = table.getRowModel().rows;
 
 	return (
 		<div className="w-full">
+			{control && <RfidControlBar table={table} control={control} />}
 			<ResponsiveLayout>
 				<DesktopView>
 					<BaseTable
@@ -103,9 +171,7 @@ export function RfidTable<TData>({
 				</MobileTabletView>
 			</ResponsiveLayout>
 
-			{pagination && (
-				<DataPagination table={table} totalRows={pagination.totalCount} />
-			)}
+			{pagination && <RfidPager table={table} pagination={pagination} />}
 		</div>
 	);
 }

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowRight, EyeOff, Trash2 } from "lucide-react";
+import { ArrowRight, EyeOff, Info, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,11 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
 	deleteRfidAnomalies,
 	dismissRfidAnomalies,
 	type RfidAnomalyObservation,
@@ -26,6 +31,7 @@ import {
 import { formatDateTime } from "@/lib/date-utils";
 import { ConfirmDialog } from "./confirm-dialog";
 import { OutcomeBadge, RfidTable } from "./rfid-table";
+import { useServerSearch } from "./use-server-search";
 
 function AnomalyBadges({ anomalies }: { anomalies: string[] }) {
 	if (anomalies.length === 0)
@@ -152,6 +158,39 @@ function FlaggedVisits({ visits }: { visits: RfidVisit[] }) {
 	);
 }
 
+// Current outcomes a reading can carry (see OutcomeBadge).
+const OUTCOMES = [
+	"unknown_tag",
+	"revoked_tag",
+	"wrong_event",
+	"ticket_invalid",
+	"not_checked_in",
+	"accepted",
+];
+
+const DISMISS_HELP =
+	"Hide from this list and the anomaly count. The readings and visits stay in the data and the CSV, so nothing is lost.";
+const DELETE_HELP =
+	"Remove the readings for good, together with the visits built from them. Headcount can change. This cannot be undone.";
+
+function WithHelp({
+	help,
+	children,
+}: {
+	help: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				{/* span so a disabled button still shows its help */}
+				<span className="inline-flex">{children}</span>
+			</TooltipTrigger>
+			<TooltipContent className="max-w-xs">{help}</TooltipContent>
+		</Tooltip>
+	);
+}
+
 type Pending = { kind: "dismiss" | "delete"; selection: RfidAnomalySelection };
 
 export function AnomaliesTab({
@@ -161,6 +200,14 @@ export function AnomaliesTab({
 	pagination,
 	page,
 	onPageChange,
+	onPerPageChange,
+	stations,
+	search,
+	onSearchChange,
+	outcome,
+	onOutcomeChange,
+	station,
+	onStationChange,
 	canAdmin,
 }: {
 	eventId: string;
@@ -169,11 +216,26 @@ export function AnomaliesTab({
 	pagination: RfidPagination | undefined;
 	page: number;
 	onPageChange: (page: number) => void;
+	onPerPageChange: (size: number) => void;
+	stations: string[];
+	search: string;
+	onSearchChange: (value: string) => void;
+	outcome: string;
+	onOutcomeChange: (value: string) => void;
+	station: string;
+	onStationChange: (value: string) => void;
 	canAdmin: boolean;
 }) {
 	const queryClient = useQueryClient();
 	const [selected, setSelected] = useState<number[]>([]);
 	const [pending, setPending] = useState<Pending | null>(null);
+	const [searchDraft, setSearchDraft] = useServerSearch(
+		search,
+		onSearchChange,
+		() => onPageChange(1),
+	);
+	// "All" actions ignore the filters, so they are off while one is active.
+	const filtered = Boolean(search || outcome || station);
 
 	const toggle = (id: number, on: boolean) =>
 		setSelected((ids) =>
@@ -201,9 +263,13 @@ export function AnomaliesTab({
 
 	const selectColumn: ColumnDef<RfidAnomalyObservation, unknown> = {
 		id: "select",
+		size: 40,
+		enableHiding: false,
+		enableSorting: false,
 		header: () => (
 			<Checkbox
 				aria-label="Select all on this page"
+				className="rounded-none"
 				checked={allOnPage}
 				onCheckedChange={(on) =>
 					setSelected((ids) =>
@@ -217,6 +283,7 @@ export function AnomaliesTab({
 		cell: ({ row }) => (
 			<Checkbox
 				aria-label={`Select reading ${row.original.observation_id}`}
+				className="rounded-none"
 				checked={selected.includes(row.original.observation_id)}
 				onCheckedChange={(on) =>
 					toggle(row.original.observation_id, on === true)
@@ -235,66 +302,161 @@ export function AnomaliesTab({
 
 	return (
 		<div>
-			{canAdmin && (
-				<div className="mb-3 flex flex-wrap items-center gap-2">
-					<span className="text-muted-foreground text-sm">
-						{selected.length} selected
+			{canAdmin && selected.length === 0 && (
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-l-4 border-l-blue-500 bg-blue-50 px-4 py-2.5 dark:bg-blue-950/30">
+					<span className="flex items-center gap-2 text-blue-900 text-sm dark:text-blue-100">
+						<Info className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+						<span>
+							Tick readings below, then <strong>Dismiss</strong> to hide them
+							(data is kept) or <strong>Delete</strong> to remove them{" "}
+							<strong className="text-red-600 dark:text-red-400">
+								permanently
+							</strong>
+							.
+						</span>
 					</span>
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-none"
-						disabled={selected.length === 0}
-						onClick={() =>
-							setPending({ kind: "dismiss", selection: { ids: selected } })
-						}
-					>
-						<EyeOff className="size-4" />
-						Dismiss selected
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-none"
-						disabled={count === 0}
-						onClick={() =>
-							setPending({ kind: "dismiss", selection: { all: true } })
-						}
-					>
-						<EyeOff className="size-4" />
-						Dismiss all
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-none text-destructive"
-						disabled={selected.length === 0}
-						onClick={() =>
-							setPending({ kind: "delete", selection: { ids: selected } })
-						}
-					>
-						<Trash2 className="size-4" />
-						Delete selected
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-none text-destructive"
-						disabled={count === 0}
-						onClick={() =>
-							setPending({ kind: "delete", selection: { all: true } })
-						}
-					>
-						<Trash2 className="size-4" />
-						Delete all
-					</Button>
+					<div className="flex items-center gap-2">
+						<WithHelp help={DISMISS_HELP}>
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-none bg-background"
+								disabled={count === 0 || filtered}
+								title={
+									filtered
+										? "Clear the search and filters to act on every anomaly"
+										: undefined
+								}
+								onClick={() =>
+									setPending({ kind: "dismiss", selection: { all: true } })
+								}
+							>
+								<EyeOff className="size-4" />
+								Dismiss all
+							</Button>
+						</WithHelp>
+						<WithHelp help={DELETE_HELP}>
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-none bg-background text-destructive"
+								disabled={count === 0 || filtered}
+								title={
+									filtered
+										? "Clear the search and filters to act on every anomaly"
+										: undefined
+								}
+								onClick={() =>
+									setPending({ kind: "delete", selection: { all: true } })
+								}
+							>
+								<Trash2 className="size-4" />
+								Delete all
+							</Button>
+						</WithHelp>
+					</div>
+				</div>
+			)}
+			{canAdmin && selected.length > 0 && (
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-l-4 border-l-primary bg-muted/50 px-4 py-2.5">
+					<span className="flex items-center gap-2 font-medium text-sm">
+						<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 font-semibold text-primary-foreground text-xs">
+							{selected.length}
+						</span>
+						selected
+					</span>
+					<div className="flex items-center gap-2">
+						<WithHelp help={DISMISS_HELP}>
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-none"
+								onClick={() =>
+									setPending({ kind: "dismiss", selection: { ids: selected } })
+								}
+							>
+								Dismiss
+							</Button>
+						</WithHelp>
+						<WithHelp help={DELETE_HELP}>
+							<Button
+								variant="destructive"
+								size="sm"
+								className="rounded-none"
+								onClick={() =>
+									setPending({ kind: "delete", selection: { ids: selected } })
+								}
+							>
+								Delete
+							</Button>
+						</WithHelp>
+						<div className="mx-1 h-5 w-px bg-border" />
+						<Button
+							variant="ghost"
+							size="sm"
+							className="rounded-none"
+							onClick={() => setSelected([])}
+						>
+							Clear
+						</Button>
+					</div>
 				</div>
 			)}
 			<RfidTable
+				control={{
+					search: {
+						placeholder: "Search guest, ticket ID or sticker...",
+						enableCustomSearch: false,
+						controlled: { value: searchDraft, onChange: setSearchDraft },
+					},
+					filters: [
+						{
+							label: "Outcome",
+							columnId: "outcome",
+							type: "filter",
+							data: [
+								{ label: "All", value: "all" },
+								...OUTCOMES.map((value) => ({
+									label: value.replaceAll("_", " "),
+									value,
+								})),
+							],
+							customFilter: {
+								value: outcome || "all",
+								onChange: (value) => {
+									onOutcomeChange(value === "all" ? "" : value);
+									onPageChange(1);
+								},
+							},
+						},
+						{
+							label: "Station",
+							columnId: "station",
+							type: "filter",
+							data: [
+								{ label: "All", value: "all" },
+								...stations.map((key) => ({ label: key, value: key })),
+							],
+							customFilter: {
+								value: station || "all",
+								onChange: (value) => {
+									onStationChange(value === "all" ? "" : value);
+									onPageChange(1);
+								},
+							},
+						},
+					],
+				}}
 				columns={canAdmin ? [selectColumn, ...columns] : columns}
 				data={observations}
-				emptyTitle="No anomalies"
-				emptyDescription="Readings the gates could not accept, or whose meaning changed, appear here."
+				emptyTitle={
+					search || outcome || station ? "No anomalies match" : "No anomalies"
+				}
+				emptyDescription={
+					search || outcome || station
+						? "Try a different search or clear the filters."
+						: "Readings the gates could not accept, or whose meaning changed, appear here."
+				}
 				pagination={
 					pagination
 						? {
@@ -303,6 +465,10 @@ export function AnomaliesTab({
 								pageCount: pagination.total_pages,
 								totalCount: pagination.total_count,
 								onPageChange: (pageIndex) => onPageChange(pageIndex + 1),
+								onPageSizeChange: (size) => {
+									onPerPageChange(size);
+									onPageChange(1);
+								},
 							}
 						: undefined
 				}

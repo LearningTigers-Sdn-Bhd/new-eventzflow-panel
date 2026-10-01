@@ -3,16 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
+	CalendarClock,
 	Download,
+	LayoutDashboard,
 	ListChecks,
 	Radio,
 	Settings2,
 	Users,
-	Waves,
 } from "lucide-react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
-import { StatsCard } from "@/components/admin-ui/analytic/stats-card";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,30 +21,44 @@ import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import {
 	downloadRfidVisitsCsv,
 	getRfidAnomalies,
-	getRfidVisits,
-	type RfidBinding,
+	getRfidBindings,
+	getRfidFlow,
+	getRfidGuestVisits,
+	getRfidMissedScans,
+	getRfidSessions,
+	type RfidMissedReason,
 	type RfidStation,
 	type RfidSummary,
 } from "@/lib/api/rfid";
 import { restClient } from "@/utils/rest-api";
 import { AnomaliesTab } from "./anomalies-tab";
 import { BindingsTab } from "./bindings-tab";
-import { SettingsTab } from "./settings-tab";
+import {
+	DashboardTab,
+	type FlowRange,
+	RFID_TABS,
+	type RfidTabName,
+	resolveFlowRange,
+} from "./dashboard-tab";
+import { SessionsTab } from "./sessions-tab";
+import { SettingsDialog } from "./settings-tab";
 import { StationsTab } from "./stations-tab";
 import { VisitsTab } from "./visits-tab";
 
 interface RfidClientWrapperProps {
 	eventId: string;
 	summary: RfidSummary;
+	summaryTicketType: string;
+	onSummaryTicketTypeChange: (value: string) => void;
 	stations: RfidStation[];
-	bindings: RfidBinding[];
 }
 
 export function RfidClientWrapper({
 	eventId,
 	summary,
+	summaryTicketType,
+	onSummaryTicketTypeChange,
 	stations,
-	bindings,
 }: RfidClientWrapperProps) {
 	const queryClient = useQueryClient();
 	const { permissions } = useEventSidebarContext();
@@ -61,15 +76,127 @@ export function RfidClientWrapper({
 
 	const [visitsPage, setVisitsPage] = useState(1);
 	const [anomaliesPage, setAnomaliesPage] = useState(1);
+	const [anomaliesPerPage, setAnomaliesPerPage] = useState(25);
+	const [anomaliesSearch, setAnomaliesSearch] = useState("");
+	const [anomaliesOutcome, setAnomaliesOutcome] = useState("");
+	const [anomaliesStation, setAnomaliesStation] = useState("");
+	const [visitsPerPage, setVisitsPerPage] = useState(25);
+	const [visitsType, setVisitsType] = useState("");
+	const [missedPage, setMissedPage] = useState(1);
+	const [missedReason, setMissedReason] = useState<RfidMissedReason>();
+	const [bindingsPage, setBindingsPage] = useState(1);
+	const [bindingsPerPage, setBindingsPerPage] = useState(25);
+	const [bindingsStatus, setBindingsStatus] = useState<"active" | "revoked">();
+	const [bindingsSearch, setBindingsSearch] = useState("");
+	const [bindingsType, setBindingsType] = useState("");
+	const [visitsStatus, setVisitsStatus] = useState<"inside" | "outside">();
+	const [visitsSearch, setVisitsSearch] = useState("");
+	const [missedPerPage, setMissedPerPage] = useState(25);
+	const [missedSearch, setMissedSearch] = useState("");
+	const [missedType, setMissedType] = useState("");
+	const [flowRange, setFlowRange] = useState<FlowRange>({ preset: "all" });
+	// Kept in the URL (?tab=sessions) so a refresh or a shared link lands on the
+	// same tab.
+	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [tab, setTab] = useQueryState(
+		"tab",
+		parseAsStringLiteral(RFID_TABS).withDefault("dashboard"),
+	);
+
+	// Gate activity is live: refresh every 10s while the tab is visible.
+	const LIVE_MS = 10_000;
 
 	const visitsQuery = useQuery({
-		queryKey: ["event", eventId, "rfid", "visits", visitsPage],
-		queryFn: () => getRfidVisits(eventId, visitsPage, 25),
+		queryKey: [
+			"event",
+			eventId,
+			"rfid",
+			"visits",
+			visitsPage,
+			visitsPerPage,
+			visitsStatus,
+			visitsSearch,
+			visitsType,
+		],
+		queryFn: () =>
+			getRfidGuestVisits(eventId, visitsPage, visitsPerPage, {
+				status: visitsStatus,
+				q: visitsSearch,
+				ticketTypeId: visitsType,
+			}),
+		placeholderData: (previous) => previous,
+		refetchInterval: LIVE_MS,
+	});
+	const bindingsQuery = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"rfid",
+			"bindings",
+			bindingsPage,
+			bindingsPerPage,
+			bindingsStatus,
+			bindingsSearch,
+			bindingsType,
+		],
+		queryFn: () =>
+			getRfidBindings(eventId, bindingsPage, bindingsPerPage, {
+				status: bindingsStatus,
+				q: bindingsSearch,
+				ticketTypeId: bindingsType,
+			}),
 		placeholderData: (previous) => previous,
 	});
+	const flowQuery = useQuery({
+		queryKey: ["event", eventId, "rfid", "flow", flowRange],
+		queryFn: () => getRfidFlow(eventId, resolveFlowRange(flowRange)),
+		placeholderData: (previous) => previous,
+		refetchInterval: LIVE_MS,
+	});
+	const sessionsQuery = useQuery({
+		queryKey: ["event", eventId, "rfid", "sessions"],
+		queryFn: () => getRfidSessions(eventId),
+		refetchInterval: LIVE_MS,
+	});
+	const missedQuery = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"rfid",
+			"missed",
+			missedPage,
+			missedPerPage,
+			missedReason,
+			missedSearch,
+			missedType,
+		],
+		queryFn: () =>
+			getRfidMissedScans(eventId, missedPage, missedPerPage, {
+				reason: missedReason,
+				q: missedSearch,
+				ticketTypeId: missedType,
+			}),
+		placeholderData: (previous) => previous,
+		refetchInterval: LIVE_MS,
+	});
 	const anomaliesQuery = useQuery({
-		queryKey: ["event", eventId, "rfid", "anomalies", anomaliesPage],
-		queryFn: () => getRfidAnomalies(eventId, anomaliesPage, 25),
+		queryKey: [
+			"event",
+			eventId,
+			"rfid",
+			"anomalies",
+			anomaliesPage,
+			anomaliesPerPage,
+			anomaliesSearch,
+			anomaliesOutcome,
+			anomaliesStation,
+		],
+		queryFn: () =>
+			getRfidAnomalies(eventId, anomaliesPage, anomaliesPerPage, {
+				q: anomaliesSearch,
+				outcome: anomaliesOutcome,
+				station: anomaliesStation,
+			}),
 		placeholderData: (previous) => previous,
 	});
 	// There is no GET settings endpoint; the event record carries the two
@@ -82,11 +209,13 @@ export function RfidClientWrapper({
 				id: number;
 				rfid_mode?: "bind" | "write";
 				rfid_require_check_in?: boolean;
+				rfid_attendance_percent?: number;
 			}>(`v1/events/${eventId}`);
 			return {
 				event_id: event.id,
 				rfid_mode: event.rfid_mode ?? ("bind" as const),
 				require_check_in: event.rfid_require_check_in ?? false,
+				attendance_percent: event.rfid_attendance_percent ?? 80,
 			};
 		},
 	});
@@ -106,67 +235,51 @@ export function RfidClientWrapper({
 	});
 
 	useSetEventActions(
-		<Button
-			variant="outline"
-			onClick={() => csvMutation.mutate()}
-			disabled={csvMutation.isPending}
-			className="w-full shrink-0 rounded-none lg:w-auto"
-		>
-			<Download className="mr-2 size-4" />
-			{csvMutation.isPending ? "Exporting..." : "Export visits CSV"}
-		</Button>,
+		<div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row">
+			<Button
+				variant="outline"
+				onClick={() => setSettingsOpen(true)}
+				disabled={!settingsQuery.data}
+				className="w-full shrink-0 rounded-none lg:w-auto"
+			>
+				<Settings2 className="mr-2 size-4" />
+				Settings
+			</Button>
+			<Button
+				variant="outline"
+				onClick={() => csvMutation.mutate()}
+				disabled={csvMutation.isPending}
+				className="w-full shrink-0 rounded-none lg:w-auto"
+			>
+				<Download className="mr-2 size-4" />
+				{csvMutation.isPending ? "Exporting..." : "Export visits CSV"}
+			</Button>
+		</div>,
 	);
 
 	return (
 		<div className="p-0">
-			{/* Summary stats — same StatsCard grid used across dashboards */}
-			<div className="grid grid-cols-2 gap-1.5 sm:gap-2 xl:grid-cols-4">
-				<StatsCard
-					label="Headcount"
-					value={summary.headcount}
-					subtitle="People inside right now"
-					Icon={Users}
-				/>
-				<StatsCard
-					label="Open visits"
-					value={summary.open_visits}
-					subtitle="Entries without an exit yet"
-					Icon={Waves}
-				/>
-				<StatsCard
-					label="Anomalies"
-					value={summary.anomaly_count}
-					subtitle="Readings needing review"
-					Icon={AlertTriangle}
-					variant={summary.anomaly_count > 0 ? "yellow" : "default"}
-				/>
-				<StatsCard
-					label="Last observed"
-					value={
-						summary.last_observed_at
-							? new Date(summary.last_observed_at).toLocaleTimeString("en-US", {
-									hour: "numeric",
-									minute: "2-digit",
-									hour12: true,
-								})
-							: "—"
-					}
-					subtitle={
-						summary.last_observed_at
-							? new Date(summary.last_observed_at).toLocaleDateString("en-US", {
-									month: "short",
-									day: "numeric",
-									year: "numeric",
-								})
-							: "No gate readings yet"
-					}
-					Icon={ListChecks}
-				/>
-			</div>
-
-			<Tabs defaultValue="stations" className="mt-6 w-full">
+			<Tabs
+				value={tab}
+				onValueChange={(value) => setTab(value as RfidTabName)}
+				className="w-full"
+			>
 				<div className="w-full overflow-x-auto border-y border-dashed">
 					<TabsList className="flex h-12 w-full rounded-none">
+						<TabsTrigger
+							value="dashboard"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<LayoutDashboard className="size-4" />
+							Dashboard
+						</TabsTrigger>
+						<TabsTrigger
+							value="sessions"
+							className="flex flex-1 items-center justify-center gap-2 rounded-none"
+						>
+							<CalendarClock className="size-4" />
+							Sessions
+						</TabsTrigger>
 						<TabsTrigger
 							value="stations"
 							className="flex flex-1 items-center justify-center gap-2 rounded-none"
@@ -195,17 +308,47 @@ export function RfidClientWrapper({
 							<AlertTriangle className="size-4" />
 							Anomalies
 						</TabsTrigger>
-						<TabsTrigger
-							value="settings"
-							className="flex flex-1 items-center justify-center gap-2 rounded-none"
-						>
-							<Settings2 className="size-4" />
-							Settings
-						</TabsTrigger>
 					</TabsList>
 				</div>
 
 				<div className="mt-6">
+					<TabsContent value="dashboard" className="mt-0">
+						<DashboardTab
+							summary={summary}
+							summaryTicketType={summaryTicketType}
+							onSummaryTicketTypeChange={onSummaryTicketTypeChange}
+							flow={flowQuery.data}
+							flowRange={flowRange}
+							onFlowRangeChange={setFlowRange}
+							sessions={sessionsQuery.data?.sessions ?? []}
+							attendancePercent={sessionsQuery.data?.attendance_percent ?? 80}
+							stations={stations}
+							missed={missedQuery.data?.tickets ?? []}
+							pagination={missedQuery.data?.pagination}
+							page={missedPage}
+							onPageChange={setMissedPage}
+							ticketTypes={missedQuery.data?.ticket_types ?? []}
+							search={missedSearch}
+							onSearchChange={setMissedSearch}
+							ticketType={missedType}
+							onTicketTypeChange={setMissedType}
+							reason={missedReason}
+							onReasonChange={setMissedReason}
+							onPerPageChange={setMissedPerPage}
+							onNavigate={setTab}
+						/>
+					</TabsContent>
+
+					<TabsContent value="sessions" className="mt-0">
+						<SessionsTab
+							eventId={eventId}
+							sessions={sessionsQuery.data?.sessions ?? []}
+							attendancePercent={sessionsQuery.data?.attendance_percent ?? 80}
+							eligibility={sessionsQuery.data?.eligibility}
+							canUpdate={canUpdate}
+						/>
+					</TabsContent>
+
 					<TabsContent value="stations" className="mt-0">
 						<StationsTab
 							eventId={eventId}
@@ -218,7 +361,18 @@ export function RfidClientWrapper({
 					<TabsContent value="bindings" className="mt-0">
 						<BindingsTab
 							eventId={eventId}
-							bindings={bindings}
+							bindings={bindingsQuery.data?.bindings ?? []}
+							ticketTypes={bindingsQuery.data?.ticket_types ?? []}
+							pagination={bindingsQuery.data?.pagination}
+							page={bindingsPage}
+							onPageChange={setBindingsPage}
+							onPerPageChange={setBindingsPerPage}
+							status={bindingsStatus}
+							onStatusChange={setBindingsStatus}
+							search={bindingsSearch}
+							onSearchChange={setBindingsSearch}
+							ticketType={bindingsType}
+							onTicketTypeChange={setBindingsType}
 							canAdmin={canAdmin}
 						/>
 					</TabsContent>
@@ -226,10 +380,18 @@ export function RfidClientWrapper({
 					<TabsContent value="visits" className="mt-0">
 						<VisitsTab
 							eventId={eventId}
-							visits={visitsQuery.data?.visits ?? []}
+							guests={visitsQuery.data?.guests ?? []}
+							ticketTypes={visitsQuery.data?.ticket_types ?? []}
+							ticketType={visitsType}
+							onTicketTypeChange={setVisitsType}
+							onPerPageChange={setVisitsPerPage}
 							pagination={visitsQuery.data?.pagination}
 							page={visitsPage}
 							onPageChange={setVisitsPage}
+							status={visitsStatus}
+							onStatusChange={setVisitsStatus}
+							search={visitsSearch}
+							onSearchChange={setVisitsSearch}
 							canUpdate={canUpdate}
 						/>
 					</TabsContent>
@@ -243,24 +405,27 @@ export function RfidClientWrapper({
 							pagination={anomaliesQuery.data?.pagination}
 							page={anomaliesPage}
 							onPageChange={setAnomaliesPage}
+							onPerPageChange={setAnomaliesPerPage}
+							stations={anomaliesQuery.data?.stations ?? []}
+							search={anomaliesSearch}
+							onSearchChange={setAnomaliesSearch}
+							outcome={anomaliesOutcome}
+							onOutcomeChange={setAnomaliesOutcome}
+							station={anomaliesStation}
+							onStationChange={setAnomaliesStation}
 						/>
-					</TabsContent>
-
-					<TabsContent value="settings" className="mt-0">
-						{settingsQuery.data ? (
-							<SettingsTab
-								eventId={eventId}
-								settings={settingsQuery.data}
-								canUpdate={canUpdate}
-							/>
-						) : (
-							<div className="flex h-40 items-center justify-center text-muted-foreground text-sm">
-								Loading settings...
-							</div>
-						)}
 					</TabsContent>
 				</div>
 			</Tabs>
+			{settingsOpen && settingsQuery.data && (
+				<SettingsDialog
+					eventId={eventId}
+					settings={settingsQuery.data}
+					canUpdate={canUpdate}
+					open={settingsOpen}
+					onOpenChange={setSettingsOpen}
+				/>
+			)}
 		</div>
 	);
 }

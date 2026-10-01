@@ -47,7 +47,8 @@ export type CertificateAudience =
 	| "all"
 	| "checked_in"
 	| "unsent"
-	| "feedback_submitted";
+	| "feedback_submitted"
+	| "rfid_qualified";
 
 export type SendCertificatesResponse = {
 	message: string;
@@ -76,6 +77,8 @@ export type CertificateParticipant = {
 	ticket_type: string | null;
 	checked_in: boolean;
 	feedback_submitted: boolean;
+	// Met every mandatory RFID session and submitted the feedback form.
+	rfid_qualified: boolean;
 	certificate_status: CertificateDeliveryStatus | null;
 	certificate_sent_at: string | null;
 	last_delivery_id: number | null;

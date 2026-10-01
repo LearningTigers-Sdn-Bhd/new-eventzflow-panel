@@ -1,15 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { use } from "react";
+import { use, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { RfidClientWrapper } from "@/components/pages/rfid/rfid-client-wrapper";
 import { Button } from "@/components/ui/button";
-import {
-	getRfidBindings,
-	getRfidStations,
-	getRfidSummary,
-} from "@/lib/api/rfid";
+import { getRfidStations, getRfidSummary } from "@/lib/api/rfid";
 
 export default function RfidPage({
 	params,
@@ -18,31 +14,29 @@ export default function RfidPage({
 }) {
 	const { event_id } = use(params);
 
+	// Narrows the dashboard's attendance figures to one ticket type.
+	const [ticketType, setTicketType] = useState("");
+
 	const summaryQuery = useQuery({
-		queryKey: ["event", event_id, "rfid", "summary"],
-		queryFn: () => getRfidSummary(event_id),
+		queryKey: ["event", event_id, "rfid", "summary", ticketType],
+		queryFn: () => getRfidSummary(event_id, ticketType),
+		placeholderData: (previous) => previous,
+		refetchInterval: 10_000,
 	});
 	const stationsQuery = useQuery({
 		queryKey: ["event", event_id, "rfid", "stations"],
 		queryFn: () => getRfidStations(event_id),
-	});
-	const bindingsQuery = useQuery({
-		queryKey: ["event", event_id, "rfid", "bindings"],
-		queryFn: () => getRfidBindings(event_id),
+		refetchInterval: 10_000,
 	});
 
-	const isLoading =
-		summaryQuery.isLoading ||
-		stationsQuery.isLoading ||
-		bindingsQuery.isLoading;
-	const error =
-		summaryQuery.error ?? stationsQuery.error ?? bindingsQuery.error;
+	const isLoading = summaryQuery.isLoading || stationsQuery.isLoading;
+	const error = summaryQuery.error ?? stationsQuery.error;
 
 	if (isLoading) {
 		return (
 			<LoadingState
 				title="Loading RFID data..."
-				description="Please wait while we fetch headcount, stations, and bindings..."
+				description="Please wait while we fetch headcount and stations..."
 			/>
 		);
 	}
@@ -63,8 +57,9 @@ export default function RfidPage({
 				<RfidClientWrapper
 					eventId={event_id}
 					summary={summaryQuery.data}
+					summaryTicketType={ticketType}
+					onSummaryTicketTypeChange={setTicketType}
 					stations={stationsQuery.data?.stations ?? []}
-					bindings={bindingsQuery.data?.bindings ?? []}
 				/>
 			)}
 		</div>

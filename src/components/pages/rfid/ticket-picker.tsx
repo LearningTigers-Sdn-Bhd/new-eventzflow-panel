@@ -53,7 +53,7 @@ export function TicketPicker({
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent
-				className="w-[--radix-popover-trigger-width] p-0"
+				className="w-(--radix-popover-trigger-width) min-w-(--radix-popover-trigger-width) rounded-none p-0"
 				align="start"
 			>
 				<Input

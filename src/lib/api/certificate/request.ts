@@ -26,7 +26,13 @@ export const upsertCertificateTemplateSchema = z.object({
 
 export const sendCertificatesSchema = z.object({
 	audience: z
-		.enum(["all", "checked_in", "unsent", "feedback_submitted"])
+		.enum([
+			"all",
+			"checked_in",
+			"unsent",
+			"feedback_submitted",
+			"rfid_qualified",
+		])
 		.default("all"),
 	excluded_public_ids: z.array(z.string()).default([]),
 });

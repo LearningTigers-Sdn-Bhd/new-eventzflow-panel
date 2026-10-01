@@ -1,6 +1,7 @@
 import { kyClient, restClient } from "@/utils/rest-api";
 import type {
 	ManualExitRequest,
+	RfidSessionRequest,
 	UpdateRfidBindingRequest,
 	UpdateRfidSettingsRequest,
 	UpdateRfidStationRequest,
@@ -9,6 +10,15 @@ import type {
 	RfidAnomaliesResponse,
 	RfidBindingResponse,
 	RfidBindingsResponse,
+	RfidEligibilityResponse,
+	RfidEligibilityStatus,
+	RfidFlow,
+	RfidGuestVisitsResponse,
+	RfidMissedReason,
+	RfidMissedScansResponse,
+	RfidSessionAttendeesResponse,
+	RfidSessionResponse,
+	RfidSessionsResponse,
 	RfidSettingsResponse,
 	RfidStationResponse,
 	RfidStationsResponse,
@@ -20,8 +30,14 @@ import type {
 const base = (eventId: string | number) => `v1/events/${eventId}/rfid`;
 
 /** Live headcount / open visits / anomaly count for the event. */
-export function getRfidSummary(eventId: string | number): Promise<RfidSummary> {
-	return restClient.get<RfidSummary>(`${base(eventId)}/summary`);
+export function getRfidSummary(
+	eventId: string | number,
+	ticketTypeId?: string,
+): Promise<RfidSummary> {
+	const query = ticketTypeId
+		? `?ticket_type_id=${encodeURIComponent(ticketTypeId)}`
+		: "";
+	return restClient.get<RfidSummary>(`${base(eventId)}/summary${query}`);
 }
 
 /** All stations that have heartbeated for this event. */
@@ -50,8 +66,47 @@ export function updateRfidStation(
 /** Active and revoked binding history (no contact details, never keys). */
 export function getRfidBindings(
 	eventId: string | number,
+	page = 1,
+	perPage = 25,
+	filters: {
+		status?: "active" | "revoked";
+		q?: string;
+		ticketTypeId?: string;
+	} = {},
 ): Promise<RfidBindingsResponse> {
-	return restClient.get<RfidBindingsResponse>(`${base(eventId)}/bindings`);
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.status) params.set("status", filters.status);
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.ticketTypeId) params.set("ticket_type_id", filters.ticketTypeId);
+	return restClient.get<RfidBindingsResponse>(
+		`${base(eventId)}/bindings?${params.toString()}`,
+	);
+}
+
+/** One row per guest, their in/out visits folded together. */
+export function getRfidGuestVisits(
+	eventId: string | number,
+	page = 1,
+	perPage = 25,
+	filters: {
+		status?: "inside" | "outside";
+		q?: string;
+		ticketTypeId?: string;
+	} = {},
+): Promise<RfidGuestVisitsResponse> {
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.status) params.set("status", filters.status);
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.ticketTypeId) params.set("ticket_type_id", filters.ticketTypeId);
+	return restClient.get<RfidGuestVisitsResponse>(
+		`${base(eventId)}/guest_visits?${params.toString()}`,
+	);
 }
 
 export function getRfidVisits(
@@ -83,9 +138,138 @@ export function getRfidAnomalies(
 	eventId: string | number,
 	page = 1,
 	perPage = 25,
+	filters: { q?: string; outcome?: string; station?: string } = {},
 ): Promise<RfidAnomaliesResponse> {
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.outcome) params.set("outcome", filters.outcome);
+	if (filters.station) params.set("station", filters.station);
 	return restClient.get<RfidAnomaliesResponse>(
-		`${base(eventId)}/anomalies?page=${page}&per_page=${perPage}`,
+		`${base(eventId)}/anomalies?${params.toString()}`,
+	);
+}
+
+/** Checked in at the desk but never read by a gate; optional reason filter. */
+export function getRfidMissedScans(
+	eventId: string | number,
+	page = 1,
+	perPage = 25,
+	filters: {
+		reason?: RfidMissedReason;
+		q?: string;
+		ticketTypeId?: string;
+	} = {},
+): Promise<RfidMissedScansResponse> {
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.reason) params.set("reason", filters.reason);
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.ticketTypeId) params.set("ticket_type_id", filters.ticketTypeId);
+	return restClient.get<RfidMissedScansResponse>(
+		`${base(eventId)}/missed_scans?${params.toString()}`,
+	);
+}
+
+/** Entries, exits and people inside per time bucket (for the live chart). */
+export function getRfidFlow(
+	eventId: string | number,
+	range: { from?: string; to?: string } = {},
+): Promise<RfidFlow> {
+	const params = new URLSearchParams();
+	if (range.from) params.set("from", range.from);
+	if (range.to) params.set("to", range.to);
+	const query = params.toString();
+	return restClient.get<RfidFlow>(
+		`${base(eventId)}/flow${query ? `?${query}` : ""}`,
+	);
+}
+
+/** Sessions with their attendance counts and the e-cert eligibility totals. */
+export function getRfidSessions(
+	eventId: string | number,
+): Promise<RfidSessionsResponse> {
+	return restClient.get<RfidSessionsResponse>(`${base(eventId)}/sessions`);
+}
+
+/** Who was inside during one session, one row per guest. */
+export function getRfidSessionAttendees(
+	eventId: string | number,
+	sessionId: number,
+	page = 1,
+	perPage = 25,
+	filters: {
+		status?: "attended" | "partial";
+		q?: string;
+		ticketTypeId?: string;
+	} = {},
+): Promise<RfidSessionAttendeesResponse> {
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.status) params.set("status", filters.status);
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.ticketTypeId) params.set("ticket_type_id", filters.ticketTypeId);
+	return restClient.get<RfidSessionAttendeesResponse>(
+		`${base(eventId)}/sessions/${sessionId}/attendees?${params.toString()}`,
+	);
+}
+
+export function createRfidSession(
+	eventId: string | number,
+	data: RfidSessionRequest,
+): Promise<RfidSessionResponse> {
+	return restClient.post<RfidSessionResponse>(
+		`${base(eventId)}/sessions`,
+		data,
+	);
+}
+
+export function updateRfidSession(
+	eventId: string | number,
+	sessionId: number,
+	data: RfidSessionRequest,
+): Promise<RfidSessionResponse> {
+	return restClient.patch<RfidSessionResponse>(
+		`${base(eventId)}/sessions/${sessionId}`,
+		data,
+	);
+}
+
+export function deleteRfidSession(
+	eventId: string | number,
+	sessionId: number,
+): Promise<{ deleted: true }> {
+	return restClient.delete<{ deleted: true }>(
+		`${base(eventId)}/sessions/${sessionId}`,
+	);
+}
+
+/** E-certificate eligibility per guest, optionally filtered by status. */
+export function getRfidEligibility(
+	eventId: string | number,
+	page = 1,
+	perPage = 25,
+	filters: {
+		status?: RfidEligibilityStatus;
+		q?: string;
+		ticketTypeId?: string;
+	} = {},
+): Promise<RfidEligibilityResponse> {
+	const params = new URLSearchParams({
+		page: String(page),
+		per_page: String(perPage),
+	});
+	if (filters.status) params.set("status", filters.status);
+	if (filters.q?.trim()) params.set("q", filters.q.trim());
+	if (filters.ticketTypeId) params.set("ticket_type_id", filters.ticketTypeId);
+	return restClient.get<RfidEligibilityResponse>(
+		`${base(eventId)}/eligibility?${params.toString()}`,
 	);
 }
 

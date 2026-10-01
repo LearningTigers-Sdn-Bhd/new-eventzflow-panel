@@ -7,11 +7,33 @@ export type RfidStationRole = "entry" | "exit";
 export type RfidUidRule = "as_is" | "reversed";
 export type RfidMode = "bind" | "write";
 
+export type RfidMissedReason = "no_tag" | "no_read";
+
 export type RfidSummary = {
 	headcount: number;
 	open_visits: number;
 	anomaly_count: number;
 	last_observed_at: string | null;
+	// Paid, non-cancelled tickets only.
+	registered: number;
+	checked_in: number;
+	not_arrived: number;
+	gate_scanned: number;
+	inside: number;
+	outside: number;
+	// Checked in at the desk but never read by a gate.
+	missed_scans: Record<RfidMissedReason, number>;
+	// For the ticket-type filter on the dashboard.
+	ticket_types: { id: number; name: string }[];
+};
+
+export type RfidMissedScan = {
+	id: number;
+	ticket_public_id: string;
+	ticket_name: string;
+	ticket_type: string | null;
+	checked_in_at: string | null;
+	reason: RfidMissedReason;
 };
 
 export type RfidStation = {
@@ -31,6 +53,7 @@ export type RfidBinding = {
 	id: number;
 	ticket_public_id: string | null;
 	ticket_name: string | null;
+	ticket_type: string | null;
 	protocol: string;
 	uid_raw_hex: string;
 	tag_key: string;
@@ -79,6 +102,123 @@ export type RfidSettings = {
 	event_id: number;
 	rfid_mode: RfidMode;
 	require_check_in: boolean;
+	// Share of a session a guest must be inside to count as attended.
+	attendance_percent: number;
+};
+
+export type RfidSessionStatus = "upcoming" | "live" | "ended";
+
+export type RfidSession = {
+	id: number;
+	name: string;
+	mandatory: boolean;
+	starts_at: string;
+	ends_at: string;
+	duration_seconds: number;
+	status: RfidSessionStatus;
+	// Anyone inside at any moment of the session.
+	present: number;
+	// Inside for at least attendance_percent of the session.
+	attended: number;
+	required_seconds: number;
+};
+
+export type RfidEligibilityStatus =
+	| "qualified"
+	| "needs_feedback"
+	| "in_progress"
+	| "not_qualified";
+
+export type RfidEligibilitySummary = Record<RfidEligibilityStatus, number> & {
+	required_sessions: number;
+};
+
+export type RfidEligibilityRow = {
+	id: number;
+	ticket_public_id: string;
+	ticket_name: string;
+	ticket_type: string | null;
+	ticket_type_id: number | null;
+	feedback_submitted: boolean;
+	status: RfidEligibilityStatus;
+	sessions: { session_id: number; percent: number; met: boolean }[];
+};
+
+// All of one guest's gate visits folded together; `visits` is newest first.
+export type RfidGuestVisits = {
+	ticket_id: number;
+	ticket_public_id: string | null;
+	ticket_name: string | null;
+	ticket_type: string | null;
+	visit_count: number;
+	first_in: string | null;
+	last_out: string | null;
+	total_seconds: number;
+	status: "inside" | "outside";
+	manual: boolean;
+	anomalies: string[];
+	visits: RfidVisit[];
+};
+
+export type RfidGuestVisitsResponse = {
+	guests: RfidGuestVisits[];
+	ticket_types: { id: number; name: string }[];
+	pagination: RfidPagination;
+};
+
+export type RfidAttendeeSegment = {
+	in: string;
+	out: string;
+	seconds: number;
+	open: boolean;
+};
+
+// One guest per row: several in/out visits are added up, never listed as
+// separate attendees.
+export type RfidSessionAttendee = {
+	id: number;
+	ticket_public_id: string;
+	ticket_name: string;
+	ticket_type: string | null;
+	ticket_type_id: number | null;
+	seconds: number;
+	percent: number;
+	attended: boolean;
+	visit_count: number;
+	first_in: string;
+	last_out: string;
+	still_inside: boolean;
+	segments: RfidAttendeeSegment[];
+};
+
+export type RfidSessionAttendeesResponse = {
+	session: RfidSession;
+	counts: { attended: number; partial: number };
+	ticket_types: { id: number; name: string }[];
+	attendees: RfidSessionAttendee[];
+	pagination: RfidPagination;
+};
+
+export type RfidFlowBucket = {
+	at: string;
+	entries: number;
+	exits: number;
+	inside: number;
+};
+
+export type RfidFlow = { interval_minutes: number; buckets: RfidFlowBucket[] };
+
+export type RfidSessionsResponse = {
+	sessions: RfidSession[];
+	attendance_percent: number;
+	eligibility: RfidEligibilitySummary;
+};
+export type RfidSessionResponse = { session: RfidSession };
+export type RfidEligibilityResponse = {
+	tickets: RfidEligibilityRow[];
+	ticket_types: { id: number; name: string }[];
+	sessions: RfidSession[];
+	pagination: RfidPagination;
 };
 
 export type RfidPagination = {
@@ -92,7 +232,11 @@ export type RfidPagination = {
 
 export type RfidStationsResponse = { stations: RfidStation[] };
 export type RfidStationResponse = { station: RfidStation };
-export type RfidBindingsResponse = { bindings: RfidBinding[] };
+export type RfidBindingsResponse = {
+	bindings: RfidBinding[];
+	ticket_types: { id: number; name: string }[];
+	pagination: RfidPagination;
+};
 export type RfidBindingResponse = { binding: RfidBinding };
 export type RfidVisitsResponse = {
 	visits: RfidVisit[];
@@ -100,8 +244,14 @@ export type RfidVisitsResponse = {
 };
 export type RfidVisitResponse = { visit: RfidVisit };
 export type RfidAnomaliesResponse = {
+	stations: string[];
 	observations: RfidAnomalyObservation[];
 	visits: RfidVisit[];
+	pagination: RfidPagination;
+};
+export type RfidMissedScansResponse = {
+	tickets: RfidMissedScan[];
+	ticket_types: { id: number; name: string }[];
 	pagination: RfidPagination;
 };
 export type RfidSettingsResponse = { settings: RfidSettings };
