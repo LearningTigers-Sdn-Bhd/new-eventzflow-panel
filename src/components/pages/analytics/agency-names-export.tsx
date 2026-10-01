@@ -10,6 +10,12 @@ import {
 	type AgencyNamesSection,
 } from "@/components/pdf-reports/agency-names-report";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useReportLanguage } from "@/hooks/use-report-language";
 import { getEventById } from "@/lib/api/event";
 import type { CustomFieldBreakdownRow } from "@/lib/api/event/analytics";
@@ -30,6 +36,8 @@ interface AgencyNamesExportProps {
 	compact?: boolean;
 	/** Text button label override (combined mode). */
 	label?: string;
+	/** When set, clicking asks "download all" or "choose" (calls this) first. */
+	onChoose?: () => void;
 }
 
 /**
@@ -47,6 +55,7 @@ export function AgencyNamesExport({
 	excludedTicketTypeIds,
 	compact = false,
 	label,
+	onChoose,
 }: AgencyNamesExportProps) {
 	const { language, labels } = useReportLanguage();
 	const [busy, setBusy] = useState(false);
@@ -140,7 +149,7 @@ export function AgencyNamesExport({
 
 	const Icon = busy ? Loader2 : FileDown;
 
-	return (
+	const button = (
 		<Button
 			type="button"
 			variant={compact ? "ghost" : "outline"}
@@ -149,7 +158,7 @@ export function AgencyNamesExport({
 			disabled={
 				!event || busy || (groups ? groups.length === 0 : rows.length === 0)
 			}
-			onClick={handleClick}
+			onClick={onChoose ? undefined : handleClick}
 			title={failed ? labels.failedToLoadBreakdown : labels.downloadNameList}
 			aria-label={labels.downloadNameList}
 		>
@@ -157,5 +166,21 @@ export function AgencyNamesExport({
 			{!compact &&
 				(busy ? labels.generating : (label ?? labels.downloadNameList))}
 		</Button>
+	);
+
+	if (!onChoose) return button;
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				<DropdownMenuItem onSelect={handleClick}>
+					{labels.downloadAllAgencies}
+				</DropdownMenuItem>
+				<DropdownMenuItem onSelect={onChoose}>
+					{labels.chooseAgencies}
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }

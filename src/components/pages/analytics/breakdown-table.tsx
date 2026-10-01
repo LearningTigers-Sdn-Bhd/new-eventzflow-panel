@@ -3,6 +3,7 @@ import { Layers, ListIndentIncrease, Search } from "lucide-react";
 import { useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
 	Table,
@@ -60,6 +61,8 @@ export function BreakdownTable({
 		"all",
 	);
 	const [showQuotaColumn, setShowQuotaColumn] = useState(false);
+	const [selecting, setSelecting] = useState(false);
+	const [selected, setSelected] = useState<Set<string>>(new Set());
 	const queryClient = useQueryClient();
 
 	const quotaMutation = useMutation({
@@ -87,7 +90,11 @@ export function BreakdownTable({
 	const hasAnyQuota = !!rows?.some((row) => row.quota !== undefined);
 	const showQuotaCol = canEditQuota || hasAnyQuota;
 	const colSpanCount =
-		3 + (showQuotaCol ? 1 : 0) + (hasAnyQuota ? 1 : 0) + (quotaCapable ? 1 : 0);
+		3 +
+		(showQuotaCol ? 1 : 0) +
+		(hasAnyQuota ? 1 : 0) +
+		(quotaCapable ? 1 : 0) +
+		(selecting ? 1 : 0);
 	const exportProps = {
 		eventId: eventId as string,
 		fieldKey: fieldKey as string,
@@ -116,6 +123,27 @@ export function BreakdownTable({
 	});
 	const filteredTotal =
 		filteredRows?.reduce((sum, row) => sum + row.count, 0) ?? 0;
+
+	// Selection survives search/filter changes; PDF keeps the table's order.
+	const selectedRows = rows?.filter((row) => selected.has(row.value)) ?? [];
+	const allVisibleSelected =
+		!!filteredRows?.length &&
+		filteredRows.every((row) => selected.has(row.value));
+	const toggleRow = (value: string, on: boolean) =>
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (on) next.add(value);
+			else next.delete(value);
+			return next;
+		});
+	const toggleAllVisible = (on: boolean) =>
+		setSelected((prev) => {
+			const next = new Set(prev);
+			for (const row of filteredRows ?? [])
+				if (on) next.add(row.value);
+				else next.delete(row.value);
+			return next;
+		});
 
 	return (
 		<div className="space-y-3">
@@ -191,8 +219,34 @@ export function BreakdownTable({
 							</div>
 						)}
 
-						{quotaCapable && filteredRows && (
-							<AgencyNamesExport {...exportProps} rows={filteredRows} />
+						{quotaCapable && selecting && (
+							<>
+								<AgencyNamesExport
+									{...exportProps}
+									rows={selectedRows}
+									label={`${labels.downloadSelected} (${selectedRows.length})`}
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="rounded-none"
+									onClick={() => {
+										setSelecting(false);
+										setSelected(new Set());
+									}}
+								>
+									{labels.cancel}
+								</Button>
+							</>
+						)}
+
+						{quotaCapable && !selecting && filteredRows && (
+							<AgencyNamesExport
+								{...exportProps}
+								rows={filteredRows}
+								onChoose={() => setSelecting(true)}
+							/>
 						)}
 
 						{quotaCapable && (
@@ -221,6 +275,15 @@ export function BreakdownTable({
 				<Table>
 					<TableHeader>
 						<TableRow className="bg-muted/50">
+							{selecting && (
+								<TableHead className="w-10">
+									<Checkbox
+										aria-label={labels.selectRow}
+										checked={allVisibleSelected}
+										onCheckedChange={(v) => toggleAllVisible(v === true)}
+									/>
+								</TableHead>
+							)}
 							<TableHead className="w-12">{labels.billNo}</TableHead>
 							<TableHead>{labelHeader}</TableHead>
 							{showQuotaCol && (
@@ -255,6 +318,17 @@ export function BreakdownTable({
 											: undefined
 									}
 								>
+									{selecting && (
+										<TableCell>
+											<Checkbox
+												aria-label={`${labels.selectRow} ${row.value}`}
+												checked={selected.has(row.value)}
+												onCheckedChange={(v) =>
+													toggleRow(row.value, v === true)
+												}
+											/>
+										</TableCell>
+									)}
 									<TableCell className="text-muted-foreground">
 										{index + 1}
 									</TableCell>
@@ -351,7 +425,7 @@ export function BreakdownTable({
 						<TableFooter>
 							<TableRow>
 								<TableCell
-									colSpan={showQuotaCol ? 3 : 2}
+									colSpan={(showQuotaCol ? 3 : 2) + (selecting ? 1 : 0)}
 									className="font-semibold"
 								>
 									{labels.total}

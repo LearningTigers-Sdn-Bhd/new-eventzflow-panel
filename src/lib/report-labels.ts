@@ -31,6 +31,10 @@ export const reportLabels: Record<
 		noDataAvailable: string;
 		nameList: string;
 		downloadNameList: string;
+		downloadSelected: string;
+		selectRow: string;
+		downloadAllAgencies: string;
+		chooseAgencies: string;
 		generating: string;
 		downloadAllNameList: string;
 		attendeeName: string;
@@ -115,6 +119,10 @@ export const reportLabels: Record<
 		noDataAvailable: "No data available.",
 		nameList: "Registered Names",
 		downloadNameList: "Download names (PDF)",
+		downloadSelected: "Download selected (PDF)",
+		selectRow: "Select",
+		downloadAllAgencies: "Download all",
+		chooseAgencies: "Choose agencies…",
 		generating: "Generating PDF… please wait",
 		downloadAllNameList: "Download all categories with names (PDF)",
 		attendeeName: "Name",
@@ -202,6 +210,10 @@ export const reportLabels: Record<
 		noDataAvailable: "Tiada data tersedia.",
 		nameList: "Senarai Nama Berdaftar",
 		downloadNameList: "Muat turun senarai nama (PDF)",
+		downloadSelected: "Muat turun yang dipilih (PDF)",
+		selectRow: "Pilih",
+		downloadAllAgencies: "Muat turun semua",
+		chooseAgencies: "Pilih agensi…",
 		generating: "Menjana PDF… sila tunggu",
 		downloadAllNameList: "Muat turun semua kategori dengan nama (PDF)",
 		attendeeName: "Nama",
