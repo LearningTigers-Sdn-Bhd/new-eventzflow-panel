@@ -155,6 +155,33 @@ export type RfidEligibilityRow = {
 	sessions: { session_id: number; percent: number; met: boolean }[];
 };
 
+export type RfidAttendanceCheckReason =
+	| "never_detected"
+	| "outside_during_session";
+
+export type RfidAttendanceCheckGroup = {
+	total: number;
+	// Has a phone number and was not messaged in the last hour.
+	sendable: number;
+	no_phone: number;
+	// No sticker bound, so no gate could have detected them.
+	no_sticker: number;
+	recently_notified: number;
+};
+
+export type RfidAttendanceCheck = {
+	webhook_configured: boolean;
+	ticket_types: { id: number; name: string }[];
+	live_session: { id: number; name: string; ends_at: string } | null;
+	groups: Record<RfidAttendanceCheckReason, RfidAttendanceCheckGroup>;
+};
+
+export type RfidAttendanceCheckResult = {
+	sent: number;
+	skipped_no_phone: number;
+	skipped_recent: number;
+};
+
 // All of one guest's gate visits folded together; `visits` is newest first.
 export type RfidGuestVisits = {
 	ticket_id: number;

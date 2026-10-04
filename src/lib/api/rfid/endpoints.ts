@@ -9,6 +9,9 @@ import type {
 } from "./request";
 import type {
 	RfidAnomaliesResponse,
+	RfidAttendanceCheck,
+	RfidAttendanceCheckReason,
+	RfidAttendanceCheckResult,
 	RfidBindingResponse,
 	RfidBindingsResponse,
 	RfidDisplayMode,
@@ -182,6 +185,35 @@ export function manualEntryRfidVisit(
 	return restClient.post<RfidVisitResponse>(
 		`${base(eventId)}/visits/manual_entry`,
 		data,
+	);
+}
+
+/** Guests the gates may have missed, per group, with how many can be messaged. */
+export function getRfidAttendanceCheck(
+	eventId: string | number,
+	ticketTypeIds?: number[],
+): Promise<RfidAttendanceCheck> {
+	const params = new URLSearchParams();
+	for (const id of ticketTypeIds ?? [])
+		params.append("ticket_type_ids[]", String(id));
+	const query = params.size ? `?${params.toString()}` : "";
+	return restClient.get<RfidAttendanceCheck>(
+		`${base(eventId)}/attendance_check${query}`,
+	);
+}
+
+/**
+ * Fire the event webhook once per reachable guest in the chosen groups, so
+ * the receiver (SalesCatalyst) can reach them on WhatsApp.
+ */
+export function notifyRfidAttendanceCheck(
+	eventId: string | number,
+	reasons: RfidAttendanceCheckReason[],
+	ticketTypeIds: number[],
+): Promise<RfidAttendanceCheckResult> {
+	return restClient.post<RfidAttendanceCheckResult>(
+		`${base(eventId)}/attendance_check/notify`,
+		{ reasons, ticket_type_ids: ticketTypeIds },
 	);
 }
 

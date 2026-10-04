@@ -5,6 +5,7 @@ import {
 	ChevronDown,
 	ChevronRight,
 	LogOut,
+	MessageCircle,
 	Plus,
 } from "lucide-react";
 import { Fragment, useState } from "react";
@@ -17,6 +18,7 @@ import type {
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { AttendanceCheckDialog } from "./attendance-check-dialog";
 import { ManualEntryDialog } from "./manual-entry-dialog";
 import { ManualExitDialog } from "./manual-exit-dialog";
 import {
@@ -333,6 +335,7 @@ export function VisitsTab({
 }) {
 	const [selected, setSelected] = useState<RfidVisit | null>(null);
 	const [addOpen, setAddOpen] = useState(false);
+	const [checkOpen, setCheckOpen] = useState(false);
 	const [openId, setOpenId] = useState<number | null>(null);
 	const [searchDraft, setSearchDraft] = useServerSearch(
 		search,
@@ -360,7 +363,15 @@ export function VisitsTab({
 	return (
 		<>
 			{canUpdate && (
-				<div className="mb-3 flex justify-end">
+				<div className="mb-3 flex flex-wrap justify-end gap-2">
+					<Button
+						variant="outline"
+						className="rounded-none"
+						onClick={() => setCheckOpen(true)}
+					>
+						<MessageCircle className="size-4" />
+						WhatsApp check
+					</Button>
 					<Button
 						variant="outline"
 						className="rounded-none"
@@ -461,6 +472,14 @@ export function VisitsTab({
 			</div>
 
 			{paging && <RfidPager table={table} pagination={paging} />}
+
+			{checkOpen && (
+				<AttendanceCheckDialog
+					eventId={eventId}
+					open={checkOpen}
+					onOpenChange={setCheckOpen}
+				/>
+			)}
 
 			{addOpen && (
 				<ManualEntryDialog
