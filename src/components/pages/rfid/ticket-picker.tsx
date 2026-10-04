@@ -37,7 +37,9 @@ export function TicketPicker({
 	});
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
+		// modal: inside a Dialog the portaled list sits outside the dialog's scroll
+		// lock, so the wheel never reaches it unless the popover is modal too.
+		<Popover open={open} onOpenChange={setOpen} modal>
 			<PopoverTrigger asChild>
 				<Button
 					type="button"

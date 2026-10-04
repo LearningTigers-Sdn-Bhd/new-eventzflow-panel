@@ -10,6 +10,7 @@ import {
 	Pencil,
 	Plus,
 	Settings2,
+	ShieldCheck,
 	Trash2,
 	X,
 } from "lucide-react";
@@ -49,6 +50,7 @@ import {
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { CertOverrideDialog } from "./cert-override-dialog";
 import { formatDuration, RfidTable } from "./rfid-table";
 import { SessionAttendeesDialog } from "./session-attendees-dialog";
 import { useServerSearch } from "./use-server-search";
@@ -442,6 +444,7 @@ export function SessionsTab({
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [viewing, setViewing] = useState<RfidSession | null>(null);
 	const [ruleOpen, setRuleOpen] = useState(false);
+	const [waiving, setWaiving] = useState<RfidEligibilityRow | null>(null);
 	const [status, setStatus] = useState<RfidEligibilityStatus>();
 	const [page, setPage] = useState(1);
 	const [eligibilityQ, setEligibilityQ] = useState("");
@@ -644,13 +647,48 @@ export function SessionsTab({
 			accessorKey: "status",
 			header: "Status",
 			cell: ({ row }) => (
-				<Badge
-					className={cn("rounded-none", STATUS_META[row.original.status].badge)}
-				>
-					{STATUS_META[row.original.status].label}
-				</Badge>
+				<div className="flex flex-wrap items-center gap-1.5">
+					<Badge
+						className={cn(
+							"rounded-none",
+							STATUS_META[row.original.status].badge,
+						)}
+					>
+						{STATUS_META[row.original.status].label}
+					</Badge>
+					{row.original.override && (
+						<Badge
+							variant="outline"
+							className="rounded-none"
+							title={row.original.override.reason}
+						>
+							Waived
+						</Badge>
+					)}
+				</div>
 			),
 		},
+		...(canUpdate
+			? [
+					{
+						id: "actions",
+						header: () => <div className="text-center">Actions</div>,
+						cell: ({ row }) => (
+							<div className="flex justify-center">
+								<Button
+									size="icon-sm"
+									variant="outline"
+									className="h-8 w-8 rounded-none p-0 text-green-600 hover:bg-green-50 hover:text-green-700 [&_svg]:text-green-600 hover:[&_svg]:text-green-700"
+									title="Waive attendance"
+									onClick={() => setWaiving(row.original)}
+								>
+									<ShieldCheck className="size-4" />
+								</Button>
+							</div>
+						),
+					} satisfies ColumnDef<RfidEligibilityRow, unknown>,
+				]
+			: []),
 	];
 
 	const eligibilityPagination = eligibilityQuery.data?.pagination;
@@ -766,7 +804,8 @@ export function SessionsTab({
 						<p className="text-muted-foreground text-sm">
 							Qualified = attended every session for at least{" "}
 							{attendancePercent}% of its time and submitted the evaluation
-							form.
+							form. Staff can waive the attendance rule for a guest who had to
+							leave.
 						</p>
 					</div>
 					<Button asChild variant="outline" className="rounded-none">
@@ -906,6 +945,17 @@ export function SessionsTab({
 										Evaluation form:{" "}
 										{row.feedback_submitted ? "submitted" : "not yet"}
 									</p>
+									{canUpdate && (
+										<Button
+											size="sm"
+											variant="outline"
+											className="rounded-none"
+											onClick={() => setWaiving(row)}
+										>
+											<ShieldCheck className="size-4" />
+											{row.override ? "Waived" : "Waive attendance"}
+										</Button>
+									)}
 								</div>
 							)}
 						/>
@@ -920,6 +970,13 @@ export function SessionsTab({
 				canUpdate={canUpdate}
 				open={ruleOpen}
 				onOpenChange={setRuleOpen}
+			/>
+
+			<CertOverrideDialog
+				key={`waive-${waiving?.id ?? "none"}`}
+				eventId={eventId}
+				row={waiving}
+				onClose={() => setWaiving(null)}
 			/>
 
 			<SessionAttendeesDialog

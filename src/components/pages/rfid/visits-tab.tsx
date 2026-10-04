@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, ChevronDown, ChevronRight, LogOut } from "lucide-react";
+import {
+	ArrowRight,
+	ChevronDown,
+	ChevronRight,
+	LogOut,
+	Plus,
+} from "lucide-react";
 import { Fragment, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +17,7 @@ import type {
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { ManualEntryDialog } from "./manual-entry-dialog";
 import { ManualExitDialog } from "./manual-exit-dialog";
 import {
 	formatDuration,
@@ -325,6 +332,7 @@ export function VisitsTab({
 	canUpdate: boolean;
 }) {
 	const [selected, setSelected] = useState<RfidVisit | null>(null);
+	const [addOpen, setAddOpen] = useState(false);
 	const [openId, setOpenId] = useState<number | null>(null);
 	const [searchDraft, setSearchDraft] = useServerSearch(
 		search,
@@ -351,6 +359,18 @@ export function VisitsTab({
 
 	return (
 		<>
+			{canUpdate && (
+				<div className="mb-3 flex justify-end">
+					<Button
+						variant="outline"
+						className="rounded-none"
+						onClick={() => setAddOpen(true)}
+					>
+						<Plus className="size-4" />
+						Add missed visit
+					</Button>
+				</div>
+			)}
 			<RfidControlBar
 				table={table}
 				control={{
@@ -441,6 +461,14 @@ export function VisitsTab({
 			</div>
 
 			{paging && <RfidPager table={table} pagination={paging} />}
+
+			{addOpen && (
+				<ManualEntryDialog
+					eventId={eventId}
+					open={addOpen}
+					onOpenChange={setAddOpen}
+				/>
+			)}
 
 			<ManualExitDialog
 				eventId={eventId}

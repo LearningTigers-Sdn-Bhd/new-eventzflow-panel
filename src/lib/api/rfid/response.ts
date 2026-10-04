@@ -149,6 +149,8 @@ export type RfidEligibilityRow = {
 	ticket_type: string | null;
 	ticket_type_id: number | null;
 	feedback_submitted: boolean;
+	// Staff waived the session attendance rule for this guest.
+	override: { reason: string; at: string } | null;
 	status: RfidEligibilityStatus;
 	sessions: { session_id: number; percent: number; met: boolean }[];
 };

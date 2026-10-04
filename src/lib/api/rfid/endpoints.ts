@@ -1,5 +1,6 @@
 import { kyClient, restClient } from "@/utils/rest-api";
 import type {
+	ManualEntryRequest,
 	ManualExitRequest,
 	RfidSessionRequest,
 	UpdateRfidBindingRequest,
@@ -13,6 +14,7 @@ import type {
 	RfidDisplayMode,
 	RfidDisplayResponse,
 	RfidEligibilityResponse,
+	RfidEligibilityRow,
 	RfidEligibilityStatus,
 	RfidFlow,
 	RfidGuestVisitsResponse,
@@ -141,6 +143,44 @@ export function manualExitRfidVisit(
 ): Promise<RfidVisitResponse> {
 	return restClient.post<RfidVisitResponse>(
 		`${base(eventId)}/visits/${visitId}/manual_exit`,
+		data,
+	);
+}
+
+/**
+ * Waive the session attendance rule for one guest (e.g. left early for
+ * logistics). Feedback is still required; recorded as an audited correction.
+ */
+export function grantRfidCertOverride(
+	eventId: string | number,
+	ticketId: number,
+	data: { reason: string },
+): Promise<{ ticket: RfidEligibilityRow }> {
+	return restClient.post<{ ticket: RfidEligibilityRow }>(
+		`${base(eventId)}/eligibility/${ticketId}/override`,
+		data,
+	);
+}
+
+export function revokeRfidCertOverride(
+	eventId: string | number,
+	ticketId: number,
+): Promise<{ ticket: RfidEligibilityRow }> {
+	return restClient.delete<{ ticket: RfidEligibilityRow }>(
+		`${base(eventId)}/eligibility/${ticketId}/override`,
+	);
+}
+
+/**
+ * Add a closed visit the gate never recorded (gate down, sticker unread).
+ * A correction with actor and reason, never a synthetic gate read.
+ */
+export function manualEntryRfidVisit(
+	eventId: string | number,
+	data: ManualEntryRequest,
+): Promise<RfidVisitResponse> {
+	return restClient.post<RfidVisitResponse>(
+		`${base(eventId)}/visits/manual_entry`,
 		data,
 	);
 }

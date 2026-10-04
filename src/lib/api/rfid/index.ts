@@ -19,8 +19,11 @@ export {
 	getRfidStations,
 	getRfidSummary,
 	getRfidVisits,
+	grantRfidCertOverride,
+	manualEntryRfidVisit,
 	manualExitRfidVisit,
 	type RfidAnomalySelection,
+	revokeRfidCertOverride,
 	updateRfidBinding,
 	updateRfidSession,
 	updateRfidSettings,
@@ -28,7 +31,9 @@ export {
 } from "./endpoints";
 // Request types and schemas
 export {
+	type ManualEntryRequest,
 	type ManualExitRequest,
+	manualEntrySchema,
 	manualExitSchema,
 	type RfidSessionRequest,
 	rfidSessionSchema,

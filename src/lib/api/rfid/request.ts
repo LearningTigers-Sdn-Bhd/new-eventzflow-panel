@@ -28,6 +28,27 @@ export const manualExitSchema = z.object({
 	reason: z.string().trim().min(1, "A reason is required."),
 });
 
+export const manualEntrySchema = z
+	.object({
+		ticket_public_id: z.string().min(1, "Pick a guest."),
+		// RFC3339 — the backend parses with Time.iso8601.
+		entry_at: z.string().refine((v) => !Number.isNaN(Date.parse(v)), {
+			message: "An entry time is required.",
+		}),
+		// Optional: left blank, the guest is still inside until their next exit.
+		exit_at: z
+			.string()
+			.refine((v) => !Number.isNaN(Date.parse(v)), {
+				message: "The left time is not valid.",
+			})
+			.optional(),
+		reason: z.string().trim().min(1, "A reason is required."),
+	})
+	.refine((v) => !v.exit_at || Date.parse(v.entry_at) < Date.parse(v.exit_at), {
+		message: "The entry must be before the exit.",
+		path: ["exit_at"],
+	});
+
 export const updateRfidSettingsSchema = z
 	.object({
 		rfid_mode: z.enum(["bind", "write"]).optional(),
@@ -74,6 +95,7 @@ export type UpdateRfidBindingRequest = z.infer<typeof updateRfidBindingSchema>;
 export type UpdateRfidStationRequest = z.infer<typeof updateRfidStationSchema>;
 export type RfidSessionRequest = z.infer<typeof rfidSessionSchema>;
 export type ManualExitRequest = z.infer<typeof manualExitSchema>;
+export type ManualEntryRequest = z.infer<typeof manualEntrySchema>;
 export type UpdateRfidSettingsRequest = z.infer<
 	typeof updateRfidSettingsSchema
 >;
