@@ -3,6 +3,7 @@ export {
 	createRfidSession,
 	deleteRfidAnomalies,
 	deleteRfidBinding,
+	deleteRfidGuestVisits,
 	deleteRfidSession,
 	deleteRfidStation,
 	deleteRfidVisit,

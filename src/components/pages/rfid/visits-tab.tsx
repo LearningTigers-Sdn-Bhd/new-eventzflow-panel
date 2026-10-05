@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	deleteRfidGuestVisits,
 	deleteRfidVisit,
 	type RfidGuestVisits,
 	type RfidPagination,
@@ -244,6 +245,7 @@ function GuestRow({
 	canAdmin,
 	onManualExit,
 	onDelete,
+	onDeleteGuest,
 }: {
 	guest: RfidGuestVisits;
 	open: boolean;
@@ -252,6 +254,7 @@ function GuestRow({
 	canAdmin: boolean;
 	onManualExit: (visit: RfidVisit) => void;
 	onDelete: (visit: RfidVisit) => void;
+	onDeleteGuest: (guest: RfidGuestVisits) => void;
 }) {
 	return (
 		<Fragment>
@@ -314,11 +317,27 @@ function GuestRow({
 						)}
 					</div>
 				</td>
+				{canAdmin && (
+					<td className="px-3 py-3 text-right">
+						<Button
+							variant="outline"
+							size="icon-sm"
+							className="h-8 w-8 rounded-none text-red-600 hover:bg-red-50 hover:text-red-700"
+							title="Delete all visits"
+							onClick={(e) => {
+								e.stopPropagation();
+								onDeleteGuest(guest);
+							}}
+						>
+							<Trash2 className="size-4" />
+						</Button>
+					</td>
+				)}
 			</tr>
 			{open && (
 				<tr className="bg-muted/30">
 					<td />
-					<td colSpan={7} className="px-3 py-4">
+					<td colSpan={canAdmin ? 8 : 7} className="px-3 py-4">
 						<GuestTimeline
 							guest={guest}
 							canUpdate={canUpdate}
@@ -369,6 +388,9 @@ export function VisitsTab({
 	const queryClient = useQueryClient();
 	const [selected, setSelected] = useState<RfidVisit | null>(null);
 	const [toDelete, setToDelete] = useState<RfidVisit | null>(null);
+	const [guestToDelete, setGuestToDelete] = useState<RfidGuestVisits | null>(
+		null,
+	);
 	const [addOpen, setAddOpen] = useState(false);
 	const [checkOpen, setCheckOpen] = useState(false);
 	const [openId, setOpenId] = useState<number | null>(null);
@@ -384,6 +406,17 @@ export function VisitsTab({
 			toast.success("Visit deleted.");
 			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
 			setToDelete(null);
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	const deleteGuestMutation = useMutation({
+		mutationFn: (guest: RfidGuestVisits) =>
+			deleteRfidGuestVisits(eventId, guest.ticket_id),
+		onSuccess: ({ deleted }) => {
+			toast.success(`${deleted} visit(s) deleted.`);
+			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
+			setGuestToDelete(null);
 		},
 		onError: (error) => toast.error(error.message),
 	});
@@ -490,6 +523,7 @@ export function VisitsTab({
 							<th className="px-3 py-2 font-medium">Total time inside</th>
 							<th className="px-3 py-2 font-medium">Gate visits</th>
 							<th className="px-3 py-2 font-medium">Status</th>
+							{canAdmin && <th className="w-12" />}
 						</tr>
 					</thead>
 					<tbody>
@@ -505,6 +539,7 @@ export function VisitsTab({
 								canAdmin={canAdmin}
 								onManualExit={setSelected}
 								onDelete={setToDelete}
+								onDeleteGuest={setGuestToDelete}
 							/>
 						))}
 					</tbody>
@@ -544,6 +579,18 @@ export function VisitsTab({
 				confirmLabel="Delete visit"
 				pending={deleteMutation.isPending}
 				onConfirm={() => toDelete && deleteMutation.mutate(toDelete)}
+			/>
+
+			<ConfirmDialog
+				open={guestToDelete !== null}
+				onOpenChange={(open) => !open && setGuestToDelete(null)}
+				title={`Delete all ${guestToDelete?.visit_count ?? 0} visit(s) of ${guestToDelete?.ticket_name ?? "this guest"}?`}
+				description="Every visit and the gate readings behind them are erased. The gate and the sticker are not touched. It cannot be undone."
+				confirmLabel="Delete all visits"
+				pending={deleteGuestMutation.isPending}
+				onConfirm={() =>
+					guestToDelete && deleteGuestMutation.mutate(guestToDelete)
+				}
 			/>
 
 			<ManualExitDialog

@@ -426,6 +426,16 @@ export function deleteRfidVisit(
 	);
 }
 
+/** Hard delete every visit of one guest; returns how many went. */
+export function deleteRfidGuestVisits(
+	eventId: string | number,
+	ticketId: number,
+): Promise<{ deleted: number }> {
+	return restClient.delete<{ deleted: number }>(
+		`${base(eventId)}/guest_visits/${ticketId}`,
+	);
+}
+
 /** Selection: `ids` of anomalous readings, or `all: true` for every one. */
 export type RfidAnomalySelection = { ids: number[] } | { all: true };
 
