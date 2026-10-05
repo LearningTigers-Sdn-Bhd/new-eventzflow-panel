@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	ChevronDown,
@@ -7,18 +8,22 @@ import {
 	LogOut,
 	MessageCircle,
 	Plus,
+	Trash2,
 } from "lucide-react";
 import { Fragment, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type {
-	RfidGuestVisits,
-	RfidPagination,
-	RfidVisit,
+import {
+	deleteRfidVisit,
+	type RfidGuestVisits,
+	type RfidPagination,
+	type RfidVisit,
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { AttendanceCheckDialog } from "./attendance-check-dialog";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ManualEntryDialog } from "./manual-entry-dialog";
 import { ManualExitDialog } from "./manual-exit-dialog";
 import {
@@ -59,11 +64,15 @@ const secondsBetween = (from: string, to: string) =>
 function GuestTimeline({
 	guest,
 	canUpdate,
+	canAdmin,
 	onManualExit,
+	onDelete,
 }: {
 	guest: RfidGuestVisits;
 	canUpdate: boolean;
+	canAdmin: boolean;
 	onManualExit: (visit: RfidVisit) => void;
+	onDelete: (visit: RfidVisit) => void;
 }) {
 	const visits = [...guest.visits].reverse().filter((visit) => visit.entry_at);
 	const nowIso = new Date().toISOString();
@@ -179,20 +188,36 @@ function GuestTimeline({
 									{anomaly.replaceAll("_", " ")}
 								</Badge>
 							))}
-							{canUpdate && visit.status === "open" && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="ml-auto rounded-none"
-									onClick={(e) => {
-										e.stopPropagation();
-										onManualExit(visit);
-									}}
-								>
-									<LogOut className="size-4" />
-									Manual exit
-								</Button>
-							)}
+							<div className="ml-auto flex gap-2">
+								{canUpdate && visit.status === "open" && (
+									<Button
+										variant="outline"
+										size="sm"
+										className="rounded-none"
+										onClick={(e) => {
+											e.stopPropagation();
+											onManualExit(visit);
+										}}
+									>
+										<LogOut className="size-4" />
+										Manual exit
+									</Button>
+								)}
+								{canAdmin && (
+									<Button
+										variant="outline"
+										size="sm"
+										className="rounded-none text-red-600 hover:bg-red-50 hover:text-red-700"
+										onClick={(e) => {
+											e.stopPropagation();
+											onDelete(visit);
+										}}
+									>
+										<Trash2 className="size-4" />
+										Delete
+									</Button>
+								)}
+							</div>
 						</div>
 						{gaps[index] && (
 							<div className="ml-4 flex items-center gap-2 text-muted-foreground text-xs">
@@ -216,13 +241,17 @@ function GuestRow({
 	open,
 	onToggle,
 	canUpdate,
+	canAdmin,
 	onManualExit,
+	onDelete,
 }: {
 	guest: RfidGuestVisits;
 	open: boolean;
 	onToggle: () => void;
 	canUpdate: boolean;
+	canAdmin: boolean;
 	onManualExit: (visit: RfidVisit) => void;
+	onDelete: (visit: RfidVisit) => void;
 }) {
 	return (
 		<Fragment>
@@ -293,7 +322,9 @@ function GuestRow({
 						<GuestTimeline
 							guest={guest}
 							canUpdate={canUpdate}
+							canAdmin={canAdmin}
 							onManualExit={onManualExit}
+							onDelete={onDelete}
 						/>
 					</td>
 				</tr>
@@ -317,6 +348,7 @@ export function VisitsTab({
 	search,
 	onSearchChange,
 	canUpdate,
+	canAdmin,
 }: {
 	eventId: string;
 	guests: RfidGuestVisits[];
@@ -332,8 +364,11 @@ export function VisitsTab({
 	search: string;
 	onSearchChange: (value: string) => void;
 	canUpdate: boolean;
+	canAdmin: boolean;
 }) {
+	const queryClient = useQueryClient();
 	const [selected, setSelected] = useState<RfidVisit | null>(null);
+	const [toDelete, setToDelete] = useState<RfidVisit | null>(null);
 	const [addOpen, setAddOpen] = useState(false);
 	const [checkOpen, setCheckOpen] = useState(false);
 	const [openId, setOpenId] = useState<number | null>(null);
@@ -342,6 +377,16 @@ export function VisitsTab({
 		onSearchChange,
 		() => onPageChange(1),
 	);
+
+	const deleteMutation = useMutation({
+		mutationFn: (visit: RfidVisit) => deleteRfidVisit(eventId, visit.id),
+		onSuccess: () => {
+			toast.success("Visit deleted.");
+			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
+			setToDelete(null);
+		},
+		onError: (error) => toast.error(error.message),
+	});
 
 	const paging = pagination
 		? {
@@ -457,7 +502,9 @@ export function VisitsTab({
 									setOpenId(openId === guest.ticket_id ? null : guest.ticket_id)
 								}
 								canUpdate={canUpdate}
+								canAdmin={canAdmin}
 								onManualExit={setSelected}
+								onDelete={setToDelete}
 							/>
 						))}
 					</tbody>
@@ -488,6 +535,16 @@ export function VisitsTab({
 					onOpenChange={setAddOpen}
 				/>
 			)}
+
+			<ConfirmDialog
+				open={toDelete !== null}
+				onOpenChange={(open) => !open && setToDelete(null)}
+				title="Delete this visit?"
+				description="The visit and the gate readings behind it are erased. The gate and the sticker are not touched. It cannot be undone."
+				confirmLabel="Delete visit"
+				pending={deleteMutation.isPending}
+				onConfirm={() => toDelete && deleteMutation.mutate(toDelete)}
+			/>
 
 			<ManualExitDialog
 				eventId={eventId}

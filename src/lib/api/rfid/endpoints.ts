@@ -416,6 +416,16 @@ export function deleteRfidBinding(
 	);
 }
 
+/** Hard delete one visit and its readings; the station and sticker stay. */
+export function deleteRfidVisit(
+	eventId: string | number,
+	visitId: number,
+): Promise<{ deleted: true }> {
+	return restClient.delete<{ deleted: true }>(
+		`${base(eventId)}/visits/${visitId}`,
+	);
+}
+
 /** Selection: `ids` of anomalous readings, or `all: true` for every one. */
 export type RfidAnomalySelection = { ids: number[] } | { all: true };
 

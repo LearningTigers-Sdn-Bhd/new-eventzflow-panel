@@ -5,6 +5,7 @@ export {
 	deleteRfidBinding,
 	deleteRfidSession,
 	deleteRfidStation,
+	deleteRfidVisit,
 	dismissRfidAnomalies,
 	downloadRfidVisitsCsv,
 	getRfidAnomalies,

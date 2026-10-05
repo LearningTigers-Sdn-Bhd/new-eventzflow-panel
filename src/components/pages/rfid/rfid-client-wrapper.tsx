@@ -408,6 +408,7 @@ export function RfidClientWrapper({
 							search={visitsSearch}
 							onSearchChange={setVisitsSearch}
 							canUpdate={canUpdate}
+							canAdmin={canAdmin}
 						/>
 					</TabsContent>
 
