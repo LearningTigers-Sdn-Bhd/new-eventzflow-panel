@@ -71,7 +71,9 @@ export default function PendingTicketEditModal({
 					return {
 						labelKey: key,
 						labelName: currentLabelName,
-						value: existingLabel?.value || "",
+						// "-" is the display placeholder for empty values, not data
+						value:
+							existingLabel?.value === "-" ? "" : existingLabel?.value || "",
 					};
 				},
 			);

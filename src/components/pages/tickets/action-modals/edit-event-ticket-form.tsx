@@ -91,7 +91,8 @@ export default function EditTicketForm({
 				return {
 					labelKey: key,
 					labelName,
-					value: existingLabel?.value || "",
+					// "-" is the display placeholder for empty values, not data
+					value: existingLabel?.value === "-" ? "" : existingLabel?.value || "",
 				};
 			});
 		setCustomFields(fields);
