@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import {
 	AlertTriangle,
 	CheckCircle2,
+	DoorClosed,
 	DoorOpen,
 	Radio,
 	ScanLine,
@@ -59,6 +60,10 @@ import type {
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import {
+	ManualExitAllDialog,
+	UndoManualExitAllButton,
+} from "./manual-exit-all-dialog";
 import { RfidTable } from "./rfid-table";
 import { useServerSearch } from "./use-server-search";
 
@@ -334,6 +339,8 @@ function SessionRow({
 }
 
 export function DashboardTab({
+	eventId,
+	canUpdate,
 	summary,
 	summaryTicketType,
 	onSummaryTicketTypeChange,
@@ -357,6 +364,8 @@ export function DashboardTab({
 	onPerPageChange,
 	onNavigate,
 }: {
+	eventId: string;
+	canUpdate: boolean;
 	summary: RfidSummary;
 	summaryTicketType: string;
 	onSummaryTicketTypeChange: (value: string) => void;
@@ -467,6 +476,38 @@ export function DashboardTab({
 			/>,
 		);
 	}
+	if (summary.likely_gone > 0) {
+		alerts.push(
+			<AlertRow
+				key="likely_gone"
+				icon={<DoorClosed className="size-4" />}
+				tone="text-amber-600"
+				title={`${summary.likely_gone} inside for over ${summary.stale_hours} hours`}
+				detail="Probably left without tapping out, so the inside count may be too high. Use Mark all as exited if the hall is empty."
+			/>,
+		);
+	}
+	if (summary.unmatched_exits > 0) {
+		alerts.push(
+			<AlertRow
+				key="unmatched_exits"
+				icon={<DoorOpen className="size-4" />}
+				tone="text-red-600"
+				title={`${summary.unmatched_exits} exits with no entry`}
+				detail="A guest tapped out but no entry was read. The entry gate probably missed them."
+				action={
+					<Button
+						size="sm"
+						variant="outline"
+						className="rounded-none"
+						onClick={() => onNavigate("anomalies")}
+					>
+						Open
+					</Button>
+				}
+			/>,
+		);
+	}
 	if (summary.anomaly_count > 0) {
 		alerts.push(
 			<AlertRow
@@ -539,7 +580,20 @@ export function DashboardTab({
 						? formatDateTime(summary.last_observed_at)
 						: "none yet"}
 				</span>
-				<div className="ml-auto">
+				<div className="ml-auto flex items-center gap-2">
+					{canUpdate && summary.last_bulk_exit && (
+						<UndoManualExitAllButton
+							eventId={eventId}
+							closed={summary.last_bulk_exit.closed}
+						/>
+					)}
+					{canUpdate && summary.inside > 0 && (
+						<ManualExitAllDialog
+							eventId={eventId}
+							ticketTypeId={summaryTicketType}
+							inside={summary.inside}
+						/>
+					)}
 					<Select
 						value={summaryTicketType || "all"}
 						onValueChange={(value) =>

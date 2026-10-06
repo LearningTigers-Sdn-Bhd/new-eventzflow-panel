@@ -151,6 +151,29 @@ export function manualExitRfidVisit(
 }
 
 /**
+ * Close every open visit at once (optionally one ticket type), e.g. when the
+ * hall is empty but guests never tapped out. One correction per visit.
+ */
+export function manualExitAllRfidVisits(
+	eventId: string | number,
+	data: ManualExitRequest & { ticket_type_id?: string },
+): Promise<{ closed: number }> {
+	return restClient.post<{ closed: number }>(
+		`${base(eventId)}/visits/manual_exit_all`,
+		data,
+	);
+}
+
+/** Take back the newest "mark all as exited" sweep. */
+export function undoManualExitAllRfidVisits(
+	eventId: string | number,
+): Promise<{ reopened: number }> {
+	return restClient.delete<{ reopened: number }>(
+		`${base(eventId)}/visits/manual_exit_all`,
+	);
+}
+
+/**
  * Waive the session attendance rule for one guest (e.g. left early for
  * logistics). Feedback is still required; recorded as an audited correction.
  */

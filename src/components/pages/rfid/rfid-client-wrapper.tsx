@@ -329,6 +329,8 @@ export function RfidClientWrapper({
 				<div className="mt-6">
 					<TabsContent value="dashboard" className="mt-0">
 						<DashboardTab
+							eventId={eventId}
+							canUpdate={canUpdate}
 							summary={summary}
 							summaryTicketType={summaryTicketType}
 							onSummaryTicketTypeChange={onSummaryTicketTypeChange}

@@ -12,6 +12,12 @@ export type RfidMissedReason = "no_tag" | "no_read";
 export type RfidSummary = {
 	headcount: number;
 	open_visits: number;
+	// Open longer than `stale_hours`: probably left without tapping out.
+	likely_gone: number;
+	stale_hours: number;
+	// Accepted exits whose entry was never recorded, not yet dismissed.
+	unmatched_exits: number;
+	last_bulk_exit: { batch: string; at: string | null; closed: number } | null;
 	anomaly_count: number;
 	last_observed_at: string | null;
 	// Paid, non-cancelled tickets only.
