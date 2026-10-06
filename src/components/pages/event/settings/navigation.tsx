@@ -98,7 +98,7 @@ export default function SettingsNavigation({
 	});
 
 	return (
-		<div className="sticky top-0 flex w-full flex-row gap-2 self-start overflow-x-auto md:flex-col">
+		<div className="sticky top-0 flex w-full flex-col gap-1 self-start">
 			{visibleNavigationItems.map((item) => {
 				const Icon = item.icon;
 				const isActive = activeTab === item.id;
@@ -107,16 +107,15 @@ export default function SettingsNavigation({
 					<Button
 						key={item.id}
 						className={cn(
-							"shrink-0 justify-start rounded-none",
+							"w-full justify-start rounded-none",
 							isActive && "border",
 						)}
 						variant={isActive ? "secondary" : "ghost"}
 						data-active={isActive}
 						onClick={() => onTabChange(item.id)}
 					>
-						<Icon className="mr-2 size-4" />
-						<span className="hidden md:inline">{item.label}</span>
-						<span className="md:hidden">{item.label.split(" ")[0]}</span>
+						<Icon className="mr-2 size-4 shrink-0" />
+						<span className="truncate">{item.label}</span>
 					</Button>
 				);
 			})}
