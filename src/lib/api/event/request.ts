@@ -126,6 +126,21 @@ export const updateEventSchema = z.object({
 			disabled_categories: z.array(z.string()).optional(),
 			business_matching_ticket_type_ids: z.array(z.number()).optional(),
 			thank_you_include_feedback: z.boolean().optional(),
+			business_matching_sender_name: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			business_matching_host_invite_subject: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			business_matching_host_invite_message: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
 		})
 		.optional(),
 	wish_wall_setting_attributes: z

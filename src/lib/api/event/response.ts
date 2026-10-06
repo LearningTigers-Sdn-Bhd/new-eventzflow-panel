@@ -49,6 +49,9 @@ export type EventEmailSetting = {
 	disabled_categories: string[];
 	business_matching_ticket_type_ids: number[];
 	thank_you_include_feedback: boolean;
+	business_matching_sender_name?: string | null;
+	business_matching_host_invite_subject?: string | null;
+	business_matching_host_invite_message?: string | null;
 };
 
 export type WishWallSetting = {
