@@ -395,13 +395,14 @@ export function updateRfidSettings(
 }
 
 /**
- * Download the visits CSV (UTF-8, formula-safe cells, open/manual markers).
+ * Download the attendance report workbook (.xlsx: summary, session
+ * attendance, no-gate-read, visits and more).
  * Uses kyClient directly so we get the raw blob with the session cookie.
  */
-export async function downloadRfidVisitsCsv(
+export async function downloadRfidReportXlsx(
 	eventId: string | number,
 ): Promise<Blob> {
-	const response = await kyClient.get(`${base(eventId)}/visits.csv`);
+	const response = await kyClient.get(`${base(eventId)}/report.xlsx`);
 	return response.blob();
 }
 

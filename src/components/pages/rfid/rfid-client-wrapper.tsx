@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import {
-	downloadRfidVisitsCsv,
+	downloadRfidReportXlsx,
 	getRfidAnomalies,
 	getRfidBindings,
 	getRfidFlow,
@@ -221,13 +221,13 @@ export function RfidClientWrapper({
 		},
 	});
 
-	const csvMutation = useMutation({
-		mutationFn: () => downloadRfidVisitsCsv(eventId),
+	const reportMutation = useMutation({
+		mutationFn: () => downloadRfidReportXlsx(eventId),
 		onSuccess: (blob) => {
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `rfid-visits-event-${eventId}.csv`;
+			link.download = `rfid-report-event-${eventId}.xlsx`;
 			link.click();
 			URL.revokeObjectURL(url);
 			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
@@ -262,12 +262,14 @@ export function RfidClientWrapper({
 			</Button>
 			<Button
 				variant="outline"
-				onClick={() => csvMutation.mutate()}
-				disabled={csvMutation.isPending}
+				onClick={() => reportMutation.mutate()}
+				disabled={reportMutation.isPending}
 				className="w-full shrink-0 rounded-none lg:w-auto"
 			>
 				<Download className="mr-2 size-4" />
-				{csvMutation.isPending ? "Exporting..." : "Export visits CSV"}
+				{reportMutation.isPending
+					? "Preparing report..."
+					: "Download report (Excel)"}
 			</Button>
 		</div>,
 	);

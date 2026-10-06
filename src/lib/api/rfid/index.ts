@@ -8,7 +8,7 @@ export {
 	deleteRfidStation,
 	deleteRfidVisit,
 	dismissRfidAnomalies,
-	downloadRfidVisitsCsv,
+	downloadRfidReportXlsx,
 	getRfidAnomalies,
 	getRfidAttendanceCheck,
 	getRfidBindings,
