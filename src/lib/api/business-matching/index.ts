@@ -380,11 +380,13 @@ export async function sendHostInviteEmail(
 	eventId: string,
 	bmEventId: string,
 	email: string,
+	message?: string,
 ): Promise<SendHostInviteEmailResponse> {
 	const url = `v1/business_matching/events/${eventId}/hosts/send_invite_email`;
 	return restClient.post<SendHostInviteEmailResponse>(url, {
 		business_matching_event_id: bmEventId,
 		email,
+		message,
 	});
 }
 

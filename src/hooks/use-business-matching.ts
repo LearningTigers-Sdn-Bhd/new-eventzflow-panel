@@ -219,10 +219,12 @@ export const useSendHostInviteEmail = (eventId: string) => {
 		mutationFn: ({
 			bmEventId,
 			email,
+			message,
 		}: {
 			bmEventId: string;
 			email: string;
-		}) => sendHostInviteEmail(eventId, bmEventId, email),
+			message?: string;
+		}) => sendHostInviteEmail(eventId, bmEventId, email, message),
 	});
 };
 

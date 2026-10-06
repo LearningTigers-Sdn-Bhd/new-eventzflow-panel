@@ -23,6 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	useBusinessMatchingTags,
 	useCreateAndAssignHost,
@@ -123,6 +124,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	const [interestTags, setInterestTags] = useState<string[]>([]);
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 	const [emailError, setEmailError] = useState<string | null>(null);
+	const [customInviteNote, setCustomInviteNote] = useState("");
 
 	const handleCheckEmail = async (e?: React.FormEvent) => {
 		if (e) e.preventDefault();
@@ -164,6 +166,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 			{
 				bmEventId: bmEvent.id,
 				email: trimmedEmail,
+				message: customInviteNote.trim() || undefined,
 			},
 			{
 				onSuccess: (data) => {
@@ -183,6 +186,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	const handleResetEmailFlow = () => {
 		setHostStep("check_email");
 		setEmailError(null);
+		setCustomInviteNote("");
 	};
 
 	const handleCreateHost = async () => {
@@ -329,6 +333,19 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 									Send an email invite with a direct join link to{" "}
 									{hostEmail.trim().toLowerCase()}.
 								</p>
+								<div className="space-y-1 py-1">
+									<Label htmlFor="custom-invite-note" className="text-xs">
+										Personal Note / Custom Message (Optional)
+									</Label>
+									<Textarea
+										id="custom-invite-note"
+										placeholder="Add a personal note or custom instructions..."
+										value={customInviteNote}
+										onChange={(e) => setCustomInviteNote(e.target.value)}
+										rows={2}
+										className="text-xs"
+									/>
+								</div>
 								<Button
 									type="button"
 									onClick={handleSendEmailInvite}

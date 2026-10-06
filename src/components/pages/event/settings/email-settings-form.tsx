@@ -48,6 +48,9 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
 			message: "Please enter a valid email address",
 		}),
+	businessMatchingSenderName: z.string(),
+	businessMatchingHostInviteSubject: z.string(),
+	businessMatchingHostInviteMessage: z.string(),
 	emailsEnabled: z.boolean(),
 	disabledCategories: z.array(z.string()),
 	businessMatchingTicketTypeIds: z.array(z.string()),
@@ -107,6 +110,9 @@ export default function EmailSettingsForm({
 			senderAddress: "",
 			contactEmail: "",
 			paymentReceiptEmail: "",
+			businessMatchingSenderName: "",
+			businessMatchingHostInviteSubject: "",
+			businessMatchingHostInviteMessage: "",
 			emailsEnabled: true,
 			disabledCategories: [] as string[],
 			businessMatchingTicketTypeIds: [] as string[],
@@ -124,6 +130,12 @@ export default function EmailSettingsForm({
 						sender_address: value.senderAddress || "",
 						contact_email: value.contactEmail || "",
 						payment_receipt_email: value.paymentReceiptEmail || "",
+						business_matching_sender_name:
+							value.businessMatchingSenderName || "",
+						business_matching_host_invite_subject:
+							value.businessMatchingHostInviteSubject || "",
+						business_matching_host_invite_message:
+							value.businessMatchingHostInviteMessage || "",
 						...(canToggleEmails
 							? {
 									emails_enabled: value.emailsEnabled,
@@ -150,6 +162,18 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"paymentReceiptEmail",
 					setting?.payment_receipt_email || event.payment_receipt_email || "",
+				);
+				form.setFieldValue(
+					"businessMatchingSenderName",
+					setting?.business_matching_sender_name || "",
+				);
+				form.setFieldValue(
+					"businessMatchingHostInviteSubject",
+					setting?.business_matching_host_invite_subject || "",
+				);
+				form.setFieldValue(
+					"businessMatchingHostInviteMessage",
+					setting?.business_matching_host_invite_message || "",
 				);
 				form.setFieldValue("emailsEnabled", setting?.emails_enabled ?? true);
 				form.setFieldValue(
@@ -306,6 +330,81 @@ export default function EmailSettingsForm({
 											placeholder="e.g. info@yourdomain.com"
 											disabled={updateEventMutation.isPending}
 											description="Receives a BCC copy of all registration emails. Ensure the email is valid."
+										/>
+									);
+								}}
+							</form.Field>
+						</div>
+					</FormGroupContainer>
+
+					<FormGroupContainer
+						title={{
+							icon: Handshake,
+							label: "Business Matching Email Customization",
+							description:
+								"Customize sender display name and host invitation content specifically for Business Matching. Other event emails (tickets, registration, reminders) will remain unaffected.",
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4">
+							<form.Field name="businessMatchingSenderName">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Business Matching Sender Name"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="e.g. Event Secretariat B2B"
+											disabled={updateEventMutation.isPending}
+											description="Sender display name used only for Business Matching emails. Defaults to standard Sender Name above or event title if empty."
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="businessMatchingHostInviteSubject">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Host Invitation Subject"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="e.g. You've been invited as a Business Host for {{event_name}}"
+											disabled={updateEventMutation.isPending}
+											description="Subject line for host invitations. Variables: {{event_name}}, {{session_title}}, {{inviter_name}}."
+										/>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="businessMatchingHostInviteMessage">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											type="textarea"
+											label="Host Invitation Message Body / Instructions"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="e.g. As a Business Host, you can set up your profile, manage your schedule, and connect with attendees during business matching sessions."
+											disabled={updateEventMutation.isPending}
+											description="Custom message body for host invitations. If empty, the default intro is used. Variables: {{event_name}}, {{session_title}}, {{inviter_name}}, {{invite_url}}."
 										/>
 									);
 								}}
