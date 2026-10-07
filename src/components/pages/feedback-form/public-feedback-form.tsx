@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
 	type FeedbackQuestion,
 	getPublicFeedbackForm,
@@ -35,7 +36,11 @@ export function PublicFeedbackForm({
 	slug,
 	ticketPublicId,
 }: PublicFeedbackFormProps) {
-	const [values, setValues] = useState<FeedbackAnswerValues>({});
+	// Draft survives refresh; cleared on successful submit or "Clear all answers".
+	const [values, setValues] = usePersistedState<FeedbackAnswerValues>(
+		`feedback-draft:${slug}:${ticketPublicId ?? "preview"}`,
+		{},
+	);
 	// Preview only: the organizer clicked Send to see the thank-you screen.
 	const [previewSubmitted, setPreviewSubmitted] = useState(false);
 	const [missingIds, setMissingIds] = useState<number[]>([]);
@@ -112,6 +117,7 @@ export function PublicFeedbackForm({
 			});
 		},
 		onSuccess: () => {
+			setValues({});
 			if (reduceMotion) return;
 			confetti({
 				particleCount: 140,
@@ -125,6 +131,15 @@ export function PublicFeedbackForm({
 	const setValue = (id: number, value: string | string[]) => {
 		setValues((v) => ({ ...v, [id]: value }));
 		setMissingIds((ids) => ids.filter((x) => x !== id));
+	};
+
+	const [confirmingClear, setConfirmingClear] = useState(false);
+	const clearAnswers = () => {
+		setConfirmingClear(false);
+		setValues({});
+		setMissingIds([]);
+		setCurrentPage(1);
+		setPageHistory([1]);
 	};
 
 	// No ?ticket= means the organizer's preview link: show the form, collect nothing.
@@ -296,7 +311,7 @@ export function PublicFeedbackForm({
 				initial={reduceMotion ? false : { opacity: 0, y: 40, rotate: -1.5 }}
 				animate={{ opacity: 1, y: 0, rotate: 0 }}
 				transition={{ type: "spring", stiffness: 90, damping: 16 }}
-				className="relative mx-auto w-full max-w-2xl drop-shadow-[0_30px_60px_rgba(0,0,0,0.35)] lg:max-w-4xl"
+				className="force-light relative mx-auto w-full max-w-2xl text-foreground drop-shadow-[0_30px_60px_rgba(0,0,0,0.35)] lg:max-w-4xl"
 			>
 				{/* Ticket stub */}
 				<header
@@ -592,6 +607,41 @@ export function PublicFeedbackForm({
 									</Button>
 								</div>
 							)}
+							{answeredCount > 0 &&
+								(confirmingClear ? (
+									<div
+										role="alertdialog"
+										aria-label="Confirm clear all answers"
+										className="mt-4 flex flex-wrap items-center justify-center gap-3 border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm"
+									>
+										<span>Clear all your answers? This can't be undone.</span>
+										<Button
+											type="button"
+											size="sm"
+											className="rounded-none bg-red-600 text-white hover:bg-red-700"
+											onClick={clearAnswers}
+										>
+											Yes, clear
+										</Button>
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											className="rounded-none border-amber-400 bg-white text-amber-900"
+											onClick={() => setConfirmingClear(false)}
+										>
+											Cancel
+										</Button>
+									</div>
+								) : (
+									<button
+										type="button"
+										onClick={() => setConfirmingClear(true)}
+										className="mt-4 block w-full text-center text-[#4E6358] text-sm underline hover:text-[#0F3D2E]"
+									>
+										Clear all answers
+									</button>
+								))}
 						</form>
 					)}
 				</div>
