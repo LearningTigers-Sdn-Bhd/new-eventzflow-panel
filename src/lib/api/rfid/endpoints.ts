@@ -189,6 +189,53 @@ export function grantRfidCertOverride(
 	);
 }
 
+export type RfidBulkOverrideResult = {
+	count: number;
+	dry_run: boolean;
+	// Dry run only: the first `limit` guests that would be waived.
+	guests?: {
+		id: number;
+		ticket_name: string;
+		ticket_public_id: string;
+		ticket_type: string | null;
+		feedback_submitted: boolean;
+		lowest_percent: number;
+	}[];
+	limit?: number;
+};
+
+/** Registration-form fields (category, agency...) the bulk waive can filter by. */
+export function getRfidEligibilityFields(
+	eventId: string | number,
+): Promise<{ fields: { key: string; values: string[] }[] }> {
+	return restClient.get<{ fields: { key: string; values: string[] }[] }>(
+		`${base(eventId)}/eligibility/fields`,
+	);
+}
+
+/**
+ * Waive the session rule for every guest matching the eligibility filters who
+ * is still short (already-waived and already-met guests are skipped). With
+ * `dry_run` it only reports how many guests that is.
+ */
+export function bulkRfidCertOverride(
+	eventId: string | number,
+	data: {
+		reason?: string;
+		dry_run?: boolean;
+		status?: RfidEligibilityStatus;
+		q?: string;
+		ticket_type_id?: string;
+		min_percent?: string;
+		custom_fields?: Record<string, string>;
+	},
+): Promise<RfidBulkOverrideResult> {
+	return restClient.post<RfidBulkOverrideResult>(
+		`${base(eventId)}/eligibility/bulk_override`,
+		data,
+	);
+}
+
 export function revokeRfidCertOverride(
 	eventId: string | number,
 	ticketId: number,

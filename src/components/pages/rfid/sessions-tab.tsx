@@ -50,6 +50,7 @@ import {
 } from "@/lib/api/rfid";
 import { formatDateTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { BulkCertOverrideDialog } from "./bulk-cert-override-dialog";
 import { CertOverrideDialog } from "./cert-override-dialog";
 import { formatDuration, RfidTable } from "./rfid-table";
 import { SessionAttendeesDialog } from "./session-attendees-dialog";
@@ -449,6 +450,7 @@ export function SessionsTab({
 	const [page, setPage] = useState(1);
 	const [eligibilityQ, setEligibilityQ] = useState("");
 	const [eligibilityType, setEligibilityType] = useState("");
+	const [bulkWaiveOpen, setBulkWaiveOpen] = useState(false);
 	const [eligibilityPerPage, setEligibilityPerPage] = useState(25);
 	const [eligibilitySearch, setEligibilitySearch] = useServerSearch(
 		eligibilityQ,
@@ -662,7 +664,7 @@ export function SessionsTab({
 							className="rounded-none"
 							title={row.original.override.reason}
 						>
-							Waived
+							Attendance waived
 						</Badge>
 					)}
 				</div>
@@ -696,7 +698,7 @@ export function SessionsTab({
 	return (
 		<div className="space-y-6">
 			<div className="space-y-3">
-				<div className="flex flex-wrap items-center justify-between gap-2">
+				<div className="flex flex-col gap-3">
 					<div>
 						<h3 className="font-semibold text-base">Sessions</h3>
 						<p className="text-muted-foreground text-sm">
@@ -704,7 +706,7 @@ export function SessionsTab({
 							time in every session to earn the e-certificate.
 						</p>
 					</div>
-					<div className="flex flex-wrap gap-2">
+					<div className="flex flex-wrap justify-end gap-2">
 						<Button
 							variant="outline"
 							className="rounded-none"
@@ -795,8 +797,8 @@ export function SessionsTab({
 				/>
 			</div>
 
-			<div className="space-y-3">
-				<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="space-y-3 border-t pt-6">
+				<div className="flex flex-col gap-3">
 					<div>
 						<h3 className="font-semibold text-base">
 							E-certificate eligibility
@@ -808,12 +810,24 @@ export function SessionsTab({
 							leave.
 						</p>
 					</div>
-					<Button asChild variant="outline" className="rounded-none">
-						<Link href={`/event/${eventId}/certificates`}>
-							<Award className="size-4" />
-							Send e-certificates
-						</Link>
-					</Button>
+					<div className="flex flex-wrap justify-end gap-2">
+						{canUpdate && (eligibility?.required_sessions ?? 0) > 0 && (
+							<Button
+								variant="outline"
+								className="rounded-none"
+								onClick={() => setBulkWaiveOpen(true)}
+							>
+								<ShieldCheck className="size-4" />
+								Bulk attendance waiver
+							</Button>
+						)}
+						<Button asChild variant="outline" className="rounded-none">
+							<Link href={`/event/${eventId}/certificates`}>
+								<Award className="size-4" />
+								Send e-certificates
+							</Link>
+						</Button>
+					</div>
 				</div>
 
 				{(eligibility?.required_sessions ?? 0) === 0 ? (
@@ -953,7 +967,7 @@ export function SessionsTab({
 											onClick={() => setWaiving(row)}
 										>
 											<ShieldCheck className="size-4" />
-											{row.override ? "Waived" : "Waive attendance"}
+											{row.override ? "Attendance waived" : "Waive attendance"}
 										</Button>
 									)}
 								</div>
@@ -970,6 +984,14 @@ export function SessionsTab({
 				canUpdate={canUpdate}
 				open={ruleOpen}
 				onOpenChange={setRuleOpen}
+			/>
+
+			<BulkCertOverrideDialog
+				key={`bulk-waive-${bulkWaiveOpen}`}
+				eventId={eventId}
+				open={bulkWaiveOpen}
+				ticketTypes={eligibilityQuery.data?.ticket_types ?? []}
+				onClose={() => setBulkWaiveOpen(false)}
 			/>
 
 			<CertOverrideDialog

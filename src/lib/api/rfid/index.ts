@@ -1,5 +1,6 @@
 // API endpoints
 export {
+	bulkRfidCertOverride,
 	createRfidSession,
 	deleteRfidAnomalies,
 	deleteRfidBinding,
@@ -14,6 +15,7 @@ export {
 	getRfidBindings,
 	getRfidDisplayActivity,
 	getRfidEligibility,
+	getRfidEligibilityFields,
 	getRfidFlow,
 	getRfidGuestVisits,
 	getRfidMissedScans,
