@@ -16,6 +16,9 @@ export const certificateFieldSchema = z.object({
 });
 
 export const upsertCertificateTemplateSchema = z.object({
+	name: z.string().min(1).max(100).optional(),
+	/** Ticket types this template applies to. Empty = default for all others. */
+	ticket_type_ids: z.array(z.number()).optional(),
 	status: z.enum(["draft", "ready", "archived"]).optional(),
 	orientation: z.enum(["portrait", "landscape"]).optional(),
 	canvas_width: z.number().positive().optional(),

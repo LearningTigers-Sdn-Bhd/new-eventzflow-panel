@@ -13,68 +13,90 @@ import type {
 	SendOneCertificateResponse,
 } from "./response";
 
+const templatesPath = (eventId: string) =>
+	`v1/events/${eventId}/certificate_templates`;
+
 /**
- * Get the certificate template for an event. Returns null when none exists yet.
+ * List every certificate template of an event (empty when none exist yet).
  */
-export async function getCertificateTemplate(
+export async function getCertificateTemplates(
 	eventId: string,
-): Promise<CertificateTemplate | null> {
-	const response = await restClient.get<CertificateTemplate | null>(
-		`v1/events/${eventId}/certificate_template`,
+): Promise<CertificateTemplate[]> {
+	const response = await restClient.get<CertificateTemplate[] | null>(
+		templatesPath(eventId),
 	);
-	return response ?? null;
+	return response ?? [];
 }
 
 /**
- * Create or update the certificate template (JSON, no image).
- * Uses PUT which the backend maps to update/upsert.
+ * Create a template. Pass duplicateFromId to copy another template's design
+ * (fields, canvas and background) so only the wording needs changing.
  */
-export async function upsertCertificateTemplate(
+export async function createCertificateTemplate(
 	eventId: string,
+	data: UpsertCertificateTemplateRequest,
+	duplicateFromId?: number,
+): Promise<CertificateTemplate> {
+	const validated = upsertCertificateTemplateSchema.parse(data);
+	return await restClient.post<CertificateTemplate>(templatesPath(eventId), {
+		certificate_template: validated,
+		duplicate_from_id: duplicateFromId,
+	});
+}
+
+/**
+ * Update a template (JSON, no image).
+ */
+export async function updateCertificateTemplate(
+	eventId: string,
+	templateId: number,
 	data: UpsertCertificateTemplateRequest,
 ): Promise<CertificateTemplate> {
 	const validated = upsertCertificateTemplateSchema.parse(data);
-	return await restClient.put<CertificateTemplate>(
-		`v1/events/${eventId}/certificate_template`,
+	return await restClient.patch<CertificateTemplate>(
+		`${templatesPath(eventId)}/${templateId}`,
 		{ certificate_template: validated },
 	);
 }
 
 /**
- * Upload (or replace) the background image for the certificate template.
+ * Upload (or replace) the background image of a template.
  * Multipart PATCH; can be combined with other template fields if needed.
  */
 export async function uploadCertificateBackground(
 	eventId: string,
+	templateId: number,
 	file: File,
 ): Promise<CertificateTemplate> {
 	const formData = new FormData();
 	formData.append("certificate_template[background_image]", file);
 	return await restClient.patchFormData<CertificateTemplate>(
-		`v1/events/${eventId}/certificate_template`,
+		`${templatesPath(eventId)}/${templateId}`,
 		formData,
 	);
 }
 
 /**
- * Remove the background image from the certificate template.
+ * Remove the background image from a template.
  */
 export async function removeCertificateBackground(
 	eventId: string,
+	templateId: number,
 ): Promise<CertificateTemplate> {
 	return await restClient.patch<CertificateTemplate>(
-		`v1/events/${eventId}/certificate_template`,
+		`${templatesPath(eventId)}/${templateId}`,
 		{ certificate_template: { remove_background_image: true } },
 	);
 }
 
 /**
- * Delete the certificate template entirely.
+ * Delete a template entirely.
  */
 export async function deleteCertificateTemplate(
 	eventId: string,
+	templateId: number,
 ): Promise<void> {
-	await restClient.delete(`v1/events/${eventId}/certificate_template`);
+	await restClient.delete(`${templatesPath(eventId)}/${templateId}`);
 }
 
 /**
@@ -118,14 +140,18 @@ export async function sendOneCertificate(
 
 /**
  * Build the relative preview endpoint path (for restClient.getBlob downloads).
- * Pass a ticket public_id to render a real attendee's certificate; omit for a
- * placeholder "Attendee Name" sample.
+ * Pass a ticket public_id to render a real attendee's certificate (its own
+ * template), or a templateId for that template with a placeholder "Attendee
+ * Name" sample.
  */
 export function certificatePreviewPath(
 	eventId: string,
-	options?: { ticketId?: string; download?: boolean },
+	options?: { ticketId?: string; templateId?: number; download?: boolean },
 ): string {
 	const params = new URLSearchParams();
+	if (options?.templateId) {
+		params.append("template_id", String(options.templateId));
+	}
 	if (options?.ticketId) {
 		params.append("ticket_id", options.ticketId);
 	}
@@ -145,7 +171,7 @@ export function certificatePreviewPath(
  */
 export function certificatePreviewUrl(
 	eventId: string,
-	options?: { ticketId?: string; download?: boolean },
+	options?: { ticketId?: string; templateId?: number; download?: boolean },
 ): string {
 	return `${API_BASE_URL}/${certificatePreviewPath(eventId, options)}`;
 }
@@ -156,7 +182,7 @@ export function certificatePreviewUrl(
  */
 export async function downloadCertificate(
 	eventId: string,
-	options?: { ticketId?: string },
+	options?: { ticketId?: string; templateId?: number },
 ): Promise<Blob> {
 	const { blob } = await restClient.getBlob(
 		certificatePreviewPath(eventId, { ...options, download: true }),

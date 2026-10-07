@@ -21,7 +21,7 @@ import {
 	downloadCertificate,
 	getCertificateParticipants,
 	sendOneCertificate,
-	upsertCertificateTemplate,
+	updateCertificateTemplate,
 } from "@/lib/api/certificate";
 import { getEventById } from "@/lib/api/event";
 import { getFeedbackForm } from "@/lib/api/feedback-form";
@@ -36,13 +36,13 @@ type CertificateParticipantsProps = {
 	eventId: string;
 	/** When false, the template isn't ready so sending is disabled. */
 	canSend: boolean;
-	template?: CertificateTemplate | null;
+	templates: CertificateTemplate[];
 };
 
 export function CertificateParticipants({
 	eventId,
 	canSend,
-	template,
+	templates,
 }: CertificateParticipantsProps) {
 	const queryClient = useQueryClient();
 	const [pendingSendId, setPendingSendId] = useState<string | null>(null);
@@ -50,6 +50,11 @@ export function CertificateParticipants({
 		null,
 	);
 	const [sendDialogOpen, setSendDialogOpen] = useState(false);
+
+	const hasTemplates = templates.length > 0;
+	const requireFeedback =
+		hasTemplates && templates.every((t) => t.require_feedback);
+	const anyRequireFeedback = templates.some((t) => t.require_feedback);
 
 	const queryKey = ["event", eventId, "certificate-participants"];
 
@@ -76,23 +81,21 @@ export function CertificateParticipants({
 	const { data: event } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
-		enabled: !!template?.require_feedback,
+		enabled: anyRequireFeedback,
 	});
 	const { data: feedbackForm } = useQuery({
 		queryKey: ["event", eventId, "feedback-form"],
 		queryFn: () => getFeedbackForm(eventId),
-		enabled: !!template?.require_feedback,
+		enabled: anyRequireFeedback,
 	});
 
 	// Anything that would stop attendees from ever getting a feedback link,
 	// which means nobody gets a certificate while the toggle is on.
 	const feedbackGateProblems: string[] = [];
-	if (template?.require_feedback && event && feedbackForm !== undefined) {
+	if (anyRequireFeedback && event && feedbackForm !== undefined) {
 		const setting = event.event_email_setting;
-		if (template.status !== "ready")
-			feedbackGateProblems.push(
-				"The certificate template is not marked ready.",
-			);
+		if (templates.some((t) => t.status !== "ready"))
+			feedbackGateProblems.push("A certificate template is not marked ready.");
 		if (!feedbackForm?.is_active || !feedbackForm.questions.length)
 			feedbackGateProblems.push(
 				"The feedback form is missing, closed or has no questions.",
@@ -109,14 +112,20 @@ export function CertificateParticipants({
 			feedbackGateProblems.push("The E-Certificate email is turned off.");
 	}
 
-	const templateKey = ["event", eventId, "certificate-template"];
 	const requireFeedbackMutation = useMutation({
-		mutationFn: (requireFeedback: boolean) =>
-			upsertCertificateTemplate(eventId, { require_feedback: requireFeedback }),
+		// One switch for the whole event: every template follows it.
+		mutationFn: (value: boolean) =>
+			Promise.all(
+				templates.map((t) =>
+					updateCertificateTemplate(eventId, t.id, { require_feedback: value }),
+				),
+			),
 		onSuccess: (saved) => {
-			queryClient.setQueryData(templateKey, saved);
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "certificate-templates"],
+			});
 			toast.success(
-				saved.require_feedback
+				saved[0]?.require_feedback
 					? "Certificates will now be sent after feedback."
 					: "Feedback is no longer required for certificates.",
 			);
@@ -245,12 +254,12 @@ export function CertificateParticipants({
 				</div>
 			</div>
 
-			{template && (
+			{hasTemplates && (
 				<SwitchCardInput
 					variant="no-rounded"
 					label="Require feedback before sending certificate"
 					htmlFor="certificate-require-feedback"
-					checked={template.require_feedback}
+					checked={requireFeedback}
 					onCheckedChange={(checked) => requireFeedbackMutation.mutate(checked)}
 					disabled={requireFeedbackMutation.isPending}
 					description="Each attendee gets their certificate by email right after they submit the feedback form. Needs the template marked ready and an active feedback form. You can still send manually, e.g. to the 'Submitted feedback' audience."
@@ -275,7 +284,7 @@ export function CertificateParticipants({
 
 			{!canSend && hasParticipants && (
 				<div className="border border-dashed bg-muted/40 px-3 py-2 text-muted-foreground text-xs">
-					Your certificate template is still a draft. Go to the{" "}
+					No certificate template is ready yet. Go to the{" "}
 					<span className="font-medium">Design Certificate</span> tab and choose
 					&ldquo;Save &amp; mark ready&rdquo; to enable sending.
 				</div>

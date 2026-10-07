@@ -31,6 +31,9 @@ export type CertificateTemplateStatus = "draft" | "ready" | "archived";
 export type CertificateTemplate = {
 	id: number;
 	event_id: number;
+	name: string;
+	/** Empty means this is the default template for every other ticket type. */
+	ticket_type_ids: number[];
 	status: CertificateTemplateStatus;
 	orientation: "portrait" | "landscape";
 	canvas_width: number;
@@ -75,6 +78,8 @@ export type CertificateParticipant = {
 	attendee_name: string;
 	attendee_email: string | null;
 	ticket_type: string | null;
+	/** Name of the template this ticket's certificate is rendered from. */
+	certificate_template: string | null;
 	checked_in: boolean;
 	feedback_submitted: boolean;
 	// Met every mandatory RFID session and submitted the feedback form.

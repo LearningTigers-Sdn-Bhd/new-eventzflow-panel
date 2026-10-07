@@ -9,7 +9,7 @@ import { CertificateParticipants } from "@/components/pages/certificates/certifi
 import { CertificatesDesigner } from "@/components/pages/certificates/certificates-designer";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCertificateTemplate } from "@/lib/api/certificate";
+import { getCertificateTemplates } from "@/lib/api/certificate";
 import { getEventById } from "@/lib/api/event";
 
 export default function CertificatesPage({
@@ -26,9 +26,9 @@ export default function CertificatesPage({
 		queryFn: () => getEventById(event_id),
 	});
 
-	const { data: template } = useQuery({
-		queryKey: ["event", event_id, "certificate-template"],
-		queryFn: () => getCertificateTemplate(event_id),
+	const { data: templates } = useQuery({
+		queryKey: ["event", event_id, "certificate-templates"],
+		queryFn: () => getCertificateTemplates(event_id),
 		enabled: event?.use_certificate === true && canManageEventVendors,
 	});
 
@@ -79,8 +79,8 @@ export default function CertificatesPage({
 				<TabsContent value="send" className="mt-0">
 					<CertificateParticipants
 						eventId={event_id}
-						canSend={template?.status === "ready"}
-						template={template}
+						canSend={templates?.some((t) => t.status === "ready") ?? false}
+						templates={templates ?? []}
 					/>
 				</TabsContent>
 			</div>

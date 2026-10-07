@@ -2,16 +2,17 @@
 export {
 	certificatePreviewPath,
 	certificatePreviewUrl,
+	createCertificateTemplate,
 	deleteCertificateTemplate,
 	downloadAllCertificates,
 	downloadCertificate,
 	getCertificateParticipants,
-	getCertificateTemplate,
+	getCertificateTemplates,
 	removeCertificateBackground,
 	sendCertificates,
 	sendOneCertificate,
+	updateCertificateTemplate,
 	uploadCertificateBackground,
-	upsertCertificateTemplate,
 } from "./endpoints";
 // Request types and schemas
 export {
