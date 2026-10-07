@@ -68,7 +68,7 @@ function SessionTimeline({
 						Time in the hall during this session
 					</p>
 					<p className="font-semibold tabular-nums">
-						{formatDuration(attendee.seconds)}
+						{formatDuration(attendee.seconds, true)}
 					</p>
 					<p className="text-muted-foreground text-xs">
 						All gate visits added together
@@ -223,14 +223,14 @@ function AttendeeRow({
 					</div>
 				</td>
 				<td className="px-3 py-3 tabular-nums">
-					{formatDuration(attendee.seconds)}
+					{formatDuration(attendee.seconds, true)}
 					<span
 						className={cn(
 							"ml-2 font-semibold",
 							attendee.attended ? "text-green-700" : "text-amber-700",
 						)}
 					>
-						{attendee.percent}%
+						{attendee.percent.toFixed(2)}%
 					</span>
 				</td>
 				<td className="px-3 py-3">

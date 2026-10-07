@@ -201,10 +201,13 @@ export function OutcomeBadge({ outcome }: { outcome: string | null }) {
 	);
 }
 
-export function formatDuration(seconds: number | null): string {
+export function formatDuration(
+	seconds: number | null,
+	withSeconds = false,
+): string {
 	if (seconds == null) return "—";
 	const h = Math.floor(seconds / 3600);
 	const m = Math.floor((seconds % 3600) / 60);
-	if (h > 0) return `${h}h ${m}m`;
+	if (h > 0) return withSeconds ? `${h}h ${m}m ${seconds % 60}s` : `${h}h ${m}m`;
 	return `${m}m ${seconds % 60}s`;
 }

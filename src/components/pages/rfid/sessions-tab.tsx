@@ -321,13 +321,13 @@ function SessionsReached({
 										{item.session.name}
 									</span>
 									<span className="shrink-0 font-semibold tabular-nums leading-5">
-										{item.percent}%
+										{item.percent.toFixed(2)}%
 									</span>
 								</div>
 								<div className="ml-6 h-1.5 bg-muted">
 									<div
 										className={cn("h-full", look[item.state].bar)}
-										style={{ width: `${item.percent}%` }}
+										style={{ width: `${item.percent.toFixed(2)}%` }}
 									/>
 								</div>
 								<p className="ml-6 text-muted-foreground text-xs">
