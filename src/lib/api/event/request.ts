@@ -132,6 +132,11 @@ export const updateEventSchema = z.object({
 				.optional()
 				.or(z.literal(""))
 				.or(z.null()),
+			business_matching_host_label: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
 			business_matching_host_invite_subject: z
 				.string()
 				.optional()

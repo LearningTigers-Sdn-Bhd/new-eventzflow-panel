@@ -64,6 +64,7 @@ const formSchema = z.object({
 			message: "Please enter a valid email address",
 		}),
 	businessMatchingSenderName: z.string(),
+	businessMatchingHostLabel: z.string(),
 	businessMatchingHostInviteSubject: z.string(),
 	businessMatchingHostInviteMessage: z.string(),
 	emailsEnabled: z.boolean(),
@@ -127,6 +128,7 @@ export default function EmailSettingsForm({
 			contactEmail: "",
 			paymentReceiptEmail: "",
 			businessMatchingSenderName: "",
+			businessMatchingHostLabel: "",
 			businessMatchingHostInviteSubject: "",
 			businessMatchingHostInviteMessage: "",
 			emailsEnabled: true,
@@ -149,6 +151,8 @@ export default function EmailSettingsForm({
 						payment_receipt_email: value.paymentReceiptEmail || "",
 						business_matching_sender_name:
 							value.businessMatchingSenderName || "",
+						business_matching_host_label:
+							value.businessMatchingHostLabel || "",
 						business_matching_host_invite_subject:
 							value.businessMatchingHostInviteSubject || "",
 						business_matching_host_invite_message:
@@ -184,6 +188,10 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"businessMatchingSenderName",
 					setting?.business_matching_sender_name || "",
+				);
+				form.setFieldValue(
+					"businessMatchingHostLabel",
+					setting?.business_matching_host_label || "",
 				);
 				form.setFieldValue(
 					"businessMatchingHostInviteSubject",
@@ -389,6 +397,27 @@ export default function EmailSettingsForm({
 								}}
 							</form.Field>
 
+							<form.Field name="businessMatchingHostLabel">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Host Role Term / Label"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="e.g. Business Partner, Business Host"
+											disabled={updateEventMutation.isPending}
+											description="Custom term for host in invitation emails (e.g. 'Business Partner', 'Speaker', 'Exhibitor'). Defaults to 'Business Host'."
+										/>
+									);
+								}}
+							</form.Field>
+
 							<form.Field name="businessMatchingHostInviteSubject">
 								{(field) => {
 									const isInvalid =
@@ -402,9 +431,9 @@ export default function EmailSettingsForm({
 											onBlur={field.handleBlur}
 											errors={field.state.meta.errors}
 											isInvalid={isInvalid}
-											placeholder="e.g. You've been invited as a Business Host for {{event_name}}"
+											placeholder="e.g. You've been invited as a {{host_label}} for {{event_name}}"
 											disabled={updateEventMutation.isPending}
-											description="Subject line for host invitations. Variables: {{event_name}}, {{session_title}}, {{inviter_name}}."
+											description="Subject line for host invitations. Variables: {{event_name}}, {{session_title}}, {{inviter_name}}, {{host_label}}."
 										/>
 									);
 								}}
