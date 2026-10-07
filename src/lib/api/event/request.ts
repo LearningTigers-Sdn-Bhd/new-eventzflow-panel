@@ -126,6 +126,7 @@ export const updateEventSchema = z.object({
 			disabled_categories: z.array(z.string()).optional(),
 			business_matching_ticket_type_ids: z.array(z.number()).optional(),
 			thank_you_include_feedback: z.boolean().optional(),
+			thank_you_delay_minutes: z.number().optional(),
 			business_matching_sender_name: z
 				.string()
 				.optional()

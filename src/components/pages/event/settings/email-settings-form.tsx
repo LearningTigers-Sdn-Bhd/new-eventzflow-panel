@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
@@ -25,6 +32,14 @@ import { EMAIL_CATEGORIES, EMAIL_CATEGORY_GROUPS } from "./email-categories";
 
 const BUSINESS_MATCHING_CATEGORY_KEY = "business_matching_invite";
 const THANK_YOU_CATEGORY_KEY = "thank_you";
+const THANK_YOU_DELAY_OPTIONS = [
+	{ value: 0, label: "As soon as the event ends" },
+	{ value: 30, label: "30 minutes after" },
+	{ value: 60, label: "1 hour after" },
+	{ value: 120, label: "2 hours after (default)" },
+	{ value: 240, label: "4 hours after" },
+	{ value: 1440, label: "Next day (24 hours after)" },
+];
 // Categories with their own dedicated section below, hidden from the generic grid.
 const DEDICATED_CATEGORY_KEYS = [
 	BUSINESS_MATCHING_CATEGORY_KEY,
@@ -55,6 +70,7 @@ const formSchema = z.object({
 	disabledCategories: z.array(z.string()),
 	businessMatchingTicketTypeIds: z.array(z.string()),
 	thankYouIncludeFeedback: z.boolean(),
+	thankYouDelayMinutes: z.number(),
 });
 
 interface EmailSettingsFormProps {
@@ -117,6 +133,7 @@ export default function EmailSettingsForm({
 			disabledCategories: [] as string[],
 			businessMatchingTicketTypeIds: [] as string[],
 			thankYouIncludeFeedback: false,
+			thankYouDelayMinutes: 120,
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -143,6 +160,7 @@ export default function EmailSettingsForm({
 									business_matching_ticket_type_ids:
 										value.businessMatchingTicketTypeIds.map(Number),
 									thank_you_include_feedback: value.thankYouIncludeFeedback,
+									thank_you_delay_minutes: value.thankYouDelayMinutes,
 								}
 							: {}),
 					},
@@ -187,6 +205,10 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"thankYouIncludeFeedback",
 					setting?.thank_you_include_feedback ?? false,
+				);
+				form.setFieldValue(
+					"thankYouDelayMinutes",
+					setting?.thank_you_delay_minutes ?? 120,
 				);
 			}, 0);
 			hasInitialized.current = event.id;
@@ -557,6 +579,48 @@ export default function EmailSettingsForm({
 													}
 													description="Adds a “Share Your Feedback” button. Skipped automatically if the feedback form is inactive."
 												/>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+								<form.Field name="disabledCategories">
+									{(categoriesField) => (
+										<form.Field name="thankYouDelayMinutes">
+											{(field) => (
+												<div className="space-y-2 border border-slate-200 p-4">
+													<Label htmlFor={field.name}>Send timing</Label>
+													<Select
+														value={String(field.state.value)}
+														onValueChange={(v) => field.handleChange(Number(v))}
+														disabled={
+															updateEventMutation.isPending ||
+															categoriesField.state.value.includes(
+																THANK_YOU_CATEGORY_KEY,
+															)
+														}
+													>
+														<SelectTrigger
+															id={field.name}
+															className="w-full rounded-none"
+														>
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															{THANK_YOU_DELAY_OPTIONS.map((o) => (
+																<SelectItem
+																	key={o.value}
+																	value={String(o.value)}
+																>
+																	{o.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<p className="text-muted-foreground text-xs">
+														Attendees who check in after the email is sent won't
+														receive it. Checked about every 10 minutes.
+													</p>
+												</div>
 											)}
 										</form.Field>
 									)}
