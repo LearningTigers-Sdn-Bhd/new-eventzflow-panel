@@ -35,9 +35,13 @@ export const sendCertificatesSchema = z.object({
 			"unsent",
 			"feedback_submitted",
 			"rfid_qualified",
+			"sessions_done",
+			"sessions_or_feedback",
 		])
 		.default("all"),
 	excluded_public_ids: z.array(z.string()).default([]),
+	// Leave off to deliberately resend to people who already got a certificate.
+	skip_sent: z.boolean().default(false),
 });
 
 export type CertificateFieldInput = z.infer<typeof certificateFieldSchema>;

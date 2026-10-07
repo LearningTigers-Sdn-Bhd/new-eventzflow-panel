@@ -38,6 +38,9 @@ export function SendCertificatesPanel({
 	// (or uses "Select all").
 	const [selected, setSelected] = useState<Set<string>>(new Set());
 	const [search, setSearch] = useState("");
+	// On by default so re-running a send never double-emails anyone. Untick it
+	// to deliberately resend (e.g. an attendee says they never received it).
+	const [skipSent, setSkipSent] = useState(true);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
 
@@ -60,8 +63,16 @@ export function SendCertificatesPanel({
 			if (audience === "feedback_submitted" && !p.feedback_submitted)
 				return false;
 			if (audience === "rfid_qualified" && !p.rfid_qualified) return false;
+			if (audience === "sessions_done" && !p.sessions_done) return false;
 			if (
-				audience === "unsent" &&
+				audience === "sessions_or_feedback" &&
+				!p.sessions_done &&
+				!p.feedback_submitted
+			) {
+				return false;
+			}
+			if (
+				(skipSent || audience === "unsent") &&
 				p.certificate_status &&
 				SENT_STATUSES.has(p.certificate_status)
 			) {
@@ -69,7 +80,7 @@ export function SendCertificatesPanel({
 			}
 			return true;
 		});
-	}, [participants, audience]);
+	}, [participants, audience, skipSent]);
 
 	const visible = useMemo(() => {
 		if (!search.trim()) return eligible;
@@ -123,6 +134,7 @@ export function SendCertificatesPanel({
 			return sendCertificates(eventId, {
 				audience,
 				excluded_public_ids: excludedPublicIds,
+				skip_sent: skipSent,
 			});
 		},
 		onSuccess: (res) => {
@@ -151,7 +163,11 @@ export function SendCertificatesPanel({
 			title: "Send certificates",
 			message: `This will email a certificate to ${recipientCount} participant${
 				recipientCount === 1 ? "" : "s"
-			}. This cannot be undone. Continue?`,
+			}. This cannot be undone.${
+				skipSent
+					? ""
+					: " Anyone who already received a certificate will get another copy."
+			} Continue?`,
 			confirmLabel: "Send now",
 			cancelLabel: "Cancel",
 			type: "warning",
@@ -167,47 +183,112 @@ export function SendCertificatesPanel({
 				<RadioGroup
 					value={audience}
 					onValueChange={(v) => setAudience(v as Audience)}
-					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
+					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
 				>
 					<label
-						htmlFor="audience-all"
-						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem id="audience-all" value="all" />
-						All ticket holders
-					</label>
-					<label
-						htmlFor="audience-checked-in"
-						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem id="audience-checked-in" value="checked_in" />
-						Only checked-in
-					</label>
-					<label
-						htmlFor="audience-unsent"
-						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem id="audience-unsent" value="unsent" />
-						Not yet sent
-					</label>
-					<label
-						htmlFor="audience-feedback"
-						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem id="audience-feedback" value="feedback_submitted" />
-						Submitted feedback
-					</label>
-					<label
-						htmlFor="audience-rfid-qualified"
-						className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
+						htmlFor="audience-rfid_qualified"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
 					>
 						<RadioGroupItem
-							id="audience-rfid-qualified"
+							id="audience-rfid_qualified"
 							value="rfid_qualified"
+							className="mt-0.5"
 						/>
-						Qualified by RFID attendance
+						<span>
+							Finished all sessions and feedback
+							<span className="block text-muted-foreground text-xs">
+								Both required
+							</span>
+						</span>
+					</label>
+					<label
+						htmlFor="audience-sessions_or_feedback"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem
+							id="audience-sessions_or_feedback"
+							value="sessions_or_feedback"
+							className="mt-0.5"
+						/>
+						<span>
+							Finished all sessions or feedback
+							<span className="block text-muted-foreground text-xs">
+								Either one is enough
+							</span>
+						</span>
+					</label>
+					<label
+						htmlFor="audience-sessions_done"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem
+							id="audience-sessions_done"
+							value="sessions_done"
+							className="mt-0.5"
+						/>
+						<span>
+							Finished all sessions only
+							<span className="block text-muted-foreground text-xs">
+								Feedback not needed
+							</span>
+						</span>
+					</label>
+					<label
+						htmlFor="audience-feedback_submitted"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem
+							id="audience-feedback_submitted"
+							value="feedback_submitted"
+							className="mt-0.5"
+						/>
+						<span>
+							Submitted feedback only
+							<span className="block text-muted-foreground text-xs">
+								Sessions not checked
+							</span>
+						</span>
+					</label>
+					<label
+						htmlFor="audience-all"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem id="audience-all" value="all" className="mt-0.5" />
+						<span>
+							All ticket holders
+							<span className="block text-muted-foreground text-xs">
+								No attendance check
+							</span>
+						</span>
+					</label>
+					<label
+						htmlFor="audience-checked_in"
+						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+					>
+						<RadioGroupItem
+							id="audience-checked_in"
+							value="checked_in"
+							className="mt-0.5"
+						/>
+						<span>
+							Only checked-in
+							<span className="block text-muted-foreground text-xs">
+								No attendance check
+							</span>
+						</span>
 					</label>
 				</RadioGroup>
+				<label
+					htmlFor="skip-sent"
+					className="flex cursor-pointer items-center gap-2 text-sm"
+				>
+					<Checkbox
+						id="skip-sent"
+						checked={skipSent}
+						onCheckedChange={(v) => setSkipSent(v === true)}
+					/>
+					Skip people who already received a certificate
+				</label>
 			</div>
 
 			<div className="flex items-center justify-between gap-2">
