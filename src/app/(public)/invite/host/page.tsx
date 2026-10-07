@@ -24,7 +24,7 @@ function InviteHostContent() {
 	// so a hand-typed link can't be used to self-attach as a host.
 	const token = searchParams.get("token");
 
-	const { user, isAuthenticated, isInitialized } = useAuth();
+	const { user, isAuthenticated, isInitialized, forceRefresh } = useAuth();
 	const { mutate: acceptInvite, isPending } = useAcceptHostInvite();
 	const [isSuccess, setIsSuccess] = useState(false);
 
@@ -87,7 +87,8 @@ function InviteHostContent() {
 		acceptInvite(
 			{ token },
 			{
-				onSuccess: () => {
+				onSuccess: async () => {
+					await forceRefresh();
 					toast.success("Successfully joined as Business Host!");
 					setIsSuccess(true);
 				},
