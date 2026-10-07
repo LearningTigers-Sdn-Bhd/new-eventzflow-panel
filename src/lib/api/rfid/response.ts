@@ -298,4 +298,7 @@ export type RfidMissedScansResponse = {
 	ticket_types: { id: number; name: string }[];
 	pagination: RfidPagination;
 };
+export type RfidReportField = { key: string; label: string };
+export type RfidReportFieldsResponse = { fields: RfidReportField[] };
+
 export type RfidSettingsResponse = { settings: RfidSettings };

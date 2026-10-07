@@ -1,10 +1,9 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	CalendarClock,
-	Download,
 	LayoutDashboard,
 	ListChecks,
 	Monitor,
@@ -14,13 +13,11 @@ import {
 } from "lucide-react";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import {
-	downloadRfidReportXlsx,
 	getRfidAnomalies,
 	getRfidBindings,
 	getRfidFlow,
@@ -41,6 +38,7 @@ import {
 	type RfidTabName,
 	resolveFlowRange,
 } from "./dashboard-tab";
+import { ReportDownload } from "./report-download";
 import { SessionsTab } from "./sessions-tab";
 import { SettingsDialog } from "./settings-tab";
 import { StationsTab } from "./stations-tab";
@@ -221,20 +219,6 @@ export function RfidClientWrapper({
 		},
 	});
 
-	const reportMutation = useMutation({
-		mutationFn: () => downloadRfidReportXlsx(eventId),
-		onSuccess: (blob) => {
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = `rfid-report-event-${eventId}.xlsx`;
-			link.click();
-			URL.revokeObjectURL(url);
-			queryClient.invalidateQueries({ queryKey: ["event", eventId, "rfid"] });
-		},
-		onError: (error) => toast.error(error.message),
-	});
-
 	useSetEventActions(
 		<div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row">
 			<Button
@@ -260,17 +244,14 @@ export function RfidClientWrapper({
 				<Settings2 className="mr-2 size-4" />
 				Settings
 			</Button>
-			<Button
-				variant="outline"
-				onClick={() => reportMutation.mutate()}
-				disabled={reportMutation.isPending}
-				className="w-full shrink-0 rounded-none lg:w-auto"
-			>
-				<Download className="mr-2 size-4" />
-				{reportMutation.isPending
-					? "Preparing report..."
-					: "Download report (Excel)"}
-			</Button>
+			<ReportDownload
+				eventId={eventId}
+				onDownloaded={() =>
+					queryClient.invalidateQueries({
+						queryKey: ["event", eventId, "rfid"],
+					})
+				}
+			/>
 		</div>,
 	);
 

@@ -23,6 +23,7 @@ import type {
 	RfidGuestVisitsResponse,
 	RfidMissedReason,
 	RfidMissedScansResponse,
+	RfidReportFieldsResponse,
 	RfidSessionAttendeesResponse,
 	RfidSessionResponse,
 	RfidSessionsResponse,
@@ -401,9 +402,24 @@ export function updateRfidSettings(
  */
 export async function downloadRfidReportXlsx(
 	eventId: string | number,
+	fields: string[] = [],
 ): Promise<Blob> {
-	const response = await kyClient.get(`${base(eventId)}/report.xlsx`);
+	const query = fields
+		.map((f) => `fields[]=${encodeURIComponent(f)}`)
+		.join("&");
+	const response = await kyClient.get(
+		`${base(eventId)}/report.xlsx${query ? `?${query}` : ""}`,
+	);
 	return response.blob();
+}
+
+/** Custom fields staff can add as extra columns to the Excel report. */
+export function getRfidReportFields(
+	eventId: string | number,
+): Promise<RfidReportFieldsResponse> {
+	return restClient.get<RfidReportFieldsResponse>(
+		`${base(eventId)}/report_fields`,
+	);
 }
 
 // --- Org-owner clean-up (backend: EventPolicy#rfid_admin?) -----------------

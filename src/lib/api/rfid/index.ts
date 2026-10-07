@@ -17,6 +17,7 @@ export {
 	getRfidFlow,
 	getRfidGuestVisits,
 	getRfidMissedScans,
+	getRfidReportFields,
 	getRfidSessionAttendees,
 	getRfidSessions,
 	getRfidStations,
