@@ -200,6 +200,8 @@ export type RfidBulkOverrideResult = {
 		ticket_type: string | null;
 		feedback_submitted: boolean;
 		lowest_percent: number;
+		sessions_attended: number;
+		sessions_total: number;
 	}[];
 	limit?: number;
 };

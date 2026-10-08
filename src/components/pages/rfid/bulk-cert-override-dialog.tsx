@@ -518,7 +518,9 @@ export function BulkCertOverrideDialog({
 										<tr>
 											<th className="px-3 py-2 font-medium">Guest</th>
 											<th className="px-3 py-2 font-medium">Ticket type</th>
-											<th className="px-3 py-2 font-medium">Lowest session</th>
+											<th className="px-3 py-2 font-medium">
+												Sessions attended
+											</th>
 											<th className="px-3 py-2 font-medium">Evaluation form</th>
 										</tr>
 									</thead>
@@ -535,7 +537,10 @@ export function BulkCertOverrideDialog({
 													{guest.ticket_type ?? "—"}
 												</td>
 												<td className="px-3 py-2 tabular-nums">
-													{guest.lowest_percent.toFixed(2)}%
+													{guest.sessions_attended} of {guest.sessions_total}
+													<div className="text-muted-foreground text-xs">
+														weakest session {guest.lowest_percent.toFixed(0)}%
+													</div>
 												</td>
 												<td className="px-3 py-2">
 													{guest.feedback_submitted ? "Submitted" : "—"}
