@@ -10,6 +10,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
 	type CertificateAudience,
@@ -17,8 +24,20 @@ import {
 	getCertificateParticipants,
 	sendCertificates,
 } from "@/lib/api/certificate";
+import { getRfidEligibilityFields } from "@/lib/api/rfid";
 
 type Audience = CertificateAudience;
+
+const NO_FIELD = "none";
+// Rows drawn at once; thousands of checkboxes make the modal sluggish.
+// "Select all" still covers every matching row.
+const RENDER_LIMIT = 200;
+
+// "nama_agensi" -> "Nama agensi"
+const fieldLabel = (key: string) => {
+	const spaced = key.replace(/_/g, " ").trim();
+	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+};
 
 // Statuses that mean a certificate is already on its way / delivered.
 const SENT_STATUSES = new Set(["queued", "sending", "sent", "delivered"]);
@@ -41,8 +60,19 @@ export function SendCertificatesPanel({
 	// On by default so re-running a send never double-emails anyone. Untick it
 	// to deliberately resend (e.g. an attendee says they never received it).
 	const [skipSent, setSkipSent] = useState(true);
+	// Narrow by a registration answer, e.g. category 2, 3 and 4 only. Empty
+	// value set = no narrowing.
+	const [fieldKey, setFieldKey] = useState(NO_FIELD);
+	const [fieldValues, setFieldValues] = useState<Set<string>>(new Set());
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
+
+	const { data: fieldsData } = useQuery({
+		queryKey: ["event", eventId, "rfid", "eligibility-fields"],
+		queryFn: () => getRfidEligibilityFields(eventId),
+	});
+	const fields = fieldsData?.fields ?? [];
+	const fieldOptions = fields.find((f) => f.key === fieldKey)?.values ?? [];
 
 	const {
 		data: participants,
@@ -78,9 +108,16 @@ export function SendCertificatesPanel({
 			) {
 				return false;
 			}
+			if (
+				fieldKey !== NO_FIELD &&
+				fieldValues.size > 0 &&
+				!fieldValues.has(p.custom_fields?.[fieldKey] ?? "")
+			) {
+				return false;
+			}
 			return true;
 		});
-	}, [participants, audience, skipSent]);
+	}, [participants, audience, skipSent, fieldKey, fieldValues]);
 
 	const visible = useMemo(() => {
 		if (!search.trim()) return eligible;
@@ -126,10 +163,16 @@ export function SendCertificatesPanel({
 
 	const sendMutation = useMutation({
 		mutationFn: () => {
-			// Backend expects exclusions; derive them from the eligible set minus
-			// the explicitly selected recipients.
-			const excludedPublicIds = eligible
-				.filter((p) => !selected.has(p.public_id))
+			// Backend expects exclusions: everyone who isn't both eligible (audience
+			// + category filter) and explicitly selected. Counted over all
+			// participants so a person selected under another filter is never sent.
+			const recipients = new Set(
+				eligible
+					.filter((p) => selected.has(p.public_id))
+					.map((p) => p.public_id),
+			);
+			const excludedPublicIds = (participants ?? [])
+				.filter((p) => !recipients.has(p.public_id))
 				.map((p) => p.public_id);
 			return sendCertificates(eventId, {
 				audience,
@@ -291,6 +334,57 @@ export function SendCertificatesPanel({
 				</label>
 			</div>
 
+			{fields.length > 0 && (
+				<div className="space-y-2">
+					<Label>Narrow down by registration field (optional)</Label>
+					<Select
+						value={fieldKey}
+						onValueChange={(key) => {
+							setFieldKey(key);
+							setFieldValues(new Set());
+						}}
+					>
+						<SelectTrigger className="w-full max-w-xs rounded-none">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value={NO_FIELD}>No narrowing</SelectItem>
+							{fields.map((f) => (
+								<SelectItem key={f.key} value={f.key}>
+									{fieldLabel(f.key)}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					{fieldKey !== NO_FIELD && (
+						<div className="flex flex-wrap gap-2">
+							{fieldOptions.map((value) => {
+								const on = fieldValues.has(value);
+								return (
+									<Button
+										key={value}
+										type="button"
+										size="sm"
+										variant={on ? "default" : "outline"}
+										className="h-auto max-w-full whitespace-normal rounded-none py-1 text-left"
+										onClick={() =>
+											setFieldValues((prev) => {
+												const next = new Set(prev);
+												if (on) next.delete(value);
+												else next.add(value);
+												return next;
+											})
+										}
+									>
+										{value}
+									</Button>
+								);
+							})}
+						</div>
+					)}
+				</div>
+			)}
+
 			<div className="flex items-center justify-between gap-2">
 				<Input
 					placeholder="Search name or email..."
@@ -336,7 +430,7 @@ export function SendCertificatesPanel({
 						/>
 					) : (
 						<ul className="divide-y">
-							{visible.map((p) => {
+							{visible.slice(0, RENDER_LIMIT).map((p) => {
 								const isSelected = selected.has(p.public_id);
 								const alreadySent =
 									p.certificate_status &&
@@ -378,6 +472,14 @@ export function SendCertificatesPanel({
 					)}
 				</div>
 			</div>
+
+			{visible.length > RENDER_LIMIT && (
+				<p className="text-muted-foreground text-xs">
+					Showing the first {RENDER_LIMIT} of {visible.length}. Use search or
+					the filters to narrow the list; "Select all" covers all{" "}
+					{visible.length}.
+				</p>
+			)}
 
 			<div className="flex items-center justify-end gap-2">
 				{onClose && (

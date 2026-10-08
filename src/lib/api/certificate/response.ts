@@ -88,6 +88,8 @@ export type CertificateParticipant = {
 	rfid_qualified: boolean;
 	// Met every mandatory RFID session (or was waived), feedback not required.
 	sessions_done: boolean;
+	/** Registration answers staff can filter by (category, agency...). */
+	custom_fields: Record<string, string>;
 	certificate_status: CertificateDeliveryStatus | null;
 	certificate_sent_at: string | null;
 	last_delivery_id: number | null;
