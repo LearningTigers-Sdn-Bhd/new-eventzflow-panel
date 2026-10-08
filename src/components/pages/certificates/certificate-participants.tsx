@@ -309,14 +309,17 @@ export function CertificateParticipants({
 			)}
 
 			<Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
-				<DialogContent className="max-h-[90vh] overflow-y-auto rounded-none sm:max-w-2xl">
-					<DialogHeader>
-						<DialogTitle>Send certificates</DialogTitle>
-						<DialogDescription>
-							Choose who receives a certificate. You can exclude individual
-							attendees before sending.
-						</DialogDescription>
-					</DialogHeader>
+				<DialogContent className="!max-w-none sm:!max-w-none !w-screen !h-[100dvh] !rounded-none !border-0 !p-0 !gap-0 flex flex-col bg-background shadow-none duration-200">
+					<div className="flex-none border-b px-6 py-4">
+						<DialogHeader className="sm:text-left">
+							<DialogTitle>Send certificates</DialogTitle>
+							<DialogDescription>
+								Choose who receives a certificate on the left; the guests it
+								applies to are listed on the right. You can untick individual
+								guests before sending.
+							</DialogDescription>
+						</DialogHeader>
+					</div>
 					<SendCertificatesPanel
 						eventId={eventId}
 						onClose={() => setSendDialogOpen(false)}

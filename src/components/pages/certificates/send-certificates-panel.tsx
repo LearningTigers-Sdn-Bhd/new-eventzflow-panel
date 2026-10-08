@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	MultiSelect,
+	MultiSelectContent,
+	MultiSelectItem,
+	MultiSelectTrigger,
+	MultiSelectValue,
+} from "@/components/ui/multi-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Select,
@@ -25,6 +32,7 @@ import {
 	sendCertificates,
 } from "@/lib/api/certificate";
 import { getRfidEligibilityFields } from "@/lib/api/rfid";
+import { cn } from "@/lib/utils";
 
 type Audience = CertificateAudience;
 
@@ -32,6 +40,41 @@ const NO_FIELD = "none";
 // Rows drawn at once; thousands of checkboxes make the modal sluggish.
 // "Select all" still covers every matching row.
 const RENDER_LIMIT = 200;
+// Above this many values a dropdown is unwieldy, so the value is typed + searched.
+const SEARCHABLE_OVER = 30;
+
+const AUDIENCES: { value: Audience; label: string; hint: string }[] = [
+	{
+		value: "rfid_qualified",
+		label: "Finished all sessions and feedback",
+		hint: "Both required",
+	},
+	{
+		value: "sessions_or_feedback",
+		label: "Finished all sessions or feedback",
+		hint: "Either one is enough",
+	},
+	{
+		value: "sessions_done",
+		label: "Finished all sessions only",
+		hint: "Feedback not needed",
+	},
+	{
+		value: "feedback_submitted",
+		label: "Submitted feedback only",
+		hint: "Sessions not checked",
+	},
+	{ value: "all", label: "All ticket holders", hint: "No attendance check" },
+	{
+		value: "checked_in",
+		label: "Only checked-in",
+		hint: "No attendance check",
+	},
+];
+
+// Same solid square badge the Certificate status column uses.
+const BADGE =
+	"rounded-none border-transparent px-2 py-0.5 font-bold text-white text-xs";
 
 // "nama_agensi" -> "Nama agensi"
 const fieldLabel = (key: string) => {
@@ -219,187 +262,157 @@ export function SendCertificatesPanel({
 		});
 	};
 
-	return (
-		<div className="space-y-4">
-			<div className="space-y-2">
-				<Label>Audience</Label>
-				<RadioGroup
-					value={audience}
-					onValueChange={(v) => setAudience(v as Audience)}
-					className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
-				>
-					<label
-						htmlFor="audience-rfid_qualified"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem
-							id="audience-rfid_qualified"
-							value="rfid_qualified"
-							className="mt-0.5"
-						/>
-						<span>
-							Finished all sessions and feedback
-							<span className="block text-muted-foreground text-xs">
-								Both required
-							</span>
-						</span>
-					</label>
-					<label
-						htmlFor="audience-sessions_or_feedback"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem
-							id="audience-sessions_or_feedback"
-							value="sessions_or_feedback"
-							className="mt-0.5"
-						/>
-						<span>
-							Finished all sessions or feedback
-							<span className="block text-muted-foreground text-xs">
-								Either one is enough
-							</span>
-						</span>
-					</label>
-					<label
-						htmlFor="audience-sessions_done"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem
-							id="audience-sessions_done"
-							value="sessions_done"
-							className="mt-0.5"
-						/>
-						<span>
-							Finished all sessions only
-							<span className="block text-muted-foreground text-xs">
-								Feedback not needed
-							</span>
-						</span>
-					</label>
-					<label
-						htmlFor="audience-feedback_submitted"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem
-							id="audience-feedback_submitted"
-							value="feedback_submitted"
-							className="mt-0.5"
-						/>
-						<span>
-							Submitted feedback only
-							<span className="block text-muted-foreground text-xs">
-								Sessions not checked
-							</span>
-						</span>
-					</label>
-					<label
-						htmlFor="audience-all"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem id="audience-all" value="all" className="mt-0.5" />
-						<span>
-							All ticket holders
-							<span className="block text-muted-foreground text-xs">
-								No attendance check
-							</span>
-						</span>
-					</label>
-					<label
-						htmlFor="audience-checked_in"
-						className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
-					>
-						<RadioGroupItem
-							id="audience-checked_in"
-							value="checked_in"
-							className="mt-0.5"
-						/>
-						<span>
-							Only checked-in
-							<span className="block text-muted-foreground text-xs">
-								No attendance check
-							</span>
-						</span>
-					</label>
-				</RadioGroup>
-				<label
-					htmlFor="skip-sent"
-					className="flex cursor-pointer items-center gap-2 text-sm"
-				>
-					<Checkbox
-						id="skip-sent"
-						checked={skipSent}
-						onCheckedChange={(v) => setSkipSent(v === true)}
-					/>
-					Skip people who already received a certificate
-				</label>
-			</div>
+	const narrowed = fieldKey !== NO_FIELD;
+	const narrowLabel = narrowed ? fieldLabel(fieldKey) : "";
 
-			{fields.length > 0 && (
+	return (
+		<div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
+			<div className="flex w-full flex-none flex-col gap-6 overflow-y-auto border-r p-6 lg:w-[420px]">
 				<div className="space-y-2">
-					<Label>Narrow down by registration field (optional)</Label>
-					<Select
-						value={fieldKey}
-						onValueChange={(key) => {
-							setFieldKey(key);
-							setFieldValues(new Set());
-						}}
+					<Label>Audience</Label>
+					<RadioGroup
+						value={audience}
+						onValueChange={(v) => setAudience(v as Audience)}
+						className="gap-2"
 					>
-						<SelectTrigger className="w-full max-w-xs rounded-none">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value={NO_FIELD}>No narrowing</SelectItem>
-							{fields.map((f) => (
-								<SelectItem key={f.key} value={f.key}>
-									{fieldLabel(f.key)}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					{fieldKey !== NO_FIELD && (
-						<div className="flex flex-wrap gap-2">
-							{fieldOptions.map((value) => {
-								const on = fieldValues.has(value);
-								return (
-									<Button
-										key={value}
-										type="button"
-										size="sm"
-										variant={on ? "default" : "outline"}
-										className="h-auto max-w-full whitespace-normal rounded-none py-1 text-left"
-										onClick={() =>
-											setFieldValues((prev) => {
-												const next = new Set(prev);
-												if (on) next.delete(value);
-												else next.add(value);
-												return next;
-											})
+						{AUDIENCES.map((item) => (
+							<label
+								key={item.value}
+								htmlFor={`audience-${item.value}`}
+								className="flex cursor-pointer items-start gap-2 rounded-none border p-3 text-sm"
+							>
+								<RadioGroupItem
+									id={`audience-${item.value}`}
+									value={item.value}
+									className="mt-0.5"
+								/>
+								<span>
+									{item.label}
+									<span className="block text-muted-foreground text-xs">
+										{item.hint}
+									</span>
+								</span>
+							</label>
+						))}
+					</RadioGroup>
+					<label
+						htmlFor="skip-sent"
+						className="flex cursor-pointer items-center gap-2 pt-1 text-sm"
+					>
+						<Checkbox
+							id="skip-sent"
+							checked={skipSent}
+							onCheckedChange={(v) => setSkipSent(v === true)}
+						/>
+						Skip people who already received a certificate
+					</label>
+				</div>
+
+				{fields.length > 0 && (
+					<div className="space-y-2">
+						<Label>Narrow down by registration field (optional)</Label>
+						<Select
+							value={fieldKey}
+							onValueChange={(key) => {
+								setFieldKey(key);
+								setFieldValues(new Set());
+							}}
+						>
+							<SelectTrigger className="w-full rounded-none">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value={NO_FIELD}>No narrowing</SelectItem>
+								{fields.map((f) => (
+									<SelectItem key={f.key} value={f.key}>
+										{fieldLabel(f.key)}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						{narrowed &&
+							(fieldOptions.length > SEARCHABLE_OVER ? (
+								// Long lists (e.g. hundreds of agency names): type to search.
+								<>
+									<Input
+										list="cert-field-values"
+										className="rounded-none"
+										placeholder={`Type to search ${fieldOptions.length} values…`}
+										value={[...fieldValues][0] ?? ""}
+										onChange={(e) =>
+											setFieldValues(
+												new Set(e.target.value ? [e.target.value] : []),
+											)
 										}
-									>
-										{value}
-									</Button>
-								);
-							})}
-						</div>
+									/>
+									<datalist id="cert-field-values">
+										{fieldOptions.map((value) => (
+											<option key={value} value={value} />
+										))}
+									</datalist>
+								</>
+							) : (
+								<MultiSelect
+									value={[...fieldValues]}
+									onValueChange={(values) => setFieldValues(new Set(values))}
+								>
+									<MultiSelectTrigger className="rounded-none">
+										<MultiSelectValue placeholder="Value (pick one or more)" />
+									</MultiSelectTrigger>
+									<MultiSelectContent>
+										{fieldOptions.map((value) => (
+											<MultiSelectItem key={value} value={value}>
+												{value}
+											</MultiSelectItem>
+										))}
+									</MultiSelectContent>
+								</MultiSelect>
+							))}
+					</div>
+				)}
+
+				<div className="mt-auto flex flex-col gap-2">
+					<Button
+						className="w-full rounded-none"
+						onClick={handleSend}
+						disabled={sendMutation.isPending || recipientCount === 0}
+					>
+						{sendMutation.isPending
+							? "Sending..."
+							: `Send to ${recipientCount} selected`}
+					</Button>
+					{onClose && (
+						<Button
+							variant="outline"
+							className="w-full rounded-none"
+							onClick={onClose}
+						>
+							Cancel
+						</Button>
 					)}
 				</div>
-			)}
+			</div>
 
-			<div className="flex items-center justify-between gap-2">
-				<Input
-					placeholder="Search name or email..."
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-					className="max-w-xs rounded-none"
-				/>
-				<div className="flex items-center gap-3">
+			<div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-muted/10 p-6 lg:p-8">
+				<div className="flex flex-wrap items-center gap-2 text-sm">
+					<Badge variant="secondary" className="rounded-none">
+						{eligible.length} guest{eligible.length === 1 ? "" : "s"} match
+					</Badge>
 					<Badge variant="secondary" className="rounded-none">
 						{recipientCount} selected
 					</Badge>
+				</div>
+				<div className="flex items-center gap-3">
+					<Input
+						placeholder="Search name or email..."
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						className="min-w-0 flex-1 rounded-none bg-background"
+					/>
 					{visible.length > 0 && (
 						<label
 							htmlFor="select-all-recipients"
-							className="flex cursor-pointer items-center gap-2 rounded-none border p-3 text-sm"
+							className="flex shrink-0 cursor-pointer items-center gap-2 rounded-none border bg-background px-3 py-2 text-sm"
 						>
 							<Checkbox
 								id="select-all-recipients"
@@ -410,90 +423,94 @@ export function SendCertificatesPanel({
 						</label>
 					)}
 				</div>
-			</div>
 
-			<div className="rounded-none border">
-				<div className="max-h-72 overflow-y-auto">
-					{isLoading ? (
-						<LoadingState title="Loading attendees..." height="h-48" />
-					) : error ? (
-						<ErrorState
-							title="Failed to load attendees"
-							height="h-48"
-							action={<Button onClick={() => refetch()}>Retry</Button>}
-						/>
-					) : visible.length === 0 ? (
-						<EmptyState
-							title="No eligible attendees"
-							description="No attendees match this audience and have an email on file."
-							height="h-48"
-						/>
-					) : (
-						<ul className="divide-y">
-							{visible.slice(0, RENDER_LIMIT).map((p) => {
-								const isSelected = selected.has(p.public_id);
-								const alreadySent =
-									p.certificate_status &&
-									SENT_STATUSES.has(p.certificate_status);
-								return (
-									<li
-										key={p.public_id}
-										className="flex items-center gap-3 px-3 py-2 text-sm"
-									>
-										<Checkbox
-											checked={isSelected}
-											onCheckedChange={() => toggle(p.public_id)}
-										/>
-										<div className="min-w-0 flex-1">
-											<p className="truncate font-medium">{p.attendee_name}</p>
-											<p className="truncate text-muted-foreground text-xs">
-												{p.attendee_email}
-											</p>
-										</div>
-										{p.checked_in && (
-											<Badge variant="outline" className="text-xs">
-												Checked in
-											</Badge>
-										)}
-										{p.feedback_submitted && (
-											<Badge variant="outline" className="text-xs">
-												Feedback
-											</Badge>
-										)}
-										{alreadySent && (
-											<Badge variant="outline" className="text-xs">
-												Already sent
-											</Badge>
-										)}
-									</li>
-								);
-							})}
-						</ul>
-					)}
-				</div>
-			</div>
-
-			{visible.length > RENDER_LIMIT && (
-				<p className="text-muted-foreground text-xs">
-					Showing the first {RENDER_LIMIT} of {visible.length}. Use search or
-					the filters to narrow the list; "Select all" covers all{" "}
-					{visible.length}.
-				</p>
-			)}
-
-			<div className="flex items-center justify-end gap-2">
-				{onClose && (
-					<Button variant="outline" className="rounded-none" onClick={onClose}>
-						Cancel
-					</Button>
+				{isLoading ? (
+					<LoadingState title="Loading attendees..." height="h-48" />
+				) : error ? (
+					<ErrorState
+						title="Failed to load attendees"
+						height="h-48"
+						action={<Button onClick={() => refetch()}>Retry</Button>}
+					/>
+				) : visible.length === 0 ? (
+					<EmptyState
+						title="No eligible attendees"
+						description="No attendees match this audience and have an email on file."
+						height="h-48"
+					/>
+				) : (
+					<div className="border bg-background">
+						<table className="w-full text-sm">
+							<thead className="border-b text-left text-muted-foreground">
+								<tr>
+									<th className="w-10 px-3 py-2" />
+									<th className="px-3 py-2 font-medium">Guest</th>
+									<th className="px-3 py-2 font-medium">Ticket type</th>
+									{narrowed && (
+										<th className="px-3 py-2 font-medium">{narrowLabel}</th>
+									)}
+									<th className="px-3 py-2 font-medium">Status</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y">
+								{visible.slice(0, RENDER_LIMIT).map((p) => {
+									const alreadySent =
+										p.certificate_status &&
+										SENT_STATUSES.has(p.certificate_status);
+									return (
+										<tr key={p.public_id}>
+											<td className="px-3 py-2">
+												<Checkbox
+													checked={selected.has(p.public_id)}
+													onCheckedChange={() => toggle(p.public_id)}
+												/>
+											</td>
+											<td className="px-3 py-2">
+												<div className="font-medium">{p.attendee_name}</div>
+												<div className="text-muted-foreground text-xs">
+													{p.attendee_email}
+												</div>
+											</td>
+											<td className="px-3 py-2">{p.ticket_type ?? "—"}</td>
+											{narrowed && (
+												<td className="px-3 py-2">
+													{p.custom_fields?.[fieldKey] || "—"}
+												</td>
+											)}
+											<td className="px-3 py-2">
+												<div className="flex flex-wrap gap-1">
+													{p.checked_in && (
+														<Badge className={cn(BADGE, "bg-green-500")}>
+															Checked in
+														</Badge>
+													)}
+													{p.feedback_submitted && (
+														<Badge className={cn(BADGE, "bg-blue-500")}>
+															Feedback
+														</Badge>
+													)}
+													{alreadySent && (
+														<Badge className={cn(BADGE, "bg-cyan-500")}>
+															Already sent
+														</Badge>
+													)}
+												</div>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
 				)}
-				<Button
-					className="rounded-none"
-					onClick={handleSend}
-					disabled={sendMutation.isPending || recipientCount === 0}
-				>
-					{sendMutation.isPending ? "Sending..." : `Send to ${recipientCount}`}
-				</Button>
+
+				{visible.length > RENDER_LIMIT && (
+					<p className="text-muted-foreground text-xs">
+						Showing the first {RENDER_LIMIT} of {visible.length}. Use search or
+						the filters to narrow the list; "Select all" covers all{" "}
+						{visible.length}.
+					</p>
+				)}
 			</div>
 		</div>
 	);
