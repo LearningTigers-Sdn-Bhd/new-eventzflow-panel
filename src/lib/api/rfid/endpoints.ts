@@ -227,7 +227,11 @@ export function bulkRfidCertOverride(
 		q?: string;
 		ticket_type_id?: string;
 		min_percent?: string;
-		custom_fields?: Record<string, string>;
+		// Event days as groups of session ids; with `attended_mode` keeps guests
+		// who came on any / every / only some of those days (any time inside).
+		attended_days?: number[][];
+		attended_mode?: "any" | "all" | "partial";
+		custom_fields?: Record<string, string[]>;
 	},
 ): Promise<RfidBulkOverrideResult> {
 	return restClient.post<RfidBulkOverrideResult>(

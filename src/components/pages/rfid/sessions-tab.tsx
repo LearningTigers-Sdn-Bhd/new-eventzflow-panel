@@ -991,6 +991,7 @@ export function SessionsTab({
 				eventId={eventId}
 				open={bulkWaiveOpen}
 				ticketTypes={eligibilityQuery.data?.ticket_types ?? []}
+				sessions={required}
 				onClose={() => setBulkWaiveOpen(false)}
 			/>
 

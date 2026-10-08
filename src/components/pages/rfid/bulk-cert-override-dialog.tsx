@@ -6,6 +6,7 @@ import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	MultiSelect,
+	MultiSelectContent,
+	MultiSelectItem,
+	MultiSelectTrigger,
+	MultiSelectValue,
+} from "@/components/ui/multi-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Select,
@@ -31,7 +39,35 @@ const ALL = "all";
 // Above this many values a dropdown is unwieldy, so the value is typed + searched.
 const SEARCHABLE_OVER = 30;
 
-type FieldFilter = { key: string; value: string };
+type AttendedMode = "any" | "all" | "partial";
+const ATTENDED_MODES: { value: AttendedMode; label: string; hint: string }[] = [
+	{
+		value: "any",
+		label: "Came on at least one day",
+		hint: "One day or more. Guests who never came are left out.",
+	},
+	{
+		value: "all",
+		label: "Came on every day",
+		hint: "Showed up on each ticked day.",
+	},
+	{
+		value: "partial",
+		label: "Came on some days only",
+		hint: "Came on one day but missed another (e.g. day 1 yes, day 2 no).",
+	},
+];
+
+// Local calendar day, so sessions on the same date group together.
+const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA");
+const dayLabel = (iso: string) =>
+	new Date(iso).toLocaleDateString("en-GB", {
+		weekday: "short",
+		day: "numeric",
+		month: "short",
+	});
+
+type FieldFilter = { key: string; values: string[] };
 
 // "nama_agensi" -> "Nama agensi"
 const fieldLabel = (key: string) => {
@@ -51,16 +87,23 @@ export function BulkCertOverrideDialog({
 	eventId,
 	open,
 	ticketTypes,
+	sessions,
 	onClose,
 }: {
 	eventId: string;
 	open: boolean;
 	ticketTypes: { id: number; name: string }[];
+	sessions: { id: number; name: string; starts_at: string }[];
 	onClose: () => void;
 }) {
 	const queryClient = useQueryClient();
 	const [reason, setReason] = useState("");
-	const [nearMiss, setNearMiss] = useState(false);
+	const [who, setWho] = useState<"all" | "near" | "attended">("all");
+	const nearMiss = who === "near";
+	const attendedOnly = who === "attended";
+	const [attendedMode, setAttendedMode] = useState<AttendedMode>("any");
+	// null = every day ticked (the default).
+	const [pickedDays, setPickedDays] = useState<string[] | null>(null);
 	const [minPercent, setMinPercent] = useState(NEAR_MISS_PERCENTS[0]);
 	const [ticketTypeId, setTicketTypeId] = useState(ALL);
 	const [fieldFilters, setFieldFilters] = useState<FieldFilter[]>([]);
@@ -75,12 +118,34 @@ export function BulkCertOverrideDialog({
 	const fields = fieldsQuery.data?.fields ?? [];
 
 	const customFields = Object.fromEntries(
-		fieldFilters.filter((f) => f.key && f.value).map((f) => [f.key, f.value]),
+		fieldFilters
+			.filter((f) => f.key && f.values.length)
+			.map((f) => [f.key, f.values]),
 	);
 	// The search box only narrows the preview; it also narrows who is waived, so
 	// what you see on the right is exactly who gets waived.
+	const days = [
+		...Map.groupBy(
+			[...sessions].sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
+			(session) => dayKey(session.starts_at),
+		),
+	].map(([key, list]) => ({
+		key,
+		label: dayLabel(list[0].starts_at),
+		ids: list.map((session) => session.id),
+		names: list.map((session) => session.name).join(", "),
+	}));
+	const tickedDays = days.filter((day) =>
+		(pickedDays ?? days.map((d) => d.key)).includes(day.key),
+	);
 	const payload = {
 		min_percent: nearMiss ? minPercent : undefined,
+		// Held back: guests who attended none of the ticked sessions.
+		attended_days:
+			attendedOnly && tickedDays.length
+				? tickedDays.map((day) => day.ids)
+				: undefined,
+		attended_mode: attendedOnly && tickedDays.length ? attendedMode : undefined,
 		ticket_type_id: ticketTypeId === ALL ? undefined : ticketTypeId,
 		custom_fields: Object.keys(customFields).length ? customFields : undefined,
 		q: deferredSearch || undefined,
@@ -137,8 +202,8 @@ export function BulkCertOverrideDialog({
 						<div className="space-y-2">
 							<Label>Who</Label>
 							<RadioGroup
-								value={nearMiss ? "near" : "all"}
-								onValueChange={(v) => setNearMiss(v === "near")}
+								value={who}
+								onValueChange={(v) => setWho(v as typeof who)}
 								className="gap-2"
 							>
 								<label
@@ -171,6 +236,91 @@ export function BulkCertOverrideDialog({
 										</SelectContent>
 									</Select>
 								</label>
+								<div className="space-y-3 border p-3 text-sm">
+									<label
+										htmlFor="bulk-who-attended"
+										className="flex cursor-pointer items-start gap-2"
+									>
+										<RadioGroupItem
+											id="bulk-who-attended"
+											value="attended"
+											className="mt-0.5"
+										/>
+										<span>
+											Only guests by attendance
+											<span className="block text-muted-foreground text-xs">
+												Pick by event day. Being inside at any time during a
+												day's sessions counts as coming that day.
+											</span>
+										</span>
+									</label>
+									<div className="space-y-3 pl-6">
+										<div className="space-y-2">
+											<p className="font-medium text-xs">
+												Event days that count
+											</p>
+											{days.map((day) => (
+												<label
+													key={day.key}
+													htmlFor={`bulk-day-${day.key}`}
+													className="flex cursor-pointer items-start gap-2"
+												>
+													<Checkbox
+														id={`bulk-day-${day.key}`}
+														className="mt-0.5"
+														disabled={!attendedOnly}
+														checked={tickedDays.some((d) => d.key === day.key)}
+														onCheckedChange={(checked) =>
+															setPickedDays(
+																checked
+																	? [...tickedDays.map((d) => d.key), day.key]
+																	: tickedDays
+																			.map((d) => d.key)
+																			.filter((key) => key !== day.key),
+															)
+														}
+													/>
+													<span>
+														{day.label}
+														<span className="block text-muted-foreground text-xs">
+															{day.names}
+														</span>
+													</span>
+												</label>
+											))}
+										</div>
+										<RadioGroup
+											value={attendedMode}
+											onValueChange={(v) => setAttendedMode(v as AttendedMode)}
+											disabled={!attendedOnly}
+											className="gap-2"
+										>
+											<p className="font-medium text-xs">Guest must have</p>
+											{ATTENDED_MODES.map((mode) => (
+												<label
+													key={mode.value}
+													htmlFor={`bulk-mode-${mode.value}`}
+													className="flex cursor-pointer items-start gap-2"
+												>
+													<RadioGroupItem
+														id={`bulk-mode-${mode.value}`}
+														value={mode.value}
+														disabled={mode.value !== "any" && days.length < 2}
+														className="mt-0.5"
+													/>
+													<span>
+														{mode.label}
+														<span className="block text-muted-foreground text-xs">
+															{mode.value !== "any" && days.length < 2
+																? "Needs an event with more than one day."
+																: mode.hint}
+														</span>
+													</span>
+												</label>
+											))}
+										</RadioGroup>
+									</div>
+								</div>
 							</RadioGroup>
 						</div>
 
@@ -202,7 +352,7 @@ export function BulkCertOverrideDialog({
 											<Select
 												value={filter.key}
 												onValueChange={(key) =>
-													updateFilter(index, { key, value: "" })
+													updateFilter(index, { key, values: [] })
 												}
 											>
 												<SelectTrigger className="w-full rounded-none">
@@ -242,10 +392,12 @@ export function BulkCertOverrideDialog({
 													list={`bulk-values-${index}`}
 													className="rounded-none"
 													placeholder={`Type to search ${options.length} values…`}
-													value={filter.value}
+													value={filter.values[0] ?? ""}
 													disabled={!filter.key}
 													onChange={(e) =>
-														updateFilter(index, { value: e.target.value })
+														updateFilter(index, {
+															values: e.target.value ? [e.target.value] : [],
+														})
 													}
 												/>
 												<datalist id={`bulk-values-${index}`}>
@@ -255,24 +407,26 @@ export function BulkCertOverrideDialog({
 												</datalist>
 											</>
 										) : (
-											<Select
-												value={filter.value}
-												onValueChange={(value) =>
-													updateFilter(index, { value })
+											<MultiSelect
+												value={filter.values}
+												onValueChange={(values) =>
+													updateFilter(index, { values })
 												}
-												disabled={!filter.key}
 											>
-												<SelectTrigger className="w-full rounded-none">
-													<SelectValue placeholder="Value" />
-												</SelectTrigger>
-												<SelectContent>
+												<MultiSelectTrigger
+													className="rounded-none"
+													disabled={!filter.key}
+												>
+													<MultiSelectValue placeholder="Value (pick one or more)" />
+												</MultiSelectTrigger>
+												<MultiSelectContent>
 													{options.map((value) => (
-														<SelectItem key={value} value={value}>
+														<MultiSelectItem key={value} value={value}>
 															{value}
-														</SelectItem>
+														</MultiSelectItem>
 													))}
-												</SelectContent>
-											</Select>
+												</MultiSelectContent>
+											</MultiSelect>
 										)}
 									</div>
 								);
@@ -283,7 +437,10 @@ export function BulkCertOverrideDialog({
 									size="sm"
 									className="rounded-none"
 									onClick={() =>
-										setFieldFilters((prev) => [...prev, { key: "", value: "" }])
+										setFieldFilters((prev) => [
+											...prev,
+											{ key: "", values: [] },
+										])
 									}
 								>
 									<Plus className="size-4" />
