@@ -414,91 +414,192 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 
 				{hostStep === "new_account" && (
 					<div className="space-y-4">
-						<p className="text-muted-foreground text-sm">
-							Create an account for the host and assign them to this session
-							directly. Their email will be auto-verified.
-						</p>
-						<div className="space-y-1">
-							<Label htmlFor="host-email">Host Email</Label>
-							<Input
-								id="host-email"
-								type="email"
-								value={hostEmail.trim().toLowerCase()}
-								readOnly
-								className="cursor-not-allowed bg-muted"
-							/>
-							<div>
-								<button
-									type="button"
-									onClick={handleResetEmailFlow}
-									className="text-primary text-xs underline hover:text-primary/80"
-								>
-									Change email
-								</button>
+						<div className="space-y-2 rounded-lg border bg-muted/40 p-4">
+							<div className="flex items-center gap-2 font-medium text-foreground">
+								<Mail className="h-5 w-5 text-primary" />
+								<span>Invite New Host</span>
 							</div>
+							<p className="text-muted-foreground text-sm">
+								No existing account found for{" "}
+								<strong className="text-foreground">
+									{hostEmail.trim().toLowerCase()}
+								</strong>
+								.
+							</p>
+							<p className="text-muted-foreground text-xs">
+								You can send them an email invite to register themselves and accept. Once they register and accept, their email will be automatically verified and assigned as a host.
+							</p>
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="host-name">Host Full Name</Label>
-							<Input
-								id="host-name"
-								value={hostName}
-								onChange={(e) => setHostName(e.target.value)}
-								placeholder="John Doe"
-							/>
+
+						<div className="space-y-3">
+							<div className="space-y-1.5">
+								<Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+									Option 1: Send Invitation Email
+								</Label>
+								<p className="text-muted-foreground text-xs">
+									Send an email invite with a direct join link to{" "}
+									{hostEmail.trim().toLowerCase()}.
+								</p>
+								<div className="space-y-1 py-1">
+									<Label htmlFor="custom-invite-note-new" className="text-xs">
+										Personal Note / Custom Message (Optional)
+									</Label>
+									<Textarea
+										id="custom-invite-note-new"
+										placeholder="Add a personal note or custom instructions..."
+										value={customInviteNote}
+										onChange={(e) => setCustomInviteNote(e.target.value)}
+										rows={2}
+										className="text-xs"
+									/>
+								</div>
+								<Button
+									type="button"
+									onClick={handleSendEmailInvite}
+									disabled={isSendingInviteEmail}
+									className="w-full"
+								>
+									{isSendingInviteEmail ? (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									) : (
+										<Mail className="mr-2 h-4 w-4" />
+									)}
+									Send Invitation Email
+								</Button>
+							</div>
+
+							<div className="relative py-2">
+								<div className="absolute inset-0 flex items-center">
+									<span className="w-full border-t" />
+								</div>
+								<div className="relative flex justify-center text-xs uppercase">
+									<span className="bg-background px-2 text-muted-foreground">
+										Or
+									</span>
+								</div>
+							</div>
+
+							<div className="space-y-1.5">
+								<Label
+									htmlFor="invite-link-new"
+									className="font-semibold text-muted-foreground text-xs uppercase tracking-wider"
+								>
+									Option 2: Copy Invitation Link
+								</Label>
+								<div className="flex gap-2">
+									<Input
+										id="invite-link-new"
+										value={
+											isLoadingInviteLink ? "Generating link..." : inviteLink
+										}
+										readOnly
+									/>
+									<Button
+										type="button"
+										variant="secondary"
+										onClick={copyInviteLink}
+										disabled={!inviteLink}
+									>
+										<Copy className="mr-2 h-4 w-4" />
+										Copy
+									</Button>
+								</div>
+							</div>
+
+							<div className="relative py-2">
+								<div className="absolute inset-0 flex items-center">
+									<span className="w-full border-t" />
+								</div>
+								<div className="relative flex justify-center text-xs uppercase">
+									<span className="bg-background px-2 text-muted-foreground">
+										Or
+									</span>
+								</div>
+							</div>
+
+							<details className="group rounded-lg border p-3">
+								<summary className="cursor-pointer text-xs font-medium text-muted-foreground transition hover:text-foreground">
+									Option 3: Create account manually on behalf of host
+								</summary>
+								<div className="space-y-4 pt-3">
+									<p className="text-muted-foreground text-xs">
+										Manually specify a password and tags for this host right now. Their email will be auto-verified.
+									</p>
+									<div className="space-y-2">
+										<Label htmlFor="host-name">Host Full Name</Label>
+										<Input
+											id="host-name"
+											value={hostName}
+											onChange={(e) => setHostName(e.target.value)}
+											placeholder="John Doe"
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="host-phone">Host Phone (Optional)</Label>
+										<Input
+											id="host-phone"
+											type="tel"
+											value={hostPhone}
+											onChange={(e) => setHostPhone(e.target.value)}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="host-password">Password</Label>
+										<Input
+											id="host-password"
+											type="password"
+											value={hostPassword}
+											onChange={(e) => setHostPassword(e.target.value)}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="host-offering-tags">
+											Offering Tags (Optional)
+										</Label>
+										<MultiSelectLegacy
+											options={(availableTags?.offering_tags || []).map((t) => ({
+												label: t,
+												value: t,
+											}))}
+											selected={offeringTags}
+											onChange={setOfferingTags}
+											placeholder="Select offering tags"
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="host-interest-tags">
+											Interest Tags (Optional)
+										</Label>
+										<MultiSelectLegacy
+											options={(availableTags?.interest_tags || []).map((t) => ({
+												label: t,
+												value: t,
+											}))}
+											selected={interestTags}
+											onChange={setInterestTags}
+											placeholder="Select interest tags"
+										/>
+									</div>
+									<div className="flex justify-end pt-2">
+										<Button onClick={handleCreateHost} disabled={isCreating}>
+											{isCreating && (
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											)}
+											Create and Assign Host
+										</Button>
+									</div>
+								</div>
+							</details>
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="host-phone">Host Phone (Optional)</Label>
-							<Input
-								id="host-phone"
-								type="tel"
-								value={hostPhone}
-								onChange={(e) => setHostPhone(e.target.value)}
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="host-password">Password</Label>
-							<Input
-								id="host-password"
-								type="password"
-								value={hostPassword}
-								onChange={(e) => setHostPassword(e.target.value)}
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="host-offering-tags">
-								Offering Tags (Optional)
-							</Label>
-							<MultiSelectLegacy
-								options={(availableTags?.offering_tags || []).map((t) => ({
-									label: t,
-									value: t,
-								}))}
-								selected={offeringTags}
-								onChange={setOfferingTags}
-								placeholder="Select offering tags"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="host-interest-tags">
-								Interest Tags (Optional)
-							</Label>
-							<MultiSelectLegacy
-								options={(availableTags?.interest_tags || []).map((t) => ({
-									label: t,
-									value: t,
-								}))}
-								selected={interestTags}
-								onChange={setInterestTags}
-								placeholder="Select interest tags"
-							/>
-						</div>
-						<div className="flex justify-end pt-4">
-							<Button onClick={handleCreateHost} disabled={isCreating}>
-								{isCreating && (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								)}
-								Create and Assign Host
-							</Button>
+
+						<div className="pt-2 text-center">
+							<button
+								type="button"
+								onClick={handleResetEmailFlow}
+								className="text-muted-foreground text-xs underline hover:text-foreground"
+							>
+								Check a different email
+							</button>
 						</div>
 					</div>
 				)}
