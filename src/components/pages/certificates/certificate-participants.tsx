@@ -25,6 +25,7 @@ import {
 } from "@/lib/api/certificate";
 import { getEventById } from "@/lib/api/event";
 import { getFeedbackForm } from "@/lib/api/feedback-form";
+import { AutoSendFilter } from "./auto-send-filter";
 import {
 	type CertificateParticipantsTableMeta,
 	certificateParticipantsColumns,
@@ -264,6 +265,10 @@ export function CertificateParticipants({
 					disabled={requireFeedbackMutation.isPending}
 					description="Each attendee gets their certificate by email right after they submit the feedback form. Needs the template marked ready and an active feedback form. You can still send manually, e.g. to the 'Submitted feedback' audience."
 				/>
+			)}
+
+			{hasTemplates && requireFeedback && (
+				<AutoSendFilter eventId={eventId} templates={templates} />
 			)}
 
 			{feedbackGateProblems.length > 0 && (

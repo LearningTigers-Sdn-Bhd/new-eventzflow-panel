@@ -77,7 +77,7 @@ const BADGE =
 	"rounded-none border-transparent px-2 py-0.5 font-bold text-white text-xs";
 
 // "nama_agensi" -> "Nama agensi"
-const fieldLabel = (key: string) => {
+export const fieldLabel = (key: string) => {
 	const spaced = key.replace(/_/g, " ").trim();
 	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 };

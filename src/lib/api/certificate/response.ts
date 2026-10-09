@@ -41,6 +41,8 @@ export type CertificateTemplate = {
 	fields: CertificateField[];
 	/** Auto-email the certificate when the attendee submits feedback. */
 	require_feedback: boolean;
+	/** Narrows the auto-send by one registration answer. `{}` = everyone. */
+	auto_send_filter: { key?: string; values?: string[] };
 	background_image_url: string | null;
 	created_at: string;
 	updated_at: string;

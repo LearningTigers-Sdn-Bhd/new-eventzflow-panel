@@ -25,6 +25,10 @@ export const upsertCertificateTemplateSchema = z.object({
 	canvas_height: z.number().positive().optional(),
 	fields: z.array(certificateFieldSchema).optional(),
 	require_feedback: z.boolean().optional(),
+	/** Auto-send only to guests whose registration answer is one of `values`. Empty = everyone. */
+	auto_send_filter: z
+		.object({ key: z.string(), values: z.array(z.string()) })
+		.optional(),
 });
 
 export const sendCertificatesSchema = z.object({
