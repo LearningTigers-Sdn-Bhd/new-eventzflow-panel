@@ -49,7 +49,14 @@ export function useUpdateLuckyDrawSession(eventId: string, sessionId: number) {
 			// When use_gifts changes, participants list changes because:
 			// - When use_gifts is true: backend excludes winners (gift_winners)
 			// - When use_gifts is false: backend excludes invalid participants
-			if (variables.use_gifts !== undefined) {
+			// scanned_only also changes the pool (only checked-in participants)
+			if (
+				variables.use_gifts !== undefined ||
+				variables.scanned_only !== undefined ||
+				variables.scanned_from !== undefined ||
+				variables.scanned_to !== undefined ||
+				variables.scanned_source !== undefined
+			) {
 				queryClient.invalidateQueries({
 					queryKey: ["lucky-draw", "participants", eventId, sessionId],
 				});

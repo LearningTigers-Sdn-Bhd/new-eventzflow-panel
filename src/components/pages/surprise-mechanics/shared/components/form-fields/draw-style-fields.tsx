@@ -56,7 +56,7 @@ export function DrawStyleField({
 }: DrawStyleFieldProps) {
 	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 	return (
-		<Field data-invalid={isInvalid} className="flex flex-col border p-4">
+		<Field data-invalid={isInvalid} className="flex flex-col">
 			<div className="mb-2 space-y-0.5">
 				<FieldLabel htmlFor={field.name}>Draw Style</FieldLabel>
 				<FieldDescription>Choose how winners are visualized</FieldDescription>
@@ -69,7 +69,7 @@ export function DrawStyleField({
 					}}
 					disabled={isPending}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger className="w-full rounded-none">
 						<SelectValue placeholder="Select style" />
 					</SelectTrigger>
 					<SelectContent>
@@ -123,7 +123,7 @@ export function DrawThemeField({
 }: DrawThemeFieldProps) {
 	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 	return (
-		<Field data-invalid={isInvalid} className="flex flex-col border p-4">
+		<Field data-invalid={isInvalid} className="flex flex-col">
 			<div className="mb-2 space-y-0.5">
 				<FieldLabel htmlFor={field.name}>Draw Theme</FieldLabel>
 				<FieldDescription>Visual style for the draw interface</FieldDescription>
@@ -136,7 +136,7 @@ export function DrawThemeField({
 					}}
 					disabled={isPending}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger className="w-full rounded-none">
 						<SelectValue placeholder="Select theme" />
 					</SelectTrigger>
 					<SelectContent>
@@ -166,7 +166,7 @@ export function DrawStylePreviewWrapper({
 	drawType,
 }: DrawStylePreviewProps) {
 	return (
-		<div className="w-full rounded-lg border bg-muted/10 p-4">
+		<div className="w-full">
 			<DrawStylePreview
 				style={drawStyle}
 				theme={drawTheme}

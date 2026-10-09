@@ -18,6 +18,17 @@ import { SessionCreateForm as BaseCreateForm } from "../shared/components/sessio
 import { SessionEditForm as BaseEditForm } from "../shared/components/session-edit-form";
 import type { BaseSession } from "../shared/types";
 
+const SCANNED_ONLY_ON = (values: Record<string, unknown>) =>
+	values.scanned_only === true;
+
+const SCANNED_SOURCE_OPTIONS = [
+	{ value: "ticket", label: "Ticket check-in (first scan)" },
+	{ value: "scan_log", label: "Scan log (every scan)" },
+];
+
+const SCANNED_SOURCE_HELP =
+	"Applies when a day range is set. Ticket check-in uses each guest's first scan. Scan log counts every scan, so returning guests count on each day they came, but imported check-ins are not included.";
+
 // Configure table columns
 export function generateColumns() {
 	return generateBaseColumns<LuckyDrawSession>({
@@ -77,6 +88,39 @@ export function CreateForm() {
 						description: "Allow winners to receive gift items",
 						defaultValue: false,
 					},
+					{
+						type: "boolean",
+						name: "scanned_only",
+						label: "Scanned Only (Filtered Pick Pool)",
+						description:
+							"Only participants who have been scanned (checked in) can be drawn",
+						defaultValue: false,
+					},
+					{
+						type: "select",
+						name: "scanned_source",
+						label: "Count scans from",
+						description: SCANNED_SOURCE_HELP,
+						options: SCANNED_SOURCE_OPTIONS,
+						defaultValue: "ticket",
+						renderCondition: SCANNED_ONLY_ON,
+					},
+					{
+						type: "event-day",
+						name: "scanned_from",
+						label: "Scanned from",
+						description: "Earliest event day. Any day if empty",
+						defaultValue: "",
+						renderCondition: SCANNED_ONLY_ON,
+					},
+					{
+						type: "event-day",
+						name: "scanned_to",
+						label: "Scanned until",
+						description: "Latest event day. Any day if empty",
+						defaultValue: "",
+						renderCondition: SCANNED_ONLY_ON,
+					},
 				],
 				successMessage: "Session created successfully",
 			}}
@@ -106,6 +150,43 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 						description: "Allow winners to receive gift items",
 						getValue: (session: BaseSession) =>
 							(session as LuckyDrawSession).use_gifts,
+					},
+					{
+						type: "boolean",
+						name: "scanned_only",
+						label: "Scanned Only (Filtered Pick Pool)",
+						description:
+							"Only participants who have been scanned (checked in) can be drawn",
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_only,
+					},
+					{
+						type: "select",
+						name: "scanned_source",
+						label: "Count scans from",
+						description: SCANNED_SOURCE_HELP,
+						options: SCANNED_SOURCE_OPTIONS,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_source ?? "ticket",
+						renderCondition: SCANNED_ONLY_ON,
+					},
+					{
+						type: "event-day",
+						name: "scanned_from",
+						label: "Scanned from",
+						description: "Earliest event day. Any day if empty",
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_from ?? "",
+						renderCondition: SCANNED_ONLY_ON,
+					},
+					{
+						type: "event-day",
+						name: "scanned_to",
+						label: "Scanned until",
+						description: "Latest event day. Any day if empty",
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_to ?? "",
+						renderCondition: SCANNED_ONLY_ON,
 					},
 				],
 				successMessage: "Session updated successfully",

@@ -19,6 +19,10 @@ export interface LuckyDrawSession {
 		backgroundColor?: string;
 	};
 	use_gifts: boolean;
+	scanned_only: boolean;
+	scanned_from: string | null;
+	scanned_to: string | null;
+	scanned_source: "ticket" | "scan_log";
 	created_at: string;
 	updated_at: string;
 }

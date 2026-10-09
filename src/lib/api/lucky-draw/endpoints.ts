@@ -105,6 +105,13 @@ export async function createLuckyDrawSession(
 		}
 		if (data.use_gifts !== undefined)
 			formData.append("use_gifts", String(data.use_gifts));
+		if (data.scanned_only !== undefined)
+			formData.append("scanned_only", String(data.scanned_only));
+		for (const key of ["scanned_from", "scanned_to"] as const) {
+			if (data[key] !== undefined) formData.append(key, data[key] ?? "");
+		}
+		if (data.scanned_source !== undefined)
+			formData.append("scanned_source", data.scanned_source);
 		if (data.logo) formData.append("logo", data.logo);
 
 		const response = await restClient.postFormData<
@@ -161,6 +168,13 @@ export async function updateLuckyDrawSession(
 		}
 		if (data.use_gifts !== undefined)
 			formData.append("use_gifts", String(data.use_gifts));
+		if (data.scanned_only !== undefined)
+			formData.append("scanned_only", String(data.scanned_only));
+		for (const key of ["scanned_from", "scanned_to"] as const) {
+			if (data[key] !== undefined) formData.append(key, data[key] ?? "");
+		}
+		if (data.scanned_source !== undefined)
+			formData.append("scanned_source", data.scanned_source);
 		if (data.logo) formData.append("logo", data.logo);
 		if (data.remove_logo) formData.append("remove_logo", "true");
 

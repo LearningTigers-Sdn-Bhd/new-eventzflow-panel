@@ -16,6 +16,10 @@ export interface CreateLuckyDrawSessionRequest {
 		backgroundColor?: string;
 	};
 	use_gifts?: boolean;
+	scanned_only?: boolean;
+	scanned_from?: string | null;
+	scanned_to?: string | null;
+	scanned_source?: "ticket" | "scan_log";
 	// Logo is handled via FormData
 }
 
@@ -35,6 +39,10 @@ export interface UpdateLuckyDrawSessionRequest {
 		backgroundColor?: string;
 	};
 	use_gifts?: boolean;
+	scanned_only?: boolean;
+	scanned_from?: string | null;
+	scanned_to?: string | null;
+	scanned_source?: "ticket" | "scan_log";
 	// Logo is handled via FormData
 }
 

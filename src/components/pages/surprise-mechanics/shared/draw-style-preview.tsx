@@ -106,7 +106,7 @@ export default function DrawStylePreview({
 	}, [drawType]);
 
 	return (
-		<div className="flex w-full flex-col items-center justify-center rounded-lg border bg-muted/30 p-6">
+		<div className="flex w-full flex-col items-center justify-center rounded-none border bg-muted/30 p-6">
 			<div className="mb-6 text-center">
 				<h4 className="font-medium text-foreground/80 text-sm">
 					Style Preview
