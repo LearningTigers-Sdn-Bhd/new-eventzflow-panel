@@ -1,0 +1,99 @@
+import { describe, expect, test } from "bun:test";
+import type { HeadcountHall, HeadcountTrends } from "@/lib/api/event/hall";
+import { capacityAlerts } from "./alerts";
+import {
+	dayLabel,
+	hourRange,
+	scopeOptions,
+	signed,
+	timeLabel,
+} from "./trend-format";
+
+const hall = (over: Partial<HeadcountHall>): HeadcountHall => ({
+	id: 1,
+	name: "Hall A",
+	floor: null,
+	status: "ok",
+	insideNow: 0,
+	capacity: 100,
+	inToday: 0,
+	outToday: 0,
+	inEvent: 0,
+	outEvent: 0,
+	...over,
+});
+
+describe("capacityAlerts", () => {
+	test("flags near-full and over-capacity halls, worst first", () => {
+		const alerts = capacityAlerts([
+			hall({ id: 1, name: "Calm", insideNow: 50 }),
+			hall({ id: 2, name: "Near", insideNow: 92 }),
+			hall({ id: 3, name: "Over", insideNow: 120 }),
+		]);
+		expect(alerts.map((a) => [a.hallName, a.level, a.percent])).toEqual([
+			["Over", "over", 120],
+			["Near", "near", 92],
+		]);
+	});
+
+	test("exactly 100% is still 'near', not over", () => {
+		expect(capacityAlerts([hall({ insideNow: 100 })])[0].level).toBe("near");
+	});
+
+	test("skips halls without a figure, a capacity or a working counter", () => {
+		expect(
+			capacityAlerts([
+				hall({ id: 1, insideNow: null }),
+				hall({ id: 2, capacity: null, insideNow: 500 }),
+				hall({ id: 3, status: "unavailable", insideNow: 500 }),
+			]),
+		).toEqual([]);
+	});
+});
+
+describe("time labels", () => {
+	test("slice the counter's clock without parsing it", () => {
+		expect(timeLabel("2026-09-11T14:15:00")).toBe("14:15");
+		expect(hourRange("2026-09-11T14:00:00")).toBe("14:00–15:00");
+		expect(hourRange("2026-09-11T23:00:00")).toBe("23:00–00:00");
+	});
+
+	test("dayLabel formats a date-only string in local time", () => {
+		expect(dayLabel("2026-09-11")).toBe("11 Sep 2026");
+	});
+
+	test("signed uses a plus and a real minus", () => {
+		expect(signed(12)).toBe("+12");
+		expect(signed(-5)).toBe("−5");
+		expect(signed(0)).toBe("0");
+	});
+});
+
+describe("scopeOptions", () => {
+	const empty = { points: [], stats: null };
+	const trends: HeadcountTrends = {
+		configured: true,
+		date: "2026-09-11",
+		days: ["2026-09-11"],
+		bucket: 60,
+		event: empty,
+		levels: [
+			{ floor: "Level 1", ...empty },
+			{ floor: null, ...empty },
+		],
+		halls: [
+			{ id: 1, name: "Hall A", floor: "Level 1", status: "ok", ...empty },
+			{ id: 2, name: "Hall B", floor: null, status: "unlinked", ...empty },
+		],
+		generatedAt: "",
+	};
+
+	test("lists the event, each level and only halls with a working counter", () => {
+		expect(scopeOptions(trends).map((o) => [o.value, o.label])).toEqual([
+			["event", "Whole event"],
+			["level:Level 1", "Level 1"],
+			["level:", "No level set"],
+			["hall:1", "Hall A"],
+		]);
+	});
+});

@@ -527,8 +527,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 			id: "feedback",
 			label: "Feedback",
 			icon: MessageSquareText,
-			visible: (p, e) =>
-				visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
+			visible: (p, e) => visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
 			tabs: [
 				{
 					route: "feedback/form-builder",
@@ -659,6 +658,14 @@ const rawEventMenuConfig: EventMenuConfig = {
 						"RFID headcount, stations, bindings, visits, and corrections.",
 					icon: Radio,
 					visible: (p, e) => visible.ticketEvent(p, e) && visible.eventAdmin(p),
+				},
+				{
+					route: "people-counter",
+					label: "People Counter",
+					description:
+						"Live people counts per hall and level. Org owners also set up the counter connection and halls.",
+					icon: Users,
+					visible: (p) => visible.eventAdmin(p) || visible.organizerOrOwner(p),
 				},
 				{
 					route: "event-activity",
