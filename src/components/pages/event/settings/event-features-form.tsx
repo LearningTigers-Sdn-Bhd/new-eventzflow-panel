@@ -61,6 +61,8 @@ const featuresFormSchema = z.object({
 	useSponsorship: z.boolean(),
 	useEventLeads: z.boolean(),
 	useCertificate: z.boolean(),
+	useRfid: z.boolean(),
+	usePeopleCounter: z.boolean(),
 	useFeedback: z.boolean(),
 	useApiAccess: z.boolean(),
 	vehiclesEnabled: z.boolean(),
@@ -100,6 +102,11 @@ export default function EventFeaturesForm({
 		onSuccess: () => {
 			toast.success("Event features updated successfully!");
 			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+			// The sidebar keys its event by the URL's string id, so the line above misses it.
+			// Without this, turning a feature on or off waits up to a minute to show in the menu.
+			queryClient.invalidateQueries({
+				queryKey: ["event", String(eventId), "sidebar-context"],
+			});
 			queryClient.invalidateQueries({ queryKey: ["events"] });
 			onClose?.();
 		},
@@ -120,6 +127,8 @@ export default function EventFeaturesForm({
 			useSponsorship: false,
 			useEventLeads: false,
 			useCertificate: false,
+			useRfid: false,
+			usePeopleCounter: false,
 			useFeedback: false,
 			useApiAccess: false,
 			vehiclesEnabled: false,
@@ -146,6 +155,8 @@ export default function EventFeaturesForm({
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
 					use_certificate: value.useCertificate,
+					use_rfid: value.useRfid,
+					use_people_counter: value.usePeopleCounter,
 					use_feedback: value.useFeedback,
 					use_api_access: value.useApiAccess,
 					vehicles_enabled: value.vehiclesEnabled,
@@ -184,6 +195,8 @@ export default function EventFeaturesForm({
 			form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 			form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 			form.setFieldValue("useCertificate", event.use_certificate ?? false);
+			form.setFieldValue("useRfid", event.use_rfid ?? false);
+			form.setFieldValue("usePeopleCounter", event.use_people_counter ?? false);
 			form.setFieldValue("useFeedback", event.use_feedback ?? false);
 			form.setFieldValue("useApiAccess", event.use_api_access ?? false);
 			form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
@@ -341,7 +354,8 @@ export default function EventFeaturesForm({
 									<FieldContent className="flex w-full flex-none flex-col gap-1">
 										<FieldLabel>Event Modules & Integrations</FieldLabel>
 										<FieldDescription className="text-balance">
-											Enable specialized workflows, surveys, certificates, and marketing tools.
+											Enable specialized workflows, surveys, certificates, and
+											marketing tools.
 										</FieldDescription>
 									</FieldContent>
 
@@ -366,6 +380,36 @@ export default function EventFeaturesForm({
 												<SwitchCardInput
 													label="E-Certificates"
 													description="Design certificate templates and email them to attendees."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={updateEventMutation.isPending}
+												/>
+											)}
+										</form.Field>
+
+										<form.Field name="useRfid">
+											{(field) => (
+												<SwitchCardInput
+													label="RFID"
+													description="Gate stations, sticker binding, visits and attendance. Hidden from the menu when off."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={updateEventMutation.isPending}
+												/>
+											)}
+										</form.Field>
+
+										<form.Field name="usePeopleCounter">
+											{(field) => (
+												<SwitchCardInput
+													label="People Counter"
+													description="Live crowd counts per hall and level, trends and a big screen for the door. Hidden when off."
 													htmlFor={field.name}
 													variant="no-rounded"
 													border={true}

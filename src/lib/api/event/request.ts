@@ -22,6 +22,8 @@ export const createEventSchema = z.object({
 	// photo_booth_enabled: z.boolean().optional().default(false),
 	use_event_leads: z.boolean().optional().default(false),
 	use_certificate: z.boolean().optional().default(false),
+	use_rfid: z.boolean().optional().default(false),
+	use_people_counter: z.boolean().optional().default(false),
 	use_feedback: z.boolean().optional().default(false),
 	use_api_access: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
@@ -72,6 +74,8 @@ export const updateEventSchema = z.object({
 	// photo_booth_enabled: z.boolean().optional(),
 	use_event_leads: z.boolean().optional(),
 	use_certificate: z.boolean().optional(),
+	use_rfid: z.boolean().optional(),
+	use_people_counter: z.boolean().optional(),
 	use_feedback: z.boolean().optional(),
 	use_api_access: z.boolean().optional(),
 	vehicles_enabled: z.boolean().optional(),
