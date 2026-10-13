@@ -1,62 +1,50 @@
 "use client";
 
+import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 import { usePublicDisplay } from "@/hooks/use-event-halls";
 import type { PublicDisplay } from "@/lib/api/event/hall";
-import { cn } from "@/lib/utils";
+import styles from "./big-screen.module.css";
 import {
 	floorLabel,
 	formatCount,
 	occupancyPercent,
 	occupancyTone,
 	statusMessage,
-	toneClasses,
 } from "./format";
 
-/** The one-word state a visitor at the door cares about. */
 function crowdWord(percent: number | null): string {
-	if (percent === null) return "";
+	if (percent === null) return "Live occupancy";
 	if (percent > 100) return "Over capacity";
 	if (percent >= 70) return "Getting busy";
 	return "Space available";
 }
 
-function Bar({
-	percent,
-	className,
-}: {
-	percent: number | null;
-	className: string;
-}) {
+function Bar({ percent }: { percent: number | null }) {
 	if (percent === null) return null;
 	return (
-		<div
-			className="h-full w-full bg-muted"
-			role="img"
-			aria-label={`${percent}% full`}
-		>
-			<div
-				className={cn("h-full transition-all", className)}
-				style={{ width: `${Math.min(percent, 100)}%` }}
-			/>
+		<div className={styles.bar} role="img" aria-label={`${percent}% full`}>
+			<div style={{ width: `${Math.min(Math.max(percent, 0), 100)}%` }} />
 		</div>
 	);
 }
 
 function Message({ title, text }: { title: string; text: string }) {
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
-			<p className="font-semibold text-2xl">{title}</p>
-			<p className="max-w-md text-muted-foreground">{text}</p>
+		<div className={styles.message}>
+			<h1>{title}</h1>
+			<p>{text}</p>
 		</div>
 	);
 }
 
-/** Time of day, ticking, so a frozen screen is obvious. */
 function useClock() {
-	const [now, setNow] = useState<string>("");
+	const [now, setNow] = useState("");
 	useEffect(() => {
-		const tick = () => setNow(new Date().toLocaleTimeString());
+		const tick = () =>
+			setNow(
+				new Date().toLocaleTimeString("en-MY", { timeZone: "Asia/Kuching" }),
+			);
 		tick();
 		const id = setInterval(tick, 1000);
 		return () => clearInterval(id);
@@ -66,110 +54,110 @@ function useClock() {
 
 function Hero({ data }: { data: PublicDisplay }) {
 	const percent = occupancyPercent(data.insideNow, data.capacity);
-	const tone = toneClasses[occupancyTone(percent)];
-
+	const count = formatCount(data.insideNow);
 	return (
-		<section className="space-y-4" aria-live="polite">
-			<p
-				className={cn(
-					"font-semibold text-2xl uppercase tracking-wide",
-					tone.text,
-				)}
-			>
-				{crowdWord(percent) || "People inside now"}
-			</p>
-			<p
-				className={cn(
-					"font-bold tabular-nums leading-none",
-					"text-[clamp(6rem,24vw,18rem)]",
-					tone.text,
-				)}
-			>
-				{formatCount(data.insideNow)}
-			</p>
-			<p className="text-muted-foreground text-xl">
-				inside now
-				{data.capacity
-					? ` · capacity ${formatCount(data.capacity)}${percent !== null ? ` · ${percent}% full` : ""}`
-					: ""}
-			</p>
-			<div className="h-6">
-				<Bar percent={percent} className={tone.bar} />
+		<section
+			className={styles.hero}
+			data-tone={occupancyTone(percent)}
+			aria-live="polite"
+		>
+			<p className={styles.heroLabel}>{data.level ?? "Overall"} · inside now</p>
+			<div className={styles.heroFigure}>
+				<p
+					className={styles.count}
+					style={{
+						fontSize: `min(${Math.min(38, 160 / count.length)}cqw, 34vh)`,
+					}}
+				>
+					{count}
+				</p>
+				<p className={styles.countLabel}>people inside</p>
+			</div>
+			<div>
+				<p className={styles.crowd}>{crowdWord(percent)}</p>
+				<Bar percent={percent} />
+				<div className={styles.capacity}>
+					<span>
+						{data.capacity
+							? `Capacity ${formatCount(data.capacity)}`
+							: "Capacity not available"}
+					</span>
+					{percent !== null && <span>{percent}% full</span>}
+				</div>
 			</div>
 		</section>
 	);
 }
 
 function Places({ data }: { data: PublicDisplay }) {
-	if (data.halls.length === 0) return null;
-
 	return (
-		<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+		<section className={styles.places} aria-labelledby="places-heading">
+			<div className={styles.sectionHeading}>
+				<h2 id="places-heading">
+					{data.level ? "Halls on this level" : "Levels & halls"}
+				</h2>
+				<span>Inside / capacity</span>
+			</div>
+			{data.halls.length === 0 && (
+				<p className={styles.empty}>No halls have been set up yet.</p>
+			)}
 			{data.levels.map((level) => {
-				const halls = data.halls.filter((h) => h.floor === level.floor);
-				const levelPercent = occupancyPercent(level.insideNow, level.capacity);
-
+				const percent = occupancyPercent(level.insideNow, level.capacity);
 				return (
-					<div key={level.floor ?? "none"} className="space-y-3 border p-5">
-						<div className="flex items-baseline justify-between gap-3">
-							<h2 className="font-semibold text-xl">
-								{floorLabel(level.floor)}
-							</h2>
-							<p className="text-muted-foreground tabular-nums">
-								{formatCount(level.insideNow)}
-								{level.capacity ? ` / ${formatCount(level.capacity)}` : ""}
-							</p>
-						</div>
-						<div className="h-3">
-							<Bar
-								percent={levelPercent}
-								className={toneClasses[occupancyTone(levelPercent)].bar}
-							/>
-						</div>
-						<ul className="space-y-3 pt-1">
-							{halls.map((hall) => {
-								const percent = occupancyPercent(hall.insideNow, hall.capacity);
-								const tone =
-									toneClasses[
-										hall.status === "ok" ? occupancyTone(percent) : "slate"
-									];
-								return (
-									<li key={hall.name} className="space-y-1.5">
-										<div className="flex items-baseline justify-between gap-3">
-											<span className="font-medium">{hall.name}</span>
-											{hall.status === "ok" ? (
-												<span
-													className={cn(
-														"font-semibold text-2xl tabular-nums",
-														tone.text,
-													)}
-												>
-													{formatCount(hall.insideNow)}
-													{hall.capacity ? (
-														<span className="font-normal text-base text-muted-foreground">
-															{" "}
-															/ {formatCount(hall.capacity)}
+					<div key={level.floor ?? "none"} className={styles.level}>
+						{!data.level && (
+							<div
+								className={styles.levelHeading}
+								data-tone={occupancyTone(percent)}
+							>
+								<h3>{floorLabel(level.floor)}</h3>
+								<p>
+									{formatCount(level.insideNow)}
+									<span>
+										{level.capacity ? ` / ${formatCount(level.capacity)}` : ""}
+									</span>
+								</p>
+							</div>
+						)}
+						<ul className={styles.halls}>
+							{data.halls
+								.filter((hall) => hall.floor === level.floor)
+								.map((hall) => {
+									const hallPercent = occupancyPercent(
+										hall.insideNow,
+										hall.capacity,
+									);
+									return (
+										<li
+											key={hall.name}
+											className={styles.hall}
+											data-tone={
+												hall.status === "ok"
+													? occupancyTone(hallPercent)
+													: "slate"
+											}
+										>
+											<div className={styles.hallHeading}>
+												<span className={styles.hallName}>{hall.name}</span>
+												{hall.status === "ok" ? (
+													<p className={styles.hallCount}>
+														{formatCount(hall.insideNow)}
+														<span>
+															{hall.capacity
+																? ` / ${formatCount(hall.capacity)}`
+																: ""}
 														</span>
-													) : null}
-												</span>
-											) : (
-												<span className="text-muted-foreground text-sm">
-													{
-														statusMessage[
-															hall.status as keyof typeof statusMessage
-														]
-													}
-												</span>
-											)}
-										</div>
-										{hall.status === "ok" && (
-											<div className="h-2">
-												<Bar percent={percent} className={tone.bar} />
+													</p>
+												) : (
+													<span className={styles.hallStatus}>
+														{statusMessage[hall.status]}
+													</span>
+												)}
 											</div>
-										)}
-									</li>
-								);
-							})}
+											{hall.status === "ok" && <Bar percent={hallPercent} />}
+										</li>
+									);
+								})}
 						</ul>
 					</div>
 				);
@@ -178,15 +166,16 @@ function Places({ data }: { data: PublicDisplay }) {
 	);
 }
 
-/** The door screen: one big number, then each level and hall. Refreshes itself; keeps the last numbers if a refresh fails. */
+/** Public display, styled to match the RFID arrival screen. */
 export function BigScreen({ slug }: { slug: string }) {
-	const { data, isLoading, isError, error } = usePublicDisplay(slug);
+	const [level] = useQueryState("level");
+	const { data, isLoading, isError, error } = usePublicDisplay(
+		slug,
+		level || null,
+	);
 	const clock = useClock();
-
-	if (isLoading) {
+	if (isLoading)
 		return <Message title="Loading..." text="Getting the live numbers." />;
-	}
-
 	if (!data) {
 		const gone =
 			(error as { response?: { status?: number } } | null)?.response?.status ===
@@ -196,43 +185,50 @@ export function BigScreen({ slug }: { slug: string }) {
 				title={gone ? "This screen isn't available" : "Can't load the numbers"}
 				text={
 					gone
-						? "The event may not exist or may not be published yet. Check the address with the event organizer."
+						? "The event or level may not exist, or the event may not be published yet. Check the address with the event organizer."
 						: "Check the internet connection. This page will try again by itself."
 				}
 			/>
 		);
 	}
-
-	if (!data.configured) {
+	if (!data.configured)
 		return (
 			<Message
 				title={data.eventTitle}
 				text="Live numbers aren't available for this event yet."
 			/>
 		);
-	}
-
 	return (
-		<main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 p-6 sm:p-10">
-			<header className="flex flex-wrap items-baseline justify-between gap-3">
-				<h1 className="font-semibold text-2xl sm:text-3xl">
-					{data.eventTitle}
-				</h1>
-				<p className="flex items-center gap-2 text-muted-foreground tabular-nums">
-					<span
-						className={cn(
-							"size-2.5",
-							isError ? "bg-amber-500" : "bg-emerald-500",
-						)}
-						aria-hidden="true"
-					/>
-					{isError
-						? "Reconnecting… showing the last numbers"
-						: `Live · ${clock}`}
-				</p>
+		<main className={styles.screen}>
+			<header className={styles.header}>
+				<h1>{data.eventTitle}</h1>
+				<p>{data.level ?? "Live occupancy"}</p>
 			</header>
-			<Hero data={data} />
-			<Places data={data} />
+			<div className={styles.content}>
+				<Hero data={data} />
+				<Places data={data} />
+			</div>
+			<footer className={styles.footer}>
+				<div>
+					<p
+						className={styles.connection}
+						data-status={isError ? "offline" : "live"}
+						role="status"
+					>
+						<span aria-hidden="true" />
+						{isError ? "Reconnecting · showing the last numbers" : "Live"}
+					</p>
+					<p>
+						{`${data.hallsCounted} of ${data.hallsTotal} ${data.hallsTotal === 1 ? "hall" : "halls"} counting`}
+						{data.hallsCounted < data.hallsTotal && " · Working counters only"}
+					</p>
+				</div>
+				<span className={styles.wordmark}>EventzFlow</span>
+				<div className={styles.clock}>
+					<p>{clock}</p>
+					<p>Malaysia time · UTC+8</p>
+				</div>
+			</footer>
 		</main>
 	);
 }

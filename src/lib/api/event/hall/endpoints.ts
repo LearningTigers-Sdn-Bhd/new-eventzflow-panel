@@ -286,9 +286,12 @@ export async function downloadHeadcountReport(
 
 interface BackendPublicDisplay {
 	event_title: string;
+	level: string | null;
 	configured: boolean;
 	inside_now: number | null;
 	capacity: number | null;
+	halls_counted: number;
+	halls_total: number;
 	levels: {
 		floor: string | null;
 		inside_now: number | null;
@@ -304,16 +307,23 @@ interface BackendPublicDisplay {
 	generated_at: string;
 }
 
-/** The public big-screen data for a published event. No login. */
-export async function getPublicDisplay(slug: string): Promise<PublicDisplay> {
+/** The public big-screen data for a published event, or for one of its levels. No login. */
+export async function getPublicDisplay(
+	slug: string,
+	level?: string | null,
+): Promise<PublicDisplay> {
+	const query = level ? `?level=${encodeURIComponent(level)}` : "";
 	const data = await publicRestClient.get<BackendPublicDisplay>(
-		`v1/public/events/${encodeURIComponent(slug)}/people_counter`,
+		`v1/public/events/${encodeURIComponent(slug)}/people_counter${query}`,
 	);
 	return {
 		eventTitle: data.event_title,
+		level: data.level,
 		configured: data.configured,
 		insideNow: data.inside_now,
 		capacity: data.capacity,
+		hallsCounted: data.halls_counted,
+		hallsTotal: data.halls_total,
 		levels: data.levels.map((l) => ({
 			floor: l.floor,
 			insideNow: l.inside_now,

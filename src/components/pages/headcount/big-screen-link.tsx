@@ -6,12 +6,12 @@ import { useEventSidebarContextSafe } from "@/components/sidebars/features/event
 import { Button } from "@/components/ui/button";
 
 /** Where to find the public door screen. It is open to anyone once the event is published. */
-export function BigScreenLink() {
+export function BigScreenLink({ level }: { level?: string | null }) {
 	const event = useEventSidebarContextSafe()?.currentEvent;
 	if (!event?.slug) return null;
 
 	const published = event.status === "published";
-	const path = `/event/${event.slug}/big-screen`;
+	const path = `/event/${encodeURIComponent(event.slug)}/big-screen${level ? `?level=${encodeURIComponent(level)}` : ""}`;
 
 	const copy = async () => {
 		try {
@@ -29,7 +29,7 @@ export function BigScreenLink() {
 					className="size-4 shrink-0 text-muted-foreground"
 					aria-hidden="true"
 				/>
-				<span className="font-medium">Big screen for the door</span>
+				<span className="font-medium">Big screen · {level ?? "Overall"}</span>
 				<span className="text-muted-foreground text-xs">
 					{published
 						? "Shows people inside and capacity. Anyone with the link can see it."

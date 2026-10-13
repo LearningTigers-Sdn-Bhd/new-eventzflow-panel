@@ -110,9 +110,14 @@ export interface HeadcountTrends {
 /** What the public big-screen page shows: crowd against capacity, nothing else. */
 export interface PublicDisplay {
 	eventTitle: string;
+	/** The level this screen is narrowed to; null for the whole event. */
+	level: string | null;
 	configured: boolean;
 	insideNow: number | null;
 	capacity: number | null;
+	/** Halls whose counter is working, out of all halls in scope. A level total only adds up counted halls. */
+	hallsCounted: number;
+	hallsTotal: number;
 	levels: {
 		floor: string | null;
 		insideNow: number | null;

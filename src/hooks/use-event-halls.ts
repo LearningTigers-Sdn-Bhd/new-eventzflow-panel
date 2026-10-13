@@ -78,10 +78,10 @@ export function useDailyBreakdown(eventId: string) {
 export const DISPLAY_REFRESH_MS = 10_000;
 
 /** The public big-screen data for a published event. Needs no login; keeps the last numbers on screen if a refresh fails. */
-export function usePublicDisplay(slug: string) {
+export function usePublicDisplay(slug: string, level?: string | null) {
 	return useQuery({
-		queryKey: ["public-people-counter-display", slug] as const,
-		queryFn: () => getPublicDisplay(slug),
+		queryKey: ["public-people-counter-display", slug, level ?? null] as const,
+		queryFn: () => getPublicDisplay(slug, level),
 		refetchInterval: DISPLAY_REFRESH_MS,
 		retry: false,
 	});

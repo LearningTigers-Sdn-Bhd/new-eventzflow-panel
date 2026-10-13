@@ -143,6 +143,7 @@ export function HeadcountOverview({
 								Level total · {level.hallsCounted} of {level.halls}{" "}
 								{level.halls === 1 ? "hall" : "halls"} counting
 							</CardDescription>
+							{level.floor && <BigScreenLink level={level.floor} />}
 						</CardHeader>
 						<CardContent className="py-5">
 							<FiguresSummary figures={level} capacityLabel="level" />
