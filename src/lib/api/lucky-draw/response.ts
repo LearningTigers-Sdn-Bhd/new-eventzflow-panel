@@ -22,7 +22,7 @@ export interface LuckyDrawSession {
 	scanned_only: boolean;
 	scanned_from: string | null;
 	scanned_to: string | null;
-	scanned_source: "ticket" | "scan_log";
+	scanned_source: "ticket" | "scan_log" | "entries";
 	created_at: string;
 	updated_at: string;
 }
@@ -85,4 +85,14 @@ export interface ApiResponse<T> {
 	message: string;
 	data?: T;
 	meta?: object;
+}
+
+/**
+ * Lucky Draw Entry (a ticket scanned in for this draw)
+ */
+export interface LuckyDrawEntry {
+	id: number;
+	participant_id: number;
+	name: string;
+	entered_at: string;
 }

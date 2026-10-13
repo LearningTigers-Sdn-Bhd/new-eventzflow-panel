@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { LucideIcon } from "lucide-react";
 import { Eye, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
@@ -18,7 +19,15 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BaseSession } from "../types";
 
+export interface SessionExtraAction<T extends BaseSession> {
+	label: string;
+	icon: LucideIcon;
+	onSelect: (session: T) => void;
+	show?: (session: T) => boolean;
+}
+
 export interface SessionActionMenuConfig<T extends BaseSession> {
+	extraActions?: SessionExtraAction<T>[];
 	routeBuilder: (eventId: string, sessionId: number) => string;
 	editDialogTitle: string;
 	editDialogDescription: string;
@@ -115,6 +124,18 @@ export function SessionActionMenu<T extends BaseSession>({
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit
 				</DropdownMenuItem>
+				{config.extraActions
+					?.filter((action) => action.show?.(session) ?? true)
+					.map((action) => (
+						<DropdownMenuItem
+							key={action.label}
+							onClick={() => action.onSelect(session)}
+							className="rounded-none"
+						>
+							<action.icon className="mr-2 h-4 w-4" />
+							{action.label}
+						</DropdownMenuItem>
+					))}
 				<DropdownMenuSeparator className="rounded-none" />
 				<DropdownMenuItem
 					className="rounded-none text-destructive focus:text-destructive"

@@ -175,11 +175,12 @@ export function SessionDrawButton({
 }
 
 /**
- * Menu container - three-column flex layout
+ * Menu container - three-column grid: the outer columns are equal width, so the
+ * center group stays centered however wide the left/right groups are
  */
 export function SessionHeaderMenu({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="flex w-full flex-row items-center justify-between gap-2">
+		<div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 [&>:first-child]:justify-self-start">
 			{children}
 		</div>
 	);
@@ -206,5 +207,5 @@ export function SessionHeaderActions({
 }: {
 	children: React.ReactNode;
 }) {
-	return <div className="flex items-center gap-2">{children}</div>;
+	return <div className="flex items-center justify-end gap-2">{children}</div>;
 }

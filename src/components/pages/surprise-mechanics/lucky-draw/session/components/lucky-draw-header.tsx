@@ -1,5 +1,6 @@
 "use client";
 
+import { ScanLine } from "lucide-react";
 import {
 	SessionBackButton,
 	SessionDisplayModeToggle,
@@ -10,12 +11,16 @@ import {
 	SessionHeaderMenu,
 	SessionInfo,
 } from "@/components/pages/surprise-mechanics/shared/components/session-header";
+import { Button } from "@/components/ui/button";
+import { useDialog } from "@/hooks/use-dialog";
+import { EntryScanner } from "../../entry/entry-scanner";
 import { useLuckyDrawSession } from "../session-provider";
 import { ConfigSheet } from "../sheets/config-sheet";
 import { GiftInvalidListSheet } from "../sheets/gift-invalid-list-sheet";
 import { ParticipantsSheet } from "../sheets/participants-sheet";
 
 export function LuckyDrawHeader() {
+	const { openDialog } = useDialog();
 	const {
 		eventId,
 		session,
@@ -69,6 +74,27 @@ export function LuckyDrawHeader() {
 					)}
 				</SessionHeaderCenter>
 				<SessionHeaderActions>
+					{session.scanned_source === "entries" && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="gap-2 rounded-none"
+							onClick={() =>
+								openDialog({
+									component: EntryScanner,
+									props: { eventId, sessionId: session.id },
+									config: {
+										title: "Scan Participants",
+										size: "md",
+										showCloseButton: true,
+									},
+								})
+							}
+						>
+							<ScanLine className="size-4" />
+							Scan Participants
+						</Button>
+					)}
 					<SessionDrawButton
 						onClick={handleDraw}
 						disabled={!canDraw || isDrawing}

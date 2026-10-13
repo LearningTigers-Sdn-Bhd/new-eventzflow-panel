@@ -15,6 +15,7 @@ import type {
 	Gift,
 	GiftWinner,
 	InvalidParticipant,
+	LuckyDrawEntry,
 	LuckyDrawSession,
 	Participant,
 } from "./response";
@@ -636,6 +637,59 @@ export async function updateSessionBackground(
 		}
 
 		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Add Lucky Draw Entry (scan a ticket QR at the booth)
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/entries
+ */
+export async function addLuckyDrawEntry(
+	eventId: string,
+	sessionId: number,
+	publicId: string,
+): Promise<LuckyDrawEntry> {
+	try {
+		const response = await restClient.post<ApiResponse<LuckyDrawEntry>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries`,
+			{ public_id: publicId },
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(response.message || "Failed to add entry");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Get Lucky Draw Entries (latest first, plus the full total)
+ * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/entries
+ */
+export async function getLuckyDrawEntries(
+	eventId: string,
+	sessionId: number,
+	limit = 20,
+): Promise<{ entries: LuckyDrawEntry[]; total: number }> {
+	try {
+		const response = await restClient.get<ApiResponse<LuckyDrawEntry[]>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries?limit=${limit}`,
+		);
+
+		if (!response.success) {
+			throw new Error(response.message || "Failed to fetch entries");
+		}
+
+		const entries = response.data || [];
+		const total = (response.meta as { total?: number } | undefined)?.total;
+		return { entries, total: total ?? entries.length };
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

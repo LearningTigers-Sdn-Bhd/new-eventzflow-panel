@@ -3,7 +3,7 @@
  * All directory-specific configuration is centralized here
  */
 
-import { Pencil } from "lucide-react";
+import { Pencil, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
 import {
@@ -17,9 +17,33 @@ import { SessionActionMenu as BaseActionMenu } from "../shared/components/sessio
 import { SessionCreateForm as BaseCreateForm } from "../shared/components/session-create-form";
 import { SessionEditForm as BaseEditForm } from "../shared/components/session-edit-form";
 import type { BaseSession } from "../shared/types";
+import { EntryScanner } from "./entry/entry-scanner";
+
+const ENTRY_SCAN_ON = (values: Record<string, unknown>) =>
+	values.entry_scan === true;
 
 const SCANNED_ONLY_ON = (values: Record<string, unknown>) =>
-	values.scanned_only === true;
+	values.scanned_only === true && !ENTRY_SCAN_ON(values);
+
+const SCANNED_ONLY_VISIBLE = (values: Record<string, unknown>) =>
+	!ENTRY_SCAN_ON(values);
+
+// entry_scan is a form-only switch: on = pool is people scanned into this draw
+// (scanned_source "entries"), off = the regular scanned-only settings apply.
+function withEntryScan<T extends Record<string, unknown>>(data: T) {
+	const { entry_scan, ...rest } = data;
+	return entry_scan
+		? { ...rest, scanned_only: true, scanned_source: "entries" as const }
+		: rest;
+}
+
+const entryScanField = {
+	type: "boolean" as const,
+	name: "entry_scan",
+	label: "Require Lucky Draw Entry Scan",
+	description:
+		"Only people scanned into this draw can win. Staff scan each ticket QR using Scan Participants in the session menu",
+};
 
 const SCANNED_SOURCE_OPTIONS = [
 	{ value: "ticket", label: "Ticket check-in (first scan)" },
@@ -48,10 +72,30 @@ export function generateColumns() {
 
 // Configure action menu
 export function ActionMenu({ session }: { session: LuckyDrawSession }) {
+	const { openDialog } = useDialog();
+
 	return (
 		<BaseActionMenu
 			session={session}
 			config={{
+				extraActions: [
+					{
+						label: "Scan Participants",
+						icon: ScanLine,
+						show: (s) => s.scanned_source === "entries",
+						onSelect: (s) =>
+							openDialog({
+								component: EntryScanner,
+								props: { eventId: String(s.event_id), sessionId: s.id },
+								config: {
+									title: "Scan Participants",
+									description: `Scan a ticket QR to enter someone into "${s.title}"`,
+									size: "md",
+									showCloseButton: true,
+								},
+							}),
+					},
+				],
 				routeBuilder: (eventId: string, sessionId: number) =>
 					`/event/${eventId}/lucky-draw/session/${sessionId}`,
 				editDialogTitle: "Edit Lucky Draw Session",
@@ -71,7 +115,13 @@ export function CreateForm() {
 	return (
 		<BaseCreateForm
 			config={{
-				apiFunction: createLuckyDrawSession as unknown as (
+				apiFunction: ((eventId: string, data: Record<string, unknown>) =>
+					createLuckyDrawSession(
+						eventId,
+						withEntryScan(data) as unknown as Parameters<
+							typeof createLuckyDrawSession
+						>[1],
+					)) as unknown as (
 					eventId: string,
 					data: Record<string, unknown>,
 				) => Promise<unknown>,
@@ -88,6 +138,7 @@ export function CreateForm() {
 						description: "Allow winners to receive gift items",
 						defaultValue: false,
 					},
+					{ ...entryScanField, defaultValue: false },
 					{
 						type: "boolean",
 						name: "scanned_only",
@@ -95,6 +146,7 @@ export function CreateForm() {
 						description:
 							"Only participants who have been scanned (checked in) can be drawn",
 						defaultValue: false,
+						renderCondition: SCANNED_ONLY_VISIBLE,
 					},
 					{
 						type: "select",
@@ -134,7 +186,18 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 		<BaseEditForm
 			session={session}
 			config={{
-				apiFunction: updateLuckyDrawSession,
+				apiFunction: (
+					eventId: string,
+					sessionId: number,
+					data: Record<string, unknown>,
+				) =>
+					updateLuckyDrawSession(
+						eventId,
+						sessionId,
+						withEntryScan(data) as unknown as Parameters<
+							typeof updateLuckyDrawSession
+						>[2],
+					),
 				queryKey: (eventId: string) => ["lucky-draw-sessions", eventId],
 				sessionQueryKey: (sessionId: number) => [
 					"lucky-draw-session",
@@ -152,13 +215,21 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 							(session as LuckyDrawSession).use_gifts,
 					},
 					{
+						...entryScanField,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_source === "entries",
+					},
+					{
 						type: "boolean",
 						name: "scanned_only",
 						label: "Scanned Only (Filtered Pick Pool)",
 						description:
 							"Only participants who have been scanned (checked in) can be drawn",
+						// entries source forces scanned_only on, so it isn't the user's own choice
 						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).scanned_source !== "entries" &&
 							(session as LuckyDrawSession).scanned_only,
+						renderCondition: SCANNED_ONLY_VISIBLE,
 					},
 					{
 						type: "select",
@@ -167,7 +238,9 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 						description: SCANNED_SOURCE_HELP,
 						options: SCANNED_SOURCE_OPTIONS,
 						getValue: (session: BaseSession) =>
-							(session as LuckyDrawSession).scanned_source ?? "ticket",
+							(session as LuckyDrawSession).scanned_source === "scan_log"
+								? "scan_log"
+								: "ticket",
 						renderCondition: SCANNED_ONLY_ON,
 					},
 					{
