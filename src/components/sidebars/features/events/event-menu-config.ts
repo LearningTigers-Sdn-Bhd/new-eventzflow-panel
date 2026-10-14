@@ -125,6 +125,9 @@ const visible = {
 		e?.use_certificate === true,
 	hasFeedback: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_feedback === true,
+	hasRfid: (_p: Permissions, e?: EventSidebarEvent) => e?.use_rfid === true,
+	hasPeopleCounter: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_people_counter === true,
 	hasVehicles: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.vehicles_enabled === true,
 	hasVendors: (_p: Permissions, e?: EventSidebarEvent) =>
@@ -527,8 +530,7 @@ const rawEventMenuConfig: EventMenuConfig = {
 			id: "feedback",
 			label: "Feedback",
 			icon: MessageSquareText,
-			visible: (p, e) =>
-				visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
+			visible: (p, e) => visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
 			tabs: [
 				{
 					route: "feedback/form-builder",
@@ -658,7 +660,20 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description:
 						"RFID headcount, stations, bindings, visits, and corrections.",
 					icon: Radio,
-					visible: (p, e) => visible.ticketEvent(p, e) && visible.eventAdmin(p),
+					visible: (p, e) =>
+						visible.hasRfid(p, e) &&
+						visible.ticketEvent(p, e) &&
+						visible.eventAdmin(p),
+				},
+				{
+					route: "people-counter",
+					label: "People Counter",
+					description:
+						"Live people counts per hall and level. Org owners also set up the counter connection and halls.",
+					icon: Users,
+					visible: (p, e) =>
+						visible.hasPeopleCounter(p, e) &&
+						(visible.eventAdmin(p) || visible.organizerOrOwner(p)),
 				},
 				{
 					route: "event-activity",

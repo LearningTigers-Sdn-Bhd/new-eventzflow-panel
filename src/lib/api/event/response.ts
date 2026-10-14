@@ -94,6 +94,8 @@ export type Event = {
 	// photo_booth_enabled: boolean;
 	use_event_leads: boolean;
 	use_certificate: boolean;
+	use_rfid: boolean;
+	use_people_counter: boolean;
 	use_feedback: boolean;
 	use_api_access: boolean;
 	vehicles_enabled: boolean;
@@ -142,6 +144,8 @@ export type EventSidebarEvent = Pick<
 	| "use_seat_ticketing"
 	| "use_voucher"
 	| "use_certificate"
+	| "use_rfid"
+	| "use_people_counter"
 	| "use_feedback"
 	| "use_business_matching"
 	| "use_wedding"
