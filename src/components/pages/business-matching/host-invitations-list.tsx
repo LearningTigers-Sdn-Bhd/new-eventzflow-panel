@@ -19,6 +19,17 @@ const statusTone: Record<HostInvitationStatus, string> = {
 	skipped: "bg-zinc-400",
 };
 
+const deliveryProblemMessage =
+	"We couldn't deliver this email. The address may have a typo, may not exist, the recipient's mailbox may be full, or their mail server may be blocking it. Please confirm the address with the recipient, then send again or use another email.";
+
+const statusMessage: Partial<Record<HostInvitationStatus, string>> = {
+	bounced: deliveryProblemMessage,
+	suppressed: deliveryProblemMessage,
+	complained:
+		"The recipient marked a previous email as spam. Please use another email.",
+	failed: "We couldn't send this email. Please try sending it again.",
+};
+
 const formatTime = (iso: string) =>
 	new Date(iso).toLocaleString("en-US", {
 		dateStyle: "medium",
@@ -39,11 +50,14 @@ export const LastInviteStatus: React.FC<{
 
 	return (
 		<div className="flex items-center justify-between gap-2 border bg-muted/30 px-3 py-2 text-xs">
-			<span className="text-muted-foreground">
-				Last sent {formatTime(last.created_at)}
-				{last.failure_reason &&
-					` · ${last.failure_reason.replaceAll("_", " ")}`}
-			</span>
+			<div className="min-w-0">
+				<p className="text-muted-foreground">
+					Last sent {formatTime(last.created_at)}
+				</p>
+				{statusMessage[last.status] && (
+					<p className="mt-1 text-destructive">{statusMessage[last.status]}</p>
+				)}
+			</div>
 			<Badge
 				variant="outline"
 				className={cn(
@@ -75,12 +89,17 @@ export const AlreadyInvitedWarning: React.FC<{
 			className="flex items-start gap-2 border border-amber-300 bg-amber-50 p-3 text-amber-900 text-xs dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200"
 		>
 			<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-			<p>
-				An invitation was already sent to this address on{" "}
-				{formatTime(last.created_at)} (
-				<span className="font-semibold capitalize">{last.status}</span>
-				). Continuing lets you send it again.
-			</p>
+			<div>
+				<p>
+					An invitation was already sent to this address on{" "}
+					{formatTime(last.created_at)} (
+					<span className="font-semibold capitalize">{last.status}</span>
+					). Continuing lets you send it again.
+				</p>
+				{statusMessage[last.status] && (
+					<p className="mt-1">{statusMessage[last.status]}</p>
+				)}
+			</div>
 		</div>
 	);
 };
@@ -178,9 +197,12 @@ const HostInvitationsList: React.FC<HostInvitationsListProps> = ({
 						</p>
 						<p className="text-muted-foreground text-xs">
 							Sent {formatTime(invitation.created_at)}
-							{invitation.failure_reason &&
-								` · ${invitation.failure_reason.replaceAll("_", " ")}`}
 						</p>
+						{statusMessage[invitation.status] && (
+							<p className="mt-1 text-destructive text-xs">
+								{statusMessage[invitation.status]}
+							</p>
+						)}
 					</div>
 					<Badge
 						variant="outline"
