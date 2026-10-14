@@ -11,6 +11,11 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import HostInvitationsList, {
+	AlreadyInvitedWarning,
+	InvitationsSummaryBanner,
+	LastInviteStatus,
+} from "@/components/pages/business-matching/host-invitations-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +50,7 @@ type HostEmailStep = "check_email" | "account_found" | "new_account";
 
 const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	const { closeDialog } = useDialog();
+	const [activeTab, setActiveTab] = useState("invite");
 	const { mutate: createHost, isPending: isCreating } = useCreateAndAssignHost(
 		bmEvent.event_id,
 	);
@@ -231,11 +237,12 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 
 	return (
 		<Tabs
-			defaultValue="invite"
-			className="w-full [&_button]:rounded-none [&_input]:rounded-none [&_textarea]:rounded-none [&_[role=combobox]]:rounded-none [&_[role=tablist]]:rounded-none"
+			value={activeTab}
+			onValueChange={setActiveTab}
+			className="w-full [&_[role=combobox]]:rounded-none [&_[role=tablist]]:rounded-none [&_button]:rounded-none [&_input]:rounded-none [&_textarea]:rounded-none"
 		>
 			<TabsList
-				className={`grid w-full ${linkedExhibitorEnabled ? "grid-cols-3" : "grid-cols-2"}`}
+				className={`grid w-full ${linkedExhibitorEnabled ? "grid-cols-4" : "grid-cols-3"}`}
 			>
 				<TabsTrigger value="invite">
 					<LinkIcon className="mr-2 h-4 w-4" />
@@ -251,7 +258,24 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 						Link Exhibitor
 					</TabsTrigger>
 				)}
+				<TabsTrigger value="email-status">
+					<Mail className="mr-2 h-4 w-4" />
+					Email Status
+				</TabsTrigger>
 			</TabsList>
+			{activeTab !== "email-status" && (
+				<InvitationsSummaryBanner
+					eventId={bmEvent.event_id}
+					bmEventId={String(bmEvent.id)}
+					onView={() => setActiveTab("email-status")}
+				/>
+			)}
+			<TabsContent value="email-status" className="py-4">
+				<HostInvitationsList
+					eventId={bmEvent.event_id}
+					bmEventId={String(bmEvent.id)}
+				/>
+			</TabsContent>
 			<TabsContent value="invite" className="py-4">
 				<div className="space-y-4">
 					<div className="flex items-start gap-3 border bg-muted/30 p-4">
@@ -303,6 +327,11 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 							{emailError && (
 								<p className="text-destructive text-xs">{emailError}</p>
 							)}
+							<AlreadyInvitedWarning
+								eventId={bmEvent.event_id}
+								bmEventId={String(bmEvent.id)}
+								email={hostEmail}
+							/>
 						</div>
 						<div className="flex justify-end pt-2">
 							<Button
@@ -372,6 +401,11 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 									)}
 									Send Invitation Email
 								</Button>
+								<LastInviteStatus
+									eventId={bmEvent.event_id}
+									bmEventId={String(bmEvent.id)}
+									email={hostEmail}
+								/>
 							</div>
 
 							<div className="relative py-2">
@@ -440,7 +474,9 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 								.
 							</p>
 							<p className="text-muted-foreground text-xs">
-								You can send them an email invite to register themselves and accept. Once they register and accept, their email will be automatically verified and assigned as a host.
+								You can send them an email invite to register themselves and
+								accept. Once they register and accept, their email will be
+								automatically verified and assigned as a host.
 							</p>
 						</div>
 
@@ -479,6 +515,11 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 									)}
 									Send Invitation Email
 								</Button>
+								<LastInviteStatus
+									eventId={bmEvent.event_id}
+									bmEventId={String(bmEvent.id)}
+									email={hostEmail}
+								/>
 							</div>
 
 							<div className="relative py-2">
@@ -531,12 +572,13 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 							</div>
 
 							<details className="group border p-3">
-								<summary className="cursor-pointer text-xs font-medium text-muted-foreground transition hover:text-foreground">
+								<summary className="cursor-pointer font-medium text-muted-foreground text-xs transition hover:text-foreground">
 									Option 3: Create account manually on behalf of host
 								</summary>
 								<div className="space-y-4 pt-3">
 									<p className="text-muted-foreground text-xs">
-										Manually specify a password and tags for this host right now. Their email will be auto-verified.
+										Manually specify a password and tags for this host right
+										now. Their email will be auto-verified.
 									</p>
 									<div className="space-y-2">
 										<Label htmlFor="host-name">Host Full Name</Label>
@@ -570,10 +612,12 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 											Offering Tags (Optional)
 										</Label>
 										<MultiSelectLegacy
-											options={(availableTags?.offering_tags || []).map((t) => ({
-												label: t,
-												value: t,
-											}))}
+											options={(availableTags?.offering_tags || []).map(
+												(t) => ({
+													label: t,
+													value: t,
+												}),
+											)}
 											selected={offeringTags}
 											onChange={setOfferingTags}
 											placeholder="Select offering tags"
@@ -584,10 +628,12 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 											Interest Tags (Optional)
 										</Label>
 										<MultiSelectLegacy
-											options={(availableTags?.interest_tags || []).map((t) => ({
-												label: t,
-												value: t,
-											}))}
+											options={(availableTags?.interest_tags || []).map(
+												(t) => ({
+													label: t,
+													value: t,
+												}),
+											)}
 											selected={interestTags}
 											onChange={setInterestTags}
 											placeholder="Select interest tags"

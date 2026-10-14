@@ -23,6 +23,7 @@ import {
 	getBusinessMatchingEvents,
 	getBusinessMatchingTags,
 	getDetailedSlots,
+	getHostInvitations,
 	getPortalData,
 	getPortalMatches,
 	getPortalTags,
@@ -215,6 +216,7 @@ export const useGenerateHostInviteToken = (
 	});
 
 export const useSendHostInviteEmail = (eventId: string) => {
+	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({
 			bmEventId,
@@ -225,8 +227,27 @@ export const useSendHostInviteEmail = (eventId: string) => {
 			email: string;
 			message?: string;
 		}) => sendHostInviteEmail(eventId, bmEventId, email, message),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["host-invitations", eventId],
+			});
+		},
 	});
 };
+
+export const useHostInvitations = (eventId: string, bmEventId?: string) =>
+	useQuery({
+		queryKey: ["host-invitations", eventId, bmEventId],
+		queryFn: () => getHostInvitations(eventId, bmEventId),
+		enabled: !!eventId,
+		// Resend webhooks flip queued/sent to delivered/bounced within seconds.
+		refetchInterval: (query) =>
+			query.state.data?.some((i) =>
+				["queued", "sending", "sent"].includes(i.status),
+			)
+				? 10_000
+				: false,
+	});
 
 export const useBusinessMatchingEvents = (
 	eventId: string,

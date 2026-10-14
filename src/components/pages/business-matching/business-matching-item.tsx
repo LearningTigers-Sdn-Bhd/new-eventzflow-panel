@@ -225,7 +225,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 									props: { bmEvent: event },
 									config: {
 										title: `Attach Host to "${event.title}"`,
-										size: "lg",
+										size: "2xl",
 										className: "rounded-none",
 									},
 								});

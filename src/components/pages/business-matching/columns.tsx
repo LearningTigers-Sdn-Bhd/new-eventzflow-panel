@@ -131,7 +131,7 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								props: { bmEvent: row.original },
 								config: {
 									title: `Attach Host to "${row.original.title}"`,
-									size: "lg",
+									size: "2xl",
 									className: "rounded-none",
 								},
 							});

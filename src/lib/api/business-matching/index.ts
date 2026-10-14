@@ -390,6 +390,44 @@ export async function sendHostInviteEmail(
 	});
 }
 
+export type HostInvitationStatus =
+	| "queued"
+	| "sending"
+	| "sent"
+	| "delivered"
+	| "failed"
+	| "bounced"
+	| "complained"
+	| "suppressed"
+	| "skipped";
+
+export interface HostInvitation {
+	id: number;
+	recipient: string | null;
+	status: HostInvitationStatus;
+	sent_at: string | null;
+	delivered_at: string | null;
+	failed_at: string | null;
+	bounced_at: string | null;
+	complained_at: string | null;
+	suppressed_at: string | null;
+	failure_reason: string | null;
+	created_at: string;
+	business_matching_event_id: string | null;
+}
+
+// Host invitation emails sent for an event, with their delivery status
+export async function getHostInvitations(
+	eventId: string,
+	bmEventId?: string,
+): Promise<HostInvitation[]> {
+	const url = `v1/business_matching/events/${eventId}/host_invitations`;
+	const response = await restClient.get<{ data: HostInvitation[] }>(
+		bmEventId ? `${url}?business_matching_event_id=${bmEventId}` : url,
+	);
+	return response.data;
+}
+
 export interface CreateHostRequest {
 	full_name: string;
 	email: string;
